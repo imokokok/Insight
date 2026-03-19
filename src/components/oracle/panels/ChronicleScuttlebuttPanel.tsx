@@ -15,13 +15,13 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
   const getSecurityLevelColor = (level: string) => {
     switch (level) {
       case 'high':
-        return 'bg-green-100 text-green-700 border-green-200';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'low':
-        return 'bg-red-100 text-red-700 border-red-200';
+        return 'bg-red-50 text-red-700 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -41,13 +41,13 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return 'bg-red-100 text-red-700';
+        return 'bg-red-50 text-red-700 border-red-200';
       case 'warning':
-        return 'bg-yellow-100 text-yellow-700';
+        return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'info':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-blue-50 text-blue-700 border-blue-200';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -71,9 +71,9 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
           <div className="py-2">
             <p className="text-xs text-gray-500 mb-1">{t('chronicle.scuttlebutt.auditScore')}</p>
             <p className="text-xl font-bold text-gray-900">{data.auditScore}/100</p>
-            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+            <div className="mt-2 w-full bg-gray-200 h-2">
               <div
-                className="bg-amber-500 h-2 rounded-full transition-all duration-500"
+                className="bg-amber-500 h-2 transition-all duration-500"
                 style={{ width: `${data.auditScore}%` }}
               />
             </div>
@@ -116,7 +116,7 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
               className="flex items-start gap-4 py-4 border-b border-gray-100 last:border-0"
             >
               <span
-                className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getSeverityColor(event.severity)}`}
+                className={`px-2 py-1 text-xs font-medium capitalize border ${getSeverityColor(event.severity)}`}
               >
                 {t(`chronicle.severity.${event.severity}`)}
               </span>

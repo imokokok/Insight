@@ -121,11 +121,7 @@ export default function CrossOraclePage() {
         }
       `}</style>
 
-      <StatsOverview
-        outlierStats={outlierStats}
-        scrollToOutlier={scrollToOutlier}
-        t={t}
-      />
+      <StatsOverview outlierStats={outlierStats} scrollToOutlier={scrollToOutlier} t={t} />
 
       <HeaderSection
         selectedSymbol={selectedSymbol}

@@ -292,7 +292,10 @@ export function PriceDeviationHistoryChart({
                 options={[
                   { value: 'average', label: t('charts.priceDeviationHistory.baselineAverage') },
                   { value: 'median', label: t('charts.priceDeviationHistory.baselineMedian') },
-                  { value: 'chainlink', label: t('charts.priceDeviationHistory.baselineChainlink') },
+                  {
+                    value: 'chainlink',
+                    label: t('charts.priceDeviationHistory.baselineChainlink'),
+                  },
                 ]}
                 value={baselineType}
                 onChange={(value) => setBaselineType(value as BaselineType)}

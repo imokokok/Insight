@@ -51,9 +51,7 @@ export function VisuallyHidden({
   as: Component = 'span',
   className = '',
 }: VisuallyHiddenProps) {
-  return (
-    <Component className={`sr-only ${className}`}>{children}</Component>
-  );
+  return <Component className={`sr-only ${className}`}>{children}</Component>;
 }
 
 // ============================================
@@ -73,14 +71,7 @@ export function LiveRegion({
   atomic = true,
   className = '',
 }: LiveRegionProps) {
-  return (
-    <div
-      id={id}
-      aria-live={level}
-      aria-atomic={atomic}
-      className={`sr-only ${className}`}
-    />
-  );
+  return <div id={id} aria-live={level} aria-atomic={atomic} className={`sr-only ${className}`} />;
 }
 
 // ============================================
@@ -94,12 +85,7 @@ interface FocusTrapProps {
   className?: string;
 }
 
-export function FocusTrap({
-  children,
-  isActive,
-  onEscape,
-  className = '',
-}: FocusTrapProps) {
+export function FocusTrap({ children, isActive, onEscape, className = '' }: FocusTrapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -367,18 +353,14 @@ export function FocusIndicator({
 // Accessible Button Component
 // ============================================
 
-interface AccessibleButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface AccessibleButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
   loadingText?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
 
-export const AccessibleButton = React.forwardRef<
-  HTMLButtonElement,
-  AccessibleButtonProps
->(
+export const AccessibleButton = React.forwardRef<HTMLButtonElement, AccessibleButtonProps>(
   (
     {
       children,
@@ -425,20 +407,13 @@ AccessibleButton.displayName = 'AccessibleButton';
 // Accessible Link Component
 // ============================================
 
-interface AccessibleLinkProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+interface AccessibleLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   external?: boolean;
   underline?: boolean;
 }
 
-export const AccessibleLink = React.forwardRef<
-  HTMLAnchorElement,
-  AccessibleLinkProps
->(
-  (
-    { children, external, underline = true, href = '#', ...props },
-    ref
-  ) => {
+export const AccessibleLink = React.forwardRef<HTMLAnchorElement, AccessibleLinkProps>(
+  ({ children, external, underline = true, href = '#', ...props }, ref) => {
     const externalProps = external
       ? {
           target: '_blank',
@@ -492,13 +467,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
         const matchesShift = !!shortcut.shiftKey === e.shiftKey;
         const matchesMeta = !!shortcut.metaKey === e.metaKey;
 
-        if (
-          matchesKey &&
-          matchesCtrl &&
-          matchesAlt &&
-          matchesShift &&
-          matchesMeta
-        ) {
+        if (matchesKey && matchesCtrl && matchesAlt && matchesShift && matchesMeta) {
           if (shortcut.preventDefault !== false) {
             e.preventDefault();
           }
@@ -559,12 +528,8 @@ export function RovingTabindex({
       const container = containerRef.current;
       if (!container) return;
 
-      const items = Array.from(
-        container.querySelectorAll<HTMLElement>('[data-roving-tabindex]')
-      );
-      const currentIndex = items.findIndex(
-        (item) => item === document.activeElement
-      );
+      const items = Array.from(container.querySelectorAll<HTMLElement>('[data-roving-tabindex]'));
+      const currentIndex = items.findIndex((item) => item === document.activeElement);
 
       const isHorizontal = orientation === 'horizontal';
       const nextKey = isHorizontal ? 'ArrowRight' : 'ArrowDown';
@@ -574,8 +539,7 @@ export function RovingTabindex({
         case nextKey:
           e.preventDefault();
           {
-            const nextIndex =
-              currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+            const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
             items[nextIndex]?.focus();
             setActiveIndex(nextIndex);
           }
@@ -584,8 +548,7 @@ export function RovingTabindex({
         case prevKey:
           e.preventDefault();
           {
-            const prevIndex =
-              currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+            const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
             items[prevIndex]?.focus();
             setActiveIndex(prevIndex);
           }
@@ -617,10 +580,13 @@ export function RovingTabindex({
     >
       {React.Children.map(children, (child, index) => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as React.ReactElement<{ 'data-roving-tabindex'?: boolean; tabIndex?: number }>, {
-            'data-roving-tabindex': true,
-            tabIndex: index === activeIndex ? 0 : -1,
-          });
+          return React.cloneElement(
+            child as React.ReactElement<{ 'data-roving-tabindex'?: boolean; tabIndex?: number }>,
+            {
+              'data-roving-tabindex': true,
+              tabIndex: index === activeIndex ? 0 : -1,
+            }
+          );
         }
         return child;
       })}

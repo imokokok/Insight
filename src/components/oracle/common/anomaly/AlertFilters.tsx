@@ -34,7 +34,9 @@ export function AlertFilters({ filter, onFilterChange }: AlertFiltersProps) {
           { value: 'low', label: t('anomalyAlert.severity_low') },
         ]}
         value={filter.severity}
-        onChange={(value) => onFilterChange({ ...filter, severity: value as AnomalySeverity | 'all' })}
+        onChange={(value) =>
+          onFilterChange({ ...filter, severity: value as AnomalySeverity | 'all' })
+        }
       />
 
       <DropdownSelect

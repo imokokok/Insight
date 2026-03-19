@@ -23,7 +23,12 @@ import {
 } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
 import { baseColors, chartColors } from '@/lib/config/colors';
-import { oracleNames, oracleColors, PriceHistoryPoint, defaultPerformanceData } from './crossOracleConfig';
+import {
+  oracleNames,
+  oracleColors,
+  PriceHistoryPoint,
+  defaultPerformanceData,
+} from './crossOracleConfig';
 import { PriceDeviationHistoryChart } from '../PriceDeviationHistoryChart';
 
 interface PriceStats {
@@ -112,10 +117,10 @@ export function ChartsTab({
                   axisLine={false}
                   tickLine={false}
                 />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  width={65} 
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={65}
                   tick={{ fontSize: 11, fill: '#6b7280' }}
                   axisLine={false}
                   tickLine={false}
@@ -131,7 +136,11 @@ export function ChartsTab({
                   labelFormatter={(label) =>
                     `${label} - $${deviationChartData.find((d) => d.name === label)?.price.toFixed(2)}`
                   }
-                  contentStyle={{ fontSize: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                  contentStyle={{
+                    fontSize: 12,
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
                 />
                 <ReferenceLine x={0} stroke={chartColors.recharts.axis} strokeWidth={1} />
                 <Bar dataKey="deviation" radius={[0, 4, 4, 0]}>
@@ -172,10 +181,14 @@ export function ChartsTab({
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[100]} vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 11, fill: '#6b7280' }} 
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={baseColors.gray[100]}
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 11, fill: '#6b7280' }}
                   interval={0}
                   axisLine={false}
                   tickLine={false}
@@ -188,7 +201,11 @@ export function ChartsTab({
                 />
                 <Tooltip
                   formatter={(value) => [`$${Number(value).toFixed(2)}`, t('crossOracle.price')]}
-                  contentStyle={{ fontSize: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                  contentStyle={{
+                    fontSize: 12,
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
                 />
                 <Bar dataKey="price" radius={[4, 4, 0, 0]}>
                   {chartData.map((entry, index) => (
@@ -208,15 +225,25 @@ export function ChartsTab({
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lineChartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[100]} vertical={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={baseColors.gray[100]}
+                  vertical={false}
+                />
                 <XAxis dataKey="time" tickFormatter={() => ''} axisLine={false} tickLine={false} />
-                <YAxis 
-                  domain={['auto', 'auto']} 
+                <YAxis
+                  domain={['auto', 'auto']}
                   tick={{ fontSize: 11, fill: '#6b7280' }}
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip contentStyle={{ fontSize: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
+                <Tooltip
+                  contentStyle={{
+                    fontSize: 12,
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
+                />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 {selectedOracles.map((provider) => (
                   <Line
@@ -255,7 +282,11 @@ export function ChartsTab({
               <Tooltip
                 formatter={(value, name) => [`$${Number(value)?.toFixed(2) || 0}`, String(name)]}
                 labelFormatter={() => t('crossOracle.priceHistory')}
-                contentStyle={{ fontSize: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                contentStyle={{
+                  fontSize: 12,
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                }}
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               {selectedOracles.map((provider) => (
@@ -273,7 +304,12 @@ export function ChartsTab({
                 y={priceStats?.avg}
                 stroke={chartColors.recharts.axis}
                 strokeDasharray="3 3"
-                label={{ value: t('crossOracle.average'), position: 'right', fontSize: 10, fill: '#6b7280' }}
+                label={{
+                  value: t('crossOracle.average'),
+                  position: 'right',
+                  fontSize: 10,
+                  fill: '#6b7280',
+                }}
               />
             </ComposedChart>
           </ResponsiveContainer>
@@ -296,9 +332,9 @@ export function ChartsTab({
               margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[100]} vertical={false} />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 11, fill: '#6b7280' }} 
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 11, fill: '#6b7280' }}
                 interval={0}
                 axisLine={false}
                 tickLine={false}
@@ -319,12 +355,19 @@ export function ChartsTab({
               <Tooltip
                 formatter={(value) => {
                   const numValue = Number(value);
-                  if (numValue < 1) return [`${(numValue * 1000).toFixed(0)} ms`, t('crossOracle.updateFrequency')];
-                  if (numValue < 60) return [`${numValue.toFixed(1)} s`, t('crossOracle.updateFrequency')];
-                  if (numValue < 3600) return [`${(numValue / 60).toFixed(0)} min`, t('crossOracle.updateFrequency')];
+                  if (numValue < 1)
+                    return [`${(numValue * 1000).toFixed(0)} ms`, t('crossOracle.updateFrequency')];
+                  if (numValue < 60)
+                    return [`${numValue.toFixed(1)} s`, t('crossOracle.updateFrequency')];
+                  if (numValue < 3600)
+                    return [`${(numValue / 60).toFixed(0)} min`, t('crossOracle.updateFrequency')];
                   return [`${(numValue / 3600).toFixed(1)} h`, t('crossOracle.updateFrequency')];
                 }}
-                contentStyle={{ fontSize: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                contentStyle={{
+                  fontSize: 12,
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                }}
               />
               <Bar dataKey="frequency" radius={[4, 4, 0, 0]}>
                 {performanceData.map((entry, index) => (
@@ -356,7 +399,11 @@ export function ChartsTab({
             <RadarChart data={radarData} margin={{ top: 10, right: 50, left: 50, bottom: 10 }}>
               <PolarGrid stroke={baseColors.gray[200]} />
               <PolarAngleAxis dataKey="metric" tick={{ fontSize: 10, fill: '#6b7280' }} />
-              <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+              <PolarRadiusAxis
+                angle={30}
+                domain={[0, 100]}
+                tick={{ fontSize: 10, fill: '#9ca3af' }}
+              />
               {selectedOracles.map((provider) => (
                 <Radar
                   key={provider}

@@ -16,7 +16,10 @@ import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './component
 import { CompactStatsGrid } from './components/CompactStatsGrid';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
-import { ProgressBar as LoadingProgressBar, DataLoadingProgress } from '@/components/ui/LoadingProgress';
+import {
+  ProgressBar as LoadingProgressBar,
+  DataLoadingProgress,
+} from '@/components/ui/LoadingProgress';
 import { TabNavigation, TabId } from './components/TabNavigation';
 import { CollapsibleSection } from './components/CollapsibleSection';
 import { DataSourceSection } from './components/DataSourceSection';
@@ -221,7 +224,7 @@ export default function CrossChainPage() {
       <CompactStatsGrid statsData={statsData} />
 
       <DataSourceSection
-        dataPoints={currentPrices.map(p => ({
+        dataPoints={currentPrices.map((p) => ({
           chain: p.chain || Blockchain.ETHEREUM,
           price: p.price,
           timestamp: p.timestamp,
@@ -237,7 +240,7 @@ export default function CrossChainPage() {
       {/* Benchmark Comparison Section */}
       {currentPrices.length > 0 && (
         <BenchmarkComparisonSection
-          chainPrices={currentPrices.map(p => ({
+          chainPrices={currentPrices.map((p) => ({
             chain: p.chain || Blockchain.ETHEREUM,
             price: p.price,
             timestamp: p.timestamp,
@@ -324,7 +327,10 @@ export default function CrossChainPage() {
                       </div>
                     </td>
                     <td className="px-3 py-2.5">
-                      <CrossChainProgressBar value={integrity} color={getIntegrityColor(integrity)} />
+                      <CrossChainProgressBar
+                        value={integrity}
+                        color={getIntegrityColor(integrity)}
+                      />
                     </td>
                     <td className="px-3 py-2.5">
                       <CrossChainProgressBar
@@ -593,12 +599,18 @@ export default function CrossChainPage() {
           >
             JSON
           </button>
-          <div className="flex items-center gap-2 px-3 py-1.5 border" style={{ borderColor: baseColors.gray[200] }}>
+          <div
+            className="flex items-center gap-2 px-3 py-1.5 border"
+            style={{ borderColor: baseColors.gray[200] }}
+          >
             <span className="text-sm" style={{ color: baseColors.gray[600] }}>
               {t('crossChain.autoRefresh')}
             </span>
             <SegmentedControl
-              options={refreshOptions.map((opt) => ({ value: opt.value.toString(), label: opt.label }))}
+              options={refreshOptions.map((opt) => ({
+                value: opt.value.toString(),
+                label: opt.label,
+              }))}
               value={refreshInterval.toString()}
               onChange={(value) => setRefreshInterval(Number(value) as RefreshInterval)}
               size="sm"

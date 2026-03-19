@@ -103,36 +103,33 @@ function MobilePriceChartBase({
   }, [visibleData]);
 
   // Touch handlers for pinch zoom and pan
-  const handleTouchStart = useCallback(
-    (e: React.TouchEvent) => {
-      const touches = e.touches;
-      const now = Date.now();
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touches = e.touches;
+    const now = Date.now();
 
-      if (touches.length === 2) {
-        // Pinch start
-        const distance = Math.hypot(
-          touches[0].clientX - touches[1].clientX,
-          touches[0].clientY - touches[1].clientY
-        );
-        touchState.current = {
-          ...touchState.current,
-          startDistance: distance,
-          isPinching: true,
-          lastTouchTime: now,
-        };
-      } else if (touches.length === 1) {
-        // Pan start
-        touchState.current = {
-          ...touchState.current,
-          startX: touches[0].clientX,
-          startY: touches[0].clientY,
-          isPanning: true,
-          lastTouchTime: now,
-        };
-      }
-    },
-    []
-  );
+    if (touches.length === 2) {
+      // Pinch start
+      const distance = Math.hypot(
+        touches[0].clientX - touches[1].clientX,
+        touches[0].clientY - touches[1].clientY
+      );
+      touchState.current = {
+        ...touchState.current,
+        startDistance: distance,
+        isPinching: true,
+        lastTouchTime: now,
+      };
+    } else if (touches.length === 1) {
+      // Pan start
+      touchState.current = {
+        ...touchState.current,
+        startX: touches[0].clientX,
+        startY: touches[0].clientY,
+        isPanning: true,
+        lastTouchTime: now,
+      };
+    }
+  }, []);
 
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
@@ -162,7 +159,13 @@ function MobilePriceChartBase({
         const pointDelta = Math.round((deltaX * sensitivity) / 10);
 
         if (Math.abs(pointDelta) > 0) {
-          const newStart = Math.max(0, Math.min(data.length - (visibleRange.end - visibleRange.start), visibleRange.start - pointDelta));
+          const newStart = Math.max(
+            0,
+            Math.min(
+              data.length - (visibleRange.end - visibleRange.start),
+              visibleRange.start - pointDelta
+            )
+          );
           const newEnd = newStart + (visibleRange.end - visibleRange.start);
 
           setVisibleRange({ start: newStart, end: newEnd });
@@ -301,7 +304,11 @@ function MobilePriceChartBase({
                 }
                 return null;
               }}
-              cursor={{ stroke: chartColors.recharts.border, strokeWidth: 1, strokeDasharray: '4 4' }}
+              cursor={{
+                stroke: chartColors.recharts.border,
+                strokeWidth: 1,
+                strokeDasharray: '4 4',
+              }}
             />
 
             {showVolume && (

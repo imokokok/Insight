@@ -89,17 +89,12 @@ const ComparisonBadge = memo(function ComparisonBadge({
     >
       <div className="flex items-center justify-between mb-2">
         <span style={{ color: baseColors.gray[500] }}>{t('comparison.title')}</span>
-        <span
-          className={`font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}
-        >
+        <span className={`font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
           {formatPercentage(changePercent)}
         </span>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <div
-          className="p-2 rounded"
-          style={{ backgroundColor: baseColors.gray[50] }}
-        >
+        <div className="p-2 rounded" style={{ backgroundColor: baseColors.gray[50] }}>
           <div style={{ color: baseColors.gray[500] }}>{t('comparison.previous')}</div>
           <div className="font-mono font-medium" style={{ color: baseColors.gray[700] }}>
             {formatCurrency(previous)}
@@ -107,7 +102,11 @@ const ComparisonBadge = memo(function ComparisonBadge({
         </div>
         <div
           className="p-2 rounded"
-          style={{ backgroundColor: isPositive ? `${semanticColors.success.light}50` : `${semanticColors.danger.light}50` }}
+          style={{
+            backgroundColor: isPositive
+              ? `${semanticColors.success.light}50`
+              : `${semanticColors.danger.light}50`,
+          }}
         >
           <div style={{ color: baseColors.gray[500] }}>{t('comparison.current')}</div>
           <div
@@ -169,10 +168,7 @@ const DataPointRow = memo(function DataPointRow({
           className="w-2.5 h-2.5 rounded-full flex-shrink-0"
           style={{ backgroundColor: color }}
         />
-        <span
-          style={{ color: baseColors.gray[600] }}
-          className={isDifferent ? 'font-medium' : ''}
-        >
+        <span style={{ color: baseColors.gray[600] }} className={isDifferent ? 'font-medium' : ''}>
           {displayName}
         </span>
         {isDifferent && (
@@ -187,10 +183,7 @@ const DataPointRow = memo(function DataPointRow({
           </span>
         )}
       </div>
-      <span
-        className="font-mono font-medium"
-        style={{ color: baseColors.gray[900] }}
-      >
+      <span className="font-mono font-medium" style={{ color: baseColors.gray[900] }}>
         {displayValue}
       </span>
     </div>
@@ -221,14 +214,14 @@ export const EnhancedTooltip = memo(function EnhancedTooltip({
   const filteredPayload = useMemo(() => {
     // Filter out internal/technical data keys
     const excludedKeys = ['timestamp', 'time', 'isComparison'];
-    return payload
-      .filter((item) => !excludedKeys.includes(item.dataKey))
-      .slice(0, maxItems);
+    return payload.filter((item) => !excludedKeys.includes(item.dataKey)).slice(0, maxItems);
   }, [payload, maxItems]);
 
   // Extract all values for comparison highlighting
   const allValues = useMemo(() => {
-    return filteredPayload.map((item) => item.value).filter((v): v is number => typeof v === 'number');
+    return filteredPayload
+      .map((item) => item.value)
+      .filter((v): v is number => typeof v === 'number');
   }, [filteredPayload]);
 
   // Format the label

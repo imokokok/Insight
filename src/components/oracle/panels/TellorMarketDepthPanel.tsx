@@ -25,7 +25,9 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="py-2">
             <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalBidVolume')}</p>
-            <p className="text-xl font-bold text-green-600">{data.totalBidVolume.toLocaleString()}</p>
+            <p className="text-xl font-bold text-green-600">
+              {data.totalBidVolume.toLocaleString()}
+            </p>
           </div>
           <div className="py-2">
             <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalAskVolume')}</p>
@@ -79,7 +81,9 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
             <div className="space-y-2">
               {askLevels.slice(0, 10).map((level, index) => (
                 <div key={index} className="flex items-center justify-between py-1">
-                  <span className="text-sm font-medium text-red-700">${level.price.toFixed(4)}</span>
+                  <span className="text-sm font-medium text-red-700">
+                    ${level.price.toFixed(4)}
+                  </span>
                   <div className="flex items-center gap-4">
                     <div className="w-32 bg-red-200 rounded-full h-2">
                       <div

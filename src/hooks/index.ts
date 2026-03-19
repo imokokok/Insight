@@ -208,7 +208,4 @@ export {
   getPlatformShortcut,
   shortcutKeys,
 } from './useKeyboardShortcuts';
-export type {
-  KeyboardShortcut,
-  ShortcutConflict,
-} from './useKeyboardShortcuts';
+export type { KeyboardShortcut, ShortcutConflict } from './useKeyboardShortcuts';

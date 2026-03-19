@@ -252,11 +252,7 @@ export function useGlobalKeyboardListener() {
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // 当用户在输入框中输入时不触发快捷键
     const target = event.target as HTMLElement;
-    if (
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.isContentEditable
-    ) {
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
       // 但允许 Escape 键关闭对话框
       if (event.key !== 'Escape') {
         return;

@@ -22,7 +22,12 @@ import {
 import { OracleProvider } from '@/types/oracle';
 import { baseColors, chartColors } from '@/lib/config/colors';
 import { PriceDeviationHistoryChart } from '../PriceDeviationHistoryChart';
-import { oracleNames, oracleColors, PriceComparisonData, defaultPerformanceData } from './crossOracleConfig';
+import {
+  oracleNames,
+  oracleColors,
+  PriceComparisonData,
+  defaultPerformanceData,
+} from './crossOracleConfig';
 
 interface PriceStats {
   avg: number;
@@ -293,9 +298,12 @@ export function ComparisonCharts({
               <Tooltip
                 formatter={(value) => {
                   const numValue = Number(value);
-                  if (numValue < 1) return [`${(numValue * 1000).toFixed(0)} ms`, t('crossOracle.updateFrequency')];
-                  if (numValue < 60) return [`${numValue.toFixed(1)} s`, t('crossOracle.updateFrequency')];
-                  if (numValue < 3600) return [`${(numValue / 60).toFixed(0)} min`, t('crossOracle.updateFrequency')];
+                  if (numValue < 1)
+                    return [`${(numValue * 1000).toFixed(0)} ms`, t('crossOracle.updateFrequency')];
+                  if (numValue < 60)
+                    return [`${numValue.toFixed(1)} s`, t('crossOracle.updateFrequency')];
+                  if (numValue < 3600)
+                    return [`${(numValue / 60).toFixed(0)} min`, t('crossOracle.updateFrequency')];
                   return [`${(numValue / 3600).toFixed(1)} h`, t('crossOracle.updateFrequency')];
                 }}
               />

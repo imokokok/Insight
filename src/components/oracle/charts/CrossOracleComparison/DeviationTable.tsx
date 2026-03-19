@@ -61,10 +61,7 @@ export function DeviationTable({ deviationData }: DeviationTableProps) {
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div
-                        className="w-2.5 h-2.5 mr-2"
-                        style={{ backgroundColor: data.color }}
-                      />
+                      <div className="w-2.5 h-2.5 mr-2" style={{ backgroundColor: data.color }} />
                       <span className="font-medium text-gray-900">{data.name}</span>
                     </div>
                   </td>

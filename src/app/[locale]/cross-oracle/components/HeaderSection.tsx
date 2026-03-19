@@ -100,12 +100,7 @@ export function HeaderSection({
                 : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -156,7 +151,11 @@ export function HeaderSection({
               ? 'bg-purple-50 border-purple-300 text-purple-700'
               : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
           }`}
-          title={useAccessibleColors ? t('crossOracle.accessibility.standardColors') : t('crossOracle.accessibility.colorBlindMode')}
+          title={
+            useAccessibleColors
+              ? t('crossOracle.accessibility.standardColors')
+              : t('crossOracle.accessibility.colorBlindMode')
+          }
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -173,7 +172,9 @@ export function HeaderSection({
             />
           </svg>
           <span className="hidden sm:inline">
-            {useAccessibleColors ? t('crossOracle.accessibility.standardMode') : t('crossOracle.accessibility.colorBlindMode')}
+            {useAccessibleColors
+              ? t('crossOracle.accessibility.standardMode')
+              : t('crossOracle.accessibility.colorBlindMode')}
           </span>
         </button>
 
@@ -248,7 +249,9 @@ export function HeaderSection({
             {showFavoritesDropdown && (
               <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 z-50 max-h-96 overflow-y-auto">
                 <div className="p-2 border-b border-gray-100">
-                  <h3 className="text-sm font-semibold text-gray-900">{t('crossOracle.favorites.quickAccess')}</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    {t('crossOracle.favorites.quickAccess')}
+                  </h3>
                 </div>
                 <div className="p-1">
                   {oracleFavorites.map((favorite) => {

@@ -245,7 +245,8 @@ export function usePriceQuery(): UsePriceQueryReturn {
     if (typeof window === 'undefined') return;
     const config = parseQueryParams(window.location.search);
 
-    const hasUrlParams = config.oracles?.length || config.chains?.length || config.symbol || config.timeRange;
+    const hasUrlParams =
+      config.oracles?.length || config.chains?.length || config.symbol || config.timeRange;
 
     if (!hasUrlParams) {
       applyPreferences();
@@ -493,7 +494,14 @@ export function usePriceQuery(): UsePriceQueryReturn {
       setQueryDuration(Date.now() - startTime);
       setCurrentQueryTarget({ oracle: null, chain: null });
     }
-  }, [selectedOracles, selectedChains, selectedSymbol, selectedTimeRange, compareMode, compareTimeRange]);
+  }, [
+    selectedOracles,
+    selectedChains,
+    selectedSymbol,
+    selectedTimeRange,
+    compareMode,
+    compareTimeRange,
+  ]);
 
   useEffect(() => {
     if (!urlParamsParsed) return;

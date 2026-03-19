@@ -176,11 +176,14 @@ export function PreferencesPanel() {
         defaultSymbol:
           dbPrefs.default_symbol || localPrefs.defaultSymbol || defaultPreferences.defaultSymbol,
         defaultTimeRange:
-          dbPrefs.default_time_range || localPrefs.defaultTimeRange || defaultPreferences.defaultTimeRange,
-        language:
-          dbPrefs.language || localPrefs.language || defaultPreferences.language,
+          dbPrefs.default_time_range ||
+          localPrefs.defaultTimeRange ||
+          defaultPreferences.defaultTimeRange,
+        language: dbPrefs.language || localPrefs.language || defaultPreferences.language,
         defaultCurrency:
-          dbPrefs.default_currency || localPrefs.defaultCurrency || defaultPreferences.defaultCurrency,
+          dbPrefs.default_currency ||
+          localPrefs.defaultCurrency ||
+          defaultPreferences.defaultCurrency,
         autoRefreshInterval:
           dbPrefs.auto_refresh_interval !== undefined
             ? String(dbPrefs.auto_refresh_interval)
@@ -246,10 +249,7 @@ export function PreferencesPanel() {
     }
   };
 
-  const updatePreference = <K extends keyof UserPreferences>(
-    key: K,
-    value: UserPreferences[K]
-  ) => {
+  const updatePreference = <K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) => {
     setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -261,8 +261,8 @@ export function PreferencesPanel() {
         </div>
       ) : (
         <>
-          <div className="bg-white border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-100">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Database className="w-5 h-5 text-gray-400" />
                 {t('settings.preferences.title')}
@@ -272,7 +272,7 @@ export function PreferencesPanel() {
 
             <div className="p-6 space-y-6">
               {success && (
-                <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-sm flex items-center gap-2">
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
                   {success}
                 </div>
@@ -280,7 +280,7 @@ export function PreferencesPanel() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <Database className="w-4 h-4 text-gray-400" />
                     {t('settings.preferences.defaultOracle')}
                   </label>
@@ -289,10 +289,10 @@ export function PreferencesPanel() {
                       <button
                         key={option.value}
                         onClick={() => updatePreference('defaultOracle', option.value)}
-                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                           preferences.defaultOracle === option.value
                             ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
                         }`}
                       >
                         {option.label}
@@ -378,7 +378,9 @@ export function PreferencesPanel() {
                     options={autoRefreshOptions}
                     value={preferences.autoRefreshInterval}
                     onChange={(value) => updatePreference('autoRefreshInterval', value)}
-                    placeholder={t('settings.preferences.selectRefreshInterval') || '请选择刷新间隔'}
+                    placeholder={
+                      t('settings.preferences.selectRefreshInterval') || '请选择刷新间隔'
+                    }
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     {t('settings.preferences.autoRefreshIntervalHint')}
@@ -392,7 +394,7 @@ export function PreferencesPanel() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm hover:shadow-md"
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

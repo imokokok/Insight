@@ -110,10 +110,35 @@ export const oracleColors: Record<OracleProvider, string> = {
 };
 
 export const symbols = [
-  'BTC', 'ETH', 'SOL', 'USDC', 'LINK', 'AVAX', 'MATIC', 'ARB',
-  'BNB', 'XRP', 'DOGE', 'ADA', 'DOT', 'ATOM', 'NEAR', 'OP',
-  'UNI', 'AAVE', 'MKR', 'LDO', 'CRV', 'SNX', 'COMP', 'YFI',
-  'STETH', 'WBTC', 'DAI', 'USDT', 'WETH'
+  'BTC',
+  'ETH',
+  'SOL',
+  'USDC',
+  'LINK',
+  'AVAX',
+  'MATIC',
+  'ARB',
+  'BNB',
+  'XRP',
+  'DOGE',
+  'ADA',
+  'DOT',
+  'ATOM',
+  'NEAR',
+  'OP',
+  'UNI',
+  'AAVE',
+  'MKR',
+  'LDO',
+  'CRV',
+  'SNX',
+  'COMP',
+  'YFI',
+  'STETH',
+  'WBTC',
+  'DAI',
+  'USDT',
+  'WETH',
 ];
 
 export const defaultPerformanceData: OraclePerformance[] = [

@@ -95,10 +95,7 @@ export const ChartLegend = memo(function ChartLegend({
       )}
       {!isMobile && showRSI && (
         <div className="flex items-center gap-2">
-          <span
-            className="w-3 h-0.5"
-            style={{ backgroundColor: semanticColors.success.DEFAULT }}
-          />
+          <span className="w-3 h-0.5" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
           <span className="text-xs" style={{ color: baseColors.gray[500] }}>
             {t('priceChart.rsi')}
           </span>

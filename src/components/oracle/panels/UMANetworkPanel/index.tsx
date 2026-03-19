@@ -170,13 +170,20 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
 
       {/* 争议统计 */}
       <DashboardCard title={t('uma.network.disputeStatistics')}>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 border border-gray-200">
           {disputeStats.map((stat, index) => (
-            <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500 mb-1">{stat.title}</p>
+            <div
+              key={index}
+              className={`text-center p-4 bg-gray-50 ${
+                index < disputeStats.length - 1 ? 'border-r border-gray-200' : ''
+              }`}
+            >
+              <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">{stat.title}</p>
               <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
               <p
-                className={`text-xs mt-1 ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}`}
+                className={`text-xs mt-2 font-medium ${
+                  stat.changeType === 'positive' ? 'text-emerald-600' : 'text-red-600'
+                }`}
               >
                 {stat.changeType === 'positive' ? '↑' : '↓'} {stat.change}
               </p>
@@ -197,15 +204,17 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
                     <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="hour" tick={{ fontSize: 12 }} interval={3} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
+                <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#6b7280' }} interval={3} />
+                <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#fff',
-                    borderRadius: '8px',
                     border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   }}
+                  labelStyle={{ color: '#374151', fontSize: 12 }}
+                  itemStyle={{ color: '#111827', fontSize: 12 }}
                   formatter={(value) => [
                     String(value).toLocaleString(),
                     t('uma.network.verifications'),
@@ -222,20 +231,22 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-xs text-gray-500">{t('uma.network.total24h')}</p>
-              <p className="text-lg font-semibold">
+          <div className="mt-4 grid grid-cols-3 gap-0 border border-gray-200">
+            <div className="text-center py-3 px-2 bg-gray-50 border-r border-gray-200">
+              <p className="text-xs text-gray-500 mb-1">{t('uma.network.total24h')}</p>
+              <p className="text-lg font-bold text-gray-900">
                 {verificationActivity?.total.toLocaleString() ?? '145,200'}
               </p>
             </div>
-            <div>
-              <p className="text-xs text-gray-500">{t('uma.network.peakHour')}</p>
-              <p className="text-lg font-semibold">{verificationActivity?.peakHour ?? 11}:00</p>
+            <div className="text-center py-3 px-2 bg-gray-50 border-r border-gray-200">
+              <p className="text-xs text-gray-500 mb-1">{t('uma.network.peakHour')}</p>
+              <p className="text-lg font-bold text-gray-900">
+                {verificationActivity?.peakHour ?? 11}:00
+              </p>
             </div>
-            <div>
-              <p className="text-xs text-gray-500">{t('uma.network.avgPerHour')}</p>
-              <p className="text-lg font-semibold">
+            <div className="text-center py-3 px-2 bg-gray-50">
+              <p className="text-xs text-gray-500 mb-1">{t('uma.network.avgPerHour')}</p>
+              <p className="text-lg font-bold text-gray-900">
                 {verificationActivity?.avgPerHour.toLocaleString() ?? '6,050'}
               </p>
             </div>
@@ -246,22 +257,24 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={disputeTrends}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#6b7280' }} />
+                <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#fff',
-                    borderRadius: '8px',
                     border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   }}
+                  labelStyle={{ color: '#374151', fontSize: 12 }}
+                  itemStyle={{ color: '#111827', fontSize: 12 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="filed"
                   stroke="#ef4444"
                   strokeWidth={2}
-                  dot={{ fill: '#ef4444', strokeWidth: 2 }}
+                  dot={{ fill: '#ef4444', strokeWidth: 2, r: 3 }}
                   name={t('uma.network.disputesFiled')}
                 />
                 <Line
@@ -269,7 +282,7 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
                   dataKey="resolved"
                   stroke="#10b981"
                   strokeWidth={2}
-                  dot={{ fill: '#10b981', strokeWidth: 2 }}
+                  dot={{ fill: '#10b981', strokeWidth: 2, r: 3 }}
                   name={t('uma.network.disputesResolved')}
                 />
               </LineChart>
@@ -293,16 +306,18 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="day" tick={{ fontSize: 12 }} interval={4} />
-              <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
+              <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#6b7280' }} interval={4} />
+              <YAxis yAxisId="left" tick={{ fontSize: 12, fill: '#6b7280' }} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12, fill: '#6b7280' }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: '#fff',
-                  borderRadius: '8px',
                   border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 }}
+                labelStyle={{ color: '#374151', fontSize: 12 }}
+                itemStyle={{ color: '#111827', fontSize: 12 }}
                 formatter={(value, name) => [`$${String(value).toLocaleString()}`, name]}
               />
               <Area
@@ -332,27 +347,37 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
 
       {/* 数据源信息 */}
       <DashboardCard title={t('uma.network.dataSources')}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-gray-200">
+          <div className="flex items-center justify-between p-4 bg-gray-50 border-r border-gray-200">
             <div className="flex items-center gap-3">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-sm font-medium">{t('uma.network.primaryDataSource')}</span>
+              <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span>
+              <span className="text-sm font-medium text-gray-700">
+                {t('uma.network.primaryDataSource')}
+              </span>
             </div>
-            <span className="text-sm text-gray-500">{networkStats?.dataSources ?? 320}</span>
+            <span className="text-sm font-bold text-gray-900">
+              {networkStats?.dataSources ?? 320}
+            </span>
           </div>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gray-50 border-r border-gray-200">
             <div className="flex items-center gap-3">
-              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-              <span className="text-sm font-medium">{t('uma.network.updateFrequency')}</span>
+              <span className="w-2.5 h-2.5 bg-blue-500 rounded-full"></span>
+              <span className="text-sm font-medium text-gray-700">
+                {t('uma.network.updateFrequency')}
+              </span>
             </div>
-            <span className="text-sm text-gray-500">{networkStats?.updateFrequency ?? 60}s</span>
+            <span className="text-sm font-bold text-gray-900">
+              {networkStats?.updateFrequency ?? 60}s
+            </span>
           </div>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gray-50">
             <div className="flex items-center gap-3">
-              <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-              <span className="text-sm font-medium">{t('uma.network.supportedChains')}</span>
+              <span className="w-2.5 h-2.5 bg-purple-500 rounded-full"></span>
+              <span className="text-sm font-medium text-gray-700">
+                {t('uma.network.supportedChains')}
+              </span>
             </div>
-            <span className="text-sm text-gray-500">5</span>
+            <span className="text-sm font-bold text-gray-900">5</span>
           </div>
         </div>
       </DashboardCard>

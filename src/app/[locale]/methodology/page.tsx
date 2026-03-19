@@ -40,12 +40,8 @@ export default function MethodologyPage() {
           <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
             <Calculator className="w-6 h-6 text-blue-600" />
           </div>
-          <h3 className="font-semibold text-gray-900 mb-2">
-            {t('methodology.aggregation.title')}
-          </h3>
-          <p className="text-sm text-gray-600">
-            {t('methodology.aggregation.description')}
-          </p>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('methodology.aggregation.title')}</h3>
+          <p className="text-sm text-gray-600">{t('methodology.aggregation.description')}</p>
         </div>
 
         <div className="bg-white border border-gray-200 p-6 rounded-lg">
@@ -55,21 +51,15 @@ export default function MethodologyPage() {
           <h3 className="font-semibold text-gray-900 mb-2">
             {t('methodology.riskAssessment.title')}
           </h3>
-          <p className="text-sm text-gray-600">
-            {t('methodology.riskAssessment.description')}
-          </p>
+          <p className="text-sm text-gray-600">{t('methodology.riskAssessment.description')}</p>
         </div>
 
         <div className="bg-white border border-gray-200 p-6 rounded-lg">
           <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mb-4">
             <Database className="w-6 h-6 text-purple-600" />
           </div>
-          <h3 className="font-semibold text-gray-900 mb-2">
-            {t('methodology.dataQuality.title')}
-          </h3>
-          <p className="text-sm text-gray-600">
-            {t('methodology.dataQuality.description')}
-          </p>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('methodology.dataQuality.title')}</h3>
+          <p className="text-sm text-gray-600">{t('methodology.dataQuality.description')}</p>
         </div>
       </div>
 
@@ -86,9 +76,7 @@ export default function MethodologyPage() {
 
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="p-6">
-            <p className="text-gray-700 mb-6">
-              {t('methodology.aggregation.intro')}
-            </p>
+            <p className="text-gray-700 mb-6">{t('methodology.aggregation.intro')}</p>
 
             <div className="space-y-6">
               {/* Simple Average */}
@@ -173,9 +161,7 @@ export default function MethodologyPage() {
 
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="p-6">
-            <p className="text-gray-700 mb-6">
-              {t('methodology.riskAssessment.intro')}
-            </p>
+            <p className="text-gray-700 mb-6">{t('methodology.riskAssessment.intro')}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Centralization Risk */}
@@ -299,9 +285,7 @@ export default function MethodologyPage() {
 
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="p-6">
-            <p className="text-gray-700 mb-6">
-              {t('methodology.dataQuality.intro')}
-            </p>
+            <p className="text-gray-700 mb-6">{t('methodology.dataQuality.intro')}</p>
 
             <div className="space-y-4">
               {/* Completeness */}
@@ -381,16 +365,17 @@ export default function MethodologyPage() {
 
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="p-6">
-            <p className="text-gray-700 mb-6">
-              {t('methodology.confidenceScore.intro')}
-            </p>
+            <p className="text-gray-700 mb-6">{t('methodology.confidenceScore.intro')}</p>
 
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <h4 className="font-medium text-gray-900 mb-3">
                 {t('methodology.confidenceScore.formula')}
               </h4>
               <div className="font-mono text-sm text-gray-700 space-y-2">
-                <p>Confidence = w₁×Freshness + w₂×Completeness + w₃×Consistency + w₄×SourceReliability</p>
+                <p>
+                  Confidence = w₁×Freshness + w₂×Completeness + w₃×Consistency +
+                  w₄×SourceReliability
+                </p>
                 <p className="text-gray-500">where w₁ + w₂ + w₃ + w₄ = 1</p>
               </div>
             </div>
@@ -454,16 +439,12 @@ export default function MethodologyPage() {
           <div className="p-2 bg-gray-100 rounded-lg">
             <Database className="w-5 h-5 text-gray-700" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900">
-            {t('methodology.dataSources.title')}
-          </h2>
+          <h2 className="text-xl font-bold text-gray-900">{t('methodology.dataSources.title')}</h2>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="p-6">
-            <p className="text-gray-700 mb-6">
-              {t('methodology.dataSources.intro')}
-            </p>
+            <p className="text-gray-700 mb-6">{t('methodology.dataSources.intro')}</p>
 
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
@@ -514,12 +495,8 @@ export default function MethodologyPage() {
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="font-medium text-blue-900 mb-1">
-              {t('methodology.disclaimer.title')}
-            </h4>
-            <p className="text-sm text-blue-700">
-              {t('methodology.disclaimer.content')}
-            </p>
+            <h4 className="font-medium text-blue-900 mb-1">{t('methodology.disclaimer.title')}</h4>
+            <p className="text-sm text-blue-700">{t('methodology.disclaimer.content')}</p>
           </div>
         </div>
       </div>

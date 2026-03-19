@@ -118,9 +118,18 @@ export default function MarketSidebar({
                 <span
                   className="font-medium px-1.5 py-0.5 border"
                   style={{
-                    color: item.change24h >= 0 ? semanticColors.success.text : semanticColors.danger.text,
-                    backgroundColor: item.change24h >= 0 ? semanticColors.success.light : semanticColors.danger.light,
-                    borderColor: item.change24h >= 0 ? semanticColors.success.light : semanticColors.danger.light,
+                    color:
+                      item.change24h >= 0
+                        ? semanticColors.success.text
+                        : semanticColors.danger.text,
+                    backgroundColor:
+                      item.change24h >= 0
+                        ? semanticColors.success.light
+                        : semanticColors.danger.light,
+                    borderColor:
+                      item.change24h >= 0
+                        ? semanticColors.success.light
+                        : semanticColors.danger.light,
                   }}
                 >
                   {item.change24h >= 0 ? '+' : ''}

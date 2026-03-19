@@ -265,7 +265,10 @@ export default function PythNetworkPage() {
                     <SegmentedControl
                       options={[
                         { value: 'stake', label: t('pyth.publishers.sortByStake') || '按质押排序' },
-                        { value: 'accuracy', label: t('pyth.publishers.sortByAccuracy') || '按准确率排序' },
+                        {
+                          value: 'accuracy',
+                          label: t('pyth.publishers.sortByAccuracy') || '按准确率排序',
+                        },
                         { value: 'name', label: t('pyth.publishers.sortByName') || '按名称排序' },
                       ]}
                       value={publisherSortField}
@@ -297,9 +300,13 @@ export default function PythNetworkPage() {
                   />
                   <FlatStatItem
                     label={t('pyth.publishers.avgAccuracy') || '平均准确率'}
-                    value={`${publishers?.length
-                      ? (publishers.reduce((sum, p) => sum + p.accuracy, 0) / publishers.length).toFixed(1)
-                      : 0}%`}
+                    value={`${
+                      publishers?.length
+                        ? (
+                            publishers.reduce((sum, p) => sum + p.accuracy, 0) / publishers.length
+                          ).toFixed(1)
+                        : 0
+                    }%`}
                     className="px-4 py-4 border-r border-gray-200"
                   />
                   <FlatStatItem
@@ -412,9 +419,13 @@ export default function PythNetworkPage() {
                 />
                 <FlatStatItem
                   label={t('pyth.validators.avgUptime') || '平均在线率'}
-                  value={`${validators?.length
-                    ? (validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length).toFixed(1)
-                    : 0}%`}
+                  value={`${
+                    validators?.length
+                      ? (
+                          validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length
+                        ).toFixed(1)
+                      : 0
+                  }%`}
                   className="px-4 py-4"
                 />
               </div>

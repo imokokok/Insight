@@ -15,9 +15,9 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open':
-        return 'bg-yellow-100 text-yellow-700';
+        return 'bg-amber-100 text-amber-700';
       case 'resolved':
-        return 'bg-green-100 text-green-700';
+        return 'bg-emerald-100 text-emerald-700';
       case 'rejected':
         return 'bg-red-100 text-red-700';
       default:
@@ -28,7 +28,7 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
   const getOutcomeColor = (outcome?: string) => {
     switch (outcome) {
       case 'reporter_won':
-        return 'text-green-600';
+        return 'text-emerald-600';
       case 'disputer_won':
         return 'text-red-600';
       default:
@@ -54,24 +54,24 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Scale className="w-4 h-4 text-blue-600" />
+              <Scale className="w-4 h-4 text-cyan-600" />
               <p className="text-xs text-gray-500">{t('tellor.disputes.resolved')}</p>
             </div>
-            <p className="text-xl font-bold text-blue-600">{data.resolvedDisputes}</p>
+            <p className="text-xl font-bold text-cyan-600">{data.resolvedDisputes}</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-yellow-600" />
+              <Clock className="w-4 h-4 text-amber-600" />
               <p className="text-xs text-gray-500">{t('tellor.disputes.pending')}</p>
             </div>
-            <p className="text-xl font-bold text-yellow-600">{data.openDisputes}</p>
+            <p className="text-xl font-bold text-amber-600">{data.openDisputes}</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-green-600" />
+              <TrendingUp className="w-4 h-4 text-emerald-600" />
               <p className="text-xs text-gray-500">{t('tellor.disputes.successRate')}</p>
             </div>
-            <p className="text-xl font-bold text-green-600">{data.successRate}%</p>
+            <p className="text-xl font-bold text-emerald-600">{data.successRate}%</p>
           </div>
         </div>
       </DashboardCard>
@@ -82,12 +82,12 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
           {data.recentDisputes.map((dispute, index) => (
             <div
               key={index}
-              className={`p-4 rounded-lg border ${
+              className={`p-4 border ${
                 dispute.status === 'resolved'
                   ? dispute.outcome === 'reporter_won'
-                    ? 'bg-green-50 border-green-200'
+                    ? 'bg-emerald-50 border-emerald-200'
                     : 'bg-red-50 border-red-200'
-                  : 'bg-yellow-50 border-yellow-200'
+                  : 'bg-amber-50 border-amber-200'
               }`}
             >
               <div className="flex items-center justify-between mb-2">
@@ -98,19 +98,21 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
                   </span>
                 </div>
                 <span
-                  className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${
+                  className={`px-2 py-1 text-xs font-medium capitalize ${
                     dispute.status === 'resolved'
                       ? dispute.outcome === 'reporter_won'
-                        ? 'bg-green-100 text-green-700'
+                        ? 'bg-emerald-100 text-emerald-700'
                         : 'bg-red-100 text-red-700'
-                      : 'bg-yellow-100 text-yellow-700'
+                      : 'bg-amber-100 text-amber-700'
                   }`}
                 >
                   {dispute.status}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>{t('tellor.disputes.stakeAmount')}: {dispute.stakeAmount} TRB</span>
+                <span>
+                  {t('tellor.disputes.stakeAmount')}: {dispute.stakeAmount} TRB
+                </span>
                 <span>{new Date(dispute.createdAt).toLocaleString()}</span>
               </div>
               {dispute.outcome && (

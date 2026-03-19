@@ -48,7 +48,9 @@ export function DifferenceBadge({
     return 'none';
   };
 
-  const getSeverityStyles = (severity: DifferenceSeverity): { bg: string; text: string; border: string } => {
+  const getSeverityStyles = (
+    severity: DifferenceSeverity
+  ): { bg: string; text: string; border: string } => {
     switch (severity) {
       case 'critical':
         return {

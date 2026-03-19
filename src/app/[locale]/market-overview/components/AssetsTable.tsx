@@ -82,9 +82,18 @@ export default function AssetsTable({ assets }: AssetsTableProps) {
                   <span
                     className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 border transition-all duration-200"
                     style={{
-                      color: asset.change24h >= 0 ? semanticColors.success.text : semanticColors.danger.text,
-                      backgroundColor: asset.change24h >= 0 ? semanticColors.success.light : semanticColors.danger.light,
-                      borderColor: asset.change24h >= 0 ? semanticColors.success.light : semanticColors.danger.light,
+                      color:
+                        asset.change24h >= 0
+                          ? semanticColors.success.text
+                          : semanticColors.danger.text,
+                      backgroundColor:
+                        asset.change24h >= 0
+                          ? semanticColors.success.light
+                          : semanticColors.danger.light,
+                      borderColor:
+                        asset.change24h >= 0
+                          ? semanticColors.success.light
+                          : semanticColors.danger.light,
                     }}
                   >
                     {asset.change24h >= 0 ? '+' : ''}
@@ -95,9 +104,18 @@ export default function AssetsTable({ assets }: AssetsTableProps) {
                   <span
                     className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 border transition-all duration-200"
                     style={{
-                      color: asset.change7d >= 0 ? semanticColors.success.text : semanticColors.danger.text,
-                      backgroundColor: asset.change7d >= 0 ? semanticColors.success.light : semanticColors.danger.light,
-                      borderColor: asset.change7d >= 0 ? semanticColors.success.light : semanticColors.danger.light,
+                      color:
+                        asset.change7d >= 0
+                          ? semanticColors.success.text
+                          : semanticColors.danger.text,
+                      backgroundColor:
+                        asset.change7d >= 0
+                          ? semanticColors.success.light
+                          : semanticColors.danger.light,
+                      borderColor:
+                        asset.change7d >= 0
+                          ? semanticColors.success.light
+                          : semanticColors.danger.light,
                     }}
                   >
                     {asset.change7d >= 0 ? '+' : ''}

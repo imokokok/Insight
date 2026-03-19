@@ -154,9 +154,7 @@ export function PullToRefresh({
       >
         <div
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-            pullState.pullProgress >= 1
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-100 text-gray-500'
+            pullState.pullProgress >= 1 ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'
           }`}
         >
           {pullState.isRefreshing ? (
@@ -184,8 +182,8 @@ export function PullToRefresh({
           {pullState.isRefreshing
             ? t('mobile.pullToRefresh.refreshing')
             : pullState.pullProgress >= 1
-            ? t('mobile.pullToRefresh.release')
-            : t('mobile.pullToRefresh.pull')}
+              ? t('mobile.pullToRefresh.release')
+              : t('mobile.pullToRefresh.pull')}
         </span>
       </div>
 

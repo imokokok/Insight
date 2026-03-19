@@ -1,7 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
-import { KeyboardShortcut, shortcutManager, checkShortcutConflicts, ShortcutConflict } from '@/hooks/useKeyboardShortcuts';
+import {
+  KeyboardShortcut,
+  shortcutManager,
+  checkShortcutConflicts,
+  ShortcutConflict,
+} from '@/hooks/useKeyboardShortcuts';
 
 export interface ShortcutCategory {
   id: string;
@@ -55,44 +60,37 @@ export function ShortcutProvider({ children, defaultCategories = [] }: ShortcutP
     setIsHelpOpen((prev) => !prev);
   }, []);
 
-  const registerShortcut = useCallback(
-    (shortcut: KeyboardShortcut, categoryId?: string) => {
-      const unregister = shortcutManager.register(shortcut);
+  const registerShortcut = useCallback((shortcut: KeyboardShortcut, categoryId?: string) => {
+    const unregister = shortcutManager.register(shortcut);
 
-      if (categoryId) {
-        setCategories((prev) => {
-          const existing = prev.find((c) => c.id === categoryId);
-          if (existing) {
-            return prev.map((c) =>
-              c.id === categoryId
-                ? { ...c, shortcuts: [...c.shortcuts, shortcut] }
-                : c
-            );
-          }
-          return prev;
-        });
-      }
-
-      // 重新检查冲突
-      const allShortcuts = shortcutManager.getAllShortcuts();
-      const newConflicts = checkShortcutConflicts(allShortcuts);
-      setConflicts(newConflicts);
-
-      return () => {
-        unregister();
-        if (categoryId) {
-          setCategories((prev) =>
-            prev.map((c) =>
-              c.id === categoryId
-                ? { ...c, shortcuts: c.shortcuts.filter((s) => s !== shortcut) }
-                : c
-            )
+    if (categoryId) {
+      setCategories((prev) => {
+        const existing = prev.find((c) => c.id === categoryId);
+        if (existing) {
+          return prev.map((c) =>
+            c.id === categoryId ? { ...c, shortcuts: [...c.shortcuts, shortcut] } : c
           );
         }
-      };
-    },
-    []
-  );
+        return prev;
+      });
+    }
+
+    // 重新检查冲突
+    const allShortcuts = shortcutManager.getAllShortcuts();
+    const newConflicts = checkShortcutConflicts(allShortcuts);
+    setConflicts(newConflicts);
+
+    return () => {
+      unregister();
+      if (categoryId) {
+        setCategories((prev) =>
+          prev.map((c) =>
+            c.id === categoryId ? { ...c, shortcuts: c.shortcuts.filter((s) => s !== shortcut) } : c
+          )
+        );
+      }
+    };
+  }, []);
 
   const unregisterShortcut = useCallback((shortcut: KeyboardShortcut) => {
     shortcutManager.unregister(shortcut);

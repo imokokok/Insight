@@ -79,7 +79,9 @@ export interface StatusConfig {
   semanticColor: string;
 }
 
-export const getStatusConfig = (t: (key: string) => string): Record<QualityStatus, StatusConfig> => ({
+export const getStatusConfig = (
+  t: (key: string) => string
+): Record<QualityStatus, StatusConfig> => ({
   excellent: {
     color: semanticColors.success.DEFAULT,
     bgColor: semanticColors.success.DEFAULT,

@@ -71,7 +71,9 @@ export function OverviewTab({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 一致性评分 */}
         <div className="bg-slate-50/50 p-5 transition-colors hover:bg-slate-50">
-          <p className="text-xs font-normal text-gray-400 mb-2">{t('crossOracleComparison.consistencyScore')}</p>
+          <p className="text-xs font-normal text-gray-400 mb-2">
+            {t('crossOracleComparison.consistencyScore')}
+          </p>
           <p className={`text-3xl font-semibold ${getConsistencyColor(consistencyScore)}`}>
             {consistencyScore}
           </p>
@@ -81,7 +83,9 @@ export function OverviewTab({
         {/* 平均价格 */}
         {priceStats && (
           <div className="bg-slate-50/50 p-5 transition-colors hover:bg-slate-50">
-            <p className="text-xs font-normal text-gray-400 mb-2">{t('crossOracle.averagePrice')}</p>
+            <p className="text-xs font-normal text-gray-400 mb-2">
+              {t('crossOracle.averagePrice')}
+            </p>
             <p className="text-3xl font-semibold text-gray-900">${priceStats.avg.toFixed(2)}</p>
             <p className="text-xs text-gray-400 mt-1">
               {t('crossOracle.range')}: ${priceStats.range.toFixed(2)}
@@ -103,7 +107,9 @@ export function OverviewTab({
         {/* 最大偏差 */}
         {extendedStats && (
           <div className="bg-slate-50/50 p-5 transition-colors hover:bg-slate-50">
-            <p className="text-xs font-normal text-gray-400 mb-2">{t('crossOracle.stats.maxPriceDifference')}</p>
+            <p className="text-xs font-normal text-gray-400 mb-2">
+              {t('crossOracle.stats.maxPriceDifference')}
+            </p>
             <p className="text-3xl font-semibold text-amber-600">
               {extendedStats.maxDeviation.toFixed(3)}%
             </p>
@@ -166,10 +172,14 @@ export function OverviewTab({
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 11, fill: '#6b7280' }} 
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={baseColors.gray[200]}
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 11, fill: '#6b7280' }}
                   interval={0}
                   axisLine={false}
                   tickLine={false}
@@ -182,7 +192,11 @@ export function OverviewTab({
                 />
                 <Tooltip
                   formatter={(value) => [`$${Number(value).toFixed(2)}`, t('crossOracle.price')]}
-                  contentStyle={{ fontSize: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                  contentStyle={{
+                    fontSize: 12,
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
                 />
                 <Bar dataKey="price" radius={[4, 4, 0, 0]}>
                   {chartData.map((entry, index) => (
@@ -206,10 +220,7 @@ export function OverviewTab({
               key={provider}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-xs text-gray-700"
             >
-              <div
-                className="w-2 h-2"
-                style={{ backgroundColor: oracleColors[provider] }}
-              />
+              <div className="w-2 h-2" style={{ backgroundColor: oracleColors[provider] }} />
               <span>{oracleNames[provider]}</span>
             </div>
           ))}

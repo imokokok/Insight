@@ -47,11 +47,11 @@ const tabs: TabItem[] = [
 
 export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-dune">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-blue-600 flex items-center justify-center">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
               <Settings className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -63,7 +63,7 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
 
         <div className="flex flex-col lg:flex-row gap-6">
           <nav className="lg:w-64 flex-shrink-0">
-            <div className="bg-white  border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
               {tabs.map((tab, index) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -72,15 +72,28 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
                   <button
                     key={tab.id}
                     onClick={() => onTabChange(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 relative ${
                       index !== 0 ? 'border-t border-gray-100' : ''
-                    } ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                    } ${
+                      isActive
+                        ? 'bg-blue-50/80 text-blue-600'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
                   >
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                    {isActive && (
+                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-600" />
+                    )}
+                    <Icon
+                      className={`w-5 h-5 transition-colors ${
+                        isActive ? 'text-blue-600' : 'text-gray-400'
+                      }`}
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm">{tab.label}</div>
                       <div
-                        className={`text-xs truncate ${isActive ? 'text-blue-500' : 'text-gray-400'}`}
+                        className={`text-xs truncate ${
+                          isActive ? 'text-blue-500' : 'text-gray-400'
+                        }`}
                       >
                         {tab.description}
                       </div>

@@ -393,9 +393,7 @@ export function ValidatorEarningsBreakdown({
   if (!attribution || !networkStats) {
     return (
       <DashboardCard title={t('validator.earningsAttribution')}>
-        <div className="flex items-center justify-center h-64 text-gray-400">
-          {t('noData')}
-        </div>
+        <div className="flex items-center justify-center h-64 text-gray-400">{t('noData')}</div>
       </DashboardCard>
     );
   }

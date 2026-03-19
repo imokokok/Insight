@@ -5,14 +5,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { ProtocolDetail } from '../types';
 import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
-import {
-  Layers,
-  ExternalLink,
-  Search,
-  ChevronUp,
-  ChevronDown,
-  Building2,
-} from 'lucide-react';
+import { Layers, ExternalLink, Search, ChevronUp, ChevronDown, Building2 } from 'lucide-react';
 import { DropdownSelect, SelectorOption } from '@/components/ui/selectors';
 
 interface ProtocolListProps {
@@ -41,9 +34,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
   const categoryOptions: SelectorOption<string>[] = useMemo(() => {
     return categories.map((cat) => ({
       value: cat,
-      label: cat === 'all' 
-        ? (isChineseLocale(locale) ? '所有类别' : 'All Categories')
-        : cat,
+      label: cat === 'all' ? (isChineseLocale(locale) ? '所有类别' : 'All Categories') : cat,
     }));
   }, [categories, locale]);
 

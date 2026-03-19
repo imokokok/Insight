@@ -56,7 +56,9 @@ export function usePreferences() {
           defaultTimeRange: parsed.defaultTimeRange,
           language: parsed.language,
           defaultCurrency: parsed.defaultCurrency,
-          autoRefreshInterval: parsed.autoRefreshInterval ? parseInt(parsed.autoRefreshInterval, 10) : undefined,
+          autoRefreshInterval: parsed.autoRefreshInterval
+            ? parseInt(parsed.autoRefreshInterval, 10)
+            : undefined,
         };
       } catch {
         localPrefs = {};
@@ -71,11 +73,14 @@ export function usePreferences() {
         defaultSymbol:
           dbPrefs.default_symbol || localPrefs.defaultSymbol || defaultPreferences.defaultSymbol,
         defaultTimeRange:
-          dbPrefs.default_time_range || localPrefs.defaultTimeRange || defaultPreferences.defaultTimeRange,
-        language:
-          dbPrefs.language || localPrefs.language || defaultPreferences.language,
+          dbPrefs.default_time_range ||
+          localPrefs.defaultTimeRange ||
+          defaultPreferences.defaultTimeRange,
+        language: dbPrefs.language || localPrefs.language || defaultPreferences.language,
         defaultCurrency:
-          dbPrefs.default_currency || localPrefs.defaultCurrency || defaultPreferences.defaultCurrency,
+          dbPrefs.default_currency ||
+          localPrefs.defaultCurrency ||
+          defaultPreferences.defaultCurrency,
         autoRefreshInterval:
           dbPrefs.auto_refresh_interval !== undefined
             ? dbPrefs.auto_refresh_interval
@@ -93,14 +98,17 @@ export function usePreferences() {
   }, [loadPreferences]);
 
   const savePreferencesToLocal = useCallback((prefs: UserPreferences) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      defaultOracle: prefs.defaultOracle,
-      defaultSymbol: prefs.defaultSymbol,
-      defaultTimeRange: prefs.defaultTimeRange,
-      language: prefs.language,
-      defaultCurrency: prefs.defaultCurrency,
-      autoRefreshInterval: String(prefs.autoRefreshInterval),
-    }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        defaultOracle: prefs.defaultOracle,
+        defaultSymbol: prefs.defaultSymbol,
+        defaultTimeRange: prefs.defaultTimeRange,
+        language: prefs.language,
+        defaultCurrency: prefs.defaultCurrency,
+        autoRefreshInterval: String(prefs.autoRefreshInterval),
+      })
+    );
     setPreferences(prefs);
   }, []);
 
@@ -135,8 +143,8 @@ export function useDefaultCurrency() {
 
 export function useAutoRefreshInterval() {
   const { preferences, isLoading } = usePreferences();
-  return { 
-    autoRefreshInterval: preferences.autoRefreshInterval, 
+  return {
+    autoRefreshInterval: preferences.autoRefreshInterval,
     isLoading,
     refreshIntervalMs: preferences.autoRefreshInterval * 1000,
   };

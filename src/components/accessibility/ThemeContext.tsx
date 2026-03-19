@@ -117,27 +117,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [settings]);
 
   const setThemeMode = useCallback((mode: ThemeMode) => {
-    setSettings(prev => ({ ...prev, themeMode: mode }));
+    setSettings((prev) => ({ ...prev, themeMode: mode }));
   }, []);
 
   const setColorScheme = useCallback((scheme: ColorScheme) => {
-    setSettings(prev => ({ ...prev, colorScheme: scheme }));
+    setSettings((prev) => ({ ...prev, colorScheme: scheme }));
   }, []);
 
   const setFontSize = useCallback((size: AccessibilitySettings['fontSize']) => {
-    setSettings(prev => ({ ...prev, fontSize: size }));
+    setSettings((prev) => ({ ...prev, fontSize: size }));
   }, []);
 
   const setReduceMotion = useCallback((reduce: boolean) => {
-    setSettings(prev => ({ ...prev, reduceMotion: reduce }));
+    setSettings((prev) => ({ ...prev, reduceMotion: reduce }));
   }, []);
 
   const setFocusIndicator = useCallback((indicator: AccessibilitySettings['focusIndicator']) => {
-    setSettings(prev => ({ ...prev, focusIndicator: indicator }));
+    setSettings((prev) => ({ ...prev, focusIndicator: indicator }));
   }, []);
 
   const toggleHighContrast = useCallback(() => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
       themeMode: prev.themeMode === 'high-contrast' ? 'default' : 'high-contrast',
     }));
@@ -159,11 +159,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     isHighContrast: settings.themeMode === 'high-contrast',
   };
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

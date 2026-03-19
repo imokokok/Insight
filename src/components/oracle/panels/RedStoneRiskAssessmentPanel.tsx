@@ -157,7 +157,7 @@ export function RedStoneRiskAssessmentPanel() {
               {t('redstone.riskAssessment.comprehensiveAssessment')}
             </div>
             <div
-              className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}
+              className={`mt-4 inline-flex items-center px-3 py-1 text-sm font-medium border ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}
             >
               {t(`redstone.riskAssessment.riskLevel.${riskLevel}`)}
             </div>
@@ -179,9 +179,9 @@ export function RedStoneRiskAssessmentPanel() {
                     {metric.value}/100
                   </span>
                 </div>
-                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-gray-100 overflow-hidden">
                   <div
-                    className={`h-full rounded-full ${getScoreBarColor(metric.value)}`}
+                    className={`h-full ${getScoreBarColor(metric.value)}`}
                     style={{ width: `${metric.value}%` }}
                   ></div>
                 </div>
@@ -282,15 +282,15 @@ export function RedStoneRiskAssessmentPanel() {
       </DashboardCard>
 
       <DashboardCard title={t('redstone.riskAssessment.securityTimeline')}>
-        <div className="space-y-4">
+        <div className="border border-gray-200 divide-y divide-gray-200">
           {riskEvents.map((event, index) => (
             <div
               key={index}
-              className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0"
+              className="flex items-start gap-4 p-4 hover:bg-gray-50 transition-colors"
             >
               <div className="flex-shrink-0 w-24 text-xs text-gray-500">{event.date}</div>
               <div className="flex-shrink-0">
-                <span className={`px-2 py-1 rounded text-xs ${getEventTypeColor(event.type)}`}>
+                <span className={`px-2 py-1 text-xs border ${getEventTypeColor(event.type)}`}>
                   {t(`redstone.riskAssessment.eventTypes.${event.type}`)}
                 </span>
               </div>
@@ -299,7 +299,7 @@ export function RedStoneRiskAssessmentPanel() {
                 <p className="text-xs text-gray-500 mt-1">{event.description}</p>
               </div>
               <div className="flex-shrink-0">
-                <span className={`px-2 py-1 rounded text-xs ${getStatusColor(event.status)}`}>
+                <span className={`px-2 py-1 text-xs border ${getStatusColor(event.status)}`}>
                   {event.status === 'resolved'
                     ? t('redstone.riskAssessment.resolved')
                     : t('redstone.riskAssessment.monitoring')}
@@ -311,7 +311,7 @@ export function RedStoneRiskAssessmentPanel() {
       </DashboardCard>
 
       <DashboardCard title={t('redstone.riskAssessment.modularArchitecture')}>
-        <div className="space-y-4">
+        <div className="border border-gray-200 divide-y divide-gray-200">
           {[
             {
               component: 'Core Contracts',
@@ -340,13 +340,13 @@ export function RedStoneRiskAssessmentPanel() {
           ].map((item) => (
             <div
               key={item.component}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center gap-4">
                 <span className="text-sm font-medium text-gray-900 w-40">{item.component}</span>
-                <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="w-32 h-2 bg-gray-200 overflow-hidden">
                   <div
-                    className="h-full bg-green-500 rounded-full"
+                    className="h-full bg-green-500"
                     style={{ width: `${item.availability}%` }}
                   ></div>
                 </div>
@@ -356,7 +356,7 @@ export function RedStoneRiskAssessmentPanel() {
                 <span className="text-sm text-gray-600">
                   {t('redstone.riskAssessment.lastAudit')}: {item.lastAudit}
                 </span>
-                <span className={`px-2 py-1 rounded text-xs ${getRiskLevelColor(item.riskLevel)}`}>
+                <span className={`px-2 py-1 text-xs border ${getRiskLevelColor(item.riskLevel)}`}>
                   {t(`redstone.riskAssessment.riskLevel.${item.riskLevel}`)}
                 </span>
               </div>
@@ -366,28 +366,32 @@ export function RedStoneRiskAssessmentPanel() {
       </DashboardCard>
 
       <DashboardCard title={t('redstone.riskAssessment.mitigationMeasures')}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="border border-gray-200 divide-y divide-gray-200">
           {mitigationMeasures.map((measure) => (
-            <div key={measure.name} className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500 uppercase">{measure.type}</span>
+            <div key={measure.name} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-medium text-gray-900">
+                      {t(`redstone.riskAssessment.${measure.name}`)}
+                    </h4>
+                    <span className="text-xs text-gray-500 uppercase ml-4">{measure.type}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-grow h-1.5 bg-gray-200 overflow-hidden">
+                      <div
+                        className="h-full bg-gray-700"
+                        style={{ width: `${measure.effectiveness}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs text-gray-600 w-8">{measure.effectiveness}%</span>
+                  </div>
+                </div>
                 <span
-                  className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}
+                  className={`px-2 py-0.5 text-xs border ${getMeasureStatusColor(measure.status)}`}
                 >
                   {t(`redstone.riskAssessment.${measure.status}`)}
                 </span>
-              </div>
-              <h4 className="text-sm font-medium text-gray-900">
-                {t(`redstone.riskAssessment.${measure.name}`)}
-              </h4>
-              <div className="mt-2 flex items-center gap-2">
-                <div className="flex-grow h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-red-500 rounded-full"
-                    style={{ width: `${measure.effectiveness}%` }}
-                  ></div>
-                </div>
-                <span className="text-xs text-gray-600">{measure.effectiveness}%</span>
               </div>
             </div>
           ))}

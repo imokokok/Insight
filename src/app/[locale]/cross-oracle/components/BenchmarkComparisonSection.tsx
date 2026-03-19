@@ -45,11 +45,12 @@ export function BenchmarkComparisonSection({
     const prices = priceData.map((d) => d.price).filter((p) => p > 0);
     const avgPrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
     const sortedPrices = [...prices].sort((a, b) => a - b);
-    const medianPrice = sortedPrices.length > 0
-      ? sortedPrices.length % 2 === 0
-        ? (sortedPrices[sortedPrices.length / 2 - 1] + sortedPrices[sortedPrices.length / 2]) / 2
-        : sortedPrices[Math.floor(sortedPrices.length / 2)]
-      : 0;
+    const medianPrice =
+      sortedPrices.length > 0
+        ? sortedPrices.length % 2 === 0
+          ? (sortedPrices[sortedPrices.length / 2 - 1] + sortedPrices[sortedPrices.length / 2]) / 2
+          : sortedPrices[Math.floor(sortedPrices.length / 2)]
+        : 0;
     const bestPrice = sortedPrices.length > 0 ? sortedPrices[sortedPrices.length - 1] : 0;
 
     // Calculate metrics for each oracle
@@ -83,22 +84,24 @@ export function BenchmarkComparisonSection({
   return (
     <div className="bg-white border border-gray-200 overflow-hidden">
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-900">
-          {t('crossOracle.benchmark.title')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900">{t('crossOracle.benchmark.title')}</h3>
       </div>
       <div className="p-4">
         <div className="space-y-4">
           {/* 行业基准统计 */}
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-3 bg-gray-50">
-              <p className="text-xs text-gray-500 mb-1">{t('comparison.benchmark.industryAverage')}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('comparison.benchmark.industryAverage')}
+              </p>
               <p className="text-lg font-semibold text-gray-900">
                 ${benchmarkData.industryAverage.toFixed(2)}
               </p>
             </div>
             <div className="text-center p-3 bg-gray-50">
-              <p className="text-xs text-gray-500 mb-1">{t('comparison.oracleComparison.medianPrice')}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('comparison.oracleComparison.medianPrice')}
+              </p>
               <p className="text-lg font-semibold text-gray-900">
                 ${benchmarkData.industryMedian.toFixed(2)}
               </p>
@@ -137,7 +140,8 @@ export function BenchmarkComparisonSection({
                     <td className="px-3 py-2 text-right font-mono">${metric.value.toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">
                       <span className={metric.diffFromAvg > 0 ? 'text-green-600' : 'text-red-600'}>
-                        {metric.diffFromAvg > 0 ? '+' : ''}{metric.diffFromAvg.toFixed(2)}%
+                        {metric.diffFromAvg > 0 ? '+' : ''}
+                        {metric.diffFromAvg.toFixed(2)}%
                       </span>
                     </td>
                     <td className="px-3 py-2 text-center">

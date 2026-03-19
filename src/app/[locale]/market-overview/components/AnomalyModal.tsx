@@ -35,10 +35,7 @@ export default function AnomalyModal({ selectedAnomaly, onClose }: AnomalyModalP
               {isChineseLocale(locale) ? '数据异常检测' : 'Anomaly Detected'}
             </h3>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"

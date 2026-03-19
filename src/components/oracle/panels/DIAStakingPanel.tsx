@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { StakingDetails } from '@/lib/oracles/dia';
+import { DashboardCard } from '@/components/oracle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 
 interface DIAStakingPanelProps {
@@ -51,11 +52,11 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
 
   if (!stakingDetails) {
     return (
-      <Card>
-        <CardContent className="p-6">
+      <DashboardCard>
+        <div className="p-6">
           <p className="text-gray-500 text-center">{t('dia.staking.noData')}</p>
-        </CardContent>
-      </Card>
+        </div>
+      </DashboardCard>
     );
   }
 
@@ -67,7 +68,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
     <div className="space-y-6">
       {/* Staking Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white border border-gray-200 p-4">
+        <DashboardCard className="p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('dia.staking.totalStaked')}
           </p>
@@ -75,17 +76,17 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
             {formatNumber(stakingDetails.totalStaked)} DIA
           </p>
           <p className="text-xs text-gray-500 mt-1">{t('dia.staking.totalValueLocked')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
+        </DashboardCard>
+        <DashboardCard className="p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('dia.staking.currentApr')}
           </p>
-          <p className="text-2xl font-bold text-purple-600">
+          <p className="text-2xl font-bold text-indigo-600">
             {stakingDetails.stakingApr.toFixed(2)}%
           </p>
           <p className="text-xs text-gray-500 mt-1">{t('dia.staking.baseRate')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
+        </DashboardCard>
+        <DashboardCard className="p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('dia.staking.stakerCount')}
           </p>
@@ -93,8 +94,8 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
             {formatNumber(stakingDetails.stakerCount)}
           </p>
           <p className="text-xs text-gray-500 mt-1">{t('dia.staking.activeStakers')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
+        </DashboardCard>
+        <DashboardCard className="p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('dia.staking.rewardPool')}
           </p>
@@ -102,8 +103,8 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
             {formatNumber(stakingDetails.rewardPool)} DIA
           </p>
           <p className="text-xs text-gray-500 mt-1">{t('dia.staking.availableRewards')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
+        </DashboardCard>
+        <DashboardCard className="p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('dia.staking.rewardsDistributed')}
           </p>
@@ -111,7 +112,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
             {formatNumber(stakingDetails.rewardsDistributed)} DIA
           </p>
           <p className="text-xs text-gray-500 mt-1">{t('dia.staking.totalDistributed')}</p>
-        </div>
+        </DashboardCard>
       </div>
 
       {/* Lock Period Options */}
@@ -132,22 +133,22 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
                   onClick={() => setSelectedLockPeriod(period)}
                   className={`p-4 border-2 rounded-lg text-left transition-all ${
                     isSelected
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300'
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : 'border-gray-200 hover:border-indigo-300'
                   }`}
                 >
                   <p className="text-sm font-medium text-gray-700 mb-1">
                     {getLockPeriodLabel(period)}
                   </p>
                   <p
-                    className={`text-2xl font-bold ${isSelected ? 'text-purple-600' : 'text-gray-900'}`}
+                    className={`text-2xl font-bold ${isSelected ? 'text-indigo-600' : 'text-gray-900'}`}
                   >
                     {apr.toFixed(2)}%
                   </p>
                   <p className="text-xs text-gray-500 mt-1">{t('dia.staking.apr')}</p>
                   <div className="mt-3 w-full bg-gray-200 rounded-full h-1.5">
                     <div
-                      className="bg-purple-500 h-1.5 rounded-full"
+                      className="bg-indigo-500 h-1.5 rounded-full"
                       style={{ width: `${Math.max(10, aprPercentage)}%` }}
                     />
                   </div>
@@ -183,7 +184,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
                     value={stakeAmount}
                     onChange={(e) => setStakeAmount(e.target.value)}
                     min={stakingDetails.minStakeAmount}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder={t('dia.staking.enterAmount')}
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
@@ -206,8 +207,8 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
                       onClick={() => setSelectedLockPeriod(period)}
                       className={`py-2 px-3 text-sm rounded-lg border transition-all ${
                         selectedLockPeriod === period
-                          ? 'bg-purple-500 text-white border-purple-500'
-                          : 'bg-white text-gray-700 border-gray-300 hover:border-purple-300'
+                          ? 'bg-indigo-500 text-white border-indigo-500'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-300'
                       }`}
                     >
                       {getLockPeriodLabel(period)}
@@ -216,8 +217,8 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
                 </div>
               </div>
 
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <p className="text-sm text-purple-700">
+              <div className="p-4 bg-indigo-50 rounded-lg">
+                <p className="text-sm text-indigo-700">
                   {t('dia.staking.selectedApr')}:{' '}
                   <span className="font-bold text-lg">
                     {stakingDetails.aprByPeriod[selectedLockPeriod].toFixed(2)}%
@@ -233,19 +234,19 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
               </h4>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 bg-gray-50 rounded-lg">
+                <DashboardCard className="p-4">
                   <p className="text-xs text-gray-500 mb-1">{t('dia.staking.daily')}</p>
                   <p className="text-lg font-bold text-gray-900">{rewards.daily.toFixed(4)} DIA</p>
                   <p className="text-xs text-gray-400 mt-1">~${(rewards.daily * 0.5).toFixed(2)}</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
+                </DashboardCard>
+                <DashboardCard className="p-4">
                   <p className="text-xs text-gray-500 mb-1">{t('dia.staking.weekly')}</p>
                   <p className="text-lg font-bold text-gray-900">{rewards.weekly.toFixed(4)} DIA</p>
                   <p className="text-xs text-gray-400 mt-1">
                     ~${(rewards.weekly * 0.5).toFixed(2)}
                   </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
+                </DashboardCard>
+                <DashboardCard className="p-4">
                   <p className="text-xs text-gray-500 mb-1">{t('dia.staking.monthly')}</p>
                   <p className="text-lg font-bold text-gray-900">
                     {rewards.monthly.toFixed(4)} DIA
@@ -253,16 +254,16 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
                   <p className="text-xs text-gray-400 mt-1">
                     ~${(rewards.monthly * 0.5).toFixed(2)}
                   </p>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <p className="text-xs text-purple-600 mb-1">{t('dia.staking.yearly')}</p>
-                  <p className="text-lg font-bold text-purple-700">
+                </DashboardCard>
+                <DashboardCard className="p-4 bg-indigo-50 border-indigo-200">
+                  <p className="text-xs text-indigo-600 mb-1">{t('dia.staking.yearly')}</p>
+                  <p className="text-lg font-bold text-indigo-700">
                     {rewards.yearly.toFixed(4)} DIA
                   </p>
-                  <p className="text-xs text-purple-400 mt-1">
+                  <p className="text-xs text-indigo-400 mt-1">
                     ~${(rewards.yearly * 0.5).toFixed(2)}
                   </p>
-                </div>
+                </DashboardCard>
               </div>
             </div>
           </div>
@@ -292,7 +293,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
                   <div key={index} className="flex-1 flex flex-col items-center group">
                     <div className="relative w-full">
                       <div
-                        className="w-full bg-purple-500 rounded-t transition-all duration-300 group-hover:bg-purple-600"
+                        className="w-full bg-indigo-500 rounded-t transition-all duration-300 group-hover:bg-indigo-600"
                         style={{ height: `${height}%`, minHeight: '4px' }}
                       />
                       {/* Tooltip */}

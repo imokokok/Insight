@@ -568,10 +568,10 @@ export function searchAll(query: string): SearchResult[] {
 
 export function getTokenSymbol(query: string): string | null {
   const normalizedQuery = query.trim().toLowerCase();
-  
+
   for (const item of searchableItems) {
     if (item.type !== 'token') continue;
-    
+
     if (item.symbol?.toLowerCase() === normalizedQuery) {
       return item.symbol;
     }
@@ -582,6 +582,6 @@ export function getTokenSymbol(query: string): string | null {
       return item.symbol || null;
     }
   }
-  
+
   return null;
 }

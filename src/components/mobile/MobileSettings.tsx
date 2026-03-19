@@ -39,13 +39,13 @@ export function MobileSettings({ className = '' }: MobileSettingsProps) {
     biometricAuth: false,
   });
 
-  const updateSetting = useCallback(<K extends keyof typeof settings>(
-    key: K,
-    value: typeof settings[K]
-  ) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-    // TODO: Persist settings to storage
-  }, []);
+  const updateSetting = useCallback(
+    <K extends keyof typeof settings>(key: K, value: (typeof settings)[K]) => {
+      setSettings((prev) => ({ ...prev, [key]: value }));
+      // TODO: Persist settings to storage
+    },
+    []
+  );
 
   const SettingItem = ({
     icon: Icon,
@@ -121,9 +121,7 @@ export function MobileSettings({ className = '' }: MobileSettingsProps) {
             key={option.value}
             onClick={() => onChange(option.value)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[32px] ${
-              isSelected
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              isSelected ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             {Icon && <Icon className="w-3.5 h-3.5" />}
@@ -291,11 +289,7 @@ export function MobileSettings({ className = '' }: MobileSettingsProps) {
           </h2>
         </div>
         <div className="bg-white">
-          <SettingItem
-            icon={Check}
-            label={t('mobile.settings.version')}
-            description="v1.0.0"
-          />
+          <SettingItem icon={Check} label={t('mobile.settings.version')} description="v1.0.0" />
         </div>
       </div>
     </div>

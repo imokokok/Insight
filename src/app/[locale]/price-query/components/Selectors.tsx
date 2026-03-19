@@ -60,7 +60,12 @@ export function Selectors({
       value: oracle,
       label: t(`navbar.${oracleI18nKeys[oracle]}`),
       color: oracleColors[oracle],
-      icon: <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: oracleColors[oracle] }} />,
+      icon: (
+        <span
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ backgroundColor: oracleColors[oracle] }}
+        />
+      ),
     })
   );
 
@@ -69,7 +74,9 @@ export function Selectors({
     label: t(`blockchain.${chain.toLowerCase()}`),
     color: chainColors[chain],
     disabled: selectedOracles.length > 0 && !supportedChainsBySelectedOracles.has(chain),
-    icon: <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: chainColors[chain] }} />,
+    icon: (
+      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: chainColors[chain] }} />
+    ),
   }));
 
   const timeRangeOptions: SelectorOption<number>[] = TIME_RANGES.map((range) => ({

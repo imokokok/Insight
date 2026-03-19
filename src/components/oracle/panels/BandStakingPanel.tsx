@@ -199,10 +199,7 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
                   <span>{formatNumber(tier.maxStake)} BAND</span>
                 </div>
                 <div className="w-full bg-gray-200 h-2">
-                  <div
-                    className="bg-purple-500 h-2"
-                    style={{ width: `${tier.percentage}%` }}
-                  />
+                  <div className="bg-purple-500 h-2" style={{ width: `${tier.percentage}%` }} />
                 </div>
               </div>
               <p className="text-xs text-gray-500">
@@ -302,9 +299,7 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
           <div className="p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-4 h-4 text-purple-700" />
-              <h4 className="font-medium text-purple-900">
-                {t('band.staking.unbondingPeriod')}
-              </h4>
+              <h4 className="font-medium text-purple-900">{t('band.staking.unbondingPeriod')}</h4>
             </div>
             <p className="text-2xl font-bold text-purple-700">21 {t('band.staking.days')}</p>
             <p className="text-sm text-purple-600 mt-1">{t('band.staking.unbondingDesc')}</p>

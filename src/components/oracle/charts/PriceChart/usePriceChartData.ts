@@ -23,7 +23,12 @@ import {
   generateDataWithGranularity,
 } from './priceChartUtils';
 import { useChartState } from './useChartState';
-import { calculatePriceRange, calculateVolumeRange, calculatePriceChange, detectAnomalies } from './chartUtils';
+import {
+  calculatePriceRange,
+  calculateVolumeRange,
+  calculatePriceChange,
+  detectAnomalies,
+} from './chartUtils';
 import { useGlobalTimeRange } from '@/stores/uiStore';
 
 const logger = createLogger('usePriceChartData');
@@ -56,13 +61,15 @@ interface UsePriceChartDataReturn {
     period2Start: string;
     period2End: string;
   };
-  setComparison: React.Dispatch<React.SetStateAction<{
-    enabled: boolean;
-    period1Start: string;
-    period1End: string;
-    period2Start: string;
-    period2End: string;
-  }>>;
+  setComparison: React.Dispatch<
+    React.SetStateAction<{
+      enabled: boolean;
+      period1Start: string;
+      period1End: string;
+      period2Start: string;
+      period2End: string;
+    }>
+  >;
   anomalies: import('./useChartState').AnomalyPoint[];
   setAnomalies: React.Dispatch<React.SetStateAction<import('./useChartState').AnomalyPoint[]>>;
   isRefreshing: boolean;
@@ -124,10 +131,10 @@ export function usePriceChartData({
 }: UsePriceChartDataProps): UsePriceChartDataReturn {
   const globalTimeRange = useGlobalTimeRange();
   const timeRange = globalTimeRange;
-  
+
   const isBandClient = client instanceof BandProtocolClient;
   const isUMAClient = client instanceof UMAClient;
-  
+
   const chartState = useChartState();
   const {
     rawData,
@@ -439,10 +446,7 @@ export function usePriceChartData({
 
   const priceChange = useMemo(() => calculatePriceChange(data), [data]);
 
-  const detectedAnomalies = useMemo(
-    () => detectAnomalies(data, true),
-    [data]
-  );
+  const detectedAnomalies = useMemo(() => detectAnomalies(data, true), [data]);
 
   return {
     data,

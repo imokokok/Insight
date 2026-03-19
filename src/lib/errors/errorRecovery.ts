@@ -65,7 +65,7 @@ class ErrorRecoveryManager {
     for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
       try {
         const result = await operation();
-        
+
         if (attempt > 1) {
           addBreadcrumb({
             category: 'recovery',
@@ -74,20 +74,20 @@ class ErrorRecoveryManager {
             data: { context, attempt },
           });
         }
-        
+
         return result;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        
+
         const shouldRetry = this.shouldRetryError(lastError, attempt, config);
-        
+
         if (!shouldRetry) {
           this.logError(lastError, context, attempt - 1);
           throw lastError;
         }
 
         const delay = this.calculateDelay(attempt, config);
-        
+
         addBreadcrumb({
           category: 'recovery',
           message: `Retry attempt ${attempt}/${config.maxAttempts} after ${delay}ms`,
@@ -144,7 +144,7 @@ class ErrorRecoveryManager {
    * 延迟函数
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -161,7 +161,7 @@ class ErrorRecoveryManager {
     };
 
     this.errorLogs.unshift(entry);
-    
+
     // 限制日志大小
     if (this.errorLogs.length > this.maxLogSize) {
       this.errorLogs = this.errorLogs.slice(0, this.maxLogSize);
@@ -200,7 +200,7 @@ class ErrorRecoveryManager {
    * 标记错误为已解决
    */
   resolveError(errorId: string): boolean {
-    const entry = this.errorLogs.find(log => log.id === errorId);
+    const entry = this.errorLogs.find((log) => log.id === errorId);
     if (entry) {
       entry.resolved = true;
       return true;
@@ -212,7 +212,7 @@ class ErrorRecoveryManager {
    * 生成错误报告
    */
   generateErrorReport(errorId: string): ErrorReport | null {
-    const entry = this.errorLogs.find(log => log.id === errorId);
+    const entry = this.errorLogs.find((log) => log.id === errorId);
     if (!entry) return null;
 
     return {
@@ -230,7 +230,7 @@ class ErrorRecoveryManager {
    * 导出所有错误报告
    */
   exportAllReports(): ErrorReport[] {
-    return this.errorLogs.map(entry => ({
+    return this.errorLogs.map((entry) => ({
       errorId: entry.id,
       timestamp: entry.timestamp,
       error: entry.error,
@@ -304,7 +304,7 @@ export class ErrorReportingService {
   async submitReport(report: ErrorReport): Promise<void> {
     // 发送到所有注册的报告处理器
     await Promise.all(
-      this.reporters.map(async reporter => {
+      this.reporters.map(async (reporter) => {
         try {
           await reporter(report);
         } catch (error) {

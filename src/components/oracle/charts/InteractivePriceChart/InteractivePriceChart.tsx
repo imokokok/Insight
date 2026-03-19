@@ -223,7 +223,15 @@ export function InteractivePriceChart({
 
   // Custom tooltip content
   const CustomTooltipContent = useCallback(
-    ({ active, payload, label }: { active?: boolean; payload?: Array<{ dataKey: string; value: number; color: string; payload: ChartDataPoint }>; label?: string }) => {
+    ({
+      active,
+      payload,
+      label,
+    }: {
+      active?: boolean;
+      payload?: Array<{ dataKey: string; value: number; color: string; payload: ChartDataPoint }>;
+      label?: string;
+    }) => {
       if (!active || !payload || payload.length === 0) return null;
 
       const seriesNames: Record<string, string> = {
@@ -444,10 +452,7 @@ export function InteractivePriceChart({
       {/* Legend */}
       <div className="flex items-center justify-center gap-4 mt-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <span
-            className="w-3 h-0.5"
-            style={{ backgroundColor: chartColors.recharts.primary }}
-          />
+          <span className="w-3 h-0.5" style={{ backgroundColor: chartColors.recharts.primary }} />
           <span className="text-xs" style={{ color: baseColors.gray[500] }}>
             {t('legend.price')}
           </span>

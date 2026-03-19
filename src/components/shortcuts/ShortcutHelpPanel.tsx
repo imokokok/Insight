@@ -18,9 +18,7 @@ function ShortcutItem({ shortcut, labelKey }: ShortcutItemProps) {
 
   return (
     <div className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors">
-      <span className="text-sm text-gray-700">
-        {t.has(labelKey) ? t(labelKey) : labelKey}
-      </span>
+      <span className="text-sm text-gray-700">{t.has(labelKey) ? t(labelKey) : labelKey}</span>
       <kbd className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-mono text-gray-600">
         {displayShortcut}
       </kbd>
@@ -62,7 +60,10 @@ export function ShortcutHelpPanel() {
 
   // 预定义的快捷键列表
   const allCategories = useMemo(() => {
-    const result: { titleKey: string; shortcuts: { shortcut: KeyboardShortcut; labelKey: string }[] }[] = [];
+    const result: {
+      titleKey: string;
+      shortcuts: { shortcut: KeyboardShortcut; labelKey: string }[];
+    }[] = [];
 
     // 导航分类
     result.push({
@@ -158,12 +159,8 @@ export function ShortcutHelpPanel() {
                     <Keyboard className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      {t('shortcuts.title')}
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      {t('shortcuts.subtitle')}
-                    </p>
+                    <h2 className="text-lg font-semibold text-gray-900">{t('shortcuts.title')}</h2>
+                    <p className="text-sm text-gray-500">{t('shortcuts.subtitle')}</p>
                   </div>
                 </div>
                 <button

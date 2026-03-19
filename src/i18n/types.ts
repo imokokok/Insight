@@ -9,10 +9,7 @@ export type { Locale };
 export type Messages = Record<string, unknown>;
 
 // 翻译函数类型
-export type TranslateFunction = (
-  key: string,
-  params?: Record<string, string | number>
-) => string;
+export type TranslateFunction = (key: string, params?: Record<string, string | number>) => string;
 
 // i18n Context 类型
 export interface I18nContextType {

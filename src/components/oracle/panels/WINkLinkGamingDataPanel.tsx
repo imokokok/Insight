@@ -91,28 +91,34 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
       {/* Gaming Stats */}
       <DashboardCard title={t('winklink.gaming.title')}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="py-2">
+          <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="w-4 h-4 text-pink-600" />
-              <p className="text-xs text-gray-500">{t('winklink.gaming.totalVolume')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.gaming.totalVolume')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-xl font-bold text-gray-900 tracking-tight">
               {formatCurrency(data.totalGamingVolume)}
             </p>
           </div>
-          <div className="py-2">
+          <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <Gamepad2 className="w-4 h-4 text-purple-600" />
-              <p className="text-xs text-gray-500">{t('winklink.gaming.activeGames')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.gaming.activeGames')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-gray-900">{data.activeGames}</p>
+            <p className="text-xl font-bold text-gray-900 tracking-tight">{data.activeGames}</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Dices className="w-4 h-4 text-blue-600" />
-              <p className="text-xs text-gray-500">{t('winklink.gaming.dailyRngRequests')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.gaming.dailyRngRequests')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-xl font-bold text-gray-900 tracking-tight">
               {formatNumber(data.dailyRandomRequests)}
             </p>
           </div>

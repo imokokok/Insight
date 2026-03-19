@@ -190,8 +190,7 @@ export function AvatarUploader({
             if (b) {
               console.log('Blob created:', b.size, 'bytes');
               resolve(b);
-            }
-            else reject(new Error('Failed to create blob'));
+            } else reject(new Error('Failed to create blob'));
           },
           'image/jpeg',
           0.9
@@ -203,10 +202,12 @@ export function AvatarUploader({
 
       setUploadProgress(30);
 
-      const { data: uploadData, error: uploadError } = await supabase.storage.from('avatars').upload(fileName, blob, {
-        upsert: true,
-        contentType: 'image/jpeg',
-      });
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, blob, {
+          upsert: true,
+          contentType: 'image/jpeg',
+        });
 
       console.log('Upload result:', { data: uploadData, error: uploadError });
 
@@ -242,10 +243,10 @@ export function AvatarUploader({
       console.error('Avatar upload error:', error);
       console.error('Error type:', typeof error);
       console.error('Error keys:', Object.keys(error || {}));
-      
+
       // 更详细的错误信息提取
       let errorMessage = t('settings.profile.avatar.uploadFailed');
-      
+
       if (error?.message) {
         errorMessage = error.message;
       } else if (error?.error?.message) {
@@ -260,7 +261,7 @@ export function AvatarUploader({
           errorMessage = 'Unknown error';
         }
       }
-      
+
       onError(`${t('settings.profile.avatar.uploadFailed')}: ${errorMessage}`);
     } finally {
       setIsUploading(false);
@@ -301,9 +302,7 @@ export function AvatarUploader({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`relative group transition-all duration-300 ${
-            isDragOver ? 'scale-105' : ''
-          }`}
+          className={`relative group transition-all duration-300 ${isDragOver ? 'scale-105' : ''}`}
         >
           <div
             className={`w-32 h-32 mx-auto relative overflow-hidden border-2 transition-all duration-300 ${
@@ -364,9 +363,7 @@ export function AvatarUploader({
         </div>
 
         <div className="text-center space-y-2">
-          <p className="text-sm font-medium text-gray-700">
-            {t('settings.profile.avatar.label')}
-          </p>
+          <p className="text-sm font-medium text-gray-700">{t('settings.profile.avatar.label')}</p>
           <p className="text-xs text-gray-500">{t('settings.profile.avatar.hint')}</p>
 
           {currentAvatarUrl && (

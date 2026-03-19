@@ -121,9 +121,14 @@ export const getFreshnessInfo = (
   let colorClass: string;
 
   if (seconds < 30) {
-    text = seconds <= 1 
-      ? (t ? t('crossOracle.freshnessOptions.justNow') : 'Just now') 
-      : (t ? t('crossOracle.freshnessOptions.secondsAgo', { seconds }) : `${seconds}s ago`);
+    text =
+      seconds <= 1
+        ? t
+          ? t('crossOracle.freshnessOptions.justNow')
+          : 'Just now'
+        : t
+          ? t('crossOracle.freshnessOptions.secondsAgo', { seconds })
+          : `${seconds}s ago`;
     colorClass = `text-[${semanticColors.success.dark}]`;
   } else if (seconds < 60) {
     text = t ? t('crossOracle.freshnessOptions.secondsAgo', { seconds }) : `${seconds}s ago`;
@@ -542,7 +547,9 @@ export const exportToJSON = (
   document.body.removeChild(link);
 };
 
-export const getRefreshOptions = (t?: (key: string) => string): { value: RefreshInterval; label: string }[] => [
+export const getRefreshOptions = (
+  t?: (key: string) => string
+): { value: RefreshInterval; label: string }[] => [
   { value: 0, label: t ? t('crossOracle.refreshOptions.off') : 'Off' },
   { value: 30000, label: t ? t('crossOracle.refreshOptions.30s') : '30s' },
   { value: 60000, label: t ? t('crossOracle.refreshOptions.1m') : '1m' },

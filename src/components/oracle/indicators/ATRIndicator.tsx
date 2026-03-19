@@ -53,7 +53,7 @@ export function ATRIndicator({ data, period = 14, height = 200 }: ATRIndicatorPr
   }, [data, period]);
 
   const currentATR = atrData.length > 0 ? atrData[atrData.length - 1].atr : 0;
-  
+
   const stats = useMemo(() => {
     const atrValues = atrData.map((d) => d.atr).filter((v) => !isNaN(v) && v > 0);
     if (atrValues.length === 0) return { max: 0, min: 0, avg: 0 };
@@ -76,9 +76,7 @@ export function ATRIndicator({ data, period = 14, height = 200 }: ATRIndicatorPr
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-lg font-bold text-gray-700">
-          {currentATR.toFixed(4)}
-        </span>
+        <span className="text-lg font-bold text-gray-700">{currentATR.toFixed(4)}</span>
       </div>
     </div>
   );
@@ -108,9 +106,7 @@ export function ATRIndicator({ data, period = 14, height = 200 }: ATRIndicatorPr
                 return (
                   <div className="bg-white border border-gray-200 p-2">
                     <p className="text-xs text-gray-500 mb-1">{label}</p>
-                    <p className="text-sm font-bold text-blue-600">
-                      ATR: {atr.toFixed(4)}
-                    </p>
+                    <p className="text-sm font-bold text-blue-600">ATR: {atr.toFixed(4)}</p>
                   </div>
                 );
               }}

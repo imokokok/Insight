@@ -33,11 +33,12 @@ export function BenchmarkComparisonSection({
     const prices = chainPrices.map((d) => d.price).filter((p) => p > 0);
     const avgPrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
     const sortedPrices = [...prices].sort((a, b) => a - b);
-    const medianPrice = sortedPrices.length > 0
-      ? sortedPrices.length % 2 === 0
-        ? (sortedPrices[sortedPrices.length / 2 - 1] + sortedPrices[sortedPrices.length / 2]) / 2
-        : sortedPrices[Math.floor(sortedPrices.length / 2)]
-      : 0;
+    const medianPrice =
+      sortedPrices.length > 0
+        ? sortedPrices.length % 2 === 0
+          ? (sortedPrices[sortedPrices.length / 2 - 1] + sortedPrices[sortedPrices.length / 2]) / 2
+          : sortedPrices[Math.floor(sortedPrices.length / 2)]
+        : 0;
     const bestPrice = sortedPrices.length > 0 ? sortedPrices[sortedPrices.length - 1] : 0;
 
     const metrics = chainPrices.map((data) => {
@@ -70,9 +71,7 @@ export function BenchmarkComparisonSection({
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-900">
-          {t('crossChain.benchmark.title')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900">{t('crossChain.benchmark.title')}</h3>
       </div>
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -118,10 +117,17 @@ export function BenchmarkComparisonSection({
                 <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">{metric.name}</td>
                   <td className="px-4 py-3 text-right font-mono">{metric.value.toFixed(2)}</td>
-                  <td className={`px-4 py-3 text-right font-mono ${
-                    metric.diffFromAvg > 0 ? 'text-green-600' : metric.diffFromAvg < 0 ? 'text-red-600' : 'text-gray-600'
-                  }`}>
-                    {metric.diffFromAvg >= 0 ? '+' : ''}{metric.diffFromAvg.toFixed(2)}%
+                  <td
+                    className={`px-4 py-3 text-right font-mono ${
+                      metric.diffFromAvg > 0
+                        ? 'text-green-600'
+                        : metric.diffFromAvg < 0
+                          ? 'text-red-600'
+                          : 'text-gray-600'
+                    }`}
+                  >
+                    {metric.diffFromAvg >= 0 ? '+' : ''}
+                    {metric.diffFromAvg.toFixed(2)}%
                   </td>
                   <td className="px-4 py-3 text-right font-mono">#{metric.rank}</td>
                 </tr>

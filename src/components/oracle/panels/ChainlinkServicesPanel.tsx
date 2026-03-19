@@ -111,7 +111,9 @@ const getServicesData = (t: ReturnType<typeof useTranslations>): ServiceData[] =
     ],
     features: [
       t('chainlink.services.functions.feature1', { defaultValue: 'Connect to any API' }),
-      t('chainlink.services.functions.feature2', { defaultValue: 'Custom JavaScript computations' }),
+      t('chainlink.services.functions.feature2', {
+        defaultValue: 'Custom JavaScript computations',
+      }),
       t('chainlink.services.functions.feature3', { defaultValue: 'Decentralized execution' }),
       t('chainlink.services.functions.feature4', { defaultValue: 'Secrets management' }),
       t('chainlink.services.functions.feature5', { defaultValue: 'Serverless architecture' }),
@@ -310,7 +312,11 @@ const getCcipChainData = (t: ReturnType<typeof useTranslations>) => [
   { name: t('chains.optimism', { defaultValue: 'Optimism' }), messages: 380000, value: 1500000000 },
   { name: t('chains.polygon', { defaultValue: 'Polygon' }), messages: 320000, value: 1200000000 },
   { name: t('chains.base', { defaultValue: 'Base' }), messages: 280000, value: 980000000 },
-  { name: t('chains.avalanche', { defaultValue: 'Avalanche' }), messages: 150000, value: 650000000 },
+  {
+    name: t('chains.avalanche', { defaultValue: 'Avalanche' }),
+    messages: 150000,
+    value: 650000000,
+  },
 ];
 
 export function ChainlinkServicesPanel() {
@@ -333,13 +339,39 @@ export function ChainlinkServicesPanel() {
   };
 
   const getServiceColor = (color: string) => {
-    const colorMap: Record<string, { bg: string; border: string; text: string; lightBg: string }> = {
-      blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', lightBg: 'bg-blue-50/50' },
-      purple: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700', lightBg: 'bg-indigo-50/50' },
-      green: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', lightBg: 'bg-emerald-50/50' },
-      pink: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', lightBg: 'bg-rose-50/50' },
-      amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', lightBg: 'bg-amber-50/50' },
-    };
+    const colorMap: Record<string, { bg: string; border: string; text: string; lightBg: string }> =
+      {
+        blue: {
+          bg: 'bg-blue-50',
+          border: 'border-blue-200',
+          text: 'text-blue-700',
+          lightBg: 'bg-blue-50/50',
+        },
+        purple: {
+          bg: 'bg-indigo-50',
+          border: 'border-indigo-200',
+          text: 'text-indigo-700',
+          lightBg: 'bg-indigo-50/50',
+        },
+        green: {
+          bg: 'bg-emerald-50',
+          border: 'border-emerald-200',
+          text: 'text-emerald-700',
+          lightBg: 'bg-emerald-50/50',
+        },
+        pink: {
+          bg: 'bg-rose-50',
+          border: 'border-rose-200',
+          text: 'text-rose-700',
+          lightBg: 'bg-rose-50/50',
+        },
+        amber: {
+          bg: 'bg-amber-50',
+          border: 'border-amber-200',
+          text: 'text-amber-700',
+          lightBg: 'bg-amber-50/50',
+        },
+      };
     return colorMap[color] || colorMap.blue;
   };
 
@@ -383,12 +415,12 @@ export function ChainlinkServicesPanel() {
               key={service.id}
               title={
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 ${colors.bg} ${colors.text} border ${colors.border}`}>{service.icon}</div>
+                  <div className={`p-2 ${colors.bg} ${colors.text} border ${colors.border}`}>
+                    {service.icon}
+                  </div>
                   <div>
                     <div className="font-semibold text-gray-900">{service.name}</div>
-                    <span
-                      className={`px-2 py-0.5 text-xs ${getStatusColor(service.status)}`}
-                    >
+                    <span className={`px-2 py-0.5 text-xs ${getStatusColor(service.status)}`}>
                       {t(`chainlink.services.status.${service.status}`)}
                     </span>
                   </div>
@@ -407,7 +439,9 @@ export function ChainlinkServicesPanel() {
                 {service.metrics.slice(0, 2).map((metric, idx) => (
                   <div key={idx} className="p-2 bg-gray-50 border border-gray-100">
                     <div className="text-xs text-gray-500">{t(metric.label)}</div>
-                    <div className="text-lg font-semibold text-gray-900 tracking-tight">{metric.value}</div>
+                    <div className="text-lg font-semibold text-gray-900 tracking-tight">
+                      {metric.value}
+                    </div>
                     {metric.change && (
                       <div
                         className={`text-xs font-medium ${

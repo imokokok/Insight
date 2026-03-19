@@ -1,0 +1,9 @@
+- [x] SettingsLayout 背景色统一为 bg-dune
+- [x] SettingsLayout Tab 导航添加圆角和选中指示器
+- [x] ProfilePanel 卡片添加圆角和优化表单样式
+- [x] PreferencesPanel 卡片添加圆角和优化控件样式
+- [x] NotificationPanel 卡片添加圆角和优化 Toggle 样式
+- [x] DataManagementPanel 卡片添加圆角和优化按钮样式
+- [x] 设置页面主入口背景色一致性
+- [x] 所有按钮添加过渡动画
+- [x] 输入框 focus 状态样式统一

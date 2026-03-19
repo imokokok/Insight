@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CustomFeed, DataSourceTransparency } from '@/lib/oracles/dia';
 import { useTranslations } from 'next-intl';
 import { Blockchain } from '@/types/oracle/enums';
+import { DashboardCard } from '@/components/oracle';
 
 interface DIADataFeedsPanelProps {
   feeds: CustomFeed[];
@@ -51,9 +52,9 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
   const getAssetTypeBadgeColor = (type: string) => {
     switch (type) {
       case 'crypto':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
+        return 'bg-indigo-100 text-indigo-700 border-indigo-200';
       case 'fiat':
-        return 'bg-green-100 text-green-700 border-green-200';
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'nft':
         return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'commodity':
@@ -91,14 +92,14 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.98) return 'text-green-600';
-    if (confidence >= 0.95) return 'text-blue-600';
+    if (confidence >= 0.95) return 'text-indigo-600';
     if (confidence >= 0.9) return 'text-yellow-600';
     return 'text-orange-600';
   };
 
   const getConfidenceBgColor = (confidence: number) => {
     if (confidence >= 0.98) return 'bg-green-50';
-    if (confidence >= 0.95) return 'bg-blue-50';
+    if (confidence >= 0.95) return 'bg-indigo-50';
     if (confidence >= 0.9) return 'bg-yellow-50';
     return 'bg-orange-50';
   };
@@ -126,34 +127,34 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
     <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <DashboardCard className="p-4">
           <p className="text-sm text-gray-600 mb-1">{t('dia.dataFeeds.totalFeeds')}</p>
           <p className="text-2xl font-bold text-indigo-600">{totalFeeds}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        </DashboardCard>
+        <DashboardCard className="p-4">
           <p className="text-sm text-gray-600 mb-1">{t('dia.dataFeeds.activeFeeds')}</p>
           <p className="text-2xl font-bold text-green-600">{activeFeeds}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        </DashboardCard>
+        <DashboardCard className="p-4">
           <p className="text-sm text-gray-600 mb-1">{t('dia.dataFeeds.crypto')}</p>
-          <p className="text-2xl font-bold text-blue-600">{cryptoCount}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <p className="text-2xl font-bold text-indigo-600">{cryptoCount}</p>
+        </DashboardCard>
+        <DashboardCard className="p-4">
           <p className="text-sm text-gray-600 mb-1">{t('dia.dataFeeds.fiat')}</p>
-          <p className="text-2xl font-bold text-green-600">{fiatCount}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <p className="text-2xl font-bold text-blue-600">{fiatCount}</p>
+        </DashboardCard>
+        <DashboardCard className="p-4">
           <p className="text-sm text-gray-600 mb-1">{t('dia.dataFeeds.nft')}</p>
           <p className="text-2xl font-bold text-purple-600">{nftCount}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        </DashboardCard>
+        <DashboardCard className="p-4">
           <p className="text-sm text-gray-600 mb-1">{t('dia.dataFeeds.commodity')}</p>
           <p className="text-2xl font-bold text-amber-600">{commodityCount}</p>
-        </div>
+        </DashboardCard>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <DashboardCard className="p-6">
         {/* Asset Type Filters */}
         <div className="mb-4">
           <p className="text-sm font-medium text-gray-700 mb-2">
@@ -174,7 +175,7 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
               onClick={() => setSelectedAssetType('crypto')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedAssetType === 'crypto'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-indigo-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -184,7 +185,7 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
               onClick={() => setSelectedAssetType('fiat')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedAssetType === 'fiat'
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-indigo-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -194,7 +195,7 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
               onClick={() => setSelectedAssetType('nft')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedAssetType === 'nft'
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-indigo-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -204,7 +205,7 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
               onClick={() => setSelectedAssetType('commodity')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedAssetType === 'commodity'
-                  ? 'bg-amber-600 text-white'
+                  ? 'bg-indigo-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -244,10 +245,10 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
             ))}
           </div>
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Feeds List */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <DashboardCard>
         <div className="p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">{t('dia.dataFeeds.title')}</h3>
           <p className="text-sm text-gray-600 mt-1">
@@ -391,7 +392,7 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
             <p className="text-gray-500">{t('dia.dataFeeds.noFeeds')}</p>
           </div>
         )}
-      </div>
+      </DashboardCard>
     </div>
   );
 }

@@ -29,12 +29,8 @@ export function AriaLabel({
   const descriptionId = useId();
   const errorId = useId();
 
-  const ariaDescribedBy = [
-    description && descriptionId,
-    errorMessage && errorId,
-  ]
-    .filter(Boolean)
-    .join(' ') || undefined;
+  const ariaDescribedBy =
+    [description && descriptionId, errorMessage && errorId].filter(Boolean).join(' ') || undefined;
 
   return (
     <div className="aria-label-wrapper">
@@ -43,7 +39,11 @@ export function AriaLabel({
         className={hiddenLabel ? 'sr-only' : 'block text-sm font-medium text-gray-700 mb-1'}
       >
         {label}
-        {required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+        {required && (
+          <span className="text-red-500 ml-1" aria-hidden="true">
+            *
+          </span>
+        )}
         {required && <span className="sr-only"> ({'required'})</span>}
       </label>
 
@@ -55,21 +55,24 @@ export function AriaLabel({
 
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as React.ReactElement<{
-            'aria-labelledby'?: string;
-            'aria-describedby'?: string;
-            'aria-invalid'?: boolean;
-            'aria-errormessage'?: string;
-            'aria-required'?: boolean;
-            'aria-disabled'?: boolean;
-          }>, {
-            'aria-labelledby': labelId,
-            'aria-describedby': ariaDescribedBy,
-            'aria-invalid': errorMessage ? true : undefined,
-            'aria-errormessage': errorMessage ? errorId : undefined,
-            'aria-required': required,
-            'aria-disabled': disabled,
-          });
+          return React.cloneElement(
+            child as React.ReactElement<{
+              'aria-labelledby'?: string;
+              'aria-describedby'?: string;
+              'aria-invalid'?: boolean;
+              'aria-errormessage'?: string;
+              'aria-required'?: boolean;
+              'aria-disabled'?: boolean;
+            }>,
+            {
+              'aria-labelledby': labelId,
+              'aria-describedby': ariaDescribedBy,
+              'aria-invalid': errorMessage ? true : undefined,
+              'aria-errormessage': errorMessage ? errorId : undefined,
+              'aria-required': required,
+              'aria-disabled': disabled,
+            }
+          );
         }
         return child;
       })}
@@ -133,12 +136,7 @@ export function AriaLive({
   className = '',
 }: AriaLiveProps) {
   return (
-    <div
-      aria-live={level}
-      aria-atomic={atomic}
-      aria-relevant={relevant}
-      className={className}
-    >
+    <div aria-live={level} aria-atomic={atomic} aria-relevant={relevant} className={className}>
       {children}
     </div>
   );
@@ -155,13 +153,16 @@ export interface AriaExpandedProps {
 }
 
 export function AriaExpanded({ children, expanded, controlsId }: AriaExpandedProps) {
-  return React.cloneElement(children as React.ReactElement<{
-    'aria-expanded'?: boolean;
-    'aria-controls'?: string;
-  }>, {
-    'aria-expanded': expanded,
-    'aria-controls': controlsId,
-  });
+  return React.cloneElement(
+    children as React.ReactElement<{
+      'aria-expanded'?: boolean;
+      'aria-controls'?: string;
+    }>,
+    {
+      'aria-expanded': expanded,
+      'aria-controls': controlsId,
+    }
+  );
 }
 
 // ============================================
@@ -315,9 +316,7 @@ export function AriaProgress({
       {label && (
         <div className="flex justify-between mb-1">
           <span className="text-sm font-medium text-gray-700">{label}</span>
-          {showValue && (
-            <span className="text-sm text-gray-500">{percentage}%</span>
-          )}
+          {showValue && <span className="text-sm text-gray-500">{percentage}%</span>}
         </div>
       )}
       <div
@@ -372,7 +371,13 @@ export function AriaTabs({
   );
 }
 
-export function AriaTabList({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+export function AriaTabList({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div role="tablist" className={className}>
       {children}
@@ -421,12 +426,7 @@ export function AriaTabPanel({
   if (!isActive) return null;
 
   return (
-    <div
-      role="tabpanel"
-      id={`${id}-panel`}
-      aria-labelledby={id}
-      className={className}
-    >
+    <div role="tabpanel" id={`${id}-panel`} aria-labelledby={id} className={className}>
       {children}
     </div>
   );
@@ -507,12 +507,7 @@ export function AriaAccordionItem({
       >
         {title}
       </button>
-      <div
-        id={`${id}-panel`}
-        role="region"
-        aria-labelledby={`${id}-header`}
-        hidden={!isExpanded}
-      >
+      <div id={`${id}-panel`} role="region" aria-labelledby={`${id}-header`} hidden={!isExpanded}>
         {children}
       </div>
     </div>
@@ -596,12 +591,7 @@ export function AriaMenuItem({
 }) {
   return (
     <li role="none">
-      <button
-        role="menuitem"
-        onClick={onClick}
-        disabled={disabled}
-        className={className}
-      >
+      <button role="menuitem" onClick={onClick} disabled={disabled} className={className}>
         {children}
       </button>
     </li>

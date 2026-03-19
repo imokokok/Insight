@@ -1,0 +1,10 @@
+- [x] DIA iconBgColor 配置已修改为 `bg-indigo-600`
+- [x] DIADataFeedsPanel 统计卡片使用 DashboardCard 组件
+- [x] DIADataFeedsPanel 筛选按钮使用 indigo 主题色
+- [x] DIAEcosystemPanel 统计卡片使用 DashboardCard 组件
+- [x] DIAEcosystemPanel 分类筛选按钮使用 indigo 主题色
+- [x] DIAStakingPanel 统计卡片使用 DashboardCard 组件
+- [x] DIAStakingPanel 锁定期按钮使用 indigo 主题色
+- [x] DIANFTDataPanel 统计卡片使用 DashboardCard 组件
+- [x] 所有卡片圆角统一为 rounded-lg
+- [x] 页面整体样式保持一致性

@@ -3,11 +3,7 @@
 import { useState, useEffect } from 'react';
 import { OracleMarketData, AssetData } from './types';
 import { useWebSocket, WebSocketStatus, WebSocketMessage } from '@/lib/realtime/websocket';
-import {
-  usePriceAlerts,
-  AlertCheckResult,
-  PriceDataForAlert,
-} from '@/lib/realtime/priceAlerts';
+import { usePriceAlerts, AlertCheckResult, PriceDataForAlert } from '@/lib/realtime/priceAlerts';
 
 export interface UseWebSocketHandlerReturn {
   wsStatus: WebSocketStatus;

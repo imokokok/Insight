@@ -18,13 +18,7 @@ interface AlertItemProps {
   onClear: (id: string) => void;
 }
 
-export function AlertItem({
-  anomaly,
-  locale,
-  onAcknowledge,
-  onResolve,
-  onClear,
-}: AlertItemProps) {
+export function AlertItem({ anomaly, locale, onAcknowledge, onResolve, onClear }: AlertItemProps) {
   const t = useTranslations();
 
   return (
@@ -93,16 +87,12 @@ export function AlertItem({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
           <div>
             <span className="text-gray-500">{t('anomalyAlert.currentValue')}:</span>
-            <span className="ml-1 font-medium">
-              ${anomaly.details.currentValue.toFixed(4)}
-            </span>
+            <span className="ml-1 font-medium">${anomaly.details.currentValue.toFixed(4)}</span>
           </div>
           {anomaly.details.expectedValue !== undefined && (
             <div>
               <span className="text-gray-500">{t('anomalyAlert.expectedValue')}:</span>
-              <span className="ml-1 font-medium">
-                ${anomaly.details.expectedValue.toFixed(4)}
-              </span>
+              <span className="ml-1 font-medium">${anomaly.details.expectedValue.toFixed(4)}</span>
             </div>
           )}
           {anomaly.details.deviationPercent !== undefined && (
@@ -116,9 +106,7 @@ export function AlertItem({
           {anomaly.details.delay !== undefined && (
             <div>
               <span className="text-gray-500">{t('anomalyAlert.delay')}:</span>
-              <span className="ml-1 font-medium">
-                {formatDuration(anomaly.details.delay, t)}
-              </span>
+              <span className="ml-1 font-medium">{formatDuration(anomaly.details.delay, t)}</span>
             </div>
           )}
         </div>

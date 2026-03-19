@@ -156,10 +156,7 @@ export default function MarketOverviewPage() {
         </div>
       </div>
 
-      <AnomalyModal
-        selectedAnomaly={selectedAnomaly}
-        onClose={() => setSelectedAnomaly(null)}
-      />
+      <AnomalyModal selectedAnomaly={selectedAnomaly} onClose={() => setSelectedAnomaly(null)} />
     </div>
   );
 }

@@ -10,11 +10,7 @@ export {
   type ErrorSuggestion,
   type ErrorSeverity,
 } from './ErrorDisplay';
-export {
-  SegmentedControl,
-  DropdownSelect,
-  MultiSelect,
-} from './selectors';
+export { SegmentedControl, DropdownSelect, MultiSelect } from './selectors';
 export type {
   SelectorOption,
   SegmentedControlProps,

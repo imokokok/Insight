@@ -28,7 +28,12 @@ import {
   removeFromSearchHistory,
   SearchHistoryItem,
 } from '@/lib/utils/searchHistory';
-import { searchAll, getTokenSymbol, type SearchableItem, type SearchResult } from '@/lib/constants/searchConfig';
+import {
+  searchAll,
+  getTokenSymbol,
+  type SearchableItem,
+  type SearchResult,
+} from '@/lib/constants/searchConfig';
 import HeroBackground from './HeroBackground';
 
 interface TrendData {
@@ -116,7 +121,11 @@ export default function ProfessionalHero() {
   }, [searchQuery]);
 
   const dropdownItems = useMemo(() => {
-    const items: { type: 'history' | 'popular' | 'search'; item: SearchResult | { symbol: string }; resultType?: 'token' | 'oracle' | 'chain' | 'protocol' }[] = [];
+    const items: {
+      type: 'history' | 'popular' | 'search';
+      item: SearchResult | { symbol: string };
+      resultType?: 'token' | 'oracle' | 'chain' | 'protocol';
+    }[] = [];
 
     if (!searchQuery.trim() && searchHistory.length > 0) {
       searchHistory.slice(0, 3).forEach((historyItem) => {
@@ -133,7 +142,11 @@ export default function ProfessionalHero() {
     }
 
     searchResults.forEach((result) => {
-      items.push({ type: 'search', item: result, resultType: result.item.type as 'token' | 'oracle' | 'chain' | 'protocol' });
+      items.push({
+        type: 'search',
+        item: result,
+        resultType: result.item.type as 'token' | 'oracle' | 'chain' | 'protocol',
+      });
     });
 
     return items.slice(0, 10);
@@ -161,7 +174,7 @@ export default function ProfessionalHero() {
         saveSearchHistory(symbolToSave);
         setSearchHistory(getSearchHistory());
       }
-      
+
       setIsDropdownOpen(false);
       router.push(path);
     },
@@ -405,18 +418,29 @@ export default function ProfessionalHero() {
 
                     <div className="max-h-80 overflow-y-auto">
                       {dropdownItems.map((dropdownItem, index) => {
-                        const isSearchResult = dropdownItem.type === 'search' && 'score' in dropdownItem.item;
-                        const searchResult = isSearchResult ? (dropdownItem.item as SearchResult) : null;
+                        const isSearchResult =
+                          dropdownItem.type === 'search' && 'score' in dropdownItem.item;
+                        const searchResult = isSearchResult
+                          ? (dropdownItem.item as SearchResult)
+                          : null;
                         const searchableItem = searchResult?.item;
-                        const symbol = 'symbol' in dropdownItem.item ? dropdownItem.item.symbol : searchableItem?.symbol || '';
+                        const symbol =
+                          'symbol' in dropdownItem.item
+                            ? dropdownItem.item.symbol
+                            : searchableItem?.symbol || '';
                         const name = searchableItem?.name || symbol;
-                        
+
                         const getTypeIcon = () => {
-                          if (dropdownItem.type === 'history') return <Clock className="w-4 h-4 text-gray-400" />;
-                          if (dropdownItem.type === 'popular') return <TrendingUp className="w-4 h-4 text-emerald-500" />;
-                          if (searchableItem?.type === 'token') return <Coins className="w-4 h-4 text-amber-500" />;
-                          if (searchableItem?.type === 'oracle') return <Database className="w-4 h-4 text-blue-500" />;
-                          if (searchableItem?.type === 'chain') return <Link2 className="w-4 h-4 text-purple-500" />;
+                          if (dropdownItem.type === 'history')
+                            return <Clock className="w-4 h-4 text-gray-400" />;
+                          if (dropdownItem.type === 'popular')
+                            return <TrendingUp className="w-4 h-4 text-emerald-500" />;
+                          if (searchableItem?.type === 'token')
+                            return <Coins className="w-4 h-4 text-amber-500" />;
+                          if (searchableItem?.type === 'oracle')
+                            return <Database className="w-4 h-4 text-blue-500" />;
+                          if (searchableItem?.type === 'chain')
+                            return <Link2 className="w-4 h-4 text-purple-500" />;
                           return <Search className="w-4 h-4 text-gray-400" />;
                         };
 
@@ -429,10 +453,12 @@ export default function ProfessionalHero() {
                         };
 
                         const getTypeColor = () => {
-                          if (dropdownItem.type === 'popular') return 'text-emerald-600 bg-emerald-50';
+                          if (dropdownItem.type === 'popular')
+                            return 'text-emerald-600 bg-emerald-50';
                           if (searchableItem?.type === 'token') return 'text-amber-600 bg-amber-50';
                           if (searchableItem?.type === 'oracle') return 'text-blue-600 bg-blue-50';
-                          if (searchableItem?.type === 'chain') return 'text-purple-600 bg-purple-50';
+                          if (searchableItem?.type === 'chain')
+                            return 'text-purple-600 bg-purple-50';
                           return 'text-gray-600 bg-gray-50';
                         };
 
@@ -570,7 +596,9 @@ export default function ProfessionalHero() {
                         </span>
                       </div>
                     </div>
-                    <div className="text-3xl font-extrabold tracking-tight text-gray-900 mb-3">{metric.value}</div>
+                    <div className="text-3xl font-extrabold tracking-tight text-gray-900 mb-3">
+                      {metric.value}
+                    </div>
                     <div className="h-14 w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={metric.trend}>

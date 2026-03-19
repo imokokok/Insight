@@ -38,12 +38,42 @@ interface ChronicleRiskAssessmentPanelProps {
 
 // 示例缓解措施
 const chronicleMitigationMeasures: MitigationMeasure[] = [
-  { name: 'chronicle.risk.mitigationMeasures.scuttlebuttVerification', type: 'technical', status: 'active', effectiveness: 96 },
-  { name: 'chronicle.risk.mitigationMeasures.validatorRotation', type: 'technical', status: 'active', effectiveness: 92 },
-  { name: 'chronicle.risk.mitigationMeasures.multiChainValidation', type: 'technical', status: 'active', effectiveness: 89 },
-  { name: 'chronicle.risk.mitigationMeasures.thresholdSignature', type: 'technical', status: 'active', effectiveness: 94 },
-  { name: 'chronicle.risk.mitigationMeasures.decentralizedGovernance', type: 'governance', status: 'active', effectiveness: 87 },
-  { name: 'chronicle.risk.mitigationMeasures.monitoring', type: 'operational', status: 'active', effectiveness: 93 },
+  {
+    name: 'chronicle.risk.mitigationMeasures.scuttlebuttVerification',
+    type: 'technical',
+    status: 'active',
+    effectiveness: 96,
+  },
+  {
+    name: 'chronicle.risk.mitigationMeasures.validatorRotation',
+    type: 'technical',
+    status: 'active',
+    effectiveness: 92,
+  },
+  {
+    name: 'chronicle.risk.mitigationMeasures.multiChainValidation',
+    type: 'technical',
+    status: 'active',
+    effectiveness: 89,
+  },
+  {
+    name: 'chronicle.risk.mitigationMeasures.thresholdSignature',
+    type: 'technical',
+    status: 'active',
+    effectiveness: 94,
+  },
+  {
+    name: 'chronicle.risk.mitigationMeasures.decentralizedGovernance',
+    type: 'governance',
+    status: 'active',
+    effectiveness: 87,
+  },
+  {
+    name: 'chronicle.risk.mitigationMeasures.monitoring',
+    type: 'operational',
+    status: 'active',
+    effectiveness: 93,
+  },
 ];
 
 export function ChronicleRiskAssessmentPanel({
@@ -109,14 +139,14 @@ export function ChronicleRiskAssessmentPanel({
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">{t('chronicle.risk.overallRiskScore')}</span>
               <span
-                className={`px-3 py-1 text-sm font-medium rounded-md ${
+                className={`px-3 py-1 text-sm font-medium border ${
                   riskData.overallRiskScore >= 90
-                    ? 'bg-green-100 text-green-700'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                     : riskData.overallRiskScore >= 70
-                      ? 'bg-yellow-100 text-yellow-700'
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
                       : riskData.overallRiskScore >= 50
-                        ? 'bg-orange-100 text-orange-700'
-                        : 'bg-red-100 text-red-700'
+                        ? 'bg-orange-50 text-orange-700 border-orange-200'
+                        : 'bg-red-50 text-red-700 border-red-200'
                 }`}
               >
                 {riskData.overallRiskScore >= 90
@@ -132,9 +162,9 @@ export function ChronicleRiskAssessmentPanel({
               <span
                 className={`text-4xl font-bold ${
                   riskData.overallRiskScore >= 90
-                    ? 'text-green-600'
+                    ? 'text-emerald-600'
                     : riskData.overallRiskScore >= 70
-                      ? 'text-yellow-600'
+                      ? 'text-amber-600'
                       : riskData.overallRiskScore >= 50
                         ? 'text-orange-600'
                         : 'text-red-600'
@@ -147,13 +177,13 @@ export function ChronicleRiskAssessmentPanel({
           </div>
         </div>
 
-        <div className="w-full bg-gray-200 rounded-full h-3">
+        <div className="w-full bg-gray-200 h-3">
           <div
-            className={`h-3 rounded-full transition-all duration-500 ${
+            className={`h-3 transition-all duration-500 ${
               riskData.overallRiskScore >= 90
-                ? 'bg-green-500'
+                ? 'bg-emerald-500'
                 : riskData.overallRiskScore >= 70
-                  ? 'bg-yellow-500'
+                  ? 'bg-amber-500'
                   : riskData.overallRiskScore >= 50
                     ? 'bg-orange-500'
                     : 'bg-red-500'
@@ -241,7 +271,7 @@ export function ChronicleRiskAssessmentPanel({
             </div>
           </div>
         </div>
-        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="mt-4 p-3 bg-amber-50 border border-amber-200">
           <p className="text-sm text-amber-800">
             <span className="font-medium">{t('chronicle.risk.scuttlebuttNote')}</span>
             {t('chronicle.risk.scuttlebuttNoteDesc')}

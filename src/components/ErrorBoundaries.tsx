@@ -18,9 +18,11 @@ const FALLBACK_TRANSLATIONS = {
   'error.boundary.somethingWrong': 'Something went wrong',
   'error.boundary.tryAgain': 'Try again',
   'error.boundary.global.title': 'Something went wrong',
-  'error.boundary.global.description': "We're sorry, but something unexpected happened. Please try refreshing the page.",
+  'error.boundary.global.description':
+    "We're sorry, but something unexpected happened. Please try refreshing the page.",
   'error.boundary.section.title': 'Section Error',
-  'error.boundary.section.description': 'This section encountered an error. You can try again or continue with other parts of the page.',
+  'error.boundary.section.description':
+    'This section encountered an error. You can try again or continue with other parts of the page.',
   'error.boundary.refreshPage': 'Refresh page',
   'error.validation.title': 'Validation Error',
   'error.notFound.title': 'Not Found',
@@ -239,7 +241,9 @@ function DefaultErrorFallback({ error, onReset, translations: _translations }: E
           {config.title.startsWith('error.') ? getFallbackTranslation(config.title) : config.title}
         </h2>
         <p className="text-gray-600 mb-6">
-          {config.message.startsWith('error.') ? getFallbackTranslation(config.message) : config.message}
+          {config.message.startsWith('error.')
+            ? getFallbackTranslation(config.message)
+            : config.message}
         </p>
         {process.env.NODE_ENV === 'development' && error && (
           <div className="mb-4 p-3 bg-gray-100  text-left">
@@ -261,10 +265,10 @@ function DefaultErrorFallback({ error, onReset, translations: _translations }: E
 export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
   const title = translations?.globalTitle || getFallbackTranslation('error.boundary.global.title');
   const description =
-    translations?.globalDescription ||
-    getFallbackTranslation('error.boundary.global.description');
+    translations?.globalDescription || getFallbackTranslation('error.boundary.global.description');
   const tryAgain = translations?.tryAgain || getFallbackTranslation('error.boundary.tryAgain');
-  const refreshPage = translations?.refreshPage || getFallbackTranslation('error.boundary.refreshPage');
+  const refreshPage =
+    translations?.refreshPage || getFallbackTranslation('error.boundary.refreshPage');
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
@@ -310,7 +314,8 @@ export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallb
 }
 
 export function SectionErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
-  const title = translations?.sectionTitle || getFallbackTranslation('error.boundary.section.title');
+  const title =
+    translations?.sectionTitle || getFallbackTranslation('error.boundary.section.title');
   const description =
     translations?.sectionDescription ||
     getFallbackTranslation('error.boundary.section.description');

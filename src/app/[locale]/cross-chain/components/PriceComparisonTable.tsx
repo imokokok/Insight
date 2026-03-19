@@ -83,7 +83,9 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
                 onClick={() => handleSort('diff')}
               >
                 <div className="flex items-center justify-end gap-1">
-                  {t('crossChain.differenceVs', { chain: selectedBaseChain ? chainNames[selectedBaseChain] : '-' })}
+                  {t('crossChain.differenceVs', {
+                    chain: selectedBaseChain ? chainNames[selectedBaseChain] : '-',
+                  })}
                   <span>{sortColumn === 'diff' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
                 </div>
               </th>

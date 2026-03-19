@@ -9,7 +9,6 @@ import {
   MarketDataPanel,
   NetworkHealthPanel,
   DashboardCard,
-  StatCard,
   TabNavigation,
   LoadingState,
   ErrorFallback,
@@ -212,7 +211,40 @@ export default function API3Page() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {stats.map((stat, index) => (
-              <StatCard key={index} {...stat} />
+              <div
+                key={index}
+                className="bg-white border border-gray-200 p-4 hover:border-gray-300 transition-colors duration-200"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                      {stat.title}
+                    </p>
+                    <p className="text-xl font-semibold text-gray-900 tracking-tight">
+                      {stat.value}
+                    </p>
+                    <p
+                      className={`text-xs mt-1 font-medium ${
+                        stat.changeType === 'positive'
+                          ? 'text-green-600'
+                          : stat.changeType === 'negative'
+                            ? 'text-red-600'
+                            : 'text-gray-500'
+                      }`}
+                    >
+                      {stat.changeType === 'positive'
+                        ? '↑'
+                        : stat.changeType === 'negative'
+                          ? '↓'
+                          : '→'}{' '}
+                      {stat.change}
+                    </p>
+                  </div>
+                  <div className="p-2 bg-gray-100 border border-gray-200 text-gray-600 flex-shrink-0">
+                    {stat.icon}
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
 

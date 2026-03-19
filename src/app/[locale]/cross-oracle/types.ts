@@ -1,5 +1,11 @@
 import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
-import { SortColumn, SortDirection, TimeRange, DeviationFilter, RefreshInterval } from './constants';
+import {
+  SortColumn,
+  SortDirection,
+  TimeRange,
+  DeviationFilter,
+  RefreshInterval,
+} from './constants';
 import { TabId } from './components/TabNavigation';
 
 // 跨预言机对比数据

@@ -206,28 +206,28 @@ tokenAliases.forEach((token) => {
 
 export function findTokenByQuery(query: string): string | null {
   const normalizedQuery = query.trim().toLowerCase();
-  
+
   const directMatch = tokenAliasMap.get(normalizedQuery);
   if (directMatch) return directMatch;
-  
+
   for (const [alias, symbol] of tokenAliasMap.entries()) {
     if (alias.includes(normalizedQuery) || normalizedQuery.includes(alias)) {
       return symbol;
     }
   }
-  
+
   return null;
 }
 
 export function searchTokens(query: string): TokenAlias[] {
   const normalizedQuery = query.trim().toLowerCase();
   if (!normalizedQuery) return [];
-  
+
   const results: { token: TokenAlias; score: number }[] = [];
-  
+
   tokenAliases.forEach((token) => {
     let score = 0;
-    
+
     if (token.symbol.toLowerCase() === normalizedQuery) {
       score = 100;
     } else if (token.name.toLowerCase() === normalizedQuery) {
@@ -247,13 +247,13 @@ export function searchTokens(query: string): TokenAlias[] {
     } else if (token.aliases.some((a) => a.toLowerCase().includes(normalizedQuery))) {
       score = 40;
     }
-    
+
     if (score > 0) {
       results.push({ token, score });
     }
   });
-  
+
   results.sort((a, b) => b.score - a.score);
-  
+
   return results.slice(0, 8).map((r) => r.token);
 }
