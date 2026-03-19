@@ -5,21 +5,12 @@ import { DashboardCard } from '../common/DashboardCard';
 import { ValidatorData } from '@/lib/oracles/uma';
 import { useTranslations } from 'next-intl';
 import { chartColors } from '@/lib/config/colors';
+import { formatNumber } from '@/lib/utils/format';
 
 type ComparisonDimension = 'responseTime' | 'successRate' | 'earnings';
 
 export interface ValidatorComparisonProps {
   validators: ValidatorData[];
-}
-
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(2)}M`;
-  }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(2)}K`;
-  }
-  return num.toLocaleString();
 }
 
 function ResponseTimeComparison({ validators }: { validators: ValidatorData[] }) {
@@ -204,7 +195,7 @@ function EarningsComparisonChart({ validators }: { validators: ValidatorData[] }
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-700 truncate">{validator.name}</span>
                 <span className="font-semibold text-green-600">
-                  {formatNumber(validator.earnings)} UMA
+                  {formatNumber(validator.earnings, true)} UMA
                 </span>
               </div>
               <div className="h-8 bg-gray-100  overflow-hidden">
@@ -217,7 +208,7 @@ function EarningsComparisonChart({ validators }: { validators: ValidatorData[] }
                 >
                   {width > 15 && (
                     <span className="text-xs text-white font-medium">
-                      {formatNumber(validator.earnings)}
+                      {formatNumber(validator.earnings, true)}
                     </span>
                   )}
                 </div>

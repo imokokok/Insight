@@ -18,7 +18,7 @@ import {
   calculateCurrentVolatility,
   addTechnicalIndicators,
 } from '../calculations';
-import type { PriceDataPoint } from '../types';
+import type { OHLCVDataPoint } from '../types';
 
 describe('Technical Indicators Calculations', () => {
   describe('calculateSMA', () => {
@@ -543,7 +543,7 @@ describe('Technical Indicators Calculations', () => {
 
   describe('calculateBollingerBandsExtended', () => {
     it('should calculate bandwidth and position', () => {
-      const prices: PriceDataPoint[] = Array.from({ length: 25 }, (_, i) => ({
+      const prices: OHLCVDataPoint[] = Array.from({ length: 25 }, (_, i) => ({
         price: 100 + i,
         timestamp: i,
       }));
@@ -555,7 +555,7 @@ describe('Technical Indicators Calculations', () => {
     });
 
     it('should sort prices by timestamp', () => {
-      const prices: PriceDataPoint[] = [
+      const prices: OHLCVDataPoint[] = [
         { price: 100, timestamp: 2 },
         { price: 110, timestamp: 0 },
         { price: 105, timestamp: 1 },
@@ -566,7 +566,7 @@ describe('Technical Indicators Calculations', () => {
     });
 
     it('should calculate bandwidth as upper - lower', () => {
-      const prices: PriceDataPoint[] = Array.from({ length: 25 }, (_, i) => ({
+      const prices: OHLCVDataPoint[] = Array.from({ length: 25 }, (_, i) => ({
         price: 100 + i,
         timestamp: i,
       }));
@@ -578,7 +578,7 @@ describe('Technical Indicators Calculations', () => {
     });
 
     it('should calculate position correctly', () => {
-      const prices: PriceDataPoint[] = Array.from({ length: 25 }, (_, i) => ({
+      const prices: OHLCVDataPoint[] = Array.from({ length: 25 }, (_, i) => ({
         price: 100 + i,
         timestamp: i,
       }));
@@ -592,7 +592,6 @@ describe('Technical Indicators Calculations', () => {
 
     it('should handle empty prices', () => {
       const result = calculateBollingerBandsExtended([]);
-
       expect(result.upper).toEqual([]);
       expect(result.middle).toEqual([]);
       expect(result.lower).toEqual([]);
@@ -601,38 +600,38 @@ describe('Technical Indicators Calculations', () => {
 
   describe('calculateTrueRange', () => {
     it('should calculate true range for first candle', () => {
-      const current: PriceDataPoint = { price: 100, high: 105, low: 95 };
+      const current: OHLCVDataPoint = { price: 100, high: 105, low: 95 };
       const result = calculateTrueRange(current, null);
 
       expect(result).toBe(10);
     });
 
     it('should calculate true range using high-low when previous close is within range', () => {
-      const current: PriceDataPoint = { price: 100, high: 105, low: 95, close: 100 };
-      const previous: PriceDataPoint = { price: 98, close: 98 };
+      const current: OHLCVDataPoint = { price: 100, high: 105, low: 95, close: 100 };
+      const previous: OHLCVDataPoint = { price: 98, close: 98 };
 
       const result = calculateTrueRange(current, previous);
       expect(result).toBe(10);
     });
 
     it('should consider previous close in true range calculation', () => {
-      const current: PriceDataPoint = { price: 100, high: 105, low: 95, close: 100 };
-      const previous: PriceDataPoint = { price: 110, close: 110 };
+      const current: OHLCVDataPoint = { price: 100, high: 105, low: 95, close: 100 };
+      const previous: OHLCVDataPoint = { price: 110, close: 110 };
 
       const result = calculateTrueRange(current, previous);
       expect(result).toBe(15);
     });
 
     it('should use price when high/low not available', () => {
-      const current: PriceDataPoint = { price: 100 };
+      const current: OHLCVDataPoint = { price: 100 };
       const result = calculateTrueRange(current, null);
 
       expect(result).toBe(0);
     });
 
     it('should calculate true range as max of three values', () => {
-      const current: PriceDataPoint = { price: 100, high: 110, low: 90, close: 105 };
-      const previous: PriceDataPoint = { price: 85, close: 85 };
+      const current: OHLCVDataPoint = { price: 100, high: 110, low: 90, close: 105 };
+      const previous: OHLCVDataPoint = { price: 85, close: 85 };
 
       const result = calculateTrueRange(current, previous);
       expect(result).toBe(25);
@@ -641,7 +640,7 @@ describe('Technical Indicators Calculations', () => {
 
   describe('calculateATR', () => {
     it('should calculate ATR correctly', () => {
-      const prices: PriceDataPoint[] = [
+      const prices: OHLCVDataPoint[] = [
         { price: 100, high: 105, low: 95, close: 102 },
         { price: 102, high: 108, low: 100, close: 105 },
         { price: 105, high: 110, low: 103, close: 108 },
@@ -665,7 +664,7 @@ describe('Technical Indicators Calculations', () => {
     });
 
     it('should return NaN for first period-1 ATR values', () => {
-      const prices: PriceDataPoint[] = Array.from({ length: 15 }, (_, i) => ({
+      const prices: OHLCVDataPoint[] = Array.from({ length: 15 }, (_, i) => ({
         price: 100 + i,
         high: 105 + i,
         low: 95 + i,
@@ -679,7 +678,7 @@ describe('Technical Indicators Calculations', () => {
     });
 
     it('should calculate first ATR as average of first period TRs', () => {
-      const prices: PriceDataPoint[] = Array.from({ length: 15 }, (_, i) => ({
+      const prices: OHLCVDataPoint[] = Array.from({ length: 15 }, (_, i) => ({
         price: 100 + i,
         high: 105 + i,
         low: 95 + i,
@@ -691,7 +690,7 @@ describe('Technical Indicators Calculations', () => {
     });
 
     it('should use smoothing for subsequent ATR values', () => {
-      const prices: PriceDataPoint[] = Array.from({ length: 20 }, (_, i) => ({
+      const prices: OHLCVDataPoint[] = Array.from({ length: 20 }, (_, i) => ({
         price: 100 + i,
         high: 105 + i,
         low: 95 + i,
@@ -705,7 +704,7 @@ describe('Technical Indicators Calculations', () => {
     });
 
     it('should use default period of 14', () => {
-      const prices: PriceDataPoint[] = Array.from({ length: 20 }, (_, i) => ({
+      const prices: OHLCVDataPoint[] = Array.from({ length: 20 }, (_, i) => ({
         price: 100 + i,
         high: 105 + i,
         low: 95 + i,

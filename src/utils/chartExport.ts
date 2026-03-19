@@ -3,7 +3,9 @@ import { exportColors } from '@/lib/config/colors';
 
 // 动态导入 jsPDF，避免 SSR 问题
 let jsPDFModule: typeof import('jspdf').default | null = null;
-let jsPDFAutoTable: ((doc: import('jspdf').default, options: any) => void) | null = null;
+let jsPDFAutoTable:
+  | ((doc: import('jspdf').default, options: Record<string, unknown>) => void)
+  | null = null;
 
 async function getJsPDF() {
   if (!jsPDFModule) {

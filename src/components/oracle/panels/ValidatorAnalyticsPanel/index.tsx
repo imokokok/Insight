@@ -20,6 +20,7 @@ import {
   VALIDATOR_TYPE_LABELS,
 } from './config';
 import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+import { formatNumber } from '@/lib/utils/format';
 
 const logger = createLogger('ValidatorAnalyticsPanel');
 
@@ -40,16 +41,6 @@ function formatRelativeTime(
     const hours = Math.floor(diffInSeconds / 3600);
     return t('panels.validatorAnalytics.hoursAgo', { hours });
   }
-}
-
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(2)}M`;
-  }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(2)}K`;
-  }
-  return num.toLocaleString();
 }
 
 function StatCard({
@@ -347,9 +338,7 @@ function ValidatorTable({
               </td>
               <td className="py-3.5 px-4">
                 <div className="flex items-center gap-2.5">
-                  <div
-                    className="w-16 h-1.5 overflow-hidden bg-gray-200"
-                  >
+                  <div className="w-16 h-1.5 overflow-hidden bg-gray-200">
                     <div
                       className="h-full"
                       style={{
@@ -358,14 +347,14 @@ function ValidatorTable({
                       }}
                     />
                   </div>
-                  <span className="text-sm font-medium text-gray-700">{validator.successRate}%</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {validator.successRate}%
+                  </span>
                 </div>
               </td>
               <td className="py-3.5 px-4">
                 <div className="flex items-center gap-2.5">
-                  <div
-                    className="w-16 h-1.5 overflow-hidden bg-gray-200"
-                  >
+                  <div className="w-16 h-1.5 overflow-hidden bg-gray-200">
                     <div
                       className="h-full"
                       style={{
@@ -378,7 +367,9 @@ function ValidatorTable({
                 </div>
               </td>
               <td className="py-3.5 px-4">
-                <span className="text-sm font-medium text-gray-700">{formatNumber(validator.staked)}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {formatNumber(validator.staked, true)}
+                </span>
               </td>
               <td className="py-3.5 px-4">
                 <span

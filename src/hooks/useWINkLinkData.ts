@@ -7,7 +7,7 @@ import {
   WINkLinkRiskMetrics,
 } from '@/lib/oracles';
 import { Blockchain } from '@/types/oracle';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 
 const client = new WINkLinkClient();
 
@@ -135,9 +135,10 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
   const isError = results.some((r) => r.isError);
   const errors = results.map((r) => r.error).filter(Boolean) as Error[];
 
-  const refetchAll = () => {
+  const refetchAll = useCallback(() => {
     results.forEach((r) => r.refetch());
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return useMemo(
     () => ({
@@ -164,6 +165,7 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
       isLoading,
       isError,
       errors,
+      refetchAll,
     ]
   );
 }

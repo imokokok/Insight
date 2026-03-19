@@ -1,17 +1,19 @@
 import { OracleMarketData, AssetData, TVSTrendData, ChainSupportData } from './types';
 import { chartColors } from '@/lib/config/colors';
+import { oracleColors } from '@/lib/constants';
+import { OracleProvider } from '@/lib/oracles';
 
 export const ORACLE_COLORS = {
-  chainlink: chartColors.oracle.chainlink,
-  pyth: chartColors.oracle.pyth,
-  band: chartColors.oracle['band-protocol'],
-  api3: chartColors.oracle.api3,
-  uma: chartColors.oracle.uma,
-  redstone: chartColors.oracle.redstone,
-  dia: chartColors.oracle.dia,
-  tellor: chartColors.oracle.tellor,
-  chronicle: chartColors.oracle.chronicle,
-  winklink: chartColors.oracle.winklink,
+  chainlink: oracleColors[OracleProvider.CHAINLINK],
+  pyth: oracleColors[OracleProvider.PYTH],
+  band: oracleColors[OracleProvider.BAND_PROTOCOL],
+  api3: oracleColors[OracleProvider.API3],
+  uma: oracleColors[OracleProvider.UMA],
+  redstone: oracleColors[OracleProvider.REDSTONE],
+  dia: oracleColors[OracleProvider.DIA],
+  tellor: oracleColors[OracleProvider.TELLOR],
+  chronicle: oracleColors[OracleProvider.CHRONICLE],
+  winklink: oracleColors[OracleProvider.WINKLINK],
   others: chartColors.recharts.tick,
 } as const;
 

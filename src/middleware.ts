@@ -25,7 +25,8 @@ export async function middleware(request: NextRequest) {
 
   const intlResponse = intlMiddleware(request);
 
-  const cookiesToSet: Array<{ name: string; value: string; options?: any }> = [];
+  const cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }> =
+    [];
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

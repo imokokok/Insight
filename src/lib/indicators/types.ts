@@ -77,7 +77,7 @@ export interface IndicatorSettings {
   macd: MACDConfig;
 }
 
-export interface PriceDataPoint {
+export interface OHLCVDataPoint {
   price: number;
   high?: number;
   low?: number;

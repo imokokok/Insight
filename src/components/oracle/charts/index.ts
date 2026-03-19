@@ -39,7 +39,7 @@ export type {
   TimeRange as PriceDeviationTimeRange,
 } from './PriceDeviationHeatmap';
 export { PriceCorrelationMatrix } from './PriceCorrelationMatrix';
-export type { PriceDataPoint, OraclePriceSeries } from './PriceCorrelationMatrix';
+export type { OraclePriceSeries } from './PriceCorrelationMatrix';
 export { UpdateFrequencyHeatmap } from './UpdateFrequencyHeatmap';
 export { ValidatorPerformanceHeatmap } from './ValidatorPerformanceHeatmap';
 export { LatencyDistributionHistogram } from './LatencyDistributionHistogram';

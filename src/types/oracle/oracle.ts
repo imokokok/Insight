@@ -1,5 +1,4 @@
 import { OracleProvider, Blockchain } from './enums';
-import { ConfidenceInterval } from './price';
 
 export interface OracleClient {
   getPrice(symbol: string, chain?: Blockchain): Promise<import('./price').PriceData>;

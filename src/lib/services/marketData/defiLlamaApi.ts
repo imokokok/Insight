@@ -2,7 +2,6 @@ import { createLogger } from '@/lib/utils/logger';
 import {
   OracleMarketData,
   AssetData,
-  TVSTrendData,
   ChainBreakdown,
   ProtocolDetail,
   AssetCategory,

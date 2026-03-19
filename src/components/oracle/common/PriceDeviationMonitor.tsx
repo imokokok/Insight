@@ -28,6 +28,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { providerNames, oracleColors } from '@/lib/constants';
 import { SegmentedControl } from '@/components/ui/selectors';
 const logger = createLogger('PriceDeviationMonitor');
 
@@ -58,31 +59,9 @@ const DEVIATION_THRESHOLDS = {
 
 const REFRESH_INTERVAL = 10000;
 
-const PROVIDER_NAMES: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.PYTH]: 'Pyth',
-  [OracleProvider.BAND_PROTOCOL]: 'Band',
-  [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.API3]: 'API3',
-  [OracleProvider.REDSTONE]: 'RedStone',
-  [OracleProvider.DIA]: 'DIA',
-  [OracleProvider.TELLOR]: 'Tellor',
-  [OracleProvider.CHRONICLE]: 'Chronicle',
-  [OracleProvider.WINKLINK]: 'WINkLink',
-};
+const PROVIDER_NAMES = providerNames;
 
-const PROVIDER_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-  [OracleProvider.PYTH]: chartColors.oracle.pyth,
-  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
-  [OracleProvider.UMA]: chartColors.oracle.uma,
-  [OracleProvider.API3]: chartColors.oracle.api3,
-  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
-  [OracleProvider.DIA]: chartColors.oracle.dia,
-  [OracleProvider.TELLOR]: chartColors.oracle.tellor,
-  [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
-  [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
-};
+const PROVIDER_COLORS = oracleColors;
 
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp);

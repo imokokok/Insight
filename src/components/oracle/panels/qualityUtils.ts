@@ -1,6 +1,9 @@
 'use client';
 
-import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+import { semanticColors, baseColors } from '@/lib/config/colors';
+import { getTimeAgo } from '@/lib/utils/timestamp';
+
+export { getTimeAgo };
 
 export type QualityStatus = 'excellent' | 'good' | 'warning' | 'critical';
 
@@ -59,15 +62,6 @@ export interface DataQualityConfig {
   qualityScore: QualityScore;
   lastUpdated: Date;
 }
-
-export const ORACLE_COLORS: Record<string, string> = {
-  Chainlink: chartColors.recharts.primary,
-  Pyth: chartColors.recharts.purple,
-  Band: chartColors.semantic.success,
-  UMA: chartColors.recharts.warning,
-  API3: chartColors.semantic.danger,
-  DIA: chartColors.recharts.cyan,
-};
 
 export interface StatusConfig {
   color: string;
@@ -280,11 +274,3 @@ export function calculateQualityScore(
   };
 }
 
-export function getTimeAgo(date: Date, t: (key: string) => string): string {
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-  if (seconds < 60) return `${seconds}${t('dataQuality.secondsAgo')}`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}${t('dataQuality.minutesAgo')}`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}${t('dataQuality.hoursAgo')}`;
-}

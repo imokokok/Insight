@@ -543,21 +543,8 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
       ecosystemQuery.refetch(),
       disputesQuery.refetch(),
     ]);
-  }, [
-    priceQuery.refetch,
-    historicalQuery.refetch,
-    priceStreamQuery.refetch,
-    marketDepthQuery.refetch,
-    multiChainAggregationQuery.refetch,
-    networkStatsQuery.refetch,
-    networkHealthQuery.refetch,
-    liquidityQuery.refetch,
-    stakingQuery.refetch,
-    reportersQuery.refetch,
-    riskQuery.refetch,
-    ecosystemQuery.refetch,
-    disputesQuery.refetch,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     price: priceQuery.price,

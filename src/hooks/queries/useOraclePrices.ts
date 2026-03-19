@@ -1,15 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { priceKeys } from '@/lib/queries/queryKeys';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
-
-interface PriceData {
-  symbol: string;
-  price: number;
-  change24h: number;
-  timestamp: number;
-  provider: string;
-  chain?: string;
-}
+import type { PriceData } from '@/types/oracle/price';
 
 interface OraclePricesParams {
   provider?: string;

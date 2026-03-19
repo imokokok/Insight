@@ -196,13 +196,18 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
               className="border border-gray-200 p-5 hover:border-gray-400 hover:shadow-sm transition-all duration-200"
             >
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 text-gray-600 p-2 bg-gray-50 border border-gray-200">{useCase.icon}</div>
+                <div className="flex-shrink-0 text-gray-600 p-2 bg-gray-50 border border-gray-200">
+                  {useCase.icon}
+                </div>
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900">{useCase.title}</h4>
                   <p className="text-sm text-gray-500 mt-1.5">{useCase.description}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {useCase.examples.map((example, i) => (
-                      <span key={i} className="px-2.5 py-1 bg-gray-50 border border-gray-200 text-xs text-gray-600">
+                      <span
+                        key={i}
+                        className="px-2.5 py-1 bg-gray-50 border border-gray-200 text-xs text-gray-600"
+                      >
                         {example}
                       </span>
                     ))}

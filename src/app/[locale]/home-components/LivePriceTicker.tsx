@@ -26,19 +26,19 @@ const TRADING_PAIRS: TradingPair[] = [
   { symbol: 'AAVE', name: 'Aave', basePrice: 112.45, volatility: 0.027 },
 ];
 
-interface PriceDataPoint {
+interface SparklineDataPoint {
   value: number;
 }
 
-interface PriceData {
+interface TickerPriceData {
   currentPrice: number;
   change24h: number;
-  sparklineData: PriceDataPoint[];
+  sparklineData: SparklineDataPoint[];
 }
 
-const generatePriceData = (pair: TradingPair): PriceData => {
+const generatePriceData = (pair: TradingPair): TickerPriceData => {
   const dataPoints = 24;
-  const sparklineData: PriceDataPoint[] = [];
+  const sparklineData: SparklineDataPoint[] = [];
   let currentPrice = pair.basePrice;
 
   for (let i = 0; i < dataPoints; i++) {
@@ -65,7 +65,7 @@ const formatChange = (change: number): string => {
 
 interface TickerItemProps {
   pair: TradingPair;
-  priceData: PriceData;
+  priceData: TickerPriceData;
 }
 
 function TickerItem({ pair, priceData }: TickerItemProps) {
@@ -126,10 +126,10 @@ export default function LivePriceTicker() {
   const locale = useLocale();
   const isZh = isChineseLocale(locale);
   const [isPaused, setIsPaused] = useState(false);
-  const [priceDataMap, setPriceDataMap] = useState<Map<string, PriceData>>(new Map());
+  const [priceDataMap, setPriceDataMap] = useState<Map<string, TickerPriceData>>(new Map());
 
   useEffect(() => {
-    const initialData = new Map<string, PriceData>();
+    const initialData = new Map<string, TickerPriceData>();
     TRADING_PAIRS.forEach((pair) => {
       initialData.set(pair.symbol, generatePriceData(pair));
     });

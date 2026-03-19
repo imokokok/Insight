@@ -12,20 +12,16 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
+import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
 import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 type TimeWindow = '1h' | '6h' | '24h' | '7d' | '30d';
 
-interface PricePoint {
-  timestamp: number;
-  price: number;
-}
-
 interface OraclePriceData {
   provider: OracleProvider;
-  data: PricePoint[];
+  data: PriceDataForTechnicalAnalysis[];
 }
 
 interface CorrelationResult {
@@ -203,8 +199,8 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
 
   // 对齐两个数据源的时间戳
   function alignDataByTimestamp(
-    data1: PricePoint[],
-    data2: PricePoint[]
+    data1: PriceDataForTechnicalAnalysis[],
+    data2: PriceDataForTechnicalAnalysis[]
   ): Array<{ timestamp: number; price1: number; price2: number }> {
     const aligned: Array<{ timestamp: number; price1: number; price2: number }> = [];
     const tolerance = 60000; // 1分钟容差

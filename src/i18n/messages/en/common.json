@@ -1,4 +1,73 @@
 {
+  "multiSourceAggregation": "Multi-Source Aggregation",
+  "cryptographicVerification": "Cryptographic Verification",
+  "anomalyDetection": "Anomaly Detection",
+  "decentralizedGovernance": "Decentralized Governance",
+  "continuousAuditing": "Continuous Auditing",
+  "incidentResponse": "Incident Response",
+  "permanentStorage": "Permanent Storage",
+  "multiProviderAggregation": "Multi-Provider Aggregation",
+  "modularArchitecture": "Modular Architecture",
+  "realTimeMonitoring": "Real-Time Monitoring",
+  "publisherStaking": "Publisher Staking",
+  "confidenceIntervals": "Confidence Intervals",
+  "slashingConditions": "Slashing Conditions",
+  "multiNodeConsensus": "Multi-Node Consensus",
+  "nodeStaking": "Node Staking",
+  "crossChainRedundancy": "Cross-Chain Redundancy",
+  "securityAudit": "Security Audit",
+  "tendermintConsensus": "Tendermint Consensus",
+  "validatorSlashing": "Validator Slashing",
+  "ibcSecurity": "IBC Security",
+  "continuousMonitoring": "Continuous Monitoring",
+  "disputeResolution": {
+    "showOverallTrend": "Show Overall Trend",
+    "groupByType": "Group by Type",
+    "filterByType": "Filter by Type",
+    "searchId": "Search ID",
+    "enterDisputeId": "Enter dispute ID",
+    "clear": "Clear",
+    "type": "Type",
+    "reward": "Reward",
+    "transaction": "Transaction",
+    "viewOnChain": "View on-chain",
+    "showing": "Showing {start} to {end} of {total} entries",
+    "firstPage": "First",
+    "previousPage": "Previous",
+    "nextPage": "Next",
+    "lastPage": "Last",
+    "jumpTo": "Jump to",
+    "page": "Page"
+  },
+  "validatorPanel": {
+    "title": "Validators",
+    "subtitle": "{count} validators total",
+    "loading": "Loading validators...",
+    "filtered": "(filtered)",
+    "totalStaked": "Total Staked:",
+    "rank": "Rank",
+    "stakeAmount": "Stake Amount",
+    "commissionRate": "Commission Rate",
+    "uptime": "Uptime",
+    "statusLabel": "Status",
+    "all": "All",
+    "status": {
+      "active": "Active",
+      "jailed": "Jailed"
+    },
+    "quickFilter": "Quick Filter",
+    "lowCommission": "Low Commission",
+    "highStake": "High Stake",
+    "highUptime": "High Uptime",
+    "selectedForComparison": "{count} selected",
+    "clearSelection": "Clear Selection",
+    "region": {
+      "northAmerica": "North America",
+      "europe": "Europe",
+      "asia": "Asia",
+      "other": "Other"
+    }
+  },
   "actions": {
     "refresh": "Refresh",
     "export": "Export",
@@ -133,11 +202,6 @@
     "lastUpdated": "Last updated",
     "24hHigh": "24h High",
     "24hLow": "24h Low"
-  },
-  "validatorPanel": {
-    "title": "Validators",
-    "subtitle": "{count} validators total",
-    "loading": "Loading..."
   },
   "confidenceScore": {
     "title": "Confidence Score",
@@ -320,6 +384,48 @@
         "medium": "Medium",
         "low": "Low"
       }
+    },
+    "securityTimeline": {
+      "title": "Security Timeline",
+      "noEvents": "No security events",
+      "types": {
+        "upgrade": "Upgrade",
+        "vulnerability": "Vulnerability",
+        "response": "Response",
+        "maintenance": "Maintenance"
+      },
+      "status": {
+        "resolved": "Resolved",
+        "monitoring": "Monitoring"
+      }
+    },
+    "stakingCalculator": {
+      "title": "Staking Calculator",
+      "stakeAmount": "Stake Amount",
+      "stakeAmountPlaceholder": "Enter stake amount",
+      "validatorType": "Validator Type",
+      "validatorTypes": {
+        "institution": "Institution",
+        "independent": "Independent",
+        "community": "Community"
+      },
+      "disputeFrequency": "Dispute Frequency",
+      "disputeFrequencies": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "estimatedRewards": "Estimated Rewards",
+      "daily": "Daily",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "apr": "APR",
+      "annual": "Annual",
+      "rewardComparison": "Reward Comparison",
+      "day": "Day",
+      "monthPerDay": "Month/Day",
+      "yearPerDay": "Year/Day",
+      "disclaimer": "Disclaimer: Estimated rewards are for reference only. Actual rewards may vary based on network conditions and validator performance."
     }
   },
   "networkHealth": {

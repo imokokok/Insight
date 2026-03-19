@@ -1,16 +1,7 @@
 'use client';
 
 import { EarningsTrend } from './config';
-
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(2)}M`;
-  }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(2)}K`;
-  }
-  return num.toLocaleString();
-}
+import { formatNumber } from '@/lib/utils/format';
 
 export function EarningsTrendChart({ data }: { data: EarningsTrend[] }) {
   const maxDaily = Math.max(...data.map((d) => d.daily));
@@ -62,7 +53,7 @@ export function EarningsTrendChart({ data }: { data: EarningsTrend[] }) {
         <div className="text-right">
           <p className="text-xs text-gray-500">总累计收益</p>
           <p className="text-sm font-semibold text-gray-900">
-            {data.length > 0 ? formatNumber(data[data.length - 1].cumulative) : '0'}
+            {data.length > 0 ? formatNumber(data[data.length - 1].cumulative, true) : '0'}
           </p>
         </div>
       </div>

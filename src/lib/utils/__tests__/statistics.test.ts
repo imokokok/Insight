@@ -3,8 +3,6 @@ import {
   calculatePercentile,
   calculateQuantiles,
   calculateHistogram,
-  CDFResult,
-  QuantileResult,
 } from '../statistics';
 
 describe('Statistics Utilities', () => {

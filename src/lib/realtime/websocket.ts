@@ -621,7 +621,7 @@ export class MockWebSocketManager extends WebSocketManager {
 
 // ==================== Hook 工厂函数 ====================
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 
 export interface UseWebSocketOptions {
   url?: string;
@@ -679,6 +679,8 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
       };
     }, [url, autoConnect, useMock, onPerformanceMetrics]);
 
+    const channelsKey = useMemo(() => channels.join(','), [channels]);
+
     useEffect(() => {
       if (!managerRef.current || channels.length === 0) return;
 
@@ -695,7 +697,7 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
       return () => {
         unsubscribes.forEach((unsubscribe) => unsubscribe());
       };
-    }, [channels.join(',')]);
+    }, [channelsKey, channels]);
 
     const connect = useCallback(() => {
       managerRef.current?.connect();

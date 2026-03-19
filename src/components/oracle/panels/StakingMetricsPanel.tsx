@@ -2,6 +2,7 @@
 
 import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
+import { formatNumber } from '@/lib/utils/format';
 
 interface StakingData {
   totalStaked: number;
@@ -13,16 +14,6 @@ interface StakingMetricsPanelProps {
   data: StakingData;
 }
 
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(0)}M`;
-  }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}K`;
-  }
-  return num.toLocaleString();
-}
-
 export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
   const t = useTranslations();
 
@@ -32,7 +23,7 @@ export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
         <div className="flex items-center justify-between py-3 border-b border-gray-100">
           <span className="text-sm text-gray-600">{t('stakingMetrics.totalStaked')}</span>
           <span className="text-lg font-semibold text-gray-900">
-            {formatNumber(data.totalStaked)} API3
+            {formatNumber(data.totalStaked, true)} API3
           </span>
         </div>
 

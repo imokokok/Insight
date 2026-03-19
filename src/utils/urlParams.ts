@@ -9,7 +9,6 @@ export interface QueryConfig {
 
 const VALID_ORACLES = Object.values(OracleProvider);
 const VALID_CHAINS = Object.values(Blockchain);
-const VALID_SYMBOLS = ['BTC', 'ETH', 'SOL', 'LINK', 'BAND', 'UMA', 'PYTH', 'API3', 'USDC'];
 const VALID_TIME_RANGES = [1, 6, 12, 24, 72, 168, 720];
 
 export function parseQueryParams(search: string): Partial<QueryConfig> {

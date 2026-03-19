@@ -1,4 +1,4 @@
-import type { PriceDataPoint } from '@/lib/indicators/types';
+import type { OHLCVDataPoint } from '@/lib/indicators/types';
 import type { AnomalyData, AnomalyLevel, AnomalyType } from '@/lib/analytics/anomalyDetection';
 
 export interface PriceSeriesOptions {
@@ -424,7 +424,7 @@ export function createCorrelationMatrix(size: number, correlation: number = 0.5)
 /**
  * 创建价格数据点数组
  *
- * 生成完整的 PriceDataPoint 对象数组，可选包含 OHLC 和成交量数据。
+ * 生成完整的 OHLCVDataPoint 对象数组，可选包含 OHLC 和成交量数据。
  *
  * @param basePrice - 基础价格
  * @param count - 数据点数量
@@ -433,7 +433,7 @@ export function createCorrelationMatrix(size: number, correlation: number = 0.5)
  * @param options.includeOHLC - 是否包含开高低收数据，默认 false
  * @param options.includeVolume - 是否包含成交量数据，默认 false
  * @param options.intervalMs - 时间间隔（毫秒），默认 60000
- * @returns PriceDataPoint 数组
+ * @returns OHLCVDataPoint 数组
  *
  * @example
  * ```typescript
@@ -452,7 +452,7 @@ export function createPriceDataPoints(
     includeVolume?: boolean;
     intervalMs?: number;
   } = {}
-): PriceDataPoint[] {
+): OHLCVDataPoint[] {
   const {
     volatility = 0.02,
     includeOHLC = false,
@@ -465,7 +465,7 @@ export function createPriceDataPoints(
   const volumes = includeVolume ? createVolumeSeries(count) : undefined;
 
   return prices.map((price, index) => {
-    const point: PriceDataPoint = {
+    const point: OHLCVDataPoint = {
       price,
       timestamp: timestamps[index],
     };

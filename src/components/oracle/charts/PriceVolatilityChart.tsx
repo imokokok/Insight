@@ -16,6 +16,7 @@ import {
   Area,
 } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
+import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
 import { TooltipProps } from '@/types/ui/recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { VolatilityAlert } from '../common/VolatilityAlert';
@@ -23,14 +24,9 @@ import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { getOracleColor } from '@/lib/oracles';
 
-export interface PriceDataPoint {
-  timestamp: number;
-  price: number;
-}
-
 export interface OraclePriceHistory {
   oracle: OracleProvider;
-  prices: PriceDataPoint[];
+  prices: PriceDataForTechnicalAnalysis[];
 }
 
 export interface VolatilityResult {

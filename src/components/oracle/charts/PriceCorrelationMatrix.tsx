@@ -4,15 +4,11 @@ import { useState, useMemo } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
-
-export interface PriceDataPoint {
-  timestamp: number;
-  price: number;
-}
+import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
 
 export interface OraclePriceSeries {
   oracleId: string;
-  data: PriceDataPoint[];
+  data: PriceDataForTechnicalAnalysis[];
 }
 
 interface PriceCorrelationMatrixProps {

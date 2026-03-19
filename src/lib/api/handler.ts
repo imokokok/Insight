@@ -165,7 +165,7 @@ export function createDeleteHandler<T>(handler: ApiHandler<T>, options?: CreateA
   return createApiHandler(handler, options);
 }
 
-export interface CrudHandlers<T, CreateDTO = Partial<T>, UpdateDTO = Partial<T>> {
+export interface CrudHandlers<T, _CreateDTO = Partial<T>, _UpdateDTO = Partial<T>> {
   list?: ApiHandler<T[]>;
   get?: ApiHandler<T>;
   create?: ApiHandler<T>;
@@ -173,8 +173,8 @@ export interface CrudHandlers<T, CreateDTO = Partial<T>, UpdateDTO = Partial<T>>
   delete?: ApiHandler<void>;
 }
 
-export function createCrudHandlers<T, CreateDTO = Partial<T>, UpdateDTO = Partial<T>>(
-  handlers: CrudHandlers<T, CreateDTO, UpdateDTO>,
+export function createCrudHandlers<T, _CreateDTO = Partial<T>, _UpdateDTO = Partial<T>>(
+  handlers: CrudHandlers<T, _CreateDTO, _UpdateDTO>,
   options?: CreateApiHandlerOptions
 ) {
   return {

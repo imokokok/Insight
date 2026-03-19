@@ -1,12 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { priceKeys } from '@/lib/queries/queryKeys';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
-
-interface PricePoint {
-  timestamp: number;
-  price: number;
-  volume?: number;
-}
+import type { PriceDataForChart } from '@/types/oracle/price';
 
 interface PriceHistoryParams {
   symbol: string;
@@ -16,7 +11,7 @@ interface PriceHistoryParams {
 }
 
 export function usePriceHistory(params: PriceHistoryParams) {
-  return useQuery<PricePoint[]>({
+  return useQuery<PriceDataForChart[]>({
     queryKey: priceKeys.history(params),
     queryFn: async () => {
       const searchParams = new URLSearchParams();

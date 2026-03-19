@@ -13,6 +13,7 @@ import {
   Area,
 } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
+import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
 import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
@@ -24,14 +25,9 @@ import {
 } from '@/lib/indicators';
 import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
-export interface PriceDataPoint {
-  timestamp: number;
-  price: number;
-}
-
 export interface OraclePriceHistory {
   oracle: OracleProvider;
-  prices: PriceDataPoint[];
+  prices: PriceDataForTechnicalAnalysis[];
 }
 
 export interface MovingAverageConfig {
