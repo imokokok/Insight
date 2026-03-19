@@ -7,7 +7,7 @@ export { MoreOptionsDropdown } from './MoreOptionsDropdown';
 export { RealtimeUpdateControl } from './RealtimeUpdateControl';
 export { SnapshotManager } from './SnapshotManager';
 export { SnapshotComparison } from './SnapshotComparison';
-export { AnomalyAlert } from './AnomalyAlert';
+export { AnomalyAlert } from './anomaly';
 export { AnomalyMarker } from './AnomalyMarker';
 export type { AnomalyPoint } from './AnomalyMarker';
 export { ConfidenceScore } from './ConfidenceScore';
