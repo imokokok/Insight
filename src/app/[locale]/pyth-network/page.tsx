@@ -258,7 +258,7 @@ export default function PythNetworkPage() {
                       placeholder={t('pyth.publishers.searchPlaceholder') || '搜索发布者...'}
                       value={publisherSearchQuery}
                       onChange={(e) => setPublisherSearchQuery(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -279,7 +279,7 @@ export default function PythNetworkPage() {
                       onClick={() =>
                         setPublisherSortOrder(publisherSortOrder === 'asc' ? 'desc' : 'asc')
                       }
-                      className="px-4 py-2 border border-gray-300 hover:bg-gray-50 transition-colors"
+                      className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                     >
                       {publisherSortOrder === 'asc' ? '↑' : '↓'}
                     </button>
@@ -287,7 +287,7 @@ export default function PythNetworkPage() {
                 </div>
 
                 {/* 发布者统计 - 使用 FlatStatItem 风格 */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-gray-200 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-gray-200 rounded-lg mb-6">
                   <FlatStatItem
                     label={t('pyth.publishers.totalPublishers') || '发布者总数'}
                     value={publishers?.length || 0}
@@ -340,7 +340,7 @@ export default function PythNetworkPage() {
                     ?.map((publisher, index) => (
                       <div
                         key={publisher.id}
-                        className="p-4 border border-gray-200 hover:border-gray-400 transition-colors"
+                        className="p-4 border border-gray-200 rounded-lg hover:border-gray-400 transition-colors"
                       >
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="font-semibold text-gray-900">{publisher.name}</h4>
@@ -401,7 +401,7 @@ export default function PythNetworkPage() {
           {activeTab === 'validators' && (
             <div className="space-y-6">
               {/* 验证者统计 - 使用 FlatStatItem 风格 */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-gray-200">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-gray-200 rounded-lg">
                 <FlatStatItem
                   label={t('pyth.validators.totalValidators') || '验证者总数'}
                   value={validators?.length || 0}
@@ -513,7 +513,7 @@ export default function PythNetworkPage() {
               <DashboardCard title={t('pyth.crossChain.title') || '跨链支持'}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {config.supportedChains.map((chain) => (
-                    <div key={chain} className="p-4 border border-gray-200">
+                    <div key={chain} className="p-4 border border-gray-200 rounded-lg">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-gray-100 flex items-center justify-center">
                           <span className="text-gray-600 font-bold">{chain.charAt(0)}</span>
@@ -550,7 +550,7 @@ export default function PythNetworkPage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-6 p-4 bg-gray-50 border border-gray-200">
+                <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                   <p className="text-sm text-gray-700">
                     {t('pyth.crossChain.description') ||
                       `Pyth 通过 Wormhole 跨链协议支持 ${config.supportedChains.length} 条区块链，实现亚秒级价格更新。`}
@@ -574,7 +574,7 @@ export default function PythNetworkPage() {
                     },
                     { category: t('pyth.priceFeeds.categories.forex'), count: 45, icon: '💱' },
                   ].map((feed) => (
-                    <div key={feed.category} className="p-4 border border-gray-200 text-center">
+                    <div key={feed.category} className="p-4 border border-gray-200 rounded-lg text-center">
                       <div className="text-2xl mb-2">{feed.icon}</div>
                       <h4 className="font-semibold text-gray-900 text-sm">{feed.category}</h4>
                       <p className="text-xl font-bold text-gray-900 mt-1">{feed.count}</p>
@@ -582,7 +582,7 @@ export default function PythNetworkPage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-6 p-4 bg-gray-50 border border-gray-200">
+                <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                   <p className="text-sm text-gray-700">
                     {t('pyth.priceFeeds.totalDescription', { count: 520 })}
                   </p>

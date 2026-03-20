@@ -72,7 +72,7 @@ function ScoreCard({
   };
 
   return (
-    <div className="bg-white border border-gray-200  p-5 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 p-5 hover:border-gray-300 transition-colors duration-200 rounded-lg">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
@@ -86,10 +86,10 @@ function ScoreCard({
           </div>
           <p className={`text-3xl font-bold ${getScoreColor(score)}`}>{score.toFixed(1)}</p>
         </div>
-        <div className={`p-3  ${getScoreBgColor(score)}`}>{icon}</div>
+        <div className={`p-3 rounded-lg ${getScoreBgColor(score)}`}>{icon}</div>
       </div>
       <div className="flex items-center justify-between">
-        <div className="flex-1 h-2 bg-gray-200  overflow-hidden">
+        <div className="flex-1 h-2 bg-gray-200 overflow-hidden rounded-full">
           <div
             className={`h-full  transition-all duration-500 ${
               score >= 90 ? 'bg-success-500' : score >= 70 ? 'bg-warning-500' : 'bg-danger-500'
@@ -133,9 +133,9 @@ export function UMADataQualityScoreCard() {
 
   if (loading || !data) {
     return (
-      <div className="bg-white border border-gray-200  p-6">
+      <div className="bg-white border border-gray-200 p-6 rounded-lg">
         <div className="flex items-center justify-center h-48">
-          <div className="animate-spin  h-8 w-8 border-b-2 border-primary-600" />
+          <div className="animate-spin h-8 w-8 border-b-2 border-primary-600" />
         </div>
       </div>
     );
@@ -143,7 +143,7 @@ export function UMADataQualityScoreCard() {
 
   return (
     <>
-      <div className="bg-white border border-gray-200  p-6">
+      <div className="bg-white border border-gray-200 p-6 rounded-lg">
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>

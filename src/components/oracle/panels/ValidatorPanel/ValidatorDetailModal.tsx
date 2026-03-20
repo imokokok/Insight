@@ -36,7 +36,7 @@ function ValidatorDetailModalContent({
       <div className="relative bg-white max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden">
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-100 border border-gray-200 flex items-center justify-center">
+            <div className="w-10 h-10 bg-gray-100 border border-gray-200 flex items-center justify-center rounded">
               <span className="text-gray-600 font-bold text-sm">#{validator.rank}</span>
             </div>
             <div>
@@ -144,7 +144,7 @@ function ValidatorDetailModalContent({
               </div>
 
               <div className="space-y-4">
-                <div className="border border-gray-200 p-4">
+                <div className="border border-gray-200 p-4 rounded-lg">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">验证者信息</p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
@@ -188,7 +188,7 @@ function ValidatorDetailModalContent({
                 </div>
 
                 {validator.details && (
-                  <div className="border border-gray-200 p-4">
+                  <div className="border border-gray-200 p-4 rounded-lg">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">描述</p>
                     <p className="text-sm text-gray-700">{validator.details}</p>
                   </div>

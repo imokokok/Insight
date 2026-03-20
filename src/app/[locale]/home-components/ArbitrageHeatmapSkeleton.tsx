@@ -3,7 +3,7 @@ export default function ArbitrageHeatmapSkeleton() {
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-12 xl:px-20">
         <div className="text-center mb-10 skeleton-shimmer">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 mb-4 rounded-md">
             <div className="w-4 h-4 bg-gray-200"></div>
             <div className="w-20 h-4 bg-gray-200"></div>
           </div>
@@ -18,15 +18,15 @@ export default function ArbitrageHeatmapSkeleton() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white border border-gray-200 p-4 skeleton-shimmer">
+          <div className="bg-white border border-gray-200 p-4 skeleton-shimmer rounded-lg">
             <div className="w-20 h-4 bg-gray-300 mb-1"></div>
             <div className="w-24 h-8 bg-gray-300"></div>
           </div>
-          <div className="bg-white border border-gray-200 p-4 skeleton-shimmer">
+          <div className="bg-white border border-gray-200 p-4 skeleton-shimmer rounded-lg">
             <div className="w-20 h-4 bg-gray-300 mb-1"></div>
             <div className="w-20 h-8 bg-gray-300"></div>
           </div>
-          <div className="bg-white border border-gray-200 p-4 skeleton-shimmer">
+          <div className="bg-white border border-gray-200 p-4 skeleton-shimmer rounded-lg">
             <div className="w-20 h-4 bg-gray-300 mb-1"></div>
             <div className="flex items-center gap-2">
               <div className="w-16 h-8 bg-gray-300"></div>
@@ -35,10 +35,10 @@ export default function ArbitrageHeatmapSkeleton() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 p-6 skeleton-shimmer">
+        <div className="bg-white border border-gray-200 p-6 skeleton-shimmer rounded-lg">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="border p-4 h-32 bg-gray-200"></div>
+              <div key={i} className="border p-4 h-32 bg-gray-200 rounded-lg"></div>
             ))}
           </div>
 
@@ -58,7 +58,7 @@ export default function ArbitrageHeatmapSkeleton() {
           </div>
         </div>
 
-        <div className="mt-6 bg-primary-50 border border-primary-200 p-4 flex items-center gap-4 skeleton-shimmer">
+        <div className="mt-6 bg-primary-50 border border-primary-200 p-4 flex items-center gap-4 skeleton-shimmer rounded-lg">
           <div className="p-2 bg-primary-100 w-9 h-9"></div>
           <div className="flex-1">
             <div className="w-32 h-5 bg-gray-300 mb-1"></div>

@@ -482,7 +482,7 @@ export function CrossChainTrendChart({
       <div className="space-y-4">
         {/* 统计卡片 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="p-3 bg-gray-100 border border-gray-200">
+          <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">当前总和</p>
             <p className="text-lg font-bold text-primary-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -492,7 +492,7 @@ export function CrossChainTrendChart({
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200">
+          <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">平均值</p>
             <p className="text-lg font-bold text-purple-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -502,7 +502,7 @@ export function CrossChainTrendChart({
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200">
+          <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">最高值</p>
             <p className="text-lg font-bold text-success-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -512,7 +512,7 @@ export function CrossChainTrendChart({
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200">
+          <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">最低值</p>
             <p className="text-lg font-bold text-orange-700">
               {metric === 'price' && currentMetricConfig.unit}

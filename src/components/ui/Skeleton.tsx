@@ -26,7 +26,7 @@ export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
     const variantStyles = {
       text: 'rounded',
       circular: 'rounded-full',
-      rectangular: 'rounded-none',
+      rectangular: 'rounded-md',
       rounded: 'rounded-md',
     };
 

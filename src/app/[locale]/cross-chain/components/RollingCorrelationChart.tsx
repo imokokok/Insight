@@ -142,7 +142,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
 
     return (
       <div
-        className="bg-white border p-3 min-w-[200px]"
+        className="bg-white border p-3 min-w-[200px] rounded-lg"
         style={{ borderColor: baseColors.gray[200] }}
       >
         <p
@@ -221,7 +221,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
             {t('crossChain.windowSize')}:
           </span>
           <div
-            className="flex items-center gap-1 border"
+            className="flex items-center gap-1 border rounded-md"
             style={{ borderColor: baseColors.gray[200] }}
           >
             {WINDOW_SIZES.map((option) => (
@@ -246,7 +246,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
       </div>
 
       <div
-        className="p-4 border"
+        className="p-4 border rounded-lg"
         style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
       >
         <div className="h-72">

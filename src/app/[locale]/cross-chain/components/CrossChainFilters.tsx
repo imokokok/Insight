@@ -200,8 +200,8 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
               <button
                 key={chain}
                 onClick={() => toggleChain(chain)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-2 ${
-                  isVisible ? 'text-white' : 'bg-white border hover:border-gray-400'
+                className={`px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-2 rounded-md ${
+                  isVisible ? 'text-white' : 'bg-white border hover:border-gray-400 rounded-md'
                 }`}
                 style={{
                   backgroundColor: isVisible ? baseColors.primary[600] : 'white',
@@ -231,7 +231,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                 type="checkbox"
                 checked={showMA}
                 onChange={(e) => setShowMA(e.target.checked)}
-                className="w-4 h-4 rounded-none focus:ring-primary-500"
+                className="w-4 h-4 rounded focus:ring-primary-500"
                 style={{ color: baseColors.primary[600], borderColor: baseColors.gray[300] }}
               />
               <span className="text-sm" style={{ color: baseColors.gray[700] }}>
@@ -260,7 +260,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
               setMaPeriod(7);
               setChartKey(chartKey + 1);
             }}
-            className="px-3 py-1.5 text-sm border transition-colors"
+            className="px-3 py-1.5 text-sm border transition-colors rounded-md"
             style={{ borderColor: baseColors.gray[300], color: baseColors.gray[700] }}
           >
             {t('crossChain.resetChart')}
@@ -312,7 +312,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
               step={0.1}
               min={0.1}
               max={10}
-              className="px-3 py-2 text-sm border bg-white focus:outline-none w-24"
+              className="px-3 py-2 text-sm border bg-white focus:outline-none w-24 rounded-md"
               style={{ borderColor: baseColors.gray[300] }}
             />
           </div>
@@ -336,7 +336,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
               step={0.5}
               min={0.5}
               max={5}
-              className="px-3 py-2 text-sm border bg-white focus:outline-none w-24"
+              className="px-3 py-2 text-sm border bg-white focus:outline-none w-24 rounded-md"
               style={{ borderColor: baseColors.gray[300] }}
             />
           </div>

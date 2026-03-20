@@ -257,7 +257,7 @@ function AlertBadge({ type, message }: { type: 'info' | 'warning' | 'success'; m
 function ChartTooltip({ active, payload, label }: TooltipProps<ChartDataPoint>) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border px-3 py-2" style={{ borderColor: baseColors.gray[200] }}>
+      <div className="bg-white border px-3 py-2 rounded-lg" style={{ borderColor: baseColors.gray[200] }}>
         <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>
           {payload[0]?.payload?.fullTime || label}
         </p>
@@ -279,7 +279,7 @@ function MiniLiveTicker() {
 
   return (
     <div
-      className="mt-4 overflow-hidden border bg-white"
+      className="mt-4 overflow-hidden border bg-white rounded-lg"
       style={{ borderColor: baseColors.gray[200] }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -304,7 +304,7 @@ function MiniLiveTicker() {
             <div
               key={`${item.symbol}-${index}`}
               className={`
-                flex-shrink-0 flex items-center gap-2 px-3 py-2 border transition-colors duration-200 cursor-pointer
+                flex-shrink-0 flex items-center gap-2 px-3 py-2 border transition-colors duration-200 cursor-pointer rounded-md
               `}
               style={{
                 backgroundColor:
@@ -529,7 +529,7 @@ export default function BentoMetricsGrid() {
                     </div>
                     {card.change && (
                       <div
-                        className="flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-semibold border"
+                        className="flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-semibold border rounded"
                         style={{
                           backgroundColor: card.isPositive
                             ? semanticColors.success.light
@@ -636,7 +636,7 @@ export default function BentoMetricsGrid() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="text-center p-4 border bg-white"
+              className="text-center p-4 border bg-white rounded-lg"
               style={{ borderColor: baseColors.gray[200] }}
             >
               <div

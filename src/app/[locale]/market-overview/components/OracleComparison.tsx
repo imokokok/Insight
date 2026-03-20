@@ -102,7 +102,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
   const CustomTooltip = ({ active, payload, label }: TooltipProps<(typeof radarData)[0]>) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-gray-200 rounded p-2 min-w-[160px]">
+        <div className="bg-white border border-gray-200 rounded-lg p-2 min-w-[160px]">
           <p className="font-medium text-gray-900 mb-1.5 text-sm">{label}</p>
           <div className="space-y-1">
             {payload.map((entry, index) => (
@@ -154,7 +154,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
         <div className="relative">
           <button
             onClick={() => setShowSelector(!showSelector)}
-            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors rounded-md"
           >
             <span className="text-sm text-gray-700">
               {isChineseLocale(locale)
@@ -169,7 +169,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
           </button>
 
           {showSelector && (
-            <div className="absolute top-full left-0 mt-1 w-60 bg-white border border-gray-200 rounded z-10">
+            <div className="absolute top-full left-0 mt-1 w-60 bg-white border border-gray-200 rounded-lg z-10">
               <div className="p-1.5">
                 <p className="text-xs text-gray-500 mb-1.5 px-2">
                   {isChineseLocale(locale)

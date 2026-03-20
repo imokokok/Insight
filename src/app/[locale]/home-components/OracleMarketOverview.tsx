@@ -256,7 +256,7 @@ function OracleMarketOverviewBase() {
       if (active && payload && payload.length) {
         return (
           <div
-            className="bg-white border"
+            className="bg-white border rounded-lg"
             style={{ borderColor: baseColors.gray[200], padding: '0.75rem' }}
           >
             <p className="font-semibold mb-2" style={{ color: baseColors.gray[900] }}>
@@ -673,7 +673,7 @@ function OracleMarketOverviewBase() {
               <button
                 key={range.key}
                 onClick={() => setSelectedRange(range.key)}
-                className={`px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap border ${
+                className={`px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap border rounded-md ${
                   selectedRange === range.key ? 'bg-white border-gray-300' : 'border-transparent'
                 }`}
                 style={{
@@ -688,7 +688,7 @@ function OracleMarketOverviewBase() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -712,7 +712,7 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -732,7 +732,7 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -752,7 +752,7 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -776,7 +776,7 @@ function OracleMarketOverviewBase() {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setActiveChart('pie')}
-              className={`flex items-center gap-2 px-4 py-2 transition-colors border ${
+              className={`flex items-center gap-2 px-4 py-2 transition-colors border rounded-md ${
                 activeChart === 'pie'
                   ? 'bg-gray-900 text-white border-gray-900'
                   : 'bg-white hover:border-gray-400'
@@ -791,7 +791,7 @@ function OracleMarketOverviewBase() {
             </button>
             <button
               onClick={() => setActiveChart('trend')}
-              className={`flex items-center gap-2 px-4 py-2 transition-colors border ${
+              className={`flex items-center gap-2 px-4 py-2 transition-colors border rounded-md ${
                 activeChart === 'trend'
                   ? 'bg-gray-900 text-white border-gray-900'
                   : 'bg-white hover:border-gray-400'
@@ -806,7 +806,7 @@ function OracleMarketOverviewBase() {
             </button>
             <button
               onClick={() => setActiveChart('bar')}
-              className={`flex items-center gap-2 px-4 py-2 transition-colors border ${
+              className={`flex items-center gap-2 px-4 py-2 transition-colors border rounded-md ${
                 activeChart === 'bar'
                   ? 'bg-gray-900 text-white border-gray-900'
                   : 'bg-white hover:border-gray-400'
@@ -911,7 +911,7 @@ function OracleMarketOverviewBase() {
               </div>
             </div>
 
-            <div className="bg-white border" style={{ borderColor: baseColors.gray[200] }}>
+            <div className="bg-white border rounded-lg" style={{ borderColor: baseColors.gray[200] }}>
               <div
                 className="px-4 py-3 border-b flex items-center justify-between"
                 style={{ borderColor: baseColors.gray[200], backgroundColor: baseColors.gray[50] }}
@@ -943,7 +943,7 @@ function OracleMarketOverviewBase() {
             </div>
 
             <div
-              className="border p-3"
+              className="border p-3 rounded-lg"
               style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
             >
               <div className="flex items-center justify-between">

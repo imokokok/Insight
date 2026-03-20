@@ -229,7 +229,7 @@ export function RequestTrendChart({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
+          <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.avgRequests')}</p>
             <p className="text-xl font-bold text-primary-700">
               {formatCompactNumberWithDecimals(stats.avgRequests)}
@@ -239,14 +239,14 @@ export function RequestTrendChart({
               {getTimeUnit(timeRange)}
             </p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
+          <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.peakRequests')}</p>
             <p className="text-xl font-bold text-purple-700">
               {formatCompactNumberWithDecimals(stats.peakRequests)}
             </p>
             <p className="text-xs text-purple-600 mt-0.5">{t('requestTrend.peakRecord')}</p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
+          <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.growthRate')}</p>
             <p className="text-xl font-bold text-success-700">
               {stats.growthRate >= 0 ? '+' : ''}
@@ -254,7 +254,7 @@ export function RequestTrendChart({
             </p>
             <p className="text-xs text-success-600 mt-0.5">{t('requestTrend.secondHalfPeriod')}</p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
+          <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.totalRequests')}</p>
             <p className="text-xl font-bold text-orange-700">
               {formatCompactNumberWithDecimals(stats.totalRequests)}

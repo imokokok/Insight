@@ -59,7 +59,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 
   return (
     <div
-      className="bg-white border p-4 min-w-[200px]"
+      className="bg-white border p-4 min-w-[200px] rounded-lg"
       style={{ borderColor: baseColors.gray[200] }}
     >
       <div
@@ -85,7 +85,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
           </span>
         </div>
         <div
-          className="flex justify-between gap-4 border -mx-2 px-2 py-1"
+          className="flex justify-between gap-4 border -mx-2 px-2 py-1 rounded"
           style={{
             backgroundColor: semanticColors.info.light,
             borderColor: semanticColors.info.light,

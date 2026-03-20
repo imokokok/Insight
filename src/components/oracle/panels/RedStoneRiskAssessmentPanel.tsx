@@ -159,7 +159,7 @@ export function RedStoneRiskAssessmentPanel() {
               {t('redstone.riskAssessment.comprehensiveAssessment')}
             </div>
             <div
-              className={`mt-4 inline-flex items-center px-3 py-1 text-sm font-medium border ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}
+              className={`mt-4 inline-flex items-center px-3 py-1 text-sm font-medium border rounded-md ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}
             >
               {t(`redstone.riskAssessment.riskLevel.${riskLevel}`)}
             </div>
@@ -284,7 +284,7 @@ export function RedStoneRiskAssessmentPanel() {
       </DashboardCard>
 
       <DashboardCard title={t('redstone.riskAssessment.securityTimeline')}>
-        <div className="border border-gray-200 divide-y divide-gray-200">
+        <div className="border border-gray-200 divide-y divide-gray-200 rounded-lg">
           {riskEvents.map((event, index) => (
             <div
               key={index}
@@ -313,7 +313,7 @@ export function RedStoneRiskAssessmentPanel() {
       </DashboardCard>
 
       <DashboardCard title={t('redstone.riskAssessment.modularArchitecture')}>
-        <div className="border border-gray-200 divide-y divide-gray-200">
+        <div className="border border-gray-200 divide-y divide-gray-200 rounded-lg">
           {[
             {
               component: 'Core Contracts',
@@ -368,7 +368,7 @@ export function RedStoneRiskAssessmentPanel() {
       </DashboardCard>
 
       <DashboardCard title={t('redstone.riskAssessment.mitigationMeasures')}>
-        <div className="border border-gray-200 divide-y divide-gray-200">
+        <div className="border border-gray-200 divide-y divide-gray-200 rounded-lg">
           {mitigationMeasures.map((measure) => (
             <div
               key={measure.name}

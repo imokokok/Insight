@@ -306,7 +306,7 @@ export function MovingAverageChart({
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div
-                className="border p-4"
+                className="border p-4 rounded-lg"
                 style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}
               >
                 <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
@@ -317,7 +317,7 @@ export function MovingAverageChart({
                 </p>
               </div>
               <div
-                className="border p-4"
+                className="border p-4 rounded-lg"
                 style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}
               >
                 <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
@@ -328,7 +328,7 @@ export function MovingAverageChart({
                 </p>
               </div>
               <div
-                className="border p-4"
+                className="border p-4 rounded-lg"
                 style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}
               >
                 <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
@@ -339,7 +339,7 @@ export function MovingAverageChart({
                 </p>
               </div>
               <div
-                className="border p-4"
+                className="border p-4 rounded-lg"
                 style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}
               >
                 <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
