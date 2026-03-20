@@ -145,6 +145,10 @@ export default class WebSocketManager {
     return now - lastTime < this.config.throttleMs;
   }
 
+  protected updateLastProcessTime(channel: string): void {
+    this.lastProcessTime.set(channel, Date.now());
+  }
+
   protected addToBatch(message: WebSocketMessage): void {
     const channel = message.channel;
     const now = Date.now();
@@ -165,11 +169,12 @@ export default class WebSocketManager {
       return;
     }
 
-    if (!this.batchTimer) {
-      this.batchTimer = setTimeout(() => {
-        this.flushAllBatches();
-      }, this.config.batchWindowMs);
+    if (this.batchTimer) {
+      clearTimeout(this.batchTimer);
     }
+    this.batchTimer = setTimeout(() => {
+      this.flushAllBatches();
+    }, this.config.batchWindowMs);
   }
 
   protected flushBatch(channel: string): void {
@@ -385,8 +390,10 @@ export default class WebSocketManager {
       if (this.shouldThrottle(channel)) {
         this.recordThrottle();
         logger.debug(`Message throttled for channel: ${channel}`);
+        return;
       }
 
+      this.updateLastProcessTime(channel);
       this.addToBatch(message);
     } catch (error) {
       logger.error('Failed to parse WebSocket message', error as Error);
@@ -403,6 +410,11 @@ export default class WebSocketManager {
           type: 'ping',
           timestamp: Date.now(),
         });
+
+        // 清理旧的心跳超时定时器
+        if (this.heartbeatTimeoutTimer) {
+          clearTimeout(this.heartbeatTimeoutTimer);
+        }
 
         // 设置心跳超时
         this.heartbeatTimeoutTimer = setTimeout(() => {

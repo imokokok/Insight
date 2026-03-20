@@ -75,7 +75,7 @@ const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
 
 const ORACLE_COLORS: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: chartColors.marketOverview.chainlink,
-  [OracleProvider.BAND_PROTOCOL]: chartColors.marketOverview.band,
+  [OracleProvider.BAND_PROTOCOL]: chartColors.marketOverview.bandProtocol,
   [OracleProvider.UMA]: chartColors.marketOverview.uma,
   [OracleProvider.PYTH]: chartColors.oracle.pyth,
   [OracleProvider.API3]: chartColors.oracle.api3,

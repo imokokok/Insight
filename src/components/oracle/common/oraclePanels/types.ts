@@ -1,14 +1,14 @@
 import { ReactNode } from 'react';
 import { OracleConfig } from '@/lib/config/oracles';
 import { PriceData } from '@/types/oracle';
-import { UMAMetworkStats } from '@/lib/oracles/uma/types';
+import { UMANetworkStats } from '@/lib/oracles/uma/types';
 
 export interface PanelRenderContext {
   config: OracleConfig;
   activeTab: string;
   priceData: PriceData | null;
   historicalData: PriceData[];
-  umaNetworkStats: UMAMetworkStats | null;
+  umaNetworkStats: UMANetworkStats | null;
   t: (key: string) => string;
 }
 

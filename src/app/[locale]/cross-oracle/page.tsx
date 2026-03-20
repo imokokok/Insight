@@ -106,8 +106,8 @@ export default function CrossOraclePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-dune min-h-screen">
-      <style jsx>{`
-        @keyframes pulse-highlight {
+      <style jsx global>{`
+        @keyframes cross-oracle-pulse-highlight {
           0%,
           100% {
             box-shadow: 0 0 0 0 ${chartColors.recharts.warning}B3;
@@ -117,7 +117,7 @@ export default function CrossOraclePage() {
           }
         }
         .outlier-highlight-pulse {
-          animation: pulse-highlight 1s ease-in-out 3;
+          animation: cross-oracle-pulse-highlight 1s ease-in-out 3;
         }
       `}</style>
 

@@ -5,7 +5,7 @@ import type { GasFeeData } from '@/components/oracle/common/GasFeeComparison';
 import { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
 import { OHLCVDataPoint } from '@/lib/indicators';
 
-export interface DapiPriceDeviation {
+export interface DAPIPriceDeviation {
   symbol: string;
   dapiPrice: number;
   marketPrice: number;
@@ -50,7 +50,7 @@ export interface AirnodeNetworkStats {
   latency: number;
 }
 
-export interface DapiCoverage {
+export interface DAPICoverage {
   totalDapis: number;
   byAssetType: {
     crypto: number;
@@ -101,7 +101,7 @@ export interface FirstPartyOracleData {
       others: number;
     };
   };
-  dapiCoverage: DapiCoverage;
+  dapiCoverage: DAPICoverage;
   advantages: {
     noMiddlemen: boolean;
     sourceTransparency: boolean;
@@ -126,6 +126,9 @@ export class API3Client extends BaseOracleClient {
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
+      if (!symbol) {
+        throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+      }
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       return this.fetchPriceWithDatabase(symbol, chain, () =>
@@ -145,6 +148,9 @@ export class API3Client extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
+      if (!symbol) {
+        throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+      }
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
@@ -176,7 +182,7 @@ export class API3Client extends BaseOracleClient {
     };
   }
 
-  async getDapiCoverage(): Promise<DapiCoverage> {
+  async getDapiCoverage(): Promise<DAPICoverage> {
     return {
       totalDapis: 168,
       byAssetType: {
@@ -274,7 +280,7 @@ export class API3Client extends BaseOracleClient {
     };
   }
 
-  async getDapiPriceDeviations(): Promise<DapiPriceDeviation[]> {
+  async getDapiPriceDeviations(): Promise<DAPIPriceDeviation[]> {
     return [
       {
         symbol: 'BTC/USD',
@@ -640,6 +646,9 @@ export class API3Client extends BaseOracleClient {
     chain?: Blockchain,
     period: number = 30
   ): Promise<OHLCVDataPoint[]> {
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
     const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
     const prices: OHLCVDataPoint[] = [];
     const now = Date.now();
@@ -651,11 +660,17 @@ export class API3Client extends BaseOracleClient {
       const price = basePrice * (1 + randomChange);
       const volatility = basePrice * 0.02;
 
+      // 确保 high >= low
+      const highOffset = volatility * Math.random();
+      const lowOffset = volatility * Math.random();
+      const high = price + Math.max(highOffset, lowOffset);
+      const low = price - Math.max(highOffset, lowOffset);
+
       prices.push({
         timestamp,
         price,
-        high: price + volatility * Math.random(),
-        low: price - volatility * Math.random(),
+        high,
+        low,
         close: price,
       });
     }

@@ -242,10 +242,12 @@ const renderRiskTab = (context: PanelRenderContext): ReactNode => {
     <div className="mb-6">
       <WINkLinkRiskPanel
         data={{
-          dataQualityScore: 96.5,
-          priceDeviation: 0.12,
-          nodeConcentrationRisk: 15.8,
-          uptimeRisk: 0.08,
+          overallRisk: 2.5,
+          decentralization: 85,
+          dataQuality: 96.5,
+          uptime: 99.92,
+          staleness: 0.5,
+          deviation: 0.12,
           lastUpdate: Date.now(),
         }}
       />

@@ -86,14 +86,17 @@ export class ApiResponseBuilder {
     total: number,
     meta?: { requestId?: string }
   ): ApiPaginatedResponse<T> {
+    // 添加 limit > 0 验证
+    const validLimit = limit > 0 ? limit : 10;
+
     return {
       success: true,
       data,
       pagination: {
         page,
-        limit,
+        limit: validLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / validLimit),
       },
       meta: {
         timestamp: Date.now(),
@@ -105,6 +108,10 @@ export class ApiResponseBuilder {
 
 export class ApiResponseHandler {
   static json<T>(data: T, status = 200): NextResponse<ApiSuccessResponse<T>> {
+    // 添加状态码验证
+    if (status < 100 || status >= 600) {
+      throw new Error(`Invalid HTTP status code: ${status}`);
+    }
     return NextResponse.json(ApiResponseBuilder.success(data), { status });
   }
 
@@ -119,6 +126,10 @@ export class ApiResponseHandler {
       requestId?: string;
     }
   ): NextResponse<ApiErrorResponse> {
+    // 添加状态码验证
+    if (statusCode < 100 || statusCode >= 600) {
+      throw new Error(`Invalid HTTP status code: ${statusCode}`);
+    }
     return NextResponse.json(ApiResponseBuilder.error(code, message, options), {
       status: statusCode,
     });
@@ -200,26 +211,40 @@ export class ApiResponseHandler {
   }
 }
 
+// 辅助函数：验证缓存配置值
+function validateCacheValue(value: number, name: string): number {
+  if (value < 0) {
+    throw new Error(`Cache ${name} cannot be negative: ${value}`);
+  }
+  return value;
+}
+
 export const CacheConfig = {
   PRICE: {
     maxAge: 30,
     staleWhileRevalidate: 60,
     get header() {
-      return `public, s-maxage=${this.maxAge}, stale-while-revalidate=${this.staleWhileRevalidate}`;
+      const maxAge = validateCacheValue(this.maxAge, 'maxAge');
+      const staleWhileRevalidate = validateCacheValue(this.staleWhileRevalidate, 'staleWhileRevalidate');
+      return `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`;
     },
   },
   HISTORY: {
     maxAge: 300,
     staleWhileRevalidate: 600,
     get header() {
-      return `public, s-maxage=${this.maxAge}, stale-while-revalidate=${this.staleWhileRevalidate}`;
+      const maxAge = validateCacheValue(this.maxAge, 'maxAge');
+      const staleWhileRevalidate = validateCacheValue(this.staleWhileRevalidate, 'staleWhileRevalidate');
+      return `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`;
     },
   },
   SHORT: {
     maxAge: 10,
     staleWhileRevalidate: 30,
     get header() {
-      return `public, s-maxage=${this.maxAge}, stale-while-revalidate=${this.staleWhileRevalidate}`;
+      const maxAge = validateCacheValue(this.maxAge, 'maxAge');
+      const staleWhileRevalidate = validateCacheValue(this.staleWhileRevalidate, 'staleWhileRevalidate');
+      return `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`;
     },
   },
   NONE: {

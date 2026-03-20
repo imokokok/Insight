@@ -5,7 +5,7 @@ import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
 import { StakingData } from '@/lib/oracles/api3';
 import { AirnodeNetworkStats } from '@/lib/oracles/api3';
-import { DapiCoverage } from '@/lib/oracles/api3';
+import { DAPICoverage } from '@/lib/oracles/api3';
 import {
   DataFreshnessIndicator,
   RiskScoreCard,
@@ -17,7 +17,7 @@ import type { RiskEvent, MitigationMeasure } from '@/types/risk';
 interface API3RiskAssessmentPanelProps {
   staking?: StakingData;
   airnodeStats?: AirnodeNetworkStats;
-  dapiCoverage?: DapiCoverage;
+  dapiCoverage?: DAPICoverage;
 }
 
 interface RiskScoreCardProps {
@@ -171,7 +171,7 @@ function CoveragePoolRisk({ staking }: { staking?: StakingData }) {
   );
 }
 
-function DataSourceConcentrationRisk({ dapiCoverage }: { dapiCoverage?: DapiCoverage }) {
+function DataSourceConcentrationRisk({ dapiCoverage }: { dapiCoverage?: DAPICoverage }) {
   const t = useTranslations();
 
   const totalDapis = dapiCoverage?.totalDapis ?? 0;

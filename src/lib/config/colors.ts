@@ -4,6 +4,52 @@
  */
 
 // ============================================
+// 类型定义
+// ============================================
+
+/**
+ * 色阶颜色类型 (50-900)
+ */
+export interface ColorScale {
+  50: string;
+  100: string;
+  200: string;
+  300: string;
+  400: string;
+  500: string;
+  600: string;
+  700: string;
+  800: string;
+  900: string;
+}
+
+/**
+ * 语义化颜色类型
+ */
+export interface SemanticColor {
+  light: string;
+  DEFAULT: string;
+  dark: string;
+  text: string;
+  main: string;
+}
+
+/**
+ * 阴影颜色类型
+ */
+export interface ShadowColor {
+  soft: string;
+  medium: string;
+  strong: string;
+  tooltip: string;
+  card: string;
+  cardHover: string;
+  inputFocus: string;
+  glow: string;
+  pulse: string;
+}
+
+// ============================================
 // 基础颜色系统
 // ============================================
 
@@ -254,7 +300,7 @@ export const chartColors = {
   marketOverview: {
     chainlink: '#375BD2',
     pyth: '#E6B800',
-    band: '#516BEB',
+    bandProtocol: '#516BEB',
     api3: '#7CE3CB',
     uma: '#FF4A8D',
     default: '#8884d8',
@@ -367,15 +413,15 @@ export const chartColors = {
 // ============================================
 
 export const shadowColors = {
-  soft: 'none',
-  medium: 'none',
-  strong: 'none',
-  tooltip: 'none',
-  card: 'none',
-  cardHover: 'none',
-  inputFocus: 'none',
-  glow: 'none',
-  pulse: 'none',
+  soft: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  medium: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+  strong: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  tooltip: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+  card: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+  cardHover: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  inputFocus: '0 0 0 3px rgba(59, 130, 246, 0.1)',
+  glow: '0 0 20px rgba(59, 130, 246, 0.3)',
+  pulse: '0 0 0 0 rgba(59, 130, 246, 0.4)',
 } as const;
 
 // ============================================
@@ -747,8 +793,16 @@ export const tailwindClasses = {
 
 /**
  * 获取涨跌颜色配置
- * @param isPositive 是否上涨
- * @param useAccessible 是否使用色盲友好颜色
+ * 根据是否上涨返回对应的颜色配置，支持普通模式和色盲友好模式
+ *
+ * @param isPositive - 是否上涨（true 表示上涨，false 表示下跌）
+ * @param useAccessible - 是否使用色盲友好颜色（默认为 false）
+ * @returns 包含颜色、背景色和图标的配置对象
+ * @example
+ * ```typescript
+ * const upColor = getPriceChangeColor(true); // 上涨颜色
+ * const downColor = getPriceChangeColor(false, true); // 色盲友好下跌颜色
+ * ```
  */
 export function getPriceChangeColor(
   isPositive: boolean,
@@ -772,6 +826,15 @@ export function getPriceChangeColor(
 
 /**
  * 获取图表序列颜色
+ * 根据索引循环返回预设的颜色序列，用于多系列图表
+ *
+ * @param index - 颜色索引（从 0 开始）
+ * @returns 对应索引的颜色值（hex 格式）
+ * @example
+ * ```typescript
+ * const color1 = getChartSequenceColor(0); // '#3B82F6'（蓝色）
+ * const color2 = getChartSequenceColor(8); // 循环回到第一个颜色
+ * ```
  */
 export function getChartSequenceColor(index: number): string {
   return chartColors.sequence[index % chartColors.sequence.length];
@@ -779,7 +842,19 @@ export function getChartSequenceColor(index: number): string {
 
 /**
  * 获取对比度安全的文本颜色
- * @param backgroundColor 背景色（hex 格式）
+ * 根据背景色的亮度计算，返回黑色或白色文本以确保可读性
+ *
+ * 算法说明：
+ * 使用 YIQ 亮度公式：brightness = (R * 299 + G * 587 + B * 114) / 1000
+ * 亮度 > 128 返回深色文本，否则返回白色
+ *
+ * @param backgroundColor - 背景色（hex 格式，如 '#ffffff'）
+ * @returns 适合的文本颜色（hex 格式）
+ * @example
+ * ```typescript
+ * const textColor = getContrastTextColor('#ffffff'); // '#111827'（深色）
+ * const textColor2 = getContrastTextColor('#000000'); // '#FFFFFF'（白色）
+ * ```
  */
 export function getContrastTextColor(backgroundColor: string): string {
   // 简单的亮度计算

@@ -257,6 +257,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
     const config = parseQueryParams(window.location.search);
 
     const hasUrlParams =
@@ -265,18 +266,10 @@ export function usePriceQuery(): UsePriceQueryReturn {
     if (!hasUrlParams) {
       applyPreferences();
     } else {
-      if (config.oracles && config.oracles.length > 0) {
-        setSelectedOracles(config.oracles);
-      }
-      if (config.chains && config.chains.length > 0) {
-        setSelectedChains(config.chains);
-      }
-      if (config.symbol) {
-        setSelectedSymbol(config.symbol);
-      }
-      if (config.timeRange) {
-        setSelectedTimeRange(config.timeRange);
-      }
+      setSelectedOracles((prev) => (config.oracles && config.oracles.length > 0 ? config.oracles : prev));
+      setSelectedChains((prev) => (config.chains && config.chains.length > 0 ? config.chains : prev));
+      setSelectedSymbol((prev) => (config.symbol ? config.symbol : prev));
+      setSelectedTimeRange((prev) => (config.timeRange ? config.timeRange : prev));
     }
     setUrlParamsParsed(true);
   }, [applyPreferences]);
@@ -349,6 +342,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }, [queryResults, generateFilename, t]);
 
   const handleExportJSON = useCallback(() => {
@@ -378,6 +372,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }, [queryResults, selectedSymbol, selectedOracles, selectedChains, generateFilename]);
 
   const fetchQueryData = useCallback(async () => {
@@ -387,6 +382,8 @@ export function usePriceQuery(): UsePriceQueryReturn {
     setQueryDuration(null);
     setQueryProgress({ completed: 0, total: 0 });
     setCurrentQueryTarget({ oracle: null, chain: null });
+
+    let isMounted = true;
 
     let totalQueries = 0;
     for (const provider of selectedOracles) {
@@ -413,6 +410,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
 
         for (const chain of selectedChains) {
           if (supportedChains.includes(chain)) {
+            if (!isMounted) return;
             setCurrentQueryTarget({ oracle: provider, chain: chain });
             try {
               const price = await client.getPrice(selectedSymbol, chain);
@@ -436,11 +434,14 @@ export function usePriceQuery(): UsePriceQueryReturn {
               );
             }
             completedQueries++;
-            setQueryProgress({ completed: completedQueries, total: actualTotalQueries });
+            if (isMounted) {
+              setQueryProgress({ completed: completedQueries, total: actualTotalQueries });
+            }
           }
         }
       }
 
+      if (!isMounted) return;
       setQueryResults(results);
       setHistoricalData(histories);
 
@@ -454,6 +455,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
 
           for (const chain of selectedChains) {
             if (supportedChains.includes(chain)) {
+              if (!isMounted) return;
               setCurrentQueryTarget({ oracle: provider, chain: chain });
               try {
                 const price = await client.getPrice(selectedSymbol, chain);
@@ -477,11 +479,14 @@ export function usePriceQuery(): UsePriceQueryReturn {
                 );
               }
               completedQueries++;
-              setQueryProgress({ completed: completedQueries, total: actualTotalQueries });
+              if (isMounted) {
+                setQueryProgress({ completed: completedQueries, total: actualTotalQueries });
+              }
             }
           }
         }
 
+        if (!isMounted) return;
         setCompareQueryResults(compareResults);
         setCompareHistoricalData(compareHistories);
       } else {
@@ -504,9 +509,11 @@ export function usePriceQuery(): UsePriceQueryReturn {
         error instanceof Error ? error : new Error(String(error))
       );
     } finally {
-      setLoading(false);
-      setQueryDuration(Date.now() - startTime);
-      setCurrentQueryTarget({ oracle: null, chain: null });
+      if (isMounted) {
+        setLoading(false);
+        setQueryDuration(Date.now() - startTime);
+        setCurrentQueryTarget({ oracle: null, chain: null });
+      }
     }
   }, [
     selectedOracles,

@@ -84,7 +84,8 @@ export abstract class BaseOracleClient {
       [Blockchain.AURORA]: 0.024,
       [Blockchain.CELO]: 0.022,
     };
-    const volatility = chain ? chainVolatility[chain] : 0.02;
+    const volatility =
+      chain && chainVolatility[chain] !== undefined ? chainVolatility[chain] : 0.02;
     const randomChange = (Math.random() - 0.5) * 2 * volatility;
     const price = basePrice * (1 + randomChange);
 
@@ -146,7 +147,8 @@ export abstract class BaseOracleClient {
       [Blockchain.AURORA]: 0.0024,
       [Blockchain.CELO]: 0.0022,
     };
-    const volatility = chain ? chainVolatility[chain] : 0.002;
+    const volatility =
+      chain && chainVolatility[chain] !== undefined ? chainVolatility[chain] : 0.002;
 
     // 随机选择趋势方向：-1 下跌, 0 震荡, 1 上涨
     const trendDirection = Math.random() > 0.6 ? 1 : Math.random() > 0.6 ? -1 : 0;

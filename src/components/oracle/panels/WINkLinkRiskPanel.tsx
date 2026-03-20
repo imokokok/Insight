@@ -79,10 +79,10 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
     return { level: 'high', color: 'text-red-600', bgColor: 'bg-red-100' };
   };
 
-  const dataQualityRisk = getRiskLevel(data.dataQualityScore);
-  const deviationRisk = getDeviationRisk(data.priceDeviation);
-  const nodeRisk = getRiskLevel(100 - data.nodeConcentrationRisk);
-  const uptimeRisk = getRiskLevel(100 - data.uptimeRisk * 100);
+  const dataQualityRisk = getRiskLevel(data.dataQuality ?? 0);
+  const deviationRisk = getDeviationRisk(data.deviation);
+  const nodeRisk = getRiskLevel(data.decentralization);
+  const uptimeRisk = getRiskLevel(data.uptime);
 
   // 四维度评分数据
   const riskScores = useMemo(
@@ -317,7 +317,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
               <Shield className="w-4 h-4 text-green-600" />
               <p className="text-xs text-gray-500">{t('winklink.risk.dataQuality')}</p>
             </div>
-            <p className="text-xl font-bold text-gray-900">{data.dataQualityScore}%</p>
+            <p className="text-xl font-bold text-gray-900">{data.dataQuality}%</p>
             <span
               className={`text-xs px-2 py-1 rounded-md ${dataQualityRisk.bgColor} ${dataQualityRisk.color}`}
             >
@@ -329,7 +329,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
               <TrendingUp className="w-4 h-4 text-blue-600" />
               <p className="text-xs text-gray-500">{t('winklink.risk.priceDeviation')}</p>
             </div>
-            <p className="text-xl font-bold text-gray-900">{data.priceDeviation}%</p>
+            <p className="text-xl font-bold text-gray-900">{data.deviation}%</p>
             <span
               className={`text-xs px-2 py-1 rounded-md ${deviationRisk.bgColor} ${deviationRisk.color}`}
             >
@@ -341,7 +341,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
               <AlertTriangle className="w-4 h-4 text-yellow-600" />
               <p className="text-xs text-gray-500">{t('winklink.risk.nodeConcentration')}</p>
             </div>
-            <p className="text-xl font-bold text-gray-900">{data.nodeConcentrationRisk}%</p>
+            <p className="text-xl font-bold text-gray-900">{data.decentralization}%</p>
             <span className={`text-xs px-2 py-1 rounded-md ${nodeRisk.bgColor} ${nodeRisk.color}`}>
               {t(`winklink.risk.${nodeRisk.level}Risk`)}
             </span>
@@ -352,7 +352,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
               <p className="text-xs text-gray-500">{t('winklink.risk.uptime')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">
-              {(100 - data.uptimeRisk * 100).toFixed(2)}%
+              {data.uptime.toFixed(2)}%
             </p>
             <span
               className={`text-xs px-2 py-1 rounded-md ${uptimeRisk.bgColor} ${uptimeRisk.color}`}

@@ -924,7 +924,7 @@ export async function fetchProtocolDetails(): Promise<ProtocolDetail[]> {
 const ORACLE_COLOR_MAP: Record<string, string> = {
   Chainlink: chartColors.marketOverview.chainlink,
   'Pyth Network': chartColors.marketOverview.pyth,
-  'Band Protocol': chartColors.marketOverview.band,
+  'Band Protocol': chartColors.marketOverview.bandProtocol,
   API3: chartColors.marketOverview.api3,
   UMA: chartColors.marketOverview.uma,
   RedStone: chartColors.oracle.redstone,

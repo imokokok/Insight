@@ -99,8 +99,13 @@ class ErrorRecoveryManager {
       }
     }
 
-    this.logError(lastError!, context, config.maxAttempts - 1);
-    throw lastError;
+    // 使用更安全的类型处理
+    if (lastError) {
+      this.logError(lastError, context, config.maxAttempts - 1);
+      throw lastError;
+    }
+    // 理论上不会执行到这里，但为了类型安全
+    throw new Error('Max retry attempts reached');
   }
 
   /**
@@ -121,11 +126,24 @@ class ErrorRecoveryManager {
       return true;
     }
 
-    // 检查 HTTP 状态码
-    const statusMatch = error.message.match(/(\d{3})/);
+    // 改进 HTTP 状态码提取逻辑
+    // 支持从错误消息中提取状态码，包括 ECONNREFUSED (0) 等
+    const statusMatch = error.message.match(/(?:status\s*[:=]?\s*|\b)(-?\d{1,3})\b/);
     if (statusMatch) {
       const status = parseInt(statusMatch[1], 10);
-      return config.retryableStatuses.includes(status);
+      // 只处理有效的 HTTP 状态码范围 (100-599)
+      if (status >= 100 && status < 600) {
+        return config.retryableStatuses.includes(status);
+      }
+    }
+
+    // 尝试从错误对象的其他属性获取状态码
+    const errorWithStatus = error as Error & { status?: number; statusCode?: number; code?: string };
+    if (typeof errorWithStatus.status === 'number' && errorWithStatus.status >= 100 && errorWithStatus.status < 600) {
+      return config.retryableStatuses.includes(errorWithStatus.status);
+    }
+    if (typeof errorWithStatus.statusCode === 'number' && errorWithStatus.statusCode >= 100 && errorWithStatus.statusCode < 600) {
+      return config.retryableStatuses.includes(errorWithStatus.statusCode);
     }
 
     return false;
@@ -135,9 +153,13 @@ class ErrorRecoveryManager {
    * 计算重试延迟（指数退避）
    */
   private calculateDelay(attempt: number, config: RetryConfig): number {
-    const delay = config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1);
-    const jitter = Math.random() * 1000; // 添加随机抖动
-    return Math.min(delay + jitter, config.maxDelay);
+    // 先计算基础延迟
+    const baseDelay = config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1);
+    // 在添加 jitter 前先限制延迟不超过 maxDelay
+    const cappedDelay = Math.min(baseDelay, config.maxDelay);
+    // 添加随机抖动，但确保不超过 maxDelay
+    const jitter = Math.random() * Math.min(1000, config.maxDelay * 0.1);
+    return Math.min(cappedDelay + jitter, config.maxDelay);
   }
 
   /**
@@ -299,37 +321,59 @@ export class ErrorReportingService {
   }
 
   /**
-   * 提交错误报告
+   * 提交错误报告（带超时机制）
    */
-  async submitReport(report: ErrorReport): Promise<void> {
-    // 发送到所有注册的报告处理器
-    await Promise.all(
-      this.reporters.map(async (reporter) => {
-        try {
-          await reporter(report);
-        } catch (error) {
-          console.error('Error reporter failed:', error);
-        }
-      })
-    );
-
-    // 同时发送到监控系统
-    captureException(report.error, {
-      errorId: report.errorId,
-      ...report.context,
-      userAgent: report.userAgent,
-      url: report.url,
+  async submitReport(report: ErrorReport, timeoutMs: number = 10000): Promise<void> {
+    // 创建超时 Promise
+    const timeoutPromise = new Promise<void>((_, reject) => {
+      setTimeout(() => reject(new Error(`Report submission timed out after ${timeoutMs}ms`)), timeoutMs);
     });
+
+    // 创建报告提交 Promise
+    const submissionPromise = (async () => {
+      // 发送到所有注册的报告处理器
+      await Promise.all(
+        this.reporters.map(async (reporter) => {
+          try {
+            await reporter(report);
+          } catch (error) {
+            console.error('Error reporter failed:', error);
+          }
+        })
+      );
+
+      // 同时发送到监控系统
+      captureException(report.error, {
+        errorId: report.errorId,
+        ...report.context,
+        userAgent: report.userAgent,
+        url: report.url,
+      });
+    })();
+
+    // 使用 Promise.race 实现超时控制
+    try {
+      await Promise.race([submissionPromise, timeoutPromise]);
+    } catch (error) {
+      console.error('Error report submission failed:', error);
+      // 即使超时，也尝试发送到监控系统
+      captureException(report.error, {
+        errorId: report.errorId,
+        ...report.context,
+        userAgent: report.userAgent,
+        url: report.url,
+      });
+    }
   }
 
   /**
    * 从错误日志提交报告
    */
-  async submitReportFromLog(errorId: string): Promise<boolean> {
+  async submitReportFromLog(errorId: string, timeoutMs?: number): Promise<boolean> {
     const report = errorRecovery.generateErrorReport(errorId);
     if (!report) return false;
 
-    await this.submitReport(report);
+    await this.submitReport(report, timeoutMs);
     return true;
   }
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useCommonShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { QueryHeader, QueryForm, QueryResults, ExportConfig } from './components';
@@ -8,6 +9,7 @@ import { exportToCSV, exportToJSON, exportToPDF } from './utils/exportUtils';
 
 export default function PriceQueryPage() {
   const t = useTranslations();
+  const filterInputRef = useRef<HTMLInputElement>(null);
   const {
     selectedOracles,
     setSelectedOracles,
@@ -79,13 +81,18 @@ export default function PriceQueryPage() {
     handleApplyFavorite,
   } = usePriceQuery();
 
+  // Debounced search focus handler
+  const debouncedSearchFocus = useCallback(() => {
+    // Use requestAnimationFrame for debouncing
+    requestAnimationFrame(() => {
+      filterInputRef.current?.focus();
+    });
+  }, []);
+
   // Keyboard shortcuts
   useCommonShortcuts({
     onRefresh: fetchQueryData,
-    onSearch: () => {
-      const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-      searchInput?.focus();
-    },
+    onSearch: debouncedSearchFocus,
   });
 
   const handleExportWithConfig = async (config: {
@@ -235,6 +242,7 @@ export default function PriceQueryPage() {
             chartContainerRef={chartContainerRef}
             timeComparisonConfig={timeComparisonConfig}
             onTimeConfigChange={setTimeComparisonConfig}
+            filterInputRef={filterInputRef}
           />
         </div>
       </div>

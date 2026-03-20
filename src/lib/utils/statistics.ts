@@ -37,21 +37,24 @@ export interface QuantileResult {
  * @returns CDF计算结果
  */
 export function calculateCDF(data: number[], steps: number = 100): CDFResult {
-  if (data.length === 0) {
+  // 过滤无效数据 (NaN 和 Infinity)
+  const validData = data.filter(Number.isFinite);
+
+  if (validData.length === 0) {
     return {
       points: [],
-      p50: 0,
-      p95: 0,
-      p99: 0,
-      min: 0,
-      max: 0,
-      mean: 0,
-      stdDev: 0,
+      p50: NaN,
+      p95: NaN,
+      p99: NaN,
+      min: NaN,
+      max: NaN,
+      mean: NaN,
+      stdDev: NaN,
       totalCount: 0,
     };
   }
 
-  const sortedData = [...data].sort((a, b) => a - b);
+  const sortedData = [...validData].sort((a, b) => a - b);
   const min = sortedData[0];
   const max = sortedData[sortedData.length - 1];
   const totalCount = sortedData.length;
@@ -80,9 +83,16 @@ export function calculateCDF(data: number[], steps: number = 100): CDFResult {
       count: totalCount,
     });
   } else {
+    // 使用双指针优化循环
+    let dataIndex = 0;
     for (let i = 0; i <= steps; i++) {
       const value = min + (range * i) / steps;
-      const count = sortedData.filter((v) => v <= value).length;
+
+      // 移动指针直到找到大于当前 value 的位置
+      while (dataIndex < totalCount && sortedData[dataIndex] <= value) {
+        dataIndex++;
+      }
+      const count = dataIndex;
       const probability = count / totalCount;
 
       points.push({
@@ -114,7 +124,7 @@ export function calculateCDF(data: number[], steps: number = 100): CDFResult {
  * @returns 分位数值
  */
 export function calculatePercentile(sortedData: number[], percentile: number): number {
-  if (sortedData.length === 0) return 0;
+  if (sortedData.length === 0) return NaN;
   if (percentile <= 0) return sortedData[0];
   if (percentile >= 100) return sortedData[sortedData.length - 1];
 
@@ -138,7 +148,7 @@ export function calculatePercentile(sortedData: number[], percentile: number): n
  */
 export function calculateQuantiles(data: number[]): QuantileResult {
   if (data.length === 0) {
-    return { p50: 0, p90: 0, p95: 0, p99: 0, p999: 0 };
+    return { p50: NaN, p90: NaN, p95: NaN, p99: NaN, p999: NaN };
   }
 
   const sortedData = [...data].sort((a, b) => a - b);
@@ -187,8 +197,9 @@ export function calculateHistogram(
   for (let i = 0; i < binCount; i++) {
     const binMin = min + i * binSize;
     const binMax = min + (i + 1) * binSize;
+    // 使用 Number.EPSILON 处理边界值问题
     const count = data.filter(
-      (v) => v >= binMin && (i === binCount - 1 ? v <= binMax : v < binMax)
+      (v) => v >= binMin - Number.EPSILON && (i === binCount - 1 ? v <= binMax + Number.EPSILON : v < binMax - Number.EPSILON)
     ).length;
 
     bins.push({

@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import {
-  GamingData,
+  WINkLinkGamingData,
   GamingDataSource,
   RandomNumberService,
   VRFUseCase,
@@ -12,7 +12,7 @@ import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Gamepad2, Dices, Shield, Clock, Users, DollarSign, Zap } from 'lucide-react';
 
 interface WINkLinkGamingDataPanelProps {
-  data: GamingData & {
+  data: WINkLinkGamingData & {
     vrfUseCases?: VRFUseCase[];
     categoryDistribution?: GamingCategoryDistribution[];
   };
@@ -239,9 +239,9 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">{t('winklink.gaming.usageCount')}</span>
                   <span className="text-sm font-medium text-gray-900">
-                    {useCase.usageCount >= 1e6
+                    {useCase.usageCount && useCase.usageCount >= 1e6
                       ? `${(useCase.usageCount / 1e6).toFixed(1)}M`
-                      : useCase.usageCount.toLocaleString()}
+                      : (useCase.usageCount ?? 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between mt-1">
@@ -276,7 +276,7 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
                   {category.count} {t('winklink.gaming.games')}
                 </div>
                 <div className="w-28 text-right text-sm font-medium text-gray-900">
-                  ${(category.volume24h / 1e6).toFixed(1)}M
+                  ${((category.volume24h ?? 0) / 1e6).toFixed(1)}M
                 </div>
               </div>
             ))}

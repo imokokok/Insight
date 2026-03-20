@@ -1,9 +1,9 @@
 'use client';
 
-import { DapiPriceDeviation } from '@/lib/oracles/api3';
+import { DAPIPriceDeviation } from '@/lib/oracles/api3';
 
 interface DapiPriceDeviationMonitorProps {
-  data: DapiPriceDeviation[];
+  data: DAPIPriceDeviation[];
 }
 
 function StatusIndicator({ status }: { status: 'normal' | 'warning' | 'critical' }) {

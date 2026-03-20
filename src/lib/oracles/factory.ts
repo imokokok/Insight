@@ -42,7 +42,11 @@ export class OracleClientFactory {
       this.instances.set(provider, this.createClient(provider));
       logger.info(`Created new oracle client instance for ${provider}`);
     }
-    return this.instances.get(provider)!;
+    const client = this.instances.get(provider);
+    if (!client) {
+      throw new Error(`Failed to create oracle client for provider: ${provider}`);
+    }
+    return client;
   }
 
   static getClientFromDI(provider: OracleProvider): IOracleClient | null {

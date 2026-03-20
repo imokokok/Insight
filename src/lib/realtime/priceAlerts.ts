@@ -214,6 +214,8 @@ export function usePriceAlerts(): UsePriceAlertsReturn {
   const [history, setHistory] = useState<AlertHistory[]>([]);
   const [hasNotificationPermission, setHasNotificationPermission] = useState(false);
   const lastPricesRef = useRef<Map<string, PriceDataForAlert>>(new Map());
+  const alertsRef = useRef<PriceAlert[]>([]);
+  const isRequestingPermissionRef = useRef(false);
 
   // 初始加载
   useEffect(() => {
@@ -228,6 +230,7 @@ export function usePriceAlerts(): UsePriceAlertsReturn {
   // 保存到 localStorage
   useEffect(() => {
     saveAlertsToStorage(alerts);
+    alertsRef.current = alerts;
   }, [alerts]);
 
   useEffect(() => {
@@ -284,8 +287,8 @@ export function usePriceAlerts(): UsePriceAlertsReturn {
         // 更新最后价格
         lastPricesRef.current.set(data.symbol, data);
 
-        // 检查相关预警
-        const relevantAlerts = alerts.filter((a) => a.symbol === data.symbol && a.isActive);
+        // 检查相关预警 - 使用 ref 避免闭包问题
+        const relevantAlerts = alertsRef.current.filter((a) => a.symbol === data.symbol && a.isActive);
 
         relevantAlerts.forEach((alert) => {
           const result = checkAlert(alert, data);
@@ -327,7 +330,7 @@ export function usePriceAlerts(): UsePriceAlertsReturn {
 
       return results;
     },
-    [alerts]
+    []
   );
 
   // 请求通知权限
@@ -335,6 +338,13 @@ export function usePriceAlerts(): UsePriceAlertsReturn {
     if (typeof window === 'undefined' || !('Notification' in window)) {
       return false;
     }
+
+    // 防止重复请求
+    if (isRequestingPermissionRef.current) {
+      return false;
+    }
+
+    isRequestingPermissionRef.current = true;
 
     try {
       const permission = await Notification.requestPermission();
@@ -344,6 +354,8 @@ export function usePriceAlerts(): UsePriceAlertsReturn {
     } catch (error) {
       logger.error('Failed to request notification permission', error as Error);
       return false;
+    } finally {
+      isRequestingPermissionRef.current = false;
     }
   }, []);
 

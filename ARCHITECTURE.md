@@ -250,17 +250,39 @@ const ArbitrageHeatmap = dynamic(
 ```
 src/components/
 ├── oracle/                 # Oracle-specific components
+│   ├── charts/             # Oracle chart components
+│   │   ├── PriceChart/
+│   │   ├── DynamicPriceChart.tsx
+│   │   ├── PriceVolatilityChart.tsx
+│   │   ├── ConfidenceIntervalChart.tsx
+│   │   ├── KPIDashboard.tsx
+│   │   └── ...
+│   ├── common/             # Common oracle components
+│   │   ├── OraclePageTemplate.tsx
+│   │   ├── DashboardCard.tsx
+│   │   ├── DataQualityScoreCard.tsx
+│   │   ├── ConfidenceScore.tsx
+│   │   ├── RiskScoreCard.tsx
+│   │   └── ...
+│   ├── panels/             # Oracle-specific panels
+│   │   ├── ChainlinkDataFeedsPanel.tsx
+│   │   ├── PythRiskAssessmentPanel.tsx
+│   │   ├── UMAEcosystemPanel.tsx
+│   │   ├── API3RiskAssessmentPanel.tsx
+│   │   ├── BandValidatorsPanel.tsx
+│   │   ├── TellorDisputesPanel.tsx
+│   │   ├── ChronicleMakerDAOIntegrationPanel.tsx
+│   │   ├── DIANFTDataPanel.tsx
+│   │   ├── RedStoneDataStreamsPanel.tsx
+│   │   └── WINkLinkGamingDataPanel.tsx
+│   ├── forms/              # Form components
+│   │   └── ...
 │   ├── indicators/         # Technical indicators
 │   │   ├── BollingerBands.tsx
 │   │   ├── RSIIndicator.tsx
+│   │   ├── MACDIndicator.tsx
+│   │   ├── ATRIndicator.tsx
 │   │   └── index.ts
-│   ├── PriceChart.tsx
-│   ├── DynamicPriceChart.tsx
-│   ├── MarketDataPanel.tsx
-│   ├── MarketDataPanelRealtime.tsx
-│   ├── ConfidenceIntervalChart.tsx
-│   ├── DataQualityPanel.tsx
-│   ├── OraclePageTemplate.tsx
 │   └── index.ts
 │
 ├── charts/                 # Chart components
@@ -287,6 +309,35 @@ src/components/
 │   ├── FavoritesManager.tsx
 │   └── index.ts
 │
+├── comparison/             # Comparison components
+│   ├── OracleComparisonView.tsx
+│   ├── TimeComparisonChart.tsx
+│   └── index.ts
+│
+├── export/                 # Export components
+│   ├── UnifiedExport.tsx
+│   ├── ExportHistoryPanel.tsx
+│   └── index.ts
+│
+├── data-transparency/      # Data transparency components
+│   ├── DataSourceIndicator.tsx
+│   ├── DataUpdateTime.tsx
+│   └── index.ts
+│
+├── accessibility/          # Accessibility components
+│   ├── AccessibilitySettings.tsx
+│   ├── KeyboardNavigation.tsx
+│   └── index.ts
+│
+├── mobile/                 # Mobile components
+│   ├── BottomNavigation.tsx
+│   ├── MobilePriceChart.tsx
+│   └── index.ts
+│
+├── search/                 # Search components
+│   ├── GlobalSearch.tsx
+│   └── index.ts
+│
 ├── settings/               # Settings components
 │   ├── DataManagementPanel.tsx
 │   ├── NotificationPanel.tsx
@@ -302,6 +353,7 @@ src/components/
 │
 ├── ui/                     # Reusable UI components
 │   ├── Button.tsx
+│   ├── Card.tsx
 │   ├── ChartSkeleton.tsx
 │   ├── EmptyState.tsx
 │   ├── Toast.tsx
@@ -309,11 +361,10 @@ src/components/
 │
 ├── Navbar.tsx
 ├── Footer.tsx
-├── ErrorBoundary.tsx
 ├── ErrorBoundaries.tsx
-├── Card.tsx
 ├── GaugeChart.tsx
-└── LanguageSwitcher.tsx
+├── LanguageSwitcher.tsx
+└── AppInitializer.tsx
 ```
 
 ### 3.2 Oracle Component Categories
@@ -1026,6 +1077,16 @@ export class OracleClientFactory {
         return new PythClient(this.config);
       case OracleProvider.API3:
         return new API3Client(this.config);
+      case OracleProvider.REDSTONE:
+        return new RedStoneClient(this.config);
+      case OracleProvider.DIA:
+        return new DIAClient(this.config);
+      case OracleProvider.TELLOR:
+        return new TellorClient(this.config);
+      case OracleProvider.CHRONICLE:
+        return new ChronicleClient(this.config);
+      case OracleProvider.WINKLINK:
+        return new WINkLinkClient(this.config);
       default:
         throw new Error(`Unknown oracle provider: ${provider}`);
     }
@@ -1637,6 +1698,69 @@ export function getTimeRangeHours(timeRange: ExportTimeRange): number {
 | Icons                | Lucide React        | 0.577.0 |
 | PDF Export           | jsPDF               | 4.2.0   |
 | Internationalization | next-intl           | 4.8.3   |
+| Monitoring           | Sentry              | 10.43.0 |
+
+---
+
+## 11. Internationalization Architecture
+
+### 11.1 Message Structure
+
+The application uses a modular internationalization structure with next-intl:
+
+```
+src/i18n/messages/
+├── common.json           # General translations
+├── home.json            # Homepage translations
+├── navigation.json      # Navigation translations
+├── marketOverview.json  # Market overview translations
+├── priceQuery.json      # Price query translations
+├── crossOracle.json     # Cross-oracle translations
+├── crossChain.json      # Cross-chain translations
+├── comparison.json      # Comparison translations
+├── dataQuality.json     # Data quality translations
+├── dataTransparency.json # Data transparency translations
+├── ui.json              # UI component translations
+├── oracles/             # Oracle-specific translations
+│   ├── chainlink.json
+│   ├── band.json
+│   ├── uma.json
+│   ├── pyth.json
+│   ├── api3.json
+│   ├── redstone.json
+│   ├── dia.json
+│   ├── tellor.json
+│   ├── chronicle.json
+│   └── winklink.json
+├── components/          # Component translations
+│   ├── charts.json
+│   ├── alerts.json
+│   ├── search.json
+│   ├── export.json
+│   └── favorites.json
+└── features/            # Feature translations
+    ├── settings.json
+    ├── auth.json
+    └── methodology.json
+```
+
+### 11.2 Translation Keys
+
+Translations are organized by feature and follow a hierarchical naming convention:
+
+```typescript
+// Example: Oracle-specific translations
+{
+  "chainlink": {
+    "title": "Chainlink",
+    "description": "Decentralized Oracle Network",
+    "features": {
+      "nodeAnalytics": "Node Analytics",
+      "dataFeeds": "Data Feeds"
+    }
+  }
+}
+```
 
 ---
 

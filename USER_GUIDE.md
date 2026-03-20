@@ -61,12 +61,12 @@ The platform features an intuitive navigation system:
 
 #### Main Navigation Menu
 
-| Menu               | Description                                                         |
-| ------------------ | ------------------------------------------------------------------- |
-| **Home**           | Dashboard with platform overview and key metrics                    |
-| **Market**         | Market Overview and Price Query tools                               |
-| **Data Analysis**  | Cross-Oracle and Cross-Chain analysis tools                         |
-| **Oracle Details** | Individual oracle pages (Chainlink, Band Protocol, Pyth, API3, UMA) |
+| Menu               | Description                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| **Home**           | Dashboard with platform overview and key metrics                                             |
+| **Market**         | Market Overview and Price Query tools                                                        |
+| **Data Analysis**  | Cross-Oracle and Cross-Chain analysis tools                                                  |
+| **Oracle Details** | Individual oracle pages (Chainlink, Band Protocol, Pyth, API3, UMA, RedStone, DIA, Tellor, Chronicle, WINkLink) |
 
 #### User Menu (Logged In)
 
@@ -747,6 +747,112 @@ Each oracle has a dedicated page with specialized analytics.
 - **Market**: Price and market data
 - **Validators**: Validator network
 - **Disputes**: Dispute resolution panel
+
+### RedStone (`/redstone`)
+
+#### Features
+
+- **Modular Oracle Design**: Flexible data delivery mechanisms
+- **Data Streams**: Real-time streaming data feeds
+- **Stream Analytics**: Stream performance metrics
+- **Cross-Chain Support**: Multi-chain data availability
+- **Cost Efficiency Metrics**: Gas usage optimization
+
+#### Tabs
+
+- **Market**: Price and market data
+- **Streams**: Data stream analytics
+- **Network**: Network performance
+
+### DIA (`/dia`)
+
+#### Features
+
+- **Open-Source Infrastructure**: Transparent oracle architecture
+- **NFT Data Feeds**: Floor price data for NFT collections
+- **Cross-Chain Data**: Native multi-chain support
+- **Methodology Transparency**: Public data sourcing methods
+- **Data Source Tracking**: Source credibility scores
+
+#### Tabs
+
+- **Market**: Price and market data
+- **NFT Data**: NFT floor price tracking
+- **Methodology**: Data sourcing transparency
+
+### Tellor (`/tellor`)
+
+#### Features
+
+- **Stake-Based Reporting**: Reporter staking information
+- **Dispute Mechanism**: Active and historical disputes
+- **Mining Rewards**: Reporter reward tracking
+- **Governance**: Community voting and proposals
+- **Network Statistics**: Reporter activity metrics
+
+#### Tabs
+
+- **Market**: Price and market data
+- **Mining**: Staking and rewards
+- **Disputes**: Dispute resolution panel
+
+### Chronicle (`/chronicle`)
+
+#### Features
+
+- **MakerDAO Integration**: Vault and DAI statistics
+- **Scuttlebutt Protocol**: Peer-to-peer gossip metrics
+- **On-Chain Verification**: Cryptographic proof display
+- **Collateral Tracking**: Supported collateral types
+- **Stability Fee Metrics**: DAI stability parameters
+
+#### Tabs
+
+- **Market**: Price and market data
+- **MakerDAO**: MakerDAO ecosystem integration
+- **Network**: Scuttlebutt protocol status
+
+### WINkLink (`/winklink`)
+
+#### Features
+
+- **TRON Ecosystem**: TRON network integration
+- **Gaming Data Feeds**: Gaming platform statistics
+- **Entertainment Data**: Media and entertainment feeds
+- **Cross-Platform**: Multi-platform oracle services
+- **Transaction Metrics**: TRON transaction statistics
+
+#### Tabs
+
+- **Market**: Price and market data
+- **Gaming**: Gaming platform analytics
+- **TRON**: TRON ecosystem metrics
+
+---
+
+## Data Transparency Features
+
+The platform provides comprehensive data transparency features to ensure users understand the source and quality of data.
+
+### Data Source Indicators
+
+Located throughout the interface, data source indicators show:
+
+- **Source Name**: The originating data provider
+- **Update Time**: Last data refresh timestamp
+- **Confidence Score**: Data reliability rating
+- **Verification Status**: On-chain verification where applicable
+
+### Data Quality Panel
+
+Available on most oracle pages, the data quality panel displays:
+
+| Metric       | Description                      |
+| ------------ | -------------------------------- |
+| Freshness    | Time since last update           |
+| Completeness | Percentage of successful queries |
+| Reliability  | Historical accuracy score        |
+| Source Count | Number of data sources           |
 
 ---
 

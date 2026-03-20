@@ -94,6 +94,17 @@ export function calculateStdDevDetection(data: number[], threshold: number = 2):
     const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
     const stdDev = Math.sqrt(variance);
 
+    // 处理 stdDev 为 0 的情况
+    if (stdDev === 0) {
+      return {
+        mean,
+        stdDev: 0,
+        upperBound: mean,
+        lowerBound: mean,
+        anomalies: [],
+      };
+    }
+
     // 计算上下界
     const upperBound = mean + threshold * stdDev;
     const lowerBound = mean - threshold * stdDev;
@@ -163,8 +174,11 @@ export function detectPriceAnomalies(
     // 计算收益率
     const returns: number[] = [];
     for (let i = 1; i < prices.length; i++) {
-      const ret = ((prices[i] - prices[i - 1]) / prices[i - 1]) * 100;
-      returns.push(ret);
+      // 添加除零检查
+      if (prices[i - 1] !== 0) {
+        const ret = ((prices[i] - prices[i - 1]) / prices[i - 1]) * 100;
+        returns.push(ret);
+      }
     }
 
     // 使用 2σ 原则检测异常
@@ -242,7 +256,10 @@ export function detectTrendBreak(
     // 计算对数收益率
     const returns: number[] = [];
     for (let i = 1; i < data.length; i++) {
-      returns.push(Math.log(data[i] / data[i - 1]));
+      // 添加除零检查
+      if (data[i] > 0 && data[i - 1] > 0) {
+        returns.push(Math.log(data[i] / data[i - 1]));
+      }
     }
 
     const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;

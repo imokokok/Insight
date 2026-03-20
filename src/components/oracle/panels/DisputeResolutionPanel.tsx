@@ -6,9 +6,9 @@ import {
   UMAClient,
   DisputeData,
   DisputeType,
-  DisputeTypeLabels,
-  DisputeTypeStyles,
-  DisputeTypeChartColors,
+  DISPUTE_TYPE_LABELS,
+  DISPUTE_TYPE_STYLES,
+  DISPUTE_TYPE_CHART_COLORS,
   PriceDisputeIcon,
   StateDisputeIcon,
   LiquidationDisputeIcon,
@@ -238,7 +238,7 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
                   <div
                     key={type}
                     className={`flex items-center gap-2 px-3 py-1.5  ${typeBgColors[type]} border border-opacity-20`}
-                    style={{ borderColor: DisputeTypeChartColors[type] }}
+                    style={{ borderColor: DISPUTE_TYPE_CHART_COLORS[type] }}
                   >
                     <div className={`${typeColors[type]} text-white  p-0.5`}>
                       {getTypeChartIcon(type, 'w-3 h-3')}
@@ -513,7 +513,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
   };
 
   const getTypeBadge = (type: DisputeType) => {
-    const styles = DisputeTypeStyles[type];
+    const styles = DISPUTE_TYPE_STYLES[type];
     return (
       <span
         className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium  border ${styles.bgColor} ${styles.color} ${styles.borderColor} ${styles.hoverBgColor} transition-colors duration-200`}
@@ -996,7 +996,7 @@ export function DisputeResolutionPanel() {
                   </div>
                   <p className="text-xs text-gray-600 mt-1">争议 ID: {notification.id}</p>
                   <p className="text-xs text-gray-600">
-                    类型: {DisputeTypeLabels[notification.type]}
+                    类型: {DISPUTE_TYPE_LABELS[notification.type]}
                   </p>
                   {notification.previousStatus && (
                     <p className="text-xs text-gray-600">

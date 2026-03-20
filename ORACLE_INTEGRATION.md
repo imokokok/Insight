@@ -13,6 +13,11 @@ The Insight Oracle Data Analytics Platform integrates with multiple leading bloc
 | UMA           | UMA    | Ethereum      | Optimistic oracle and dispute arbitration |
 | Pyth          | PYTH   | Solana        | Low-latency high-frequency price oracle   |
 | API3          | API3   | Ethereum      | First-party oracle infrastructure         |
+| RedStone      | REDSTONE | Ethereum    | Modular oracle design                     |
+| DIA           | DIA    | Ethereum      | Open-source cross-chain oracle            |
+| Tellor        | TRB    | Ethereum      | Stake-based reporting oracle              |
+| Chronicle     | CHRONICLE | Ethereum   | MakerDAO native oracle                    |
+| WINkLink      | WINKLINK | BNB Chain   | TRON ecosystem oracle                     |
 
 ### Architecture
 
@@ -704,23 +709,358 @@ setTimeout(() => unsubscribe(), 60000);
 
 ---
 
+## RedStone Integration
+
+**Provider:** `redstone`  
+**Symbol:** REDSTONE  
+**Default Chain:** Ethereum
+
+### Supported Chains
+
+| Chain     | Chain ID | Status |
+| --------- | -------- | ------ |
+| Ethereum  | 1        | Active |
+| Arbitrum  | 42161    | Active |
+| Polygon   | 137      | Active |
+| Avalanche | 43114    | Active |
+| Base      | 8453     | Active |
+| BNB Chain | 56       | Active |
+| Optimism  | 10       | Active |
+
+### Features
+
+- **Modular Oracle Design** - Flexible data delivery mechanisms
+- **Data Streams** - Real-time streaming data feeds
+- **Cross-Chain Support** - Multi-chain data availability
+- **Cost Efficiency** - Optimized gas usage for data updates
+
+### Implementation
+
+```typescript
+import { RedStoneClient } from '@/lib/oracles';
+
+const client = new RedStoneClient();
+
+const priceData = await client.getPrice('ETH', Blockchain.ETHEREUM);
+const streamData = await client.getDataStreamInfo();
+const modularStats = await client.getModularStats();
+```
+
+### Extended Types
+
+```typescript
+interface DataStreamInfo {
+  streamId: string;
+  symbol: string;
+  updateFrequency: number;
+  lastUpdate: number;
+  sources: string[];
+  confidence: number;
+}
+
+interface ModularStats {
+  activeStreams: number;
+  totalDataPoints: number;
+  avgDeliveryTime: number;
+  costEfficiency: number;
+}
+```
+
+### Network Metrics
+
+| Metric            | Value       |
+| ----------------- | ----------- |
+| Active Streams    | 285         |
+| Data Points/Day   | 2.5M        |
+| Avg Delivery Time | 120ms       |
+| Cost Efficiency   | 85%         |
+| Supported Assets  | 150+        |
+
+---
+
+## DIA Integration
+
+**Provider:** `dia`  
+**Symbol:** DIA  
+**Default Chain:** Ethereum
+
+### Supported Chains
+
+| Chain     | Chain ID | Status |
+| --------- | -------- | ------ |
+| Ethereum  | 1        | Active |
+| Arbitrum  | 42161    | Active |
+| Polygon   | 137      | Active |
+| Avalanche | 43114    | Active |
+| Base      | 8453     | Active |
+| BNB Chain | 56       | Active |
+| Fantom    | 250      | Active |
+
+### Features
+
+- **Open-Source** - Fully transparent oracle infrastructure
+- **Cross-Chain** - Native multi-chain support
+- **NFT Data Feeds** - Specialized NFT floor price data
+- **Transparent Methodology** - Public data sourcing methods
+
+### Implementation
+
+```typescript
+import { DIAClient } from '@/lib/oracles';
+
+const client = new DIAClient();
+
+const priceData = await client.getPrice('BTC', Blockchain.ETHEREUM);
+const nftData = await client.getNFTFloorPrice('cryptopunks');
+const methodology = await client.getMethodology();
+```
+
+### Extended Types
+
+```typescript
+interface NFTFloorPrice {
+  collection: string;
+  floorPrice: number;
+  currency: string;
+  lastUpdate: number;
+  volume24h: number;
+  source: string;
+}
+
+interface DIAMethodology {
+  dataSource: string;
+  updateFrequency: number;
+  validationMethod: string;
+  transparencyScore: number;
+}
+```
+
+### Network Metrics
+
+| Metric              | Value    |
+| ------------------- | -------- |
+| Data Feeds          | 2,000+   |
+| NFT Collections     | 150+     |
+| Update Frequency    | 60s      |
+| Transparency Score  | 98%      |
+| Open Source Repos   | 25+      |
+
+---
+
+## Tellor Integration
+
+**Provider:** `tellor`  
+**Symbol:** TRB  
+**Default Chain:** Ethereum
+
+### Supported Chains
+
+| Chain     | Chain ID | Status |
+| --------- | -------- | ------ |
+| Ethereum  | 1        | Active |
+| Arbitrum  | 42161    | Active |
+| Polygon   | 137      | Active |
+| BNB Chain | 56       | Active |
+| Optimism  | 10       | Active |
+
+### Features
+
+- **Stake-Based Reporting** - Reporters stake TRB to submit data
+- **Dispute Mechanism** - Community-driven dispute resolution
+- **Mining Rewards** - Incentivized data reporting
+- **Decentralized Governance** - Community-controlled upgrades
+
+### Implementation
+
+```typescript
+import { TellorClient } from '@/lib/oracles';
+
+const client = new TellorClient();
+
+const priceData = await client.getPrice('ETH', Blockchain.ETHEREUM);
+const stakeInfo = await client.getStakeInfo();
+const disputes = await client.getActiveDisputes();
+```
+
+### Extended Types
+
+```typescript
+interface StakeInfo {
+  totalStaked: number;
+  minimumStake: number;
+  reporterCount: number;
+  rewardRate: number;
+}
+
+interface DisputeInfo {
+  id: string;
+  disputedValue: number;
+  proposedValue: number;
+  status: 'active' | 'resolved';
+  stakeAmount: number;
+}
+```
+
+### Network Metrics
+
+| Metric            | Value       |
+| ----------------- | ----------- |
+| Total Staked TRB  | 2.5M        |
+| Active Reporters  | 180         |
+| Dispute Success   | 92%         |
+| Avg Reward        | 2.5 TRB     |
+| Block Reward      | 2.5 TRB     |
+
+---
+
+## Chronicle Integration
+
+**Provider:** `chronicle`  
+**Symbol:** CHRONICLE  
+**Default Chain:** Ethereum
+
+### Supported Chains
+
+| Chain    | Chain ID | Status |
+| -------- | -------- | ------ |
+| Ethereum | 1        | Active |
+| Arbitrum | 42161    | Active |
+| Polygon  | 137      | Active |
+| Base     | 8453     | Active |
+
+### Features
+
+- **MakerDAO Native** - Official oracle for MakerDAO ecosystem
+- **Scuttlebutt Protocol** - Peer-to-peer gossip protocol
+- **On-Chain Verification** - Cryptographic proof of data validity
+- **DAI Integration** - Native support for DAI stablecoin
+
+### Implementation
+
+```typescript
+import { ChronicleClient } from '@/lib/oracles';
+
+const client = new ChronicleClient();
+
+const priceData = await client.getPrice('ETH', Blockchain.ETHEREUM);
+const scuttlebuttInfo = await client.getScuttlebuttStats();
+const makerDAOStats = await client.getMakerDAOIntegration();
+```
+
+### Extended Types
+
+```typescript
+interface ScuttlebuttStats {
+  activeNodes: number;
+  gossipMessages: number;
+  networkLatency: number;
+  syncRate: number;
+}
+
+interface MakerDAOIntegration {
+  vaultsSecured: number;
+  totalDAIIssued: number;
+  collateralTypes: string[];
+  stabilityFee: number;
+}
+```
+
+### Network Metrics
+
+| Metric            | Value       |
+| ----------------- | ----------- |
+| MakerDAO Vaults   | 15,000+     |
+| Total DAI Secured | $5.2B       |
+| Scuttlebutt Nodes | 45          |
+| Avg Sync Time     | 200ms       |
+| Uptime            | 99.99%      |
+
+---
+
+## WINkLink Integration
+
+**Provider:** `winklink`  
+**Symbol:** WINKLINK  
+**Default Chain:** BNB Chain
+
+### Supported Chains
+
+| Chain     | Chain ID | Status |
+| --------- | -------- | ------ |
+| BNB Chain | 56       | Active |
+| TRON      | -        | Active |
+
+### Features
+
+- **TRON Ecosystem** - Native integration with TRON network
+- **Gaming Data Feeds** - Specialized data for gaming applications
+- **Entertainment Focus** - Entertainment and media data
+- **Cross-Platform** - Multi-platform oracle services
+
+### Implementation
+
+```typescript
+import { WINkLinkClient } from '@/lib/oracles';
+
+const client = new WINkLinkClient();
+
+const priceData = await client.getPrice('TRX', Blockchain.BNB_CHAIN);
+const gamingData = await client.getGamingData();
+const tronStats = await client.getTRONEcosystemStats();
+```
+
+### Extended Types
+
+```typescript
+interface GamingData {
+  gameId: string;
+  playerCount: number;
+  volume24h: number;
+  avgBetSize: number;
+  platformFee: number;
+}
+
+interface TRONEcosystemStats {
+  totalTransactions: number;
+  activeAddresses: number;
+  tvl: number;
+  gamingVolume: number;
+}
+```
+
+### Network Metrics
+
+| Metric            | Value       |
+| ----------------- | ----------- |
+| TRON Addresses    | 2.5M+       |
+| Gaming Platforms  | 50+         |
+| Daily Transactions| 1M+         |
+| TVL               | $800M       |
+| Data Feeds        | 80+         |
+
+---
+
 ## Oracle Comparison Table
 
-| Feature                  | Chainlink | Band Protocol | UMA   | Pyth  | API3  |
-| ------------------------ | --------- | ------------- | ----- | ----- | ----- |
-| **Update Frequency**     | 60s       | 30s           | 120s  | 1s    | 10s   |
-| **Avg Response Time**    | 245ms     | 150ms         | 300ms | 100ms | 180ms |
-| **Node Uptime**          | 99.9%     | 99.85%        | 99.7% | 99.9% | 99.7% |
-| **Supported Chains**     | 8         | 8             | 5     | 7     | 7     |
-| **Data Feeds**           | 1,243     | 180           | 50    | 500   | 168   |
-| **Node Analytics**       | ✅        | ❌            | ❌    | ❌    | ❌    |
-| **Validator Analytics**  | ❌        | ✅            | ✅    | ❌    | ❌    |
-| **Publisher Analytics**  | ❌        | ❌            | ❌    | ✅    | ❌    |
-| **Dispute Resolution**   | ❌        | ❌            | ✅    | ❌    | ❌    |
-| **First-Party Oracle**   | ❌        | ❌            | ❌    | ❌    | ✅    |
-| **Confidence Intervals** | ❌        | ❌            | ❌    | ✅    | ❌    |
-| **Cross-Chain Stats**    | ❌        | ✅            | ❌    | ❌    | ❌    |
-| **Coverage Pools**       | ❌        | ❌            | ❌    | ❌    | ✅    |
+| Feature                  | Chainlink | Band Protocol | UMA   | Pyth  | API3  | RedStone | DIA   | Tellor | Chronicle | WINkLink |
+| ------------------------ | --------- | ------------- | ----- | ----- | ----- | -------- | ----- | ------ | --------- | -------- |
+| **Update Frequency**     | 60s       | 30s           | 120s  | 1s    | 10s   | 5s       | 60s   | 300s   | 60s       | 30s      |
+| **Avg Response Time**    | 245ms     | 150ms         | 300ms | 100ms | 180ms | 120ms    | 200ms | 400ms  | 200ms     | 250ms    |
+| **Node Uptime**          | 99.9%     | 99.85%        | 99.7% | 99.9% | 99.7% | 99.8%    | 99.5% | 99.6%  | 99.99%    | 99.7%    |
+| **Supported Chains**     | 8         | 8             | 5     | 7     | 7     | 7        | 7     | 5      | 4         | 2        |
+| **Data Feeds**           | 1,243     | 180           | 50    | 500   | 168   | 285      | 2,000+| 100    | 45        | 80       |
+| **Node Analytics**       | ✅        | ❌            | ❌    | ❌    | ❌    | ❌       | ❌    | ❌     | ❌        | ❌       |
+| **Validator Analytics**  | ❌        | ✅            | ✅    | ❌    | ❌    | ❌       | ❌    | ❌     | ❌        | ❌       |
+| **Publisher Analytics**  | ❌        | ❌            | ❌    | ✅    | ❌    | ❌       | ❌    | ❌     | ❌        | ❌       |
+| **Dispute Resolution**   | ❌        | ❌            | ✅    | ❌    | ❌    | ❌       | ❌    | ✅     | ❌        | ❌       |
+| **First-Party Oracle**   | ❌        | ❌            | ❌    | ❌    | ✅    | ❌       | ❌    | ❌     | ❌        | ❌       |
+| **Confidence Intervals** | ❌        | ❌            | ❌    | ✅    | ❌    | ❌       | ❌    | ❌     | ❌        | ❌       |
+| **Cross-Chain Stats**    | ❌        | ✅            | ❌    | ❌    | ❌    | ✅       | ✅    | ❌     | ❌        | ❌       |
+| **Coverage Pools**       | ❌        | ❌            | ❌    | ❌    | ✅    | ❌       | ❌    | ❌     | ❌        | ❌       |
+| **Modular Design**       | ❌        | ❌            | ❌    | ❌    | ❌    | ✅       | ❌    | ❌     | ❌        | ❌       |
+| **NFT Data**             | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ✅    | ❌     | ❌        | ❌       |
+| **Gaming Data**          | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ❌    | ❌     | ❌        | ✅       |
+| **Open Source**          | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ✅    | ✅     | ❌        | ❌       |
 
 ---
 
@@ -745,6 +1085,11 @@ interface OracleError {
 | `UMA_ERROR`           | UMA price fetch failed           |
 | `PYTH_ERROR`          | Pyth price fetch failed          |
 | `API3_ERROR`          | API3 price fetch failed          |
+| `REDSTONE_ERROR`      | RedStone price fetch failed      |
+| `DIA_ERROR`           | DIA price fetch failed           |
+| `TELLOR_ERROR`        | Tellor price fetch failed        |
+| `CHRONICLE_ERROR`     | Chronicle price fetch failed     |
+| `WINKLINK_ERROR`      | WINkLink price fetch failed      |
 | `*_HISTORICAL_ERROR`  | Historical data fetch failed     |
 | `NETWORK_STATS_ERROR` | Network statistics fetch failed  |
 | `VALIDATORS_ERROR`    | Validator data fetch failed      |
@@ -793,12 +1138,21 @@ src/lib/oracles/
 ├── base.ts               # BaseOracleClient abstract class
 ├── chainlink.ts          # Chainlink client implementation
 ├── bandProtocol.ts       # Band Protocol client implementation
-├── uma.tsx               # UMA client implementation
+├── uma/                  # UMA client implementation
+│   ├── client.ts
+│   ├── types.ts
+│   └── components.tsx
 ├── pythNetwork.ts        # Pyth client implementation
 ├── pythHermesClient.ts   # Pyth Hermes API client
 ├── api3.ts               # API3 client implementation
+├── redstone.ts           # RedStone client implementation
+├── dia.ts                # DIA client implementation
+├── tellor.ts             # Tellor client implementation
+├── chronicle.ts          # Chronicle client implementation
+├── winklink.ts           # WINkLink client implementation
 ├── storage.ts            # Database storage layer
 ├── factory.ts            # Oracle client factory
+├── colors.ts             # Oracle color configurations
 └── utils.ts              # Utility functions
 
 src/lib/types/
@@ -818,3 +1172,8 @@ src/lib/config/
 - [UMA Documentation](https://docs.umaproject.org/)
 - [Pyth Network Documentation](https://docs.pyth.network/)
 - [API3 Documentation](https://docs.api3.org/)
+- [RedStone Documentation](https://docs.redstone.finance/)
+- [DIA Documentation](https://docs.diadata.org/)
+- [Tellor Documentation](https://docs.tellor.io/)
+- [Chronicle Documentation](https://docs.chroniclelabs.org/)
+- [WINkLink Documentation](https://doc.winklink.org/)

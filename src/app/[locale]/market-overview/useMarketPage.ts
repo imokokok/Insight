@@ -11,7 +11,7 @@ export function useMarketPage() {
   const data = useMarketOverviewData();
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const [_isMobile, setIsMobile] = useState(false);
+  const isMobileRef = useRef(false);
 
   // Chart state
   const [zoomRange, setZoomRange] = useState<{ startIndex?: number; endIndex?: number } | null>(
@@ -75,7 +75,7 @@ export function useMarketPage() {
   // Mobile detection
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      isMobileRef.current = window.innerWidth < 768;
     };
 
     checkMobile();
@@ -88,7 +88,7 @@ export function useMarketPage() {
     if (['pie', 'trend', 'bar'].includes(activeChart) && viewType === 'table') {
       setViewType('chart');
     }
-  }, [activeChart, viewType, setViewType]);
+  }, [activeChart, viewType]);
 
   // Get chart title based on active chart
   const getChartTitle = useCallback(() => {

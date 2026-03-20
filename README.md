@@ -1,6 +1,6 @@
 # Insight - Oracle Data Analytics Platform
 
-Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Band Protocol, UMA, Pyth, and API3.
+Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Band Protocol, UMA, Pyth, API3, RedStone, DIA, Tellor, Chronicle, and WINkLink.
 
 ## Key Features
 
@@ -10,8 +10,12 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - **Market Overview** - Track Total Value Secured (TVS) and market metrics
 - **Price Alerts & Notifications** - Configure custom price alerts with multiple trigger conditions
 - **User Favorites & Snapshots** - Save and share price snapshots and favorite configurations
-- **Data Export** - Export data in CSV, JSON, and Excel formats
+- **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats
 - **Internationalization** - Full support for English and Chinese (zh-CN)
+- **Anomaly Detection** - Automatic detection of price anomalies and outliers
+- **Technical Indicators** - RSI, MACD, Bollinger Bands, ATR, and more
+- **Data Transparency** - Data source indicators and update time tracking
+- **Accessibility Support** - Keyboard navigation, colorblind mode, screen reader support
 
 ## Technology Stack
 
@@ -24,6 +28,7 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - **State Management**: React Query, SWR, Zustand
 - **Charts**: Recharts
 - **Animations**: Framer Motion
+- **Internationalization**: next-intl
 
 ### Backend
 
@@ -35,7 +40,7 @@ Insight is a professional oracle data analytics platform that provides comprehen
 ### Oracle Clients
 
 - Pyth Hermes Client (`@pythnetwork/hermes-client`)
-- Custom oracle clients for Chainlink, Band Protocol, UMA, and API3
+- Custom oracle clients for all supported providers
 
 ## Prerequisites
 
@@ -114,72 +119,107 @@ insight/
 │   │   │   ├── auth/           # Authentication callbacks
 │   │   │   ├── favorites/      # User favorites API
 │   │   │   ├── oracles/        # Oracle data API
-│   │   │   └── snapshots/      # User snapshots API
-│   │   ├── alerts/             # Alerts page
-│   │   ├── api3/               # API3 oracle page
-│   │   ├── band-protocol/      # Band Protocol oracle page
-│   │   ├── chainlink/          # Chainlink oracle page
-│   │   ├── cross-chain/        # Cross-chain analysis page
-│   │   ├── cross-oracle/       # Cross-oracle comparison page
-│   │   ├── favorites/          # User favorites page
-│   │   ├── home-components/    # Homepage components
-│   │   ├── login/              # Login page
-│   │   ├── market-overview/    # Market overview page
-│   │   ├── price-query/        # Price query page
-│   │   ├── pyth-network/       # Pyth oracle page
-│   │   ├── register/           # Registration page
-│   │   ├── settings/           # User settings page
-│   │   ├── snapshot/           # Shared snapshots page
-│   │   └── uma/                # UMA oracle page
+│   │   │   ├── snapshots/      # User snapshots API
+│   │   │   ├── cron/           # Scheduled tasks
+│   │   │   └── health/         # Health check endpoint
+│   │   ├── [locale]/           # Localized pages
+│   │   │   ├── alerts/         # Alerts management page
+│   │   │   ├── api3/           # API3 oracle page
+│   │   │   ├── band-protocol/  # Band Protocol oracle page
+│   │   │   ├── chainlink/      # Chainlink oracle page
+│   │   │   ├── chronicle/      # Chronicle oracle page
+│   │   │   ├── cross-chain/    # Cross-chain analysis page
+│   │   │   ├── cross-oracle/   # Cross-oracle comparison page
+│   │   │   ├── dia/            # DIA oracle page
+│   │   │   ├── favorites/      # User favorites page
+│   │   │   ├── home-components/# Homepage components
+│   │   │   ├── login/          # Login page
+│   │   │   ├── market-overview/# Market overview page
+│   │   │   ├── methodology/    # Methodology page
+│   │   │   ├── price-query/    # Price query page
+│   │   │   ├── pyth-network/   # Pyth oracle page
+│   │   │   ├── redstone/       # RedStone oracle page
+│   │   │   ├── register/       # Registration page
+│   │   │   ├── settings/       # User settings page
+│   │   │   ├── snapshot/       # Shared snapshots page
+│   │   │   ├── tellor/         # Tellor oracle page
+│   │   │   ├── uma/            # UMA oracle page
+│   │   │   └── winklink/       # WINkLink oracle page
+│   │   ├── error.tsx           # Error boundary
+│   │   ├── global-error.tsx    # Global error handler
+│   │   ├── layout.tsx          # Root layout
+│   │   ├── not-found.tsx       # 404 page
+│   │   ├── page.tsx            # Home page
+│   │   ├── globals.css         # Global styles
+│   │   └── favicon.ico         # Favicon
 │   ├── components/             # React components
+│   │   ├── accessibility/      # Accessibility components
 │   │   ├── alerts/             # Alert components
 │   │   ├── charts/             # Chart components
+│   │   ├── comparison/         # Comparison components
+│   │   ├── data-transparency/  # Data transparency components
+│   │   ├── export/             # Export components
 │   │   ├── favorites/          # Favorite components
+│   │   ├── layout/             # Layout components
+│   │   ├── mobile/             # Mobile components
 │   │   ├── navigation/         # Navigation components
 │   │   ├── oracle/             # Oracle-specific components
-│   │   ├── realtime/           # Real-time connection components
+│   │   │   ├── charts/         # Oracle chart components
+│   │   │   ├── common/         # Common oracle components
+│   │   │   ├── forms/          # Form components
+│   │   │   └── indicators/     # Technical indicators
+│   │   ├── search/             # Search components
 │   │   ├── settings/           # Settings components
-│   │   └── ui/                 # Reusable UI components
-│   ├── contexts/               # React contexts
-│   │   ├── AuthContext.tsx     # Authentication context
-│   │   ├── RealtimeContext.tsx # Real-time updates context
-│   │   └── TimeRangeContext.tsx# Time range selection context
-│   ├── hooks/                  # Custom React hooks
-│   │   ├── api3/               # API3-specific hooks
-│   │   └── chart/              # Chart-related hooks
-│   ├── i18n/                   # Internationalization
-│   │   ├── en.json             # English translations
-│   │   └── zh-CN.json          # Chinese translations
+│   │   ├── ui/                 # Reusable UI components
+│   │   ├── AppInitializer.tsx  # App initializer
+│   │   ├── ErrorBoundaries.tsx # Error boundaries
+│   │   ├── Footer.tsx          # Footer component
+│   │   ├── GaugeChart.tsx      # Gauge chart
+│   │   ├── LanguageSwitcher.tsx# Language switcher
+│   │   └── Navbar.tsx          # Navigation bar
 │   ├── lib/                    # Core libraries
-│   │   ├── alerts/             # Alert detection logic
 │   │   ├── analytics/          # Analytics utilities
 │   │   ├── api/                # API utilities
 │   │   ├── config/             # Configuration files
 │   │   ├── constants/          # Application constants
+│   │   ├── di/                 # Dependency injection
+│   │   ├── errors/             # Error handling
 │   │   ├── export/             # Data export utilities
-│   │   ├── i18n/               # i18n provider
+│   │   ├── hooks/              # Custom React hooks
+│   │   ├── indicators/         # Technical indicators
 │   │   ├── monitoring/         # Performance monitoring
 │   │   ├── oracles/            # Oracle client implementations
+│   │   ├── queries/            # React Query keys
 │   │   ├── realtime/           # Real-time communication
 │   │   ├── services/           # External services
 │   │   ├── snapshots/          # Snapshot management
 │   │   ├── supabase/           # Supabase client and utilities
 │   │   ├── types/              # TypeScript type definitions
 │   │   └── utils/              # Utility functions
-│   ├── providers/              # React providers
-│   │   ├── ReactQueryProvider.tsx
-│   │   └── SWRProvider.tsx
-│   └── stores/                 # Zustand stores
-│       └── crossChainStore.ts
+│   ├── i18n/                   # Internationalization
+│   │   ├── messages/           # Translation messages
+│   │   │   ├── common.json
+│   │   │   ├── home.json
+│   │   │   ├── navigation.json
+│   │   │   ├── oracles/        # Oracle-specific translations
+│   │   │   └── components/     # Component translations
+│   │   ├── config.ts
+│   │   └── i18n.ts
+│   └── providers/              # React providers
+│       └── ReactQueryProvider.tsx
 ├── supabase/
 │   └── migrations/             # Database migrations
 │       └── 001_initial_schema.sql
 ├── public/                     # Static assets
+│   └── logos/                  # Logo assets
+│       ├── cryptos/            # Cryptocurrency logos
+│       └── oracles/            # Oracle logos
 ├── scripts/                    # Utility scripts
 ├── next.config.ts              # Next.js configuration
 ├── tailwind.config.ts          # Tailwind CSS configuration
 ├── tsconfig.json               # TypeScript configuration
-└── jest.config.js              # Jest configuration
+├── jest.config.js              # Jest configuration
+└── eslint.config.mjs           # ESLint configuration
 ```
 
 ## Supported Oracles
@@ -208,6 +248,31 @@ insight/
 
 - **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, Base, BNB Chain, Optimism
 - **Features**: First-party oracle, quantifiable security, Airnode deployments
+
+### RedStone
+
+- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, Base, BNB Chain, Optimism
+- **Features**: Modular oracle design, data streams, cross-chain support
+
+### DIA
+
+- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, Base, BNB Chain, Fantom
+- **Features**: Open-source cross-chain oracle, NFT data feeds, transparent methodology
+
+### Tellor
+
+- **Supported Chains**: Ethereum, Arbitrum, Polygon, BNB Chain, Optimism
+- **Features**: Stake-based reporting, dispute mechanism, mining rewards
+
+### Chronicle
+
+- **Supported Chains**: Ethereum, Arbitrum, Polygon, Base
+- **Features**: MakerDAO native oracle, Scuttlebutt protocol, on-chain verification
+
+### WINkLink
+
+- **Supported Chains**: BNB Chain, TRON
+- **Features**: TRON ecosystem integration, gaming data feeds, entertainment focus
 
 ## Database Schema
 
@@ -238,6 +303,7 @@ All tables have Row Level Security (RLS) enabled for data protection.
 - `DELETE /api/alerts/[id]` - Delete alert
 - `GET /api/alerts/events` - List alert events
 - `POST /api/alerts/events/[id]/acknowledge` - Acknowledge alert event
+- `POST /api/alerts/batch` - Batch alert operations
 
 ### Favorites
 
@@ -259,6 +325,11 @@ All tables have Row Level Security (RLS) enabled for data protection.
 - `GET /api/oracles` - List all oracle providers
 - `GET /api/oracles/[provider]` - Get oracle data
 
+### System
+
+- `GET /api/health` - Health check
+- `GET /api/cron/cleanup` - Cleanup expired records
+
 ## Contributing
 
 1. Fork the repository
@@ -278,3 +349,8 @@ This project is private and proprietary.
 - [UMA](https://umaproject.org/) - Optimistic oracle
 - [Pyth Network](https://pyth.network/) - High-frequency oracle
 - [API3](https://api3.org/) - First-party oracle solution
+- [RedStone](https://redstone.finance/) - Modular oracle
+- [DIA](https://www.diadata.org/) - Open-source oracle
+- [Tellor](https://tellor.io/) - Decentralized oracle
+- [Chronicle](https://chroniclelabs.org/) - MakerDAO oracle
+- [WINkLink](https://winklink.org/) - TRON ecosystem oracle

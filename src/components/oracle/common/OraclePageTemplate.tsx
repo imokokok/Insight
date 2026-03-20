@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo, ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { OracleConfig } from '@/lib/config/oracles';
 import { PriceData, OracleProvider } from '@/types/oracle';
-import { UMAMetworkStats } from '@/lib/oracles/uma/types';
+import { UMANetworkStats } from '@/lib/oracles/uma/types';
 import {
   TabNavigation,
   PageHeader,
@@ -101,7 +101,7 @@ export function OraclePageTemplate({
   const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingStateProps>({ show: true });
   const [error, setError] = useState<Error | null>(null);
-  const [umaNetworkStats, setUmaNetworkStats] = useState<UMAMetworkStats | null>(null);
+  const [umaNetworkStats, setUmaNetworkStats] = useState<UMANetworkStats | null>(null);
 
   const panelConfig = useMemo(() => getPanelConfig(config.provider), [config.provider]);
 
@@ -123,7 +123,7 @@ export function OraclePageTemplate({
       setHistoricalData(results[1] as PriceData[]);
 
       if (results[2]) {
-        setUmaNetworkStats(results[2] as UMAMetworkStats);
+        setUmaNetworkStats(results[2] as UMANetworkStats);
       }
 
       setLoadingState({ show: false });
@@ -186,6 +186,7 @@ export function OraclePageTemplate({
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
+              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
@@ -201,6 +202,7 @@ export function OraclePageTemplate({
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
+              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
@@ -216,6 +218,7 @@ export function OraclePageTemplate({
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
+              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -231,6 +234,7 @@ export function OraclePageTemplate({
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
+              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
@@ -239,7 +243,7 @@ export function OraclePageTemplate({
         ),
       },
     ];
-  }, [panelConfig, panelContext, t, config]);
+  }, [panelConfig.getStats, panelContext, t, config.networkData.activeNodes, config.networkData.dataFeeds, config.marketData.marketCap, config.supportedChains.length]);
 
   const networkStatusData = useMemo(
     () => [
@@ -481,7 +485,7 @@ export function OraclePageTemplate({
         isRefreshing={isRefreshing}
       />
 
-      {kpiData && (
+      {kpiData && kpiData.price !== undefined && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <KPIDashboard
             price={kpiData.price}

@@ -58,6 +58,7 @@ class RealtimeManager {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private reconnectTimer: NodeJS.Timeout | null = null;
+  private connectionCheckTimer: NodeJS.Timeout | null = null;
 
   constructor(client: SupabaseClient) {
     this.client = client;
@@ -82,7 +83,15 @@ class RealtimeManager {
 
     this.client.realtime.connect();
 
-    setTimeout(checkConnection, 1000);
+    // 保存定时器引用以便清理
+    this.connectionCheckTimer = setTimeout(checkConnection, 1000);
+  }
+
+  private clearConnectionCheckTimer() {
+    if (this.connectionCheckTimer) {
+      clearTimeout(this.connectionCheckTimer);
+      this.connectionCheckTimer = null;
+    }
   }
 
   private updateConnectionStatus(status: ConnectionStatus) {
@@ -93,6 +102,7 @@ class RealtimeManager {
   private handleReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       logger.error('Max reconnection attempts reached');
+      this.updateConnectionStatus('error');
       return;
     }
 
@@ -130,7 +140,11 @@ class RealtimeManager {
     callback: SubscriptionCallback<PriceUpdatePayload>,
     filters?: { provider?: string; symbol?: string; chain?: string }
   ): () => void {
-    const subscriptionId = `price_updates_${JSON.stringify(filters || {})}`;
+    // 按键排序确保一致性
+    const sortedFilters = filters
+      ? Object.fromEntries(Object.entries(filters).sort(([a], [b]) => a.localeCompare(b)))
+      : {};
+    const subscriptionId = `price_updates_${JSON.stringify(sortedFilters)}`;
 
     if (this.subscriptions.has(subscriptionId)) {
       logger.warn('Price updates subscription already exists');

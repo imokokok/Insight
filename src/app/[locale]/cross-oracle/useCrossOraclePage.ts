@@ -92,6 +92,8 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
   const { favorites: oracleFavorites } = useFavorites({ configType: 'oracle_config' });
 
   useEffect(() => {
+    if (!showFavoritesDropdown) return;
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         favoritesDropdownRef.current &&
@@ -100,9 +102,8 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
         setShowFavoritesDropdown(false);
       }
     };
-    if (showFavoritesDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -236,10 +237,18 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
 
   useEffect(() => {
     if (refreshInterval === 0) return;
+
+    let isMounted = true;
     const intervalId = setInterval(() => {
-      fetchPriceData();
+      if (isMounted) {
+        fetchPriceData();
+      }
     }, refreshInterval);
-    return () => clearInterval(intervalId);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, [refreshInterval, fetchPriceData]);
 
   useEffect(() => {
@@ -354,9 +363,12 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
         );
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        if (selectedRowIndex !== null) {
-          setExpandedRow(expandedRow === selectedRowIndex ? null : selectedRowIndex);
-        }
+        setSelectedRowIndex((prev) => {
+          if (prev !== null) {
+            setExpandedRow((current) => (current === prev ? null : prev));
+          }
+          return prev;
+        });
       } else if (e.key === 'Escape') {
         e.preventDefault();
         setSelectedRowIndex(null);
@@ -365,7 +377,7 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [filterSort.filteredPriceData.length, selectedRowIndex, expandedRow]);
+  }, [filterSort.filteredPriceData.length]);
 
   const { activeTab, handleTabChange } = useTabNavigation();
 

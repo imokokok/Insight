@@ -113,8 +113,7 @@ export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
   });
 
   const isLoading = priceQuery.isLoading || historicalQuery.isLoading || networkQuery.isLoading;
-  const isError =
-    priceQuery.error !== null || historicalQuery.error !== null || networkQuery.error !== null;
+  const isError = Boolean(priceQuery.error || historicalQuery.error || networkQuery.error);
   const errors = [priceQuery.error, historicalQuery.error, networkQuery.error].filter(
     Boolean
   ) as Error[];
@@ -123,7 +122,8 @@ export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
     priceQuery.refetch();
     historicalQuery.refetch();
     networkQuery.refetch();
-  }, [priceQuery, historicalQuery, networkQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     price: priceQuery.price,
