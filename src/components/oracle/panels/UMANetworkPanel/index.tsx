@@ -7,8 +7,6 @@ import { UMAClient } from '@/lib/oracles/uma';
 import { UMANetworkStats, VerificationActivity } from '@/lib/oracles/uma/types';
 import { DashboardCard, StatCard } from '../../common/DashboardCard';
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,

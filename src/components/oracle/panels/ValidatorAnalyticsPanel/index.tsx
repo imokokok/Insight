@@ -8,7 +8,7 @@ import { ValidatorPerformanceHeatmap } from '../../charts/ValidatorPerformanceHe
 import { ValidatorComparison } from '../../charts/ValidatorComparison';
 import { StakingCalculator } from '../../common/StakingCalculator';
 import { createLogger } from '@/lib/utils/logger';
-import { chartColors, baseColors, semanticColors, animationColors } from '@/lib/config/colors';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { ValidatorHistoryChart } from './ValidatorHistoryChart';
 import { EarningsTrendChart } from './EarningsTrendChart';
 import {
@@ -19,7 +19,7 @@ import {
   VALIDATOR_TYPE_STYLES,
   VALIDATOR_TYPE_LABELS,
 } from './config';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+import { SegmentedControl } from '@/components/ui/selectors';
 import { formatNumber } from '@/lib/utils/format';
 
 const logger = createLogger('ValidatorAnalyticsPanel');

@@ -14,8 +14,6 @@ import {
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors, semanticColors, chainColors, shadowColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
-import { useTranslations } from 'next-intl';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
 import { TrendingUp, TrendingDown, Minus, Activity, DollarSign, Fuel } from 'lucide-react';
 
@@ -203,7 +201,7 @@ function calculateStats(data: TrendDataPoint[], chains: string[], metric: Metric
     const changePercent =
       previousValue > 0 ? ((currentValue - previousValue) / previousValue) * 100 : 0;
 
-    const avgValue = values.reduce((sum, v) => sum + v, 0) / values.length;
+    const _avgValue = values.reduce((sum, v) => sum + v, 0) / values.length;
     const maxValue = Math.max(...values);
     const minValue = Math.min(...values);
 

@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl';
 import { OracleProvider, PriceData, saveSnapshot, SnapshotStats } from '@/types/oracle';
 import {
   oracleClients,
-  oracleNames,
   TimeRange,
   DeviationFilter,
   RefreshInterval,
@@ -21,7 +20,7 @@ import { useFavorites, FavoriteConfig } from '@/hooks/useFavorites';
 import { useUser } from '@/stores/authStore';
 import { createLogger } from '@/lib/utils/logger';
 import { getLineStrokeDasharray } from './chartConfig';
-import { useTabNavigation, TabId } from './components/TabNavigation';
+import { useTabNavigation } from './components/TabNavigation';
 import { UseCrossOraclePageReturn } from './types';
 import { usePriceStats } from './usePriceStats';
 import { useChartData } from './useChartData';

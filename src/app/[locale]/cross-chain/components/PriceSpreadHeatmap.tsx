@@ -464,8 +464,8 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
     heatmapData,
     currentPrices,
     chartData,
-    historicalPrices,
-    filteredChains,
+    historicalPrices: _historicalPrices,
+    filteredChains: _filteredChains,
   } = data;
 
   if (!selectedCell) return null;

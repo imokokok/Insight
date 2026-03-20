@@ -1,5 +1,11 @@
 // i18n 模块统一导出
-export { locales, defaultLocale, messageFilesConfig, type Locale, type MessageFileConfig } from './config';
+export {
+  locales,
+  defaultLocale,
+  messageFilesConfig,
+  type Locale,
+  type MessageFileConfig,
+} from './config';
 export type { Messages, TranslateFunction, I18nContextType, LoadedMessages } from './types';
 
 // 重新导出 provider 中的 hook

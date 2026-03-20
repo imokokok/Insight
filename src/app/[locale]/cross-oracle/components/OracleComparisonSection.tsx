@@ -8,16 +8,12 @@ import { oracleColors } from '@/components/oracle/charts/CrossOracleComparison/c
 interface OracleComparisonSectionProps {
   priceData: PriceData[];
   benchmarkOracle?: OracleProvider;
-  showCharts?: boolean;
-  showRadar?: boolean;
   showTable?: boolean;
 }
 
 export function OracleComparisonSection({
   priceData,
   benchmarkOracle = OracleProvider.CHAINLINK,
-  showCharts = true,
-  showRadar = true,
   showTable = true,
 }: OracleComparisonSectionProps) {
   const t = useTranslations();

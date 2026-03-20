@@ -9,9 +9,6 @@ import { AlertList } from '@/components/alerts/AlertList';
 import { AlertHistory } from '@/components/alerts/AlertHistory';
 import { AlertNotificationContainer } from '@/components/alerts/AlertNotification';
 import { useTranslations } from 'next-intl';
-import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
-import { TutorialManager } from '@/components/ui/Tutorial';
-import { ProgressBar } from '@/components/ui/LoadingProgress';
 
 export default function AlertsPage() {
   const t = useTranslations();

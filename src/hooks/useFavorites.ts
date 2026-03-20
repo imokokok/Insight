@@ -135,7 +135,7 @@ export function useRemoveFavorite() {
 
 export function useToggleFavorite() {
   const user = useUser();
-  const { favorites, refetch } = useFavorites();
+  const { favorites, refetch: _refetch } = useFavorites();
   const { addFavorite, isAdding } = useAddFavorite();
   const { removeFavorite, isRemoving } = useRemoveFavorite();
   const [isToggling, setIsToggling] = useState(false);
@@ -175,7 +175,7 @@ export function useToggleFavorite() {
 }
 
 export function useIsFavorited(configType: ConfigType, configData: FavoriteConfig) {
-  const user = useUser();
+  const _user = useUser();
   const { favorites } = useFavorites({ configType });
 
   const isFavorited =

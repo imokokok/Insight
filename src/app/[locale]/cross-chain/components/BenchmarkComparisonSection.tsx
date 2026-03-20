@@ -16,7 +16,6 @@ interface BenchmarkComparisonSectionProps {
 
 export function BenchmarkComparisonSection({
   chainPrices,
-  loading = false,
 }: BenchmarkComparisonSectionProps) {
   const t = useTranslations();
 

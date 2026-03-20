@@ -1,6 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { PairSelector } from './PairSelector';
 import { FilterPanel } from './FilterPanel';

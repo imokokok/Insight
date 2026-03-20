@@ -278,60 +278,59 @@ export function usePriceAlerts(): UsePriceAlertsReturn {
   }, []);
 
   // 检查价格预警
-  const checkPriceAlerts = useCallback(
-    (priceData: PriceDataForAlert[]): AlertCheckResult[] => {
-      const results: AlertCheckResult[] = [];
-      const newHistory: AlertHistory[] = [];
+  const checkPriceAlerts = useCallback((priceData: PriceDataForAlert[]): AlertCheckResult[] => {
+    const results: AlertCheckResult[] = [];
+    const newHistory: AlertHistory[] = [];
 
-      priceData.forEach((data) => {
-        // 更新最后价格
-        lastPricesRef.current.set(data.symbol, data);
+    priceData.forEach((data) => {
+      // 更新最后价格
+      lastPricesRef.current.set(data.symbol, data);
 
-        // 检查相关预警 - 使用 ref 避免闭包问题
-        const relevantAlerts = alertsRef.current.filter((a) => a.symbol === data.symbol && a.isActive);
+      // 检查相关预警 - 使用 ref 避免闭包问题
+      const relevantAlerts = alertsRef.current.filter(
+        (a) => a.symbol === data.symbol && a.isActive
+      );
 
-        relevantAlerts.forEach((alert) => {
-          const result = checkAlert(alert, data);
-          if (result) {
-            results.push(result);
-            newHistory.push(result.history);
+      relevantAlerts.forEach((alert) => {
+        const result = checkAlert(alert, data);
+        if (result) {
+          results.push(result);
+          newHistory.push(result.history);
 
-            // 发送通知
-            if (alert.notifyBrowser) {
-              const title = `Price Alert: ${alert.symbol}`;
-              const body =
-                alert.type === 'price'
-                  ? `Price is ${alert.condition === 'above' ? 'above' : 'below'} $${alert.threshold}`
-                  : `24h change is ${alert.condition === 'increase_by' ? 'up' : 'down'} ${Math.abs(result.currentValue).toFixed(2)}%`;
-              sendBrowserNotification(title, body);
-            }
-
-            // 播放声音
-            if (alert.notifySound) {
-              playAlertSound();
-            }
-
-            // 更新预警触发次数
-            setAlerts((prev) =>
-              prev.map((a) =>
-                a.id === alert.id
-                  ? { ...a, triggeredCount: a.triggeredCount + 1, triggeredAt: Date.now() }
-                  : a
-              )
-            );
+          // 发送通知
+          if (alert.notifyBrowser) {
+            const title = `Price Alert: ${alert.symbol}`;
+            const body =
+              alert.type === 'price'
+                ? `Price is ${alert.condition === 'above' ? 'above' : 'below'} $${alert.threshold}`
+                : `24h change is ${alert.condition === 'increase_by' ? 'up' : 'down'} ${Math.abs(result.currentValue).toFixed(2)}%`;
+            sendBrowserNotification(title, body);
           }
-        });
+
+          // 播放声音
+          if (alert.notifySound) {
+            playAlertSound();
+          }
+
+          // 更新预警触发次数
+          setAlerts((prev) =>
+            prev.map((a) =>
+              a.id === alert.id
+                ? { ...a, triggeredCount: a.triggeredCount + 1, triggeredAt: Date.now() }
+                : a
+            )
+          );
+        }
       });
+    });
 
-      // 添加历史记录
-      if (newHistory.length > 0) {
-        setHistory((prev) => [...prev, ...newHistory]);
-      }
+    // 添加历史记录
+    if (newHistory.length > 0) {
+      setHistory((prev) => [...prev, ...newHistory]);
+    }
 
-      return results;
-    },
-    []
-  );
+    return results;
+  }, []);
 
   // 请求通知权限
   const requestNotificationPermission = useCallback(async (): Promise<boolean> => {

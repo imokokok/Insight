@@ -225,7 +225,10 @@ export const CacheConfig = {
     staleWhileRevalidate: 60,
     get header() {
       const maxAge = validateCacheValue(this.maxAge, 'maxAge');
-      const staleWhileRevalidate = validateCacheValue(this.staleWhileRevalidate, 'staleWhileRevalidate');
+      const staleWhileRevalidate = validateCacheValue(
+        this.staleWhileRevalidate,
+        'staleWhileRevalidate'
+      );
       return `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`;
     },
   },
@@ -234,7 +237,10 @@ export const CacheConfig = {
     staleWhileRevalidate: 600,
     get header() {
       const maxAge = validateCacheValue(this.maxAge, 'maxAge');
-      const staleWhileRevalidate = validateCacheValue(this.staleWhileRevalidate, 'staleWhileRevalidate');
+      const staleWhileRevalidate = validateCacheValue(
+        this.staleWhileRevalidate,
+        'staleWhileRevalidate'
+      );
       return `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`;
     },
   },
@@ -243,7 +249,10 @@ export const CacheConfig = {
     staleWhileRevalidate: 30,
     get header() {
       const maxAge = validateCacheValue(this.maxAge, 'maxAge');
-      const staleWhileRevalidate = validateCacheValue(this.staleWhileRevalidate, 'staleWhileRevalidate');
+      const staleWhileRevalidate = validateCacheValue(
+        this.staleWhileRevalidate,
+        'staleWhileRevalidate'
+      );
       return `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`;
     },
   },

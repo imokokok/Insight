@@ -16,7 +16,7 @@ interface TabNavigationProps {
   onTabChange: (tabId: TabId) => void;
 }
 
-const getTabs = (t: (key: string) => string): Tab[] => [
+const getTabs = (_t: (key: string) => string): Tab[] => [
   {
     id: 'overview',
     labelKey: 'crossOracle.tabOverview',

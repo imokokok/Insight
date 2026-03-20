@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { OracleProvider, PriceData } from '@/types/oracle';
+import { PriceData } from '@/types/oracle';
 
 interface BenchmarkComparisonSectionProps {
   priceData: PriceData[];
@@ -27,7 +27,6 @@ interface ExtendedBenchmarkData {
 
 export function BenchmarkComparisonSection({
   priceData,
-  loading = false,
 }: BenchmarkComparisonSectionProps) {
   const t = useTranslations();
 

@@ -273,4 +273,3 @@ export function calculateQualityScore(
     reliability: Math.round(reliability * 10) / 10,
   };
 }
-

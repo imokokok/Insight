@@ -138,11 +138,23 @@ class ErrorRecoveryManager {
     }
 
     // 尝试从错误对象的其他属性获取状态码
-    const errorWithStatus = error as Error & { status?: number; statusCode?: number; code?: string };
-    if (typeof errorWithStatus.status === 'number' && errorWithStatus.status >= 100 && errorWithStatus.status < 600) {
+    const errorWithStatus = error as Error & {
+      status?: number;
+      statusCode?: number;
+      code?: string;
+    };
+    if (
+      typeof errorWithStatus.status === 'number' &&
+      errorWithStatus.status >= 100 &&
+      errorWithStatus.status < 600
+    ) {
       return config.retryableStatuses.includes(errorWithStatus.status);
     }
-    if (typeof errorWithStatus.statusCode === 'number' && errorWithStatus.statusCode >= 100 && errorWithStatus.statusCode < 600) {
+    if (
+      typeof errorWithStatus.statusCode === 'number' &&
+      errorWithStatus.statusCode >= 100 &&
+      errorWithStatus.statusCode < 600
+    ) {
       return config.retryableStatuses.includes(errorWithStatus.statusCode);
     }
 
@@ -326,7 +338,10 @@ export class ErrorReportingService {
   async submitReport(report: ErrorReport, timeoutMs: number = 10000): Promise<void> {
     // 创建超时 Promise
     const timeoutPromise = new Promise<void>((_, reject) => {
-      setTimeout(() => reject(new Error(`Report submission timed out after ${timeoutMs}ms`)), timeoutMs);
+      setTimeout(
+        () => reject(new Error(`Report submission timed out after ${timeoutMs}ms`)),
+        timeoutMs
+      );
     });
 
     // 创建报告提交 Promise
