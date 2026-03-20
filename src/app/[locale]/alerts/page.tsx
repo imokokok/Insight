@@ -38,16 +38,16 @@ export default function AlertsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent animate-spin" />
+      <div className="min-h-screen flex items-center justify-center rounded-lg">
+        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent animate-spin rounded-full" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center rounded-lg">
+        <div className="text-center bg-white border border-gray-200 rounded-lg p-8">
           <svg
             className="mx-auto h-16 w-16 text-gray-400"
             fill="none"
@@ -67,7 +67,7 @@ export default function AlertsPage() {
           <p className="mt-2 text-gray-500">{t('alerts.page.loginRequiredDesc')}</p>
           <Link
             href="/login"
-            className="mt-6 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            className="mt-6 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
           >
             {t('alerts.page.goToLogin')}
           </Link>
@@ -79,7 +79,7 @@ export default function AlertsPage() {
   const unacknowledgedEvents = events.filter((e) => !e.acknowledged);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 rounded-lg">
       <AlertNotificationContainer
         events={unacknowledgedEvents}
         onDismiss={handleDismissNotification}
@@ -128,10 +128,10 @@ export default function AlertsPage() {
             </h3>
             <div className="mt-2 text-sm text-primary-700">
               <ul className="list-disc list-inside space-y-1">
+                <li>{t('alerts.page.instructions.items.0')}</li>
                 <li>{t('alerts.page.instructions.items.1')}</li>
                 <li>{t('alerts.page.instructions.items.2')}</li>
                 <li>{t('alerts.page.instructions.items.3')}</li>
-                <li>{t('alerts.page.instructions.items.4')}</li>
               </ul>
             </div>
           </div>

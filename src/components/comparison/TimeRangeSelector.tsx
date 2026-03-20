@@ -276,7 +276,7 @@ export function TimeRangeSelector({
           <button
             key={option.value}
             onClick={() => handleTimeRangeSelect(option.value)}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border transition-colors ${
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-md transition-colors ${
               currentRange === option.value && value.comparisonType !== 'year_over_year'
                 ? 'bg-primary-50 border-primary-300 text-primary-700'
                 : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
@@ -288,7 +288,7 @@ export function TimeRangeSelector({
         ))}
         <button
           onClick={() => handleTimeRangeSelect('custom')}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border transition-colors ${
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-md transition-colors ${
             currentRange === 'custom'
               ? 'bg-primary-50 border-primary-300 text-primary-700'
               : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
@@ -306,7 +306,7 @@ export function TimeRangeSelector({
         </button>
         <button
           onClick={handleYearOverYear}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border transition-colors ${
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-md transition-colors ${
             value.comparisonType === 'year_over_year'
               ? 'bg-purple-50 border-purple-300 text-purple-700'
               : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
@@ -325,7 +325,7 @@ export function TimeRangeSelector({
       </div>
 
       {isCustomOpen && (
-        <div className="p-4 bg-gray-50 border border-gray-200">
+        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
           <div className="flex flex-col sm:flex-row gap-4 items-end">
             <div className="flex-1 w-full">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -336,7 +336,7 @@ export function TimeRangeSelector({
                 value={customStart}
                 onChange={(e) => setCustomStart(e.target.value)}
                 max={format(new Date(), 'yyyy-MM-dd')}
-                className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 text-sm rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <div className="flex-1 w-full">
@@ -346,20 +346,20 @@ export function TimeRangeSelector({
                 value={customEnd}
                 onChange={(e) => setCustomEnd(e.target.value)}
                 max={format(new Date(), 'yyyy-MM-dd')}
-                className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 text-sm rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setIsCustomOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
               >
                 {t('cancel')}
               </button>
               <button
                 onClick={handleCustomApply}
                 disabled={!customStart || !customEnd}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t('apply')}
               </button>
@@ -368,7 +368,7 @@ export function TimeRangeSelector({
         </div>
       )}
 
-      <div className="flex items-center gap-4 text-sm text-gray-600 bg-gray-50 px-4 py-3 border border-gray-200">
+      <div className="flex items-center gap-4 text-sm text-gray-600 bg-gray-50 px-4 py-3 border border-gray-200 rounded-lg">
         <div className="flex items-center gap-2">
           <span className="font-medium">{t('currentPeriod')}:</span>
           <span className="text-primary-600">

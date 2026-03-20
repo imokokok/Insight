@@ -184,7 +184,7 @@ export default function API3Page() {
   }
 
   return (
-    <div className="min-h-screen bg-insight">
+    <div className="min-h-screen bg-insight rounded-lg">
       <PageHeader
         title={t('api3.title')}
         subtitle={t('api3.subtitle')}

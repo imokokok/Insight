@@ -156,11 +156,11 @@ function CoveragePoolRisk({ staking }: { staking?: StakingData }) {
           color={riskLevel}
         />
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-3 bg-gray-50 border border-gray-200">
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-500 mb-1">{t('api3.risk.coveragePool.ratio')}</p>
             <p className="text-lg font-semibold text-gray-900">{coverageRatio.toFixed(2)}x</p>
           </div>
-          <div className="p-3 bg-gray-50 border border-gray-200">
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-500 mb-1">{t('api3.risk.coveragePool.totalStaked')}</p>
             <p className="text-lg font-semibold text-gray-900">
               {(totalStaked / 1e6).toFixed(2)}M API3
@@ -250,11 +250,11 @@ function NetworkHealthRisk({ airnodeStats }: { airnodeStats?: AirnodeNetworkStat
           color={riskLevel}
         />
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-3 bg-gray-50 border border-gray-200">
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-500 mb-1">{t('api3.risk.network.uptime')}</p>
             <p className="text-lg font-semibold text-gray-900">{uptime.toFixed(2)}%</p>
           </div>
-          <div className="p-3 bg-gray-50 border border-gray-200">
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-500 mb-1">{t('api3.risk.network.responseTime')}</p>
             <p className="text-lg font-semibold text-gray-900">{responseTime}ms</p>
           </div>
@@ -293,11 +293,11 @@ function StakingRisk({ staking }: { staking?: StakingData }) {
           color={riskLevel}
         />
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-3 bg-gray-50 border border-gray-200">
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-500 mb-1">{t('api3.risk.staking.apr')}</p>
             <p className="text-lg font-semibold text-gray-900">{stakingApr}%</p>
           </div>
-          <div className="p-3 bg-gray-50 border border-gray-200">
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <p className="text-xs text-gray-500 mb-1">{t('api3.risk.staking.lockup')}</p>
             <p className="text-lg font-semibold text-gray-900">
               {t('api3.risk.staking.lockupValue')}
@@ -337,9 +337,9 @@ export function API3RiskAssessmentPanel({
         thresholdMinutes={5}
       />
 
-      <div className="bg-gray-100 border border-gray-200 p-4">
+      <div className="bg-gray-100 border border-gray-200 rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <div className="p-2 bg-primary-100 flex-shrink-0">
+          <div className="p-2 bg-primary-100 border border-primary-200 rounded-lg flex-shrink-0">
             <svg
               className="w-5 h-5 text-primary-600"
               fill="none"

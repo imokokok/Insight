@@ -71,13 +71,13 @@ function SearchResultItem({
       onClick={onSelect}
       onMouseEnter={onHover}
       className={`
-        flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-150
+        flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 rounded-lg
         ${isActive ? 'bg-primary-50 border-l-2 border-primary-500' : 'hover:bg-gray-50 border-l-2 border-transparent'}
       `}
     >
       <div
         className={`
-          flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center
+          flex-shrink-0 w-8 h-8 rounded-md flex items-center justify-center
           ${isActive ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}
         `}
       >
@@ -174,7 +174,7 @@ function InitialState() {
       <div className="flex flex-wrap justify-center gap-3">
         {shortcuts.map((shortcut) => (
           <div key={shortcut.key} className="flex items-center gap-2 text-xs text-gray-500">
-            <kbd className="px-2 py-1 bg-gray-100 rounded text-gray-700 font-mono">
+            <kbd className="px-2 py-1 bg-gray-100 rounded-md text-gray-700 font-mono">
               {shortcut.key}
             </kbd>
             <span>{shortcut.label}</span>
@@ -362,7 +362,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="w-full max-w-2xl mx-4 bg-white rounded-xl shadow-2xl overflow-hidden pointer-events-auto"
+              className="w-full max-w-2xl mx-4 bg-white rounded-lg shadow-2xl overflow-hidden pointer-events-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Search Input */}
@@ -389,7 +389,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                   </button>
                 )}
                 <div className="hidden sm:flex items-center gap-1 text-xs text-gray-400">
-                  <kbd className="px-2 py-1 bg-gray-100 rounded font-mono">ESC</kbd>
+                  <kbd className="px-2 py-1 bg-gray-100 rounded-md font-mono">ESC</kbd>
                 </div>
               </div>
 

@@ -248,7 +248,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                     }}
                   >
                     <div
-                      className={`p-4 border transition-colors mb-3 ${
+                      className={`p-4 border rounded-lg transition-colors mb-3 ${
                         isSelected
                           ? 'border-primary-500 bg-primary-50'
                           : 'border-gray-200 hover:border-gray-300'
@@ -266,7 +266,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                             <div className="flex items-center gap-2 mb-2">
                               <span className="font-semibold text-gray-900">{alert.symbol}</span>
                               <span
-                                className={`px-2 py-0.5 text-xs font-medium border ${badge.bgColor} ${badge.textColor} ${badge.borderColor}`}
+                                className={`px-2 py-0.5 text-xs font-medium border rounded ${badge.bgColor} ${badge.textColor} ${badge.borderColor}`}
                               >
                                 {badge.label}
                               </span>
@@ -341,7 +341,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                           <button
                             onClick={() => handleToggleActive(alert)}
                             disabled={isUpdating}
-                            className={`relative inline-flex h-5 w-9 items-center transition-colors ${
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                               alert.is_active ? 'bg-primary-600' : 'bg-gray-200'
                             }`}
                             title={
@@ -349,7 +349,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                             }
                           >
                             <span
-                              className={`inline-block h-3.5 w-3.5 transform bg-white transition-transform ${
+                              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
                                 alert.is_active ? 'translate-x-5' : 'translate-x-1'
                               }`}
                             />

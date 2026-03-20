@@ -111,7 +111,7 @@ export function DifferenceBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 font-medium border ${styles.bg} ${styles.text} ${styles.border} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center gap-1 font-medium border rounded-md ${styles.bg} ${styles.text} ${styles.border} ${sizeClasses[size]} ${className}`}
     >
       {showIcon && <span>{icon}</span>}
       <span>{formattedValue}</span>

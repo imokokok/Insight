@@ -242,7 +242,7 @@ export function DataManagementPanel() {
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-md bg-primary-100 flex items-center justify-center">
                     <FileJson className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
@@ -272,7 +272,7 @@ export function DataManagementPanel() {
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-success-100 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-md bg-success-100 flex items-center justify-center">
                     <Download className="w-5 h-5 text-success-600" />
                   </div>
                   <div>
@@ -302,7 +302,7 @@ export function DataManagementPanel() {
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-md bg-purple-100 flex items-center justify-center">
                     <Database className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>

@@ -115,7 +115,7 @@ export default function WINkLinkPage() {
   }
 
   return (
-    <div className="min-h-screen bg-insight">
+    <div className="min-h-screen bg-insight rounded-lg">
       <PageHeader
         title={t('winklink.title')}
         subtitle={t('winklink.subtitle')}

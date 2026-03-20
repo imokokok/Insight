@@ -39,7 +39,7 @@ function StatCard({
   trend?: { value: string; positive: boolean };
 }) {
   return (
-    <div className="bg-white border border-gray-200 p-5 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 rounded-lg p-5 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{title}</p>
@@ -53,7 +53,7 @@ function StatCard({
             </p>
           )}
         </div>
-        <div className="p-2.5 bg-primary-50 text-primary-600">{icon}</div>
+        <div className="p-2.5 bg-primary-50 border border-primary-100 rounded-lg text-primary-600">{icon}</div>
       </div>
     </div>
   );
@@ -168,7 +168,7 @@ function StakingGuide() {
       <div className="space-y-4">
         {steps.map((step, index) => (
           <div key={index} className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-10 h-10 bg-primary-50 text-primary-600 flex items-center justify-center">
+            <div className="flex-shrink-0 w-10 h-10 bg-primary-50 border border-primary-100 rounded-lg text-primary-600 flex items-center justify-center">
               {step.icon}
             </div>
             <div className="flex-1">
@@ -203,7 +203,7 @@ function RiskWarning() {
   ];
 
   return (
-    <div className="bg-amber-50 border border-amber-200 p-4">
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 text-amber-600">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

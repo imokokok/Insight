@@ -49,7 +49,7 @@ function VerifyEmailContent() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-insight px-4">
+      <div className="min-h-screen flex items-center justify-center bg-insight px-4 rounded-lg">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">{t('auth.verifyEmail.verifying')}</p>
@@ -60,10 +60,10 @@ function VerifyEmailContent() {
 
   if (status === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12 rounded-lg">
         <div className="w-full max-w-md">
-          <div className="bg-white border border-gray-200 p-8 text-center">
-            <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6">
+          <div className="bg-white border border-gray-200 p-8 text-center rounded-lg">
+            <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6 rounded-lg">
               <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
@@ -73,7 +73,7 @@ function VerifyEmailContent() {
             <div className="space-y-3">
               <Link
                 href="/login"
-                className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors"
+                className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
               >
                 {t('auth.verifyEmail.success.goToLogin')}
               </Link>
@@ -85,10 +85,10 @@ function VerifyEmailContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12 rounded-lg">
       <div className="w-full max-w-md">
-        <div className="bg-white border border-gray-200 p-8 text-center">
-          <div className="w-16 h-16 bg-danger-100 flex items-center justify-center mx-auto mb-6">
+        <div className="bg-white border border-gray-200 p-8 text-center rounded-lg">
+          <div className="w-16 h-16 bg-danger-100 flex items-center justify-center mx-auto mb-6 rounded-lg">
             <XCircle className="w-8 h-8 text-danger-600" />
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
@@ -98,13 +98,13 @@ function VerifyEmailContent() {
           <div className="space-y-3">
             <Link
               href="/auth/resend-verification"
-              className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors"
+              className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
             >
               {t('auth.verifyEmail.error.resendVerification')}
             </Link>
             <Link
               href="/register"
-              className="block w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors"
+              className="block w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors rounded-md"
             >
               {t('auth.verifyEmail.error.registerAgain')}
             </Link>
@@ -119,7 +119,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-insight px-4">
+        <div className="min-h-screen flex items-center justify-center bg-insight px-4 rounded-lg">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading...</p>

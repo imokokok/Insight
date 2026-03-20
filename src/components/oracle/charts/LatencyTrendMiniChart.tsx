@@ -173,7 +173,7 @@ export function LatencyTrendMiniChart({
 
     return (
       <div
-        className="bg-white border border-gray-200 p-3 min-w-[160px]"
+        className="bg-white border border-gray-200 rounded-lg p-3 min-w-[160px]"
         style={{ boxShadow: `0 4px 6px -1px ${baseColors.gray[900]}1A` }}
       >
         <p className="text-xs text-gray-500 font-medium mb-2">{label}</p>
@@ -325,7 +325,7 @@ export function LatencyTrendMiniChart({
       </div>
 
       {/* Trend Chart */}
-      <div className="bg-white border border-gray-200 p-5">
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900">{t('charts.trend.chartTitle')}</h4>
           <p className="text-xs text-gray-500 mt-1">{t('charts.trend.chartDesc')}</p>

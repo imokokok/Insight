@@ -208,7 +208,7 @@ function CustomTooltip({ active, payload, t }: CustomTooltipProps) {
 
   return (
     <div
-      className="bg-white border border-gray-200 p-4 max-w-xs"
+      className="bg-white border border-gray-200 rounded-lg p-4 max-w-xs"
       style={{ boxShadow: `0 4px 6px -1px ${baseColors.gray[900]}1A` }}
     >
       <div

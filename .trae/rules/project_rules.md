@@ -52,7 +52,7 @@
 
 - **Server Components 优先** - 默认使用 React Server Components
 - **类型安全** - TypeScript Strict Mode 启用
-- **扁平化设计** - Insight Clean Finance 风格，无圆角、无阴影
+- **专业现代设计** - Insight Professional Finance 风格，使用微妙圆角（4-8px）和柔和阴影，平衡专业感与现代感
 - **实时数据** - WebSocket + Supabase Realtime
 - **多预言机支持** - Chainlink, Pyth, Band, API3, UMA 等
 
@@ -791,7 +791,54 @@ export function useAuth() {
 
 ## 6. 样式和 CSS 规范
 
-### 6.1 Tailwind CSS 使用规范
+### 6.1 圆角使用规范
+
+项目采用专业的微小圆角设计系统，保持专业感与现代感的平衡。
+
+#### 圆角值标准
+
+| 变量名 | 值 | 用途 |
+|--------|-----|------|
+| `--radius-none` | 0 | 数据表格、分割线 |
+| `--radius-sm` | 0.25rem (4px) | 小按钮、标签、状态指示器 |
+| `--radius-md` | 0.375rem (6px) | 标准按钮、输入框 |
+| `--radius-lg` | 0.5rem (8px) | 卡片、面板、模态框 |
+| `--radius-xl` | 0.75rem (12px) | 大卡片、弹窗 |
+| `--radius-2xl` | 1rem (16px) | 特殊容器 |
+| `--radius-full` | 9999px | 圆形元素（头像、徽章） |
+
+#### 组件圆角应用规范
+
+```typescript
+// ✅ 按钮使用 --radius-md (6px)
+<button className="rounded-md ...">Click me</button>
+
+// ✅ 卡片使用 --radius-lg (8px)
+<div className="rounded-lg ...">Card content</div>
+
+// ✅ 输入框使用 --radius-md (6px)
+<input className="rounded-md ..." />
+
+// ✅ 表格容器使用 --radius-lg (8px)，内部无圆角
+<div className="rounded-lg overflow-hidden">
+  <table className="rounded-none">...</table>
+</div>
+
+// ✅ 徽章/标签使用 --radius-full (完全圆角)
+<span className="rounded-full ...">Badge</span>
+
+// ✅ 模态框/弹窗使用 --radius-xl (12px)
+<div className="rounded-xl ...">Modal content</div>
+```
+
+#### 设计原则
+
+- **保持克制**：圆角值不超过 12px（除圆形元素外）
+- **层次分明**：交互元素使用较小圆角，容器使用较大圆角
+- **统一协调**：同一类组件使用相同的圆角值
+- **专业感**：避免过大的圆角导致"卡通感"
+
+### 6.2 Tailwind CSS 使用规范
 
 #### 类名顺序
 
@@ -817,13 +864,13 @@ function Card({ children }: { children: React.ReactNode }) {
         /* 背景 */
         bg-white
         /* 边框 */
-        border border-gray-200
+        rounded-lg border border-gray-200
         /* 文字 */
         text-sm text-gray-900
         /* 效果 */
-        transition-all duration-200
+        shadow-sm transition-all duration-200
         /* 交互 */
-        hover:border-gray-300
+        hover:border-gray-300 hover:shadow-md
         /* 响应式 */
         sm:p-6 md:p-8
       "
@@ -855,11 +902,12 @@ function Button({
   return (
     <button
       className={cn(
-        // 基础样式
-        'inline-flex items-center justify-center font-medium transition-colors',
+        // 基础样式 - 使用 rounded-md (6px) 保持专业感
+        'inline-flex items-center justify-center font-medium rounded-md transition-all',
         // 变体样式
-        variant === 'primary' && 'bg-blue-600 text-white hover:bg-blue-700',
-        variant === 'secondary' && 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+        variant === 'primary' && 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm',
+        variant === 'secondary' && 'bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-300',
+        variant === 'ghost' && 'bg-transparent text-gray-600 hover:bg-gray-100',
         // 尺寸样式
         size === 'small' && 'px-3 py-1.5 text-sm',
         size === 'medium' && 'px-4 py-2 text-base',
@@ -895,11 +943,11 @@ function Button({
   --border-insight-separator: #e5e7eb;
 }
 
-// ✅ 组件中使用
+// ✅ 组件中使用 - 徽章使用 rounded-full 完全圆角
 function StatusBadge({ status }: { status: 'success' | 'warning' | 'error' }) {
   return (
     <span
-      className="px-2 py-1 text-sm"
+      className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full"
       style={{
         backgroundColor:
           status === 'success'
@@ -924,11 +972,11 @@ function StatusBadge({ status }: { status: 'success' | 'warning' | 'error' }) {
 ### 6.3 响应式设计
 
 ```typescript
-// ✅ 移动优先设计
+// ✅ 移动优先设计 - 表格容器使用 rounded-lg，内部表格无圆角
 function PriceTable({ data }: { data: PriceData[] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
+    <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <table className="w-full rounded-none">
         <thead>
           <tr className="hidden md:table-row">
             {/* 桌面端显示所有列 */}

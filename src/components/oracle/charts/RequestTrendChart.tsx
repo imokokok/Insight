@@ -174,7 +174,7 @@ export function RequestTrendChart({
     if (active && payload && payload.length) {
       const dataPoint = payload[0].payload;
       return (
-        <div className="bg-white border border-gray-200   p-3 min-w-[160px]">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 min-w-[160px]">
           <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">

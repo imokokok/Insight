@@ -199,7 +199,7 @@ export function ValidatorPanel({
 
   if (isLoading) {
     return (
-      <div className="bg-white border border-gray-200 p-6">
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
             <svg className="animate-spin h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24">
@@ -246,7 +246,7 @@ export function ValidatorPanel({
     <div className="space-y-6">
       <StakingDistributionChart validators={validators} onSegmentClick={handleSegmentClick} />
 
-      <div className="bg-white border border-gray-200 overflow-hidden @container">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden @container">
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>

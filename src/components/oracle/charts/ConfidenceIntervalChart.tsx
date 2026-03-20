@@ -139,7 +139,7 @@ function CustomTooltip({ active, payload, label, threshold }: CustomTooltipProps
   const dataPoint = payload[0].payload;
 
   return (
-    <div className="bg-white p-3 rounded border border-gray-200 min-w-[200px]">
+    <div className="bg-white p-3 rounded-lg border border-gray-200 min-w-[200px]">
       <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
       <div className="space-y-1">
         <div className="flex justify-between items-center">

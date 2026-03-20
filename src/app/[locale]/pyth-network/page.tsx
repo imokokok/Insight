@@ -152,7 +152,7 @@ export default function PythNetworkPage() {
   }
 
   return (
-    <div className="min-h-screen bg-insight">
+    <div className="min-h-screen bg-insight rounded-lg">
       <PageHeader
         title={t('pyth.title')}
         subtitle={t('pyth.subtitle')}

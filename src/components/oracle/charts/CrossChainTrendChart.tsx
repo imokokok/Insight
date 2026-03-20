@@ -252,7 +252,7 @@ function CustomTooltip({ active, payload, label, metric }: CustomTooltipProps) {
 
   return (
     <div
-      className="bg-white border border-gray-200 p-3 min-w-[180px]"
+      className="bg-white border border-gray-200 rounded-lg p-3 min-w-[180px]"
       style={{ boxShadow: shadowColors.tooltip }}
     >
       <p className="text-xs text-gray-500 mb-2 font-medium">{label}</p>

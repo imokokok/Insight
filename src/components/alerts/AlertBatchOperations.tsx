@@ -56,7 +56,7 @@ export function AlertBatchOperations({
 
   if (selectedCount === 0) {
     return (
-      <div className="flex items-center justify-between py-2 px-3 bg-gray-50 border border-gray-200">
+      <div className="flex items-center justify-between py-2 px-3 bg-gray-50 border border-gray-200 rounded-lg">
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -74,7 +74,7 @@ export function AlertBatchOperations({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between py-2 px-3 bg-primary-50 border border-primary-200">
+      <div className="flex items-center justify-between py-2 px-3 bg-primary-50 border border-primary-200 rounded-lg">
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -183,7 +183,7 @@ export function AlertBatchOperations({
       </div>
 
       {showDeleteConfirm && (
-        <div className="p-3 bg-danger-50 border border-danger-200 text-sm text-danger-700">
+        <div className="p-3 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-700">
           {t('alerts.batch.deleteConfirm').replace('{count}', String(selectedCount))}
         </div>
       )}

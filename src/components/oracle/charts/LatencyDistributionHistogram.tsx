@@ -230,7 +230,7 @@ export function LatencyDistributionHistogram({
   const formatTooltip = (bin: HistogramBin) => {
     return (
       <div
-        className="bg-white border border-gray-200 p-3"
+        className="bg-white border border-gray-200 rounded-lg p-3"
         style={{ boxShadow: shadowColors.tooltip }}
       >
         <p className="text-xs text-gray-600 font-medium mb-2">范围: {bin.range}ms</p>
@@ -294,7 +294,7 @@ export function LatencyDistributionHistogram({
 
   const renderHistogramView = () => (
     <>
-      <div className="bg-white border border-gray-200 p-5">
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900">
             {t('crossOracle.latencyDistribution.title')}
@@ -455,7 +455,7 @@ export function LatencyDistributionHistogram({
         {percentileItems.map((item) => (
           <div
             key={item.label}
-            className="bg-white border border-gray-200 p-4 overflow-hidden group relative"
+            className="bg-white border border-gray-200 rounded-lg p-4 overflow-hidden group relative"
             style={{ borderLeftColor: item.color, borderLeftWidth: 3 }}
             title={`${item.label}: ${item.value}ms - ${item.desc}`}
           >
@@ -478,7 +478,7 @@ export function LatencyDistributionHistogram({
         {statItems.map((item) => (
           <div
             key={item.label}
-            className="bg-white border border-gray-200 p-3 text-center overflow-hidden"
+            className="bg-white border border-gray-200 rounded-lg p-3 text-center overflow-hidden"
             title={`${item.label}: ${item.value}`}
           >
             <span className="text-xl mb-1 block">{item.icon}</span>

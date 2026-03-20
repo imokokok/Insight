@@ -42,7 +42,7 @@ const ProfessionalCTA = dynamic(() => import('./home-components/ProfessionalCTA'
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen rounded-lg">
       <ProfessionalHero />
       <div className="non-critical-content">
         <LivePriceTicker />

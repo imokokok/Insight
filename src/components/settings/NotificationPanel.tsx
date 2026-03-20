@@ -42,6 +42,9 @@ function Toggle({
 }) {
   return (
     <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
       onClick={() => !disabled && onChange(!enabled)}
       disabled={disabled}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
@@ -164,7 +167,7 @@ export function NotificationPanel() {
 
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-md bg-purple-100 flex items-center justify-center">
                   <Globe className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
@@ -219,7 +222,7 @@ export function NotificationPanel() {
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-warning-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-md bg-warning-100 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-warning-600" />
               </div>
               <div>
@@ -253,7 +256,7 @@ export function NotificationPanel() {
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-success-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-md bg-success-100 flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-success-600" />
               </div>
               <div>
@@ -285,7 +288,7 @@ export function NotificationPanel() {
                   onChange={(e) => updateSetting('priceChangeThreshold', Number(e.target.value))}
                   className="flex-1 h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-blue-600"
                 />
-                <div className="w-16 text-center bg-gray-50 rounded-lg py-2">
+                <div className="w-16 text-center bg-gray-50 rounded-md py-2">
                   <span className="text-lg font-semibold text-gray-900">
                     {settings.priceChangeThreshold}
                   </span>

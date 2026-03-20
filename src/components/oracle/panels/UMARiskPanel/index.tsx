@@ -381,7 +381,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-0 border border-gray-200">
+          <div className="mt-4 grid grid-cols-2 gap-0 border border-gray-200 rounded-lg overflow-hidden">
             <div className="p-4 bg-gray-50 text-center border-r border-gray-200">
               <p className="text-xs text-gray-500 mb-1">{t('uma.risk.avgResolutionTime')}</p>
               <p className="text-xl font-bold text-gray-900">
@@ -424,7 +424,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 p-4 bg-gray-50 border border-gray-200">
+          <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
             <p className="text-sm text-gray-600">
               {t('uma.risk.disputeSuccessRateDescription', {
                 rate:
@@ -440,7 +440,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
       {/* 风险评估总结 */}
       <DashboardCard title={t('uma.risk.assessmentSummary')}>
         <div className="space-y-3">
-          <div className="flex items-start gap-3 p-4 bg-emerald-50 border border-emerald-200">
+          <div className="flex items-start gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
             <svg
               className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0"
               fill="none"
@@ -459,7 +459,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
               <p className="text-sm text-emerald-700 mt-0.5">{t('uma.risk.networkHealthDesc')}</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-4 bg-primary-50 border border-primary-200">
+          <div className="flex items-start gap-3 p-4 bg-primary-50 border border-primary-200 rounded-lg">
             <svg
               className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0"
               fill="none"

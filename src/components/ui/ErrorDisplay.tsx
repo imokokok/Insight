@@ -168,7 +168,7 @@ export function ErrorDisplay({
       <div
         role="alert"
         aria-live="polite"
-        className={`${config.bgColor} ${config.borderColor} border p-3 ${className}`}
+        className={`${config.bgColor} ${config.borderColor} border rounded-lg p-3 ${className}`}
       >
         <div className="flex items-center gap-2">
           <Icon className={`w-4 h-4 ${config.iconColor}`} aria-hidden="true" />
@@ -194,7 +194,7 @@ export function ErrorDisplay({
       exit={{ opacity: 0, y: -10 }}
       role="alert"
       aria-live="assertive"
-      className={`${config.bgColor} ${config.borderColor} border ${className}`}
+      className={`${config.bgColor} ${config.borderColor} border rounded-lg ${className}`}
     >
       <div className="p-4">
         <div className="flex items-start gap-3">
@@ -254,7 +254,7 @@ export function ErrorDisplay({
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="mt-4 p-3 bg-gray-100  font-mono text-xs text-gray-700 overflow-auto max-h-40">
+                  <div className="mt-4 p-3 bg-gray-100 rounded-md font-mono text-xs text-gray-700 overflow-auto max-h-40">
                     <pre>{details.technicalDetails}</pre>
                   </div>
                 </motion.div>
@@ -277,7 +277,7 @@ export function ErrorDisplay({
           {details.recoverable && onRetry && (
             <button
               onClick={onRetry}
-              className={`inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium ${config.buttonBg} ${config.buttonHover} transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-${details.severity}-500`}
+              className={`inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-md ${config.buttonBg} ${config.buttonHover} transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-${details.severity}-500`}
             >
               <RefreshCw className="w-4 h-4" aria-hidden="true" />
               {t('actions.retry')}
@@ -288,7 +288,7 @@ export function ErrorDisplay({
             <button
               onClick={handleReport}
               disabled={isReporting}
-              className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               <Bug className="w-4 h-4" aria-hidden="true" />
               {isReporting ? t('error.reporting') : t('error.report')}
@@ -392,7 +392,7 @@ export function FormError({
     <div
       role="alert"
       aria-live="polite"
-      className={`bg-danger-50 border border-danger-200 p-3 ${className}`}
+      className={`bg-danger-50 border border-danger-200 rounded-lg p-3 ${className}`}
     >
       <div className="flex items-start gap-2">
         <AlertCircle className="w-5 h-5 text-danger-500 flex-shrink-0 mt-0.5" aria-hidden="true" />

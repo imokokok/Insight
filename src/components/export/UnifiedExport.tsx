@@ -169,7 +169,7 @@ export function UnifiedExport({
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled || isExporting}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isExporting ? (
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -188,7 +188,7 @@ export function UnifiedExport({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 shadow-lg z-50"
+            className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
           >
             {/* 格式选项 */}
             <div className="p-2">
@@ -230,7 +230,7 @@ export function UnifiedExport({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 shadow-xl z-50"
+            className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50"
           >
             {/* 头部 */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
@@ -274,11 +274,11 @@ export function UnifiedExport({
                 </div>
               </div>
 
-              <div className="max-h-48 overflow-y-auto space-y-2 border border-gray-100 p-2">
+              <div className="max-h-48 overflow-y-auto space-y-2 border border-gray-100 rounded-lg p-2">
                 {config.fields.map((field) => (
                   <label
                     key={field.key}
-                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded-md"
                   >
                     <input
                       type="checkbox"
@@ -336,7 +336,7 @@ export function UnifiedExport({
               </div>
 
               {/* 数据预览 */}
-              <div className="mt-4 p-3 bg-gray-50 border border-gray-100">
+              <div className="mt-4 p-3 bg-gray-50 border border-gray-100 rounded-lg">
                 <p className="text-xs text-gray-500 mb-1">{t('dataPreview')}</p>
                 <p className="text-sm text-gray-700">
                   {t('recordCount')}: <span className="font-medium">{data.length}</span>
@@ -352,7 +352,7 @@ export function UnifiedExport({
               <div className="px-4 pb-2">
                 <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-primary-600"
+                    className="h-full bg-primary-600 rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${exportProgress}%` }}
                     transition={{ duration: 0.3 }}
@@ -367,14 +367,14 @@ export function UnifiedExport({
               <button
                 onClick={() => setShowConfig(false)}
                 disabled={isExporting}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 {t('cancel')}
               </button>
               <button
                 onClick={handleExport}
                 disabled={isExporting || selectedFieldsCount === 0}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isExporting ? (
                   <>

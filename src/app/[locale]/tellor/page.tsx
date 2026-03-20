@@ -161,7 +161,7 @@ export default function TellorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-insight">
+    <div className="min-h-screen bg-insight rounded-lg">
       <PageHeader
         title={t('tellor.title')}
         subtitle={t('tellor.subtitle')}

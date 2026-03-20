@@ -24,7 +24,7 @@ export function PriceDeviationChart({ data }: PriceDeviationChartProps) {
   const t = useTranslations();
 
   return (
-    <div className="bg-white border border-gray-200 p-5">
+    <div className="bg-white border border-gray-200 rounded-lg p-5">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-gray-900">
           {t('dataQuality.deviationDistribution')}
@@ -58,7 +58,7 @@ export function PriceDeviationChart({ data }: PriceDeviationChartProps) {
               if (!active || !payload || payload.length === 0) return null;
               const item = payload[0].payload as PriceDeviationData;
               return (
-                <div className="bg-white border border-gray-200 p-3">
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
                   <p className="text-xs text-gray-600 font-medium mb-2">{item.oracle}</p>
                   <div className="space-y-1">
                     <div className="flex justify-between gap-4 text-xs">

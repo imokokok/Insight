@@ -199,8 +199,7 @@ export function MovingAverageChart({
 
     return (
       <div
-        className="bg-white p-4 border min-w-[220px]"
-        style={{ borderColor: baseColors.gray[200] }}
+        className="bg-white p-4 border border-gray-200 rounded-lg min-w-[220px]"
       >
         <p className="text-sm font-semibold mb-2" style={{ color: baseColors.gray[900] }}>
           {label}
