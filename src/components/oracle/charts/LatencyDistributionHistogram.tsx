@@ -15,7 +15,8 @@ import {
 import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { CDFChart } from './CDFChart';
-import { LatencyTrendMiniChart, LatencyDataPoint } from './LatencyTrendMiniChart';
+import { LatencyTrendMiniChart } from './LatencyTrendMiniChart';
+import type { LatencyDataPoint } from './LatencyTrendMiniChart';
 
 type ViewMode = 'histogram' | 'cdf' | 'trend';
 type TimeRange = '1h' | '6h' | '24h' | '7d';

@@ -1,7 +1,9 @@
-import { BaseOracleClient, OracleClientConfig } from '../base';
+import { BaseOracleClient } from '../base';
+import type { OracleClientConfig } from '../base';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
-import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
-import {
+import { OracleProvider, Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
+import type {
   DisputeType,
   ValidatorData,
   DisputeData,

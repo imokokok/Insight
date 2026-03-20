@@ -3,7 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { PythClient } from '@/lib/oracles/pythNetwork';
-import { PriceData, Blockchain } from '@/types/oracle';
+import { Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 
 const pythClient = new PythClient();
 

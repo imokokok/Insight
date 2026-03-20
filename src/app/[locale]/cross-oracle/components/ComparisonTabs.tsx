@@ -26,7 +26,7 @@ import { NoDataEmptyState } from '@/components/ui/EmptyState';
 import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
 import { OracleSnapshot } from '@/types/oracle';
 import { oracleNames } from '../constants';
-import { TimeRange } from '../constants';
+import { TimeRange, ChartDataPoint, QualityTrendData } from '../types';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { StatsSection } from './StatsSection';
 import { PriceTableSection } from './PriceTableSection';
@@ -72,14 +72,14 @@ interface ComparisonTabsProps {
   lastStats: SnapshotStats | null;
   historyMinMax: import('../constants').HistoryMinMax;
   oracleChartColors: Record<OracleProvider, string>;
-  getChartData: () => any[];
+  getChartData: () => ChartDataPoint[];
   heatmapData: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[];
   boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
   volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
   correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
   performanceData: import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[];
   maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
-  qualityTrendData: { oracle: OracleProvider; data: any[] }[];
+  qualityTrendData: QualityTrendData[];
   qualityScoreData: {
     freshness: { lastUpdated: Date };
     completeness: { successCount: number; totalCount: number };

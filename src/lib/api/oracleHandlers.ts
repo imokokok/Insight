@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ChainlinkClient, BandProtocolClient, UMAClient, API3Client } from '@/lib/oracles';
-import { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
+import { OracleProvider, Blockchain, PriceData, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 import { createCachedJsonResponse, CacheConfig } from '@/lib/api/utils';
 import { getServerQueries } from '@/lib/supabase/server';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
@@ -44,19 +44,19 @@ export function getOracleClient(provider: OracleProvider): OracleClient | null {
 }
 
 export function isValidProvider(provider: string): provider is OracleProvider {
-  return Object.values(OracleProvider).includes(provider as OracleProvider);
+  return ORACLE_PROVIDER_VALUES.includes(provider as OracleProvider);
 }
 
 export function validateProvider(provider: string): NextResponse | null {
   if (!isValidProvider(provider)) {
     return errorToResponse(
       new ValidationError(
-        `Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`,
+        `Invalid provider: ${provider}. Valid providers: ${ORACLE_PROVIDER_VALUES.join(', ')}`,
         {
           field: 'provider',
           value: provider,
           constraints: {
-            allowedValues: Object.values(OracleProvider).join(', '),
+            allowedValues: ORACLE_PROVIDER_VALUES.join(', '),
           },
         }
       )
@@ -78,12 +78,12 @@ export function validateRequiredParams(params: Partial<OracleQueryParams>): Next
   if (!isValidProvider(params.provider)) {
     return errorToResponse(
       new ValidationError(
-        `Invalid provider: ${params.provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`,
+        `Invalid provider: ${params.provider}. Valid providers: ${ORACLE_PROVIDER_VALUES.join(', ')}`,
         {
           field: 'provider',
           value: params.provider,
           constraints: {
-            allowedValues: Object.values(OracleProvider).join(', '),
+            allowedValues: ORACLE_PROVIDER_VALUES.join(', '),
           },
         }
       )

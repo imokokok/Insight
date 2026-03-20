@@ -579,7 +579,10 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                   />
                   <Tooltip
                     cursor={{ strokeDasharray: '3 3' }}
-                    formatter={(value: any, name: any) => [`$${Number(value).toFixed(4)}`, name]}
+                    formatter={(value: unknown, name: unknown): [string, string] => [
+                      `$${Number(value).toFixed(4)}`,
+                      String(name),
+                    ]}
                     labelFormatter={() => ''}
                   />
                   {/* 回归线 */}

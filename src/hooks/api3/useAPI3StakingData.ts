@@ -2,7 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { API3Client, StakingData } from '@/lib/oracles/api3';
+import { API3Client } from '@/lib/oracles/api3';
+import type { StakingData } from '@/lib/oracles/api3';
 
 const api3Client = new API3Client();
 

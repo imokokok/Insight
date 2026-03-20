@@ -18,7 +18,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
-import { ChainDataRequest } from '@/lib/oracles/bandProtocol';
+import type { ChainDataRequest } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
 import { chainColors, chartColors, animationColors } from '@/lib/config/colors';
 import { formatNumber as formatNumberCompact } from '@/lib/utils/format';

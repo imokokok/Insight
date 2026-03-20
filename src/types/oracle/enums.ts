@@ -1,4 +1,4 @@
-export enum OracleProvider {
+export const enum OracleProvider {
   CHAINLINK = 'chainlink',
   BAND_PROTOCOL = 'band-protocol',
   UMA = 'uma',
@@ -11,7 +11,7 @@ export enum OracleProvider {
   WINKLINK = 'winklink',
 }
 
-export enum Blockchain {
+export const enum Blockchain {
   ETHEREUM = 'ethereum',
   ARBITRUM = 'arbitrum',
   OPTIMISM = 'optimism',
@@ -43,3 +43,47 @@ export enum Blockchain {
 }
 
 export const BINANCE = Blockchain.BNB_CHAIN;
+
+export const ORACLE_PROVIDER_VALUES: readonly OracleProvider[] = [
+  OracleProvider.CHAINLINK,
+  OracleProvider.BAND_PROTOCOL,
+  OracleProvider.UMA,
+  OracleProvider.PYTH,
+  OracleProvider.API3,
+  OracleProvider.REDSTONE,
+  OracleProvider.DIA,
+  OracleProvider.TELLOR,
+  OracleProvider.CHRONICLE,
+  OracleProvider.WINKLINK,
+] as const;
+
+export const BLOCKCHAIN_VALUES: readonly Blockchain[] = [
+  Blockchain.ETHEREUM,
+  Blockchain.ARBITRUM,
+  Blockchain.OPTIMISM,
+  Blockchain.POLYGON,
+  Blockchain.SOLANA,
+  Blockchain.AVALANCHE,
+  Blockchain.FANTOM,
+  Blockchain.CRONOS,
+  Blockchain.JUNO,
+  Blockchain.COSMOS,
+  Blockchain.OSMOSIS,
+  Blockchain.BNB_CHAIN,
+  Blockchain.BASE,
+  Blockchain.SCROLL,
+  Blockchain.ZKSYNC,
+  Blockchain.APTOS,
+  Blockchain.SUI,
+  Blockchain.GNOSIS,
+  Blockchain.MANTLE,
+  Blockchain.LINEA,
+  Blockchain.CELESTIA,
+  Blockchain.INJECTIVE,
+  Blockchain.SEI,
+  Blockchain.TRON,
+  Blockchain.TON,
+  Blockchain.NEAR,
+  Blockchain.AURORA,
+  Blockchain.CELO,
+] as const;

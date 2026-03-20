@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { RedStoneClient, RedStoneProviderInfo, RedStoneMetrics } from '@/lib/oracles/redstone';
+import { RedStoneClient } from '@/lib/oracles/redstone';
+import type { RedStoneProviderInfo, RedStoneMetrics } from '@/lib/oracles/redstone';
 import {
   PageHeader,
   PriceChart,

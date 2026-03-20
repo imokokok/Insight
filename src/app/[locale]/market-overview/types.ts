@@ -412,11 +412,11 @@ export interface UseMarketOverviewDataReturn {
   correlationData: CorrelationData;
   riskMetrics: RiskMetrics | null;
   anomalies: AnomalyData[];
-  loading: boolean;
-  loadingEnhanced: boolean;
-  loadingComparison: boolean;
-  loadingRiskMetrics: boolean;
-  loadingAnomalies: boolean;
+  isLoading: boolean;
+  isLoadingEnhanced: boolean;
+  isLoadingComparison: boolean;
+  isLoadingRiskMetrics: boolean;
+  isLoadingAnomalies: boolean;
   lastUpdated: Date | null;
 
   selectedTimeRange: string;

@@ -23,10 +23,39 @@ export const networkKeys = {
   stats: () => [...networkKeys.all, 'stats'] as const,
 };
 
+export const favoritesKeys = {
+  all: ['favorites'] as const,
+  list: (userId: string) => [...favoritesKeys.all, userId] as const,
+  byType: (userId: string, configType: string) =>
+    [...favoritesKeys.list(userId), configType] as const,
+};
+
+export const alertsKeys = {
+  all: ['alerts'] as const,
+  list: (userId: string) => [...alertsKeys.all, userId] as const,
+  events: (userId: string) => [...alertsKeys.all, 'events', userId] as const,
+};
+
+export const api3Keys = {
+  all: ['api3'] as const,
+  price: (symbol: string, chain?: string) =>
+    [...api3Keys.all, 'price', symbol, chain ?? 'default'] as const,
+  historical: (symbol: string, timeRange: string, chain?: string) =>
+    [...api3Keys.all, 'historical', symbol, timeRange, chain ?? 'default'] as const,
+  dapiCoverage: () => [...api3Keys.all, 'dapi-coverage'] as const,
+  stakingData: () => [...api3Keys.all, 'staking-data'] as const,
+  airnodeStats: () => [...api3Keys.all, 'airnode-stats'] as const,
+  qualityMetrics: () => [...api3Keys.all, 'quality-metrics'] as const,
+  latencyDistribution: () => [...api3Keys.all, 'latency-distribution'] as const,
+};
+
 export const queryKeys = {
   oracle: oracleKeys,
   price: priceKeys,
   network: networkKeys,
+  favorites: favoritesKeys,
+  alerts: alertsKeys,
+  api3: api3Keys,
 } as const;
 
 export type OracleListParams = Parameters<typeof oracleKeys.list>[0];

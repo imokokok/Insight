@@ -75,7 +75,7 @@ export interface UsePriceQueryReturn {
   setSelectedTimeRange: (timeRange: number) => void;
   queryResults: QueryResult[];
   historicalData: Partial<Record<string, PriceData[]>>;
-  loading: boolean;
+  isLoading: boolean;
   filterText: string;
   setFilterText: (text: string) => void;
   sortField: 'oracle' | 'blockchain' | 'price' | 'timestamp';
@@ -90,8 +90,8 @@ export interface UsePriceQueryReturn {
   historyItems: QueryHistoryItem[];
   selectedRow: string | null;
   setSelectedRow: (row: string | null) => void;
-  compareMode: boolean;
-  setCompareMode: (mode: boolean) => void;
+  isCompareMode: boolean;
+  setIsCompareMode: (mode: boolean) => void;
   compareTimeRange: number;
   setCompareTimeRange: (timeRange: number) => void;
   compareHistoricalData: Partial<Record<string, PriceData[]>>;
@@ -166,7 +166,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
   const [selectedTimeRange, setSelectedTimeRange] = useState<number>(24);
   const [queryResults, setQueryResults] = useState<QueryResult[]>([]);
   const [historicalData, setHistoricalData] = useState<Partial<Record<string, PriceData[]>>>({});
-  const [loading, setLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filterText, setFilterText] = useState<string>('');
   const [sortField, setSortField] = useState<'oracle' | 'blockchain' | 'price' | 'timestamp'>(
     'oracle'
@@ -186,7 +186,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
   const [showHistory, setShowHistory] = useState(false);
   const [historyItems, setHistoryItems] = useState<QueryHistoryItem[]>([]);
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
-  const [compareMode, setCompareMode] = useState<boolean>(false);
+  const [isCompareMode, setIsCompareMode] = useState<boolean>(false);
   const [compareTimeRange, setCompareTimeRange] = useState<number>(24);
   const [compareHistoricalData, setCompareHistoricalData] = useState<
     Partial<Record<string, PriceData[]>>
@@ -380,7 +380,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
   }, [queryResults, selectedSymbol, selectedOracles, selectedChains, generateFilename]);
 
   const fetchQueryData = useCallback(async () => {
-    setLoading(true);
+    setIsLoading(true);
     const startTime = Date.now();
     setQueryStartTime(startTime);
     setQueryDuration(null);
@@ -400,7 +400,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
       }
     }
 
-    const actualTotalQueries = compareMode ? totalQueries * 2 : totalQueries;
+    const actualTotalQueries = isCompareMode ? totalQueries * 2 : totalQueries;
     setQueryProgress({ completed: 0, total: actualTotalQueries });
 
     try {
@@ -449,7 +449,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
       setQueryResults(results);
       setHistoricalData(histories);
 
-      if (compareMode) {
+      if (isCompareMode) {
         const compareResults: QueryResult[] = [];
         const compareHistories: Partial<Record<string, PriceData[]>> = {};
 
@@ -514,7 +514,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
       );
     } finally {
       if (isMounted) {
-        setLoading(false);
+        setIsLoading(false);
         setQueryDuration(Date.now() - startTime);
         setCurrentQueryTarget({ oracle: null, chain: null });
       }
@@ -524,7 +524,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
     selectedChains,
     selectedSymbol,
     selectedTimeRange,
-    compareMode,
+    isCompareMode,
     compareTimeRange,
   ]);
 
@@ -577,7 +577,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
   }, [historicalData, queryResults, selectedTimeRange]);
 
   const compareChartData = useMemo((): ChartDataPoint[] => {
-    if (!compareMode || Object.keys(compareHistoricalData).length === 0) return [];
+    if (!isCompareMode || Object.keys(compareHistoricalData).length === 0) return [];
 
     const timestamps = new Set<number>();
     Object.values(compareHistoricalData).forEach((history) => {
@@ -613,7 +613,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
 
       return dataPoint;
     });
-  }, [compareHistoricalData, compareQueryResults, compareTimeRange, compareMode]);
+  }, [compareHistoricalData, compareQueryResults, compareTimeRange, isCompareMode]);
 
   const sortedQueryResults = useMemo(() => {
     return [...queryResults].sort((a, b) => {
@@ -817,7 +817,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
     setSelectedTimeRange,
     queryResults,
     historicalData,
-    loading,
+    isLoading,
     filterText,
     setFilterText,
     sortField,
@@ -832,8 +832,8 @@ export function usePriceQuery(): UsePriceQueryReturn {
     historyItems,
     selectedRow,
     setSelectedRow,
-    compareMode,
-    setCompareMode,
+    isCompareMode,
+    setIsCompareMode,
     compareTimeRange,
     setCompareTimeRange,
     compareHistoricalData,

@@ -11,22 +11,22 @@ import {
   PERFORMANCE_THRESHOLDS,
 } from '@/lib/monitoring/webVitals';
 
-export type OperationMetric = {
+export interface OperationMetric {
   name: string;
   startTime: number;
   duration: number;
   metadata?: Record<string, unknown>;
-};
+}
 
-export type ComponentRenderMetric = {
+export interface ComponentRenderMetric {
   componentName: string;
   renderTime: number;
   renderCount: number;
   mountTime?: number;
   updateCount?: number;
-};
+}
 
-export type PerformanceReport = {
+export interface PerformanceReport {
   timestamp: number;
   url: string;
   webVitals: WebVitalMetric[];
@@ -37,7 +37,7 @@ export type PerformanceReport = {
     totalJSHeapSize?: number;
     jsHeapSizeLimit?: number;
   };
-};
+}
 
 const isProduction = env.app.isProduction;
 const enableAnalytics = env.features.enableAnalytics;
@@ -349,8 +349,8 @@ export function useResourceTimingMonitor() {
   return { resources, getSlowResources, getResourceByType };
 }
 
-type MemoryInfo = {
+interface MemoryInfo {
   usedJSHeapSize: number;
   totalJSHeapSize: number;
   jsHeapSizeLimit: number;
-};
+}

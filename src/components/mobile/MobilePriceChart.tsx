@@ -138,7 +138,6 @@ function MobilePriceChartBase({
       const { isPinching, isPanning, startDistance, startX } = touchState.current;
 
       if (isPinching && touches.length === 2) {
-        // Handle pinch zoom
         const distance = Math.hypot(
           touches[0].clientX - touches[1].clientX,
           touches[0].clientY - touches[1].clientY
@@ -153,7 +152,6 @@ function MobilePriceChartBase({
         setVisibleRange({ start: newStart, end: newEnd });
         onZoomChange?.({ start: newStart, end: newEnd });
       } else if (isPanning && touches.length === 1) {
-        // Handle pan
         const deltaX = touches[0].clientX - startX;
         const sensitivity = 0.5;
         const pointDelta = Math.round((deltaX * sensitivity) / 10);
@@ -186,9 +184,10 @@ function MobilePriceChartBase({
 
   // Handle chart click
   const handleChartClick = useCallback(
-    (e: any) => {
-      if (e && e.activePayload && e.activePayload[0]) {
-        const point = e.activePayload[0].payload as DataPoint;
+    (e: unknown) => {
+      const event = e as { activePayload?: Array<{ payload: DataPoint }> } | null;
+      if (event && event.activePayload && event.activePayload[0]) {
+        const point = event.activePayload[0].payload as DataPoint;
         setSelectedPoint(point);
         onPointClick?.(point);
       }

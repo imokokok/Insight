@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Icons } from './Icons';
-import { OracleProvider, Blockchain } from '@/lib/oracles';
+import { OracleProvider, Blockchain, BLOCKCHAIN_VALUES } from '@/lib/oracles';
 import { symbols, oracleColors, chainColors, TIME_RANGES, oracleI18nKeys } from '../constants';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { SegmentedControl, MultiSelect, SelectorOption } from '@/components/ui/selectors';
@@ -17,11 +17,11 @@ interface SelectorsProps {
   setSelectedSymbol: (symbol: string) => void;
   selectedTimeRange: number;
   setSelectedTimeRange: (timeRange: number) => void;
-  loading: boolean;
+  isLoading: boolean;
   onQuery: () => void;
   supportedChainsBySelectedOracles: Set<Blockchain>;
-  compareMode?: boolean;
-  setCompareMode?: (mode: boolean) => void;
+  isCompareMode?: boolean;
+  setIsCompareMode?: (mode: boolean) => void;
   compareTimeRange?: number;
   setCompareTimeRange?: (timeRange: number) => void;
   showBaseline?: boolean;
@@ -37,11 +37,11 @@ export function Selectors({
   setSelectedSymbol,
   selectedTimeRange,
   setSelectedTimeRange,
-  loading,
+  isLoading,
   onQuery,
   supportedChainsBySelectedOracles,
-  compareMode = false,
-  setCompareMode,
+  isCompareMode = false,
+  setIsCompareMode,
   compareTimeRange = 24,
   setCompareTimeRange,
   showBaseline = false,
@@ -69,7 +69,7 @@ export function Selectors({
     })
   );
 
-  const chainOptions: SelectorOption<Blockchain>[] = Object.values(Blockchain).map((chain) => ({
+  const chainOptions: SelectorOption<Blockchain>[] = BLOCKCHAIN_VALUES.map((chain) => ({
     value: chain,
     label: t(`blockchain.${chain.toLowerCase()}`),
     color: chainColors[chain],
@@ -89,7 +89,7 @@ export function Selectors({
     if (supportedChains.length > 0) {
       setSelectedChains(supportedChains);
     } else {
-      setSelectedChains(Object.values(Blockchain));
+      setSelectedChains([...BLOCKCHAIN_VALUES]);
     }
   };
 
@@ -102,15 +102,15 @@ export function Selectors({
         </h2>
         <button
           onClick={onQuery}
-          disabled={loading}
+          disabled={isLoading}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md"
         >
-          {loading ? (
+          {isLoading ? (
             <div className="w-3 h-3 border-2 border-white border-t-transparent animate-spin" />
           ) : (
             <Icons.refresh className="w-3 h-3" />
           )}
-          {loading ? t('priceQuery.loading') : t('priceQuery.query')}
+          {isLoading ? t('priceQuery.loading') : t('priceQuery.query')}
         </button>
       </div>
 
@@ -186,8 +186,8 @@ export function Selectors({
               <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
                 <input
                   type="checkbox"
-                  checked={compareMode}
-                  onChange={(e) => setCompareMode?.(e.target.checked)}
+                  checked={isCompareMode}
+                  onChange={(e) => setIsCompareMode?.(e.target.checked)}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
                 />
                 <span className="text-xs font-medium text-gray-700">
@@ -207,7 +207,7 @@ export function Selectors({
                 </span>
               </label>
 
-              {compareMode && (
+              {isCompareMode && (
                 <div className="pt-2 border-t border-gray-200 mt-2">
                   <SegmentedControl
                     options={timeRangeOptions}

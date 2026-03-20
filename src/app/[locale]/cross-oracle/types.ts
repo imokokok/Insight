@@ -8,6 +8,8 @@ import {
 } from './constants';
 import { TabId } from './components/TabNavigation';
 
+export type { TimeRange } from './constants';
+
 // 跨预言机对比数据
 export interface CrossOracleData {
   asset?: string;
@@ -98,7 +100,7 @@ export interface UseCrossOraclePageReturn {
     oracleNames: string[];
   };
   oracleChartColors: Record<OracleProvider, string>;
-  getChartData: () => any[];
+  getChartData: () => ChartDataPoint[];
   heatmapData: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[];
   boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
   volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
@@ -122,7 +124,7 @@ export interface UseCrossOraclePageReturn {
     oracle: OracleProvider;
     prices: { timestamp: number; price: number; high: number; low: number; close: number }[];
   }[];
-  qualityTrendData: { oracle: OracleProvider; data: any[] }[];
+  qualityTrendData: QualityTrendData[];
   qualityScoreData: {
     freshness: { lastUpdated: Date };
     completeness: { successCount: number; totalCount: number };
@@ -164,15 +166,43 @@ export interface PriceStatsResult {
   currentStats: SnapshotStats;
 }
 
+export interface ChartDataPoint {
+  timestamp: string;
+  rawTimestamp: number;
+  fullTimestamp?: Date;
+  avgPrice?: number;
+  stdDev?: number;
+  upperBound1?: number;
+  lowerBound1?: number;
+  upperBound2?: number;
+  lowerBound2?: number;
+  oracleCount?: number;
+  [key: string]: string | number | Date | undefined;
+}
+
 export interface ChartDataResult {
   oracleChartColors: Record<OracleProvider, string>;
-  getChartData: () => any[];
+  getChartData: () => ChartDataPoint[];
   heatmapData: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[];
   boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
   volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
   correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
   latencyData: number[];
   performanceData: import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[];
+}
+
+export interface QualityTrendDataPoint {
+  timestamp: number;
+  updateLatency: number;
+  deviationFromMedian: number;
+  isOutlier: boolean;
+  isStale: boolean;
+  heartbeatCompliance: number;
+}
+
+export interface QualityTrendData {
+  oracle: OracleProvider;
+  data: QualityTrendDataPoint[];
 }
 
 export interface TechnicalIndicatorsResult {
@@ -193,7 +223,7 @@ export interface TechnicalIndicatorsResult {
     oracle: OracleProvider;
     prices: { timestamp: number; price: number; high: number; low: number; close: number }[];
   }[];
-  qualityTrendData: { oracle: OracleProvider; data: any[] }[];
+  qualityTrendData: QualityTrendData[];
   qualityScoreData: {
     freshness: { lastUpdated: Date };
     completeness: { successCount: number; totalCount: number };

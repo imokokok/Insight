@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/stores/authStore';
 import { queries } from '@/lib/supabase/client';
+import { AuthenticationError } from '@/lib/errors';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import type { UserFavorite } from '@/lib/supabase/queries';
 
@@ -67,7 +68,9 @@ export function useAddFavorite() {
   const addFavorite = useCallback(
     async (name: string, configType: ConfigType, configData: FavoriteConfig) => {
       if (!user) {
-        throw new Error('User must be logged in to add favorites');
+        throw new AuthenticationError('User must be logged in to add favorites', {
+          reason: 'not_authenticated',
+        });
       }
 
       setIsAdding(true);
@@ -105,7 +108,9 @@ export function useRemoveFavorite() {
   const removeFavorite = useCallback(
     async (favoriteId: string, configType?: ConfigType) => {
       if (!user) {
-        throw new Error('User must be logged in to remove favorites');
+        throw new AuthenticationError('User must be logged in to remove favorites', {
+          reason: 'not_authenticated',
+        });
       }
 
       setIsRemoving(true);
@@ -143,7 +148,9 @@ export function useToggleFavorite() {
   const toggleFavorite = useCallback(
     async (name: string, configType: ConfigType, configData: FavoriteConfig) => {
       if (!user) {
-        throw new Error('User must be logged in to toggle favorites');
+        throw new AuthenticationError('User must be logged in to toggle favorites', {
+          reason: 'not_authenticated',
+        });
       }
 
       setIsToggling(true);
@@ -203,7 +210,9 @@ export function useUpdateFavorite() {
       configType?: ConfigType
     ) => {
       if (!user) {
-        throw new Error('User must be logged in to update favorites');
+        throw new AuthenticationError('User must be logged in to update favorites', {
+          reason: 'not_authenticated',
+        });
       }
 
       setIsUpdating(true);

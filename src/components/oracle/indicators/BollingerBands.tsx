@@ -124,13 +124,22 @@ export function BollingerBands({
     return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{ payload: BollingerDataPoint }>;
+    label?: string | number;
+  }) => {
     if (!active || !payload || payload.length === 0) return null;
 
     const data = payload[0].payload;
+    const timestamp = typeof label === 'number' ? label : 0;
     return (
       <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-lg">
-        <p className="text-sm font-medium text-gray-900 mb-2">{formatTime(label)}</p>
+        <p className="text-sm font-medium text-gray-900 mb-2">{formatTime(timestamp)}</p>
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-4">
             <span className="text-sm text-gray-600">{t('charts.bollinger.price')}:</span>

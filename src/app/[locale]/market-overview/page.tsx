@@ -35,9 +35,9 @@ export default function MarketOverviewPage() {
     comparisonData,
     benchmarkData,
     correlationData,
-    loading,
-    loadingEnhanced,
-    loadingComparison,
+    isLoading,
+    isLoadingEnhanced,
+    isLoadingComparison,
     lastUpdated,
     selectedTimeRange,
     setSelectedTimeRange,
@@ -66,7 +66,7 @@ export default function MarketOverviewPage() {
     <div className="min-h-screen bg-insight">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <MarketHeader
-          loading={loading}
+          loading={isLoading}
           oracleData={oracleData}
           assets={assets}
           chartContainerRef={chartContainerRef}
@@ -121,9 +121,9 @@ export default function MarketOverviewPage() {
                   showConfidenceInterval={showConfidenceInterval}
                   setShowConfidenceInterval={setShowConfidenceInterval}
                   getChartTitle={getChartTitle}
-                  loading={loading}
-                  loadingEnhanced={loadingEnhanced}
-                  loadingComparison={loadingComparison}
+                  loading={isLoading}
+                  loadingEnhanced={isLoadingEnhanced}
+                  loadingComparison={isLoadingComparison}
                   sortedOracleData={sortedOracleData}
                   trendData={trendData}
                   chainBreakdown={chainBreakdown}

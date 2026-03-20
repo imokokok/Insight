@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { OracleProvider, PriceData } from '@/types/oracle';
-import { TechnicalIndicatorsResult } from './types';
+import { TechnicalIndicatorsResult, QualityTrendDataPoint } from './types';
 
 export function useTechnicalIndicators(
   historicalData: Partial<Record<OracleProvider, PriceData[]>>,
@@ -58,7 +58,7 @@ export function useTechnicalIndicators(
   const qualityTrendData = useMemo(() => {
     return selectedOracles.map((oracle) => {
       const history = historicalData[oracle] || [];
-      const data: any[] = [];
+      const data: QualityTrendDataPoint[] = [];
 
       for (let i = 0; i < history.length; i++) {
         const point = history[i];

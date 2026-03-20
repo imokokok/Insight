@@ -7,6 +7,7 @@ import {
   type PriceHistoryParams,
   type PriceListParams,
 } from '@/lib/queries/queryKeys';
+import { PriceFetchError } from '@/lib/errors';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 import type { PriceData, PriceDataForChart } from '@/types/oracle/price';
 
@@ -34,7 +35,10 @@ export function usePrefetchOracleData() {
           const response = await fetch(url);
 
           if (!response.ok) {
-            throw new Error('Failed to fetch oracle data');
+            throw new PriceFetchError('Failed to fetch oracle data', {
+              provider: params.provider,
+              retryable: true,
+            });
           }
 
           return response.json();
@@ -63,7 +67,12 @@ export function usePrefetchOraclePrices() {
           const response = await fetch(`/api/oracles?${searchParams.toString()}`);
 
           if (!response.ok) {
-            throw new Error('Failed to fetch oracle prices');
+            throw new PriceFetchError('Failed to fetch oracle prices', {
+              provider: params.provider,
+              symbols: params.symbols,
+              chain: params.chain,
+              retryable: true,
+            });
           }
 
           const data = await response.json();
@@ -96,7 +105,12 @@ export function usePrefetchPriceHistory() {
           const response = await fetch(`/api/oracles/history?${searchParams.toString()}`);
 
           if (!response.ok) {
-            throw new Error('Failed to fetch price history');
+            throw new PriceFetchError('Failed to fetch price history', {
+              symbol: params.symbol,
+              provider: params.provider,
+              chain: params.chain,
+              retryable: true,
+            });
           }
 
           const data = await response.json();

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useUser } from '@/stores/authStore';
-import { OracleSnapshot } from '@/types/oracle';
+import type { OracleSnapshot } from '@/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 import { formatTimestamp, getTimeAgo } from '@/types/common/timestamps';
 import {
   getSnapshotsFromDatabase,
@@ -18,7 +19,6 @@ import {
   clearLocalStorageSnapshots,
   markMigrationComplete,
 } from '@/lib/snapshots';
-import { OracleProvider } from '@/types/oracle';
 import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 

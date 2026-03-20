@@ -1,6 +1,6 @@
 'use client';
 
-import { ConfidenceInterval } from '@/types/oracle';
+import type { ConfidenceInterval } from '@/types/oracle';
 import { useTranslations } from 'next-intl';
 
 interface ConfidenceIntervalDisplayProps {

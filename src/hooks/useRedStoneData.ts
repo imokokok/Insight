@@ -3,7 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { RedStoneClient } from '@/lib/oracles/redstone';
-import { PriceData, Blockchain } from '@/types/oracle';
+import { Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 
 const redstoneClient = new RedStoneClient();
 

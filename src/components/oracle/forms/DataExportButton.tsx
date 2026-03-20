@@ -13,8 +13,10 @@ export interface ExportColumn {
   label: string;
 }
 
+export type ExportDataRow = Record<string, string | number | boolean | null | undefined | string[]>;
+
 interface DataExportButtonProps {
-  data: any[];
+  data: ExportDataRow[];
   filename: string;
   columns?: ExportColumn[];
   className?: string;
@@ -32,9 +34,16 @@ function formatDateTime(date: Date): string {
   return `${year}${month}${day}_${hours}${minutes}${seconds}`;
 }
 
-function escapeCSVValue(value: any): string {
+function escapeCSVValue(value: string | number | boolean | null | undefined | string[]): string {
   if (value === null || value === undefined) {
     return '';
+  }
+  if (Array.isArray(value)) {
+    const stringValue = value.join(';');
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
   }
   const stringValue = String(value);
   if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
@@ -43,7 +52,7 @@ function escapeCSVValue(value: any): string {
   return stringValue;
 }
 
-function convertToCSV(data: any[], columns?: ExportColumn[]): string {
+function convertToCSV(data: ExportDataRow[], columns?: ExportColumn[]): string {
   if (!data || data.length === 0) {
     return '';
   }
@@ -65,7 +74,7 @@ function convertToCSV(data: any[], columns?: ExportColumn[]): string {
   return [headerLine, ...rows].join('\n');
 }
 
-function convertToJSON(data: any[]): string {
+function convertToJSON(data: ExportDataRow[]): string {
   return JSON.stringify(data, null, 2);
 }
 

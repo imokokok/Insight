@@ -11,18 +11,18 @@ import {
   type MetricName,
 } from './webVitals';
 
-type SentryUser = {
+interface SentryUser {
   id: string;
   email?: string;
   username?: string;
-};
+}
 
-type Breadcrumb = {
+interface Breadcrumb {
   category: string;
   message: string;
   level?: 'info' | 'warning' | 'error';
   data?: Record<string, unknown>;
-};
+}
 
 export const captureException = (error: Error, context?: Record<string, unknown>) => {
   console.error('[Error]', error, context);

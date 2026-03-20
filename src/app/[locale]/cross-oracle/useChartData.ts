@@ -3,7 +3,7 @@ import { OracleProvider, PriceData } from '@/types/oracle';
 import { oracleNames, TimeRange } from './constants';
 import { getMaxPointsForTimeRange, getOracleChartColors } from './chartConfig';
 import { lttbDownsample } from '@/lib/utils/lttb';
-import { ChartDataResult } from './types';
+import { ChartDataResult, ChartDataPoint } from './types';
 
 export function useChartData(
   historicalData: Partial<Record<OracleProvider, PriceData[]>>,
@@ -17,7 +17,7 @@ export function useChartData(
     return getOracleChartColors(useAccessibleColors);
   }, [useAccessibleColors]);
 
-  const getChartData = useCallback(() => {
+  const getChartData = useCallback((): ChartDataPoint[] => {
     if (Object.keys(historicalData).length === 0) return [];
 
     const maxPoints = getMaxPointsForTimeRange(timeRange);
@@ -42,7 +42,7 @@ export function useChartData(
     const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
 
     return sortedTimestamps.map((timestamp) => {
-      const point: Record<string, string | number | Date | undefined> = {
+      const point: ChartDataPoint = {
         timestamp: new Date(timestamp).toLocaleTimeString(),
         fullTimestamp: new Date(timestamp),
         rawTimestamp: timestamp,
