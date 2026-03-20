@@ -61,7 +61,7 @@ export function StatsSection({
 
   return (
     <div className="mb-8">
-      {/* 交易对信息卡片 - Dune 风格扁平化 */}
+      {/* 交易对信息卡片 - Clean Finance 风格扁平化 */}
       <div className="mb-6 border-b border-gray-200 pb-4">
         <div className="flex flex-col lg:flex-row lg:items-start gap-6">
           {/* 左侧：交易对主信息 */}

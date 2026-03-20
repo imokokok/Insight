@@ -27,9 +27,9 @@
   --background: #fafafa;
   --foreground: #171717;
 
-  /* Dune Style - Flat Design */
-  --bg-dune: #fafafa;
-  --border-dune-separator: #e5e7eb;
+  /* Insight Clean Finance Style - Minimalist Flat Design */
+  --bg-insight: #fafafa;
+  --border-insight-separator: #e5e7eb;
 
   /* Primary Brand Colors */
   --finance-primary: #1e40af;
@@ -164,47 +164,47 @@ body {
   cursor: not-allowed;
 }
 
-/* Card Base Styles - Dune Style Flat Design */
+/* Card Base Styles - Insight Clean Finance Style */
 .card {
   background-color: var(--background);
   border-radius: 0;
-  border: 1px solid var(--border-dune-separator);
+  border: 1px solid var(--border-insight-separator);
   box-shadow: none;
 }
 
 .card-hover {
   background-color: var(--background);
   border-radius: 0;
-  border: 1px solid var(--border-dune-separator);
+  border: 1px solid var(--border-insight-separator);
   box-shadow: none;
   transition: all 0.3s;
 }
 
 .card-hover:hover {
   border-color: var(--finance-neutral);
-  background-color: var(--bg-dune);
+  background-color: var(--bg-insight);
 }
 
-/* Dune Style Utilities */
-.bg-dune {
-  background-color: var(--bg-dune);
+/* Insight Clean Finance Utilities */
+.bg-insight {
+  background-color: var(--bg-insight);
 }
 
-.border-dune-separator {
-  border-color: var(--border-dune-separator);
+.border-insight-separator {
+  border-color: var(--border-insight-separator);
 }
 
-/* Dune Style Stat Grid */
+/* Insight Clean Finance Stat Grid */
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 0;
-  border: 1px solid var(--border-dune-separator);
+  border: 1px solid var(--border-insight-separator);
 }
 
 .stat-grid > * {
-  border-right: 1px solid var(--border-dune-separator);
-  border-bottom: 1px solid var(--border-dune-separator);
+  border-right: 1px solid var(--border-insight-separator);
+  border-bottom: 1px solid var(--border-insight-separator);
   padding: 1.5rem;
 }
 

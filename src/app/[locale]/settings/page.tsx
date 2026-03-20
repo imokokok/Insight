@@ -59,7 +59,7 @@ export default function SettingsPage() {
   // 等待初始化和挂载完成
   if (loading || !initialized || !mounted) {
     return (
-      <div className="min-h-screen bg-dune">
+      <div className="min-h-screen bg-insight">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="flex items-center gap-3 mb-8">
@@ -91,7 +91,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="bg-dune min-h-screen">
+    <div className="bg-insight min-h-screen">
       <SettingsLayout activeTab={activeTab} onTabChange={setActiveTab}>
         {activeTab === 'profile' && <ProfilePanel />}
         {activeTab === 'preferences' && <PreferencesPanel />}

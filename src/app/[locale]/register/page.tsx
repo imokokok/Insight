@@ -85,7 +85,7 @@ export default function RegisterPage() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-dune px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white border border-gray-200 p-8 text-center">
             <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -135,7 +135,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dune px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
       <div className="w-full max-w-md">
         <div className="bg-white border border-gray-200 p-8">
           <div className="text-center mb-8">

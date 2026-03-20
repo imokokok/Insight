@@ -243,7 +243,7 @@ export default function RedStonePage() {
   }
 
   return (
-    <div className="min-h-screen bg-dune">
+    <div className="min-h-screen bg-insight">
       <PageHeader
         title={t('redstone.title')}
         subtitle={t('redstone.subtitle')}
@@ -253,7 +253,7 @@ export default function RedStonePage() {
         isRefreshing={isRefreshing}
       />
 
-      <div className="bg-dune border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-insight border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <TabNavigation
             activeTab={activeTab}
@@ -264,7 +264,7 @@ export default function RedStonePage() {
         </div>
       </div>
 
-      <main className="flex-1 bg-dune">
+      <main className="flex-1 bg-insight">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <StatGrid className="mb-6">
             {stats.map((stat, index) => (
@@ -338,7 +338,7 @@ export default function RedStonePage() {
 
           {activeTab === 'providers' && (
             <div className="space-y-6">
-              {/* Stats Cards - Dune Style */}
+              {/* Stats Cards - Clean Finance Style */}
               <StatGrid>
                 <StatGridItem
                   title={t('redstone.providers.dataSources')}
@@ -441,7 +441,7 @@ export default function RedStonePage() {
                   </div>
                 </div>
 
-                {/* Providers List - Dune Style */}
+                {/* Providers List - Clean Finance Style */}
                 <div className="border border-gray-200 divide-y divide-gray-200">
                   {providersLoading ? (
                     <div className="text-center py-8 text-gray-500">
@@ -663,7 +663,7 @@ export default function RedStonePage() {
 
           {activeTab === 'cross-chain' && (
             <div className="space-y-6">
-              {/* Cross Chain Stats - Dune Style */}
+              {/* Cross Chain Stats - Clean Finance Style */}
               <StatGrid>
                 <StatGridItem
                   title={t('redstone.crossChain.supportedChains')}
@@ -731,7 +731,7 @@ export default function RedStonePage() {
                 />
               </StatGrid>
 
-              {/* Chain List - Dune Style */}
+              {/* Chain List - Clean Finance Style */}
               <DashboardCard title={t('redstone.crossChain.chainList')}>
                 <div className="border border-gray-200 divide-y divide-gray-200">
                   {SUPPORTED_CHAINS.map((chain, index) => (
@@ -780,7 +780,7 @@ export default function RedStonePage() {
 
           {activeTab === 'ecosystem' && (
             <div className="space-y-6">
-              {/* Ecosystem Stats - Dune Style */}
+              {/* Ecosystem Stats - Clean Finance Style */}
               <StatGrid>
                 <StatGridItem
                   title={t('redstone.ecosystem.integrations')}
@@ -857,7 +857,7 @@ export default function RedStonePage() {
                 />
               </StatGrid>
 
-              {/* Categorized Integrations - Dune Style */}
+              {/* Categorized Integrations - Clean Finance Style */}
               {Object.entries(ecosystemByCategory).map(([category, items]) => (
                 <DashboardCard
                   key={category}

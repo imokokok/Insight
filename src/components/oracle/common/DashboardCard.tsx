@@ -91,7 +91,7 @@ export function StatCard({
   );
 }
 
-// Dune-style flat stat grid for consistent border handling
+// Clean Finance Style - Flat stat grid for consistent border handling
 interface StatGridProps {
   children: ReactNode;
   className?: string;

@@ -161,7 +161,7 @@ export default function TellorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-dune">
+    <div className="min-h-screen bg-insight">
       <PageHeader
         title={t('tellor.title')}
         subtitle={t('tellor.subtitle')}
@@ -171,7 +171,7 @@ export default function TellorPage() {
         isRefreshing={isRefreshing}
       />
 
-      <div className="bg-dune border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-insight border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <TabNavigation
             activeTab={activeTab}
@@ -182,7 +182,7 @@ export default function TellorPage() {
         </div>
       </div>
 
-      <main className="flex-1 bg-dune">
+      <main className="flex-1 bg-insight">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-white border border-gray-200">
             {stats.map((stat, index) => (
