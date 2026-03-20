@@ -106,7 +106,7 @@ function generateTypes() {
 export type IntlMessages = ${messagesType};
 
 export type TranslationKey = 
-${uniqueKeys.map(key => `  | '${key}'`).join('\n')};
+${uniqueKeys.map((key) => `  | '${key}'`).join('\n')};
 `;
 
   const outputDir = path.dirname(OUTPUT_FILE);

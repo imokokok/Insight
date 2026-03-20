@@ -1,10 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { TRONEcosystem, TRONDApp, TRONNetworkGrowth } from '@/lib/oracles/winklink';
+import { TRONEcosystem, TRONNetworkGrowth } from '@/lib/oracles/winklink';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import {
-  Globe,
   Zap,
   Users,
   Activity,
@@ -231,9 +230,10 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
                   const prevMonth = index > 0 ? data.networkGrowth![index - 1] : null;
                   const monthTvl = month.tvl ?? 0;
                   const prevMonthTvl = prevMonth?.tvl ?? 0;
-                  const tvlGrowth = prevMonth && prevMonthTvl > 0
-                    ? (((monthTvl - prevMonthTvl) / prevMonthTvl) * 100).toFixed(1)
-                    : '0';
+                  const tvlGrowth =
+                    prevMonth && prevMonthTvl > 0
+                      ? (((monthTvl - prevMonthTvl) / prevMonthTvl) * 100).toFixed(1)
+                      : '0';
                   const isPositive = parseFloat(tvlGrowth) >= 0;
                   return (
                     <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">

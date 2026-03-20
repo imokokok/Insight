@@ -219,8 +219,6 @@ export function ComparisonTabs({
         <OracleComparisonSection
           priceData={priceData}
           benchmarkOracle={selectedOracles[0]}
-          showCharts={true}
-          showRadar={true}
           showTable={true}
         />
       )}

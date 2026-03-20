@@ -21,7 +21,7 @@ async function checkServerStatus() {
       'curl -s -o /dev/null -w "%{http_code}" http://localhost:3000'
     );
     return stdout.trim() === '200';
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }

@@ -266,8 +266,12 @@ export function usePriceQuery(): UsePriceQueryReturn {
     if (!hasUrlParams) {
       applyPreferences();
     } else {
-      setSelectedOracles((prev) => (config.oracles && config.oracles.length > 0 ? config.oracles : prev));
-      setSelectedChains((prev) => (config.chains && config.chains.length > 0 ? config.chains : prev));
+      setSelectedOracles((prev) =>
+        config.oracles && config.oracles.length > 0 ? config.oracles : prev
+      );
+      setSelectedChains((prev) =>
+        config.chains && config.chains.length > 0 ? config.chains : prev
+      );
       setSelectedSymbol((prev) => (config.symbol ? config.symbol : prev));
       setSelectedTimeRange((prev) => (config.timeRange ? config.timeRange : prev));
     }
@@ -383,7 +387,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
     setQueryProgress({ completed: 0, total: 0 });
     setCurrentQueryTarget({ oracle: null, chain: null });
 
-    let isMounted = true;
+    const isMounted = true;
 
     let totalQueries = 0;
     for (const provider of selectedOracles) {

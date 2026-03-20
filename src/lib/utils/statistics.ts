@@ -199,7 +199,9 @@ export function calculateHistogram(
     const binMax = min + (i + 1) * binSize;
     // 使用 Number.EPSILON 处理边界值问题
     const count = data.filter(
-      (v) => v >= binMin - Number.EPSILON && (i === binCount - 1 ? v <= binMax + Number.EPSILON : v < binMax - Number.EPSILON)
+      (v) =>
+        v >= binMin - Number.EPSILON &&
+        (i === binCount - 1 ? v <= binMax + Number.EPSILON : v < binMax - Number.EPSILON)
     ).length;
 
     bins.push({

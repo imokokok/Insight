@@ -14,7 +14,6 @@ import {
 import { useTranslations } from 'next-intl';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
 import { updateUserProfile } from '@/lib/supabase/auth';
-import { OracleProvider } from '@/types/oracle';
 import { DropdownSelect, SegmentedControl } from '@/components/ui/selectors';
 
 interface UserPreferences {

@@ -23,7 +23,7 @@ import {
   calculateBollingerBands,
   calculateRollingStdDev,
 } from '@/lib/indicators';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 export interface OraclePriceHistory {
   oracle: OracleProvider;

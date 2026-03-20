@@ -327,12 +327,13 @@ function saveReport(report, outputPath) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const verbose = args.includes('--verbose') || args.includes('-v');
+  const _verbose = args.includes('--verbose') || args.includes('-v');
   const outputJson = args.includes('--json');
 
   console.log('🔍 开始翻译验证...\n');
 
-  const { messages: enMessages, namespaceMap: enNamespaceMap } = loadTranslationsWithNamespace(EN_MESSAGES_DIR);
+  const { messages: enMessages, namespaceMap: _enNamespaceMap } =
+    loadTranslationsWithNamespace(EN_MESSAGES_DIR);
   const { messages: zhMessages } = loadTranslationsWithNamespace(ZH_MESSAGES_DIR);
 
   const enKeys = flattenKeys(enMessages);

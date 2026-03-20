@@ -91,7 +91,7 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
   const tellorSecurityEvents = getTellorSecurityEvents(t);
   const tellorMitigationMeasures = getTellorMitigationMeasures();
 
-  const getRiskLevelColor = (level: 'low' | 'medium' | 'high') => {
+  const _getRiskLevelColor = (level: 'low' | 'medium' | 'high') => {
     switch (level) {
       case 'low':
         return 'text-green-600 bg-green-50 border-green-200';

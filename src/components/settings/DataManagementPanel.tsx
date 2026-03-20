@@ -84,7 +84,7 @@ export function DataManagementPanel() {
       URL.revokeObjectURL(url);
 
       showSuccess(t('settings.data.exportSuccess'));
-    } catch (err) {
+    } catch (_err) {
       setError(t('settings.data.exportError'));
     } finally {
       setIsExporting(false);
@@ -121,7 +121,7 @@ export function DataManagementPanel() {
       URL.revokeObjectURL(url);
 
       showSuccess(t('settings.data.priceHistoryExportSuccess'));
-    } catch (err) {
+    } catch (_err) {
       setError(t('settings.data.exportError'));
     } finally {
       setIsExporting(false);
@@ -154,7 +154,7 @@ export function DataManagementPanel() {
       URL.revokeObjectURL(url);
 
       showSuccess(t('settings.data.snapshotsExportSuccess'));
-    } catch (err) {
+    } catch (_err) {
       setError(t('settings.data.exportError'));
     } finally {
       setIsExporting(false);
@@ -179,7 +179,7 @@ export function DataManagementPanel() {
       }
 
       showSuccess(t('settings.data.clearLocalDataSuccess'));
-    } catch (err) {
+    } catch (_err) {
       setError(t('settings.data.clearLocalDataError'));
     } finally {
       setIsClearing(false);
@@ -206,7 +206,7 @@ export function DataManagementPanel() {
 
       await signOut();
       window.location.href = '/';
-    } catch (err) {
+    } catch (_err) {
       setError(t('settings.data.deleteAccountError'));
     } finally {
       setIsDeleting(false);

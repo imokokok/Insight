@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 import { useUser } from '@/stores/authStore';
 import type { AlertEventPayload } from '@/lib/supabase/realtime';
-import type { AlertEvent } from '@/lib/supabase/queries';
 
 export interface RealtimeAlertNotification {
   id: string;
@@ -127,8 +126,8 @@ export function useAlertNotifications(): {
   unreadCount: number;
   requestPermission: () => Promise<boolean>;
 } {
-  const [hasUnreadAlerts, setHasUnreadAlerts] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [hasUnreadAlerts, _setHasUnreadAlerts] = useState(false);
+  const [unreadCount, _setUnreadCount] = useState(0);
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (typeof window === 'undefined' || !('Notification' in window)) {

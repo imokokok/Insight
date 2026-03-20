@@ -59,11 +59,11 @@ function downsampleData(data, config = {}) {
       for (const point of bucket) {
         if (point.price > maxPrice) {
           maxPrice = point.price;
-          maxPoint = point;
+          _maxPoint = point;
         }
         if (point.price < minPrice) {
           minPrice = point.price;
-          minPoint = point;
+          _minPoint = point;
         }
       }
 
@@ -201,7 +201,7 @@ function runPerformanceTests() {
 
 console.log('Starting Chart Performance Tests...\n');
 
-const results = runPerformanceTests();
+const _results = runPerformanceTests();
 
 console.log('\n✅ Performance optimization completed successfully!');
 console.log('All tests passed. Chart rendering time is within target (< 300ms).\n');

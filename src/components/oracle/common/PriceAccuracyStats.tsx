@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import GaugeChart from '@/components/GaugeChart';
 import { useTranslations } from 'next-intl';
 import { AccuracyStats } from '@/hooks/usePriceHistory';
-import { chartColors, semanticColors } from '@/lib/config/colors';
+import { semanticColors } from '@/lib/config/colors';
 
 interface PriceAccuracyStatsProps {
   stats: AccuracyStats;

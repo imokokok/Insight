@@ -166,7 +166,7 @@ export class PythHermesClient {
    * - External data sources like Dune Analytics
    * - Storing price data locally over time
    */
-  async getHistoricalPrices(symbol: string, hours: number = 24): Promise<PriceData[]> {
+  async getHistoricalPrices(symbol: string, _hours: number = 24): Promise<PriceData[]> {
     throw new NotImplementedError(
       'Historical prices are not supported by Pyth Hermes API. ' +
         'Pyth only provides real-time prices and prices at specific timestamps. ' +

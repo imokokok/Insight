@@ -278,7 +278,7 @@ async function main() {
   // 1. 加载翻译文件
   const translations = loadTranslations(EN_MESSAGES_DIR);
   const allKeys = flattenKeys(translations);
-  const nestedKeys = getNestedKeys(translations);
+  const _nestedKeys = getNestedKeys(translations);
 
   console.log(`📦 总共发现 ${allKeys.size} 个翻译键\n`);
 

@@ -73,17 +73,19 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}): UseRe
         } else if (Notification.permission !== 'denied' && !isRequestingPermissionRef.current) {
           // 防止重复请求权限
           isRequestingPermissionRef.current = true;
-          Notification.requestPermission().then((permission) => {
-            isRequestingPermissionRef.current = false;
-            if (permission === 'granted') {
-              new Notification(alertNotificationKeys.priceAlertTriggered, {
-                body: `${alertNotificationKeys.priceReached} ${notification.price}`,
-                icon: '/favicon.ico',
-              });
-            }
-          }).catch(() => {
-            isRequestingPermissionRef.current = false;
-          });
+          Notification.requestPermission()
+            .then((permission) => {
+              isRequestingPermissionRef.current = false;
+              if (permission === 'granted') {
+                new Notification(alertNotificationKeys.priceAlertTriggered, {
+                  body: `${alertNotificationKeys.priceReached} ${notification.price}`,
+                  icon: '/favicon.ico',
+                });
+              }
+            })
+            .catch(() => {
+              isRequestingPermissionRef.current = false;
+            });
         }
       }
 

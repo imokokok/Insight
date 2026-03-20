@@ -155,7 +155,10 @@ export function useRealtimePrices(
   }, []);
 
   const symbolsKey = useMemo(() => {
-    return symbols.map(s => `${s.provider || ''}:${s.symbol}:${s.chain || ''}`).sort().join(',');
+    return symbols
+      .map((s) => `${s.provider || ''}:${s.symbol}:${s.chain || ''}`)
+      .sort()
+      .join(',');
   }, [symbols]);
 
   useEffect(() => {

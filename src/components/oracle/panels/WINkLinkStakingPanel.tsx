@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { NodeStakingData, WINkLinkNode } from '@/lib/oracles/winklink';
+import { NodeStakingData } from '@/lib/oracles/winklink';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Coins, Users, TrendingUp, Award, Globe, CheckCircle } from 'lucide-react';
 

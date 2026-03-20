@@ -243,7 +243,15 @@ export function OraclePageTemplate({
         ),
       },
     ];
-  }, [panelConfig.getStats, panelContext, t, config.networkData.activeNodes, config.networkData.dataFeeds, config.marketData.marketCap, config.supportedChains.length]);
+  }, [
+    panelConfig.getStats,
+    panelContext,
+    t,
+    config.networkData.activeNodes,
+    config.networkData.dataFeeds,
+    config.marketData.marketCap,
+    config.supportedChains.length,
+  ]);
 
   const networkStatusData = useMemo(
     () => [

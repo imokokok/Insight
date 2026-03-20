@@ -74,8 +74,8 @@ function CustomTooltip({ active, payload, label, filteredChains }: CustomTooltip
       <p className="text-gray-600 text-xs mb-3 font-medium border-b border-gray-100 pb-2">
         {label}
       </p>
-      {priceData.map((entry, index: number) => (
-        <div className="mb-2 pb-2 border-b border-gray-100 last:border-0">
+      {priceData.map((entry, _index: number) => (
+        <div key={String(entry.dataKey)} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="w-3 h-3" style={{ backgroundColor: entry.color }} />
             <span className="text-sm font-medium text-gray-900">

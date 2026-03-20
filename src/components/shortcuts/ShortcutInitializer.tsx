@@ -1,6 +1,5 @@
 'use client';
 
-import React, { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useKeyboardShortcuts, useGlobalKeyboardListener } from '@/hooks/useKeyboardShortcuts';
 import { useShortcutContext } from './ShortcutContext';
@@ -11,7 +10,7 @@ import { useUIStore } from '@/stores/uiStore';
  * 负责注册全局快捷键和初始化键盘监听
  */
 export function ShortcutInitializer() {
-  const t = useTranslations();
+  const _t = useTranslations();
   const { toggleHelp } = useShortcutContext();
   const { closeModal } = useUIStore();
 

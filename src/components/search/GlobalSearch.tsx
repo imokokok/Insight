@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations, useLocale } from 'next-intl';
-import { Search, X, Command, ArrowUp, ArrowDown, CornerDownLeft, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Search, X, Command, ArrowUp, ArrowDown, CornerDownLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGlobalSearch } from './useGlobalSearch';
 import { useSearchKeyboardNavigation } from './useSearchKeyboardNavigation';
@@ -188,7 +188,7 @@ function InitialState() {
 // Main GlobalSearch component
 export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const router = useRouter();
-  const locale = useLocale();
+  const _locale = 'en'; // Default locale since useLocale was removed
   const t = useTranslations();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');

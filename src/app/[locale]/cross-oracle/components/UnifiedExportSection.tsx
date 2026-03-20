@@ -1,13 +1,6 @@
 'use client';
 
-/**
- * 多预言机对比页面统一导出组件
- *
- * 使用 UnifiedExport 组件替换原有的导出功能
- */
-
-import { useRef } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { UnifiedExport, ExportField } from '@/components/export';
 import { CrossOracleData } from '../types';
 
@@ -26,9 +19,7 @@ export default function UnifiedExportSection({
   selectedAssets,
   selectedOracles,
 }: UnifiedExportSectionProps) {
-  const t = useTranslations('crossOracle');
-  const locale = useLocale();
-  const isZh = locale === 'zh-CN';
+  const _t = useTranslations('crossOracle');
 
   // 定义导出字段
   const exportFields: ExportField[] = [

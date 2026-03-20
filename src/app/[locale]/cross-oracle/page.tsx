@@ -232,7 +232,6 @@ export default function CrossOraclePage() {
         handleZoomIn={handleZoomIn}
         handleZoomOut={handleZoomOut}
         handleResetZoom={handleResetZoom}
-        getLineStrokeDasharray={getLineStrokeDasharray}
         t={t}
       />
 

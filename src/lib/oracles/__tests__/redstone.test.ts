@@ -127,7 +127,7 @@ describe('RedStoneClient', () => {
 
     it('should handle different spread percentages for different symbols', async () => {
       const btcPrice = await client.getPrice('BTC');
-      const ethPrice = await client.getPrice('ETH');
+      const _ethPrice = await client.getPrice('ETH');
       const solPrice = await client.getPrice('SOL');
 
       expect(btcPrice.confidenceInterval!.widthPercentage).toBeLessThan(

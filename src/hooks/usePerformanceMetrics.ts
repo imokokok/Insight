@@ -58,7 +58,7 @@ export function usePerformanceTracker(operationName: string) {
       const duration = performance.now() - startTimeRef.current;
       isTrackingRef.current = false;
 
-      const metric: OperationMetric = {
+      const _metric: OperationMetric = {
         name: operationName,
         startTime: startTimeRef.current,
         duration,

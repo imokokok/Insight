@@ -433,7 +433,7 @@ describe('Technical Indicators Calculations', () => {
     });
 
     it('should have null signals when no cross occurs', () => {
-      const data = Array.from({ length: 10 }, (_, i) => ({ price: 100 }));
+      const data = Array.from({ length: 10 }, (_i) => ({ price: 100 }));
       const result = calculateMACDExtended(data);
 
       const nullSignals = result.signals.filter((s) => s === null);
@@ -744,7 +744,7 @@ describe('Technical Indicators Calculations', () => {
       const prices = [2, 4, 6, 8, 10];
       const result = calculateRollingStdDev(prices, 5);
 
-      const mean = 6;
+      const _mean = 6;
       const variance = (16 + 4 + 0 + 4 + 16) / 5;
       const expectedStdDev = Math.sqrt(variance);
 

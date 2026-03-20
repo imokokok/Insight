@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useConnectionStatus } from '@/stores/realtimeStore';
 import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
-import type { RealtimePriceData } from '@/hooks/realtime/useRealtimePrice';
 
 export interface NotificationData {
   id: string;
@@ -27,7 +26,7 @@ export interface RealtimeNotificationsProps {
 export function RealtimeNotifications({
   maxNotifications = 5,
   autoHideDuration = 5000,
-  showPriceUpdates = true,
+  showPriceUpdates: _showPriceUpdates = true,
   showAlerts = true,
   showConnectionStatus = true,
   position = 'top-right',

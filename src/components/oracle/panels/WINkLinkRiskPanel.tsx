@@ -351,9 +351,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
               <Activity className="w-4 h-4 text-purple-600" />
               <p className="text-xs text-gray-500">{t('winklink.risk.uptime')}</p>
             </div>
-            <p className="text-xl font-bold text-gray-900">
-              {data.uptime.toFixed(2)}%
-            </p>
+            <p className="text-xl font-bold text-gray-900">{data.uptime.toFixed(2)}%</p>
             <span
               className={`text-xs px-2 py-1 rounded-md ${uptimeRisk.bgColor} ${uptimeRisk.color}`}
             >

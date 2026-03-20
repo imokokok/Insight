@@ -27,7 +27,6 @@ interface FullscreenChartProps {
   handleZoomIn: () => void;
   handleZoomOut: () => void;
   handleResetZoom: () => void;
-  getLineStrokeDasharray: (oracle: OracleProvider) => string;
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
@@ -42,7 +41,6 @@ export function FullscreenChart({
   handleZoomIn,
   handleZoomOut,
   handleResetZoom,
-  getLineStrokeDasharray,
   t,
 }: FullscreenChartProps) {
   if (!isOpen) return null;

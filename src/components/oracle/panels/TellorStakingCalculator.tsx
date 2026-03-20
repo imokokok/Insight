@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { StakingCalculation } from '@/lib/oracles/tellor';
 import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle';
 import { useStakingCalculator } from '@/hooks/useTellorData';
