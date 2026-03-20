@@ -67,11 +67,11 @@ export function ConfidenceIntervalDisplay({
           <div className="flex items-center gap-3">
             <div>
               <span className="text-gray-500">{t('confidenceInterval.bid')}: </span>
-              <span className="font-medium text-green-600">${bid.toFixed(4)}</span>
+              <span className="font-medium text-success-600">${bid.toFixed(4)}</span>
             </div>
             <div>
               <span className="text-gray-500">{t('confidenceInterval.ask')}: </span>
-              <span className="font-medium text-red-600">${ask.toFixed(4)}</span>
+              <span className="font-medium text-danger-600">${ask.toFixed(4)}</span>
             </div>
           </div>
           <div className="text-right">
@@ -93,21 +93,21 @@ export function ConfidenceIntervalDisplay({
               style={{ width: `${100 - bidOffset - askOffset}%` }}
             >
               <div className="flex flex-col items-center">
-                <div className="w-0.5 h-2 bg-blue-400" />
-                <span className="text-[9px] text-blue-600 font-medium">${midPrice.toFixed(2)}</span>
+                <div className="w-0.5 h-2 bg-primary-400" />
+                <span className="text-[9px] text-primary-600 font-medium">${midPrice.toFixed(2)}</span>
               </div>
             </div>
             <div
-              className="bg-gray-100 border border-gray-200 border-l border-red-200"
+              className="bg-gray-100 border border-gray-200 border-l border-danger-200"
               style={{ width: `${askOffset}%` }}
             />
           </div>
 
           <div className="absolute inset-0 flex items-center justify-between px-2">
-            <span className="text-[9px] text-green-700 font-medium">
+            <span className="text-[9px] text-success-700 font-medium">
               {t('confidenceInterval.bidLabel')}
             </span>
-            <span className="text-[9px] text-red-700 font-medium">
+            <span className="text-[9px] text-danger-700 font-medium">
               {t('confidenceInterval.askLabel')}
             </span>
           </div>

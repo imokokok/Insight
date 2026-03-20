@@ -220,9 +220,9 @@ export function PairSelector({
           flex items-center gap-2 px-3 py-2 
           bg-white border border-gray-200 
           hover:border-gray-300 hover:bg-gray-50
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
           transition-all duration-200
-          ${isOpen ? 'border-blue-500 ring-2 ring-blue-500' : ''}
+          ${isOpen ? 'border-primary-500 ring-2 ring-primary-500' : ''}
         `}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
@@ -291,7 +291,7 @@ export function PairSelector({
                 placeholder={t('crossOracle.pairSelector.searchPlaceholder')}
                 className="
                   w-full pl-8 pr-3 py-1.5 text-sm rounded
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
                 "
                 style={{
                   border: `1px solid ${baseColors.gray[200]}`,

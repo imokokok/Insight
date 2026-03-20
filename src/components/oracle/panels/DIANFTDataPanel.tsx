@@ -19,17 +19,17 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
       case Blockchain.POLYGON:
         return 'bg-purple-100 text-purple-700 border-purple-200';
       case Blockchain.ARBITRUM:
-        return 'bg-blue-100 text-blue-700 border-blue-200';
+        return 'bg-primary-100 text-primary-700 border-primary-200';
       case Blockchain.BASE:
         return 'bg-cyan-100 text-cyan-700 border-cyan-200';
       case Blockchain.OPTIMISM:
-        return 'bg-red-100 text-red-700 border-red-200';
+        return 'bg-danger-100 text-danger-700 border-danger-200';
       case Blockchain.AVALANCHE:
         return 'bg-rose-100 text-rose-700 border-rose-200';
       case Blockchain.BNB_CHAIN:
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        return 'bg-warning-100 text-warning-700 border-yellow-200';
       case Blockchain.SOLANA:
-        return 'bg-green-100 text-green-700 border-green-200';
+        return 'bg-success-100 text-success-700 border-green-200';
       default:
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
@@ -59,14 +59,14 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
   };
 
   const getPriceChangeColor = (change: number) => {
-    if (change > 0) return 'text-green-600';
-    if (change < 0) return 'text-red-600';
+    if (change > 0) return 'text-success-600';
+    if (change < 0) return 'text-danger-600';
     return 'text-gray-600';
   };
 
   const getPriceChangeBg = (change: number) => {
-    if (change > 0) return 'bg-green-50';
-    if (change < 0) return 'bg-red-50';
+    if (change > 0) return 'bg-success-50';
+    if (change < 0) return 'bg-danger-50';
     return 'bg-gray-50';
   };
 
@@ -76,15 +76,15 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.95) return 'text-green-600';
-    if (confidence >= 0.9) return 'text-yellow-600';
-    return 'text-orange-600';
+    if (confidence >= 0.95) return 'text-success-600';
+    if (confidence >= 0.9) return 'text-warning-600';
+    return 'text-warning-600';
   };
 
   const getConfidenceBg = (confidence: number) => {
-    if (confidence >= 0.95) return 'bg-green-100';
-    if (confidence >= 0.9) return 'bg-yellow-100';
-    return 'bg-orange-100';
+    if (confidence >= 0.95) return 'bg-success-100';
+    if (confidence >= 0.9) return 'bg-warning-100';
+    return 'bg-warning-100';
   };
 
   if (!nftData) {
@@ -113,7 +113,7 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
           </DashboardCard>
           <DashboardCard className="p-4">
             <p className="text-sm text-gray-600 mb-1">{t('dia.nftData.trendingCount')}</p>
-            <p className="text-2xl font-bold text-green-600">{trending?.length || 0}</p>
+            <p className="text-2xl font-bold text-success-600">{trending?.length || 0}</p>
           </DashboardCard>
           <DashboardCard className="p-4">
             <p className="text-sm text-gray-600 mb-1">{t('dia.nftData.chainsSupported')}</p>

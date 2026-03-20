@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Area,
   AreaChart,
@@ -32,7 +32,9 @@ import {
   calculateOverallScore,
   formatLatency,
 } from '@/lib/utils/riskUtils';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { chartColors } from '@/lib/config/colors';
+
 
 interface DIARiskAssessmentPanelProps {
   className?: string;
@@ -405,7 +407,7 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip
+                <RechartsTooltip
                   formatter={(value, name) => [
                     `${value}%`,
                     t(`dia.dataSourceType.${String(name)}`),
@@ -446,7 +448,7 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('dia.riskAssessment.herfindahlIndex')}</span>
-                <span className="font-medium text-yellow-600">0.18</span>
+                <span className="font-medium text-warning-600">0.18</span>
               </div>
             </div>
           </div>
@@ -459,15 +461,15 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('dia.riskAssessment.anomalies24h')}</span>
-                <span className="font-medium text-green-600">0</span>
+                <span className="font-medium text-success-600">0</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('dia.riskAssessment.suspendedSources')}</span>
-                <span className="font-medium text-green-600">0</span>
+                <span className="font-medium text-success-600">0</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('dia.riskAssessment.detectionAccuracy')}</span>
-                <span className="font-medium text-green-600">98.5%</span>
+                <span className="font-medium text-success-600">98.5%</span>
               </div>
             </div>
           </div>
@@ -480,7 +482,7 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('dia.riskAssessment.consistencyScore')}</span>
-                <span className="font-medium text-green-600">96.8%</span>
+                <span className="font-medium text-success-600">96.8%</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('dia.riskAssessment.deviationThreshold')}</span>
@@ -488,7 +490,7 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('dia.riskAssessment.conflictResolution')}</span>
-                <span className="font-medium text-green-600">&lt; 2s</span>
+                <span className="font-medium text-success-600">&lt; 2s</span>
               </div>
             </div>
           </div>
@@ -507,7 +509,7 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
                 <span className="text-sm font-medium text-gray-900 w-28">{chain.chain}</span>
                 <div className="w-32 h-2 bg-gray-200 overflow-hidden">
                   <div
-                    className="h-full bg-green-500"
+                    className="h-full bg-success-500"
                     style={{ width: `${chain.availability}%` }}
                   />
                 </div>
@@ -553,7 +555,7 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
                 tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 domain={[70, 100]}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Area
                 type="monotone"
                 dataKey="overall"

@@ -7,13 +7,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { chartColors } from '@/lib/config/colors';
+
 
 type TimeRange = '24H' | '7D' | '30D' | '90D';
 
@@ -149,7 +150,7 @@ export function GasFeeTrendChart({ height = 250 }: GasFeeTrendChartProps) {
 
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
   const trendColor =
-    trend === 'up' ? 'text-red-500' : trend === 'down' ? 'text-green-500' : 'text-gray-500';
+    trend === 'up' ? 'text-danger-500' : trend === 'down' ? 'text-success-500' : 'text-gray-500';
   const trendText = trend === 'up' ? '上升' : trend === 'down' ? '下降' : '稳定';
 
   const headerContent = (
@@ -161,10 +162,10 @@ export function GasFeeTrendChart({ height = 250 }: GasFeeTrendChartProps) {
             平均: <span className="font-medium text-gray-700">{stats.avg} Gwei</span>
           </span>
           <span>
-            最高: <span className="font-medium text-red-600">{stats.max} Gwei</span>
+            最高: <span className="font-medium text-danger-600">{stats.max} Gwei</span>
           </span>
           <span>
-            最低: <span className="font-medium text-green-600">{stats.min} Gwei</span>
+            最低: <span className="font-medium text-success-600">{stats.min} Gwei</span>
           </span>
         </div>
       </div>
@@ -176,7 +177,7 @@ export function GasFeeTrendChart({ height = 250 }: GasFeeTrendChartProps) {
               onClick={() => setTimeRange(range)}
               className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
                 timeRange === range
-                  ? 'bg-blue-100 text-blue-700'
+                  ? 'bg-primary-100 text-primary-700'
                   : 'text-gray-500 hover:bg-gray-100'
               }`}
             >
@@ -217,14 +218,14 @@ export function GasFeeTrendChart({ height = 250 }: GasFeeTrendChartProps) {
               axisLine={{ stroke: chartColors.recharts.grid }}
               tickFormatter={(value) => `${value} Gwei`}
             />
-            <Tooltip
+            <RechartsTooltip
               content={({ active, payload, label }) => {
                 if (!active || !payload || payload.length === 0) return null;
                 const gasFee = payload[0].value as number;
                 return (
                   <div className="bg-white border border-gray-200  p-2 ">
                     <p className="text-xs text-gray-500 mb-1">{label}</p>
-                    <p className="text-sm font-bold text-blue-600">Gas费用: {gasFee} Gwei</p>
+                    <p className="text-sm font-bold text-primary-600">Gas费用: {gasFee} Gwei</p>
                   </div>
                 );
               }}
@@ -252,21 +253,21 @@ export function GasFeeTrendChart({ height = 250 }: GasFeeTrendChartProps) {
         </ResponsiveContainer>
       </div>
       <div className="grid grid-cols-4 gap-2 mt-3">
-        <div className="bg-blue-50 rounded p-2 text-center">
+        <div className="bg-primary-50 rounded p-2 text-center">
           <p className="text-xs text-gray-500">当前</p>
-          <p className="text-sm font-bold text-blue-600">{currentGasFee} Gwei</p>
+          <p className="text-sm font-bold text-primary-600">{currentGasFee} Gwei</p>
         </div>
         <div className="bg-gray-50 rounded p-2 text-center">
           <p className="text-xs text-gray-500">平均</p>
           <p className="text-sm font-bold text-gray-700">{stats.avg} Gwei</p>
         </div>
-        <div className="bg-red-50 rounded p-2 text-center">
+        <div className="bg-danger-50 rounded p-2 text-center">
           <p className="text-xs text-gray-500">最高</p>
-          <p className="text-sm font-bold text-red-600">{stats.max} Gwei</p>
+          <p className="text-sm font-bold text-danger-600">{stats.max} Gwei</p>
         </div>
-        <div className="bg-green-50 rounded p-2 text-center">
+        <div className="bg-success-50 rounded p-2 text-center">
           <p className="text-xs text-gray-500">最低</p>
-          <p className="text-sm font-bold text-green-600">{stats.min} Gwei</p>
+          <p className="text-sm font-bold text-success-600">{stats.min} Gwei</p>
         </div>
       </div>
     </DashboardCard>

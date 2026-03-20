@@ -85,10 +85,10 @@ export function DataUpdateTime({
   const freshnessConfig = {
     fresh: {
       icon: CheckCircle2,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      color: 'text-success-600',
+      bgColor: 'bg-success-50',
       borderColor: 'border-green-200',
-      dotColor: 'bg-green-500',
+      dotColor: 'bg-success-500',
     },
     stale: {
       icon: Clock,
@@ -99,10 +99,10 @@ export function DataUpdateTime({
     },
     expired: {
       icon: AlertCircle,
-      color: 'text-red-600',
-      bgColor: 'bg-red-50',
-      borderColor: 'border-red-200',
-      dotColor: 'bg-red-500',
+      color: 'text-danger-600',
+      bgColor: 'bg-danger-50',
+      borderColor: 'border-danger-200',
+      dotColor: 'bg-danger-500',
     },
   };
 
@@ -162,8 +162,8 @@ export function DataUpdateTime({
         </div>
 
         {error && (
-          <div className="mt-3 pt-3 border-t border-red-200">
-            <p className="text-xs text-red-600 flex items-center gap-1">
+          <div className="mt-3 pt-3 border-t border-danger-200">
+            <p className="text-xs text-danger-600 flex items-center gap-1">
               <AlertCircle size={12} />
               {error.message || t('status.error')}
             </p>

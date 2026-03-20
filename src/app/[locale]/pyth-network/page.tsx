@@ -231,7 +231,7 @@ export default function PythNetworkPage() {
                       <span className="text-sm text-gray-600">
                         {t('pyth.stats.updateFrequency')}
                       </span>
-                      <span className="text-sm font-semibold text-green-600">
+                      <span className="text-sm font-semibold text-success-600">
                         {networkStats?.updateFrequency ?? 1}s
                       </span>
                     </div>
@@ -371,7 +371,7 @@ export default function PythNetworkPage() {
                             </span>
                             <span
                               className={`text-sm font-medium ${
-                                publisher.accuracy >= 99 ? 'text-green-600' : 'text-yellow-600'
+                                publisher.accuracy >= 99 ? 'text-success-600' : 'text-warning-600'
                               }`}
                             >
                               {publisher.accuracy}%
@@ -467,10 +467,10 @@ export default function PythNetworkPage() {
                               <span
                                 className={`text-xs font-medium ${
                                   validator.status === 'active'
-                                    ? 'text-green-600'
+                                    ? 'text-success-600'
                                     : validator.status === 'inactive'
                                       ? 'text-gray-500'
-                                      : 'text-red-600'
+                                      : 'text-danger-600'
                                 }`}
                               >
                                 {validator.status === 'active'
@@ -487,10 +487,10 @@ export default function PythNetworkPage() {
                               <span
                                 className={
                                   validator.uptime >= 99
-                                    ? 'text-green-600'
+                                    ? 'text-success-600'
                                     : validator.uptime >= 95
-                                      ? 'text-yellow-600'
-                                      : 'text-red-600'
+                                      ? 'text-warning-600'
+                                      : 'text-danger-600'
                                 }
                               >
                                 {validator.uptime}%
@@ -542,7 +542,7 @@ export default function PythNetworkPage() {
                           <span className="text-gray-600">
                             {t('pyth.crossChain.status') || '状态'}
                           </span>
-                          <span className="text-green-600 font-medium">
+                          <span className="text-success-600 font-medium">
                             {t('pyth.crossChain.online') || '在线'}
                           </span>
                         </div>

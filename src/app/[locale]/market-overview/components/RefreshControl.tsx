@@ -119,8 +119,8 @@ export default function RefreshControl({
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
         {showSuccess ? (
           <>
-            <Check className="w-3.5 h-3.5 text-green-500" />
-            <span className="text-green-600">{isChineseLocale(locale) ? '已更新' : 'Updated'}</span>
+            <Check className="w-3.5 h-3.5 text-success-500" />
+            <span className="text-success-600">{isChineseLocale(locale) ? '已更新' : 'Updated'}</span>
           </>
         ) : (
           <>

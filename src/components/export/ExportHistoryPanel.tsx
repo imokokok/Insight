@@ -39,10 +39,10 @@ const formatIcons: Record<ExportFormat, React.ReactNode> = {
 
 // 格式颜色映射
 const formatColors: Record<ExportFormat, string> = {
-  csv: 'text-green-600 bg-green-50',
-  json: 'text-blue-600 bg-blue-50',
+  csv: 'text-success-600 bg-success-50',
+  json: 'text-primary-600 bg-primary-50',
   excel: 'text-emerald-600 bg-emerald-50',
-  pdf: 'text-red-600 bg-red-50',
+  pdf: 'text-danger-600 bg-danger-50',
 };
 
 export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportHistoryPanelProps) {
@@ -112,7 +112,7 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
               onClick={() => setFilter(f)}
               className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
                 filter === f
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -155,13 +155,13 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
                       <div className="flex items-center gap-1 mt-1">
                         {item.status === 'completed' ? (
                           <>
-                            <CheckCircle className="w-3 h-3 text-green-500" />
-                            <span className="text-xs text-green-600">{t('completed')}</span>
+                            <CheckCircle className="w-3 h-3 text-success-500" />
+                            <span className="text-xs text-success-600">{t('completed')}</span>
                           </>
                         ) : (
                           <>
-                            <XCircle className="w-3 h-3 text-red-500" />
-                            <span className="text-xs text-red-600">{t('failed')}</span>
+                            <XCircle className="w-3 h-3 text-danger-500" />
+                            <span className="text-xs text-danger-600">{t('failed')}</span>
                           </>
                         )}
                       </div>
@@ -173,7 +173,7 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
                     {item.status === 'completed' && (
                       <button
                         onClick={() => handleReDownload(item)}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
                         title={t('reDownload')}
                       >
                         <Download className="w-4 h-4" />
@@ -181,7 +181,7 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
                     )}
                     <button
                       onClick={() => removeHistoryItem(item.id)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded transition-colors"
                       title={t('delete')}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -199,7 +199,7 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
         <div className="px-4 py-3 border-t border-gray-200">
           <button
             onClick={clearHistory}
-            className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-colors rounded"
+            className="w-full px-4 py-2 text-sm font-medium text-danger-600 bg-danger-50 hover:bg-danger-100 transition-colors rounded"
           >
             {t('clearAll')}
           </button>

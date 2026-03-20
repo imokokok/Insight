@@ -45,7 +45,7 @@ export function UMADashboardPanel({
         return 'bg-amber-500';
       case 'critical':
       case 'offline':
-        return 'bg-red-500';
+        return 'bg-danger-500';
       default:
         return 'bg-gray-500';
     }
@@ -165,7 +165,7 @@ export function UMADashboardPanel({
                           ? 'bg-emerald-500'
                           : source.status === 'syncing'
                             ? 'bg-amber-500 animate-pulse'
-                            : 'bg-red-500'
+                            : 'bg-danger-500'
                       }`}
                     />
                     <span className="text-sm text-gray-700 truncate">{source.name}</span>

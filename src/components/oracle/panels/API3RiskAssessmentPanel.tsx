@@ -12,6 +12,7 @@ import {
   SecurityTimeline,
   MitigationMeasuresGrid,
 } from '@/components/oracle/common';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { RiskEvent, MitigationMeasure } from '@/types/risk';
 
 interface API3RiskAssessmentPanelProps {
@@ -29,15 +30,15 @@ interface RiskScoreCardProps {
 
 function LegacyRiskScoreCard({ title, score, description, color }: RiskScoreCardProps) {
   const colorClasses = {
-    green: 'bg-green-100 text-green-800 border-green-200',
-    yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    red: 'bg-red-100 text-red-800 border-red-200',
+    green: 'bg-success-100 text-green-800 border-green-200',
+    yellow: 'bg-warning-100 text-yellow-800 border-yellow-200',
+    red: 'bg-danger-100 text-danger-800 border-danger-200',
   };
 
   const progressColorClasses = {
-    green: 'bg-green-500',
-    yellow: 'bg-yellow-500',
-    red: 'bg-red-500',
+    green: 'bg-success-500',
+    yellow: 'bg-warning-500',
+    red: 'bg-danger-500',
   };
 
   return (
@@ -338,9 +339,9 @@ export function API3RiskAssessmentPanel({
 
       <div className="bg-gray-100 border border-gray-200 p-4">
         <div className="flex items-start gap-3">
-          <div className="p-2 bg-blue-100 flex-shrink-0">
+          <div className="p-2 bg-primary-100 flex-shrink-0">
             <svg
-              className="w-5 h-5 text-blue-600"
+              className="w-5 h-5 text-primary-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

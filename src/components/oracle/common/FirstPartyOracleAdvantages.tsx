@@ -56,9 +56,9 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-100 border border-gray-200 border border-green-200  p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 ">
+              <div className="p-2 bg-success-100 ">
                 <svg
-                  className="w-5 h-5 text-green-600"
+                  className="w-5 h-5 text-success-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -83,11 +83,11 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
             </div>
           </div>
 
-          <div className="bg-gray-100 border border-gray-200 border border-blue-200  p-4">
+          <div className="bg-gray-100 border border-gray-200 border border-primary-200  p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 ">
+              <div className="p-2 bg-primary-100 ">
                 <svg
-                  className="w-5 h-5 text-blue-600"
+                  className="w-5 h-5 text-primary-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -167,7 +167,7 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
                     <td className="px-4 py-3 text-sm">
                       <span
                         className={`font-semibold ${
-                          row.api3HasAdvantage ? 'text-green-600' : 'text-gray-900'
+                          row.api3HasAdvantage ? 'text-success-600' : 'text-gray-900'
                         }`}
                       >
                         {row.api3}
@@ -191,9 +191,9 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
 
         <div className="bg-gray-100 border border-gray-200 border border-green-200  p-4">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-green-100  flex-shrink-0">
+            <div className="p-2 bg-success-100  flex-shrink-0">
               <svg
-                className="w-5 h-5 text-green-600"
+                className="w-5 h-5 text-success-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

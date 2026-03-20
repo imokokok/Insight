@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend,
 } from 'recharts';
@@ -15,6 +15,7 @@ import { DashboardCard } from '../common/DashboardCard';
 import { TooltipProps } from '@/types/ui/recharts';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { useTranslations } from 'next-intl';
+
 
 interface TrendDataPoint {
   month: string;
@@ -252,7 +253,7 @@ export function DataSourceTrend() {
                 tickLine={false}
                 tickFormatter={(value) => `${value}`}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Legend
                 verticalAlign="top"
                 height={36}

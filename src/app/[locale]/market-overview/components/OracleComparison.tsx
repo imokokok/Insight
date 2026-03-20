@@ -9,7 +9,7 @@ import {
   PolarRadiusAxis,
   Radar,
   ResponsiveContainer,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
 } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
@@ -30,6 +30,7 @@ import {
   X,
 } from 'lucide-react';
 import { chartColors } from '@/lib/config/colors';
+
 
 interface OracleComparisonProps {
   data: ComparisonData[];
@@ -185,7 +186,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
                     }
                     className={`w-full flex items-center justify-between px-2.5 py-1.5 text-left transition-colors rounded ${
                       selectedOracles.includes(oracle.oracle)
-                        ? 'bg-blue-50 text-blue-700'
+                        ? 'bg-primary-50 text-primary-700'
                         : 'hover:bg-gray-50 text-gray-700'
                     } ${
                       !selectedOracles.includes(oracle.oracle) &&
@@ -202,7 +203,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
                       <span className="text-sm">{oracle.oracle}</span>
                     </div>
                     {selectedOracles.includes(oracle.oracle) && (
-                      <Check className="w-3.5 h-3.5 text-blue-600" />
+                      <Check className="w-3.5 h-3.5 text-primary-600" />
                     )}
                   </button>
                 ))}
@@ -264,7 +265,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
                   domain={[0, 100]}
                   tick={{ fill: chartColors.recharts.axis, fontSize: 10 }}
                 />
-                <Tooltip content={<CustomTooltip />} />
+                <RechartsTooltip content={<CustomTooltip />} />
                 <Legend />
                 {filteredData.map((oracle) => (
                   <Radar
@@ -327,7 +328,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
                             <div className="flex flex-col items-center">
                               <span
                                 className={`text-sm font-medium ${
-                                  isBest ? 'text-green-600' : 'text-gray-900'
+                                  isBest ? 'text-success-600' : 'text-gray-900'
                                 }`}
                               >
                                 {value.value}

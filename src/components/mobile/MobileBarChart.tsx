@@ -7,13 +7,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Cell,
 } from 'recharts';
 import { useTranslations } from 'next-intl';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { chartColors } from '@/lib/config/colors';
+
 
 interface DataPoint {
   name: string;
@@ -178,7 +179,7 @@ function MobileBarChartBase({
               width={40}
             />
 
-            <Tooltip
+            <RechartsTooltip
               content={({ active, payload, label }) => {
                 if (active && payload && payload[0]) {
                   const value = payload[0].value as number;
@@ -238,7 +239,7 @@ function MobileBarChartBase({
             <div
               key={i}
               className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                isActive ? 'bg-blue-500' : 'bg-gray-300'
+                isActive ? 'bg-primary-500' : 'bg-gray-300'
               }`}
             />
           );

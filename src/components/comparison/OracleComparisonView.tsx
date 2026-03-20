@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   RadarChart,
@@ -25,6 +25,7 @@ import { OracleComparisonItem, OracleComparisonResult } from './types';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { getOracleColor } from '@/lib/oracles/colors';
 import { DifferenceBadge } from './DifferenceBadge';
+
 
 interface OracleComparisonViewProps {
   oracles: OracleComparisonItem[];
@@ -156,10 +157,10 @@ export function OracleComparisonView({
   }, [oracles]);
 
   const getConsistencyColor = (score: number): string => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 70) return 'text-blue-600';
-    if (score >= 50) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 90) return 'text-success-600';
+    if (score >= 70) return 'text-primary-600';
+    if (score >= 50) return 'text-warning-600';
+    return 'text-danger-600';
   };
 
   const getConsistencyLabel = (score: number): string => {
@@ -219,7 +220,7 @@ export function OracleComparisonView({
                   <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} />
                   <YAxis tickFormatter={(v) => `$${v.toFixed(0)}`} tick={{ fontSize: 11 }} />
-                  <Tooltip
+                  <RechartsTooltip
                     formatter={(value) => [`$${Number(value).toFixed(2)}`, t('price')]}
                     contentStyle={{ fontSize: 12 }}
                   />
@@ -256,7 +257,7 @@ export function OracleComparisonView({
                     tick={{ fontSize: 11 }}
                   />
                   <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11 }} />
-                  <Tooltip
+                  <RechartsTooltip
                     formatter={(value) => [
                       `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(3)}%`,
                       t('deviation'),
@@ -320,7 +321,7 @@ export function OracleComparisonView({
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="text-xs border border-gray-300 px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="text-xs border border-gray-300 px-2 py-1 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="price">{t('metrics.price')}</option>
                 <option value="deviation">{t('metrics.deviation')}</option>
@@ -367,7 +368,7 @@ export function OracleComparisonView({
                   return (
                     <tr
                       key={oracle.provider}
-                      className={`border-b border-gray-100 hover:bg-gray-50 ${isBenchmark ? 'bg-blue-50/50' : ''}`}
+                      className={`border-b border-gray-100 hover:bg-gray-50 ${isBenchmark ? 'bg-primary-50/50' : ''}`}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -377,7 +378,7 @@ export function OracleComparisonView({
                           />
                           <span className="font-medium text-gray-900">{oracle.name}</span>
                           {isBenchmark && (
-                            <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                            <span className="px-1.5 py-0.5 text-xs bg-primary-100 text-primary-700 rounded">
                               {t('benchmark')}
                             </span>
                           )}

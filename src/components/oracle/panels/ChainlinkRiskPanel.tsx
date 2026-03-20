@@ -3,7 +3,11 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { DashboardCard, DataFreshnessIndicator, RiskScoreCard } from '@/components/oracle/common';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
+
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 import {
   getScoreColor,
   getScoreBg,
@@ -21,7 +25,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from 'recharts';
 
@@ -213,7 +217,7 @@ export function ChainlinkRiskPanel() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
               <YAxis domain={[85, 100]} tick={{ fontSize: 12 }} />
-              <Tooltip
+              <RechartsTooltip
                 contentStyle={{
                   backgroundColor: '#fff',
                   borderRadius: '8px',
@@ -252,19 +256,19 @@ export function ChainlinkRiskPanel() {
         </div>
         <div className="flex justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-0.5 bg-blue-500"></span>
+            <span className="w-3 h-0.5 bg-primary-500"></span>
             <span className="text-sm text-gray-600">
               {t('chainlink.riskAssessment.overallScore')}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-0.5 bg-green-500 border-dashed"></span>
+            <span className="w-3 h-0.5 bg-success-500 border-dashed"></span>
             <span className="text-sm text-gray-600">
               {t('chainlink.riskAssessment.decentralization')}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-0.5 bg-yellow-500 border-dashed"></span>
+            <span className="w-3 h-0.5 bg-warning-500 border-dashed"></span>
             <span className="text-sm text-gray-600">{t('chainlink.riskAssessment.security')}</span>
           </div>
         </div>
@@ -291,7 +295,7 @@ export function ChainlinkRiskPanel() {
                 <span className="text-gray-600">
                   {t('chainlink.riskAssessment.giniCoefficient')}
                 </span>
-                <span className="font-medium text-green-600">0.42</span>
+                <span className="font-medium text-success-600">0.42</span>
               </div>
             </div>
           </div>
@@ -305,17 +309,17 @@ export function ChainlinkRiskPanel() {
                 <span className="text-gray-600">
                   {t('chainlink.riskAssessment.criticalNodeRedundancy')}
                 </span>
-                <span className="font-medium text-green-600">3x</span>
+                <span className="font-medium text-success-600">3x</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">
                   {t('chainlink.riskAssessment.dataSourceDiversity')}
                 </span>
-                <span className="font-medium text-green-600">15+ sources</span>
+                <span className="font-medium text-success-600">15+ sources</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('chainlink.riskAssessment.failoverTime')}</span>
-                <span className="font-medium text-green-600">&lt; 30s</span>
+                <span className="font-medium text-success-600">&lt; 30s</span>
               </div>
             </div>
           </div>
@@ -374,7 +378,7 @@ export function ChainlinkRiskPanel() {
                 <span className="text-sm font-medium text-gray-900 w-32">{service.service}</span>
                 <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-green-500 rounded-full"
+                    className="h-full bg-success-500 rounded-full"
                     style={{ width: `${service.availability}%` }}
                   ></div>
                 </div>
@@ -404,17 +408,17 @@ export function ChainlinkRiskPanel() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('chainlink.riskAssessment.rmnCoverage')}</span>
-                <span className="font-medium text-green-600">Active</span>
+                <span className="font-medium text-success-600">Active</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('chainlink.riskAssessment.rateLimiting')}</span>
-                <span className="font-medium text-green-600">Enabled</span>
+                <span className="font-medium text-success-600">Enabled</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">
                   {t('chainlink.riskAssessment.circuitBreakers')}
                 </span>
-                <span className="font-medium text-green-600">Active</span>
+                <span className="font-medium text-success-600">Active</span>
               </div>
             </div>
           </div>
@@ -428,19 +432,19 @@ export function ChainlinkRiskPanel() {
                 <span className="text-gray-600">
                   {t('chainlink.riskAssessment.cryptographicSecurity')}
                 </span>
-                <span className="font-medium text-green-600">256-bit</span>
+                <span className="font-medium text-success-600">256-bit</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">
                   {t('chainlink.riskAssessment.onChainVerification')}
                 </span>
-                <span className="font-medium text-green-600">100%</span>
+                <span className="font-medium text-success-600">100%</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">
                   {t('chainlink.riskAssessment.blockHashDependency')}
                 </span>
-                <span className="font-medium text-yellow-600">Medium</span>
+                <span className="font-medium text-warning-600">Medium</span>
               </div>
             </div>
           </div>
@@ -465,7 +469,7 @@ export function ChainlinkRiskPanel() {
               <div className="mt-2 flex items-center gap-2">
                 <div className="flex-grow h-1.5 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-blue-500 rounded-full"
+                    className="h-full bg-primary-500 rounded-full"
                     style={{ width: `${measure.effectiveness}%` }}
                   ></div>
                 </div>

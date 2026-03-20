@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Home, BarChart3, Search, Bell, Settings, Menu, X, Heart, Activity } from 'lucide-react';
 
+import { Icon } from '@/components/ui';
+
 interface NavItem {
   href: string;
   label: string;
@@ -76,14 +78,14 @@ export function BottomNavigation({ className = '', onMoreClick }: BottomNavigati
                 href={item.href}
                 onClick={handleItemClick}
                 className={`flex flex-col items-center justify-center flex-1 h-full min-w-[44px] min-h-[44px] transition-colors ${
-                  active ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                  active ? 'text-primary-600' : 'text-gray-500 hover:text-gray-700'
                 }`}
                 aria-label={item.label}
               >
                 <div className="relative">
                   <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 2} />
                   {item.badge !== undefined && item.badge > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-medium rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-danger-500 text-white text-[10px] font-medium rounded-full flex items-center justify-center">
                       {item.badge > 99 ? '99+' : item.badge}
                     </span>
                   )}
@@ -99,7 +101,7 @@ export function BottomNavigation({ className = '', onMoreClick }: BottomNavigati
           <button
             onClick={handleMoreClick}
             className={`flex flex-col items-center justify-center flex-1 h-full min-w-[44px] min-h-[44px] transition-colors ${
-              showMore ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+              showMore ? 'text-primary-600' : 'text-gray-500 hover:text-gray-700'
             }`}
             aria-label={t('navbar.menu')}
             aria-expanded={showMore}
@@ -138,7 +140,7 @@ export function BottomNavigation({ className = '', onMoreClick }: BottomNavigati
                       onClick={handleItemClick}
                       className={`flex flex-col items-center justify-center p-3 rounded-lg transition-colors min-h-[72px] ${
                         active
-                          ? 'bg-blue-50 text-blue-600'
+                          ? 'bg-primary-50 text-primary-600'
                           : 'text-gray-600 hover:bg-gray-50 active:bg-gray-100'
                       }`}
                     >

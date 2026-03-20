@@ -136,9 +136,9 @@ function generateComparisonData(
 
 function getDeviationColor(deviation: number): string {
   const color = getDeviationColorUtil(deviation);
-  if (color === semanticColors.success.DEFAULT) return 'text-green-600';
-  if (color === semanticColors.warning.DEFAULT) return 'text-yellow-600';
-  return 'text-red-600';
+  if (color === semanticColors.success.DEFAULT) return 'text-success-600';
+  if (color === semanticColors.warning.DEFAULT) return 'text-warning-600';
+  return 'text-danger-600';
 }
 
 function getChainInfo(chainName: string) {
@@ -165,11 +165,11 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
 
   const getDeviationIntensity = (deviation: number): { bg: string; text: string } => {
     const absDeviation = Math.abs(deviation);
-    if (absDeviation < 0.05) return { bg: 'bg-green-100', text: 'text-green-700' };
-    if (absDeviation < 0.1) return { bg: 'bg-green-200', text: 'text-green-800' };
-    if (absDeviation < 0.3) return { bg: 'bg-yellow-100', text: 'text-yellow-700' };
-    if (absDeviation < 0.5) return { bg: 'bg-yellow-200', text: 'text-yellow-800' };
-    return { bg: 'bg-red-200', text: 'text-red-800' };
+    if (absDeviation < 0.05) return { bg: 'bg-success-100', text: 'text-success-700' };
+    if (absDeviation < 0.1) return { bg: 'bg-success-200', text: 'text-green-800' };
+    if (absDeviation < 0.3) return { bg: 'bg-warning-100', text: 'text-warning-700' };
+    if (absDeviation < 0.5) return { bg: 'bg-warning-200', text: 'text-yellow-800' };
+    return { bg: 'bg-danger-200', text: 'text-danger-800' };
   };
 
   return (
@@ -186,11 +186,11 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <span>{t('bandCrossChainPriceConsistency.low')}</span>
           <div className="flex gap-1">
-            <div className="w-4 h-4 bg-green-100 rounded"></div>
-            <div className="w-4 h-4 bg-green-200 rounded"></div>
-            <div className="w-4 h-4 bg-yellow-100 rounded"></div>
-            <div className="w-4 h-4 bg-yellow-200 rounded"></div>
-            <div className="w-4 h-4 bg-red-200 rounded"></div>
+            <div className="w-4 h-4 bg-success-100 rounded"></div>
+            <div className="w-4 h-4 bg-success-200 rounded"></div>
+            <div className="w-4 h-4 bg-warning-100 rounded"></div>
+            <div className="w-4 h-4 bg-warning-200 rounded"></div>
+            <div className="w-4 h-4 bg-danger-200 rounded"></div>
           </div>
           <span>{t('bandCrossChainPriceConsistency.high')}</span>
         </div>
@@ -223,11 +223,11 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
               return (
                 <tr
                   key={symbol}
-                  className={`border-t border-gray-100 ${isSelected ? 'bg-blue-50' : ''}`}
+                  className={`border-t border-gray-100 ${isSelected ? 'bg-primary-50' : ''}`}
                 >
                   <td className="py-3 px-3">
                     <span
-                      className={`text-sm font-medium ${isSelected ? 'text-blue-700' : 'text-gray-900'}`}
+                      className={`text-sm font-medium ${isSelected ? 'text-primary-700' : 'text-gray-900'}`}
                     >
                       {symbol}
                     </span>
@@ -287,25 +287,25 @@ function HistoricalComparisonView({
   const getChangeColor = (change: number, isImprovement: boolean = true): string => {
     if (Math.abs(change) < 0.01) return 'text-gray-500';
     if (isImprovement) {
-      return change > 0 ? 'text-green-600' : 'text-red-600';
+      return change > 0 ? 'text-success-600' : 'text-danger-600';
     }
-    return change > 0 ? 'text-red-600' : 'text-green-600';
+    return change > 0 ? 'text-danger-600' : 'text-success-600';
   };
 
   const getDeviationChangeColor = (current: number, historical: number): string => {
     const change = current - historical;
     if (Math.abs(change) < 0.01) return 'text-gray-500';
-    return change < 0 ? 'text-green-600' : 'text-red-600';
+    return change < 0 ? 'text-success-600' : 'text-danger-600';
   };
 
   return (
     <div className="space-y-6">
-      <div className="bg-gray-100 border border-gray-200 border border-blue-200  p-4">
+      <div className="bg-gray-100 border border-gray-200 border border-primary-200  p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100  flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary-100  flex items-center justify-center">
               <svg
-                className="w-5 h-5 text-blue-600"
+                className="w-5 h-5 text-primary-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -368,9 +368,9 @@ function HistoricalComparisonView({
                   <span
                     className={`text-lg font-bold ${
                       comparison.trend === 'up'
-                        ? 'text-green-600'
+                        ? 'text-success-600'
                         : comparison.trend === 'down'
-                          ? 'text-red-600'
+                          ? 'text-danger-600'
                           : 'text-gray-600'
                     }`}
                   >
@@ -410,11 +410,11 @@ function HistoricalComparisonView({
                 </div>
 
                 <div className="space-y-3">
-                  <div className="bg-blue-50  p-3">
-                    <p className="text-xs text-blue-600 mb-1">
+                  <div className="bg-primary-50  p-3">
+                    <p className="text-xs text-primary-600 mb-1">
                       {t('bandCrossChainPriceConsistency.currentPrice')}
                     </p>
-                    <p className="text-sm font-mono font-bold text-blue-700">
+                    <p className="text-sm font-mono font-bold text-primary-700">
                       ${comparison.currentPrice.toFixed(4)}
                     </p>
                     <p
@@ -424,11 +424,11 @@ function HistoricalComparisonView({
                       {comparison.priceChangePercent.toFixed(2)}%
                     </p>
                   </div>
-                  <div className="bg-blue-50  p-3">
-                    <p className="text-xs text-blue-600 mb-1">
+                  <div className="bg-primary-50  p-3">
+                    <p className="text-xs text-primary-600 mb-1">
                       {t('bandCrossChainPriceConsistency.currentDeviation')}
                     </p>
-                    <p className="text-sm font-mono font-bold text-blue-700">
+                    <p className="text-sm font-mono font-bold text-primary-700">
                       {isBase
                         ? '-'
                         : `${comparison.currentDeviation >= 0 ? '+' : ''}${comparison.currentDeviation.toFixed(3)}%`}
@@ -442,11 +442,11 @@ function HistoricalComparisonView({
                       </p>
                     )}
                   </div>
-                  <div className="bg-blue-50  p-3">
-                    <p className="text-xs text-blue-600 mb-1">
+                  <div className="bg-primary-50  p-3">
+                    <p className="text-xs text-primary-600 mb-1">
                       {t('bandCrossChainPriceConsistency.currentLatency')}
                     </p>
-                    <p className="text-sm font-mono font-bold text-blue-700">
+                    <p className="text-sm font-mono font-bold text-primary-700">
                       {comparison.currentLatency}ms
                     </p>
                     <p className={`text-xs mt-1 ${getChangeColor(-comparison.latencyChange)}`}>
@@ -467,10 +467,10 @@ function HistoricalComparisonView({
                       <div
                         className={`h-full  transition-all ${
                           Math.abs(comparison.priceChangePercent) < 1
-                            ? 'bg-green-500'
+                            ? 'bg-success-500'
                             : Math.abs(comparison.priceChangePercent) < 3
-                              ? 'bg-yellow-500'
-                              : 'bg-red-500'
+                              ? 'bg-warning-500'
+                              : 'bg-danger-500'
                         }`}
                         style={{
                           width: `${Math.min(Math.abs(comparison.priceChangePercent) * 10, 100)}%`,
@@ -497,7 +497,7 @@ function HistoricalComparisonView({
         </h4>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success-600">
               {comparisonData.filter((c) => c.trend === 'up').length}
             </div>
             <p className="text-xs text-gray-500 mt-1">
@@ -513,7 +513,7 @@ function HistoricalComparisonView({
             </p>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-danger-600">
               {comparisonData.filter((c) => c.trend === 'down').length}
             </div>
             <p className="text-xs text-gray-500 mt-1">
@@ -594,7 +594,7 @@ export function BandCrossChainPriceConsistency({
                   type="checkbox"
                   checked={isComparisonMode}
                   onChange={(e) => setIsComparisonMode(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
                 />
                 <span className="text-sm text-gray-700">
                   {t('bandCrossChainPriceConsistency.compareHistory')}
@@ -605,7 +605,7 @@ export function BandCrossChainPriceConsistency({
         </div>
 
         {isComparisonMode && (
-          <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+          <div className="bg-primary-50 border border-primary-200 rounded p-4 mb-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-700 whitespace-nowrap">
@@ -617,7 +617,7 @@ export function BandCrossChainPriceConsistency({
                   onChange={(e) => setSelectedDate(e.target.value)}
                   min={minDate}
                   max={maxDate}
-                  className="px-3 py-1.5 text-sm border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-1.5 text-sm border border-gray-300  focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -628,10 +628,10 @@ export function BandCrossChainPriceConsistency({
                   type="time"
                   value={selectedTime}
                   onChange={(e) => setSelectedTime(e.target.value)}
-                  className="px-3 py-1.5 text-sm border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-1.5 text-sm border border-gray-300  focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
-              <span className="text-xs text-blue-600">
+              <span className="text-xs text-primary-600">
                 {t('bandCrossChainPriceConsistency.dateRange')}
               </span>
             </div>
@@ -639,10 +639,10 @@ export function BandCrossChainPriceConsistency({
         )}
 
         {hasWarnings && !isComparisonMode && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-4">
+          <div className="bg-warning-50 border border-yellow-200 rounded p-4 mb-4">
             <div className="flex items-start gap-3">
               <svg
-                className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
+                className="w-5 h-5 text-warning-600 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -657,7 +657,7 @@ export function BandCrossChainPriceConsistency({
                 <h4 className="text-sm font-medium text-yellow-800">
                   {t('bandCrossChainPriceConsistency.warningTitle')}
                 </h4>
-                <p className="text-sm text-yellow-700 mt-1">
+                <p className="text-sm text-warning-700 mt-1">
                   {t('bandCrossChainPriceConsistency.warningDesc')}
                 </p>
               </div>
@@ -773,11 +773,11 @@ export function BandCrossChainPriceConsistency({
                               <div
                                 className={`h-full  transition-all ${
                                   Math.abs(chain.deviationPercent) < DEVIATION_THRESHOLDS.normal
-                                    ? 'bg-green-500'
+                                    ? 'bg-success-500'
                                     : Math.abs(chain.deviationPercent) <
                                         DEVIATION_THRESHOLDS.warning
-                                      ? 'bg-yellow-500'
-                                      : 'bg-red-500'
+                                      ? 'bg-warning-500'
+                                      : 'bg-danger-500'
                                 }`}
                                 style={{
                                   width: `${Math.min((Math.abs(chain.deviationPercent) / 0.5) * 100, 100)}%`,
@@ -795,7 +795,7 @@ export function BandCrossChainPriceConsistency({
                         </td>
                         <td className="text-right py-3 px-3">
                           <span
-                            className={`text-sm ${chain.latency < 100 ? 'text-green-600' : 'text-gray-600'}`}
+                            className={`text-sm ${chain.latency < 100 ? 'text-success-600' : 'text-gray-600'}`}
                           >
                             {chain.latency}ms
                           </span>
@@ -804,10 +804,10 @@ export function BandCrossChainPriceConsistency({
                           <span
                             className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${
                               chain.status === 'normal'
-                                ? 'bg-green-100 text-green-700'
+                                ? 'bg-success-100 text-success-700'
                                 : chain.status === 'warning'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : 'bg-red-100 text-red-700'
+                                  ? 'bg-warning-100 text-warning-700'
+                                  : 'bg-danger-100 text-danger-700'
                             }`}
                           >
                             {chain.status === 'normal'

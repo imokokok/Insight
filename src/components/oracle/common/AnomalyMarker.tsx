@@ -3,6 +3,8 @@
 import { ReferenceDot } from 'recharts';
 import { semanticColors, baseColors, shadowColors } from '@/lib/config/colors';
 
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 export interface AnomalyPoint {
   timestamp: number;
   price: number;

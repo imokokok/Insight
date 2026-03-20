@@ -107,7 +107,7 @@ export function BenchmarkComparisonSection({
             </div>
             <div className="text-center p-3 bg-gray-50">
               <p className="text-xs text-gray-500 mb-1">{t('comparison.benchmark.marketLeader')}</p>
-              <p className="text-lg font-semibold text-green-600">
+              <p className="text-lg font-semibold text-success-600">
                 ${benchmarkData.industryBest.toFixed(2)}
               </p>
             </div>
@@ -138,7 +138,7 @@ export function BenchmarkComparisonSection({
                     <td className="px-3 py-2 font-medium text-gray-900">{metric.name}</td>
                     <td className="px-3 py-2 text-right font-mono">${metric.value.toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">
-                      <span className={metric.diffFromAvg > 0 ? 'text-green-600' : 'text-red-600'}>
+                      <span className={metric.diffFromAvg > 0 ? 'text-success-600' : 'text-danger-600'}>
                         {metric.diffFromAvg > 0 ? '+' : ''}
                         {metric.diffFromAvg.toFixed(2)}%
                       </span>

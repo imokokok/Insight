@@ -50,7 +50,7 @@ export default function MarketSidebar({
           </div>
         </div>
         <div className="mt-3 text-xs text-gray-400 flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-success-500 animate-pulse" />
           {lastUpdated
             ? `${isChineseLocale(locale) ? '更新于' : 'Updated'} ${lastUpdated.toLocaleTimeString()}`
             : isChineseLocale(locale)
@@ -72,7 +72,7 @@ export default function MarketSidebar({
               href={`/${item.name.toLowerCase().replace(' ', '-')}`}
               className={`block py-2.5 px-2 -mx-2 border-l-2 transition-all duration-200 cursor-pointer ${
                 selectedItem === item.name
-                  ? 'bg-blue-50/60 border-blue-500'
+                  ? 'bg-primary-50/60 border-primary-500'
                   : 'border-transparent hover:bg-gray-50'
               } ${hoveredItem && hoveredItem !== item.name ? 'opacity-50' : 'opacity-100'}`}
               onMouseEnter={() => setHoveredItem(item.name)}

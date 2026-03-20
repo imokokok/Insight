@@ -47,13 +47,13 @@ function StatCard({
           {subtitle && <p className="text-gray-400 text-xs mt-1">{subtitle}</p>}
           {trend && (
             <p
-              className={`text-xs mt-2 font-medium ${trend.positive ? 'text-green-600' : 'text-red-600'}`}
+              className={`text-xs mt-2 font-medium ${trend.positive ? 'text-success-600' : 'text-danger-600'}`}
             >
               {trend.positive ? '↑' : '↓'} {trend.value}
             </p>
           )}
         </div>
-        <div className="p-2.5 bg-blue-50 text-blue-600">{icon}</div>
+        <div className="p-2.5 bg-primary-50 text-primary-600">{icon}</div>
       </div>
     </div>
   );
@@ -68,11 +68,11 @@ function StakingHistoryChart({ data }: { data: StakingHistory[] }) {
       <div className="space-y-4">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500"></div>
+            <div className="w-3 h-3 bg-primary-500"></div>
             <span className="text-gray-600">{t('uma.staking.totalStaked') || '总质押量'}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500"></div>
+            <div className="w-3 h-3 bg-success-500"></div>
             <span className="text-gray-600">{t('uma.staking.rewards') || '奖励分发'}</span>
           </div>
         </div>
@@ -82,12 +82,12 @@ function StakingHistoryChart({ data }: { data: StakingHistory[] }) {
             <div key={index} className="flex-1 flex flex-col items-center gap-1">
               <div className="w-full flex items-end justify-center gap-0.5 h-36">
                 <div
-                  className="w-full bg-blue-500 transition-all duration-300"
+                  className="w-full bg-primary-500 transition-all duration-300"
                   style={{ height: `${(item.totalStaked / maxValue) * 100}%` }}
                   title={`${t('uma.staking.totalStaked')}: ${item.totalStaked.toLocaleString()} UMA`}
                 />
                 <div
-                  className="w-full bg-green-500 transition-all duration-300"
+                  className="w-full bg-success-500 transition-all duration-300"
                   style={{ height: `${(item.rewardsDistributed / maxValue) * 30}%` }}
                   title={`${t('uma.staking.rewards')}: ${item.rewardsDistributed.toLocaleString()} UMA`}
                 />
@@ -168,7 +168,7 @@ function StakingGuide() {
       <div className="space-y-4">
         {steps.map((step, index) => (
           <div key={index} className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-10 h-10 bg-blue-50 text-blue-600 flex items-center justify-center">
+            <div className="flex-shrink-0 w-10 h-10 bg-primary-50 text-primary-600 flex items-center justify-center">
               {step.icon}
             </div>
             <div className="flex-1">
@@ -277,7 +277,7 @@ export function StakingPanel() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
           <p className="text-gray-500 text-sm">{t('uma.loading')}</p>
         </div>
       </div>

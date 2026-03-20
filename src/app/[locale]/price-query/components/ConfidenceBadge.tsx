@@ -13,9 +13,9 @@ export function ConfidenceBadge({ score }: ConfidenceBadgeProps) {
   const normalizedScore = Math.min(100, Math.max(0, score * 100));
 
   const getRating = (s: number): { label: string; color: string } => {
-    if (s >= 90) return { label: '高', color: 'bg-green-100 text-green-700' };
-    if (s >= 70) return { label: '中', color: 'bg-blue-100 text-blue-700' };
-    return { label: '低', color: 'bg-orange-100 text-orange-700' };
+    if (s >= 90) return { label: '高', color: 'bg-success-100 text-success-700' };
+    if (s >= 70) return { label: '中', color: 'bg-primary-100 text-primary-700' };
+    return { label: '低', color: 'bg-warning-100 text-orange-700' };
   };
 
   const rating = getRating(normalizedScore);
@@ -26,10 +26,10 @@ export function ConfidenceBadge({ score }: ConfidenceBadgeProps) {
         <div
           className={`h-full rounded-full ${
             normalizedScore >= 90
-              ? 'bg-green-500'
+              ? 'bg-success-500'
               : normalizedScore >= 70
-                ? 'bg-blue-500'
-                : 'bg-orange-500'
+                ? 'bg-primary-500'
+                : 'bg-warning-500'
           }`}
           style={{ width: `${normalizedScore}%` }}
         />

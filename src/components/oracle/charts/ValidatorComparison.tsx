@@ -194,7 +194,7 @@ function EarningsComparisonChart({ validators }: { validators: ValidatorData[] }
             <div key={validator.id} className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-700 truncate">{validator.name}</span>
-                <span className="font-semibold text-green-600">
+                <span className="font-semibold text-success-600">
                   {formatNumber(validator.earnings, true)} UMA
                 </span>
               </div>
@@ -270,7 +270,7 @@ export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
             </button>
             <button
               onClick={selectRandom}
-              className="px-3 py-1.5 text-sm  bg-green-600 text-white hover:bg-green-700 transition-colors"
+              className="px-3 py-1.5 text-sm  bg-success-600 text-white hover:bg-success-700 transition-colors"
             >
               {t('uma.validatorComparison.randomSelect')}
             </button>
@@ -288,10 +288,10 @@ export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
                   disabled={isDisabled}
                   className={`px-3 py-2 text-sm  border transition-all ${
                     isSelected
-                      ? 'bg-blue-600 text-white border-blue-600'
+                      ? 'bg-primary-600 text-white border-primary-600'
                       : isDisabled
                         ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                        : 'bg-white text-gray-700 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                   }`}
                 >
                   {validator.name}
@@ -303,7 +303,7 @@ export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
           {selectedValidators.length > 0 && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>{t('uma.validatorComparison.selected')}:</span>
-              <span className="font-semibold text-blue-600">{selectedValidators.length}</span>
+              <span className="font-semibold text-primary-600">{selectedValidators.length}</span>
               <span>/ 4</span>
             </div>
           )}
@@ -319,7 +319,7 @@ export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
                 onClick={() => setDimension('responseTime')}
                 className={`px-3 py-1.5 text-sm  transition-colors ${
                   dimension === 'responseTime'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -329,7 +329,7 @@ export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
                 onClick={() => setDimension('successRate')}
                 className={`px-3 py-1.5 text-sm  transition-colors ${
                   dimension === 'successRate'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -339,7 +339,7 @@ export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
                 onClick={() => setDimension('earnings')}
                 className={`px-3 py-1.5 text-sm  transition-colors ${
                   dimension === 'earnings'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -394,7 +394,7 @@ export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
                         <td className="py-2 px-3 text-sm text-right text-gray-900">
                           {validator.reputation}
                         </td>
-                        <td className="py-2 px-3 text-sm text-right font-semibold text-green-600">
+                        <td className="py-2 px-3 text-sm text-right font-semibold text-success-600">
                           {formatNumber(validator.earnings)}
                         </td>
                       </tr>

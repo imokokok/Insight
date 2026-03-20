@@ -253,7 +253,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
     return (
       <DashboardCard title="实时价格流">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin  h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin  h-8 w-8 border-b-2 border-primary-600"></div>
           <span className="ml-3 text-gray-600">正在连接 Pyth Network...</span>
         </div>
       </DashboardCard>
@@ -263,7 +263,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
   if (error) {
     return (
       <DashboardCard title="实时价格流">
-        <div className="flex flex-col items-center justify-center h-64 text-red-600">
+        <div className="flex flex-col items-center justify-center h-64 text-danger-600">
           <svg className="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinejoin="round"
@@ -274,7 +274,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
           <p>{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-primary-600 text-white  hover:bg-primary-700"
           >
             重试
           </button>
@@ -292,7 +292,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
             onClick={() => setShowFilterPanel(!showFilterPanel)}
             className={`px-3 py-1.5  text-sm font-medium transition-all flex items-center gap-1.5 ${
               showFilterPanel || preferences.showAnomaliesOnly
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                ? 'bg-primary-500 text-white hover:bg-primary-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -305,14 +305,14 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
             </svg>
             筛选
             {anomalyCount > 0 && (
-              <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 ">{anomalyCount}</span>
+              <span className="bg-danger-500 text-white text-xs px-1.5 py-0.5 ">{anomalyCount}</span>
             )}
           </button>
           <button
             onClick={isPaused ? handleResume : handlePause}
             className={`px-4 py-1.5  text-sm font-medium transition-all ${
               isPaused
-                ? 'bg-green-500 text-white hover:bg-green-600'
+                ? 'bg-success-500 text-white hover:bg-success-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -350,7 +350,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
               <h4 className="text-sm font-semibold text-gray-700">筛选设置</h4>
               <button
                 onClick={() => setShowAlertSettings(!showAlertSettings)}
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -400,7 +400,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                         showAnomaliesOnly: e.target.checked,
                       }))
                     }
-                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                    className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
                   />
                   <span className="text-sm text-gray-700">仅显示异常记录</span>
                 </label>
@@ -453,7 +453,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                             alertEnabled: e.target.checked,
                           }))
                         }
-                        className="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
+                        className="w-4 h-4 text-warning-600 rounded border-gray-300 focus:ring-orange-500"
                       />
                       <span className="text-sm text-gray-700">启用预警通知</span>
                     </label>
@@ -478,9 +478,9 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
         )}
 
         {isPaused && pausedPrice && (
-          <div className="bg-yellow-50 border border-yellow-200  p-3 mb-4">
+          <div className="bg-warning-50 border border-yellow-200  p-3 mb-4">
             <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-warning-600" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -501,27 +501,27 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
           </div>
           <div className="flex items-center gap-2">
             <span
-              className={`w-3 h-3  ${isPaused ? 'bg-yellow-500' : 'bg-green-500 animate-pulse'}`}
+              className={`w-3 h-3  ${isPaused ? 'bg-warning-500' : 'bg-success-500 animate-pulse'}`}
             />
             <span className="text-sm text-gray-600">{isPaused ? '已暂停' : '实时更新中'}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-blue-50  p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">每秒更新</p>
-            <p className="text-xl font-bold text-blue-700">{stats.updatesPerSecond}</p>
+          <div className="bg-primary-50  p-3 text-center">
+            <p className="text-xs text-primary-600 mb-1">每秒更新</p>
+            <p className="text-xl font-bold text-primary-700">{stats.updatesPerSecond}</p>
           </div>
           <div className="bg-purple-50  p-3 text-center">
             <p className="text-xs text-purple-600 mb-1">平均延迟</p>
             <p className="text-xl font-bold text-purple-700">{stats.avgLatency}ms</p>
           </div>
-          <div className="bg-green-50  p-3 text-center">
-            <p className="text-xs text-green-600 mb-1">总更新数</p>
-            <p className="text-xl font-bold text-green-700">{stats.totalUpdates}</p>
+          <div className="bg-success-50  p-3 text-center">
+            <p className="text-xs text-success-600 mb-1">总更新数</p>
+            <p className="text-xl font-bold text-success-700">{stats.totalUpdates}</p>
           </div>
-          <div className="bg-orange-50  p-3 text-center">
-            <p className="text-xs text-orange-600 mb-1">平均置信区间</p>
+          <div className="bg-warning-50  p-3 text-center">
+            <p className="text-xs text-warning-600 mb-1">平均置信区间</p>
             <p className="text-xl font-bold text-orange-700">
               {(stats.avgConfidenceWidth * 100).toFixed(2)}%
             </p>
@@ -533,7 +533,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
             <h4 className="text-sm font-semibold text-gray-700">
               最近 20 条更新记录
               {preferences.showAnomaliesOnly && (
-                <span className="ml-2 text-xs font-normal text-blue-600">(仅显示异常)</span>
+                <span className="ml-2 text-xs font-normal text-primary-600">(仅显示异常)</span>
               )}
             </h4>
           </div>
@@ -567,21 +567,21 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                     const isRecordAnomaly = isAnomaly(update.confidenceWidth);
                     const confidenceColor =
                       update.confidenceWidth < 0.15
-                        ? 'text-green-600'
+                        ? 'text-success-600'
                         : update.confidenceWidth < 0.25
-                          ? 'text-yellow-600'
-                          : 'text-red-600';
+                          ? 'text-warning-600'
+                          : 'text-danger-600';
                     return (
                       <tr
                         key={update.id}
                         className={`transition-colors duration-300 ${
                           isRecordAnomaly
-                            ? 'bg-red-50 border-l-4 border-red-400'
+                            ? 'bg-danger-50 border-l-4 border-red-400'
                             : index === 0 && !isPaused
                               ? update.direction === 'up'
-                                ? 'bg-green-50'
+                                ? 'bg-success-50'
                                 : update.direction === 'down'
-                                  ? 'bg-red-50'
+                                  ? 'bg-danger-50'
                                   : ''
                               : ''
                         }`}
@@ -626,9 +626,9 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                           <span
                             className={`inline-flex items-center gap-1 ${
                               update.direction === 'up'
-                                ? 'text-green-600'
+                                ? 'text-success-600'
                                 : update.direction === 'down'
-                                  ? 'text-red-600'
+                                  ? 'text-danger-600'
                                   : 'text-gray-500'
                             }`}
                           >

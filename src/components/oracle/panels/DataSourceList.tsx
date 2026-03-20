@@ -30,9 +30,9 @@ export function DataSourceList({ sources }: DataSourceListProps) {
             {t('dataQuality.availabilityAndUpdateStatus')}
           </p>
         </div>
-        <div className="p-2 bg-green-50">
+        <div className="p-2 bg-success-50">
           <svg
-            className="w-5 h-5 text-green-600"
+            className="w-5 h-5 text-success-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -49,7 +49,7 @@ export function DataSourceList({ sources }: DataSourceListProps) {
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="bg-gray-50 p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgAvailability')}</p>
-          <p className="text-lg font-bold text-green-600">{avgAvailability.toFixed(2)}%</p>
+          <p className="text-lg font-bold text-success-600">{avgAvailability.toFixed(2)}%</p>
         </div>
         <div className="bg-gray-50 p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgUpdateFrequency')}</p>
@@ -76,7 +76,7 @@ export function DataSourceList({ sources }: DataSourceListProps) {
                 <span className="font-medium text-gray-900 text-sm">{source.name}</span>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`text-xs font-medium ${source.trend > 0 ? 'text-green-600' : 'text-red-600'}`}
+                    className={`text-xs font-medium ${source.trend > 0 ? 'text-success-600' : 'text-danger-600'}`}
                   >
                     {source.trend > 0 ? '↑' : '↓'} {Math.abs(source.trend).toFixed(2)}%
                   </span>

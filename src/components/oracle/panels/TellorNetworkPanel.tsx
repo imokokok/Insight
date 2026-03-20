@@ -13,15 +13,15 @@ export function TellorNetworkPanel({ data }: TellorNetworkPanelProps) {
   const t = useTranslations();
 
   const getHealthColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 90) return 'text-success-600';
+    if (score >= 70) return 'text-warning-600';
+    return 'text-danger-600';
   };
 
   const getHealthBgColor = (score: number) => {
-    if (score >= 90) return 'bg-green-500';
-    if (score >= 70) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (score >= 90) return 'bg-success-500';
+    if (score >= 70) return 'bg-warning-500';
+    return 'bg-danger-500';
   };
 
   const getChainLabel = (chain: Blockchain) => {

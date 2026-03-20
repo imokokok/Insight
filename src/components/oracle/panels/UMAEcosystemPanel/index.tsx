@@ -124,7 +124,7 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
     {
       type: t('uma.ecosystem.requestTypes.price'),
       percentage: 45,
-      color: 'bg-blue-500',
+      color: 'bg-primary-500',
     },
     {
       type: t('uma.ecosystem.requestTypes.state'),

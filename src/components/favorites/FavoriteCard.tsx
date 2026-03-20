@@ -60,7 +60,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
             </div>
             <div className="flex flex-wrap gap-1.5">
               {config.selectedOracles?.slice(0, 3).map((oracle) => (
-                <span key={oracle} className="px-2 py-0.5 text-xs bg-blue-50 text-blue-700 ">
+                <span key={oracle} className="px-2 py-0.5 text-xs bg-primary-50 text-primary-700 ">
                   {oracle}
                 </span>
               ))}
@@ -82,7 +82,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
             {config.chains && config.chains.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {config.chains.slice(0, 3).map((chain) => (
-                  <span key={chain} className="px-2 py-0.5 text-xs bg-green-50 text-green-700 ">
+                  <span key={chain} className="px-2 py-0.5 text-xs bg-success-50 text-success-700 ">
                     {chain}
                   </span>
                 ))}
@@ -125,9 +125,9 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
     switch (configType) {
       case 'oracle_config':
         return (
-          <div className="w-10 h-10  bg-blue-100 flex items-center justify-center">
+          <div className="w-10 h-10  bg-primary-100 flex items-center justify-center">
             <svg
-              className="w-5 h-5 text-blue-600"
+              className="w-5 h-5 text-primary-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -142,9 +142,9 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
         );
       case 'symbol':
         return (
-          <div className="w-10 h-10  bg-green-100 flex items-center justify-center">
+          <div className="w-10 h-10  bg-success-100 flex items-center justify-center">
             <svg
-              className="w-5 h-5 text-green-600"
+              className="w-5 h-5 text-success-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -224,7 +224,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
           <button
             onClick={() => setShowDeleteConfirm(true)}
             disabled={isRemoving}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50  transition-colors disabled:opacity-50"
+            className="p-1.5 text-gray-400 hover:text-danger-600 hover:bg-danger-50  transition-colors disabled:opacity-50"
             title={t('actions.delete')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,7 +244,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
         <span className="text-xs text-gray-400">{formatDate(favorite.created_at || '')}</span>
         <button
           onClick={handleApply}
-          className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700  transition-colors"
+          className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700  transition-colors"
         >
           {t('actions.apply')}
         </button>
@@ -269,7 +269,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
               <button
                 onClick={handleDelete}
                 disabled={isRemoving}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700  transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-white bg-danger-600 hover:bg-danger-700  transition-colors disabled:opacity-50"
               >
                 {isRemoving ? t('actions.deleting') : t('actions.delete')}
               </button>

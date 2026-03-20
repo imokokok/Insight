@@ -6,7 +6,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   Area,
@@ -15,6 +15,7 @@ import { OracleProvider } from '@/types/oracle';
 import { oracleNames } from '../constants';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { ChartTooltip } from './ChartTooltip';
+
 
 interface FullscreenChartProps {
   isOpen: boolean;
@@ -126,7 +127,7 @@ export function FullscreenChart({
               domain={['auto', 'auto']}
               tickFormatter={(value) => `$${value.toLocaleString()}`}
             />
-            <Tooltip content={<ChartTooltip t={t} />} />
+            <RechartsTooltip content={<ChartTooltip t={t} />} />
             <Legend />
             <Area
               type="monotone"

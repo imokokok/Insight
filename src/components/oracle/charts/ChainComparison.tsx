@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Cell,
   Legend,
@@ -22,6 +22,7 @@ import type { ChainDataRequest } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
 import { chainColors, chartColors, animationColors } from '@/lib/config/colors';
 import { formatNumber as formatNumberCompact } from '@/lib/utils/format';
+
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 
@@ -402,7 +403,7 @@ export function ChainComparison({
           <button
             onClick={exportToCSV}
             disabled={selectedChains.length === 0}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-500  hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 text-xs font-medium text-white bg-primary-500  hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -427,7 +428,7 @@ export function ChainComparison({
                 key={chain.chainId}
                 className={`relative flex items-center gap-3 p-3  border-2 cursor-pointer transition-all duration-200 ${
                   isSelected
-                    ? 'border-blue-500 bg-blue-50'
+                    ? 'border-primary-500 bg-primary-50'
                     : isDisabled
                       ? 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50'
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -446,14 +447,14 @@ export function ChainComparison({
                 />
                 <span
                   className={`text-sm font-medium truncate ${
-                    isSelected ? 'text-blue-700' : 'text-gray-700'
+                    isSelected ? 'text-primary-700' : 'text-gray-700'
                   }`}
                 >
                   {chain.chainName}
                 </span>
                 {isSelected && (
                   <svg
-                    className="w-4 h-4 text-blue-500 absolute top-1.5 right-1.5"
+                    className="w-4 h-4 text-primary-500 absolute top-1.5 right-1.5"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -505,7 +506,7 @@ export function ChainComparison({
                 <p className="text-xs text-gray-600 mb-1">
                   {t('chainComparison.totalRequests')} ({TIME_RANGE_CONFIG[timeRange].label})
                 </p>
-                <p className="text-xl font-bold text-blue-700">
+                <p className="text-xl font-bold text-primary-700">
                   {formatNumber(comparisonStats.totalRequests)}
                 </p>
               </div>
@@ -517,7 +518,7 @@ export function ChainComparison({
               </div>
               <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">{t('chainComparison.totalTokens')}</p>
-                <p className="text-xl font-bold text-green-700">{comparisonStats.totalTokens}</p>
+                <p className="text-xl font-bold text-success-700">{comparisonStats.totalTokens}</p>
               </div>
               <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">{t('chainComparison.avgResponseTime')}</p>
@@ -578,7 +579,7 @@ export function ChainComparison({
                     tickFormatter={(value) => formatNumber(value)}
                     width={50}
                   />
-                  <Tooltip
+                  <RechartsTooltip
                     content={<CustomTooltip />}
                     cursor={{ fill: animationColors.fade.cursor }}
                   />
@@ -624,7 +625,7 @@ export function ChainComparison({
                       tickFormatter={(value) => value.toFixed(4)}
                       width={60}
                     />
-                    <Tooltip
+                    <RechartsTooltip
                       content={<GasTooltip />}
                       cursor={{ fill: animationColors.fade.cursor }}
                     />
@@ -669,7 +670,7 @@ export function ChainComparison({
                       tickFormatter={(value) => `${value}ms`}
                       width={55}
                     />
-                    <Tooltip
+                    <RechartsTooltip
                       content={<ResponseTimeTooltip />}
                       cursor={{ fill: animationColors.fade.cursor }}
                     />
@@ -716,7 +717,7 @@ export function ChainComparison({
                       allowDecimals={false}
                       width={35}
                     />
-                    <Tooltip
+                    <RechartsTooltip
                       formatter={(value) => [
                         `${value} ${t('chainComparison.tokens')}`,
                         t('chainComparison.supportedTokens'),
@@ -823,7 +824,7 @@ export function ChainComparison({
                         {chain.avgGasCost.toFixed(6)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <span className="inline-flex items-center px-2 py-0.5  text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2 py-0.5  text-xs font-medium bg-primary-100 text-primary-800">
                           {chain.supportedSymbols.length}
                         </span>
                       </td>
@@ -831,7 +832,7 @@ export function ChainComparison({
                         {chain.avgResponseTime}ms
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-right">
-                        <span className="text-green-600 font-medium">{chain.reliability}%</span>
+                        <span className="text-success-600 font-medium">{chain.reliability}%</span>
                       </td>
                     </tr>
                   ))}

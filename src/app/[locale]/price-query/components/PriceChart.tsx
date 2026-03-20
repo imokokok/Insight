@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   Brush,
@@ -28,6 +28,7 @@ import {
   calculateConfidenceIntervals,
 } from '../utils/technicalIndicators';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+
 
 const logger = createLogger('price-query-PriceChart');
 
@@ -475,7 +476,7 @@ export function PriceChart({
               type="checkbox"
               checked={showMA7}
               onChange={(e) => setShowMA7(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-3.5 h-3.5"
             />
             <span className="text-xs text-gray-600">MA7</span>
           </label>
@@ -484,7 +485,7 @@ export function PriceChart({
               type="checkbox"
               checked={showMA30}
               onChange={(e) => setShowMA30(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-3.5 h-3.5"
             />
             <span className="text-xs text-gray-600">MA30</span>
           </label>
@@ -502,7 +503,7 @@ export function PriceChart({
               type="checkbox"
               checked={showConfidenceInterval}
               onChange={(e) => setShowConfidenceInterval(e.target.checked)}
-              className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-3.5 h-3.5"
+              className="rounded border-gray-300 text-success-600 focus:ring-green-500 w-3.5 h-3.5"
             />
             <span className="text-xs text-gray-600">
               {t('priceQuery.chart.confidenceInterval')}
@@ -521,11 +522,11 @@ export function PriceChart({
               type="checkbox"
               checked={showAnomalies}
               onChange={(e) => setShowAnomalies(e.target.checked)}
-              className="rounded border-gray-300 text-red-600 focus:ring-red-500 w-3.5 h-3.5"
+              className="rounded border-gray-300 text-danger-600 focus:ring-danger-500 w-3.5 h-3.5"
             />
             <span className="text-xs text-gray-600">{t('priceQuery.chart.anomalyMarkers')}</span>
             {anomalyPoints.length > 0 && (
-              <span className="text-[10px] text-red-600 font-medium">({anomalyPoints.length})</span>
+              <span className="text-[10px] text-danger-600 font-medium">({anomalyPoints.length})</span>
             )}
           </label>
           <label className="inline-flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 px-1.5 py-0.5 rounded transition-colors">
@@ -533,11 +534,11 @@ export function PriceChart({
               type="checkbox"
               checked={showPriceSpikes}
               onChange={(e) => setShowPriceSpikes(e.target.checked)}
-              className="rounded border-gray-300 text-orange-600 focus:ring-orange-500 w-3.5 h-3.5"
+              className="rounded border-gray-300 text-warning-600 focus:ring-orange-500 w-3.5 h-3.5"
             />
             <span className="text-xs text-gray-600">{t('priceQuery.chart.priceSpikes')}</span>
             {priceSpikeEvents.length > 0 && (
-              <span className="text-[10px] text-orange-600 font-medium">
+              <span className="text-[10px] text-warning-600 font-medium">
                 ({priceSpikeEvents.length})
               </span>
             )}
@@ -547,7 +548,7 @@ export function PriceChart({
               type="checkbox"
               checked={showValueLabels}
               onChange={(e) => setShowValueLabels(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-3.5 h-3.5"
             />
             <span className="text-xs text-gray-600">{t('priceQuery.chart.valueLabels')}</span>
           </label>
@@ -631,7 +632,7 @@ export function PriceChart({
                       offset={index * 50}
                     />
                   ))}
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Legend
                 content={
                   <CustomLegend

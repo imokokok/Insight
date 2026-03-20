@@ -12,13 +12,13 @@ export interface ValidatorPanelProps {
 
 export const statusConfig = {
   active: {
-    bgColor: 'bg-green-500',
-    textColor: 'text-green-600',
+    bgColor: 'bg-success-500',
+    textColor: 'text-success-600',
     labelKey: 'validatorPanel.status.active',
   },
   jailed: {
-    bgColor: 'bg-red-500',
-    textColor: 'text-red-600',
+    bgColor: 'bg-danger-500',
+    textColor: 'text-danger-600',
     labelKey: 'validatorPanel.status.jailed',
   },
 } as const;

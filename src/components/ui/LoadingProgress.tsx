@@ -37,10 +37,10 @@ export function ProgressBar({
   };
 
   const variantClasses = {
-    default: 'bg-blue-600',
+    default: 'bg-primary-600',
     success: 'bg-emerald-500',
     warning: 'bg-amber-500',
-    error: 'bg-red-500',
+    error: 'bg-danger-500',
   };
 
   return (
@@ -172,7 +172,7 @@ export function StepProgress({
                 className={cn(
                   'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
                   isCompleted && 'bg-emerald-500 text-white',
-                  isCurrent && 'bg-blue-600 text-white ring-4 ring-blue-100',
+                  isCurrent && 'bg-primary-600 text-white ring-4 ring-blue-100',
                   isPending && 'bg-gray-200 text-gray-500'
                 )}
               >
@@ -182,7 +182,7 @@ export function StepProgress({
                 className={cn(
                   'text-sm transition-colors',
                   isCompleted && 'text-emerald-600',
-                  isCurrent && 'text-blue-600 font-medium',
+                  isCurrent && 'text-primary-600 font-medium',
                   isPending && 'text-gray-400'
                 )}
               >
@@ -281,7 +281,7 @@ export function DataLoadingProgress({
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+              <Loader2 className="w-6 h-6 text-primary-600 animate-spin" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900">{message || t('loadingData')}</h3>
           </div>
@@ -363,9 +363,9 @@ export function BatchOperationProgress({
       case 'completed':
         return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
       case 'failed':
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
+        return <AlertCircle className="w-4 h-4 text-danger-500" />;
       case 'processing':
-        return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
+        return <Loader2 className="w-4 h-4 text-primary-500 animate-spin" />;
       default:
         return <div className="w-4 h-4 rounded-full border-2 border-gray-200" />;
     }
@@ -402,7 +402,7 @@ export function BatchOperationProgress({
               {t('completed')}: {completed}
             </span>
             {failed > 0 && (
-              <span className="text-red-600">
+              <span className="text-danger-600">
                 {t('failed')}: {failed}
               </span>
             )}

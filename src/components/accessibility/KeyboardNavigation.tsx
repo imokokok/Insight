@@ -339,7 +339,7 @@ interface FocusIndicatorProps {
 export function FocusIndicator({
   children,
   className = '',
-  ringColor = 'ring-blue-500',
+  ringColor = 'ring-primary-500',
   ringWidth = 2,
   ringOffset = 2,
 }: FocusIndicatorProps) {
@@ -426,7 +426,7 @@ export const AccessibleLink = React.forwardRef<HTMLAnchorElement, AccessibleLink
       <a
         ref={ref}
         href={href}
-        className={`${underline ? 'underline' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}
+        className={`${underline ? 'underline' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2`}
         {...externalProps}
         {...props}
       >

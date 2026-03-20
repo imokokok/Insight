@@ -9,6 +9,8 @@ import RealtimeIndicator from './RealtimeIndicator';
 import { RefreshInterval } from '../constants';
 import { OracleMarketData, AssetData } from '../types';
 
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 interface MarketHeaderProps {
   loading: boolean;
   oracleData: OracleMarketData[];
@@ -47,8 +49,8 @@ export default function MarketHeader({
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
       <div>
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-blue-100 border border-blue-200">
-            <BarChart3 className="w-6 h-6 text-blue-600" />
+          <div className="p-2 bg-primary-100 border border-primary-200">
+            <BarChart3 className="w-6 h-6 text-primary-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
             {isChineseLocale(locale) ? '市场概览' : 'Market Overview'}

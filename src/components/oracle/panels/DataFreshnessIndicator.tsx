@@ -13,19 +13,19 @@ export function DataFreshnessIndicator({
   const getLatencyColor = (ms: number) => {
     if (ms < 100)
       return {
-        color: 'text-green-600',
-        bgColor: 'bg-green-500',
+        color: 'text-success-600',
+        bgColor: 'bg-success-500',
         label: t('networkHealth.dataFreshness.excellent'),
       };
     if (ms < 500)
       return {
-        color: 'text-yellow-600',
-        bgColor: 'bg-yellow-500',
+        color: 'text-warning-600',
+        bgColor: 'bg-warning-500',
         label: t('networkHealth.dataFreshness.good'),
       };
     return {
-      color: 'text-red-600',
-      bgColor: 'bg-red-500',
+      color: 'text-danger-600',
+      bgColor: 'bg-danger-500',
       label: t('networkHealth.dataFreshness.slow'),
     };
   };

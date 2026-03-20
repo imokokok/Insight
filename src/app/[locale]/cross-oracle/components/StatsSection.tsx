@@ -94,7 +94,7 @@ export function StatsSection({
           {/* 右侧：关键统计 */}
           <div className="lg:w-auto flex gap-6">
             <div className="flex items-start gap-2">
-              <Activity className="w-4 h-4 text-blue-600 mt-0.5" />
+              <Activity className="w-4 h-4 text-primary-600 mt-0.5" />
               <div>
                 <p className="text-xs text-gray-500">{t('crossOracle.oracleCount')}</p>
                 <p className="text-lg font-semibold text-gray-900">{selectedOracles.length}</p>

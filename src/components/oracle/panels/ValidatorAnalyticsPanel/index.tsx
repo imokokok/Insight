@@ -306,7 +306,7 @@ function ValidatorTable({
               <td className="py-3.5 px-4">
                 <span
                   className={`inline-flex items-center justify-center w-7 h-7 text-xs font-bold ${
-                    index < 3 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                    index < 3 ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
                   {index + 1}
@@ -319,7 +319,7 @@ function ValidatorTable({
                     href={`https://etherscan.io/address/${validator.address}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-blue-600 transition-colors"
+                    className="text-gray-400 hover:text-primary-600 transition-colors"
                     title={t('uma.validatorAnalytics.viewOnEtherscan')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -382,7 +382,7 @@ function ValidatorTable({
               <td className="py-3.5 px-4">
                 <button
                   onClick={() => onViewHistory(validator)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-100 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-100 transition-colors"
                 >
                   <svg
                     className="w-3.5 h-3.5"
@@ -633,7 +633,7 @@ export function ValidatorAnalyticsPanel() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
           <p className="text-gray-500 text-sm">{t('uma.loading')}</p>
         </div>
       </div>
@@ -651,7 +651,7 @@ export function ValidatorAnalyticsPanel() {
           )}
           {isRefreshing && (
             <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent" />
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-600 border-t-transparent" />
               <span className="text-sm" style={{ color: baseColors.primary[600] }}>
                 {t('panels.validatorAnalytics.refreshing')}
               </span>
@@ -754,7 +754,7 @@ export function ValidatorAnalyticsPanel() {
               placeholder={t('panels.validatorAnalytics.searchValidator')}
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
             />
             {searchQuery && (
               <button
@@ -896,8 +896,8 @@ export function ValidatorAnalyticsPanel() {
                       selectedValidator.type === 'institution'
                         ? 'bg-purple-100 text-purple-700'
                         : selectedValidator.type === 'independent'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-green-100 text-green-700'
+                          ? 'bg-primary-100 text-primary-700'
+                          : 'bg-success-100 text-success-700'
                     }`}
                   >
                     {selectedValidator.type === 'institution'
@@ -943,7 +943,7 @@ export function ValidatorAnalyticsPanel() {
                     href={`https://etherscan.io/address/${selectedValidator.address}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                    className="flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 transition-colors"
                   >
                     <span>{t('uma.validatorAnalytics.viewOnEtherscan')}</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -963,7 +963,7 @@ export function ValidatorAnalyticsPanel() {
               {isHistoryLoading ? (
                 <div className="flex items-center justify-center h-48">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
                     <p className="text-gray-500 text-sm">{t('uma.loading')}</p>
                   </div>
                 </div>

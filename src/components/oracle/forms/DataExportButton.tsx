@@ -286,8 +286,8 @@ export function DataExportButton({
             onClick={() => handleExport('csv')}
             className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
           >
-            <div className="w-10 h-10  bg-green-100 flex items-center justify-center">
-              <span className="text-xs font-bold text-green-600">CSV</span>
+            <div className="w-10 h-10  bg-success-100 flex items-center justify-center">
+              <span className="text-xs font-bold text-success-600">CSV</span>
             </div>
             <div>
               <span className="font-medium text-gray-900">{t('forms.csvFile')}</span>
@@ -298,8 +298,8 @@ export function DataExportButton({
             onClick={() => handleExport('json')}
             className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
           >
-            <div className="w-10 h-10  bg-blue-100 flex items-center justify-center">
-              <span className="text-xs font-bold text-blue-600">JSON</span>
+            <div className="w-10 h-10  bg-primary-100 flex items-center justify-center">
+              <span className="text-xs font-bold text-primary-600">JSON</span>
             </div>
             <div>
               <span className="font-medium text-gray-900">{t('forms.jsonFile')}</span>

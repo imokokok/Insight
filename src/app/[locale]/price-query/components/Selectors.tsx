@@ -188,7 +188,7 @@ export function Selectors({
                   type="checkbox"
                   checked={isCompareMode}
                   onChange={(e) => setIsCompareMode?.(e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-4 h-4"
                 />
                 <span className="text-xs font-medium text-gray-700">
                   {t('priceQuery.selectors.compareMode')}

@@ -26,6 +26,8 @@ import {
 import { chartColors } from '@/lib/config/colors';
 import { useRoutePrefetch } from '@/hooks';
 
+import { Icon } from '@/components/ui';
+
 interface FeatureCard {
   id: string;
   titleKey: string;

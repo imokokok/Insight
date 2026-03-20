@@ -39,33 +39,33 @@ interface ErrorDisplayProps {
 const severityConfig = {
   error: {
     icon: AlertCircle,
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
-    iconColor: 'text-red-500',
-    titleColor: 'text-red-900',
-    messageColor: 'text-red-700',
-    buttonBg: 'bg-red-600',
-    buttonHover: 'hover:bg-red-700',
+    bgColor: 'bg-danger-50',
+    borderColor: 'border-danger-200',
+    iconColor: 'text-danger-500',
+    titleColor: 'text-danger-900',
+    messageColor: 'text-danger-700',
+    buttonBg: 'bg-danger-600',
+    buttonHover: 'hover:bg-danger-700',
   },
   warning: {
     icon: AlertCircle,
-    bgColor: 'bg-yellow-50',
+    bgColor: 'bg-warning-50',
     borderColor: 'border-yellow-200',
-    iconColor: 'text-yellow-500',
+    iconColor: 'text-warning-500',
     titleColor: 'text-yellow-900',
-    messageColor: 'text-yellow-700',
-    buttonBg: 'bg-yellow-600',
-    buttonHover: 'hover:bg-yellow-700',
+    messageColor: 'text-warning-700',
+    buttonBg: 'bg-warning-600',
+    buttonHover: 'hover:bg-warning-700',
   },
   info: {
     icon: AlertCircle,
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    iconColor: 'text-blue-500',
-    titleColor: 'text-blue-900',
-    messageColor: 'text-blue-700',
-    buttonBg: 'bg-blue-600',
-    buttonHover: 'hover:bg-blue-700',
+    bgColor: 'bg-primary-50',
+    borderColor: 'border-primary-200',
+    iconColor: 'text-primary-500',
+    titleColor: 'text-primary-900',
+    messageColor: 'text-primary-700',
+    buttonBg: 'bg-primary-600',
+    buttonHover: 'hover:bg-primary-700',
   },
 };
 
@@ -234,7 +234,7 @@ export function ErrorDisplay({
                         {suggestion.action && suggestion.actionLabel && (
                           <button
                             onClick={suggestion.action}
-                            className="text-xs text-blue-600 hover:text-blue-700 underline mt-1"
+                            className="text-xs text-primary-600 hover:text-primary-700 underline mt-1"
                           >
                             {suggestion.actionLabel}
                           </button>
@@ -360,13 +360,13 @@ export function InlineError({
   const t = useTranslations();
 
   return (
-    <div role="alert" className={`flex items-center gap-2 text-red-600 text-sm ${className}`}>
+    <div role="alert" className={`flex items-center gap-2 text-danger-600 text-sm ${className}`}>
       <AlertCircle className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
       <span className="flex-1">{message}</span>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="flex items-center gap-1 text-red-600 hover:text-red-700 underline"
+          className="flex items-center gap-1 text-danger-600 hover:text-danger-700 underline"
         >
           <RefreshCw className="w-3 h-3" />
           {t('actions.retry')}
@@ -392,15 +392,15 @@ export function FormError({
     <div
       role="alert"
       aria-live="polite"
-      className={`bg-red-50 border border-red-200 p-3 ${className}`}
+      className={`bg-danger-50 border border-danger-200 p-3 ${className}`}
     >
       <div className="flex items-start gap-2">
-        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <AlertCircle className="w-5 h-5 text-danger-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
         <div className="flex-1">
-          <h4 className="text-sm font-medium text-red-900">{t('error.formValidation.title')}</h4>
+          <h4 className="text-sm font-medium text-danger-900">{t('error.formValidation.title')}</h4>
           <ul className="mt-1 space-y-1">
             {errorEntries.map(([field, message]) => (
-              <li key={field} className="text-sm text-red-700">
+              <li key={field} className="text-sm text-danger-700">
                 <span className="font-medium">{field}:</span> {message}
               </li>
             ))}

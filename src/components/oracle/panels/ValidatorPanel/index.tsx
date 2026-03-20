@@ -202,7 +202,7 @@ export function ValidatorPanel({
       <div className="bg-white border border-gray-200 p-6">
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
-            <svg className="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24">
               <circle
                 className="opacity-25"
                 cx="12"
@@ -226,8 +226,8 @@ export function ValidatorPanel({
 
   if (error) {
     return (
-      <div className="bg-white border border-red-200 p-6">
-        <div className="flex items-center gap-3 text-red-600">
+      <div className="bg-white border border-danger-200 p-6">
+        <div className="flex items-center gap-3 text-danger-600">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -254,7 +254,7 @@ export function ValidatorPanel({
               <p className="text-sm text-gray-500 mt-0.5">
                 {t('validatorPanel.subtitle', { count: filteredValidators.length })}
                 {quickFilter !== 'all' && (
-                  <span className="text-blue-600 ml-1">{t('validatorPanel.filtered')}</span>
+                  <span className="text-primary-600 ml-1">{t('validatorPanel.filtered')}</span>
                 )}
                 {' • '}
                 {t('validatorPanel.totalStaked')}{' '}
@@ -370,14 +370,14 @@ export function ValidatorPanel({
             </button>
             {selectedValidatorAddresses.size > 0 && (
               <div className="flex items-center gap-2 ml-2">
-                <span className="text-sm text-blue-600 font-medium">
+                <span className="text-sm text-primary-600 font-medium">
                   {t('validatorPanel.selectedForComparison', {
                     count: selectedValidatorAddresses.size,
                   })}
                 </span>
                 <button
                   onClick={handleClearSelection}
-                  className="text-xs text-gray-500 hover:text-red-600 underline transition-colors"
+                  className="text-xs text-gray-500 hover:text-danger-600 underline transition-colors"
                 >
                   {t('validatorPanel.clearSelection')}
                 </button>

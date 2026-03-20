@@ -307,8 +307,8 @@ export function AvatarUploader({
           <div
             className={`w-32 h-32 mx-auto relative overflow-hidden border-2 transition-all duration-300 ${
               isDragOver
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50/50'
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-gray-200 bg-gray-50 hover:border-primary-300 hover:bg-primary-50/50'
             }`}
           >
             {currentAvatarUrl ? (
@@ -344,7 +344,7 @@ export function AvatarUploader({
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700 transition-all duration-200 hover:scale-110 disabled:opacity-50"
+            className="absolute -bottom-2 -right-2 w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-primary-700 transition-all duration-200 hover:scale-110 disabled:opacity-50"
           >
             {isUploading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -370,7 +370,7 @@ export function AvatarUploader({
             <button
               onClick={handleDeleteAvatar}
               disabled={isUploading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-danger-600 hover:text-danger-700 hover:bg-danger-50 rounded transition-colors disabled:opacity-50"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {t('settings.profile.avatar.delete')}
@@ -474,7 +474,7 @@ export function AvatarUploader({
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${uploadProgress}%` }}
-                        className="h-full bg-blue-600"
+                        className="h-full bg-primary-600"
                         transition={{ duration: 0.3 }}
                       />
                     </div>
@@ -495,7 +495,7 @@ export function AvatarUploader({
                   <button
                     onClick={handleCropComplete}
                     disabled={isUploading}
-                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2"
                   >
                     {isUploading ? (
                       <>

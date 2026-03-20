@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend,
 } from 'recharts';
@@ -17,6 +17,7 @@ import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
 import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors } from '@/lib/config/colors';
+
 
 const logger = createLogger('RequestTrendChart');
 
@@ -178,7 +179,7 @@ export function RequestTrendChart({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">{t('requestTrend.requests')}</span>
-              <span className="text-xs font-semibold text-blue-600">
+              <span className="text-xs font-semibold text-primary-600">
                 {formatCompactNumberWithDecimals(dataPoint.requests)}
               </span>
             </div>
@@ -190,7 +191,7 @@ export function RequestTrendChart({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">{t('requestTrend.successRate')}</span>
-              <span className="text-xs font-semibold text-green-600">{dataPoint.successRate}%</span>
+              <span className="text-xs font-semibold text-success-600">{dataPoint.successRate}%</span>
             </div>
           </div>
         </div>
@@ -216,7 +217,7 @@ export function RequestTrendChart({
               onClick={() => setTimeRange(btn.key)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
                 timeRange === btn.key
-                  ? 'bg-blue-500 text-white '
+                  ? 'bg-primary-500 text-white '
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -230,10 +231,10 @@ export function RequestTrendChart({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.avgRequests')}</p>
-            <p className="text-xl font-bold text-blue-700">
+            <p className="text-xl font-bold text-primary-700">
               {formatCompactNumberWithDecimals(stats.avgRequests)}
             </p>
-            <p className="text-xs text-blue-600 mt-0.5">
+            <p className="text-xs text-primary-600 mt-0.5">
               {t('requestTrend.per')}
               {getTimeUnit(timeRange)}
             </p>
@@ -247,25 +248,25 @@ export function RequestTrendChart({
           </div>
           <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.growthRate')}</p>
-            <p className="text-xl font-bold text-green-700">
+            <p className="text-xl font-bold text-success-700">
               {stats.growthRate >= 0 ? '+' : ''}
               {stats.growthRate}%
             </p>
-            <p className="text-xs text-green-600 mt-0.5">{t('requestTrend.secondHalfPeriod')}</p>
+            <p className="text-xs text-success-600 mt-0.5">{t('requestTrend.secondHalfPeriod')}</p>
           </div>
           <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.totalRequests')}</p>
             <p className="text-xl font-bold text-orange-700">
               {formatCompactNumberWithDecimals(stats.totalRequests)}
             </p>
-            <p className="text-xs text-orange-600 mt-0.5">{t('requestTrend.cumulativeRequests')}</p>
+            <p className="text-xs text-warning-600 mt-0.5">{t('requestTrend.cumulativeRequests')}</p>
           </div>
         </div>
 
         {isLoading ? (
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent  animate-spin" />
+              <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent  animate-spin" />
               <p className="text-sm text-gray-500">{t('requestTrend.loading')}</p>
             </div>
           </div>
@@ -298,7 +299,7 @@ export function RequestTrendChart({
                   tickFormatter={(value) => formatCompactNumberWithDecimals(value)}
                   width={50}
                 />
-                <Tooltip content={<CustomTooltip />} />
+                <RechartsTooltip content={<CustomTooltip />} />
                 <Legend
                   verticalAlign="top"
                   height={36}
@@ -324,20 +325,20 @@ export function RequestTrendChart({
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3  bg-blue-500" />
+              <div className="w-3 h-3  bg-primary-500" />
               <span className="text-xs text-gray-600">{t('requestTrend.requests')}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {autoUpdate && (
               <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2  bg-green-500 animate-pulse" />
+                <div className="w-2 h-2  bg-success-500 animate-pulse" />
                 <span className="text-xs text-gray-500">{t('requestTrend.realtimeUpdate')}</span>
               </div>
             )}
             <div className="text-right">
               <p className="text-xs text-gray-500">{t('requestTrend.avgSuccessRate')}</p>
-              <p className="text-sm font-bold text-green-600">{stats.avgSuccessRate}%</p>
+              <p className="text-sm font-bold text-success-600">{stats.avgSuccessRate}%</p>
             </div>
           </div>
         </div>

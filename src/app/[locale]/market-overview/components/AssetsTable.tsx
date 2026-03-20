@@ -64,7 +64,7 @@ export default function AssetsTable({ assets }: AssetsTableProps) {
                       {index + 1}
                     </span>
                     <div>
-                      <span className="font-semibold text-gray-900 block text-sm group-hover:text-blue-600 transition-colors duration-200">
+                      <span className="font-semibold text-gray-900 block text-sm group-hover:text-primary-600 transition-colors duration-200">
                         {asset.symbol}
                       </span>
                       <span className="text-xs text-gray-400">
@@ -128,7 +128,7 @@ export default function AssetsTable({ assets }: AssetsTableProps) {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200 cursor-pointer">
+                  <span className="text-xs font-semibold text-primary-600 hover:text-primary-700 transition-colors duration-200 cursor-pointer">
                     {asset.primaryOracle}
                   </span>
                 </td>

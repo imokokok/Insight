@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   Legend,
@@ -17,6 +17,7 @@ import {
 import { chainNames, chainColors, calculateRollingCorrelation } from '../utils';
 import { Blockchain } from '@/types/oracle';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+
 
 interface RollingCorrelationChartProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -282,7 +283,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
                   fill: chartColors.recharts.tick,
                 }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Legend onClick={handleLegendClick} />
 
               {/* Reference lines for correlation thresholds */}

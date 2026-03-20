@@ -17,7 +17,7 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
       case 'platinum':
         return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'gold':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        return 'bg-warning-100 text-warning-700 border-yellow-200';
       case 'silver':
         return 'bg-gray-100 text-gray-700 border-gray-200';
       case 'bronze':
@@ -70,21 +70,21 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
           </div>
           <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
-              <Users className="w-4 h-4 text-green-600" />
+              <Users className="w-4 h-4 text-success-600" />
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 {t('winklink.staking.activeNodes')}
               </p>
             </div>
-            <p className="text-xl font-bold text-green-600 tracking-tight">{data.activeNodes}</p>
+            <p className="text-xl font-bold text-success-600 tracking-tight">{data.activeNodes}</p>
           </div>
           <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-yellow-600" />
+              <TrendingUp className="w-4 h-4 text-warning-600" />
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 {t('winklink.staking.averageApr')}
               </p>
             </div>
-            <p className="text-xl font-bold text-yellow-600 tracking-tight">{data.averageApr}%</p>
+            <p className="text-xl font-bold text-warning-600 tracking-tight">{data.averageApr}%</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
@@ -178,11 +178,11 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
                   <td className="py-2 px-3 text-gray-900">{formatNumber(node.stakedAmount)}</td>
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3 text-green-500" />
+                      <CheckCircle className="w-3 h-3 text-success-500" />
                       <span className="text-gray-900">{node.uptime}%</span>
                     </div>
                   </td>
-                  <td className="py-2 px-3 text-green-600">{formatNumber(node.rewardsEarned)}</td>
+                  <td className="py-2 px-3 text-success-600">{formatNumber(node.rewardsEarned)}</td>
                 </tr>
               ))}
             </tbody>

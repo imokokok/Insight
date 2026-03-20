@@ -17,15 +17,15 @@ export function TellorMultiChainAggregationPanel({ data }: TellorMultiChainAggre
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.97) return 'bg-green-100 text-green-700';
-    if (confidence >= 0.95) return 'bg-yellow-100 text-yellow-700';
-    return 'bg-orange-100 text-orange-700';
+    if (confidence >= 0.97) return 'bg-success-100 text-success-700';
+    if (confidence >= 0.95) return 'bg-warning-100 text-warning-700';
+    return 'bg-warning-100 text-orange-700';
   };
 
   const getDeviationColor = (deviation: number) => {
-    if (deviation <= 0.1) return 'text-green-600';
-    if (deviation <= 0.5) return 'text-yellow-600';
-    return 'text-red-600';
+    if (deviation <= 0.1) return 'text-success-600';
+    if (deviation <= 0.5) return 'text-warning-600';
+    return 'text-danger-600';
   };
 
   const chainCount = data.chainPrices.length;
@@ -45,21 +45,21 @@ export function TellorMultiChainAggregationPanel({ data }: TellorMultiChainAggre
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Link2 className="w-4 h-4 text-blue-600" />
+              <Link2 className="w-4 h-4 text-primary-600" />
               <p className="text-xs text-gray-500">{t('tellor.multiChain.consensus')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">{data.consensusMethod}</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-yellow-600" />
+              <Clock className="w-4 h-4 text-warning-600" />
               <p className="text-xs text-gray-500">{t('tellor.multiChain.avgLatency')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">{avgLatency.toFixed(0)}ms</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-green-600" />
+              <TrendingUp className="w-4 h-4 text-success-600" />
               <p className="text-xs text-gray-500">{t('tellor.multiChain.priceDeviation')}</p>
             </div>
             <p className={`text-xl font-bold ${getDeviationColor(data.priceDeviation)}`}>

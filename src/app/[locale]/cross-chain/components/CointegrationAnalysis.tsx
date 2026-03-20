@@ -12,11 +12,12 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+
 
 interface CointegrationAnalysisProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -83,9 +84,9 @@ function CointegrationPairCard({ pair }: { pair: CointegrationPair }) {
   const getSignalColor = () => {
     switch (signal) {
       case 'long':
-        return 'text-green-600 bg-green-50';
+        return 'text-success-600 bg-success-50';
       case 'short':
-        return 'text-red-600 bg-red-50';
+        return 'text-danger-600 bg-danger-50';
       default:
         return 'text-gray-600 bg-gray-50';
     }
@@ -138,7 +139,7 @@ function CointegrationPairCard({ pair }: { pair: CointegrationPair }) {
             <div className="text-xs text-gray-500 mb-1">{t('crossChain.adfStatistic')}</div>
             <div
               className={`text-lg font-semibold font-mono ${
-                result.adfStatistic < result.criticalValue ? 'text-green-600' : 'text-red-600'
+                result.adfStatistic < result.criticalValue ? 'text-success-600' : 'text-danger-600'
               }`}
             >
               {result.adfStatistic.toFixed(3)}
@@ -180,7 +181,7 @@ function CointegrationPairCard({ pair }: { pair: CointegrationPair }) {
                   hide
                 />
                 <YAxis stroke={chartColors.recharts.axis} tick={{ fontSize: 10 }} width={50} />
-                <Tooltip
+                <RechartsTooltip
                   formatter={(value) => [Number(value).toFixed(4), '']}
                   labelFormatter={() => ''}
                 />
@@ -224,14 +225,14 @@ function CointegrationPairCard({ pair }: { pair: CointegrationPair }) {
             </div>
             <div className="flex items-center gap-1">
               <div
-                className="w-3 h-0.5 bg-green-500"
+                className="w-3 h-0.5 bg-success-500"
                 style={{ borderTop: `1px dashed ${semanticColors.success.DEFAULT}` }}
               />
               <span className="text-xs text-gray-500">+2σ</span>
             </div>
             <div className="flex items-center gap-1">
               <div
-                className="w-3 h-0.5 bg-red-500"
+                className="w-3 h-0.5 bg-danger-500"
                 style={{ borderTop: `1px dashed ${semanticColors.danger.DEFAULT}` }}
               />
               <span className="text-xs text-gray-500">-2σ</span>

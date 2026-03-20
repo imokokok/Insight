@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { ChartSkeleton, MiniChartSkeleton } from '@/components/ui/ChartSkeleton';
 
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 export const LazyAreaChart = lazy(() =>
   import('recharts').then((mod) => ({ default: mod.AreaChart }))
 );

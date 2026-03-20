@@ -196,7 +196,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             value={alertName}
             onChange={(e) => setAlertName(e.target.value)}
             placeholder={t('alerts.create.namePlaceholder')}
-            className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
 
@@ -251,7 +251,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
                 key={option.value}
                 className={`flex items-start p-3 border cursor-pointer transition-colors ${
                   conditionType === option.value
-                    ? 'border-blue-500 bg-blue-50'
+                    ? 'border-primary-500 bg-primary-50'
                     : 'border-gray-200 hover:bg-gray-50'
                 }`}
               >
@@ -282,7 +282,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             value={targetValue}
             onChange={(e) => setTargetValue(e.target.value)}
             placeholder={getTargetPlaceholder()}
-            className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
 
@@ -294,7 +294,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             type="button"
             onClick={() => setIsActive(!isActive)}
             className={`relative inline-flex h-6 w-11 items-center transition-colors ${
-              isActive ? 'bg-blue-600' : 'bg-gray-200'
+              isActive ? 'bg-primary-600' : 'bg-gray-200'
             }`}
           >
             <span
@@ -342,14 +342,14 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-sm text-red-600">{error}</div>
+          <div className="p-3 bg-danger-50 border border-danger-200 text-sm text-danger-600">{error}</div>
         )}
 
         <button
           type="submit"
           disabled={isCreating}
           className={`w-full py-2 px-4 font-medium text-white transition-colors ${
-            isCreating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            isCreating ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
           }`}
         >
           {isCreating ? t('alerts.create.submitting') : t('alerts.create.submit')}

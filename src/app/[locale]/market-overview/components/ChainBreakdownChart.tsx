@@ -7,7 +7,7 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   BarChart,
   Bar,
   XAxis,
@@ -19,6 +19,7 @@ import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { Globe } from 'lucide-react';
 import { chartColors } from '@/lib/config/colors';
+
 
 interface ChainBreakdownChartProps {
   data: ChainBreakdown[];
@@ -63,7 +64,7 @@ export default function ChainBreakdownChart({
             <div className="flex justify-between">
               <span className="text-gray-500">24h:</span>
               <span
-                className={`font-medium ${item.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                className={`font-medium ${item.change24h >= 0 ? 'text-success-600' : 'text-danger-600'}`}
               >
                 {item.change24h >= 0 ? '+' : ''}
                 {item.change24h.toFixed(1)}%
@@ -145,7 +146,7 @@ export default function ChainBreakdownChart({
               <tr
                 key={item.chainId}
                 className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                  selectedItem === item.chainId ? 'bg-blue-50' : ''
+                  selectedItem === item.chainId ? 'bg-primary-50' : ''
                 }`}
                 onClick={() => setSelectedItem(item.chainId === selectedItem ? null : item.chainId)}
                 onMouseEnter={() => setHoveredItem(item.chainId)}
@@ -169,7 +170,7 @@ export default function ChainBreakdownChart({
                 <td className="px-3 py-2.5 text-right">
                   <span
                     className={`font-medium text-sm ${
-                      item.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                      item.change24h >= 0 ? 'text-success-600' : 'text-danger-600'
                     }`}
                   >
                     {item.change24h >= 0 ? '+' : ''}
@@ -201,7 +202,7 @@ export default function ChainBreakdownChart({
             onClick={() => setChartType('pie')}
             className={`px-2.5 py-1 text-sm border rounded transition-colors ${
               chartType === 'pie'
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                ? 'bg-primary-50 border-primary-200 text-primary-700'
                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
@@ -211,7 +212,7 @@ export default function ChainBreakdownChart({
             onClick={() => setChartType('bar')}
             className={`px-2.5 py-1 text-sm border rounded transition-colors ${
               chartType === 'bar'
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                ? 'bg-primary-50 border-primary-200 text-primary-700'
                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
@@ -257,7 +258,7 @@ export default function ChainBreakdownChart({
                   />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
             </PieChart>
           ) : (
             <BarChart data={data} layout="vertical" margin={{ left: 70 }}>
@@ -274,7 +275,7 @@ export default function ChainBreakdownChart({
                 fontSize={11}
                 width={65}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="share"
                 name="Share %"
@@ -308,7 +309,7 @@ export default function ChainBreakdownChart({
             onClick={() => setSelectedItem(item.chainId === selectedItem ? null : item.chainId)}
             className={`flex items-center gap-2 p-2 border rounded transition-all text-left ${
               selectedItem === item.chainId
-                ? 'bg-blue-50 border-blue-200'
+                ? 'bg-primary-50 border-primary-200'
                 : 'border-transparent hover:bg-gray-50'
             }`}
           >

@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   Cell,
@@ -23,6 +23,7 @@ import { VolatilityAlert } from '../common/VolatilityAlert';
 import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { getOracleColor } from '@/lib/oracles';
+
 
 export interface OraclePriceHistory {
   oracle: OracleProvider;
@@ -489,11 +490,11 @@ export function PriceVolatilityChart({
             <span className="text-xs text-gray-600">
               {t('priceVolatility.shortTermVolatility')}
             </span>
-            <span className="text-xs font-medium text-blue-600">{data.shortTerm.toFixed(1)}%</span>
+            <span className="text-xs font-medium text-primary-600">{data.shortTerm.toFixed(1)}%</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-600">{t('priceVolatility.midTermVolatility')}</span>
-            <span className="text-xs font-medium text-green-600">{data.midTerm.toFixed(1)}%</span>
+            <span className="text-xs font-medium text-success-600">{data.midTerm.toFixed(1)}%</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-600">{t('priceVolatility.longTermVolatility')}</span>
@@ -528,7 +529,7 @@ export function PriceVolatilityChart({
                   onClick={() => setSelectedTimeScale(scale)}
                   className={`px-4 py-2 rounded text-sm font-medium transition-all ${
                     selectedTimeScale === scale
-                      ? 'bg-blue-600 text-white shadow-sm'
+                      ? 'bg-primary-600 text-white shadow-sm'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -546,17 +547,17 @@ export function PriceVolatilityChart({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-100 border border-gray-200 rounded p-4">
               <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.avgCV')}</p>
-              <p className="text-2xl font-bold text-blue-600">{avgCV.toFixed(4)}%</p>
+              <p className="text-2xl font-bold text-primary-600">{avgCV.toFixed(4)}%</p>
             </div>
             <div className="bg-gray-100 border border-gray-200 rounded p-4">
               <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.minVolatility')}</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-success-600">
                 {Math.min(...volatilityResults.map((r) => r.cv)).toFixed(4)}%
               </p>
             </div>
             <div className="bg-gray-100 border border-gray-200 rounded p-4">
               <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.maxVolatility')}</p>
-              <p className="text-2xl font-bold text-orange-600">
+              <p className="text-2xl font-bold text-warning-600">
                 {Math.max(...volatilityResults.map((r) => r.cv)).toFixed(4)}%
               </p>
             </div>
@@ -593,7 +594,7 @@ export function PriceVolatilityChart({
                     tick={{ fontSize: 12, fill: chartColors.recharts.tickDark }}
                     width={80}
                   />
-                  <Tooltip content={<CustomTooltip />} />
+                  <RechartsTooltip content={<CustomTooltip />} />
                   <Bar dataKey="cv" maxBarSize={40}>
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.levelColor} />
@@ -628,7 +629,7 @@ export function PriceVolatilityChart({
                       tickFormatter={(value) => `${value}%`}
                       width={50}
                     />
-                    <Tooltip content={<TrendTooltip />} />
+                    <RechartsTooltip content={<TrendTooltip />} />
                     <Legend />
                     {data.map((oracleData) => (
                       <Line
@@ -672,7 +673,7 @@ export function PriceVolatilityChart({
                       tickFormatter={(value) => `${value}%`}
                       width={50}
                     />
-                    <Tooltip content={<DecompositionTooltip />} />
+                    <RechartsTooltip content={<DecompositionTooltip />} />
                     <Legend />
                     <Area
                       type="monotone"
@@ -705,11 +706,11 @@ export function PriceVolatilityChart({
                 </ResponsiveContainer>
               </div>
               <div className="grid grid-cols-3 gap-4 mt-4">
-                <div className="text-center p-3 rounded bg-blue-50">
+                <div className="text-center p-3 rounded bg-primary-50">
                   <p className="text-xs text-gray-600 mb-1">
                     {t('priceVolatility.shortTermProportion')}
                   </p>
-                  <p className="text-lg font-bold text-blue-600">
+                  <p className="text-lg font-bold text-primary-600">
                     {decompositionData.length > 0
                       ? (
                           decompositionData.reduce((sum, d) => sum + d.shortTerm, 0) /
@@ -719,11 +720,11 @@ export function PriceVolatilityChart({
                     %
                   </p>
                 </div>
-                <div className="text-center p-3 rounded bg-green-50">
+                <div className="text-center p-3 rounded bg-success-50">
                   <p className="text-xs text-gray-600 mb-1">
                     {t('priceVolatility.midTermProportion')}
                   </p>
-                  <p className="text-lg font-bold text-green-600">
+                  <p className="text-lg font-bold text-success-600">
                     {decompositionData.length > 0
                       ? (
                           decompositionData.reduce((sum, d) => sum + d.midTerm, 0) /
@@ -821,11 +822,11 @@ export function PriceVolatilityChart({
             </table>
           </div>
 
-          <div className="bg-blue-50 rounded p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">
+          <div className="bg-primary-50 rounded p-4">
+            <h4 className="text-sm font-medium text-primary-900 mb-2">
               {t('priceVolatility.explanation.title')}
             </h4>
-            <ul className="text-sm text-blue-800 space-y-1">
+            <ul className="text-sm text-primary-800 space-y-1">
               <li>
                 • <strong>{t('priceVolatility.tooltip.stdDev')}</strong>:{' '}
                 {t('priceVolatility.explanation.stdDevDesc')}

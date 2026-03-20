@@ -131,13 +131,13 @@ export function UpdateFrequencyHeatmap({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-blue-50  p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">{t('updateFrequency.avgHourlyUpdates')}</p>
-            <p className="text-xl font-bold text-blue-700">{avgHourlyUpdates.toLocaleString()}</p>
+          <div className="bg-primary-50  p-3 text-center">
+            <p className="text-xs text-primary-600 mb-1">{t('updateFrequency.avgHourlyUpdates')}</p>
+            <p className="text-xl font-bold text-primary-700">{avgHourlyUpdates.toLocaleString()}</p>
           </div>
-          <div className="bg-green-50  p-3 text-center">
-            <p className="text-xs text-green-600 mb-1">{t('updateFrequency.maxUpdateFrequency')}</p>
-            <p className="text-xl font-bold text-green-700">{maxCount.toLocaleString()}</p>
+          <div className="bg-success-50  p-3 text-center">
+            <p className="text-xs text-success-600 mb-1">{t('updateFrequency.maxUpdateFrequency')}</p>
+            <p className="text-xl font-bold text-success-700">{maxCount.toLocaleString()}</p>
           </div>
           <div className="bg-purple-50  p-3 text-center">
             <p className="text-xs text-purple-600 mb-1">
@@ -147,11 +147,11 @@ export function UpdateFrequencyHeatmap({
               {Math.min(...hourlyData.map((d) => d.updateCount)).toLocaleString()}
             </p>
           </div>
-          <div className="bg-yellow-50  p-3 text-center">
-            <p className="text-xs text-yellow-600 mb-1">
+          <div className="bg-warning-50  p-3 text-center">
+            <p className="text-xs text-warning-600 mb-1">
               {t('updateFrequency.anomalyPeriodCount')}
             </p>
-            <p className="text-xl font-bold text-yellow-700">{anomalyHours.length}</p>
+            <p className="text-xl font-bold text-warning-700">{anomalyHours.length}</p>
           </div>
         </div>
 
@@ -166,7 +166,7 @@ export function UpdateFrequencyHeatmap({
                     data.updateCount,
                     data.isAnomaly
                   )} ${getIntensityText(data.updateCount)} flex items-center justify-center text-xs font-medium cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10 ${
-                    isSelected ? 'ring-3 ring-blue-500 ring-offset-2 scale-110 z-20 ' : ''
+                    isSelected ? 'ring-3 ring-primary-500 ring-offset-2 scale-110 z-20 ' : ''
                   } ${syncEnabled ? '' : 'cursor-not-allowed opacity-80'}`}
                   onMouseEnter={() => setHoveredCell({ hour: data.hour, count: data.updateCount })}
                   onMouseLeave={() => setHoveredCell(null)}
@@ -186,7 +186,7 @@ export function UpdateFrequencyHeatmap({
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-300  animate-pulse" />
                   )}
                   {isSelected && (
-                    <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500  border-2 border-white flex items-center justify-center">
+                    <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-primary-500  border-2 border-white flex items-center justify-center">
                       <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
@@ -242,10 +242,10 @@ export function UpdateFrequencyHeatmap({
         </div>
 
         {anomalyHours.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200  p-3">
+          <div className="bg-warning-50 border border-yellow-200  p-3">
             <div className="flex items-start gap-2">
               <svg
-                className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"
+                className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -259,7 +259,7 @@ export function UpdateFrequencyHeatmap({
                 <h4 className="text-sm font-semibold text-yellow-800 mb-1">
                   {t('updateFrequency.anomalyDetected')}
                 </h4>
-                <p className="text-xs text-yellow-700">
+                <p className="text-xs text-warning-700">
                   {t('updateFrequency.anomalyPeriodsDesc')}
                   {anomalyHours.map((h) => ` ${h.hour.toString().padStart(2, '0')}:00`).join(',')}
                 </p>
@@ -293,7 +293,7 @@ export function UpdateFrequencyHeatmap({
                 {hourlyData.map((data) => (
                   <tr
                     key={data.hour}
-                    className={`${data.isAnomaly ? 'bg-yellow-50' : ''} hover:bg-gray-50`}
+                    className={`${data.isAnomaly ? 'bg-warning-50' : ''} hover:bg-gray-50`}
                   >
                     <td className="px-4 py-2 text-sm text-gray-900">
                       {data.hour.toString().padStart(2, '0')}:00 -{' '}
@@ -306,8 +306,8 @@ export function UpdateFrequencyHeatmap({
                       <span
                         className={`inline-flex items-center px-2 py-0.5  text-xs font-medium ${
                           data.isAnomaly
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-green-100 text-green-800'
+                            ? 'bg-warning-100 text-yellow-800'
+                            : 'bg-success-100 text-green-800'
                         }`}
                       >
                         {data.isAnomaly

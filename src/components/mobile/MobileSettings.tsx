@@ -2,6 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { Icon } from '@/components/ui';
+
 import {
   Moon,
   Sun,
@@ -90,7 +92,7 @@ export function MobileSettings({ className = '' }: MobileSettingsProps) {
         onChange(!checked);
       }}
       className={`relative w-12 h-7 rounded-full transition-colors ${
-        checked ? 'bg-blue-500' : 'bg-gray-300'
+        checked ? 'bg-primary-500' : 'bg-gray-300'
       }`}
       aria-checked={checked}
       role="switch"
@@ -121,7 +123,7 @@ export function MobileSettings({ className = '' }: MobileSettingsProps) {
             key={option.value}
             onClick={() => onChange(option.value)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[32px] ${
-              isSelected ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              isSelected ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             {Icon && <Icon className="w-3.5 h-3.5" />}

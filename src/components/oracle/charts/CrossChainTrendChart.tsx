@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend,
 } from 'recharts';
@@ -16,6 +16,8 @@ import { chartColors, semanticColors, chainColors, shadowColors } from '@/lib/co
 import { createLogger } from '@/lib/utils/logger';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
 import { TrendingUp, TrendingDown, Minus, Activity, DollarSign, Fuel } from 'lucide-react';
+
+import { Icon } from '@/components/ui';
 
 const logger = createLogger('CrossChainTrendChart');
 
@@ -319,7 +321,7 @@ function TimeRangeButton({ range, currentRange, onClick }: TimeRangeButtonProps)
     <button
       onClick={() => onClick(range)}
       className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
-        isActive ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+        isActive ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
       }`}
     >
       {label}
@@ -340,9 +342,9 @@ function ChainLegendItem({ chain, color, data, metric }: ChainLegendItemProps) {
   const TrendIcon = data.trend === 'up' ? TrendingUp : data.trend === 'down' ? TrendingDown : Minus;
   const trendColor =
     data.trend === 'up'
-      ? 'text-green-600'
+      ? 'text-success-600'
       : data.trend === 'down'
-        ? 'text-red-600'
+        ? 'text-danger-600'
         : 'text-gray-500';
 
   const config = METRIC_CONFIG[metric];
@@ -482,7 +484,7 @@ export function CrossChainTrendChart({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="p-3 bg-gray-100 border border-gray-200">
             <p className="text-xs text-gray-600 mb-1">当前总和</p>
-            <p className="text-lg font-bold text-blue-700">
+            <p className="text-lg font-bold text-primary-700">
               {metric === 'price' && currentMetricConfig.unit}
               {metric === 'requests'
                 ? formatCompactNumberWithDecimals(stats.totalValue)
@@ -502,7 +504,7 @@ export function CrossChainTrendChart({
           </div>
           <div className="p-3 bg-gray-100 border border-gray-200">
             <p className="text-xs text-gray-600 mb-1">最高值</p>
-            <p className="text-lg font-bold text-green-700">
+            <p className="text-lg font-bold text-success-700">
               {metric === 'price' && currentMetricConfig.unit}
               {metric === 'requests'
                 ? formatCompactNumberWithDecimals(stats.maxValue)
@@ -526,7 +528,7 @@ export function CrossChainTrendChart({
         {isLoading ? (
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent animate-spin" />
+              <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent animate-spin" />
               <p className="text-sm text-gray-500">加载中...</p>
             </div>
           </div>
@@ -555,7 +557,7 @@ export function CrossChainTrendChart({
                   domain={yAxisDomain}
                   width={metric === 'requests' ? 50 : 60}
                 />
-                <Tooltip
+                <RechartsTooltip
                   content={<CustomTooltip metric={metric} />}
                   cursor={{
                     stroke: chartColors.recharts.border,

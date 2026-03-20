@@ -17,13 +17,13 @@ export const getDiffColorGradient = (diffPercent: number): string => {
     return 'bg-gray-50';
   }
   if (diffPercent > 0.5) {
-    if (diffPercent > 2) return 'bg-red-100';
-    if (diffPercent > 1) return 'bg-red-50';
-    return 'bg-red-50';
+    if (diffPercent > 2) return 'bg-danger-100';
+    if (diffPercent > 1) return 'bg-danger-50';
+    return 'bg-danger-50';
   } else {
-    if (diffPercent < -2) return 'bg-green-100';
-    if (diffPercent < -1) return 'bg-green-50';
-    return 'bg-green-50';
+    if (diffPercent < -2) return 'bg-success-100';
+    if (diffPercent < -1) return 'bg-success-50';
+    return 'bg-success-50';
   }
 };
 
@@ -32,13 +32,13 @@ export const getDiffTextColor = (diffPercent: number): string => {
     return 'text-gray-600';
   }
   if (diffPercent > 0.5) {
-    if (diffPercent > 2) return 'text-red-800';
-    if (diffPercent > 1) return 'text-red-700';
-    return 'text-red-600';
+    if (diffPercent > 2) return 'text-danger-800';
+    if (diffPercent > 1) return 'text-danger-700';
+    return 'text-danger-600';
   } else {
     if (diffPercent < -2) return 'text-green-800';
-    if (diffPercent < -1) return 'text-green-700';
-    return 'text-green-600';
+    if (diffPercent < -1) return 'text-success-700';
+    return 'text-success-600';
   }
 };
 
@@ -318,9 +318,9 @@ export const getDataFreshness = (
   delay: { avgDelay: number; maxDelay: number } | undefined
 ): { status: string; color: string } => {
   if (!delay) return { status: 'unknown', color: 'text-gray-400' };
-  if (delay.avgDelay < 5) return { status: 'excellent', color: 'text-green-700' };
-  if (delay.avgDelay < 15) return { status: 'good', color: 'text-yellow-700' };
-  return { status: 'slow', color: 'text-red-700' };
+  if (delay.avgDelay < 5) return { status: 'excellent', color: 'text-success-700' };
+  if (delay.avgDelay < 15) return { status: 'good', color: 'text-warning-700' };
+  return { status: 'slow', color: 'text-danger-700' };
 };
 
 export const formatPrice = (price: number, decimals = 4): string => {

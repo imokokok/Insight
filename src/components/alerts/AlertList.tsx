@@ -53,15 +53,15 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
         case 'active':
           return {
             label: t('alerts.list.statusActive'),
-            bgColor: 'bg-green-100',
-            textColor: 'text-green-700',
+            bgColor: 'bg-success-100',
+            textColor: 'text-success-700',
             borderColor: 'border-green-200',
           };
         case 'triggered':
           return {
             label: t('alerts.list.statusTriggered'),
-            bgColor: 'bg-yellow-100',
-            textColor: 'text-yellow-700',
+            bgColor: 'bg-warning-100',
+            textColor: 'text-warning-700',
             borderColor: 'border-yellow-200',
           };
         case 'disabled':
@@ -250,7 +250,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                     <div
                       className={`p-4 border transition-colors mb-3 ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-50'
+                          ? 'border-primary-500 bg-primary-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
@@ -260,7 +260,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleToggleSelect(alert.id!)}
-                            className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="mt-1 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
@@ -307,12 +307,12 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                                     step="any"
                                     value={editValue}
                                     onChange={(e) => setEditValue(e.target.value)}
-                                    className="w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                                    className="w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
                                   />
                                   <button
                                     onClick={() => handleSaveEdit(alert)}
                                     disabled={isUpdating}
-                                    className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    className="px-2 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700"
                                   >
                                     {t('actions.save')}
                                   </button>
@@ -342,7 +342,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                             onClick={() => handleToggleActive(alert)}
                             disabled={isUpdating}
                             className={`relative inline-flex h-5 w-9 items-center transition-colors ${
-                              alert.is_active ? 'bg-blue-600' : 'bg-gray-200'
+                              alert.is_active ? 'bg-primary-600' : 'bg-gray-200'
                             }`}
                             title={
                               alert.is_active ? t('alerts.list.disable') : t('alerts.list.enable')
@@ -380,7 +380,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                               <button
                                 onClick={() => handleDelete(alert.id!)}
                                 disabled={isDeleting}
-                                className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                                className="px-2 py-1 text-xs bg-danger-600 text-white rounded hover:bg-danger-700"
                               >
                                 {t('alerts.list.confirm')}
                               </button>
@@ -394,7 +394,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                           ) : (
                             <button
                               onClick={() => setDeleteConfirmId(alert.id!)}
-                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                              className="p-1.5 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded"
                               title={t('actions.delete')}
                             >
                               <svg

@@ -13,23 +13,23 @@ interface ConnectionStatusIndicatorProps {
 
 const statusConfig: Record<ConnectionStatus, { color: string; bgColor: string; icon: string }> = {
   connected: {
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
+    color: 'text-success-600',
+    bgColor: 'bg-success-100',
     icon: '●',
   },
   connecting: {
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100',
+    color: 'text-warning-600',
+    bgColor: 'bg-warning-100',
     icon: '◐',
   },
   disconnected: {
-    color: 'text-red-600',
-    bgColor: 'bg-red-100',
+    color: 'text-danger-600',
+    bgColor: 'bg-danger-100',
     icon: '○',
   },
   error: {
-    color: 'text-red-600',
-    bgColor: 'bg-red-100',
+    color: 'text-danger-600',
+    bgColor: 'bg-danger-100',
     icon: '✕',
   },
 };
@@ -79,7 +79,7 @@ export function ConnectionStatusIndicator({
         <button
           onClick={handleReconnect}
           disabled={isReconnecting}
-          className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="text-xs px-2 py-1 bg-primary-500 text-white rounded hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isReconnecting ? t('connectionStatus.reconnecting') : t('connectionStatus.reconnect')}
         </button>
@@ -101,10 +101,10 @@ export function ConnectionStatusBadge({ className = '' }: { className?: string }
       <span
         className={`w-2 h-2  ${
           connectionStatus === 'connected'
-            ? 'bg-green-500'
+            ? 'bg-success-500'
             : connectionStatus === 'connecting'
-              ? 'bg-yellow-500 animate-pulse'
-              : 'bg-red-500'
+              ? 'bg-warning-500 animate-pulse'
+              : 'bg-danger-500'
         }`}
       />
       <span>{t(`connectionStatus.${connectionStatus}`)}</span>
@@ -124,19 +124,19 @@ export function ConnectionStatusDot({ className = '' }: { className?: string }) 
       <span
         className={`absolute w-3 h-3  ${
           connectionStatus === 'connected'
-            ? 'bg-green-500'
+            ? 'bg-success-500'
             : connectionStatus === 'connecting'
-              ? 'bg-yellow-500 animate-ping'
-              : 'bg-red-500'
+              ? 'bg-warning-500 animate-ping'
+              : 'bg-danger-500'
         }`}
       />
       <span
         className={`absolute w-3 h-3  ${
           connectionStatus === 'connected'
-            ? 'bg-green-500'
+            ? 'bg-success-500'
             : connectionStatus === 'connecting'
-              ? 'bg-yellow-500'
-              : 'bg-red-500'
+              ? 'bg-warning-500'
+              : 'bg-danger-500'
         }`}
       />
     </div>

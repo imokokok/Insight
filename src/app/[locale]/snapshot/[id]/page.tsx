@@ -67,14 +67,14 @@ export default function SnapshotPage() {
   if (error || !snapshot) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border border-red-200 rounded p-6 text-center">
-          <p className="text-red-600 mb-4">
+        <div className="bg-danger-50 border border-danger-200 rounded p-6 text-center">
+          <p className="text-danger-600 mb-4">
             {error ||
               (isZh ? '快照不存在或已被删除' : 'Snapshot does not exist or has been deleted')}
           </p>
           <Link
             href="/"
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
           >
             {isZh ? '返回首页' : 'Back to Home'}
           </Link>
@@ -172,13 +172,13 @@ export default function SnapshotPage() {
               </div>
               <div className="bg-gray-50 border border-gray-100 p-4">
                 <p className="text-sm text-gray-500">{isZh ? '最高价' : 'Highest Price'}</p>
-                <p className="mt-1 text-xl font-semibold text-green-600">
+                <p className="mt-1 text-xl font-semibold text-success-600">
                   ${snapshot.stats.maxPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="bg-gray-50 border border-gray-100 p-4">
                 <p className="text-sm text-gray-500">{isZh ? '最低价' : 'Lowest Price'}</p>
-                <p className="mt-1 text-xl font-semibold text-red-600">
+                <p className="mt-1 text-xl font-semibold text-danger-600">
                   ${snapshot.stats.minPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </p>
               </div>

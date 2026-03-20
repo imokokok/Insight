@@ -67,8 +67,8 @@ export function DataSourceList({
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-50 rounded-lg">
-            <Database size={18} className="text-blue-600" />
+          <div className="p-2 bg-primary-50 rounded-lg">
+            <Database size={18} className="text-primary-600" />
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">
@@ -142,7 +142,7 @@ export function DataSourceList({
           {hasMore && (
             <button
               onClick={() => setShowAll(!showAll)}
-              className="mt-3 w-full py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+              className="mt-3 w-full py-2 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded transition-colors"
             >
               {showAll
                 ? t('dataTransparency.showLess')

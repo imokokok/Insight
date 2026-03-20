@@ -125,15 +125,15 @@ const mockDataFeeds: DataFeed[] = [
 ];
 
 const categoryData: CategoryData[] = [
-  { name: 'crypto', count: 485, color: 'bg-blue-500' },
-  { name: 'defi', count: 312, color: 'bg-green-500' },
+  { name: 'crypto', count: 485, color: 'bg-primary-500' },
+  { name: 'defi', count: 312, color: 'bg-success-500' },
   { name: 'forex', count: 156, color: 'bg-purple-500' },
-  { name: 'commodities', count: 89, color: 'bg-yellow-500' },
-  { name: 'indices', count: 67, color: 'bg-red-500' },
+  { name: 'commodities', count: 89, color: 'bg-warning-500' },
+  { name: 'indices', count: 67, color: 'bg-danger-500' },
   { name: 'nft', count: 45, color: 'bg-pink-500' },
   { name: 'gaming', count: 34, color: 'bg-indigo-500' },
   { name: 'derivatives', count: 28, color: 'bg-cyan-500' },
-  { name: 'synthetics', count: 27, color: 'bg-orange-500' },
+  { name: 'synthetics', count: 27, color: 'bg-warning-500' },
 ];
 
 export function ChainlinkDataFeedsPanel() {
@@ -172,7 +172,7 @@ export function ChainlinkDataFeedsPanel() {
         </DashboardCard>
 
         <DashboardCard title={t('chainlink.dataFeeds.feedPerformance')}>
-          <div className="text-3xl font-bold text-green-600">99.97%</div>
+          <div className="text-3xl font-bold text-success-600">99.97%</div>
           <div className="text-sm text-gray-500 mt-1">{t('chainlink.dataFeeds.reliability')}</div>
         </DashboardCard>
       </div>
@@ -188,7 +188,7 @@ export function ChainlinkDataFeedsPanel() {
               }
               className={`p-3 rounded-lg border text-left transition-all ${
                 selectedCategory === category.name
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-primary-500 bg-primary-50'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -248,10 +248,10 @@ export function ChainlinkDataFeedsPanel() {
                     <span
                       className={`px-2 py-1 rounded text-xs ${
                         feed.status === 'active'
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-success-100 text-success-700'
                           : feed.status === 'paused'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-red-100 text-red-700'
+                            ? 'bg-warning-100 text-warning-700'
+                            : 'bg-danger-100 text-danger-700'
                       }`}
                     >
                       {t(`chainlink.dataFeeds.${feed.status}`)}
@@ -260,7 +260,7 @@ export function ChainlinkDataFeedsPanel() {
                   <td className="py-3 text-right text-gray-600">
                     {(feed.totalRequests / 1e6).toFixed(1)}M
                   </td>
-                  <td className="py-3 text-right text-green-600">{feed.reliability}%</td>
+                  <td className="py-3 text-right text-success-600">{feed.reliability}%</td>
                 </tr>
               ))}
             </tbody>

@@ -68,7 +68,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.FANTOM,
     ],
     client: new ChainlinkClient(),
-    iconBgColor: 'bg-blue-600',
+    iconBgColor: 'bg-primary-600',
     themeColor: 'blue',
     icon: <img src="/logos/oracles/chainlink.svg" alt="Chainlink" className="w-12 h-12" />,
     marketData: {

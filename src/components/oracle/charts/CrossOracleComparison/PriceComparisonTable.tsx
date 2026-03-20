@@ -98,10 +98,10 @@ export function PriceComparisonTable({
               const deviationAbs = Math.abs(deviation);
               const deviationColor =
                 deviationAbs < 0.5
-                  ? 'text-green-600'
+                  ? 'text-success-600'
                   : deviationAbs < 1
-                    ? 'text-yellow-600'
-                    : 'text-red-600';
+                    ? 'text-warning-600'
+                    : 'text-danger-600';
 
               const shouldHighlight = deviationAbs > 1;
               const trendData = deviationData.find((d) => d.provider === data.provider);

@@ -315,7 +315,7 @@ export function SnapshotManager({
                 <span className="text-xs text-gray-500">{t('snapshot.snapshotList')}</span>
                 <button
                   onClick={() => setShowClearConfirm(true)}
-                  className="text-xs text-red-600 hover:text-red-700"
+                  className="text-xs text-danger-600 hover:text-danger-700"
                 >
                   {t('snapshot.clearAll')}
                 </button>
@@ -342,7 +342,7 @@ export function SnapshotManager({
                             {getTimeAgo(snapshot.timestamp, t)}
                           </span>
                           {user && shareStates[snapshot.id] && (
-                            <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 border border-green-200">
+                            <span className="px-1.5 py-0.5 text-xs bg-success-100 text-success-700 border border-green-200">
                               {t('snapshot.shared')}
                             </span>
                           )}
@@ -426,7 +426,7 @@ export function SnapshotManager({
                               }}
                               className={`p-1 transition-colors ${
                                 shareStates[snapshot.id]
-                                  ? 'text-green-600 hover:text-green-700'
+                                  ? 'text-success-600 hover:text-success-700'
                                   : 'text-gray-400 hover:text-indigo-600'
                               }`}
                               title={
@@ -459,7 +459,7 @@ export function SnapshotManager({
                               >
                                 {copiedId === snapshot.id ? (
                                   <svg
-                                    className="w-4 h-4 text-green-600"
+                                    className="w-4 h-4 text-success-600"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -493,7 +493,7 @@ export function SnapshotManager({
                             e.stopPropagation();
                             setShowDeleteConfirm(snapshot.id);
                           }}
-                          className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                          className="p-1 text-gray-400 hover:text-danger-600 transition-colors"
                           title={t('snapshot.deleteSnapshot')}
                         >
                           <svg
@@ -589,7 +589,7 @@ export function SnapshotManager({
               </button>
               <button
                 onClick={() => handleDeleteSnapshot(showDeleteConfirm)}
-                className="px-4 py-2 text-sm bg-red-600 text-white border border-red-600 hover:bg-red-700 hover:border-red-700"
+                className="px-4 py-2 text-sm bg-danger-600 text-white border border-danger-600 hover:bg-danger-700 hover:border-red-700"
               >
                 {t('snapshot.delete')}
               </button>
@@ -614,7 +614,7 @@ export function SnapshotManager({
               </button>
               <button
                 onClick={handleClearAll}
-                className="px-4 py-2 text-sm bg-red-600 text-white border border-red-600 hover:bg-red-700 hover:border-red-700"
+                className="px-4 py-2 text-sm bg-danger-600 text-white border border-danger-600 hover:bg-danger-700 hover:border-red-700"
               >
                 {t('snapshot.clear')}
               </button>

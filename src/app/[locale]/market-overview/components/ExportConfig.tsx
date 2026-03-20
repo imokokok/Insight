@@ -70,7 +70,7 @@ export default function ExportConfig({
               onClick={() => handleUpdate({ format })}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors ${
                 localConfig.format === format
-                  ? 'bg-blue-100 text-blue-700'
+                  ? 'bg-primary-100 text-primary-700'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -93,7 +93,7 @@ export default function ExportConfig({
               onClick={() => handleUpdate({ timeRange: range })}
               className={`px-2.5 py-1 text-sm transition-colors ${
                 localConfig.timeRange === range
-                  ? 'bg-blue-100 text-blue-700'
+                  ? 'bg-primary-100 text-primary-700'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -119,7 +119,7 @@ export default function ExportConfig({
               onClick={() => toggleMetric(metric.key)}
               className={`flex items-center gap-1 px-2.5 py-1 text-sm transition-colors ${
                 localConfig.metrics.includes(metric.key)
-                  ? 'bg-blue-100 text-blue-700'
+                  ? 'bg-primary-100 text-primary-700'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -137,7 +137,7 @@ export default function ExportConfig({
             type="checkbox"
             checked={localConfig.includeMetadata}
             onChange={(e) => handleUpdate({ includeMetadata: e.target.checked })}
-            className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="w-4 h-4 border-gray-300 text-primary-600 focus:ring-primary-500"
           />
           <span className="text-sm text-gray-700">
             {t('marketOverview.exportConfig.includeMetadata')}
@@ -148,7 +148,7 @@ export default function ExportConfig({
             type="checkbox"
             checked={localConfig.includeCharts}
             onChange={(e) => handleUpdate({ includeCharts: e.target.checked })}
-            className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="w-4 h-4 border-gray-300 text-primary-600 focus:ring-primary-500"
           />
           <span className="text-sm text-gray-700">
             {t('marketOverview.exportConfig.includeCharts')}
@@ -160,7 +160,7 @@ export default function ExportConfig({
       <button
         onClick={onExport}
         disabled={loading || localConfig.metrics.length === 0}
-        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-primary-600 text-white hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
       >
         {loading ? (
           <>

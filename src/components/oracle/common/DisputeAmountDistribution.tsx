@@ -34,8 +34,8 @@ function StatCard({
   trendValue?: string;
 }) {
   const trendColors = {
-    up: 'text-green-600',
-    down: 'text-red-600',
+    up: 'text-success-600',
+    down: 'text-danger-600',
     stable: 'text-gray-500',
   };
 
@@ -79,7 +79,7 @@ function AmountDistributionHistogram({
               <div key={index} className="flex-1 flex flex-col items-center gap-2">
                 <div className="w-full flex items-end justify-center h-40">
                   <div
-                    className="w-full bg-blue-500  transition-all duration-300 hover:bg-blue-600 relative group cursor-pointer"
+                    className="w-full bg-primary-500  transition-all duration-300 hover:bg-primary-600 relative group cursor-pointer"
                     style={{ height: `${height}%` }}
                   >
                     <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
@@ -98,7 +98,7 @@ function AmountDistributionHistogram({
         {/* 图例 */}
         <div className="flex items-center justify-center gap-6 pt-2">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded"></div>
+            <div className="w-3 h-3 bg-primary-500 rounded"></div>
             <span className="text-sm text-gray-600">争议数量</span>
           </div>
         </div>
@@ -153,10 +153,10 @@ function EfficiencyMetricsCard({
   ];
 
   const colorClasses: Record<string, { bg: string; text: string; light: string }> = {
-    blue: { bg: 'bg-blue-500', text: 'text-blue-600', light: 'bg-blue-50' },
-    green: { bg: 'bg-green-500', text: 'text-green-600', light: 'bg-green-50' },
+    blue: { bg: 'bg-primary-500', text: 'text-primary-600', light: 'bg-primary-50' },
+    green: { bg: 'bg-success-500', text: 'text-success-600', light: 'bg-success-50' },
     purple: { bg: 'bg-purple-500', text: 'text-purple-600', light: 'bg-purple-50' },
-    orange: { bg: 'bg-orange-500', text: 'text-orange-600', light: 'bg-orange-50' },
+    orange: { bg: 'bg-warning-500', text: 'text-warning-600', light: 'bg-warning-50' },
   };
 
   return (
@@ -214,13 +214,13 @@ function AmountTrendChart({
         {/* 图例 */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 "></div>
+            <div className="w-3 h-3 bg-primary-500 "></div>
             <span className="text-sm text-gray-600">
               {t('uma.disputeResolution.avgStake') || '平均质押'}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 "></div>
+            <div className="w-3 h-3 bg-success-500 "></div>
             <span className="text-sm text-gray-600">
               {t('uma.disputeResolution.avgReward') || '平均奖励'}
             </span>
@@ -381,7 +381,7 @@ export function DisputeAmountDistribution() {
     return (
       <DashboardCard title={t('uma.disputeResolution.amountDistribution') || '争议金额分布分析'}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin  h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin  h-8 w-8 border-b-2 border-primary-600" />
         </div>
       </DashboardCard>
     );

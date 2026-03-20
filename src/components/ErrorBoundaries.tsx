@@ -210,22 +210,22 @@ function DefaultErrorFallback({ error, onReset, translations: _translations }: E
   const config = getErrorConfig(error);
 
   const colorMap: Record<string, { bg: string; text: string; button: string }> = {
-    red: { bg: 'bg-red-100', text: 'text-red-600', button: 'bg-blue-600 hover:bg-blue-700' },
+    red: { bg: 'bg-danger-100', text: 'text-danger-600', button: 'bg-primary-600 hover:bg-primary-700' },
     yellow: {
-      bg: 'bg-yellow-100',
-      text: 'text-yellow-600',
-      button: 'bg-blue-600 hover:bg-blue-700',
+      bg: 'bg-warning-100',
+      text: 'text-warning-600',
+      button: 'bg-primary-600 hover:bg-primary-700',
     },
-    blue: { bg: 'bg-blue-100', text: 'text-blue-600', button: 'bg-blue-600 hover:bg-blue-700' },
+    blue: { bg: 'bg-primary-100', text: 'text-primary-600', button: 'bg-primary-600 hover:bg-primary-700' },
     orange: {
-      bg: 'bg-orange-100',
-      text: 'text-orange-600',
-      button: 'bg-blue-600 hover:bg-blue-700',
+      bg: 'bg-warning-100',
+      text: 'text-warning-600',
+      button: 'bg-primary-600 hover:bg-primary-700',
     },
     purple: {
       bg: 'bg-purple-100',
       text: 'text-purple-600',
-      button: 'bg-blue-600 hover:bg-blue-700',
+      button: 'bg-primary-600 hover:bg-primary-700',
     },
   };
 
@@ -273,9 +273,9 @@ export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallb
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
       <div className="text-center max-w-md">
-        <div className="mx-auto w-20 h-20 bg-red-100  flex items-center justify-center mb-6">
+        <div className="mx-auto w-20 h-20 bg-danger-100  flex items-center justify-center mb-6">
           <svg
-            className="w-10 h-10 text-red-600"
+            className="w-10 h-10 text-danger-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -297,7 +297,7 @@ export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallb
         <div className="flex gap-3 justify-center">
           <button
             onClick={onReset}
-            className="px-6 py-2 bg-blue-600 text-white  hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-primary-600 text-white  hover:bg-primary-700 transition-colors"
           >
             {tryAgain}
           </button>
@@ -324,9 +324,9 @@ export function SectionErrorFallback({ error, onReset, translations }: ErrorFall
   return (
     <div className="min-h-[300px] flex items-center justify-center p-6 bg-white border border-gray-200 ">
       <div className="text-center max-w-sm">
-        <div className="mx-auto w-16 h-16 bg-orange-100  flex items-center justify-center mb-4">
+        <div className="mx-auto w-16 h-16 bg-warning-100  flex items-center justify-center mb-4">
           <svg
-            className="w-8 h-8 text-orange-600"
+            className="w-8 h-8 text-warning-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -347,7 +347,7 @@ export function SectionErrorFallback({ error, onReset, translations }: ErrorFall
         )}
         <button
           onClick={onReset}
-          className="px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 transition-colors text-sm"
+          className="px-4 py-2 bg-primary-600 text-white  hover:bg-primary-700 transition-colors text-sm"
         >
           {tryAgain}
         </button>

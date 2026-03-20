@@ -272,6 +272,60 @@
       "warningCount": "Warning Count"
     }
   },
+  "priceVolatility": {
+    "title": "Price Volatility Analysis",
+    "timeScale": {
+      "short": "Short (6h)",
+      "mid": "Mid (24h)",
+      "long": "Long (7d)"
+    },
+    "level": {
+      "extremelyLow": "Extremely Low",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "extremelyHigh": "Extremely High"
+    },
+    "tooltip": {
+      "cv": "Coefficient of Variation (CV)",
+      "stdDev": "Standard Deviation",
+      "avgPrice": "Average Price",
+      "priceRange": "Price Range",
+      "volatilityLevel": "Volatility Level"
+    },
+    "shortTermVolatility": "Short-term Volatility",
+    "midTermVolatility": "Mid-term Volatility",
+    "longTermVolatility": "Long-term Volatility",
+    "totalVolatility": "Total Volatility",
+    "windowSize": "Window: {window}h",
+    "avgCV": "Avg CV",
+    "minVolatility": "Min Volatility",
+    "maxVolatility": "Max Volatility",
+    "oracleCount": "Oracle Count",
+    "volatilityComparison": "Volatility Comparison (CV)",
+    "rollingVolatilityTrend": "Rolling Volatility Trend",
+    "volatilityDecomposition": "Volatility Decomposition",
+    "shortTermProportion": "Short-term Proportion",
+    "midTermProportion": "Mid-term Proportion",
+    "longTermProportion": "Long-term Proportion",
+    "table": {
+      "oracle": "Oracle",
+      "cv": "CV",
+      "stdDev": "Std Dev",
+      "avgPrice": "Avg Price",
+      "priceRange": "Price Range",
+      "volatilityLevel": "Volatility Level"
+    },
+    "explanation": {
+      "title": "Volatility Explanation",
+      "stdDevDesc": "Measures the dispersion of price data",
+      "cvDesc": "Coefficient of Variation, the ratio of standard deviation to mean, used to compare volatility across different price levels",
+      "cvInterpretation": "CV < 0.5: Extremely Low | 0.5-1: Low | 1-2: Medium | 2-3: High | > 3: Extremely High",
+      "rollingWindowDesc": "Rolling Window: Calculates volatility using a sliding window to reflect changes over time",
+      "multiScaleDesc": "Multi-time Scale: Calculates volatility for short-term (6h), mid-term (24h), and long-term (7d) separately",
+      "decompositionDesc": "Volatility Decomposition: Breaks down total volatility into contributions from different time scales"
+    }
+  },
   "oracle": {
     "chart": {
       "granularity": {

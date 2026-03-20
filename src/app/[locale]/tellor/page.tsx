@@ -238,7 +238,7 @@ export default function TellorPage() {
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-gray-600">{t('tellor.stats.stakingApr')}</span>
-                      <span className="text-sm font-semibold text-green-600">
+                      <span className="text-sm font-semibold text-success-600">
                         {staking?.stakingApr ?? 10.2}%
                       </span>
                     </div>

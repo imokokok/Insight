@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend,
   ReferenceLine,
@@ -18,6 +18,7 @@ import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 import { UMAClient } from '@/lib/oracles/uma';
 import { createLogger } from '@/lib/utils/logger';
+
 
 const logger = createLogger('UMAScoreExplanationModal');
 
@@ -316,7 +317,7 @@ export function UMAScoreExplanationModal({
                     onClick={() => setActiveTab(tab.key as 'overview' | 'dimensions' | 'history')}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === tab.key
-                        ? 'border-blue-600 text-blue-600'
+                        ? 'border-primary-600 text-primary-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -330,8 +331,8 @@ export function UMAScoreExplanationModal({
             <div className="px-6 py-6 max-h-[70vh] overflow-y-auto">
               {activeTab === 'overview' && (
                 <div className="space-y-6">
-                  <div className="bg-blue-50 rounded-lg p-6">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">
+                  <div className="bg-primary-50 rounded-lg p-6">
+                    <h4 className="text-sm font-semibold text-primary-900 mb-2">
                       {t('uma.scoreExplanation.overallFormulaTitle')}
                     </h4>
                     <FormulaBlock formula={OVERALL_FORMULA} />
@@ -370,7 +371,7 @@ export function UMAScoreExplanationModal({
                         <p className="text-xs text-gray-500 mb-1">
                           {t('uma.scoreExplanation.overallScore')}
                         </p>
-                        <p className="text-2xl font-bold text-blue-600">
+                        <p className="text-2xl font-bold text-primary-600">
                           {currentScores.overallScore.toFixed(1)}
                         </p>
                       </div>
@@ -438,7 +439,7 @@ export function UMAScoreExplanationModal({
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded bg-green-500" />
+                        <div className="w-4 h-4 rounded bg-success-500" />
                         <div>
                           <p className="text-sm font-medium text-gray-900">
                             {t('uma.scoreExplanation.scoreLevels.excellent')}
@@ -449,7 +450,7 @@ export function UMAScoreExplanationModal({
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded bg-yellow-500" />
+                        <div className="w-4 h-4 rounded bg-warning-500" />
                         <div>
                           <p className="text-sm font-medium text-gray-900">
                             {t('uma.scoreExplanation.scoreLevels.good')}
@@ -460,7 +461,7 @@ export function UMAScoreExplanationModal({
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded bg-orange-500" />
+                        <div className="w-4 h-4 rounded bg-warning-500" />
                         <div>
                           <p className="text-sm font-medium text-gray-900">
                             {t('uma.scoreExplanation.scoreLevels.pass')}
@@ -471,7 +472,7 @@ export function UMAScoreExplanationModal({
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded bg-red-500" />
+                        <div className="w-4 h-4 rounded bg-danger-500" />
                         <div>
                           <p className="text-sm font-medium text-gray-900">
                             {t('uma.scoreExplanation.scoreLevels.needsImprovement')}
@@ -490,7 +491,7 @@ export function UMAScoreExplanationModal({
                 <div className="space-y-6">
                   {loading ? (
                     <div className="flex items-center justify-center h-64">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
                     </div>
                   ) : (
                     <>
@@ -520,7 +521,7 @@ export function UMAScoreExplanationModal({
                                 domain={[60, 100]}
                                 tickFormatter={(value) => `${value}`}
                               />
-                              <Tooltip
+                              <RechartsTooltip
                                 content={<CustomTooltip />}
                                 cursor={{ fill: animationColors.fade.cursor }}
                               />
@@ -592,7 +593,7 @@ export function UMAScoreExplanationModal({
                               <div className="flex items-center gap-2 mt-1 text-xs">
                                 <span
                                   className={`font-medium ${
-                                    trend >= 0 ? 'text-green-600' : 'text-red-600'
+                                    trend >= 0 ? 'text-success-600' : 'text-danger-600'
                                   }`}
                                 >
                                   {trend >= 0 ? '↑' : '↓'} {Math.abs(trend).toFixed(1)}

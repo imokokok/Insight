@@ -278,7 +278,7 @@ export function TimeRangeSelector({
             onClick={() => handleTimeRangeSelect(option.value)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border transition-colors ${
               currentRange === option.value && value.comparisonType !== 'year_over_year'
-                ? 'bg-blue-50 border-blue-300 text-blue-700'
+                ? 'bg-primary-50 border-primary-300 text-primary-700'
                 : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -290,7 +290,7 @@ export function TimeRangeSelector({
           onClick={() => handleTimeRangeSelect('custom')}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border transition-colors ${
             currentRange === 'custom'
-              ? 'bg-blue-50 border-blue-300 text-blue-700'
+              ? 'bg-primary-50 border-primary-300 text-primary-700'
               : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
           }`}
         >
@@ -336,7 +336,7 @@ export function TimeRangeSelector({
                 value={customStart}
                 onChange={(e) => setCustomStart(e.target.value)}
                 max={format(new Date(), 'yyyy-MM-dd')}
-                className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <div className="flex-1 w-full">
@@ -346,7 +346,7 @@ export function TimeRangeSelector({
                 value={customEnd}
                 onChange={(e) => setCustomEnd(e.target.value)}
                 max={format(new Date(), 'yyyy-MM-dd')}
-                className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <div className="flex gap-2">
@@ -359,7 +359,7 @@ export function TimeRangeSelector({
               <button
                 onClick={handleCustomApply}
                 disabled={!customStart || !customEnd}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t('apply')}
               </button>
@@ -371,7 +371,7 @@ export function TimeRangeSelector({
       <div className="flex items-center gap-4 text-sm text-gray-600 bg-gray-50 px-4 py-3 border border-gray-200">
         <div className="flex items-center gap-2">
           <span className="font-medium">{t('currentPeriod')}:</span>
-          <span className="text-blue-600">
+          <span className="text-primary-600">
             {format(value.primaryPeriod.startDate, 'yyyy-MM-dd HH:mm', { locale })} -{' '}
             {format(value.primaryPeriod.endDate, 'yyyy-MM-dd HH:mm', { locale })}
           </span>

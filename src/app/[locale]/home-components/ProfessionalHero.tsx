@@ -36,6 +36,8 @@ import {
 } from '@/lib/constants/searchConfig';
 import HeroBackground from './HeroBackground';
 
+import { Icon } from '@/components/ui';
+
 interface TrendData {
   value: number;
 }
@@ -438,7 +440,7 @@ export default function ProfessionalHero() {
                           if (searchableItem?.type === 'token')
                             return <Coins className="w-4 h-4 text-amber-500" />;
                           if (searchableItem?.type === 'oracle')
-                            return <Database className="w-4 h-4 text-blue-500" />;
+                            return <Database className="w-4 h-4 text-primary-500" />;
                           if (searchableItem?.type === 'chain')
                             return <Link2 className="w-4 h-4 text-purple-500" />;
                           return <Search className="w-4 h-4 text-gray-400" />;
@@ -456,7 +458,7 @@ export default function ProfessionalHero() {
                           if (dropdownItem.type === 'popular')
                             return 'text-emerald-600 bg-emerald-50';
                           if (searchableItem?.type === 'token') return 'text-amber-600 bg-amber-50';
-                          if (searchableItem?.type === 'oracle') return 'text-blue-600 bg-blue-50';
+                          if (searchableItem?.type === 'oracle') return 'text-primary-600 bg-primary-50';
                           if (searchableItem?.type === 'chain')
                             return 'text-purple-600 bg-purple-50';
                           return 'text-gray-600 bg-gray-50';
@@ -507,7 +509,7 @@ export default function ProfessionalHero() {
                                       handleRemoveHistoryItem(dropdownItem.item.symbol, e);
                                     }
                                   }}
-                                  className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                                  className="p-1 text-gray-300 hover:text-danger-500 transition-colors"
                                   title="删除此记录"
                                 >
                                   <X className="w-3.5 h-3.5" />
@@ -586,7 +588,7 @@ export default function ProfessionalHero() {
                         className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 border ${
                           isPositive
                             ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
-                            : 'text-red-600 bg-red-50 border-red-200'
+                            : 'text-danger-600 bg-danger-50 border-danger-200'
                         }`}
                       >
                         <TrendingUp className={`w-3 h-3 ${!isPositive && 'rotate-180'}`} />

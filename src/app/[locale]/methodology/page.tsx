@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { baseColors, semanticColors } from '@/lib/config/colors';
 
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 export default function MethodologyPage() {
   const t = useTranslations();
 
@@ -37,16 +39,16 @@ export default function MethodologyPage() {
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <div className="bg-white border border-gray-200 p-6 rounded-lg">
-          <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
-            <Calculator className="w-6 h-6 text-blue-600" />
+          <div className="w-12 h-12 bg-primary-50 rounded-lg flex items-center justify-center mb-4">
+            <Calculator className="w-6 h-6 text-primary-600" />
           </div>
           <h3 className="font-semibold text-gray-900 mb-2">{t('methodology.aggregation.title')}</h3>
           <p className="text-sm text-gray-600">{t('methodology.aggregation.description')}</p>
         </div>
 
         <div className="bg-white border border-gray-200 p-6 rounded-lg">
-          <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mb-4">
-            <Shield className="w-6 h-6 text-green-600" />
+          <div className="w-12 h-12 bg-success-50 rounded-lg flex items-center justify-center mb-4">
+            <Shield className="w-6 h-6 text-success-600" />
           </div>
           <h3 className="font-semibold text-gray-900 mb-2">
             {t('methodology.riskAssessment.title')}
@@ -66,8 +68,8 @@ export default function MethodologyPage() {
       {/* Price Aggregation Algorithm */}
       <section className="mb-12">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Calculator className="w-5 h-5 text-blue-700" />
+          <div className="p-2 bg-primary-100 rounded-lg">
+            <Calculator className="w-5 h-5 text-primary-700" />
           </div>
           <h2 className="text-xl font-bold text-gray-900">
             {t('methodology.aggregation.sectionTitle')}
@@ -80,7 +82,7 @@ export default function MethodologyPage() {
 
             <div className="space-y-6">
               {/* Simple Average */}
-              <div className="border-l-4 border-blue-500 pl-4">
+              <div className="border-l-4 border-primary-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                   <BarChart3 className="w-4 h-4" />
                   {t('methodology.aggregation.simpleAverage.title')}
@@ -94,7 +96,7 @@ export default function MethodologyPage() {
               </div>
 
               {/* Weighted Average */}
-              <div className="border-l-4 border-green-500 pl-4">
+              <div className="border-l-4 border-success-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                   <Layers className="w-4 h-4" />
                   {t('methodology.aggregation.weightedAverage.title')}
@@ -151,8 +153,8 @@ export default function MethodologyPage() {
       {/* Risk Assessment Dimensions */}
       <section className="mb-12">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <Shield className="w-5 h-5 text-green-700" />
+          <div className="p-2 bg-success-100 rounded-lg">
+            <Shield className="w-5 h-5 text-success-700" />
           </div>
           <h2 className="text-xl font-bold text-gray-900">
             {t('methodology.riskAssessment.sectionTitle')}
@@ -167,8 +169,8 @@ export default function MethodologyPage() {
               {/* Centralization Risk */}
               <div className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                    <Layers className="w-5 h-5 text-red-600" />
+                  <div className="w-10 h-10 bg-danger-50 rounded-lg flex items-center justify-center">
+                    <Layers className="w-5 h-5 text-danger-600" />
                   </div>
                   <h3 className="font-semibold text-gray-900">
                     {t('methodology.risk.centralization.title')}
@@ -178,13 +180,13 @@ export default function MethodologyPage() {
                   {t('methodology.risk.centralization.description')}
                 </p>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="px-2 py-1 bg-red-50 text-red-700 rounded">
+                  <span className="px-2 py-1 bg-danger-50 text-danger-700 rounded">
                     {t('methodology.risk.centralization.high')}: &gt;70%
                   </span>
                   <span className="px-2 py-1 bg-amber-50 text-amber-700 rounded">
                     {t('methodology.risk.centralization.medium')}: 40-70%
                   </span>
-                  <span className="px-2 py-1 bg-green-50 text-green-700 rounded">
+                  <span className="px-2 py-1 bg-success-50 text-success-700 rounded">
                     {t('methodology.risk.centralization.low')}: &lt;40%
                   </span>
                 </div>
@@ -193,8 +195,8 @@ export default function MethodologyPage() {
               {/* Data Freshness Risk */}
               <div className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-primary-600" />
                   </div>
                   <h3 className="font-semibold text-gray-900">
                     {t('methodology.risk.freshness.title')}
@@ -204,13 +206,13 @@ export default function MethodologyPage() {
                   {t('methodology.risk.freshness.description')}
                 </p>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="px-2 py-1 bg-green-50 text-green-700 rounded">
+                  <span className="px-2 py-1 bg-success-50 text-success-700 rounded">
                     {t('methodology.risk.freshness.fresh')}: &lt;1min
                   </span>
                   <span className="px-2 py-1 bg-amber-50 text-amber-700 rounded">
                     {t('methodology.risk.freshness.stale')}: 1-5min
                   </span>
-                  <span className="px-2 py-1 bg-red-50 text-red-700 rounded">
+                  <span className="px-2 py-1 bg-danger-50 text-danger-700 rounded">
                     {t('methodology.risk.freshness.expired')}: &gt;5min
                   </span>
                 </div>
@@ -230,13 +232,13 @@ export default function MethodologyPage() {
                   {t('methodology.risk.deviation.description')}
                 </p>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="px-2 py-1 bg-green-50 text-green-700 rounded">
+                  <span className="px-2 py-1 bg-success-50 text-success-700 rounded">
                     {t('methodology.risk.deviation.normal')}: &lt;0.5%
                   </span>
                   <span className="px-2 py-1 bg-amber-50 text-amber-700 rounded">
                     {t('methodology.risk.deviation.warning')}: 0.5-2%
                   </span>
-                  <span className="px-2 py-1 bg-red-50 text-red-700 rounded">
+                  <span className="px-2 py-1 bg-danger-50 text-danger-700 rounded">
                     {t('methodology.risk.deviation.critical')}: &gt;2%
                   </span>
                 </div>
@@ -256,13 +258,13 @@ export default function MethodologyPage() {
                   {t('methodology.risk.liquidity.description')}
                 </p>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="px-2 py-1 bg-green-50 text-green-700 rounded">
+                  <span className="px-2 py-1 bg-success-50 text-success-700 rounded">
                     {t('methodology.risk.liquidity.high')}: &gt;$10M
                   </span>
                   <span className="px-2 py-1 bg-amber-50 text-amber-700 rounded">
                     {t('methodology.risk.liquidity.medium')}: $1M-10M
                   </span>
-                  <span className="px-2 py-1 bg-red-50 text-red-700 rounded">
+                  <span className="px-2 py-1 bg-danger-50 text-danger-700 rounded">
                     {t('methodology.risk.liquidity.low')}: &lt;$1M
                   </span>
                 </div>
@@ -290,8 +292,8 @@ export default function MethodologyPage() {
             <div className="space-y-4">
               {/* Completeness */}
               <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="w-4 h-4 text-blue-600" />
+                <div className="w-8 h-8 bg-primary-100 rounded flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="w-4 h-4 text-primary-600" />
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900 mb-1">
@@ -305,8 +307,8 @@ export default function MethodologyPage() {
 
               {/* Accuracy */}
               <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center flex-shrink-0">
-                  <Target className="w-4 h-4 text-green-600" />
+                <div className="w-8 h-8 bg-success-100 rounded flex items-center justify-center flex-shrink-0">
+                  <Target className="w-4 h-4 text-success-600" />
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900 mb-1">
@@ -386,10 +388,10 @@ export default function MethodologyPage() {
                   <span className="text-sm font-medium text-gray-700">
                     {t('methodology.confidenceScore.freshness')}
                   </span>
-                  <span className="text-sm font-bold text-blue-600">30%</span>
+                  <span className="text-sm font-bold text-primary-600">30%</span>
                 </div>
                 <div className="h-2 bg-gray-200 rounded-full">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: '30%' }} />
+                  <div className="h-full bg-primary-500 rounded-full" style={{ width: '30%' }} />
                 </div>
               </div>
 
@@ -398,10 +400,10 @@ export default function MethodologyPage() {
                   <span className="text-sm font-medium text-gray-700">
                     {t('methodology.confidenceScore.completeness')}
                   </span>
-                  <span className="text-sm font-bold text-green-600">25%</span>
+                  <span className="text-sm font-bold text-success-600">25%</span>
                 </div>
                 <div className="h-2 bg-gray-200 rounded-full">
-                  <div className="h-full bg-green-500 rounded-full" style={{ width: '25%' }} />
+                  <div className="h-full bg-success-500 rounded-full" style={{ width: '25%' }} />
                 </div>
               </div>
 
@@ -448,7 +450,7 @@ export default function MethodologyPage() {
 
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-                <div className="w-3 h-3 rounded-full bg-green-500" />
+                <div className="w-3 h-3 rounded-full bg-success-500" />
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">
                     {t('methodology.dataSources.primary')}
@@ -461,7 +463,7 @@ export default function MethodologyPage() {
               </div>
 
               <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <div className="w-3 h-3 rounded-full bg-primary-500" />
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">
                     {t('methodology.dataSources.secondary')}
@@ -491,12 +493,12 @@ export default function MethodologyPage() {
       </section>
 
       {/* Footer Note */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <div className="bg-primary-50 border border-primary-200 rounded-lg p-6">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <AlertTriangle className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="font-medium text-blue-900 mb-1">{t('methodology.disclaimer.title')}</h4>
-            <p className="text-sm text-blue-700">{t('methodology.disclaimer.content')}</p>
+            <h4 className="font-medium text-primary-900 mb-1">{t('methodology.disclaimer.title')}</h4>
+            <p className="text-sm text-primary-700">{t('methodology.disclaimer.content')}</p>
           </div>
         </div>
       </div>

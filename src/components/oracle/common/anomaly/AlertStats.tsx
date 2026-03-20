@@ -19,22 +19,22 @@ export function AlertStats({ stats }: AlertStatsProps) {
       </DashboardCard>
 
       <DashboardCard className="text-center">
-        <div className="text-2xl font-bold text-red-600">{stats.highSeverityCount}</div>
+        <div className="text-2xl font-bold text-danger-600">{stats.highSeverityCount}</div>
         <div className="text-xs text-gray-600 mt-1">{t('anomalyAlert.highSeverity')}</div>
       </DashboardCard>
 
       <DashboardCard className="text-center">
-        <div className="text-2xl font-bold text-orange-600">{stats.mediumSeverityCount}</div>
+        <div className="text-2xl font-bold text-warning-600">{stats.mediumSeverityCount}</div>
         <div className="text-xs text-gray-600 mt-1">{t('anomalyAlert.mediumSeverity')}</div>
       </DashboardCard>
 
       <DashboardCard className="text-center">
-        <div className="text-2xl font-bold text-yellow-600">{stats.lowSeverityCount}</div>
+        <div className="text-2xl font-bold text-warning-600">{stats.lowSeverityCount}</div>
         <div className="text-xs text-gray-600 mt-1">{t('anomalyAlert.lowSeverity')}</div>
       </DashboardCard>
 
       <DashboardCard className="text-center">
-        <div className="text-2xl font-bold text-blue-600">{stats.priceSpikeCount}</div>
+        <div className="text-2xl font-bold text-primary-600">{stats.priceSpikeCount}</div>
         <div className="text-xs text-gray-600 mt-1">{t('anomalyAlert.priceSpikeCount')}</div>
       </DashboardCard>
 

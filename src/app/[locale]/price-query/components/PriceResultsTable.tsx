@@ -33,10 +33,10 @@ interface PriceResultsTableProps {
 }
 
 const SCORE_CONFIG: Record<ScoreLevel, { color: string; bgColor: string; label: string }> = {
-  excellent: { color: semanticColors.success.main, bgColor: 'bg-green-500', label: 'excellent' },
-  good: { color: semanticColors.info.main, bgColor: 'bg-blue-500', label: 'good' },
-  warning: { color: semanticColors.warning.main, bgColor: 'bg-yellow-500', label: 'warning' },
-  critical: { color: semanticColors.danger.main, bgColor: 'bg-red-500', label: 'critical' },
+  excellent: { color: semanticColors.success.main, bgColor: 'bg-success-500', label: 'excellent' },
+  good: { color: semanticColors.info.main, bgColor: 'bg-primary-500', label: 'good' },
+  warning: { color: semanticColors.warning.main, bgColor: 'bg-warning-500', label: 'warning' },
+  critical: { color: semanticColors.danger.main, bgColor: 'bg-danger-500', label: 'critical' },
 };
 
 function getScoreLevel(score: number): ScoreLevel {
@@ -320,9 +320,9 @@ export function PriceResultsTable({
                     <div
                       className={`py-2 px-3 border-b border-gray-100 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
+                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
                             : 'hover:bg-gray-50/50'
                       }`}
                     >
@@ -339,9 +339,9 @@ export function PriceResultsTable({
                     <div
                       className={`py-2 px-3 border-b border-gray-100 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
+                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
                             : 'hover:bg-gray-50/50'
                       }`}
                     >
@@ -358,9 +358,9 @@ export function PriceResultsTable({
                     <div
                       className={`py-2 px-3 text-right border-b border-gray-100 font-mono text-gray-900 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
+                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
                             : 'hover:bg-gray-50/50'
                       }`}
                     >
@@ -376,8 +376,8 @@ export function PriceResultsTable({
                           <span
                             className={`text-[10px] px-1 py-0.5 rounded flex-shrink-0 ${
                               deviation > 0
-                                ? 'bg-red-50 text-red-600'
-                                : 'bg-green-50 text-green-600'
+                                ? 'bg-danger-50 text-danger-600'
+                                : 'bg-success-50 text-success-600'
                             }`}
                           >
                             {deviation > 0 ? '+' : ''}
@@ -389,9 +389,9 @@ export function PriceResultsTable({
                     <div
                       className={`py-2 px-3 text-right border-b border-gray-100 font-mono transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
+                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
                             : 'hover:bg-gray-50/50'
                       }`}
                     >
@@ -399,8 +399,8 @@ export function PriceResultsTable({
                         <span
                           className={
                             change24hPercent >= 0
-                              ? 'text-green-600 text-xs'
-                              : 'text-red-600 text-xs'
+                              ? 'text-success-600 text-xs'
+                              : 'text-danger-600 text-xs'
                           }
                         >
                           {change24hPercent >= 0 ? '+' : ''}
@@ -413,9 +413,9 @@ export function PriceResultsTable({
                     <div
                       className={`py-2 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
+                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
                             : 'hover:bg-gray-50/50'
                       }`}
                     >
@@ -424,9 +424,9 @@ export function PriceResultsTable({
                     <div
                       className={`py-2 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
+                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
                             : 'hover:bg-gray-50/50'
                       }`}
                     >
@@ -435,9 +435,9 @@ export function PriceResultsTable({
                     <div
                       className={`py-2 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
+                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
                             : 'hover:bg-gray-50/50'
                       }`}
                     >

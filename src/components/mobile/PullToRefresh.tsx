@@ -154,7 +154,7 @@ export function PullToRefresh({
       >
         <div
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-            pullState.pullProgress >= 1 ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'
+            pullState.pullProgress >= 1 ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-500'
           }`}
         >
           {pullState.isRefreshing ? (

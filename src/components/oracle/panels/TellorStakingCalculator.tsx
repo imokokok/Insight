@@ -168,7 +168,7 @@ export function TellorStakingCalculator() {
 
         <DashboardCard title={t('tellor.staking.calculator.disputeBonus')}>
           <div className="py-2">
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-3xl font-bold text-success-600">
               +{calculation.disputeBonus.toFixed(2)} TRB
             </p>
             <p className="text-xs text-gray-500 mt-1">{t('tellor.staking.calculator.extra')}</p>
@@ -193,17 +193,17 @@ export function TellorStakingCalculator() {
             <span className="font-medium">10.2%</span>
           </div>
           {isActiveReporter && (
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-success-50 rounded-lg">
               <span className="text-gray-600">{t('tellor.staking.calculator.reporterBonus')}</span>
-              <span className="font-medium text-green-600">+5.0%</span>
+              <span className="font-medium text-success-600">+5.0%</span>
             </div>
           )}
           {disputeParticipation > 0 && (
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-primary-50 rounded-lg">
               <span className="text-gray-600">
                 {t('tellor.staking.calculator.disputeBonus')} ({disputeParticipation}x)
               </span>
-              <span className="font-medium text-blue-600">+{disputeParticipation * 2.0}%</span>
+              <span className="font-medium text-primary-600">+{disputeParticipation * 2.0}%</span>
             </div>
           )}
           <div className="border-t border-gray-200 pt-4">

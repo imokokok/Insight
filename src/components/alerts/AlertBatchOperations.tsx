@@ -62,7 +62,7 @@ export function AlertBatchOperations({
             type="checkbox"
             checked={allSelected}
             onChange={allSelected ? onDeselectAll : onSelectAll}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
           />
           <span className="text-sm text-gray-600">
             {t('alerts.batch.selectAll').replace('{count}', String(totalCount))}
@@ -74,7 +74,7 @@ export function AlertBatchOperations({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between py-2 px-3 bg-blue-50 border border-blue-200">
+      <div className="flex items-center justify-between py-2 px-3 bg-primary-50 border border-primary-200">
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -85,9 +85,9 @@ export function AlertBatchOperations({
               }
             }}
             onChange={allSelected ? onDeselectAll : onSelectAll}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
           />
-          <span className="text-sm font-medium text-blue-900">
+          <span className="text-sm font-medium text-primary-900">
             {t('alerts.batch.selectedCount').replace('{count}', String(selectedCount))}
           </span>
         </div>
@@ -97,7 +97,7 @@ export function AlertBatchOperations({
             <button
               onClick={onBatchEnable}
               disabled={isProcessing}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded transition-colors disabled:opacity-50"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-success-700 bg-success-100 hover:bg-success-200 rounded transition-colors disabled:opacity-50"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
@@ -115,7 +115,7 @@ export function AlertBatchOperations({
             <button
               onClick={onBatchDisable}
               disabled={isProcessing}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-yellow-700 bg-yellow-100 hover:bg-yellow-200 rounded transition-colors disabled:opacity-50"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-warning-700 bg-warning-100 hover:bg-warning-200 rounded transition-colors disabled:opacity-50"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
@@ -133,7 +133,7 @@ export function AlertBatchOperations({
             <button
               onClick={handleDeleteClick}
               disabled={isProcessing}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded transition-colors disabled:opacity-50"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-danger-700 bg-danger-100 hover:bg-danger-200 rounded transition-colors disabled:opacity-50"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
@@ -150,7 +150,7 @@ export function AlertBatchOperations({
               <button
                 onClick={handleConfirmDelete}
                 disabled={isProcessing}
-                className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
+                className="px-3 py-1.5 text-xs font-medium text-white bg-danger-600 hover:bg-danger-700 rounded transition-colors disabled:opacity-50"
               >
                 {t('actions.confirm')}
               </button>
@@ -183,7 +183,7 @@ export function AlertBatchOperations({
       </div>
 
       {showDeleteConfirm && (
-        <div className="p-3 bg-red-50 border border-red-200 text-sm text-red-700">
+        <div className="p-3 bg-danger-50 border border-danger-200 text-sm text-danger-700">
           {t('alerts.batch.deleteConfirm').replace('{count}', String(selectedCount))}
         </div>
       )}

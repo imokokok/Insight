@@ -299,15 +299,15 @@ export function ValidatorGeographicMap({ validators, onRegionClick }: ValidatorG
             <p className="text-xs font-medium text-gray-700 mb-2">排名图例</p>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded bg-red-500" />
+                <span className="w-3 h-3 rounded bg-danger-500" />
                 <span className="text-xs text-gray-600">Top 5</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded bg-orange-500" />
+                <span className="w-3 h-3 rounded bg-warning-500" />
                 <span className="text-xs text-gray-600">Top 6-15</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded bg-yellow-500" />
+                <span className="w-3 h-3 rounded bg-warning-500" />
                 <span className="text-xs text-gray-600">Top 16-30</span>
               </div>
               <div className="flex items-center gap-2">
@@ -321,7 +321,7 @@ export function ValidatorGeographicMap({ validators, onRegionClick }: ValidatorG
         <div className="lg:col-span-1 border-l border-gray-200 bg-gray-50/50">
           <div className="p-4">
             <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-blue-500" />
+              <MapPin className="w-4 h-4 text-primary-500" />
               地区统计
             </h4>
 
@@ -332,8 +332,8 @@ export function ValidatorGeographicMap({ validators, onRegionClick }: ValidatorG
                   onClick={() => handleRegionClick(region.name)}
                   className={`w-full text-left p-3 rounded border transition-all duration-200 ${
                     selectedRegion === region.name
-                      ? 'bg-white border-blue-500 shadow-sm'
-                      : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                      ? 'bg-white border-primary-500 shadow-sm'
+                      : 'bg-white border-gray-200 hover:border-primary-300 hover:shadow-sm'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">

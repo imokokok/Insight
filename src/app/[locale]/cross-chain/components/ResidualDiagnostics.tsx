@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   Line,
@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { calculateACF, calculateLjungBox, calculateResidualHistogram } from '../cointegration';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+
 
 interface ResidualDiagnosticsProps {
   residuals: number[];
@@ -91,7 +92,7 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
                   domain={[-1, 1]}
                   tickFormatter={(v) => v.toFixed(1)}
                 />
-                <Tooltip
+                <RechartsTooltip
                   formatter={(value) => [Number(value).toFixed(4), 'ACF']}
                   labelFormatter={(label) => `Lag ${label}`}
                   contentStyle={{ fontSize: 12 }}
@@ -127,7 +128,7 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
               </span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0 border-t border-dashed border-red-500" />
+              <div className="w-3 h-0 border-t border-dashed border-danger-500" />
               <span className="text-xs text-gray-500">
                 {t('crossChain.confidenceInterval95')} (±{confidenceInterval.toFixed(3)})
               </span>
@@ -168,7 +169,7 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
                   tick={{ fontSize: 9 }}
                   tickFormatter={(v) => Number(v).toExponential(1)}
                 />
-                <Tooltip
+                <RechartsTooltip
                   formatter={(value, name) => {
                     const label =
                       name === 'density'
@@ -200,11 +201,11 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
           </div>
           <div className="flex items-center justify-center gap-4 mt-1">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-2 bg-green-500/60" />
+              <div className="w-3 h-2 bg-success-500/60" />
               <span className="text-xs text-gray-500">{t('crossChain.empiricalDistribution')}</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-red-500" />
+              <div className="w-3 h-0.5 bg-danger-500" />
               <span className="text-xs text-gray-500">{t('crossChain.normalDistribution')}</span>
             </div>
           </div>
@@ -227,7 +228,7 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
             {ljungBox.pValue < 0.05 ? (
               <span className="text-amber-600">{t('crossChain.residualsHaveAutocorrelation')}</span>
             ) : (
-              <span className="text-green-600">{t('crossChain.residualsNoAutocorrelation')}</span>
+              <span className="text-success-600">{t('crossChain.residualsNoAutocorrelation')}</span>
             )}
           </li>
         </ul>

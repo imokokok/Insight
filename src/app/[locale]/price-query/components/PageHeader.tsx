@@ -79,7 +79,7 @@ export function PageHeader({
             onClick={onToggleFavorite}
             className={`flex items-center gap-2 px-4 py-2 font-medium border transition-colors ${
               isFavorite
-                ? 'bg-red-50 border-red-200 text-red-600 hover:border-red-300'
+                ? 'bg-danger-50 border-danger-200 text-danger-600 hover:border-red-300'
                 : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
             }`}
           >
@@ -91,7 +91,7 @@ export function PageHeader({
         {onExport && (
           <button
             onClick={onExport}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 transition-colors font-medium"
           >
             <Download className="w-4 h-4" />
             {t('export')}

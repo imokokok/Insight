@@ -160,7 +160,7 @@ export function PageHeader({
               </div>
 
               {showJustUpdated && (
-                <span className="text-xs text-green-600">{t('time.justUpdated')}</span>
+                <span className="text-xs text-success-600">{t('time.justUpdated')}</span>
               )}
 
               {!showJustUpdated && lastUpdateTime && displayTime && (

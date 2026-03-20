@@ -56,13 +56,13 @@ function getScoreColor(score: number): string {
   const level = getScoreLevel(score);
   switch (level) {
     case 'excellent':
-      return 'text-green-600';
+      return 'text-success-600';
     case 'good':
-      return 'text-blue-600';
+      return 'text-primary-600';
     case 'fair':
-      return 'text-yellow-600';
+      return 'text-warning-600';
     case 'poor':
-      return 'text-red-600';
+      return 'text-danger-600';
   }
 }
 
@@ -70,13 +70,13 @@ function getScoreBgColor(score: number): string {
   const level = getScoreLevel(score);
   switch (level) {
     case 'excellent':
-      return 'bg-green-50';
+      return 'bg-success-50';
     case 'good':
-      return 'bg-blue-50';
+      return 'bg-primary-50';
     case 'fair':
-      return 'bg-yellow-50';
+      return 'bg-warning-50';
     case 'poor':
-      return 'bg-red-50';
+      return 'bg-danger-50';
   }
 }
 
@@ -156,7 +156,7 @@ function CircularProgress({
 function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
   if (trend === 'up') {
     return (
-      <div className="flex items-center gap-1 text-green-600">
+      <div className="flex items-center gap-1 text-success-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
@@ -165,7 +165,7 @@ function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
   }
   if (trend === 'down') {
     return (
-      <div className="flex items-center gap-1 text-red-600">
+      <div className="flex items-center gap-1 text-danger-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
@@ -184,12 +184,12 @@ function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
 function DimensionCard({ dimension, index }: { dimension: QualityDimension; index: number }) {
   const progressColor =
     dimension.score >= 80
-      ? 'bg-green-500'
+      ? 'bg-success-500'
       : dimension.score >= 60
-        ? 'bg-blue-500'
+        ? 'bg-primary-500'
         : dimension.score >= 40
-          ? 'bg-yellow-500'
-          : 'bg-red-500';
+          ? 'bg-warning-500'
+          : 'bg-danger-500';
 
   return (
     <div className="bg-white border border-gray-200  p-4 hover:border-gray-300 transition-colors duration-200">
@@ -224,22 +224,22 @@ function DimensionCard({ dimension, index }: { dimension: QualityDimension; inde
 function AlertBanner({ alert }: { alert: QualityAlert }) {
   const bgColor =
     alert.type === 'error'
-      ? 'bg-red-50 border-red-200'
+      ? 'bg-danger-50 border-danger-200'
       : alert.type === 'warning'
-        ? 'bg-yellow-50 border-yellow-200'
-        : 'bg-blue-50 border-blue-200';
+        ? 'bg-warning-50 border-yellow-200'
+        : 'bg-primary-50 border-primary-200';
   const textColor =
     alert.type === 'error'
-      ? 'text-red-800'
+      ? 'text-danger-800'
       : alert.type === 'warning'
         ? 'text-yellow-800'
-        : 'text-blue-800';
+        : 'text-primary-800';
   const iconColor =
     alert.type === 'error'
-      ? 'text-red-600'
+      ? 'text-danger-600'
       : alert.type === 'warning'
-        ? 'text-yellow-600'
-        : 'text-blue-600';
+        ? 'text-warning-600'
+        : 'text-primary-600';
 
   return (
     <div className={`${bgColor} border  p-4`}>
@@ -550,7 +550,7 @@ export function DataQualityScorePanel({
                 {getScoreLabel(scoreLevel, t)}
               </span>
               {scoreChange !== 0 && (
-                <span className={`text-xs ${scoreChange > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`text-xs ${scoreChange > 0 ? 'text-success-600' : 'text-danger-600'}`}>
                   {scoreChange > 0 ? '+' : ''}
                   {scoreChange.toFixed(1)}
                 </span>
@@ -625,7 +625,7 @@ export function DataQualityScorePanel({
         <div className={` p-4 ${getScoreBgColor(dimensions[2].score)}`}>
           <div className="flex items-center gap-2 mb-2">
             <svg
-              className="w-5 h-5 text-blue-600"
+              className="w-5 h-5 text-primary-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -657,7 +657,7 @@ export function DataQualityScorePanel({
               score.score >= 80
                 ? 'bg-green-400'
                 : score.score >= 60
-                  ? 'bg-blue-400'
+                  ? 'bg-primary-400'
                   : score.score >= 40
                     ? 'bg-yellow-400'
                     : 'bg-red-400';
@@ -679,21 +679,21 @@ export function DataQualityScorePanel({
 
       <div className="mt-6 grid grid-cols-4 gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3  bg-green-500" />
+          <div className="w-3 h-3  bg-success-500" />
           <span className="text-xs text-gray-600">
             {t('pythNetwork.dataQuality.excellent')} (≥80)
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3  bg-blue-500" />
+          <div className="w-3 h-3  bg-primary-500" />
           <span className="text-xs text-gray-600">{t('pythNetwork.dataQuality.good')} (60-79)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3  bg-yellow-500" />
+          <div className="w-3 h-3  bg-warning-500" />
           <span className="text-xs text-gray-600">{t('pythNetwork.dataQuality.fair')} (40-59)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3  bg-red-500" />
+          <div className="w-3 h-3  bg-danger-500" />
           <span className="text-xs text-gray-600">
             {t('pythNetwork.dataQuality.poor')} (&lt;40)
           </span>

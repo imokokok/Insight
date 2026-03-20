@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   ReferenceLine,
@@ -18,6 +18,7 @@ import { chainNames, chainColors } from '../utils';
 import { ChartDataPoint } from '../constants';
 import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+
 
 interface ReferenceLineConfig {
   id: string;
@@ -538,19 +539,19 @@ export function InteractivePriceChart({
           <div className="flex items-center gap-1">
             <button
               onClick={() => addReferenceLine('current')}
-              className="px-2 py-1.5 text-xs bg-blue-50 text-blue-700 hover:border-blue-300 border border-transparent transition-colors"
+              className="px-2 py-1.5 text-xs bg-primary-50 text-primary-700 hover:border-primary-300 border border-transparent transition-colors"
             >
               {t('crossChain.currentPrice')}
             </button>
             <button
               onClick={() => addReferenceLine('avg')}
-              className="px-2 py-1.5 text-xs bg-green-50 text-green-700 hover:border-green-300 border border-transparent transition-colors"
+              className="px-2 py-1.5 text-xs bg-success-50 text-success-700 hover:border-green-300 border border-transparent transition-colors"
             >
               {t('crossChain.averagePrice')}
             </button>
             <button
               onClick={() => addReferenceLine('median')}
-              className="px-2 py-1.5 text-xs bg-yellow-50 text-yellow-700 hover:border-yellow-300 border border-transparent transition-colors"
+              className="px-2 py-1.5 text-xs bg-warning-50 text-warning-700 hover:border-yellow-300 border border-transparent transition-colors"
             >
               {t('crossChain.medianPrice')}
             </button>
@@ -563,7 +564,7 @@ export function InteractivePriceChart({
             {referenceLines.length > 0 && (
               <button
                 onClick={clearAllReferenceLines}
-                className="px-2 py-1.5 text-xs bg-red-50 text-red-700 hover:border-red-300 border border-transparent transition-colors"
+                className="px-2 py-1.5 text-xs bg-danger-50 text-danger-700 hover:border-red-300 border border-transparent transition-colors"
               >
                 {t('crossChain.clearAll')}
               </button>
@@ -591,7 +592,7 @@ export function InteractivePriceChart({
               <span className="font-mono text-gray-800">${line.y.toFixed(4)}</span>
               <button
                 onClick={() => removeReferenceLine(line.id)}
-                className="ml-1 text-gray-400 hover:text-red-500 border border-transparent hover:border-gray-200"
+                className="ml-1 text-gray-400 hover:text-danger-500 border border-transparent hover:border-gray-200"
               >
                 ×
               </button>
@@ -618,7 +619,7 @@ export function InteractivePriceChart({
               tickFormatter={(v) => `$${Number(v).toLocaleString()}`}
               width={70}
             />
-            <Tooltip content={renderTooltip} />
+            <RechartsTooltip content={renderTooltip} />
             <Legend
               onClick={(data: unknown) => {
                 const legendData = data as { dataKey: string; color: string; type: string; value: string };
@@ -670,7 +671,7 @@ export function InteractivePriceChart({
         {/* Selection Box Overlay */}
         {showSelectionBox && (
           <div
-            className="absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none"
+            className="absolute border-2 border-primary-500 bg-primary-500/10 pointer-events-none"
             style={selectionBoxStyle}
           />
         )}

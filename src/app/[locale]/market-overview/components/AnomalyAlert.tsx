@@ -57,13 +57,13 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
   const getLevelStyle = (level: AnomalyData['level']) => {
     switch (level) {
       case 'critical':
-        return 'bg-red-50 border-l-2 border-red-500';
+        return 'bg-danger-50 border-l-2 border-danger-500';
       case 'high':
-        return 'bg-orange-50 border-l-2 border-orange-500';
+        return 'bg-warning-50 border-l-2 border-orange-500';
       case 'medium':
-        return 'bg-yellow-50 border-l-2 border-yellow-500';
+        return 'bg-warning-50 border-l-2 border-warning-500';
       case 'low':
-        return 'bg-blue-50 border-l-2 border-blue-500';
+        return 'bg-primary-50 border-l-2 border-primary-500';
       default:
         return 'bg-gray-50 border-l-2 border-gray-500';
     }
@@ -73,13 +73,13 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
   const getLevelIcon = (level: AnomalyData['level']) => {
     switch (level) {
       case 'critical':
-        return <AlertTriangle className="w-4 h-4 text-red-500" />;
+        return <AlertTriangle className="w-4 h-4 text-danger-500" />;
       case 'high':
-        return <AlertTriangle className="w-4 h-4 text-orange-500" />;
+        return <AlertTriangle className="w-4 h-4 text-warning-500" />;
       case 'medium':
-        return <Bell className="w-4 h-4 text-yellow-500" />;
+        return <Bell className="w-4 h-4 text-warning-500" />;
       case 'low':
-        return <Activity className="w-4 h-4 text-blue-500" />;
+        return <Activity className="w-4 h-4 text-primary-500" />;
       default:
         return <Activity className="w-4 h-4 text-gray-500" />;
     }
@@ -171,8 +171,8 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
     return (
       <div className="py-8 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 bg-green-100 border border-green-200 flex items-center justify-center mx-auto mb-2">
-            <Activity className="w-5 h-5 text-green-600" />
+          <div className="w-10 h-10 bg-success-100 border border-green-200 flex items-center justify-center mx-auto mb-2">
+            <Activity className="w-5 h-5 text-success-600" />
           </div>
           <p className="text-gray-500 text-sm">
             {isChineseLocale(locale) ? '暂无异常警报' : 'No anomaly alerts'}
@@ -193,13 +193,13 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
           {isChineseLocale(locale) ? '活跃警报:' : 'Active:'} {sortedAlerts.length}
         </span>
         {sortedAlerts.some((a) => a.level === 'critical') && (
-          <span className="px-1.5 py-0.5 bg-red-100 text-red-700 font-medium">
+          <span className="px-1.5 py-0.5 bg-danger-100 text-danger-700 font-medium">
             {sortedAlerts.filter((a) => a.level === 'critical').length}{' '}
             {isChineseLocale(locale) ? '严重' : 'Critical'}
           </span>
         )}
         {sortedAlerts.some((a) => a.level === 'high') && (
-          <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 font-medium">
+          <span className="px-1.5 py-0.5 bg-warning-100 text-orange-700 font-medium">
             {sortedAlerts.filter((a) => a.level === 'high').length}{' '}
             {isChineseLocale(locale) ? '高' : 'High'}
           </span>
@@ -223,12 +223,12 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
                     <span
                       className={`px-1.5 py-0.5 text-xs font-medium ${
                         alert.level === 'critical'
-                          ? 'bg-red-100 text-red-700'
+                          ? 'bg-danger-100 text-danger-700'
                           : alert.level === 'high'
-                            ? 'bg-orange-100 text-orange-700'
+                            ? 'bg-warning-100 text-orange-700'
                             : alert.level === 'medium'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-blue-100 text-blue-700'
+                              ? 'bg-warning-100 text-warning-700'
+                              : 'bg-primary-100 text-primary-700'
                       }`}
                     >
                       {getLevelLabel(alert.level)}

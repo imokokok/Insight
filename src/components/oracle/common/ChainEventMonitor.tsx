@@ -19,8 +19,8 @@ const EVENT_TYPE_CONFIG: Record<
 > = {
   [EventType.DELEGATION]: {
     label: '委托',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
+    color: 'text-success-600',
+    bgColor: 'bg-success-50',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -29,8 +29,8 @@ const EVENT_TYPE_CONFIG: Record<
   },
   [EventType.UNDELEGATION]: {
     label: '解除委托',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
+    color: 'text-warning-600',
+    bgColor: 'bg-warning-50',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -39,8 +39,8 @@ const EVENT_TYPE_CONFIG: Record<
   },
   [EventType.COMMISSION_CHANGE]: {
     label: '佣金变更',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
+    color: 'text-primary-600',
+    bgColor: 'bg-primary-50',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
@@ -53,8 +53,8 @@ const EVENT_TYPE_CONFIG: Record<
   },
   [EventType.JAILED]: {
     label: '节点监禁',
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
+    color: 'text-danger-600',
+    bgColor: 'bg-danger-50',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
@@ -169,12 +169,12 @@ export function ChainEventMonitor({ client, refreshInterval = 30000 }: ChainEven
             onClick={() => setIsLive(!isLive)}
             className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors ${
               isLive
-                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                ? 'bg-success-100 text-success-700 hover:bg-success-200'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             <span
-              className={`w-1.5 h-1.5  ${isLive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}
+              className={`w-1.5 h-1.5  ${isLive ? 'bg-success-500 animate-pulse' : 'bg-gray-400'}`}
             />
             {isLive ? '实时' : '暂停'}
           </button>
@@ -326,7 +326,7 @@ export function ChainEventMonitor({ client, refreshInterval = 30000 }: ChainEven
                       href={`https://www.mintscan.io/band/txs/${event.txHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline mt-1 inline-block font-mono"
+                      className="text-xs text-primary-600 hover:text-primary-800 hover:underline mt-1 inline-block font-mono"
                       title={event.txHash}
                     >
                       {truncateTxHash(event.txHash)}

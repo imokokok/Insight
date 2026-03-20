@@ -6,7 +6,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   Area,
@@ -22,7 +22,8 @@ import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
 import { SnapshotManager } from '@/components/oracle/common/SnapshotManager';
 import { SnapshotComparison } from '@/components/oracle/common/SnapshotComparison';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
-import { NoDataEmptyState } from '@/components/ui/EmptyState';
+// NoDataEmptyState is not available, using EmptyState instead
+import { EmptyState } from '@/components/ui';
 import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
 import { OracleSnapshot } from '@/types/oracle';
 import { oracleNames } from '../constants';
@@ -37,6 +38,7 @@ import { BenchmarkComparisonSection } from './BenchmarkComparisonSection';
 import { ChartTooltip } from './ChartTooltip';
 import { DropdownSelect } from '@/components/ui/selectors';
 import { TabId } from './TabNavigation';
+
 
 interface ComparisonTabsProps {
   activeTab: TabId;
@@ -310,7 +312,18 @@ export function ComparisonTabs({
           <ChartSkeleton height={400 * zoomLevel} variant="price" showToolbar={false} />
         ) : getChartData().length === 0 ? (
           <div className="border border-gray-200 rounded-lg">
-            <NoDataEmptyState onRefresh={fetchPriceData} />
+            <EmptyState
+              title="No Data Available"
+              description="There is no price data available for the selected time range."
+              action={
+                <button
+                  onClick={fetchPriceData}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+                >
+                  Refresh
+                </button>
+              }
+            />
           </div>
         ) : (
           <div className="border border-gray-200 p-4">
@@ -348,7 +361,7 @@ export function ComparisonTabs({
                   domain={['auto', 'auto']}
                   tickFormatter={(value) => `$${value.toLocaleString()}`}
                 />
-                <Tooltip content={<ChartTooltip t={t} />} />
+                <RechartsTooltip content={<ChartTooltip t={t} />} />
                 <Legend />
                 <Area
                   type="monotone"
@@ -495,7 +508,7 @@ export function ComparisonTabs({
                 domain={['auto', 'auto']}
                 tickFormatter={(value) => `$${value.toLocaleString()}`}
               />
-              <Tooltip content={<ChartTooltip t={t} />} />
+              <RechartsTooltip content={<ChartTooltip t={t} />} />
               <Legend />
               <Area
                 type="monotone"
@@ -709,7 +722,7 @@ export function ComparisonTabs({
                   key={data.provider}
                   className={`flex items-center justify-between p-3 border transition-colors overflow-hidden ${
                     selectedPerformanceOracle === data.provider
-                      ? 'bg-blue-50 border-blue-200'
+                      ? 'bg-primary-50 border-primary-200'
                       : 'bg-gray-50 border-gray-100'
                   }`}
                   onClick={() => setSelectedPerformanceOracle(data.provider)}
@@ -737,11 +750,11 @@ export function ComparisonTabs({
                     </div>
                     <div className="text-center">
                       <p className="text-gray-400">{t('crossOracle.performanceTab.accuracy')}</p>
-                      <p className="font-semibold text-green-600">{data.accuracy.toFixed(1)}%</p>
+                      <p className="font-semibold text-success-600">{data.accuracy.toFixed(1)}%</p>
                     </div>
                     <div className="text-center">
                       <p className="text-gray-400">{t('crossOracle.performanceTab.stability')}</p>
-                      <p className="font-semibold text-blue-600">{data.stability.toFixed(1)}%</p>
+                      <p className="font-semibold text-primary-600">{data.stability.toFixed(1)}%</p>
                     </div>
                   </div>
                 </div>

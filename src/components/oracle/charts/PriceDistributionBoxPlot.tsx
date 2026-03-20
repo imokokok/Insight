@@ -8,13 +8,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Cell,
   ZAxis,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+
 
 interface BoxPlotStats {
   min: number;
@@ -434,7 +435,7 @@ export function PriceDistributionBoxPlot({
                 width={70}
               />
               <ZAxis type="number" range={[100, 100]} />
-              <Tooltip content={<CustomTooltip t={t} />} />
+              <RechartsTooltip content={<CustomTooltip t={t} />} />
 
               <Scatter data={chartData} shape={<BoxPlotShape />}>
                 {chartData.map((entry, index) => (
@@ -553,7 +554,7 @@ export function PriceDistributionBoxPlot({
                     </td>
                     <td className="text-right py-2 px-3">
                       {item.stats.outliers.length > 0 ? (
-                        <span className="text-orange-600 font-medium">
+                        <span className="text-warning-600 font-medium">
                           {item.stats.outliers.length}
                         </span>
                       ) : (

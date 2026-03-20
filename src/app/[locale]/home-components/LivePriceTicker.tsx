@@ -8,6 +8,8 @@ import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { semanticColors } from '@/lib/config/colors';
 
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 interface TradingPair {
   symbol: string;
   name: string;
@@ -93,7 +95,7 @@ function TickerItem({ pair, priceData }: TickerItemProps) {
           ${formatPrice(priceData.currentPrice)}
         </div>
         <div
-          className={`flex items-center gap-1 text-[10px] sm:text-xs font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}
+          className={`flex items-center gap-1 text-[10px] sm:text-xs font-medium ${isPositive ? 'text-success-600' : 'text-danger-600'}`}
         >
           {isPositive ? (
             <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -170,8 +172,8 @@ export default function LivePriceTicker() {
       <div className="px-6 lg:px-12 xl:px-20 mb-3">
         <div className="flex items-center gap-2">
           <div className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-500 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-success-500"></span>
           </div>
           <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
             {isZh ? '实时价格' : 'Live Prices'}

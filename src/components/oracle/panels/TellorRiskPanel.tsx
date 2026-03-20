@@ -9,6 +9,7 @@ import {
   SecurityTimeline,
   MitigationMeasuresGrid,
 } from '@/components/oracle/common';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { RiskEvent, MitigationMeasure } from '@/types/risk';
 
 interface TellorRiskPanelProps {
@@ -94,11 +95,11 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
   const _getRiskLevelColor = (level: 'low' | 'medium' | 'high') => {
     switch (level) {
       case 'low':
-        return 'text-green-600 bg-green-50 border-green-200';
+        return 'text-success-600 bg-success-50 border-green-200';
       case 'medium':
-        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+        return 'text-warning-600 bg-warning-50 border-yellow-200';
       case 'high':
-        return 'text-red-600 bg-red-50 border-red-200';
+        return 'text-danger-600 bg-danger-50 border-danger-200';
       default:
         return 'text-gray-600 bg-gray-50 border-gray-200';
     }
@@ -107,14 +108,14 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-emerald-600';
     if (score >= 60) return 'text-amber-600';
-    return 'text-red-600';
+    return 'text-danger-600';
   };
 
   const getProgressColor = (value: number, max: number = 100) => {
     const percentage = (value / max) * 100;
     if (percentage <= 30) return 'bg-emerald-500';
     if (percentage <= 70) return 'bg-amber-500';
-    return 'bg-red-500';
+    return 'bg-danger-500';
   };
 
   const handleRefresh = () => {
@@ -143,7 +144,7 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
                   ? 'text-emerald-600'
                   : data.overallRiskLevel === 'medium'
                     ? 'text-amber-600'
-                    : 'text-red-600'
+                    : 'text-danger-600'
               }`}
             >
               {data.overallRiskLevel}
@@ -330,19 +331,19 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
               key={index}
               className={`flex items-start gap-3 p-3 ${
                 alert.type === 'critical'
-                  ? 'bg-red-50 border border-red-200'
+                  ? 'bg-danger-50 border border-danger-200'
                   : alert.type === 'warning'
                     ? 'bg-amber-50 border border-amber-200'
-                    : 'bg-blue-50 border border-blue-200'
+                    : 'bg-primary-50 border border-primary-200'
               }`}
             >
               <div
                 className={`w-2 h-2 mt-2 flex-shrink-0 ${
                   alert.type === 'critical'
-                    ? 'bg-red-500'
+                    ? 'bg-danger-500'
                     : alert.type === 'warning'
                       ? 'bg-amber-500'
-                      : 'bg-blue-500'
+                      : 'bg-primary-500'
                 }`}
               />
               <div className="flex-1">
@@ -354,10 +355,10 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
               <span
                 className={`text-xs px-2 py-1 uppercase ${
                   alert.type === 'critical'
-                    ? 'bg-red-100 text-red-700'
+                    ? 'bg-danger-100 text-danger-700'
                     : alert.type === 'warning'
                       ? 'bg-amber-100 text-amber-700'
-                      : 'bg-blue-100 text-blue-700'
+                      : 'bg-primary-100 text-primary-700'
                 }`}
               >
                 {alert.type}

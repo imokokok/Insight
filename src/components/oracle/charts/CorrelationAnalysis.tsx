@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ReferenceLine,
 } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
@@ -16,6 +16,7 @@ import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
 import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+
 
 type TimeWindow = '1h' | '6h' | '24h' | '7d' | '30d';
 
@@ -309,7 +310,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                   onClick={() => setTimeWindow(window)}
                   className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                     timeWindow === window
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-primary-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -362,7 +363,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                           className={`w-24 h-16 flex flex-col items-center justify-center m-0.5 rounded ${
                             isDiagonal
                               ? 'bg-gray-200 cursor-default'
-                              : 'cursor-pointer hover:ring-2 hover:ring-blue-500'
+                              : 'cursor-pointer hover:ring-2 hover:ring-primary-500'
                           }`}
                           style={{
                             backgroundColor: isDiagonal
@@ -506,7 +507,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                         <div className="flex items-center gap-2">
                           <div className="w-16 h-2 bg-gray-200 rounded overflow-hidden">
                             <div
-                              className="h-full bg-blue-500 rounded"
+                              className="h-full bg-primary-500 rounded"
                               style={{ width: `${corr.confidence}%` }}
                             />
                           </div>
@@ -521,7 +522,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                             e.stopPropagation();
                             setSelectedPair(corr.pair);
                           }}
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          className="text-primary-600 hover:text-primary-800 text-sm font-medium"
                         >
                           查看散点图
                         </button>
@@ -577,7 +578,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                       position: 'insideLeft',
                     }}
                   />
-                  <Tooltip
+                  <RechartsTooltip
                     cursor={{ strokeDasharray: '3 3' }}
                     formatter={(value: unknown, name: unknown): [string, string] => [
                       `$${Number(value).toFixed(4)}`,
@@ -678,7 +679,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
             </div>
 
             {/* 说明 */}
-            <div className="bg-blue-50 rounded p-4 text-sm text-blue-800">
+            <div className="bg-primary-50 rounded p-4 text-sm text-primary-800">
               <p className="font-medium mb-2">图表说明:</p>
               <ul className="space-y-1 ml-4">
                 <li>• 每个点代表同一时间点两个预言机的价格数据</li>
@@ -702,25 +703,25 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
             r = Σ((x - x̄)(y - ȳ)) / √(Σ(x - x̄)² × Σ(y - ȳ)²)
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="text-center p-3 bg-green-50 rounded">
-              <p className="font-bold text-green-700">0.9 - 1.0</p>
-              <p className="text-xs text-green-600">非常强正相关</p>
+            <div className="text-center p-3 bg-success-50 rounded">
+              <p className="font-bold text-success-700">0.9 - 1.0</p>
+              <p className="text-xs text-success-600">非常强正相关</p>
             </div>
-            <div className="text-center p-3 bg-blue-50 rounded">
-              <p className="font-bold text-blue-700">0.7 - 0.9</p>
-              <p className="text-xs text-blue-600">强正相关</p>
+            <div className="text-center p-3 bg-primary-50 rounded">
+              <p className="font-bold text-primary-700">0.7 - 0.9</p>
+              <p className="text-xs text-primary-600">强正相关</p>
             </div>
-            <div className="text-center p-3 bg-yellow-50 rounded">
-              <p className="font-bold text-yellow-700">0.5 - 0.7</p>
-              <p className="text-xs text-yellow-600">中等正相关</p>
+            <div className="text-center p-3 bg-warning-50 rounded">
+              <p className="font-bold text-warning-700">0.5 - 0.7</p>
+              <p className="text-xs text-warning-600">中等正相关</p>
             </div>
-            <div className="text-center p-3 bg-orange-50 rounded">
+            <div className="text-center p-3 bg-warning-50 rounded">
               <p className="font-bold text-orange-700">0.3 - 0.5</p>
-              <p className="text-xs text-orange-600">弱正相关</p>
+              <p className="text-xs text-warning-600">弱正相关</p>
             </div>
-            <div className="text-center p-3 bg-red-50 rounded">
-              <p className="font-bold text-red-700">0.0 - 0.3</p>
-              <p className="text-xs text-red-600">极弱/无相关</p>
+            <div className="text-center p-3 bg-danger-50 rounded">
+              <p className="font-bold text-danger-700">0.0 - 0.3</p>
+              <p className="text-xs text-danger-600">极弱/无相关</p>
             </div>
           </div>
           <p className="text-gray-500 text-xs">

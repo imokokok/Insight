@@ -81,7 +81,7 @@ const ComparisonBadge = memo(function ComparisonBadge({
     >
       <div className="flex items-center justify-between mb-2">
         <span style={{ color: baseColors.gray[500] }}>{t('comparison.title')}</span>
-        <span className={`font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+        <span className={`font-medium ${isPositive ? 'text-success-600' : 'text-danger-600'}`}>
           {formatPercentage(changePercent)}
         </span>
       </div>

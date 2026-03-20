@@ -44,7 +44,7 @@ function OptionButton({ label, isSelected, onClick, description }: OptionButtonP
         w-full text-left p-3 border transition-all
         ${
           isSelected
-            ? 'border-blue-500 bg-blue-50'
+            ? 'border-primary-500 bg-primary-50'
             : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
         }
       `}
@@ -52,16 +52,16 @@ function OptionButton({ label, isSelected, onClick, description }: OptionButtonP
     >
       <div className="flex items-center justify-between">
         <div>
-          <span className={`text-sm font-medium ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
+          <span className={`text-sm font-medium ${isSelected ? 'text-primary-900' : 'text-gray-900'}`}>
             {label}
           </span>
           {description && (
-            <p className={`text-xs mt-0.5 ${isSelected ? 'text-blue-700' : 'text-gray-500'}`}>
+            <p className={`text-xs mt-0.5 ${isSelected ? 'text-primary-700' : 'text-gray-500'}`}>
               {description}
             </p>
           )}
         </div>
-        {isSelected && <Check className="w-5 h-5 text-blue-600" aria-hidden="true" />}
+        {isSelected && <Check className="w-5 h-5 text-primary-600" aria-hidden="true" />}
       </div>
     </button>
   );
@@ -247,7 +247,7 @@ export function AccessibilitySettings() {
               onClick={() => setReduceMotion(!settings.reduceMotion)}
               className={`
                 relative inline-flex h-6 w-11 items-center transition-colors
-                ${settings.reduceMotion ? 'bg-blue-600' : 'bg-gray-200'}
+                ${settings.reduceMotion ? 'bg-primary-600' : 'bg-gray-200'}
               `}
               role="switch"
               aria-checked={settings.reduceMotion}
@@ -263,22 +263,22 @@ export function AccessibilitySettings() {
         </SettingSection>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 p-4">
+      <div className="bg-primary-50 border border-primary-200 p-4">
         <div className="flex items-start gap-3">
-          <Palette className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <Palette className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
           <div>
-            <h4 className="text-sm font-medium text-blue-900">{t('preview.title')}</h4>
-            <p className="text-sm text-blue-700 mt-1">{t('preview.description')}</p>
+            <h4 className="text-sm font-medium text-primary-900">{t('preview.title')}</h4>
+            <p className="text-sm text-primary-700 mt-1">{t('preview.description')}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-white border border-blue-200 text-blue-800">
+              <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-white border border-primary-200 text-primary-800">
                 {t('preview.sampleText')}
               </span>
-              <button className="inline-flex items-center px-3 py-1 text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+              <button className="inline-flex items-center px-3 py-1 text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors">
                 {t('preview.sampleButton')}
               </button>
               <a
                 href="#"
-                className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-blue-600 underline hover:text-blue-800"
+                className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-primary-600 underline hover:text-primary-800"
               >
                 {t('preview.sampleLink')}
               </a>

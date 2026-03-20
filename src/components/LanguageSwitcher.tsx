@@ -44,7 +44,7 @@ export default function LanguageSwitcher() {
           setIsDropdownOpen(!isDropdownOpen);
         }}
         disabled={isPending}
-        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors disabled:opacity-50"
+        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors disabled:opacity-50"
       >
         <span className="text-lg">🌐</span>
         <span>{getLanguageLabel(currentLocale)}</span>
@@ -63,7 +63,7 @@ export default function LanguageSwitcher() {
           <button
             onClick={() => switchLanguage('en')}
             className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors first:rounded-t-lg ${
-              currentLocale === 'en' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+              currentLocale === 'en' ? 'bg-primary-50 text-primary-700' : 'text-gray-700'
             }`}
           >
             English
@@ -71,7 +71,7 @@ export default function LanguageSwitcher() {
           <button
             onClick={() => switchLanguage('zh-CN')}
             className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors last:rounded-b-lg ${
-              currentLocale === 'zh-CN' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+              currentLocale === 'zh-CN' ? 'bg-primary-50 text-primary-700' : 'text-gray-700'
             }`}
           >
             中文

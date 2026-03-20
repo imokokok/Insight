@@ -9,21 +9,21 @@ interface DapiPriceDeviationMonitorProps {
 function StatusIndicator({ status }: { status: 'normal' | 'warning' | 'critical' }) {
   const config = {
     normal: {
-      bg: 'bg-green-100',
-      text: 'text-green-700',
-      dot: 'bg-green-500',
+      bg: 'bg-success-100',
+      text: 'text-success-700',
+      dot: 'bg-success-500',
       label: '正常',
     },
     warning: {
-      bg: 'bg-yellow-100',
-      text: 'text-yellow-700',
-      dot: 'bg-yellow-500',
+      bg: 'bg-warning-100',
+      text: 'text-warning-700',
+      dot: 'bg-warning-500',
       label: '警告',
     },
     critical: {
-      bg: 'bg-red-100',
-      text: 'text-red-700',
-      dot: 'bg-red-500',
+      bg: 'bg-danger-100',
+      text: 'text-danger-700',
+      dot: 'bg-danger-500',
       label: '异常',
     },
   };
@@ -43,7 +43,7 @@ function StatusIndicator({ status }: { status: 'normal' | 'warning' | 'critical'
 function TrendIndicator({ trend }: { trend: 'expanding' | 'shrinking' | 'stable' }) {
   if (trend === 'expanding') {
     return (
-      <div className="flex items-center gap-1 text-red-600">
+      <div className="flex items-center gap-1 text-danger-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
@@ -54,7 +54,7 @@ function TrendIndicator({ trend }: { trend: 'expanding' | 'shrinking' | 'stable'
 
   if (trend === 'shrinking') {
     return (
-      <div className="flex items-center gap-1 text-green-600">
+      <div className="flex items-center gap-1 text-success-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
@@ -76,7 +76,7 @@ function TrendIndicator({ trend }: { trend: 'expanding' | 'shrinking' | 'stable'
 function DeviationBar({ deviation }: { deviation: number }) {
   const percentage = Math.min(deviation * 20, 100);
   const color =
-    deviation > 0.5 ? 'bg-red-500' : deviation >= 0.3 ? 'bg-yellow-500' : 'bg-green-500';
+    deviation > 0.5 ? 'bg-danger-500' : deviation >= 0.3 ? 'bg-warning-500' : 'bg-success-500';
 
   return (
     <div className="w-20 h-2 bg-gray-200  overflow-hidden">
@@ -154,7 +154,7 @@ export function DapiPriceDeviationMonitor({ data }: DapiPriceDeviationMonitorPro
                 <tr
                   key={index}
                   className={`transition-colors duration-150 ${
-                    isAbnormal ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'
+                    isAbnormal ? 'bg-danger-50 hover:bg-danger-100' : 'hover:bg-gray-50'
                   }`}
                 >
                   <td className="py-4 px-4">
@@ -179,10 +179,10 @@ export function DapiPriceDeviationMonitor({ data }: DapiPriceDeviationMonitorPro
                     <span
                       className={`font-mono font-medium ${
                         item.deviation > 0.5
-                          ? 'text-red-600'
+                          ? 'text-danger-600'
                           : item.deviation >= 0.3
-                            ? 'text-yellow-600'
-                            : 'text-green-600'
+                            ? 'text-warning-600'
+                            : 'text-success-600'
                       }`}
                     >
                       {item.deviation.toFixed(2)}%
@@ -211,13 +211,13 @@ export function DapiPriceDeviationMonitor({ data }: DapiPriceDeviationMonitorPro
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">总 dAPI 数量</p>
             <p className="text-2xl font-bold text-gray-900">{totalDapis}</p>
           </div>
-          <div className="bg-red-50  p-4">
-            <p className="text-xs text-red-600 uppercase tracking-wider mb-1">异常数量</p>
-            <p className="text-2xl font-bold text-red-600">{abnormalCount}</p>
+          <div className="bg-danger-50  p-4">
+            <p className="text-xs text-danger-600 uppercase tracking-wider mb-1">异常数量</p>
+            <p className="text-2xl font-bold text-danger-600">{abnormalCount}</p>
           </div>
-          <div className="bg-blue-50  p-4">
-            <p className="text-xs text-blue-600 uppercase tracking-wider mb-1">平均偏离</p>
-            <p className="text-2xl font-bold text-blue-600">{avgDeviation.toFixed(2)}%</p>
+          <div className="bg-primary-50  p-4">
+            <p className="text-xs text-primary-600 uppercase tracking-wider mb-1">平均偏离</p>
+            <p className="text-2xl font-bold text-primary-600">{avgDeviation.toFixed(2)}%</p>
           </div>
         </div>
       </div>

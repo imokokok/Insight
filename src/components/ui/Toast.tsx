@@ -87,17 +87,17 @@ export function useToastMethods() {
 }
 
 const toastIcons = {
-  success: <CheckCircle className="w-5 h-5 text-green-500" />,
-  error: <AlertCircle className="w-5 h-5 text-red-500" />,
-  warning: <AlertTriangle className="w-5 h-5 text-yellow-500" />,
-  info: <Info className="w-5 h-5 text-blue-500" />,
+  success: <CheckCircle className="w-5 h-5 text-success-500" />,
+  error: <AlertCircle className="w-5 h-5 text-danger-500" />,
+  warning: <AlertTriangle className="w-5 h-5 text-warning-500" />,
+  info: <Info className="w-5 h-5 text-primary-500" />,
 };
 
 const toastStyles = {
-  success: 'border-green-200 bg-green-50',
-  error: 'border-red-200 bg-red-50',
-  warning: 'border-yellow-200 bg-yellow-50',
-  info: 'border-blue-200 bg-blue-50',
+  success: 'border-green-200 bg-success-50',
+  error: 'border-danger-200 bg-danger-50',
+  warning: 'border-yellow-200 bg-warning-50',
+  info: 'border-primary-200 bg-primary-50',
 };
 
 function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: string) => void }) {

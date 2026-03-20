@@ -30,7 +30,7 @@ export default function AnomalyModal({ selectedAnomaly, onClose }: AnomalyModalP
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-500" />
+            <div className="w-3 h-3 bg-danger-500" />
             <h3 className="text-lg font-semibold text-gray-900">
               {isChineseLocale(locale) ? '数据异常检测' : 'Anomaly Detected'}
             </h3>
@@ -48,11 +48,11 @@ export default function AnomalyModal({ selectedAnomaly, onClose }: AnomalyModalP
         </div>
 
         <div className="space-y-4">
-          <div className="bg-red-50 p-4 border border-red-200">
-            <p className="text-sm text-red-600 mb-1">
+          <div className="bg-danger-50 p-4 border border-danger-200">
+            <p className="text-sm text-danger-600 mb-1">
               {isChineseLocale(locale) ? '检测到异常波动' : 'Abnormal fluctuation detected'}
             </p>
-            <p className="text-2xl font-bold text-red-700">
+            <p className="text-2xl font-bold text-danger-700">
               {(selectedAnomaly.changeRate * 100).toFixed(2)}%
             </p>
           </div>
@@ -96,8 +96,8 @@ export default function AnomalyModal({ selectedAnomaly, onClose }: AnomalyModalP
               <span
                 className={`font-medium ${
                   selectedAnomaly.value > selectedAnomaly.prevValue
-                    ? 'text-green-600'
-                    : 'text-red-600'
+                    ? 'text-success-600'
+                    : 'text-danger-600'
                 }`}
               >
                 {selectedAnomaly.value > selectedAnomaly.prevValue ? '+' : ''}

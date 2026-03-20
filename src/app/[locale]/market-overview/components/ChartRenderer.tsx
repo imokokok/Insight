@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   BarChart,
   Bar,
   Legend,
@@ -40,6 +40,7 @@ import OracleComparison from './OracleComparison';
 import BenchmarkComparison from './BenchmarkComparison';
 import CorrelationMatrix from './CorrelationMatrix';
 import { CHAIN_SUPPORT_DATA } from '../constants';
+
 
 interface ChartRendererProps {
   activeChart: ChartType;
@@ -249,7 +250,7 @@ export default function ChartRenderer({
           );
         })}
       </Pie>
-      <Tooltip content={<CustomTooltip />} />
+      <RechartsTooltip content={<CustomTooltip />} />
     </PieChart>
   );
 
@@ -344,7 +345,7 @@ export default function ChartRenderer({
                             {isChineseLocale(locale) ? '变化' : 'Change'}:
                           </span>
                           <span
-                            className={`font-medium ${diffPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                            className={`font-medium ${diffPercent >= 0 ? 'text-success-600' : 'text-danger-600'}`}
                           >
                             {diffPercent >= 0 ? '+' : ''}
                             {diffPercent?.toFixed(2)}%
@@ -375,7 +376,7 @@ export default function ChartRenderer({
         <CartesianGrid strokeDasharray="3 3" stroke={chartColors.lineChart.grid} />
         <XAxis dataKey="date" stroke={chartColors.lineChart.axis} fontSize={12} />
         <YAxis stroke={chartColors.lineChart.axis} fontSize={12} tickFormatter={(v) => `$${v}B`} />
-        <Tooltip content={<ComparisonTooltip />} />
+        <RechartsTooltip content={<ComparisonTooltip />} />
         <Legend />
         {oracleKeys.map((key) => {
           const isHighlighted = isLineHighlighted(oracleNames[key]);
@@ -508,7 +509,7 @@ export default function ChartRenderer({
                   <span className="text-gray-500">24h:</span>
                   <span
                     className={`font-medium ${
-                      oracleData.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                      oracleData.change24h >= 0 ? 'text-success-600' : 'text-danger-600'
                     }`}
                   >
                     {oracleData.change24h >= 0 ? '+' : ''}
@@ -547,7 +548,7 @@ export default function ChartRenderer({
         tickLine={false}
         axisLine={false}
       />
-      <Tooltip content={<ChainSupportTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+      <RechartsTooltip content={<ChainSupportTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
       <Bar dataKey="chains" name="Supported Chains" radius={[0, 4, 4, 0]} barSize={24}>
         {CHAIN_SUPPORT_DATA.map((entry, index) => {
           const isHighlighted = isCellHighlighted(entry.name);
@@ -604,7 +605,7 @@ export default function ChartRenderer({
                   <tr
                     key={item.name}
                     className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                      selectedItem === item.name ? 'bg-blue-50' : ''
+                      selectedItem === item.name ? 'bg-primary-50' : ''
                     }`}
                     onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
                     onMouseEnter={() => setHoveredItem(item.name)}
@@ -676,7 +677,7 @@ export default function ChartRenderer({
               <tr
                 key={oracleItem.name}
                 className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                  selectedItem === oracleItem.name ? 'bg-blue-50' : ''
+                  selectedItem === oracleItem.name ? 'bg-primary-50' : ''
                 }`}
                 onClick={() => setSelectedItem(oracleItem.name === selectedItem ? null : oracleItem.name)}
                 onMouseEnter={() => setHoveredItem(oracleItem.name)}
@@ -704,7 +705,7 @@ export default function ChartRenderer({
                     <td className="px-4 py-3 text-right">
                       <span
                         className={`font-medium ${
-                          (oracleItem.change24h ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                          (oracleItem.change24h ?? 0) >= 0 ? 'text-success-600' : 'text-danger-600'
                         }`}
                       >
                         {(oracleItem.change24h ?? 0) >= 0 ? '+' : ''}

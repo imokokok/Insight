@@ -16,9 +16,11 @@ import {
   AlertCircle,
   Info,
 } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, LineChart, Line, Tooltip as RechartsTooltip } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+
+import { Icon } from '@/components/ui';
 
 interface ChartDataPoint {
   time: string;
@@ -419,7 +421,7 @@ export default function BentoMetricsGrid() {
                   <stop offset="100%" stopColor={chartColors.chart.blue} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <Tooltip
+              <RechartsTooltip
                 content={<ChartTooltip />}
                 cursor={{ stroke: chartColors.chart.blue, strokeWidth: 1, strokeDasharray: '3 3' }}
               />
@@ -442,7 +444,7 @@ export default function BentoMetricsGrid() {
       <div className="h-16 mt-3 w-full">
         <ResponsiveContainer width="100%" height={64}>
           <LineChart data={card.chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-            <Tooltip
+            <RechartsTooltip
               content={<ChartTooltip />}
               cursor={{ stroke: chartColors.chart.blue, strokeWidth: 1, strokeDasharray: '3 3' }}
             />

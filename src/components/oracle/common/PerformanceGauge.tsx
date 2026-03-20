@@ -31,27 +31,27 @@ interface GaugeConfig {
 const LEVEL_CONFIGS: Record<GaugeLevel, Omit<GaugeConfig, 'label'>> = {
   excellent: {
     color: semanticColors.success.DEFAULT,
-    bgColor: 'bg-green-500',
-    lightBg: 'bg-green-50',
+    bgColor: 'bg-success-500',
+    lightBg: 'bg-success-50',
     borderColor: 'border-green-200',
   },
   good: {
     color: chartColors.recharts.primary,
-    bgColor: 'bg-blue-500',
-    lightBg: 'bg-blue-50',
-    borderColor: 'border-blue-200',
+    bgColor: 'bg-primary-500',
+    lightBg: 'bg-primary-50',
+    borderColor: 'border-primary-200',
   },
   warning: {
     color: semanticColors.warning.DEFAULT,
-    bgColor: 'bg-yellow-500',
-    lightBg: 'bg-yellow-50',
+    bgColor: 'bg-warning-500',
+    lightBg: 'bg-warning-50',
     borderColor: 'border-yellow-200',
   },
   danger: {
     color: semanticColors.danger.DEFAULT,
-    bgColor: 'bg-red-500',
-    lightBg: 'bg-red-50',
-    borderColor: 'border-red-200',
+    bgColor: 'bg-danger-500',
+    lightBg: 'bg-danger-50',
+    borderColor: 'border-danger-200',
   },
 };
 

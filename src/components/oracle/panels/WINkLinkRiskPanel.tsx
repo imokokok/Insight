@@ -19,13 +19,16 @@ import { SecurityTimeline } from '@/components/oracle/common/SecurityTimeline';
 import { MitigationMeasuresGrid } from '@/components/oracle/common/MitigationMeasuresGrid';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { RiskEvent, MitigationMeasure, CrossChainRisk } from '@/types/risk';
+
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend,
 } from 'recharts';
@@ -67,16 +70,16 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
   };
 
   const getRiskLevel = (score: number) => {
-    if (score >= 90) return { level: 'low', color: 'text-green-600', bgColor: 'bg-green-100' };
-    if (score >= 70) return { level: 'medium', color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
-    return { level: 'high', color: 'text-red-600', bgColor: 'bg-red-100' };
+    if (score >= 90) return { level: 'low', color: 'text-success-600', bgColor: 'bg-success-100' };
+    if (score >= 70) return { level: 'medium', color: 'text-warning-600', bgColor: 'bg-warning-100' };
+    return { level: 'high', color: 'text-danger-600', bgColor: 'bg-danger-100' };
   };
 
   const getDeviationRisk = (deviation: number) => {
-    if (deviation <= 0.2) return { level: 'low', color: 'text-green-600', bgColor: 'bg-green-100' };
+    if (deviation <= 0.2) return { level: 'low', color: 'text-success-600', bgColor: 'bg-success-100' };
     if (deviation <= 0.5)
-      return { level: 'medium', color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
-    return { level: 'high', color: 'text-red-600', bgColor: 'bg-red-100' };
+      return { level: 'medium', color: 'text-warning-600', bgColor: 'bg-warning-100' };
+    return { level: 'high', color: 'text-danger-600', bgColor: 'bg-danger-100' };
   };
 
   const dataQualityRisk = getRiskLevel(data.dataQuality ?? 0);
@@ -289,11 +292,11 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
   const getChainRiskColor = (level: string) => {
     switch (level) {
       case 'low':
-        return 'text-green-600 bg-green-100';
+        return 'text-success-600 bg-success-100';
       case 'medium':
-        return 'text-yellow-600 bg-yellow-100';
+        return 'text-warning-600 bg-warning-100';
       case 'high':
-        return 'text-red-600 bg-red-100';
+        return 'text-danger-600 bg-danger-100';
       default:
         return 'text-gray-600 bg-gray-100';
     }
@@ -314,7 +317,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Shield className="w-4 h-4 text-green-600" />
+              <Shield className="w-4 h-4 text-success-600" />
               <p className="text-xs text-gray-500">{t('winklink.risk.dataQuality')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">{data.dataQuality}%</p>
@@ -326,7 +329,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-blue-600" />
+              <TrendingUp className="w-4 h-4 text-primary-600" />
               <p className="text-xs text-gray-500">{t('winklink.risk.priceDeviation')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">{data.deviation}%</p>
@@ -338,7 +341,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-yellow-600" />
+              <AlertTriangle className="w-4 h-4 text-warning-600" />
               <p className="text-xs text-gray-500">{t('winklink.risk.nodeConcentration')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">{data.decentralization}%</p>
@@ -385,7 +388,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="date" stroke="#6b7280" tick={{ fontSize: 12 }} />
               <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} domain={[60, 100]} />
-              <Tooltip
+              <RechartsTooltip
                 contentStyle={{
                   backgroundColor: '#fff',
                   border: '1px solid #e5e7eb',
@@ -481,7 +484,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 border border-gray-200">
             <div className="flex items-center gap-2 mb-3">
-              <Zap className="w-4 h-4 text-yellow-600" />
+              <Zap className="w-4 h-4 text-warning-600" />
               <h4 className="text-sm font-medium text-gray-900">
                 {t('winklink.risk.gamingLatency')}
               </h4>
@@ -489,14 +492,14 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             <p className="text-2xl font-bold text-gray-900">85ms</p>
             <p className="text-xs text-gray-500 mt-1">{t('winklink.risk.gamingLatencyDesc')}</p>
             <div className="mt-3">
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700">
+              <span className="px-2 py-1 text-xs font-medium bg-success-100 text-success-700">
                 {t('winklink.risk.lowRisk')}
               </span>
             </div>
           </div>
           <div className="p-4 border border-gray-200">
             <div className="flex items-center gap-2 mb-3">
-              <Gamepad2 className="w-4 h-4 text-blue-600" />
+              <Gamepad2 className="w-4 h-4 text-primary-600" />
               <h4 className="text-sm font-medium text-gray-900">
                 {t('winklink.risk.gamingAccuracy')}
               </h4>
@@ -504,7 +507,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             <p className="text-2xl font-bold text-gray-900">99.97%</p>
             <p className="text-xs text-gray-500 mt-1">{t('winklink.risk.gamingAccuracyDesc')}</p>
             <div className="mt-3">
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700">
+              <span className="px-2 py-1 text-xs font-medium bg-success-100 text-success-700">
                 {t('winklink.risk.excellent')}
               </span>
             </div>
@@ -519,7 +522,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             <p className="text-2xl font-bold text-gray-900">78%</p>
             <p className="text-xs text-gray-500 mt-1">{t('winklink.risk.tronDependencyDesc')}</p>
             <div className="mt-3">
-              <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700">
+              <span className="px-2 py-1 text-xs font-medium bg-warning-100 text-warning-700">
                 {t('winklink.risk.mediumRisk')}
               </span>
             </div>
@@ -537,23 +540,23 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             <span className="text-sm text-gray-600">
               {t('winklink.risk.dataQualityDescription')}
             </span>
-            <span className="text-sm font-medium text-green-600">
+            <span className="text-sm font-medium text-success-600">
               {t('winklink.risk.excellent')}
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-600">{t('winklink.risk.priceStability')}</span>
-            <span className="text-sm font-medium text-green-600">{t('winklink.risk.stable')}</span>
+            <span className="text-sm font-medium text-success-600">{t('winklink.risk.stable')}</span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-600">{t('winklink.risk.nodeDistribution')}</span>
-            <span className="text-sm font-medium text-yellow-600">
+            <span className="text-sm font-medium text-warning-600">
               {t('winklink.risk.moderate')}
             </span>
           </div>
           <div className="flex items-center justify-between py-2">
             <span className="text-sm text-gray-600">{t('winklink.risk.serviceReliability')}</span>
-            <span className="text-sm font-medium text-green-600">{t('winklink.risk.high')}</span>
+            <span className="text-sm font-medium text-success-600">{t('winklink.risk.high')}</span>
           </div>
         </div>
       </DashboardCard>

@@ -221,7 +221,7 @@ export function AlertTemplates({ onSelectTemplate, selectedSymbol = 'BTC' }: Ale
           <button
             key={template.id}
             onClick={() => handleSelectTemplate(template)}
-            className="flex items-start gap-3 p-3 text-left border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors"
+            className="flex items-start gap-3 p-3 text-left border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-colors"
           >
             <div className="flex-shrink-0 text-gray-500">{TEMPLATE_ICONS[template.icon]}</div>
             <div className="flex-1 min-w-0">
@@ -247,7 +247,7 @@ export function AlertTemplates({ onSelectTemplate, selectedSymbol = 'BTC' }: Ale
       {filteredTemplates.length > 3 && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+          className="w-full py-2 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition-colors"
         >
           {isExpanded ? t('alerts.templates.showLess') : t('alerts.templates.showMore')}
         </button>

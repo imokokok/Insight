@@ -7,12 +7,13 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
 import { calculateATR, OHLCVDataPoint } from '@/lib/indicators';
+
 
 export interface ATRDataPoint {
   time: string;
@@ -99,14 +100,14 @@ export function ATRIndicator({ data, period = 14, height = 200 }: ATRIndicatorPr
               tickLine={false}
               axisLine={{ stroke: chartColors.recharts.grid }}
             />
-            <Tooltip
+            <RechartsTooltip
               content={({ active, payload, label }) => {
                 if (!active || !payload || payload.length === 0) return null;
                 const atr = payload[0].value as number;
                 return (
                   <div className="bg-white border border-gray-200 p-2">
                     <p className="text-xs text-gray-500 mb-1">{label}</p>
-                    <p className="text-sm font-bold text-blue-600">ATR: {atr.toFixed(4)}</p>
+                    <p className="text-sm font-bold text-primary-600">ATR: {atr.toFixed(4)}</p>
                   </div>
                 );
               }}
@@ -124,7 +125,7 @@ export function ATRIndicator({ data, period = 14, height = 200 }: ATRIndicatorPr
       </div>
       <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 bg-blue-100 border border-blue-300 rounded" />
+          <span className="w-3 h-3 bg-primary-100 border border-primary-300 rounded" />
           <span>ATR 平均真实波幅</span>
         </div>
       </div>

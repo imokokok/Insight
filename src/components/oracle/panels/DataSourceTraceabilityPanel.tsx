@@ -18,17 +18,17 @@ function getScoreColor(score: number): string {
 }
 
 function getScoreColorClass(score: number): string {
-  if (score >= 90) return 'text-green-600';
-  if (score >= 70) return 'text-blue-600';
-  if (score >= 50) return 'text-yellow-600';
-  return 'text-red-600';
+  if (score >= 90) return 'text-success-600';
+  if (score >= 70) return 'text-primary-600';
+  if (score >= 50) return 'text-warning-600';
+  return 'text-danger-600';
 }
 
 function getScoreBgClass(score: number): string {
-  if (score >= 90) return 'bg-green-50 border-green-200';
-  if (score >= 70) return 'bg-blue-50 border-blue-200';
-  if (score >= 50) return 'bg-yellow-50 border-yellow-200';
-  return 'bg-red-50 border-red-200';
+  if (score >= 90) return 'bg-success-50 border-green-200';
+  if (score >= 70) return 'bg-primary-50 border-primary-200';
+  if (score >= 50) return 'bg-warning-50 border-yellow-200';
+  return 'bg-danger-50 border-danger-200';
 }
 
 function CircularProgress({
@@ -128,7 +128,7 @@ function getTypeLabel(type: DataSourceInfo['type'], t: (key: string) => string):
 function getTypeBadgeClass(type: DataSourceInfo['type']): string {
   const classes: Record<DataSourceInfo['type'], string> = {
     exchange: 'bg-purple-100 text-purple-700',
-    traditional_finance: 'bg-blue-100 text-blue-700',
+    traditional_finance: 'bg-primary-100 text-primary-700',
     other: 'bg-gray-100 text-gray-700',
   };
   return classes[type];
@@ -167,7 +167,7 @@ function CopyButton({ text, t }: { text: string; t: (key: string) => string }) {
     >
       {copied ? (
         <svg
-          className="w-4 h-4 text-green-500"
+          className="w-4 h-4 text-success-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -212,7 +212,7 @@ function DataFlowDiagram({ t }: { t: (key: string) => string }) {
 
       <div className="flex items-center">
         <div className="w-8 h-0.5 bg-gray-100 border border-gray-200"></div>
-        <svg className="w-4 h-4 text-blue-400 -ml-1" fill="currentColor" viewBox="0 0 20 20">
+        <svg className="w-4 h-4 text-primary-400 -ml-1" fill="currentColor" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"
             d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
@@ -380,7 +380,7 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
               <div className="bg-white border border-gray-200  p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <svg
-                    className="w-4 h-4 text-green-500"
+                    className="w-4 h-4 text-success-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -404,7 +404,7 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
               <div className="bg-white border border-gray-200  p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <svg
-                    className="w-4 h-4 text-blue-500"
+                    className="w-4 h-4 text-primary-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -416,7 +416,7 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
                   </span>
                 </div>
                 <p
-                  className={`text-lg font-bold ${source.responseSpeed < 100 ? 'text-green-600' : source.responseSpeed < 150 ? 'text-blue-600' : 'text-yellow-600'}`}
+                  className={`text-lg font-bold ${source.responseSpeed < 100 ? 'text-success-600' : source.responseSpeed < 150 ? 'text-primary-600' : 'text-warning-600'}`}
                 >
                   {source.responseSpeed}ms
                 </p>
@@ -503,7 +503,7 @@ export function DataSourceTraceabilityPanel({ data }: DataSourceTraceabilityPane
             <p className="text-xs text-gray-500 mb-1">
               {t('dataSourceTraceability.panel.traditionalFinance')}
             </p>
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-2xl font-bold text-primary-600">
               {typeDistribution['traditional_finance'] || 0}
             </p>
           </div>

@@ -154,7 +154,7 @@ export function ExportModal({
                     onClick={() => setFormat(fmt)}
                     className={`px-4 py-2.5  text-sm font-medium transition-all ${
                       format === fmt
-                        ? 'bg-blue-600 text-white '
+                        ? 'bg-primary-600 text-white '
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -173,7 +173,7 @@ export function ExportModal({
                     onClick={() => setScope(s)}
                     className={`px-4 py-2.5  text-sm font-medium transition-all ${
                       scope === s
-                        ? 'bg-blue-600 text-white '
+                        ? 'bg-primary-600 text-white '
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -193,7 +193,7 @@ export function ExportModal({
                       onClick={() => setResolution(res)}
                       className={`px-4 py-2.5  text-sm font-medium transition-all ${
                         resolution === res
-                          ? 'bg-blue-600 text-white '
+                          ? 'bg-primary-600 text-white '
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -215,7 +215,7 @@ export function ExportModal({
                     onClick={() => setDataType(type)}
                     className={`px-4 py-2.5  text-sm font-medium transition-all ${
                       dataType === type
-                        ? 'bg-blue-600 text-white '
+                        ? 'bg-primary-600 text-white '
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -239,7 +239,7 @@ export function ExportModal({
                     }}
                     className={`px-3 py-1.5  text-xs font-medium transition-all ${
                       timeRange === range && !showCustomDateRange
-                        ? 'bg-blue-600 text-white '
+                        ? 'bg-primary-600 text-white '
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -252,7 +252,7 @@ export function ExportModal({
             <div>
               <button
                 onClick={() => setShowCustomDateRange(!showCustomDateRange)}
-                className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -274,7 +274,7 @@ export function ExportModal({
                       type="date"
                       value={dateRange.start}
                       onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300  text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
                   <div>
@@ -285,7 +285,7 @@ export function ExportModal({
                       type="date"
                       value={dateRange.end}
                       onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300  text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
                 </div>
@@ -299,7 +299,7 @@ export function ExportModal({
                   id="includeMetadata"
                   checked={includeMetadata}
                   onChange={(e) => setIncludeMetadata(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                 />
                 <label htmlFor="includeMetadata" className="text-sm text-gray-700">
                   {t('chainlink.exportModal.includeMetadata')}
@@ -313,7 +313,7 @@ export function ExportModal({
                     id="showTimestamp"
                     checked={showTimestamp}
                     onChange={(e) => setShowTimestamp(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
                   <label htmlFor="showTimestamp" className="text-sm text-gray-700">
                     包含时间戳和数据来源
@@ -328,7 +328,7 @@ export function ExportModal({
                     id="batchExport"
                     checked={batchExport}
                     onChange={(e) => setBatchExport(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
                   <label htmlFor="batchExport" className="text-sm text-gray-700">
                     批量导出所有数据
@@ -347,7 +347,7 @@ export function ExportModal({
             </button>
             <button
               onClick={handleExport}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700  transition-colors flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700  transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path

@@ -225,7 +225,7 @@ function PriceDisplay({ symbol, currentPrice, priceChange, isMobile = false }: P
           >
             ${currentPrice.toFixed(4)}
           </span>
-          <span className={`text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+          <span className={`text-sm font-medium ${isPositive ? 'text-success-600' : 'text-danger-600'}`}>
             {isPositive ? '+' : ''}
             {priceChange.percent.toFixed(2)}%
           </span>

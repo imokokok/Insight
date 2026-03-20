@@ -1,9 +1,10 @@
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { useTranslations } from 'next-intl';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { HistogramDataPoint } from './latencyUtils';
+
 
 interface LatencyHistogramProps {
   histogramData: HistogramDataPoint[];
@@ -52,7 +53,7 @@ export function LatencyHistogram({ histogramData }: LatencyHistogramProps) {
                 fontSize: 11,
               }}
             />
-            <Tooltip
+            <RechartsTooltip
               content={({ active, payload }) => {
                 if (!active || !payload || payload.length === 0) return null;
                 const data = payload[0].payload as HistogramDataPoint;

@@ -117,7 +117,7 @@ export function StakingCalculator() {
                 type="number"
                 value={stakeAmount}
                 onChange={(e) => setStakeAmount(Math.max(0, Number(e.target.value)))}
-                className="w-full px-4 py-2.5 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-2.5 border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 placeholder={t('oracleCommon.stakingCalculator.stakeAmountPlaceholder')}
                 min="0"
               />
@@ -160,21 +160,21 @@ export function StakingCalculator() {
           </h4>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 p-4">
+            <div className="bg-primary-50 p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 {t('oracleCommon.stakingCalculator.daily')}
               </p>
-              <p className="text-lg font-bold text-blue-600">
+              <p className="text-lg font-bold text-primary-600">
                 {formatCurrency(calculation.dailyReward)}
               </p>
               <p className="text-xs text-gray-400 mt-1">UMA</p>
             </div>
 
-            <div className="bg-green-50 p-4">
+            <div className="bg-success-50 p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 {t('oracleCommon.stakingCalculator.monthly')}
               </p>
-              <p className="text-lg font-bold text-green-600">
+              <p className="text-lg font-bold text-success-600">
                 {formatCurrency(calculation.monthlyReward)}
               </p>
               <p className="text-xs text-gray-400 mt-1">UMA</p>
@@ -190,11 +190,11 @@ export function StakingCalculator() {
               <p className="text-xs text-gray-400 mt-1">UMA</p>
             </div>
 
-            <div className="bg-orange-50 p-4">
+            <div className="bg-warning-50 p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 {t('oracleCommon.stakingCalculator.apr')}
               </p>
-              <p className="text-lg font-bold text-orange-600">{formatPercent(calculation.apr)}</p>
+              <p className="text-lg font-bold text-warning-600">{formatPercent(calculation.apr)}</p>
               <p className="text-xs text-gray-400 mt-1">
                 {t('oracleCommon.stakingCalculator.annual')}
               </p>
@@ -211,7 +211,7 @@ export function StakingCalculator() {
                   {formatCurrency(calculation.dailyReward)}
                 </div>
                 <div
-                  className="w-full bg-blue-500 -md transition-all duration-300"
+                  className="w-full bg-primary-500 -md transition-all duration-300"
                   style={{ height: `${Math.max(dailyHeight, 8)}%` }}
                 />
                 <div className="text-xs text-gray-600 mt-2 font-medium">
@@ -224,7 +224,7 @@ export function StakingCalculator() {
                   {formatCurrency(calculation.monthlyReward / 30)}
                 </div>
                 <div
-                  className="w-full bg-green-500 -md transition-all duration-300"
+                  className="w-full bg-success-500 -md transition-all duration-300"
                   style={{ height: `${Math.max(monthlyHeight, 8)}%` }}
                 />
                 <div className="text-xs text-gray-600 mt-2 font-medium">

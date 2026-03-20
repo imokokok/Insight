@@ -15,11 +15,11 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'active':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle className="w-4 h-4 text-success-600" />;
       case 'inactive':
         return <XCircle className="w-4 h-4 text-gray-400" />;
       case 'jailed':
-        return <AlertCircle className="w-4 h-4 text-red-600" />;
+        return <AlertCircle className="w-4 h-4 text-danger-600" />;
       default:
         return null;
     }
@@ -32,7 +32,7 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
       case 'inactive':
         return 'bg-gray-50 text-gray-600 border-gray-200';
       case 'jailed':
-        return 'bg-red-50 text-red-700 border-red-200';
+        return 'bg-danger-50 text-danger-700 border-danger-200';
       default:
         return 'bg-gray-50 text-gray-600 border-gray-200';
     }
@@ -43,11 +43,11 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
       case 'excellent':
         return 'text-emerald-600';
       case 'good':
-        return 'text-blue-600';
+        return 'text-primary-600';
       case 'fair':
         return 'text-amber-600';
       case 'poor':
-        return 'text-red-600';
+        return 'text-danger-600';
       default:
         return 'text-gray-600';
     }
@@ -71,10 +71,10 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-4 h-4 text-green-600" />
+              <Activity className="w-4 h-4 text-success-600" />
               <p className="text-xs text-gray-500">{t('chronicle.validators.active')}</p>
             </div>
-            <p className="text-xl font-bold text-green-600">{data.activeValidators}</p>
+            <p className="text-xl font-bold text-success-600">{data.activeValidators}</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
@@ -85,7 +85,7 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Coins className="w-4 h-4 text-blue-600" />
+              <Coins className="w-4 h-4 text-primary-600" />
               <p className="text-xs text-gray-500">{t('chronicle.validators.totalStaked')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">

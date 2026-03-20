@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   ReferenceLine,
@@ -22,6 +22,7 @@ import { format } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
 import { ComparisonChartData } from './types';
 import { chartColors, baseColors } from '@/lib/config/colors';
+
 
 interface TimeComparisonChartProps {
   data: ComparisonChartData[];
@@ -127,7 +128,7 @@ export function TimeComparisonChart({
                 <span className="text-gray-500">{t('difference')}</span>
                 <span
                   className={`font-mono font-medium ${
-                    difference >= 0 ? 'text-green-600' : 'text-red-600'
+                    difference >= 0 ? 'text-success-600' : 'text-danger-600'
                   }`}
                 >
                   {difference >= 0 ? '+' : ''}
@@ -138,7 +139,7 @@ export function TimeComparisonChart({
                 <div className="flex items-center justify-between text-xs mt-1">
                   <span className="text-gray-400">{t('percentChange')}</span>
                   <span
-                    className={`font-mono ${percentDiff >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                    className={`font-mono ${percentDiff >= 0 ? 'text-success-600' : 'text-danger-600'}`}
                   >
                     {percentDiff >= 0 ? '+' : ''}
                     {percentDiff.toFixed(2)}%
@@ -160,7 +161,7 @@ export function TimeComparisonChart({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 border border-gray-200">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">{t('currentAvg')}</p>
-            <p className="text-lg font-semibold text-blue-600">
+            <p className="text-lg font-semibold text-primary-600">
               {valueFormatter(stats.primaryAvg)}
             </p>
           </div>
@@ -173,7 +174,7 @@ export function TimeComparisonChart({
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">{t('difference')}</p>
             <p
-              className={`text-lg font-semibold ${stats.difference >= 0 ? 'text-green-600' : 'text-red-600'}`}
+              className={`text-lg font-semibold ${stats.difference >= 0 ? 'text-success-600' : 'text-danger-600'}`}
             >
               {stats.difference >= 0 ? '+' : ''}
               {valueFormatter(stats.difference)}
@@ -182,7 +183,7 @@ export function TimeComparisonChart({
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">{t('percentChange')}</p>
             <p
-              className={`text-lg font-semibold ${stats.percentDiff >= 0 ? 'text-green-600' : 'text-red-600'}`}
+              className={`text-lg font-semibold ${stats.percentDiff >= 0 ? 'text-success-600' : 'text-danger-600'}`}
             >
               {stats.percentDiff >= 0 ? '+' : ''}
               {stats.percentDiff.toFixed(2)}%
@@ -219,7 +220,7 @@ export function TimeComparisonChart({
               tickFormatter={valueFormatter}
               domain={['auto', 'auto']}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <RechartsTooltip content={<CustomTooltip />} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             <Area
               type="monotone"
@@ -272,7 +273,7 @@ export function TimeComparisonChart({
                 tickLine={false}
                 tickFormatter={(v) => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`}
               />
-              <Tooltip
+              <RechartsTooltip
                 formatter={(value) => [
                   `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(2)}%`,
                   t('difference'),

@@ -55,7 +55,7 @@ export function FilterPanel({
               </span>
               <button
                 onClick={onClearFilters}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
               >
                 {t('crossOracle.filter.clearAll')}
               </button>
@@ -64,7 +64,7 @@ export function FilterPanel({
               {getFilterSummary().map((item, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100"
+                  className="inline-flex items-center px-2 py-1 text-xs font-medium bg-primary-50 text-primary-700 border border-primary-100"
                 >
                   {item}
                 </span>
@@ -84,7 +84,7 @@ export function FilterPanel({
                 onClick={() => onTimeRangeChange(range)}
                 className={`px-2.5 py-1 text-xs font-medium border transition-colors ${
                   timeRange === range
-                    ? 'bg-blue-600 border-blue-600 text-white'
+                    ? 'bg-primary-600 border-primary-600 text-white'
                     : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                 }`}
               >
@@ -110,7 +110,7 @@ export function FilterPanel({
                 onClick={() => onDeviationFilterChange(filter.value)}
                 className={`px-2.5 py-1 text-xs font-medium border transition-colors ${
                   deviationFilter === filter.value
-                    ? 'bg-blue-600 border-blue-600 text-white'
+                    ? 'bg-primary-600 border-primary-600 text-white'
                     : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                 }`}
               >
@@ -141,7 +141,7 @@ export function FilterPanel({
         </span>
         <button
           onClick={onClose}
-          className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+          className="px-3 py-1.5 text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors"
         >
           {t('crossOracle.filter.confirm')}
         </button>

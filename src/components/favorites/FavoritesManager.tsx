@@ -124,7 +124,7 @@ export function FavoritesManager({
 
   if (error) {
     return (
-      <div className={`bg-red-50 border border-red-200  p-6 text-center ${className}`}>
+      <div className={`bg-danger-50 border border-danger-200  p-6 text-center ${className}`}>
         <svg
           className="w-10 h-10 mx-auto text-red-400 mb-3"
           fill="none"
@@ -137,8 +137,8 @@ export function FavoritesManager({
             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <p className="text-sm text-red-600">加载收藏失败</p>
-        <p className="text-xs text-red-500 mt-1">{error.message}</p>
+        <p className="text-sm text-danger-600">加载收藏失败</p>
+        <p className="text-xs text-danger-500 mt-1">{error.message}</p>
       </div>
     );
   }
@@ -166,7 +166,7 @@ export function FavoritesManager({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="搜索收藏..."
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               {searchQuery && (
                 <button
@@ -189,7 +189,7 @@ export function FavoritesManager({
                   onClick={() => setSelectedType(filter.value)}
                   className={`px-3 py-1.5 text-sm font-medium  border transition-all ${
                     selectedType === filter.value
-                      ? 'bg-blue-50 border-blue-300 text-blue-700'
+                      ? 'bg-primary-50 border-primary-300 text-primary-700'
                       : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                   }`}
                 >
@@ -197,7 +197,7 @@ export function FavoritesManager({
                   <span
                     className={`ml-1.5 px-1.5 py-0.5 text-xs  ${
                       selectedType === filter.value
-                        ? 'bg-blue-100 text-blue-600'
+                        ? 'bg-primary-100 text-primary-600'
                         : 'bg-gray-100 text-gray-500'
                     }`}
                   >

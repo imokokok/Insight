@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -30,6 +30,7 @@ import {
   defaultPerformanceData,
 } from './crossOracleConfig';
 import { PriceDeviationHistoryChart } from '../PriceDeviationHistoryChart';
+
 
 interface PriceStats {
   avg: number;
@@ -125,7 +126,7 @@ export function ChartsTab({
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip
+                <RechartsTooltip
                   formatter={(value) => {
                     const numValue = Number(value);
                     return [
@@ -160,11 +161,11 @@ export function ChartsTab({
           </div>
           <div className="flex items-center justify-center gap-6 mt-3 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-sm bg-green-500"></div>
+              <div className="w-3 h-3 rounded-sm bg-success-500"></div>
               <span className="text-gray-500">{t('crossOracle.aboveAverage')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-sm bg-red-500"></div>
+              <div className="w-3 h-3 rounded-sm bg-danger-500"></div>
               <span className="text-gray-500">{t('crossOracle.belowAverage')}</span>
             </div>
           </div>
@@ -199,7 +200,7 @@ export function ChartsTab({
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip
+                <RechartsTooltip
                   formatter={(value) => [`$${Number(value).toFixed(2)}`, t('crossOracle.price')]}
                   contentStyle={{
                     fontSize: 12,
@@ -237,7 +238,7 @@ export function ChartsTab({
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip
+                <RechartsTooltip
                   contentStyle={{
                     fontSize: 12,
                     border: 'none',
@@ -279,7 +280,7 @@ export function ChartsTab({
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip
+              <RechartsTooltip
                 formatter={(value, name) => [`$${Number(value)?.toFixed(2) || 0}`, String(name)]}
                 labelFormatter={() => t('crossOracle.priceHistory')}
                 contentStyle={{
@@ -352,7 +353,7 @@ export function ChartsTab({
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip
+              <RechartsTooltip
                 formatter={(value) => {
                   const numValue = Number(value);
                   if (numValue < 1)
@@ -379,7 +380,7 @@ export function ChartsTab({
         </div>
         <div className="flex items-center justify-center gap-6 mt-3 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-blue-500"></div>
+            <div className="w-3 h-3 rounded-sm bg-primary-500"></div>
             <span className="text-gray-500">{t('crossOracle.highFrequency')}</span>
           </div>
           <div className="flex items-center gap-2">

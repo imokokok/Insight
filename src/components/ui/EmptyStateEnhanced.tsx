@@ -171,7 +171,7 @@ export function EmptyStateWithActions({
     const baseClasses =
       'inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200';
     const variantClasses = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-sm hover:shadow',
+      primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm hover:shadow',
       secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300',
       outline: 'border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50',
     };
@@ -211,7 +211,7 @@ export function EmptyStateWithActions({
         {showExampleLink && onViewExample && (
           <button
             onClick={onViewExample}
-            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
           >
             <Play className="w-4 h-4" />
             {exampleLabel || t('viewExample')}
@@ -259,9 +259,9 @@ export function EmptyStateQuickStart({
             <button
               key={item.id}
               onClick={item.onClick}
-              className="flex items-start gap-3 p-4 text-left bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all group"
+              className="flex items-start gap-3 p-4 text-left bg-white border border-gray-200 rounded-lg hover:border-primary-300 hover:shadow-sm transition-all group"
             >
-              <div className="p-2 bg-blue-50 rounded-lg text-blue-600 group-hover:bg-blue-100 transition-colors">
+              <div className="p-2 bg-primary-50 rounded-lg text-primary-600 group-hover:bg-primary-100 transition-colors">
                 {item.icon}
               </div>
               <div className="flex-1 min-w-0">
@@ -275,7 +275,7 @@ export function EmptyStateQuickStart({
                 </div>
                 <p className="text-sm text-gray-500 mt-1">{item.description}</p>
               </div>
-              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors flex-shrink-0" />
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" />
             </button>
           ))}
         </div>
@@ -328,15 +328,15 @@ export function EmptyStateWithExamples({
               className={cn(
                 'w-full flex items-center gap-4 p-4 text-left border rounded-lg transition-all',
                 selectedId === example.id
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                  ? 'border-primary-500 bg-primary-50'
+                  : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
               )}
             >
               <div
                 className={cn(
                   'p-2 rounded-lg',
                   selectedId === example.id
-                    ? 'bg-blue-100 text-blue-600'
+                    ? 'bg-primary-100 text-primary-600'
                     : 'bg-gray-100 text-gray-500'
                 )}
               >
@@ -347,7 +347,7 @@ export function EmptyStateWithExamples({
                 <p className="text-sm text-gray-500">{example.description}</p>
               </div>
               {selectedId === example.id ? (
-                <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />
+                <RefreshCw className="w-5 h-5 text-primary-600 animate-spin" />
               ) : (
                 <ArrowRight className="w-5 h-5 text-gray-400" />
               )}
@@ -398,7 +398,7 @@ export function EmptyStateError({
           <button
             onClick={handleRetry}
             disabled={isRetrying}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <RefreshCw className={cn('w-4 h-4', isRetrying && 'animate-spin')} />
             {isRetrying ? t('retrying') : t('retry')}
@@ -414,9 +414,9 @@ export function EmptyStateError({
         </div>
 
         {showDetails && errorMessage && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg max-w-md">
-            <p className="text-sm text-red-700 font-medium mb-1">{t('errorDetails')}</p>
-            <p className="text-sm text-red-600 break-all">{errorMessage}</p>
+          <div className="mt-4 p-4 bg-danger-50 border border-danger-200 rounded-lg max-w-md">
+            <p className="text-sm text-danger-700 font-medium mb-1">{t('errorDetails')}</p>
+            <p className="text-sm text-danger-600 break-all">{errorMessage}</p>
           </div>
         )}
       </div>
@@ -456,7 +456,7 @@ export function EmptyStateSearch({
 
         <button
           onClick={onClearSearch}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
         >
           <RefreshCw className="w-4 h-4" />
           {t('clearSearch')}
@@ -505,7 +505,7 @@ export function EmptyStateOffline({ onRetry, lastSyncedAt, ...props }: EmptyStat
         )}
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
         >
           <RefreshCw className="w-4 h-4" />
           {t('retryConnection')}
@@ -634,7 +634,7 @@ export function GuidedEmptyState({ steps, currentStep = 0, ...props }: GuidedEmp
           {/* Progress line */}
           <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gray-200">
             <div
-              className="absolute top-0 left-0 w-full bg-blue-500 transition-all duration-500"
+              className="absolute top-0 left-0 w-full bg-primary-500 transition-all duration-500"
               style={{ height: `${(currentStep / (steps.length - 1)) * 100}%` }}
             />
           </div>
@@ -658,7 +658,7 @@ export function GuidedEmptyState({ steps, currentStep = 0, ...props }: GuidedEmp
                     className={cn(
                       'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium z-10 flex-shrink-0',
                       isCompleted && 'bg-emerald-500 text-white',
-                      isActive && 'bg-blue-600 text-white ring-4 ring-blue-100',
+                      isActive && 'bg-primary-600 text-white ring-4 ring-blue-100',
                       isPending && 'bg-gray-200 text-gray-500'
                     )}
                   >
@@ -672,7 +672,7 @@ export function GuidedEmptyState({ steps, currentStep = 0, ...props }: GuidedEmp
                     {isActive && step.action && (
                       <button
                         onClick={step.action.onClick}
-                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
                       >
                         {step.action.label}
                         <ArrowRight className="w-4 h-4" />

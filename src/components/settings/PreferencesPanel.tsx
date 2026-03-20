@@ -256,7 +256,7 @@ export function PreferencesPanel() {
     <div className="space-y-6">
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
         </div>
       ) : (
         <>
@@ -271,7 +271,7 @@ export function PreferencesPanel() {
 
             <div className="p-6 space-y-6">
               {success && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+                <div className="p-3 bg-success-50 border border-green-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
                   {success}
                 </div>
@@ -290,7 +290,7 @@ export function PreferencesPanel() {
                         onClick={() => updatePreference('defaultOracle', option.value)}
                         className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                           preferences.defaultOracle === option.value
-                            ? 'bg-blue-600 text-white shadow-sm'
+                            ? 'bg-primary-600 text-white shadow-sm'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
                         }`}
                       >
@@ -393,7 +393,7 @@ export function PreferencesPanel() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm hover:shadow-md"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm hover:shadow-md"
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

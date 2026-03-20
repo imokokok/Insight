@@ -61,7 +61,7 @@ export function AlertItem({ anomaly, locale, onAcknowledge, onResolve, onClear }
           {!anomaly.acknowledged && (
             <button
               onClick={() => onAcknowledge(anomaly.id)}
-              className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+              className="px-3 py-1 text-xs bg-primary-100 text-primary-700 rounded hover:bg-primary-200"
             >
               {t('anomalyAlert.acknowledge')}
             </button>
@@ -69,7 +69,7 @@ export function AlertItem({ anomaly, locale, onAcknowledge, onResolve, onClear }
           {!anomaly.resolved && (
             <button
               onClick={() => onResolve(anomaly.id)}
-              className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+              className="px-3 py-1 text-xs bg-success-100 text-success-700 rounded hover:bg-success-200"
             >
               {t('anomalyAlert.resolve')}
             </button>

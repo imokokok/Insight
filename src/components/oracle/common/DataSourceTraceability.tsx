@@ -53,8 +53,8 @@ interface DependencyMetric {
 const healthConfig = {
   healthy: {
     color: 'green',
-    bgColor: 'bg-green-500',
-    textColor: 'text-green-600',
+    bgColor: 'bg-success-500',
+    textColor: 'text-success-600',
     borderColor: 'border-green-200',
     bgGradient: 'from-green-50 to-green-100',
     label: '健康',
@@ -62,8 +62,8 @@ const healthConfig = {
   },
   warning: {
     color: 'yellow',
-    bgColor: 'bg-yellow-500',
-    textColor: 'text-yellow-600',
+    bgColor: 'bg-warning-500',
+    textColor: 'text-warning-600',
     borderColor: 'border-yellow-200',
     bgGradient: 'from-yellow-50 to-yellow-100',
     label: '警告',
@@ -71,9 +71,9 @@ const healthConfig = {
   },
   critical: {
     color: 'red',
-    bgColor: 'bg-red-500',
-    textColor: 'text-red-600',
-    borderColor: 'border-red-200',
+    bgColor: 'bg-danger-500',
+    textColor: 'text-danger-600',
+    borderColor: 'border-danger-200',
     bgGradient: 'from-red-50 to-red-100',
     label: '异常',
     pulseColor: 'bg-red-400',
@@ -88,8 +88,8 @@ const dataSourceTypeConfig = {
         <path strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
       </svg>
     ),
-    bgColor: 'bg-blue-50',
-    textColor: 'text-blue-600',
+    bgColor: 'bg-primary-50',
+    textColor: 'text-primary-600',
   },
   api_provider: {
     label: 'API 提供商',
@@ -116,8 +116,8 @@ const dataSourceTypeConfig = {
         />
       </svg>
     ),
-    bgColor: 'bg-green-50',
-    textColor: 'text-green-600',
+    bgColor: 'bg-success-50',
+    textColor: 'text-success-600',
   },
 };
 
@@ -224,11 +224,11 @@ function AggregationFlowChart() {
         </div>
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5  bg-green-500"></div>
+            <div className="w-2.5 h-2.5  bg-success-500"></div>
             <span className="text-gray-600">已完成</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5  bg-blue-500 animate-pulse"></div>
+            <div className="w-2.5 h-2.5  bg-primary-500 animate-pulse"></div>
             <span className="text-gray-600">处理中</span>
           </div>
           <div className="flex items-center gap-1">
@@ -246,9 +246,9 @@ function AggregationFlowChart() {
                 <div
                   className={`w-10 h-10  flex items-center justify-center text-sm font-semibold ${
                     step.status === 'completed'
-                      ? 'bg-green-500 text-white'
+                      ? 'bg-success-500 text-white'
                       : step.status === 'processing'
-                        ? 'bg-blue-500 text-white animate-pulse'
+                        ? 'bg-primary-500 text-white animate-pulse'
                         : 'bg-gray-200 text-gray-500'
                   }`}
                 >
@@ -269,7 +269,7 @@ function AggregationFlowChart() {
                 <div className="absolute top-5 left-[calc(50%+20px)] right-[calc(-50%+20px)] h-0.5 bg-gray-200">
                   <div
                     className={`h-full ${
-                      step.status === 'completed' ? 'bg-green-500' : 'bg-gray-200'
+                      step.status === 'completed' ? 'bg-success-500' : 'bg-gray-200'
                     }`}
                     style={{ width: step.status === 'completed' ? '100%' : '0%' }}
                   ></div>
@@ -292,7 +292,7 @@ function AggregationFlowChart() {
           </div>
           <div className="text-center">
             <p className="text-xs text-gray-500">成功率</p>
-            <p className="text-sm font-semibold text-green-600">99.97%</p>
+            <p className="text-sm font-semibold text-success-600">99.97%</p>
           </div>
         </div>
       </div>
@@ -356,14 +356,14 @@ function ValidationMechanism() {
           <h3 className="text-sm font-semibold text-gray-900">数据验证机制</h3>
           <p className="text-xs text-gray-500 mt-0.5">共识验证与节点状态</p>
         </div>
-        <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium ">共识已达成</div>
+        <div className="px-3 py-1 bg-success-100 text-success-700 text-xs font-medium ">共识已达成</div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-5">
         <div className="bg-gray-100 border border-gray-200  p-4">
           <div className="flex items-center gap-2 mb-2">
             <svg
-              className="w-5 h-5 text-blue-600"
+              className="w-5 h-5 text-primary-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -376,7 +376,7 @@ function ValidationMechanism() {
             </svg>
             <span className="text-xs text-gray-600">共识阈值</span>
           </div>
-          <p className="text-2xl font-bold text-blue-600">67%</p>
+          <p className="text-2xl font-bold text-primary-600">67%</p>
           <p className="text-xs text-gray-500 mt-1">需要 2/3 节点同意</p>
         </div>
         <div className="bg-gray-100 border border-gray-200  p-4">
@@ -509,11 +509,11 @@ function DependencyAnalysis() {
   const getRiskColor = (risk: 'low' | 'medium' | 'high') => {
     switch (risk) {
       case 'low':
-        return 'text-green-600 bg-green-100';
+        return 'text-success-600 bg-success-100';
       case 'medium':
-        return 'text-yellow-600 bg-yellow-100';
+        return 'text-warning-600 bg-warning-100';
       case 'high':
-        return 'text-red-600 bg-red-100';
+        return 'text-danger-600 bg-danger-100';
     }
   };
 
@@ -524,7 +524,7 @@ function DependencyAnalysis() {
           <h3 className="text-sm font-semibold text-gray-900">依赖度分析</h3>
           <p className="text-xs text-gray-500 mt-0.5">数据源依赖分布与风险评估</p>
         </div>
-        <div className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium ">
+        <div className="px-3 py-1 bg-warning-100 text-warning-700 text-xs font-medium ">
           中等集中度
         </div>
       </div>
@@ -546,10 +546,10 @@ function DependencyAnalysis() {
                 <div
                   className={`h-1.5  transition-all duration-500 ${
                     dep.risk === 'high'
-                      ? 'bg-red-500'
+                      ? 'bg-danger-500'
                       : dep.risk === 'medium'
-                        ? 'bg-yellow-500'
-                        : 'bg-green-500'
+                        ? 'bg-warning-500'
+                        : 'bg-success-500'
                   }`}
                   style={{ width: `${dep.dependency}%` }}
                 ></div>
@@ -561,10 +561,10 @@ function DependencyAnalysis() {
       </div>
 
       <div className="mt-5 pt-4 border-t border-gray-100">
-        <div className="bg-blue-50  p-3">
+        <div className="bg-primary-50  p-3">
           <div className="flex items-start gap-2">
             <svg
-              className="w-4 h-4 text-blue-600 mt-0.5"
+              className="w-4 h-4 text-primary-600 mt-0.5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -576,8 +576,8 @@ function DependencyAnalysis() {
               />
             </svg>
             <div>
-              <p className="text-xs font-medium text-blue-900">依赖度建议</p>
-              <p className="text-xs text-blue-700 mt-0.5">
+              <p className="text-xs font-medium text-primary-900">依赖度建议</p>
+              <p className="text-xs text-primary-700 mt-0.5">
                 前两大数据源占比 50%，建议增加更多数据源以降低集中度风险
               </p>
             </div>
@@ -606,7 +606,7 @@ function HealthOverview() {
         <div className="flex items-center gap-2">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full  bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex  h-2.5 w-2.5 bg-green-500"></span>
+            <span className="relative inline-flex  h-2.5 w-2.5 bg-success-500"></span>
           </span>
           <span className="text-xs text-gray-600">实时监控中</span>
         </div>
@@ -621,7 +621,7 @@ function HealthOverview() {
                 <span className="text-sm font-semibold text-gray-900">{metric.value}%</span>
                 {metric.status === 'healthy' ? (
                   <svg
-                    className="w-4 h-4 text-green-500"
+                    className="w-4 h-4 text-success-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -630,7 +630,7 @@ function HealthOverview() {
                   </svg>
                 ) : (
                   <svg
-                    className="w-4 h-4 text-yellow-500"
+                    className="w-4 h-4 text-warning-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -647,7 +647,7 @@ function HealthOverview() {
             <div className="w-full bg-gray-100  h-2">
               <div
                 className={`h-2  transition-all duration-500 ${
-                  metric.status === 'healthy' ? 'bg-green-500' : 'bg-yellow-500'
+                  metric.status === 'healthy' ? 'bg-success-500' : 'bg-warning-500'
                 }`}
                 style={{ width: `${metric.value}%` }}
               ></div>
@@ -657,13 +657,13 @@ function HealthOverview() {
       </div>
 
       <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-2 gap-3">
-        <div className="bg-green-50  p-3 text-center">
+        <div className="bg-success-50  p-3 text-center">
           <p className="text-xs text-gray-500">健康数据源</p>
-          <p className="text-xl font-bold text-green-600">18</p>
+          <p className="text-xl font-bold text-success-600">18</p>
         </div>
-        <div className="bg-yellow-50  p-3 text-center">
+        <div className="bg-warning-50  p-3 text-center">
           <p className="text-xs text-gray-500">需关注</p>
-          <p className="text-xl font-bold text-yellow-600">3</p>
+          <p className="text-xl font-bold text-warning-600">3</p>
         </div>
       </div>
     </div>
@@ -826,15 +826,15 @@ export function DataSourceTraceability() {
         </div>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2  bg-green-500"></div>
+            <div className="w-2 h-2  bg-success-500"></div>
             <span className="text-gray-600">健康 {healthyCount}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2  bg-yellow-500"></div>
+            <div className="w-2 h-2  bg-warning-500"></div>
             <span className="text-gray-600">警告 {warningCount}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2  bg-red-500"></div>
+            <div className="w-2 h-2  bg-danger-500"></div>
             <span className="text-gray-600">异常 {criticalCount}</span>
           </div>
           <div className="text-gray-400">|</div>

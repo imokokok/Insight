@@ -73,7 +73,7 @@ export function FavoriteButton({
 
   const heartIcon = isFavorited ? (
     <svg
-      className={`${iconSize} text-red-500 transition-colors`}
+      className={`${iconSize} text-danger-500 transition-colors`}
       fill="currentColor"
       viewBox="0 0 24 24"
     >
@@ -137,7 +137,7 @@ export function FavoriteButton({
         onClick={handleClick}
         disabled={isToggling}
         className={`flex items-center gap-1.5 text-sm transition-colors ${
-          isFavorited ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
+          isFavorited ? 'text-danger-500' : 'text-gray-600 hover:text-danger-500'
         } disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       >
         {isToggling ? (
@@ -170,7 +170,7 @@ export function FavoriteButton({
       disabled={isToggling}
       className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium  border transition-all ${
         isFavorited
-          ? 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+          ? 'bg-danger-50 border-danger-200 text-danger-700 hover:bg-danger-100'
           : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-red-300'
       } disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >

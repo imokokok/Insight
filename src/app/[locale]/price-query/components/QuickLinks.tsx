@@ -22,7 +22,7 @@ export function QuickLinks() {
           aria-label={t('priceQuery.quickLinks.crossChain')}
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 text-blue-600" aria-hidden="true">
+            <div className="p-2 bg-primary-50 text-primary-600" aria-hidden="true">
               <Icons.blockchain />
             </div>
             <div>
@@ -56,7 +56,7 @@ export function QuickLinks() {
           aria-label={t('navbar.chainlink')}
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-50 text-green-600" aria-hidden="true">
+            <div className="p-2 bg-success-50 text-success-600" aria-hidden="true">
               <Icons.currency />
             </div>
             <div>

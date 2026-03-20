@@ -13,32 +13,32 @@ type FilterType = 'all' | 'claim' | 'parameter_change' | 'reward_distribution';
 const EVENT_CONFIG = {
   claim: {
     label: '索赔',
-    color: 'bg-red-500',
-    bgColor: 'bg-red-50',
-    textColor: 'text-red-700',
-    borderColor: 'border-red-200',
+    color: 'bg-danger-500',
+    bgColor: 'bg-danger-50',
+    textColor: 'text-danger-700',
+    borderColor: 'border-danger-200',
   },
   parameter_change: {
     label: '参数变更',
-    color: 'bg-blue-500',
-    bgColor: 'bg-blue-50',
-    textColor: 'text-blue-700',
-    borderColor: 'border-blue-200',
+    color: 'bg-primary-500',
+    bgColor: 'bg-primary-50',
+    textColor: 'text-primary-700',
+    borderColor: 'border-primary-200',
   },
   reward_distribution: {
     label: '奖励发放',
-    color: 'bg-green-500',
-    bgColor: 'bg-green-50',
-    textColor: 'text-green-700',
+    color: 'bg-success-500',
+    bgColor: 'bg-success-50',
+    textColor: 'text-success-700',
     borderColor: 'border-green-200',
   },
 };
 
 const STATUS_CONFIG = {
-  pending: { label: '待处理', color: 'bg-yellow-100 text-yellow-700' },
-  approved: { label: '已批准', color: 'bg-blue-100 text-blue-700' },
-  rejected: { label: '已拒绝', color: 'bg-red-100 text-red-700' },
-  completed: { label: '已完成', color: 'bg-green-100 text-green-700' },
+  pending: { label: '待处理', color: 'bg-warning-100 text-warning-700' },
+  approved: { label: '已批准', color: 'bg-primary-100 text-primary-700' },
+  rejected: { label: '已拒绝', color: 'bg-danger-100 text-danger-700' },
+  completed: { label: '已完成', color: 'bg-success-100 text-success-700' },
 };
 
 function formatTimestamp(date: Date): string {
@@ -204,7 +204,7 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
                               </span>
                             </div>
                           </div>
-                          <span className="text-blue-500">查看详情 →</span>
+                          <span className="text-primary-500">查看详情 →</span>
                         </div>
                       </div>
                     </div>
@@ -306,7 +306,7 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
                       onClick={() => {
                         copyToClipboard(selectedEvent.txHash);
                       }}
-                      className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm"
+                      className="flex items-center gap-1 text-primary-600 hover:text-primary-700 text-sm"
                     >
                       <svg
                         className="w-4 h-4"
@@ -342,7 +342,7 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
                   onClick={() => {
                     window.open(`https://etherscan.io/tx/${selectedEvent.txHash}`, '_blank');
                   }}
-                  className="flex-1 py-2.5 px-4 bg-blue-600 text-white font-medium  hover:bg-blue-700 transition-colors"
+                  className="flex-1 py-2.5 px-4 bg-primary-600 text-white font-medium  hover:bg-primary-700 transition-colors"
                 >
                   在区块浏览器中查看
                 </button>

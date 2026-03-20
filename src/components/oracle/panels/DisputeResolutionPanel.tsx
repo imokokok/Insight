@@ -153,7 +153,7 @@ function DisputeOverviewCard({
               <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{stat.label}</p>
               <p className="text-gray-900 text-2xl font-bold">{stat.value}</p>
             </div>
-            <div className="p-2.5 bg-blue-50  text-blue-600">{stat.icon}</div>
+            <div className="p-2.5 bg-primary-50  text-primary-600">{stat.icon}</div>
           </div>
         </div>
       ))}
@@ -176,14 +176,14 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
 
   // 使用统一的争议类型样式配置
   const typeColors = {
-    price: 'bg-blue-500',
+    price: 'bg-primary-500',
     state: 'bg-emerald-500',
     liquidation: 'bg-amber-500',
     other: 'bg-slate-500',
   };
 
   const typeBgColors = {
-    price: 'bg-blue-50',
+    price: 'bg-primary-50',
     state: 'bg-emerald-50',
     liquidation: 'bg-amber-50',
     other: 'bg-slate-50',
@@ -220,7 +220,7 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
             {!showByType ? (
               <>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 "></div>
+                  <div className="w-3 h-3 bg-primary-500 "></div>
                   <span className="text-sm text-gray-600">
                     {t('uma.disputeResolution.filedDisputes')}
                   </span>
@@ -251,7 +251,7 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
           </div>
           <button
             onClick={() => setShowByType(!showByType)}
-            className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+            className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
           >
             {showByType
               ? t('disputeResolution.showOverallTrend')
@@ -266,7 +266,7 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
                 {!showByType ? (
                   <>
                     <div
-                      className="w-3 bg-blue-500  transition-all duration-300 hover:bg-blue-600"
+                      className="w-3 bg-primary-500  transition-all duration-300 hover:bg-primary-600"
                       style={{ height: `${getHeight(trend.filed)}%` }}
                       title={`${t('uma.disputeResolution.filedDisputes')}: ${trend.filed}`}
                     ></div>
@@ -334,9 +334,9 @@ function DisputeDistributionChart({ disputes }: { disputes: DisputeData[] }) {
       label: t('uma.disputeResolution.statusRejected'),
       value: distribution.rejected,
       percentage: percentages.rejected,
-      color: 'bg-red-500',
-      lightColor: 'bg-red-50',
-      textColor: 'text-red-700',
+      color: 'bg-danger-500',
+      lightColor: 'bg-danger-50',
+      textColor: 'text-danger-700',
     },
   ];
 
@@ -480,7 +480,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
     const styles = {
       active: 'bg-amber-50 text-amber-700 border-amber-200',
       resolved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      rejected: 'bg-red-50 text-red-700 border-red-200',
+      rejected: 'bg-danger-50 text-danger-700 border-danger-200',
     };
     const labels = {
       active: t('uma.disputeResolution.statusActive'),
@@ -571,7 +571,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
             />
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-3 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               {sortOrder === 'asc' ? '↑' : '↓'}
             </button>
@@ -584,7 +584,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
               value={searchId}
               onChange={(e) => setSearchId(e.target.value)}
               placeholder={t('disputeResolution.enterDisputeId')}
-              className="px-3 py-1.5 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
+              className="px-3 py-1.5 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-primary-500 w-40"
             />
             {searchId && (
               <button
@@ -641,7 +641,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                       href={`https://etherscan.io/tx/${dispute.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-colors"
+                      className="inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 border border-transparent hover:border-primary-100 transition-colors"
                       title={t('disputeResolution.viewOnChain')}
                     >
                       <svg
@@ -961,13 +961,13 @@ export function DisputeResolutionPanel() {
               key={`${notification.id}-${index}`}
               className={`p-4   border-l-4 animate-slide-in-right ${
                 notification.updateType === 'new'
-                  ? 'bg-blue-50 border-blue-500'
+                  ? 'bg-primary-50 border-primary-500'
                   : notification.updateType === 'status_change'
                     ? notification.status === 'resolved'
-                      ? 'bg-green-50 border-green-500'
+                      ? 'bg-success-50 border-success-500'
                       : notification.status === 'rejected'
-                        ? 'bg-red-50 border-red-500'
-                        : 'bg-yellow-50 border-yellow-500'
+                        ? 'bg-danger-50 border-danger-500'
+                        : 'bg-warning-50 border-warning-500'
                     : 'bg-gray-50 border-gray-500'
               }`}
               style={{ animationDelay: `${index * 100}ms` }}
@@ -978,12 +978,12 @@ export function DisputeResolutionPanel() {
                     <span
                       className={`w-2 h-2  ${
                         notification.updateType === 'new'
-                          ? 'bg-blue-500'
+                          ? 'bg-primary-500'
                           : notification.status === 'resolved'
-                            ? 'bg-green-500'
+                            ? 'bg-success-500'
                             : notification.status === 'rejected'
-                              ? 'bg-red-500'
-                              : 'bg-yellow-500'
+                              ? 'bg-danger-500'
+                              : 'bg-warning-500'
                       }`}
                     />
                     <span className="text-sm font-medium text-gray-900">
@@ -1030,8 +1030,8 @@ export function DisputeResolutionPanel() {
           )}
           {isRefreshing && (
             <div className="flex items-center gap-2">
-              <div className="animate-spin  h-4 w-4 border-2 border-blue-600 border-t-transparent" />
-              <span className="text-sm text-blue-600">刷新中...</span>
+              <div className="animate-spin  h-4 w-4 border-2 border-primary-600 border-t-transparent" />
+              <span className="text-sm text-primary-600">刷新中...</span>
             </div>
           )}
           {/* 实时连接状态指示器 */}
@@ -1039,11 +1039,11 @@ export function DisputeResolutionPanel() {
             <span
               className={`w-2 h-2  ${
                 disputeConnectionStatus === 'connected'
-                  ? 'bg-green-500 animate-pulse'
+                  ? 'bg-success-500 animate-pulse'
                   : disputeConnectionStatus === 'connecting' ||
                       disputeConnectionStatus === 'reconnecting'
-                    ? 'bg-yellow-500 animate-pulse'
-                    : 'bg-red-500'
+                    ? 'bg-warning-500 animate-pulse'
+                    : 'bg-danger-500'
               }`}
             />
             <span className="text-xs text-gray-600">
@@ -1059,13 +1059,13 @@ export function DisputeResolutionPanel() {
           {/* 实时统计 */}
           {disputeConnectionStatus === 'connected' && (
             <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 ">
+              <span className="px-2 py-0.5 bg-warning-100 text-warning-700 ">
                 活跃: {realtimeActiveCount}
               </span>
-              <span className="px-2 py-0.5 bg-green-100 text-green-700 ">
+              <span className="px-2 py-0.5 bg-success-100 text-success-700 ">
                 已解决: {realtimeResolvedCount}
               </span>
-              <span className="px-2 py-0.5 bg-red-100 text-red-700 ">
+              <span className="px-2 py-0.5 bg-danger-100 text-danger-700 ">
                 已拒绝: {realtimeRejectedCount}
               </span>
             </div>
@@ -1076,7 +1076,7 @@ export function DisputeResolutionPanel() {
             onClick={() => setShowNotifications(!showNotifications)}
             className={`flex items-center gap-2 px-3 py-1.5 text-sm  transition-colors ${
               showNotifications
-                ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
@@ -1089,7 +1089,7 @@ export function DisputeResolutionPanel() {
             </svg>
             通知
             {realtimeNotifications.length > 0 && (
-              <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs ">
+              <span className="px-1.5 py-0.5 bg-danger-500 text-white text-xs ">
                 {realtimeNotifications.length}
               </span>
             )}

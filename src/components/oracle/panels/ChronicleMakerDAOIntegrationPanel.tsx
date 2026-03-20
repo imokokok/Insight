@@ -17,7 +17,7 @@ export function ChronicleMakerDAOIntegrationPanel({
   const getAssetTypeColor = (type: string) => {
     switch (type) {
       case 'stablecoin':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-primary-50 text-primary-700 border-primary-200';
       case 'crypto':
         return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'rwa':
@@ -57,17 +57,17 @@ export function ChronicleMakerDAOIntegrationPanel({
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-4 h-4 text-green-600" />
+              <DollarSign className="w-4 h-4 text-success-600" />
               <p className="text-xs text-gray-500">{t('chronicle.makerdao.daiSupply')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">{formatCurrency(data.daiSupply)}</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-blue-600" />
+              <TrendingUp className="w-4 h-4 text-primary-600" />
               <p className="text-xs text-gray-500">{t('chronicle.makerdao.systemSurplus')}</p>
             </div>
-            <p className="text-xl font-bold text-green-600">{formatCurrency(data.systemSurplus)}</p>
+            <p className="text-xl font-bold text-success-600">{formatCurrency(data.systemSurplus)}</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">

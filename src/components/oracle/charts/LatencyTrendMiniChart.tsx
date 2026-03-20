@@ -7,13 +7,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   ReferenceArea,
 } from 'recharts';
 import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+
 
 interface LatencyDataPoint {
   timestamp: string;
@@ -265,35 +266,35 @@ export function LatencyTrendMiniChart({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="bg-blue-50 p-4">
-          <p className="text-xs text-blue-600 mb-1">{t('charts.trend.avgLatency')}</p>
+        <div className="bg-primary-50 p-4">
+          <p className="text-xs text-primary-600 mb-1">{t('charts.trend.avgLatency')}</p>
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-blue-700">{stats.avg}</span>
-            <span className="text-sm text-blue-500">ms</span>
+            <span className="text-2xl font-bold text-primary-700">{stats.avg}</span>
+            <span className="text-sm text-primary-500">ms</span>
           </div>
         </div>
-        <div className="bg-green-50 p-4">
-          <p className="text-xs text-green-600 mb-1">P95</p>
+        <div className="bg-success-50 p-4">
+          <p className="text-xs text-success-600 mb-1">P95</p>
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-green-700">{stats.p95}</span>
-            <span className="text-sm text-green-500">ms</span>
+            <span className="text-2xl font-bold text-success-700">{stats.p95}</span>
+            <span className="text-sm text-success-500">ms</span>
           </div>
         </div>
         <div
           className={`p-4 ${
             stats.trend === 'up'
-              ? 'bg-red-50'
+              ? 'bg-danger-50'
               : stats.trend === 'down'
-                ? 'bg-green-50'
+                ? 'bg-success-50'
                 : 'bg-gray-50'
           }`}
         >
           <p
             className={`text-xs mb-1 ${
               stats.trend === 'up'
-                ? 'text-red-600'
+                ? 'text-danger-600'
                 : stats.trend === 'down'
-                  ? 'text-green-600'
+                  ? 'text-success-600'
                   : 'text-gray-600'
             }`}
           >
@@ -303,9 +304,9 @@ export function LatencyTrendMiniChart({
             <span
               className={`text-2xl font-bold ${
                 stats.trend === 'up'
-                  ? 'text-red-700'
+                  ? 'text-danger-700'
                   : stats.trend === 'down'
-                    ? 'text-green-700'
+                    ? 'text-success-700'
                     : 'text-gray-700'
               }`}
             >
@@ -314,11 +315,11 @@ export function LatencyTrendMiniChart({
             </span>
           </div>
         </div>
-        <div className="bg-red-50 p-4">
-          <p className="text-xs text-red-600 mb-1">{t('charts.trend.anomalies')}</p>
+        <div className="bg-danger-50 p-4">
+          <p className="text-xs text-danger-600 mb-1">{t('charts.trend.anomalies')}</p>
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-red-700">{stats.anomalyCount}</span>
-            <span className="text-sm text-red-500">({stats.anomalyPercent}%)</span>
+            <span className="text-2xl font-bold text-danger-700">{stats.anomalyCount}</span>
+            <span className="text-sm text-danger-500">({stats.anomalyPercent}%)</span>
           </div>
         </div>
       </div>
@@ -349,7 +350,7 @@ export function LatencyTrendMiniChart({
               tickFormatter={(value) => `${value}ms`}
               domain={[0, 'auto']}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <RechartsTooltip content={<CustomTooltip />} />
 
             {/* Anomaly areas */}
             {renderAnomalyAreas()}
@@ -446,10 +447,10 @@ export function LatencyTrendMiniChart({
 
       {/* Anomaly Summary */}
       {stats.anomalyCount > 0 && (
-        <div className="bg-red-50 border border-red-200 p-4">
+        <div className="bg-danger-50 border border-danger-200 p-4">
           <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+              className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -460,10 +461,10 @@ export function LatencyTrendMiniChart({
               />
             </svg>
             <div>
-              <h4 className="text-sm font-semibold text-red-800 mb-1">
+              <h4 className="text-sm font-semibold text-danger-800 mb-1">
                 {t('charts.trend.anomalyAlert')}
               </h4>
-              <p className="text-xs text-red-700">
+              <p className="text-xs text-danger-700">
                 {t('charts.trend.anomalyDesc', {
                   count: stats.anomalyCount,
                   percent: stats.anomalyPercent,

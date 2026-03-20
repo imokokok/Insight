@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
 import { chartColors, baseColors } from '@/lib/config/colors';
+
 
 interface PublisherData {
   name: string;
@@ -74,12 +75,12 @@ export function ConcentrationRisk() {
 
   const getDiversityLevel = (score: number): { label: string; color: string } => {
     if (score >= 80)
-      return { label: t('concentrationRisk.diversityLevel.excellent'), color: 'text-green-600' };
+      return { label: t('concentrationRisk.diversityLevel.excellent'), color: 'text-success-600' };
     if (score >= 60)
-      return { label: t('concentrationRisk.diversityLevel.good'), color: 'text-blue-600' };
+      return { label: t('concentrationRisk.diversityLevel.good'), color: 'text-primary-600' };
     if (score >= 40)
-      return { label: t('concentrationRisk.diversityLevel.fair'), color: 'text-yellow-600' };
-    return { label: t('concentrationRisk.diversityLevel.poor'), color: 'text-red-600' };
+      return { label: t('concentrationRisk.diversityLevel.fair'), color: 'text-warning-600' };
+    return { label: t('concentrationRisk.diversityLevel.poor'), color: 'text-danger-600' };
   };
 
   const getImpactLevel = (
@@ -93,20 +94,20 @@ export function ConcentrationRisk() {
       case 'low':
         return {
           label: t('concentrationRisk.impactLevel.low'),
-          color: 'text-green-600',
-          bgColor: 'bg-green-100',
+          color: 'text-success-600',
+          bgColor: 'bg-success-100',
         };
       case 'medium':
         return {
           label: t('concentrationRisk.impactLevel.medium'),
-          color: 'text-yellow-600',
-          bgColor: 'bg-yellow-100',
+          color: 'text-warning-600',
+          bgColor: 'bg-warning-100',
         };
       case 'high':
         return {
           label: t('concentrationRisk.impactLevel.high'),
-          color: 'text-red-600',
-          bgColor: 'bg-red-100',
+          color: 'text-danger-600',
+          bgColor: 'bg-danger-100',
         };
     }
   };
@@ -163,7 +164,7 @@ export function ConcentrationRisk() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip
+                  <RechartsTooltip
                     formatter={(value) => [`${value}%`, t('concentrationRisk.weight')]}
                     contentStyle={{
                       backgroundColor: 'white',
@@ -195,12 +196,12 @@ export function ConcentrationRisk() {
                 <div
                   className={`h-2  ${
                     metrics.diversityScore >= 80
-                      ? 'bg-green-500'
+                      ? 'bg-success-500'
                       : metrics.diversityScore >= 60
-                        ? 'bg-blue-500'
+                        ? 'bg-primary-500'
                         : metrics.diversityScore >= 40
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
+                          ? 'bg-warning-500'
+                          : 'bg-danger-500'
                   }`}
                   style={{ width: `${metrics.diversityScore}%` }}
                 />
@@ -296,10 +297,10 @@ export function ConcentrationRisk() {
                       <span
                         className={`inline-flex px-2 py-0.5 text-xs font-medium  ${
                           publisher.status === 'active'
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-success-100 text-success-700'
                             : publisher.status === 'degraded'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-red-100 text-red-700'
+                              ? 'bg-warning-100 text-warning-700'
+                              : 'bg-danger-100 text-danger-700'
                         }`}
                       >
                         {getStatusLabel(publisher.status)}
@@ -312,11 +313,11 @@ export function ConcentrationRisk() {
           </div>
         </div>
 
-        <div className="bg-blue-50  p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">
+        <div className="bg-primary-50  p-4">
+          <h4 className="text-sm font-medium text-primary-900 mb-2">
             {t('concentrationRisk.riskExplanation.title')}
           </h4>
-          <ul className="text-sm text-blue-800 space-y-1">
+          <ul className="text-sm text-primary-800 space-y-1">
             <li>• {t('concentrationRisk.riskExplanation.item1')}</li>
             <li>• {t('concentrationRisk.riskExplanation.item2')}</li>
             <li>• {t('concentrationRisk.riskExplanation.item3')}</li>

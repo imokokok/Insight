@@ -62,7 +62,7 @@ function ValidatorDetailModalContent({
               onClick={() => setActiveTab('overview')}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'overview'
-                  ? 'border-blue-600 text-blue-600'
+                  ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -72,7 +72,7 @@ function ValidatorDetailModalContent({
               onClick={() => setActiveTab('history')}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'history'
-                  ? 'border-blue-600 text-blue-600'
+                  ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -82,7 +82,7 @@ function ValidatorDetailModalContent({
               onClick={() => setActiveTab('calculator')}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'calculator'
-                  ? 'border-blue-600 text-blue-600'
+                  ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -115,10 +115,10 @@ function ValidatorDetailModalContent({
                 </div>
                 <div className="bg-gray-50 p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">在线率</p>
-                  <p className="text-xl font-bold text-green-600">{validator.uptime.toFixed(2)}%</p>
+                  <p className="text-xl font-bold text-success-600">{validator.uptime.toFixed(2)}%</p>
                   <div className="mt-2 h-2 bg-gray-200 overflow-hidden">
                     <div
-                      className="h-full bg-green-500 transition-all duration-500"
+                      className="h-full bg-success-500 transition-all duration-500"
                       style={{ width: `${validator.uptime}%` }}
                     />
                   </div>
@@ -131,11 +131,11 @@ function ValidatorDetailModalContent({
                         className={`animate-ping absolute inline-flex h-full w-full ${validator.jailed ? 'bg-red-400' : 'bg-green-400'} opacity-75`}
                       />
                       <span
-                        className={`relative inline-flex h-3 w-3 ${validator.jailed ? 'bg-red-500' : 'bg-green-500'}`}
+                        className={`relative inline-flex h-3 w-3 ${validator.jailed ? 'bg-danger-500' : 'bg-success-500'}`}
                       />
                     </span>
                     <span
-                      className={`text-lg font-bold ${validator.jailed ? 'text-red-600' : 'text-green-600'}`}
+                      className={`text-lg font-bold ${validator.jailed ? 'text-danger-600' : 'text-success-600'}`}
                     >
                       {validator.jailed ? '监禁中' : '活跃'}
                     </span>
@@ -178,7 +178,7 @@ function ValidatorDetailModalContent({
                           href={validator.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline"
+                          className="text-sm text-primary-600 hover:underline"
                         >
                           {validator.website}
                         </a>

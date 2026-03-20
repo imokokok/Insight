@@ -6,7 +6,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   ReferenceArea,
@@ -36,6 +36,7 @@ import {
 import { useLatencyStats } from './useLatencyStats';
 import { LatencyHistogram } from './LatencyHistogram';
 import { LatencyPrediction } from './LatencyPrediction';
+
 
 const logger = createLogger('LatencyTrendChart');
 
@@ -579,7 +580,7 @@ function LatencyTrendChartBase({
                   fontSize: 11,
                 }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               {renderAnomalyAreas()}
               <ReferenceLine
                 y={anomalyThreshold}

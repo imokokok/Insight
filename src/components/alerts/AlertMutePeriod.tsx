@@ -118,7 +118,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
           type="button"
           onClick={handleToggleEnable}
           className={`relative inline-flex h-6 w-11 items-center transition-colors ${
-            localConfig.enabled ? 'bg-blue-600' : 'bg-gray-200'
+            localConfig.enabled ? 'bg-primary-600' : 'bg-gray-200'
           }`}
         >
           <span
@@ -153,7 +153,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                     type="time"
                     value={localConfig.startTime || '22:00'}
                     onChange={handleStartTimeChange}
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
                 <div>
@@ -164,7 +164,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                     type="time"
                     value={localConfig.endTime || '08:00'}
                     onChange={handleEndTimeChange}
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
               </div>
@@ -175,7 +175,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                     type="checkbox"
                     checked={localConfig.recurring}
                     onChange={(e) => handleRecurringChange(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
                   {t('alerts.mute.recurring')}
                 </label>
@@ -196,7 +196,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                           onClick={() => handleDayToggle(day.value)}
                           className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
                             isSelected
-                              ? 'bg-blue-600 text-white'
+                              ? 'bg-primary-600 text-white'
                               : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
                           }`}
                         >
@@ -210,7 +210,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
             </div>
           )}
 
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+          <div className="p-3 bg-warning-50 border border-yellow-200 rounded text-xs text-yellow-800">
             <div className="flex items-start gap-2">
               <svg
                 className="w-4 h-4 flex-shrink-0 mt-0.5"

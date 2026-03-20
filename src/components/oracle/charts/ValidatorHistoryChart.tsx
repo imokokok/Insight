@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend,
 } from 'recharts';
@@ -16,6 +16,7 @@ import { BandProtocolClient, ValidatorHistory, HistoryPeriod } from '@/lib/oracl
 import { formatNumber } from '@/lib/utils/format';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { chartColors } from '@/lib/config/colors';
+
 
 type TimeRange = '7D' | '30D' | '90D';
 
@@ -76,11 +77,11 @@ function CustomTooltip({
       <div className="space-y-2">
         <div className="flex justify-between gap-4 text-xs">
           <span className="text-gray-500">在线率:</span>
-          <span className="text-green-600 font-mono font-medium">{data.uptime.toFixed(2)}%</span>
+          <span className="text-success-600 font-mono font-medium">{data.uptime.toFixed(2)}%</span>
         </div>
         <div className="flex justify-between gap-4 text-xs">
           <span className="text-gray-500">质押量:</span>
-          <span className="text-blue-600 font-mono font-medium">
+          <span className="text-primary-600 font-mono font-medium">
             {formatNumber(data.stakedAmount, true)} BAND
           </span>
         </div>
@@ -194,8 +195,8 @@ export function ValidatorHistoryChart({
 
   if (error) {
     return (
-      <div className="bg-white border border-red-200 rounded p-6" style={{ height }}>
-        <div className="flex items-center gap-3 text-red-600">
+      <div className="bg-white border border-danger-200 rounded p-6" style={{ height }}>
+        <div className="flex items-center gap-3 text-danger-600">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinejoin="round"
@@ -218,7 +219,7 @@ export function ValidatorHistoryChart({
               <p className="text-xs text-gray-500 uppercase tracking-wider">平均在线率</p>
               <p className="text-lg font-bold text-gray-900">{stats.avgUptime.toFixed(2)}%</p>
               <p
-                className={`text-xs ${stats.uptimeChange >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                className={`text-xs ${stats.uptimeChange >= 0 ? 'text-success-600' : 'text-danger-600'}`}
               >
                 {stats.uptimeChange >= 0 ? '+' : ''}
                 {stats.uptimeChange.toFixed(2)}%
@@ -231,7 +232,7 @@ export function ValidatorHistoryChart({
                 {formatNumber(stats.avgStaked, true)}
               </p>
               <p
-                className={`text-xs ${stats.stakeChange >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                className={`text-xs ${stats.stakeChange >= 0 ? 'text-success-600' : 'text-danger-600'}`}
               >
                 {stats.stakeChange >= 0 ? '+' : ''}
                 {stats.stakeChange.toFixed(2)}%
@@ -251,7 +252,7 @@ export function ValidatorHistoryChart({
                 onClick={() => setTimeRange(range)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   timeRange === range
-                    ? 'bg-white text-blue-600 shadow-sm'
+                    ? 'bg-white text-primary-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -305,7 +306,7 @@ export function ValidatorHistoryChart({
               width={50}
             />
 
-            <Tooltip content={<CustomTooltip />} />
+            <RechartsTooltip content={<CustomTooltip />} />
 
             <Legend
               verticalAlign="top"
@@ -343,11 +344,11 @@ export function ValidatorHistoryChart({
 
       <div className="flex items-center justify-center gap-6 mt-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded bg-green-500" />
+          <span className="w-3 h-3 rounded bg-success-500" />
           <span className="text-xs text-gray-500">在线率 (%)</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-0.5 bg-blue-500 rounded" />
+          <span className="w-3 h-0.5 bg-primary-500 rounded" />
           <span className="text-xs text-gray-500">质押量 (BAND)</span>
         </div>
       </div>

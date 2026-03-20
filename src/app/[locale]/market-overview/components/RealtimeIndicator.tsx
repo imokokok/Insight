@@ -30,9 +30,9 @@ export default function RealtimeIndicator({
   }, [isConnected]);
 
   const getStatusColor = () => {
-    if (!isConnected) return 'bg-red-500';
-    if (latency && latency > 1000) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (!isConnected) return 'bg-danger-500';
+    if (latency && latency > 1000) return 'bg-warning-500';
+    return 'bg-success-500';
   };
 
   const getStatusText = () => {
@@ -60,7 +60,7 @@ export default function RealtimeIndicator({
       {!isConnected && onReconnect && (
         <button
           onClick={onReconnect}
-          className="flex items-center gap-1 px-2 py-0.5 text-xs text-blue-600 hover:bg-blue-50 transition-colors"
+          className="flex items-center gap-1 px-2 py-0.5 text-xs text-primary-600 hover:bg-primary-50 transition-colors"
         >
           <Wifi className="w-3 h-3" />
           {isChineseLocale(locale) ? '重连' : 'Reconnect'}

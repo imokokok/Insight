@@ -49,12 +49,12 @@ export const TouchButton = forwardRef<HTMLButtonElement, TouchButtonProps>(
       'inline-flex items-center justify-center font-medium transition-all duration-200';
 
     const variantStyles = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300',
+      primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-300',
       secondary:
         'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400',
       ghost:
         'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 disabled:text-gray-400',
-      danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-red-300',
+      danger: 'bg-danger-600 text-white hover:bg-danger-700 active:bg-danger-800 disabled:bg-red-300',
     };
 
     const sizeStyles = {
@@ -135,7 +135,7 @@ export const TouchLink = forwardRef<HTMLAnchorElement, TouchLinkProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center text-blue-600 hover:text-blue-700 active:text-blue-800 transition-colors';
+      'inline-flex items-center justify-center text-primary-600 hover:text-primary-700 active:text-primary-800 transition-colors';
 
     const touchAreaStyles = expandTouchArea
       ? 'relative after:absolute after:inset-0 after:-m-2 after:content-[""]'
@@ -184,7 +184,7 @@ export const TouchIconButton = forwardRef<HTMLButtonElement, TouchIconButtonProp
     const variantStyles = {
       default: 'text-gray-600 hover:bg-gray-100 active:bg-gray-200',
       ghost: 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
-      primary: 'text-blue-600 hover:bg-blue-50 active:bg-blue-100',
+      primary: 'text-primary-600 hover:bg-primary-50 active:bg-primary-100',
     };
 
     return (

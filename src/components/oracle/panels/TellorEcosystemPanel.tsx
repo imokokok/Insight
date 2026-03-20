@@ -25,10 +25,10 @@ export function TellorEcosystemPanel({ data }: TellorEcosystemPanelProps) {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      lending: 'bg-blue-100 text-blue-700',
+      lending: 'bg-primary-100 text-primary-700',
       dex: 'bg-purple-100 text-purple-700',
-      derivatives: 'bg-orange-100 text-orange-700',
-      yield: 'bg-green-100 text-green-700',
+      derivatives: 'bg-warning-100 text-orange-700',
+      yield: 'bg-success-100 text-success-700',
       insurance: 'bg-pink-100 text-pink-700',
       other: 'bg-gray-100 text-gray-700',
     };

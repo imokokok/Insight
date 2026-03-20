@@ -19,7 +19,7 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
       case 'medium':
         return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'low':
-        return 'bg-red-50 text-red-700 border-red-200';
+        return 'bg-danger-50 text-danger-700 border-danger-200';
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
@@ -28,11 +28,11 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
   const getVerificationStatusIcon = (status: string) => {
     switch (status) {
       case 'verified':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
+        return <CheckCircle className="w-5 h-5 text-success-600" />;
       case 'pending':
-        return <Clock className="w-5 h-5 text-yellow-600" />;
+        return <Clock className="w-5 h-5 text-warning-600" />;
       case 'failed':
-        return <AlertTriangle className="w-5 h-5 text-red-600" />;
+        return <AlertTriangle className="w-5 h-5 text-danger-600" />;
       default:
         return <Info className="w-5 h-5 text-gray-600" />;
     }
@@ -41,11 +41,11 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return 'bg-red-50 text-red-700 border-red-200';
+        return 'bg-danger-50 text-danger-700 border-danger-200';
       case 'warning':
         return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'info':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-primary-50 text-primary-700 border-primary-200';
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
@@ -100,7 +100,7 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {data.securityFeatures.map((feature, index) => (
             <div key={index} className="flex items-center gap-3 py-2">
-              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <CheckCircle className="w-4 h-4 text-success-600 flex-shrink-0" />
               <span className="text-sm text-gray-700">{feature}</span>
             </div>
           ))}
@@ -124,7 +124,7 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
                 <p className="text-sm font-medium text-gray-900">{event.event}</p>
                 <p className="text-xs text-gray-500 mt-1">{formatDate(event.timestamp)}</p>
                 {event.resolution && (
-                  <p className="text-xs text-green-600 mt-1">{event.resolution}</p>
+                  <p className="text-xs text-success-600 mt-1">{event.resolution}</p>
                 )}
               </div>
             </div>

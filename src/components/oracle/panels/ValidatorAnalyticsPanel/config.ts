@@ -22,8 +22,8 @@ export const TIME_RANGE_OPTIONS: { value: TimeRange; labelKey: string; days: num
 
 export const VALIDATOR_TYPE_STYLES: Record<string, string> = {
   institution: 'bg-purple-100 text-purple-700',
-  independent: 'bg-blue-100 text-blue-700',
-  community: 'bg-green-100 text-green-700',
+  independent: 'bg-primary-100 text-primary-700',
+  community: 'bg-success-100 text-success-700',
 };
 
 export const VALIDATOR_TYPE_LABELS: Record<string, string> = {

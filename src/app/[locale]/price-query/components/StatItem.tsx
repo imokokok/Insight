@@ -22,7 +22,7 @@ export function StatItem({
   compact = false,
 }: StatItemProps) {
   const trendColor =
-    trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-gray-900';
+    trend === 'up' ? 'text-success-600' : trend === 'down' ? 'text-danger-600' : 'text-gray-900';
 
   if (compact) {
     return (
