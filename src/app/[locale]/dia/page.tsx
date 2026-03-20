@@ -573,7 +573,7 @@ export default function DIAPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 rounded-lg">
       <PageHeader
         title={t('dia.title')}
         subtitle={t('dia.subtitle')}

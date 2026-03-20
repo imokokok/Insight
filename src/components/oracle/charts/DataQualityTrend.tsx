@@ -384,7 +384,7 @@ export function DataQualityTrend({
 
     return (
       <div
-        className="bg-white p-4 border border-gray-200 min-w-[240px]"
+        className="bg-white p-4 border border-gray-200 rounded-lg min-w-[240px]"
         style={{ boxShadow: shadowColors.tooltip }}
       >
         <p className="text-sm font-semibold text-gray-900 mb-2">{label}</p>

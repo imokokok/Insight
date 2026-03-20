@@ -288,7 +288,7 @@ export function PreferencesPanel() {
                       <button
                         key={option.value}
                         onClick={() => updatePreference('defaultOracle', option.value)}
-                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                        className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                           preferences.defaultOracle === option.value
                             ? 'bg-primary-600 text-white shadow-sm'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'

@@ -244,7 +244,7 @@ export default function RedStonePage() {
   }
 
   return (
-    <div className="min-h-screen bg-insight">
+    <div className="min-h-screen bg-insight rounded-lg">
       <PageHeader
         title={t('redstone.title')}
         subtitle={t('redstone.subtitle')}

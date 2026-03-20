@@ -66,7 +66,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
       headerAction={
         <div className="flex items-center gap-2">
           {unacknowledgedCount > 0 && (
-            <span className="px-2 py-0.5 text-xs font-medium bg-danger-100 text-danger-700 ">
+            <span className="px-2 py-0.5 text-xs font-medium bg-danger-100 text-danger-700 rounded">
               {t('alerts.history.unacknowledgedCount').replace(
                 '{count}',
                 String(unacknowledgedCount)
@@ -125,7 +125,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
             {filteredAndSortedEvents.map((event) => (
               <div
                 key={event.id}
-                className={`p-4 border  transition-colors ${
+                className={`p-4 border rounded-lg transition-colors ${
                   event.acknowledged
                     ? 'bg-gray-50 border-gray-200'
                     : 'bg-warning-50 border-yellow-200'
@@ -135,7 +135,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span
-                        className={`px-2 py-0.5 text-xs font-medium  ${
+                        className={`px-2 py-0.5 text-xs font-medium rounded ${
                           event.acknowledged
                             ? 'bg-gray-100 text-gray-600'
                             : 'bg-warning-100 text-warning-700'

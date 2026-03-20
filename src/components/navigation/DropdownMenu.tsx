@@ -71,7 +71,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
       <button
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
-        className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium  transition-all duration-200 ${
+        className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
           isActive || isGroupActive
             ? 'text-primary-600 bg-primary-50'
             : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
@@ -91,7 +91,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 mt-1 w-64 bg-white   border border-gray-100 py-2 z-50 animate-fade-in"
+          className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-100 rounded-lg py-2 z-50 animate-fade-in"
           role="menu"
         >
           {group.items.map((item) => {
@@ -108,14 +108,14 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
                   setIsOpen(false);
                   onItemClick?.();
                 }}
-                className={`flex items-start gap-3 px-4 py-3 mx-2  transition-all duration-200 group ${
+                className={`flex items-start gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200 group ${
                   isItemActive ? 'bg-primary-50 text-primary-600' : 'hover:bg-gray-50 text-gray-700'
                 }`}
                 role="menuitem"
               >
                 {ItemIcon && (
                   <div
-                    className={`p-2  transition-colors ${
+                    className={`p-2 rounded-md transition-colors ${
                       isItemActive ? 'bg-primary-100' : 'bg-gray-100 group-hover:bg-white'
                     }`}
                     style={

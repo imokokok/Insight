@@ -40,7 +40,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
       />
 
       {/* Drawer - Full width on mobile */}
-      <div className="fixed inset-y-0 right-0 w-full sm:max-w-sm bg-white  z-50 animate-slide-in-right">
+      <div className="fixed inset-y-0 right-0 w-full sm:max-w-sm bg-white rounded-l-lg z-50 animate-slide-in-right">
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
@@ -51,7 +51,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100  transition-colors"
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
               aria-label={t('actions.close')}
             >
               <X className="w-5 h-5" />
@@ -70,11 +70,11 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                 return (
                   <div key={group.id} className="mb-2">
                     <button
-                      onClick={() => toggleGroup(group.id)}
-                      className={`w-full flex items-center justify-between px-4 py-3 mx-2  transition-colors ${
-                        isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
+                  onClick={() => toggleGroup(group.id)}
+                  className={`w-full flex items-center justify-between px-4 py-3 mx-2 rounded-lg transition-colors ${
+                    isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
                       <div className="flex items-center gap-3">
                         {GroupIcon && <GroupIcon className="w-5 h-5" />}
                         <span className="font-medium">{t(group.label)}</span>
@@ -96,34 +96,34 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
 
                           return (
                             <Link
-                              key={item.href}
-                              href={item.href}
-                              onClick={onClose}
-                              className={`flex items-center gap-3 px-4 py-3 mx-2  transition-colors ${
-                                isItemActive
-                                  ? 'bg-primary-50 text-primary-600'
-                                  : 'text-gray-600 hover:bg-gray-50'
-                              }`}
-                            >
-                              {ItemIcon && (
-                                <div
-                                  className={`p-1.5  ${
-                                    isItemActive ? 'bg-primary-100' : 'bg-gray-100'
-                                  }`}
+                            key={item.href}
+                            href={item.href}
+                            onClick={onClose}
+                            className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
+                              isItemActive
+                                ? 'bg-primary-50 text-primary-600'
+                                : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            {ItemIcon && (
+                              <div
+                                className={`p-1.5 rounded-md ${
+                                  isItemActive ? 'bg-primary-100' : 'bg-gray-100'
+                                }`}
+                                style={
+                                  accentColor && !isItemActive
+                                    ? { backgroundColor: `${accentColor}15` }
+                                    : {}
+                                }
+                              >
+                                <ItemIcon
+                                  className="w-4 h-4"
                                   style={
-                                    accentColor && !isItemActive
-                                      ? { backgroundColor: `${accentColor}15` }
-                                      : {}
+                                    accentColor && !isItemActive ? { color: accentColor } : {}
                                   }
-                                >
-                                  <ItemIcon
-                                    className="w-4 h-4"
-                                    style={
-                                      accentColor && !isItemActive ? { color: accentColor } : {}
-                                    }
-                                  />
-                                </div>
-                              )}
+                                />
+                              </div>
+                            )}
                               <span className="text-sm">{t(item.label)}</span>
                               {isItemActive && <div className="ml-auto w-1.5 h-1.5 bg-primary-600 " />}
                             </Link>
@@ -142,13 +142,13 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
 
               return (
                 <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-4 py-3 mx-2  transition-colors ${
-                    isItemActive ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
+                  isItemActive ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
                   {ItemIcon && <ItemIcon className="w-5 h-5" />}
                   <span className="font-medium">{t(item.label)}</span>
                   {isItemActive && <div className="ml-auto w-1.5 h-1.5 bg-primary-600 " />}

@@ -173,7 +173,7 @@ export function OracleComparisonView({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 border border-gray-200">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wider">{t('averagePrice')}</p>
           <p className="text-lg font-semibold text-gray-900">
@@ -209,7 +209,7 @@ export function OracleComparisonView({
       {showCharts && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Price Comparison Bar Chart */}
-          <div className="bg-white border border-gray-200 p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
             <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('priceComparison')}</h4>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -235,7 +235,7 @@ export function OracleComparisonView({
           </div>
 
           {/* Deviation Chart */}
-          <div className="bg-white border border-gray-200 p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
             <h4 className="text-sm font-semibold text-gray-900 mb-4">
               {t('deviationFromAverage')}
             </h4>
@@ -285,7 +285,7 @@ export function OracleComparisonView({
 
       {/* Radar Chart */}
       {showRadar && oracles.length >= 2 && (
-        <div className="bg-white border border-gray-200 p-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
           <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('performanceRadar')}</h4>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -313,7 +313,7 @@ export function OracleComparisonView({
 
       {/* Comparison Table */}
       {showTable && (
-        <div className="bg-white border border-gray-200 overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
             <h4 className="text-sm font-semibold text-gray-900">{t('detailedComparison')}</h4>
             <div className="flex items-center gap-2">
@@ -321,7 +321,7 @@ export function OracleComparisonView({
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="text-xs border border-gray-300 px-2 py-1 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="text-xs border border-gray-300 px-2 py-1 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="price">{t('metrics.price')}</option>
                 <option value="deviation">{t('metrics.deviation')}</option>
@@ -378,7 +378,7 @@ export function OracleComparisonView({
                           />
                           <span className="font-medium text-gray-900">{oracle.name}</span>
                           {isBenchmark && (
-                            <span className="px-1.5 py-0.5 text-xs bg-primary-100 text-primary-700 rounded">
+                            <span className="px-1.5 py-0.5 text-xs bg-primary-100 text-primary-700 rounded-md">
                               {t('benchmark')}
                             </span>
                           )}

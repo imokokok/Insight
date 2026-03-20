@@ -92,10 +92,10 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!data) return null;
 
   return (
-    <div className="bg-white border border-gray-200  p-3 ">
+    <div className="bg-white border border-gray-200 rounded-lg p-3">
       <p className="text-gray-600 text-xs mb-1 font-medium">{data.name}</p>
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 " style={{ backgroundColor: data.color }} />
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
         <span className="text-gray-900 font-mono font-semibold">{data.value.toLocaleString()}</span>
       </div>
     </div>
@@ -116,10 +116,10 @@ function GasTooltip({ active, payload }: GasTooltipProps) {
   if (!data) return null;
 
   return (
-    <div className="bg-white border border-gray-200  p-3 ">
+    <div className="bg-white border border-gray-200 rounded-lg p-3">
       <p className="text-gray-600 text-xs mb-1 font-medium">{data.name}</p>
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 " style={{ backgroundColor: data.color }} />
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
         <span className="text-gray-900 font-mono font-semibold">
           {data.gasCost.toFixed(6)} BAND
         </span>
@@ -142,10 +142,10 @@ function ResponseTimeTooltip({ active, payload }: ResponseTimeTooltipProps) {
   if (!data) return null;
 
   return (
-    <div className="bg-white border border-gray-200  p-3 ">
+    <div className="bg-white border border-gray-200 rounded-lg p-3">
       <p className="text-gray-600 text-xs mb-1 font-medium">{data.name}</p>
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 " style={{ backgroundColor: data.color }} />
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
         <span className="text-gray-900 font-mono font-semibold">{data.responseTime}ms</span>
       </div>
     </div>
@@ -483,7 +483,7 @@ export function ChainComparison({
       </DashboardCard>
 
       {selectedChains.length === 0 ? (
-        <div className="bg-white border border-gray-200  p-12 text-center">
+        <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
           <svg
             className="w-16 h-16 text-gray-300 mx-auto mb-4"
             fill="none"

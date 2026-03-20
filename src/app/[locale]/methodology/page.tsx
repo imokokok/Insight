@@ -25,7 +25,7 @@ export default function MethodologyPage() {
   const t = useTranslations();
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-insight min-h-screen">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-insight min-h-screen rounded-lg">
       {/* Header */}
       <div className="mb-10 pb-6 border-b" style={{ borderColor: baseColors.gray[200] }}>
         <h1 className="text-3xl font-bold mb-3" style={{ color: baseColors.gray[900] }}>

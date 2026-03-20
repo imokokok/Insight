@@ -282,7 +282,7 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
   };
 
   return (
-    <div className="bg-white border border-gray-200  p-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
@@ -290,7 +290,7 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">{t('confidenceScore.overallScoreDesc')}</p>
         </div>
-        <div className={`p-2  ${levelConfig.lightBg}`}>
+        <div className={`p-2 rounded-lg ${levelConfig.lightBg}`}>
           <svg
             className={`w-5 h-5 ${levelConfig.color}`}
             fill="none"
@@ -357,7 +357,7 @@ function DimensionRadarChart({ dimensions }: { dimensions: DimensionScore[] }) {
   }));
 
   return (
-    <div className="bg-white border border-gray-200  p-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-gray-900">
           {t('confidenceScore.radarChart.title')}
@@ -399,7 +399,7 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
   };
 
   return (
-    <div className="bg-white border border-gray-200  p-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-gray-900">
           {t('confidenceScore.details.title')}
@@ -409,7 +409,7 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
 
       <div className="space-y-4">
         {dimensions.map((dim, index) => (
-          <div key={index} className="border border-gray-100  p-4">
+          <div key={index} className="border border-gray-100 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-gray-900 text-sm">{dim.name}</span>
@@ -470,7 +470,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
   };
 
   return (
-    <div className="bg-white border border-gray-200  p-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
@@ -503,7 +503,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
               if (!active || !payload || payload.length === 0) return null;
               const data = payload[0].payload as TrendDataPoint;
               return (
-                <div className="bg-white border border-gray-200  p-3 ">
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
                   <p className="text-xs text-gray-600 font-medium mb-2">
                     {data.timestamp.toLocaleString('zh-CN')}
                   </p>
@@ -588,7 +588,7 @@ function SuggestionsCard({ suggestions }: { suggestions: string[] }) {
   const t = useTranslations();
 
   return (
-    <div className="bg-white border border-gray-200  p-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
@@ -598,7 +598,7 @@ function SuggestionsCard({ suggestions }: { suggestions: string[] }) {
             {t('confidenceScore.suggestions.subtitle')}
           </p>
         </div>
-        <div className="p-2 bg-primary-50 ">
+        <div className="p-2 bg-primary-50 border border-primary-100 rounded-lg">
           <svg
             className="w-5 h-5 text-primary-600"
             fill="none"

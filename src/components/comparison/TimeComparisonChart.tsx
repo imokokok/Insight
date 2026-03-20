@@ -158,7 +158,7 @@ export function TimeComparisonChart({
       {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
 
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 border border-gray-200">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">{t('currentAvg')}</p>
             <p className="text-lg font-semibold text-primary-600">

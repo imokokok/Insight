@@ -48,14 +48,14 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
 
   return (
     <div
-      className={`pointer-events-auto w-full max-w-sm overflow-hidden   ring-1 ring-black ring-opacity-5 transition-all duration-300 ${
+      className={`pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg ring-1 ring-black ring-opacity-5 transition-all duration-300 ${
         isVisible && !isLeaving ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
-      <div className="bg-white p-4">
+      <div className="bg-white p-4 rounded-lg">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center  bg-warning-100">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-warning-100">
               <svg
                 className="h-6 w-6 text-warning-600"
                 fill="none"

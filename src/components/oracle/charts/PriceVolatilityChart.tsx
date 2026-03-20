@@ -410,7 +410,7 @@ export function PriceVolatilityChart({
     if (!result) return null;
 
     return (
-      <div className="bg-white p-4 rounded border border-gray-200 min-w-[200px]">
+      <div className="bg-white p-4 rounded-lg border border-gray-200 min-w-[200px]">
         <p className="text-sm font-semibold text-gray-900 mb-3">{dataPoint.name}</p>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
@@ -458,7 +458,7 @@ export function PriceVolatilityChart({
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-      <div className="bg-white p-3 rounded border border-gray-200">
+      <div className="bg-white p-3 rounded-lg border border-gray-200">
         <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           {payload.map((entry, index: number) => (
@@ -483,7 +483,7 @@ export function PriceVolatilityChart({
 
     const data = payload[0].payload;
     return (
-      <div className="bg-white p-3 rounded border border-gray-200 min-w-[180px]">
+      <div className="bg-white p-3 rounded-lg border border-gray-200 min-w-[180px]">
         <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           <div className="flex justify-between items-center">

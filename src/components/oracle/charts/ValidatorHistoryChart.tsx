@@ -71,7 +71,7 @@ function CustomTooltip({
   if (!data) return null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded p-3 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
       <p className="text-gray-600 text-xs mb-2 font-medium">{label}</p>
 
       <div className="space-y-2">
@@ -195,7 +195,7 @@ export function ValidatorHistoryChart({
 
   if (error) {
     return (
-      <div className="bg-white border border-danger-200 rounded p-6" style={{ height }}>
+      <div className="bg-white border border-danger-200 rounded-lg p-6" style={{ height }}>
         <div className="flex items-center gap-3 text-danger-600">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

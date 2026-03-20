@@ -90,9 +90,9 @@ export default function LoginPage() {
   const displayError = errorInfo?.message || error?.message;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 rounded-lg">
       <div className="w-full max-w-md">
-        <div className="bg-white border border-gray-200 p-8 shadow-sm">
+        <div className="bg-white border border-gray-200 p-8 shadow-sm rounded-lg">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
               <h1 className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
@@ -104,7 +104,7 @@ export default function LoginPage() {
           </div>
 
           {displayError && (
-            <div className="mb-6 p-4 bg-danger-50 border border-danger-200">
+            <div className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg">
               <div className="flex items-start gap-3">
                 {errorInfo?.type === 'email_not_confirmed' ? (
                   <MailWarning className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5" />
@@ -142,7 +142,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder={t('auth.login.emailPlaceholder')}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors rounded-md"
                 />
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder={t('auth.login.passwordPlaceholder')}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors rounded-md"
                 />
                 <button
                   type="button"
@@ -181,10 +181,10 @@ export default function LoginPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
-                  id="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                />
+                id="remember-me"
+                type="checkbox"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              />
                 <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600">
                   {t('auth.login.rememberMe')}
                 </label>

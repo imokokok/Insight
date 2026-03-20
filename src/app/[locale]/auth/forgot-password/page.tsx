@@ -35,10 +35,10 @@ function ForgotPasswordContent() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12 rounded-lg">
         <div className="w-full max-w-md">
-          <div className="bg-white border border-gray-200 p-8 text-center">
-            <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6">
+          <div className="bg-white border border-gray-200 p-8 text-center rounded-lg">
+            <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6 rounded-lg">
               <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
@@ -50,13 +50,13 @@ function ForgotPasswordContent() {
             <div className="space-y-3">
               <Link
                 href="/login"
-                className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors"
+                className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
               >
                 {t('auth.forgotPassword.success.goToLogin')}
               </Link>
               <button
                 onClick={() => setIsSuccess(false)}
-                className="w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                className="w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors rounded-md"
               >
                 {t('auth.forgotPassword.success.sendAgain')}
               </button>
@@ -68,16 +68,16 @@ function ForgotPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12 rounded-lg">
       <div className="w-full max-w-md">
-        <div className="bg-white border border-gray-200 p-8">
+        <div className="bg-white border border-gray-200 p-8 rounded-lg">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
               <h1 className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
                 Insight
               </h1>
             </Link>
-            <div className="w-16 h-16 bg-primary-100 flex items-center justify-center mx-auto mt-4 mb-4">
+            <div className="w-16 h-16 bg-primary-100 flex items-center justify-center mx-auto mt-4 mb-4 rounded-lg">
               <KeyRound className="w-8 h-8 text-primary-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900">
@@ -87,7 +87,7 @@ function ForgotPasswordContent() {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-danger-50 border border-danger-200">
+            <div className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg">
               <p className="text-sm text-danger-600">{error}</p>
             </div>
           )}
@@ -108,7 +108,7 @@ function ForgotPasswordContent() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder={t('auth.forgotPassword.emailPlaceholder')}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600 transition-colors"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600 transition-colors rounded-md"
                 />
               </div>
             </div>
@@ -116,7 +116,7 @@ function ForgotPasswordContent() {
             <button
               type="submit"
               disabled={isLoading || !email}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -148,7 +148,7 @@ export default function ForgotPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-insight px-4">
+        <div className="min-h-screen flex items-center justify-center bg-insight px-4 rounded-lg">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading...</p>

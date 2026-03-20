@@ -133,7 +133,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       className={`
         pointer-events-auto
         flex items-start gap-3 min-w-[300px] max-w-[400px]
-        p-4  border 
+        p-4 border rounded-lg shadow-lg
         transition-all duration-200 ease-out
         ${toastStyles[toast.type]}
         ${isExiting ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'}

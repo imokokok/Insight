@@ -119,7 +119,7 @@ export function CDFChart({
     );
 
     return (
-      <div className="bg-white border border-gray-200 rounded p-3 min-w-[180px]">
+      <div className="bg-white border border-gray-200 rounded-lg p-3 min-w-[180px]">
         <p className="text-xs text-gray-500 font-medium mb-2">{t('cdfChart.latency') || '延迟'}</p>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
@@ -183,7 +183,7 @@ export function CDFChart({
         {percentileConfig.map((item) => (
           <div
             key={item.key}
-            className="bg-white border border-gray-200 rounded p-4"
+            className="bg-white border border-gray-200 rounded-lg p-4"
             style={{ borderLeftColor: item.color, borderLeftWidth: 3 }}
           >
             <div className="flex items-center justify-between mb-2">
@@ -206,7 +206,7 @@ export function CDFChart({
       {/* Statistics Grid */}
       <div className="grid grid-cols-5 gap-3">
         {stats.map((item) => (
-          <div key={item.label} className="bg-white border border-gray-200 rounded p-3 text-center">
+          <div key={item.label} className="bg-white border border-gray-200 rounded-lg p-3 text-center">
             <span className="text-xl mb-1 block">{item.icon}</span>
             <p className="text-xs text-gray-500 mb-1">{item.label}</p>
             <p className="text-sm font-semibold text-gray-900">{item.value}</p>
@@ -215,7 +215,7 @@ export function CDFChart({
       </div>
 
       {/* CDF Chart */}
-      <div className="bg-white border border-gray-200 rounded p-5">
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900">
             {t('cdfChart.chartTitle') || 'CDF 曲线'}

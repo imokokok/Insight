@@ -292,7 +292,7 @@ export function RedStoneRiskAssessmentPanel() {
             >
               <div className="flex-shrink-0 w-24 text-xs text-gray-500">{event.date}</div>
               <div className="flex-shrink-0">
-                <span className={`px-2 py-1 text-xs border ${getEventTypeColor(event.type)}`}>
+                <span className={`px-2 py-1 text-xs border rounded-md ${getEventTypeColor(event.type)}`}>
                   {t(`redstone.riskAssessment.eventTypes.${event.type}`)}
                 </span>
               </div>
@@ -301,7 +301,7 @@ export function RedStoneRiskAssessmentPanel() {
                 <p className="text-xs text-gray-500 mt-1">{event.description}</p>
               </div>
               <div className="flex-shrink-0">
-                <span className={`px-2 py-1 text-xs border ${getStatusColor(event.status)}`}>
+                <span className={`px-2 py-1 text-xs border rounded-md ${getStatusColor(event.status)}`}>
                   {event.status === 'resolved'
                     ? t('redstone.riskAssessment.resolved')
                     : t('redstone.riskAssessment.monitoring')}
@@ -358,7 +358,7 @@ export function RedStoneRiskAssessmentPanel() {
                 <span className="text-sm text-gray-600">
                   {t('redstone.riskAssessment.lastAudit')}: {item.lastAudit}
                 </span>
-                <span className={`px-2 py-1 text-xs border ${getRiskLevelColor(item.riskLevel)}`}>
+                <span className={`px-2 py-1 text-xs border rounded-md ${getRiskLevelColor(item.riskLevel)}`}>
                   {t(`redstone.riskAssessment.riskLevel.${item.riskLevel}`)}
                 </span>
               </div>
@@ -393,7 +393,7 @@ export function RedStoneRiskAssessmentPanel() {
                   </div>
                 </div>
                 <span
-                  className={`px-2 py-0.5 text-xs border ${getMeasureStatusColor(measure.status)}`}
+                  className={`px-2 py-0.5 text-xs border rounded-md ${getMeasureStatusColor(measure.status)}`}
                 >
                   {t(`redstone.riskAssessment.${measure.status}`)}
                 </span>

@@ -85,17 +85,17 @@ export default function RegisterPage() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12 rounded-lg">
         <div className="w-full max-w-md">
-          <div className="bg-white border border-gray-200 p-8 text-center">
-            <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6">
+          <div className="bg-white border border-gray-200 p-8 text-center rounded-lg">
+            <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6 rounded-lg">
               <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {t('auth.register.success.title')}
             </h2>
             <p className="text-gray-500 mb-4">{t('auth.register.success.emailSent', { email })}</p>
-            <div className="bg-primary-50 border border-primary-200 p-4 mb-6 text-left">
+            <div className="bg-primary-50 border border-primary-200 p-4 mb-6 text-left rounded-lg">
               <div className="flex items-start gap-3">
                 <Mail className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-primary-800">
@@ -111,7 +111,7 @@ export default function RegisterPage() {
             <div className="space-y-3">
               <Link
                 href="/login"
-                className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors"
+                className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
               >
                 {t('auth.register.success.goToLogin')}
               </Link>
@@ -123,7 +123,7 @@ export default function RegisterPage() {
                   setConfirmPassword('');
                   setDisplayName('');
                 }}
-                className="w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                className="w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors rounded-md"
               >
                 {t('auth.register.success.useOtherEmail')}
               </button>
@@ -135,9 +135,9 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12 rounded-lg">
       <div className="w-full max-w-md">
-        <div className="bg-white border border-gray-200 p-8">
+        <div className="bg-white border border-gray-200 p-8 rounded-lg">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
               <h1 className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
@@ -149,7 +149,7 @@ export default function RegisterPage() {
           </div>
 
           {displayError && (
-            <div className="mb-6 p-4 bg-danger-50 border border-danger-200">
+            <div className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-danger-600">{displayError}</p>
@@ -173,7 +173,7 @@ export default function RegisterPage() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder={t('auth.register.displayNamePlaceholder')}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
                 />
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder={t('auth.register.emailPlaceholder')}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
                 />
               </div>
             </div>
@@ -213,7 +213,7 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder={t('auth.register.passwordPlaceholder')}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
                 />
                 <button
                   type="button"
@@ -247,7 +247,7 @@ export default function RegisterPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   placeholder={t('auth.register.confirmPasswordPlaceholder')}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
                 />
                 <button
                   type="button"
@@ -268,7 +268,7 @@ export default function RegisterPage() {
                 id="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 mt-1 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                className="h-4 w-4 mt-1 text-primary-600 focus:ring-primary-500 border-gray-300 rounded-md"
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
                 <span>{t('auth.register.termsAgreementPrefix')}</span>

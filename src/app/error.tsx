@@ -20,8 +20,8 @@ export default function Error({ error, reset }: ErrorProps) {
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
-      <div className="text-center max-w-md">
-        <div className="w-20 h-20 bg-danger-50 flex items-center justify-center mx-auto mb-6">
+      <div className="text-center max-w-md bg-white border border-gray-200 rounded-lg p-8">
+        <div className="w-20 h-20 bg-danger-50 flex items-center justify-center mx-auto mb-6 rounded-lg">
           <AlertTriangle className="w-10 h-10 text-danger-500" />
         </div>
 
@@ -44,7 +44,7 @@ export default function Error({ error, reset }: ErrorProps) {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={reset}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors rounded-md"
           >
             <RefreshCw className="w-4 h-4" />
             {t('retry')}
@@ -52,7 +52,7 @@ export default function Error({ error, reset }: ErrorProps) {
 
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors rounded-md"
           >
             <Home className="w-4 h-4" />
             {t('backHome')}

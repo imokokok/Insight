@@ -221,17 +221,17 @@ export function AlertTemplates({ onSelectTemplate, selectedSymbol = 'BTC' }: Ale
           <button
             key={template.id}
             onClick={() => handleSelectTemplate(template)}
-            className="flex items-start gap-3 p-3 text-left border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-colors"
+            className="flex items-start gap-3 p-3 text-left border border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors"
           >
             <div className="flex-shrink-0 text-gray-500">{TEMPLATE_ICONS[template.icon]}</div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900">{template.name}</p>
               <p className="text-xs text-gray-500 mt-0.5">{template.description}</p>
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
+                <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">
                   {template.config.symbol}
                 </span>
-                <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
+                <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">
                   {template.config.condition_type === 'above'
                     ? `≥ ${template.config.target_value}`
                     : template.config.condition_type === 'below'

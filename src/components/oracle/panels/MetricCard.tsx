@@ -14,7 +14,7 @@ export function MetricCard({ metric }: { metric: NetworkMetric }) {
     metric.trendDirection === 'up' ? '↑' : metric.trendDirection === 'down' ? '↓' : '→';
 
   return (
-    <div className="bg-white border border-gray-200 p-4 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{metric.title}</p>
@@ -31,7 +31,7 @@ export function MetricCard({ metric }: { metric: NetworkMetric }) {
             <span className="text-gray-400 ml-1">{t('networkHealth.vsLastWeek')}</span>
           </div>
         </div>
-        <div className="p-2.5 bg-primary-50 border border-primary-100 text-primary-600">{metric.icon}</div>
+        <div className="p-2.5 bg-primary-50 border border-primary-100 rounded-lg text-primary-600">{metric.icon}</div>
       </div>
     </div>
   );

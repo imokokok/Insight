@@ -24,7 +24,7 @@ export function LatencyDistributionChart({ data, metrics }: LatencyDistributionC
   const t = useTranslations();
 
   return (
-    <div className="bg-white border border-gray-200 p-5">
+    <div className="bg-white border border-gray-200 rounded-lg p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
@@ -34,7 +34,7 @@ export function LatencyDistributionChart({ data, metrics }: LatencyDistributionC
             {t('dataQuality.responseLatencyHistogram')}
           </p>
         </div>
-        <div className="p-2 bg-purple-50">
+        <div className="p-2 bg-purple-50 border border-purple-100 rounded-lg">
           <svg
             className="w-5 h-5 text-purple-600"
             fill="none"
@@ -47,21 +47,21 @@ export function LatencyDistributionChart({ data, metrics }: LatencyDistributionC
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-success-50 p-3 text-center">
+        <div className="bg-success-50 border border-success-100 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">P50</p>
           <p className="text-lg font-bold text-success-600">
             {metrics.p50}
             <span className="text-sm text-gray-500 ml-1">ms</span>
           </p>
         </div>
-        <div className="bg-warning-50 p-3 text-center">
+        <div className="bg-warning-50 border border-warning-100 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">P95</p>
           <p className="text-lg font-bold text-warning-600">
             {metrics.p95}
             <span className="text-sm text-gray-500 ml-1">ms</span>
           </p>
         </div>
-        <div className="bg-danger-50 p-3 text-center">
+        <div className="bg-danger-50 border border-danger-100 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">P99</p>
           <p className="text-lg font-bold text-danger-600">
             {metrics.p99}
@@ -96,7 +96,7 @@ export function LatencyDistributionChart({ data, metrics }: LatencyDistributionC
               if (!active || !payload || payload.length === 0) return null;
               const item = payload[0].payload as LatencyDistributionData;
               return (
-                <div className="bg-white border border-gray-200 p-3">
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
                   <p className="text-xs text-gray-600 font-medium">
                     {t('dataQuality.latencyRange')}: {item.range}ms
                   </p>

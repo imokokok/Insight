@@ -190,7 +190,7 @@ export function BenchmarkComparison({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header with comparison summary */}
-      <div className={`p-6 border ${getPerformanceBg(comparison.performance)} border-gray-200`}>
+      <div className={`p-6 border rounded-lg ${getPerformanceBg(comparison.performance)} border-gray-200`}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             {title && <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>}
@@ -227,7 +227,7 @@ export function BenchmarkComparison({
         {/* Performance indicator */}
         <div className="mt-4 flex items-center gap-2">
           <div
-            className={`px-3 py-1 text-sm font-medium rounded ${
+            className={`px-3 py-1 text-sm font-medium rounded-md ${
               comparison.performance === 'above'
                 ? invertColors
                   ? 'bg-danger-100 text-danger-700'
@@ -263,7 +263,7 @@ export function BenchmarkComparison({
             <button
               key={key}
               onClick={() => setSelectedBenchmark(key)}
-              className={`px-3 py-2 text-sm font-medium border transition-colors ${
+              className={`px-3 py-2 text-sm font-medium border rounded-md transition-colors ${
                 selectedBenchmark === key
                   ? 'bg-primary-50 border-primary-300 text-primary-700'
                   : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
@@ -277,7 +277,7 @@ export function BenchmarkComparison({
 
       {/* Chart */}
       {showChart && metrics.length > 0 && (
-        <div className="bg-white border border-gray-200 p-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
           <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('benchmarkComparison')}</h4>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -340,7 +340,7 @@ export function BenchmarkComparison({
 
       {/* Gap Chart */}
       {showChart && metrics.length > 0 && (
-        <div className="bg-white border border-gray-200 p-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
           <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('performanceGap')}</h4>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -388,7 +388,7 @@ export function BenchmarkComparison({
 
       {/* Table */}
       {showTable && metrics.length > 0 && (
-        <div className="bg-white border border-gray-200 overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200">
             <h4 className="text-sm font-semibold text-gray-900">{t('detailedComparison')}</h4>
           </div>
@@ -435,15 +435,15 @@ export function BenchmarkComparison({
                       </td>
                       <td className="px-4 py-3 text-center">
                         {isNeutral ? (
-                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-md">
                             {t('atBenchmark')}
                           </span>
                         ) : isPositive ? (
-                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-success-100 text-success-700 rounded">
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-success-100 text-success-700 rounded-md">
                             {t('aboveBenchmark')}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-danger-100 text-danger-700 rounded">
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-danger-100 text-danger-700 rounded-md">
                             {t('belowBenchmark')}
                           </span>
                         )}

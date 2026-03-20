@@ -91,7 +91,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="bg-insight min-h-screen">
+    <div className="bg-insight min-h-screen rounded-lg">
       <SettingsLayout activeTab={activeTab} onTabChange={setActiveTab}>
         {activeTab === 'profile' && <ProfilePanel />}
         {activeTab === 'preferences' && <PreferencesPanel />}

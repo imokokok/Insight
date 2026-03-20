@@ -98,7 +98,7 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
             {filteredHistory.length}
           </span>
         </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+        <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors">
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -110,7 +110,7 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+              className={`px-2 py-1 text-xs font-medium rounded-md transition-colors ${
                 filter === f
                   ? 'bg-primary-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -136,7 +136,7 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     {/* 格式图标 */}
-                    <div className={`p-2 rounded ${formatColors[item.format]}`}>
+                    <div className={`p-2 rounded-lg ${formatColors[item.format]}`}>
                       {formatIcons[item.format]}
                     </div>
 
@@ -173,7 +173,7 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
                     {item.status === 'completed' && (
                       <button
                         onClick={() => handleReDownload(item)}
-                        className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
                         title={t('reDownload')}
                       >
                         <Download className="w-4 h-4" />
@@ -181,7 +181,7 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
                     )}
                     <button
                       onClick={() => removeHistoryItem(item.id)}
-                      className="p-1.5 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded-md transition-colors"
                       title={t('delete')}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -199,7 +199,7 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
         <div className="px-4 py-3 border-t border-gray-200">
           <button
             onClick={clearHistory}
-            className="w-full px-4 py-2 text-sm font-medium text-danger-600 bg-danger-50 hover:bg-danger-100 transition-colors rounded"
+            className="w-full px-4 py-2 text-sm font-medium text-danger-600 bg-danger-50 hover:bg-danger-100 transition-colors rounded-md"
           >
             {t('clearAll')}
           </button>

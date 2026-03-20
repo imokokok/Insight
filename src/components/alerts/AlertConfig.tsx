@@ -196,7 +196,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             value={alertName}
             onChange={(e) => setAlertName(e.target.value)}
             placeholder={t('alerts.create.namePlaceholder')}
-            className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
 
@@ -249,7 +249,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             {CONDITION_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className={`flex items-start p-3 border cursor-pointer transition-colors ${
+                className={`flex items-start p-3 border rounded-lg cursor-pointer transition-colors ${
                   conditionType === option.value
                     ? 'border-primary-500 bg-primary-50'
                     : 'border-gray-200 hover:bg-gray-50'
@@ -282,7 +282,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             value={targetValue}
             onChange={(e) => setTargetValue(e.target.value)}
             placeholder={getTargetPlaceholder()}
-            className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
 
@@ -293,12 +293,12 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
           <button
             type="button"
             onClick={() => setIsActive(!isActive)}
-            className={`relative inline-flex h-6 w-11 items-center transition-colors ${
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               isActive ? 'bg-primary-600' : 'bg-gray-200'
             }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform bg-white transition-transform ${
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                 isActive ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
@@ -342,7 +342,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         </div>
 
         {error && (
-          <div className="p-3 bg-danger-50 border border-danger-200 text-sm text-danger-600">{error}</div>
+          <div className="p-3 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-600">{error}</div>
         )}
 
         <button

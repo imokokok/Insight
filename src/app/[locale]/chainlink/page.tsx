@@ -139,7 +139,7 @@ export default function ChainlinkPage() {
   }
 
   return (
-    <div className="min-h-screen bg-insight">
+    <div className="min-h-screen bg-insight rounded-lg">
       <PageHeader
         title={config.name}
         subtitle={config.description}

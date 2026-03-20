@@ -157,7 +157,7 @@ export default function ChroniclePage() {
   }
 
   return (
-    <div className="min-h-screen bg-insight">
+    <div className="min-h-screen bg-insight rounded-lg">
       <PageHeader
         title={t('chronicle.title')}
         subtitle={t('chronicle.subtitle')}

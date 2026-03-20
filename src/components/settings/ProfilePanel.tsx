@@ -6,40 +6,7 @@ import { updateUserProfile } from '@/lib/supabase/auth';
 import { User, Mail, Save, Key, Loader2, CheckCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 // AvatarUploader component is not available, using a placeholder
-const AvatarUploader = ({
-  currentAvatarUrl,
-  userId,
-  onAvatarUpdate,
-  onError,
-  onSuccess
-}: {
-  currentAvatarUrl?: string | null;
-  userId: string;
-  onAvatarUpdate: (url: string) => Promise<void>;
-  onError: (errorMsg: string) => void;
-  onSuccess: (message: string) => void;
-}) => (
-  <div className="flex items-center gap-4">
-    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-      {currentAvatarUrl ? (
-        <img src={currentAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-      ) : (
-        <User className="w-8 h-8 text-gray-400" />
-      )}
-    </div>
-    <button
-      type="button"
-      className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
-      onClick={() => {
-        // Placeholder for upload functionality
-        console.log('Avatar upload clicked');
-        onSuccess('Avatar updated successfully');
-      }}
-    >
-      Upload Avatar
-    </button>
-  </div>
-);
+import { AvatarUploader } from '@/components/settings/AvatarUploader';
 
 export function ProfilePanel() {
   const t = useTranslations();

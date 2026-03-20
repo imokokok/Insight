@@ -117,12 +117,12 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
         <button
           type="button"
           onClick={handleToggleEnable}
-          className={`relative inline-flex h-6 w-11 items-center transition-colors ${
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
             localConfig.enabled ? 'bg-primary-600' : 'bg-gray-200'
           }`}
         >
           <span
-            className={`inline-block h-4 w-4 transform bg-white transition-transform ${
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
               localConfig.enabled ? 'translate-x-6' : 'translate-x-1'
             }`}
           />
@@ -153,7 +153,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                     type="time"
                     value={localConfig.startTime || '22:00'}
                     onChange={handleStartTimeChange}
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
                 <div>
@@ -164,7 +164,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                     type="time"
                     value={localConfig.endTime || '08:00'}
                     onChange={handleEndTimeChange}
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
               </div>
@@ -194,7 +194,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                           key={day.value}
                           type="button"
                           onClick={() => handleDayToggle(day.value)}
-                          className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                          className={`px-2 py-1 text-xs font-medium rounded-md transition-colors ${
                             isSelected
                               ? 'bg-primary-600 text-white'
                               : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
@@ -210,7 +210,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
             </div>
           )}
 
-          <div className="p-3 bg-warning-50 border border-yellow-200 rounded text-xs text-yellow-800">
+          <div className="p-3 bg-warning-50 border border-yellow-200 rounded-lg text-xs text-yellow-800">
             <div className="flex items-start gap-2">
               <svg
                 className="w-4 h-4 flex-shrink-0 mt-0.5"

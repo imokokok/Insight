@@ -32,7 +32,7 @@ function CustomTooltip({ active, payload, label, t }: CustomTooltipProps) {
   if (active && payload && payload.length) {
     const dataPoint = payload[0].payload;
     return (
-      <div className="bg-white p-4 rounded border border-gray-200">
+      <div className="bg-white p-4 rounded-lg border border-gray-200">
         <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           <p className="text-sm">
@@ -88,7 +88,7 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
   }, [data]);
 
   return (
-    <div className="bg-white rounded border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900">{t('pyth.trend.title')}</h3>
         <div className="flex items-center gap-4">
