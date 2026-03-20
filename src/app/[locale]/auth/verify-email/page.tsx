@@ -49,7 +49,7 @@ function VerifyEmailContent() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-dune px-4">
+      <div className="min-h-screen flex items-center justify-center bg-insight px-4">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">{t('auth.verifyEmail.verifying')}</p>
@@ -60,7 +60,7 @@ function VerifyEmailContent() {
 
   if (status === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-dune px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white border border-gray-200 p-8 text-center">
             <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -85,7 +85,7 @@ function VerifyEmailContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dune px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
       <div className="w-full max-w-md">
         <div className="bg-white border border-gray-200 p-8 text-center">
           <div className="w-16 h-16 bg-red-100 flex items-center justify-center mx-auto mb-6">
@@ -119,7 +119,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-dune px-4">
+        <div className="min-h-screen flex items-center justify-center bg-insight px-4">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading...</p>

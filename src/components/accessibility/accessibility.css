@@ -23,7 +23,7 @@
   --finance-neutral-light: #f0f0f0;
   
   /* Borders */
-  --border-dune-separator: #000000;
+  --border-insight-separator: #000000;
   
   /* Focus */
   --focus-color: #0000ff;
@@ -344,7 +344,7 @@
   --finance-danger: #f87171;
   --finance-neutral: #9ca3af;
   --finance-neutral-light: #1f2937;
-  --border-dune-separator: #374151;
+  --border-insight-separator: #374151;
 }
 
 .theme-dark body {
