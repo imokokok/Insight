@@ -20,7 +20,7 @@ import {
   X,
   AlertTriangle,
 } from 'lucide-react';
-import { TIME_RANGES, ChartType, ViewType, TVSTrendData } from '../types';
+import { TIME_RANGES, ChartType, ViewType, TVSTrendData, OracleMarketData, ChainBreakdown, ProtocolDetail, AssetCategory, ComparisonData, BenchmarkData, CorrelationData } from '../types';
 import ChartRenderer from './ChartRenderer';
 
 interface ChartContainerProps {
@@ -67,15 +67,14 @@ interface ChartContainerProps {
   loading: boolean;
   loadingEnhanced: boolean;
   loadingComparison: boolean;
-  // Data from useMarketOverviewData
-  sortedOracleData: any[];
+  sortedOracleData: OracleMarketData[];
   trendData: TVSTrendData[];
-  chainBreakdown: any[];
-  protocolDetails: any[];
-  assetCategories: any[];
-  comparisonData: any[];
-  benchmarkData: any[];
-  correlationData: any;
+  chainBreakdown: ChainBreakdown[];
+  protocolDetails: ProtocolDetail[];
+  assetCategories: AssetCategory[];
+  comparisonData: ComparisonData[];
+  benchmarkData: BenchmarkData[];
+  correlationData: CorrelationData;
 }
 
 const chartTypes = [
@@ -138,7 +137,7 @@ export default function ChartContainer({
     } else {
       setComparisonMode(mode);
       const variance = mode === 'yoy' ? 0.15 : 0.08;
-      const newComparisonData = trendData.map((item: any) => ({
+      const newComparisonData = trendData.map((item: TVSTrendData) => ({
         ...item,
         chainlink: item.chainlink * (1 + (Math.random() - 0.5) * variance),
         pyth: item.pyth * (1 + (Math.random() - 0.5) * variance),
@@ -155,12 +154,12 @@ export default function ChartContainer({
     }
   };
 
-  const prepareComparisonData = (currentData: any[], compareData: any[]) => {
+  const prepareComparisonData = (currentData: TVSTrendData[], compareData: TVSTrendData[]) => {
     return currentData.map((item, index) => {
       const compareItem = compareData[index];
-      const result: any = { ...item };
+      const result: TVSTrendData & Record<string, string | number> = { ...item };
 
-      [
+      const oracleKeys = [
         'chainlink',
         'pyth',
         'band',
@@ -171,7 +170,9 @@ export default function ChartContainer({
         'tellor',
         'chronicle',
         'winklink',
-      ].forEach((key) => {
+      ] as const;
+
+      oracleKeys.forEach((key) => {
         const currentValue = item[key] as number;
         const compareValue = compareItem?.[key] as number;
         result[`${key}Compare`] = compareValue || 0;
@@ -420,7 +421,8 @@ export default function ChartContainer({
                       ];
                       const avgDiff =
                         oracleKeys.reduce((sum, key) => {
-                          return sum + (latestData[`${key}DiffPercent`] || 0);
+                          const diffPercent = latestData[`${key}DiffPercent`];
+                          return sum + (typeof diffPercent === 'number' ? diffPercent : 0);
                         }, 0) / oracleKeys.length;
                       return (
                         <span

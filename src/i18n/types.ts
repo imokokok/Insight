@@ -19,6 +19,6 @@ export interface I18nContextType {
 }
 
 // 动态加载的消息类型
-export type LoadedMessages = {
+export interface LoadedMessages {
   [key: string]: Messages;
-};
+}

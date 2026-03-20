@@ -10,10 +10,11 @@ import { DIAClient } from './dia';
 import { TellorClient } from './tellor';
 import { ChronicleClient } from './chronicle';
 import { WINkLinkClient } from './winklink';
-import { OracleClientConfig } from './base';
+import type { OracleClientConfig } from './base';
 import { createLogger } from '@/lib/utils/logger';
 import { container, SERVICE_TOKENS } from '@/lib/di';
-import { IOracleClient, IOracleClientFactory } from './interfaces';
+import type { IOracleClient, IOracleClientFactory } from './interfaces';
+import { OracleClientError, ValidationError } from '@/lib/errors';
 
 const logger = createLogger('OracleClientFactory');
 
@@ -44,7 +45,9 @@ export class OracleClientFactory {
     }
     const client = this.instances.get(provider);
     if (!client) {
-      throw new Error(`Failed to create oracle client for provider: ${provider}`);
+      throw new OracleClientError(`Failed to create oracle client for provider: ${provider}`, {
+        provider,
+      });
     }
     return client;
   }
@@ -149,7 +152,9 @@ export class OracleClientFactory {
       case OracleProvider.WINKLINK:
         return new WINkLinkClient(this.config);
       default:
-        throw new Error(`Unknown oracle provider: ${provider}`);
+        throw new ValidationError(`Unknown oracle provider: ${provider}`, {
+          value: provider,
+        });
     }
   }
 }

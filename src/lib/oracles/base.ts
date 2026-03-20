@@ -1,14 +1,15 @@
-import { PriceData, OracleProvider, OracleError, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
+import type { PriceData, OracleError } from '@/types/oracle';
 import {
   shouldUseDatabase,
   savePriceToDatabase,
   savePricesToDatabase,
   getPriceFromDatabase,
   getHistoricalPricesFromDatabase,
-  OracleStorageConfig,
   configureStorage,
   getStorageConfig,
 } from './storage';
+import type { OracleStorageConfig } from './storage';
 import { PriceFetchError, OracleClientError } from '@/lib/errors';
 
 export { shouldUseDatabase, configureStorage, getStorageConfig };

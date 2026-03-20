@@ -41,11 +41,11 @@ interface TimeComparisonConfig {
 }
 
 interface QueryResultsProps {
-  loading: boolean;
+  isLoading: boolean;
   queryResults: QueryResult[];
   filteredQueryResults: QueryResult[];
   historicalData: Partial<Record<string, PriceData[]>>;
-  compareMode: boolean;
+  isCompareMode: boolean;
   compareQueryResults: QueryResult[];
   compareHistoricalData: Partial<Record<string, PriceData[]>>;
   showBaseline: boolean;
@@ -88,11 +88,11 @@ interface QueryResultsProps {
 }
 
 export function QueryResults({
-  loading,
+  isLoading,
   queryResults,
   filteredQueryResults,
   historicalData,
-  compareMode,
+  isCompareMode,
   compareQueryResults,
   compareHistoricalData,
   showBaseline,
@@ -135,7 +135,7 @@ export function QueryResults({
 }: QueryResultsProps) {
   const t = useTranslations();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -206,7 +206,7 @@ export function QueryResults({
         queryDuration={queryDuration}
         avgChange24hPercent={avgChange24hPercent}
         prices={validPrices}
-        compareMode={compareMode}
+        compareMode={isCompareMode}
         compareAvgPrice={compareAvgPrice}
         compareMaxPrice={compareMaxPrice}
         compareMinPrice={compareMinPrice}
@@ -226,10 +226,10 @@ export function QueryResults({
               : null
           }
           onRefresh={onRefresh}
-          isLoading={loading}
+          isLoading={isLoading}
         />
         <UnifiedExportSection
-          loading={loading}
+          loading={isLoading}
           queryResults={queryResults}
           chartContainerRef={chartContainerRef}
           selectedSymbol={selectedSymbol}
@@ -266,7 +266,7 @@ export function QueryResults({
             onToggleSeries={onToggleSeries}
             selectedTimeRange={selectedTimeRange}
             selectedRow={selectedRow}
-            compareMode={compareMode}
+            compareMode={isCompareMode}
             compareChartData={compareChartData}
             compareQueryResults={compareQueryResults}
             showBaseline={showBaseline}
@@ -275,7 +275,7 @@ export function QueryResults({
         </div>
       </div>
 
-      {compareMode && chartData.length > 0 && compareChartData.length > 0 && (
+      {isCompareMode && chartData.length > 0 && compareChartData.length > 0 && (
         <TimeComparisonSection
           chartData={chartData}
           compareChartData={compareChartData}

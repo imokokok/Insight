@@ -10,7 +10,7 @@ export interface ChartState {
   rawData: IndicatorDataPoint[];
   data: IndicatorDataPoint[];
   comparisonData: IndicatorDataPoint[];
-  loading: boolean;
+  isLoading: boolean;
   currentPrice: number;
   granularity: DataGranularity;
   comparison: ComparisonPeriod;
@@ -40,7 +40,7 @@ export function useChartState() {
   const [rawData, setRawData] = useState<IndicatorDataPoint[]>([]);
   const [data, setData] = useState<IndicatorDataPoint[]>([]);
   const [comparisonData, setComparisonData] = useState<IndicatorDataPoint[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [granularity, setGranularity] = useState<DataGranularity>('hour');
   const [comparison, setComparison] = useState<ComparisonPeriod>({
@@ -108,8 +108,8 @@ export function useChartState() {
     setData,
     comparisonData,
     setComparisonData,
-    loading,
-    setLoading,
+    isLoading,
+    setIsLoading,
     currentPrice,
     setCurrentPrice,
     granularity,

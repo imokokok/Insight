@@ -1,9 +1,11 @@
-import { BaseOracleClient, OracleClientConfig } from './base';
+import { BaseOracleClient } from './base';
+import type { OracleClientConfig } from './base';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
-import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 import type { GasFeeData } from '@/components/oracle/common/GasFeeComparison';
-import { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
-import { OHLCVDataPoint } from '@/lib/indicators';
+import type { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
+import type { OHLCVDataPoint } from '@/lib/indicators';
 
 export interface DAPIPriceDeviation {
   symbol: string;

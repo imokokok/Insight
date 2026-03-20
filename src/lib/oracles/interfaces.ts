@@ -1,4 +1,5 @@
-import { PriceData, OracleProvider, Blockchain, OracleError } from '@/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
+import type { PriceData, OracleError } from '@/types/oracle';
 
 export interface IOracleClient {
   readonly name: OracleProvider;

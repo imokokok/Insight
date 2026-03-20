@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { ChainEvent, EventType, BandProtocolClient } from '@/lib/oracles/bandProtocol';
+import { ChainEvent, EventType, BandProtocolClient, EVENT_TYPE_VALUES } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from './DashboardCard';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -213,7 +213,7 @@ export function ChainEventMonitor({ client, refreshInterval = 30000 }: ChainEven
           >
             全部 ({events.length})
           </button>
-          {Object.values(EventType).map((type) => {
+          {EVENT_TYPE_VALUES.map((type) => {
             const config = EVENT_TYPE_CONFIG[type];
             const count = eventTypeCounts[type];
             return (

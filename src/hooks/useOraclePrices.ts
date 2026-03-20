@@ -6,9 +6,9 @@ import {
   BandProtocolClient,
   UMAClient,
   PythClient,
-  PriceData,
-  Blockchain,
 } from '@/lib/oracles';
+import { Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('useOraclePrices');

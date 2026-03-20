@@ -23,9 +23,9 @@ export interface ApiErrorBody {
   details?: Record<string, unknown>;
 }
 
-export type RequestConfig = {
+export interface RequestConfig {
   headers?: Record<string, string>;
   timeout?: number;
   signal?: AbortSignal;
   cache?: RequestCache;
-};
+}

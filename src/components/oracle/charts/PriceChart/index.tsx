@@ -70,7 +70,7 @@ function PriceChartBase({
   const {
     data,
     comparisonData,
-    loading,
+    isLoading,
     currentPrice,
     granularity,
     setGranularity,
@@ -248,7 +248,7 @@ function PriceChartBase({
     [data]
   );
 
-  if (loading || !indicatorsLoaded) {
+  if (isLoading || !indicatorsLoaded) {
     return <ChartSkeleton height={height} showToolbar={showToolbar} variant="price" />;
   }
 

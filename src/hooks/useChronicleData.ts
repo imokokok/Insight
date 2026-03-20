@@ -1,11 +1,13 @@
 import { useQuery, useQueries } from '@tanstack/react-query';
 import {
   ChronicleClient,
+} from '@/lib/oracles';
+import { Blockchain } from '@/types/oracle';
+import type {
   ScuttlebuttData,
   MakerDAOIntegration,
   ValidatorNetwork,
 } from '@/lib/oracles';
-import { Blockchain } from '@/types/oracle';
 import { useMemo } from 'react';
 
 const client = new ChronicleClient();

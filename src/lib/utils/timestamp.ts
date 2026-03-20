@@ -3,6 +3,8 @@
  * All functions work with timestamps in milliseconds as the standard unit.
  */
 
+import { ValidationError } from '@/lib/errors';
+
 /**
  * Converts a timestamp to milliseconds.
  * Handles seconds, milliseconds, Date objects, and ISO string formats.
@@ -25,7 +27,10 @@ export function toMilliseconds(timestamp: number | string | Date): number {
     const date = new Date(timestamp);
     const time = date.getTime();
     if (isNaN(time)) {
-      throw new Error(`Invalid date string: ${timestamp}`);
+      throw new ValidationError(`Invalid date string: ${timestamp}`, {
+        field: 'timestamp',
+        value: timestamp,
+      });
     }
     return time;
   }
@@ -40,7 +45,10 @@ export function toMilliseconds(timestamp: number | string | Date): number {
     return timestamp;
   }
 
-  throw new Error(`Invalid timestamp type: ${typeof timestamp}`);
+  throw new ValidationError(`Invalid timestamp type: ${typeof timestamp}`, {
+    field: 'timestamp',
+    value: timestamp,
+  });
 }
 
 /**

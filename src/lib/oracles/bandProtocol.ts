@@ -1,6 +1,8 @@
-import { BaseOracleClient, OracleClientConfig } from './base';
+import { BaseOracleClient } from './base';
+import type { OracleClientConfig } from './base';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
-import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 
 export interface BandProtocolMarketData {
   symbol: string;
@@ -175,13 +177,21 @@ export interface ValidatorHistory {
 
 export type HistoryPeriod = 7 | 30 | 90;
 
-export enum EventType {
+export const enum EventType {
   DELEGATION = 'DELEGATION',
   UNDELEGATION = 'UNDELEGATION',
   COMMISSION_CHANGE = 'COMMISSION_CHANGE',
   JAILED = 'JAILED',
   UNJAILED = 'UNJAILED',
 }
+
+export const EVENT_TYPE_VALUES: readonly EventType[] = [
+  EventType.DELEGATION,
+  EventType.UNDELEGATION,
+  EventType.COMMISSION_CHANGE,
+  EventType.JAILED,
+  EventType.UNJAILED,
+] as const;
 
 export interface ChainEvent {
   id: string;
@@ -806,7 +816,7 @@ export class BandProtocolClient extends BaseOracleClient {
       const now = Date.now();
 
       for (let i = 0; i < limit; i++) {
-        const eventTypes = type ? [type] : Object.values(EventType);
+        const eventTypes = type ? [type] : EVENT_TYPE_VALUES;
         const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
         const template = eventTemplates[eventType];
         const validator = validatorNames[Math.floor(Math.random() * validatorNames.length)];

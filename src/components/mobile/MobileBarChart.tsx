@@ -30,7 +30,7 @@ interface MobileBarChartProps {
   barColor?: string;
   onBarClick?: (point: DataPoint, index: number) => void;
   yAxisFormatter?: (value: number) => string;
-  tooltipFormatter?: (value: number, name: string, props: any) => string;
+  tooltipFormatter?: (value: number, name: string, props: { payload: DataPoint }) => string;
 }
 
 interface TouchState {
@@ -109,10 +109,13 @@ function MobileBarChartBase({
   }, []);
 
   const handleBarClick = useCallback(
-    (data: any, index: number) => {
+    (data: unknown, index: number) => {
+      const barData = data as { payload?: DataPoint };
       const actualIndex = visibleRange.start + index;
       setSelectedIndex(actualIndex);
-      onBarClick?.(data.payload, actualIndex);
+      if (barData.payload) {
+        onBarClick?.(barData.payload, actualIndex);
+      }
     },
     [onBarClick, visibleRange.start]
   );
@@ -180,8 +183,9 @@ function MobileBarChartBase({
                 if (active && payload && payload[0]) {
                   const value = payload[0].value as number;
                   const name = String(label || '');
+                  const props = payload[0].payload as DataPoint;
                   const formattedValue = tooltipFormatter
-                    ? tooltipFormatter(value, name, payload[0])
+                    ? tooltipFormatter(value, name, { payload: props })
                     : yAxisFormatter(value);
 
                   return (

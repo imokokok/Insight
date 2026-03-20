@@ -12,11 +12,11 @@ interface QueryFormProps {
   setSelectedSymbol: (symbol: string) => void;
   selectedTimeRange: number;
   setSelectedTimeRange: (timeRange: number) => void;
-  loading: boolean;
+  isLoading: boolean;
   onQuery: () => void;
   supportedChainsBySelectedOracles: Set<Blockchain>;
-  compareMode: boolean;
-  setCompareMode: (mode: boolean) => void;
+  isCompareMode: boolean;
+  setIsCompareMode: (mode: boolean) => void;
   compareTimeRange: number;
   setCompareTimeRange: (timeRange: number) => void;
   showBaseline: boolean;
@@ -32,11 +32,11 @@ export function QueryForm({
   setSelectedSymbol,
   selectedTimeRange,
   setSelectedTimeRange,
-  loading,
+  isLoading,
   onQuery,
   supportedChainsBySelectedOracles,
-  compareMode,
-  setCompareMode,
+  isCompareMode,
+  setIsCompareMode,
   compareTimeRange,
   setCompareTimeRange,
   showBaseline,
@@ -53,11 +53,11 @@ export function QueryForm({
         setSelectedSymbol={setSelectedSymbol}
         selectedTimeRange={selectedTimeRange}
         setSelectedTimeRange={setSelectedTimeRange}
-        loading={loading}
+        isLoading={isLoading}
         onQuery={onQuery}
         supportedChainsBySelectedOracles={supportedChainsBySelectedOracles}
-        compareMode={compareMode}
-        setCompareMode={setCompareMode}
+        isCompareMode={isCompareMode}
+        setIsCompareMode={setIsCompareMode}
         compareTimeRange={compareTimeRange}
         setCompareTimeRange={setCompareTimeRange}
         showBaseline={showBaseline}

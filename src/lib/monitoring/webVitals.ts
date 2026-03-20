@@ -3,14 +3,14 @@ import * as Sentry from '@sentry/nextjs';
 import { track } from '@vercel/analytics';
 import { env } from '@/lib/config/env';
 
-export type WebVitalMetric = {
+export interface WebVitalMetric {
   name: string;
   value: number;
   rating: 'good' | 'needs-improvement' | 'poor';
   delta: number;
   id: string;
   navigationType?: string;
-};
+}
 
 type MetricHandler = (metric: WebVitalMetric) => void;
 

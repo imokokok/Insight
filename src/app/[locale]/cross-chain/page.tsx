@@ -51,7 +51,7 @@ import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStor
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 import { FavoriteButton } from '@/components/favorites';
-import { FavoriteConfig } from '@/hooks/useFavorites';
+import type { FavoriteConfig } from '@/hooks/useFavorites';
 
 export default function CrossChainPage() {
   const t = useTranslations();

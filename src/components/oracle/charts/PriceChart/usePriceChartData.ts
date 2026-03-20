@@ -49,7 +49,7 @@ interface UsePriceChartDataReturn {
   comparisonData: IndicatorDataPoint[];
   rawData: IndicatorDataPoint[];
   setRawData: React.Dispatch<React.SetStateAction<IndicatorDataPoint[]>>;
-  loading: boolean;
+  isLoading: boolean;
   currentPrice: number;
   setCurrentPrice: React.Dispatch<React.SetStateAction<number>>;
   granularity: DataGranularity;
@@ -143,8 +143,8 @@ export function usePriceChartData({
     setData,
     comparisonData,
     setComparisonData,
-    loading,
-    setLoading,
+    isLoading,
+    setIsLoading,
     currentPrice,
     setCurrentPrice,
     granularity,
@@ -245,7 +245,7 @@ export function usePriceChartData({
 
     setIsRefreshing(true);
     setChartOpacity(0.3);
-    setLoading(true);
+    setIsLoading(true);
     try {
       const priceData = await client.getPrice(symbol, chain);
 
@@ -286,7 +286,7 @@ export function usePriceChartData({
       setRawData(applyDownsampling(fallbackData));
     } finally {
       if (!abortController.signal.aborted) {
-        setLoading(false);
+        setIsLoading(false);
         setChartOpacity(1);
         setTimeout(() => setIsRefreshing(false), 300);
       }
@@ -301,7 +301,7 @@ export function usePriceChartData({
     abortControllerRef,
     setIsRefreshing,
     setChartOpacity,
-    setLoading,
+    setIsLoading,
     setCurrentPrice,
     setRawData,
     applyDownsampling,
@@ -316,7 +316,7 @@ export function usePriceChartData({
     )
       return;
 
-    setLoading(true);
+    setIsLoading(true);
     try {
       const priceData = await client.getPrice(symbol, chain);
       setCurrentPrice(priceData.price);
@@ -367,7 +367,7 @@ export function usePriceChartData({
         error instanceof Error ? error : new Error(String(error))
       );
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, [
     comparison,
@@ -376,7 +376,7 @@ export function usePriceChartData({
     chain,
     granularity,
     isBandClient,
-    setLoading,
+    setIsLoading,
     setCurrentPrice,
     setRawData,
     setComparisonData,
@@ -453,7 +453,7 @@ export function usePriceChartData({
     comparisonData,
     rawData,
     setRawData,
-    loading,
+    isLoading,
     currentPrice,
     setCurrentPrice,
     granularity,

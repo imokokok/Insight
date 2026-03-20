@@ -109,7 +109,15 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
     return `$${value.toFixed(2)}`;
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{ payload: GasFeeData & { total: number } }>;
+    label?: string;
+  }) => {
     if (!active || !payload || payload.length === 0) return null;
 
     const data = payload[0].payload;

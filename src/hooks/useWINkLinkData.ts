@@ -1,12 +1,14 @@
 import { useQuery, useQueries } from '@tanstack/react-query';
 import {
   WINkLinkClient,
+} from '@/lib/oracles';
+import { Blockchain } from '@/types/oracle';
+import type {
   TRONEcosystem,
   NodeStakingData,
   WINkLinkGamingData,
   WINkLinkRiskMetrics,
 } from '@/lib/oracles';
-import { Blockchain } from '@/types/oracle';
 import { useMemo, useCallback } from 'react';
 
 const client = new WINkLinkClient();

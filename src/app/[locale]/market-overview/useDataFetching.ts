@@ -53,11 +53,11 @@ export interface UseDataFetchingReturn {
   correlationData: CorrelationData;
   riskMetrics: RiskMetrics | null;
   anomalies: AnomalyData[];
-  loading: boolean;
-  loadingEnhanced: boolean;
-  loadingComparison: boolean;
-  loadingRiskMetrics: boolean;
-  loadingAnomalies: boolean;
+  isLoading: boolean;
+  isLoadingEnhanced: boolean;
+  isLoadingComparison: boolean;
+  isLoadingRiskMetrics: boolean;
+  isLoadingAnomalies: boolean;
   lastUpdated: Date | null;
   refreshStatus: RefreshStatus;
   showRefreshSuccess: boolean;
@@ -94,9 +94,9 @@ export function useDataFetching(): UseDataFetchingReturn {
     timeRange: '30D',
     lastUpdated: new Date().toISOString(),
   });
-  const [loading, setLoading] = useState<boolean>(true);
-  const [loadingEnhanced, setLoadingEnhanced] = useState<boolean>(false);
-  const [loadingComparison, setLoadingComparison] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingEnhanced, setIsLoadingEnhanced] = useState<boolean>(false);
+  const [isLoadingComparison, setIsLoadingComparison] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>('30D');
@@ -110,8 +110,8 @@ export function useDataFetching(): UseDataFetchingReturn {
 
   const [riskMetrics, setRiskMetrics] = useState<RiskMetrics | null>(null);
   const [anomalies, setAnomalies] = useState<AnomalyData[]>([]);
-  const [loadingRiskMetrics, setLoadingRiskMetrics] = useState<boolean>(false);
-  const [loadingAnomalies, setLoadingAnomalies] = useState<boolean>(false);
+  const [isLoadingRiskMetrics, setIsLoadingRiskMetrics] = useState<boolean>(false);
+  const [isLoadingAnomalies, setIsLoadingAnomalies] = useState<boolean>(false);
 
   const oracleDataRef = useRef(oracleData);
   const assetsRef = useRef(assets);
@@ -131,7 +131,7 @@ export function useDataFetching(): UseDataFetchingReturn {
 
   const fetchDataFromApi = useCallback(async () => {
     setRefreshStatus('refreshing');
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
 
     try {
@@ -192,13 +192,13 @@ export function useDataFetching(): UseDataFetchingReturn {
       setError(`数据获取失败: ${errorMessage}`);
       setRefreshStatus('error');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, [selectedTimeRange, getTimeRangeHours]);
 
   const fetchMockData = useCallback(async () => {
     setRefreshStatus('refreshing');
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
 
     try {
@@ -235,7 +235,7 @@ export function useDataFetching(): UseDataFetchingReturn {
       setError(`数据获取失败: ${errorMessage}`);
       setRefreshStatus('error');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, [selectedTimeRange, getTimeRangeHours]);
 
@@ -248,7 +248,7 @@ export function useDataFetching(): UseDataFetchingReturn {
   }, [fetchDataFromApi, fetchMockData]);
 
   const fetchEnhancedData = useCallback(async () => {
-    setLoadingEnhanced(true);
+    setIsLoadingEnhanced(true);
     try {
       const [chains, protocols, categories] = await Promise.all([
         fetchChainBreakdown(),
@@ -264,12 +264,12 @@ export function useDataFetching(): UseDataFetchingReturn {
         err instanceof Error ? err : new Error(String(err))
       );
     } finally {
-      setLoadingEnhanced(false);
+      setIsLoadingEnhanced(false);
     }
   }, []);
 
   const fetchComparisonDataCallback = useCallback(async () => {
-    setLoadingComparison(true);
+    setIsLoadingComparison(true);
     try {
       const [comparison, benchmark, correlation] = await Promise.all([
         fetchComparisonData(),
@@ -285,12 +285,12 @@ export function useDataFetching(): UseDataFetchingReturn {
         err instanceof Error ? err : new Error(String(err))
       );
     } finally {
-      setLoadingComparison(false);
+      setIsLoadingComparison(false);
     }
   }, [selectedTimeRange]);
 
   const fetchRiskMetricsCallback = useCallback(async () => {
-    setLoadingRiskMetrics(true);
+    setIsLoadingRiskMetrics(true);
     try {
       const currentOracleData = oracleDataRef.current;
       if (currentOracleData.length > 0) {
@@ -303,12 +303,12 @@ export function useDataFetching(): UseDataFetchingReturn {
         err instanceof Error ? err : new Error(String(err))
       );
     } finally {
-      setLoadingRiskMetrics(false);
+      setIsLoadingRiskMetrics(false);
     }
   }, []);
 
   const detectAnomaliesCallback = useCallback(async () => {
-    setLoadingAnomalies(true);
+    setIsLoadingAnomalies(true);
     try {
       const currentOracleData = oracleDataRef.current;
       const currentAssets = assetsRef.current;
@@ -322,7 +322,7 @@ export function useDataFetching(): UseDataFetchingReturn {
         err instanceof Error ? err : new Error(String(err))
       );
     } finally {
-      setLoadingAnomalies(false);
+      setIsLoadingAnomalies(false);
     }
   }, []);
 
@@ -364,11 +364,11 @@ export function useDataFetching(): UseDataFetchingReturn {
     correlationData,
     riskMetrics,
     anomalies,
-    loading,
-    loadingEnhanced,
-    loadingComparison,
-    loadingRiskMetrics,
-    loadingAnomalies,
+    isLoading,
+    isLoadingEnhanced,
+    isLoadingComparison,
+    isLoadingRiskMetrics,
+    isLoadingAnomalies,
     lastUpdated,
     refreshStatus,
     showRefreshSuccess,

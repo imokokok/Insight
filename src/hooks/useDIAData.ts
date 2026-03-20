@@ -13,7 +13,8 @@ import type {
   CustomFeed,
   EcosystemIntegration,
 } from '@/lib/oracles/dia';
-import { PriceData, Blockchain } from '@/types/oracle';
+import { Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 
 const diaClient = new DIAClient();
 

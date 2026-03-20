@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { oracleKeys } from '@/lib/queries/queryKeys';
+import { PriceFetchError } from '@/lib/errors';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 
 interface OracleData {
@@ -27,7 +28,10 @@ export function useOracleData(params: OracleDataParams = {}) {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch oracle data');
+        throw new PriceFetchError('Failed to fetch oracle data', {
+          provider: params.provider,
+          retryable: true,
+        });
       }
 
       return response.json();

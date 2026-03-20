@@ -42,7 +42,7 @@ interface InteractivePriceChartProps {
   >;
   avgPrice: number;
   medianPrice: number;
-  onLegendClick: (e: any) => void;
+  onLegendClick: (e: { dataKey: string; color: string; type: string; value: string }) => void;
   onLegendDoubleClick: (chain: Blockchain) => void;
 }
 
@@ -411,8 +411,13 @@ export function InteractivePriceChart({
 
   // Tooltip content renderer
   const renderTooltip = useCallback(
-    (props: any) => {
-      return <CustomTooltip {...props} filteredChains={filteredChains} />;
+    (props: unknown) => {
+      const tooltipProps = props as {
+        active?: boolean;
+        payload?: ReadonlyArray<{ dataKey?: string | number; value?: number; color?: string }>;
+        label?: string;
+      };
+      return <CustomTooltip {...tooltipProps} filteredChains={filteredChains} />;
     },
     [filteredChains]
   );
@@ -614,7 +619,12 @@ export function InteractivePriceChart({
               width={70}
             />
             <Tooltip content={renderTooltip} />
-            <Legend onClick={onLegendClick} />
+            <Legend
+              onClick={(data: unknown) => {
+                const legendData = data as { dataKey: string; color: string; type: string; value: string };
+                onLegendClick(legendData);
+              }}
+            />
 
             {filteredChains.map((chain) => (
               <Line

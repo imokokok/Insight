@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { ValidatorData } from '@/lib/oracles/uma';
+import type { ValidatorData } from '@/lib/oracles/uma';
 import { useTranslations } from 'next-intl';
 import { chartColors } from '@/lib/config/colors';
 import { formatNumber } from '@/lib/utils/format';

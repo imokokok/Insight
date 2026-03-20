@@ -23,7 +23,7 @@ import {
   LucideIcon,
 } from 'lucide-react';
 import { SearchResult, SearchResultType } from './types';
-import { OracleProvider, Blockchain } from '@/lib/oracles';
+import { OracleProvider, Blockchain, ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/lib/oracles';
 import { providerNames, chainNames, symbols } from '@/lib/constants';
 
 // Oracle icons mapping
@@ -56,7 +56,7 @@ const oracleDescriptions: Record<OracleProvider, string> = {
 
 // Generate oracle search results
 export function getOracleSearchResults(locale: string): SearchResult[] {
-  return Object.values(OracleProvider).map((provider) => ({
+  return ORACLE_PROVIDER_VALUES.map((provider) => ({
     id: `oracle-${provider}`,
     title: providerNames[provider],
     description: oracleDescriptions[provider],
@@ -102,7 +102,7 @@ const blockchainIcons: Record<Blockchain, string> = {
 
 // Generate blockchain search results
 export function getBlockchainSearchResults(locale: string): SearchResult[] {
-  return Object.values(Blockchain).map((chain) => ({
+  return BLOCKCHAIN_VALUES.map((chain) => ({
     id: `blockchain-${chain}`,
     title: chainNames[chain],
     description: `search.blockchains.${chain.toLowerCase()}Desc`,

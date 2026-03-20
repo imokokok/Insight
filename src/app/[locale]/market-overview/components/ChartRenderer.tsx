@@ -167,7 +167,7 @@ export default function ChartRenderer({
   const prepareComparisonData = (currentData: TVSTrendData[], compareData: TVSTrendData[]) => {
     return currentData.map((item, index) => {
       const compareItem = compareData[index];
-      const result: any = { ...item };
+      const result: TVSTrendData & Record<string, string | number> = { ...item };
 
       [
         'chainlink',
@@ -597,8 +597,9 @@ export default function ChartRenderer({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {data.map((item: any, index: number) => {
+              {data.map((item: OracleMarketData | ChainSupportData, index: number) => {
                 const oracleData = sortedOracleData.find((o) => o.name === item.name);
+                const chainItem = item as ChainSupportData;
                 return (
                   <tr
                     key={item.name}
@@ -616,10 +617,10 @@ export default function ChartRenderer({
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className="font-semibold text-gray-900">{item.chains}</span>
+                      <span className="font-semibold text-gray-900">{chainItem.chains}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className="text-gray-600">{item.protocols}</span>
+                      <span className="text-gray-600">{chainItem.protocols}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="font-medium text-gray-900">{oracleData?.share ?? '-'}%</span>
@@ -669,49 +670,52 @@ export default function ChartRenderer({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {data.map((item: any, index: number) => (
+            {data.map((item, index: number) => {
+              const oracleItem = item as OracleMarketData;
+              return (
               <tr
-                key={item.name}
+                key={oracleItem.name}
                 className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                  selectedItem === item.name ? 'bg-blue-50' : ''
+                  selectedItem === oracleItem.name ? 'bg-blue-50' : ''
                 }`}
-                onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
-                onMouseEnter={() => setHoveredItem(item.name)}
+                onClick={() => setSelectedItem(oracleItem.name === selectedItem ? null : oracleItem.name)}
+                onMouseEnter={() => setHoveredItem(oracleItem.name)}
                 onMouseLeave={() => setHoveredItem(null)}
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
-                    <span className="font-medium text-gray-900">{item.name}</span>
+                    <div className="w-3 h-3 rounded" style={{ backgroundColor: oracleItem.color }} />
+                    <span className="font-medium text-gray-900">{oracleItem.name}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="font-semibold text-gray-900">
-                    {activeChart === 'pie' ? `${item.share}%` : item.tvs}
+                    {activeChart === 'pie' ? `${oracleItem.share}%` : oracleItem.tvs}
                   </span>
                 </td>
                 {activeChart === 'pie' && (
                   <>
                     <td className="px-4 py-3 text-right">
-                      <span className="text-gray-600">{item.tvs}</span>
+                      <span className="text-gray-600">{oracleItem.tvs}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className="text-gray-600">{item.chains}</span>
+                      <span className="text-gray-600">{oracleItem.chains}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span
                         className={`font-medium ${
-                          (item.change24h ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                          (oracleItem.change24h ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}
                       >
-                        {(item.change24h ?? 0) >= 0 ? '+' : ''}
-                        {(item.change24h ?? 0).toFixed(2)}%
+                        {(oracleItem.change24h ?? 0) >= 0 ? '+' : ''}
+                        {(oracleItem.change24h ?? 0).toFixed(2)}%
                       </span>
                     </td>
                   </>
                 )}
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

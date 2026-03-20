@@ -1,4 +1,4 @@
-export enum TimeRange {
+export const enum TimeRange {
   '1H' = 3600,
   '6H' = 21600,
   '24H' = 86400,
@@ -6,14 +6,14 @@ export enum TimeRange {
   '30D' = 2592000,
 }
 
-export enum DataStatus {
+export const enum DataStatus {
   NORMAL = 'normal',
   WARNING = 'warning',
   CRITICAL = 'critical',
   STALE = 'stale',
 }
 
-export enum TrendDirection {
+export const enum TrendDirection {
   IMPROVING = 'improving',
   STABLE = 'stable',
   DECLINING = 'declining',

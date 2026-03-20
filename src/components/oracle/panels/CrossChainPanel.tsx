@@ -16,7 +16,7 @@ import { RequestTrendChart } from '../charts/RequestTrendChart';
 import { ChainComparison } from '../charts/ChainComparison';
 import { RequestTypeDistribution } from '../common/RequestTypeDistribution';
 import { CrossChainTrendChart } from '../charts/CrossChainTrendChart';
-import { DataExportButton } from '../forms/DataExportButton';
+import { DataExportButton, ExportDataRow } from '../forms/DataExportButton';
 import { useTranslations } from 'next-intl';
 import {
   chainColors,
@@ -407,7 +407,7 @@ export function CrossChainPanel({
         </div>
         <div className="flex items-center gap-3">
           <DataExportButton
-            data={stats?.chains || []}
+            data={(stats?.chains || []) as unknown as ExportDataRow[]}
             filename="band_cross_chain_stats"
             columns={[
               { key: 'chainName', label: 'Chain' },

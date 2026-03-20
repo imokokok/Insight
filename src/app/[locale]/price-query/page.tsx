@@ -21,7 +21,7 @@ export default function PriceQueryPage() {
     setSelectedTimeRange,
     queryResults,
     historicalData,
-    loading,
+    isLoading,
     filterText,
     setFilterText,
     sortField,
@@ -35,8 +35,8 @@ export default function PriceQueryPage() {
     historyItems,
     selectedRow,
     setSelectedRow,
-    compareMode,
-    setCompareMode,
+    isCompareMode,
+    setIsCompareMode,
     compareTimeRange,
     setCompareTimeRange,
     compareHistoricalData,
@@ -139,7 +139,7 @@ export default function PriceQueryPage() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 bg-insight min-h-screen">
       <div aria-live="polite" className="sr-only">
-        {loading
+        {isLoading
           ? t('priceQuery.loadingData')
           : `${queryResults.length} ${t('priceQuery.results.title')}`}
       </div>
@@ -150,7 +150,7 @@ export default function PriceQueryPage() {
         historyItems={historyItems}
         onSelectHistory={handleHistorySelect}
         onClearHistory={handleClearHistory}
-        loading={loading}
+        loading={isLoading}
         queryResultsLength={queryResults.length}
         onExportCSV={handleExportCSV}
         onExportJSON={handleExportJSON}
@@ -184,11 +184,11 @@ export default function PriceQueryPage() {
             setSelectedSymbol={setSelectedSymbol}
             selectedTimeRange={selectedTimeRange}
             setSelectedTimeRange={setSelectedTimeRange}
-            loading={loading}
+            isLoading={isLoading}
             onQuery={fetchQueryData}
             supportedChainsBySelectedOracles={supportedChainsBySelectedOracles}
-            compareMode={compareMode}
-            setCompareMode={setCompareMode}
+            isCompareMode={isCompareMode}
+            setIsCompareMode={setIsCompareMode}
             compareTimeRange={compareTimeRange}
             setCompareTimeRange={setCompareTimeRange}
             showBaseline={showBaseline}
@@ -196,14 +196,13 @@ export default function PriceQueryPage() {
           />
         </div>
 
-        {/* 右侧：结果展示区域 */}
         <div className="flex-1 min-w-0">
           <QueryResults
-            loading={loading}
+            isLoading={isLoading}
             queryResults={queryResults}
             filteredQueryResults={filteredQueryResults}
             historicalData={historicalData}
-            compareMode={compareMode}
+            isCompareMode={isCompareMode}
             compareQueryResults={compareQueryResults}
             compareHistoricalData={compareHistoricalData}
             showBaseline={showBaseline}

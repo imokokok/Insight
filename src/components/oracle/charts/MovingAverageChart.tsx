@@ -185,7 +185,15 @@ export function MovingAverageChart({
     };
   }, [selectedOracleData]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{ name: string; value: number | string; color: string }>;
+    label?: string;
+  }) => {
     if (!active || !payload || payload.length === 0) return null;
 
     return (
@@ -197,7 +205,7 @@ export function MovingAverageChart({
           {label}
         </p>
         <div className="space-y-1.5">
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <div key={index} className="flex justify-between items-center">
               <span className="text-xs" style={{ color: baseColors.gray[600] }}>
                 {entry.name}

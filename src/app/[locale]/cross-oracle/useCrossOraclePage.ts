@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { OracleProvider, PriceData, saveSnapshot, SnapshotStats } from '@/types/oracle';
+import { OracleProvider } from '@/types/oracle';
+import type { PriceData, SnapshotStats } from '@/types/oracle';
+import { saveSnapshot } from '@/types/oracle';
 import {
   oracleClients,
   TimeRange,

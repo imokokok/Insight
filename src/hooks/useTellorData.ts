@@ -15,7 +15,8 @@ import type {
   StakingCalculation,
   TellorNetworkHealth,
 } from '@/lib/oracles/tellor';
-import { PriceData, Blockchain } from '@/types/oracle';
+import { Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 
 const tellorClient = new TellorClient();
 

@@ -1,4 +1,5 @@
 import { createLogger } from '@/lib/utils/logger';
+import { InternalError } from '@/lib/errors';
 
 const logger = createLogger('EnvConfig');
 
@@ -41,7 +42,9 @@ function getEnvironment(): Environment {
 function validateEnvVar(name: string, value: string | undefined): string {
   if (!value) {
     if (process.env.NODE_ENV === 'production') {
-      throw new Error(`Missing required environment variable: ${name}`);
+      throw new InternalError(`Missing required environment variable: ${name}`, {
+        operation: 'validateEnvVar',
+      });
     }
     logger.warn(`Missing environment variable: ${name}, using fallback`);
     return '';
