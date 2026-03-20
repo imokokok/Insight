@@ -26,7 +26,7 @@ export function SortButton({
     <button
       onClick={() => onSort(field)}
       className={`flex items-center gap-1 px-3 py-1.5  text-xs font-medium transition-all ${
-        isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+        isActive ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
       }`}
     >
       <span>{label}</span>
@@ -64,13 +64,13 @@ export function FilterButton({
       onClick={() => onFilter(status)}
       className={`flex items-center gap-2 px-3 py-1.5  text-xs font-medium transition-all ${
         isActive
-          ? 'bg-blue-600 text-white'
+          ? 'bg-primary-600 text-white'
           : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
       }`}
     >
       <span>{label}</span>
       {count !== undefined && (
-        <span className={`px-1.5 py-0.5  text-[10px] ${isActive ? 'bg-blue-500' : 'bg-gray-200'}`}>
+        <span className={`px-1.5 py-0.5  text-[10px] ${isActive ? 'bg-primary-500' : 'bg-gray-200'}`}>
           {count}
         </span>
       )}
@@ -100,7 +100,7 @@ export function ValidatorRow({
           <button
             onClick={onToggleSelect}
             className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${
-              isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300 hover:border-blue-400'
+              isSelected ? 'bg-primary-600 border-primary-600' : 'border-gray-300 hover:border-primary-400'
             }`}
           >
             {isSelected && (
@@ -120,7 +120,7 @@ export function ValidatorRow({
             <span className="text-gray-600 font-bold text-xs">#{validator.rank}</span>
           </div>
           <div onClick={onClick}>
-            <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+            <p className="font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
               {validator.moniker}
             </p>
             <p className="text-xs text-gray-400 truncate max-w-[150px]">
@@ -150,10 +150,10 @@ export function ValidatorRow({
             <div
               className={`h-full transition-all duration-500 ${
                 validator.uptime >= 99.5
-                  ? 'bg-green-500'
+                  ? 'bg-success-500'
                   : validator.uptime >= 99
-                    ? 'bg-yellow-500'
-                    : 'bg-red-500'
+                    ? 'bg-warning-500'
+                    : 'bg-danger-500'
               }`}
               style={{ width: `${Math.min(validator.uptime, 100)}%` }}
             />
@@ -161,10 +161,10 @@ export function ValidatorRow({
           <span
             className={`text-sm font-medium ${
               validator.uptime >= 99.5
-                ? 'text-green-600'
+                ? 'text-success-600'
                 : validator.uptime >= 99
-                  ? 'text-yellow-600'
-                  : 'text-red-600'
+                  ? 'text-warning-600'
+                  : 'text-danger-600'
             }`}
           >
             {validator.uptime.toFixed(2)}%
@@ -184,7 +184,7 @@ export function ValidatorRow({
       </td>
       <td className="py-4 px-4" onClick={onClick}>
         <svg
-          className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-colors"
+          className="w-5 h-5 text-gray-300 group-hover:text-primary-500 transition-colors"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -214,14 +214,14 @@ export function ValidatorCard({
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-gray-200 p-4 cursor-pointer hover:border-blue-300 transition-all"
+      className="bg-white border border-gray-200 p-4 cursor-pointer hover:border-primary-300 transition-all"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSelect}
             className={`w-5 h-5 border-2 flex items-center justify-center transition-all flex-shrink-0 ${
-              isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300 hover:border-blue-400'
+              isSelected ? 'bg-primary-600 border-primary-600' : 'border-gray-300 hover:border-primary-400'
             }`}
           >
             {isSelected && (
@@ -277,10 +277,10 @@ export function ValidatorCard({
             <div
               className={`h-full transition-all duration-500 ${
                 validator.uptime >= 99.5
-                  ? 'bg-green-500'
+                  ? 'bg-success-500'
                   : validator.uptime >= 99
-                    ? 'bg-yellow-500'
-                    : 'bg-red-500'
+                    ? 'bg-warning-500'
+                    : 'bg-danger-500'
               }`}
               style={{ width: `${Math.min(validator.uptime, 100)}%` }}
             />
@@ -288,10 +288,10 @@ export function ValidatorCard({
           <span
             className={`text-xs font-medium ${
               validator.uptime >= 99.5
-                ? 'text-green-600'
+                ? 'text-success-600'
                 : validator.uptime >= 99
-                  ? 'text-yellow-600'
-                  : 'text-red-600'
+                  ? 'text-warning-600'
+                  : 'text-danger-600'
             }`}
           >
             {validator.uptime.toFixed(1)}%

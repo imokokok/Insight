@@ -31,7 +31,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
@@ -52,6 +52,7 @@ import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 import { FavoriteButton } from '@/components/favorites';
 import type { FavoriteConfig } from '@/hooks/useFavorites';
+
 
 export default function CrossChainPage() {
   const t = useTranslations();
@@ -200,7 +201,7 @@ export default function CrossChainPage() {
       label: t('crossChain.consistencyRating'),
       value:
         standardDeviationPercent > 0
-          ? t(`common.consistency.${getConsistencyRating(standardDeviationPercent)}`)
+          ? t(`consistency.${getConsistencyRating(standardDeviationPercent)}`)
           : '-',
       trend: null,
       tooltip: t('crossChain.tooltip.consistencyRating'),
@@ -452,7 +453,7 @@ export default function CrossChainPage() {
                     width={40}
                     stroke={chartColors.recharts.axis}
                   />
-                  <Tooltip formatter={(value) => [value, t('crossChain.frequency')]} />
+                  <RechartsTooltip formatter={(value) => [value, t('crossChain.frequency')]} />
                   {meanBinIndex >= 0 && priceDistributionData[meanBinIndex] && (
                     <ReferenceLine
                       x={priceDistributionData[meanBinIndex].range}
@@ -643,7 +644,7 @@ export default function CrossChainPage() {
                         setShowFavoritesDropdown(false);
                         router.push('/favorites');
                       }}
-                      className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium"
                     >
                       {t('crossOracle.favorites.viewAll')}
                     </button>

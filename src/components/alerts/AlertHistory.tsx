@@ -66,7 +66,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
       headerAction={
         <div className="flex items-center gap-2">
           {unacknowledgedCount > 0 && (
-            <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 ">
+            <span className="px-2 py-0.5 text-xs font-medium bg-danger-100 text-danger-700 ">
               {t('alerts.history.unacknowledgedCount').replace(
                 '{count}',
                 String(unacknowledgedCount)
@@ -128,7 +128,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                 className={`p-4 border  transition-colors ${
                   event.acknowledged
                     ? 'bg-gray-50 border-gray-200'
-                    : 'bg-yellow-50 border-yellow-200'
+                    : 'bg-warning-50 border-yellow-200'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -138,7 +138,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                         className={`px-2 py-0.5 text-xs font-medium  ${
                           event.acknowledged
                             ? 'bg-gray-100 text-gray-600'
-                            : 'bg-yellow-100 text-yellow-700'
+                            : 'bg-warning-100 text-warning-700'
                         }`}
                       >
                         {event.acknowledged
@@ -170,7 +170,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                     <button
                       onClick={() => handleAcknowledge(event.id!)}
                       disabled={isAcknowledging}
-                      className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+                      className="px-3 py-1.5 text-xs font-medium bg-primary-600 text-white rounded hover:bg-primary-700 disabled:bg-gray-400"
                     >
                       {isAcknowledging
                         ? t('alerts.history.acknowledging')

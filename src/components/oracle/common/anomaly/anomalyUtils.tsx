@@ -7,9 +7,9 @@ import { AnomalyType } from './types';
 export const PROVIDER_NAMES = providerNames;
 
 export const SEVERITY_COLORS = {
-  high: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' },
-  medium: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
-  low: { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
+  high: { bg: 'bg-danger-100', text: 'text-danger-700', border: 'border-red-300' },
+  medium: { bg: 'bg-warning-100', text: 'text-orange-700', border: 'border-orange-300' },
+  low: { bg: 'bg-warning-100', text: 'text-warning-700', border: 'border-yellow-300' },
 };
 
 export const ANOMALY_TYPE_ICONS: Record<AnomalyType, React.ReactNode> = {

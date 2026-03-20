@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   Cell,
@@ -17,6 +17,7 @@ import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/con
 import { CDFChart } from './CDFChart';
 import { LatencyTrendMiniChart } from './LatencyTrendMiniChart';
 import type { LatencyDataPoint } from './LatencyTrendMiniChart';
+
 
 type ViewMode = 'histogram' | 'cdf' | 'trend';
 type TimeRange = '1h' | '6h' | '24h' | '7d';
@@ -327,7 +328,7 @@ export function LatencyDistributionHistogram({
               axisLine={{ stroke: chartColors.recharts.grid }}
               tickFormatter={(value) => `${value}%`}
             />
-            <Tooltip
+            <RechartsTooltip
               content={({ active, payload }) => {
                 if (!active || !payload || payload.length === 0) return null;
                 const bin = payload[0].payload as HistogramBin;

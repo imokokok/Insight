@@ -29,11 +29,11 @@ export function MitigationMeasuresGrid({ measures, className = '' }: MitigationM
   const getTypeColor = (type: MitigationMeasure['type']) => {
     switch (type) {
       case 'technical':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-primary-100 text-primary-700';
       case 'governance':
         return 'bg-purple-100 text-purple-700';
       case 'operational':
-        return 'bg-orange-100 text-orange-700';
+        return 'bg-warning-100 text-orange-700';
       default:
         return 'bg-gray-100 text-gray-700';
     }
@@ -51,9 +51,9 @@ export function MitigationMeasuresGrid({ measures, className = '' }: MitigationM
   };
 
   const getEffectivenessColor = (effectiveness: number) => {
-    if (effectiveness >= 80) return 'bg-green-500';
-    if (effectiveness >= 60) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (effectiveness >= 80) return 'bg-success-500';
+    if (effectiveness >= 60) return 'bg-warning-500';
+    return 'bg-danger-500';
   };
 
   const getEffectivenessLabel = (effectiveness: number) => {

@@ -216,7 +216,7 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
             <div className="h-2 bg-gray-100 overflow-hidden">
               <div
                 className={`h-full transition-all duration-500 ${
-                  isQuorumReached ? 'bg-emerald-500' : 'bg-blue-500'
+                  isQuorumReached ? 'bg-emerald-500' : 'bg-primary-500'
                 }`}
                 style={{ width: `${Math.min(quorumProgress, 100)}%` }}
               />
@@ -260,7 +260,7 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
               ? 'bg-emerald-50 border-emerald-200'
               : isQuorumReached
                 ? 'bg-amber-50 border-amber-200'
-                : 'bg-blue-50 border-blue-200'
+                : 'bg-primary-50 border-primary-200'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -270,7 +270,7 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
                   ? 'text-emerald-600'
                   : isQuorumReached
                     ? 'text-amber-600'
-                    : 'text-blue-600'
+                    : 'text-primary-600'
               }`}
               fill="none"
               stroke="currentColor"
@@ -296,7 +296,7 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
                   ? 'text-emerald-800'
                   : isQuorumReached
                     ? 'text-amber-800'
-                    : 'text-blue-800'
+                    : 'text-primary-800'
               }`}
             >
               {isQuorumReached && isThresholdReached
@@ -337,9 +337,9 @@ function ValidatorVoteList({
     },
     against: {
       label: t('panels.disputeVoting.against'),
-      color: 'text-red-700',
-      bgColor: 'bg-red-50',
-      borderColor: 'border-red-200',
+      color: 'text-danger-700',
+      bgColor: 'bg-danger-50',
+      borderColor: 'border-danger-200',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -410,7 +410,7 @@ function ValidatorVoteList({
                   onClick={() => setFilterPosition(pos)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                     filterPosition === pos
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-primary-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -527,7 +527,7 @@ function ValidatorVoteList({
                                 ? 'bg-emerald-500'
                                 : vote.reputation >= 80
                                   ? 'bg-amber-500'
-                                  : 'bg-red-500'
+                                  : 'bg-danger-500'
                             }`}
                             style={{ width: `${vote.reputation}%` }}
                           />

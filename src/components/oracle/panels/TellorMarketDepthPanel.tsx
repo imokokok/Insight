@@ -25,13 +25,13 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="py-2">
             <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalBidVolume')}</p>
-            <p className="text-xl font-bold text-green-600">
+            <p className="text-xl font-bold text-success-600">
               {data.totalBidVolume.toLocaleString()}
             </p>
           </div>
           <div className="py-2">
             <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalAskVolume')}</p>
-            <p className="text-xl font-bold text-red-600">{data.totalAskVolume.toLocaleString()}</p>
+            <p className="text-xl font-bold text-danger-600">{data.totalAskVolume.toLocaleString()}</p>
           </div>
           <div className="py-2">
             <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.spread')}</p>
@@ -45,21 +45,21 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Bids */}
-          <div className="bg-green-50 border border-green-200 rounded-md p-4">
-            <h4 className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
+          <div className="bg-success-50 border border-green-200 rounded-md p-4">
+            <h4 className="text-sm font-semibold text-success-700 mb-3 flex items-center gap-2">
               <ArrowUp className="w-4 h-4" />
               {t('tellor.marketDepth.bids')}
             </h4>
             <div className="space-y-2">
               {bidLevels.slice(0, 10).map((level, index) => (
                 <div key={index} className="flex items-center justify-between py-1">
-                  <span className="text-sm font-medium text-green-700">
+                  <span className="text-sm font-medium text-success-700">
                     ${level.price.toFixed(4)}
                   </span>
                   <div className="flex items-center gap-4">
-                    <div className="w-32 bg-green-200 rounded-full h-2">
+                    <div className="w-32 bg-success-200 rounded-full h-2">
                       <div
-                        className="bg-green-500 h-2 rounded-full"
+                        className="bg-success-500 h-2 rounded-full"
                         style={{ width: `${(level.bidVolume / maxVolume) * 100}%` }}
                       />
                     </div>
@@ -73,21 +73,21 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
           </div>
 
           {/* Asks */}
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <h4 className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
+          <div className="bg-danger-50 border border-danger-200 rounded-md p-4">
+            <h4 className="text-sm font-semibold text-danger-700 mb-3 flex items-center gap-2">
               <ArrowDown className="w-4 h-4" />
               {t('tellor.marketDepth.asks')}
             </h4>
             <div className="space-y-2">
               {askLevels.slice(0, 10).map((level, index) => (
                 <div key={index} className="flex items-center justify-between py-1">
-                  <span className="text-sm font-medium text-red-700">
+                  <span className="text-sm font-medium text-danger-700">
                     ${level.price.toFixed(4)}
                   </span>
                   <div className="flex items-center gap-4">
-                    <div className="w-32 bg-red-200 rounded-full h-2">
+                    <div className="w-32 bg-danger-200 rounded-full h-2">
                       <div
-                        className="bg-red-500 h-2 rounded-full"
+                        className="bg-danger-500 h-2 rounded-full"
                         style={{ width: `${(level.askVolume / maxVolume) * 100}%` }}
                       />
                     </div>

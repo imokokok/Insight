@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Area,
 } from 'recharts';
@@ -17,6 +17,7 @@ import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+
 
 const logger = createLogger('MobilePriceChart');
 
@@ -219,7 +220,7 @@ function MobilePriceChartBase({
   }
 
   const ChangeIcon = priceChange.percentage >= 0 ? TrendingUp : TrendingDown;
-  const changeColor = priceChange.percentage >= 0 ? 'text-green-600' : 'text-red-600';
+  const changeColor = priceChange.percentage >= 0 ? 'text-success-600' : 'text-danger-600';
   const currentPrice = data[data.length - 1]?.price || 0;
 
   return (
@@ -283,7 +284,7 @@ function MobilePriceChartBase({
               width={35}
             />
 
-            <Tooltip
+            <RechartsTooltip
               content={({ active, payload }) => {
                 if (active && payload && payload[0]) {
                   const point = payload[0].payload as DataPoint;
@@ -368,7 +369,7 @@ function MobilePriceChartBase({
 
       {/* Selected Point Info */}
       {selectedPoint && (
-        <div className="px-3 py-2 bg-blue-50 border-t border-blue-100">
+        <div className="px-3 py-2 bg-primary-50 border-t border-primary-100">
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-600">{selectedPoint.time}</span>
             <span className="text-sm font-semibold text-gray-900">

@@ -38,11 +38,11 @@ function ResultIcon({ result }: { result: SearchResult }) {
 
   // Default icon based on type
   const defaultIcons: Record<SearchResult['type'], React.ReactNode> = {
-    oracle: <div className="w-5 h-5 rounded-full bg-blue-500" />,
-    pair: <div className="w-5 h-5 rounded bg-green-500" />,
+    oracle: <div className="w-5 h-5 rounded-full bg-primary-500" />,
+    pair: <div className="w-5 h-5 rounded bg-success-500" />,
     blockchain: <div className="w-5 h-5 rounded bg-purple-500" />,
     page: <div className="w-5 h-5 rounded bg-gray-500" />,
-    feature: <div className="w-5 h-5 rounded bg-orange-500" />,
+    feature: <div className="w-5 h-5 rounded bg-warning-500" />,
     documentation: <div className="w-5 h-5 rounded bg-indigo-500" />,
   };
 
@@ -72,19 +72,19 @@ function SearchResultItem({
       onMouseEnter={onHover}
       className={`
         flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-150
-        ${isActive ? 'bg-blue-50 border-l-2 border-blue-500' : 'hover:bg-gray-50 border-l-2 border-transparent'}
+        ${isActive ? 'bg-primary-50 border-l-2 border-primary-500' : 'hover:bg-gray-50 border-l-2 border-transparent'}
       `}
     >
       <div
         className={`
           flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center
-          ${isActive ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}
+          ${isActive ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}
         `}
       >
         <ResultIcon result={result} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`font-medium truncate ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>
+        <div className={`font-medium truncate ${isActive ? 'text-primary-900' : 'text-gray-900'}`}>
           {t.has(result.title) ? t(result.title) : result.title}
         </div>
         {result.description && (
@@ -93,7 +93,7 @@ function SearchResultItem({
           </div>
         )}
       </div>
-      {isActive && <CornerDownLeft className="w-4 h-4 text-blue-500 flex-shrink-0" />}
+      {isActive && <CornerDownLeft className="w-4 h-4 text-primary-500 flex-shrink-0" />}
     </div>
   );
 }
@@ -166,8 +166,8 @@ function InitialState() {
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-      <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
-        <Search className="w-8 h-8 text-blue-500" />
+      <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mb-4">
+        <Search className="w-8 h-8 text-primary-500" />
       </div>
       <h3 className="text-lg font-medium text-gray-900 mb-1">{t('search.initialTitle')}</h3>
       <p className="text-sm text-gray-500 mb-6">{t('search.initialDesc')}</p>

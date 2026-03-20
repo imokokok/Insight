@@ -40,10 +40,10 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
               className={`px-3 py-1 text-xs font-medium transition-colors ${
                 tableFilter === filter
                   ? filter === 'abnormal'
-                    ? 'bg-red-100 text-red-700 border border-red-200'
+                    ? 'bg-danger-100 text-danger-700 border border-danger-200'
                     : filter === 'normal'
-                      ? 'bg-green-100 text-green-700 border border-green-200'
-                      : 'bg-blue-100 text-blue-700 border border-blue-200'
+                      ? 'bg-success-100 text-success-700 border border-green-200'
+                      : 'bg-primary-100 text-primary-700 border border-primary-200'
                   : 'bg-gray-100 text-gray-600 hover:border-gray-300 border border-transparent'
               }`}
             >
@@ -114,8 +114,8 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
               const bgColor =
                 Math.abs(item.diffPercent) > 0.5
                   ? item.diffPercent > 0
-                    ? 'bg-red-50'
-                    : 'bg-green-50'
+                    ? 'bg-danger-50'
+                    : 'bg-success-50'
                   : '';
               const textColor = getDiffTextColor(item.diffPercent);
 
@@ -148,7 +148,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
                     })}
                   </td>
                   <td className="py-3 px-4 text-right font-mono text-sm">
-                    <span className={item.diff >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    <span className={item.diff >= 0 ? 'text-success-600' : 'text-danger-600'}>
                       {item.diff >= 0 ? '+' : ''}${item.diff.toFixed(4)}
                     </span>
                   </td>

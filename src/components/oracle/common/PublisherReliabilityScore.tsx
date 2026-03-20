@@ -63,20 +63,20 @@ function TrendIndicator({
   const config = {
     improving: {
       icon: '↑',
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      color: 'text-success-600',
+      bg: 'bg-success-50',
       label: t('publisherReliability.trend.improving'),
     },
     stable: {
       icon: '→',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      color: 'text-primary-600',
+      bg: 'bg-primary-50',
       label: t('publisherReliability.trend.stable'),
     },
     declining: {
       icon: '↓',
-      color: 'text-red-600',
-      bg: 'bg-red-50',
+      color: 'text-danger-600',
+      bg: 'bg-danger-50',
       label: t('publisherReliability.trend.declining'),
     },
   };
@@ -123,7 +123,7 @@ function AccuracyBar({ accuracy }: { accuracy: number }) {
     <div className="w-full bg-gray-100  h-2 overflow-hidden">
       <div
         className={`h-full  transition-all duration-500 ${
-          accuracy >= 98 ? 'bg-green-500' : accuracy >= 95 ? 'bg-blue-500' : 'bg-yellow-500'
+          accuracy >= 98 ? 'bg-success-500' : accuracy >= 95 ? 'bg-primary-500' : 'bg-warning-500'
         }`}
         style={{ width: `${accuracy}%` }}
       />
@@ -143,9 +143,9 @@ export function PublisherReliabilityScore({
   }, [stats.historicalAccuracy]);
 
   const deviationColor = useMemo(() => {
-    if (stats.averageDeviation <= 0.02) return 'text-green-600';
-    if (stats.averageDeviation <= 0.05) return 'text-blue-600';
-    return 'text-yellow-600';
+    if (stats.averageDeviation <= 0.02) return 'text-success-600';
+    if (stats.averageDeviation <= 0.05) return 'text-primary-600';
+    return 'text-warning-600';
   }, [stats.averageDeviation]);
 
   return (
@@ -201,10 +201,10 @@ export function PublisherReliabilityScore({
           <div
             className={`h-full  transition-all duration-500 ${
               stats.submissionFrequency >= 98
-                ? 'bg-green-500'
+                ? 'bg-success-500'
                 : stats.submissionFrequency >= 95
-                  ? 'bg-blue-500'
-                  : 'bg-yellow-500'
+                  ? 'bg-primary-500'
+                  : 'bg-warning-500'
             }`}
             style={{ width: `${stats.submissionFrequency}%` }}
           />

@@ -19,7 +19,7 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
       case 'resolved':
         return 'bg-emerald-100 text-emerald-700';
       case 'rejected':
-        return 'bg-red-100 text-red-700';
+        return 'bg-danger-100 text-danger-700';
       default:
         return 'bg-gray-100 text-gray-700';
     }
@@ -30,7 +30,7 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
       case 'reporter_won':
         return 'text-emerald-600';
       case 'disputer_won':
-        return 'text-red-600';
+        return 'text-danger-600';
       default:
         return 'text-gray-600';
     }
@@ -86,7 +86,7 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
                 dispute.status === 'resolved'
                   ? dispute.outcome === 'reporter_won'
                     ? 'bg-emerald-50 border-emerald-200'
-                    : 'bg-red-50 border-red-200'
+                    : 'bg-danger-50 border-danger-200'
                   : 'bg-amber-50 border-amber-200'
               }`}
             >
@@ -102,7 +102,7 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
                     dispute.status === 'resolved'
                       ? dispute.outcome === 'reporter_won'
                         ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-red-100 text-red-700'
+                        : 'bg-danger-100 text-danger-700'
                       : 'bg-amber-100 text-amber-700'
                   }`}
                 >

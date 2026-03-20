@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   ReferenceDot,
@@ -16,6 +16,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { calculateCDF, CDFResult } from '@/lib/utils/statistics';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+
 
 interface CDFChartProps {
   data: number[];
@@ -129,7 +130,7 @@ export function CDFChart({
             <span className="text-xs text-gray-500">
               {t('cdfChart.probability') || '累积概率'}:
             </span>
-            <span className="text-sm font-semibold text-blue-600">
+            <span className="text-sm font-semibold text-primary-600">
               {point.probability.toFixed(1)}%
             </span>
           </div>
@@ -259,7 +260,7 @@ export function CDFChart({
                 fontSize: 11,
               }}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <RechartsTooltip content={<CustomTooltip />} />
 
             {/* Area under curve */}
             <Area
@@ -370,7 +371,7 @@ export function CDFChart({
         {/* Legend */}
         <div className="flex items-center justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
-            <span className="w-4 h-0.5 bg-blue-500 rounded" style={{ backgroundColor: color }} />
+            <span className="w-4 h-0.5 bg-primary-500 rounded" style={{ backgroundColor: color }} />
             <span className="text-xs text-gray-500">{t('cdfChart.cdfCurve') || 'CDF 曲线'}</span>
           </div>
           <div className="flex items-center gap-2">
@@ -398,11 +399,11 @@ export function CDFChart({
       </div>
 
       {/* CDF Explanation */}
-      <div className="bg-blue-50 rounded p-4">
-        <h4 className="text-sm font-medium text-blue-900 mb-2">
+      <div className="bg-primary-50 rounded p-4">
+        <h4 className="text-sm font-medium text-primary-900 mb-2">
           {t('cdfChart.aboutTitle') || '关于累积分布函数 (CDF)'}
         </h4>
-        <p className="text-xs text-blue-800 leading-relaxed">
+        <p className="text-xs text-primary-800 leading-relaxed">
           {t('cdfChart.aboutDesc') ||
             'CDF(x) 表示延迟值小于等于 x 的概率。例如，CDF(100ms) = 80% 表示 80% 的请求延迟不超过 100ms。P50（中位数）表示 50% 的数据点低于该值，P95 表示 95% 的数据点低于该值。CDF 曲线越陡峭，表示延迟分布越集中；曲线越平缓，表示延迟波动越大。'}
         </p>

@@ -48,11 +48,11 @@ export function DeviationTable({ deviationData }: DeviationTableProps) {
                     <span
                       className={`inline-flex items-center justify-center w-5 h-5 text-xs font-medium ${
                         data.rank === 1
-                          ? 'bg-red-100 text-red-800'
+                          ? 'bg-danger-100 text-danger-800'
                           : data.rank === 2
-                            ? 'bg-orange-100 text-orange-800'
+                            ? 'bg-warning-100 text-orange-800'
                             : data.rank === 3
-                              ? 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-warning-100 text-yellow-800'
                               : 'bg-gray-100 text-gray-600'
                       }`}
                     >
@@ -70,7 +70,7 @@ export function DeviationTable({ deviationData }: DeviationTableProps) {
                   </td>
                   <td
                     className={`px-3 py-2 whitespace-nowrap font-mono ${
-                      data.deviationFromAvg > 0 ? 'text-green-600' : 'text-red-600'
+                      data.deviationFromAvg > 0 ? 'text-success-600' : 'text-danger-600'
                     }`}
                   >
                     {data.deviationFromAvg > 0 ? '+' : ''}

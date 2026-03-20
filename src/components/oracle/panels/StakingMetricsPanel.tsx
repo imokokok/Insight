@@ -27,14 +27,14 @@ export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
           </span>
         </div>
 
-        <div className="flex items-center justify-between py-3 border-b border-gray-100 bg-green-50 -mx-5 px-5">
+        <div className="flex items-center justify-between py-3 border-b border-gray-100 bg-success-50 -mx-5 px-5">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">{t('stakingMetrics.stakingApr')}</span>
-            <span className="inline-flex items-center px-2 py-0.5  text-xs font-medium bg-green-100 text-green-700">
+            <span className="inline-flex items-center px-2 py-0.5  text-xs font-medium bg-success-100 text-success-700">
               {t('stakingMetrics.hot')}
             </span>
           </div>
-          <span className="text-2xl font-bold text-green-600">{data.stakingApr}%</span>
+          <span className="text-2xl font-bold text-success-600">{data.stakingApr}%</span>
         </div>
 
         <div className="flex items-center justify-between py-3 border-b border-gray-100">

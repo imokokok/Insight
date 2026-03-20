@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { semanticColors } from '@/lib/config/colors';
 
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 interface RiskDashboardProps {
   data: RiskMetrics | null;
   loading?: boolean;
@@ -98,7 +100,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
       {/* 标题栏 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-blue-600" />
+          <Shield className="w-4 h-4 text-primary-600" />
           <h3 className="text-sm font-semibold text-gray-900">
             {isChineseLocale(locale) ? '风险指标' : 'Risk Metrics'}
           </h3>
@@ -296,13 +298,13 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
 
       {/* 风险提示 */}
       {(data.hhi.level === 'high' || data.hhi.level === 'critical') && (
-        <div className="mt-3 p-2.5 bg-red-50 border-l-2 border-red-400 flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+        <div className="mt-3 p-2.5 bg-danger-50 border-l-2 border-red-400 flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-danger-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-medium text-red-800">
+            <p className="text-xs font-medium text-danger-800">
               {isChineseLocale(locale) ? '市场集中度风险警告' : 'Market Concentration Risk Warning'}
             </p>
-            <p className="text-xs text-red-600 mt-0.5">
+            <p className="text-xs text-danger-600 mt-0.5">
               {isChineseLocale(locale)
                 ? `HHI 指数为 ${data.hhi.value}，表明市场高度集中。前4大企业占据 ${data.hhi.concentrationRatio}% 的市场份额，存在系统性风险。`
                 : `HHI index is ${data.hhi.value}, indicating high market concentration. Top 4 players control ${data.hhi.concentrationRatio}% market share, posing systemic risk.`}

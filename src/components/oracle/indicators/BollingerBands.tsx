@@ -7,13 +7,14 @@ import {
   Area,
   XAxis,
   YAxis,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   CartesianGrid,
 } from 'recharts';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 import { useTranslations } from 'next-intl';
+
 
 interface BollingerDataPoint {
   timestamp: number;
@@ -269,7 +270,7 @@ export function BollingerBands({
               tickFormatter={(value) => `$${value.toFixed(0)}`}
               domain={['auto', 'auto']}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
+            <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
 
             {/* %B reference lines */}
             <ReferenceLine y={0} stroke={chartColors.recharts.grid} strokeDasharray="3 3" />
@@ -399,7 +400,7 @@ export function BollingerBands({
                   width={40}
                   tickFormatter={(value) => `${value.toFixed(0)}%`}
                 />
-                <Tooltip
+                <RechartsTooltip
                   content={({ active, payload }) => {
                     if (!active || !payload || payload.length === 0) return null;
                     const data = payload[0].payload;

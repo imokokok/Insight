@@ -650,7 +650,7 @@ export default function DIAPage() {
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-gray-600">{t('dia.stats.stakingApr')}</span>
-                      <span className="text-sm font-semibold text-green-600">
+                      <span className="text-sm font-semibold text-success-600">
                         {staking?.stakingApr ?? 8.5}%
                       </span>
                     </div>

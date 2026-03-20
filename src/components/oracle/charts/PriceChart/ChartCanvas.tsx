@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Brush,
   Cell,
@@ -23,6 +23,7 @@ import { chartColors, baseColors } from '@/lib/config/colors';
 import { ChartType } from './priceChartConfig';
 import { MainChartTooltip, RSITooltip, MACDTooltip, CandlestickShape } from './PriceChartTooltip';
 import { AnomalyPoint } from './useChartState';
+
 
 interface ChartCanvasProps {
   data: IndicatorDataPoint[];
@@ -126,7 +127,7 @@ export const ChartCanvas = memo(function ChartCanvas({
             hide
           />
 
-          <Tooltip
+          <RechartsTooltip
             content={
               <MainChartTooltip
                 chartType={chartType}
@@ -490,7 +491,7 @@ const RSIChart = memo(function RSIChart({
             width={isMobile ? 35 : 60}
             tickCount={5}
           />
-          <Tooltip content={<RSITooltip />} />
+          <RechartsTooltip content={<RSITooltip />} />
 
           <ReferenceLine
             y={70}
@@ -595,7 +596,7 @@ const MACDChart = memo(function MACDChart({
             axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
             width={isMobile ? 35 : 60}
           />
-          <Tooltip content={<MACDTooltip />} />
+          <RechartsTooltip content={<MACDTooltip />} />
 
           <ReferenceLine y={0} stroke={chartColors.recharts.grid} strokeOpacity={0.8} />
 

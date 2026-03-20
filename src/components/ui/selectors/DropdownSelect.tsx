@@ -149,10 +149,10 @@ export function DropdownSelect<T = string>({
           w-full flex items-center justify-between gap-2 px-3 py-2
           bg-white border border-gray-200 text-sm rounded-lg
           hover:border-gray-300 hover:bg-gray-50/50
-          focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500
           transition-all duration-200 ease-out
           active:scale-[0.98]
-          ${isOpen ? 'border-blue-500 ring-2 ring-blue-500/20' : ''}
+          ${isOpen ? 'border-primary-500 ring-2 ring-primary-500/20' : ''}
           ${disabled ? 'opacity-50 cursor-not-allowed active:scale-100' : ''}
         `}
         aria-expanded={isOpen}
@@ -182,7 +182,7 @@ export function DropdownSelect<T = string>({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={searchPlaceholder}
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-200"
                 />
               </div>
             </div>
@@ -196,7 +196,7 @@ export function DropdownSelect<T = string>({
                   onClick={() => setSelectedCategory(cat.value)}
                   className={`flex-1 px-3 py-2.5 text-xs font-medium transition-all duration-200 border-b-2 ${
                     selectedCategory === cat.value
-                      ? 'text-blue-600 border-blue-600 bg-white'
+                      ? 'text-primary-600 border-primary-600 bg-white'
                       : 'text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-100/50'
                   }`}
                 >
@@ -224,7 +224,7 @@ export function DropdownSelect<T = string>({
                     className={`
                       w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors duration-150
                       ${option.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                      ${isSelected ? 'bg-blue-50 text-blue-700' : isHighlighted ? 'bg-gray-50' : 'hover:bg-gray-50'}
+                      ${isSelected ? 'bg-primary-50 text-primary-700' : isHighlighted ? 'bg-gray-50' : 'hover:bg-gray-50'}
                     `}
                     role="option"
                     aria-selected={isSelected}
@@ -232,7 +232,7 @@ export function DropdownSelect<T = string>({
                     {renderOption
                       ? renderOption(option, isSelected)
                       : defaultRenderOption(option, isSelected)}
-                    {isSelected && <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />}
+                    {isSelected && <Check className="w-4 h-4 text-primary-600 flex-shrink-0" />}
                   </button>
                 );
               })

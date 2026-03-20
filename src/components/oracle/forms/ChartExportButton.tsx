@@ -334,11 +334,11 @@ export function ChartExportButton({
   const getProgressColor = () => {
     switch (progress.status) {
       case 'completed':
-        return 'bg-green-500';
+        return 'bg-success-500';
       case 'error':
-        return 'bg-red-500';
+        return 'bg-danger-500';
       default:
-        return 'bg-blue-500';
+        return 'bg-primary-500';
     }
   };
 
@@ -360,7 +360,7 @@ export function ChartExportButton({
             onClick={() => setSettings({ ...settings, range: 'current' })}
             className={`flex-1 px-3 py-2 text-xs  border transition-colors ${
               settings.range === 'current'
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                ? 'bg-primary-50 border-primary-200 text-primary-700'
                 : 'border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -370,7 +370,7 @@ export function ChartExportButton({
             onClick={() => setSettings({ ...settings, range: 'all' })}
             className={`flex-1 px-3 py-2 text-xs  border transition-colors ${
               settings.range === 'all'
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                ? 'bg-primary-50 border-primary-200 text-primary-700'
                 : 'border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -396,7 +396,7 @@ export function ChartExportButton({
                 },
               })
             }
-            className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
           <input
             type="date"
@@ -410,7 +410,7 @@ export function ChartExportButton({
                 },
               })
             }
-            className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
       </div>
@@ -424,7 +424,7 @@ export function ChartExportButton({
           value={settings.filenameTemplate}
           onChange={(e) => setSettings({ ...settings, filenameTemplate: e.target.value })}
           placeholder="{title}_{date}_{time}"
-          className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
         <p className="text-xs text-gray-400 mt-1">{t('priceChart.export.filenameTemplateHint')}</p>
       </div>
@@ -438,7 +438,7 @@ export function ChartExportButton({
           value={settings.customFilename}
           onChange={(e) => setSettings({ ...settings, customFilename: e.target.value })}
           placeholder={generateFilename()}
-          className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
       </div>
 
@@ -448,7 +448,7 @@ export function ChartExportButton({
             type="checkbox"
             checked={settings.includeMetadata}
             onChange={(e) => setSettings({ ...settings, includeMetadata: e.target.checked })}
-            className="w-4 h-4 text-blue-600 rounded border-gray-300"
+            className="w-4 h-4 text-primary-600 rounded border-gray-300"
           />
           <span className="text-xs text-gray-700">{t('priceChart.export.includeMetadata')}</span>
         </label>
@@ -457,7 +457,7 @@ export function ChartExportButton({
             type="checkbox"
             checked={settings.includeWatermark}
             onChange={(e) => setSettings({ ...settings, includeWatermark: e.target.checked })}
-            className="w-4 h-4 text-blue-600 rounded border-gray-300"
+            className="w-4 h-4 text-primary-600 rounded border-gray-300"
           />
           <span className="text-xs text-gray-700">{t('priceChart.export.includeWatermark')}</span>
         </label>
@@ -472,7 +472,7 @@ export function ChartExportButton({
         </button>
         <button
           onClick={() => pendingFormat && executeExport(pendingFormat, selectedResolution)}
-          className="flex-1 px-4 py-2 text-xs text-white bg-blue-600  hover:bg-blue-700 transition-colors"
+          className="flex-1 px-4 py-2 text-xs text-white bg-primary-600  hover:bg-primary-700 transition-colors"
         >
           {t('priceChart.export.confirmExport')}
         </button>
@@ -520,7 +520,7 @@ export function ChartExportButton({
                 type="checkbox"
                 checked={selectedCharts.has(chart.id)}
                 onChange={() => toggleChartSelection(chart.id)}
-                className="w-4 h-4 text-blue-600 rounded border-gray-300"
+                className="w-4 h-4 text-primary-600 rounded border-gray-300"
               />
               <span className="text-xs text-gray-700">{chart.name}</span>
             </label>
@@ -541,7 +541,7 @@ export function ChartExportButton({
         <button
           onClick={executeBatchExport}
           disabled={selectedCharts.size === 0 || isExporting}
-          className="flex-1 px-4 py-2 text-xs text-white bg-blue-600  hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="flex-1 px-4 py-2 text-xs text-white bg-primary-600  hover:bg-primary-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           {isExporting
             ? t('priceChart.export.exporting')
@@ -662,7 +662,7 @@ export function ChartExportButton({
                 onClick={() => handleResolutionSelect(res)}
                 className={`w-full px-3 py-2 text-left text-sm transition-colors ${
                   selectedResolution === res
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'bg-primary-50 text-primary-600'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -873,7 +873,7 @@ export function ChartExportButton({
                 onClick={() => handleResolutionSelect(res)}
                 className={`w-full px-4 py-3 text-left transition-colors ${
                   selectedResolution === res
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'bg-primary-50 text-primary-600'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -881,7 +881,7 @@ export function ChartExportButton({
                   <span className="font-medium">{RESOLUTION_CONFIG[res].label}</span>
                   {selectedResolution === res && (
                     <svg
-                      className="w-4 h-4 text-blue-600"
+                      className="w-4 h-4 text-primary-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1005,9 +1005,9 @@ export function ChartExportButton({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10  bg-blue-100 flex items-center justify-center">
+                <div className="w-10 h-10  bg-primary-100 flex items-center justify-center">
                   <svg
-                    className="w-5 h-5 text-blue-600"
+                    className="w-5 h-5 text-primary-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1053,9 +1053,9 @@ export function ChartExportButton({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10  bg-green-100 flex items-center justify-center">
+                <div className="w-10 h-10  bg-success-100 flex items-center justify-center">
                   <svg
-                    className="w-5 h-5 text-green-600"
+                    className="w-5 h-5 text-success-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"

@@ -532,9 +532,9 @@ export function OraclePageTemplate({
                       <p
                         className={`text-xs mt-2 font-medium ${
                           stat.changeType === 'positive'
-                            ? 'text-green-600'
+                            ? 'text-success-600'
                             : stat.changeType === 'negative'
-                              ? 'text-red-600'
+                              ? 'text-danger-600'
                               : 'text-gray-500'
                         }`}
                       >
@@ -544,7 +544,7 @@ export function OraclePageTemplate({
                         {stat.change}
                       </p>
                     </div>
-                    <div className="p-2 bg-blue-50 border border-blue-100 text-blue-600">
+                    <div className="p-2 bg-primary-50 border border-primary-100 text-primary-600">
                       {stat.icon}
                     </div>
                   </div>
@@ -702,7 +702,7 @@ export function OraclePageTemplate({
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
                         <span className="text-sm text-gray-600">{t('chainlink.stakingApr')}</span>
-                        <span className="text-sm font-semibold text-green-600">
+                        <span className="text-sm font-semibold text-success-600">
                           {config.marketData.stakingApr ? `${config.marketData.stakingApr}%` : '-'}
                         </span>
                       </div>
@@ -710,7 +710,7 @@ export function OraclePageTemplate({
                         <span className="text-sm text-gray-600">
                           {t('chainlink.networkUptime')}
                         </span>
-                        <span className="text-sm font-semibold text-green-600">
+                        <span className="text-sm font-semibold text-success-600">
                           {config.networkData.nodeUptime}%
                         </span>
                       </div>
@@ -729,7 +729,7 @@ export function OraclePageTemplate({
                           <div className="flex items-center justify-center gap-1 mt-1">
                             <span
                               className={`w-2 h-2 ${
-                                item.status === 'healthy' ? 'bg-green-500' : 'bg-yellow-500'
+                                item.status === 'healthy' ? 'bg-success-500' : 'bg-warning-500'
                               }`}
                             />
                             <span className="text-xs text-gray-500">
@@ -752,8 +752,8 @@ export function OraclePageTemplate({
                             <span
                               className={`w-2 h-2 flex-shrink-0 ${
                                 source.status === 'active'
-                                  ? 'bg-green-500'
-                                  : 'bg-yellow-500 animate-pulse'
+                                  ? 'bg-success-500'
+                                  : 'bg-warning-500 animate-pulse'
                               }`}
                             />
                             <span className="text-sm text-gray-700 truncate">{source.name}</span>

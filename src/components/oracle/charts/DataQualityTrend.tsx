@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   Area,
@@ -34,6 +34,7 @@ import {
 } from '@/stores/uiStore';
 import { createLogger } from '@/lib/utils/logger';
 import { SegmentedControl } from '@/components/ui/selectors';
+
 
 const logger = createLogger('DataQualityTrend');
 
@@ -542,7 +543,7 @@ export function DataQualityTrend({
                     type="checkbox"
                     checked={selectedOracles.includes(oracle.oracle)}
                     onChange={() => toggleOracle(oracle.oracle)}
-                    className="w-4 h-4 rounded focus:ring-blue-500"
+                    className="w-4 h-4 rounded focus:ring-primary-500"
                     style={{ accentColor: ORACLE_COLORS[oracle.oracle] }}
                   />
                   <span className="text-sm text-gray-700">{oracleNames[oracle.oracle]}</span>
@@ -556,7 +557,7 @@ export function DataQualityTrend({
                   type="checkbox"
                   checked={showRadarChart}
                   onChange={(e) => setShowRadarChart(e.target.checked)}
-                  className="w-4 h-4 rounded focus:ring-blue-500"
+                  className="w-4 h-4 rounded focus:ring-primary-500"
                 />
                 <span className="text-sm text-gray-700">
                   {t('charts.dataQuality.showRadarChart')}
@@ -567,7 +568,7 @@ export function DataQualityTrend({
                   type="checkbox"
                   checked={showRanking}
                   onChange={(e) => setShowRanking(e.target.checked)}
-                  className="w-4 h-4 rounded focus:ring-blue-500"
+                  className="w-4 h-4 rounded focus:ring-primary-500"
                 />
                 <span className="text-sm text-gray-700">{t('charts.dataQuality.showRanking')}</span>
               </label>
@@ -595,7 +596,7 @@ export function DataQualityTrend({
                     domain={[0, 100]}
                     tickFormatter={(value) => `${value}`}
                   />
-                  <Tooltip content={<CustomTooltip />} />
+                  <RechartsTooltip content={<CustomTooltip />} />
                   <Legend />
                   <ReferenceLine
                     y={90}
@@ -692,9 +693,9 @@ export function DataQualityTrend({
                         <span
                           className={`ml-1 font-medium ${
                             stat.trend === 'improving'
-                              ? 'text-green-600'
+                              ? 'text-success-600'
                               : stat.trend === 'declining'
-                                ? 'text-red-600'
+                                ? 'text-danger-600'
                                 : 'text-gray-600'
                           }`}
                         >
@@ -716,7 +717,7 @@ export function DataQualityTrend({
                         <span className="text-gray-500">{t('charts.dataQuality.outlierRate')}</span>
                         <span
                           className={`font-medium ${
-                            stat.outlierRate > 5 ? 'text-red-600' : 'text-green-600'
+                            stat.outlierRate > 5 ? 'text-danger-600' : 'text-success-600'
                           }`}
                         >
                           {stat.outlierRate.toFixed(1)}%
@@ -726,7 +727,7 @@ export function DataQualityTrend({
                         <span className="text-gray-500">{t('charts.dataQuality.staleRate')}</span>
                         <span
                           className={`font-medium ${
-                            stat.staleRate > 2 ? 'text-red-600' : 'text-green-600'
+                            stat.staleRate > 2 ? 'text-danger-600' : 'text-success-600'
                           }`}
                         >
                           {stat.staleRate.toFixed(1)}%
@@ -787,11 +788,11 @@ export function DataQualityTrend({
                       <span
                         className={`inline-flex items-center justify-center w-8 h-8 text-sm font-bold ${
                           item.rank === 1
-                            ? 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-warning-100 text-yellow-800'
                             : item.rank === 2
                               ? 'bg-gray-100 text-gray-800'
                               : item.rank === 3
-                                ? 'bg-orange-100 text-orange-800'
+                                ? 'bg-warning-100 text-orange-800'
                                 : 'bg-gray-50 text-gray-600'
                         }`}
                       >
@@ -828,9 +829,9 @@ export function DataQualityTrend({
                       <span
                         className={`inline-flex items-center text-sm ${
                           item.trend === 'improving'
-                            ? 'text-green-600'
+                            ? 'text-success-600'
                             : item.trend === 'declining'
-                              ? 'text-red-600'
+                              ? 'text-danger-600'
                               : 'text-gray-600'
                         }`}
                       >
@@ -921,7 +922,7 @@ export function DataQualityTrend({
                 tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `${value}ms`}
               />
-              <Tooltip />
+              <RechartsTooltip />
               <Legend />
 
               {selectedOracles.map((oracle) => (
@@ -956,7 +957,7 @@ export function DataQualityTrend({
                 tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `${(value * 100).toFixed(2)}%`}
               />
-              <Tooltip />
+              <RechartsTooltip />
               <Legend />
               <ReferenceLine
                 y={0}
@@ -1013,7 +1014,7 @@ export function DataQualityTrend({
                 domain={[0, 100]}
                 tickFormatter={(value) => `${value}%`}
               />
-              <Tooltip />
+              <RechartsTooltip />
               <Legend />
               <ReferenceLine
                 y={95}
@@ -1039,7 +1040,7 @@ export function DataQualityTrend({
       </DashboardCard>
 
       <DashboardCard title={t('charts.dataQuality.qualityScoreDescription')}>
-        <div className="text-sm text-blue-800 space-y-2">
+        <div className="text-sm text-primary-800 space-y-2">
           <p>{t('charts.dataQuality.qualityScoreDescTitle')}</p>
           <ul className="space-y-1 ml-4">
             <li>
@@ -1063,7 +1064,7 @@ export function DataQualityTrend({
               {t('charts.dataQuality.heartbeatComplianceDescLong')}
             </li>
           </ul>
-          <div className="flex gap-4 mt-3 pt-3 border-t border-blue-200">
+          <div className="flex gap-4 mt-3 pt-3 border-t border-primary-200">
             <span className="flex items-center gap-1">
               <span
                 className="w-3 h-3"

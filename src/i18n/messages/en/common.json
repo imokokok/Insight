@@ -129,11 +129,7 @@
     "hours": "hours"
   },
   "price": {
-    "label": "Price",
-    "averagePrice": "Average Price",
-    "highestPrice": "Highest Price",
-    "lowestPrice": "Lowest Price",
-    "priceRange": "Price Range"
+    "title": "Price"
   },
   "statistics": {
     "deviation": "Deviation",
@@ -234,9 +230,6 @@
   "comparison": {
     "title": "Comparison"
   },
-  "price": {
-    "title": "Price"
-  },
   "indicators": {
     "title": "Indicators"
   },
@@ -252,7 +245,10 @@
     "subtitle": "Band Protocol cross-chain price monitoring"
   },
   "snapshot": {
-    "title": "Snapshot"
+    "title": "Snapshot",
+    "savedCount": "{count} snapshots saved",
+    "cloudLabel": "Cloud Sync",
+    "saveSnapshot": "Save Snapshot"
   },
   "gasFeeComparison": {
     "title": "Gas Fee Comparison"
@@ -325,13 +321,40 @@
     "title": "Price Volatility"
   },
   "priceDistribution": {
-    "title": "Price Distribution"
+    "title": "Price Distribution",
+    "legend": {
+      "title": "Legend",
+      "box": "Box",
+      "median": "Median",
+      "whisker": "Whisker",
+      "outlier": "Outlier"
+    },
+    "stats": {
+      "title": "Statistics",
+      "oracle": "Oracle",
+      "median": "Median",
+      "q1": "Q1",
+      "q3": "Q3",
+      "iqr": "IQR",
+      "outliers": "Outliers"
+    }
   },
   "priceDeviationHeatmap": {
     "title": "Price Deviation Heatmap"
   },
   "priceCorrelation": {
-    "title": "Price Correlation"
+    "title": "Price Correlation",
+    "legend": {
+      "perfectNegative": "Perfect Negative",
+      "negative": "Negative",
+      "none": "None",
+      "positive": "Positive",
+      "perfectPositive": "Perfect Positive"
+    },
+    "oracleCount": "Oracle Count",
+    "highCorrelationPairs": "High Correlation Pairs",
+    "avgCorrelation": "Avg Correlation",
+    "maxCorrelation": "Max Correlation"
   },
   "crossChainRisk": {
     "title": "Cross-Chain Risk"
@@ -427,6 +450,9 @@
       "monthPerDay": "Month/Day",
       "yearPerDay": "Year/Day",
       "disclaimer": "Disclaimer: Estimated rewards are for reference only. Actual rewards may vary based on network conditions and validator performance."
+    },
+    "oraclePageTemplate": {
+      "rank": "Rank"
     }
   },
   "networkHealth": {
@@ -497,6 +523,98 @@
       "secondsAgo": "s ago",
       "minutesAgo": "m ago",
       "hoursAgo": "h ago"
+    }
+  },
+  "crossChain": {
+    "autoRefreshOff": "Auto Refresh Off",
+    "autoRefresh30s": "30 Seconds",
+    "autoRefresh1m": "1 Minute",
+    "autoRefresh5m": "5 Minutes",
+    "averagePrice": "Average Price",
+    "medianPrice": "Median Price",
+    "highestPrice": "Highest Price",
+    "priceRange": "Price Range",
+    "standardDeviation": "Standard Deviation",
+    "dataPoints": "Data Points",
+    "iqr": "Interquartile Range",
+    "skewness": "Skewness",
+    "kurtosis": "Kurtosis",
+    "confidenceInterval95": "95% Confidence Interval",
+    "coefficientOfVariation": "Coefficient of Variation",
+    "consistencyRating": "Consistency Rating",
+    "stabilityAnalysis": "Stability Analysis",
+    "blockchain": "Blockchain",
+    "dataIntegrity": "Data Integrity",
+    "priceVolatility": "Price Volatility",
+    "priceJumpFrequency": "Price Jump Frequency",
+    "stabilityRating": "Stability Rating",
+    "cointegrationAnalysis": "Cointegration Analysis",
+    "cointegrationDesc": "Analyze long-term equilibrium relationships between prices on different chains",
+    "volatilityAnalysis": "Volatility Analysis",
+    "volatilityAnalysisDesc": "Analyze statistical characteristics of price volatility",
+    "priceDistributionAnalysis": "Price Distribution Analysis",
+    "priceDistributionHistogram": "Price Distribution Histogram",
+    "frequency": "Frequency",
+    "medianLine": "Median Line",
+    "meanLine": "Mean Line",
+    "chainPriceBoxPlot": "Chain Price Box Plot",
+    "title": "Cross Chain Analysis",
+    "colorblindModeOn": "Colorblind Mode On",
+    "switchToColorblindMode": "Switch to Colorblind Mode",
+    "colorblindFriendly": "Colorblind Friendly",
+    "export": "Export",
+    "autoRefresh": "Auto Refresh",
+    "refreshSuccess": "Refresh Success",
+    "loadingData": "Loading data...",
+    "tooltip": {
+      "averagePrice": "Average of prices across all chains",
+      "medianPrice": "Median of prices across all chains",
+      "highestPrice": "Highest price across all chains",
+      "priceRange": "Difference between highest and lowest prices",
+      "standardDeviation": "Standard deviation of price fluctuations",
+      "dataPoints": "Number of data points",
+      "iqr": "Difference between third and first quartiles",
+      "skewness": "Asymmetry of price distribution",
+      "kurtosis": "Tail thickness of price distribution",
+      "confidenceInterval95": "Price interval at 95% confidence level",
+      "coefficientOfVariation": "Ratio of standard deviation to mean",
+      "consistencyRating": "Consistency rating based on standard deviation"
+    }
+  },
+  "crossOracle": {
+    "subtitle": "Multi-Oracle Price Comparison Analysis",
+    "favorites": {
+      "button": "Favorites",
+      "quickAccess": "Quick Access",
+      "viewAll": "View All"
+    },
+    "weighted": "Weighted",
+    "historyRange": "History Range",
+    "low": "Low",
+    "ofAverage": "Of Average",
+    "variance": "Variance",
+    "basedOnStdDev": "Based on Std Dev"
+  },
+  "settings": {
+    "profile": {
+      "title": "Profile",
+      "subtitle": "Manage your personal information and account settings",
+      "displayNameLabel": "Display Name",
+      "displayNamePlaceholder": "Enter display name",
+      "emailLabel": "Email",
+      "emailNotEditable": "Email is not editable",
+      "saveChanges": "Save Changes",
+      "saveSuccess": "Saved successfully",
+      "saveError": "Save failed",
+      "passwordManagement": "Password Management",
+      "passwordManagementDesc": "Update your password to keep your account secure",
+      "changePassword": "Change Password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "passwordMismatch": "Passwords do not match",
+      "passwordUpdateSuccess": "Password updated successfully",
+      "passwordUpdateError": "Password update failed"
     }
   }
 }

@@ -7,13 +7,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Cell,
 } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
 import { baseColors, chartColors } from '@/lib/config/colors';
 import { oracleNames, oracleColors, PriceComparisonData } from './crossOracleConfig';
+
 
 interface PriceStats {
   avg: number;
@@ -190,7 +191,7 @@ export function OverviewTab({
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip
+                <RechartsTooltip
                   formatter={(value) => [`$${Number(value).toFixed(2)}`, t('crossOracle.price')]}
                   contentStyle={{
                     fontSize: 12,

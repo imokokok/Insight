@@ -52,15 +52,15 @@ export const MainChartTooltip = memo(function MainChartTooltip({
           </div>
           <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
             <span className="text-gray-500">{t('priceQuery.chart.tooltip.high')}</span>
-            <span className="text-green-600 font-mono">${data.high?.toFixed(4)}</span>
+            <span className="text-success-600 font-mono">${data.high?.toFixed(4)}</span>
           </div>
           <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
             <span className="text-gray-500">{t('priceQuery.chart.tooltip.low')}</span>
-            <span className="text-red-600 font-mono">${data.low?.toFixed(4)}</span>
+            <span className="text-danger-600 font-mono">${data.low?.toFixed(4)}</span>
           </div>
           <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
             <span className="text-gray-500">{t('priceQuery.chart.tooltip.close')}</span>
-            <span className={`font-mono ${isUp ? 'text-green-600' : 'text-red-600'}`}>
+            <span className={`font-mono ${isUp ? 'text-success-600' : 'text-danger-600'}`}>
               ${data.close?.toFixed(4)}
             </span>
           </div>
@@ -68,7 +68,7 @@ export const MainChartTooltip = memo(function MainChartTooltip({
       ) : (
         <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
           <span className="text-gray-500">{t('priceQuery.chart.tooltip.price')}</span>
-          <span className="text-blue-600 font-mono">${data.price.toFixed(4)}</span>
+          <span className="text-primary-600 font-mono">${data.price.toFixed(4)}</span>
         </div>
       )}
 
@@ -82,7 +82,7 @@ export const MainChartTooltip = memo(function MainChartTooltip({
       {!isMobile && data.ma14 !== undefined && chartType === 'line' && (
         <div className="flex justify-between gap-4 text-xs mt-1">
           <span className="text-gray-500">{t('priceQuery.chart.tooltip.ma14')}</span>
-          <span className="text-blue-600 font-mono">${data.ma14.toFixed(4)}</span>
+          <span className="text-primary-600 font-mono">${data.ma14.toFixed(4)}</span>
         </div>
       )}
 
@@ -122,13 +122,13 @@ export const MainChartTooltip = memo(function MainChartTooltip({
           >
             <div className="flex justify-between gap-4">
               <span className="text-gray-500">{t('priceQuery.chart.tooltip.predictionUpper')}</span>
-              <span className="text-blue-600 font-mono">
+              <span className="text-primary-600 font-mono">
                 ${Number(data.predictionUpper).toFixed(4)}
               </span>
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-gray-500">{t('priceQuery.chart.tooltip.predictionLower')}</span>
-              <span className="text-blue-600 font-mono">
+              <span className="text-primary-600 font-mono">
                 ${Number(data.predictionLower).toFixed(4)}
               </span>
             </div>
@@ -146,7 +146,7 @@ export const MainChartTooltip = memo(function MainChartTooltip({
         <div className="flex justify-between gap-4 text-xs mt-1">
           <span className="text-gray-500">{t('priceQuery.chart.tooltip.rsi')}</span>
           <span
-            className={`font-mono ${data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-gray-700'}`}
+            className={`font-mono ${data.rsi > 70 ? 'text-danger-500' : data.rsi < 30 ? 'text-success-500' : 'text-gray-700'}`}
           >
             {data.rsi.toFixed(2)}
           </span>
@@ -158,16 +158,16 @@ export const MainChartTooltip = memo(function MainChartTooltip({
           <p className="text-xs text-gray-400 font-medium">{t('priceQuery.chart.tooltip.macd')}</p>
           <div className="flex justify-between gap-4 text-xs">
             <span className="text-gray-500">{t('priceQuery.chart.tooltip.macdValue')}</span>
-            <span className="text-blue-600 font-mono">{data.macd.toFixed(4)}</span>
+            <span className="text-primary-600 font-mono">{data.macd.toFixed(4)}</span>
           </div>
           <div className="flex justify-between gap-4 text-xs">
             <span className="text-gray-500">{t('priceQuery.chart.tooltip.signal')}</span>
-            <span className="text-orange-600 font-mono">{data.macdSignal?.toFixed(4)}</span>
+            <span className="text-warning-600 font-mono">{data.macdSignal?.toFixed(4)}</span>
           </div>
           <div className="flex justify-between gap-4 text-xs">
             <span className="text-gray-500">{t('priceQuery.chart.tooltip.histogram')}</span>
             <span
-              className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}
+              className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}
             >
               {data.macdHistogram?.toFixed(4)}
             </span>
@@ -198,7 +198,7 @@ export const RSITooltip = memo(function RSITooltip({ active, payload, label }: R
       <div className="flex justify-between gap-4 text-xs">
         <span className="text-gray-500">{t('priceQuery.chart.tooltip.rsi')}</span>
         <span
-          className={`font-mono font-medium ${data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-gray-900'}`}
+          className={`font-mono font-medium ${data.rsi > 70 ? 'text-danger-500' : data.rsi < 30 ? 'text-success-500' : 'text-gray-900'}`}
         >
           {data.rsi.toFixed(2)}
         </span>
@@ -227,16 +227,16 @@ export const MACDTooltip = memo(function MACDTooltip({ active, payload, label }:
       <div className="space-y-1">
         <div className="flex justify-between gap-4 text-xs">
           <span className="text-gray-500">{t('priceQuery.chart.tooltip.macdValue')}</span>
-          <span className="text-blue-600 font-mono">{data.macd?.toFixed(4)}</span>
+          <span className="text-primary-600 font-mono">{data.macd?.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4 text-xs">
           <span className="text-gray-500">{t('priceQuery.chart.tooltip.signal')}</span>
-          <span className="text-orange-600 font-mono">{data.macdSignal?.toFixed(4)}</span>
+          <span className="text-warning-600 font-mono">{data.macdSignal?.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4 text-xs">
           <span className="text-gray-500">{t('priceQuery.chart.tooltip.histogram')}</span>
           <span
-            className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}
           >
             {data.macdHistogram?.toFixed(4)}
           </span>

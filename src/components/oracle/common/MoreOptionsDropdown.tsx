@@ -63,7 +63,7 @@ export function MoreOptionsDropdown({
           onClick={() => setIsOpen(!isOpen)}
           className={`p-2  transition-colors ${
             isOpen || anomalyDetectionEnabled || showPredictionInterval || comparisonEnabled
-              ? 'bg-blue-100 text-blue-600'
+              ? 'bg-primary-100 text-primary-600'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
           title={t('priceChart.moreOptions')}
@@ -112,7 +112,7 @@ export function MoreOptionsDropdown({
               onClick={() => handleToggle(onToggleAnomalyDetection)}
               className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between ${
                 anomalyDetectionEnabled
-                  ? 'text-red-600 bg-red-50'
+                  ? 'text-danger-600 bg-danger-50'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -126,13 +126,13 @@ export function MoreOptionsDropdown({
                 </svg>
                 {t('priceChart.anomalyDetection')}
                 {anomalyDetectionEnabled && anomaliesCount > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white  text-xs">
+                  <span className="ml-1 px-1.5 py-0.5 bg-danger-500 text-white  text-xs">
                     {anomaliesCount}
                   </span>
                 )}
               </span>
               {anomalyDetectionEnabled && (
-                <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 text-danger-600" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -165,7 +165,7 @@ export function MoreOptionsDropdown({
               onClick={() => handleToggle(onTogglePredictionInterval)}
               className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between ${
                 showPredictionInterval
-                  ? 'text-blue-600 bg-blue-50'
+                  ? 'text-primary-600 bg-primary-50'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -176,7 +176,7 @@ export function MoreOptionsDropdown({
                 {t('priceChart.predictionInterval')}
               </span>
               {showPredictionInterval && (
-                <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -197,14 +197,14 @@ export function MoreOptionsDropdown({
                     onClick={() => onConfidenceLevelChange(level)}
                     className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between ${
                       confidenceLevel === level
-                        ? 'text-blue-600 bg-blue-50'
+                        ? 'text-primary-600 bg-primary-50'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     <span className="pl-6">{level}%</span>
                     {confidenceLevel === level && (
                       <svg
-                        className="w-4 h-4 text-blue-600"
+                        className="w-4 h-4 text-primary-600"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -231,7 +231,7 @@ export function MoreOptionsDropdown({
         onClick={() => setIsOpen(!isOpen)}
         className={`px-3 py-1.5 text-xs font-medium  border transition-colors flex items-center gap-1 ${
           isOpen || anomalyDetectionEnabled || showPredictionInterval || comparisonEnabled
-            ? 'bg-blue-50 text-blue-600 border-blue-200'
+            ? 'bg-primary-50 text-primary-600 border-primary-200'
             : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
         }`}
       >
@@ -244,7 +244,7 @@ export function MoreOptionsDropdown({
         </svg>
         {t('priceChart.more')}
         {(anomalyDetectionEnabled || showPredictionInterval || comparisonEnabled) && (
-          <span className="ml-1 w-1.5 h-1.5 bg-blue-500 " />
+          <span className="ml-1 w-1.5 h-1.5 bg-primary-500 " />
         )}
       </button>
 
@@ -312,7 +312,7 @@ export function MoreOptionsDropdown({
               onClick={() => handleToggle(onToggleAnomalyDetection)}
               className={`w-full px-4 py-2.5 text-left transition-colors ${
                 anomalyDetectionEnabled
-                  ? 'text-red-600 bg-red-50'
+                  ? 'text-danger-600 bg-danger-50'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -320,11 +320,11 @@ export function MoreOptionsDropdown({
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-8 h-8  flex items-center justify-center ${
-                      anomalyDetectionEnabled ? 'bg-red-100' : 'bg-gray-100'
+                      anomalyDetectionEnabled ? 'bg-danger-100' : 'bg-gray-100'
                     }`}
                   >
                     <svg
-                      className={`w-4 h-4 ${anomalyDetectionEnabled ? 'text-red-600' : 'text-gray-600'}`}
+                      className={`w-4 h-4 ${anomalyDetectionEnabled ? 'text-danger-600' : 'text-gray-600'}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -345,12 +345,12 @@ export function MoreOptionsDropdown({
                 </div>
                 <div className="flex items-center gap-2">
                   {anomalyDetectionEnabled && anomaliesCount > 0 && (
-                    <span className="px-1.5 py-0.5 bg-red-500 text-white  text-xs">
+                    <span className="px-1.5 py-0.5 bg-danger-500 text-white  text-xs">
                       {anomaliesCount}
                     </span>
                   )}
                   {anomalyDetectionEnabled && (
-                    <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-danger-600" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fillRule="evenodd"
                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -386,7 +386,7 @@ export function MoreOptionsDropdown({
               onClick={() => handleToggle(onTogglePredictionInterval)}
               className={`w-full px-4 py-2.5 text-left transition-colors ${
                 showPredictionInterval
-                  ? 'text-blue-600 bg-blue-50'
+                  ? 'text-primary-600 bg-primary-50'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -394,11 +394,11 @@ export function MoreOptionsDropdown({
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-8 h-8  flex items-center justify-center ${
-                      showPredictionInterval ? 'bg-blue-100' : 'bg-gray-100'
+                      showPredictionInterval ? 'bg-primary-100' : 'bg-gray-100'
                     }`}
                   >
                     <svg
-                      className={`w-4 h-4 ${showPredictionInterval ? 'text-blue-600' : 'text-gray-600'}`}
+                      className={`w-4 h-4 ${showPredictionInterval ? 'text-primary-600' : 'text-gray-600'}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -418,7 +418,7 @@ export function MoreOptionsDropdown({
                   </div>
                 </div>
                 {showPredictionInterval && (
-                  <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -441,7 +441,7 @@ export function MoreOptionsDropdown({
                       onClick={() => onConfidenceLevelChange(level)}
                       className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
                         confidenceLevel === level
-                          ? 'bg-blue-500 text-white'
+                          ? 'bg-primary-500 text-white'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >

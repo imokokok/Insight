@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   ReferenceLine,
@@ -19,6 +19,7 @@ import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+
 
 type BaselineType = 'average' | 'median' | 'chainlink';
 
@@ -224,7 +225,7 @@ export function PriceDeviationHistoryChart({
       case 'increasing':
         return (
           <svg
-            className="w-4 h-4 text-red-500"
+            className="w-4 h-4 text-danger-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -235,7 +236,7 @@ export function PriceDeviationHistoryChart({
       case 'decreasing':
         return (
           <svg
-            className="w-4 h-4 text-green-500"
+            className="w-4 h-4 text-success-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -313,7 +314,7 @@ export function PriceDeviationHistoryChart({
                     onClick={() => setTimeRange(range)}
                     className={`px-3 py-1 text-sm  transition-colors ${
                       timeRange === range
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-primary-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -341,7 +342,7 @@ export function PriceDeviationHistoryChart({
                 tickFormatter={(value) => `${value.toFixed(2)}%`}
                 domain={['auto', 'auto']}
               />
-              <Tooltip
+              <RechartsTooltip
                 formatter={(value, name) => {
                   const numValue = typeof value === 'number' ? value : 0;
                   const strName = typeof name === 'string' ? name : '';
@@ -401,7 +402,7 @@ export function PriceDeviationHistoryChart({
         <div className="flex items-center justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
             <div
-              className="w-8 h-0.5 bg-orange-500 border-dashed"
+              className="w-8 h-0.5 bg-warning-500 border-dashed"
               style={{ borderTop: `2px dashed ${chartColors.recharts.warning}` }}
             />
             <span className="text-xs text-gray-600">
@@ -410,7 +411,7 @@ export function PriceDeviationHistoryChart({
           </div>
           <div className="flex items-center gap-2">
             <div
-              className="w-8 h-0.5 bg-red-500 border-dashed"
+              className="w-8 h-0.5 bg-danger-500 border-dashed"
               style={{ borderTop: `2px dashed ${chartColors.recharts.danger}` }}
             />
             <span className="text-xs text-gray-600">
@@ -438,9 +439,9 @@ export function PriceDeviationHistoryChart({
                     <span
                       className={`text-sm font-medium ${
                         stats.avgDeviation >= DEVIATION_THRESHOLDS.critical
-                          ? 'text-red-600'
+                          ? 'text-danger-600'
                           : stats.avgDeviation >= DEVIATION_THRESHOLDS.warning
-                            ? 'text-orange-600'
+                            ? 'text-warning-600'
                             : 'text-gray-900'
                       }`}
                     >
@@ -454,9 +455,9 @@ export function PriceDeviationHistoryChart({
                     <span
                       className={`text-sm font-medium ${
                         Math.abs(stats.maxDeviation) >= DEVIATION_THRESHOLDS.critical
-                          ? 'text-red-600'
+                          ? 'text-danger-600'
                           : Math.abs(stats.maxDeviation) >= DEVIATION_THRESHOLDS.warning
-                            ? 'text-orange-600'
+                            ? 'text-warning-600'
                             : 'text-gray-900'
                       }`}
                     >
@@ -487,9 +488,9 @@ export function PriceDeviationHistoryChart({
                       <span
                         className={`text-sm ${
                           stats.trend === 'increasing'
-                            ? 'text-red-600'
+                            ? 'text-danger-600'
                             : stats.trend === 'decreasing'
-                              ? 'text-green-600'
+                              ? 'text-success-600'
                               : 'text-gray-600'
                         }`}
                       >
@@ -520,7 +521,7 @@ export function PriceDeviationHistoryChart({
                 tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `${value.toFixed(2)}%`}
               />
-              <Tooltip
+              <RechartsTooltip
                 formatter={(value, name) => {
                   const numValue = typeof value === 'number' ? value : 0;
                   const strName = typeof name === 'string' ? name : '';
@@ -549,17 +550,17 @@ export function PriceDeviationHistoryChart({
 
       <DashboardCard title={t('charts.priceDeviationHistory.overallStats')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50 p-4 text-center">
+          <div className="bg-primary-50 p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('charts.priceDeviationHistory.baselineType')}
             </p>
-            <p className="text-lg font-semibold text-blue-600">{getBaselineLabel(baselineType)}</p>
+            <p className="text-lg font-semibold text-primary-600">{getBaselineLabel(baselineType)}</p>
           </div>
-          <div className="bg-green-50 p-4 text-center">
+          <div className="bg-success-50 p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('charts.priceDeviationHistory.dataPoints')}
             </p>
-            <p className="text-lg font-semibold text-green-600">{deviationHistory.length}</p>
+            <p className="text-lg font-semibold text-success-600">{deviationHistory.length}</p>
           </div>
           <div className="bg-purple-50 p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
@@ -567,11 +568,11 @@ export function PriceDeviationHistoryChart({
             </p>
             <p className="text-lg font-semibold text-purple-600">{selectedOracles.length}</p>
           </div>
-          <div className="bg-orange-50 p-4 text-center">
+          <div className="bg-warning-50 p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('charts.priceDeviationHistory.warningCount')}
             </p>
-            <p className="text-lg font-semibold text-orange-600">
+            <p className="text-lg font-semibold text-warning-600">
               {
                 deviationHistory.filter((d) =>
                   Object.values(d.deviations).some(

@@ -155,8 +155,8 @@ export function ShortcutHelpPanel() {
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <Keyboard className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center">
+                    <Keyboard className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900">{t('shortcuts.title')}</h2>
@@ -183,14 +183,14 @@ export function ShortcutHelpPanel() {
                 ))}
 
                 {/* Tips */}
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="mt-6 p-4 bg-primary-50 rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Command className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <Command className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                     <div>
-                      <h4 className="text-sm font-medium text-blue-900">
+                      <h4 className="text-sm font-medium text-primary-900">
                         {t('shortcuts.tips.title')}
                       </h4>
-                      <p className="text-sm text-blue-700 mt-1">
+                      <p className="text-sm text-primary-700 mt-1">
                         {t('shortcuts.tips.description')}
                       </p>
                     </div>

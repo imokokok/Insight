@@ -7,13 +7,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Scatter,
   Cell,
 } from 'recharts';
 import { BoxPlotData } from '../constants';
 import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+
 
 interface StandardBoxPlotProps {
   data: BoxPlotData[];
@@ -295,7 +296,7 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
               tickLine={false}
               axisLine={{ stroke: chartColors.recharts.grid }}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <RechartsTooltip content={<CustomTooltip />} />
 
             {/* Box plots */}
             <Scatter data={chartData} shape={<BoxPlotShape />} isAnimationActive={false}>

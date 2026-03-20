@@ -12,6 +12,7 @@ import { DropdownMenu, MobileDrawer, navigationConfig } from './navigation';
 import { NavGroup } from './navigation/types';
 import { GlobalSearch, SearchButton } from './search';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { Button } from '@/components/ui';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -27,7 +28,6 @@ export default function Navbar() {
 
   const currentPath = useMemo(() => {
     if (!pathname) return '/';
-    // Remove locale prefix (e.g., /zh-CN/pyth-network -> /pyth-network)
     const pathWithoutQuery = pathname.split('?')[0];
     const localeMatch = pathWithoutQuery.match(/^\/(?:zh-CN|en)(\/.*)$/);
     return localeMatch ? localeMatch[1] : pathWithoutQuery;
@@ -45,7 +45,6 @@ export default function Navbar() {
     setIsUserMenuOpen(false);
   };
 
-  // Global search keyboard shortcut (Cmd/Ctrl + K)
   useKeyboardShortcuts([
     {
       key: 'k',
@@ -76,7 +75,7 @@ export default function Navbar() {
                   className="group-hover:scale-105 transition-transform duration-300"
                   priority
                 />
-                <div className="text-xl font-bold text-blue-600 group-hover:text-blue-700 transition-colors duration-300">
+                <div className="text-xl font-bold text-primary-600 group-hover:text-primary-700 transition-colors duration-300">
                   Insight
                 </div>
               </Link>
@@ -108,14 +107,14 @@ export default function Navbar() {
                     href={item.href}
                     className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-200 relative ${
                       active
-                        ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                        ? 'text-primary-600 bg-primary-50'
+                        : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
                     }`}
                   >
                     {ItemIcon && <ItemIcon className="w-4 h-4" />}
                     <span>{t(item.label)}</span>
                     {active && (
-                      <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600" />
+                      <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary-600" />
                     )}
                   </Link>
                 );
@@ -123,7 +122,6 @@ export default function Navbar() {
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2">
-              {/* Search Button */}
               <SearchButton onClick={() => setIsSearchOpen(true)} />
 
               <div className="hidden md:block">
@@ -136,8 +134,8 @@ export default function Navbar() {
                     href={`/${locale}/favorites`}
                     className={`p-2 transition-colors ${
                       isActive('/favorites')
-                        ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                        ? 'text-primary-600 bg-primary-50'
+                        : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
                     }`}
                     title={t('navbar.favorites')}
                   >
@@ -147,8 +145,8 @@ export default function Navbar() {
                     href={`/${locale}/alerts`}
                     className={`p-2 transition-colors ${
                       isActive('/alerts')
-                        ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                        ? 'text-primary-600 bg-primary-50'
+                        : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
                     }`}
                     title={t('navbar.alerts')}
                   >
@@ -159,7 +157,7 @@ export default function Navbar() {
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                       className="flex items-center gap-2 p-1.5 hover:bg-gray-50 transition-colors"
                     >
-                      <div className="w-8 h-8 bg-blue-600 border border-blue-500 flex items-center justify-center text-white text-sm font-medium overflow-hidden">
+                      <div className="w-8 h-8 bg-primary-600 border border-primary-500 flex items-center justify-center text-white text-sm font-medium overflow-hidden">
                         {profile?.avatar_url ? (
                           <img
                             src={profile.avatar_url}
@@ -179,7 +177,7 @@ export default function Navbar() {
                           className="fixed inset-0 z-40"
                           onClick={() => setIsUserMenuOpen(false)}
                         />
-                        <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 py-2 z-50">
+                        <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 py-2 z-50 shadow-lg">
                           <div className="px-4 py-2 border-b border-gray-100">
                             <p className="text-sm font-medium text-gray-900 truncate">
                               {profile?.display_name || t('user')}
@@ -197,13 +195,14 @@ export default function Navbar() {
                             </Link>
                           </div>
                           <div className="border-t border-gray-100 py-1">
-                            <button
+                            <Button
+                              variant="ghost"
                               onClick={handleSignOut}
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
+                              className="w-full justify-start text-danger-600 hover:text-danger-700 hover:bg-danger-50"
+                              leftIcon={<LogOut className="w-4 h-4" />}
                             >
-                              <LogOut className="w-4 h-4" />
                               {t('navbar.signOut')}
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       </>
@@ -212,28 +211,24 @@ export default function Navbar() {
                 </div>
               ) : !loading ? (
                 <div className="hidden lg:flex items-center gap-2">
-                  <Link
-                    href={`/${locale}/login`}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-                  >
-                    {t('navbar.login')}
+                  <Link href={`/${locale}/login`}>
+                    <Button variant="ghost">{t('navbar.login')}</Button>
                   </Link>
-                  <Link
-                    href={`/${locale}/register`}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-                  >
-                    {t('navbar.register')}
+                  <Link href={`/${locale}/register`}>
+                    <Button variant="primary">{t('navbar.register')}</Button>
                   </Link>
                 </div>
               ) : null}
 
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                className="lg:hidden"
                 aria-label={t('navbar.openMenu')}
               >
                 <Menu className="w-6 h-6" />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -246,7 +241,6 @@ export default function Navbar() {
         />
       </nav>
 
-      {/* Global Search Dialog */}
       <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );

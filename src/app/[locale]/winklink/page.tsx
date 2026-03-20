@@ -194,7 +194,7 @@ export default function WINkLinkPage() {
                       <span className="text-sm text-gray-600">
                         {t('winklink.stats.stakingApr')}
                       </span>
-                      <span className="text-sm font-semibold text-green-600">
+                      <span className="text-sm font-semibold text-success-600">
                         {staking?.averageApr ?? 15.5}%
                       </span>
                     </div>

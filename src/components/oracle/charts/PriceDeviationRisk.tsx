@@ -7,13 +7,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 import { useTranslations } from 'next-intl';
+
 
 interface DeviationDataPoint {
   timestamp: string;
@@ -80,10 +81,10 @@ export function PriceDeviationRisk() {
     <DashboardCard title={t('charts.priceDeviationRisk.title')}>
       <div className="space-y-6">
         {hasWarning && (
-          <div className="bg-orange-50 border border-orange-200  p-4">
+          <div className="bg-warning-50 border border-orange-200  p-4">
             <div className="flex items-start gap-3">
               <svg
-                className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0"
+                className="w-5 h-5 text-warning-600 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -116,7 +117,7 @@ export function PriceDeviationRisk() {
               {t('charts.priceDeviationRisk.currentDeviation')}
             </p>
             <p
-              className={`text-xl font-bold ${stats.current >= DEVIATION_THRESHOLD ? 'text-orange-600' : 'text-gray-900'}`}
+              className={`text-xl font-bold ${stats.current >= DEVIATION_THRESHOLD ? 'text-warning-600' : 'text-gray-900'}`}
             >
               {stats.current.toFixed(3)}%
             </p>
@@ -161,7 +162,7 @@ export function PriceDeviationRisk() {
                   tickFormatter={(value) => `${value.toFixed(1)}%`}
                   width={50}
                 />
-                <Tooltip
+                <RechartsTooltip
                   formatter={(value) => [
                     `${Number(value).toFixed(3)}%`,
                     t('charts.priceDeviationRisk.deviation'),
@@ -205,7 +206,7 @@ export function PriceDeviationRisk() {
           </div>
           <div className="flex items-center gap-2">
             <div
-              className="w-8 h-0.5 bg-orange-500 border-dashed"
+              className="w-8 h-0.5 bg-warning-500 border-dashed"
               style={{ borderTop: `2px dashed ${semanticColors.warning.DEFAULT}` }}
             />
             <span className="text-xs text-gray-600">
@@ -214,11 +215,11 @@ export function PriceDeviationRisk() {
           </div>
         </div>
 
-        <div className="bg-blue-50  p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">
+        <div className="bg-primary-50  p-4">
+          <h4 className="text-sm font-medium text-primary-900 mb-2">
             {t('charts.priceDeviationRisk.analysisTitle')}
           </h4>
-          <ul className="text-sm text-blue-800 space-y-1">
+          <ul className="text-sm text-primary-800 space-y-1">
             <li>{t('charts.priceDeviationRisk.analysis1')}</li>
             <li>{t('charts.priceDeviationRisk.analysis2')}</li>
             <li>{t('charts.priceDeviationRisk.analysis3', { threshold: DEVIATION_THRESHOLD })}</li>

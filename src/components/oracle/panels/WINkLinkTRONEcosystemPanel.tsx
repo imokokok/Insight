@@ -49,11 +49,11 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
       case 'gaming':
         return 'bg-purple-100 text-purple-700';
       case 'defi':
-        return 'bg-green-100 text-green-700';
+        return 'bg-success-100 text-success-700';
       case 'nft':
         return 'bg-pink-100 text-pink-700';
       case 'social':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-primary-100 text-primary-700';
       default:
         return 'bg-gray-100 text-gray-700';
     }
@@ -62,7 +62,7 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-700';
+        return 'bg-success-100 text-success-700';
       case 'inactive':
         return 'bg-gray-100 text-gray-600';
       default:
@@ -110,7 +110,7 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
           </div>
           <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-yellow-600" />
+              <Zap className="w-4 h-4 text-warning-600" />
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 {t('winklink.tron.tps')}
               </p>
@@ -121,7 +121,7 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
           </div>
           <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
-              <Users className="w-4 h-4 text-blue-600" />
+              <Users className="w-4 h-4 text-primary-600" />
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 {t('winklink.tron.totalAccounts')}
               </p>
@@ -132,7 +132,7 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-4 h-4 text-green-600" />
+              <Activity className="w-4 h-4 text-success-600" />
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 {t('winklink.tron.dailyTransactions')}
               </p>
@@ -250,7 +250,7 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
                       <td className="py-2 px-3 text-center">
                         {index > 0 && (
                           <span
-                            className={`inline-flex items-center gap-1 text-xs ${isPositive ? 'text-green-600' : 'text-red-600'}`}
+                            className={`inline-flex items-center gap-1 text-xs ${isPositive ? 'text-success-600' : 'text-danger-600'}`}
                           >
                             {isPositive ? (
                               <TrendingUp className="w-3 h-3" />
@@ -281,14 +281,14 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
               <p className="text-sm text-gray-600 mt-2">{t('winklink.tron.ofTRONDApps')}</p>
             </div>
             <div className="text-center py-4 bg-gray-50 rounded-lg">
-              <p className="text-3xl font-bold text-blue-600">{data.marketShare.integratedDapps}</p>
+              <p className="text-3xl font-bold text-primary-600">{data.marketShare.integratedDapps}</p>
               <p className="text-xs text-gray-500 mt-1">{t('winklink.tron.integratedDapps')}</p>
               <p className="text-sm text-gray-600 mt-2">
                 {t('winklink.tron.outOf')} {data.marketShare.totalDapps}
               </p>
             </div>
             <div className="text-center py-4 bg-gray-50 rounded-lg">
-              <p className="text-3xl font-bold text-green-600">{data.integrationCoverage}%</p>
+              <p className="text-3xl font-bold text-success-600">{data.integrationCoverage}%</p>
               <p className="text-xs text-gray-500 mt-1">{t('winklink.tron.integrationCoverage')}</p>
               <p className="text-sm text-gray-600 mt-2">{t('winklink.tron.dataCoverage')}</p>
             </div>

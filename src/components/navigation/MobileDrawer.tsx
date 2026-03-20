@@ -46,7 +46,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <Image src="/logos/owl-logo.svg" alt="Insight Logo" width={32} height={28} priority />
-              <div className="text-xl font-bold text-blue-600">Insight</div>
+              <div className="text-xl font-bold text-primary-600">Insight</div>
               <div className="text-lg font-semibold text-gray-900">{t('navbar.menu')}</div>
             </div>
             <button
@@ -72,7 +72,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                     <button
                       onClick={() => toggleGroup(group.id)}
                       className={`w-full flex items-center justify-between px-4 py-3 mx-2  transition-colors ${
-                        isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
+                        isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -101,14 +101,14 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                               onClick={onClose}
                               className={`flex items-center gap-3 px-4 py-3 mx-2  transition-colors ${
                                 isItemActive
-                                  ? 'bg-blue-50 text-blue-600'
+                                  ? 'bg-primary-50 text-primary-600'
                                   : 'text-gray-600 hover:bg-gray-50'
                               }`}
                             >
                               {ItemIcon && (
                                 <div
                                   className={`p-1.5  ${
-                                    isItemActive ? 'bg-blue-100' : 'bg-gray-100'
+                                    isItemActive ? 'bg-primary-100' : 'bg-gray-100'
                                   }`}
                                   style={
                                     accentColor && !isItemActive
@@ -125,7 +125,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                                 </div>
                               )}
                               <span className="text-sm">{t(item.label)}</span>
-                              {isItemActive && <div className="ml-auto w-1.5 h-1.5 bg-blue-600 " />}
+                              {isItemActive && <div className="ml-auto w-1.5 h-1.5 bg-primary-600 " />}
                             </Link>
                           );
                         })}
@@ -146,12 +146,12 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                   href={item.href}
                   onClick={onClose}
                   className={`flex items-center gap-3 px-4 py-3 mx-2  transition-colors ${
-                    isItemActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
+                    isItemActive ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   {ItemIcon && <ItemIcon className="w-5 h-5" />}
                   <span className="font-medium">{t(item.label)}</span>
-                  {isItemActive && <div className="ml-auto w-1.5 h-1.5 bg-blue-600 " />}
+                  {isItemActive && <div className="ml-auto w-1.5 h-1.5 bg-primary-600 " />}
                 </Link>
               );
             })}

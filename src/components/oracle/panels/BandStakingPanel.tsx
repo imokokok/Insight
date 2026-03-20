@@ -276,10 +276,10 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
                       <span
                         className={`text-sm font-medium ${
                           validator.uptime >= 99
-                            ? 'text-green-600'
+                            ? 'text-success-600'
                             : validator.uptime >= 95
-                              ? 'text-yellow-600'
-                              : 'text-red-600'
+                              ? 'text-warning-600'
+                              : 'text-danger-600'
                         }`}
                       >
                         {validator.uptime.toFixed(2)}%

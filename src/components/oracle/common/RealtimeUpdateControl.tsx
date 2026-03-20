@@ -126,9 +126,9 @@ export function RealtimeUpdateControl({
   const getConnectionStatusConfig = (status: ConnectionStatus) => {
     const configs = {
       connected: {
-        color: 'bg-green-500',
-        textColor: 'text-green-700',
-        bgColor: 'bg-green-50',
+        color: 'bg-success-500',
+        textColor: 'text-success-700',
+        bgColor: 'bg-success-50',
         labelKey: 'realtimeUpdate.connectionStatus.connected',
         icon: (
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -141,9 +141,9 @@ export function RealtimeUpdateControl({
         ),
       },
       unstable: {
-        color: 'bg-yellow-500',
-        textColor: 'text-yellow-700',
-        bgColor: 'bg-yellow-50',
+        color: 'bg-warning-500',
+        textColor: 'text-warning-700',
+        bgColor: 'bg-warning-50',
         labelKey: 'realtimeUpdate.connectionStatus.unstable',
         icon: (
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -156,9 +156,9 @@ export function RealtimeUpdateControl({
         ),
       },
       disconnected: {
-        color: 'bg-red-500',
-        textColor: 'text-red-700',
-        bgColor: 'bg-red-50',
+        color: 'bg-danger-500',
+        textColor: 'text-danger-700',
+        bgColor: 'bg-danger-50',
         labelKey: 'realtimeUpdate.connectionStatus.disconnected',
         icon: (
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -187,7 +187,7 @@ export function RealtimeUpdateControl({
             <button
               onClick={handleAutoUpdateToggle}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isAutoUpdateEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                isAutoUpdateEnabled ? 'bg-primary-600' : 'bg-gray-300'
               }`}
             >
               <span
@@ -218,7 +218,7 @@ export function RealtimeUpdateControl({
                 disabled={!isAutoUpdateEnabled}
                 className={`px-3 py-2 rounded text-sm font-medium transition-all ${
                   currentInterval === option.value
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary-600 text-white'
                     : isAutoUpdateEnabled
                       ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       : 'bg-gray-50 text-gray-400 cursor-not-allowed'
@@ -234,7 +234,7 @@ export function RealtimeUpdateControl({
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <svg
-                className="w-4 h-4 text-blue-600"
+                className="w-4 h-4 text-primary-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -284,7 +284,7 @@ export function RealtimeUpdateControl({
           </div>
           <button
             onClick={handleManualRefresh}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors text-sm font-medium"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path

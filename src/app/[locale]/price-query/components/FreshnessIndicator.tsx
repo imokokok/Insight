@@ -34,8 +34,8 @@ export function FreshnessIndicator({
 
   if (isExpired) {
     return (
-      <span className="inline-flex items-center gap-1 text-red-600">
-        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+      <span className="inline-flex items-center gap-1 text-danger-600">
+        <span className="w-2 h-2 rounded-full bg-danger-500 animate-pulse" />
         数据过期
       </span>
     );
@@ -43,10 +43,10 @@ export function FreshnessIndicator({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 ${isFresh ? 'text-green-600' : 'text-orange-600'}`}
+      className={`inline-flex items-center gap-1 ${isFresh ? 'text-success-600' : 'text-warning-600'}`}
     >
       <span
-        className={`w-2 h-2 rounded-full ${isFresh ? 'bg-green-500' : 'bg-orange-500'} ${isFresh ? '' : 'animate-pulse'}`}
+        className={`w-2 h-2 rounded-full ${isFresh ? 'bg-success-500' : 'bg-warning-500'} ${isFresh ? '' : 'animate-pulse'}`}
       />
       {formatAge(age)}
     </span>

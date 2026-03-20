@@ -226,13 +226,13 @@ export function DataManagementPanel() {
 
         <div className="p-6 space-y-6">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="p-3 bg-danger-50 border border-danger-200 rounded-lg text-danger-700 text-sm">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+            <div className="p-3 bg-success-50 border border-green-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
@@ -242,8 +242,8 @@ export function DataManagementPanel() {
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <FileJson className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                    <FileJson className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">
@@ -257,7 +257,7 @@ export function DataManagementPanel() {
                 <button
                   onClick={exportUserData}
                   disabled={isExporting}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 disabled:opacity-50 text-sm font-medium shadow-sm hover:shadow-md"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 disabled:opacity-50 text-sm font-medium shadow-sm hover:shadow-md"
                 >
                   {isExporting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -272,8 +272,8 @@ export function DataManagementPanel() {
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                    <Download className="w-5 h-5 text-green-600" />
+                  <div className="w-10 h-10 rounded-lg bg-success-100 flex items-center justify-center">
+                    <Download className="w-5 h-5 text-success-600" />
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">
@@ -287,7 +287,7 @@ export function DataManagementPanel() {
                 <button
                   onClick={exportPriceHistory}
                   disabled={isExporting}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 transition-all duration-200 disabled:opacity-50 text-sm font-medium shadow-sm hover:shadow-md"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 active:bg-green-800 transition-all duration-200 disabled:opacity-50 text-sm font-medium shadow-sm hover:shadow-md"
                 >
                   {isExporting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -342,9 +342,9 @@ export function DataManagementPanel() {
         </div>
 
         <div className="p-6">
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+          <div className="p-4 bg-warning-50 border border-yellow-200 rounded-lg mb-4">
             <div className="flex items-start gap-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-yellow-800">
                 <p className="font-medium">{t('settings.data.note')}</p>
                 <p className="mt-1">{t('settings.data.clearDataWarning')}</p>
@@ -355,7 +355,7 @@ export function DataManagementPanel() {
           <button
             onClick={clearLocalData}
             disabled={isClearing}
-            className="inline-flex items-center gap-2 px-4 py-2 border border-yellow-300 text-yellow-700 rounded-lg hover:bg-yellow-50 hover:border-yellow-400 active:bg-yellow-100 transition-all duration-200 disabled:opacity-50 text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-yellow-300 text-warning-700 rounded-lg hover:bg-warning-50 hover:border-yellow-400 active:bg-warning-100 transition-all duration-200 disabled:opacity-50 text-sm font-medium"
           >
             {isClearing ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -367,13 +367,13 @@ export function DataManagementPanel() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-red-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-red-100 bg-red-50/80">
-          <h2 className="text-lg font-semibold text-red-900 flex items-center gap-2">
-            <UserX className="w-5 h-5 text-red-600" />
+      <div className="bg-white rounded-lg border border-danger-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-danger-100 bg-danger-50/80">
+          <h2 className="text-lg font-semibold text-danger-900 flex items-center gap-2">
+            <UserX className="w-5 h-5 text-danger-600" />
             {t('settings.data.dangerZone')}
           </h2>
-          <p className="text-sm text-red-700 mt-1">{t('settings.data.dangerZoneDesc')}</p>
+          <p className="text-sm text-danger-700 mt-1">{t('settings.data.dangerZoneDesc')}</p>
         </div>
 
         <div className="p-6">
@@ -384,7 +384,7 @@ export function DataManagementPanel() {
               </p>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-danger-600 text-white rounded-lg hover:bg-danger-700 active:bg-danger-800 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
               >
                 <UserX className="w-4 h-4" />
                 {t('settings.data.deleteAccount')}
@@ -392,11 +392,11 @@ export function DataManagementPanel() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800 font-medium mb-2">
+              <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg">
+                <p className="text-sm text-danger-800 font-medium mb-2">
                   {t('settings.data.deleteAccountConfirm')}
                 </p>
-                <p className="text-sm text-red-700">
+                <p className="text-sm text-danger-700">
                   {t('settings.data.deleteAccountConfirmHint')}
                 </p>
               </div>
@@ -406,14 +406,14 @@ export function DataManagementPanel() {
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder={t('settings.data.deleteAccountConfirmPlaceholder')}
-                className="w-full px-4 py-2.5 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all duration-200"
+                className="w-full px-4 py-2.5 border border-red-300 rounded-lg focus:ring-2 focus:ring-danger-500/20 focus:border-danger-500 outline-none transition-all duration-200"
               />
 
               <div className="flex gap-3">
                 <button
                   onClick={deleteAccount}
                   disabled={isDeleting || deleteConfirmText !== 'DELETE'}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium shadow-sm hover:shadow-md"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-danger-600 text-white rounded-lg hover:bg-danger-700 active:bg-danger-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium shadow-sm hover:shadow-md"
                 >
                   {isDeleting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

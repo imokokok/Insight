@@ -6,7 +6,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Cell,
   ReferenceLine,
@@ -14,6 +14,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { PriceDeviationData } from './qualityUtils';
+
 
 interface PriceDeviationChartProps {
   data: PriceDeviationData[];
@@ -52,7 +53,7 @@ export function PriceDeviationChart({ data }: PriceDeviationChartProps) {
             axisLine={{ stroke: chartColors.recharts.grid }}
             tickFormatter={(value) => `${value.toFixed(1)}%`}
           />
-          <Tooltip
+          <RechartsTooltip
             content={({ active, payload }) => {
               if (!active || !payload || payload.length === 0) return null;
               const item = payload[0].payload as PriceDeviationData;
@@ -67,7 +68,7 @@ export function PriceDeviationChart({ data }: PriceDeviationChartProps) {
                     <div className="flex justify-between gap-4 text-xs">
                       <span className="text-gray-500">{t('dataQuality.deviation')}:</span>
                       <span
-                        className={`font-mono ${item.deviationPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                        className={`font-mono ${item.deviationPercent >= 0 ? 'text-success-600' : 'text-danger-600'}`}
                       >
                         {item.deviationPercent >= 0 ? '+' : ''}
                         {item.deviationPercent.toFixed(3)}%

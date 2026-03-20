@@ -342,10 +342,10 @@ export function ChainlinkServicesPanel() {
     const colorMap: Record<string, { bg: string; border: string; text: string; lightBg: string }> =
       {
         blue: {
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          text: 'text-blue-700',
-          lightBg: 'bg-blue-50/50',
+          bg: 'bg-primary-50',
+          border: 'border-primary-200',
+          text: 'text-primary-700',
+          lightBg: 'bg-primary-50/50',
         },
         purple: {
           bg: 'bg-indigo-50',
@@ -386,7 +386,7 @@ export function ChainlinkServicesPanel() {
 
         <DashboardCard title={t('chainlink.services.totalRequests')}>
           <div className="text-3xl font-bold text-gray-900">26.6M+</div>
-          <div className="text-sm text-green-600 mt-1">
+          <div className="text-sm text-success-600 mt-1">
             +35% {t('chainlink.services.thisMonth')}
           </div>
         </DashboardCard>
@@ -399,7 +399,7 @@ export function ChainlinkServicesPanel() {
         </DashboardCard>
 
         <DashboardCard title={t('chainlink.services.avgUptime')}>
-          <div className="text-3xl font-bold text-green-600">99.97%</div>
+          <div className="text-3xl font-bold text-success-600">99.97%</div>
           <div className="text-sm text-gray-500 mt-1">
             {t('chainlink.services.serviceAvailability')}
           </div>
@@ -428,7 +428,7 @@ export function ChainlinkServicesPanel() {
               }
               className={`cursor-pointer transition-all ${
                 selectedService === service.id
-                  ? `border-blue-400 ${colors.lightBg}`
+                  ? `border-primary-400 ${colors.lightBg}`
                   : 'hover:border-gray-300'
               }`}
             >
@@ -445,7 +445,7 @@ export function ChainlinkServicesPanel() {
                     {metric.change && (
                       <div
                         className={`text-xs font-medium ${
-                          metric.changeType === 'positive' ? 'text-emerald-600' : 'text-red-600'
+                          metric.changeType === 'positive' ? 'text-emerald-600' : 'text-danger-600'
                         }`}
                       >
                         {metric.change}
@@ -482,7 +482,7 @@ export function ChainlinkServicesPanel() {
           {ccipChainData.map((chain) => (
             <div key={chain.name} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-blue-600"></div>
+                <div className="w-2 h-2 bg-primary-600"></div>
                 <span className="text-sm text-gray-700">{chain.name}</span>
               </div>
               <div className="flex items-center gap-6">
@@ -496,7 +496,7 @@ export function ChainlinkServicesPanel() {
                 </div>
                 <div className="w-32 h-1.5 bg-gray-100 overflow-hidden">
                   <div
-                    className="h-full bg-blue-600"
+                    className="h-full bg-primary-600"
                     style={{ width: `${(chain.messages / 850000) * 100}%` }}
                   ></div>
                 </div>

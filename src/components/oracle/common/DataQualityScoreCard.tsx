@@ -40,7 +40,7 @@ function TrendIndicator({
 }) {
   if (trend === 'up') {
     return (
-      <div className="flex items-center gap-1 text-green-600">
+      <div className="flex items-center gap-1 text-success-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
@@ -51,7 +51,7 @@ function TrendIndicator({
 
   if (trend === 'down') {
     return (
-      <div className="flex items-center gap-1 text-red-600">
+      <div className="flex items-center gap-1 text-danger-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
@@ -84,15 +84,15 @@ function ScoreCard({
   t: (key: string) => string;
 }) {
   const getScoreColor = (score: number): string => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 90) return 'text-success-600';
+    if (score >= 70) return 'text-warning-600';
+    return 'text-danger-600';
   };
 
   const getScoreBgColor = (score: number): string => {
-    if (score >= 90) return 'bg-green-50';
-    if (score >= 70) return 'bg-yellow-50';
-    return 'bg-red-50';
+    if (score >= 90) return 'bg-success-50';
+    if (score >= 70) return 'bg-warning-50';
+    return 'bg-danger-50';
   };
 
   return (
@@ -108,7 +108,7 @@ function ScoreCard({
         <div className="flex-1 h-2 bg-gray-200  overflow-hidden">
           <div
             className={`h-full  transition-all duration-500 ${
-              score >= 90 ? 'bg-green-500' : score >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+              score >= 90 ? 'bg-success-500' : score >= 70 ? 'bg-warning-500' : 'bg-danger-500'
             }`}
             style={{ width: `${Math.min(100, score)}%` }}
           />
@@ -169,7 +169,7 @@ export function DataQualityScoreCard({
             <p className="text-xs text-gray-500 uppercase tracking-wider">
               {t('dataQualityScoreCard.overallScore')}
             </p>
-            <p className="text-3xl font-bold text-blue-600">{data.overallScore.toFixed(1)}</p>
+            <p className="text-3xl font-bold text-primary-600">{data.overallScore.toFixed(1)}</p>
           </div>
         </div>
       </div>
@@ -182,7 +182,7 @@ export function DataQualityScoreCard({
           t={t}
           icon={
             <svg
-              className="w-6 h-6 text-green-600"
+              className="w-6 h-6 text-success-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -203,7 +203,7 @@ export function DataQualityScoreCard({
           t={t}
           icon={
             <svg
-              className="w-6 h-6 text-blue-600"
+              className="w-6 h-6 text-primary-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -241,7 +241,7 @@ export function DataQualityScoreCard({
           t={t}
           icon={
             <svg
-              className="w-6 h-6 text-yellow-600"
+              className="w-6 h-6 text-warning-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

@@ -99,7 +99,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('dia.staking.rewardPool')}
           </p>
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-2xl font-bold text-success-600">
             {formatNumber(stakingDetails.rewardPool)} DIA
           </p>
           <p className="text-xs text-gray-500 mt-1">{t('dia.staking.availableRewards')}</p>
@@ -108,7 +108,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('dia.staking.rewardsDistributed')}
           </p>
-          <p className="text-2xl font-bold text-blue-600">
+          <p className="text-2xl font-bold text-primary-600">
             {formatNumber(stakingDetails.rewardsDistributed)} DIA
           </p>
           <p className="text-xs text-gray-500 mt-1">{t('dia.staking.totalDistributed')}</p>
@@ -341,13 +341,13 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
               </div>
               <div className="text-center">
                 <p className="text-xs text-gray-500">{t('dia.staking.maxApr')}</p>
-                <p className="text-lg font-semibold text-green-600">
+                <p className="text-lg font-semibold text-success-600">
                   {Math.max(...stakingDetails.historicalApr.map((d) => d.apr)).toFixed(2)}%
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-gray-500">{t('dia.staking.minApr')}</p>
-                <p className="text-lg font-semibold text-blue-600">
+                <p className="text-lg font-semibold text-primary-600">
                   {Math.min(...stakingDetails.historicalApr.map((d) => d.apr)).toFixed(2)}%
                 </p>
               </div>

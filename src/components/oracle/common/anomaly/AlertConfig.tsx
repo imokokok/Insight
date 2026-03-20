@@ -25,7 +25,7 @@ export function AlertConfig({ config, onConfigChange }: AlertConfigProps) {
             onChange={(e) =>
               onConfigChange({ ...config, priceSpikeThreshold: Number(e.target.value) })
             }
-            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
             min="0"
             step="0.5"
           />
@@ -41,7 +41,7 @@ export function AlertConfig({ config, onConfigChange }: AlertConfigProps) {
             onChange={(e) =>
               onConfigChange({ ...config, priceDropThreshold: Number(e.target.value) })
             }
-            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
             min="0"
             step="0.5"
           />
@@ -57,7 +57,7 @@ export function AlertConfig({ config, onConfigChange }: AlertConfigProps) {
             onChange={(e) =>
               onConfigChange({ ...config, priceDeviationThreshold: Number(e.target.value) })
             }
-            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
             min="0"
             step="0.5"
           />
@@ -73,7 +73,7 @@ export function AlertConfig({ config, onConfigChange }: AlertConfigProps) {
             onChange={(e) =>
               onConfigChange({ ...config, dataDelayThreshold: Number(e.target.value) * 1000 })
             }
-            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
             min="1"
           />
         </div>
@@ -88,7 +88,7 @@ export function AlertConfig({ config, onConfigChange }: AlertConfigProps) {
             onChange={(e) =>
               onConfigChange({ ...config, checkInterval: Number(e.target.value) * 1000 })
             }
-            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
             min="5"
           />
         </div>

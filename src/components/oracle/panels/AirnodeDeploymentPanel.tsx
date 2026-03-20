@@ -66,11 +66,11 @@ function RegionDistribution({ data }: { data: AirnodeDeployments['byRegion'] }) 
     {
       label: t('airnodeDeployment.regions.northAmerica'),
       value: data.northAmerica,
-      color: 'bg-blue-500',
+      color: 'bg-primary-500',
     },
-    { label: t('airnodeDeployment.regions.europe'), value: data.europe, color: 'bg-blue-400' },
-    { label: t('airnodeDeployment.regions.asia'), value: data.asia, color: 'bg-blue-600' },
-    { label: t('airnodeDeployment.regions.others'), value: data.others, color: 'bg-blue-300' },
+    { label: t('airnodeDeployment.regions.europe'), value: data.europe, color: 'bg-primary-400' },
+    { label: t('airnodeDeployment.regions.asia'), value: data.asia, color: 'bg-primary-600' },
+    { label: t('airnodeDeployment.regions.others'), value: data.others, color: 'bg-primary-300' },
   ];
 
   return (
@@ -195,7 +195,7 @@ function ProviderTypeDistribution({ data }: { data: AirnodeDeployments['byProvid
     {
       label: t('airnodeDeployment.providerTypes.exchanges'),
       value: data.exchanges,
-      color: 'bg-green-500',
+      color: 'bg-success-500',
     },
     {
       label: t('airnodeDeployment.providerTypes.traditionalFinance'),

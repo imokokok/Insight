@@ -129,11 +129,7 @@
     "hours": "小时"
   },
   "price": {
-    "label": "价格",
-    "averagePrice": "平均价格",
-    "highestPrice": "最高价格",
-    "lowestPrice": "最低价格",
-    "priceRange": "价格区间"
+    "title": "价格"
   },
   "statistics": {
     "deviation": "偏差",
@@ -234,9 +230,6 @@
   "comparison": {
     "title": "对比"
   },
-  "price": {
-    "title": "价格"
-  },
   "indicators": {
     "title": "指标"
   },
@@ -252,7 +245,10 @@
     "subtitle": "Band Protocol 跨链价格监控"
   },
   "snapshot": {
-    "title": "快照"
+    "title": "快照",
+    "savedCount": "已保存 {count} 个快照",
+    "cloudLabel": "云同步",
+    "saveSnapshot": "保存快照"
   },
   "gasFeeComparison": {
     "title": "Gas 费用对比"
@@ -325,13 +321,40 @@
     "title": "价格波动率"
   },
   "priceDistribution": {
-    "title": "价格分布"
+    "title": "价格分布",
+    "legend": {
+      "title": "图例",
+      "box": "箱体",
+      "median": "中位数",
+      "whisker": "须线",
+      "outlier": "异常值"
+    },
+    "stats": {
+      "title": "统计信息",
+      "oracle": "预言机",
+      "median": "中位数",
+      "q1": "Q1",
+      "q3": "Q3",
+      "iqr": "IQR",
+      "outliers": "异常值"
+    }
   },
   "priceDeviationHeatmap": {
     "title": "价格偏差热力图"
   },
   "priceCorrelation": {
-    "title": "价格相关性"
+    "title": "价格相关性",
+    "legend": {
+      "perfectNegative": "完全负相关",
+      "negative": "负相关",
+      "none": "无相关",
+      "positive": "正相关",
+      "perfectPositive": "完全正相关"
+    },
+    "oracleCount": "预言机数量",
+    "highCorrelationPairs": "高相关性对",
+    "avgCorrelation": "平均相关性",
+    "maxCorrelation": "最大相关性"
   },
   "crossChainRisk": {
     "title": "跨链风险"
@@ -427,6 +450,9 @@
       "monthPerDay": "月/日",
       "yearPerDay": "年/日",
       "disclaimer": "免责声明：预估收益仅供参考，实际收益可能因网络状况和验证者表现而有所不同。"
+    },
+    "oraclePageTemplate": {
+      "rank": "排名"
     }
   },
   "networkHealth": {
@@ -497,6 +523,98 @@
       "secondsAgo": "秒前",
       "minutesAgo": "分钟前",
       "hoursAgo": "小时前"
+    }
+  },
+  "crossChain": {
+    "autoRefreshOff": "关闭自动刷新",
+    "autoRefresh30s": "30秒",
+    "autoRefresh1m": "1分钟",
+    "autoRefresh5m": "5分钟",
+    "averagePrice": "平均价格",
+    "medianPrice": "中位数价格",
+    "highestPrice": "最高价格",
+    "priceRange": "价格区间",
+    "standardDeviation": "标准差",
+    "dataPoints": "数据点",
+    "iqr": "四分位距",
+    "skewness": "偏度",
+    "kurtosis": "峰度",
+    "confidenceInterval95": "95%置信区间",
+    "coefficientOfVariation": "变异系数",
+    "consistencyRating": "一致性评级",
+    "stabilityAnalysis": "稳定性分析",
+    "blockchain": "区块链",
+    "dataIntegrity": "数据完整性",
+    "priceVolatility": "价格波动率",
+    "priceJumpFrequency": "价格跳跃频率",
+    "stabilityRating": "稳定性评级",
+    "cointegrationAnalysis": "协整分析",
+    "cointegrationDesc": "分析不同链上价格之间的长期均衡关系",
+    "volatilityAnalysis": "波动性分析",
+    "volatilityAnalysisDesc": "分析价格波动的统计特征",
+    "priceDistributionAnalysis": "价格分布分析",
+    "priceDistributionHistogram": "价格分布直方图",
+    "frequency": "频率",
+    "medianLine": "中位数线",
+    "meanLine": "均值线",
+    "chainPriceBoxPlot": "链价格箱线图",
+    "title": "跨链分析",
+    "colorblindModeOn": "色盲模式已开启",
+    "switchToColorblindMode": "切换到色盲模式",
+    "colorblindFriendly": "色盲友好",
+    "export": "导出",
+    "autoRefresh": "自动刷新",
+    "refreshSuccess": "刷新成功",
+    "loadingData": "加载数据中...",
+    "tooltip": {
+      "averagePrice": "所有链上价格的平均值",
+      "medianPrice": "所有链上价格的中位数",
+      "highestPrice": "所有链中的最高价格",
+      "priceRange": "最高价格与最低价格的差值",
+      "standardDeviation": "价格波动的标准差",
+      "dataPoints": "数据点的数量",
+      "iqr": "第三四分位数与第一四分位数的差值",
+      "skewness": "价格分布的不对称性",
+      "kurtosis": "价格分布的尾部厚度",
+      "confidenceInterval95": "95%置信水平下的价格区间",
+      "coefficientOfVariation": "标准差与平均值的比值",
+      "consistencyRating": "基于标准差的一致性评级"
+    }
+  },
+  "crossOracle": {
+    "subtitle": "多预言机价格对比分析",
+    "favorites": {
+      "button": "收藏",
+      "quickAccess": "快速访问",
+      "viewAll": "查看全部"
+    },
+    "weighted": "加权",
+    "historyRange": "历史范围",
+    "low": "最低",
+    "ofAverage": "占平均值",
+    "variance": "方差",
+    "basedOnStdDev": "基于标准差"
+  },
+  "settings": {
+    "profile": {
+      "title": "个人资料",
+      "subtitle": "管理您的个人信息和账户设置",
+      "displayNameLabel": "显示名称",
+      "displayNamePlaceholder": "输入显示名称",
+      "emailLabel": "邮箱",
+      "emailNotEditable": "邮箱不可编辑",
+      "saveChanges": "保存更改",
+      "saveSuccess": "保存成功",
+      "saveError": "保存失败",
+      "passwordManagement": "密码管理",
+      "passwordManagementDesc": "更新您的密码以保护账户安全",
+      "changePassword": "修改密码",
+      "newPassword": "新密码",
+      "newPasswordPlaceholder": "输入新密码",
+      "passwordMinLength": "密码长度至少为8位",
+      "passwordMismatch": "两次输入的密码不一致",
+      "passwordUpdateSuccess": "密码更新成功",
+      "passwordUpdateError": "密码更新失败"
     }
   }
 }

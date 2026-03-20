@@ -4,8 +4,8 @@ import { NetworkStatus } from './types';
 const getStatusConfig = (t: (key: string) => string) => ({
   online: {
     color: 'green',
-    bgColor: 'bg-green-500',
-    textColor: 'text-green-600',
+    bgColor: 'bg-success-500',
+    textColor: 'text-success-600',
     borderColor: 'border-green-200',
     bgGradient: 'from-green-50 to-green-100',
     label: t('networkHealth.status.online'),
@@ -13,8 +13,8 @@ const getStatusConfig = (t: (key: string) => string) => ({
   },
   warning: {
     color: 'yellow',
-    bgColor: 'bg-yellow-500',
-    textColor: 'text-yellow-600',
+    bgColor: 'bg-warning-500',
+    textColor: 'text-warning-600',
     borderColor: 'border-yellow-200',
     bgGradient: 'from-yellow-50 to-yellow-100',
     label: t('networkHealth.status.warning'),
@@ -22,9 +22,9 @@ const getStatusConfig = (t: (key: string) => string) => ({
   },
   offline: {
     color: 'red',
-    bgColor: 'bg-red-500',
-    textColor: 'text-red-600',
-    borderColor: 'border-red-200',
+    bgColor: 'bg-danger-500',
+    textColor: 'text-danger-600',
+    borderColor: 'border-danger-200',
     bgGradient: 'from-red-50 to-red-100',
     label: t('networkHealth.status.offline'),
     pulseColor: 'bg-red-400',

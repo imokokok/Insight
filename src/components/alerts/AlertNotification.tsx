@@ -55,9 +55,9 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
       <div className="bg-white p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center  bg-yellow-100">
+            <div className="flex h-10 w-10 items-center justify-center  bg-warning-100">
               <svg
-                className="h-6 w-6 text-yellow-600"
+                className="h-6 w-6 text-warning-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -96,7 +96,7 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
           <button
             onClick={handleAcknowledge}
             disabled={isAcknowledging}
-            className="flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white  hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:bg-gray-400"
+            className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white  hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:bg-gray-400"
           >
             {isAcknowledging
               ? t('alerts.notification.acknowledging')

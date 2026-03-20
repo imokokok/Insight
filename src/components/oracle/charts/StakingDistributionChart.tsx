@@ -1,13 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import type { PieSectorDataItem } from 'recharts';
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
 import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
+
 
 interface StakingDistributionChartProps {
   validators: ValidatorInfo[];
@@ -246,7 +247,7 @@ export function StakingDistributionChart({
                       />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip t={t} />} />
+                  <RechartsTooltip content={<CustomTooltip t={t} />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -427,7 +428,7 @@ export function StakingDistributionChart({
                       <td className="text-right py-2.5 px-3">
                         <span
                           className={`text-sm font-medium ${
-                            cumulativePercentage >= 33.3 ? 'text-orange-600' : 'text-gray-600'
+                            cumulativePercentage >= 33.3 ? 'text-warning-600' : 'text-gray-600'
                           }`}
                         >
                           {cumulativePercentage.toFixed(2)}%
@@ -472,10 +473,10 @@ export function StakingDistributionChart({
         </div>
 
         {metrics.riskLevel === 'critical' && (
-          <div className="bg-red-50 border border-red-200 rounded p-4">
+          <div className="bg-danger-50 border border-danger-200 rounded p-4">
             <div className="flex items-start gap-3">
               <svg
-                className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"
+                className="w-5 h-5 text-danger-600 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -487,10 +488,10 @@ export function StakingDistributionChart({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-red-800">
+                <h4 className="text-sm font-semibold text-danger-800">
                   {t('stakingDistribution.concentrationWarning')}
                 </h4>
-                <p className="text-sm text-red-700 mt-1">
+                <p className="text-sm text-danger-700 mt-1">
                   {t('stakingDistribution.concentrationWarningDesc', {
                     count: metrics.nakamotoCoefficient,
                   })}
@@ -501,10 +502,10 @@ export function StakingDistributionChart({
         )}
 
         {metrics.riskLevel === 'high' && (
-          <div className="bg-orange-50 border border-orange-200 rounded p-4">
+          <div className="bg-warning-50 border border-orange-200 rounded p-4">
             <div className="flex items-start gap-3">
               <svg
-                className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0"
+                className="w-5 h-5 text-warning-600 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -527,11 +528,11 @@ export function StakingDistributionChart({
           </div>
         )}
 
-        <div className="bg-blue-50 rounded p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">
+        <div className="bg-primary-50 rounded p-4">
+          <h4 className="text-sm font-medium text-primary-900 mb-2">
             {t('stakingDistribution.metricsExplanation')}
           </h4>
-          <ul className="text-sm text-blue-800 space-y-1">
+          <ul className="text-sm text-primary-800 space-y-1">
             <li>
               • <span className="font-medium">{t('stakingDistribution.nakamotoExplanation')}</span>
             </li>

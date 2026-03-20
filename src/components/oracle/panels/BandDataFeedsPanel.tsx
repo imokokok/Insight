@@ -383,7 +383,7 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                     <td className="text-right py-3 px-4">
                       <span
                         className={`text-sm font-medium ${
-                          feed.change24hPercent >= 0 ? 'text-green-600' : 'text-red-600'
+                          feed.change24hPercent >= 0 ? 'text-success-600' : 'text-danger-600'
                         }`}
                       >
                         {feed.change24hPercent >= 0 ? '+' : ''}
@@ -411,9 +411,9 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                       <span
                         className={`inline-flex px-2 py-0.5 text-xs font-medium ${
                           feed.status === 'active'
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-success-100 text-success-700'
                             : feed.status === 'warning'
-                              ? 'bg-yellow-100 text-yellow-700'
+                              ? 'bg-warning-100 text-warning-700'
                               : 'bg-gray-100 text-gray-600'
                         }`}
                       >
@@ -438,7 +438,7 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                 <span
                   className={`inline-flex px-2 py-0.5 text-xs font-medium ${
                     source.status === 'active'
-                      ? 'bg-green-100 text-green-700'
+                      ? 'bg-success-100 text-success-700'
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
@@ -453,7 +453,7 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">{t('band.dataFeeds.reliability')}:</span>
-                  <span className="font-medium text-green-600">
+                  <span className="font-medium text-success-600">
                     {source.reliability.toFixed(1)}%
                   </span>
                 </div>

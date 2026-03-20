@@ -70,9 +70,9 @@ export default function ScheduledExportConfig({
 
   const getStatusColor = (schedule: ScheduledExport) => {
     if (!schedule.enabled) return 'bg-gray-100 text-gray-500';
-    if (schedule.lastRunStatus === 'success') return 'bg-green-50 text-green-700';
-    if (schedule.lastRunStatus === 'failed') return 'bg-red-50 text-red-700';
-    return 'bg-blue-50 text-blue-700';
+    if (schedule.lastRunStatus === 'success') return 'bg-success-50 text-success-700';
+    if (schedule.lastRunStatus === 'failed') return 'bg-danger-50 text-danger-700';
+    return 'bg-primary-50 text-primary-700';
   };
 
   return (
@@ -87,7 +87,7 @@ export default function ScheduledExportConfig({
         </div>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm"
+          className="flex items-center gap-1 px-2.5 py-1 bg-primary-600 text-white hover:bg-primary-700 transition-colors text-sm"
         >
           <Plus className="w-3.5 h-3.5" />
           {t('marketOverview.scheduledExport.add')}
@@ -103,7 +103,7 @@ export default function ScheduledExportConfig({
               placeholder={t('marketOverview.scheduledExport.scheduleName')}
               value={newSchedule.name}
               onChange={(e) => setNewSchedule({ ...newSchedule, name: e.target.value })}
-              className="w-full px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
             <div className="grid grid-cols-2 gap-2">
               <SegmentedControl
@@ -128,7 +128,7 @@ export default function ScheduledExportConfig({
                 type="time"
                 value={newSchedule.time}
                 onChange={(e) => setNewSchedule({ ...newSchedule, time: e.target.value })}
-                className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
             <input
@@ -136,7 +136,7 @@ export default function ScheduledExportConfig({
               placeholder={t('marketOverview.scheduledExport.email')}
               value={newSchedule.email}
               onChange={(e) => setNewSchedule({ ...newSchedule, email: e.target.value })}
-              className="w-full px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
             <div className="flex gap-2">
               <SegmentedControl
@@ -159,7 +159,7 @@ export default function ScheduledExportConfig({
               <button
                 onClick={handleAddSchedule}
                 disabled={!newSchedule.name || !newSchedule.email}
-                className="flex-1 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex-1 px-3 py-1.5 bg-primary-600 text-white hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 {t('marketOverview.scheduledExport.save')}
               </button>
@@ -184,7 +184,7 @@ export default function ScheduledExportConfig({
                   onClick={() => onToggleSchedule?.(schedule.id, !schedule.enabled)}
                   className={`w-4 h-4 border flex items-center justify-center transition-colors mt-0.5 ${
                     schedule.enabled
-                      ? 'bg-blue-600 border-blue-600 text-white'
+                      ? 'bg-primary-600 border-primary-600 text-white'
                       : 'border-gray-300 hover:border-gray-400 bg-white'
                   }`}
                 >
@@ -214,7 +214,7 @@ export default function ScheduledExportConfig({
                       {schedule.lastRunStatus && (
                         <span
                           className={`ml-1 ${
-                            schedule.lastRunStatus === 'success' ? 'text-green-600' : 'text-red-600'
+                            schedule.lastRunStatus === 'success' ? 'text-success-600' : 'text-danger-600'
                           }`}
                         >
                           (
@@ -230,7 +230,7 @@ export default function ScheduledExportConfig({
               </div>
               <button
                 onClick={() => onRemoveSchedule?.(schedule.id)}
-                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors ml-2"
+                className="p-1.5 text-gray-400 hover:text-danger-500 hover:bg-danger-50 transition-colors ml-2"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

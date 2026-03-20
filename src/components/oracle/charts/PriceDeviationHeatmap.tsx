@@ -214,23 +214,23 @@ export function PriceDeviationHeatmap({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-blue-50  p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">{t('priceDeviationHeatmap.avgDeviation')}</p>
-            <p className="text-xl font-bold text-blue-700">{stats.avgDeviation.toFixed(3)}%</p>
+          <div className="bg-primary-50  p-3 text-center">
+            <p className="text-xs text-primary-600 mb-1">{t('priceDeviationHeatmap.avgDeviation')}</p>
+            <p className="text-xl font-bold text-primary-700">{stats.avgDeviation.toFixed(3)}%</p>
           </div>
-          <div className="bg-red-50  p-3 text-center">
-            <p className="text-xs text-red-600 mb-1">{t('priceDeviationHeatmap.maxDeviation')}</p>
-            <p className="text-xl font-bold text-red-700">{stats.maxDeviation.toFixed(3)}%</p>
+          <div className="bg-danger-50  p-3 text-center">
+            <p className="text-xs text-danger-600 mb-1">{t('priceDeviationHeatmap.maxDeviation')}</p>
+            <p className="text-xl font-bold text-danger-700">{stats.maxDeviation.toFixed(3)}%</p>
           </div>
-          <div className="bg-green-50  p-3 text-center">
-            <p className="text-xs text-green-600 mb-1">{t('priceDeviationHeatmap.minDeviation')}</p>
-            <p className="text-xl font-bold text-green-700">{stats.minDeviation.toFixed(3)}%</p>
+          <div className="bg-success-50  p-3 text-center">
+            <p className="text-xs text-success-600 mb-1">{t('priceDeviationHeatmap.minDeviation')}</p>
+            <p className="text-xl font-bold text-success-700">{stats.minDeviation.toFixed(3)}%</p>
           </div>
-          <div className="bg-yellow-50  p-3 text-center">
-            <p className="text-xs text-yellow-600 mb-1">
+          <div className="bg-warning-50  p-3 text-center">
+            <p className="text-xs text-warning-600 mb-1">
               {t('priceDeviationHeatmap.anomalyDataPoints')}
             </p>
-            <p className="text-xl font-bold text-yellow-700">{stats.anomalyCount}</p>
+            <p className="text-xl font-bold text-warning-700">{stats.anomalyCount}</p>
           </div>
         </div>
 
@@ -430,7 +430,7 @@ export function PriceDeviationHeatmap({
                     <span className="flex-1 text-sm text-gray-700 truncate">{item.oracle}</span>
                     <span
                       className={`text-sm font-mono font-medium ${
-                        item.avgDev > 1 ? 'text-red-600' : 'text-green-600'
+                        item.avgDev > 1 ? 'text-danger-600' : 'text-success-600'
                       }`}
                     >
                       {item.avgDev.toFixed(4)}%
@@ -442,10 +442,10 @@ export function PriceDeviationHeatmap({
         </div>
 
         {stats.anomalyCount > 0 && (
-          <div className="bg-red-50 border border-red-200  p-4">
+          <div className="bg-danger-50 border border-danger-200  p-4">
             <div className="flex items-start gap-3">
               <svg
-                className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+                className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -456,10 +456,10 @@ export function PriceDeviationHeatmap({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-red-800 mb-1">
+                <h4 className="text-sm font-semibold text-danger-800 mb-1">
                   {t('priceDeviationHeatmap.highDeviationDetected')}
                 </h4>
-                <p className="text-xs text-red-700">
+                <p className="text-xs text-danger-700">
                   {t('priceDeviationHeatmap.anomalyWarning', { count: stats.anomalyCount })}
                 </p>
               </div>

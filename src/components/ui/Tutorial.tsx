@@ -220,7 +220,7 @@ export function TutorialCard({
       {/* Header */}
       <div className="flex items-center justify-between px-6 pt-6">
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+          <span className="px-2.5 py-1 text-xs font-medium bg-primary-100 text-primary-700 rounded-full">
             {stepNumber + 1} / {totalSteps}
           </span>
           {step.allowSkip !== false && (
@@ -246,7 +246,7 @@ export function TutorialCard({
         {/* Icon */}
         {step.icon && (
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-blue-50 rounded-xl text-blue-600">{step.icon}</div>
+            <div className="p-3 bg-primary-50 rounded-xl text-primary-600">{step.icon}</div>
           </div>
         )}
 
@@ -308,7 +308,7 @@ export function TutorialCard({
           ) : (
             <button
               onClick={onNext}
-              className="flex-1 flex items-center justify-center gap-2 py-3 px-6 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 py-3 px-6 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 transition-colors"
             >
               {t('next')}
               <ChevronRight className="w-5 h-5" />
@@ -324,7 +324,7 @@ export function TutorialCard({
               onClick={() => {}}
               className={cn(
                 'w-2 h-2 rounded-full transition-all',
-                i === stepNumber ? 'w-6 bg-blue-600' : 'bg-gray-300 hover:bg-gray-400'
+                i === stepNumber ? 'w-6 bg-primary-600' : 'bg-gray-300 hover:bg-gray-400'
               )}
               aria-label={t('goToStep', { step: i + 1 })}
             />
@@ -479,7 +479,7 @@ export function TutorialSpotlight({
         />
         {/* Highlight border */}
         <div
-          className="absolute border-2 border-blue-500 rounded-lg pointer-events-none"
+          className="absolute border-2 border-primary-500 rounded-lg pointer-events-none"
           style={{
             top: targetRect.top - 4,
             left: targetRect.left - 4,
@@ -494,7 +494,7 @@ export function TutorialSpotlight({
       <div style={getTooltipStyles()}>
         <div className="bg-white rounded-xl shadow-2xl border border-gray-100 p-5 max-w-xs">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-blue-600">
+            <span className="text-xs font-medium text-primary-600">
               {stepNumber + 1} / {totalSteps}
             </span>
             <button onClick={onSkip} className="text-xs text-gray-400 hover:text-gray-600">
@@ -516,7 +516,7 @@ export function TutorialSpotlight({
             )}
             <button
               onClick={onNext}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
             >
               {isLast ? t('finish') : t('next')}
               {!isLast && <ChevronRight className="w-4 h-4" />}
@@ -663,7 +663,7 @@ export function TutorialManager({
             <div className="space-y-3">
               <button
                 onClick={startTutorial}
-                className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 transition-colors"
               >
                 <BookOpen className="w-5 h-5" />
                 {t('startTutorial')}
@@ -774,7 +774,7 @@ export function TutorialTrigger({
   const variantClasses = {
     button:
       'inline-flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors',
-    link: 'inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors',
+    link: 'inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors',
     icon: 'p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors',
   };
 
@@ -831,7 +831,7 @@ export function TutorialCompletion({
           {onStartUsing && (
             <button
               onClick={onStartUsing}
-              className="w-full py-3 px-6 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+              className="w-full py-3 px-6 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 transition-colors"
             >
               {t('startUsing')}
             </button>

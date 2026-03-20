@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Brush,
   Legend,
@@ -21,6 +21,7 @@ import { EnhancedTooltip, MultiSeriesTooltip } from '../EnhancedTooltip';
 import { ChartExportData } from '@/utils/chartExport';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
+
 
 const logger = createLogger('InteractivePriceChart');
 
@@ -332,7 +333,7 @@ export function InteractivePriceChart({
               hide
             />
 
-            <Tooltip content={<CustomTooltipContent />} />
+            <RechartsTooltip content={<CustomTooltipContent />} />
 
             {showComparison && comparisonData && (
               <Legend

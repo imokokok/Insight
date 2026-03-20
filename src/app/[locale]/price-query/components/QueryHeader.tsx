@@ -169,7 +169,7 @@ export function QueryHeader({
                           {config.selectedOracles?.slice(0, 2).map((oracle) => (
                             <span
                               key={oracle}
-                              className="px-1.5 py-0.5 text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded"
+                              className="px-1.5 py-0.5 text-xs bg-primary-50 text-primary-700 border border-primary-100 rounded"
                             >
                               {oracle}
                             </span>
@@ -190,7 +190,7 @@ export function QueryHeader({
                       setShowFavoritesDropdown(false);
                       router.push('/favorites');
                     }}
-                    className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium"
                   >
                     {t('crossOracle.favorites.viewAll')}
                   </button>
@@ -206,7 +206,7 @@ export function QueryHeader({
             onClick={() => setShowHistory(!showHistory)}
             className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all ${
               showHistory
-                ? 'bg-blue-50 text-blue-700'
+                ? 'bg-primary-50 text-primary-700'
                 : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
@@ -229,7 +229,7 @@ export function QueryHeader({
                 {historyItems.length > 0 && (
                   <button
                     onClick={handleClearHistory}
-                    className="text-xs text-red-600 hover:text-red-700 font-medium"
+                    className="text-xs text-danger-600 hover:text-danger-700 font-medium"
                   >
                     {t('clear')}
                   </button>
@@ -283,7 +283,7 @@ export function QueryHeader({
                 }}
                 className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
               >
-                <FileSpreadsheet className="w-4 h-4 text-green-600" />
+                <FileSpreadsheet className="w-4 h-4 text-success-600" />
                 {t('priceQuery.export.csv')}
               </button>
               <button
@@ -293,7 +293,7 @@ export function QueryHeader({
                 }}
                 className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
               >
-                <FileJson className="w-4 h-4 text-blue-600" />
+                <FileJson className="w-4 h-4 text-primary-600" />
                 {t('priceQuery.export.json')}
               </button>
               <button

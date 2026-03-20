@@ -62,16 +62,16 @@ const ALERT_CONFIG = {
 
 const SEVERITY_CONFIG = {
   warning: {
-    bgColor: 'bg-yellow-100',
-    textColor: 'text-yellow-700',
+    bgColor: 'bg-warning-100',
+    textColor: 'text-warning-700',
     borderColor: 'border-yellow-300',
-    iconBg: 'bg-yellow-500',
+    iconBg: 'bg-warning-500',
   },
   critical: {
-    bgColor: 'bg-red-100',
-    textColor: 'text-red-700',
+    bgColor: 'bg-danger-100',
+    textColor: 'text-danger-700',
     borderColor: 'border-red-300',
-    iconBg: 'bg-red-500',
+    iconBg: 'bg-danger-500',
   },
 };
 
@@ -381,7 +381,7 @@ export function ConfidenceAlertPanel({
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={`relative inline-flex h-5 w-9 items-center  transition-colors ${
-                autoRefresh ? 'bg-blue-600' : 'bg-gray-300'
+                autoRefresh ? 'bg-primary-600' : 'bg-gray-300'
               }`}
             >
               <span
@@ -393,7 +393,7 @@ export function ConfidenceAlertPanel({
           </div>
           <button
             onClick={refreshData}
-            className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700  hover:bg-blue-200 font-medium"
+            className="px-3 py-1.5 text-xs bg-primary-100 text-primary-700  hover:bg-primary-200 font-medium"
           >
             {t('confidenceAlert.refresh')}
           </button>
@@ -406,50 +406,50 @@ export function ConfidenceAlertPanel({
           <div className="bg-gray-50  p-3 text-center">
             <p className="text-xs text-gray-500 mb-1">{t('confidenceAlert.currentWidth')}</p>
             <p
-              className={`text-xl font-bold ${isAboveThreshold ? 'text-red-600' : 'text-gray-900'}`}
+              className={`text-xl font-bold ${isAboveThreshold ? 'text-danger-600' : 'text-gray-900'}`}
             >
               {currentWidth.toFixed(6)}
             </p>
           </div>
-          <div className="bg-red-50  p-3 text-center">
-            <p className="text-xs text-red-600 mb-1">{t('confidenceAlert.criticalAlerts')}</p>
-            <p className="text-xl font-bold text-red-700">{stats.criticalCount}</p>
+          <div className="bg-danger-50  p-3 text-center">
+            <p className="text-xs text-danger-600 mb-1">{t('confidenceAlert.criticalAlerts')}</p>
+            <p className="text-xl font-bold text-danger-700">{stats.criticalCount}</p>
           </div>
-          <div className="bg-yellow-50  p-3 text-center">
-            <p className="text-xs text-yellow-600 mb-1">{t('confidenceAlert.warningAlerts')}</p>
-            <p className="text-xl font-bold text-yellow-700">{stats.warningCount}</p>
+          <div className="bg-warning-50  p-3 text-center">
+            <p className="text-xs text-warning-600 mb-1">{t('confidenceAlert.warningAlerts')}</p>
+            <p className="text-xl font-bold text-warning-700">{stats.warningCount}</p>
           </div>
-          <div className="bg-blue-50  p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">{t('confidenceAlert.unacknowledged')}</p>
-            <p className="text-xl font-bold text-blue-700">{stats.unacknowledgedCount}</p>
+          <div className="bg-primary-50  p-3 text-center">
+            <p className="text-xs text-primary-600 mb-1">{t('confidenceAlert.unacknowledged')}</p>
+            <p className="text-xl font-bold text-primary-700">{stats.unacknowledgedCount}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-1">
-            <span className="w-2 h-2  bg-red-500" />
+            <span className="w-2 h-2  bg-danger-500" />
             <span>{t('confidenceAlert.criticalRule')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="w-2 h-2  bg-yellow-500" />
+            <span className="w-2 h-2  bg-warning-500" />
             <span>{t('confidenceAlert.warningRule')}</span>
           </div>
         </div>
 
-        <div className="bg-blue-50  p-3">
+        <div className="bg-primary-50  p-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-blue-600">
+            <span className="text-xs text-primary-600">
               {t('confidenceAlert.threshold')}: {threshold.toFixed(4)}
             </span>
-            <span className="text-xs text-blue-600">
+            <span className="text-xs text-primary-600">
               {t('confidenceAlert.current')}:{' '}
               {isAboveThreshold ? t('confidenceAlert.exceeded') : t('confidenceAlert.normal')}
             </span>
           </div>
-          <div className="w-full h-2 bg-blue-200  overflow-hidden">
+          <div className="w-full h-2 bg-primary-200  overflow-hidden">
             <div
               className={`h-full  transition-all duration-300 ${
-                isAboveThreshold ? 'bg-red-500' : 'bg-blue-500'
+                isAboveThreshold ? 'bg-danger-500' : 'bg-primary-500'
               }`}
               style={{
                 width: `${Math.min((currentWidth / threshold) * 100, 100)}%`,
@@ -464,7 +464,7 @@ export function ConfidenceAlertPanel({
             {alerts.length > 0 && (
               <button
                 onClick={clearAllAlerts}
-                className="px-2 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                className="px-2 py-1 text-xs text-danger-600 hover:text-danger-700 hover:bg-danger-50 rounded"
               >
                 {t('confidenceAlert.clearAll')}
               </button>
@@ -533,7 +533,7 @@ export function ConfidenceAlertPanel({
                         {!alert.acknowledged && (
                           <button
                             onClick={() => acknowledgeAlert(alert.id)}
-                            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                            className="px-2 py-1 text-xs bg-primary-100 text-primary-700 rounded hover:bg-primary-200"
                           >
                             {t('confidenceAlert.acknowledge')}
                           </button>
@@ -572,7 +572,7 @@ export function ConfidenceAlertPanel({
                             <span className="text-gray-500">
                               {t('confidenceAlert.expansionPercentLabel')}
                             </span>
-                            <span className="ml-1 font-medium text-red-600">
+                            <span className="ml-1 font-medium text-danger-600">
                               +{alert.details.expansionPercent.toFixed(1)}%
                             </span>
                           </div>
@@ -582,7 +582,7 @@ export function ConfidenceAlertPanel({
                             <span className="text-gray-500">
                               {t('confidenceAlert.durationLabel')}
                             </span>
-                            <span className="ml-1 font-medium text-orange-600">
+                            <span className="ml-1 font-medium text-warning-600">
                               {formatDuration(alert.details.duration, t)}
                             </span>
                           </div>
@@ -620,7 +620,7 @@ export function ConfidenceAlertPanel({
               </div>
               <div className="w-full h-1.5 bg-gray-200  overflow-hidden">
                 <div
-                  className="h-full bg-orange-500 "
+                  className="h-full bg-warning-500 "
                   style={{
                     width: `${
                       stats.totalAlerts > 0

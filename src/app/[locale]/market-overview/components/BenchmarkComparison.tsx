@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   Cell,
@@ -26,6 +26,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+
 
 interface BenchmarkComparisonProps {
   data: BenchmarkData[];
@@ -54,14 +55,14 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
   }, [currentMetric]);
 
   const getPerformanceIcon = (diffPercent: number) => {
-    if (diffPercent > 5) return <TrendingUp className="w-4 h-4 text-green-500" />;
-    if (diffPercent < -5) return <TrendingDown className="w-4 h-4 text-red-500" />;
+    if (diffPercent > 5) return <TrendingUp className="w-4 h-4 text-success-500" />;
+    if (diffPercent < -5) return <TrendingDown className="w-4 h-4 text-danger-500" />;
     return <Minus className="w-4 h-4 text-gray-400" />;
   };
 
   const getPerformanceClass = (diffPercent: number) => {
-    if (diffPercent > 5) return 'text-green-600';
-    if (diffPercent < -5) return 'text-red-600';
+    if (diffPercent > 5) return 'text-success-600';
+    if (diffPercent < -5) return 'text-danger-600';
     return 'text-gray-600';
   };
 
@@ -96,7 +97,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
               <span className="text-gray-500">
                 {isChineseLocale(locale) ? '排名百分位' : 'Percentile'}:
               </span>
-              <span className="font-medium text-blue-600">Top {item.percentile}%</span>
+              <span className="font-medium text-primary-600">Top {item.percentile}%</span>
             </div>
           </div>
         </div>
@@ -161,7 +162,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
                     }}
                     className={`w-full px-2.5 py-1.5 text-left transition-colors ${
                       selectedMetric === item.metric.name
-                        ? 'bg-blue-50 text-blue-700'
+                        ? 'bg-primary-50 text-primary-700'
                         : 'hover:bg-gray-50 text-gray-700'
                     }`}
                   >
@@ -198,7 +199,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
             <span className="text-gray-500 text-xs">
               {isChineseLocale(locale) ? '行业最佳' : 'Best'}:
             </span>
-            <span className="font-medium text-green-600 text-sm">
+            <span className="font-medium text-success-600 text-sm">
               {currentMetric.metric.industryBest}
               {currentMetric.metric.unit}
             </span>
@@ -223,7 +224,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
               fontSize={11}
               width={85}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <RechartsTooltip content={<CustomTooltip />} />
             <ReferenceLine
               x={currentMetric.metric.industryAverage}
               stroke={semanticColors.warning.main}
@@ -295,7 +296,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
                   <td className="px-3 py-2.5 text-right">
                     <span
                       className={`font-medium text-sm ${
-                        ov.diffFromAverage > 0 ? 'text-green-600' : 'text-red-600'
+                        ov.diffFromAverage > 0 ? 'text-success-600' : 'text-danger-600'
                       }`}
                     >
                       {ov.diffFromAverage > 0 ? '+' : ''}
@@ -307,7 +308,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
                     <div className="flex items-center justify-end gap-2">
                       <div className="w-14 h-1.5 bg-gray-100 overflow-hidden">
                         <div
-                          className="h-full bg-blue-500"
+                          className="h-full bg-primary-500"
                           style={{ width: `${ov.percentile}%` }}
                         />
                       </div>

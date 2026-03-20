@@ -38,7 +38,7 @@ export function DisputeEfficiencyAnalysis() {
     return (
       <DashboardCard title={t('uma.disputeResolution.efficiencyAnalysis')}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin  h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin  h-8 w-8 border-b-2 border-primary-600" />
         </div>
       </DashboardCard>
     );
@@ -82,7 +82,7 @@ export function DisputeEfficiencyAnalysis() {
                 <div key={index} className="flex-1 flex flex-col items-center gap-2">
                   <div className="w-full flex items-end justify-center h-40">
                     <div
-                      className="w-full bg-blue-500  transition-all duration-300 hover:bg-blue-600 relative group cursor-pointer"
+                      className="w-full bg-primary-500  transition-all duration-300 hover:bg-primary-600 relative group cursor-pointer"
                       style={{ height: `${height}%` }}
                     >
                       <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">

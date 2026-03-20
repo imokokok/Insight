@@ -106,11 +106,11 @@ export function RealtimeNotifications({
   };
 
   const typeColors = {
-    price_update: 'border-blue-500 bg-blue-50',
-    alert_triggered: 'border-red-500 bg-red-50',
-    connection: 'border-green-500 bg-green-50',
+    price_update: 'border-primary-500 bg-primary-50',
+    alert_triggered: 'border-danger-500 bg-danger-50',
+    connection: 'border-success-500 bg-success-50',
     snapshot: 'border-purple-500 bg-purple-50',
-    favorite: 'border-yellow-500 bg-yellow-50',
+    favorite: 'border-warning-500 bg-warning-50',
   };
 
   return (
@@ -156,7 +156,7 @@ export function NotificationBadge({ count }: { count: number }) {
   if (count === 0) return null;
 
   return (
-    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs  h-5 w-5 flex items-center justify-center font-bold">
+    <span className="absolute -top-1 -right-1 bg-danger-500 text-white text-xs  h-5 w-5 flex items-center justify-center font-bold">
       {count > 9 ? '9+' : count}
     </span>
   );

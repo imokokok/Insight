@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   Brush,
@@ -23,6 +23,7 @@ import { useAPI3Price } from '@/hooks/useAPI3WebSocket';
 import { API3PriceData } from '@/lib/services/api3WebSocket';
 import { format } from 'date-fns';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+
 
 const logger = createLogger('price-query-PriceChartRealtime');
 
@@ -60,7 +61,7 @@ function PriceFlashIndicator({
   return (
     <div
       className={`absolute top-2 right-2 px-2 py-1 text-xs font-bold animate-pulse ${
-        direction === 'up' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+        direction === 'up' ? 'bg-success-100 text-success-600' : 'bg-danger-100 text-danger-600'
       }`}
     >
       {direction === 'up' ? '↑' : '↓'} {t('priceQuery.chart.realtimeUpdate')}
@@ -80,17 +81,17 @@ function ConnectionStatusIndicator({
 
   const statusConfig = {
     connected: {
-      color: 'bg-green-500',
+      color: 'bg-success-500',
       text: t('priceQuery.chart.connectionStatus.connected'),
       animate: '',
     },
     connecting: {
-      color: 'bg-yellow-500',
+      color: 'bg-warning-500',
       text: t('priceQuery.chart.connectionStatus.connecting'),
       animate: 'animate-pulse',
     },
     reconnecting: {
-      color: 'bg-orange-500',
+      color: 'bg-warning-500',
       text: t('priceQuery.chart.connectionStatus.reconnecting'),
       animate: 'animate-pulse',
     },
@@ -99,7 +100,7 @@ function ConnectionStatusIndicator({
       text: t('priceQuery.chart.connectionStatus.disconnected'),
       animate: '',
     },
-    error: { color: 'bg-red-500', text: t('priceQuery.chart.connectionStatus.error'), animate: '' },
+    error: { color: 'bg-danger-500', text: t('priceQuery.chart.connectionStatus.error'), animate: '' },
   };
 
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.disconnected;
@@ -350,9 +351,9 @@ export function PriceChartRealtime({
                 <span
                   className={`text-3xl font-bold transition-all duration-300 ${
                     flashDirection === 'up'
-                      ? 'text-green-600 scale-105'
+                      ? 'text-success-600 scale-105'
                       : flashDirection === 'down'
-                        ? 'text-red-600 scale-105'
+                        ? 'text-danger-600 scale-105'
                         : 'text-gray-900'
                   }`}
                 >
@@ -361,7 +362,7 @@ export function PriceChartRealtime({
                 {priceData.change24h !== undefined && (
                   <span
                     className={`text-sm font-medium ${
-                      priceData.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                      priceData.change24h >= 0 ? 'text-success-600' : 'text-danger-600'
                     }`}
                   >
                     {priceData.change24h >= 0 ? '+' : ''}
@@ -428,7 +429,7 @@ export function PriceChartRealtime({
                 axisLine={false}
                 width={70}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Legend
                 content={
                   <CustomLegend

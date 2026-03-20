@@ -75,9 +75,9 @@ function PriceDisplay({ price }: { price: number }) {
         <span
           className={`text-6xl md:text-7xl font-bold tracking-tight transition-all duration-300 ${
             flashColor === 'green'
-              ? 'text-green-600 scale-105'
+              ? 'text-success-600 scale-105'
               : flashColor === 'red'
-                ? 'text-red-600 scale-105'
+                ? 'text-danger-600 scale-105'
                 : 'text-gray-900'
           } ${isAnimating ? 'scale-105' : 'scale-100'}`}
         >
@@ -108,8 +108,8 @@ function PriceChangeIndicator({
         <div
           className={`flex items-center gap-1.5 px-3 py-1.5 font-semibold text-base border ${
             isPositive
-              ? 'bg-green-50 text-green-600 border-green-200'
-              : 'bg-red-50 text-red-600 border-red-200'
+              ? 'bg-success-50 text-success-600 border-green-200'
+              : 'bg-danger-50 text-danger-600 border-danger-200'
           }`}
         >
           <span className="text-lg">{isPositive ? '↑' : '↓'}</span>
@@ -119,7 +119,7 @@ function PriceChangeIndicator({
           </span>
         </div>
         <div className="text-gray-500 text-sm">
-          <span className={isPositive ? 'text-green-600' : 'text-red-600'}>
+          <span className={isPositive ? 'text-success-600' : 'text-danger-600'}>
             {isPositive ? '+' : ''}${changeValue.toFixed(2)}
           </span>
           <span className="ml-1">(24h)</span>
@@ -129,12 +129,12 @@ function PriceChangeIndicator({
       <div className="flex items-center gap-3 text-xs">
         <div className="flex items-center gap-1.5">
           <span className="text-gray-500">{t('marketDataPanel.24hHigh')}</span>
-          <span className="text-green-600 font-medium">${high24h.toFixed(2)}</span>
+          <span className="text-success-600 font-medium">${high24h.toFixed(2)}</span>
         </div>
         <div className="w-px h-3 bg-gray-300" />
         <div className="flex items-center gap-1.5">
           <span className="text-gray-500">{t('marketDataPanel.24hLow')}</span>
-          <span className="text-red-600 font-medium">${low24h.toFixed(2)}</span>
+          <span className="text-danger-600 font-medium">${low24h.toFixed(2)}</span>
         </div>
       </div>
     </div>
@@ -154,8 +154,8 @@ function EMADisplay({
   const selectedEMA = emaData.find((ema) => ema.period === selectedPeriod);
 
   const trendColors = {
-    up: 'text-green-600',
-    down: 'text-red-600',
+    up: 'text-success-600',
+    down: 'text-danger-600',
     neutral: 'text-gray-600',
   };
 
@@ -237,7 +237,7 @@ export function MarketDataPanel({
   client,
   chain,
   config,
-  iconBgColor = 'bg-blue-600',
+  iconBgColor = 'bg-primary-600',
   icon,
 }: MarketDataPanelProps) {
   const t = useTranslations();

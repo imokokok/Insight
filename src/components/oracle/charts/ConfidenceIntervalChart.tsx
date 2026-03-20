@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   Dot,
@@ -17,6 +17,7 @@ import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+
 
 const logger = createLogger('ConfidenceIntervalChart');
 
@@ -145,7 +146,7 @@ function CustomTooltip({ active, payload, label, threshold }: CustomTooltipProps
           <span className="text-xs text-gray-500">置信区间宽度</span>
           <span
             className={`text-sm font-bold ${
-              dataPoint.isAboveThreshold ? 'text-red-600' : 'text-pink-600'
+              dataPoint.isAboveThreshold ? 'text-danger-600' : 'text-pink-600'
             }`}
           >
             {(dataPoint.width * 100).toFixed(2)}%
@@ -165,7 +166,7 @@ function CustomTooltip({ active, payload, label, threshold }: CustomTooltipProps
           <span className="text-xs text-gray-500">状态</span>
           <span
             className={`text-xs font-medium px-2 py-0.5 rounded ${
-              dataPoint.isAboveThreshold ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+              dataPoint.isAboveThreshold ? 'bg-danger-100 text-danger-700' : 'bg-success-100 text-success-700'
             }`}
           >
             {dataPoint.isAboveThreshold ? '超出阈值' : '正常'}
@@ -307,7 +308,7 @@ export function ConfidenceIntervalChart({
             <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">模拟数据</span>
           )}
           <div className="flex items-center gap-1 text-xs">
-            <span className="w-2 h-2 rounded bg-red-500" />
+            <span className="w-2 h-2 rounded bg-danger-500" />
             <span className="text-gray-500">超出阈值</span>
           </div>
           <div className="flex bg-gray-100 rounded p-0.5">
@@ -350,19 +351,19 @@ export function ConfidenceIntervalChart({
             <p className="text-xs text-pink-600 mb-1">平均宽度</p>
             <p className="text-xl font-bold text-pink-700">{(stats.avg * 100).toFixed(2)}%</p>
           </div>
-          <div className="bg-green-50 rounded p-3 text-center">
-            <p className="text-xs text-green-600 mb-1">最小宽度</p>
-            <p className="text-xl font-bold text-green-700">{(stats.min * 100).toFixed(2)}%</p>
+          <div className="bg-success-50 rounded p-3 text-center">
+            <p className="text-xs text-success-600 mb-1">最小宽度</p>
+            <p className="text-xl font-bold text-success-700">{(stats.min * 100).toFixed(2)}%</p>
           </div>
-          <div className="bg-orange-50 rounded p-3 text-center">
-            <p className="text-xs text-orange-600 mb-1">最大宽度</p>
+          <div className="bg-warning-50 rounded p-3 text-center">
+            <p className="text-xs text-warning-600 mb-1">最大宽度</p>
             <p className="text-xl font-bold text-orange-700">{(stats.max * 100).toFixed(2)}%</p>
           </div>
-          <div className="bg-red-50 rounded p-3 text-center">
-            <p className="text-xs text-red-600 mb-1">超出阈值</p>
-            <p className="text-xl font-bold text-red-700">
+          <div className="bg-danger-50 rounded p-3 text-center">
+            <p className="text-xs text-danger-600 mb-1">超出阈值</p>
+            <p className="text-xl font-bold text-danger-700">
               {stats.aboveThresholdCount}
-              <span className="text-sm font-normal text-red-500 ml-1">
+              <span className="text-sm font-normal text-danger-500 ml-1">
                 ({stats.aboveThresholdPercent}%)
               </span>
             </p>
@@ -386,7 +387,7 @@ export function ConfidenceIntervalChart({
                 domain={[0, 'auto']}
                 width={50}
               />
-              <Tooltip content={<CustomTooltip threshold={threshold} />} />
+              <RechartsTooltip content={<CustomTooltip threshold={threshold} />} />
               <ReferenceLine
                 y={threshold}
                 stroke={semanticColors.danger.DEFAULT}
@@ -416,10 +417,10 @@ export function ConfidenceIntervalChart({
         </div>
 
         {stats.aboveThresholdCount > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded p-3">
+          <div className="bg-danger-50 border border-danger-200 rounded p-3">
             <div className="flex items-start gap-2">
               <svg
-                className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+                className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -430,8 +431,8 @@ export function ConfidenceIntervalChart({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-red-800 mb-1">检测到置信区间异常</h4>
-                <p className="text-xs text-red-700">
+                <h4 className="text-sm font-semibold text-danger-800 mb-1">检测到置信区间异常</h4>
+                <p className="text-xs text-danger-700">
                   在过去 {TIME_RANGE_CONFIG[timeRange].label} 内，有 {stats.aboveThresholdCount}{' '}
                   个数据点（{stats.aboveThresholdPercent}%）的置信区间宽度超过了阈值{' '}
                   {(threshold * 100).toFixed(1)}% ，表明价格不确定性较高。
@@ -441,9 +442,9 @@ export function ConfidenceIntervalChart({
           </div>
         )}
 
-        <div className="bg-blue-50 rounded p-3">
-          <h4 className="text-sm font-medium text-blue-900 mb-1">关于置信区间宽度</h4>
-          <p className="text-xs text-blue-800">
+        <div className="bg-primary-50 rounded p-3">
+          <h4 className="text-sm font-medium text-primary-900 mb-1">关于置信区间宽度</h4>
+          <p className="text-xs text-primary-800">
             置信区间宽度反映了 Pyth Network
             价格预言机的不确定性程度。宽度越大，表示价格波动性越高或数据源之间的分歧越大。当宽度超过阈值时，建议谨慎使用该价格数据。
           </p>

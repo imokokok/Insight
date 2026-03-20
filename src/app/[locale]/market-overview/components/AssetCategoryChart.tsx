@@ -7,7 +7,7 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   BarChart,
   Bar,
   XAxis,
@@ -32,6 +32,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+
 
 interface AssetCategoryChartProps {
   data: AssetCategory[];
@@ -162,7 +163,7 @@ export default function AssetCategoryChart({
               <tr
                 key={item.category}
                 className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                  selectedItem === item.category ? 'bg-blue-50' : ''
+                  selectedItem === item.category ? 'bg-primary-50' : ''
                 }`}
                 onClick={() =>
                   setSelectedItem(item.category === selectedItem ? null : item.category)
@@ -210,7 +211,7 @@ export default function AssetCategoryChart({
             onClick={() => setChartType('pie')}
             className={`px-2.5 py-1 text-sm border transition-colors ${
               chartType === 'pie'
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                ? 'bg-primary-50 border-primary-200 text-primary-700'
                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
@@ -221,7 +222,7 @@ export default function AssetCategoryChart({
             onClick={() => setChartType('bar')}
             className={`px-2.5 py-1 text-sm border transition-colors ${
               chartType === 'bar'
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                ? 'bg-primary-50 border-primary-200 text-primary-700'
                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
@@ -232,7 +233,7 @@ export default function AssetCategoryChart({
             onClick={() => setChartType('radar')}
             className={`px-2.5 py-1 text-sm border transition-colors ${
               chartType === 'radar'
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                ? 'bg-primary-50 border-primary-200 text-primary-700'
                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
@@ -276,7 +277,7 @@ export default function AssetCategoryChart({
                   />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
             </PieChart>
           ) : chartType === 'bar' ? (
             <BarChart data={data} layout="vertical" margin={{ left: 90 }}>
@@ -293,7 +294,7 @@ export default function AssetCategoryChart({
                 fontSize={11}
                 width={85}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="share"
                 name="Share %"
@@ -335,7 +336,7 @@ export default function AssetCategoryChart({
                 fillOpacity={0.3}
               />
               <Legend />
-              <Tooltip
+              <RechartsTooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
@@ -371,7 +372,7 @@ export default function AssetCategoryChart({
             onClick={() => setSelectedItem(item.category === selectedItem ? null : item.category)}
             className={`flex items-center gap-2 p-2 border transition-all text-left ${
               selectedItem === item.category
-                ? 'bg-blue-50 border-blue-200'
+                ? 'bg-primary-50 border-primary-200'
                 : 'border-transparent hover:bg-gray-50'
             }`}
           >

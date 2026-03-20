@@ -34,15 +34,15 @@ function calculateQualityScore(completeness: number, latency: number, sourceCoun
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 80) return 'text-green-600';
-  if (score >= 60) return 'text-yellow-600';
-  return 'text-red-600';
+  if (score >= 80) return 'text-success-600';
+  if (score >= 60) return 'text-warning-600';
+  return 'text-danger-600';
 }
 
 function getScoreBgColor(score: number): string {
-  if (score >= 80) return 'bg-green-600';
-  if (score >= 60) return 'bg-yellow-600';
-  return 'bg-red-600';
+  if (score >= 80) return 'bg-success-600';
+  if (score >= 60) return 'bg-warning-600';
+  return 'bg-danger-600';
 }
 
 function getScoreLabel(score: number, t: (key: string) => string): string {
@@ -145,7 +145,7 @@ function ProgressBar({
       </div>
       <div className="h-2 bg-gray-100  overflow-hidden">
         <div
-          className="h-full bg-blue-500  transition-all duration-500"
+          className="h-full bg-primary-500  transition-all duration-500"
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -194,7 +194,7 @@ export default function DataQualityIndicator({
               </div>
               <div className="h-2 bg-gray-100  overflow-hidden">
                 <div
-                  className="h-full bg-blue-500  transition-all duration-500"
+                  className="h-full bg-primary-500  transition-all duration-500"
                   style={{ width: `${Math.min(completeness, 100)}%` }}
                 />
               </div>
@@ -210,7 +210,7 @@ export default function DataQualityIndicator({
               <div className="h-2 bg-gray-100  overflow-hidden">
                 <div
                   className={`h-full  transition-all duration-500 ${
-                    latency < 100 ? 'bg-green-500' : latency < 500 ? 'bg-yellow-500' : 'bg-red-500'
+                    latency < 100 ? 'bg-success-500' : latency < 500 ? 'bg-warning-500' : 'bg-danger-500'
                   }`}
                   style={{ width: `${Math.max(0, 100 - (latency / 1000) * 100)}%` }}
                 />

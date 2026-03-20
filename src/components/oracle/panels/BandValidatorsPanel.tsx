@@ -266,10 +266,10 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
                       <span
                         className={`text-sm font-medium ${
                           validator.uptime >= 99
-                            ? 'text-green-600'
+                            ? 'text-success-600'
                             : validator.uptime >= 95
-                              ? 'text-yellow-600'
-                              : 'text-red-600'
+                              ? 'text-warning-600'
+                              : 'text-danger-600'
                         }`}
                       >
                         {validator.uptime.toFixed(2)}%
@@ -279,8 +279,8 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
                       <span
                         className={`inline-flex px-2 py-0.5 text-xs font-medium ${
                           validator.jailed
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-green-100 text-green-700'
+                            ? 'bg-danger-100 text-danger-700'
+                            : 'bg-success-100 text-success-700'
                         }`}
                       >
                         {validator.jailed

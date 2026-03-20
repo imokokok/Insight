@@ -131,7 +131,7 @@ function normalizeSupportedChains(
 function getRankBadgeStyle(rank: number): string {
   switch (rank) {
     case 1:
-      return 'bg-yellow-100 border border-yellow-200 text-yellow-800 rounded shadow-sm';
+      return 'bg-warning-100 border border-yellow-200 text-yellow-800 rounded shadow-sm';
     case 2:
       return 'bg-gray-100 border border-gray-200 text-gray-800 rounded shadow-sm';
     case 3:
@@ -142,19 +142,19 @@ function getRankBadgeStyle(rank: number): string {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 90) return 'text-green-600';
-  if (score >= 80) return 'text-blue-600';
-  if (score >= 70) return 'text-yellow-600';
-  if (score >= 60) return 'text-orange-600';
-  return 'text-red-600';
+  if (score >= 90) return 'text-success-600';
+  if (score >= 80) return 'text-primary-600';
+  if (score >= 70) return 'text-warning-600';
+  if (score >= 60) return 'text-warning-600';
+  return 'text-danger-600';
 }
 
 function getScoreBgColor(score: number): string {
-  if (score >= 90) return 'bg-green-50 border-green-200';
-  if (score >= 80) return 'bg-blue-50 border-blue-200';
-  if (score >= 70) return 'bg-yellow-50 border-yellow-200';
-  if (score >= 60) return 'bg-orange-50 border-orange-200';
-  return 'bg-red-50 border-red-200';
+  if (score >= 90) return 'bg-success-50 border-green-200';
+  if (score >= 80) return 'bg-primary-50 border-primary-200';
+  if (score >= 70) return 'bg-warning-50 border-yellow-200';
+  if (score >= 60) return 'bg-warning-50 border-orange-200';
+  return 'bg-danger-50 border-danger-200';
 }
 
 function RankChangeIndicator({ change, t }: { change: number; t: (key: string) => string }) {
@@ -169,7 +169,7 @@ function RankChangeIndicator({ change, t }: { change: number; t: (key: string) =
 
   if (change > 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-success-50 text-success-700">
         <span>↑</span>
         <span>+{change}</span>
       </span>
@@ -177,7 +177,7 @@ function RankChangeIndicator({ change, t }: { change: number; t: (key: string) =
   }
 
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-danger-50 text-danger-700">
       <span>↓</span>
       <span>{change}</span>
     </span>
@@ -196,8 +196,8 @@ function DimensionScoreBar({
   color?: string;
 }) {
   const colorClasses: Record<string, string> = {
-    blue: 'bg-blue-500',
-    green: 'bg-green-500',
+    blue: 'bg-primary-500',
+    green: 'bg-success-500',
     purple: 'bg-purple-500',
     pink: 'bg-pink-500',
     amber: 'bg-amber-500',
@@ -447,22 +447,22 @@ export function OraclePerformanceRanking({
 
       <DashboardCard title={t('oraclePerformanceRanking.dimensionDescriptions.title')}>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="p-3 bg-blue-50 rounded">
-            <p className="text-sm font-medium text-blue-900">
+          <div className="p-3 bg-primary-50 rounded">
+            <p className="text-sm font-medium text-primary-900">
               {t('oraclePerformanceRanking.dimensionDescriptions.responseTime.title')}
             </p>
-            <p className="text-xs text-blue-700 mt-1">
+            <p className="text-xs text-primary-700 mt-1">
               {t('oraclePerformanceRanking.dimensionDescriptions.responseTime.weight')}
             </p>
             <p className="text-xs text-gray-600 mt-2">
               {t('oraclePerformanceRanking.dimensionDescriptions.responseTime.description')}
             </p>
           </div>
-          <div className="p-3 bg-green-50 rounded">
+          <div className="p-3 bg-success-50 rounded">
             <p className="text-sm font-medium text-green-900">
               {t('oraclePerformanceRanking.dimensionDescriptions.accuracy.title')}
             </p>
-            <p className="text-xs text-green-700 mt-1">
+            <p className="text-xs text-success-700 mt-1">
               {t('oraclePerformanceRanking.dimensionDescriptions.accuracy.weight')}
             </p>
             <p className="text-xs text-gray-600 mt-2">

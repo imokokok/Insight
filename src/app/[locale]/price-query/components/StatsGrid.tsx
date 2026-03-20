@@ -72,12 +72,12 @@ export function StatsGrid({
 
   const getConsistencyRating = (stdDevPercent: number): { label: string; color: string } => {
     if (stdDevPercent < 0.1)
-      return { label: t('priceQuery.stats.consistency.excellent'), color: 'text-green-600' };
+      return { label: t('priceQuery.stats.consistency.excellent'), color: 'text-success-600' };
     if (stdDevPercent < 0.3)
-      return { label: t('priceQuery.stats.consistency.good'), color: 'text-blue-600' };
+      return { label: t('priceQuery.stats.consistency.good'), color: 'text-primary-600' };
     if (stdDevPercent < 0.5)
-      return { label: t('priceQuery.stats.consistency.fair'), color: 'text-orange-600' };
-    return { label: t('priceQuery.stats.consistency.poor'), color: 'text-red-600' };
+      return { label: t('priceQuery.stats.consistency.fair'), color: 'text-warning-600' };
+    return { label: t('priceQuery.stats.consistency.poor'), color: 'text-danger-600' };
   };
 
   const consistencyRating =
@@ -98,13 +98,13 @@ export function StatsGrid({
     if (diff > 0) {
       return {
         text: `+${diff.toFixed(2)}%`,
-        color: 'text-green-600',
+        color: 'text-success-600',
         bgColor: 'bg-gray-50',
       };
     } else if (diff < 0) {
       return {
         text: `${diff.toFixed(2)}%`,
-        color: 'text-red-600',
+        color: 'text-danger-600',
         bgColor: 'bg-gray-50',
       };
     }

@@ -145,8 +145,8 @@ export function ChronicleRiskAssessmentPanel({
                     : riskData.overallRiskScore >= 70
                       ? 'bg-amber-50 text-amber-700 border-amber-200'
                       : riskData.overallRiskScore >= 50
-                        ? 'bg-orange-50 text-orange-700 border-orange-200'
-                        : 'bg-red-50 text-red-700 border-red-200'
+                        ? 'bg-warning-50 text-orange-700 border-orange-200'
+                        : 'bg-danger-50 text-danger-700 border-danger-200'
                 }`}
               >
                 {riskData.overallRiskScore >= 90
@@ -166,8 +166,8 @@ export function ChronicleRiskAssessmentPanel({
                     : riskData.overallRiskScore >= 70
                       ? 'text-amber-600'
                       : riskData.overallRiskScore >= 50
-                        ? 'text-orange-600'
-                        : 'text-red-600'
+                        ? 'text-warning-600'
+                        : 'text-danger-600'
                 }`}
               >
                 {riskData.overallRiskScore}
@@ -185,8 +185,8 @@ export function ChronicleRiskAssessmentPanel({
                 : riskData.overallRiskScore >= 70
                   ? 'bg-amber-500'
                   : riskData.overallRiskScore >= 50
-                    ? 'bg-orange-500'
-                    : 'bg-red-500'
+                    ? 'bg-warning-500'
+                    : 'bg-danger-500'
             }`}
             style={{ width: `${riskData.overallRiskScore}%` }}
           />
@@ -233,10 +233,10 @@ export function ChronicleRiskAssessmentPanel({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
             <div
-              className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-green-100' : securityLevel === 'medium' ? 'bg-yellow-100' : 'bg-red-100'}`}
+              className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-success-100' : securityLevel === 'medium' ? 'bg-warning-100' : 'bg-danger-100'}`}
             >
               <Shield
-                className={`w-6 h-6 ${securityLevel === 'high' ? 'text-green-600' : securityLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'}`}
+                className={`w-6 h-6 ${securityLevel === 'high' ? 'text-success-600' : securityLevel === 'medium' ? 'text-warning-600' : 'text-danger-600'}`}
               />
             </div>
             <div>
@@ -246,10 +246,10 @@ export function ChronicleRiskAssessmentPanel({
           </div>
           <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
             <div
-              className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-green-100' : verificationStatus === 'pending' ? 'bg-yellow-100' : 'bg-red-100'}`}
+              className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-success-100' : verificationStatus === 'pending' ? 'bg-warning-100' : 'bg-danger-100'}`}
             >
               <FileCheck
-                className={`w-6 h-6 ${verificationStatus === 'verified' ? 'text-green-600' : verificationStatus === 'pending' ? 'text-yellow-600' : 'text-red-600'}`}
+                className={`w-6 h-6 ${verificationStatus === 'verified' ? 'text-success-600' : verificationStatus === 'pending' ? 'text-warning-600' : 'text-danger-600'}`}
               />
             </div>
             <div>
@@ -258,8 +258,8 @@ export function ChronicleRiskAssessmentPanel({
             </div>
           </div>
           <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Clock className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-primary-100 rounded-full">
+              <Clock className="w-6 h-6 text-primary-600" />
             </div>
             <div>
               <p className="text-sm text-gray-500">{t('chronicle.risk.lastAudit')}</p>
@@ -291,8 +291,8 @@ export function ChronicleRiskAssessmentPanel({
         <DashboardCard title={t('chronicle.risk.incidentSummary')}>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <div className="p-3 bg-green-100 rounded-full">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+              <div className="p-3 bg-success-100 rounded-full">
+                <CheckCircle className="w-6 h-6 text-success-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">{t('chronicle.risk.incidents30d')}</p>
@@ -300,8 +300,8 @@ export function ChronicleRiskAssessmentPanel({
               </div>
             </div>
             <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <Activity className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-primary-100 rounded-full">
+                <Activity className="w-6 h-6 text-primary-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">{t('chronicle.risk.lastIncident')}</p>
@@ -315,31 +315,31 @@ export function ChronicleRiskAssessmentPanel({
       {/* Risk Factors */}
       <DashboardCard title={t('chronicle.risk.riskFactors')}>
         <div className="space-y-4">
-          <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-3 bg-success-50 border border-green-200">
+            <CheckCircle className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-green-800">
                 {t('chronicle.risk.factor1Title')}
               </p>
-              <p className="text-xs text-green-600 mt-1">{t('chronicle.risk.factor1Desc')}</p>
+              <p className="text-xs text-success-600 mt-1">{t('chronicle.risk.factor1Desc')}</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-3 bg-success-50 border border-green-200">
+            <CheckCircle className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-green-800">
                 {t('chronicle.risk.factor2Title')}
               </p>
-              <p className="text-xs text-green-600 mt-1">{t('chronicle.risk.factor2Desc')}</p>
+              <p className="text-xs text-success-600 mt-1">{t('chronicle.risk.factor2Desc')}</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-3 bg-yellow-50 border border-yellow-200">
-            <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-3 bg-warning-50 border border-yellow-200">
+            <AlertTriangle className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-yellow-800">
                 {t('chronicle.risk.factor3Title')}
               </p>
-              <p className="text-xs text-yellow-600 mt-1">{t('chronicle.risk.factor3Desc')}</p>
+              <p className="text-xs text-warning-600 mt-1">{t('chronicle.risk.factor3Desc')}</p>
             </div>
           </div>
         </div>

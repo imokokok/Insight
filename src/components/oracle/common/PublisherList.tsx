@@ -85,11 +85,11 @@ const mockPublishers: Publisher[] = [
 function StatusBadge({ status }: { status: PublisherStatus }) {
   const t = useTranslations();
   const config = {
-    active: { bg: 'bg-green-100', text: 'text-green-700', label: t('publisher.status.active') },
+    active: { bg: 'bg-success-100', text: 'text-success-700', label: t('publisher.status.active') },
     inactive: { bg: 'bg-gray-100', text: 'text-gray-700', label: t('publisher.status.inactive') },
     degraded: {
-      bg: 'bg-yellow-100',
-      text: 'text-yellow-700',
+      bg: 'bg-warning-100',
+      text: 'text-warning-700',
       label: t('publisher.status.degraded'),
     },
   };
@@ -276,9 +276,9 @@ export function PublisherList({
                     onClick={() => onPublisherSelect?.(publisher.id)}
                     className={`p-4  border transition-all cursor-pointer ${
                       hasAnomaly
-                        ? 'border-red-400 bg-red-50 hover:border-red-500 hover:bg-red-100'
+                        ? 'border-red-400 bg-danger-50 hover:border-danger-500 hover:bg-danger-100'
                         : selectedPublisherId === publisher.id
-                          ? 'border-blue-500 bg-blue-50'
+                          ? 'border-primary-500 bg-primary-50'
                           : 'border-gray-200 bg-white hover:border-gray-300 hover:'
                     }`}
                   >
@@ -292,7 +292,7 @@ export function PublisherList({
                             <h4 className="font-semibold text-gray-900">{publisher.name}</h4>
                             <StatusBadge status={publisher.status} />
                             {hasAnomaly && (
-                              <span className="px-2 py-0.5  text-xs font-medium bg-red-100 text-red-700 border border-red-300">
+                              <span className="px-2 py-0.5  text-xs font-medium bg-danger-100 text-danger-700 border border-red-300">
                                 {t('publisher.anomaly')}
                               </span>
                             )}
@@ -302,7 +302,7 @@ export function PublisherList({
                             {t('publisher.submissions')}
                           </p>
                           {hasAnomaly && (
-                            <p className="text-xs text-red-600 mt-1">
+                            <p className="text-xs text-danger-600 mt-1">
                               {t('publisher.anomalyTypes')}
                               {anomalyInfo.anomalyTypes.join(', ')}
                             </p>
@@ -323,7 +323,7 @@ export function PublisherList({
                       <div>
                         <p className="text-gray-500 text-xs">{t('publisher.latency')}</p>
                         <p
-                          className={`font-medium ${anomalyInfo?.isLatencyAnomaly ? 'text-red-600' : 'text-gray-900'}`}
+                          className={`font-medium ${anomalyInfo?.isLatencyAnomaly ? 'text-danger-600' : 'text-gray-900'}`}
                         >
                           {publisher.latency}ms
                           {anomalyInfo?.isLatencyAnomaly && <span className="ml-1">⚠️</span>}

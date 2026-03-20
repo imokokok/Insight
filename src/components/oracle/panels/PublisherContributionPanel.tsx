@@ -6,7 +6,7 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   BarChart,
   Bar,
@@ -18,6 +18,7 @@ import { Publisher } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
 import { chartColors } from '@/lib/config/colors';
+
 
 interface PublisherContributionPanelProps {
   publishers: Publisher[];
@@ -195,7 +196,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                     <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomTooltip />} />
+                <RechartsTooltip content={<CustomTooltip />} />
                 <Legend
                   verticalAlign="bottom"
                   height={36}
@@ -213,7 +214,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                 <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
                 <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
                 <YAxis dataKey="name" type="category" width={50} tick={{ fontSize: 12 }} />
-                <Tooltip
+                <RechartsTooltip
                   formatter={(value) => [
                     `${Number(value).toFixed(2)}%`,
                     t('publisherContribution.contributionWeight'),
@@ -319,10 +320,10 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                     <span
                       className={`font-medium ${
                         publisher.reliabilityScore >= 98
-                          ? 'text-green-600'
+                          ? 'text-success-600'
                           : publisher.reliabilityScore >= 95
-                            ? 'text-blue-600'
-                            : 'text-yellow-600'
+                            ? 'text-primary-600'
+                            : 'text-warning-600'
                       }`}
                     >
                       {publisher.reliabilityScore.toFixed(1)}%
@@ -332,10 +333,10 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                     <span
                       className={`font-medium ${
                         publisher.latency < 50
-                          ? 'text-green-600'
+                          ? 'text-success-600'
                           : publisher.latency < 80
-                            ? 'text-blue-600'
-                            : 'text-yellow-600'
+                            ? 'text-primary-600'
+                            : 'text-warning-600'
                       }`}
                     >
                       {publisher.latency}ms
@@ -345,9 +346,9 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                     <span
                       className={`inline-flex px-2 py-1  text-xs font-medium ${
                         publisher.status === 'active'
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-success-100 text-success-700'
                           : publisher.status === 'degraded'
-                            ? 'bg-yellow-100 text-yellow-700'
+                            ? 'bg-warning-100 text-warning-700'
                             : 'bg-gray-100 text-gray-700'
                       }`}
                     >
@@ -365,7 +366,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-gray-100 border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-blue-500  flex items-center justify-center">
+              <div className="w-8 h-8 bg-primary-500  flex items-center justify-center">
                 <svg
                   className="w-4 h-4 text-white"
                   fill="none"
@@ -383,7 +384,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                 {t('publisherContribution.reliabilityScore')}
               </span>
             </div>
-            <p className="text-2xl font-bold text-blue-600">40%</p>
+            <p className="text-2xl font-bold text-primary-600">40%</p>
             <p className="text-sm text-gray-600 mt-1">
               {t('publisherContribution.reliabilityScoreDesc')}
             </p>
@@ -391,7 +392,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
 
           <div className="bg-gray-100 border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-green-500  flex items-center justify-center">
+              <div className="w-8 h-8 bg-success-500  flex items-center justify-center">
                 <svg
                   className="w-4 h-4 text-white"
                   fill="none"
@@ -405,7 +406,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                 {t('publisherContribution.latencyFactor')}
               </span>
             </div>
-            <p className="text-2xl font-bold text-green-600">20%</p>
+            <p className="text-2xl font-bold text-success-600">20%</p>
             <p className="text-sm text-gray-600 mt-1">
               {t('publisherContribution.latencyFactorDesc')}
             </p>
@@ -435,7 +436,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
 
           <div className="bg-gray-100 border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-orange-500  flex items-center justify-center">
+              <div className="w-8 h-8 bg-warning-500  flex items-center justify-center">
                 <svg
                   className="w-4 h-4 text-white"
                   fill="none"
@@ -453,7 +454,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                 {t('publisherContribution.accuracyFactor')}
               </span>
             </div>
-            <p className="text-2xl font-bold text-orange-600">20%</p>
+            <p className="text-2xl font-bold text-warning-600">20%</p>
             <p className="text-sm text-gray-600 mt-1">
               {t('publisherContribution.accuracyFactorDesc')}
             </p>

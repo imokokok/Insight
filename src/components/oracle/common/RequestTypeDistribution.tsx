@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+
 
 export interface RequestTypeData {
   type: string;
@@ -150,7 +151,7 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
                 <Cell key={`cell-${index}`} fill={entry.color} stroke="white" strokeWidth={2} />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip />} />
+            <RechartsTooltip content={<CustomTooltip />} />
             <Legend content={<CustomLegend />} />
           </PieChart>
         </ResponsiveContainer>

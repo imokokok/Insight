@@ -22,13 +22,13 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'casino':
-        return 'bg-red-100 text-red-700';
+        return 'bg-danger-100 text-danger-700';
       case 'sports':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-primary-100 text-primary-700';
       case 'esports':
         return 'bg-purple-100 text-purple-700';
       case 'lottery':
-        return 'bg-green-100 text-green-700';
+        return 'bg-success-100 text-success-700';
       case 'defi':
         return 'bg-indigo-100 text-indigo-700';
       default:
@@ -43,7 +43,7 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
       case 'platform':
         return 'bg-indigo-100 text-indigo-700';
       case 'tournament':
-        return 'bg-orange-100 text-orange-700';
+        return 'bg-warning-100 text-orange-700';
       case 'marketplace':
         return 'bg-teal-100 text-teal-700';
       default:
@@ -54,11 +54,11 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
   const getSecurityLevelColor = (level: string) => {
     switch (level) {
       case 'high':
-        return 'bg-green-100 text-green-700 border-green-200';
+        return 'bg-success-100 text-success-700 border-green-200';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        return 'bg-warning-100 text-warning-700 border-yellow-200';
       case 'low':
-        return 'bg-red-100 text-red-700 border-red-200';
+        return 'bg-danger-100 text-danger-700 border-danger-200';
       default:
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
@@ -111,7 +111,7 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Dices className="w-4 h-4 text-blue-600" />
+              <Dices className="w-4 h-4 text-primary-600" />
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 {t('winklink.gaming.dailyRngRequests')}
               </p>
@@ -158,7 +158,7 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">{t('winklink.gaming.reliability')}</span>
-                  <span className="text-sm font-medium text-green-600">{source.reliability}%</span>
+                  <span className="text-sm font-medium text-success-600">{source.reliability}%</span>
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-1">
@@ -197,7 +197,7 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
               <div className="flex items-center gap-6">
                 <div className="text-center">
                   <div className="flex items-center gap-1 justify-center">
-                    <Zap className="w-4 h-4 text-yellow-500" />
+                    <Zap className="w-4 h-4 text-warning-500" />
                     <p className="text-lg font-bold text-gray-900">
                       {formatNumber(service.requestCount)}
                     </p>
@@ -206,7 +206,7 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
                 </div>
                 <div className="text-center">
                   <div className="flex items-center gap-1 justify-center">
-                    <Clock className="w-4 h-4 text-blue-500" />
+                    <Clock className="w-4 h-4 text-primary-500" />
                     <p className="text-lg font-bold text-gray-900">
                       {service.averageResponseTime}ms
                     </p>
@@ -244,7 +244,7 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
                 </div>
                 <div className="flex justify-between mt-1">
                   <span className="text-sm text-gray-600">{t('winklink.gaming.reliability')}</span>
-                  <span className="text-sm font-medium text-green-600">{useCase.reliability}%</span>
+                  <span className="text-sm font-medium text-success-600">{useCase.reliability}%</span>
                 </div>
               </div>
             ))}

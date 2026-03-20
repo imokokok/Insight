@@ -104,11 +104,11 @@ export function CrossChainRisk() {
   const getStatusColor = (status: 'normal' | 'warning' | 'critical'): string => {
     switch (status) {
       case 'normal':
-        return 'bg-green-100 text-green-700';
+        return 'bg-success-100 text-success-700';
       case 'warning':
-        return 'bg-yellow-100 text-yellow-700';
+        return 'bg-warning-100 text-warning-700';
       case 'critical':
-        return 'bg-red-100 text-red-700';
+        return 'bg-danger-100 text-danger-700';
     }
   };
 
@@ -137,10 +137,10 @@ export function CrossChainRisk() {
     <DashboardCard title={t('crossChainRisk.title')}>
       <div className="space-y-6">
         {arbitrageOpportunities.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200  p-4">
+          <div className="bg-warning-50 border border-yellow-200  p-4">
             <div className="flex items-start gap-3">
               <svg
-                className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
+                className="w-5 h-5 text-warning-600 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -155,7 +155,7 @@ export function CrossChainRisk() {
                 <h4 className="text-sm font-medium text-yellow-800">
                   {t('crossChainRisk.arbitrageOpportunity.title')}
                 </h4>
-                <p className="text-sm text-yellow-700 mt-1">
+                <p className="text-sm text-warning-700 mt-1">
                   {t('crossChainRisk.arbitrageOpportunity.description', {
                     count: arbitrageOpportunities.length,
                     threshold: ARBITRAGE_THRESHOLD,
@@ -180,7 +180,7 @@ export function CrossChainRisk() {
           <div className="bg-gray-50  p-3">
             <p className="text-xs text-gray-500 mb-1">{t('crossChainRisk.stats.maxDeviation')}</p>
             <p
-              className={`text-xl font-bold ${maxDeviation >= 1 ? 'text-red-600' : maxDeviation >= ARBITRAGE_THRESHOLD ? 'text-yellow-600' : 'text-gray-900'}`}
+              className={`text-xl font-bold ${maxDeviation >= 1 ? 'text-danger-600' : maxDeviation >= ARBITRAGE_THRESHOLD ? 'text-warning-600' : 'text-gray-900'}`}
             >
               {maxDeviation.toFixed(3)}%
             </p>
@@ -188,7 +188,7 @@ export function CrossChainRisk() {
           <div className="bg-gray-50  p-3">
             <p className="text-xs text-gray-500 mb-1">{t('crossChainRisk.stats.abnormalChains')}</p>
             <p
-              className={`text-xl font-bold ${warningCount > 0 ? 'text-yellow-600' : 'text-gray-900'}`}
+              className={`text-xl font-bold ${warningCount > 0 ? 'text-warning-600' : 'text-gray-900'}`}
             >
               {warningCount}
             </p>
@@ -236,7 +236,7 @@ export function CrossChainRisk() {
                       ${chain.price.toFixed(4)}
                     </td>
                     <td
-                      className={`text-right py-2 px-3 text-sm font-mono ${chain.deviation >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                      className={`text-right py-2 px-3 text-sm font-mono ${chain.deviation >= 0 ? 'text-success-600' : 'text-danger-600'}`}
                     >
                       {chain.deviation >= 0 ? '+' : ''}
                       {chain.deviationPercent.toFixed(3)}%
@@ -291,7 +291,7 @@ export function CrossChainRisk() {
                       <p className="text-xs text-gray-500">
                         {t('crossChainRisk.arbitrage.priceDiff')}
                       </p>
-                      <p className="text-sm font-medium text-yellow-600">
+                      <p className="text-sm font-medium text-warning-600">
                         {opp.priceDiffPercent.toFixed(3)}%
                       </p>
                     </div>
@@ -299,7 +299,7 @@ export function CrossChainRisk() {
                       <p className="text-xs text-gray-500">
                         {t('crossChainRisk.arbitrage.estimatedProfit')}
                       </p>
-                      <p className="text-sm font-medium text-green-600">{opp.estimatedProfit}</p>
+                      <p className="text-sm font-medium text-success-600">{opp.estimatedProfit}</p>
                     </div>
                   </div>
                 </div>
@@ -338,7 +338,7 @@ export function CrossChainRisk() {
               </div>
               <div className="w-full bg-gray-200  h-2 mt-2">
                 <div
-                  className={`h-2  ${avgLatency < 100 ? 'bg-green-500' : avgLatency < 200 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                  className={`h-2  ${avgLatency < 100 ? 'bg-success-500' : avgLatency < 200 ? 'bg-warning-500' : 'bg-danger-500'}`}
                   style={{ width: `${Math.min((avgLatency / 300) * 100, 100)}%` }}
                 />
               </div>
@@ -346,11 +346,11 @@ export function CrossChainRisk() {
             </div>
           </div>
 
-          <div className="bg-blue-50  p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">
+          <div className="bg-primary-50  p-4">
+            <h4 className="text-sm font-medium text-primary-900 mb-2">
               {t('crossChainRisk.consistencyNote.title')}
             </h4>
-            <ul className="text-sm text-blue-800 space-y-1">
+            <ul className="text-sm text-primary-800 space-y-1">
               <li>• {t('crossChainRisk.consistencyNote.wormhole')}</li>
               <li>• {t('crossChainRisk.consistencyNote.idealCase')}</li>
               <li>

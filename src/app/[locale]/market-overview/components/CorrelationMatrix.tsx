@@ -8,6 +8,8 @@ import { BarChart3, Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { semanticColors, baseColors } from '@/lib/config/colors';
 import { SegmentedControl } from '@/components/ui/selectors';
 
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 interface CorrelationMatrixProps {
   data: CorrelationData;
   loading?: boolean;
@@ -161,7 +163,7 @@ export default function CorrelationMatrix({
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="py-3 border-t border-gray-100">
-            <div className="text-xl font-semibold text-blue-700">
+            <div className="text-xl font-semibold text-primary-700">
               {stats.avgCorrelation.toFixed(2)}
             </div>
             <div className="text-xs text-gray-600">
@@ -169,7 +171,7 @@ export default function CorrelationMatrix({
             </div>
           </div>
           <div className="py-3 border-t border-gray-100">
-            <div className="text-xl font-semibold text-green-700">
+            <div className="text-xl font-semibold text-success-700">
               {stats.maxCorrelation.toFixed(2)}
             </div>
             <div className="text-xs text-gray-600">
@@ -177,7 +179,7 @@ export default function CorrelationMatrix({
             </div>
           </div>
           <div className="py-3 border-t border-gray-100">
-            <div className="text-xl font-semibold text-red-700">
+            <div className="text-xl font-semibold text-danger-700">
               {stats.minCorrelation.toFixed(2)}
             </div>
             <div className="text-xs text-gray-600">
@@ -238,7 +240,7 @@ export default function CorrelationMatrix({
                     <div
                       key={`${oracleA}-${oracleB}`}
                       className={`w-16 h-8 flex items-center justify-center cursor-pointer transition-all hover:scale-110 hover:z-10 ${
-                        isLinked ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+                        isLinked ? 'ring-2 ring-primary-500 ring-offset-1' : ''
                       }`}
                       style={{ backgroundColor: color }}
                       onClick={() => {
@@ -514,7 +516,7 @@ export default function CorrelationMatrix({
 
             <button
               onClick={() => setShowDetails(false)}
-              className="w-full mt-4 px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+              className="w-full mt-4 px-3 py-1.5 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors text-sm"
             >
               {isChineseLocale(locale) ? '关闭' : 'Close'}
             </button>

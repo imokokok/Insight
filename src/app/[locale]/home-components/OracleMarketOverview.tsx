@@ -14,7 +14,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   BarChart,
   Bar,
   ReferenceLine,
@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+
 
 const COLORS = {
   chainlink: chartColors.oracle.chainlink,
@@ -422,7 +423,7 @@ function OracleMarketOverviewBase() {
                 />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip />} />
+            <RechartsTooltip content={<CustomTooltip />} />
           </PieChart>
         );
       case 'trend':
@@ -431,7 +432,7 @@ function OracleMarketOverviewBase() {
             <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
             <XAxis dataKey="month" stroke={chartColors.recharts.axis} fontSize={12} />
             <YAxis stroke={chartColors.recharts.axis} fontSize={12} />
-            <Tooltip content={<CustomTooltip />} />
+            <RechartsTooltip content={<CustomTooltip />} />
             <ReferenceLine y={0} stroke={chartColors.recharts.grid} />
             <Line
               type="monotone"
@@ -581,7 +582,7 @@ function OracleMarketOverviewBase() {
               fontSize={12}
               width={100}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <RechartsTooltip content={<CustomTooltip />} />
             <Bar
               dataKey="chains"
               name="Supported Chains"

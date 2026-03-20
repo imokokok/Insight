@@ -51,7 +51,7 @@ function VerifyEmailContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-insight px-4">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">{t('auth.verifyEmail.verifying')}</p>
         </div>
       </div>
@@ -63,8 +63,8 @@ function VerifyEmailContent() {
       <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white border border-gray-200 p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {t('auth.verifyEmail.success.title')}
@@ -73,7 +73,7 @@ function VerifyEmailContent() {
             <div className="space-y-3">
               <Link
                 href="/login"
-                className="block w-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+                className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors"
               >
                 {t('auth.verifyEmail.success.goToLogin')}
               </Link>
@@ -88,8 +88,8 @@ function VerifyEmailContent() {
     <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
       <div className="w-full max-w-md">
         <div className="bg-white border border-gray-200 p-8 text-center">
-          <div className="w-16 h-16 bg-red-100 flex items-center justify-center mx-auto mb-6">
-            <XCircle className="w-8 h-8 text-red-600" />
+          <div className="w-16 h-16 bg-danger-100 flex items-center justify-center mx-auto mb-6">
+            <XCircle className="w-8 h-8 text-danger-600" />
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             {t('auth.verifyEmail.error.title')}
@@ -98,7 +98,7 @@ function VerifyEmailContent() {
           <div className="space-y-3">
             <Link
               href="/auth/resend-verification"
-              className="block w-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+              className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors"
             >
               {t('auth.verifyEmail.error.resendVerification')}
             </Link>
@@ -121,7 +121,7 @@ export default function VerifyEmailPage() {
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-insight px-4">
           <div className="text-center">
-            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+            <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading...</p>
           </div>
         </div>

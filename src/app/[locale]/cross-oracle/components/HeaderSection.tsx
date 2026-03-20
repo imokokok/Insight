@@ -95,7 +95,7 @@ export function HeaderSection({
             onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
             className={`flex items-center gap-2 px-3 py-1.5 text-sm border transition-colors ${
               isFilterPanelOpen || activeFilterCount > 0
-                ? 'bg-blue-50 border-blue-300 text-blue-700'
+                ? 'bg-primary-50 border-primary-300 text-primary-700'
                 : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -109,7 +109,7 @@ export function HeaderSection({
             </svg>
             <span>{t('crossOracle.filter.button')}</span>
             {activeFilterCount > 0 && (
-              <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium bg-blue-600 text-white rounded-full">
+              <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium bg-primary-600 text-white rounded-full">
                 {activeFilterCount}
               </span>
             )}
@@ -180,7 +180,7 @@ export function HeaderSection({
         <button
           onClick={fetchPriceData}
           disabled={isLoading}
-          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? (
             <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -271,7 +271,7 @@ export function HeaderSection({
                           {config.selectedOracles?.slice(0, 2).map((oracle) => (
                             <span
                               key={oracle}
-                              className="px-1.5 py-0.5 text-xs bg-blue-50 text-blue-700 border border-blue-100"
+                              className="px-1.5 py-0.5 text-xs bg-primary-50 text-primary-700 border border-primary-100"
                             >
                               {oracle}
                             </span>
@@ -292,7 +292,7 @@ export function HeaderSection({
                       setShowFavoritesDropdown(false);
                       router.push('/favorites');
                     }}
-                    className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium"
                   >
                     {t('crossOracle.favorites.viewAll')}
                   </button>

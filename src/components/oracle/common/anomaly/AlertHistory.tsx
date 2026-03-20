@@ -49,7 +49,7 @@ export function AlertHistory({ anomalies, stats }: AlertHistoryProps) {
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-gray-200  h-2">
                   <div
-                    className="bg-blue-600 h-2 "
+                    className="bg-primary-600 h-2 "
                     style={{
                       width: `${stats.totalAnomalies > 0 ? (stats.priceSpikeCount / stats.totalAnomalies) * 100 : 0}%`,
                     }}
@@ -126,7 +126,7 @@ export function AlertHistory({ anomalies, stats }: AlertHistoryProps) {
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-gray-200  h-2">
                   <div
-                    className="bg-red-600 h-2 "
+                    className="bg-danger-600 h-2 "
                     style={{
                       width: `${stats.totalAnomalies > 0 ? (stats.highSeverityCount / stats.totalAnomalies) * 100 : 0}%`,
                     }}
@@ -143,7 +143,7 @@ export function AlertHistory({ anomalies, stats }: AlertHistoryProps) {
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-gray-200  h-2">
                   <div
-                    className="bg-orange-600 h-2 "
+                    className="bg-warning-600 h-2 "
                     style={{
                       width: `${stats.totalAnomalies > 0 ? (stats.mediumSeverityCount / stats.totalAnomalies) * 100 : 0}%`,
                     }}
@@ -160,7 +160,7 @@ export function AlertHistory({ anomalies, stats }: AlertHistoryProps) {
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-gray-200  h-2">
                   <div
-                    className="bg-yellow-600 h-2 "
+                    className="bg-warning-600 h-2 "
                     style={{
                       width: `${stats.totalAnomalies > 0 ? (stats.lowSeverityCount / stats.totalAnomalies) * 100 : 0}%`,
                     }}

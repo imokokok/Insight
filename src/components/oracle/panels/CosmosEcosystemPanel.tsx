@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { DashboardCard, MetricCard } from '@/components/oracle/common/DashboardCard';
 import { Layers, Link2, Wallet, BarChart3, Zap, Globe, Database, Shield } from 'lucide-react';
 
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 interface CosmosEcosystemPanelProps {
   client: BandProtocolClient;
 }
@@ -188,7 +190,7 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
                       <span
                         className={`inline-flex items-center px-2 py-1 text-xs font-medium ${
                           chain.status === 'active'
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-success-100 text-success-700'
                             : 'bg-gray-100 text-gray-600'
                         }`}
                       >

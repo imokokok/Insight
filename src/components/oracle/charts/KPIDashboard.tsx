@@ -31,7 +31,7 @@ function ScrollIndicator({
           key={index}
           onClick={() => onIndicatorClick(index)}
           className={`p-2  transition-all duration-300 ${
-            index === currentIndex ? 'w-8 bg-blue-600' : 'w-1.5 bg-gray-300 hover:bg-gray-400'
+            index === currentIndex ? 'w-8 bg-primary-600' : 'w-1.5 bg-gray-300 hover:bg-gray-400'
           }`}
           aria-label={t('kpiDashboard.goToPage', { page: index + 1 })}
         />
@@ -47,26 +47,26 @@ interface UpdateInterval {
 
 const getHealthConfig = (t: (key: string) => string) => ({
   healthy: {
-    bgColor: 'bg-green-500',
-    textColor: 'text-green-600',
-    lightBg: 'bg-green-50',
+    bgColor: 'bg-success-500',
+    textColor: 'text-success-600',
+    lightBg: 'bg-success-50',
     borderColor: 'border-green-200',
     label: t('kpiDashboard.health.healthy'),
     pulseColor: 'bg-green-400',
   },
   warning: {
-    bgColor: 'bg-yellow-500',
-    textColor: 'text-yellow-600',
-    lightBg: 'bg-yellow-50',
+    bgColor: 'bg-warning-500',
+    textColor: 'text-warning-600',
+    lightBg: 'bg-warning-50',
     borderColor: 'border-yellow-200',
     label: t('kpiDashboard.health.warning'),
     pulseColor: 'bg-yellow-400',
   },
   critical: {
-    bgColor: 'bg-red-500',
-    textColor: 'text-red-600',
-    lightBg: 'bg-red-50',
-    borderColor: 'border-red-200',
+    bgColor: 'bg-danger-500',
+    textColor: 'text-danger-600',
+    lightBg: 'bg-danger-50',
+    borderColor: 'border-danger-200',
     label: t('kpiDashboard.health.critical'),
     pulseColor: 'bg-red-400',
   },
@@ -121,7 +121,7 @@ function PriceCard({ price, previousPrice }: { price: number; previousPrice: num
 
   return (
     <div
-      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-primary-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -132,7 +132,7 @@ function PriceCard({ price, previousPrice }: { price: number; previousPrice: num
             <span className="text-gray-400 text-lg">$</span>
             <span
               className={`text-xl md:text-2xl font-bold text-gray-900 transition-all duration-200 ${
-                isFlashing ? 'text-blue-500 scale-105' : ''
+                isFlashing ? 'text-primary-500 scale-105' : ''
               }`}
             >
               {formatPrice(price)}
@@ -140,13 +140,13 @@ function PriceCard({ price, previousPrice }: { price: number; previousPrice: num
           </div>
           <div className="flex items-center gap-2 mt-2">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full  bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex  h-2 w-2 bg-blue-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full  bg-primary-400 opacity-75"></span>
+              <span className="relative inline-flex  h-2 w-2 bg-primary-500"></span>
             </span>
             <span className="text-xs text-gray-400">{t('kpiDashboard.updating')}</span>
           </div>
         </div>
-        <div className="p-2.5 bg-blue-50  text-blue-600">
+        <div className="p-2.5 bg-primary-50  text-primary-600">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinejoin="round"
@@ -183,13 +183,13 @@ function PriceChangeCard({
   }, [priceChangePercent]);
 
   const isPositive = priceChangePercent >= 0;
-  const colorClass = isPositive ? 'text-green-600' : 'text-red-600';
-  const bgClass = isPositive ? 'bg-green-50' : 'bg-red-50';
+  const colorClass = isPositive ? 'text-success-600' : 'text-danger-600';
+  const bgClass = isPositive ? 'bg-success-50' : 'bg-danger-50';
   const arrow = isPositive ? '↑' : '↓';
 
   return (
     <div
-      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-primary-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -257,7 +257,7 @@ function UpdateFrequencyCard({
 
   return (
     <div
-      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-primary-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -331,7 +331,7 @@ function NetworkHealthCard({
 
   return (
     <div
-      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-primary-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -399,7 +399,7 @@ function DataQualityGauge({
 
   return (
     <div
-      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-primary-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -589,7 +589,7 @@ export function KPIDashboard({
           onClick={() => setColorBlindMode(!colorBlindMode)}
           className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium  transition-colors ${
             colorBlindMode
-              ? 'bg-blue-100 text-blue-700 border border-blue-200'
+              ? 'bg-primary-100 text-primary-700 border border-primary-200'
               : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
           }`}
           title={

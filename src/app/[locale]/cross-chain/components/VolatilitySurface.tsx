@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Area,
   ComposedChart,
@@ -28,6 +28,7 @@ import {
 import { Blockchain } from '@/types/oracle';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { DropdownSelect } from '@/components/ui/selectors';
+
 
 interface VolatilitySurfaceProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -260,7 +261,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
         <div className="space-y-1 text-xs">
           <div className="flex justify-between">
             <span className="text-gray-500">{t('crossChain.maxValue')}:</span>
-            <span className="font-mono text-red-600">{data.maxVolatility.toFixed(2)}%</span>
+            <span className="font-mono text-danger-600">{data.maxVolatility.toFixed(2)}%</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">{t('crossChain.p90')}:</span>
@@ -288,7 +289,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">{t('crossChain.minValue')}:</span>
-            <span className="font-mono text-green-600">{data.minVolatility.toFixed(2)}%</span>
+            <span className="font-mono text-success-600">{data.minVolatility.toFixed(2)}%</span>
           </div>
         </div>
       </div>
@@ -358,7 +359,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                     fontSize: 12,
                   }}
                 />
-                <Tooltip content={<VolatilityTooltip />} />
+                <RechartsTooltip content={<VolatilityTooltip />} />
                 <Legend onClick={handleLegendClick} />
 
                 <ReferenceLine
@@ -395,15 +396,15 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           {/* 波动率水平说明 */}
           <div className="mt-4 flex items-center justify-center gap-6 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-0.5 bg-green-500" />
+              <div className="w-6 h-0.5 bg-success-500" />
               <span className="text-gray-600">&lt; 30% ({t('crossChain.lowVolatility')})</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-0.5 bg-yellow-500" />
+              <div className="w-6 h-0.5 bg-warning-500" />
               <span className="text-gray-600">30% - 60% ({t('crossChain.mediumVolatility')})</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-0.5 bg-red-500" />
+              <div className="w-6 h-0.5 bg-danger-500" />
               <span className="text-gray-600">&gt; 60% ({t('crossChain.highVolatility')})</span>
             </div>
           </div>
@@ -539,7 +540,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                     fontSize: 12,
                   }}
                 />
-                <Tooltip content={<ConeTooltip />} />
+                <RechartsTooltip content={<ConeTooltip />} />
 
                 <Area
                   type="monotone"
@@ -640,7 +641,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           {/* 图例说明 */}
           <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-green-600" style={{ height: '2px' }} />
+              <div className="w-4 h-0.5 bg-success-600" style={{ height: '2px' }} />
               <span className="text-gray-600">{t('crossChain.median')}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -648,19 +649,19 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
               <span className="text-gray-600">{t('crossChain.mean')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-blue-500" style={{ height: '1px' }} />
+              <div className="w-4 h-0.5 bg-primary-500" style={{ height: '1px' }} />
               <span className="text-gray-600">25%/75%</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-yellow-500" style={{ height: '1px' }} />
+              <div className="w-4 h-0.5 bg-warning-500" style={{ height: '1px' }} />
               <span className="text-gray-600">10%/90%</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-red-600" style={{ height: '1px' }} />
+              <div className="w-4 h-0.5 bg-danger-600" style={{ height: '1px' }} />
               <span className="text-gray-600">{t('crossChain.maxValue')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-green-600" style={{ height: '1px' }} />
+              <div className="w-4 h-0.5 bg-success-600" style={{ height: '1px' }} />
               <span className="text-gray-600">{t('crossChain.minValue')}</span>
             </div>
           </div>

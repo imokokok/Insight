@@ -121,14 +121,14 @@ export function ChainlinkEcosystemPanel() {
             {chainData.map((chain) => (
               <div key={chain.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-primary-500"></div>
                   <span className="text-sm text-gray-700">{chain.name}</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-xs text-gray-500">{chain.feeds} feeds</span>
                   <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-500 rounded-full"
+                      className="h-full bg-primary-500 rounded-full"
                       style={{ width: `${(chain.tvs / totalTVS) * 100}%` }}
                     ></div>
                   </div>
@@ -196,7 +196,7 @@ export function ChainlinkEcosystemPanel() {
                     <div className="text-sm font-medium text-gray-900">{protocol.name}</div>
                     <div className="text-xs text-gray-500">{protocol.useCase}</div>
                   </div>
-                  <span className="text-sm font-medium text-blue-600">{protocol.tvs}</span>
+                  <span className="text-sm font-medium text-primary-600">{protocol.tvs}</span>
                 </div>
               ))}
             </div>
@@ -209,9 +209,9 @@ export function ChainlinkEcosystemPanel() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-blue-600"
+                  className="w-5 h-5 text-primary-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -235,9 +235,9 @@ export function ChainlinkEcosystemPanel() {
 
           <div className="p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-success-100 rounded-lg flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-green-600"
+                  className="w-5 h-5 text-success-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

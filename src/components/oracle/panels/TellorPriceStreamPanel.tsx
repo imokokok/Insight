@@ -21,8 +21,8 @@ export function TellorPriceStreamPanel({ data }: TellorPriceStreamPanelProps) {
   }, [data]);
 
   const getChangeColor = (change: number) => {
-    if (change > 0) return 'text-green-600';
-    if (change < 0) return 'text-red-600';
+    if (change > 0) return 'text-success-600';
+    if (change < 0) return 'text-danger-600';
     return 'text-gray-600';
   };
 

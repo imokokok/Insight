@@ -58,8 +58,8 @@ export default function ArbitrageHeatmapSkeleton() {
           </div>
         </div>
 
-        <div className="mt-6 bg-blue-50 border border-blue-200 p-4 flex items-center gap-4 skeleton-shimmer">
-          <div className="p-2 bg-blue-100 w-9 h-9"></div>
+        <div className="mt-6 bg-primary-50 border border-primary-200 p-4 flex items-center gap-4 skeleton-shimmer">
+          <div className="p-2 bg-primary-100 w-9 h-9"></div>
           <div className="flex-1">
             <div className="w-32 h-5 bg-gray-300 mb-1"></div>
             <div className="w-full h-4 bg-gray-300"></div>

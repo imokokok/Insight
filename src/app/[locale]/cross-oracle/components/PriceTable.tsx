@@ -147,11 +147,11 @@ export function PriceTable({
                   tabIndex={0}
                   className={`border-b border-gray-100 cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-blue-50'
+                      ? 'bg-primary-50'
                       : isHighest
-                        ? 'bg-red-50/50'
+                        ? 'bg-danger-50/50'
                         : isLowest
-                          ? 'bg-green-50/50'
+                          ? 'bg-success-50/50'
                           : outlier
                             ? 'bg-amber-50/50'
                             : isHovered
@@ -162,12 +162,12 @@ export function PriceTable({
                   <td className="py-2.5 px-3">
                     <div className="flex items-center gap-2">
                       {isHighest && (
-                        <span className="text-xs font-medium text-red-600 bg-red-100 px-1 py-0.5">
+                        <span className="text-xs font-medium text-danger-600 bg-danger-100 px-1 py-0.5">
                           {t('crossOracle.priceTable.highest')}
                         </span>
                       )}
                       {isLowest && (
-                        <span className="text-xs font-medium text-green-600 bg-green-100 px-1 py-0.5">
+                        <span className="text-xs font-medium text-success-600 bg-success-100 px-1 py-0.5">
                           {t('crossOracle.priceTable.lowest')}
                         </span>
                       )}
@@ -203,9 +203,9 @@ export function PriceTable({
                       <div
                         className={`absolute inset-0 transition-all ${
                           deviationPercent !== null && deviationPercent > 0
-                            ? 'bg-red-200'
+                            ? 'bg-danger-200'
                             : deviationPercent !== null && deviationPercent < 0
-                              ? 'bg-green-200'
+                              ? 'bg-success-200'
                               : ''
                         }`}
                         style={{
@@ -249,7 +249,7 @@ export function PriceTable({
                         <span className="text-gray-700">{(data.confidence * 100).toFixed(1)}%</span>
                         <div className="w-12 h-1 bg-gray-200 overflow-hidden">
                           <div
-                            className="h-full bg-blue-500"
+                            className="h-full bg-primary-500"
                             style={{ width: `${data.confidence * 100}%` }}
                           />
                         </div>
@@ -288,7 +288,7 @@ export function PriceTable({
                           <div className="flex justify-between">
                             <span className="text-gray-500">{t('crossOracle.deviation')}</span>
                             <span
-                              className={`font-medium ${deviationPercent !== null && deviationPercent >= 0 ? 'text-red-600' : 'text-green-600'}`}
+                              className={`font-medium ${deviationPercent !== null && deviationPercent >= 0 ? 'text-danger-600' : 'text-success-600'}`}
                             >
                               {deviationPercent !== null
                                 ? `${deviationPercent >= 0 ? '+' : ''}${deviationPercent.toFixed(4)}%`
@@ -314,7 +314,7 @@ export function PriceTable({
                               {t('crossOracle.priceTable.status')}
                             </span>
                             <span
-                              className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}
+                              className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}
                             >
                               {outlier
                                 ? t('crossOracle.priceTable.outlier')
@@ -397,7 +397,7 @@ export function PriceTable({
                             {t('crossOracle.priceTable.status')}
                           </span>
                           <span
-                            className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}
+                            className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}
                           >
                             {outlier
                               ? t('crossOracle.priceTable.outlier')

@@ -135,14 +135,14 @@ const getDeviationStyle = (deviation: number): string => {
   const absDeviation = Math.abs(deviation);
   if (absDeviation < 0.1) return 'bg-emerald-50/80 border-emerald-100 text-emerald-700';
   if (absDeviation < 0.3) return 'bg-amber-50/80 border-amber-100 text-amber-700';
-  return 'bg-red-50/80 border-red-100 text-red-700';
+  return 'bg-danger-50/80 border-danger-100 text-danger-700';
 };
 
 const getDeviationIntensity = (deviation: number): string => {
   const absDeviation = Math.abs(deviation);
   if (absDeviation < 0.1) return 'bg-emerald-500';
   if (absDeviation < 0.3) return 'bg-amber-500';
-  return 'bg-red-500';
+  return 'bg-danger-500';
 };
 
 const getConsistencyStatus = (deviation: number): string => {
@@ -276,9 +276,9 @@ function PairSelector({
           flex items-center gap-2 px-3 py-2 
           bg-white border border-gray-200 
           hover:border-gray-300 hover:bg-gray-50
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
           transition-all duration-200
-          ${isOpen ? 'border-blue-500 ring-2 ring-blue-500' : ''}
+          ${isOpen ? 'border-primary-500 ring-2 ring-primary-500' : ''}
         `}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
@@ -330,7 +330,7 @@ function PairSelector({
                 placeholder="搜索交易对..."
                 className="
                   w-full pl-8 pr-3 py-1.5 text-sm rounded
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
                 "
                 style={{
                   border: `1px solid ${baseColors.gray[200]}`,
@@ -491,8 +491,8 @@ export default function CrossChainPriceMonitor() {
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 flex items-center justify-center">
-              <Globe className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-primary-50 flex items-center justify-center">
+              <Globe className="w-5 h-5 text-primary-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
@@ -517,7 +517,7 @@ export default function CrossChainPriceMonitor() {
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-gray-50/80 p-4 rounded-lg flex flex-col justify-center h-24">
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-blue-600" />
+              <TrendingUp className="w-4 h-4 text-primary-600" />
               <span className="text-sm text-gray-500">{isZh ? '平均价格' : 'Average Price'}</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">${avgPrice.toFixed(2)}</div>
@@ -571,7 +571,7 @@ export default function CrossChainPriceMonitor() {
                       chain.deviation === 0
                         ? 'bg-gray-100/80 text-gray-600'
                         : chain.deviation > 0
-                          ? 'bg-red-100/80 text-red-600'
+                          ? 'bg-danger-100/80 text-danger-600'
                           : 'bg-emerald-100/80 text-emerald-600'
                     }`}
                   >
@@ -607,7 +607,7 @@ export default function CrossChainPriceMonitor() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-red-500 shadow-sm shadow-red-200" />
+            <span className="w-3 h-3 rounded-full bg-danger-500 shadow-sm shadow-red-200" />
             <span className="text-gray-600 font-medium">
               {isZh ? '低一致性 (>0.3%)' : 'Low Consistency (>0.3%)'}
             </span>

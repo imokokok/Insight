@@ -23,6 +23,10 @@ import {
 import { TIME_RANGES, ChartType, ViewType, TVSTrendData, OracleMarketData, ChainBreakdown, ProtocolDetail, AssetCategory, ComparisonData, BenchmarkData, CorrelationData } from '../types';
 import ChartRenderer from './ChartRenderer';
 
+import { Icon } from '@/components/ui';
+
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 interface ChartContainerProps {
   chartContainerRef: React.RefObject<HTMLDivElement | null>;
   activeChart: ChartType;
@@ -215,7 +219,7 @@ export default function ChartContainer({
                     onClick={() => setActiveChart(item.key as ChartType)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                       isActive
-                        ? 'text-blue-600 bg-white border border-gray-200 shadow-sm'
+                        ? 'text-primary-600 bg-white border border-gray-200 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                     } ${index !== getMainChartTypes().length - 1 ? 'mr-0.5' : ''}`}
                     title={isChineseLocale(locale) ? type.labelZh : type.label}
@@ -239,7 +243,7 @@ export default function ChartContainer({
                     onClick={() => setActiveChart(item.key as ChartType)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                       isActive
-                        ? 'text-blue-600 bg-white border border-gray-200 shadow-sm'
+                        ? 'text-primary-600 bg-white border border-gray-200 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                     } ${index !== getSecondaryChartTypes().length - 1 ? 'mr-0.5' : ''}`}
                     title={isChineseLocale(locale) ? type.labelZh : type.label}
@@ -260,7 +264,7 @@ export default function ChartContainer({
                   onClick={() => setSelectedTimeRange(range.key)}
                   className={`px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
                     selectedTimeRange === range.key
-                      ? 'text-blue-600 bg-blue-50'
+                      ? 'text-primary-600 bg-primary-50'
                       : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -278,7 +282,7 @@ export default function ChartContainer({
                     onClick={() => toggleComparisonMode('yoy')}
                     className={`px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
                       comparisonMode === 'yoy'
-                        ? 'text-blue-600 bg-blue-50'
+                        ? 'text-primary-600 bg-primary-50'
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                     }`}
                     title={isChineseLocale(locale) ? '同比对比' : 'Year-over-Year'}
@@ -289,7 +293,7 @@ export default function ChartContainer({
                     onClick={() => toggleComparisonMode('mom')}
                     className={`px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
                       comparisonMode === 'mom'
-                        ? 'text-blue-600 bg-blue-50'
+                        ? 'text-primary-600 bg-primary-50'
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                     }`}
                     title={isChineseLocale(locale) ? '环比对比' : 'Month-over-Month'}
@@ -299,7 +303,7 @@ export default function ChartContainer({
                 </div>
 
                 <div className="flex items-center gap-2 px-2 py-1">
-                  <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                  <AlertTriangle className="w-3.5 h-3.5 text-danger-500" />
                   <input
                     type="range"
                     min="5"
@@ -346,7 +350,7 @@ export default function ChartContainer({
                   onClick={() => setViewType('chart')}
                   className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
                     viewType === 'chart'
-                      ? 'text-blue-600 border-blue-600'
+                      ? 'text-primary-600 border-primary-600'
                       : 'text-gray-500 border-transparent hover:text-gray-700'
                   }`}
                 >
@@ -357,7 +361,7 @@ export default function ChartContainer({
                   onClick={() => setViewType('table')}
                   className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
                     viewType === 'table'
-                      ? 'text-blue-600 border-blue-600'
+                      ? 'text-primary-600 border-primary-600'
                       : 'text-gray-500 border-transparent hover:text-gray-700'
                   }`}
                 >
@@ -393,8 +397,8 @@ export default function ChartContainer({
               {activeChart === 'trend' &&
                 comparisonMode !== 'none' &&
                 trendComparisonData.length > 0 && (
-                  <div className="flex items-center gap-2 px-2 py-1 bg-blue-50 border border-blue-200">
-                    <span className="text-xs text-blue-700">
+                  <div className="flex items-center gap-2 px-2 py-1 bg-primary-50 border border-primary-200">
+                    <span className="text-xs text-primary-700">
                       {comparisonMode === 'yoy'
                         ? isChineseLocale(locale)
                           ? '同比'
@@ -426,7 +430,7 @@ export default function ChartContainer({
                         }, 0) / oracleKeys.length;
                       return (
                         <span
-                          className={`text-sm font-bold ${avgDiff >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                          className={`text-sm font-bold ${avgDiff >= 0 ? 'text-success-600' : 'text-danger-600'}`}
                         >
                           {avgDiff >= 0 ? '+' : ''}
                           {avgDiff.toFixed(2)}%
@@ -440,7 +444,7 @@ export default function ChartContainer({
               {activeChart === 'trend' && zoomRange && (
                 <button
                   onClick={() => setZoomRange(null)}
-                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 px-2 py-1 hover:bg-blue-50 transition-colors"
+                  className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1 px-2 py-1 hover:bg-primary-50 transition-colors"
                 >
                   <RefreshCw className="w-3 h-3" />
                   {isChineseLocale(locale) ? '重置' : 'Reset'}

@@ -6,7 +6,7 @@ import {
   Bar,
   XAxis,
   YAxis,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   CartesianGrid,
   Cell,
@@ -20,6 +20,7 @@ import {
 } from '@/lib/config/colors';
 import { DashboardCard } from './DashboardCard';
 import { useTranslations } from 'next-intl';
+
 
 export interface GasFeeData {
   chain: string;
@@ -255,7 +256,7 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
                 tickLine={false}
                 tickFormatter={(value) => `$${value.toFixed(2)}`}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
+              <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
               <Bar dataKey="total" radius={[4, 4, 0, 0]}>
                 {processedData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={getChainColor(entry.chain)} />
@@ -318,11 +319,11 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
                     <span
                       className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
                         index === 0
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-success-100 text-success-700'
                           : index === 1
-                            ? 'bg-yellow-100 text-yellow-700'
+                            ? 'bg-warning-100 text-warning-700'
                             : index === 2
-                              ? 'bg-orange-100 text-orange-700'
+                              ? 'bg-warning-100 text-orange-700'
                               : 'bg-gray-100 text-gray-600'
                       }`}
                     >

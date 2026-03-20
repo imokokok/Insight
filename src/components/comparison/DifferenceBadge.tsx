@@ -54,27 +54,27 @@ export function DifferenceBadge({
     switch (severity) {
       case 'critical':
         return {
-          bg: 'bg-red-100',
-          text: 'text-red-700',
+          bg: 'bg-danger-100',
+          text: 'text-danger-700',
           border: 'border-red-300',
         };
       case 'high':
         return {
-          bg: 'bg-orange-100',
+          bg: 'bg-warning-100',
           text: 'text-orange-700',
           border: 'border-orange-300',
         };
       case 'medium':
         return {
-          bg: 'bg-yellow-100',
-          text: 'text-yellow-700',
+          bg: 'bg-warning-100',
+          text: 'text-warning-700',
           border: 'border-yellow-300',
         };
       case 'low':
         return {
-          bg: 'bg-blue-100',
-          text: 'text-blue-700',
-          border: 'border-blue-300',
+          bg: 'bg-primary-100',
+          text: 'text-primary-700',
+          border: 'border-primary-300',
         };
       default:
         return {
@@ -153,8 +153,8 @@ export function DifferenceCell({
 
   const getTrendColor = (val: number): string => {
     if (!highlight) return 'text-gray-600';
-    if (val > 0) return 'text-green-600';
-    if (val < 0) return 'text-red-600';
+    if (val > 0) return 'text-success-600';
+    if (val < 0) return 'text-danger-600';
     return 'text-gray-600';
   };
 
@@ -220,9 +220,9 @@ export function ComparisonRow({
 
   const getTrendColor = (val: number): string => {
     const isPositive = invertColors ? val < 0 : val > 0;
-    if (isPositive) return 'text-green-600';
+    if (isPositive) return 'text-success-600';
     if (val === 0) return 'text-gray-600';
-    return 'text-red-600';
+    return 'text-danger-600';
   };
 
   return (

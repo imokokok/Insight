@@ -40,7 +40,7 @@ export function AriaLabel({
       >
         {label}
         {required && (
-          <span className="text-red-500 ml-1" aria-hidden="true">
+          <span className="text-danger-500 ml-1" aria-hidden="true">
             *
           </span>
         )}
@@ -78,7 +78,7 @@ export function AriaLabel({
       })}
 
       {errorMessage && (
-        <div id={errorId} className="text-sm text-red-600 mt-1" role="alert">
+        <div id={errorId} className="text-sm text-danger-600 mt-1" role="alert">
           {errorMessage}
         </div>
       )}
@@ -328,7 +328,7 @@ export function AriaProgress({
         className="w-full bg-gray-200 h-2"
       >
         <div
-          className="bg-blue-600 h-2 transition-all duration-300"
+          className="bg-primary-600 h-2 transition-all duration-300"
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -548,7 +548,7 @@ export function AriaBreadcrumbItem({
           {children}
         </span>
       ) : href ? (
-        <a href={href} className="text-blue-600 hover:text-blue-800">
+        <a href={href} className="text-primary-600 hover:text-primary-800">
           {children}
         </a>
       ) : (

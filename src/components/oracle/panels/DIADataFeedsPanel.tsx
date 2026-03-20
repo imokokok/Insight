@@ -54,7 +54,7 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
       case 'crypto':
         return 'bg-indigo-100 text-indigo-700 border-indigo-200';
       case 'fiat':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
+        return 'bg-primary-100 text-primary-700 border-primary-200';
       case 'nft':
         return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'commodity':
@@ -67,9 +67,9 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-500';
+        return 'bg-success-500';
       case 'paused':
-        return 'bg-yellow-500';
+        return 'bg-warning-500';
       case 'deprecated':
         return 'bg-gray-400';
       default:
@@ -91,17 +91,17 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.98) return 'text-green-600';
+    if (confidence >= 0.98) return 'text-success-600';
     if (confidence >= 0.95) return 'text-indigo-600';
-    if (confidence >= 0.9) return 'text-yellow-600';
-    return 'text-orange-600';
+    if (confidence >= 0.9) return 'text-warning-600';
+    return 'text-warning-600';
   };
 
   const getConfidenceBgColor = (confidence: number) => {
-    if (confidence >= 0.98) return 'bg-green-50';
+    if (confidence >= 0.98) return 'bg-success-50';
     if (confidence >= 0.95) return 'bg-indigo-50';
-    if (confidence >= 0.9) return 'bg-yellow-50';
-    return 'bg-orange-50';
+    if (confidence >= 0.9) return 'bg-warning-50';
+    return 'bg-warning-50';
   };
 
   const formatUpdateFrequency = (seconds: number) => {
@@ -133,7 +133,7 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
         </DashboardCard>
         <DashboardCard className="p-4">
           <p className="text-sm text-gray-600 mb-1">{t('dia.dataFeeds.activeFeeds')}</p>
-          <p className="text-2xl font-bold text-green-600">{activeFeeds}</p>
+          <p className="text-2xl font-bold text-success-600">{activeFeeds}</p>
         </DashboardCard>
         <DashboardCard className="p-4">
           <p className="text-sm text-gray-600 mb-1">{t('dia.dataFeeds.crypto')}</p>
@@ -141,7 +141,7 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
         </DashboardCard>
         <DashboardCard className="p-4">
           <p className="text-sm text-gray-600 mb-1">{t('dia.dataFeeds.fiat')}</p>
-          <p className="text-2xl font-bold text-blue-600">{fiatCount}</p>
+          <p className="text-2xl font-bold text-primary-600">{fiatCount}</p>
         </DashboardCard>
         <DashboardCard className="p-4">
           <p className="text-sm text-gray-600 mb-1">{t('dia.dataFeeds.nft')}</p>

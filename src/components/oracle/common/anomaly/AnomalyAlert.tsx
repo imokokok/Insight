@@ -383,7 +383,7 @@ export function AnomalyAlert() {
             onClick={requestNotificationPermission}
             className={`px-4 py-2  text-sm font-medium flex items-center gap-2 ${
               notificationsEnabled
-                ? 'bg-green-100 text-green-700 border border-green-300'
+                ? 'bg-success-100 text-success-700 border border-green-300'
                 : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
             }`}
           >
@@ -435,7 +435,7 @@ export function AnomalyAlert() {
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={`relative inline-flex h-6 w-11 items-center  transition-colors ${
-                autoRefresh ? 'bg-blue-600' : 'bg-gray-300'
+                autoRefresh ? 'bg-primary-600' : 'bg-gray-300'
               }`}
             >
               <span
@@ -449,7 +449,7 @@ export function AnomalyAlert() {
           <button
             onClick={fetchPricesAndDetect}
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+            className="px-4 py-2 bg-primary-600 text-white  hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
           >
             <svg
               className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
@@ -484,7 +484,7 @@ export function AnomalyAlert() {
         headerAction={
           <button
             onClick={clearAllAnomalies}
-            className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+            className="px-3 py-1 text-xs bg-danger-100 text-danger-700 rounded hover:bg-danger-200"
           >
             {t('anomalyAlert.clearAll')}
           </button>

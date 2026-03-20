@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Cell,
   AreaChart,
@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 import { QueryResult } from '../constants';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { DropdownSelect } from '@/components/ui/selectors';
+
 
 interface DataQualityMetrics {
   oracle: string;
@@ -51,10 +52,10 @@ interface DataQualityPanelProps {
 type ScoreLevel = 'excellent' | 'good' | 'warning' | 'critical';
 
 const SCORE_CONFIG: Record<ScoreLevel, { color: string; bgColor: string; label: string }> = {
-  excellent: { color: semanticColors.success.main, bgColor: 'bg-green-500', label: '优秀' },
-  good: { color: semanticColors.info.main, bgColor: 'bg-blue-500', label: '良好' },
-  warning: { color: semanticColors.warning.main, bgColor: 'bg-yellow-500', label: '警告' },
-  critical: { color: semanticColors.danger.main, bgColor: 'bg-red-500', label: '异常' },
+  excellent: { color: semanticColors.success.main, bgColor: 'bg-success-500', label: '优秀' },
+  good: { color: semanticColors.info.main, bgColor: 'bg-primary-500', label: '良好' },
+  warning: { color: semanticColors.warning.main, bgColor: 'bg-warning-500', label: '警告' },
+  critical: { color: semanticColors.danger.main, bgColor: 'bg-danger-500', label: '异常' },
 };
 
 const LATENCY_COLORS = {
@@ -190,7 +191,7 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
           <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.completenessDesc')}</p>
         </div>
         <svg
-          className="w-5 h-5 text-blue-600"
+          className="w-5 h-5 text-primary-600"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -210,12 +211,12 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
           <p
             className={`text-xl font-bold ${
               avgScore >= 90
-                ? 'text-green-600'
+                ? 'text-success-600'
                 : avgScore >= 70
-                  ? 'text-blue-600'
+                  ? 'text-primary-600'
                   : avgScore >= 50
-                    ? 'text-yellow-600'
-                    : 'text-red-600'
+                    ? 'text-warning-600'
+                    : 'text-danger-600'
             }`}
           >
             {avgScore}
@@ -227,7 +228,7 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
         </div>
         <div className="py-2 text-center">
           <p className="text-xs text-gray-500 mb-1">{t('dataQuality.excellentRate')}</p>
-          <p className="text-xl font-bold text-green-600">
+          <p className="text-xl font-bold text-success-600">
             {metrics.length > 0
               ? Math.round(
                   (metrics.filter((m) => m.completenessScore >= 90).length / metrics.length) * 100
@@ -350,21 +351,21 @@ function LatencyDistributionChart({ results }: { results: QueryResult[] }) {
       </div>
 
       <div className="grid grid-cols-4 gap-2 mb-4">
-        <div className="bg-green-50 border border-green-100 p-2 text-center">
+        <div className="bg-success-50 border border-green-100 p-2 text-center">
           <p className="text-xs text-gray-500">{t('dataQuality.excellent')}</p>
-          <p className="text-sm font-bold text-green-600">{stats.excellent}%</p>
+          <p className="text-sm font-bold text-success-600">{stats.excellent}%</p>
         </div>
-        <div className="bg-blue-50 border border-blue-100 p-2 text-center">
+        <div className="bg-primary-50 border border-primary-100 p-2 text-center">
           <p className="text-xs text-gray-500">{t('dataQuality.good')}</p>
-          <p className="text-sm font-bold text-blue-600">{stats.good}%</p>
+          <p className="text-sm font-bold text-primary-600">{stats.good}%</p>
         </div>
-        <div className="bg-yellow-50 border border-yellow-100 p-2 text-center">
+        <div className="bg-warning-50 border border-yellow-100 p-2 text-center">
           <p className="text-xs text-gray-500">{t('dataQuality.warning')}</p>
-          <p className="text-sm font-bold text-yellow-600">{stats.warning}%</p>
+          <p className="text-sm font-bold text-warning-600">{stats.warning}%</p>
         </div>
-        <div className="bg-red-50 border border-red-100 p-2 text-center">
+        <div className="bg-danger-50 border border-danger-100 p-2 text-center">
           <p className="text-xs text-gray-500">{t('dataQuality.critical')}</p>
-          <p className="text-sm font-bold text-red-600">{stats.critical}%</p>
+          <p className="text-sm font-bold text-danger-600">{stats.critical}%</p>
         </div>
       </div>
 
@@ -390,7 +391,7 @@ function LatencyDistributionChart({ results }: { results: QueryResult[] }) {
             axisLine={{ stroke: chartColors.recharts.grid }}
             tickFormatter={(value) => `${value}%`}
           />
-          <Tooltip
+          <RechartsTooltip
             content={({ active, payload }) => {
               if (!active || !payload || payload.length === 0) return null;
               const item = payload[0].payload as LatencyDistributionItem;
@@ -483,9 +484,9 @@ function FreshnessTrendChart({
           <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.freshnessTrend')}</h3>
           <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.freshnessTrendDesc')}</p>
         </div>
-        <div className="p-2 bg-green-50 border border-green-100">
+        <div className="p-2 bg-success-50 border border-green-100">
           <svg
-            className="w-5 h-5 text-green-600"
+            className="w-5 h-5 text-success-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -575,7 +576,7 @@ function FreshnessTrendChart({
             domain={[0, 100]}
             tickFormatter={(value) => `${value}%`}
           />
-          <Tooltip
+          <RechartsTooltip
             content={({ active, payload, label }) => {
               if (!active || !payload || payload.length === 0) return null;
               return (
@@ -614,15 +615,15 @@ function FreshnessTrendChart({
 
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-green-500" />
+          <span className="w-2 h-2 bg-success-500" />
           <span className="text-xs text-gray-500">{t('dataQuality.fresh')} (&gt;80%)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-yellow-500" />
+          <span className="w-2 h-2 bg-warning-500" />
           <span className="text-xs text-gray-500">{t('dataQuality.stale')} (50-80%)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-red-500" />
+          <span className="w-2 h-2 bg-danger-500" />
           <span className="text-xs text-gray-500">{t('dataQuality.delayed')} (&lt;50%)</span>
         </div>
       </div>
@@ -685,7 +686,7 @@ export function DataQualityPanel({ results, historicalData }: DataQualityPanelPr
           </span>
           <button
             onClick={handleRefresh}
-            className="px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium border border-blue-200 hover:border-blue-300 transition-colors"
+            className="px-3 py-1.5 bg-primary-50 text-primary-600 text-sm font-medium border border-primary-200 hover:border-primary-300 transition-colors"
           >
             {t('dataQuality.refreshData')}
           </button>

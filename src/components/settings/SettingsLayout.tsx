@@ -3,6 +3,8 @@
 import { ReactNode } from 'react';
 import { Settings, User, Bell, Palette, Database } from 'lucide-react';
 
+import { Icon } from '@/components/ui';
+
 export type SettingsTab = 'profile' | 'preferences' | 'notifications' | 'data';
 
 interface SettingsLayoutProps {
@@ -51,7 +53,7 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center shadow-sm">
               <Settings className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -76,23 +78,23 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
                       index !== 0 ? 'border-t border-gray-100' : ''
                     } ${
                       isActive
-                        ? 'bg-blue-50/80 text-blue-600'
+                        ? 'bg-primary-50/80 text-primary-600'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     {isActive && (
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-600" />
+                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary-600" />
                     )}
                     <Icon
                       className={`w-5 h-5 transition-colors ${
-                        isActive ? 'text-blue-600' : 'text-gray-400'
+                        isActive ? 'text-primary-600' : 'text-gray-400'
                       }`}
                     />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm">{tab.label}</div>
                       <div
                         className={`text-xs truncate ${
-                          isActive ? 'text-blue-500' : 'text-gray-400'
+                          isActive ? 'text-primary-500' : 'text-gray-400'
                         }`}
                       >
                         {tab.description}

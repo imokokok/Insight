@@ -6,11 +6,14 @@ import { logger } from '@/lib/utils/logger';
 import { UMAClient } from '@/lib/oracles/uma';
 import { UMANetworkStats, VerificationActivity } from '@/lib/oracles/uma/types';
 import { DashboardCard, StatCard } from '../../common/DashboardCard';
+
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -180,7 +183,7 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
               <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
               <p
                 className={`text-xs mt-2 font-medium ${
-                  stat.changeType === 'positive' ? 'text-emerald-600' : 'text-red-600'
+                  stat.changeType === 'positive' ? 'text-emerald-600' : 'text-danger-600'
                 }`}
               >
                 {stat.changeType === 'positive' ? '↑' : '↓'} {stat.change}
@@ -205,7 +208,7 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
                 <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
                 <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#6b7280' }} interval={3} />
                 <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} />
-                <Tooltip
+                <RechartsTooltip
                   contentStyle={{
                     backgroundColor: '#fff',
                     border: '1px solid #e5e7eb',
@@ -258,7 +261,7 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
                 <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
                 <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#6b7280' }} />
                 <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} />
-                <Tooltip
+                <RechartsTooltip
                   contentStyle={{
                     backgroundColor: '#fff',
                     border: '1px solid #e5e7eb',
@@ -308,7 +311,7 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
               <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#6b7280' }} interval={4} />
               <YAxis yAxisId="left" tick={{ fontSize: 12, fill: '#6b7280' }} />
               <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12, fill: '#6b7280' }} />
-              <Tooltip
+              <RechartsTooltip
                 contentStyle={{
                   backgroundColor: '#fff',
                   border: '1px solid #e5e7eb',
@@ -359,7 +362,7 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
           </div>
           <div className="flex items-center justify-between p-4 bg-gray-50 border-r border-gray-200">
             <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 bg-blue-500 rounded-full"></span>
+              <span className="w-2.5 h-2.5 bg-primary-500 rounded-full"></span>
               <span className="text-sm font-medium text-gray-700">
                 {t('uma.network.updateFrequency')}
               </span>

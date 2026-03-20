@@ -67,7 +67,7 @@ export default function AlertsPage() {
           <p className="mt-2 text-gray-500">{t('alerts.page.loginRequiredDesc')}</p>
           <Link
             href="/login"
-            className="mt-6 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="mt-6 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             {t('alerts.page.goToLogin')}
           </Link>
@@ -105,11 +105,11 @@ export default function AlertsPage() {
         <AlertHistory events={events} isLoading={eventsLoading} onRefresh={refetchEvents} />
       </div>
 
-      <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mt-8 p-4 bg-primary-50 border border-primary-200 rounded-lg">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             <svg
-              className="h-5 w-5 text-blue-600"
+              className="h-5 w-5 text-primary-600"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -123,10 +123,10 @@ export default function AlertsPage() {
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-blue-800">
+            <h3 className="text-sm font-medium text-primary-800">
               {t('alerts.page.instructions.title')}
             </h3>
-            <div className="mt-2 text-sm text-blue-700">
+            <div className="mt-2 text-sm text-primary-700">
               <ul className="list-disc list-inside space-y-1">
                 <li>{t('alerts.page.instructions.items.1')}</li>
                 <li>{t('alerts.page.instructions.items.2')}</li>

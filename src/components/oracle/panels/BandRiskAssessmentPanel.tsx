@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Area,
   AreaChart,
@@ -33,7 +33,9 @@ import {
   SecurityTimeline,
   MitigationMeasuresGrid,
 } from '@/components/oracle/common';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { chartColors } from '@/lib/config/colors';
+
 
 interface BandRiskAssessmentPanelProps {
   client?: BandProtocolClient;
@@ -280,7 +282,7 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
                 domain={[70, 100]}
                 tickFormatter={(value) => `${value}`}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Area
                 type="monotone"
                 dataKey="overall"
@@ -386,7 +388,7 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('band.riskAssessment.giniCoefficient')}</span>
-                <span className="font-medium text-yellow-600">0.45</span>
+                <span className="font-medium text-warning-600">0.45</span>
               </div>
             </div>
           </div>
@@ -398,15 +400,15 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('band.riskAssessment.connectedChains')}</span>
-                <span className="font-medium text-green-600">15+</span>
+                <span className="font-medium text-success-600">15+</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('band.riskAssessment.ibcRelayers')}</span>
-                <span className="font-medium text-green-600">8</span>
+                <span className="font-medium text-success-600">8</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('band.riskAssessment.oracleScripts')}</span>
-                <span className="font-medium text-green-600">200+</span>
+                <span className="font-medium text-success-600">200+</span>
               </div>
             </div>
           </div>
@@ -432,7 +434,7 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
                 <span className="text-sm font-medium text-gray-900 w-32">{chain.chain}</span>
                 <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-green-500 rounded-full"
+                    className="h-full bg-success-500 rounded-full"
                     style={{ width: `${chain.availability}%` }}
                   ></div>
                 </div>

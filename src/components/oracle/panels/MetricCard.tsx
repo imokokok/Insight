@@ -5,9 +5,9 @@ export function MetricCard({ metric }: { metric: NetworkMetric }) {
   const t = useTranslations();
   const trendColor =
     metric.trendDirection === 'up'
-      ? 'text-green-600'
+      ? 'text-success-600'
       : metric.trendDirection === 'down'
-        ? 'text-red-600'
+        ? 'text-danger-600'
         : 'text-gray-500';
 
   const trendIcon =
@@ -31,7 +31,7 @@ export function MetricCard({ metric }: { metric: NetworkMetric }) {
             <span className="text-gray-400 ml-1">{t('networkHealth.vsLastWeek')}</span>
           </div>
         </div>
-        <div className="p-2.5 bg-blue-50 border border-blue-100 text-blue-600">{metric.icon}</div>
+        <div className="p-2.5 bg-primary-50 border border-primary-100 text-primary-600">{metric.icon}</div>
       </div>
     </div>
   );

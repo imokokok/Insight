@@ -138,7 +138,7 @@ export function OracleComparisonSection({
                       <tr
                         key={data.provider}
                         className={`border-b border-gray-100 hover:bg-gray-50 ${
-                          isBenchmark ? 'bg-blue-50/50' : ''
+                          isBenchmark ? 'bg-primary-50/50' : ''
                         }`}
                       >
                         <td className="px-3 py-2">
@@ -149,7 +149,7 @@ export function OracleComparisonSection({
                             />
                             <span className="font-medium text-gray-900">{data.provider}</span>
                             {isBenchmark && (
-                              <span className="text-xs text-blue-600">
+                              <span className="text-xs text-primary-600">
                                 ({t('comparison.oracleComparison.benchmark')})
                               </span>
                             )}
@@ -159,9 +159,9 @@ export function OracleComparisonSection({
                         <td
                           className={`px-3 py-2 text-right font-mono ${
                             deviation > 0
-                              ? 'text-green-600'
+                              ? 'text-success-600'
                               : deviation < 0
-                                ? 'text-red-600'
+                                ? 'text-danger-600'
                                 : 'text-gray-600'
                           }`}
                         >

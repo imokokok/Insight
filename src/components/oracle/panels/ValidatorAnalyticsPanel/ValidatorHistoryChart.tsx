@@ -126,7 +126,7 @@ export function ValidatorHistoryChart({
               onClick={() => onTimeRangeChange(option.value)}
               className={`px-3 py-1.5 text-xs font-medium  transition-colors ${
                 timeRange === option.value
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -243,7 +243,7 @@ export function ValidatorHistoryChart({
             <p className="text-xs text-gray-500 mb-1">
               {t('uma.validatorAnalytics.avgSuccessRate')}
             </p>
-            <p className="text-sm font-semibold text-green-600">
+            <p className="text-sm font-semibold text-success-600">
               {(data.reduce((sum, d) => sum + d.successRate, 0) / data.length).toFixed(1)}%
             </p>
           </div>
@@ -251,7 +251,7 @@ export function ValidatorHistoryChart({
             <p className="text-xs text-gray-500 mb-1">
               {t('uma.validatorAnalytics.avgResponseTime')}
             </p>
-            <p className="text-sm font-semibold text-blue-600">
+            <p className="text-sm font-semibold text-primary-600">
               {Math.round(data.reduce((sum, d) => sum + d.responseTime, 0) / data.length)}ms
             </p>
           </div>

@@ -23,16 +23,16 @@ interface StatsCardsProps {
 const ConsistencyBadge = ({ rating, t }: { rating: string; t: (key: string) => string }) => {
   const colors: Record<string, string> = {
     excellent: 'bg-emerald-100 text-emerald-700',
-    good: 'bg-blue-100 text-blue-700',
+    good: 'bg-primary-100 text-primary-700',
     fair: 'bg-amber-100 text-amber-700',
-    poor: 'bg-red-100 text-red-700',
+    poor: 'bg-danger-100 text-danger-700',
   };
 
   return (
     <span
       className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${colors[rating] || colors.poor}`}
     >
-      {t(`common.consistency.${rating}`) || rating}
+      {t(`consistency.${rating}`) || rating}
     </span>
   );
 };

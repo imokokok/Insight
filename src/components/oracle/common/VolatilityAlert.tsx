@@ -201,7 +201,7 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
                 className="flex items-center justify-between p-3 bg-gray-50  hover:bg-gray-100 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2  bg-blue-500" />
+                  <div className="w-2 h-2  bg-primary-500" />
                   <div>
                     <p className="text-xs text-gray-500">{event.date}</p>
                     <p className="text-sm font-medium text-gray-900">{event.impact}</p>
@@ -219,19 +219,19 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
         </div>
 
         <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100">
-          <div className="text-center p-2 rounded bg-green-50">
+          <div className="text-center p-2 rounded bg-success-50">
             <p className="text-xs text-gray-500 mb-1">{t('volatilityAlert.riskLevel.low')}</p>
-            <p className="text-xs font-medium text-green-600">&lt; {threshold.toFixed(2)}%</p>
+            <p className="text-xs font-medium text-success-600">&lt; {threshold.toFixed(2)}%</p>
           </div>
-          <div className="text-center p-2 rounded bg-yellow-50">
+          <div className="text-center p-2 rounded bg-warning-50">
             <p className="text-xs text-gray-500 mb-1">{t('volatilityAlert.riskLevel.medium')}</p>
-            <p className="text-xs font-medium text-yellow-600">
+            <p className="text-xs font-medium text-warning-600">
               {threshold.toFixed(2)}% - {(threshold * 1.5).toFixed(2)}%
             </p>
           </div>
-          <div className="text-center p-2 rounded bg-red-50">
+          <div className="text-center p-2 rounded bg-danger-50">
             <p className="text-xs text-gray-500 mb-1">{t('volatilityAlert.riskLevel.high')}</p>
-            <p className="text-xs font-medium text-red-600">&gt; {(threshold * 1.5).toFixed(2)}%</p>
+            <p className="text-xs font-medium text-danger-600">&gt; {(threshold * 1.5).toFixed(2)}%</p>
           </div>
         </div>
       </div>

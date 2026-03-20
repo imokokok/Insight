@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { DashboardCard } from './DashboardCard';
 import { useTranslations } from 'next-intl';
 import { chartColors, shadowColors } from '@/lib/config/colors';
+
 
 type DataSourceCategory = 'crypto' | 'forex' | 'commodities' | 'stocks' | 'etf' | 'indices';
 
@@ -145,7 +146,7 @@ export function DataSourceCoverage() {
             <p className="text-sm text-gray-500">{t('dataSourceCoverage.totalDataSources')}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-green-600 font-medium">
+            <p className="text-sm text-success-600 font-medium">
               {t('dataSourceCoverage.newThisMonth')}
             </p>
             <p className="text-xs text-gray-400">{t('dataSourceCoverage.continuouslyExpanding')}</p>
@@ -168,7 +169,7 @@ export function DataSourceCoverage() {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip
+              <RechartsTooltip
                 formatter={(value, name) => [`${value} ${t('dataSourceCoverage.unit')}`, name]}
                 contentStyle={{
                   backgroundColor: 'white',

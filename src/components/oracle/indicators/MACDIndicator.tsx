@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   Scatter,
@@ -17,6 +17,7 @@ import { DashboardCard } from '../common/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
 import { calculateMACDExtended } from '@/lib/indicators';
 import type { MACDExtendedResult } from '@/lib/indicators';
+
 
 interface MACDDataPoint {
   time: string;
@@ -101,11 +102,11 @@ export function MACDIndicator({
         </span>
         <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2  bg-blue-500" />
+            <span className="w-2 h-2  bg-primary-500" />
             DIF
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2  bg-orange-500" />
+            <span className="w-2 h-2  bg-warning-500" />
             DEA
           </span>
           <span className="flex items-center gap-1">
@@ -117,23 +118,23 @@ export function MACDIndicator({
       <div className="flex items-center gap-2">
         <span className="text-xs text-gray-500">DIF:</span>
         <span
-          className={`text-sm font-bold ${currentData.dif > 0 ? 'text-red-500' : 'text-green-500'}`}
+          className={`text-sm font-bold ${currentData.dif > 0 ? 'text-danger-500' : 'text-success-500'}`}
         >
           {currentData.dif > 0 ? '+' : ''}
           {currentData.dif.toFixed(4)}
         </span>
         <span className="text-xs text-gray-500 ml-2">DEA:</span>
         <span
-          className={`text-sm font-bold ${currentData.dea > 0 ? 'text-red-500' : 'text-green-500'}`}
+          className={`text-sm font-bold ${currentData.dea > 0 ? 'text-danger-500' : 'text-success-500'}`}
         >
           {currentData.dea > 0 ? '+' : ''}
           {currentData.dea.toFixed(4)}
         </span>
         {lastSignal?.type === 'golden' && (
-          <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded">金叉</span>
+          <span className="px-2 py-0.5 text-xs bg-danger-100 text-danger-700 rounded">金叉</span>
         )}
         {lastSignal?.type === 'death' && (
-          <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">死叉</span>
+          <span className="px-2 py-0.5 text-xs bg-success-100 text-success-700 rounded">死叉</span>
         )}
       </div>
     </div>
@@ -157,7 +158,7 @@ export function MACDIndicator({
               tickLine={false}
               axisLine={{ stroke: chartColors.recharts.grid }}
             />
-            <Tooltip
+            <RechartsTooltip
               content={({ active, payload, label }) => {
                 if (!active || !payload || payload.length === 0) return null;
                 const data = payload[0].payload as MACDDataPoint;
@@ -166,28 +167,28 @@ export function MACDIndicator({
                     <p className="text-xs text-gray-500 mb-1">{label}</p>
                     <div className="space-y-1">
                       <p
-                        className={`text-sm font-bold ${data.dif > 0 ? 'text-red-600' : 'text-green-600'}`}
+                        className={`text-sm font-bold ${data.dif > 0 ? 'text-danger-600' : 'text-success-600'}`}
                       >
                         DIF: {data.dif > 0 ? '+' : ''}
                         {data.dif.toFixed(4)}
                       </p>
                       <p
-                        className={`text-sm font-bold ${data.dea > 0 ? 'text-red-600' : 'text-green-600'}`}
+                        className={`text-sm font-bold ${data.dea > 0 ? 'text-danger-600' : 'text-success-600'}`}
                       >
                         DEA: {data.dea > 0 ? '+' : ''}
                         {data.dea.toFixed(4)}
                       </p>
                       <p
-                        className={`text-sm font-bold ${data.macd > 0 ? 'text-red-600' : 'text-green-600'}`}
+                        className={`text-sm font-bold ${data.macd > 0 ? 'text-danger-600' : 'text-success-600'}`}
                       >
                         MACD: {data.macd > 0 ? '+' : ''}
                         {data.macd.toFixed(4)}
                       </p>
                       {data.signal === 'golden' && (
-                        <p className="text-xs text-red-500 mt-1">金叉信号</p>
+                        <p className="text-xs text-danger-500 mt-1">金叉信号</p>
                       )}
                       {data.signal === 'death' && (
-                        <p className="text-xs text-green-500 mt-1">死叉信号</p>
+                        <p className="text-xs text-success-500 mt-1">死叉信号</p>
                       )}
                     </div>
                   </div>
@@ -321,8 +322,8 @@ export function MACDIndicator({
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-red-600">金叉: {goldenCrossCount}</span>
-          <span className="text-green-600">死叉: {deathCrossCount}</span>
+          <span className="text-danger-600">金叉: {goldenCrossCount}</span>
+          <span className="text-success-600">死叉: {deathCrossCount}</span>
         </div>
       </div>
     </DashboardCard>

@@ -73,10 +73,10 @@ export function PerformanceTable({ performanceData, selectedOracles }: Performan
                     {perf.supportedChains}
                   </td>
                   <td className="px-3 py-2.5 whitespace-nowrap">
-                    <span className="text-green-600 font-medium">{perf.reliability}%</span>
+                    <span className="text-success-600 font-medium">{perf.reliability}%</span>
                   </td>
                   <td className="px-3 py-2.5 whitespace-nowrap">
-                    <span className="text-blue-600 font-medium">{perf.accuracy}%</span>
+                    <span className="text-primary-600 font-medium">{perf.accuracy}%</span>
                   </td>
                 </tr>
               ))}

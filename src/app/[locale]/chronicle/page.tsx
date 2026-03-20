@@ -106,8 +106,8 @@ export default function ChroniclePage() {
             />
           </svg>
         ),
-        iconBgColor: 'bg-blue-50',
-        iconColor: 'text-blue-600',
+        iconBgColor: 'bg-primary-50',
+        iconColor: 'text-primary-600',
       },
       {
         title: t('chronicle.stats.stakingApr'),
@@ -124,8 +124,8 @@ export default function ChroniclePage() {
             />
           </svg>
         ),
-        iconBgColor: 'bg-green-50',
-        iconColor: 'text-green-600',
+        iconBgColor: 'bg-success-50',
+        iconColor: 'text-success-600',
       },
       {
         title: t('chronicle.stats.networkUptime'),
@@ -250,7 +250,7 @@ export default function ChroniclePage() {
                       <span className="text-sm text-gray-600">
                         {t('chronicle.stats.stakingApr')}
                       </span>
-                      <span className="text-sm font-semibold text-green-600">
+                      <span className="text-sm font-semibold text-success-600">
                         {staking?.stakingApr ?? 7.8}%
                       </span>
                     </div>

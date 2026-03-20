@@ -272,6 +272,60 @@
       "warningCount": "警告次数"
     }
   },
+  "priceVolatility": {
+    "title": "价格波动性分析",
+    "timeScale": {
+      "short": "短期 (6h)",
+      "mid": "中期 (24h)",
+      "long": "长期 (7d)"
+    },
+    "level": {
+      "extremelyLow": "极低波动",
+      "low": "低波动",
+      "medium": "中等波动",
+      "high": "高波动",
+      "extremelyHigh": "极高波动"
+    },
+    "tooltip": {
+      "cv": "变异系数 (CV)",
+      "stdDev": "标准差",
+      "avgPrice": "平均价格",
+      "priceRange": "价格区间",
+      "volatilityLevel": "波动等级"
+    },
+    "shortTermVolatility": "短期波动率",
+    "midTermVolatility": "中期波动率",
+    "longTermVolatility": "长期波动率",
+    "totalVolatility": "总波动率",
+    "windowSize": "窗口: {window}小时",
+    "avgCV": "平均 CV",
+    "minVolatility": "最小波动率",
+    "maxVolatility": "最大波动率",
+    "oracleCount": "预言机数量",
+    "volatilityComparison": "波动性对比 (CV)",
+    "rollingVolatilityTrend": "滚动波动率趋势",
+    "volatilityDecomposition": "波动率分解",
+    "shortTermProportion": "短期占比",
+    "midTermProportion": "中期占比",
+    "longTermProportion": "长期占比",
+    "table": {
+      "oracle": "预言机",
+      "cv": "CV",
+      "stdDev": "标准差",
+      "avgPrice": "平均价格",
+      "priceRange": "价格区间",
+      "volatilityLevel": "波动等级"
+    },
+    "explanation": {
+      "title": "波动率说明",
+      "stdDevDesc": "衡量价格数据的离散程度",
+      "cvDesc": "变异系数，标准差与平均值的比值，用于比较不同价格水平的波动性",
+      "cvInterpretation": "CV < 0.5: 极低波动 | 0.5-1: 低波动 | 1-2: 中等波动 | 2-3: 高波动 | > 3: 极高波动",
+      "rollingWindowDesc": "滚动窗口: 使用滑动窗口计算波动率，反映波动率随时间的变化",
+      "multiScaleDesc": "多时间尺度: 分别计算短期(6h)、中期(24h)、长期(7d)的波动率",
+      "decompositionDesc": "波动率分解: 将总波动率分解为不同时间尺度的贡献"
+    }
+  },
   "oracle": {
     "chart": {
       "granularity": {

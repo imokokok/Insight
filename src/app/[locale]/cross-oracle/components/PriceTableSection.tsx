@@ -68,7 +68,7 @@ export function PriceTableSection({
               onClick={() => onToggleOracle(oracle)}
               className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded border transition-colors ${
                 selectedOracles.includes(oracle)
-                  ? 'bg-blue-50 border-blue-300 text-blue-700'
+                  ? 'bg-primary-50 border-primary-300 text-primary-700'
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >

@@ -33,7 +33,7 @@ export function ChronicleNetworkPanel({
       case 'warning':
         return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'offline':
-        return 'bg-red-50 text-red-700 border-red-200';
+        return 'bg-danger-50 text-danger-700 border-danger-200';
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
@@ -44,11 +44,11 @@ export function ChronicleNetworkPanel({
       case 'excellent':
         return 'text-emerald-600 bg-emerald-50 border-emerald-200';
       case 'good':
-        return 'text-blue-600 bg-blue-50 border-blue-200';
+        return 'text-primary-600 bg-primary-50 border-primary-200';
       case 'fair':
         return 'text-amber-600 bg-amber-50 border-amber-200';
       case 'poor':
-        return 'text-red-600 bg-red-50 border-red-200';
+        return 'text-danger-600 bg-danger-50 border-danger-200';
       default:
         return 'text-gray-600 bg-gray-50 border-gray-200';
     }
@@ -74,8 +74,8 @@ export function ChronicleNetworkPanel({
                 {t('chronicle.network.uptime')}: {networkStats.nodeUptime}%
               </p>
             </div>
-            <div className="p-3 bg-green-50 rounded-full">
-              <Network className="w-6 h-6 text-green-600" />
+            <div className="p-3 bg-success-50 rounded-full">
+              <Network className="w-6 h-6 text-success-600" />
             </div>
           </div>
         </DashboardCard>
@@ -90,8 +90,8 @@ export function ChronicleNetworkPanel({
                 {t('chronicle.network.activeValidators')}
               </p>
             </div>
-            <div className="p-3 bg-blue-50 rounded-full">
-              <Users className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-primary-50 rounded-full">
+              <Users className="w-6 h-6 text-primary-600" />
             </div>
           </div>
         </DashboardCard>
@@ -170,14 +170,14 @@ export function ChronicleNetworkPanel({
 
         <DashboardCard title={t('chronicle.network.validatorDistribution')} className="bg-white">
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
+            <div className="flex items-center justify-between p-3 bg-success-50 rounded-lg border border-green-100">
               <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-green-500" />
+                <div className="w-3 h-3 rounded-full bg-success-500" />
                 <span className="text-sm font-medium text-gray-700">
                   {t('chronicle.network.active')}
                 </span>
               </div>
-              <span className="text-lg font-semibold text-green-700">
+              <span className="text-lg font-semibold text-success-700">
                 {validatorMetrics.activeValidators}
               </span>
             </div>
@@ -247,7 +247,7 @@ export function ChronicleNetworkPanel({
       <DashboardCard title={t('chronicle.network.features')} className="bg-white">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <Globe className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <Globe className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-gray-900">
                 {t('chronicle.network.decentralized')}
@@ -258,7 +258,7 @@ export function ChronicleNetworkPanel({
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <Clock className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <Clock className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-gray-900">{t('chronicle.network.realtime')}</p>
               <p className="text-xs text-gray-500 mt-1">{t('chronicle.network.realtimeDesc')}</p>
@@ -279,7 +279,7 @@ export function ChronicleNetworkPanel({
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <Shield className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <Shield className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-gray-900">{t('chronicle.network.secure')}</p>
               <p className="text-xs text-gray-500 mt-1">{t('chronicle.network.secureDesc')}</p>

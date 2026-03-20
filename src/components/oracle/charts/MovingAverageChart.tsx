@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   Area,
@@ -24,6 +24,7 @@ import {
   calculateRollingStdDev,
 } from '@/lib/indicators';
 import { DropdownSelect } from '@/components/ui/selectors';
+
 
 export interface OraclePriceHistory {
   oracle: OracleProvider;
@@ -264,7 +265,7 @@ export function MovingAverageChart({
                       );
                     }}
                     className={`px-2 py-1 text-xs rounded transition-colors ${
-                      selectedMA.includes(window) ? 'bg-blue-600 text-white' : ''
+                      selectedMA.includes(window) ? 'bg-primary-600 text-white' : ''
                     }`}
                     style={
                       !selectedMA.includes(window)
@@ -283,7 +284,7 @@ export function MovingAverageChart({
                 type="checkbox"
                 checked={showEMA}
                 onChange={(e) => setShowEMA(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
               />
               <span className="text-sm" style={{ color: baseColors.gray[600] }}>
                 {t('charts.movingAverage.showEMA')}
@@ -295,7 +296,7 @@ export function MovingAverageChart({
                 type="checkbox"
                 checked={showBollingerBands}
                 onChange={(e) => setShowBollingerBands(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
               />
               <span className="text-sm" style={{ color: baseColors.gray[600] }}>
                 {t('charts.movingAverage.bollingerBands')}
@@ -408,7 +409,7 @@ export function MovingAverageChart({
                     tickFormatter={(value) => `$${value.toFixed(0)}`}
                     domain={['auto', 'auto']}
                   />
-                  <Tooltip content={<CustomTooltip />} />
+                  <RechartsTooltip content={<CustomTooltip />} />
                   <Legend />
 
                   {showBollingerBands && (
@@ -506,7 +507,7 @@ export function MovingAverageChart({
                       tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       tickFormatter={(value) => `$${value.toFixed(2)}`}
                     />
-                    <Tooltip content={<CustomTooltip />} />
+                    <RechartsTooltip content={<CustomTooltip />} />
                     <Area
                       type="monotone"
                       dataKey="rollingStdDev"

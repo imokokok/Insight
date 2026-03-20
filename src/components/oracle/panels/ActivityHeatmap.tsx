@@ -15,11 +15,11 @@ export function ActivityHeatmap({
 
   const getIntensity = (value: number) => {
     const ratio = (value - minValue) / (maxValue - minValue);
-    if (ratio > 0.8) return 'bg-blue-400';
-    if (ratio > 0.6) return 'bg-blue-500';
-    if (ratio > 0.4) return 'bg-blue-600';
-    if (ratio > 0.2) return 'bg-blue-700';
-    return 'bg-blue-200';
+    if (ratio > 0.8) return 'bg-primary-400';
+    if (ratio > 0.6) return 'bg-primary-500';
+    if (ratio > 0.4) return 'bg-primary-600';
+    if (ratio > 0.2) return 'bg-primary-700';
+    return 'bg-primary-200';
   };
 
   const getHourLabel = (index: number) => {
@@ -45,11 +45,11 @@ export function ActivityHeatmap({
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <span>{t('networkHealth.activityHeatmap.low')}</span>
           <div className="flex gap-1">
-            <div className="w-3 h-3 bg-blue-200"></div>
-            <div className="w-3 h-3 bg-blue-700"></div>
-            <div className="w-3 h-3 bg-blue-600"></div>
-            <div className="w-3 h-3 bg-blue-500"></div>
-            <div className="w-3 h-3 bg-blue-400"></div>
+            <div className="w-3 h-3 bg-primary-200"></div>
+            <div className="w-3 h-3 bg-primary-700"></div>
+            <div className="w-3 h-3 bg-primary-600"></div>
+            <div className="w-3 h-3 bg-primary-500"></div>
+            <div className="w-3 h-3 bg-primary-400"></div>
           </div>
           <span>{t('networkHealth.activityHeatmap.high')}</span>
         </div>
@@ -60,7 +60,7 @@ export function ActivityHeatmap({
           <div key={index} className="group relative">
             <div
               className={`h-10 ${getIntensity(value)} transition-all duration-300 hover:ring-2 hover:ring-blue-300 cursor-pointer ${
-                selectedHour === index ? 'ring-2 ring-blue-500' : ''
+                selectedHour === index ? 'ring-2 ring-primary-500' : ''
               }`}
               title={`${getHourLabel(index)}: ${value.toLocaleString()} ${t('networkHealth.activityHeatmap.requests')}`}
               onClick={() => handleHourClick(index)}

@@ -231,7 +231,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                 type="checkbox"
                 checked={showMA}
                 onChange={(e) => setShowMA(e.target.checked)}
-                className="w-4 h-4 rounded-none focus:ring-blue-500"
+                className="w-4 h-4 rounded-none focus:ring-primary-500"
                 style={{ color: baseColors.primary[600], borderColor: baseColors.gray[300] }}
               />
               <span className="text-sm" style={{ color: baseColors.gray[700] }}>

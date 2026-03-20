@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   RadarChart,
   PolarGrid,
@@ -18,6 +18,7 @@ import {
 import { useTranslations, useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+
 
 type ConfidenceLevel = 'excellent' | 'good' | 'fair' | 'poor';
 
@@ -54,31 +55,31 @@ interface TrendDataPoint {
 
 const LEVEL_CONFIG = {
   excellent: {
-    color: 'text-green-600',
-    bgColor: 'bg-green-500',
-    lightBg: 'bg-green-50',
+    color: 'text-success-600',
+    bgColor: 'bg-success-500',
+    lightBg: 'bg-success-50',
     borderColor: 'border-green-200',
     range: [90, 100],
   },
   good: {
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-500',
-    lightBg: 'bg-blue-50',
-    borderColor: 'border-blue-200',
+    color: 'text-primary-600',
+    bgColor: 'bg-primary-500',
+    lightBg: 'bg-primary-50',
+    borderColor: 'border-primary-200',
     range: [70, 90],
   },
   fair: {
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-500',
-    lightBg: 'bg-yellow-50',
+    color: 'text-warning-600',
+    bgColor: 'bg-warning-500',
+    lightBg: 'bg-warning-50',
     borderColor: 'border-yellow-200',
     range: [50, 70],
   },
   poor: {
-    color: 'text-red-600',
-    bgColor: 'bg-red-500',
-    lightBg: 'bg-red-50',
-    borderColor: 'border-red-200',
+    color: 'text-danger-600',
+    bgColor: 'bg-danger-500',
+    lightBg: 'bg-danger-50',
+    borderColor: 'border-danger-200',
     range: [0, 50],
   },
 };
@@ -497,7 +498,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
             axisLine={{ stroke: chartColors.recharts.grid }}
             domain={[0, 100]}
           />
-          <Tooltip
+          <RechartsTooltip
             content={({ active, payload }) => {
               if (!active || !payload || payload.length === 0) return null;
               const data = payload[0].payload as TrendDataPoint;
@@ -567,7 +568,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
 
       <div className="flex items-center justify-center gap-6 mt-4">
         <div className="flex items-center gap-2">
-          <span className="w-3 h-0.5 bg-blue-500" />
+          <span className="w-3 h-0.5 bg-primary-500" />
           <span className="text-xs text-gray-500">{t('confidenceScore.trend.overall')}</span>
         </div>
         <div className="flex items-center gap-2">
@@ -575,7 +576,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
           <span className="text-xs text-gray-500">{t('confidenceScore.trend.consensus')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-0.5 bg-green-500" style={{ borderStyle: 'dashed' }} />
+          <span className="w-3 h-0.5 bg-success-500" style={{ borderStyle: 'dashed' }} />
           <span className="text-xs text-gray-500">{t('confidenceScore.trend.accuracy')}</span>
         </div>
       </div>
@@ -597,9 +598,9 @@ function SuggestionsCard({ suggestions }: { suggestions: string[] }) {
             {t('confidenceScore.suggestions.subtitle')}
           </p>
         </div>
-        <div className="p-2 bg-blue-50 ">
+        <div className="p-2 bg-primary-50 ">
           <svg
-            className="w-5 h-5 text-blue-600"
+            className="w-5 h-5 text-primary-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -619,8 +620,8 @@ function SuggestionsCard({ suggestions }: { suggestions: string[] }) {
             key={index}
             className="flex items-start gap-3 p-3 bg-gray-50  hover:bg-gray-100 transition-colors"
           >
-            <div className="flex-shrink-0 w-6 h-6  bg-blue-100 flex items-center justify-center">
-              <span className="text-xs font-semibold text-blue-600">{index + 1}</span>
+            <div className="flex-shrink-0 w-6 h-6  bg-primary-100 flex items-center justify-center">
+              <span className="text-xs font-semibold text-primary-600">{index + 1}</span>
             </div>
             <p className="text-sm text-gray-700 flex-1">{suggestion}</p>
           </div>
@@ -687,7 +688,7 @@ export function ConfidenceScore({
           </span>
           <button
             onClick={updateData}
-            className="px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium  hover:bg-blue-100 transition-colors"
+            className="px-3 py-1.5 bg-primary-50 text-primary-600 text-sm font-medium  hover:bg-primary-100 transition-colors"
           >
             {t('confidenceScore.refresh')}
           </button>

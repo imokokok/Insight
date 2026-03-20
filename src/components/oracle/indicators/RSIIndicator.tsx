@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   ReferenceArea,
@@ -15,6 +15,7 @@ import {
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
 import { calculateRSIFromData } from '@/lib/indicators';
+
 
 export interface RSIDataPoint {
   time: string;
@@ -72,16 +73,16 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
       <div className="flex items-center gap-2">
         <span
           className={`text-lg font-bold ${
-            isOverbought ? 'text-red-500' : isOversold ? 'text-green-500' : 'text-gray-700'
+            isOverbought ? 'text-danger-500' : isOversold ? 'text-success-500' : 'text-gray-700'
           }`}
         >
           {currentRSI.toFixed(2)}
         </span>
         {isOverbought && (
-          <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded">超买</span>
+          <span className="px-2 py-0.5 text-xs bg-danger-100 text-danger-700 rounded">超买</span>
         )}
         {isOversold && (
-          <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">超卖</span>
+          <span className="px-2 py-0.5 text-xs bg-success-100 text-success-700 rounded">超卖</span>
         )}
       </div>
     </div>
@@ -107,7 +108,7 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
               axisLine={{ stroke: chartColors.recharts.grid }}
               ticks={[0, 30, 50, 70, 100]}
             />
-            <Tooltip
+            <RechartsTooltip
               content={({ active, payload, label }) => {
                 if (!active || !payload || payload.length === 0) return null;
                 const rsi = payload[0].value as number;
@@ -116,13 +117,13 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
                     <p className="text-xs text-gray-500 mb-1">{label}</p>
                     <p
                       className={`text-sm font-bold ${
-                        rsi > 70 ? 'text-red-600' : rsi < 30 ? 'text-green-600' : 'text-blue-600'
+                        rsi > 70 ? 'text-danger-600' : rsi < 30 ? 'text-success-600' : 'text-primary-600'
                       }`}
                     >
                       RSI: {rsi.toFixed(2)}
                     </p>
-                    {rsi > 70 && <p className="text-xs text-red-500 mt-1">超买区域</p>}
-                    {rsi < 30 && <p className="text-xs text-green-500 mt-1">超卖区域</p>}
+                    {rsi > 70 && <p className="text-xs text-danger-500 mt-1">超买区域</p>}
+                    {rsi < 30 && <p className="text-xs text-success-500 mt-1">超卖区域</p>}
                   </div>
                 );
               }}
@@ -150,11 +151,11 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
       </div>
       <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 bg-red-100 border border-red-300 rounded" />
+          <span className="w-3 h-3 bg-danger-100 border border-red-300 rounded" />
           <span>超买 (&gt;70)</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 bg-green-100 border border-green-300 rounded" />
+          <span className="w-3 h-3 bg-success-100 border border-green-300 rounded" />
           <span>超卖 (&lt;30)</span>
         </div>
       </div>

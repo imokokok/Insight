@@ -12,8 +12,8 @@ interface ExtremeMarketAnalysisProps {
 const EVENT_TYPE_CONFIG = {
   flash_crash: {
     color: semanticColors.danger.DEFAULT,
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
+    bgColor: 'bg-danger-50',
+    borderColor: 'border-danger-200',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
@@ -22,7 +22,7 @@ const EVENT_TYPE_CONFIG = {
   },
   pump: {
     color: semanticColors.success.DEFAULT,
-    bgColor: 'bg-green-50',
+    bgColor: 'bg-success-50',
     borderColor: 'border-green-200',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,7 +32,7 @@ const EVENT_TYPE_CONFIG = {
   },
   high_volatility: {
     color: semanticColors.warning.DEFAULT,
-    bgColor: 'bg-yellow-50',
+    bgColor: 'bg-warning-50',
     borderColor: 'border-yellow-200',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,7 +100,7 @@ export function ExtremeMarketAnalysis({ events }: ExtremeMarketAnalysisProps) {
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900">{t('pyth.extreme.title')}</h3>
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-medium ">
+          <span className="px-3 py-1 bg-danger-100 text-danger-700 text-sm font-medium ">
             {stats.totalEvents} {t('pyth.extreme.events')}
           </span>
         </div>
@@ -113,15 +113,15 @@ export function ExtremeMarketAnalysis({ events }: ExtremeMarketAnalysisProps) {
         </div>
         <div className="p-4 bg-gray-50 ">
           <p className="text-sm text-gray-600 mb-1">{t('pyth.extreme.avgRecovery')}</p>
-          <p className="text-2xl font-bold text-blue-600">{stats.avgRecoveryTime}s</p>
+          <p className="text-2xl font-bold text-primary-600">{stats.avgRecoveryTime}s</p>
         </div>
         <div className="p-4 bg-gray-50 ">
           <p className="text-sm text-gray-600 mb-1">{t('pyth.extreme.avgDeviation')}</p>
-          <p className="text-2xl font-bold text-orange-600">{stats.avgDeviation}%</p>
+          <p className="text-2xl font-bold text-warning-600">{stats.avgDeviation}%</p>
         </div>
         <div className="p-4 bg-gray-50 ">
           <p className="text-sm text-gray-600 mb-1">{t('pyth.extreme.highSeverity')}</p>
-          <p className="text-2xl font-bold text-red-600">{stats.highSeverityCount}</p>
+          <p className="text-2xl font-bold text-danger-600">{stats.highSeverityCount}</p>
         </div>
       </div>
 
@@ -200,7 +200,7 @@ export function ExtremeMarketAnalysis({ events }: ExtremeMarketAnalysisProps) {
                         </div>
                         <div>
                           <span className="text-gray-500">{t('pyth.extreme.recovery')}:</span>
-                          <span className="ml-2 font-medium text-blue-600">
+                          <span className="ml-2 font-medium text-primary-600">
                             {event.recoveryTime}s
                           </span>
                         </div>

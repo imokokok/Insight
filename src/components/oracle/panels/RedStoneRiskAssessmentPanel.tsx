@@ -21,11 +21,13 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { chartColors } from '@/lib/config/colors';
+
 
 const riskMetrics: RiskMetric[] = [
   {
@@ -209,7 +211,7 @@ export function RedStoneRiskAssessmentPanel() {
                 domain={[80, 100]}
                 tickFormatter={(value) => `${value}`}
               />
-              <Tooltip
+              <RechartsTooltip
                 contentStyle={{
                   backgroundColor: 'white',
                   border: `1px solid ${chartColors.recharts.grid}`,
@@ -254,7 +256,7 @@ export function RedStoneRiskAssessmentPanel() {
                 <span className="text-gray-600">
                   {t('redstone.riskAssessment.giniCoefficient')}
                 </span>
-                <span className="font-medium text-green-600">0.41</span>
+                <span className="font-medium text-success-600">0.41</span>
               </div>
             </div>
           </div>
@@ -266,15 +268,15 @@ export function RedStoneRiskAssessmentPanel() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('redstone.riskAssessment.activeStreams')}</span>
-                <span className="font-medium text-green-600">1,250+</span>
+                <span className="font-medium text-success-600">1,250+</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('redstone.riskAssessment.freshnessScore')}</span>
-                <span className="font-medium text-green-600">98.5/100</span>
+                <span className="font-medium text-success-600">98.5/100</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('redstone.riskAssessment.avgUpdateTime')}</span>
-                <span className="font-medium text-green-600">~60s</span>
+                <span className="font-medium text-success-600">~60s</span>
               </div>
             </div>
           </div>
@@ -346,7 +348,7 @@ export function RedStoneRiskAssessmentPanel() {
                 <span className="text-sm font-medium text-gray-900 w-40">{item.component}</span>
                 <div className="w-32 h-2 bg-gray-200 overflow-hidden">
                   <div
-                    className="h-full bg-green-500"
+                    className="h-full bg-success-500"
                     style={{ width: `${item.availability}%` }}
                   ></div>
                 </div>

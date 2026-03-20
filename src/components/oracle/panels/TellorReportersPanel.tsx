@@ -114,7 +114,7 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
                           : index === 1
                             ? 'bg-slate-100 text-slate-700 border border-slate-200'
                             : index === 2
-                              ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                              ? 'bg-warning-100 text-orange-700 border border-orange-200'
                               : 'bg-gray-100 text-gray-600'
                       }`}
                     >
@@ -133,7 +133,7 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
                     <div className="flex items-center gap-2">
                       <div className="w-16 bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-green-500 h-2 rounded-full"
+                          className="bg-success-500 h-2 rounded-full"
                           style={{ width: `${reporter.successRate * 100}%` }}
                         />
                       </div>
@@ -194,15 +194,15 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
                     {(selectedReporter.stakedAmount / 1000).toFixed(1)}K TRB
                   </p>
                 </div>
-                <div className="p-4 bg-green-50 rounded-lg">
+                <div className="p-4 bg-success-50 rounded-lg">
                   <p className="text-sm text-gray-600">{t('tellor.reporters.rewards')}</p>
-                  <p className="text-xl font-bold text-green-600">
+                  <p className="text-xl font-bold text-success-600">
                     {(selectedReporter.rewardsEarned / 1000).toFixed(1)}K TRB
                   </p>
                 </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="p-4 bg-primary-50 rounded-lg">
                   <p className="text-sm text-gray-600">{t('tellor.reporters.reports')}</p>
-                  <p className="text-xl font-bold text-blue-600">
+                  <p className="text-xl font-bold text-primary-600">
                     {selectedReporter.totalReports.toLocaleString()}
                   </p>
                 </div>
@@ -223,16 +223,16 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
                       {t('tellor.reporters.disputeStats')}
                     </h4>
                     <div className="grid grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                        <p className="text-2xl font-bold text-yellow-600">
+                      <div className="text-center p-4 bg-warning-50 rounded-lg">
+                        <p className="text-2xl font-bold text-warning-600">
                           {disputeStats.disputesParticipated}
                         </p>
                         <p className="text-sm text-gray-600">
                           {t('tellor.reporters.participated')}
                         </p>
                       </div>
-                      <div className="text-center p-4 bg-green-50 rounded-lg">
-                        <p className="text-2xl font-bold text-green-600">
+                      <div className="text-center p-4 bg-success-50 rounded-lg">
+                        <p className="text-2xl font-bold text-success-600">
                           {disputeStats.disputesWon}
                         </p>
                         <p className="text-sm text-gray-600">{t('tellor.reporters.won')}</p>

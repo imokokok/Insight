@@ -35,13 +35,13 @@ function TotalDapisCard({ total }: { total: number }) {
     <div className="bg-gray-100 border border-gray-200  p-6 text-white ">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-blue-100 text-sm uppercase tracking-wider mb-2">
+          <p className="text-primary-100 text-sm uppercase tracking-wider mb-2">
             {t('dapiCoverage.totalDapis')}
           </p>
           <p className="text-5xl font-bold mb-1">{total}</p>
-          <p className="text-blue-200 text-sm">{t('dapiCoverage.activeDataSources')}</p>
+          <p className="text-primary-200 text-sm">{t('dapiCoverage.activeDataSources')}</p>
         </div>
-        <div className="p-3 bg-blue-500 bg-opacity-30 ">
+        <div className="p-3 bg-primary-500 bg-opacity-30 ">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinejoin="round"
@@ -122,14 +122,14 @@ function UpdateFrequencyDistribution({ data }: { data: DAPICoverage['updateFrequ
       label: t('dapiCoverage.highFrequency'),
       sublabel: t('dapiCoverage.perSecondUpdate'),
       value: data.high,
-      color: 'bg-green-500',
+      color: 'bg-success-500',
     },
     {
       key: 'medium',
       label: t('dapiCoverage.mediumFrequency'),
       sublabel: t('dapiCoverage.perMinuteUpdate'),
       value: data.medium,
-      color: 'bg-yellow-500',
+      color: 'bg-warning-500',
     },
     {
       key: 'low',
@@ -236,9 +236,9 @@ function AssetTypeDonut({ data }: { data: DAPICoverage['byAssetType'] }) {
   const t = useTranslations();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const legend = [
-    { label: t('dapiCoverage.crypto'), value: data.crypto, color: 'bg-blue-500' },
-    { label: t('dapiCoverage.forex'), value: data.forex, color: 'bg-green-500' },
-    { label: t('dapiCoverage.commodities'), value: data.commodities, color: 'bg-yellow-500' },
+    { label: t('dapiCoverage.crypto'), value: data.crypto, color: 'bg-primary-500' },
+    { label: t('dapiCoverage.forex'), value: data.forex, color: 'bg-success-500' },
+    { label: t('dapiCoverage.commodities'), value: data.commodities, color: 'bg-warning-500' },
     { label: t('dapiCoverage.stocks'), value: data.stocks, color: 'bg-purple-500' },
   ];
 

@@ -260,7 +260,7 @@ export function UnifiedExport({
                 <div className="flex gap-2">
                   <button
                     onClick={() => toggleAllFields(true)}
-                    className="text-xs text-blue-600 hover:text-blue-700"
+                    className="text-xs text-primary-600 hover:text-primary-700"
                   >
                     {t('selectAll')}
                   </button>
@@ -284,7 +284,7 @@ export function UnifiedExport({
                       type="checkbox"
                       checked={field.selected}
                       onChange={() => toggleField(field.key)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                      className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                     />
                     <span className="text-sm text-gray-700">
                       {isZh ? field.labelZh : field.label}
@@ -302,7 +302,7 @@ export function UnifiedExport({
                     onChange={(e) =>
                       setConfig((prev) => ({ ...prev, includeMetadata: e.target.checked }))
                     }
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                    className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                   />
                   <span className="text-sm text-gray-700">{t('includeMetadata')}</span>
                 </label>
@@ -316,7 +316,7 @@ export function UnifiedExport({
                         onChange={(e) =>
                           setConfig((prev) => ({ ...prev, includeChart: e.target.checked }))
                         }
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                        className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                       />
                       <span className="text-sm text-gray-700">{t('includeChart')}</span>
                     </label>
@@ -327,7 +327,7 @@ export function UnifiedExport({
                         onChange={(e) =>
                           setConfig((prev) => ({ ...prev, includeStats: e.target.checked }))
                         }
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                        className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                       />
                       <span className="text-sm text-gray-700">{t('includeStats')}</span>
                     </label>
@@ -352,7 +352,7 @@ export function UnifiedExport({
               <div className="px-4 pb-2">
                 <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-blue-600"
+                    className="h-full bg-primary-600"
                     initial={{ width: 0 }}
                     animate={{ width: `${exportProgress}%` }}
                     transition={{ duration: 0.3 }}
@@ -374,7 +374,7 @@ export function UnifiedExport({
               <button
                 onClick={handleExport}
                 disabled={isExporting || selectedFieldsCount === 0}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isExporting ? (
                   <>

@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend,
 } from 'recharts';
@@ -17,6 +17,7 @@ import { formatNumber } from '@/lib/utils/format';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { useTranslations } from 'next-intl';
+
 
 type MetricType = 'uptime' | 'staked' | 'commission';
 type TimeRange = '7D' | '30D' | '90D';
@@ -519,7 +520,7 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
                     tickFormatter={yAxisConfig.tickFormatter}
                     width={50}
                   />
-                  <Tooltip
+                  <RechartsTooltip
                     content={
                       <CustomTooltip metricType={metricType} validators={validators} t={t} />
                     }

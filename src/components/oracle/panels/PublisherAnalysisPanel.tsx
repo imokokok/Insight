@@ -61,16 +61,16 @@ function calculateCorrelationMatrix(
 // 根据相关系数获取颜色
 function getCorrelationColor(correlation: number): string {
   // 高正相关（绿色）-> 低相关/负相关（红色）
-  if (correlation >= 0.8) return 'bg-green-500';
+  if (correlation >= 0.8) return 'bg-success-500';
   if (correlation >= 0.6) return 'bg-green-400';
   if (correlation >= 0.4) return 'bg-green-300';
   if (correlation >= 0.2) return 'bg-yellow-300';
-  if (correlation >= 0) return 'bg-yellow-200';
+  if (correlation >= 0) return 'bg-warning-200';
   if (correlation >= -0.2) return 'bg-orange-200';
   if (correlation >= -0.4) return 'bg-orange-300';
   if (correlation >= -0.6) return 'bg-red-300';
   if (correlation >= -0.8) return 'bg-red-400';
-  return 'bg-red-500';
+  return 'bg-danger-500';
 }
 
 // 根据相关系数获取文本颜色
@@ -132,15 +132,15 @@ function CorrelationHeatmap({ publishers, correlationMatrix }: CorrelationHeatma
       <div className="mt-4 flex items-center justify-center gap-4 text-xs">
         <span className="text-gray-600">Low/Negative</span>
         <div className="flex gap-1">
-          <div className="w-6 h-4 bg-red-500 rounded"></div>
+          <div className="w-6 h-4 bg-danger-500 rounded"></div>
           <div className="w-6 h-4 bg-red-400 rounded"></div>
           <div className="w-6 h-4 bg-red-300 rounded"></div>
           <div className="w-6 h-4 bg-orange-300 rounded"></div>
-          <div className="w-6 h-4 bg-yellow-200 rounded"></div>
+          <div className="w-6 h-4 bg-warning-200 rounded"></div>
           <div className="w-6 h-4 bg-yellow-300 rounded"></div>
           <div className="w-6 h-4 bg-green-300 rounded"></div>
           <div className="w-6 h-4 bg-green-400 rounded"></div>
-          <div className="w-6 h-4 bg-green-500 rounded"></div>
+          <div className="w-6 h-4 bg-success-500 rounded"></div>
         </div>
         <span className="text-gray-600">High Positive</span>
       </div>
@@ -366,10 +366,10 @@ export function PublisherAnalysisPanel({
   return (
     <div className="space-y-6">
       {anomalyCount > 0 && (
-        <div className="bg-yellow-50 border border-yellow-300  p-4">
+        <div className="bg-warning-50 border border-yellow-300  p-4">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
-              <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-warning-600" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -381,7 +381,7 @@ export function PublisherAnalysisPanel({
               <h4 className="text-sm font-semibold text-yellow-800">
                 {t('publisherAnalysis.anomalyDetected', { count: anomalyCount })}
               </h4>
-              <p className="text-sm text-yellow-700 mt-1">
+              <p className="text-sm text-warning-700 mt-1">
                 {t('publisherAnalysis.anomalyTypeDistribution')}
                 {anomalyTypeStats.priceDeviation > 0 && (
                   <span className="ml-1">
@@ -399,7 +399,7 @@ export function PublisherAnalysisPanel({
                   </span>
                 )}
               </p>
-              <p className="text-xs text-yellow-600 mt-1">
+              <p className="text-xs text-warning-600 mt-1">
                 {t('publisherAnalysis.anomalyCheckSuggestion')}
               </p>
 
@@ -408,7 +408,7 @@ export function PublisherAnalysisPanel({
                 <div className="mt-3 pt-3 border-t border-yellow-200">
                   <div className="flex items-start gap-2">
                     <svg
-                      className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0"
+                      className="w-4 h-4 text-danger-500 mt-0.5 flex-shrink-0"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -419,9 +419,9 @@ export function PublisherAnalysisPanel({
                       />
                     </svg>
                     <div>
-                      <p className="text-sm font-semibold text-red-700">关联异常告警</p>
+                      <p className="text-sm font-semibold text-danger-700">关联异常告警</p>
                       {correlatedAnomalies.map((anomaly, index) => (
-                        <p key={index} className="text-xs text-red-600 mt-1">
+                        <p key={index} className="text-xs text-danger-600 mt-1">
                           {anomaly.anomalyType === 'priceDeviation'
                             ? `价格偏差关联异常: ${anomaly.publisherNames.join(', ')} 同时出现异常`
                             : `延迟关联异常: ${anomaly.publisherNames.join(', ')} 同时出现高延迟`}
@@ -530,7 +530,7 @@ export function PublisherAnalysisPanel({
                   <tr
                     key={publisher.id}
                     className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
-                      selectedPublisherId === publisher.id ? 'bg-blue-50' : ''
+                      selectedPublisherId === publisher.id ? 'bg-primary-50' : ''
                     }`}
                     onClick={() => setSelectedPublisherId(publisher.id)}
                   >
@@ -551,10 +551,10 @@ export function PublisherAnalysisPanel({
                       <span
                         className={`font-medium ${
                           publisher.latency < 50
-                            ? 'text-green-600'
+                            ? 'text-success-600'
                             : publisher.latency < 80
-                              ? 'text-blue-600'
-                              : 'text-yellow-600'
+                              ? 'text-primary-600'
+                              : 'text-warning-600'
                         }`}
                       >
                         {publisher.latency}ms
@@ -569,10 +569,10 @@ export function PublisherAnalysisPanel({
                       <span
                         className={`font-medium ${
                           (publisher.priceDeviation ?? 0) <= 0.02
-                            ? 'text-green-600'
+                            ? 'text-success-600'
                             : (publisher.priceDeviation ?? 0) <= 0.05
-                              ? 'text-blue-600'
-                              : 'text-yellow-600'
+                              ? 'text-primary-600'
+                              : 'text-warning-600'
                         }`}
                       >
                         {publisher.priceDeviation ? `${publisher.priceDeviation.toFixed(2)}%` : '-'}
@@ -582,9 +582,9 @@ export function PublisherAnalysisPanel({
                       <span
                         className={`inline-flex px-2 py-1  text-xs font-medium ${
                           publisher.status === 'active'
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-success-100 text-success-700'
                             : publisher.status === 'degraded'
-                              ? 'bg-yellow-100 text-yellow-700'
+                              ? 'bg-warning-100 text-warning-700'
                               : 'bg-gray-100 text-gray-700'
                         }`}
                       >

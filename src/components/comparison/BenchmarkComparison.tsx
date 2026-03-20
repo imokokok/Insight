@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   ReferenceLine,
@@ -24,6 +24,7 @@ import {
 } from './types';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { DifferenceBadge } from './DifferenceBadge';
+
 
 interface BenchmarkComparisonProps {
   actualValue: number;
@@ -153,9 +154,9 @@ export function BenchmarkComparison({
   const getPerformanceColor = (performance: 'above' | 'below' | 'at'): string => {
     switch (performance) {
       case 'above':
-        return invertColors ? 'text-red-600' : 'text-green-600';
+        return invertColors ? 'text-danger-600' : 'text-success-600';
       case 'below':
-        return invertColors ? 'text-green-600' : 'text-red-600';
+        return invertColors ? 'text-success-600' : 'text-danger-600';
       case 'at':
       default:
         return 'text-gray-600';
@@ -165,9 +166,9 @@ export function BenchmarkComparison({
   const getPerformanceBg = (performance: 'above' | 'below' | 'at'): string => {
     switch (performance) {
       case 'above':
-        return invertColors ? 'bg-red-50' : 'bg-green-50';
+        return invertColors ? 'bg-danger-50' : 'bg-success-50';
       case 'below':
-        return invertColors ? 'bg-green-50' : 'bg-red-50';
+        return invertColors ? 'bg-success-50' : 'bg-danger-50';
       case 'at':
       default:
         return 'bg-gray-50';
@@ -229,12 +230,12 @@ export function BenchmarkComparison({
             className={`px-3 py-1 text-sm font-medium rounded ${
               comparison.performance === 'above'
                 ? invertColors
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-green-100 text-green-700'
+                  ? 'bg-danger-100 text-danger-700'
+                  : 'bg-success-100 text-success-700'
                 : comparison.performance === 'below'
                   ? invertColors
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
+                    ? 'bg-success-100 text-success-700'
+                    : 'bg-danger-100 text-danger-700'
                   : 'bg-gray-100 text-gray-700'
             }`}
           >
@@ -264,7 +265,7 @@ export function BenchmarkComparison({
               onClick={() => setSelectedBenchmark(key)}
               className={`px-3 py-2 text-sm font-medium border transition-colors ${
                 selectedBenchmark === key
-                  ? 'bg-blue-50 border-blue-300 text-blue-700'
+                  ? 'bg-primary-50 border-primary-300 text-primary-700'
                   : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -297,7 +298,7 @@ export function BenchmarkComparison({
                   tickFormatter={(v) => `${v}%`}
                   tick={{ fontSize: 11 }}
                 />
-                <Tooltip
+                <RechartsTooltip
                   contentStyle={{ fontSize: 12 }}
                   formatter={(value, name) => {
                     if (name === 'gap') return [`${Number(value).toFixed(2)}%`, t('gap')];
@@ -355,7 +356,7 @@ export function BenchmarkComparison({
                 />
                 <XAxis type="number" tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11 }} />
                 <YAxis type="category" dataKey="category" width={90} tick={{ fontSize: 11 }} />
-                <Tooltip
+                <RechartsTooltip
                   formatter={(value) => [
                     `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(2)}%`,
                     t('gap'),
@@ -438,11 +439,11 @@ export function BenchmarkComparison({
                             {t('atBenchmark')}
                           </span>
                         ) : isPositive ? (
-                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-success-100 text-success-700 rounded">
                             {t('aboveBenchmark')}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded">
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-danger-100 text-danger-700 rounded">
                             {t('belowBenchmark')}
                           </span>
                         )}

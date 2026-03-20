@@ -44,9 +44,9 @@ export function SnapshotComparison({
     if (value === 0) return 'text-gray-500';
     const isPositive = value > 0;
     if (isPositiveGood) {
-      return isPositive ? 'text-green-600' : 'text-red-600';
+      return isPositive ? 'text-success-600' : 'text-danger-600';
     } else {
-      return isPositive ? 'text-red-600' : 'text-green-600';
+      return isPositive ? 'text-danger-600' : 'text-success-600';
     }
   };
 
@@ -55,7 +55,7 @@ export function SnapshotComparison({
     const isPositive = value > 0;
     return (
       <svg
-        className={`w-4 h-4 ${isPositive ? 'text-green-600' : 'text-red-600'}`}
+        className={`w-4 h-4 ${isPositive ? 'text-success-600' : 'text-danger-600'}`}
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -323,13 +323,13 @@ export function SnapshotComparison({
                   .map((currentOracle) => (
                     <tr
                       key={currentOracle.provider}
-                      className="border-b border-gray-100 bg-green-50"
+                      className="border-b border-gray-100 bg-success-50"
                     >
                       <td className="py-2 px-3">
                         <span className="font-medium text-gray-900">
                           {oracleNames[currentOracle.provider]}
                         </span>
-                        <span className="ml-2 text-xs text-green-600">(新增)</span>
+                        <span className="ml-2 text-xs text-success-600">(新增)</span>
                       </td>
                       <td className="py-2 px-3 text-right text-gray-400">-</td>
                       <td className="py-2 px-3 text-right text-gray-900 font-mono">

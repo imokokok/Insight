@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 interface DashboardCardProps {
   title?: string | ReactNode;
@@ -8,6 +9,7 @@ interface DashboardCardProps {
   className?: string;
   headerAction?: ReactNode;
   onClick?: () => void;
+  variant?: 'default' | 'elevated' | 'bordered';
 }
 
 export function DashboardCard({
@@ -16,19 +18,31 @@ export function DashboardCard({
   className = '',
   headerAction,
   onClick,
+  variant = 'default',
 }: DashboardCardProps) {
+  const variants = {
+    default: 'bg-white border border-gray-200 shadow-sm hover:border-gray-300',
+    elevated: 'bg-white border border-gray-200 shadow-md hover:shadow-lg hover:-translate-y-0.5',
+    bordered: 'bg-white border-2 border-primary-500 shadow-sm',
+  };
+
   return (
     <div
-      className={`bg-white border border-gray-200 transition-all duration-200 hover:border-gray-400 hover:shadow-sm ${className}`}
+      className={cn(
+        'rounded-lg transition-all duration-200',
+        variants[variant],
+        onClick && 'cursor-pointer',
+        className
+      )}
       onClick={onClick}
     >
       {title && (
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
-          <h3 className="text-sm font-semibold text-gray-900 tracking-tight">{title}</h3>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <h3 className="text-base font-semibold text-gray-900">{title}</h3>
           {headerAction && <div className="flex items-center">{headerAction}</div>}
         </div>
       )}
-      <div className="p-4">{children}</div>
+      <div className="p-5">{children}</div>
     </div>
   );
 }
@@ -56,16 +70,16 @@ export function StatCard({
 }: StatCardProps) {
   const changeColor =
     changeType === 'positive'
-      ? 'text-emerald-600'
+      ? 'text-success-600 bg-success-50'
       : changeType === 'negative'
-        ? 'text-red-600'
-        : 'text-gray-500';
+        ? 'text-danger-600 bg-danger-50'
+        : 'text-gray-600 bg-gray-100';
 
   const defaultBgColor =
     changeType === 'positive'
-      ? 'bg-emerald-50 border-emerald-100'
+      ? 'bg-success-50 border-success-100'
       : changeType === 'negative'
-        ? 'bg-red-50 border-red-100'
+        ? 'bg-danger-50 border-danger-100'
         : 'bg-gray-50 border-gray-100';
 
   const finalBgColor = iconBgColor
@@ -76,16 +90,35 @@ export function StatCard({
   const changeSymbol = changeType === 'positive' ? '↑' : changeType === 'negative' ? '↓' : '→';
 
   return (
-    <div className={`px-4 py-4 bg-white border border-gray-200 ${isFirst ? '' : 'border-l-0'}`}>
+    <div
+      className={cn(
+        'px-5 py-5 bg-white border border-gray-200 rounded-lg',
+        !isFirst && 'lg:border-l-0'
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1.5">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 tracking-tight">{value}</p>
-          <p className={`text-xs mt-1.5 font-medium ${changeColor}`}>
-            {changeSymbol} {change}
-          </p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1 font-tabular">{value}</p>
+          <div
+            className={cn(
+              'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-2',
+              changeColor
+            )}
+          >
+            <span>{changeSymbol}</span>
+            <span>{change}</span>
+          </div>
         </div>
-        <div className={`p-2.5 border ${finalBgColor} ${finalIconColor} flex-shrink-0`}>{icon}</div>
+        <div
+          className={cn(
+            'p-2.5 border rounded-lg flex-shrink-0',
+            finalBgColor,
+            finalIconColor
+          )}
+        >
+          {icon}
+        </div>
       </div>
     </div>
   );
@@ -99,7 +132,7 @@ interface StatGridProps {
 
 export function StatGrid({ children, className = '' }: StatGridProps) {
   return (
-    <div className={`border border-gray-200 ${className}`}>
+    <div className={cn('border border-gray-200 rounded-lg overflow-hidden', className)}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
         {children}
       </div>
@@ -118,24 +151,24 @@ interface StatGridItemProps {
 export function StatGridItem({ title, value, change, changeType, icon }: StatGridItemProps) {
   const changeColor =
     changeType === 'positive'
-      ? 'text-green-600'
+      ? 'text-success-600'
       : changeType === 'negative'
-        ? 'text-red-600'
+        ? 'text-danger-600'
         : 'text-gray-500';
 
   const changeSymbol = changeType === 'positive' ? '↑' : changeType === 'negative' ? '↓' : '→';
 
   return (
-    <div className="px-4 py-4 hover:bg-gray-50/50 transition-colors">
+    <div className="px-5 py-5 hover:bg-gray-50/50 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{title}</p>
-          <p className="text-2xl font-semibold text-gray-900 tracking-tight">{value}</p>
-          <p className={`text-xs mt-1 font-medium ${changeColor}`}>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-semibold text-gray-900 mt-1 font-tabular">{value}</p>
+          <p className={cn('text-xs mt-1 font-medium', changeColor)}>
             {changeSymbol} {change}
           </p>
         </div>
-        <div className="p-2 bg-gray-100 border border-gray-200 text-gray-600 flex-shrink-0">
+        <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-600 flex-shrink-0">
           {icon}
         </div>
       </div>
@@ -163,14 +196,14 @@ interface MetricCardProps {
 
 export function MetricCard({ label, value, subValue, icon }: MetricCardProps) {
   return (
-    <div className="bg-white border border-gray-200 p-4 hover:border-gray-400 hover:shadow-sm transition-all duration-200">
+    <div className="bg-white border border-gray-200 p-5 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-gray-500 text-xs uppercase tracking-wider mb-1.5">{label}</p>
-          <p className="text-gray-900 text-lg font-semibold truncate tracking-tight">{value}</p>
+          <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">{label}</p>
+          <p className="text-gray-900 text-lg font-semibold truncate mt-1">{value}</p>
           {subValue && <p className="text-gray-400 text-xs mt-1 truncate">{subValue}</p>}
         </div>
-        <div className="p-2 bg-gray-50 border border-gray-200 text-gray-600 flex-shrink-0 ml-3">
+        <div className="p-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 flex-shrink-0 ml-3">
           {icon}
         </div>
       </div>
@@ -202,8 +235,8 @@ export function FlatStatItem({
   className = '',
 }: FlatStatItemProps) {
   const trendColors = {
-    up: 'text-green-600',
-    down: 'text-red-600',
+    up: 'text-success-600',
+    down: 'text-danger-600',
     neutral: 'text-gray-500',
   };
 
@@ -214,20 +247,20 @@ export function FlatStatItem({
   };
 
   return (
-    <div className={`py-2 ${className}`}>
+    <div className={cn('py-2', className)}>
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{label}</p>
-          <p className="text-xl font-semibold text-gray-900 tracking-tight">{value}</p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
+          <p className="text-xl font-semibold text-gray-900 mt-0.5">{value}</p>
           {subValue && <p className="text-xs text-gray-400 mt-0.5">{subValue}</p>}
           {trend && trendValue && (
-            <p className={`text-xs mt-1 font-medium ${trendColors[trend]}`}>
+            <p className={cn('text-xs mt-1 font-medium', trendColors[trend])}>
               {trendIcons[trend]} {trendValue}
             </p>
           )}
         </div>
         {icon && (
-          <div className="p-1.5 bg-blue-50 border border-blue-100 text-blue-600 flex-shrink-0 ml-2">
+          <div className="p-1.5 bg-primary-50 border border-primary-100 text-primary-600 rounded-lg flex-shrink-0 ml-2">
             {icon}
           </div>
         )}
@@ -245,7 +278,7 @@ interface FlatSectionProps {
 
 export function FlatSection({ title, children, className = '', headerAction }: FlatSectionProps) {
   return (
-    <div className={`py-4 ${className}`}>
+    <div className={cn('py-4', className)}>
       {(title || headerAction) && (
         <div className="flex items-center justify-between mb-3">
           {title && <h3 className="text-sm font-semibold text-gray-900">{title}</h3>}

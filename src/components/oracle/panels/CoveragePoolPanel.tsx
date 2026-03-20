@@ -30,8 +30,8 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
     if (ratio >= 50)
       return {
         label: t('coveragePool.status.excellent'),
-        color: 'text-green-600',
-        bgColor: 'bg-green-100',
+        color: 'text-success-600',
+        bgColor: 'bg-success-100',
       };
     if (ratio >= 30)
       return {
@@ -42,10 +42,10 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
     if (ratio >= 20)
       return {
         label: t('coveragePool.status.fair'),
-        color: 'text-yellow-600',
-        bgColor: 'bg-yellow-100',
+        color: 'text-warning-600',
+        bgColor: 'bg-warning-100',
       };
-    return { label: t('coveragePool.status.low'), color: 'text-red-600', bgColor: 'bg-red-100' };
+    return { label: t('coveragePool.status.low'), color: 'text-danger-600', bgColor: 'bg-danger-100' };
   };
 
   const coverageStatus = getCoverageStatus(data.coverageRatio);
@@ -56,7 +56,7 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
         <div className="flex items-center justify-between py-3 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <svg
-              className="w-5 h-5 text-green-600"
+              className="w-5 h-5 text-success-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -112,7 +112,7 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
         <div className="flex items-center justify-between py-3 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <svg
-              className="w-5 h-5 text-green-600"
+              className="w-5 h-5 text-success-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -132,9 +132,9 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
 
         <div className="bg-gray-100 border border-gray-200  p-4 border border-green-100">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-green-100 ">
+            <div className="p-2 bg-success-100 ">
               <svg
-                className="w-5 h-5 text-green-600"
+                className="w-5 h-5 text-success-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

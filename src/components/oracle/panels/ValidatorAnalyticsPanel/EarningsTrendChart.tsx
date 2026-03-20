@@ -29,7 +29,7 @@ export function EarningsTrendChart({ data }: { data: EarningsTrend[] }) {
                 className="flex-1 flex flex-col justify-end items-center group relative"
               >
                 <div
-                  className="w-full bg-blue-500  transition-all duration-200 group-hover:bg-blue-600"
+                  className="w-full bg-primary-500  transition-all duration-200 group-hover:bg-primary-600"
                   style={{ height: `${dailyHeight}%` }}
                 />
                 <div className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
@@ -46,7 +46,7 @@ export function EarningsTrendChart({ data }: { data: EarningsTrend[] }) {
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded" />
+            <div className="w-3 h-3 bg-primary-500 rounded" />
             <span className="text-xs text-gray-600">日收益</span>
           </div>
         </div>

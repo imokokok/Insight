@@ -224,9 +224,9 @@ export default function API3Page() {
                     <p
                       className={`text-xs mt-1 font-medium ${
                         stat.changeType === 'positive'
-                          ? 'text-green-600'
+                          ? 'text-success-600'
                           : stat.changeType === 'negative'
-                            ? 'text-red-600'
+                            ? 'text-danger-600'
                             : 'text-gray-500'
                       }`}
                     >
@@ -314,7 +314,7 @@ export default function API3Page() {
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-gray-600">{t('api3.stats.stakingApr')}</span>
-                      <span className="text-sm font-semibold text-green-600">
+                      <span className="text-sm font-semibold text-success-600">
                         {staking?.stakingApr ?? 12.5}%
                       </span>
                     </div>

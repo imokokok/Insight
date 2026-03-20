@@ -20,7 +20,7 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
         return {
           icon: (
             <svg
-              className="w-5 h-5 text-green-500"
+              className="w-5 h-5 text-success-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -29,13 +29,13 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
             </svg>
           ),
           text: t('pyth.accuracy.trendImproving'),
-          color: 'text-green-500',
+          color: 'text-success-500',
         };
       case 'declining':
         return {
           icon: (
             <svg
-              className="w-5 h-5 text-red-500"
+              className="w-5 h-5 text-danger-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -44,13 +44,13 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
             </svg>
           ),
           text: t('pyth.accuracy.trendDeclining'),
-          color: 'text-red-500',
+          color: 'text-danger-500',
         };
       default:
         return {
           icon: (
             <svg
-              className="w-5 h-5 text-blue-500"
+              className="w-5 h-5 text-primary-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -59,7 +59,7 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
             </svg>
           ),
           text: t('pyth.accuracy.trendStable'),
-          color: 'text-blue-500',
+          color: 'text-primary-500',
         };
     }
   }, [recentTrend, t]);
@@ -69,11 +69,11 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
       {
         title: t('pyth.accuracy.normalMarket'),
         accuracy: stats.normalAccuracy,
-        color: 'bg-green-50 border-green-200',
-        textColor: 'text-green-600',
+        color: 'bg-success-50 border-green-200',
+        textColor: 'text-success-600',
         icon: (
           <svg
-            className="w-5 h-5 text-green-500"
+            className="w-5 h-5 text-success-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -89,11 +89,11 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
       {
         title: t('pyth.accuracy.volatileMarket'),
         accuracy: stats.volatileAccuracy,
-        color: 'bg-yellow-50 border-yellow-200',
-        textColor: 'text-yellow-600',
+        color: 'bg-warning-50 border-yellow-200',
+        textColor: 'text-warning-600',
         icon: (
           <svg
-            className="w-5 h-5 text-yellow-500"
+            className="w-5 h-5 text-warning-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -105,11 +105,11 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
       {
         title: t('pyth.accuracy.extremeMarket'),
         accuracy: stats.extremeAccuracy,
-        color: 'bg-red-50 border-red-200',
-        textColor: 'text-red-600',
+        color: 'bg-danger-50 border-danger-200',
+        textColor: 'text-danger-600',
         icon: (
           <svg
-            className="w-5 h-5 text-red-500"
+            className="w-5 h-5 text-danger-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -159,7 +159,7 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
             </div>
             <div className="p-4 bg-gray-50 ">
               <p className="text-sm text-gray-600 mb-1">{t('pyth.accuracy.maxDeviation')}</p>
-              <p className="text-xl font-bold text-orange-600">{stats.maxDeviation}%</p>
+              <p className="text-xl font-bold text-warning-600">{stats.maxDeviation}%</p>
             </div>
           </div>
 

@@ -6,18 +6,18 @@ export function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMet
 
   const statusConfig = {
     active: {
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
+      color: 'text-success-600',
+      bgColor: 'bg-success-100',
       label: t('pythNetwork.solana.status.active'),
     },
     inactive: {
-      color: 'text-red-600',
-      bgColor: 'bg-red-100',
+      color: 'text-danger-600',
+      bgColor: 'bg-danger-100',
       label: t('pythNetwork.solana.status.inactive'),
     },
     degraded: {
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-100',
+      color: 'text-warning-600',
+      bgColor: 'bg-warning-100',
       label: t('pythNetwork.solana.status.degraded'),
     },
   };

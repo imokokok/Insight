@@ -5,13 +5,17 @@ import { useTranslations } from 'next-intl';
 import { logger } from '@/lib/utils/logger';
 import { UMAClient } from '@/lib/oracles/uma';
 import { ValidatorData, DisputeEfficiencyStats } from '@/lib/oracles/uma/types';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { DashboardCard, DataFreshnessIndicator, RiskScoreCard } from '@/components/oracle/common';
+
+import { chartColors, getChartColor } from '@/lib/chartColors';
+
 import {
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   BarChart,
   Bar,
   XAxis,
@@ -248,7 +252,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                       ? 'bg-emerald-500'
                       : metric.status === 'warning'
                         ? 'bg-amber-500'
-                        : 'bg-red-500'
+                        : 'bg-danger-500'
                   }`}
                 />
               </div>
@@ -278,7 +282,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip
+                <RechartsTooltip
                   contentStyle={{
                     backgroundColor: '#fff',
                     border: '1px solid #e5e7eb',
@@ -320,7 +324,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip
+                <RechartsTooltip
                   contentStyle={{
                     backgroundColor: '#fff',
                     borderRadius: '8px',
@@ -338,7 +342,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
             <p
               className={`text-sm font-semibold mt-1.5 ${
                 concentrationRisk === 'high'
-                  ? 'text-red-600'
+                  ? 'text-danger-600'
                   : concentrationRisk === 'medium'
                     ? 'text-amber-600'
                     : 'text-emerald-600'
@@ -363,7 +367,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                 <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
                 <XAxis dataKey="range" tick={{ fontSize: 12, fill: '#6b7280' }} />
                 <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} />
-                <Tooltip
+                <RechartsTooltip
                   contentStyle={{
                     backgroundColor: '#fff',
                     border: '1px solid #e5e7eb',
@@ -400,7 +404,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                 <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
                 <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#6b7280' }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6b7280' }} />
-                <Tooltip
+                <RechartsTooltip
                   contentStyle={{
                     backgroundColor: '#fff',
                     border: '1px solid #e5e7eb',
@@ -455,9 +459,9 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
               <p className="text-sm text-emerald-700 mt-0.5">{t('uma.risk.networkHealthDesc')}</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200">
+          <div className="flex items-start gap-3 p-4 bg-primary-50 border border-primary-200">
             <svg
-              className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+              className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -470,8 +474,8 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
               />
             </svg>
             <div>
-              <p className="font-semibold text-blue-900">{t('uma.risk.economicSecurity')}</p>
-              <p className="text-sm text-blue-700 mt-0.5">{t('uma.risk.economicSecurityDesc')}</p>
+              <p className="font-semibold text-primary-900">{t('uma.risk.economicSecurity')}</p>
+              <p className="text-sm text-primary-700 mt-0.5">{t('uma.risk.economicSecurityDesc')}</p>
             </div>
           </div>
           {concentrationRisk !== 'low' && (

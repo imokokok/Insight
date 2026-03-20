@@ -142,7 +142,7 @@ export function ChainlinkNodesPanel() {
         </DashboardCard>
 
         <DashboardCard title={t('chainlink.nodeAnalytics.avgSuccessRate')}>
-          <div className="text-3xl font-bold text-green-600">{avgSuccessRate.toFixed(1)}%</div>
+          <div className="text-3xl font-bold text-success-600">{avgSuccessRate.toFixed(1)}%</div>
           <div className="text-sm text-gray-500 mt-1">
             {t('chainlink.nodeAnalytics.networkAverage')}
           </div>
@@ -156,13 +156,13 @@ export function ChainlinkNodesPanel() {
             {regionData.map((region) => (
               <div key={region.region} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-primary-500"></div>
                   <span className="text-sm text-gray-700">{region.region}</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-500 rounded-full"
+                      className="h-full bg-primary-500 rounded-full"
                       style={{ width: `${region.percentage}%` }}
                     ></div>
                   </div>
@@ -207,7 +207,7 @@ export function ChainlinkNodesPanel() {
                     <td className="py-2 text-gray-900 font-medium">#{index + 1}</td>
                     <td className="py-2 text-gray-700">{node.name}</td>
                     <td className="py-2 text-right text-gray-600">{node.responseTime}ms</td>
-                    <td className="py-2 text-right text-green-600">{node.successRate}%</td>
+                    <td className="py-2 text-right text-success-600">{node.successRate}%</td>
                     <td className="py-2 text-right text-gray-900">{node.reputation}</td>
                   </tr>
                 ))}
@@ -250,7 +250,7 @@ export function ChainlinkNodesPanel() {
                 <div className="text-sm text-gray-500">
                   {t('chainlink.staking.migrationStatus')}
                 </div>
-                <div className="text-lg font-semibold text-green-600">
+                <div className="text-lg font-semibold text-success-600">
                   {t('chainlink.staking.completed')}
                 </div>
               </div>
@@ -293,10 +293,10 @@ export function ChainlinkNodesPanel() {
                     <span
                       className={`px-2 py-0.5 rounded text-xs ${
                         item.status === 'active'
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-success-100 text-success-700'
                           : item.status === 'deprecated'
                             ? 'bg-gray-100 text-gray-600'
-                            : 'bg-blue-100 text-blue-700'
+                            : 'bg-primary-100 text-primary-700'
                       }`}
                     >
                       {t(`chainlink.staking.${item.status}`)}
@@ -313,22 +313,22 @@ export function ChainlinkNodesPanel() {
             {t('chainlink.staking.slashingConditions')}
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-3 bg-red-50 rounded-lg">
-              <div className="text-xs text-red-600 font-medium mb-1">
+            <div className="p-3 bg-danger-50 rounded-lg">
+              <div className="text-xs text-danger-600 font-medium mb-1">
                 {t('chainlink.staking.downtime')}
               </div>
               <div className="text-sm text-gray-700">{t('chainlink.staking.downtimeDesc')}</div>
             </div>
-            <div className="p-3 bg-red-50 rounded-lg">
-              <div className="text-xs text-red-600 font-medium mb-1">
+            <div className="p-3 bg-danger-50 rounded-lg">
+              <div className="text-xs text-danger-600 font-medium mb-1">
                 {t('chainlink.staking.incorrectData')}
               </div>
               <div className="text-sm text-gray-700">
                 {t('chainlink.staking.incorrectDataDesc')}
               </div>
             </div>
-            <div className="p-3 bg-red-50 rounded-lg">
-              <div className="text-xs text-red-600 font-medium mb-1">
+            <div className="p-3 bg-danger-50 rounded-lg">
+              <div className="text-xs text-danger-600 font-medium mb-1">
                 {t('chainlink.staking.malicious')}
               </div>
               <div className="text-sm text-gray-700">{t('chainlink.staking.maliciousDesc')}</div>

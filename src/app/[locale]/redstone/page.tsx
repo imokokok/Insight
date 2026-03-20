@@ -321,7 +321,7 @@ export default function RedStonePage() {
                       <span className="text-sm text-gray-600">
                         {t('redstone.stats.avgResponse')}
                       </span>
-                      <span className="text-sm font-semibold text-green-600">
+                      <span className="text-sm font-semibold text-success-600">
                         {networkStats?.avgResponseTime ?? 200}ms
                       </span>
                     </div>
@@ -564,7 +564,7 @@ export default function RedStonePage() {
                   <h4 className="font-semibold text-gray-900 text-sm">
                     {t('redstone.dataStreams.streamCount')}
                   </h4>
-                  <p className="text-2xl font-bold text-red-600 mt-2">1,250+</p>
+                  <p className="text-2xl font-bold text-danger-600 mt-2">1,250+</p>
                   <p className="text-xs text-gray-600 mt-1">
                     {t('redstone.dataStreams.activeDataStreams')}
                   </p>
@@ -573,7 +573,7 @@ export default function RedStonePage() {
                   <h4 className="font-semibold text-gray-900 text-sm">
                     {t('redstone.dataStreams.freshnessScore')}
                   </h4>
-                  <p className="text-2xl font-bold text-green-600 mt-2">
+                  <p className="text-2xl font-bold text-success-600 mt-2">
                     {metrics?.dataFreshnessScore ? metrics.dataFreshnessScore.toFixed(1) : '98.5'}
                   </p>
                   <p className="text-xs text-gray-600 mt-1">{t('redstone.dataStreams.outOf100')}</p>
@@ -582,7 +582,7 @@ export default function RedStonePage() {
                   <h4 className="font-semibold text-gray-900 text-sm">
                     {t('redstone.dataStreams.modularFee')}
                   </h4>
-                  <p className="text-2xl font-bold text-blue-600 mt-2">
+                  <p className="text-2xl font-bold text-primary-600 mt-2">
                     {metrics?.modularFee ? (metrics.modularFee * 100).toFixed(3) : '0.015'}%
                   </p>
                   <p className="text-xs text-gray-600 mt-1">
@@ -763,7 +763,7 @@ export default function RedStonePage() {
                         <span
                           className={`px-2 py-1 text-xs border ${
                             chain.status === 'active'
-                              ? 'border-green-200 text-green-700 bg-green-50'
+                              ? 'border-green-200 text-success-700 bg-success-50'
                               : 'border-gray-200 text-gray-600 bg-gray-50'
                           }`}
                         >

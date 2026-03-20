@@ -19,8 +19,8 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       <body>
         <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
           <div className="text-center max-w-lg bg-white p-8 border border-gray-200">
-            <div className="w-24 h-24 bg-red-50 flex items-center justify-center mx-auto mb-6">
-              <AlertOctagon className="w-12 h-12 text-red-500" />
+            <div className="w-24 h-24 bg-danger-50 flex items-center justify-center mx-auto mb-6">
+              <AlertOctagon className="w-12 h-12 text-danger-500" />
             </div>
 
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Something went wrong</h1>
@@ -40,7 +40,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={reset}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 Try Again

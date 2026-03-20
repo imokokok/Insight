@@ -119,9 +119,9 @@ export function BenchmarkComparisonSection({
                   <td
                     className={`px-4 py-3 text-right font-mono ${
                       metric.diffFromAvg > 0
-                        ? 'text-green-600'
+                        ? 'text-success-600'
                         : metric.diffFromAvg < 0
-                          ? 'text-red-600'
+                          ? 'text-danger-600'
                           : 'text-gray-600'
                     }`}
                   >

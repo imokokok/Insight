@@ -39,16 +39,16 @@ const credibilityConfig: Record<
 > = {
   high: {
     icon: ShieldCheck,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
+    color: 'text-success-600',
+    bgColor: 'bg-success-50',
     borderColor: 'border-green-200',
     labelKey: 'dataTransparency.credibility.high',
   },
   medium: {
     icon: Shield,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
+    color: 'text-primary-600',
+    bgColor: 'bg-primary-50',
+    borderColor: 'border-primary-200',
     labelKey: 'dataTransparency.credibility.medium',
   },
   low: {
@@ -218,12 +218,12 @@ export function DataSourceIndicator({
                   <div
                     className={`h-full rounded-full ${
                       confidencePercent >= 90
-                        ? 'bg-green-500'
+                        ? 'bg-success-500'
                         : confidencePercent >= 70
-                          ? 'bg-blue-500'
+                          ? 'bg-primary-500'
                           : confidencePercent >= 50
                             ? 'bg-amber-500'
-                            : 'bg-red-500'
+                            : 'bg-danger-500'
                     }`}
                     style={{ width: `${confidencePercent}%` }}
                   />
@@ -237,7 +237,7 @@ export function DataSourceIndicator({
                   href={source.verificationProof}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+                  className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700"
                 >
                   <Info size={12} />
                   {t('dataTransparency.viewProof')}

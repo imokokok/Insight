@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from 'recharts';
 import { useCrossChainData } from '../useCrossChainData';
@@ -18,6 +18,7 @@ import { useMemo } from 'react';
 import { Blockchain } from '@/lib/oracles';
 import { PriceData } from '@/lib/oracles';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
+
 
 interface PriceSpreadHeatmapProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -340,10 +341,10 @@ function HeatmapTooltip({
   }, [cell, cellData, historicalPrices]);
 
   const getPercentileColor = (percentile: number): string => {
-    if (percentile >= 80) return 'text-red-600';
-    if (percentile >= 60) return 'text-orange-500';
-    if (percentile >= 40) return 'text-yellow-600';
-    return 'text-green-600';
+    if (percentile >= 80) return 'text-danger-600';
+    if (percentile >= 60) return 'text-warning-500';
+    if (percentile >= 40) return 'text-warning-600';
+    return 'text-success-600';
   };
 
   return (
@@ -425,7 +426,7 @@ function HeatmapTooltip({
           <span className="text-gray-600">{t('crossChain.percentDifference')}</span>
           <span
             className={`font-mono font-medium ${
-              (cellData?.percent || 0) > 0.5 ? 'text-red-600' : 'text-green-600'
+              (cellData?.percent || 0) > 0.5 ? 'text-danger-600' : 'text-success-600'
             }`}
           >
             {cellData?.percent.toFixed(4) || '-'}%
@@ -445,7 +446,7 @@ function HeatmapTooltip({
 
       {/* Pin indicator */}
       {isPinned && (
-        <div className="mt-3 pt-2 border-t border-gray-100 flex items-center gap-1 text-xs text-blue-600">
+        <div className="mt-3 pt-2 border-t border-gray-100 flex items-center gap-1 text-xs text-primary-600">
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
             <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
           </svg>
@@ -527,8 +528,8 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
                   heatmapData.find(
                     (d) => d.xChain === selectedCell.xChain && d.yChain === selectedCell.yChain
                   )?.percent
-                    ? 'text-red-600'
-                    : 'text-green-600'
+                    ? 'text-danger-600'
+                    : 'text-success-600'
                 }
               >
                 $
@@ -560,7 +561,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
                   tick={{ fontSize: 10 }}
                   width={60}
                 />
-                <Tooltip formatter={(v) => [`$${Number(v).toFixed(4)}`, '']} />
+                <RechartsTooltip formatter={(v) => [`$${Number(v).toFixed(4)}`, '']} />
                 <Line
                   type="monotone"
                   dataKey={selectedCell.xChain}

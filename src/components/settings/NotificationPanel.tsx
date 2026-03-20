@@ -45,7 +45,7 @@ function Toggle({
       onClick={() => !disabled && onChange(!enabled)}
       disabled={disabled}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
-        enabled ? 'bg-blue-600' : 'bg-gray-200'
+        enabled ? 'bg-primary-600' : 'bg-gray-200'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-sm'}`}
     >
       <span
@@ -135,7 +135,7 @@ export function NotificationPanel() {
 
         <div className="p-6 space-y-6">
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+            <div className="p-3 bg-success-50 border border-green-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
@@ -144,8 +144,8 @@ export function NotificationPanel() {
           <div className="space-y-3">
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-primary-600" />
                 </div>
                 <div>
                   <div className="font-medium text-gray-900">
@@ -175,7 +175,7 @@ export function NotificationPanel() {
                     {t('settings.notifications.browserNotificationsDesc')}
                   </div>
                   {browserPermission === 'denied' && (
-                    <div className="text-xs text-red-500 mt-1">
+                    <div className="text-xs text-danger-500 mt-1">
                       {t('settings.notifications.permissionDeniedHint')}
                     </div>
                   )}
@@ -185,7 +185,7 @@ export function NotificationPanel() {
                 {browserPermission === 'default' && settings.browserNotifications && (
                   <button
                     onClick={requestBrowserPermission}
-                    className="text-xs text-blue-600 hover:text-blue-700 mr-2 transition-colors"
+                    className="text-xs text-primary-600 hover:text-primary-700 mr-2 transition-colors"
                   >
                     {t('settings.notifications.authorize')}
                   </button>
@@ -219,8 +219,8 @@ export function NotificationPanel() {
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
+              <div className="w-10 h-10 rounded-lg bg-warning-100 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-warning-600" />
               </div>
               <div>
                 <div className="font-medium text-gray-900">
@@ -253,8 +253,8 @@ export function NotificationPanel() {
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-green-600" />
+              <div className="w-10 h-10 rounded-lg bg-success-100 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-success-600" />
               </div>
               <div>
                 <div className="font-medium text-gray-900">
@@ -304,7 +304,7 @@ export function NotificationPanel() {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm hover:shadow-md"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm hover:shadow-md"
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           {t('settings.notifications.saveSettings')}

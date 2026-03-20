@@ -158,7 +158,7 @@ export function ExportConfig({
                   onClick={() => setFormat(f)}
                   className={`px-4 py-2 text-sm font-medium border transition-colors ${
                     format === f
-                      ? 'bg-blue-600 border-blue-600 text-white'
+                      ? 'bg-primary-600 border-primary-600 text-white'
                       : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
@@ -195,7 +195,7 @@ export function ExportConfig({
                     type="checkbox"
                     checked={field.enabled}
                     onChange={() => toggleField(field.key)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                    className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                   />
                   <span className="text-sm text-gray-700">
                     {t(`priceQuery.export.${field.label}`)}
@@ -218,7 +218,7 @@ export function ExportConfig({
                   type="datetime-local"
                   value={timeRangeStart}
                   onChange={(e) => setTimeRangeStart(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600"
                 />
               </div>
               <div>
@@ -229,7 +229,7 @@ export function ExportConfig({
                   type="datetime-local"
                   value={timeRangeEnd}
                   onChange={(e) => setTimeRangeEnd(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600"
                 />
               </div>
             </div>
@@ -246,7 +246,7 @@ export function ExportConfig({
                     type="checkbox"
                     checked={includeChart}
                     onChange={(e) => setIncludeChart(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                    className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                   />
                   <span className="text-sm text-gray-700">
                     {t('exportConfig.includeChart') || '包含价格图表'}
@@ -257,7 +257,7 @@ export function ExportConfig({
                     type="checkbox"
                     checked={includeStats}
                     onChange={(e) => setIncludeStats(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                    className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                   />
                   <span className="text-sm text-gray-700">
                     {t('exportConfig.includeStats') || '包含统计摘要'}
@@ -320,7 +320,7 @@ export function ExportConfig({
           <button
             onClick={handleExport}
             disabled={enabledFieldsCount === 0}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {t('exportConfig.export') || '导出'} {format.toUpperCase()}
           </button>

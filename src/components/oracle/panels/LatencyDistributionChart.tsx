@@ -6,13 +6,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Cell,
 } from 'recharts';
 import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { LatencyDistributionData, LatencyMetrics } from './qualityUtils';
+
 
 interface LatencyDistributionChartProps {
   data: LatencyDistributionData[];
@@ -46,23 +47,23 @@ export function LatencyDistributionChart({ data, metrics }: LatencyDistributionC
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-green-50 p-3 text-center">
+        <div className="bg-success-50 p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">P50</p>
-          <p className="text-lg font-bold text-green-600">
+          <p className="text-lg font-bold text-success-600">
             {metrics.p50}
             <span className="text-sm text-gray-500 ml-1">ms</span>
           </p>
         </div>
-        <div className="bg-yellow-50 p-3 text-center">
+        <div className="bg-warning-50 p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">P95</p>
-          <p className="text-lg font-bold text-yellow-600">
+          <p className="text-lg font-bold text-warning-600">
             {metrics.p95}
             <span className="text-sm text-gray-500 ml-1">ms</span>
           </p>
         </div>
-        <div className="bg-red-50 p-3 text-center">
+        <div className="bg-danger-50 p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">P99</p>
-          <p className="text-lg font-bold text-red-600">
+          <p className="text-lg font-bold text-danger-600">
             {metrics.p99}
             <span className="text-sm text-gray-500 ml-1">ms</span>
           </p>
@@ -90,7 +91,7 @@ export function LatencyDistributionChart({ data, metrics }: LatencyDistributionC
             axisLine={{ stroke: chartColors.recharts.grid }}
             tickFormatter={(value) => `${value}%`}
           />
-          <Tooltip
+          <RechartsTooltip
             content={({ active, payload }) => {
               if (!active || !payload || payload.length === 0) return null;
               const item = payload[0].payload as LatencyDistributionData;

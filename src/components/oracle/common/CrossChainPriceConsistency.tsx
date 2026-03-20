@@ -151,10 +151,10 @@ export function CrossChainPriceConsistency({
     >
       <div className="space-y-5">
         {hasWarnings && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-4">
+          <div className="bg-warning-50 border border-yellow-200 rounded p-4">
             <div className="flex items-start gap-3">
               <svg
-                className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
+                className="w-5 h-5 text-warning-600 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -169,7 +169,7 @@ export function CrossChainPriceConsistency({
                 <h4 className="text-sm font-medium text-yellow-800">
                   {t('crossChainPriceConsistency.warningTitle')}
                 </h4>
-                <p className="text-sm text-yellow-700 mt-1">
+                <p className="text-sm text-warning-700 mt-1">
                   {t('crossChainPriceConsistency.warningDesc')}
                 </p>
               </div>
@@ -178,12 +178,12 @@ export function CrossChainPriceConsistency({
         )}
 
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-blue-50 rounded p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">
+          <div className="bg-primary-50 rounded p-3 text-center">
+            <p className="text-xs text-primary-600 mb-1">
               {t('crossChainPriceConsistency.basePrice')}
             </p>
-            <p className="text-lg font-bold text-blue-700">${basePrice.toFixed(2)}</p>
-            <p className="text-xs text-blue-500 mt-1">Solana</p>
+            <p className="text-lg font-bold text-primary-700">${basePrice.toFixed(2)}</p>
+            <p className="text-xs text-primary-500 mt-1">Solana</p>
           </div>
           <div className="bg-gray-50 rounded p-3 text-center">
             <p className="text-xs text-gray-600 mb-1">
@@ -252,7 +252,7 @@ export function CrossChainPriceConsistency({
                         <div>
                           <span className="text-sm font-medium text-gray-900">{chain.chain}</span>
                           {index === 0 && (
-                            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
+                            <span className="ml-2 px-1.5 py-0.5 bg-primary-100 text-primary-700 text-xs rounded">
                               {t('crossChainPriceConsistency.baseline')}
                             </span>
                           )}
@@ -294,7 +294,7 @@ export function CrossChainPriceConsistency({
                     </td>
                     <td className="text-right py-3 px-3">
                       <span
-                        className={`text-sm ${chain.latency < 100 ? 'text-green-600' : chain.latency < 200 ? 'text-gray-600' : 'text-yellow-600'}`}
+                        className={`text-sm ${chain.latency < 100 ? 'text-success-600' : chain.latency < 200 ? 'text-gray-600' : 'text-warning-600'}`}
                       >
                         {chain.latency}ms
                       </span>
@@ -372,10 +372,10 @@ export function CrossChainPriceConsistency({
                     <div
                       className={`h-full  ${
                         chain.latency < 100
-                          ? 'bg-green-500'
+                          ? 'bg-success-500'
                           : chain.latency < 200
-                            ? 'bg-blue-500'
-                            : 'bg-yellow-500'
+                            ? 'bg-primary-500'
+                            : 'bg-warning-500'
                       }`}
                       style={{ width: `${Math.min((chain.latency / 200) * 100, 100)}%` }}
                     />
@@ -392,19 +392,19 @@ export function CrossChainPriceConsistency({
             </h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-500" />
+                <div className="w-4 h-4 rounded bg-success-500" />
                 <span className="text-sm text-gray-600">
                   {t('crossChainPriceConsistency.deviationThresholdGood')}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-yellow-500" />
+                <div className="w-4 h-4 rounded bg-warning-500" />
                 <span className="text-sm text-gray-600">
                   {t('crossChainPriceConsistency.deviationThresholdWarning')}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-red-500" />
+                <div className="w-4 h-4 rounded bg-danger-500" />
                 <span className="text-sm text-gray-600">
                   {t('crossChainPriceConsistency.deviationThresholdCritical')}
                 </span>

@@ -88,19 +88,19 @@ export default function RegisterPage() {
       <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white border border-gray-200 p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {t('auth.register.success.title')}
             </h2>
             <p className="text-gray-500 mb-4">{t('auth.register.success.emailSent', { email })}</p>
-            <div className="bg-blue-50 border border-blue-200 p-4 mb-6 text-left">
+            <div className="bg-primary-50 border border-primary-200 p-4 mb-6 text-left">
               <div className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-800">
+                <Mail className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-primary-800">
                   <p className="font-medium mb-1">下一步：</p>
-                  <ol className="list-decimal list-inside space-y-1 text-blue-700">
+                  <ol className="list-decimal list-inside space-y-1 text-primary-700">
                     <li>检查您的收件箱</li>
                     <li>点击邮件中的确认链接</li>
                     <li>返回登录页面登录</li>
@@ -111,7 +111,7 @@ export default function RegisterPage() {
             <div className="space-y-3">
               <Link
                 href="/login"
-                className="block w-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+                className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors"
               >
                 {t('auth.register.success.goToLogin')}
               </Link>
@@ -140,7 +140,7 @@ export default function RegisterPage() {
         <div className="bg-white border border-gray-200 p-8">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
-              <h1 className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
+              <h1 className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
                 Insight
               </h1>
             </Link>
@@ -149,10 +149,10 @@ export default function RegisterPage() {
           </div>
 
           {displayError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200">
+            <div className="mb-6 p-4 bg-danger-50 border border-danger-200">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-600">{displayError}</p>
+                <AlertCircle className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-danger-600">{displayError}</p>
               </div>
             </div>
           )}
@@ -268,15 +268,15 @@ export default function RegisterPage() {
                 id="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 mt-1 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
                 <span>{t('auth.register.termsAgreementPrefix')}</span>
-                <Link href="/terms" className="text-blue-600 hover:text-blue-700 font-medium">
+                <Link href="/terms" className="text-primary-600 hover:text-primary-700 font-medium">
                   {t('auth.register.terms')}
                 </Link>
                 <span>{t('auth.register.termsAgreementMiddle')}</span>
-                <Link href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium">
+                <Link href="/privacy" className="text-primary-600 hover:text-primary-700 font-medium">
                   {t('auth.register.privacy')}
                 </Link>
               </label>
@@ -285,7 +285,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading || loading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading || loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -302,7 +302,7 @@ export default function RegisterPage() {
             {t('auth.register.hasAccount')}{' '}
             <Link
               href="/login"
-              className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+              className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
             >
               {t('auth.register.loginNow')}
             </Link>

@@ -246,7 +246,7 @@ export function PythRiskAssessmentPanel() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('pyth.riskAssessment.giniCoefficient')}</span>
-                <span className="font-medium text-green-600">0.38</span>
+                <span className="font-medium text-success-600">0.38</span>
               </div>
             </div>
           </div>
@@ -258,15 +258,15 @@ export function PythRiskAssessmentPanel() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('pyth.riskAssessment.updateFrequency')}</span>
-                <span className="font-medium text-green-600">~400ms</span>
+                <span className="font-medium text-success-600">~400ms</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('pyth.riskAssessment.confidenceInterval')}</span>
-                <span className="font-medium text-green-600">±0.1%</span>
+                <span className="font-medium text-success-600">±0.1%</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('pyth.riskAssessment.priceFeeds')}</span>
-                <span className="font-medium text-green-600">500+</span>
+                <span className="font-medium text-success-600">500+</span>
               </div>
             </div>
           </div>
@@ -318,7 +318,7 @@ export function PythRiskAssessmentPanel() {
                 <span className="text-sm font-medium text-gray-900 w-24">{chain.chain}</span>
                 <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-green-500 rounded-full"
+                    className="h-full bg-success-500 rounded-full"
                     style={{ width: `${chain.availability}%` }}
                   ></div>
                 </div>

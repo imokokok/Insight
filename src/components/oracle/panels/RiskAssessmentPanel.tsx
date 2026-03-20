@@ -26,26 +26,26 @@ function getRiskLevel(
   if (score >= 80) {
     return {
       label: t('riskAssessment.riskLevel.low'),
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
+      color: 'text-success-600',
+      bgColor: 'bg-success-100',
     };
   } else if (score >= 60) {
     return {
       label: t('riskAssessment.riskLevel.medium'),
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-100',
+      color: 'text-warning-600',
+      bgColor: 'bg-warning-100',
     };
   } else if (score >= 40) {
     return {
       label: t('riskAssessment.riskLevel.high'),
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100',
+      color: 'text-warning-600',
+      bgColor: 'bg-warning-100',
     };
   } else {
     return {
       label: t('riskAssessment.riskLevel.critical'),
-      color: 'text-red-600',
-      bgColor: 'bg-red-100',
+      color: 'text-danger-600',
+      bgColor: 'bg-danger-100',
     };
   }
 }
@@ -79,12 +79,12 @@ function RiskScoreCard({
         <div
           className={`h-2  transition-all duration-500 ${
             score >= 80
-              ? 'bg-green-500'
+              ? 'bg-success-500'
               : score >= 60
-                ? 'bg-yellow-500'
+                ? 'bg-warning-500'
                 : score >= 40
-                  ? 'bg-orange-500'
-                  : 'bg-red-500'
+                  ? 'bg-warning-500'
+                  : 'bg-danger-500'
           }`}
           style={{ width: `${score}%` }}
         />
@@ -142,12 +142,12 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
           <div
             className={`h-3  transition-all duration-500 ${
               riskScores.overall >= 80
-                ? 'bg-green-500'
+                ? 'bg-success-500'
                 : riskScores.overall >= 60
-                  ? 'bg-yellow-500'
+                  ? 'bg-warning-500'
                   : riskScores.overall >= 40
-                    ? 'bg-orange-500'
-                    : 'bg-red-500'
+                    ? 'bg-warning-500'
+                    : 'bg-danger-500'
             }`}
             style={{ width: `${riskScores.overall}%` }}
           />

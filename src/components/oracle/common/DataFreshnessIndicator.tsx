@@ -42,18 +42,18 @@ export function DataFreshnessIndicator({
   };
 
   const getStatusColor = () => {
-    if (isStale) return 'text-red-600';
-    return 'text-green-600';
+    if (isStale) return 'text-danger-600';
+    return 'text-success-600';
   };
 
   const getStatusBg = () => {
-    if (isStale) return 'bg-red-50';
-    return 'bg-green-50';
+    if (isStale) return 'bg-danger-50';
+    return 'bg-success-50';
   };
 
   const getStatusDot = () => {
-    if (isStale) return 'bg-red-500';
-    return 'bg-green-500';
+    if (isStale) return 'bg-danger-500';
+    return 'bg-success-500';
   };
 
   return (
@@ -94,7 +94,7 @@ export function DataFreshnessIndicator({
           <p className={`text-sm font-medium ${getStatusColor()}`}>{displayTime}</p>
         </div>
         {isStale && (
-          <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium">
+          <span className="px-2 py-1 bg-danger-100 text-danger-700 text-xs font-medium">
             {t('oracleCommon.dataFreshness.stale')}
           </span>
         )}

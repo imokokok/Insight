@@ -22,10 +22,10 @@ export const DISPUTE_TYPE_STYLES: Record<
   { color: string; bgColor: string; borderColor: string; hoverBgColor: string }
 > = {
   price: {
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    hoverBgColor: 'hover:bg-blue-100',
+    color: 'text-primary-700',
+    bgColor: 'bg-primary-50',
+    borderColor: 'border-primary-200',
+    hoverBgColor: 'hover:bg-primary-100',
   },
   state: {
     color: 'text-emerald-700',

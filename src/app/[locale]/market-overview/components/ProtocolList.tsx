@@ -96,13 +96,13 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
 
   const getCategoryColor = (category: string): string => {
     const colors: Record<string, string> = {
-      Lending: 'bg-blue-100 text-blue-700',
+      Lending: 'bg-primary-100 text-primary-700',
       'Liquid Staking': 'bg-purple-100 text-purple-700',
-      DEX: 'bg-green-100 text-green-700',
-      CDP: 'bg-orange-100 text-orange-700',
-      Derivatives: 'bg-red-100 text-red-700',
+      DEX: 'bg-success-100 text-success-700',
+      CDP: 'bg-warning-100 text-orange-700',
+      Derivatives: 'bg-danger-100 text-danger-700',
       Synthetics: 'bg-pink-100 text-pink-700',
-      Yield: 'bg-yellow-100 text-yellow-700',
+      Yield: 'bg-warning-100 text-warning-700',
     };
     return colors[category] || 'bg-gray-100 text-gray-700';
   };
@@ -112,9 +112,9 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
       return <ChevronUp className="w-3 h-3 text-gray-300" />;
     }
     return sortDirection === 'asc' ? (
-      <ChevronUp className="w-3 h-3 text-blue-600" />
+      <ChevronUp className="w-3 h-3 text-primary-600" />
     ) : (
-      <ChevronDown className="w-3 h-3 text-blue-600" />
+      <ChevronDown className="w-3 h-3 text-primary-600" />
     );
   };
 
@@ -141,7 +141,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
             placeholder={isChineseLocale(locale) ? '搜索协议...' : 'Search protocols...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <DropdownSelect
@@ -161,7 +161,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
           {isChineseLocale(locale) ? '个协议' : 'protocols'}
         </span>
         {searchTerm && (
-          <span className="text-blue-600">
+          <span className="text-primary-600">
             {isChineseLocale(locale) ? '搜索: ' : 'Search: '}&quot;{searchTerm}&quot;
           </span>
         )}
@@ -196,7 +196,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                     <div className="cursor-pointer" onClick={() => toggleExpand(protocol.id)}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                          <div className="w-8 h-8 bg-primary-600 flex items-center justify-center text-white font-bold text-xs">
                             {protocol.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div>
@@ -233,7 +233,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                             </div>
                             <div
                               className={`text-xs font-medium ${
-                                protocol.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                                protocol.change24h >= 0 ? 'text-success-600' : 'text-danger-600'
                               }`}
                             >
                               {protocol.change24h >= 0 ? '+' : ''}
@@ -258,7 +258,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                             </div>
                             <div
                               className={`font-medium text-sm ${
-                                protocol.change7d >= 0 ? 'text-green-600' : 'text-red-600'
+                                protocol.change7d >= 0 ? 'text-success-600' : 'text-danger-600'
                               }`}
                             >
                               {protocol.change7d >= 0 ? '+' : ''}
@@ -307,7 +307,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                             href={protocol.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-2"
+                            className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 mt-2"
                           >
                             {isChineseLocale(locale) ? '访问网站' : 'Visit Website'}
                             <ExternalLink className="w-3 h-3" />

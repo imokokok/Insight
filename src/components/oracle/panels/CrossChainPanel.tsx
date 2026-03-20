@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Cell,
 } from 'recharts';
@@ -26,6 +26,7 @@ import {
   animationColors,
 } from '@/lib/config/colors';
 import { formatNumber as formatNumberCompact } from '@/lib/utils/format';
+
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 
@@ -68,9 +69,9 @@ interface StatCardProps {
 function StatCard({ title, value, icon, trend, suffix, t }: StatCardProps) {
   const trendColor = trend
     ? trend > 0
-      ? 'text-green-600'
+      ? 'text-success-600'
       : trend < 0
-        ? 'text-red-600'
+        ? 'text-danger-600'
         : 'text-gray-500'
     : '';
 
@@ -94,7 +95,7 @@ function StatCard({ title, value, icon, trend, suffix, t }: StatCardProps) {
             </div>
           )}
         </div>
-        <div className="p-2.5 bg-blue-50 rounded-lg text-blue-600">{icon}</div>
+        <div className="p-2.5 bg-primary-50 rounded-lg text-primary-600">{icon}</div>
       </div>
     </div>
   );
@@ -171,13 +172,13 @@ function ChainDetailModal({ chain, onClose, t }: ChainDetailModalProps) {
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4 text-center">
+            <div className="bg-primary-50 rounded-lg p-4 text-center">
               <p className="text-gray-500 text-xs mb-1">{t('crossChainPanel.timeRange24h')}</p>
               <p className="font-bold text-lg" style={{ color: baseColors.primary[600] }}>
                 {chain.requestCount24h.toLocaleString()}
               </p>
             </div>
-            <div className="bg-green-50 rounded-lg p-4 text-center">
+            <div className="bg-success-50 rounded-lg p-4 text-center">
               <p className="text-gray-500 text-xs mb-1">{t('crossChainPanel.timeRange7d')}</p>
               <p className="font-bold text-lg" style={{ color: semanticColors.success.DEFAULT }}>
                 {chain.requestCount7d.toLocaleString()}
@@ -385,7 +386,7 @@ export function CrossChainPanel({
           <p className="text-gray-500 text-sm">{error}</p>
           <button
             onClick={fetchData}
-            className="mt-3 px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+            className="mt-3 px-4 py-2 bg-primary-500 text-white text-sm rounded-lg hover:bg-primary-600 transition-colors"
           >
             {t('crossChainPanel.retry')}
           </button>
@@ -534,7 +535,7 @@ export function CrossChainPanel({
                 tickFormatter={(value) => formatNumber(value)}
                 width={50}
               />
-              <Tooltip
+              <RechartsTooltip
                 content={<CustomTooltip t={t} />}
                 cursor={{ fill: animationColors.fade.cursor }}
               />
@@ -576,17 +577,17 @@ export function CrossChainPanel({
                 key={chain.chainId}
                 onClick={() => setSelectedChain(chain)}
                 className={`bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors cursor-pointer group relative ${
-                  isSelected ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+                  isSelected ? 'ring-2 ring-primary-500 ring-offset-1' : ''
                 } ${isDisabled ? 'opacity-60' : ''}`}
               >
                 <div className="absolute top-2 right-2">
                   <label
                     className={`flex items-center justify-center w-5 h-5 rounded border-2 transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-500 border-blue-500'
+                        ? 'bg-primary-500 border-primary-500'
                         : isDisabled
                           ? 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                          : 'border-gray-300 hover:border-blue-400'
+                          : 'border-gray-300 hover:border-primary-400'
                     }`}
                     onClick={(e) => e.stopPropagation()}
                   >
