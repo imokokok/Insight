@@ -29,6 +29,7 @@ interface PriceResultsTableProps {
   selectedRow: string | null;
   onRowSelect: (rowKey: string | null) => void;
   historicalData?: Partial<Record<string, QueryResult['priceData'][]>>;
+  filterInputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 const SCORE_CONFIG: Record<ScoreLevel, { color: string; bgColor: string; label: string }> = {
@@ -88,6 +89,7 @@ export function PriceResultsTable({
   selectedRow,
   onRowSelect,
   historicalData = {},
+  filterInputRef,
 }: PriceResultsTableProps) {
   const t = useTranslations();
   const [pageSize, setPageSize] = useState<number>(10);
@@ -189,6 +191,7 @@ export function PriceResultsTable({
               <Icons.search className="w-3.5 h-3.5" />
             </div>
             <input
+              ref={filterInputRef}
               type="text"
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}

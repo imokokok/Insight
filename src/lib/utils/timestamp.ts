@@ -22,11 +22,19 @@ export function toMilliseconds(timestamp: number | string | Date): number {
   }
 
   if (typeof timestamp === 'string') {
-    return new Date(timestamp).getTime();
+    const date = new Date(timestamp);
+    const time = date.getTime();
+    if (isNaN(time)) {
+      throw new Error(`Invalid date string: ${timestamp}`);
+    }
+    return time;
   }
 
   if (typeof timestamp === 'number') {
-    if (timestamp < 1e12) {
+    // 改进秒/毫秒判断逻辑：使用更合理的阈值
+    // 秒级时间戳通常在 1e9 到 1e10 之间（2001-09-09 到 2286-11-20）
+    // 毫秒级时间戳通常在 1e12 到 1e14 之间
+    if (timestamp < 1e10) {
       return timestamp * 1000;
     }
     return timestamp;
@@ -71,32 +79,51 @@ export function normalizeTimestamp(timestamp: number | string | Date): number {
 export interface TimeAgoResult {
   value: number;
   unit: 'seconds' | 'minutes' | 'hours' | 'days';
+  isFuture: boolean;
 }
 
 export function getTimeAgoDiff(input: Date | number): TimeAgoResult {
   const timestamp = input instanceof Date ? input.getTime() : toMilliseconds(input);
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  const diffMs = Date.now() - timestamp;
+  const isFuture = diffMs < 0;
+  const seconds = Math.floor(Math.abs(diffMs) / 1000);
 
   if (seconds < 60) {
-    return { value: seconds, unit: 'seconds' };
+    return { value: seconds, unit: 'seconds', isFuture };
   }
   if (seconds < 3600) {
-    return { value: Math.floor(seconds / 60), unit: 'minutes' };
+    return { value: Math.floor(seconds / 60), unit: 'minutes', isFuture };
   }
   if (seconds < 86400) {
-    return { value: Math.floor(seconds / 3600), unit: 'hours' };
+    return { value: Math.floor(seconds / 3600), unit: 'hours', isFuture };
   }
-  return { value: Math.floor(seconds / 86400), unit: 'days' };
+  return { value: Math.floor(seconds / 86400), unit: 'days', isFuture };
 }
 
 export function formatTimeAgo(
   diff: TimeAgoResult,
   t: (key: string, params?: Record<string, number>) => string
 ): string {
-  const { value, unit } = diff;
+  const { value, unit, isFuture } = diff;
 
   if (value === 0 && unit === 'seconds') {
     return t('time.justNow');
+  }
+
+  // 根据 isFuture 选择不同的时间格式
+  if (isFuture) {
+    switch (unit) {
+      case 'seconds':
+        return t('time.inSeconds', { seconds: value });
+      case 'minutes':
+        return t('time.inMinutes', { minutes: value });
+      case 'hours':
+        return t('time.inHours', { hours: value });
+      case 'days':
+        return t('time.inDays', { days: value });
+      default:
+        return '';
+    }
   }
 
   switch (unit) {

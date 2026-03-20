@@ -5,10 +5,10 @@ import { useCallback, useMemo } from 'react';
 import { API3Client } from '@/lib/oracles/api3';
 import type {
   AirnodeNetworkStats,
-  DapiCoverage,
+  DAPICoverage,
   StakingData,
   FirstPartyOracleData,
-  DapiPriceDeviation,
+  DAPIPriceDeviation,
   DataSourceInfo,
   CoveragePoolEvent,
 } from '@/lib/oracles/api3';
@@ -129,7 +129,7 @@ export function useAPI3AirnodeStats(enabled = true) {
 export function useAPI3DapiCoverage(enabled = true) {
   const queryKey = getAPI3Key('dapiCoverage');
 
-  const { data, error, isLoading, refetch } = useQuery<DapiCoverage, Error>({
+  const { data, error, isLoading, refetch } = useQuery<DAPICoverage, Error>({
     queryKey,
     queryFn: () => api3Client.getDapiCoverage(),
     enabled,
@@ -245,7 +245,7 @@ export function useAPI3QualityMetrics(enabled = true) {
 export function useAPI3Deviations(enabled = true) {
   const queryKey = getAPI3Key('deviations');
 
-  const { data, error, isLoading, refetch } = useQuery<DapiPriceDeviation[], Error>({
+  const { data, error, isLoading, refetch } = useQuery<DAPIPriceDeviation[], Error>({
     queryKey,
     queryFn: () => api3Client.getDapiPriceDeviations(),
     enabled,
@@ -424,13 +424,13 @@ interface UseAPI3AllDataReturn {
   price: PriceData | undefined;
   historicalData: PriceData[];
   airnodeStats: AirnodeNetworkStats | undefined;
-  dapiCoverage: DapiCoverage | undefined;
+  dapiCoverage: DAPICoverage | undefined;
   staking: StakingData | undefined;
   firstParty: FirstPartyOracleData | undefined;
   latency: number[];
   qualityMetrics: UseAPI3QualityMetricsReturn | undefined;
   hourlyActivity: number[];
-  deviations: DapiPriceDeviation[];
+  deviations: DAPIPriceDeviation[];
   sourceTrace: DataSourceInfo[];
   coverageEvents: CoveragePoolEvent[];
   gasFees: GasFeeData[];
@@ -563,23 +563,8 @@ export function useAPI3AllData(options: UseAPI3AllDataOptions): UseAPI3AllDataRe
       qualityHistoryQuery.refetch(),
       crossOracleQuery.refetch(),
     ]);
-  }, [
-    priceQuery.refetch,
-    historicalQuery.refetch,
-    airnodeStatsQuery.refetch,
-    dapiCoverageQuery.refetch,
-    stakingQuery.refetch,
-    firstPartyQuery.refetch,
-    latencyQuery.refetch,
-    qualityQuery.refetch,
-    deviationsQuery.refetch,
-    sourceTraceQuery.refetch,
-    coverageEventsQuery.refetch,
-    gasFeesQuery.refetch,
-    ohlcQuery.refetch,
-    qualityHistoryQuery.refetch,
-    crossOracleQuery.refetch,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     price: priceQuery.price,

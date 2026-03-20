@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 import { useUser } from '@/stores/authStore';
 import type { AlertEventPayload } from '@/lib/supabase/realtime';
@@ -42,6 +42,7 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}): UseRe
   const user = useUser();
   const [alerts, setAlerts] = useState<RealtimeAlertNotification[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const isRequestingPermissionRef = useRef(false);
 
   const handleAlertEvent = useCallback(
     (payload: AlertEventPayload) => {
@@ -69,14 +70,19 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}): UseRe
             body: `${alertNotificationKeys.priceReached} ${notification.price}`,
             icon: '/favicon.ico',
           });
-        } else if (Notification.permission !== 'denied') {
+        } else if (Notification.permission !== 'denied' && !isRequestingPermissionRef.current) {
+          // 防止重复请求权限
+          isRequestingPermissionRef.current = true;
           Notification.requestPermission().then((permission) => {
+            isRequestingPermissionRef.current = false;
             if (permission === 'granted') {
               new Notification(alertNotificationKeys.priceAlertTriggered, {
                 body: `${alertNotificationKeys.priceReached} ${notification.price}`,
                 icon: '/favicon.ico',
               });
             }
+          }).catch(() => {
+            isRequestingPermissionRef.current = false;
           });
         }
       }
@@ -121,13 +127,22 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}): UseRe
   };
 }
 
-export function useAlertNotifications(): {
+export function useAlertNotifications(alerts?: RealtimeAlertNotification[]): {
   hasUnreadAlerts: boolean;
   unreadCount: number;
   requestPermission: () => Promise<boolean>;
 } {
   const [hasUnreadAlerts, setHasUnreadAlerts] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // 当 alerts 变化时更新状态
+  useEffect(() => {
+    if (alerts) {
+      const unread = alerts.filter((alert) => !alert.acknowledged);
+      setUnreadCount(unread.length);
+      setHasUnreadAlerts(unread.length > 0);
+    }
+  }, [alerts]);
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (typeof window === 'undefined' || !('Notification' in window)) {

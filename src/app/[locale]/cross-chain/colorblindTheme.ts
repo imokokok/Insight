@@ -20,9 +20,11 @@ export const colorblindHeatmapGradient = [
 
 /**
  * 获取色盲友好模式的热力图颜色
- * @param percent 百分比值 (0 - maxPercent)
- * @param maxPercent 最大百分比值
- * @returns 颜色字符串
+ * 根据百分比值从预设的颜色序列中返回对应颜色
+ *
+ * @param percent - 当前百分比值
+ * @param maxPercent - 最大百分比值（用于归一化）
+ * @returns 对应的颜色字符串（hex 格式）
  */
 export const getColorblindHeatmapColor = (percent: number, maxPercent: number): string => {
   if (maxPercent === 0) return accessibleColors.chart.sequence[0];
@@ -36,9 +38,11 @@ export const getColorblindHeatmapColor = (percent: number, maxPercent: number): 
 
 /**
  * 获取色盲友好模式的相关性矩阵颜色
- * 使用蓝-黄配色，负相关为蓝色，正相关为黄色
- * @param correlation 相关系数 (-1 到 1)
- * @returns 颜色字符串
+ * 使用蓝-黄配色方案，负相关为蓝色，正相关为黄色/橙色
+ * 通过 RGB 插值计算中间颜色
+ *
+ * @param correlation - 相关系数（-1 到 1）
+ * @returns 计算得到的颜色字符串（rgb 格式）
  */
 export const getColorblindCorrelationColor = (correlation: number): string => {
   const clampedCorrelation = Math.max(-1, Math.min(1, correlation));
@@ -86,8 +90,10 @@ export const getCorrelationSizeScale = (correlation: number): number => {
 
 /**
  * 获取色盲友好模式的差异颜色
- * @param diffPercent 差异百分比
- * @returns 背景色和文字色
+ * 使用蓝色表示负差异，黄色/橙色表示正差异
+ *
+ * @param diffPercent - 差异百分比
+ * @returns 包含背景色和文字色的对象
  */
 export const getColorblindDiffColor = (diffPercent: number): { bg: string; text: string } => {
   const absPercent = Math.abs(diffPercent);
@@ -149,8 +155,10 @@ export const colorblindLegendConfig = {
 
 /**
  * 判断颜色是否需要深色文字（用于对比度）
- * @param backgroundColor 背景颜色
- * @returns 是否需要深色文字
+ * 通过计算颜色的相对亮度来决定
+ *
+ * @param backgroundColor - 背景颜色（rgb 格式）
+ * @returns 是否需要深色文字（true 表示需要深色）
  */
 export const needsDarkText = (backgroundColor: string): boolean => {
   // 简单的亮度计算

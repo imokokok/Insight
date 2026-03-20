@@ -27,7 +27,8 @@ export function isString(value: unknown, field = 'value'): ValidatorResult {
 }
 
 export function isNumber(value: unknown, field = 'value'): ValidatorResult {
-  if (typeof value !== 'number' || isNaN(value)) {
+  // 使用 Number.isFinite 排除 Infinity 和 -Infinity
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
     return {
       valid: false,
       error: new ValidationError(`${field} must be a number`, { field, value }),
@@ -37,6 +38,11 @@ export function isNumber(value: unknown, field = 'value'): ValidatorResult {
 }
 
 export function isInteger(value: unknown, field = 'value'): ValidatorResult {
+  // 先验证是否为数字
+  const numberCheck = isNumber(value, field);
+  if (!numberCheck.valid) {
+    return numberCheck;
+  }
   if (!Number.isInteger(value)) {
     return {
       valid: false,
@@ -78,6 +84,14 @@ export function isObject(value: unknown, field = 'value'): ValidatorResult {
 
 export function minLength(min: number): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
+    // 对非字符串/数组返回错误
+    if (typeof value !== 'string' && !Array.isArray(value)) {
+      return {
+        valid: false,
+        error: new ValidationError(`${field} must be a string or array`, { field, value }),
+      };
+    }
+
     if (typeof value === 'string') {
       if (value.length < min) {
         return {
@@ -107,6 +121,14 @@ export function minLength(min: number): ValidatorFn {
 
 export function maxLength(max: number): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
+    // 对非字符串/数组返回错误
+    if (typeof value !== 'string' && !Array.isArray(value)) {
+      return {
+        valid: false,
+        error: new ValidationError(`${field} must be a string or array`, { field, value }),
+      };
+    }
+
     if (typeof value === 'string') {
       if (value.length > max) {
         return {
@@ -136,17 +158,22 @@ export function maxLength(max: number): ValidatorFn {
 
 export function min(min: number): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
-    if (typeof value === 'number') {
-      if (value < min) {
-        return {
-          valid: false,
-          error: new ValidationError(`${field} must be at least ${min}`, {
-            field,
-            value,
-            constraints: { min },
-          }),
-        };
-      }
+    // 添加类型验证
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return {
+        valid: false,
+        error: new ValidationError(`${field} must be a number`, { field, value }),
+      };
+    }
+    if (value < min) {
+      return {
+        valid: false,
+        error: new ValidationError(`${field} must be at least ${min}`, {
+          field,
+          value,
+          constraints: { min },
+        }),
+      };
     }
     return { valid: true, value };
   };
@@ -154,17 +181,22 @@ export function min(min: number): ValidatorFn {
 
 export function max(max: number): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
-    if (typeof value === 'number') {
-      if (value > max) {
-        return {
-          valid: false,
-          error: new ValidationError(`${field} must be at most ${max}`, {
-            field,
-            value,
-            constraints: { max },
-          }),
-        };
-      }
+    // 添加类型验证
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return {
+        valid: false,
+        error: new ValidationError(`${field} must be a number`, { field, value }),
+      };
+    }
+    if (value > max) {
+      return {
+        valid: false,
+        error: new ValidationError(`${field} must be at most ${max}`, {
+          field,
+          value,
+          constraints: { max },
+        }),
+      };
     }
     return { valid: true, value };
   };
@@ -172,24 +204,30 @@ export function max(max: number): ValidatorFn {
 
 export function pattern(regex: RegExp, message?: string): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
-    if (typeof value === 'string') {
-      if (!regex.test(value)) {
-        return {
-          valid: false,
-          error: new ValidationError(message || `${field} has invalid format`, {
-            field,
-            value,
-            constraints: { pattern: regex.source },
-          }),
-        };
-      }
+    // 对非字符串返回错误
+    if (typeof value !== 'string') {
+      return {
+        valid: false,
+        error: new ValidationError(`${field} must be a string`, { field, value }),
+      };
+    }
+    if (!regex.test(value)) {
+      return {
+        valid: false,
+        error: new ValidationError(message || `${field} has invalid format`, {
+          field,
+          value,
+          constraints: { pattern: regex.source },
+        }),
+      };
     }
     return { valid: true, value };
   };
 }
 
 export function isEmail(value: unknown, field = 'value'): ValidatorResult {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // 使用更严格的正则表达式
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   if (typeof value !== 'string' || !emailRegex.test(value)) {
     return {
       valid: false,
@@ -215,7 +253,9 @@ export function isUrl(value: unknown, field = 'value'): ValidatorResult {
 }
 
 export function isUuid(value: unknown, field = 'value'): ValidatorResult {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  // 更新正则支持 v6/v7/v8 UUID
+  // v1: 1xxx, v2: 2xxx, v3: 3xxx, v4: 4xxx, v5: 5xxx, v6: 6xxx, v7: 7xxx, v8: 8xxx
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (typeof value !== 'string' || !uuidRegex.test(value)) {
     return {
       valid: false,

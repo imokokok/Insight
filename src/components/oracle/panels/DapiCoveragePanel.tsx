@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
 
-interface DapiCoverage {
+interface DAPICoverage {
   totalDapis: number;
   byAssetType: {
     crypto: number;
@@ -25,7 +25,7 @@ interface DapiCoverage {
 }
 
 interface DapiCoveragePanelProps {
-  data: DapiCoverage;
+  data: DAPICoverage;
 }
 
 function TotalDapisCard({ total }: { total: number }) {
@@ -87,7 +87,7 @@ function DistributionBar({
   );
 }
 
-function ChainDistribution({ data }: { data: DapiCoverage['byChain'] }) {
+function ChainDistribution({ data }: { data: DAPICoverage['byChain'] }) {
   const t = useTranslations();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const chains = [
@@ -113,7 +113,7 @@ function ChainDistribution({ data }: { data: DapiCoverage['byChain'] }) {
   );
 }
 
-function UpdateFrequencyDistribution({ data }: { data: DapiCoverage['updateFrequency'] }) {
+function UpdateFrequencyDistribution({ data }: { data: DAPICoverage['updateFrequency'] }) {
   const t = useTranslations();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const frequencies = [
@@ -170,7 +170,7 @@ function UpdateFrequencyDistribution({ data }: { data: DapiCoverage['updateFrequ
   );
 }
 
-function DonutChart({ data }: { data: DapiCoverage['byAssetType'] }) {
+function DonutChart({ data }: { data: DAPICoverage['byAssetType'] }) {
   const t = useTranslations();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const segments = [
@@ -232,7 +232,7 @@ function DonutChart({ data }: { data: DapiCoverage['byAssetType'] }) {
   );
 }
 
-function AssetTypeDonut({ data }: { data: DapiCoverage['byAssetType'] }) {
+function AssetTypeDonut({ data }: { data: DAPICoverage['byAssetType'] }) {
   const t = useTranslations();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const legend = [
@@ -282,4 +282,4 @@ export function DapiCoveragePanel({ data }: DapiCoveragePanelProps) {
   );
 }
 
-export type { DapiCoverage };
+export type { DAPICoverage };

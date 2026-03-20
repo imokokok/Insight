@@ -2,7 +2,7 @@ import { BaseOracleClient, OracleClientConfig } from './base';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 
-export interface BandMarketData {
+export interface BandProtocolMarketData {
   symbol: string;
   price: number;
   priceChange24h: number;
@@ -64,7 +64,7 @@ export interface CrossChainStats {
   timestamp: number;
 }
 
-export interface CrossChainSnapshot {
+export interface BandCrossChainSnapshot {
   timestamp: number;
   prices: Map<string, number>;
   deviations: Map<string, number>;
@@ -246,7 +246,7 @@ export class BandProtocolClient extends BaseOracleClient {
     }
   }
 
-  async getBandMarketData(): Promise<BandMarketData> {
+  async getBandMarketData(): Promise<BandProtocolMarketData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES.BAND || 2.5;
       const priceChange = (Math.random() - 0.5) * 0.5;
@@ -614,7 +614,7 @@ export class BandProtocolClient extends BaseOracleClient {
     }
   }
 
-  async getCrossChainSnapshot(timestamp: number): Promise<CrossChainSnapshot> {
+  async getCrossChainSnapshot(timestamp: number): Promise<BandCrossChainSnapshot> {
     try {
       const prices = new Map<string, number>();
       const deviations = new Map<string, number>();

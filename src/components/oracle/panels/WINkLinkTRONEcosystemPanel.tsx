@@ -229,8 +229,10 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
               <tbody>
                 {data.networkGrowth.map((month, index) => {
                   const prevMonth = index > 0 ? data.networkGrowth![index - 1] : null;
-                  const tvlGrowth = prevMonth
-                    ? (((month.tvl - prevMonth.tvl) / prevMonth.tvl) * 100).toFixed(1)
+                  const monthTvl = month.tvl ?? 0;
+                  const prevMonthTvl = prevMonth?.tvl ?? 0;
+                  const tvlGrowth = prevMonth && prevMonthTvl > 0
+                    ? (((monthTvl - prevMonthTvl) / prevMonthTvl) * 100).toFixed(1)
                     : '0';
                   const isPositive = parseFloat(tvlGrowth) >= 0;
                   return (
@@ -243,7 +245,7 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
                         {formatNumber(month.accounts)}
                       </td>
                       <td className="py-2 px-3 text-sm text-right text-gray-900">
-                        {formatCurrency(month.tvl)}
+                        {formatCurrency(monthTvl)}
                       </td>
                       <td className="py-2 px-3 text-center">
                         {index > 0 && (

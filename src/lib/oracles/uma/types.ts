@@ -10,14 +10,14 @@ export interface DisputeTypeConfig {
   icon: React.ReactNode;
 }
 
-export const DisputeTypeLabels: Record<DisputeType, string> = {
+export const DISPUTE_TYPE_LABELS: Record<DisputeType, string> = {
   price: 'uma.disputeTypes.price',
   state: 'uma.disputeTypes.state',
   liquidation: 'uma.disputeTypes.liquidation',
   other: 'uma.disputeTypes.other',
 };
 
-export const DisputeTypeStyles: Record<
+export const DISPUTE_TYPE_STYLES: Record<
   DisputeType,
   { color: string; bgColor: string; borderColor: string; hoverBgColor: string }
 > = {
@@ -47,7 +47,7 @@ export const DisputeTypeStyles: Record<
   },
 };
 
-export const DisputeTypeChartColors: Record<DisputeType, string> = {
+export const DISPUTE_TYPE_CHART_COLORS: Record<DisputeType, string> = {
   price: chartColors.umaRequestType.price,
   state: chartColors.umaRequestType.state,
   liquidation: chartColors.umaRequestType.liquidation,
@@ -111,7 +111,7 @@ export interface DisputeAmountDistributionStats {
   }[];
 }
 
-export interface UMAMetworkStats {
+export interface UMANetworkStats {
   activeValidators: number;
   validatorUptime: number;
   avgResponseTime: number;
@@ -205,7 +205,7 @@ export interface StakingCalculation {
 
 export type EarningsSourceType = 'base' | 'dispute' | 'other';
 
-export const EarningsSourceLabels: Record<EarningsSourceType, string> = {
+export const EARNINGS_SOURCE_LABELS: Record<EarningsSourceType, string> = {
   base: 'uma.rewardTypes.base',
   dispute: 'uma.rewardTypes.dispute',
   other: 'uma.rewardTypes.other',

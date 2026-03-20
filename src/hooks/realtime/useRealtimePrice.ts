@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 import type { PriceUpdatePayload } from '@/lib/supabase/realtime';
 import type { OracleProvider, Blockchain } from '@/types/oracle';
@@ -40,43 +40,47 @@ export function useRealtimePrice(options: UseRealtimePriceOptions): UseRealtimeP
 
   const handlePriceUpdate = useCallback(
     (payload: PriceUpdatePayload) => {
-      if (payload.eventType === 'DELETE') {
-        return;
-      }
+      try {
+        if (payload.eventType === 'DELETE') {
+          return;
+        }
 
-      const newPrice = payload.new;
+        const newPrice = payload.new;
 
-      if (provider && newPrice.provider !== provider) {
-        return;
-      }
+        if (provider && newPrice.provider !== provider) {
+          return;
+        }
 
-      if (symbol && newPrice.symbol !== symbol) {
-        return;
-      }
+        if (symbol && newPrice.symbol !== symbol) {
+          return;
+        }
 
-      if (chain && newPrice.chain !== chain) {
-        return;
-      }
+        if (chain && newPrice.chain !== chain) {
+          return;
+        }
 
-      const data: RealtimePriceData = {
-        provider: newPrice.provider as OracleProvider,
-        symbol: newPrice.symbol,
-        chain: newPrice.chain as Blockchain | undefined,
-        price: newPrice.price,
-        timestamp:
-          typeof newPrice.timestamp === 'string'
-            ? new Date(newPrice.timestamp).getTime()
-            : newPrice.timestamp,
-        confidence: newPrice.confidence ?? undefined,
-        source: newPrice.source ?? undefined,
-      };
+        const data: RealtimePriceData = {
+          provider: newPrice.provider as OracleProvider,
+          symbol: newPrice.symbol,
+          chain: newPrice.chain as Blockchain | undefined,
+          price: newPrice.price,
+          timestamp:
+            typeof newPrice.timestamp === 'string'
+              ? new Date(newPrice.timestamp).getTime()
+              : newPrice.timestamp,
+          confidence: newPrice.confidence ?? undefined,
+          source: newPrice.source ?? undefined,
+        };
 
-      setPriceData(data);
-      setLastUpdate(new Date());
-      setError(null);
+        setPriceData(data);
+        setLastUpdate(new Date());
+        setError(null);
 
-      if (onPriceUpdate) {
-        onPriceUpdate(data);
+        if (onPriceUpdate) {
+          onPriceUpdate(data);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to process price update'));
       }
     },
     [provider, symbol, chain, onPriceUpdate]
@@ -150,6 +154,10 @@ export function useRealtimePrices(
     setLastUpdate(new Date());
   }, []);
 
+  const symbolsKey = useMemo(() => {
+    return symbols.map(s => `${s.provider || ''}:${s.symbol}:${s.chain || ''}`).sort().join(',');
+  }, [symbols]);
+
   useEffect(() => {
     if (!enabled || symbols.length === 0) {
       return;
@@ -160,7 +168,7 @@ export function useRealtimePrices(
     return () => {
       unsubscribe();
     };
-  }, [enabled, symbols, handlePriceUpdate, subscribeToPriceUpdates]);
+  }, [enabled, symbolsKey, handlePriceUpdate, subscribeToPriceUpdates]);
 
   return {
     prices,

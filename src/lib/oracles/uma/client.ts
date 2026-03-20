@@ -5,7 +5,7 @@ import {
   DisputeType,
   ValidatorData,
   DisputeData,
-  UMAMetworkStats,
+  UMANetworkStats,
   VerificationActivity,
   ValidatorPerformanceHeatmapData,
   ValidatorPerformanceHeatmapDataByDay,
@@ -222,7 +222,7 @@ export class UMAClient extends BaseOracleClient {
     return disputes.sort((a, b) => b.timestamp - a.timestamp);
   }
 
-  async getNetworkStats(): Promise<UMAMetworkStats> {
+  async getNetworkStats(): Promise<UMANetworkStats> {
     return {
       activeValidators: 850,
       validatorUptime: 99.5,

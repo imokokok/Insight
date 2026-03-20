@@ -47,6 +47,13 @@ export function calculateSMAWithNull(data: number[], period: number): NullableNu
 }
 
 export function calculateEMA(data: number[], period: number): number[] {
+  if (period <= 0) {
+    throw new Error('Period must be a positive number');
+  }
+  if (data.length === 0) {
+    return [];
+  }
+
   const result: number[] = [];
   const multiplier = 2 / (period + 1);
 
@@ -89,6 +96,13 @@ export function calculateEMAWithNull(data: number[], period: number): NullableNu
 }
 
 export function calculateRSI(prices: number[], period: number = 14): number[] {
+  if (prices.length === 0) {
+    return [];
+  }
+  if (prices.length < period + 1) {
+    return new Array(prices.length).fill(50);
+  }
+
   const rsi: number[] = [];
   const gains: number[] = [];
   const losses: number[] = [];
@@ -190,6 +204,10 @@ export function calculateMACD(
   slowPeriod: number = 26,
   signalPeriod: number = 9
 ): MACDResult {
+  if (prices.length === 0) {
+    return { macd: [], signal: [], histogram: [] };
+  }
+
   const fastEMA = calculateEMA(prices, fastPeriod);
   const slowEMA = calculateEMA(prices, slowPeriod);
 
@@ -256,7 +274,8 @@ export function calculateBollingerBands(
       const slice = prices.slice(i - period + 1, i + 1);
       const mean = middle[i];
       const squaredDiffs = slice.map((p) => Math.pow(p - mean, 2));
-      const variance = squaredDiffs.reduce((sum, d) => sum + d, 0) / period;
+      // 使用样本标准差 (除以 period - 1) 而不是总体标准差
+      const variance = squaredDiffs.reduce((sum, d) => sum + d, 0) / (period - 1);
       const currentStdDev = Math.sqrt(variance);
 
       upper.push(mean + multiplier * currentStdDev);
@@ -414,7 +433,10 @@ export function calculateVolatility(data: number[], period: number = 20): Nullab
     for (let j = 1; j <= period; j++) {
       const currentPrice = data[i - period + j];
       const prevPrice = data[i - period + j - 1];
-      returns.push(Math.log(currentPrice / prevPrice));
+      // 添加除零检查
+      if (prevPrice > 0 && currentPrice > 0) {
+        returns.push(Math.log(currentPrice / prevPrice));
+      }
     }
 
     const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;

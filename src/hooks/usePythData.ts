@@ -210,12 +210,13 @@ export function usePythAllData(options: UsePythAllDataOptions) {
     networkQuery.isLoading ||
     publishersQuery.isLoading ||
     validatorsQuery.isLoading;
-  const isError =
-    priceQuery.error !== null ||
-    historicalQuery.error !== null ||
-    networkQuery.error !== null ||
-    publishersQuery.error !== null ||
-    validatorsQuery.error !== null;
+  const isError = Boolean(
+    priceQuery.error ||
+    historicalQuery.error ||
+    networkQuery.error ||
+    publishersQuery.error ||
+    validatorsQuery.error
+  );
   const errors = [
     priceQuery.error,
     historicalQuery.error,
@@ -230,7 +231,8 @@ export function usePythAllData(options: UsePythAllDataOptions) {
     networkQuery.refetch();
     publishersQuery.refetch();
     validatorsQuery.refetch();
-  }, [priceQuery, historicalQuery, networkQuery, publishersQuery, validatorsQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     price: priceQuery.price,

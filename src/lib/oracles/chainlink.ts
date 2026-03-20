@@ -21,6 +21,9 @@ export class ChainlinkClient extends BaseOracleClient {
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
+      if (!symbol) {
+        throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+      }
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       return this.fetchPriceWithDatabase(symbol, chain, () =>
@@ -40,6 +43,9 @@ export class ChainlinkClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
+      if (!symbol) {
+        throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+      }
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>

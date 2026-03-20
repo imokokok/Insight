@@ -1,4 +1,11 @@
+function isFiniteNumber(value: number): boolean {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
 export function formatCurrency(value: number, compact: boolean = false): string {
+  if (!isFiniteNumber(value)) {
+    return '—';
+  }
   if (compact) {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -15,6 +22,9 @@ export function formatCurrency(value: number, compact: boolean = false): string 
 }
 
 export function formatNumber(value: number, compact: boolean = false): string {
+  if (!isFiniteNumber(value)) {
+    return '—';
+  }
   if (compact) {
     return new Intl.NumberFormat('en-US', {
       notation: 'compact',
@@ -27,15 +37,27 @@ export function formatNumber(value: number, compact: boolean = false): string {
 }
 
 export function formatCompactNumber(value: number): string {
-  if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
-  if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
-  if (value >= 1e3) return `${(value / 1e3).toFixed(2)}K`;
+  if (!isFiniteNumber(value)) return '—';
+  if (value === 0) return '0';
+
+  const absValue = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+
+  if (absValue >= 1e9) return `${sign}${(absValue / 1e9).toFixed(2)}B`;
+  if (absValue >= 1e6) return `${sign}${(absValue / 1e6).toFixed(2)}M`;
+  if (absValue >= 1e3) return `${sign}${(absValue / 1e3).toFixed(2)}K`;
   return value.toLocaleString();
 }
 
 export function formatCompactNumberWithDecimals(value: number, decimals: number = 1): string {
-  if (value >= 1e9) return `${(value / 1e9).toFixed(decimals)}B`;
-  if (value >= 1e6) return `${(value / 1e6).toFixed(decimals)}M`;
-  if (value >= 1e3) return `${(value / 1e3).toFixed(decimals)}K`;
+  if (!isFiniteNumber(value)) return '—';
+  if (value === 0) return '0';
+
+  const absValue = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+
+  if (absValue >= 1e9) return `${sign}${(absValue / 1e9).toFixed(decimals)}B`;
+  if (absValue >= 1e6) return `${sign}${(absValue / 1e6).toFixed(decimals)}M`;
+  if (absValue >= 1e3) return `${sign}${(absValue / 1e3).toFixed(decimals)}K`;
   return value.toString();
 }

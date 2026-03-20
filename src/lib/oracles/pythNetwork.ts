@@ -29,6 +29,13 @@ export class PythClient extends BaseOracleClient {
   }
 
   private generateConfidenceInterval(price: number, symbol: string): ConfidenceInterval {
+    if (!symbol) {
+      return {
+        bid: price * 0.995,
+        ask: price * 1.005,
+        widthPercentage: 0.5,
+      };
+    }
     const baseSpread = SPREAD_PERCENTAGES[symbol.toUpperCase()] || 0.05;
     const randomFactor = 0.8 + Math.random() * 0.4;
     const spreadPercentage = baseSpread * randomFactor;
@@ -44,6 +51,9 @@ export class PythClient extends BaseOracleClient {
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
+      if (!symbol) {
+        throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+      }
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       const priceData = await this.fetchPriceWithDatabase(symbol, chain, () => {
@@ -78,6 +88,9 @@ export class PythClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
+      if (!symbol) {
+        throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+      }
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>

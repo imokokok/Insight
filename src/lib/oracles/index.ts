@@ -34,14 +34,14 @@ export type {
 } from './chronicle';
 export type {
   TRONNetworkStats,
+  WINkLinkNetworkStats,
   TRONDApp,
   TRONEcosystem,
   WINkLinkNode,
   NodeStakingData,
   GamingDataSource,
   RandomNumberService,
-  GamingData,
-  WINkLinkNetworkStats,
+  WINkLinkGamingData,
   WINkLinkRiskMetrics,
 } from './winklink';
 export {

@@ -90,7 +90,7 @@ export interface RiskMetrics {
  */
 export function calculateHHI(marketShares: number[]): HHIResult {
   try {
-    if (!marketShares.length) {
+    if (!marketShares || marketShares.length === 0) {
       throw new Error('Market shares array is empty');
     }
 
@@ -254,8 +254,15 @@ export function calculateVolatilityIndex(priceHistory: number[]): VolatilityResu
     // 计算对数收益率
     const returns: number[] = [];
     for (let i = 1; i < priceHistory.length; i++) {
-      const logReturn = Math.log(priceHistory[i] / priceHistory[i - 1]);
-      returns.push(logReturn);
+      // 添加除零检查
+      if (priceHistory[i] > 0 && priceHistory[i - 1] > 0) {
+        const logReturn = Math.log(priceHistory[i] / priceHistory[i - 1]);
+        returns.push(logReturn);
+      }
+    }
+
+    if (returns.length === 0) {
+      throw new Error('Unable to calculate returns from price history');
     }
 
     // 计算平均收益率

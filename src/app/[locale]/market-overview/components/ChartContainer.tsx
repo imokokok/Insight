@@ -212,14 +212,14 @@ export default function ChartContainer({
                   <button
                     key={item.key}
                     onClick={() => setActiveChart(item.key as ChartType)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                       isActive
                         ? 'text-blue-600 bg-white border border-gray-200 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                     } ${index !== getMainChartTypes().length - 1 ? 'mr-0.5' : ''}`}
                     title={isChineseLocale(locale) ? type.labelZh : type.label}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 flex-shrink-0" />
                     <span className="hidden sm:inline">{item.label}</span>
                   </button>
                 );
@@ -236,14 +236,14 @@ export default function ChartContainer({
                   <button
                     key={item.key}
                     onClick={() => setActiveChart(item.key as ChartType)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                       isActive
                         ? 'text-blue-600 bg-white border border-gray-200 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                     } ${index !== getSecondaryChartTypes().length - 1 ? 'mr-0.5' : ''}`}
                     title={isChineseLocale(locale) ? type.labelZh : type.label}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 flex-shrink-0" />
                     <span className="hidden sm:inline">{item.label}</span>
                   </button>
                 );

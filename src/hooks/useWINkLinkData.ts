@@ -3,7 +3,7 @@ import {
   WINkLinkClient,
   TRONEcosystem,
   NodeStakingData,
-  GamingData,
+  WINkLinkGamingData,
   WINkLinkRiskMetrics,
 } from '@/lib/oracles';
 import { Blockchain } from '@/types/oracle';
@@ -44,7 +44,7 @@ export function useWINkLinkStaking() {
 }
 
 export function useWINkLinkGamingData() {
-  return useQuery<GamingData>({
+  return useQuery<WINkLinkGamingData>({
     queryKey: ['winklink', 'gaming'],
     queryFn: () => client.getGamingData(),
     refetchInterval: 60000,

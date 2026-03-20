@@ -108,6 +108,10 @@ export async function fetchDiversificationScore(oracleData: OracleMarketData[]) 
   try {
     logger.info('Calculating diversification score...');
 
+    if (!oracleData || oracleData.length === 0) {
+      throw new Error('Oracle data is empty');
+    }
+
     const totalChains = Math.max(...oracleData.map((o) => o.chains));
     const totalProtocols = oracleData.reduce((sum, o) => sum + o.protocols, 0);
 

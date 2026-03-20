@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { logger } from '@/lib/utils/logger';
 import { UMAClient } from '@/lib/oracles/uma';
-import { UMAMetworkStats, VerificationActivity } from '@/lib/oracles/uma/types';
+import { UMANetworkStats, VerificationActivity } from '@/lib/oracles/uma/types';
 import { DashboardCard, StatCard } from '../../common/DashboardCard';
 import {
   BarChart,
@@ -21,7 +21,7 @@ import {
 } from 'recharts';
 
 interface UMANetworkPanelProps {
-  networkStats: UMAMetworkStats | null;
+  networkStats: UMANetworkStats | null;
   client: UMAClient;
 }
 

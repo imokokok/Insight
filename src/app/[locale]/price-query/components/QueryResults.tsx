@@ -84,6 +84,7 @@ interface QueryResultsProps {
   chartContainerRef: React.RefObject<HTMLDivElement | null>;
   timeComparisonConfig: TimeComparisonConfig;
   onTimeConfigChange: (config: TimeComparisonConfig) => void;
+  filterInputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 export function QueryResults({
@@ -130,6 +131,7 @@ export function QueryResults({
   chartContainerRef,
   timeComparisonConfig,
   onTimeConfigChange,
+  filterInputRef,
 }: QueryResultsProps) {
   const t = useTranslations();
 
@@ -253,6 +255,7 @@ export function QueryResults({
           selectedRow={selectedRow}
           onRowSelect={onRowSelect}
           historicalData={historicalData}
+          filterInputRef={filterInputRef}
         />
 
         <div ref={chartContainerRef} className="min-w-0">

@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { API3Client, DapiCoverage } from '@/lib/oracles/api3';
+import { API3Client, DAPICoverage } from '@/lib/oracles/api3';
 
 const api3Client = new API3Client();
 
@@ -12,7 +12,7 @@ export interface UseAPI3DapiCoverageOptions {
 }
 
 export interface UseAPI3DapiCoverageReturn {
-  data: DapiCoverage | undefined;
+  data: DAPICoverage | undefined;
   isLoading: boolean;
   error: Error | undefined;
   refetch: () => Promise<void>;
@@ -23,11 +23,11 @@ export function useAPI3DapiCoverage(
 ): UseAPI3DapiCoverageReturn {
   const { enabled = true, refreshInterval = 300000 } = options;
 
-  const fetcher = useCallback(async (): Promise<DapiCoverage> => {
+  const fetcher = useCallback(async (): Promise<DAPICoverage> => {
     return api3Client.getDapiCoverage();
   }, []);
 
-  const { data, error, isLoading, refetch } = useQuery<DapiCoverage, Error>({
+  const { data, error, isLoading, refetch } = useQuery<DAPICoverage, Error>({
     queryKey: ['api3-dapi-coverage'],
     queryFn: fetcher,
     enabled,
