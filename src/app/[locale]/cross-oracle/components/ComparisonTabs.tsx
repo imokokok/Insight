@@ -326,7 +326,7 @@ export function ComparisonTabs({
             />
           </div>
         ) : (
-          <div className="border border-gray-200 p-4">
+          <div className="border border-gray-200 p-4 rounded-lg">
             <ResponsiveContainer width="100%" height={400 * zoomLevel}>
               <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <defs>
@@ -481,7 +481,7 @@ export function ComparisonTabs({
             </button>
           </div>
         </div>
-        <div className="border border-gray-200 p-4">
+        <div className="border border-gray-200 p-4 rounded-lg">
           <ResponsiveContainer width="100%" height={400 * zoomLevel}>
             <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <defs>
@@ -623,7 +623,7 @@ export function ComparisonTabs({
             }}
           />
         ) : (
-          <div className="bg-gray-50 border border-gray-200 border-dashed h-full min-h-[200px] flex items-center justify-center">
+          <div className="bg-gray-50 border border-gray-200 border-dashed h-full min-h-[200px] flex items-center justify-center rounded-lg">
             <div className="text-center">
               <svg
                 className="w-12 h-12 mx-auto text-gray-300 mb-3"
@@ -682,7 +682,7 @@ export function ComparisonTabs({
           {t('crossOracle.performanceTab.performanceComparison')}
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-gray-200 p-5">
+          <div className="bg-white border border-gray-200 p-5 rounded-lg">
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('crossOracle.performanceTab.selectOracle')}
@@ -712,7 +712,7 @@ export function ComparisonTabs({
               }
             />
           </div>
-          <div className="bg-white border border-gray-200 p-5">
+          <div className="bg-white border border-gray-200 p-5 rounded-lg">
             <h3 className="text-sm font-semibold text-gray-900 mb-4">
               {t('crossOracle.performanceTab.summary')}
             </h3>
@@ -720,7 +720,7 @@ export function ComparisonTabs({
               {performanceData.map((data) => (
                 <div
                   key={data.provider}
-                  className={`flex items-center justify-between p-3 border transition-colors overflow-hidden ${
+                  className={`flex items-center justify-between p-3 border transition-colors overflow-hidden rounded-lg ${
                     selectedPerformanceOracle === data.provider
                       ? 'bg-primary-50 border-primary-200'
                       : 'bg-gray-50 border-gray-100'

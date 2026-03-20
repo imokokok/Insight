@@ -330,7 +330,7 @@ export function PriceChartRealtime({
           <ConnectionStatusIndicator status={status} lastUpdate={lastUpdate} />
           <button
             onClick={handleExportChart}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors rounded-md"
             title={t('priceQuery.chart.exportImage')}
           >
             <Icons.image />
@@ -341,7 +341,7 @@ export function PriceChartRealtime({
 
       {/* 实时价格显示 */}
       {enableRealtime && priceData && (
-        <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200">
+        <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-emerald-600 font-medium">

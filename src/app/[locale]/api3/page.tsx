@@ -211,7 +211,7 @@ export default function API3Page() {
             {stats.map((stat, index) => (
               <div
                 key={index}
-                className="bg-white border border-gray-200 p-4 hover:border-gray-300 transition-colors duration-200"
+                className="bg-white border border-gray-200 p-4 rounded-lg hover:border-gray-300 transition-colors duration-200"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -238,7 +238,7 @@ export default function API3Page() {
                       {stat.change}
                     </p>
                   </div>
-                  <div className="p-2 bg-gray-100 border border-gray-200 text-gray-600 flex-shrink-0">
+                  <div className="p-2 bg-gray-100 border border-gray-200 rounded-md text-gray-600 flex-shrink-0">
                     {stat.icon}
                   </div>
                 </div>

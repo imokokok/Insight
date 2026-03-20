@@ -31,7 +31,7 @@ export function PriceSpreadHeatmap({ data }: PriceSpreadHeatmapProps) {
   if (chainsWithHighDeviation.length > 0) {
     return (
       <div
-        className="mb-6 p-4 border"
+        className="mb-6 p-4 border rounded-lg"
         style={{
           backgroundColor: semanticColors.warning.light,
           borderColor: semanticColors.warning.light,
@@ -216,7 +216,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
           ))}
           {/* Enhanced Legend */}
           <div
-            className="mt-6 p-4 border"
+            className="mt-6 p-4 border rounded-lg"
             style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
           >
             <div className="text-xs font-medium mb-3" style={{ color: baseColors.gray[700] }}>
@@ -349,7 +349,7 @@ function HeatmapTooltip({
 
   return (
     <div
-      className={`fixed z-50 bg-white border border-gray-200 p-4 min-w-[300px] ${
+      className={`fixed z-50 bg-white border border-gray-200 p-4 min-w-[300px] rounded-lg ${
         isPinned ? 'pointer-events-auto' : 'pointer-events-none'
       }`}
       style={{
@@ -367,7 +367,7 @@ function HeatmapTooltip({
         {isPinned && (
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-colors"
+            className="p-1 hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-colors rounded"
           >
             <svg
               className="w-4 h-4 text-gray-500"
@@ -472,7 +472,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
   if (!selectedCell) return null;
 
   return (
-    <div className="mt-6 border border-gray-200 overflow-hidden bg-white">
+    <div className="mt-6 border border-gray-200 overflow-hidden bg-white rounded-lg">
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-gray-900">
@@ -502,7 +502,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
 
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="bg-gray-50 border border-gray-200 p-4">
+          <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
               {chainNames[selectedCell.xChain]} {t('crossChain.price')}
             </div>
@@ -510,7 +510,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
               ${currentPrices.find((p) => p.chain === selectedCell.xChain)?.price.toFixed(4) || '-'}
             </div>
           </div>
-          <div className="bg-gray-50 border border-gray-200 p-4">
+          <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
               {chainNames[selectedCell.yChain]} {t('crossChain.price')}
             </div>
@@ -518,7 +518,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
               ${currentPrices.find((p) => p.chain === selectedCell.yChain)?.price.toFixed(4) || '-'}
             </div>
           </div>
-          <div className="bg-gray-50 border border-gray-200 p-4">
+          <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
               {t('crossChain.priceDifference')}
             </div>
@@ -545,7 +545,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
           <div className="text-sm font-medium text-gray-700 mb-2">
             {t('crossChain.priceTrendComparison')}
           </div>
-          <div className="h-48 bg-gray-50 border border-gray-200 p-2">
+          <div className="h-48 bg-gray-50 border border-gray-200 p-2 rounded-lg">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                 <CartesianGrid

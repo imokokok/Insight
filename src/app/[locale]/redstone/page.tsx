@@ -443,7 +443,7 @@ export default function RedStonePage() {
                 </div>
 
                 {/* Providers List - Clean Finance Style */}
-                <div className="border border-gray-200 divide-y divide-gray-200">
+                <div className="border border-gray-200 divide-y divide-gray-200 rounded-lg">
                   {providersLoading ? (
                     <div className="text-center py-8 text-gray-500">
                       {t('redstone.providers.loading')}
@@ -734,7 +734,7 @@ export default function RedStonePage() {
 
               {/* Chain List - Clean Finance Style */}
               <DashboardCard title={t('redstone.crossChain.chainList')}>
-                <div className="border border-gray-200 divide-y divide-gray-200">
+                <div className="border border-gray-200 divide-y divide-gray-200 rounded-lg">
                   {SUPPORTED_CHAINS.map((chain, index) => (
                     <div
                       key={chain.chain}
@@ -761,7 +761,7 @@ export default function RedStonePage() {
                           </div>
                         </div>
                         <span
-                          className={`px-2 py-1 text-xs border ${
+                          className={`px-2 py-1 text-xs border rounded-md ${
                             chain.status === 'active'
                               ? 'border-green-200 text-success-700 bg-success-50'
                               : 'border-gray-200 text-gray-600 bg-gray-50'
@@ -864,7 +864,7 @@ export default function RedStonePage() {
                   key={category}
                   title={t(`redstone.ecosystem.categories.${category}`)}
                 >
-                  <div className="border border-gray-200 divide-y divide-gray-200">
+                  <div className="border border-gray-200 divide-y divide-gray-200 rounded-lg">
                     {items.map((integration, index) => (
                       <div
                         key={index}
@@ -874,7 +874,7 @@ export default function RedStonePage() {
                           <h4 className="font-semibold text-gray-900">{integration.name}</h4>
                           <p className="text-sm text-gray-600 mt-0.5">{integration.description}</p>
                         </div>
-                        <span className="px-2 py-1 text-xs border border-gray-200 text-gray-600 bg-gray-50">
+                        <span className="px-2 py-1 text-xs border border-gray-200 rounded-md text-gray-600 bg-gray-50">
                           {t(`redstone.ecosystem.categories.${integration.category}`)}
                         </span>
                       </div>

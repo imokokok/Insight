@@ -71,7 +71,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
       const item = payload[0].payload as (typeof chartData)[0];
       const metric = currentMetric?.metric;
       return (
-        <div className="bg-white border border-gray-200 p-2 min-w-[180px]">
+        <div className="bg-white border border-gray-200 p-2 min-w-[180px] rounded-lg">
           <div className="flex items-center gap-2 mb-1.5">
             <div className="w-2 h-2" style={{ backgroundColor: item.color }} />
             <span className="font-medium text-gray-900 text-sm">{item.name}</span>
@@ -139,7 +139,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
         <div className="relative">
           <button
             onClick={() => setShowMetricSelector(!showMetricSelector)}
-            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors rounded-md"
           >
             <Target className="w-4 h-4 text-gray-500" />
             <span className="text-sm text-gray-700">{currentMetric.metric.name}</span>
@@ -151,7 +151,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
           </button>
 
           {showMetricSelector && (
-            <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 z-10">
+            <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 z-10 rounded-lg">
               <div className="p-1.5">
                 {data.map((item) => (
                   <button

@@ -236,7 +236,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
 
       {/* 经济安全指标 */}
       <DashboardCard title={t('uma.risk.economicSecurity')}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border border-gray-200 rounded-lg overflow-hidden">
           {economicSecurityMetrics.map((metric, index) => (
             <div
               key={index}

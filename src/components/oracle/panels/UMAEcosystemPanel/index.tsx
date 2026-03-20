@@ -145,7 +145,7 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
       <DashboardCard title={t('uma.ecosystem.ooTitle')}>
         <div className="space-y-4">
           <p className="text-gray-600">{t('uma.ecosystem.ooDescription')}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-gray-200 rounded-lg overflow-hidden">
             <div className="bg-gray-50 p-5 text-center border-r border-gray-200">
               <p className="text-3xl font-bold text-gray-900">2,500+</p>
               <p className="text-sm text-gray-500 mt-1">{t('uma.ecosystem.stats.requests')}</p>
@@ -193,10 +193,10 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
           {useCases.map((useCase, index) => (
             <div
               key={index}
-              className="border border-gray-200 p-5 hover:border-gray-400 hover:shadow-sm transition-all duration-200"
+              className="border border-gray-200 p-5 hover:border-gray-400 hover:shadow-sm transition-all duration-200 rounded-lg"
             >
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 text-gray-600 p-2 bg-gray-50 border border-gray-200">
+                <div className="flex-shrink-0 text-gray-600 p-2 bg-gray-50 border border-gray-200 rounded">
                   {useCase.icon}
                 </div>
                 <div className="flex-1">
@@ -206,7 +206,7 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
                     {useCase.examples.map((example, i) => (
                       <span
                         key={i}
-                        className="px-2.5 py-1 bg-gray-50 border border-gray-200 text-xs text-gray-600"
+                        className="px-2.5 py-1 bg-gray-50 border border-gray-200 text-xs text-gray-600 rounded"
                       >
                         {example}
                       </span>
@@ -221,7 +221,7 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
 
       {/* 使用UMA的协议 */}
       <DashboardCard title={t('uma.ecosystem.protocolsTitle')}>
-        <div className="space-y-0 border border-gray-200">
+        <div className="space-y-0 border border-gray-200 rounded-lg overflow-hidden">
           {protocols.map((protocol, index) => (
             <div
               key={index}
@@ -230,7 +230,7 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
               }`}
             >
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-bold">
+                <div className="w-10 h-10 bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-bold rounded">
                   {protocol.name.charAt(0)}
                 </div>
                 <div>
@@ -239,7 +239,7 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
                 </div>
               </div>
               <div className="text-right">
-                <span className="px-2.5 py-1 bg-gray-100 border border-gray-200 text-gray-700 text-xs font-medium">
+                <span className="px-2.5 py-1 bg-gray-100 border border-gray-200 text-gray-700 text-xs font-medium rounded">
                   {protocol.category}
                 </span>
                 <p className="text-sm font-bold text-gray-900 mt-1.5">{protocol.tvl}</p>
@@ -257,7 +257,7 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
             {supportedChains.map((chain, index) => (
               <span
                 key={index}
-                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium border border-gray-200"
+                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium border border-gray-200 rounded"
               >
                 {chain}
               </span>

@@ -563,7 +563,7 @@ export default function CrossChainPage() {
             <div className="relative" ref={favoritesDropdownRef}>
               <button
                 onClick={() => setShowFavoritesDropdown(!showFavoritesDropdown)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 bg-white hover:bg-gray-50 transition-colors rounded-md"
               >
                 <svg
                   className="w-4 h-4 text-gray-600"
@@ -598,7 +598,7 @@ export default function CrossChainPage() {
               </button>
 
               {showFavoritesDropdown && (
-                <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 z-50 max-h-96 overflow-y-auto">
+                <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 z-50 max-h-96 overflow-y-auto rounded-lg">
                   <div className="p-2 border-b border-gray-100">
                     <h3 className="text-sm font-semibold text-gray-900">
                       {t('crossOracle.favorites.quickAccess')}
@@ -657,7 +657,7 @@ export default function CrossChainPage() {
           {/* 色盲友好模式切换 */}
           <button
             onClick={() => setColorblindMode(!colorblindMode)}
-            className={`flex items-center gap-2 px-3 py-1.5 text-sm border rounded-none transition-colors ${
+            className={`flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md transition-colors ${
               colorblindMode ? '' : 'hover:border-gray-400'
             }`}
             style={{
@@ -707,7 +707,7 @@ export default function CrossChainPage() {
           <button
             onClick={exportToCSV}
             disabled={loading || currentPrices.length === 0}
-            className="px-3 py-1.5 text-sm border disabled:opacity-50"
+            className="px-3 py-1.5 text-sm border disabled:opacity-50 rounded-md"
             style={{ borderColor: baseColors.gray[300], color: baseColors.gray[700] }}
           >
             CSV
@@ -715,13 +715,13 @@ export default function CrossChainPage() {
           <button
             onClick={exportToJSON}
             disabled={loading || currentPrices.length === 0}
-            className="px-3 py-1.5 text-sm border disabled:opacity-50"
+            className="px-3 py-1.5 text-sm border disabled:opacity-50 rounded-md"
             style={{ borderColor: baseColors.gray[300], color: baseColors.gray[700] }}
           >
             JSON
           </button>
           <div
-            className="flex items-center gap-2 px-3 py-1.5 border"
+            className="flex items-center gap-2 px-3 py-1.5 border rounded-md"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <span className="text-sm" style={{ color: baseColors.gray[600] }}>
