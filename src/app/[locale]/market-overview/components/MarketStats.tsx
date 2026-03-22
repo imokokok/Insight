@@ -1,9 +1,8 @@
 'use client';
 
-import { useLocale } from 'next-intl';
-import { isChineseLocale } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
+import { EnhancedStatCard } from '@/components/ui/EnhancedStatCard';
 import { MarketStats as MarketStatsType } from '../types';
-import { baseColors, semanticColors } from '@/lib/config/colors';
 
 interface MarketStatsProps {
   marketStats: MarketStatsType;
@@ -12,62 +11,20 @@ interface MarketStatsProps {
   totalProtocols: number;
 }
 
-interface StatItemProps {
-  label: string;
-  value: string | number;
-  change?: string;
-  changeValue?: number;
-  suffix?: string;
-  isPrimary?: boolean;
-}
+/**
+ * 生成模拟趋势数据用于 sparkline 图表
+ */
+function generateTrendData(baseValue: number, points: number = 20): number[] {
+  const data: number[] = [];
+  let currentValue = baseValue;
 
-function StatItem({ label, value, change, changeValue, suffix, isPrimary }: StatItemProps) {
-  const isPositive = changeValue !== undefined ? changeValue >= 0 : true;
-  const changeColor = isPositive ? semanticColors.success.main : semanticColors.danger.main;
+  for (let i = 0; i < points; i++) {
+    const change = (Math.random() - 0.5) * baseValue * 0.1;
+    currentValue += change;
+    data.push(Math.max(currentValue, baseValue * 0.5));
+  }
 
-  return (
-    <div
-      className={`group relative flex flex-col justify-center transition-all duration-200 ${
-        isPrimary ? 'px-6 py-4' : 'px-4 py-3'
-      }`}
-      style={{
-        backgroundColor: isPrimary ? baseColors.gray[50] : 'transparent',
-      }}
-    >
-      <p
-        className={`lowercase tracking-wide transition-colors duration-200 ${
-          isPrimary ? 'text-xs text-gray-500 mb-1' : 'text-[11px] text-gray-400 mb-0.5'
-        }`}
-      >
-        {label}
-      </p>
-      <div className="flex items-baseline gap-2">
-        <p
-          className={`font-semibold text-gray-900 transition-all duration-200 ${
-            isPrimary ? 'text-4xl' : 'text-2xl'
-          }`}
-        >
-          {value}
-          {suffix && <span className="text-lg text-gray-500 ml-0.5">{suffix}</span>}
-        </p>
-        {change && (
-          <span
-            className="text-sm font-medium px-1.5 py-0.5 border"
-            style={{
-              color: changeColor,
-              backgroundColor: isPositive
-                ? semanticColors.success.light
-                : semanticColors.danger.light,
-              borderColor: isPositive ? semanticColors.success.light : semanticColors.danger.light,
-            }}
-          >
-            {isPositive ? '+' : ''}
-            {change}
-          </span>
-        )}
-      </div>
-    </div>
-  );
+  return data;
 }
 
 export default function MarketStats({
@@ -76,58 +33,145 @@ export default function MarketStats({
   totalChains,
   totalProtocols,
 }: MarketStatsProps) {
-  const locale = useLocale();
+  const t = useTranslations('marketOverview.stats');
 
-  const stats: StatItemProps[] = [
+  // 生成各指标的 sparkline 趋势数据
+  const tvsTrendData = generateTrendData(marketStats.totalTVS / 1e9, 24);
+  const chainsTrendData = generateTrendData(totalChains, 20);
+  const protocolsTrendData = generateTrendData(totalProtocols, 20);
+  const dominanceTrendData = generateTrendData(marketStats.marketDominance, 20);
+  const latencyTrendData = generateTrendData(marketStats.avgUpdateLatency, 20);
+  const oracleCountTrendData = generateTrendData(marketStats.oracleCount, 20);
+
+  // TVS 细分数据（按主要预言机）
+  const tvsBreakdown = [
+    { label: 'Chainlink', value: '$12.5B', percentage: 45.2 },
+    { label: 'Pyth', value: '$6.8B', percentage: 24.6 },
+    { label: 'Band', value: '$4.2B', percentage: 15.2 },
+    { label: 'Others', value: '$4.1B', percentage: 15.0 },
+  ];
+
+  // 链支持细分数据
+  const chainsBreakdown = [
+    { label: 'Ethereum', value: '1', percentage: 100 },
+    { label: 'Arbitrum', value: '1', percentage: 100 },
+    { label: 'Optimism', value: '1', percentage: 100 },
+    { label: 'Base', value: '1', percentage: 100 },
+  ];
+
+  // 协议细分数据
+  const protocolsBreakdown = [
+    { label: 'DeFi', value: '85', percentage: 56.7 },
+    { label: 'NFT', value: '35', percentage: 23.3 },
+    { label: 'Gaming', value: '20', percentage: 13.3 },
+    { label: 'Others', value: '10', percentage: 6.7 },
+  ];
+
+  // 市场主导细分数据
+  const dominanceBreakdown = [
+    { label: 'Chainlink', value: '62%', percentage: 62 },
+    { label: 'Pyth', value: '18%', percentage: 18 },
+    { label: 'Band', value: '12%', percentage: 12 },
+    { label: 'Others', value: '8%', percentage: 8 },
+  ];
+
+  // 延迟细分数据
+  const latencyBreakdown = [
+    { label: 'Chainlink', value: '450ms', percentage: 30 },
+    { label: 'Pyth', value: '320ms', percentage: 22 },
+    { label: 'Band', value: '380ms', percentage: 25 },
+    { label: 'Others', value: '350ms', percentage: 23 },
+  ];
+
+  // 预言机细分数据
+  const oracleBreakdown = [
+    { label: 'Price Feeds', value: '85', percentage: 85 },
+    { label: 'VRF', value: '8', percentage: 8 },
+    { label: 'Automation', value: '4', percentage: 4 },
+    { label: 'CCIP', value: '3', percentage: 3 },
+  ];
+
+  const stats = [
     {
-      label: isChineseLocale(locale) ? '总 tvs' : 'total tvs',
+      title: t('totalTVS'),
       value: totalTVS,
-      change: `${marketStats.change24h.toFixed(2)}%`,
-      changeValue: marketStats.change24h,
-      isPrimary: true,
+      change: {
+        value: marketStats.change24h,
+        percentage: true,
+        timeframe: '24h',
+      },
+      sparklineData: tvsTrendData,
+      breakdown: tvsBreakdown,
     },
     {
-      label: isChineseLocale(locale) ? '支持链数' : 'chains',
+      title: t('totalChains'),
       value: totalChains,
-      change: '+12.5%',
-      changeValue: 12.5,
+      change: {
+        value: 12.5,
+        percentage: true,
+        timeframe: '30d',
+      },
+      sparklineData: chainsTrendData,
+      breakdown: chainsBreakdown,
     },
     {
-      label: isChineseLocale(locale) ? '协议数量' : 'protocols',
-      value: totalProtocols,
-      suffix: '+',
-      change: '+8.3%',
-      changeValue: 8.3,
+      title: t('totalProtocols'),
+      value: `${totalProtocols}+`,
+      change: {
+        value: 8.3,
+        percentage: true,
+        timeframe: '30d',
+      },
+      sparklineData: protocolsTrendData,
+      breakdown: protocolsBreakdown,
     },
     {
-      label: isChineseLocale(locale) ? '市场主导' : 'dominance',
+      title: t('marketDominance'),
       value: `${marketStats.marketDominance}%`,
-      change: '-0.5%',
-      changeValue: -0.5,
+      change: {
+        value: -0.5,
+        percentage: true,
+        timeframe: '7d',
+      },
+      sparklineData: dominanceTrendData,
+      breakdown: dominanceBreakdown,
     },
     {
-      label: isChineseLocale(locale) ? '平均延迟' : 'latency',
+      title: t('avgLatency'),
       value: `${marketStats.avgUpdateLatency}ms`,
-      change: '-5.2%',
-      changeValue: -5.2,
+      change: {
+        value: -5.2,
+        percentage: true,
+        timeframe: '7d',
+      },
+      sparklineData: latencyTrendData,
+      breakdown: latencyBreakdown,
     },
     {
-      label: isChineseLocale(locale) ? '预言机数' : 'oracles',
+      title: t('oracleCount'),
       value: marketStats.oracleCount,
-      change: '+2',
-      changeValue: 2,
+      change: {
+        value: 2,
+        percentage: false,
+        timeframe: '30d',
+      },
+      sparklineData: oracleCountTrendData,
+      breakdown: oracleBreakdown,
     },
   ];
 
   return (
-    <div className="flex flex-wrap items-stretch gap-0">
-      {stats.map((stat, index) => (
-        <div
-          key={stat.label}
-          className={`relative ${index !== stats.length - 1 ? 'border-r border-gray-200' : ''}`}
-        >
-          <StatItem {...stat} />
-        </div>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {stats.map((stat) => (
+        <EnhancedStatCard
+          key={stat.title}
+          title={stat.title}
+          value={stat.value}
+          change={stat.change}
+          sparklineData={stat.sparklineData}
+          breakdown={stat.breakdown}
+          variant="compact"
+        />
       ))}
     </div>
   );

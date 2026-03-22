@@ -54,3 +54,10 @@ export type { ErrorStateProps } from './ErrorState';
 
 export { Icon, IconWrapper } from './Icon';
 export type { IconProps, IconSize, IconColor, IconWrapperProps } from './Icon';
+
+export { ChartToolbar } from './ChartToolbar';
+export type {
+  ChartToolbarProps,
+  TimeRange,
+  ChartType,
+} from './ChartToolbar';

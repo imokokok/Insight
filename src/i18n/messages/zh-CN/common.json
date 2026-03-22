@@ -223,6 +223,10 @@
   },
   "common": {
     "loading": "加载中...",
+    "home": "首页",
+    "breadcrumb": {
+      "home": "首页"
+    },
     "error": {
       "loadingFailed": "加载失败"
     }

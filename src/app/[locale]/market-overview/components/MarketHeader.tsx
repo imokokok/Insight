@@ -3,13 +3,13 @@
 import { useTranslations, useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { BarChart3 } from 'lucide-react';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
 import UnifiedExportSection from './UnifiedExportSection';
 import RefreshControl from './RefreshControl';
 import RealtimeIndicator from './RealtimeIndicator';
 import { RefreshInterval } from '../constants';
 import { OracleMarketData, AssetData } from '../types';
-
-import { chartColors, getChartColor } from '@/lib/chartColors';
 
 interface MarketHeaderProps {
   loading: boolean;
@@ -42,47 +42,69 @@ export default function MarketHeader({
   wsStatus,
   wsReconnect,
 }: MarketHeaderProps) {
-  const _t = useTranslations();
+  const t = useTranslations();
   const locale = useLocale();
 
+  const breadcrumbItems = [
+    {
+      label: isChineseLocale(locale) ? '市场概览' : 'Market Overview',
+      icon: <BarChart3 className="w-4 h-4" />,
+    },
+  ];
+
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-primary-100 border border-primary-200">
-            <BarChart3 className="w-6 h-6 text-primary-600" />
+    <div className="flex flex-col gap-3 mb-4">
+      {/* Breadcrumb */}
+      <Breadcrumb items={breadcrumbItems} />
+
+      {/* Main Header Content */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        {/* Title Section */}
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary-50 border border-primary-100 rounded-lg">
+            <BarChart3 className="w-5 h-5 text-primary-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isChineseLocale(locale) ? '市场概览' : 'Market Overview'}
-          </h1>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">
+              {isChineseLocale(locale) ? '市场概览' : 'Market Overview'}
+            </h1>
+            <p className="text-sm text-gray-500">
+              {isChineseLocale(locale)
+                ? '全面分析预言机市场份额、TVS趋势和链支持情况'
+                : 'Comprehensive analysis of oracle market share, TVS trends and chain support'}
+            </p>
+          </div>
         </div>
-        <p className="text-gray-600 ml-14">
-          {isChineseLocale(locale)
-            ? '全面分析预言机市场份额、TVS趋势和链支持情况'
-            : 'Comprehensive analysis of oracle market share, TVS trends and chain support'}
-        </p>
+
+        {/* Operation Buttons */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <UnifiedExportSection
+            loading={loading}
+            oracleData={oracleData}
+            assets={assets}
+            chartContainerRef={chartContainerRef}
+            activeChart={activeChart}
+            getChartTitle={getChartTitle}
+          />
+
+          <RefreshControl
+            lastUpdated={lastUpdated ?? undefined}
+            isRefreshing={refreshStatus === 'refreshing'}
+            onRefresh={fetchData}
+            autoRefreshInterval={refreshInterval}
+            onAutoRefreshChange={(interval) => setRefreshInterval(interval as RefreshInterval)}
+          />
+
+          <RealtimeIndicator isConnected={wsStatus === 'connected'} onReconnect={wsReconnect} />
+        </div>
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap">
-        <UnifiedExportSection
-          loading={loading}
-          oracleData={oracleData}
-          assets={assets}
-          chartContainerRef={chartContainerRef}
-          activeChart={activeChart}
-          getChartTitle={getChartTitle}
-        />
-
-        <RefreshControl
-          lastUpdated={lastUpdated ?? undefined}
-          isRefreshing={refreshStatus === 'refreshing'}
-          onRefresh={fetchData}
-          autoRefreshInterval={refreshInterval}
-          onAutoRefreshChange={(interval) => setRefreshInterval(interval as RefreshInterval)}
-        />
-
-        <RealtimeIndicator isConnected={wsStatus === 'connected'} onReconnect={wsReconnect} />
-      </div>
+      {/* Live Status Bar */}
+      <LiveStatusBar
+        isConnected={wsStatus === 'connected'}
+        lastUpdate={lastUpdated ?? undefined}
+        onReconnect={wsReconnect}
+      />
     </div>
   );
 }

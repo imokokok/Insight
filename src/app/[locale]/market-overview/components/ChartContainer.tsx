@@ -1,6 +1,7 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useState, useCallback } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { ResponsiveContainer } from 'recharts';
 import {
@@ -22,10 +23,8 @@ import {
 } from 'lucide-react';
 import { TIME_RANGES, ChartType, ViewType, TVSTrendData, OracleMarketData, ChainBreakdown, ProtocolDetail, AssetCategory, ComparisonData, BenchmarkData, CorrelationData } from '../types';
 import ChartRenderer from './ChartRenderer';
-
-import { Icon } from '@/components/ui';
-
-import { chartColors, getChartColor } from '@/lib/chartColors';
+import { ChartToolbar, TimeRange as ToolbarTimeRange, ChartType as ToolbarChartType } from '@/components/ui/ChartToolbar';
+import { cn } from '@/lib/utils';
 
 interface ChartContainerProps {
   chartContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -93,6 +92,12 @@ const chartTypes = [
   { key: 'correlation', label: 'Correlation', labelZh: '相关性', icon: ActivitySquare },
 ];
 
+// 支持图表类型切换的图表
+const CHARTS_WITH_TYPE_SUPPORT: ChartType[] = ['trend', 'comparison', 'benchmark'];
+
+// 需要 ResponsiveContainer 的图表
+const CHARTS_WITH_RESPONSIVE_CONTAINER: ChartType[] = ['pie', 'trend', 'bar', 'comparison', 'benchmark', 'correlation'];
+
 export default function ChartContainer({
   chartContainerRef,
   activeChart,
@@ -132,7 +137,46 @@ export default function ChartContainer({
   benchmarkData,
   correlationData,
 }: ChartContainerProps) {
+  const t = useTranslations('marketOverview');
   const locale = useLocale();
+  const isZh = isChineseLocale(locale);
+
+  // 图表类型状态 (line/area/candle)
+  const [chartType, setChartType] = useState<'line' | 'area' | 'candle'>('line');
+
+  // 时间范围配置
+  const timeRanges: ToolbarTimeRange[] = TIME_RANGES.map(range => ({
+    key: range.key,
+    label: range.label,
+    labelZh: range.label,
+  }));
+
+  // 图表类型切换配置
+  const chartTypeOptions: ToolbarChartType[] = [
+    { key: 'line', label: t('chartTypes.line'), icon: <TrendingUp className="w-4 h-4" /> },
+    { key: 'area', label: t('chartTypes.area'), icon: <ActivitySquare className="w-4 h-4" /> },
+  ];
+
+  // 处理图表类型切换
+  const handleChartTypeChange = useCallback((type: string) => {
+    setChartType(type as 'line' | 'area' | 'candle');
+  }, []);
+
+  // 处理时间范围切换
+  const handleTimeRangeChange = useCallback((range: string) => {
+    setSelectedTimeRange(range);
+  }, [setSelectedTimeRange]);
+
+  // 处理重置缩放
+  const handleResetZoom = useCallback(() => {
+    setZoomRange(null);
+  }, [setZoomRange]);
+
+  // 处理导出
+  const handleExport = useCallback(() => {
+    // 导出功能实现
+    console.log('Export chart data');
+  }, []);
 
   const toggleComparisonMode = (mode: 'yoy' | 'mom') => {
     if (comparisonMode === mode) {
@@ -191,23 +235,87 @@ export default function ChartContainer({
   };
 
   const getMainChartTypes = () => [
-    { key: 'pie', label: isChineseLocale(locale) ? '市场份额' : 'Market Share' },
-    { key: 'trend', label: isChineseLocale(locale) ? 'TVS趋势' : 'TVS Trend' },
-    { key: 'bar', label: isChineseLocale(locale) ? '链支持' : 'Chain Support' },
-    { key: 'chain', label: isChineseLocale(locale) ? '链分布' : 'Chain Breakdown' },
+    { key: 'pie', label: isZh ? '市场份额' : 'Market Share' },
+    { key: 'trend', label: isZh ? 'TVS趋势' : 'TVS Trend' },
+    { key: 'bar', label: isZh ? '链支持' : 'Chain Support' },
+    { key: 'chain', label: isZh ? '链分布' : 'Chain Breakdown' },
   ];
 
   const getSecondaryChartTypes = () => [
-    { key: 'protocol', label: isChineseLocale(locale) ? '协议' : 'Protocols' },
-    { key: 'asset', label: isChineseLocale(locale) ? '资产' : 'Assets' },
+    { key: 'protocol', label: isZh ? '协议' : 'Protocols' },
+    { key: 'asset', label: isZh ? '资产' : 'Assets' },
   ];
 
+  // 是否显示 ChartToolbar
+  const showChartToolbar = CHARTS_WITH_TYPE_SUPPORT.includes(activeChart);
+
+  // 是否使用 ResponsiveContainer
+  const useResponsiveContainer = CHARTS_WITH_RESPONSIVE_CONTAINER.includes(activeChart);
+
+  // 渲染加载状态
+  const renderLoadingState = () => (
+    <div className="h-[360px] flex items-center justify-center">
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-6 h-6 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        <span className="text-gray-500 text-xs">
+          {isZh ? '加载中...' : 'Loading...'}
+        </span>
+      </div>
+    </div>
+  );
+
+  // 渲染图表
+  const renderChart = () => {
+    const chartProps = {
+      activeChart,
+      viewType,
+      sortedOracleData,
+      trendData,
+      chainBreakdown,
+      protocolDetails,
+      assetCategories,
+      comparisonData,
+      benchmarkData,
+      correlationData,
+      loading,
+      loadingEnhanced,
+      loadingComparison,
+      locale,
+      hoveredItem,
+      setHoveredItem,
+      selectedItem,
+      setSelectedItem,
+      linkedOracle,
+      setLinkedOracle,
+      zoomRange,
+      setZoomRange,
+      anomalyThreshold,
+      selectedAnomaly,
+      setSelectedAnomaly,
+      comparisonMode,
+      trendComparisonData,
+      showConfidenceInterval,
+      chartType, // 传递图表类型
+    };
+
+    if (!useResponsiveContainer) {
+      return <ChartRenderer {...chartProps} />;
+    }
+
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <ChartRenderer {...chartProps} />
+      </ResponsiveContainer>
+    );
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="py-4 border-b border-gray-100">
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+    <div className="space-y-3">
+      {/* Chart Type Tabs */}
+      <div className="py-2 border-b border-gray-100">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center bg-gray-50/80 border border-gray-200 p-1">
+            <div className="flex items-center bg-gray-50/80 border border-gray-200 rounded-md p-0.5">
               {getMainChartTypes().map((item, index) => {
                 const type = chartTypes.find((t) => t.key === item.key);
                 if (!type) return null;
@@ -217,22 +325,23 @@ export default function ChartContainer({
                   <button
                     key={item.key}
                     onClick={() => setActiveChart(item.key as ChartType)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                    className={cn(
+                      'flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all duration-200 whitespace-nowrap rounded-sm',
                       isActive
-                        ? 'text-primary-600 bg-white border border-gray-200 shadow-sm'
+                        ? 'text-primary-600 bg-white shadow-sm'
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                    } ${index !== getMainChartTypes().length - 1 ? 'mr-0.5' : ''}`}
-                    title={isChineseLocale(locale) ? type.labelZh : type.label}
+                    )}
+                    title={isZh ? type.labelZh : type.label}
                   >
-                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="hidden sm:inline">{item.label}</span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="flex items-center bg-gray-50/80 border border-gray-200 p-1">
-              {getSecondaryChartTypes().map((item, index) => {
+            <div className="flex items-center bg-gray-50/80 border border-gray-200 rounded-md p-0.5">
+              {getSecondaryChartTypes().map((item) => {
                 const type = chartTypes.find((t) => t.key === item.key);
                 if (!type) return null;
                 const Icon = type.icon;
@@ -241,14 +350,15 @@ export default function ChartContainer({
                   <button
                     key={item.key}
                     onClick={() => setActiveChart(item.key as ChartType)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                    className={cn(
+                      'flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all duration-200 whitespace-nowrap rounded-sm',
                       isActive
-                        ? 'text-primary-600 bg-white border border-gray-200 shadow-sm'
+                        ? 'text-primary-600 bg-white shadow-sm'
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                    } ${index !== getSecondaryChartTypes().length - 1 ? 'mr-0.5' : ''}`}
-                    title={isChineseLocale(locale) ? type.labelZh : type.label}
+                    )}
+                    title={isZh ? type.labelZh : type.label}
                   >
-                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="hidden sm:inline">{item.label}</span>
                   </button>
                 );
@@ -256,17 +366,19 @@ export default function ChartContainer({
             </div>
           </div>
 
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Time Range */}
+            <div className="flex items-center gap-0.5 bg-gray-50 rounded-md p-0.5">
               {TIME_RANGES.map((range) => (
                 <button
                   key={range.key}
                   onClick={() => setSelectedTimeRange(range.key)}
-                  className={`px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
+                  className={cn(
+                    'px-2 py-1 text-xs font-medium rounded-sm transition-all duration-200',
                     selectedTimeRange === range.key
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                  }`}
+                      ? 'text-primary-600 bg-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  )}
                 >
                   {range.label}
                 </button>
@@ -275,63 +387,70 @@ export default function ChartContainer({
 
             {activeChart === 'trend' && (
               <>
-                <div className="h-4 w-px bg-gray-300 hidden sm:block" />
+                <div className="h-3.5 w-px bg-gray-300 hidden sm:block" />
 
-                <div className="flex items-center gap-1">
+                {/* Comparison Mode */}
+                <div className="flex items-center gap-0.5 bg-gray-50 rounded-md p-0.5">
                   <button
                     onClick={() => toggleComparisonMode('yoy')}
-                    className={`px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
+                    className={cn(
+                      'px-2 py-1 text-xs font-medium rounded-sm transition-all duration-200',
                       comparisonMode === 'yoy'
-                        ? 'text-primary-600 bg-primary-50'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                    title={isChineseLocale(locale) ? '同比对比' : 'Year-over-Year'}
+                        ? 'text-primary-600 bg-white shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    )}
+                    title={isZh ? '同比对比' : 'Year-over-Year'}
                   >
-                    {isChineseLocale(locale) ? '同比' : 'YoY'}
+                    {isZh ? '同比' : 'YoY'}
                   </button>
                   <button
                     onClick={() => toggleComparisonMode('mom')}
-                    className={`px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
+                    className={cn(
+                      'px-2 py-1 text-xs font-medium rounded-sm transition-all duration-200',
                       comparisonMode === 'mom'
-                        ? 'text-primary-600 bg-primary-50'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                    title={isChineseLocale(locale) ? '环比对比' : 'Month-over-Month'}
+                        ? 'text-primary-600 bg-white shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    )}
+                    title={isZh ? '环比对比' : 'Month-over-Month'}
                   >
-                    {isChineseLocale(locale) ? '环比' : 'MoM'}
+                    {isZh ? '环比' : 'MoM'}
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 px-2 py-1">
-                  <AlertTriangle className="w-3.5 h-3.5 text-danger-500" />
+                {/* Anomaly Threshold */}
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded-md">
+                  <AlertTriangle className="w-3 h-3 text-danger-500" />
                   <input
                     type="range"
                     min="5"
                     max="50"
                     value={anomalyThreshold * 100}
                     onChange={(e) => setAnomalyThreshold(Number(e.target.value) / 100)}
-                    className="w-12 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer accent-red-500"
+                    className="w-10 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer accent-danger-500"
                   />
-                  <span className="text-xs font-medium text-gray-600 min-w-[1.5rem]">
+                  <span className="text-xs font-medium text-gray-600 min-w-[1.25rem]">
                     {(anomalyThreshold * 100).toFixed(0)}%
                   </span>
                 </div>
 
+                {/* Confidence Interval */}
                 {comparisonMode === 'none' && (
-                  <div className="flex items-center gap-2 px-2 py-1">
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-purple-50 rounded-md">
                     <span className="text-xs font-medium text-purple-700">
-                      {isChineseLocale(locale) ? '置信区间' : 'CI'}
+                      {isZh ? 'CI' : 'CI'}
                     </span>
                     <button
                       onClick={() => setShowConfidenceInterval(!showConfidenceInterval)}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      className={cn(
+                        'relative inline-flex h-4 w-7 items-center rounded-full transition-colors',
                         showConfidenceInterval ? 'bg-purple-500' : 'bg-gray-300'
-                      }`}
+                      )}
                     >
                       <span
-                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          showConfidenceInterval ? 'translate-x-5' : 'translate-x-1'
-                        }`}
+                        className={cn(
+                          'inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform',
+                          showConfidenceInterval ? 'translate-x-4' : 'translate-x-0.5'
+                        )}
                       />
                     </button>
                     {showConfidenceInterval && (
@@ -342,31 +461,34 @@ export default function ChartContainer({
               </>
             )}
 
-            <div className="h-4 w-px bg-gray-300 hidden lg:block" />
+            <div className="h-3.5 w-px bg-gray-300 hidden lg:block" />
 
+            {/* View Type Toggle */}
             {!['pie', 'trend', 'bar'].includes(activeChart) && (
-              <div className="flex items-center">
+              <div className="flex items-center bg-gray-50 rounded-md p-0.5">
                 <button
                   onClick={() => setViewType('chart')}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
+                  className={cn(
+                    'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-sm transition-all duration-200',
                     viewType === 'chart'
-                      ? 'text-primary-600 border-primary-600'
-                      : 'text-gray-500 border-transparent hover:text-gray-700'
-                  }`}
+                      ? 'text-primary-600 bg-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  )}
                 >
-                  <PieChartIcon className="w-4 h-4" />
-                  {isChineseLocale(locale) ? '图表' : 'Chart'}
+                  <PieChartIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{isZh ? '图表' : 'Chart'}</span>
                 </button>
                 <button
                   onClick={() => setViewType('table')}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
+                  className={cn(
+                    'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-sm transition-all duration-200',
                     viewType === 'table'
-                      ? 'text-primary-600 border-primary-600'
-                      : 'text-gray-500 border-transparent hover:text-gray-700'
-                  }`}
+                      ? 'text-primary-600 bg-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  )}
                 >
-                  <TableIcon className="w-4 h-4" />
-                  {isChineseLocale(locale) ? '表格' : 'Table'}
+                  <TableIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{isZh ? '表格' : 'Table'}</span>
                 </button>
               </div>
             )}
@@ -374,21 +496,39 @@ export default function ChartContainer({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div ref={chartContainerRef} className="lg:col-span-2 py-4">
-          <div className="flex items-center justify-between mb-4">
+      {/* Chart Toolbar - 仅在支持的图表类型显示 */}
+      {showChartToolbar && (
+        <ChartToolbar
+          timeRanges={timeRanges}
+          selectedRange={selectedTimeRange}
+          onRangeChange={handleTimeRangeChange}
+          chartTypes={chartTypeOptions}
+          selectedType={chartType}
+          onTypeChange={handleChartTypeChange}
+          showZoomReset={!!zoomRange}
+          onResetZoom={handleResetZoom}
+          onExport={handleExport}
+          className="py-1.5 px-2"
+        />
+      )}
+
+      {/* Chart Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div ref={chartContainerRef} className="lg:col-span-2">
+          {/* Chart Header */}
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-sm font-semibold text-gray-900">{getChartTitle()}</h3>
               {linkedOracle && (
-                <div className="flex items-center gap-2 px-2 py-1 bg-purple-50 border border-purple-200">
-                  <Link2 className="w-3.5 h-3.5 text-purple-600" />
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-purple-50 border border-purple-200 rounded-md">
+                  <Link2 className="w-3 h-3 text-purple-600" />
                   <span className="text-xs text-purple-700">
                     {linkedOracle.primary} ↔ {linkedOracle.secondary}
                   </span>
                   <button
                     onClick={() => setLinkedOracle(null)}
-                    className="ml-1 p-0.5 hover:bg-purple-200 transition-colors"
-                    title={isChineseLocale(locale) ? '清除联动' : 'Clear Link'}
+                    className="ml-1 p-0.5 hover:bg-purple-200 rounded transition-colors"
+                    title={isZh ? '清除联动' : 'Clear Link'}
                   >
                     <X className="w-3 h-3 text-purple-600" />
                   </button>
@@ -397,31 +537,19 @@ export default function ChartContainer({
               {activeChart === 'trend' &&
                 comparisonMode !== 'none' &&
                 trendComparisonData.length > 0 && (
-                  <div className="flex items-center gap-2 px-2 py-1 bg-primary-50 border border-primary-200">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary-50 border border-primary-200 rounded-md">
                     <span className="text-xs text-primary-700">
                       {comparisonMode === 'yoy'
-                        ? isChineseLocale(locale)
-                          ? '同比'
-                          : 'YoY'
-                        : isChineseLocale(locale)
-                          ? '环比'
-                          : 'MoM'}
+                        ? isZh ? '同比' : 'YoY'
+                        : isZh ? '环比' : 'MoM'}
                     </span>
                     {(() => {
                       const latestData = prepareComparisonData(trendData, trendComparisonData)[
                         trendData.length - 1
                       ];
                       const oracleKeys = [
-                        'chainlink',
-                        'pyth',
-                        'band',
-                        'api3',
-                        'uma',
-                        'redstone',
-                        'dia',
-                        'tellor',
-                        'chronicle',
-                        'winklink',
+                        'chainlink', 'pyth', 'band', 'api3', 'uma',
+                        'redstone', 'dia', 'tellor', 'chronicle', 'winklink',
                       ];
                       const avgDiff =
                         oracleKeys.reduce((sum, key) => {
@@ -430,7 +558,10 @@ export default function ChartContainer({
                         }, 0) / oracleKeys.length;
                       return (
                         <span
-                          className={`text-sm font-bold ${avgDiff >= 0 ? 'text-success-600' : 'text-danger-600'}`}
+                          className={cn(
+                            'text-xs font-bold',
+                            avgDiff >= 0 ? 'text-success-600' : 'text-danger-600'
+                          )}
                         >
                           {avgDiff >= 0 ? '+' : ''}
                           {avgDiff.toFixed(2)}%
@@ -440,114 +571,46 @@ export default function ChartContainer({
                   </div>
                 )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {activeChart === 'trend' && zoomRange && (
                 <button
                   onClick={() => setZoomRange(null)}
-                  className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1 px-2 py-1 hover:bg-primary-50 transition-colors"
+                  className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1 px-2 py-1 hover:bg-primary-50 rounded-md transition-colors"
                 >
                   <RefreshCw className="w-3 h-3" />
-                  {isChineseLocale(locale) ? '重置' : 'Reset'}
+                  {isZh ? '重置' : 'Reset'}
                 </button>
               )}
               {selectedItem && (
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 hover:bg-gray-100 transition-colors"
+                  className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-md transition-colors"
                 >
-                  {isChineseLocale(locale) ? '清除' : 'Clear'}
+                  {isZh ? '清除' : 'Clear'}
                   <X className="w-3 h-3" />
                 </button>
               )}
             </div>
           </div>
 
+          {/* Chart Area */}
           {loading && !['chain', 'protocol', 'asset'].includes(activeChart) ? (
-            <div className="h-[400px] flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-600 animate-spin" />
-                <span className="text-gray-500 text-sm">
-                  {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
-                </span>
-              </div>
-            </div>
+            renderLoadingState()
           ) : (
             <>
               <div
-                className={`${viewType === 'table' && !['chain', 'protocol', 'asset'].includes(activeChart) ? 'h-[360px]' : 'h-[400px]'}`}
-              >
-                {['chain', 'protocol', 'asset'].includes(activeChart) ? (
-                  <ChartRenderer
-                    activeChart={activeChart}
-                    viewType={viewType}
-                    sortedOracleData={sortedOracleData}
-                    trendData={trendData}
-                    chainBreakdown={chainBreakdown}
-                    protocolDetails={protocolDetails}
-                    assetCategories={assetCategories}
-                    comparisonData={comparisonData}
-                    benchmarkData={benchmarkData}
-                    correlationData={correlationData}
-                    loading={loading}
-                    loadingEnhanced={loadingEnhanced}
-                    loadingComparison={loadingComparison}
-                    locale={locale}
-                    hoveredItem={hoveredItem}
-                    setHoveredItem={setHoveredItem}
-                    selectedItem={selectedItem}
-                    setSelectedItem={setSelectedItem}
-                    linkedOracle={linkedOracle}
-                    setLinkedOracle={setLinkedOracle}
-                    zoomRange={zoomRange}
-                    setZoomRange={setZoomRange}
-                    anomalyThreshold={anomalyThreshold}
-                    selectedAnomaly={selectedAnomaly}
-                    setSelectedAnomaly={setSelectedAnomaly}
-                    comparisonMode={comparisonMode}
-                    trendComparisonData={trendComparisonData}
-                    showConfidenceInterval={showConfidenceInterval}
-                  />
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ChartRenderer
-                      activeChart={activeChart}
-                      viewType={viewType}
-                      sortedOracleData={sortedOracleData}
-                      trendData={trendData}
-                      chainBreakdown={chainBreakdown}
-                      protocolDetails={protocolDetails}
-                      assetCategories={assetCategories}
-                      comparisonData={comparisonData}
-                      benchmarkData={benchmarkData}
-                      correlationData={correlationData}
-                      loading={loading}
-                      loadingEnhanced={loadingEnhanced}
-                      loadingComparison={loadingComparison}
-                      locale={locale}
-                      hoveredItem={hoveredItem}
-                      setHoveredItem={setHoveredItem}
-                      selectedItem={selectedItem}
-                      setSelectedItem={setSelectedItem}
-                      linkedOracle={linkedOracle}
-                      setLinkedOracle={setLinkedOracle}
-                      zoomRange={zoomRange}
-                      setZoomRange={setZoomRange}
-                      anomalyThreshold={anomalyThreshold}
-                      selectedAnomaly={selectedAnomaly}
-                      setSelectedAnomaly={setSelectedAnomaly}
-                      comparisonMode={comparisonMode}
-                      trendComparisonData={trendComparisonData}
-                      showConfidenceInterval={showConfidenceInterval}
-                    />
-                  </ResponsiveContainer>
+                className={cn(
+                  viewType === 'table' && !['chain', 'protocol', 'asset'].includes(activeChart)
+                    ? 'h-[320px]'
+                    : 'h-[360px]'
                 )}
+              >
+                {renderChart()}
               </div>
               {viewType === 'chart' && !['chain', 'protocol', 'asset'].includes(activeChart) && (
-                <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                  <Info className="w-4 h-4" />
-                  {isChineseLocale(locale)
-                    ? '悬停查看详情，点击选中项目'
-                    : 'Hover for details, click to select'}
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
+                  <Info className="w-3.5 h-3.5" />
+                  <span>{isZh ? '悬停查看详情，点击选中项目' : 'Hover for details, click to select'}</span>
                 </div>
               )}
             </>
