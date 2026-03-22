@@ -1,10 +1,15 @@
 'use client';
 
+/**
+ * @fileoverview 价格查询页面头部组件
+ * @description 包含页面标题、收藏夹、历史记录和导出功能
+ */
+
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { History, Download, FileSpreadsheet, FileJson, Settings2 } from 'lucide-react';
 import { QueryHistoryItem } from '@/utils/queryHistory';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
-import { History, Download, FileSpreadsheet, FileJson, Settings2 } from 'lucide-react';
-import { useState } from 'react';
 import { FavoriteButton } from '@/components/favorites';
 import { FavoriteConfig } from '@/hooks/useFavorites';
 import { useUser } from '@/stores/authStore';
@@ -38,6 +43,12 @@ interface QueryHeaderProps {
   handleApplyFavorite: (config: FavoriteConfig) => void;
 }
 
+/**
+ * 价格查询页面头部组件
+ *
+ * @param props - 组件属性
+ * @returns 页面头部 JSX 元素
+ */
 export function QueryHeader({
   showHistory,
   setShowHistory,
@@ -80,7 +91,8 @@ export function QueryHeader({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      {/* 标题区域 */}
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">{t('navbar.priceQuery')}</h1>
         <p className="text-sm text-gray-500 mt-1">
@@ -92,8 +104,9 @@ export function QueryHeader({
         </p>
       </div>
 
-      <div className="flex items-center gap-2">
-        {/* Favorites Button */}
+      {/* 操作按钮区域 */}
+      <nav className="flex items-center gap-2" aria-label="页面操作">
+        {/* 收藏夹按钮 */}
         {user && (
           <FavoriteButton
             configType="symbol"
@@ -104,18 +117,21 @@ export function QueryHeader({
           />
         )}
 
-        {/* Favorites Dropdown */}
+        {/* 收藏夹下拉菜单 */}
         {user && symbolFavorites && symbolFavorites.length > 0 && (
           <div className="relative" ref={favoritesDropdownRef}>
             <button
               onClick={() => setShowFavoritesDropdown(!showFavoritesDropdown)}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white text-gray-600 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-all border border-gray-200"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 transition-all border border-gray-200 shadow-sm"
+              aria-expanded={showFavoritesDropdown}
+              aria-haspopup="listbox"
             >
               <svg
                 className="w-4 h-4 text-gray-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -133,6 +149,7 @@ export function QueryHeader({
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -144,7 +161,10 @@ export function QueryHeader({
             </button>
 
             {showFavoritesDropdown && (
-              <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-y-auto">
+              <div
+                className="absolute right-0 top-full mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-y-auto"
+                role="listbox"
+              >
                 <div className="p-2 border-b border-gray-100">
                   <h3 className="text-sm font-semibold text-gray-900">
                     {t('crossOracle.favorites.quickAccess')}
@@ -158,6 +178,7 @@ export function QueryHeader({
                         key={favorite.id}
                         onClick={() => handleApplyFavorite(config)}
                         className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors rounded-md"
+                        role="option"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-gray-900 truncate">
@@ -200,17 +221,19 @@ export function QueryHeader({
           </div>
         )}
 
-        {/* History Button */}
+        {/* 历史记录按钮 */}
         <div className="relative">
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-all border shadow-sm ${
               showHistory
-                ? 'bg-primary-50 text-primary-700'
-                : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'bg-primary-50 text-primary-700 border-primary-200'
+                : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-gray-200'
             }`}
+            aria-expanded={showHistory}
+            aria-haspopup="listbox"
           >
-            <History className="w-4 h-4" />
+            <History className="w-4 h-4" aria-hidden="true" />
             {t('priceQuery.history.title')}
             {historyItems.length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
@@ -219,9 +242,12 @@ export function QueryHeader({
             )}
           </button>
 
-          {/* History Dropdown */}
+          {/* 历史记录下拉菜单 */}
           {showHistory && (
-            <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+            <div
+              className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden"
+              role="listbox"
+            >
               <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-900">
                   {t('priceQuery.history.title')}
@@ -246,6 +272,7 @@ export function QueryHeader({
                       key={index}
                       onClick={() => handleHistorySelect(item)}
                       className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
+                      role="option"
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-gray-900">{item.symbol}</span>
@@ -263,27 +290,33 @@ export function QueryHeader({
           )}
         </div>
 
-        {/* Export Dropdown */}
+        {/* 导出下拉菜单 */}
         <div className="relative">
           <button
             onClick={() => setShowExportMenu(!showExportMenu)}
             disabled={loading || queryResultsLength === 0}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white text-gray-600 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 shadow-sm"
+            aria-expanded={showExportMenu}
+            aria-haspopup="listbox"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-4 h-4" aria-hidden="true" />
             {t('export')}
           </button>
 
           {showExportMenu && (
-            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+            <div
+              className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden"
+              role="listbox"
+            >
               <button
                 onClick={() => {
                   onExportCSV();
                   setShowExportMenu(false);
                 }}
                 className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                role="option"
               >
-                <FileSpreadsheet className="w-4 h-4 text-success-600" />
+                <FileSpreadsheet className="w-4 h-4 text-success-600" aria-hidden="true" />
                 {t('priceQuery.export.csv')}
               </button>
               <button
@@ -292,8 +325,9 @@ export function QueryHeader({
                   setShowExportMenu(false);
                 }}
                 className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                role="option"
               >
-                <FileJson className="w-4 h-4 text-primary-600" />
+                <FileJson className="w-4 h-4 text-primary-600" aria-hidden="true" />
                 {t('priceQuery.export.json')}
               </button>
               <button
@@ -302,16 +336,17 @@ export function QueryHeader({
                   setShowExportMenu(false);
                 }}
                 className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 border-t border-gray-100"
+                role="option"
               >
-                <Settings2 className="w-4 h-4 text-purple-600" />
+                <Settings2 className="w-4 h-4 text-purple-600" aria-hidden="true" />
                 {t('priceQuery.export.advanced')}
               </button>
             </div>
           )}
         </div>
-      </div>
+      </nav>
 
-      {/* Click outside to close dropdowns */}
+      {/* 点击外部关闭下拉菜单 */}
       {(showHistory || showExportMenu) && (
         <div
           className="fixed inset-0 z-40"
@@ -319,8 +354,9 @@ export function QueryHeader({
             setShowHistory(false);
             setShowExportMenu(false);
           }}
+          aria-hidden="true"
         />
       )}
-    </div>
+    </header>
   );
 }

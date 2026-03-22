@@ -24,7 +24,6 @@ import { API3PriceData } from '@/lib/services/api3WebSocket';
 import { format } from 'date-fns';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
-
 const logger = createLogger('price-query-PriceChartRealtime');
 
 export interface RealtimeChartDataPoint {
@@ -100,7 +99,11 @@ function ConnectionStatusIndicator({
       text: t('priceQuery.chart.connectionStatus.disconnected'),
       animate: '',
     },
-    error: { color: 'bg-danger-500', text: t('priceQuery.chart.connectionStatus.error'), animate: '' },
+    error: {
+      color: 'bg-danger-500',
+      text: t('priceQuery.chart.connectionStatus.error'),
+      animate: '',
+    },
   };
 
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.disconnected;

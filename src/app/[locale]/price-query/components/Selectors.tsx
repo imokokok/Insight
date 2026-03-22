@@ -1,8 +1,13 @@
 'use client';
 
+/**
+ * @fileoverview 查询选择器组件
+ * @description 包含资产、预言机、区块链和时间范围选择器
+ */
+
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Icons } from './Icons';
+import { ChevronDown, ChevronUp, Search, RefreshCw } from 'lucide-react';
 import { OracleProvider, Blockchain, BLOCKCHAIN_VALUES } from '@/lib/oracles';
 import { symbols, oracleColors, chainColors, TIME_RANGES, oracleI18nKeys } from '../constants';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
@@ -28,6 +33,12 @@ interface SelectorsProps {
   setShowBaseline?: (show: boolean) => void;
 }
 
+/**
+ * 查询选择器组件
+ *
+ * @param props - 组件属性
+ * @returns 选择器面板 JSX 元素
+ */
 export function Selectors({
   selectedOracles,
   setSelectedOracles,
@@ -84,47 +95,45 @@ export function Selectors({
     label: t(`priceQuery.timeRanges.${range.key}`),
   }));
 
-  const handleSelectAllChains = () => {
-    const supportedChains = Array.from(supportedChainsBySelectedOracles);
-    if (supportedChains.length > 0) {
-      setSelectedChains(supportedChains);
-    } else {
-      setSelectedChains([...BLOCKCHAIN_VALUES]);
-    }
-  };
-
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      {/* 面板头部 */}
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          <Icons.currency className="w-4 h-4 text-gray-500" />
+          <Search className="w-4 h-4 text-gray-500" aria-hidden="true" />
           {t('priceQuery.title')}
         </h2>
         <button
           onClick={onQuery}
           disabled={isLoading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md shadow-sm"
         >
           {isLoading ? (
-            <div className="w-3 h-3 border-2 border-white border-t-transparent animate-spin" />
+            <div
+              className="w-3 h-3 border-2 border-white border-t-transparent animate-spin"
+              aria-hidden="true"
+            />
           ) : (
-            <Icons.refresh className="w-3 h-3" />
+            <RefreshCw className="w-3 h-3" aria-hidden="true" />
           )}
           {isLoading ? t('priceQuery.loading') : t('priceQuery.query')}
         </button>
       </div>
 
+      {/* 选择器内容 */}
       <div className="p-4 space-y-4">
-        <div className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
+        {/* 资产选择 */}
+        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
           <SegmentedControl
             options={symbolOptions}
             value={selectedSymbol}
             onChange={(value) => setSelectedSymbol(value as string)}
             label={t('priceQuery.selectors.symbol')}
           />
-        </div>
+        </section>
 
-        <div className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
+        {/* 预言机选择 */}
+        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
           <MultiSelect
             options={oracleOptions}
             value={selectedOracles}
@@ -134,9 +143,10 @@ export function Selectors({
             selectAllLabel={t('priceQuery.selectors.selectAll')}
             deselectAllLabel={t('priceQuery.selectors.deselectAll')}
           />
-        </div>
+        </section>
 
-        <div className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
+        {/* 区块链选择 */}
+        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
           <MultiSelect
             options={chainOptions}
             value={selectedChains}
@@ -147,42 +157,38 @@ export function Selectors({
             deselectAllLabel={t('priceQuery.selectors.deselectAll')}
             maxVisible={20}
           />
-        </div>
+        </section>
 
-        <div className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
+        {/* 时间范围选择 */}
+        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
           <SegmentedControl
             options={timeRangeOptions}
             value={selectedTimeRange}
             onChange={(value) => setSelectedTimeRange(value as number)}
             label={t('priceQuery.selectors.timeRange')}
           />
-        </div>
+        </section>
 
+        {/* 高级选项 */}
         <div className="pt-1">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors py-2 px-3 rounded-lg hover:bg-gray-50/80"
+            className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors py-2 px-3 rounded-md hover:bg-gray-50/80"
+            aria-expanded={showAdvanced}
           >
             <span className="text-[11px] font-semibold uppercase tracking-wider">
               {t('priceQuery.selectors.advancedOptions')}
             </span>
-            <svg
-              className={`w-4 h-4 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
+            {showAdvanced ? (
+              <ChevronUp className="w-4 h-4" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="w-4 h-4" aria-hidden="true" />
+            )}
           </button>
 
           {showAdvanced && (
             <div className="mt-2 space-y-2 p-3 bg-gray-50/80 rounded-lg border border-gray-100 animate-in slide-in-from-top-1 duration-200">
+              {/* 对比模式 */}
               <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
                 <input
                   type="checkbox"
@@ -195,6 +201,7 @@ export function Selectors({
                 </span>
               </label>
 
+              {/* 显示基准线 */}
               <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
                 <input
                   type="checkbox"
@@ -207,6 +214,7 @@ export function Selectors({
                 </span>
               </label>
 
+              {/* 对比时间范围 */}
               {isCompareMode && (
                 <div className="pt-2 border-t border-gray-200 mt-2">
                   <SegmentedControl
