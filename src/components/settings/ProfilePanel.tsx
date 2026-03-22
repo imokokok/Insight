@@ -5,8 +5,43 @@ import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 import { updateUserProfile } from '@/lib/supabase/auth';
 import { User, Mail, Save, Key, Loader2, CheckCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-// AvatarUploader component is not available, using a placeholder
-import { AvatarUploader } from '@/components/settings/AvatarUploader';
+// AvatarUploader component placeholder
+const AvatarUploader = ({
+  currentAvatarUrl,
+  userId,
+  onAvatarUpdate,
+  onError,
+  onSuccess,
+}: {
+  currentAvatarUrl?: string | null;
+  userId: string;
+  onAvatarUpdate: (url: string) => Promise<void>;
+  onError: (errorMsg: string) => void;
+  onSuccess: (message: string) => void;
+}) => (
+  <div className="flex items-center gap-4">
+    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+      {currentAvatarUrl ? (
+        <img src={currentAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+      ) : (
+        <User className="w-8 h-8 text-gray-500" />
+      )}
+    </div>
+    <button
+      type="button"
+      className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50"
+      onClick={() => {
+        // Placeholder upload functionality
+        const mockUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`;
+        onAvatarUpdate(mockUrl)
+          .then(() => onSuccess('Avatar updated successfully'))
+          .catch(() => onError('Failed to update avatar'));
+      }}
+    >
+      Upload Avatar
+    </button>
+  </div>
+);
 
 export function ProfilePanel() {
   const t = useTranslations();

@@ -1,6 +1,16 @@
 'use client';
 
+import { SparklineChart } from '@/components/ui/SparklineChart';
 import { getTrendIcon, getHealthColor, HistoryMinMax } from '../constants';
+
+interface SparklineData {
+  avgPrice?: number[];
+  maxPrice?: number[];
+  minPrice?: number[];
+  priceRange?: number[];
+  standardDeviation?: number[];
+  variance?: number[];
+}
 
 interface StatsCardsProps {
   avgPrice: number;
@@ -18,6 +28,7 @@ interface StatsCardsProps {
   calculateChangePercent: (current: number, previous: number) => number | null;
   getConsistencyRating: (stdDevPercent: number) => string;
   t: (key: string) => string;
+  sparklineData?: SparklineData;
 }
 
 const ConsistencyBadge = ({ rating, t }: { rating: string; t: (key: string) => string }) => {
@@ -50,20 +61,22 @@ export function StatsCards({
   calculateChangePercent,
   getConsistencyRating,
   t,
+  sparklineData,
 }: StatsCardsProps) {
   const consistencyRating = getConsistencyRating(standardDeviationPercent);
   const healthColor = getHealthColor('deviation', standardDeviationPercent);
 
   return (
     <div className="hidden md:grid grid-cols-3 lg:grid-cols-6 gap-4 py-4 border-b border-gray-100">
-      <div className="py-2">
+      {/* 平均价格 */}
+      <div className="bg-white rounded-lg border border-gray-100 p-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <span className="text-sm font-medium text-gray-500">
             {t('crossOracle.averagePrice')}
           </span>
           {getTrendIcon(calculateChangePercent(avgPrice, lastStats?.avgPrice || 0))}
         </div>
-        <p className="text-xl font-bold text-gray-900">
+        <p className="text-lg font-bold text-gray-900">
           {avgPrice > 0
             ? `$${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             : '-'}
@@ -74,6 +87,17 @@ export function StatsCards({
             ? `$${weightedAvgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             : '-'}
         </p>
+        {sparklineData?.avgPrice && sparklineData.avgPrice.length > 0 && (
+          <div className="mt-2">
+            <SparklineChart
+              data={sparklineData.avgPrice}
+              width={100}
+              height={30}
+              fill
+              animate
+            />
+          </div>
+        )}
         {historyMinMax.avgPrice.max > -Infinity && (
           <p className="text-xs text-gray-400 mt-1">
             {t('crossOracle.historyRange')}: $
@@ -83,14 +107,15 @@ export function StatsCards({
         )}
       </div>
 
-      <div className="py-2">
+      {/* 最高价格 */}
+      <div className="bg-white rounded-lg border border-gray-100 p-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <span className="text-sm font-medium text-gray-500">
             {t('crossOracle.highestPrice')}
           </span>
           {getTrendIcon(calculateChangePercent(maxPrice, lastStats?.maxPrice || 0))}
         </div>
-        <p className="text-xl font-bold text-gray-900">
+        <p className="text-lg font-bold text-gray-900">
           {maxPrice > 0
             ? `$${maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             : '-'}
@@ -101,6 +126,17 @@ export function StatsCards({
             ? `$${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             : '-'}
         </p>
+        {sparklineData?.maxPrice && sparklineData.maxPrice.length > 0 && (
+          <div className="mt-2">
+            <SparklineChart
+              data={sparklineData.maxPrice}
+              width={100}
+              height={30}
+              fill
+              animate
+            />
+          </div>
+        )}
         {historyMinMax.maxPrice.max > -Infinity && (
           <p className="text-xs text-gray-400 mt-1">
             {t('crossOracle.historyRange')}: $
@@ -110,13 +146,14 @@ export function StatsCards({
         )}
       </div>
 
-      <div className={`py-2 ${healthColor.text}`}>
+      {/* 价格范围 */}
+      <div className={`bg-white rounded-lg border border-gray-100 p-4 ${healthColor.text}`}>
         <div className="flex items-center justify-between mb-1">
-          <span className={`text-xs font-medium uppercase tracking-wide ${healthColor.text}`}>
+          <span className={`text-sm font-medium ${healthColor.text}`}>
             {t('crossOracle.priceRange')}
           </span>
         </div>
-        <p className="text-xl font-bold">
+        <p className="text-lg font-bold">
           {priceRange > 0
             ? `$${priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             : '-'}
@@ -125,6 +162,17 @@ export function StatsCards({
           {t('crossOracle.ofAverage')}:{' '}
           {avgPrice > 0 ? ((priceRange / avgPrice) * 100).toFixed(2) : '-'}%
         </p>
+        {sparklineData?.priceRange && sparklineData.priceRange.length > 0 && (
+          <div className="mt-2">
+            <SparklineChart
+              data={sparklineData.priceRange}
+              width={100}
+              height={30}
+              fill
+              animate
+            />
+          </div>
+        )}
         {historyMinMax.priceRange.max > -Infinity && (
           <p className="text-xs text-gray-400 mt-1">
             {t('crossOracle.historyRange')}: $
@@ -134,18 +182,30 @@ export function StatsCards({
         )}
       </div>
 
-      <div className={`py-2 ${healthColor.text}`}>
+      {/* 标准差 */}
+      <div className={`bg-white rounded-lg border border-gray-100 p-4 ${healthColor.text}`}>
         <div className="flex items-center justify-between mb-1">
-          <span className={`text-xs font-medium uppercase tracking-wide ${healthColor.text}`}>
+          <span className={`text-sm font-medium ${healthColor.text}`}>
             {t('crossOracle.standardDeviation')}
           </span>
         </div>
-        <p className="text-xl font-bold">
+        <p className="text-lg font-bold">
           {standardDeviationPercent > 0 ? `±${standardDeviationPercent.toFixed(3)}%` : '-'}
         </p>
         <p className="text-xs text-gray-400 mt-0.5">
           σ: {variance > 0 ? `$${Math.sqrt(variance).toFixed(2)}` : '-'}
         </p>
+        {sparklineData?.standardDeviation && sparklineData.standardDeviation.length > 0 && (
+          <div className="mt-2">
+            <SparklineChart
+              data={sparklineData.standardDeviation}
+              width={100}
+              height={30}
+              fill
+              animate
+            />
+          </div>
+        )}
         {historyMinMax.standardDeviationPercent.max > -Infinity && (
           <p className="text-xs text-gray-400 mt-1">
             {t('crossOracle.historyRange')}: {historyMinMax.standardDeviationPercent.min.toFixed(3)}
@@ -154,14 +214,26 @@ export function StatsCards({
         )}
       </div>
 
-      <div className={`py-2 ${healthColor.text}`}>
+      {/* 方差 */}
+      <div className={`bg-white rounded-lg border border-gray-100 p-4 ${healthColor.text}`}>
         <div className="flex items-center justify-between mb-1">
-          <span className={`text-xs font-medium uppercase tracking-wide ${healthColor.text}`}>
+          <span className={`text-sm font-medium ${healthColor.text}`}>
             {t('crossOracle.variance')}
           </span>
         </div>
-        <p className="text-xl font-bold">{variance > 0 ? `$${variance.toFixed(2)}` : '-'}</p>
+        <p className="text-lg font-bold">{variance > 0 ? `$${variance.toFixed(2)}` : '-'}</p>
         <p className="text-xs text-gray-400 mt-0.5">V[x]</p>
+        {sparklineData?.variance && sparklineData.variance.length > 0 && (
+          <div className="mt-2">
+            <SparklineChart
+              data={sparklineData.variance}
+              width={100}
+              height={30}
+              fill
+              animate
+            />
+          </div>
+        )}
         {historyMinMax.variance.max > -Infinity && (
           <p className="text-xs text-gray-400 mt-1">
             {t('crossOracle.historyRange')}: ${historyMinMax.variance.min.toFixed(2)} - $
@@ -170,9 +242,10 @@ export function StatsCards({
         )}
       </div>
 
-      <div className={`py-2 ${healthColor.text}`}>
+      {/* 一致性评级 */}
+      <div className={`bg-white rounded-lg border border-gray-100 p-4 ${healthColor.text}`}>
         <div className="flex items-center justify-between mb-1">
-          <span className={`text-xs font-medium uppercase tracking-wide ${healthColor.text}`}>
+          <span className={`text-sm font-medium ${healthColor.text}`}>
             {t('crossOracle.consistencyRating')}
           </span>
         </div>
@@ -180,6 +253,17 @@ export function StatsCards({
           <ConsistencyBadge rating={consistencyRating} t={t} />
         </div>
         <p className="text-xs text-gray-400 mt-2">{t('crossOracle.basedOnStdDev')}</p>
+        {sparklineData?.avgPrice && sparklineData.avgPrice.length > 0 && (
+          <div className="mt-2">
+            <SparklineChart
+              data={sparklineData.avgPrice}
+              width={100}
+              height={30}
+              fill
+              animate
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -199,6 +283,7 @@ interface MobileStatsCardsProps {
   calculateChangePercent: (current: number, previous: number) => number | null;
   getConsistencyRating: (stdDevPercent: number) => string;
   t: (key: string) => string;
+  sparklineData?: SparklineData;
 }
 
 export function MobileStatsCards({
@@ -212,6 +297,7 @@ export function MobileStatsCards({
   calculateChangePercent,
   getConsistencyRating,
   t,
+  sparklineData,
 }: MobileStatsCardsProps) {
   const consistencyRating = getConsistencyRating(standardDeviationPercent);
 
@@ -221,18 +307,21 @@ export function MobileStatsCards({
       value: avgPrice,
       change: calculateChangePercent(avgPrice, lastStats?.avgPrice || 0),
       subValue: `$${variance > 0 ? Math.sqrt(variance).toFixed(2) : '-'}`,
+      sparkline: sparklineData?.avgPrice,
     },
     {
       label: t('crossOracle.highestPrice'),
       value: maxPrice,
       change: calculateChangePercent(maxPrice, lastStats?.maxPrice || 0),
       subValue: `${t('crossOracle.low')}: ${minPrice > 0 ? `$${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}`,
+      sparkline: sparklineData?.maxPrice,
     },
     {
       label: t('crossOracle.priceRange'),
       value: priceRange,
       change: null,
       subValue: `${avgPrice > 0 ? ((priceRange / avgPrice) * 100).toFixed(2) : '-'}% of avg`,
+      sparkline: sparklineData?.priceRange,
     },
     {
       label: t('crossOracle.standardDeviation'),
@@ -240,6 +329,7 @@ export function MobileStatsCards({
       change: null,
       isPercent: true,
       subValue: `σ: ${variance > 0 ? `$${Math.sqrt(variance).toFixed(2)}` : '-'}`,
+      sparkline: sparklineData?.standardDeviation,
     },
     {
       label: t('crossOracle.variance'),
@@ -247,15 +337,21 @@ export function MobileStatsCards({
       change: null,
       isCurrency: true,
       subValue: 'V[x]',
+      sparkline: sparklineData?.variance,
     },
-    { label: t('crossOracle.consistencyRating'), value: consistencyRating, isBadge: true },
+    { 
+      label: t('crossOracle.consistencyRating'), 
+      value: consistencyRating, 
+      isBadge: true,
+      sparkline: sparklineData?.avgPrice,
+    },
   ];
 
   return (
-    <div className="md:hidden flex overflow-x-auto gap-4 pb-2 -mx-4 px-4">
+    <div className="md:hidden flex overflow-x-auto gap-4 pb-4 -mx-4 px-4">
       {stats.map((stat, index) => (
-        <div key={index} className="flex-shrink-0 w-36 py-2">
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+        <div key={index} className="flex-shrink-0 w-40 bg-white rounded-lg border border-gray-100 p-4">
+          <div className="text-sm font-medium text-gray-500 mb-1">
             {stat.label}
           </div>
           {stat.isBadge ? (
@@ -263,7 +359,7 @@ export function MobileStatsCards({
           ) : (
             <>
               <div className="flex items-center gap-1 mb-0.5">
-                <p className="text-lg font-bold text-gray-900">
+                <p className="text-base font-bold text-gray-900">
                   {typeof stat.value === 'number' && stat.value > 0
                     ? stat.isPercent
                       ? `±${stat.value.toFixed(3)}%`
@@ -276,6 +372,17 @@ export function MobileStatsCards({
               </div>
               <div className="text-xs text-gray-400">{stat.subValue}</div>
             </>
+          )}
+          {stat.sparkline && stat.sparkline.length > 0 && (
+            <div className="mt-2">
+              <SparklineChart
+                data={stat.sparkline}
+                width={120}
+                height={32}
+                fill
+                animate
+              />
+            </div>
           )}
         </div>
       ))}

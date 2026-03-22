@@ -107,27 +107,51 @@
 ### 2.5 间距系统 ✅
 
 ```css
-/* 专业数据平台间距规范 - 紧凑风格 */
---spacing-page-x: 0.75rem;      /* 12px - 页面水平内边距 */
---spacing-page-y: 0.75rem;      /* 12px - 页面垂直内边距 */
---spacing-section: 0.75rem;     /* 12px - 组件间距 space-y */
---spacing-grid: 0.75rem;        /* 12px - 网格间距 gap */
---spacing-card: 0.75rem;        /* 12px - 卡片内边距 p */
+/* 专业数据平台间距规范 - 参考价格查询页面 */
+--spacing-page-x: 1rem;         /* 16px - 页面水平内边距（移动端） */
+--spacing-page-x-sm: 1.5rem;    /* 24px - 页面水平内边距（sm断点） */
+--spacing-page-x-lg: 2rem;      /* 32px - 页面水平内边距（lg断点） */
+--spacing-page-y: 1.5rem;       /* 24px - 页面垂直内边距 */
+--spacing-section: 1.5rem;      /* 24px - 组件间距 space-y */
+--spacing-grid: 1rem;           /* 16px - 网格间距 gap */
+--spacing-grid-lg: 1.5rem;      /* 24px - 大屏网格间距 */
+--spacing-card: 1rem;           /* 16px - 卡片内边距 p */
 --spacing-element: 0.5rem;      /* 8px - 元素间距 */
 --spacing-tight: 0.25rem;       /* 4px - 紧凑间距 */
 
 /* 容器规范 */
 --container-max: 1600px;        /* 最大宽度，大屏充分利用 */
+--sidebar-width: 400px;         /* 左侧控制面板宽度 */
 ```
 
 **使用规范**:
-- 页面容器: `px-3 py-3` (12px)
-- 组件间距: `space-y-3` (12px)
-- 网格间距: `gap-3` (12px)
-- 卡片内边距: `p-3` (12px)
-- 卡片内部元素: `gap-2` (8px)
+- 页面容器: `px-4 sm:px-6 lg:px-8 py-6`
+- 组件间距: `space-y-6` (24px)
+- 网格间距: `gap-4` / `gap-6` (16px/24px)
+- 卡片内边距: `p-4` (16px)
+- 左侧边栏: `xl:w-[400px]` 固定宽度
+- 左侧边栏 sticky: `xl:sticky xl:top-6`
 
-**保留原因**: 紧凑间距提升信息密度，符合专业数据平台标准。
+**页面布局示例**:
+```typescript
+// 标准左右分栏布局（参考 price-query, cross-oracle 页面）
+<div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div className="flex flex-col xl:flex-row gap-6">
+    {/* 左侧控制面板 */}
+    <aside className="xl:w-[400px] xl:flex-shrink-0">
+      <div className="xl:sticky xl:top-6">
+        <ControlPanel />
+      </div>
+    </aside>
+    {/* 右侧主内容区 */}
+    <main className="flex-1 min-w-0">
+      <Content />
+    </main>
+  </div>
+</div>
+```
+
+**保留原因**: 充足的间距让页面不拥挤，提升阅读体验，与价格查询页面保持一致。
 
 ### 2.6 动画系统 ✅
 
@@ -171,32 +195,38 @@ xl: 1280px  /* 标准桌面 */
 
 ## 3. 需要改进的设计问题
 
-### 3.1 信息密度过低 ❌
+### 3.1 信息密度优化 ✅
 
 **问题描述**:
-- 页面留白比例 25-30%，专业平台通常 15-20%
-- 卡片间距过大（gap-6 = 24px）
-- 单屏信息量少
+- 页面留白比例 25-30%，需要平衡信息密度和可读性
+- 需要统一的间距规范确保所有页面一致性
 
 **改进规则**:
 ```css
-/* 页面内边距 - 从宽松改为紧凑 */
-/* 旧 */
-px-6 lg:px-12 xl:px-20 py-6
-/* 新 */
-px-4 lg:px-6 py-4
+/* 页面内边距 - 统一使用标准规范 */
+/* 标准 */
+px-4 sm:px-6 lg:px-8 py-6
 
-/* 卡片间距 - 从宽松改为紧凑 */
-/* 旧 */
-gap-6  /* 24px */
-/* 新 */
-gap-4  /* 16px，数据密集型页面使用 gap-3 (12px) */
+/* 组件间距 - 统一使用标准规范 */
+/* 标准 */
+space-y-6  /* 24px */
+gap-6      /* 24px */
+
+/* 左侧边栏 - 固定宽度 + sticky */
+xl:w-[400px] xl:flex-shrink-0
+xl:sticky xl:top-6
 
 /* 表格行高 - 添加紧凑模式 */
 --table-row-height-compact: 2.5rem;    /* 40px */
 --table-row-height-normal: 3.5rem;     /* 56px */
 --table-row-height-comfortable: 4rem;  /* 64px */
 ```
+
+**设计原则**:
+- 统一的页面内边距标准 (`px-4 sm:px-6 lg:px-8 py-6`)
+- 统一的组件间距 (`space-y-6`, `gap-6`)
+- 左侧控制面板固定宽度 400px，支持 sticky 跟随滚动
+- 充足的留白提升可读性，避免页面拥挤
 
 ### 3.2 实时数据展示不专业 ❌
 
@@ -503,13 +533,13 @@ interface BottomNavProps {
 
 **改进规则**:
 ```typescript
-// 1. 布局优化 - 紧凑专业风格
-// - 页面容器: px-3 py-3 (极致紧凑)
-// - 组件间距: space-y-3
-// - 网格间距: gap-3
-// - 卡片内边距: p-3
+// 1. 布局优化 - 标准专业风格
+// - 页面容器: px-4 sm:px-6 lg:px-8 py-6 (标准内边距)
+// - 组件间距: space-y-6
+// - 网格间距: gap-6
+// - 卡片内边距: p-4
 // - 最大宽度: max-w-[1600px] (大屏充分利用)
-// - 页面容器内边距: px-4 sm:px-6 lg:px-8 py-6 → px-3 py-3
+// - 左侧边栏: xl:w-[400px] xl:sticky xl:top-6
 
 // 2. MarketStats 优化
 // - 使用增强版 StatCard

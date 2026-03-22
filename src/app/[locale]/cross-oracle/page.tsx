@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useCrossOraclePage } from './useCrossOraclePage';
 import {
   HeaderSection,
@@ -7,8 +8,9 @@ import {
   ComparisonTabs,
   ExportSection,
   FullscreenChart,
-  TabNavigation,
+  StatsSection,
 } from './components';
+import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
 import { chartColors } from '@/lib/config/colors';
 
 export default function CrossOraclePage() {
@@ -102,10 +104,60 @@ export default function CrossOraclePage() {
     handleTabChange,
     setHoveredRowIndex,
     setSelectedRowIndex,
+    symbols,
+    onQuery,
+    onSymbolChange,
+    onDeviationFilterChange,
+    onAccessibleColorsChange,
   } = useCrossOraclePage();
 
+  // Generate sparkline data from priceData history
+  const sparklineData = useMemo(() => {
+    if (!priceData || priceData.length === 0) return undefined;
+
+    // Generate sample sparkline data from price history
+    const dataPoints = 20;
+    const avgPrices: number[] = [];
+    const maxPrices: number[] = [];
+    const minPrices: number[] = [];
+    const priceRanges: number[] = [];
+    const stdDevs: number[] = [];
+    const variances: number[] = [];
+
+    for (let i = 0; i < dataPoints; i++) {
+      const slice = priceData.slice(0, Math.max(1, Math.floor((priceData.length * (i + 1)) / dataPoints)));
+      const prices = slice.map((p) => p.price).filter((p) => p > 0);
+
+      if (prices.length > 0) {
+        const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+        const max = Math.max(...prices);
+        const min = Math.min(...prices);
+        const range = max - min;
+
+        const variance = prices.reduce((sum, p) => sum + Math.pow(p - avg, 2), 0) / prices.length;
+        const stdDev = Math.sqrt(variance);
+
+        avgPrices.push(avg);
+        maxPrices.push(max);
+        minPrices.push(min);
+        priceRanges.push(range);
+        stdDevs.push(stdDev);
+        variances.push(variance);
+      }
+    }
+
+    return {
+      avgPrice: avgPrices,
+      maxPrice: maxPrices,
+      minPrice: minPrices,
+      priceRange: priceRanges,
+      standardDeviation: stdDevs,
+      variance: variances,
+    };
+  }, [priceData]);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-insight min-h-screen rounded-lg">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 bg-insight min-h-screen">
       <style jsx global>{`
         @keyframes cross-oracle-pulse-highlight {
           0%,
@@ -121,43 +173,55 @@ export default function CrossOraclePage() {
         }
       `}</style>
 
+      {/* Live Status Bar */}
+      <div className="mb-6">
+        <LiveStatusBar
+          isConnected={!isLoading}
+          latency={undefined}
+          lastUpdate={lastUpdated || undefined}
+        />
+      </div>
+
       <StatsOverview outlierStats={outlierStats} scrollToOutlier={scrollToOutlier} t={t} />
 
       <HeaderSection
         selectedSymbol={selectedSymbol}
-        setSelectedSymbol={setSelectedSymbol}
         selectedOracles={selectedOracles}
         isLoading={isLoading}
         lastUpdated={lastUpdated}
-        isFilterPanelOpen={isFilterPanelOpen}
-        setIsFilterPanelOpen={setIsFilterPanelOpen}
-        filterPanelRef={filterPanelRef}
-        timeRange={timeRange}
-        setTimeRange={setTimeRange}
-        deviationFilter={deviationFilter}
-        setDeviationFilter={setDeviationFilter}
-        oracleFilter={oracleFilter}
-        setOracleFilter={setOracleFilter}
-        activeFilterCount={activeFilterCount}
-        useAccessibleColors={useAccessibleColors}
-        setUseAccessibleColors={setUseAccessibleColors}
         showFavoritesDropdown={showFavoritesDropdown}
         setShowFavoritesDropdown={setShowFavoritesDropdown}
         favoritesDropdownRef={favoritesDropdownRef}
         user={user}
         oracleFavorites={oracleFavorites}
         currentFavoriteConfig={currentFavoriteConfig}
-        handleClearFilters={handleClearFilters}
-        getFilterSummary={getFilterSummary}
         handleApplyFavorite={handleApplyFavorite}
         fetchPriceData={fetchPriceData}
         t={t}
       />
 
-      <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+      <StatsSection
+        qualityScoreData={qualityScoreData}
+        selectedSymbol={selectedSymbol}
+        selectedOracles={selectedOracles}
+        avgPrice={avgPrice}
+        weightedAvgPrice={weightedAvgPrice}
+        maxPrice={maxPrice}
+        minPrice={minPrice}
+        priceRange={priceRange}
+        standardDeviationPercent={standardDeviationPercent}
+        variance={variance}
+        lastStats={lastStats}
+        historyMinMax={historyMinMax}
+        calculateChangePercent={calculateChangePercent}
+        getConsistencyRating={getConsistencyRating}
+        t={t}
+        sparklineData={sparklineData}
+      />
 
       <ComparisonTabs
         activeTab={activeTab}
+        onTabChange={handleTabChange}
         selectedSymbol={selectedSymbol}
         selectedOracles={selectedOracles}
         priceData={priceData}
@@ -210,6 +274,7 @@ export default function CrossOraclePage() {
         handleZoomIn={handleZoomIn}
         handleZoomOut={handleZoomOut}
         handleResetZoom={handleResetZoom}
+        setTimeRange={setTimeRange}
         handleSaveSnapshot={handleSaveSnapshot}
         handleSelectSnapshot={handleSelectSnapshot}
         fetchPriceData={fetchPriceData}
@@ -219,6 +284,15 @@ export default function CrossOraclePage() {
         calculateChangePercent={calculateChangePercent}
         getOracleLatencyData={getOracleLatencyData}
         t={t}
+        symbols={symbols}
+        deviationFilter={deviationFilter}
+        onDeviationFilterChange={onDeviationFilterChange}
+        useAccessibleColors={useAccessibleColors}
+        onAccessibleColorsChange={onAccessibleColorsChange}
+        onQuery={onQuery}
+        activeFilterCount={activeFilterCount}
+        onClearFilters={handleClearFilters}
+        onSymbolChange={onSymbolChange}
       />
 
       <FullscreenChart

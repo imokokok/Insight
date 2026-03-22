@@ -9,6 +9,7 @@ export interface DataQualityScoreCardProps {
   overallScore?: number;
   freshness?: { lastUpdated: Date };
   reliability?: { historicalAccuracy: number; responseSuccessRate: number };
+  compact?: boolean;
 }
 
 export interface FreshnessData {
@@ -128,6 +129,7 @@ export function DataQualityScoreCard({
   overallScore,
   freshness,
   reliability,
+  compact = false,
 }: DataQualityScoreCardProps) {
   const t = useTranslations();
 
@@ -155,8 +157,91 @@ export function DataQualityScoreCard({
     validatorActivity: { score: 92, trend: 'up' as const },
   };
 
+  if (compact) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-3">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">
+              {t('dataQualityScoreCard.title')}
+            </h3>
+            <p className="text-xs text-gray-500 mt-0.5">{t('dataQualityScoreCard.subtitle')}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+              {t('dataQualityScoreCard.overallScore')}
+            </p>
+            <p className="text-xl font-bold text-primary-600">{data.overallScore.toFixed(1)}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="bg-gray-50 rounded p-2">
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">
+              {t('dataQualityScoreCard.networkHealth')}
+            </p>
+            <p className="text-base font-bold text-gray-900">{data.networkHealth.score.toFixed(1)}</p>
+            <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  data.networkHealth.score >= 90 ? 'bg-success-500' : data.networkHealth.score >= 70 ? 'bg-warning-500' : 'bg-danger-500'
+                }`}
+                style={{ width: `${Math.min(100, data.networkHealth.score)}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded p-2">
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">
+              {t('dataQualityScoreCard.dataIntegrity')}
+            </p>
+            <p className="text-base font-bold text-gray-900">{data.dataIntegrity.score.toFixed(1)}</p>
+            <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  data.dataIntegrity.score >= 90 ? 'bg-success-500' : data.dataIntegrity.score >= 70 ? 'bg-warning-500' : 'bg-danger-500'
+                }`}
+                style={{ width: `${Math.min(100, data.dataIntegrity.score)}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded p-2">
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">
+              {t('dataQualityScoreCard.responseTime')}
+            </p>
+            <p className="text-base font-bold text-gray-900">{data.responseTime.score.toFixed(1)}</p>
+            <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  data.responseTime.score >= 90 ? 'bg-success-500' : data.responseTime.score >= 70 ? 'bg-warning-500' : 'bg-danger-500'
+                }`}
+                style={{ width: `${Math.min(100, data.responseTime.score)}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded p-2">
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">
+              {t('dataQualityScoreCard.validatorActivity')}
+            </p>
+            <p className="text-base font-bold text-gray-900">{data.validatorActivity.score.toFixed(1)}</p>
+            <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  data.validatorActivity.score >= 90 ? 'bg-success-500' : data.validatorActivity.score >= 70 ? 'bg-warning-500' : 'bg-danger-500'
+                }`}
+                style={{ width: `${Math.min(100, data.validatorActivity.score)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white border border-gray-200  p-6">
+    <div className="bg-white border border-gray-200 p-6">
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
