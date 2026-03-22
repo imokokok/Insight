@@ -103,7 +103,6 @@ export default function MarketHeader({
       <LiveStatusBar
         isConnected={wsStatus === 'connected'}
         lastUpdate={lastUpdated ?? undefined}
-        onReconnect={wsReconnect}
       />
     </div>
   );

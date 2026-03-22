@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import { DataTablePro, type ColumnDef, type SortConfig } from '@/components/ui/DataTablePro';
 import { OracleProvider, PriceData } from '@/types/oracle';
 import {
   oracleNames,
@@ -10,16 +11,14 @@ import {
   getFreshnessDotColor,
   calculateZScore,
   isOutlier,
-  SortColumn,
-  SortDirection,
 } from '../constants';
 
 interface PriceTableProps {
   priceData: PriceData[];
   filteredPriceData: PriceData[];
   isLoading: boolean;
-  sortColumn: SortColumn;
-  sortDirection: SortDirection;
+  sortColumn: 'price' | 'timestamp' | null;
+  sortDirection: 'asc' | 'desc';
   expandedRow: number | null;
   selectedRowIndex: number | null;
   hoveredRowIndex: number | null;
@@ -27,19 +26,36 @@ interface PriceTableProps {
   avgPrice: number;
   standardDeviation: number;
   validPrices: number[];
-  onSort: (column: SortColumn) => void;
+  onSort: (column: 'price' | 'timestamp' | null) => void;
   onExpandRow: (index: number | null) => void;
   onSetHoveredRow: (index: number | null) => void;
-  onSetSelectedRow: (index: number | null) => void;
+
   onHoverOracle?: (oracle: OracleProvider | null) => void;
   t: (key: string) => string;
+}
+
+// Extended price data with computed fields for table
+interface PriceTableRow extends Record<string, unknown> {
+  provider: OracleProvider;
+  price: number;
+  deviation: number | null;
+  confidence: number | null;
+  source: string;
+  freshness: string;
+  freshnessSeconds: number;
+  timestamp: number;
+  zScore: number | null;
+  isOutlier: boolean;
+  isHighest: boolean;
+  isLowest: boolean;
+  originalIndex: number;
 }
 
 export function PriceTable({
   filteredPriceData,
   isLoading,
-  sortColumn,
-  sortDirection,
+  sortColumn: _sortColumn,
+  sortDirection: _sortDirection,
   expandedRow,
   selectedRowIndex,
   hoveredRowIndex,
@@ -53,366 +69,437 @@ export function PriceTable({
   onHoverOracle,
   t,
 }: PriceTableProps) {
+  const [expandedRowIndex, setExpandedRowIndex] = useState<number | null>(expandedRow);
+  const [hoveredRow, setHoveredRow] = useState<number | null>(hoveredRowIndex);
+
+  // Sync external expandedRow with internal state
+  useEffect(() => {
+    setExpandedRowIndex(expandedRow);
+  }, [expandedRow]);
+
+  // Sync external hoveredRowIndex with internal state
+  useEffect(() => {
+    setHoveredRow(hoveredRowIndex);
+    if (hoveredRowIndex !== null) {
+      onSetHoveredRow(hoveredRowIndex);
+    }
+  }, [hoveredRowIndex, onSetHoveredRow]);
+
   const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
   const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
 
-  if (isLoading) {
+  // Transform data for DataTablePro
+  const tableData: PriceTableRow[] = useMemo(() => {
+    return filteredPriceData.map((data, index) => {
+      let deviationPercent: number | null = null;
+      if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {
+        deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
+      }
+      const zScore = calculateZScore(data.price, avgPrice, standardDeviation);
+      const outlier = isOutlier(zScore);
+      const freshness = getFreshnessInfo(data.timestamp);
+      const isHighest = data.price === maxPrice && maxPrice !== minPrice;
+      const isLowest = data.price === minPrice && maxPrice !== minPrice;
+
+      return {
+        provider: data.provider,
+        price: data.price,
+        deviation: deviationPercent,
+        confidence: data.confidence ?? null,
+        source: data.source || '-',
+        freshness: freshness.text,
+        freshnessSeconds: freshness.seconds,
+        timestamp: data.timestamp,
+        zScore,
+        isOutlier: outlier,
+        isHighest,
+        isLowest,
+        originalIndex: index,
+      };
+    });
+  }, [filteredPriceData, validPrices, avgPrice, standardDeviation, maxPrice, minPrice]);
+
+  // Handle row click for expand
+  const handleRowClick = useCallback((row: PriceTableRow, index: number) => {
+    const isExpanded = expandedRowIndex === index;
+    setExpandedRowIndex(isExpanded ? null : index);
+    onExpandRow(isExpanded ? null : index);
+  }, [expandedRowIndex, onExpandRow]);
+
+
+
+  // Handle sort
+  const handleSort = useCallback((sortConfig: SortConfig[]) => {
+    if (sortConfig.length === 0) {
+      onSort(null);
+    } else {
+      const firstSort = sortConfig[0];
+      if (firstSort.key === 'price' || firstSort.key === 'timestamp') {
+        onSort(firstSort.key);
+      }
+    }
+  }, [onSort]);
+
+  // Define columns
+  const columns: ColumnDef<PriceTableRow>[] = useMemo(() => {
+    const baseColumns: ColumnDef<PriceTableRow>[] = [
+      {
+        key: 'provider',
+        header: t('crossOracle.oracle'),
+        width: 180,
+        minWidth: 150,
+        align: 'left',
+        sortable: true,
+        fixed: 'left',
+        formatter: (value, row) => {
+          const provider = value as OracleProvider;
+          return (
+            <div className="flex items-center gap-2">
+              {row.isHighest && (
+                <span className="text-xs font-medium text-danger-600 bg-danger-100 px-1 py-0.5 rounded">
+                  {t('crossOracle.priceTable.highest')}
+                </span>
+              )}
+              {row.isLowest && (
+                <span className="text-xs font-medium text-success-600 bg-success-100 px-1 py-0.5 rounded">
+                  {t('crossOracle.priceTable.lowest')}
+                </span>
+              )}
+              <span
+                className="w-2 h-2 flex-shrink-0 rounded-full"
+                style={{ backgroundColor: chartColors[provider] }}
+              />
+              <span className="font-medium text-gray-900">
+                {oracleNames[provider]}
+              </span>
+              {row.isOutlier && (
+                <span className="text-amber-600 text-xs font-medium bg-amber-100 px-1 py-0.5 rounded">
+                  {t('crossOracle.outlier')}
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        key: 'price',
+        header: t('crossOracle.price'),
+        width: 140,
+        minWidth: 120,
+        align: 'right',
+        sortable: true,
+        fixed: 'left',
+        formatter: (value, row) => {
+          const price = value as number;
+          const deviation = row.deviation;
+          const barWidth = deviation !== null ? Math.min(Math.abs(deviation) * 10, 100) : 0;
+          
+          return (
+            <div className="relative">
+              <div
+                className={`absolute inset-0 transition-all ${
+                  deviation !== null && deviation > 0
+                    ? 'bg-danger-200'
+                    : deviation !== null && deviation < 0
+                      ? 'bg-success-200'
+                      : ''
+                }`}
+                style={{
+                  width: `${barWidth}%`,
+                  right: 0,
+                  left: 'auto',
+                  opacity: 0.3,
+                }}
+              />
+              <span
+                className={`relative font-mono ${row.isOutlier ? 'text-amber-700' : 'text-gray-900'}`}
+              >
+                ${price.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          );
+        },
+      },
+    ];
+
+    // Only show deviation column if we have valid comparison data
+    if (validPrices.length > 1 && avgPrice > 0) {
+      baseColumns.push({
+        key: 'deviation',
+        header: t('crossOracle.deviation'),
+        width: 120,
+        minWidth: 100,
+        align: 'right',
+        sortable: true,
+        formatter: (value) => {
+          const deviation = value as number | null;
+          if (deviation === null) {
+            return <span className="text-gray-400">-</span>;
+          }
+          return (
+            <span
+              className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${getDeviationColorClass(deviation)}`}
+            >
+              <span
+                className={`w-1.5 h-1.5 mr-1 rounded-full ${getDeviationBgClass(deviation)}`}
+              />
+              {deviation >= 0 ? '+' : ''}
+              {deviation.toFixed(3)}%
+            </span>
+          );
+        },
+        conditionalFormat: {
+          rules: [
+            { condition: 'gte', value: 1, style: 'danger' },
+            { condition: 'lte', value: -1, style: 'danger' },
+            { condition: 'between', value: [0.5, 1], style: 'warning' },
+            { condition: 'between', value: [-1, -0.5], style: 'warning' },
+          ],
+        },
+      });
+    }
+
+    baseColumns.push(
+      {
+        key: 'confidence',
+        header: t('crossOracle.confidence'),
+        width: 100,
+        minWidth: 80,
+        align: 'right',
+        formatter: (value) => {
+          const confidence = value as number | null;
+          if (confidence === null) {
+            return <span className="text-gray-400">-</span>;
+          }
+          return (
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="text-gray-700">{(confidence * 100).toFixed(1)}%</span>
+              <div className="w-12 h-1 bg-gray-200 overflow-hidden rounded-full">
+                <div
+                  className="h-full bg-primary-500 rounded-full"
+                  style={{ width: `${confidence * 100}%` }}
+                />
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        key: 'source',
+        header: t('crossOracle.source'),
+        width: 120,
+        minWidth: 100,
+        align: 'right',
+        formatter: (value) => {
+          const source = value as string;
+          return <span className="text-gray-600">{source}</span>;
+        },
+      },
+      {
+        key: 'freshness',
+        header: t('crossOracle.freshness'),
+        width: 120,
+        minWidth: 100,
+        align: 'right',
+        sortable: true,
+        formatter: (value, row) => {
+          const freshness = value as string;
+          const seconds = row.freshnessSeconds as number;
+          return (
+            <div className="flex items-center justify-end gap-2">
+              <span className={`w-2 h-2 rounded-full ${getFreshnessDotColor(seconds)}`} />
+              <span className="text-gray-700">{freshness}</span>
+            </div>
+          );
+        },
+      }
+    );
+
+    return baseColumns;
+  }, [t, chartColors, validPrices.length, avgPrice]);
+
+  // Fixed columns configuration
+  const fixedColumns = useMemo(() => ({
+    left: ['provider', 'price'],
+  }), []);
+
+  // Render expanded row details
+  const renderExpandedRow = (row: PriceTableRow) => {
+    const deviation = row.deviation;
+    const zScore = row.zScore;
+    const outlier = row.isOutlier;
+
     return (
-      <div className="flex items-center justify-center py-12">
-        <svg
-          className="w-6 h-6 text-gray-400 animate-spin"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          />
-        </svg>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm py-2">
+        <div>
+          <span className="text-gray-500 block text-xs">
+            {t('crossOracle.oracle')}
+          </span>
+          <span className="font-medium text-gray-900">
+            {oracleNames[row.provider]}
+          </span>
+        </div>
+        <div>
+          <span className="text-gray-500 block text-xs">
+            {t('crossOracle.price')}
+          </span>
+          <span className="font-mono text-gray-900">
+            ${row.price.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        </div>
+        <div>
+          <span className="text-gray-500 block text-xs">
+            {t('crossOracle.priceTable.deviationRate')}
+          </span>
+          <span
+            className={`font-medium ${getDeviationColorClass(deviation).split(' ')[0]}`}
+          >
+            {deviation !== null
+              ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(4)}%`
+              : '-'}
+          </span>
+        </div>
+        <div>
+          <span className="text-gray-500 block text-xs">
+            {t('crossOracle.confidence')}
+          </span>
+          <span className="text-gray-900">
+            {row.confidence ? `${(row.confidence * 100).toFixed(1)}%` : '-'}
+          </span>
+        </div>
+        <div>
+          <span className="text-gray-500 block text-xs">
+            {t('crossOracle.source')}
+          </span>
+          <span className="text-gray-900">{row.source}</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block text-xs">
+            {t('crossOracle.priceTable.updateTime')}
+          </span>
+          <span className="text-gray-900">
+            {new Date(row.timestamp).toLocaleString()}
+          </span>
+        </div>
+        <div>
+          <span className="text-gray-500 block text-xs">Z-Score</span>
+          <span
+            className={`font-medium ${zScore !== null && Math.abs(zScore) > 2 ? 'text-amber-600' : 'text-gray-900'}`}
+          >
+            {zScore !== null ? zScore.toFixed(3) : '-'}
+          </span>
+        </div>
+        <div>
+          <span className="text-gray-500 block text-xs">
+            {t('crossOracle.priceTable.status')}
+          </span>
+          <span
+            className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}
+          >
+            {outlier
+              ? t('crossOracle.priceTable.outlier')
+              : t('crossOracle.priceTable.normal')}
+          </span>
+        </div>
       </div>
     );
-  }
+  };
+
+  // Render hover tooltip
+  const renderTooltip = (row: PriceTableRow) => {
+    const deviation = row.deviation;
+    const zScore = row.zScore;
+    const outlier = row.isOutlier;
+
+    return (
+      <div className="bg-white border border-gray-200 p-3 min-w-[200px] rounded-lg shadow-lg">
+        <div className="text-sm font-semibold text-gray-900 mb-2 pb-2 border-b border-gray-100">
+          {oracleNames[row.provider]}
+        </div>
+        <div className="space-y-1.5 text-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-500">{t('crossOracle.price')}</span>
+            <span className="font-mono text-gray-900">
+              ${row.price.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">{t('crossOracle.deviation')}</span>
+            <span
+              className={`font-medium ${deviation !== null && deviation >= 0 ? 'text-danger-600' : 'text-success-600'}`}
+            >
+              {deviation !== null
+                ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(4)}%`
+                : '-'}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">{t('crossOracle.confidence')}</span>
+            <span className="text-gray-900">
+              {row.confidence ? `${(row.confidence * 100).toFixed(1)}%` : '-'}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">Z-Score</span>
+            <span
+              className={`font-medium ${zScore !== null && Math.abs(zScore) > 2 ? 'text-amber-600' : 'text-gray-900'}`}
+            >
+              {zScore !== null ? zScore.toFixed(3) : '-'}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">
+              {t('crossOracle.priceTable.status')}
+            </span>
+            <span
+              className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}
+            >
+              {outlier
+                ? t('crossOracle.priceTable.outlier')
+                : t('crossOracle.priceTable.normal')}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] text-sm">
-        <thead>
-          <tr className="border-b border-gray-200">
-            <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('crossOracle.oracle')}
-            </th>
-            <th
-              className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700 select-none"
-              onClick={() => onSort('price')}
-            >
-              <div className="flex items-center justify-end gap-1">
-                {t('crossOracle.price')}
-                {sortColumn === 'price' && <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
-              </div>
-            </th>
-            {validPrices.length > 1 && avgPrice > 0 && (
-              <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('crossOracle.deviation')}
-              </th>
-            )}
-            <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-              {t('crossOracle.confidence')}
-            </th>
-            <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-              {t('crossOracle.source')}
-            </th>
-            <th
-              className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700 select-none"
-              onClick={() => onSort('timestamp')}
-            >
-              <div className="flex items-center justify-end gap-1">
-                {t('crossOracle.freshness')}
-                {sortColumn === 'timestamp' && <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredPriceData.map((data, index) => {
-            let deviationPercent: number | null = null;
-            if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {
-              deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
-            }
-            const zScore = calculateZScore(data.price, avgPrice, standardDeviation);
-            const outlier = isOutlier(zScore);
-            const freshness = getFreshnessInfo(data.timestamp);
-            const isExpanded = expandedRow === index;
-            const isSelected = selectedRowIndex === index;
-            const isHovered = hoveredRowIndex === index;
-            const isHighest = data.price === maxPrice && maxPrice !== minPrice;
-            const isLowest = data.price === minPrice && maxPrice !== minPrice;
-            const barWidth =
-              deviationPercent !== null ? Math.min(Math.abs(deviationPercent) * 10, 100) : 0;
+    <div className="relative">
+      <DataTablePro
+        data={tableData}
+        columns={columns}
+        fixedColumns={fixedColumns}
+        density="compact"
+        loading={isLoading}
+        onSort={handleSort}
+        onRowClick={handleRowClick}
+        emptyText={t('crossOracle.noData')}
+        className="rounded-lg"
+      />
+      
+      {/* Custom row hover tooltip */}
+      {hoveredRow !== null && hoveredRow !== selectedRowIndex && tableData[hoveredRow] && (
+        <div className="absolute right-0 top-0 z-50 transform -translate-x-4 translate-y-2">
+          {renderTooltip(tableData[hoveredRow])}
+        </div>
+      )}
 
-            return (
-              <React.Fragment key={data.provider}>
-                <tr
-                  onClick={() => onExpandRow(isExpanded ? null : index)}
-                  onMouseEnter={() => {
-                    onSetHoveredRow(index);
-                    onHoverOracle?.(data.provider);
-                  }}
-                  onMouseLeave={() => {
-                    onSetHoveredRow(null);
-                    onHoverOracle?.(null);
-                  }}
-                  tabIndex={0}
-                  className={`border-b border-gray-100 cursor-pointer transition-all ${
-                    isSelected
-                      ? 'bg-primary-50'
-                      : isHighest
-                        ? 'bg-danger-50/50'
-                        : isLowest
-                          ? 'bg-success-50/50'
-                          : outlier
-                            ? 'bg-amber-50/50'
-                            : isHovered
-                              ? 'bg-gray-50'
-                              : ''
-                  } ${isExpanded ? 'bg-gray-50' : ''}`}
-                >
-                  <td className="py-2.5 px-3">
-                    <div className="flex items-center gap-2">
-                      {isHighest && (
-                        <span className="text-xs font-medium text-danger-600 bg-danger-100 px-1 py-0.5">
-                          {t('crossOracle.priceTable.highest')}
-                        </span>
-                      )}
-                      {isLowest && (
-                        <span className="text-xs font-medium text-success-600 bg-success-100 px-1 py-0.5">
-                          {t('crossOracle.priceTable.lowest')}
-                        </span>
-                      )}
-                      <span
-                        className="w-2 h-2 flex-shrink-0"
-                        style={{ backgroundColor: chartColors[data.provider] }}
-                      />
-                      <span className="font-medium text-gray-900">
-                        {oracleNames[data.provider]}
-                      </span>
-                      {outlier && (
-                        <span className="text-amber-600 text-xs font-medium bg-amber-100 px-1 py-0.5">
-                          {t('crossOracle.outlier')}
-                        </span>
-                      )}
-                      <svg
-                        className={`w-4 h-4 text-gray-400 ml-auto transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </div>
-                  </td>
-                  <td className="py-2.5 px-3 text-right relative">
-                    <div className="relative">
-                      <div
-                        className={`absolute inset-0 transition-all ${
-                          deviationPercent !== null && deviationPercent > 0
-                            ? 'bg-danger-200'
-                            : deviationPercent !== null && deviationPercent < 0
-                              ? 'bg-success-200'
-                              : ''
-                        }`}
-                        style={{
-                          width: `${barWidth}%`,
-                          right: 0,
-                          left: 'auto',
-                          opacity: 0.3,
-                        }}
-                      />
-                      <span
-                        className={`relative font-mono ${outlier ? 'text-amber-700' : 'text-gray-900'}`}
-                      >
-                        $
-                        {data.price.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  </td>
-                  {validPrices.length > 1 && avgPrice > 0 && (
-                    <td className="py-2.5 px-3 text-right">
-                      {deviationPercent !== null ? (
-                        <span
-                          className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${getDeviationColorClass(deviationPercent)}`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 mr-1 ${getDeviationBgClass(deviationPercent)}`}
-                          />
-                          {deviationPercent >= 0 ? '+' : ''}
-                          {deviationPercent.toFixed(3)}%
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                  )}
-                  <td className="py-2.5 px-3 text-right hidden sm:table-cell">
-                    {data.confidence ? (
-                      <div className="flex flex-col items-end gap-0.5">
-                        <span className="text-gray-700">{(data.confidence * 100).toFixed(1)}%</span>
-                        <div className="w-12 h-1 bg-gray-200 overflow-hidden">
-                          <div
-                            className="h-full bg-primary-500"
-                            style={{ width: `${data.confidence * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="py-2.5 px-3 text-right text-gray-600 hidden md:table-cell">
-                    {data.source || '-'}
-                  </td>
-                  <td className="py-2.5 px-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <span className={`w-2 h-2 ${getFreshnessDotColor(freshness.seconds)}`} />
-                      <span className={`${freshness.colorClass}`}>{freshness.text}</span>
-                    </div>
-                  </td>
-
-                  {isHovered && !isSelected && (
-                    <td className="absolute right-full mr-2 top-1/2 -translate-y-1/2 z-20">
-                      <div className="bg-white border border-gray-200 p-3 min-w-[200px]">
-                        <div className="text-sm font-semibold text-gray-900 mb-2 pb-2 border-b border-gray-100">
-                          {oracleNames[data.provider]}
-                        </div>
-                        <div className="space-y-1.5 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">{t('crossOracle.price')}</span>
-                            <span className="font-mono text-gray-900">
-                              $
-                              {data.price.toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">{t('crossOracle.deviation')}</span>
-                            <span
-                              className={`font-medium ${deviationPercent !== null && deviationPercent >= 0 ? 'text-danger-600' : 'text-success-600'}`}
-                            >
-                              {deviationPercent !== null
-                                ? `${deviationPercent >= 0 ? '+' : ''}${deviationPercent.toFixed(4)}%`
-                                : '-'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">{t('crossOracle.confidence')}</span>
-                            <span className="text-gray-900">
-                              {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Z-Score</span>
-                            <span
-                              className={`font-medium ${zScore !== null && Math.abs(zScore) > 2 ? 'text-amber-600' : 'text-gray-900'}`}
-                            >
-                              {zScore !== null ? zScore.toFixed(3) : '-'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">
-                              {t('crossOracle.priceTable.status')}
-                            </span>
-                            <span
-                              className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}
-                            >
-                              {outlier
-                                ? t('crossOracle.priceTable.outlier')
-                                : t('crossOracle.priceTable.normal')}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-                {isExpanded && (
-                  <tr key={`${index}-detail`} className="bg-gray-50 border-b border-gray-100">
-                    <td colSpan={6} className="py-3 px-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                        <div>
-                          <span className="text-gray-500 block text-xs">
-                            {t('crossOracle.oracle')}
-                          </span>
-                          <span className="font-medium text-gray-900">
-                            {oracleNames[data.provider]}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 block text-xs">
-                            {t('crossOracle.price')}
-                          </span>
-                          <span className="font-mono text-gray-900">
-                            $
-                            {data.price.toLocaleString(undefined, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 block text-xs">
-                            {t('crossOracle.priceTable.deviationRate')}
-                          </span>
-                          <span
-                            className={`font-medium ${getDeviationColorClass(deviationPercent).split(' ')[0]}`}
-                          >
-                            {deviationPercent !== null
-                              ? `${deviationPercent >= 0 ? '+' : ''}${deviationPercent.toFixed(4)}%`
-                              : '-'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 block text-xs">
-                            {t('crossOracle.confidence')}
-                          </span>
-                          <span className="text-gray-900">
-                            {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 block text-xs">
-                            {t('crossOracle.source')}
-                          </span>
-                          <span className="text-gray-900">{data.source || '-'}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 block text-xs">
-                            {t('crossOracle.priceTable.updateTime')}
-                          </span>
-                          <span className="text-gray-900">
-                            {new Date(data.timestamp).toLocaleString()}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 block text-xs">Z-Score</span>
-                          <span
-                            className={`font-medium ${zScore !== null && Math.abs(zScore) > 2 ? 'text-amber-600' : 'text-gray-900'}`}
-                          >
-                            {zScore !== null ? zScore.toFixed(3) : '-'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 block text-xs">
-                            {t('crossOracle.priceTable.status')}
-                          </span>
-                          <span
-                            className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}
-                          >
-                            {outlier
-                              ? t('crossOracle.priceTable.outlier')
-                              : t('crossOracle.priceTable.normal')}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </tbody>
-      </table>
+      {/* Expanded row details */}
+      {expandedRowIndex !== null && tableData[expandedRowIndex] && (
+        <div className="border-t border-gray-100 bg-gray-50 px-4">
+          {renderExpandedRow(tableData[expandedRowIndex])}
+        </div>
+      )}
     </div>
   );
 }

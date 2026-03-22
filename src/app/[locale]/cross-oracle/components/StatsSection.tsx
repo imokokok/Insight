@@ -6,6 +6,15 @@ import { DataQualityScoreCard } from '@/components/oracle/common/DataQualityScor
 import { StatsCards, MobileStatsCards } from './StatsCards';
 import { HistoryMinMax } from '../constants';
 
+interface SparklineData {
+  avgPrice?: number[];
+  maxPrice?: number[];
+  minPrice?: number[];
+  priceRange?: number[];
+  standardDeviation?: number[];
+  variance?: number[];
+}
+
 interface StatsSectionProps {
   qualityScoreData: {
     freshness: { lastUpdated: Date };
@@ -29,6 +38,7 @@ interface StatsSectionProps {
   calculateChangePercent: (current: number, previous: number) => number | null;
   getConsistencyRating: (stdDevPercent: number) => string;
   t: (key: string) => string;
+  sparklineData?: SparklineData;
 }
 
 export function StatsSection({
@@ -47,6 +57,7 @@ export function StatsSection({
   calculateChangePercent,
   getConsistencyRating,
   t,
+  sparklineData,
 }: StatsSectionProps) {
   const [mounted, setMounted] = useState(false);
   const [formattedTime, setFormattedTime] = useState('');
@@ -60,15 +71,15 @@ export function StatsSection({
   const [baseAsset, quoteAsset] = selectedSymbol.split('/');
 
   return (
-    <div className="mb-8">
-      {/* 交易对信息卡片 - Clean Finance 风格扁平化 */}
-      <div className="mb-6 border-b border-gray-200 pb-4">
+    <div className="mb-4">
+      {/* 交易对信息卡片 - Compact 风格 */}
+      <div className="mb-4 border-b border-gray-200 pb-3">
         <div className="flex flex-col lg:flex-row lg:items-start gap-6">
           {/* 左侧：交易对主信息 */}
           <div className="flex-1">
             {/* 顶部：Live 徽章 */}
-            <div className="flex items-center gap-3 mb-2">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 rounded">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 rounded">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-full w-full bg-emerald-500"></span>
@@ -80,11 +91,11 @@ export function StatsSection({
             </div>
 
             {/* 交易对显示 */}
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">
                 {baseAsset}
               </span>
-              <span className="text-lg text-gray-400 font-medium">/{quoteAsset}</span>
+              <span className="text-base text-gray-400 font-medium">/{quoteAsset}</span>
             </div>
             <p className="text-xs text-gray-500 mt-0.5">
               {t('crossOracle.crossOraclePriceComparison')}
@@ -92,39 +103,40 @@ export function StatsSection({
           </div>
 
           {/* 右侧：关键统计 */}
-          <div className="lg:w-auto flex gap-6">
-            <div className="flex items-start gap-2">
-              <Activity className="w-4 h-4 text-primary-600 mt-0.5" />
+          <div className="lg:w-auto flex gap-4">
+            <div className="flex items-start gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-primary-600 mt-0.5" />
               <div>
                 <p className="text-xs text-gray-500">{t('crossOracle.oracleCount')}</p>
-                <p className="text-lg font-semibold text-gray-900">{selectedOracles.length}</p>
+                <p className="text-base font-semibold text-gray-900">{selectedOracles.length}</p>
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <Shield className="w-4 h-4 text-purple-600 mt-0.5" />
+            <div className="flex items-start gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-purple-600 mt-0.5" />
               <div>
                 <p className="text-xs text-gray-500">{t('crossOracle.dataQuality')}</p>
-                <p className="text-lg font-semibold text-gray-900">
+                <p className="text-base font-semibold text-gray-900">
                   {qualityScoreData.reliability.responseSuccessRate.toFixed(1)}%
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <Clock className="w-4 h-4 text-amber-600 mt-0.5" />
+            <div className="flex items-start gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-amber-600 mt-0.5" />
               <div>
                 <p className="text-xs text-gray-500">{t('time.lastUpdated')}</p>
-                <p className="text-sm font-medium text-gray-900">{mounted ? formattedTime : ''}</p>
+                <p className="text-xs font-medium text-gray-900">{mounted ? formattedTime : ''}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <DataQualityScoreCard
           freshness={qualityScoreData.freshness}
           completeness={qualityScoreData.completeness}
           reliability={qualityScoreData.reliability}
+          compact
         />
       </div>
 
@@ -141,6 +153,7 @@ export function StatsSection({
         calculateChangePercent={calculateChangePercent}
         getConsistencyRating={getConsistencyRating}
         t={t}
+        sparklineData={sparklineData}
       />
       <MobileStatsCards
         avgPrice={avgPrice}
@@ -153,6 +166,7 @@ export function StatsSection({
         calculateChangePercent={calculateChangePercent}
         getConsistencyRating={getConsistencyRating}
         t={t}
+        sparklineData={sparklineData}
       />
     </div>
   );

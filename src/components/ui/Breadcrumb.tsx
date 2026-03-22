@@ -25,7 +25,7 @@ export const Breadcrumb = forwardRef<HTMLElement, BreadcrumbProps>(
     {
       items,
       className,
-      separator = <ChevronRight className="w-4 h-4" />,
+      separator = <ChevronRight className="w-3.5 h-3.5" />,
       showHome = true,
       homeHref = '/',
     },
@@ -39,18 +39,18 @@ export const Breadcrumb = forwardRef<HTMLElement, BreadcrumbProps>(
         aria-label="Breadcrumb"
         className={cn('flex items-center', className)}
       >
-        <ol className="flex items-center flex-wrap gap-1">
+        <ol className="flex items-center flex-wrap gap-2">
           {showHome && (
-            <li className="flex items-center">
+            <li className="flex items-center gap-2">
               <Link
                 href={homeHref}
-                className="flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
               >
                 <Home className="w-4 h-4" />
                 <span className="sr-only">{t('home')}</span>
               </Link>
               {items.length > 0 && (
-                <span className="mx-2 text-gray-400">{separator}</span>
+                <span className="text-gray-400">{separator}</span>
               )}
             </li>
           )}
@@ -58,7 +58,7 @@ export const Breadcrumb = forwardRef<HTMLElement, BreadcrumbProps>(
             const isLast = index === items.length - 1;
 
             return (
-              <li key={index} className="flex items-center">
+              <li key={index} className="flex items-center gap-2">
                 {isLast ? (
                   <span
                     className="flex items-center gap-1.5 text-sm font-medium text-gray-900"
@@ -85,7 +85,7 @@ export const Breadcrumb = forwardRef<HTMLElement, BreadcrumbProps>(
                         {item.label}
                       </span>
                     )}
-                    <span className="mx-2 text-gray-400">{separator}</span>
+                    <span className="text-gray-400">{separator}</span>
                   </>
                 )}
               </li>

@@ -17,6 +17,7 @@ import {
   getConsistencyRating,
   initialHistoryMinMax,
   updateHistoryMinMax,
+  symbols,
 } from './constants';
 import { useFavorites, FavoriteConfig } from '@/hooks/useFavorites';
 import { useUser } from '@/stores/authStore';
@@ -488,5 +489,12 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
     handleTabChange,
     setHoveredRowIndex,
     setSelectedRowIndex,
+    // ControlPanel props
+    symbols,
+    onQuery: fetchPriceData,
+    onClearFilters: filterSort.handleClearFilters,
+    onSymbolChange: setSelectedSymbol,
+    onDeviationFilterChange: setDeviationFilter,
+    onAccessibleColorsChange: setUseAccessibleColors,
   };
 }

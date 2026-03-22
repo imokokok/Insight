@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { TIME_RANGES, ChartType, ViewType, TVSTrendData, OracleMarketData, ChainBreakdown, ProtocolDetail, AssetCategory, ComparisonData, BenchmarkData, CorrelationData } from '../types';
 import ChartRenderer from './ChartRenderer';
-import { ChartToolbar, TimeRange as ToolbarTimeRange, ChartType as ToolbarChartType } from '@/components/ui/ChartToolbar';
 import { cn } from '@/lib/utils';
 
 interface ChartContainerProps {
@@ -144,18 +143,8 @@ export default function ChartContainer({
   // 图表类型状态 (line/area/candle)
   const [chartType, setChartType] = useState<'line' | 'area' | 'candle'>('line');
 
-  // 时间范围配置
-  const timeRanges: ToolbarTimeRange[] = TIME_RANGES.map(range => ({
-    key: range.key,
-    label: range.label,
-    labelZh: range.label,
-  }));
-
-  // 图表类型切换配置
-  const chartTypeOptions: ToolbarChartType[] = [
-    { key: 'line', label: t('chartTypes.line'), icon: <TrendingUp className="w-4 h-4" /> },
-    { key: 'area', label: t('chartTypes.area'), icon: <ActivitySquare className="w-4 h-4" /> },
-  ];
+  // 时间范围列表
+  const timeRangeList = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'] as const;
 
   // 处理图表类型切换
   const handleChartTypeChange = useCallback((type: string) => {
@@ -498,18 +487,68 @@ export default function ChartContainer({
 
       {/* Chart Toolbar - 仅在支持的图表类型显示 */}
       {showChartToolbar && (
-        <ChartToolbar
-          timeRanges={timeRanges}
-          selectedRange={selectedTimeRange}
-          onRangeChange={handleTimeRangeChange}
-          chartTypes={chartTypeOptions}
-          selectedType={chartType}
-          onTypeChange={handleChartTypeChange}
-          showZoomReset={!!zoomRange}
-          onResetZoom={handleResetZoom}
-          onExport={handleExport}
-          className="py-1.5 px-2"
-        />
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white border border-gray-200 rounded-lg py-1.5 px-2">
+          {/* Time Range Selector */}
+          <div className="flex items-center gap-1">
+            {timeRangeList.map((range) => (
+              <button
+                key={range}
+                onClick={() => handleTimeRangeChange(range)}
+                className={cn(
+                  'px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
+                  selectedTimeRange === range
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                )}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+
+          {/* Right Side Controls */}
+          <div className="flex items-center gap-2">
+            {/* Chart Type Switcher */}
+            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-md">
+              {(['line', 'area'] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => handleChartTypeChange(type)}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
+                    chartType === type
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  )}
+                  title={type === 'line' ? t('chartTypes.line') : t('chartTypes.area')}
+                >
+                  {type === 'line' ? <TrendingUp className="w-3.5 h-3.5" /> : <ActivitySquare className="w-3.5 h-3.5" />}
+                  <span className="hidden sm:inline">{type === 'line' ? t('chartTypes.line') : t('chartTypes.area')}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Reset Zoom */}
+            {zoomRange && (
+              <button
+                onClick={handleResetZoom}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-all duration-200"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            )}
+
+            {/* Export Button */}
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-all duration-200"
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Chart Content */}

@@ -8,7 +8,7 @@ import {
 } from './constants';
 import { TabId } from './components/TabNavigation';
 
-export type { TimeRange } from './constants';
+export type { TimeRange, DeviationFilter } from './constants';
 
 // 跨预言机对比数据
 export interface CrossOracleData {
@@ -151,6 +151,13 @@ export interface UseCrossOraclePageReturn {
   handleTabChange: (tab: TabId) => void;
   setHoveredRowIndex: (index: number | null) => void;
   setSelectedRowIndex: (index: number | null) => void;
+  // ControlPanel props
+  symbols: string[];
+  onQuery: () => void;
+  onClearFilters: () => void;
+  onSymbolChange: (symbol: string) => void;
+  onDeviationFilterChange: (filter: DeviationFilter) => void;
+  onAccessibleColorsChange: (value: boolean) => void;
 }
 
 export interface PriceStatsResult {

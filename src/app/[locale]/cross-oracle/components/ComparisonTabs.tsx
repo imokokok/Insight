@@ -27,7 +27,7 @@ import { EmptyState } from '@/components/ui';
 import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
 import { OracleSnapshot } from '@/types/oracle';
 import { oracleNames } from '../constants';
-import { TimeRange, ChartDataPoint, QualityTrendData } from '../types';
+import { TimeRange, ChartDataPoint, QualityTrendData, DeviationFilter } from '../types';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { StatsSection } from './StatsSection';
 import { PriceTableSection } from './PriceTableSection';
@@ -37,11 +37,14 @@ import { OracleComparisonSection } from './OracleComparisonSection';
 import { BenchmarkComparisonSection } from './BenchmarkComparisonSection';
 import { ChartTooltip } from './ChartTooltip';
 import { DropdownSelect } from '@/components/ui/selectors';
-import { TabId } from './TabNavigation';
+import { TabId, TabNavigation } from './TabNavigation';
+import { ChartToolbar, TimeRange as ChartToolbarTimeRange } from '@/components/ui/ChartToolbar';
+import { ControlPanel } from './ControlPanel';
 
 
 interface ComparisonTabsProps {
   activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
   selectedSymbol: string;
   selectedOracles: OracleProvider[];
   priceData: PriceData[];
@@ -98,6 +101,7 @@ interface ComparisonTabsProps {
   handleZoomIn: () => void;
   handleZoomOut: () => void;
   handleResetZoom: () => void;
+  setTimeRange: (range: TimeRange) => void;
   handleSaveSnapshot: () => void;
   handleSelectSnapshot: (snapshot: OracleSnapshot) => void;
   fetchPriceData: () => Promise<void>;
@@ -107,10 +111,21 @@ interface ComparisonTabsProps {
   calculateChangePercent: (current: number, previous: number) => number | null;
   getOracleLatencyData: (oracle: OracleProvider | null) => number[];
   t: (key: string, params?: Record<string, string | number>) => string;
+  // ControlPanel props
+  symbols: string[];
+  deviationFilter: DeviationFilter;
+  onDeviationFilterChange: (filter: DeviationFilter) => void;
+  useAccessibleColors: boolean;
+  onAccessibleColorsChange: (value: boolean) => void;
+  onQuery: () => void;
+  activeFilterCount: number;
+  onClearFilters: () => void;
+  onSymbolChange: (symbol: string) => void;
 }
 
 export function ComparisonTabs({
   activeTab,
+  onTabChange,
   selectedSymbol,
   selectedOracles,
   priceData,
@@ -163,6 +178,7 @@ export function ComparisonTabs({
   handleZoomIn,
   handleZoomOut,
   handleResetZoom,
+  setTimeRange,
   handleSaveSnapshot,
   handleSelectSnapshot,
   fetchPriceData,
@@ -172,6 +188,16 @@ export function ComparisonTabs({
   calculateChangePercent,
   getOracleLatencyData,
   t,
+  // ControlPanel props
+  symbols,
+  deviationFilter,
+  onDeviationFilterChange,
+  useAccessibleColors,
+  onAccessibleColorsChange,
+  onQuery,
+  activeFilterCount,
+  onClearFilters,
+  onSymbolChange,
 }: ComparisonTabsProps) {
   const renderOverviewTab = () => (
     <>
@@ -211,7 +237,6 @@ export function ComparisonTabs({
         onSort={handleSort}
         onExpandRow={setExpandedRow}
         onSetHoveredRow={setHoveredRowIndex}
-        onSetSelectedRow={setSelectedRowIndex}
         onHoverOracle={setHoveredOracle}
         onToggleOracle={toggleOracle}
         t={t}
@@ -229,7 +254,7 @@ export function ComparisonTabs({
         <BenchmarkComparisonSection priceData={priceData} loading={isLoading} />
       )}
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-6">
         <DataSourcePanel
           priceData={priceData}
           lastUpdated={new Date()}
@@ -245,7 +270,7 @@ export function ComparisonTabs({
         />
       </div>
 
-      <div ref={chartContainerRef} className="mb-8">
+      <div ref={chartContainerRef} className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
             {t('crossOracle.priceTrend')}
@@ -255,58 +280,21 @@ export function ComparisonTabs({
               </span>
             )}
           </h2>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsChartFullscreen(true)}
-              className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors md:hidden"
-              title={t('crossOracle.chart.fullscreen')}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-                />
-              </svg>
-            </button>
-            <div className="flex items-center bg-gray-100 p-0.5">
-              <button
-                onClick={handleZoomOut}
-                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
-                title={t('crossOracle.chart.zoomOut')}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                </svg>
-              </button>
-              <span className="px-2 text-xs text-gray-600 min-w-[3rem] text-center">
-                {Math.round(zoomLevel * 100)}%
-              </span>
-              <button
-                onClick={handleZoomIn}
-                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
-                title={t('crossOracle.chart.zoomIn')}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-              </button>
-            </div>
-            <button
-              onClick={handleResetZoom}
-              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              title={t('crossOracle.chart.resetZoom')}
-            >
-              {t('crossOracle.chart.reset')}
-            </button>
-          </div>
         </div>
+
+        <ChartToolbar
+          timeRange={timeRange as ChartToolbarTimeRange}
+          onTimeRangeChange={(range) => setTimeRange(range as TimeRange)}
+          zoomLevel={zoomLevel}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onResetZoom={handleResetZoom}
+          onFullscreen={() => setIsChartFullscreen(true)}
+          showChartType={false}
+          showExport={false}
+          showSync={false}
+          className="mb-4"
+        />
 
         {isLoading ? (
           <ChartSkeleton height={400 * zoomLevel} variant="price" showToolbar={false} />
@@ -439,48 +427,27 @@ export function ComparisonTabs({
 
   const renderChartsTab = () => (
     <>
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
             {t('crossOracle.chartsTab.detailedAnalysis')}
           </h2>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center bg-gray-100 p-0.5">
-              <button
-                onClick={handleZoomOut}
-                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
-                title={t('crossOracle.chart.zoomOut')}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                </svg>
-              </button>
-              <span className="px-2 text-xs text-gray-600 min-w-[3rem] text-center">
-                {Math.round(zoomLevel * 100)}%
-              </span>
-              <button
-                onClick={handleZoomIn}
-                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
-                title={t('crossOracle.chart.zoomIn')}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-              </button>
-            </div>
-            <button
-              onClick={handleResetZoom}
-              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-            >
-              {t('crossOracle.chart.reset')}
-            </button>
-          </div>
         </div>
+
+        <ChartToolbar
+          timeRange={timeRange as ChartToolbarTimeRange}
+          onTimeRangeChange={(range) => setTimeRange(range as TimeRange)}
+          zoomLevel={zoomLevel}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onResetZoom={handleResetZoom}
+          onFullscreen={() => setIsChartFullscreen(true)}
+          showChartType={false}
+          showExport={false}
+          showSync={false}
+          className="mb-4"
+        />
+
         <div className="border border-gray-200 p-4 rounded-lg">
           <ResponsiveContainer width="100%" height={400 * zoomLevel}>
             <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -582,19 +549,19 @@ export function ComparisonTabs({
       </div>
 
       {heatmapData.length > 0 && (
-        <div className="mb-8">
+        <div className="mb-6">
           <PriceDeviationHeatmap data={heatmapData} useAccessibleColors={false} />
         </div>
       )}
 
       {boxPlotData.some((d) => d.prices.length > 0) && (
-        <div className="mb-8">
+        <div className="mb-6">
           <PriceDistributionBoxPlot data={boxPlotData} oracleNames={oracleNames} />
         </div>
       )}
 
       {volatilityData.some((d) => d.prices.length > 0) && (
-        <div className="mb-8">
+        <div className="mb-6">
           <PriceVolatilityChart data={volatilityData} oracleNames={oracleNames} />
         </div>
       )}
@@ -654,7 +621,7 @@ export function ComparisonTabs({
   const renderAdvancedTab = () => {
     return (
       <>
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t('crossOracle.advancedTab.movingAverage')}
           </h2>
@@ -663,7 +630,7 @@ export function ComparisonTabs({
           )}
         </div>
 
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t('crossOracle.advancedTab.dataQuality')}
           </h2>
@@ -677,12 +644,12 @@ export function ComparisonTabs({
 
   const renderPerformanceTab = () => (
     <>
-      <div className="mb-8">
+      <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           {t('crossOracle.performanceTab.performanceComparison')}
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-gray-200 p-5 rounded-lg">
+          <div className="bg-white border border-gray-200 p-4 rounded-lg">
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('crossOracle.performanceTab.selectOracle')}
@@ -712,15 +679,15 @@ export function ComparisonTabs({
               }
             />
           </div>
-          <div className="bg-white border border-gray-200 p-5 rounded-lg">
+          <div className="bg-white border border-gray-200 p-4 rounded-lg">
             <h3 className="text-sm font-semibold text-gray-900 mb-4">
               {t('crossOracle.performanceTab.summary')}
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {performanceData.map((data) => (
                 <div
                   key={data.provider}
-                  className={`flex items-center justify-between p-3 border transition-colors overflow-hidden rounded-lg ${
+                  className={`flex items-center justify-between p-4 border transition-colors overflow-hidden rounded-lg ${
                     selectedPerformanceOracle === data.provider
                       ? 'bg-primary-50 border-primary-200'
                       : 'bg-gray-50 border-gray-100'
@@ -764,37 +731,76 @@ export function ComparisonTabs({
         </div>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           {t('crossOracle.performanceTab.advancedAnalysis')}
         </h2>
         {correlationData.length >= 2 && (
-          <div className="mb-6">
+          <div className="mb-4">
             <PriceCorrelationMatrix data={correlationData} oracleNames={oracleNames} />
           </div>
         )}
       </div>
 
       {performanceData.length > 0 && (
-        <div className="mb-8">
+        <div className="mb-6">
           <OraclePerformanceRanking performanceData={performanceData} />
         </div>
       )}
     </>
   );
 
-  switch (activeTab) {
-    case 'overview':
-      return renderOverviewTab();
-    case 'charts':
-      return renderChartsTab();
-    case 'advanced':
-      return renderAdvancedTab();
-    case 'snapshots':
-      return renderSnapshotsTab();
-    case 'performance':
-      return renderPerformanceTab();
-    default:
-      return renderOverviewTab();
-  }
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return renderOverviewTab();
+      case 'charts':
+        return renderChartsTab();
+      case 'advanced':
+        return renderAdvancedTab();
+      case 'snapshots':
+        return renderSnapshotsTab();
+      case 'performance':
+        return renderPerformanceTab();
+      default:
+        return renderOverviewTab();
+    }
+  };
+
+  return (
+    <div className="flex flex-col xl:flex-row gap-6">
+      {/* Left Sidebar - ControlPanel */}
+      <aside className="xl:w-[400px] xl:flex-shrink-0">
+        <div className="xl:sticky xl:top-6">
+          <ControlPanel
+          selectedSymbol={selectedSymbol}
+          onSymbolChange={onSymbolChange}
+          symbols={symbols}
+          selectedOracles={selectedOracles}
+          onOracleToggle={toggleOracle}
+          oracleChartColors={oracleChartColors}
+          timeRange={timeRange}
+          onTimeRangeChange={setTimeRange}
+          deviationFilter={deviationFilter}
+          onDeviationFilterChange={onDeviationFilterChange}
+          useAccessibleColors={useAccessibleColors}
+          onAccessibleColorsChange={onAccessibleColorsChange}
+          onQuery={onQuery}
+          isLoading={isLoading}
+          activeFilterCount={activeFilterCount}
+          onClearFilters={onClearFilters}
+          t={t}
+          />
+          </div>
+      </aside>
+
+      {/* Right Content - Tabs */}
+      <main className="flex-1 min-w-0">
+        <TabNavigation activeTab={activeTab} onTabChange={onTabChange} />
+        <div className="mt-6">
+          {renderTabContent()}
+        </div>
+      </main>
+    </div>
+  );
 }

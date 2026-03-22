@@ -1,85 +1,106 @@
 'use client';
 
-import { ReactNode } from 'react';
-import { useTranslations } from 'next-intl';
+import { useCallback } from 'react';
 import {
-  LineChart,
-  CandlestickChart,
-  AreaChart,
-  Download,
+  ZoomIn,
+  ZoomOut,
   RotateCcw,
-  Plus,
-  Activity,
+  Download,
+  Maximize,
+  Minimize,
+  Link2,
+  Link2Off,
+  LineChart,
+  AreaChart,
+  CandlestickChart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export interface TimeRange {
-  key: string;
-  label: string;
-  labelZh?: string;
-}
-
-export interface ChartType {
-  key: string;
-  label: string;
-  icon?: ReactNode;
-}
+export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
+export type ChartType = 'line' | 'area' | 'candle';
 
 export interface ChartToolbarProps {
-  timeRanges: TimeRange[];
-  selectedRange: string;
-  onRangeChange: (range: string) => void;
-  chartTypes?: ChartType[];
-  selectedType?: string;
-  onTypeChange?: (type: string) => void;
-  indicators?: string[];
-  onAddIndicator?: (indicator: string) => void;
-  onExport?: () => void;
+  timeRange: TimeRange;
+  onTimeRangeChange: (range: TimeRange) => void;
+  chartType?: ChartType;
+  onChartTypeChange?: (type: ChartType) => void;
+  zoomLevel?: number;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
   onResetZoom?: () => void;
-  showZoomReset?: boolean;
+  onExport?: () => void;
+  onFullscreen?: () => void;
+  isFullscreen?: boolean;
+  syncEnabled?: boolean;
+  onSyncToggle?: (enabled: boolean) => void;
+  showChartType?: boolean;
+  showZoom?: boolean;
+  showExport?: boolean;
+  showFullscreen?: boolean;
+  showSync?: boolean;
   className?: string;
 }
 
+const timeRanges: { value: TimeRange; label: string }[] = [
+  { value: '1H', label: '1H' },
+  { value: '24H', label: '24H' },
+  { value: '7D', label: '7D' },
+  { value: '30D', label: '30D' },
+  { value: '90D', label: '90D' },
+  { value: '1Y', label: '1Y' },
+  { value: 'ALL', label: 'ALL' },
+];
+
+const chartTypes: { value: ChartType; label: string; icon: typeof LineChart }[] = [
+  { value: 'line', label: 'Line', icon: LineChart },
+  { value: 'area', label: 'Area', icon: AreaChart },
+  { value: 'candle', label: 'Candle', icon: CandlestickChart },
+];
+
 export function ChartToolbar({
-  timeRanges,
-  selectedRange,
-  onRangeChange,
-  chartTypes,
-  selectedType,
-  onTypeChange,
-  indicators,
-  onAddIndicator,
-  onExport,
+  timeRange,
+  onTimeRangeChange,
+  chartType = 'line',
+  onChartTypeChange,
+  zoomLevel = 1,
+  onZoomIn,
+  onZoomOut,
   onResetZoom,
-  showZoomReset = false,
+  onExport,
+  onFullscreen,
+  isFullscreen = false,
+  syncEnabled = false,
+  onSyncToggle,
+  showChartType = true,
+  showZoom = true,
+  showExport = true,
+  showFullscreen = true,
+  showSync = true,
   className,
 }: ChartToolbarProps) {
-  const t = useTranslations('chartToolbar');
+  const handleTimeRangeChange = useCallback(
+    (range: TimeRange) => {
+      onTimeRangeChange(range);
+    },
+    [onTimeRangeChange]
+  );
 
-  const defaultChartTypes: ChartType[] = [
-    {
-      key: 'line',
-      label: t('chartType.line'),
-      icon: <LineChart className="w-4 h-4" />,
+  const handleChartTypeChange = useCallback(
+    (type: ChartType) => {
+      onChartTypeChange?.(type);
     },
-    {
-      key: 'area',
-      label: t('chartType.area'),
-      icon: <AreaChart className="w-4 h-4" />,
-    },
-    {
-      key: 'candle',
-      label: t('chartType.candle'),
-      icon: <CandlestickChart className="w-4 h-4" />,
-    },
-  ];
+    [onChartTypeChange]
+  );
 
-  const chartTypeList = chartTypes || defaultChartTypes;
+  const handleSyncToggle = useCallback(() => {
+    onSyncToggle?.(!syncEnabled);
+  }, [onSyncToggle, syncEnabled]);
 
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200',
+        'flex flex-wrap items-center justify-between gap-3',
+        'p-3 bg-white border border-gray-200 rounded-lg',
         className
       )}
     >
@@ -87,121 +108,144 @@ export function ChartToolbar({
       <div className="flex items-center gap-1">
         {timeRanges.map((range) => (
           <button
-            key={range.key}
-            onClick={() => onRangeChange(range.key)}
+            key={range.value}
+            onClick={() => handleTimeRangeChange(range.value)}
             className={cn(
               'px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
-              'min-h-[32px] min-w-[44px]',
-              selectedRange === range.key
-                ? 'bg-primary-600 text-white shadow-sm'
-                : 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              timeRange === range.value
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             )}
-            aria-pressed={selectedRange === range.key}
           >
             {range.label}
           </button>
         ))}
       </div>
 
-      {/* Divider */}
-      <div className="w-px h-5 bg-gray-300 mx-1" />
-
-      {/* Chart Type Switcher */}
-      {chartTypeList.length > 0 && onTypeChange && (
-        <div className="flex items-center gap-1">
-          {chartTypeList.map((type) => (
-            <button
-              key={type.key}
-              onClick={() => onTypeChange(type.key)}
-              className={cn(
-                'inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5',
-                'text-xs font-medium rounded-md transition-all duration-200',
-                'min-h-[32px] min-w-[32px]',
-                selectedType === type.key
-                  ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              )}
-              aria-pressed={selectedType === type.key}
-              title={type.label}
-            >
-              {type.icon}
-              <span className="hidden sm:inline">{type.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Divider */}
-      {chartTypeList.length > 0 && onTypeChange && (
-        <div className="w-px h-5 bg-gray-300 mx-1" />
-      )}
-
-      {/* Technical Indicator Button */}
-      {indicators && indicators.length > 0 && onAddIndicator && (
-        <div className="relative group">
-          <button
-            className={cn(
-              'inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5',
-              'text-xs font-medium rounded-md transition-all duration-200',
-              'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-              'min-h-[32px]'
-            )}
-            title={t('indicators')}
-          >
-            <Activity className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('indicators')}</span>
-            <Plus className="w-3 h-3" />
-          </button>
-          <div className="absolute top-full left-0 mt-1 py-1 bg-white rounded-md shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[140px]">
-            {indicators.map((indicator) => (
-              <button
-                key={indicator}
-                onClick={() => onAddIndicator(indicator)}
-                className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                {indicator}
-              </button>
-            ))}
+      {/* Right Side Controls */}
+      <div className="flex items-center gap-2">
+        {/* Chart Type Switcher */}
+        {showChartType && onChartTypeChange && (
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-md">
+            {chartTypes.map((type) => {
+              const Icon = type.icon;
+              return (
+                <button
+                  key={type.value}
+                  onClick={() => handleChartTypeChange(type.value)}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
+                    chartType === type.value
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  )}
+                  title={type.label}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{type.label}</span>
+                </button>
+              );
+            })}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Action Buttons */}
-      <div className="flex items-center gap-1">
-        {/* Reset Zoom Button */}
-        {showZoomReset && onResetZoom && (
-          <button
-            onClick={onResetZoom}
-            className={cn(
-              'inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5',
-              'text-xs font-medium rounded-md transition-all duration-200',
-              'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-              'min-h-[32px]'
+        {/* Zoom Controls */}
+        {showZoom && (onZoomIn || onZoomOut || onResetZoom) && (
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-md">
+            {onZoomOut && (
+              <button
+                onClick={onZoomOut}
+                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded-md transition-all duration-200"
+                title="Zoom Out"
+              >
+                <ZoomOut className="w-3.5 h-3.5" />
+              </button>
             )}
-            title={t('resetZoom')}
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('resetZoom')}</span>
-          </button>
+            <span className="px-2 text-xs font-medium text-gray-600 min-w-[3rem] text-center">
+              {Math.round(zoomLevel * 100)}%
+            </span>
+            {onZoomIn && (
+              <button
+                onClick={onZoomIn}
+                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded-md transition-all duration-200"
+                title="Zoom In"
+              >
+                <ZoomIn className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onResetZoom && (
+              <button
+                onClick={onResetZoom}
+                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded-md transition-all duration-200"
+                title="Reset Zoom"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         )}
 
         {/* Export Button */}
-        {onExport && (
+        {showExport && onExport && (
           <button
             onClick={onExport}
-            className={cn(
-              'inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5',
-              'text-xs font-medium rounded-md transition-all duration-200',
-              'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-              'min-h-[32px]'
-            )}
-            title={t('export')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-all duration-200"
+            title="Export Data"
           >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('export')}</span>
+            <Download className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Export</span>
+          </button>
+        )}
+
+        {/* Fullscreen Toggle */}
+        {showFullscreen && onFullscreen && (
+          <button
+            onClick={onFullscreen}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
+              isFullscreen
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            )}
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Exit</span>
+              </>
+            ) : (
+              <>
+                <Maximize className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Fullscreen</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Chart Sync Toggle */}
+        {showSync && onSyncToggle && (
+          <button
+            onClick={handleSyncToggle}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
+              syncEnabled
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            )}
+            title={syncEnabled ? 'Disable Sync' : 'Enable Sync'}
+          >
+            {syncEnabled ? (
+              <>
+                <Link2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sync On</span>
+              </>
+            ) : (
+              <>
+                <Link2Off className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sync Off</span>
+              </>
+            )}
           </button>
         )}
       </div>

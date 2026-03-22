@@ -24,7 +24,7 @@ interface PriceTableSectionProps {
   onSort: (column: SortColumn) => void;
   onExpandRow: (index: number | null) => void;
   onSetHoveredRow: (index: number | null) => void;
-  onSetSelectedRow: (index: number | null) => void;
+
   onHoverOracle: (oracle: OracleProvider | null) => void;
   onToggleOracle: (oracle: OracleProvider) => void;
   t: (key: string) => string;
@@ -48,41 +48,44 @@ export function PriceTableSection({
   onSort,
   onExpandRow,
   onSetHoveredRow,
-  onSetSelectedRow,
   onHoverOracle,
   onToggleOracle,
   t,
 }: PriceTableSectionProps) {
   return (
     <>
-      <div className="py-4 border-b border-gray-100">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+      {/* Compact header with title and oracle badges */}
+      <div className="py-2 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h3 className="text-sm font-semibold text-gray-900">
             {t('crossOracle.currentPriceComparison')}
           </h3>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {getOracleProvidersSortedByMarketCap().map((oracle) => (
-            <button
-              key={oracle}
-              onClick={() => onToggleOracle(oracle)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded border transition-colors ${
-                selectedOracles.includes(oracle)
-                  ? 'bg-primary-50 border-primary-300 text-primary-700'
-                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: oracleChartColors[oracle] }}
-              />
-              {oracleNames[oracle]}
-            </button>
-          ))}
+          {/* Compact oracle badges - visual indicator only */}
+          <div className="flex flex-wrap items-center gap-1">
+            {getOracleProvidersSortedByMarketCap()
+              .filter((oracle) => selectedOracles.includes(oracle))
+              .map((oracle) => (
+                <button
+                  key={oracle}
+                  onClick={() => onToggleOracle(oracle)}
+                  onMouseEnter={() => onHoverOracle(oracle)}
+                  onMouseLeave={() => onHoverOracle(null)}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                  title={oracleNames[oracle]}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: oracleChartColors[oracle] }}
+                  />
+                  <span className="truncate max-w-[80px]">{oracleNames[oracle]}</span>
+                </button>
+              ))}
+          </div>
         </div>
       </div>
 
-      <div className="py-4">
+      {/* Price Table */}
+      <div className="py-2">
         <PriceTable
           priceData={priceData}
           filteredPriceData={filteredPriceData}
@@ -99,7 +102,6 @@ export function PriceTableSection({
           onSort={onSort}
           onExpandRow={onExpandRow}
           onSetHoveredRow={onSetHoveredRow}
-          onSetSelectedRow={onSetSelectedRow}
           onHoverOracle={onHoverOracle}
           t={t}
         />

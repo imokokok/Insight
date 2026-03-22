@@ -61,3 +61,17 @@ export type {
   TimeRange,
   ChartType,
 } from './ChartToolbar';
+
+export { SparklineChart } from './SparklineChart';
+export type { SparklineChartProps } from './SparklineChart';
+
+export { LiveStatusBar } from './LiveStatusBar';
+export type { LiveStatusBarProps } from './LiveStatusBar';
+
+export { DataTablePro } from './DataTablePro';
+export type {
+  DataTableProProps,
+  ColumnDef,
+  ConditionalFormattingRule,
+  SortConfig,
+} from './DataTablePro';
