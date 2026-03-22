@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @fileoverview 查询结果展示组件
+ * @description 展示价格查询的结果，包括统计、图表和表格
+ */
+
 import { useTranslations } from 'next-intl';
 import { TrendingUp } from 'lucide-react';
 import { QueryResult, PriceData } from '../constants';
@@ -87,6 +92,12 @@ interface QueryResultsProps {
   filterInputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
+/**
+ * 查询结果展示组件
+ *
+ * @param props - 组件属性
+ * @returns 查询结果 JSX 元素
+ */
 export function QueryResults({
   isLoading,
   queryResults,
@@ -135,6 +146,7 @@ export function QueryResults({
 }: QueryResultsProps) {
   const t = useTranslations();
 
+  // 加载状态
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -163,6 +175,7 @@ export function QueryResults({
     );
   }
 
+  // 空状态
   if (queryResults.length === 0) {
     return (
       <EmptyStateEnhanced
@@ -174,7 +187,7 @@ export function QueryResults({
       >
         <div className="mt-8 pt-6 border-t border-gray-100 w-full max-w-md">
           <p className="text-xs text-gray-400 mb-4 flex items-center justify-center gap-1">
-            <TrendingUp className="w-3 h-3" />
+            <TrendingUp className="w-3 h-3" aria-hidden="true" />
             {t('priceQuery.noResults.popularTokens')}
           </p>
           <div className="flex items-center justify-center">
@@ -195,6 +208,7 @@ export function QueryResults({
 
   return (
     <div className="space-y-6">
+      {/* 统计网格 */}
       <StatsGrid
         avgPrice={avgPrice}
         maxPrice={maxPrice}
@@ -215,8 +229,10 @@ export function QueryResults({
         comparePrices={compareValidPrices}
       />
 
+      {/* 数据质量面板 */}
       <DataQualityPanel results={queryResults} historicalData={historicalData} />
 
+      {/* 数据源和导出区域 */}
       <div className="flex items-center justify-between gap-4">
         <DataSourceSection
           results={queryResults}
@@ -242,7 +258,9 @@ export function QueryResults({
         />
       </div>
 
+      {/* 表格和图表区域 */}
       <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6">
+        {/* 价格结果表格 */}
         <PriceResultsTable
           results={queryResults}
           filteredResults={filteredQueryResults}
@@ -258,6 +276,7 @@ export function QueryResults({
           filterInputRef={filterInputRef}
         />
 
+        {/* 价格图表 */}
         <div ref={chartContainerRef} className="min-w-0">
           <PriceChart
             chartData={chartData}
@@ -275,6 +294,7 @@ export function QueryResults({
         </div>
       </div>
 
+      {/* 时间对比区域 */}
       {isCompareMode && chartData.length > 0 && compareChartData.length > 0 && (
         <TimeComparisonSection
           chartData={chartData}
@@ -289,6 +309,7 @@ export function QueryResults({
         />
       )}
 
+      {/* 快速链接 */}
       <QuickLinks />
     </div>
   );

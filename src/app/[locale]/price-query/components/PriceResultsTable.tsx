@@ -1,21 +1,15 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
-import { Icons } from './Icons';
-import { FreshnessIndicator } from './FreshnessIndicator';
-import { ConfidenceBadge } from './ConfidenceBadge';
-import {
-  QueryResult,
-  oracleColors,
-  chainColors,
-  DEVIATION_THRESHOLD,
-  oracleI18nKeys,
-} from '../constants';
-import { semanticColors } from '@/lib/config/colors';
-import { SegmentedControl } from '@/components/ui/selectors';
+/**
+ * @fileoverview 价格结果表格组件
+ * @description 展示价格查询结果的表格，支持排序、筛选和选中
+ */
 
-type ScoreLevel = 'excellent' | 'good' | 'warning' | 'critical';
+import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, Filter, X } from 'lucide-react';
+import { QueryResult, PriceData, oracleI18nKeys } from '../constants';
+import { OracleProvider, Blockchain } from '@/lib/oracles';
 
 interface PriceResultsTableProps {
   results: QueryResult[];
@@ -27,56 +21,17 @@ interface PriceResultsTableProps {
   onSort: (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => void;
   avgPrice: number;
   selectedRow: string | null;
-  onRowSelect: (rowKey: string | null) => void;
-  historicalData?: Partial<Record<string, QueryResult['priceData'][]>>;
+  onRowSelect: (row: string | null) => void;
+  historicalData: Partial<Record<string, PriceData[]>>;
   filterInputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
-const SCORE_CONFIG: Record<ScoreLevel, { color: string; bgColor: string; label: string }> = {
-  excellent: { color: semanticColors.success.main, bgColor: 'bg-success-500', label: 'excellent' },
-  good: { color: semanticColors.info.main, bgColor: 'bg-primary-500', label: 'good' },
-  warning: { color: semanticColors.warning.main, bgColor: 'bg-warning-500', label: 'warning' },
-  critical: { color: semanticColors.danger.main, bgColor: 'bg-danger-500', label: 'critical' },
-};
-
-function getScoreLevel(score: number): ScoreLevel {
-  if (score >= 90) return 'excellent';
-  if (score >= 70) return 'good';
-  if (score >= 50) return 'warning';
-  return 'critical';
-}
-
-function calculateCompletenessScore(dataPoints: number, expectedPoints: number): number {
-  const missingRatio = expectedPoints > 0 ? (expectedPoints - dataPoints) / expectedPoints : 0;
-  const continuity = expectedPoints > 0 ? dataPoints / expectedPoints : 0;
-
-  let score = 100;
-  score -= missingRatio * 50;
-  score -= (1 - continuity) * 30;
-
-  return Math.max(0, Math.min(100, Math.round(score)));
-}
-
-function DataQualityBadge({ score }: { score: number }) {
-  const _t = useTranslations();
-  const level = getScoreLevel(score);
-  const config = SCORE_CONFIG[level];
-
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden min-w-[24px]">
-        <div
-          className={`h-full rounded-full transition-all duration-300 ${config.bgColor}`}
-          style={{ width: `${score}%` }}
-        />
-      </div>
-      <span className="text-[10px] font-semibold w-6 text-right" style={{ color: config.color }}>
-        {score}
-      </span>
-    </div>
-  );
-}
-
+/**
+ * 价格结果表格组件
+ *
+ * @param props - 组件属性
+ * @returns 价格结果表格 JSX 元素
+ */
 export function PriceResultsTable({
   results,
   filteredResults,
@@ -88,423 +43,263 @@ export function PriceResultsTable({
   avgPrice,
   selectedRow,
   onRowSelect,
-  historicalData = {},
+  historicalData: _historicalData,
   filterInputRef,
 }: PriceResultsTableProps) {
   const t = useTranslations();
-  const [pageSize, setPageSize] = useState<number>(10);
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const calculateDeviation = (price: number, avg: number): number => {
-    if (avg === 0) return 0;
-    return ((price - avg) / avg) * 100;
+  // 获取排序图标
+  const getSortIcon = (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />;
+    }
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="w-3.5 h-3.5 text-primary-600" aria-hidden="true" />
+    ) : (
+      <ArrowDown className="w-3.5 h-3.5 text-primary-600" aria-hidden="true" />
+    );
   };
 
+  // 计算价格偏差
+  const getPriceDeviation = (price: number): { value: string; color: string } => {
+    if (avgPrice === 0) return { value: '-', color: 'text-gray-400' };
+    const deviation = ((price - avgPrice) / avgPrice) * 100;
+    const formatted = deviation >= 0 ? `+${deviation.toFixed(2)}%` : `${deviation.toFixed(2)}%`;
+    if (Math.abs(deviation) < 0.1) return { value: formatted, color: 'text-success-600' };
+    if (Math.abs(deviation) < 0.5) return { value: formatted, color: 'text-warning-600' };
+    return { value: formatted, color: 'text-danger-600' };
+  };
+
+  // 格式化时间
+  const formatTimestamp = (timestamp: number): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  // 获取行唯一标识
   const getRowKey = (result: QueryResult): string => {
-    return `${result.provider}-${result.chain}`;
+    return `${result.provider}-${result.chain}-${result.priceData.timestamp}`;
   };
 
+  // 处理行点击
   const handleRowClick = (result: QueryResult) => {
-    const rowKey = getRowKey(result);
-    if (selectedRow === rowKey) {
-      onRowSelect(null);
-    } else {
-      onRowSelect(rowKey);
-    }
-  };
-
-  const paginatedResults = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return filteredResults.slice(startIndex, startIndex + pageSize);
-  }, [filteredResults, currentPage, pageSize]);
-
-  const totalPages = useMemo(() => {
-    return Math.ceil(filteredResults.length / pageSize);
-  }, [filteredResults.length, pageSize]);
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  const handlePageSizeChange = (newSize: number) => {
-    setPageSize(newSize);
-    setCurrentPage(1);
-  };
-
-  const pageSizeOptions = [
-    { value: 10, label: '10' },
-    { value: 20, label: '20' },
-    { value: 50, label: '50' },
-  ];
-
-  const getPageNumbers = (): (number | string)[] => {
-    const pages: (number | string)[] = [];
-    const maxVisiblePages = 5;
-
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        pages.push(1);
-        pages.push('...');
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
-      }
-    }
-    return pages;
+    const key = getRowKey(result);
+    onRowSelect(selectedRow === key ? null : key);
   };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      {/* 表头 */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          <Icons.chart className="w-4 h-4" />
-          {t('priceQuery.results.title')}
-          <span className="text-xs font-normal text-gray-500">({filteredResults.length})</span>
-        </h2>
-        {results.length > 0 && (
+      {/* 表格头部 */}
+      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-gray-900">{t('priceQuery.results.title')}</h3>
+          <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded-full">
+            {filteredResults.length}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              showFilters
+                ? 'bg-primary-50 text-primary-700 border border-primary-200'
+                : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
+            }`}
+            aria-expanded={showFilters}
+          >
+            <Filter className="w-3.5 h-3.5" aria-hidden="true" />
+            {t('filter')}
+          </button>
+        </div>
+      </div>
+
+      {/* 筛选区域 */}
+      {showFilters && (
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
           <div className="relative">
-            <div
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
               aria-hidden="true"
-            >
-              <Icons.search className="w-3.5 h-3.5" />
-            </div>
+            />
             <input
               ref={filterInputRef}
               type="text"
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
-              placeholder={t('priceQuery.filter.placeholder')}
-              className="w-full sm:w-48 pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+              placeholder={t('priceQuery.results.filterPlaceholder')}
+              className="w-full pl-9 pr-9 py-2 text-sm bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
-          </div>
-        )}
-      </div>
-
-      {/* 表格内容 */}
-      <div className="overflow-x-auto">
-        {results.length === 0 ? (
-          <div className="py-12 text-center text-gray-500 text-sm">
-            {t('priceQuery.results.empty')}
-          </div>
-        ) : filteredResults.length === 0 ? (
-          <div className="py-12 text-center text-gray-500 text-sm">
-            {t('priceQuery.filter.noResults')}
-          </div>
-        ) : (
-          <>
-            <div
-              className="grid text-xs min-w-[700px]"
-              style={{
-                gridTemplateColumns:
-                  'minmax(100px, 1fr) minmax(90px, 1fr) minmax(100px, 1fr) minmax(80px, 0.8fr) minmax(70px, 0.7fr) minmax(80px, 0.8fr) minmax(70px, 0.7fr)',
-              }}
-              role="table"
-            >
-              {/* 表头 */}
-              <div
-                className={`text-left py-2.5 px-3 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none ${
-                  sortField === 'oracle' ? 'bg-gray-100 text-gray-900' : 'bg-gray-50 text-gray-700'
-                }`}
-                onClick={() => onSort('oracle')}
+            {filterText && (
+              <button
+                onClick={() => setFilterText('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label={t('clear')}
               >
-                <div className="flex items-center gap-1">
-                  {t('priceQuery.results.table.oracle')}
-                  {sortField === 'oracle' && (
-                    <span className="text-gray-900">
-                      {sortDirection === 'asc' ? (
-                        <Icons.arrowUp className="w-3 h-3" />
-                      ) : (
-                        <Icons.arrowDown className="w-3 h-3" />
-                      )}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div
-                className={`text-left py-2.5 px-3 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none ${
-                  sortField === 'blockchain'
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'bg-gray-50 text-gray-700'
-                }`}
-                onClick={() => onSort('blockchain')}
-              >
-                <div className="flex items-center gap-1">
-                  {t('priceQuery.results.table.blockchain')}
-                  {sortField === 'blockchain' && (
-                    <span className="text-gray-900">
-                      {sortDirection === 'asc' ? (
-                        <Icons.arrowUp className="w-3 h-3" />
-                      ) : (
-                        <Icons.arrowDown className="w-3 h-3" />
-                      )}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div
-                className={`text-right py-2.5 px-3 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none ${
-                  sortField === 'price' ? 'bg-gray-100 text-gray-900' : 'bg-gray-50 text-gray-700'
-                }`}
-                onClick={() => onSort('price')}
-              >
-                <div className="flex items-center justify-end gap-1">
-                  {t('priceQuery.results.table.price')}
-                  {sortField === 'price' && (
-                    <span className="text-gray-900">
-                      {sortDirection === 'asc' ? (
-                        <Icons.arrowUp className="w-3 h-3" />
-                      ) : (
-                        <Icons.arrowDown className="w-3 h-3" />
-                      )}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50">
-                {t('priceQuery.results.table.change24h')}
-              </div>
-              <div className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50">
-                {t('priceQuery.results.table.freshness')}
-              </div>
-              <div className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50">
-                {t('dataQuality.completenessScore')}
-              </div>
-              <div className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50">
-                {t('priceQuery.results.table.confidence')}
-              </div>
-
-              {/* 数据行 */}
-              {paginatedResults.map((result) => {
-                const deviation = calculateDeviation(result.priceData.price, avgPrice);
-                const isHighDeviation = Math.abs(deviation) > DEVIATION_THRESHOLD * 100;
-                const change24hPercent = result.priceData.change24hPercent ?? 0;
-                const rowKey = getRowKey(result);
-                const isSelected = selectedRow === rowKey;
-
-                const historyKey = `${result.provider}-${result.chain}`;
-                const history = historicalData[historyKey] || [];
-                const dataPoints = history.length;
-                const expectedPoints = Math.max(24, dataPoints);
-                const completenessScore = calculateCompletenessScore(dataPoints, expectedPoints);
-
-                return (
-                  <div
-                    key={rowKey}
-                    className="contents cursor-pointer"
-                    onClick={() => handleRowClick(result)}
-                    role="row"
-                    aria-selected={isSelected}
-                  >
-                    <div
-                      className={`py-2 px-3 border-b border-gray-100 transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
-                          : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
-                            : 'hover:bg-gray-50/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: oracleColors[result.provider] }}
-                        />
-                        <span className="font-medium text-gray-900 truncate text-xs">
-                          {t(`navbar.${oracleI18nKeys[result.provider]}`)}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      className={`py-2 px-3 border-b border-gray-100 transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
-                          : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
-                            : 'hover:bg-gray-50/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: chainColors[result.chain] }}
-                        />
-                        <span className="font-medium text-gray-900 truncate text-xs">
-                          {t(`blockchain.${result.chain.toLowerCase()}`)}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      className={`py-2 px-3 text-right border-b border-gray-100 font-mono text-gray-900 transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
-                          : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
-                            : 'hover:bg-gray-50/50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-end gap-1.5">
-                        <span className="text-xs">
-                          $
-                          {result.priceData.price.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 4,
-                          })}
-                        </span>
-                        {isHighDeviation && (
-                          <span
-                            className={`text-[10px] px-1 py-0.5 rounded flex-shrink-0 ${
-                              deviation > 0
-                                ? 'bg-danger-50 text-danger-600'
-                                : 'bg-success-50 text-success-600'
-                            }`}
-                          >
-                            {deviation > 0 ? '+' : ''}
-                            {deviation.toFixed(1)}%
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div
-                      className={`py-2 px-3 text-right border-b border-gray-100 font-mono transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
-                          : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
-                            : 'hover:bg-gray-50/50'
-                      }`}
-                    >
-                      {result.priceData.change24hPercent !== undefined ? (
-                        <span
-                          className={
-                            change24hPercent >= 0
-                              ? 'text-success-600 text-xs'
-                              : 'text-danger-600 text-xs'
-                          }
-                        >
-                          {change24hPercent >= 0 ? '+' : ''}
-                          {change24hPercent.toFixed(2)}%
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 text-xs">-</span>
-                      )}
-                    </div>
-                    <div
-                      className={`py-2 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
-                          : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
-                            : 'hover:bg-gray-50/50'
-                      }`}
-                    >
-                      <FreshnessIndicator timestamp={result.priceData.timestamp} />
-                    </div>
-                    <div
-                      className={`py-2 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
-                          : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
-                            : 'hover:bg-gray-50/50'
-                      }`}
-                    >
-                      <DataQualityBadge score={completenessScore} />
-                    </div>
-                    <div
-                      className={`py-2 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-primary-50/30 border-l-2 border-l-blue-500'
-                          : isHighDeviation
-                            ? 'bg-amber-50/30 hover:bg-primary-50/20'
-                            : 'hover:bg-gray-50/50'
-                      }`}
-                    >
-                      <ConfidenceBadge score={result.priceData.confidence} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* 分页 */}
-      {filteredResults.length > 10 && (
-        <div className="px-3 py-2.5 bg-gray-50/80 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span>{t('priceQuery.pagination.perPage')}</span>
-            <SegmentedControl
-              options={pageSizeOptions}
-              value={pageSize}
-              onChange={(value) => handlePageSizeChange(value as number)}
-              size="sm"
-            />
-            <span className="text-gray-400">
-              {t('priceQuery.pagination.total', { count: filteredResults.length })}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded"
-            >
-              {t('priceQuery.pagination.prevPage')}
-            </button>
-
-            {getPageNumbers().map((page, index) => (
-              <div key={index}>
-                {page === '...' ? (
-                  <span className="px-1.5 text-gray-300 text-xs">...</span>
-                ) : (
-                  <button
-                    onClick={() => handlePageChange(page as number)}
-                    className={`px-2 py-1 text-xs rounded transition-colors ${
-                      currentPage === page
-                        ? 'bg-gray-800 text-white font-medium'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )}
-              </div>
-            ))}
-
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded"
-            >
-              {t('priceQuery.pagination.nextPage')}
-            </button>
+                <X className="w-4 h-4" aria-hidden="true" />
+              </button>
+            )}
           </div>
         </div>
       )}
+
+      {/* 表格 */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th
+                className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => onSort('oracle')}
+              >
+                <div className="flex items-center gap-1">
+                  {t('priceQuery.results.oracle')}
+                  {getSortIcon('oracle')}
+                </div>
+              </th>
+              <th
+                className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => onSort('blockchain')}
+              >
+                <div className="flex items-center gap-1">
+                  {t('priceQuery.results.blockchain')}
+                  {getSortIcon('blockchain')}
+                </div>
+              </th>
+              <th
+                className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => onSort('price')}
+              >
+                <div className="flex items-center justify-end gap-1">
+                  {t('priceQuery.results.price')}
+                  {getSortIcon('price')}
+                </div>
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {t('priceQuery.results.deviation')}
+              </th>
+              <th
+                className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => onSort('timestamp')}
+              >
+                <div className="flex items-center justify-end gap-1">
+                  {t('priceQuery.results.timestamp')}
+                  {getSortIcon('timestamp')}
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filteredResults.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500">
+                  {t('priceQuery.results.noMatchingData')}
+                </td>
+              </tr>
+            ) : (
+              filteredResults.map((result) => {
+                const rowKey = getRowKey(result);
+                const isSelected = selectedRow === rowKey;
+                const deviation = getPriceDeviation(result.priceData.price);
+
+                return (
+                  <tr
+                    key={rowKey}
+                    onClick={() => handleRowClick(result)}
+                    className={`cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-primary-50 hover:bg-primary-100'
+                        : 'hover:bg-gray-50'
+                    }`}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        handleRowClick(result);
+                      }
+                    }}
+                    aria-pressed={isSelected}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            result.provider === 'chainlink'
+                              ? 'bg-blue-500'
+                              : result.provider === 'pyth'
+                                ? 'bg-emerald-500'
+                                : result.provider === 'band-protocol'
+                                  ? 'bg-amber-500'
+                                  : result.provider === 'api3'
+                                    ? 'bg-violet-500'
+                                    : result.provider === 'uma'
+                                      ? 'bg-red-500'
+                                      : result.provider === 'redstone'
+                                        ? 'bg-cyan-500'
+                                        : result.provider === 'dia'
+                                          ? 'bg-orange-500'
+                                          : result.provider === 'tellor'
+                                            ? 'bg-pink-500'
+                                            : result.provider === 'chronicle'
+                                              ? 'bg-indigo-500'
+                                              : 'bg-gray-500'
+                          }`}
+                        />
+                        <span className="font-medium text-gray-900">
+                          {t(`navbar.${oracleI18nKeys[result.provider]}`)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-gray-700">
+                        {t(`blockchain.${result.chain.toLowerCase()}`)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="font-medium font-tabular text-gray-900">
+                        ${result.priceData.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={`text-xs font-medium ${deviation.color}`}>
+                        {deviation.value}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="text-xs text-gray-500">
+                        {formatTimestamp(result.priceData.timestamp)}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 表格底部信息 */}
+      <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between">
+        <span>
+          {t('priceQuery.results.showing', {
+            count: filteredResults.length,
+            total: results.length,
+          })}
+        </span>
+        {filterText && (
+          <button
+            onClick={() => setFilterText('')}
+            className="text-primary-600 hover:text-primary-700 font-medium"
+          >
+            {t('clearFilter')}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

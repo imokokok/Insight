@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @fileoverview 价格查询页面 - 专业的区块链预言机价格数据分析平台
+ * @description 提供多预言机、多链的价格查询、对比和分析功能
+ */
+
 import { useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useCommonShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -137,13 +142,15 @@ export default function PriceQueryPage() {
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 bg-insight min-h-screen rounded-lg">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
+      {/* 屏幕阅读器通知区域 */}
       <div aria-live="polite" className="sr-only">
         {isLoading
           ? t('priceQuery.loadingData')
           : `${queryResults.length} ${t('priceQuery.results.title')}`}
       </div>
 
+      {/* 页面头部 */}
       <QueryHeader
         showHistory={showHistory}
         setShowHistory={setShowHistory}
@@ -171,10 +178,10 @@ export default function PriceQueryPage() {
         handleApplyFavorite={handleApplyFavorite}
       />
 
-      {/* 左右分栏布局 */}
+      {/* 主内容区域 - 左右分栏布局 */}
       <div className="flex flex-col xl:flex-row gap-6">
-        {/* 左侧：选择器区域 */}
-        <div className="xl:w-[400px] xl:flex-shrink-0">
+        {/* 左侧：查询选择器面板 */}
+        <aside className="xl:w-[400px] xl:flex-shrink-0">
           <QueryForm
             selectedOracles={selectedOracles}
             setSelectedOracles={setSelectedOracles}
@@ -194,9 +201,10 @@ export default function PriceQueryPage() {
             showBaseline={showBaseline}
             setShowBaseline={setShowBaseline}
           />
-        </div>
+        </aside>
 
-        <div className="flex-1 min-w-0">
+        {/* 右侧：查询结果展示区域 */}
+        <main className="flex-1 min-w-0">
           <QueryResults
             isLoading={isLoading}
             queryResults={queryResults}
@@ -243,9 +251,10 @@ export default function PriceQueryPage() {
             onTimeConfigChange={setTimeComparisonConfig}
             filterInputRef={filterInputRef}
           />
-        </div>
+        </main>
       </div>
 
+      {/* 导出配置弹窗 */}
       <ExportConfig
         isOpen={showExportConfig}
         onClose={() => setShowExportConfig(false)}

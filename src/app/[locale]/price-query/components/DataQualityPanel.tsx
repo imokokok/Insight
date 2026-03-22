@@ -18,7 +18,6 @@ import { QueryResult } from '../constants';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { DropdownSelect } from '@/components/ui/selectors';
 
-
 interface DataQualityMetrics {
   oracle: string;
   chain: string;

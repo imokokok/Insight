@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @fileoverview 统计数据网格组件
+ * @description 展示价格查询的统计数据，支持展开/收起详情
+ */
+
 import { useMemo, useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -28,6 +33,12 @@ interface StatsGridProps {
 
 const STORAGE_KEY = 'stats-grid-expanded';
 
+/**
+ * 统计数据网格组件
+ *
+ * @param props - 组件属性
+ * @returns 统计数据网格 JSX 元素
+ */
 export function StatsGrid({
   avgPrice,
   maxPrice,
@@ -83,17 +94,13 @@ export function StatsGrid({
   const consistencyRating =
     standardDeviationPercent > 0 ? getConsistencyRating(standardDeviationPercent) : null;
 
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
-
   // 计算对比差异百分比
   const calculateDiffPercent = (current: number, compare: number): number => {
     if (compare === 0) return 0;
     return ((current - compare) / compare) * 100;
   };
 
-  // 获取差异显示样式 - 使用更 subtle 的展示
+  // 获取差异显示样式
   const getDiffStyle = (diff: number): { text: string; color: string; bgColor: string } => {
     if (diff > 0) {
       return {
@@ -129,6 +136,7 @@ export function StatsGrid({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       {/* 主统计区域 - 紧凑布局 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
+        {/* 平均价格 */}
         <div className="px-3 py-2.5 border-r border-gray-100">
           <StatItem
             label={t('priceQuery.stats.avgPrice')}
@@ -151,6 +159,8 @@ export function StatsGrid({
             </div>
           )}
         </div>
+
+        {/* 24小时变化 */}
         <div className="px-3 py-2.5 border-r border-gray-100">
           <StatItem
             label={t('priceQuery.stats.change24h')}
@@ -178,6 +188,8 @@ export function StatsGrid({
               </div>
             )}
         </div>
+
+        {/* 波动率 */}
         <div className="px-3 py-2.5 border-r border-gray-100">
           <StatItem
             label={t('priceQuery.stats.volatility')}
@@ -187,6 +199,8 @@ export function StatsGrid({
             compact
           />
         </div>
+
+        {/* 数据点数 */}
         <div className="px-3 py-2.5">
           <StatItem
             label={t('priceQuery.stats.dataPoints')}
@@ -202,6 +216,7 @@ export function StatsGrid({
           isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
+        {/* 最高价格 */}
         <div className="px-3 py-2.5 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.maxPrice')}
@@ -224,6 +239,8 @@ export function StatsGrid({
             </div>
           )}
         </div>
+
+        {/* 最低价格 */}
         <div className="px-3 py-2.5 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.minPrice')}
@@ -246,6 +263,8 @@ export function StatsGrid({
             </div>
           )}
         </div>
+
+        {/* 价格区间 */}
         <div className="px-3 py-2.5 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.priceRange')}
@@ -268,6 +287,8 @@ export function StatsGrid({
             </div>
           )}
         </div>
+
+        {/* 标准差 */}
         <div className="px-3 py-2.5 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.standardDeviation')}
@@ -281,6 +302,8 @@ export function StatsGrid({
             compact
           />
         </div>
+
+        {/* 查询耗时 */}
         <div className="px-3 py-2.5 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.queryDuration')}
@@ -289,6 +312,8 @@ export function StatsGrid({
             compact
           />
         </div>
+
+        {/* 一致性评级 */}
         <div className="px-3 py-2.5 border-t border-gray-50">
           <div className="py-0.5">
             <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-0.5">
@@ -307,19 +332,19 @@ export function StatsGrid({
 
       {/* 展开/收起按钮 */}
       <button
-        onClick={toggleExpanded}
+        onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
         aria-expanded={isExpanded}
       >
         {isExpanded ? (
           <>
-            <ChevronUp className="w-3.5 h-3.5" />
-            <span>{t('priceQuery.stats.collapse') || '收起'}</span>
+            <ChevronUp className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>{t('priceQuery.stats.collapse')}</span>
           </>
         ) : (
           <>
-            <ChevronDown className="w-3.5 h-3.5" />
-            <span>{t('priceQuery.stats.expand') || '查看更多'}</span>
+            <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>{t('priceQuery.stats.expand')}</span>
           </>
         )}
       </button>
