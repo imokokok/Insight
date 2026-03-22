@@ -1,5 +1,13 @@
 {
   "marketOverview": {
+    "stats": {
+      "totalTVS": "总 TVS",
+      "totalChains": "支持链数",
+      "totalProtocols": "协议数量",
+      "marketDominance": "市场主导",
+      "avgLatency": "平均延迟",
+      "oracleCount": "预言机数"
+    },
     "export": {
       "title": "导出",
       "csv": "CSV",

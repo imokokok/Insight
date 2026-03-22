@@ -1,5 +1,13 @@
 {
   "marketOverview": {
+    "stats": {
+      "totalTVS": "Total TVS",
+      "totalChains": "Total Chains",
+      "totalProtocols": "Total Protocols",
+      "marketDominance": "Market Dominance",
+      "avgLatency": "Avg Latency",
+      "oracleCount": "Oracle Count"
+    },
     "export": {
       "title": "Export",
       "csv": "CSV",

@@ -223,6 +223,10 @@
   },
   "common": {
     "loading": "Loading...",
+    "home": "Home",
+    "breadcrumb": {
+      "home": "Home"
+    },
     "error": {
       "loadingFailed": "Loading failed"
     }

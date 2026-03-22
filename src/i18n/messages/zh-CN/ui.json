@@ -113,5 +113,18 @@
     "completionDescription": "一切就绪！开始探索平台，发现强大的预言机分析功能。",
     "startUsing": "开始使用",
     "viewSummary": "查看摘要"
+  },
+  "dataTable": {
+    "noData": "暂无数据",
+    "loading": "加载中...",
+    "sort": {
+      "asc": "升序",
+      "desc": "降序"
+    },
+    "density": {
+      "compact": "紧凑",
+      "normal": "标准",
+      "comfortable": "宽松"
+    }
   }
 }

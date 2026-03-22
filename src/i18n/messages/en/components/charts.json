@@ -1,4 +1,14 @@
 {
+  "chartToolbar": {
+    "chartType": {
+      "line": "Line",
+      "area": "Area",
+      "candle": "Candle"
+    },
+    "indicators": "Indicators",
+    "export": "Export",
+    "resetZoom": "Reset Zoom"
+  },
   "charts": {
     "latency": {
       "title": "Price Update Latency Trend",

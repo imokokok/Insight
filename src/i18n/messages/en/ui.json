@@ -113,5 +113,18 @@
     "completionDescription": "You're all set! Start exploring the platform and discover powerful oracle analytics.",
     "startUsing": "Start Using",
     "viewSummary": "View Summary"
+  },
+  "dataTable": {
+    "noData": "No data available",
+    "loading": "Loading...",
+    "sort": {
+      "asc": "Ascending",
+      "desc": "Descending"
+    },
+    "density": {
+      "compact": "Compact",
+      "normal": "Normal",
+      "comfortable": "Comfortable"
+    }
   }
 }

@@ -63,95 +63,97 @@ export default function MarketOverviewPage() {
   } = useMarketPage();
 
   return (
-    <div className="min-h-screen bg-insight rounded-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <MarketHeader
-          loading={isLoading}
-          oracleData={oracleData}
-          assets={assets}
-          chartContainerRef={chartContainerRef}
-          activeChart={activeChart}
-          getChartTitle={getChartTitle}
-          lastUpdated={lastUpdated}
-          refreshStatus={refreshStatus}
-          fetchData={fetchData}
-          refreshInterval={refreshInterval}
-          setRefreshInterval={setRefreshInterval}
-          wsStatus={wsStatus}
-          wsReconnect={wsReconnect}
-        />
-
-        <div className="bg-white border border-gray-200 p-6 rounded-lg transition-all duration-200 hover:border-gray-300">
-          <MarketStats
-            marketStats={marketStats}
-            totalTVS={totalTVS}
-            totalChains={totalChains}
-            totalProtocols={totalProtocols}
+    <div className="min-h-screen bg-insight">
+      <div className="max-w-[1600px] mx-auto px-3 py-3">
+        <div className="space-y-3">
+          <MarketHeader
+            loading={isLoading}
+            oracleData={oracleData}
+            assets={assets}
+            chartContainerRef={chartContainerRef}
+            activeChart={activeChart}
+            getChartTitle={getChartTitle}
+            lastUpdated={lastUpdated}
+            refreshStatus={refreshStatus}
+            fetchData={fetchData}
+            refreshInterval={refreshInterval}
+            setRefreshInterval={setRefreshInterval}
+            wsStatus={wsStatus}
+            wsReconnect={wsReconnect}
           />
-        </div>
 
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <div className="bg-white border border-gray-200 p-6 rounded-lg transition-all duration-200 hover:border-gray-300">
-                <ChartContainer
-                  chartContainerRef={chartContainerRef}
-                  activeChart={activeChart}
-                  setActiveChart={setActiveChart}
-                  viewType={viewType}
-                  setViewType={setViewType}
+          <div className="bg-white border border-gray-200 p-3 rounded-lg transition-all duration-200 hover:border-gray-300">
+            <MarketStats
+              marketStats={marketStats}
+              totalTVS={totalTVS}
+              totalChains={totalChains}
+              totalProtocols={totalProtocols}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+              <div className="lg:col-span-2">
+                <div className="bg-white border border-gray-200 p-3 rounded-lg transition-all duration-200 hover:border-gray-300">
+                  <ChartContainer
+                    chartContainerRef={chartContainerRef}
+                    activeChart={activeChart}
+                    setActiveChart={setActiveChart}
+                    viewType={viewType}
+                    setViewType={setViewType}
+                    selectedTimeRange={selectedTimeRange}
+                    setSelectedTimeRange={setSelectedTimeRange}
+                    selectedItem={selectedItem}
+                    setSelectedItem={setSelectedItem}
+                    hoveredItem={hoveredItem}
+                    setHoveredItem={setHoveredItem}
+                    linkedOracle={linkedOracle}
+                    setLinkedOracle={setLinkedOracle}
+                    zoomRange={zoomRange}
+                    setZoomRange={setZoomRange}
+                    anomalyThreshold={anomalyThreshold}
+                    setAnomalyThreshold={setAnomalyThreshold}
+                    selectedAnomaly={selectedAnomaly}
+                    setSelectedAnomaly={setSelectedAnomaly}
+                    comparisonMode={comparisonMode}
+                    setComparisonMode={setComparisonMode}
+                    trendComparisonData={trendComparisonData}
+                    setTrendComparisonData={setTrendComparisonData}
+                    showConfidenceInterval={showConfidenceInterval}
+                    setShowConfidenceInterval={setShowConfidenceInterval}
+                    getChartTitle={getChartTitle}
+                    loading={isLoading}
+                    loadingEnhanced={isLoadingEnhanced}
+                    loadingComparison={isLoadingComparison}
+                    sortedOracleData={sortedOracleData}
+                    trendData={trendData}
+                    chainBreakdown={chainBreakdown}
+                    protocolDetails={protocolDetails}
+                    assetCategories={assetCategories}
+                    comparisonData={comparisonData}
+                    benchmarkData={benchmarkData}
+                    correlationData={correlationData}
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 p-3 rounded-lg transition-all duration-200 hover:border-gray-300">
+                <MarketSidebar
                   selectedTimeRange={selectedTimeRange}
-                  setSelectedTimeRange={setSelectedTimeRange}
+                  lastUpdated={lastUpdated}
+                  sortedOracleData={sortedOracleData}
                   selectedItem={selectedItem}
                   setSelectedItem={setSelectedItem}
                   hoveredItem={hoveredItem}
                   setHoveredItem={setHoveredItem}
-                  linkedOracle={linkedOracle}
-                  setLinkedOracle={setLinkedOracle}
-                  zoomRange={zoomRange}
-                  setZoomRange={setZoomRange}
-                  anomalyThreshold={anomalyThreshold}
-                  setAnomalyThreshold={setAnomalyThreshold}
-                  selectedAnomaly={selectedAnomaly}
-                  setSelectedAnomaly={setSelectedAnomaly}
-                  comparisonMode={comparisonMode}
-                  setComparisonMode={setComparisonMode}
-                  trendComparisonData={trendComparisonData}
-                  setTrendComparisonData={setTrendComparisonData}
-                  showConfidenceInterval={showConfidenceInterval}
-                  setShowConfidenceInterval={setShowConfidenceInterval}
-                  getChartTitle={getChartTitle}
-                  loading={isLoading}
-                  loadingEnhanced={isLoadingEnhanced}
-                  loadingComparison={isLoadingComparison}
-                  sortedOracleData={sortedOracleData}
-                  trendData={trendData}
-                  chainBreakdown={chainBreakdown}
-                  protocolDetails={protocolDetails}
-                  assetCategories={assetCategories}
-                  comparisonData={comparisonData}
-                  benchmarkData={benchmarkData}
-                  correlationData={correlationData}
+                  marketStats={marketStats}
                 />
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 p-6 rounded-lg transition-all duration-200 hover:border-gray-300">
-              <MarketSidebar
-                selectedTimeRange={selectedTimeRange}
-                lastUpdated={lastUpdated}
-                sortedOracleData={sortedOracleData}
-                selectedItem={selectedItem}
-                setSelectedItem={setSelectedItem}
-                hoveredItem={hoveredItem}
-                setHoveredItem={setHoveredItem}
-                marketStats={marketStats}
-              />
+            <div className="bg-white border border-gray-200 p-3 rounded-lg transition-all duration-200 hover:border-gray-300">
+              <AssetsTable assets={assets} />
             </div>
-          </div>
-
-          <div className="bg-white border border-gray-200 p-6 rounded-lg transition-all duration-200 hover:border-gray-300">
-            <AssetsTable assets={assets} />
           </div>
         </div>
       </div>
