@@ -173,18 +173,10 @@ export default function CrossOraclePage() {
         }
       `}</style>
 
-      {/* Live Status Bar */}
-      <div className="mb-6">
-        <LiveStatusBar
-          isConnected={!isLoading}
-          latency={undefined}
-          lastUpdate={lastUpdated || undefined}
-        />
-      </div>
-
       <StatsOverview outlierStats={outlierStats} scrollToOutlier={scrollToOutlier} t={t} />
 
-      <HeaderSection
+      <div className="flex flex-col gap-3 mb-4">
+        <HeaderSection
         selectedSymbol={selectedSymbol}
         selectedOracles={selectedOracles}
         isLoading={isLoading}
@@ -199,6 +191,14 @@ export default function CrossOraclePage() {
         fetchPriceData={fetchPriceData}
         t={t}
       />
+
+      {/* Live Status Bar */}
+      <LiveStatusBar
+        isConnected={!isLoading}
+        latency={undefined}
+        lastUpdate={lastUpdated || undefined}
+      />
+    </div>
 
       <StatsSection
         qualityScoreData={qualityScoreData}

@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { FavoriteButton } from '@/components/favorites';
-import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { OracleProvider } from '@/types/oracle';
 import { oracleNames } from '../constants';
 import { FavoriteConfig } from '@/hooks/useFavorites';
@@ -40,15 +39,8 @@ export function HeaderSection({
 }: HeaderSectionProps) {
   const router = useRouter();
 
-  const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Cross Oracle Comparison', href: '/cross-oracle' },
-  ];
-
   return (
-    <div className="mb-4 pb-4 border-b border-gray-200">
-      <Breadcrumb items={breadcrumbItems} className="mb-3" />
-
+    <div className="mb-4">
       <div className="flex flex-col gap-3">
         {/* Title row */}
         <div className="flex items-start justify-between">
