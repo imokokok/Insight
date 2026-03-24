@@ -11,8 +11,8 @@ import {
   API3DapiView,
   API3EcosystemView,
   API3RiskView,
+  API3Hero,
 } from './components';
-import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
 import { LoadingState, ErrorFallback } from '@/components/oracle';
 
 export default function API3Page() {
@@ -47,37 +47,6 @@ export default function API3Page() {
   if (isError && error) {
     return <ErrorFallback error={error} onRetry={refresh} themeColor={config.themeColor} />;
   }
-
-  const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
-  const priceChange24h = config.marketData.change24h ?? 0;
-  const isPositive = priceChange24h >= 0;
-
-  const stats = [
-    {
-      title: t('api3.stats.activeAirnodes'),
-      value: `${airnodeStats?.activeAirnodes ?? 50}+`,
-      change: '+3%',
-      changeType: 'positive' as const,
-    },
-    {
-      title: t('api3.stats.dapiFeeds'),
-      value: `${dapiCoverage?.totalDapis ?? 150}+`,
-      change: '+8%',
-      changeType: 'positive' as const,
-    },
-    {
-      title: t('api3.stats.stakingApr'),
-      value: `${staking?.stakingApr ?? 12.5}%`,
-      change: '+2.1%',
-      changeType: 'positive' as const,
-    },
-    {
-      title: t('api3.stats.networkUptime'),
-      value: `${airnodeStats?.nodeUptime ?? 99.8}%`,
-      change: '+0.1%',
-      changeType: 'positive' as const,
-    },
-  ];
 
   const renderContent = () => {
     switch (activeTab) {
@@ -142,83 +111,20 @@ export default function API3Page() {
   return (
     <div className="min-h-screen bg-insight">
       {/* Hero Section */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* Live Status Bar */}
-          <div className="mb-4">
-            <LiveStatusBar
-              isConnected={!isError}
-              latency={200}
-              lastUpdate={lastUpdated || undefined}
-            />
-          </div>
-
-          {/* Page Header */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center">
-                <img
-                  src="/logos/oracles/api3.svg"
-                  alt="API3"
-                  className="w-7 h-7"
-                />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">API3</h1>
-                <p className="text-sm text-gray-500">{t('api3.subtitle')}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-2xl font-bold text-gray-900">
-                  ${currentPrice.toFixed(2)}
-                </p>
-                <p className={`text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {isPositive ? '+' : ''}{priceChange24h.toFixed(2)}%
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={refresh}
-                  disabled={isRefreshing}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <svg className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  {t('common.refresh')}
-                </button>
-                <button
-                  onClick={() => exportData()}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  {t('common.export')}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Overview */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-            {stats.map((stat, index) => (
-              <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <p className="text-xs text-gray-500 uppercase tracking-wider">{stat.title}</p>
-                <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                <p className={`text-xs mt-1 ${
-                  stat.changeType === 'positive' ? 'text-emerald-600' : 'text-gray-500'
-                }`}>
-                  {stat.changeType === 'positive' ? '↑ ' : '→ '}
-                  {stat.change}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <API3Hero
+        config={config}
+        price={price ?? null}
+        historicalData={historicalData}
+        airnodeStats={airnodeStats}
+        dapiCoverage={dapiCoverage}
+        staking={staking}
+        isLoading={isLoading}
+        isError={isError}
+        isRefreshing={isRefreshing}
+        lastUpdated={lastUpdated}
+        onRefresh={refresh}
+        onExport={exportData}
+      />
 
       {/* Main Content Area */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">

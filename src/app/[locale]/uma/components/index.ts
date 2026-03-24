@@ -6,3 +6,4 @@ export { UmaValidatorsView } from './UmaValidatorsView';
 export { UmaStakingView } from './UmaStakingView';
 export { UmaEcosystemView } from './UmaEcosystemView';
 export { UmaRiskView } from './UmaRiskView';
+export { UMAHero } from './UMAHero';

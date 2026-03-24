@@ -2,6 +2,7 @@ export { DashboardCard, StatCard, MetricCard, StatGrid, StatGridItem } from './D
 export { PageHeader } from './PageHeader';
 export { TabNavigation, type TimeRange } from './TabNavigation';
 export { OraclePageTemplate } from './OraclePageTemplate';
+export { OracleHero, type OracleHeroProps, type StatItem } from './OracleHero';
 export { FloatingActionButton } from './FloatingActionButton';
 export { MoreOptionsDropdown } from './MoreOptionsDropdown';
 export { RealtimeUpdateControl } from './RealtimeUpdateControl';

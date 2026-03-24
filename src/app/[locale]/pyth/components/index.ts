@@ -5,3 +5,4 @@ export { PythPublishersView } from './PythPublishersView';
 export { PythValidatorsView } from './PythValidatorsView';
 export { PythPriceFeedsView } from './PythPriceFeedsView';
 export { PythRiskView } from './PythRiskView';
+export { PythHero } from './PythHero';
