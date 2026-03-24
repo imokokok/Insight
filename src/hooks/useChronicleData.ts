@@ -132,6 +132,14 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
     results.forEach((r) => r.refetch());
   };
 
+  // Get the most recent data update timestamp
+  const lastUpdated = useMemo(() => {
+    const timestamps = results
+      .map((r) => r.dataUpdatedAt)
+      .filter((t): t is number => t > 0);
+    return timestamps.length > 0 ? new Date(Math.max(...timestamps)) : null;
+  }, [results]);
+
   return useMemo(
     () => ({
       price: priceResult.data,
@@ -145,6 +153,7 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
       isError,
       errors,
       refetchAll,
+      lastUpdated,
     }),
     [
       priceResult.data,
@@ -157,6 +166,7 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
       isLoading,
       isError,
       errors,
+      lastUpdated,
     ]
   );
 }
