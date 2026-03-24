@@ -15,6 +15,7 @@ export { NetworkHealthPanel, type NetworkDataConfig } from './NetworkHealthPanel
 export { PublisherAnalysisPanel } from './PublisherAnalysisPanel';
 export { PublisherContributionPanel } from './PublisherContributionPanel';
 export { StakingMetricsPanel } from './StakingMetricsPanel';
+export { StakingPanel } from './StakingPanel';
 export { ValidatorAnalyticsPanel } from './ValidatorAnalyticsPanel';
 export { ValidatorPanel } from './ValidatorPanel';
 export { BandCrossChainPanel } from './BandCrossChainPanel';

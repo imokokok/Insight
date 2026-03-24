@@ -1,409 +1,279 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { API3Client } from '@/lib/oracles/api3';
+import { useAPI3Page } from './hooks/useAPI3Page';
 import {
-  PageHeader,
-  PriceChart,
-  MarketDataPanel,
-  NetworkHealthPanel,
-  DashboardCard,
-  TabNavigation,
-  LoadingState,
-  ErrorFallback,
-} from '@/components/oracle';
-import { AirnodeDeploymentPanel } from '@/components/oracle/panels/AirnodeDeploymentPanel';
-import { DapiCoveragePanel } from '@/components/oracle/panels/DapiCoveragePanel';
-import { CoveragePoolPanel } from '@/components/oracle/panels/CoveragePoolPanel';
-import { StakingMetricsPanel } from '@/components/oracle/panels/StakingMetricsPanel';
-import { FirstPartyOracleAdvantages } from '@/components/oracle/common/FirstPartyOracleAdvantages';
-import { DataQualityScoreCard } from '@/components/oracle/common/DataQualityScoreCard';
-import { getOracleConfig } from '@/lib/config/oracles';
-import { OracleProvider } from '@/types/oracle';
-import { useRefresh, useExport } from '@/hooks';
-import { useAPI3AllData } from '@/hooks/useAPI3Data';
-import { DapiPriceDeviationMonitor } from '@/components/oracle/common/DapiPriceDeviationMonitor';
-import { DataSourceTraceabilityPanel } from '@/components/oracle/panels/DataSourceTraceabilityPanel';
-import { CoveragePoolTimeline } from '@/components/oracle/common/CoveragePoolTimeline';
-import { GasFeeComparison } from '@/components/oracle/common/GasFeeComparison';
-import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
-import { EcosystemPanel } from '@/components/oracle/panels/EcosystemPanel';
-import { BollingerBands } from '@/components/oracle/indicators/BollingerBands';
-import { API3RiskAssessmentPanel } from '@/components/oracle/panels/API3RiskAssessmentPanel';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
+  API3Sidebar,
+  API3MarketView,
+  API3NetworkView,
+  API3AirnodeView,
+  API3DapiView,
+  API3EcosystemView,
+  API3RiskView,
+} from './components';
+import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
+import { LoadingState, ErrorFallback } from '@/components/oracle';
 
 export default function API3Page() {
-  const t = useTranslations();
-  const [activeTab, setActiveTab] = useState('market');
-
-  const config = getOracleConfig(OracleProvider.API3);
-  const client = useMemo(() => new API3Client(), []);
-
   const {
+    activeTab,
+    config,
     price,
     historicalData,
     airnodeStats,
     dapiCoverage,
     staking,
     firstParty,
-    qualityMetrics,
     deviations,
     sourceTrace,
-    coverageEvents,
-    gasFees,
-    ohlc,
-    qualityHistory,
     isLoading,
     isError,
-    errors,
-    refetchAll,
-  } = useAPI3AllData({
-    symbol: config.symbol,
-    chain: config.defaultChain,
-    enabled: true,
-  });
+    error,
+    lastUpdated,
+    isRefreshing,
+    setActiveTab,
+    refresh,
+    exportData,
+    t,
+  } = useAPI3Page();
 
-  const { exportData } = useExport({
-    data: {
-      timestamp: new Date().toISOString(),
-      price,
-      historical: historicalData,
-      airnode: airnodeStats,
-      dapi: dapiCoverage,
-      staking,
-    },
-    filename: `api3-data`,
-  });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { isRefreshing, refresh } = useRefresh({
-    onRefresh: async () => {
-      await refetchAll();
-    },
-    minLoadingTime: 500,
-  });
-
-  const stats = useMemo(() => {
-    const activeAirnodes = airnodeStats?.activeAirnodes ?? 0;
-    const totalDapis = dapiCoverage?.totalDapis ?? 0;
-    const stakingApr = staking?.stakingApr ?? 12.5;
-    const nodeUptime = airnodeStats?.nodeUptime ?? 99.7;
-
-    return [
-      {
-        title: t('api3.stats.activeAirnodes'),
-        value: activeAirnodes > 0 ? `${activeAirnodes}+` : '-',
-        change: '+3%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('api3.stats.dapiFeeds'),
-        value: totalDapis > 0 ? `${totalDapis}+` : '-',
-        change: '+8%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('api3.stats.stakingApr'),
-        value: `${stakingApr}%`,
-        change: '+2.1%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('api3.stats.networkUptime'),
-        value: `${nodeUptime}%`,
-        change: '+0.1%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        ),
-      },
-    ];
-  }, [airnodeStats, dapiCoverage, staking, t]);
-
-  const airnodeData = useMemo(() => {
-    if (!airnodeStats || !firstParty) return null;
-    return {
-      deployments: firstParty.airnodeDeployments,
-      networkStats: {
-        activeAirnodes: airnodeStats.activeAirnodes,
-        nodeUptime: airnodeStats.nodeUptime,
-        avgResponseTime: airnodeStats.avgResponseTime,
-        dapiUpdateFrequency: airnodeStats.dapiUpdateFrequency,
-      },
-    };
-  }, [airnodeStats, firstParty]);
-
-  const qualityHistoryData = useMemo(() => {
-    if (!qualityHistory || qualityHistory.length === 0) return [];
-    return [{ oracle: OracleProvider.API3, data: qualityHistory }];
-  }, [qualityHistory]);
-
-  if (isLoading) {
+  if (isLoading && !price) {
     return <LoadingState themeColor={config.themeColor} />;
   }
 
-  if (isError && !isLoading) {
-    return <ErrorFallback error={errors[0]} onRetry={refetchAll} themeColor={config.themeColor} />;
+  if (isError && error) {
+    return <ErrorFallback error={error} onRetry={refresh} themeColor={config.themeColor} />;
   }
 
-  return (
-    <div className="min-h-screen bg-insight rounded-lg">
-      <PageHeader
-        title={t('api3.title')}
-        subtitle={t('api3.subtitle')}
-        icon={config.icon}
-        onRefresh={refresh}
-        onExport={exportData}
-        isRefreshing={isRefreshing}
-      />
+  const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
+  const priceChange24h = config.marketData.change24h ?? 0;
+  const isPositive = priceChange24h >= 0;
 
-      <div className="bg-insight border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <TabNavigation
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            oracleTabs={config.tabs}
-            themeColor={config.themeColor}
+  const stats = [
+    {
+      title: t('api3.stats.activeAirnodes'),
+      value: `${airnodeStats?.activeAirnodes ?? 50}+`,
+      change: '+3%',
+      changeType: 'positive' as const,
+    },
+    {
+      title: t('api3.stats.dapiFeeds'),
+      value: `${dapiCoverage?.totalDapis ?? 150}+`,
+      change: '+8%',
+      changeType: 'positive' as const,
+    },
+    {
+      title: t('api3.stats.stakingApr'),
+      value: `${staking?.stakingApr ?? 12.5}%`,
+      change: '+2.1%',
+      changeType: 'positive' as const,
+    },
+    {
+      title: t('api3.stats.networkUptime'),
+      value: `${airnodeStats?.nodeUptime ?? 99.8}%`,
+      change: '+0.1%',
+      changeType: 'positive' as const,
+    },
+  ];
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'market':
+        return (
+          <API3MarketView
+            config={config}
+            price={price}
+            historicalData={historicalData}
+            stakingApr={staking?.stakingApr}
+            isLoading={isLoading}
           />
-        </div>
-      </div>
+        );
+      case 'network':
+        return (
+          <API3NetworkView
+            config={config}
+            networkStats={{
+              activeNodes: airnodeStats?.activeAirnodes ?? 50,
+              dataFeeds: dapiCoverage?.totalDapis ?? 150,
+              nodeUptime: airnodeStats?.nodeUptime ?? 99.8,
+              avgResponseTime: airnodeStats?.avgResponseTime ?? 200,
+              latency: 100,
+              hourlyActivity: config.networkData.hourlyActivity,
+            }}
+            isLoading={isLoading}
+          />
+        );
+      case 'airnode':
+        return (
+          <API3AirnodeView
+            airnodeStats={airnodeStats}
+            firstParty={firstParty}
+            isLoading={isLoading}
+          />
+        );
+      case 'dapi':
+        return (
+          <API3DapiView
+            dapiCoverage={dapiCoverage}
+            deviations={deviations}
+            sourceTrace={sourceTrace}
+            isLoading={isLoading}
+          />
+        );
+      case 'ecosystem':
+        return <API3EcosystemView isLoading={isLoading} />;
+      case 'risk':
+        return (
+          <API3RiskView
+            staking={staking}
+            airnodeStats={airnodeStats}
+            dapiCoverage={dapiCoverage}
+            isLoading={isLoading}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
-      <main className="flex-1 bg-insight">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  return (
+    <div className="min-h-screen bg-insight">
+      {/* Hero Section */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Live Status Bar */}
+          <div className="mb-4">
+            <LiveStatusBar
+              isConnected={!isError}
+              latency={200}
+              lastUpdate={lastUpdated || undefined}
+            />
+          </div>
+
+          {/* Page Header */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center">
+                <img
+                  src="/logos/oracles/api3.svg"
+                  alt="API3"
+                  className="w-7 h-7"
+                />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">API3</h1>
+                <p className="text-sm text-gray-500">{t('api3.subtitle')}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-2xl font-bold text-gray-900">
+                  ${currentPrice.toFixed(2)}
+                </p>
+                <p className={`text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {isPositive ? '+' : ''}{priceChange24h.toFixed(2)}%
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={refresh}
+                  disabled={isRefreshing}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <svg className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {t('common.refresh')}
+                </button>
+                <button
+                  onClick={() => exportData()}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  {t('common.export')}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
             {stats.map((stat, index) => (
-              <div
-                key={index}
-                className="bg-white border border-gray-200 p-4 rounded-lg hover:border-gray-300 transition-colors duration-200"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                      {stat.title}
-                    </p>
-                    <p className="text-xl font-semibold text-gray-900 tracking-tight">
-                      {stat.value}
-                    </p>
-                    <p
-                      className={`text-xs mt-1 font-medium ${
-                        stat.changeType === 'positive'
-                          ? 'text-success-600'
-                          : stat.changeType === 'negative'
-                            ? 'text-danger-600'
-                            : 'text-gray-500'
-                      }`}
-                    >
-                      {stat.changeType === 'positive'
-                        ? '↑'
-                        : stat.changeType === 'negative'
-                          ? '↓'
-                          : '→'}{' '}
-                      {stat.change}
-                    </p>
-                  </div>
-                  <div className="p-2 bg-gray-100 border border-gray-200 rounded-md text-gray-600 flex-shrink-0">
-                    {stat.icon}
-                  </div>
-                </div>
+              <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <p className="text-xs text-gray-500 uppercase tracking-wider">{stat.title}</p>
+                <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                <p className={`text-xs mt-1 ${
+                  stat.changeType === 'positive' ? 'text-emerald-600' : 'text-gray-500'
+                }`}>
+                  {stat.changeType === 'positive' ? '↑ ' : '→ '}
+                  {stat.change}
+                </p>
               </div>
             ))}
           </div>
+        </div>
+      </div>
 
-          {activeTab === 'market' && (
-            <>
-              <div className="mb-6">
-                <MarketDataPanel
-                  client={client}
-                  chain={config.defaultChain}
-                  config={config.marketData}
-                  iconBgColor={config.iconBgColor}
-                  icon={config.icon}
+      {/* Main Content Area */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Sidebar - Desktop */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-6">
+              <API3Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+            </div>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              {t('api3.menu.title')}
+            </button>
+          </div>
+
+          {/* Mobile Menu Overlay */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="absolute left-0 top-0 h-full w-64 bg-white" onClick={(e) => e.stopPropagation()}>
+                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
+                    {t('api3.navigation.title')}
+                  </h2>
+                  <button onClick={() => setIsMobileMenuOpen(false)}>
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <API3Sidebar 
+                  activeTab={activeTab} 
+                  onTabChange={(tab) => {
+                    setActiveTab(tab);
+                    setIsMobileMenuOpen(false);
+                  }} 
                 />
               </div>
-
-              {qualityMetrics && (
-                <div className="mb-6">
-                  <DataQualityScoreCard
-                    completeness={
-                      (qualityMetrics.completeness.successCount /
-                        qualityMetrics.completeness.totalCount) *
-                      100
-                    }
-                    timeliness={100}
-                    accuracy={qualityMetrics.reliability.historicalAccuracy}
-                  />
-                </div>
-              )}
-
-              {deviations.length > 0 && (
-                <div className="mb-6">
-                  <DapiPriceDeviationMonitor data={deviations} />
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <DashboardCard title={t('api3.priceTrend')} className="lg:col-span-2">
-                  <PriceChart
-                    client={client}
-                    symbol={config.symbol}
-                    chain={config.defaultChain}
-                    height={320}
-                    showToolbar={true}
-                    defaultPrice={config.marketData.change24hValue}
-                  />
-                </DashboardCard>
-
-                <DashboardCard title={t('api3.quickStats')}>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('api3.stats.volume24h')}</span>
-                      <span className="text-sm font-semibold text-gray-900">
-                        ${(config.marketData.volume24h / 1e6).toFixed(1)}M
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('api3.stats.marketCap')}</span>
-                      <span className="text-sm font-semibold text-gray-900">
-                        ${(config.marketData.marketCap / 1e9).toFixed(2)}B
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">
-                        {t('api3.stats.circulatingSupply')}
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900">
-                        {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M API3
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">{t('api3.stats.stakingApr')}</span>
-                      <span className="text-sm font-semibold text-success-600">
-                        {staking?.stakingApr ?? 12.5}%
-                      </span>
-                    </div>
-                  </div>
-                </DashboardCard>
-              </div>
-            </>
-          )}
-
-          {activeTab === 'network' && (
-            <div className="space-y-6">
-              <NetworkHealthPanel config={config.networkData} />
             </div>
           )}
 
-          {activeTab === 'airnode' && airnodeData && (
-            <AirnodeDeploymentPanel data={airnodeData.deployments} />
-          )}
-
-          {activeTab === 'dapi' && dapiCoverage && (
-            <div className="space-y-6">
-              <DapiCoveragePanel data={dapiCoverage} />
-              {sourceTrace.length > 0 && <DataSourceTraceabilityPanel data={sourceTrace} />}
-            </div>
-          )}
-
-          {activeTab === 'staking' && staking && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <CoveragePoolPanel data={staking.coveragePool} />
-              <StakingMetricsPanel data={staking} />
-              {coverageEvents.length > 0 && (
-                <div className="mt-6 col-span-2">
-                  <CoveragePoolTimeline data={coverageEvents} />
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'advantages' && firstParty?.advantages && (
-            <FirstPartyOracleAdvantages data={firstParty.advantages} />
-          )}
-
-          {activeTab === 'analytics' && (
-            <div className="space-y-6">
-              {ohlc && ohlc.length > 0 && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <BollingerBands
-                    data={ohlc
-                      .filter((d) => d.timestamp && d.high && d.low && d.close)
-                      .map((d) => ({
-                        timestamp: d.timestamp!,
-                        price: d.price,
-                        high: d.high!,
-                        low: d.low!,
-                        close: d.close!,
-                      }))}
-                  />
-                </div>
-              )}
-
-              {qualityHistoryData.length > 0 && <DataQualityTrend data={qualityHistoryData} />}
-            </div>
-          )}
-
-          {activeTab === 'gas' && gasFees.length > 0 && (
-            <div className="space-y-6">
-              <GasFeeComparison data={gasFees} />
-            </div>
-          )}
-
-          {activeTab === 'risk' && (
-            <API3RiskAssessmentPanel
-              staking={staking}
-              airnodeStats={airnodeStats}
-              dapiCoverage={dapiCoverage}
-            />
-          )}
-
-          {activeTab === 'cross-oracle' && (
-            <div className="space-y-6">
-              <DashboardCard title={t('api3.tabs.crossOracle')}>
-                <CrossOracleComparison />
-              </DashboardCard>
-            </div>
-          )}
-
-          {activeTab === 'ecosystem' && <EcosystemPanel />}
+          {/* Content Area */}
+          <div className="flex-1 min-w-0">
+            {renderContent()}
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

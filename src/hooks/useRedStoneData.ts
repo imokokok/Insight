@@ -82,6 +82,8 @@ interface NetworkStats {
   dataFeeds: number;
   nodeUptime: number;
   avgResponseTime: number;
+  latency: number;
+  hourlyActivity?: number[];
 }
 
 interface EcosystemData {
@@ -118,6 +120,7 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
         dataFeeds: 1000,
         nodeUptime: 99.9,
         avgResponseTime: 200,
+        latency: 200,
       };
     },
     enabled,
@@ -184,6 +187,11 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
     riskQuery.refetch();
   }, [priceQuery, historicalQuery, networkQuery, ecosystemQuery, riskQuery]);
 
+  // Get the most recent timestamp from price data as lastUpdated
+  const lastUpdated = priceQuery.price?.timestamp 
+    ? new Date(priceQuery.price.timestamp) 
+    : null;
+
   return {
     price: priceQuery.price,
     historicalData: historicalQuery.historicalData,
@@ -194,5 +202,6 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
     isError,
     errors,
     refetchAll,
+    lastUpdated,
   };
 }
