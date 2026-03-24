@@ -331,12 +331,10 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     },
     tabs: [
       { id: 'market', labelKey: 'pyth.menu.marketData' },
+      { id: 'network', labelKey: 'pyth.menu.networkHealth' },
       { id: 'publishers', labelKey: 'pyth.menu.publishers' },
       { id: 'validators', labelKey: 'pyth.menu.validators' },
-      { id: 'network', labelKey: 'pyth.menu.networkHealth' },
       { id: 'price-feeds', labelKey: 'pyth.menu.priceFeeds' },
-      { id: 'cross-chain', labelKey: 'pyth.menu.crossChain' },
-      { id: 'cross-oracle', labelKey: 'pyth.menu.crossOracleComparison' },
       { id: 'risk', labelKey: 'pyth.menu.riskAssessment' },
     ],
   },
