@@ -6,3 +6,4 @@ export { DIANFTView } from './DIANFTView';
 export { DIAStakingView } from './DIAStakingView';
 export { DIAEcosystemView } from './DIAEcosystemView';
 export { DIARiskView } from './DIARiskView';
+export { DIAHero } from './DIAHero';

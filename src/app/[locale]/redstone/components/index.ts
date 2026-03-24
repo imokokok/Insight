@@ -6,3 +6,4 @@ export { RedStoneProvidersView } from './RedStoneProvidersView';
 export { RedStoneCrossChainView } from './RedStoneCrossChainView';
 export { RedStoneEcosystemView } from './RedStoneEcosystemView';
 export { RedStoneRiskView } from './RedStoneRiskView';
+export { RedStoneHero } from './RedStoneHero';
