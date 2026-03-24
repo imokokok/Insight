@@ -14,10 +14,11 @@ import { useCrossChainData } from '../useCrossChainData';
 import { chainNames, chainColors, getHeatmapColor } from '../utils';
 import { useColorblindMode } from '@/stores/crossChainStore';
 import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Blockchain } from '@/lib/oracles';
 import { PriceData } from '@/lib/oracles';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
+import { ChartToolbar, TimeRange } from '@/components/charts/ChartToolbar';
 
 
 interface PriceSpreadHeatmapProps {
@@ -83,12 +84,35 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
     currentPrices,
     historicalPrices,
   } = data;
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24H');
+
+  // Handle time range change
+  const handleTimeRangeChange = useCallback((range: string) => {
+    setSelectedTimeRange(range as TimeRange);
+    // TODO: Implement time range filtering logic
+    console.log('Time range changed to:', range);
+  }, []);
+
+  // Handle export
+  const handleExport = useCallback(() => {
+    console.log('Exporting heatmap data...');
+    // TODO: Implement export functionality
+  }, []);
 
   // 根据色盲模式获取热力图颜色
   const getHeatmapColorFn = colorblindMode ? getColorblindHeatmapColor : getHeatmapColor;
 
   return (
     <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
+      {/* Chart Toolbar */}
+      <ChartToolbar
+        timeRanges={['1H', '24H', '7D', '30D']}
+        selectedRange={selectedTimeRange}
+        onRangeChange={handleTimeRangeChange}
+        onExport={handleExport}
+        className="mb-4"
+      />
+
       <h3
         className="text-sm font-medium uppercase tracking-wide mb-4"
         style={{ color: baseColors.gray[900] }}

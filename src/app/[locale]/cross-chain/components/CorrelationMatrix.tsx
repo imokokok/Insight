@@ -10,6 +10,8 @@ import {
   colorblindLegendConfig,
 } from '../colorblindTheme';
 import { baseColors, semanticColors } from '@/lib/config/colors';
+import { ChartToolbar } from '@/components/charts/ChartToolbar';
+import { useState, useCallback } from 'react';
 
 interface CorrelationMatrixProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -19,6 +21,12 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
   const t = useTranslations();
   const colorblindMode = useColorblindMode();
   const { filteredChains, correlationMatrixWithSignificance } = data;
+
+  // Handle export
+  const handleExport = useCallback(() => {
+    console.log('Exporting correlation matrix data...');
+    // TODO: Implement export functionality
+  }, []);
 
   // 根据色盲模式选择颜色函数
   const getCorrelationColorFn = colorblindMode
@@ -42,6 +50,15 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
 
   return (
     <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
+      {/* Chart Toolbar - Export only for correlation matrix */}
+      <ChartToolbar
+        timeRanges={[]}
+        selectedRange=""
+        onRangeChange={() => {}}
+        onExport={handleExport}
+        className="mb-4"
+      />
+
       <div className="flex items-center justify-between mb-4">
         <h3
           className="text-sm font-medium uppercase tracking-wide"

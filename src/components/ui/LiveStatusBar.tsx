@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Wifi, WifiOff, Clock, Zap, RefreshCw } from 'lucide-react';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
 
@@ -17,34 +18,37 @@ export interface LiveStatusBarProps {
 interface StatusConfig {
   label: string;
   icon: typeof Wifi;
-  variant: 'success' | 'danger' | 'warning';
+  color: string;
 }
 
 const statusConfig: Record<ConnectionStatus, StatusConfig> = {
   connected: {
     label: '已连接',
     icon: Wifi,
-    variant: 'success',
+    color: semanticColors.success.DEFAULT,
   },
   disconnected: {
     label: '已断开',
     icon: WifiOff,
-    variant: 'danger',
+    color: semanticColors.danger.DEFAULT,
   },
   reconnecting: {
     label: '重连中',
     icon: RefreshCw,
-    variant: 'warning',
+    color: semanticColors.warning.DEFAULT,
   },
 };
 
 function formatUTCTime(date: Date): string {
-  return date.toISOString().slice(0, 19).replace('T', ' ');
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds} UTC`;
 }
 
 function formatLatency(ms?: number): string {
-  if (ms === undefined || ms === null) return '-- ms';
-  return `${Math.round(ms)} ms`;
+  if (ms === undefined || ms === null) return '--ms';
+  return `${Math.round(ms)}ms`;
 }
 
 function formatLastUpdate(date?: Date): string {
@@ -87,77 +91,84 @@ export function LiveStatusBar({
   const status = statusConfig[connectionStatus];
   const StatusIcon = status.icon;
 
-  const getStatusColor = (variant: string) => {
-    switch (variant) {
-      case 'success':
-        return 'bg-[var(--success-500)]';
-      case 'warning':
-        return 'bg-[var(--warning-500)]';
-      case 'danger':
-        return 'bg-[var(--danger-500)]';
-      default:
-        return 'bg-[var(--gray-500)]';
-    }
-  };
-
-  const getStatusTextColor = (variant: string) => {
-    switch (variant) {
-      case 'success':
-        return 'text-[var(--success-500)]';
-      case 'warning':
-        return 'text-[var(--warning-500)]';
-      case 'danger':
-        return 'text-[var(--danger-500)]';
-      default:
-        return 'text-[var(--gray-500)]';
-    }
-  };
-
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-3 px-3 py-2 bg-white border border-gray-200 rounded-md shadow-sm',
+        'flex flex-wrap items-center gap-2 sm:gap-3 px-3 py-2 bg-white border border-gray-200 rounded-md shadow-sm',
         className
       )}
     >
       {/* UTC Time */}
-      <div className="flex items-center gap-1.5 text-xs text-[var(--gray-500)]">
+      <div
+        className="flex items-center gap-1.5 text-xs"
+        style={{ color: baseColors.gray[500] }}
+      >
         <Clock className="w-3.5 h-3.5" />
-        <span className="font-mono whitespace-nowrap">{formatUTCTime(currentTime)} UTC</span>
+        <span className="font-mono whitespace-nowrap">
+          {formatUTCTime(currentTime)}
+        </span>
       </div>
 
       {/* Separator - Hidden on mobile */}
-      <div className="hidden sm:block w-px h-3 bg-gray-200" />
+      <div
+        className="hidden sm:block w-px h-3"
+        style={{ backgroundColor: baseColors.gray[200] }}
+      />
 
       {/* Latency */}
-      <div className="flex items-center gap-1.5 text-xs text-[var(--gray-500)]">
+      <div
+        className="flex items-center gap-1.5 text-xs"
+        style={{ color: baseColors.gray[500] }}
+      >
         <Zap className="w-3.5 h-3.5" />
-        <span className="font-mono whitespace-nowrap">{formatLatency(latency)}</span>
+        <span className="font-mono whitespace-nowrap">
+          {formatLatency(latency)}
+        </span>
       </div>
 
       {/* Separator - Hidden on mobile */}
-      <div className="hidden sm:block w-px h-3 bg-gray-200" />
+      <div
+        className="hidden sm:block w-px h-3"
+        style={{ backgroundColor: baseColors.gray[200] }}
+      />
 
       {/* Last Update */}
-      <div className="flex items-center gap-1.5 text-xs text-[var(--gray-500)]">
-        <span className="text-gray-400 hidden sm:inline">更新:</span>
+      <div
+        className="flex items-center gap-1.5 text-xs"
+        style={{ color: baseColors.gray[500] }}
+      >
+        <span
+          className="hidden sm:inline"
+          style={{ color: baseColors.gray[400] }}
+        >
+          更新:
+        </span>
         <span className="whitespace-nowrap">{formatLastUpdate(lastUpdate)}</span>
       </div>
 
       {/* Separator - Hidden on mobile */}
-      <div className="hidden sm:block w-px h-3 bg-gray-200" />
+      <div
+        className="hidden sm:block w-px h-3"
+        style={{ backgroundColor: baseColors.gray[200] }}
+      />
 
       {/* Connection Status */}
       <div className="flex items-center gap-1.5">
-        <span className={cn('w-2 h-2 rounded-full', getStatusColor(status.variant))} />
+        <span
+          className="w-2 h-2 rounded-full"
+          style={{ backgroundColor: status.color }}
+        />
         <StatusIcon
           className={cn(
             'w-3.5 h-3.5',
-            connectionStatus === 'reconnecting' && 'animate-spin',
-            getStatusTextColor(status.variant)
+            connectionStatus === 'reconnecting' && 'animate-spin'
           )}
+          style={{ color: status.color }}
         />
-        <span className={cn('text-xs font-medium', getStatusTextColor(status.variant))}>
+        <span
+          className="text-xs font-medium"
+          style={{ color: status.color }}
+        >
           {status.label}
         </span>
       </div>

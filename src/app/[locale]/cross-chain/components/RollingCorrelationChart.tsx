@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useCrossChainData } from '../useCrossChainData';
 import {
@@ -17,6 +17,7 @@ import {
 import { chainNames, chainColors, calculateRollingCorrelation } from '../utils';
 import { Blockchain } from '@/types/oracle';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+import { ChartToolbar, TimeRange } from '@/components/charts/ChartToolbar';
 
 
 interface RollingCorrelationChartProps {
@@ -39,6 +40,20 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
   const { filteredChains, chartData } = data;
   const [windowSize, setWindowSize] = useState(30);
   const [hiddenLines, setHiddenLines] = useState<Set<string>>(new Set());
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24H');
+
+  // Handle time range change
+  const handleTimeRangeChange = useCallback((range: string) => {
+    setSelectedTimeRange(range as TimeRange);
+    // TODO: Implement time range filtering logic
+    console.log('Time range changed to:', range);
+  }, []);
+
+  // Handle export
+  const handleExport = useCallback(() => {
+    console.log('Exporting rolling correlation data...');
+    // TODO: Implement export functionality
+  }, []);
 
   // Generate unique chain pairs for rolling correlation
   const chainPairs = useMemo(() => {
@@ -204,6 +219,15 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
 
   return (
     <div id="rolling" className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
+      {/* Chart Toolbar */}
+      <ChartToolbar
+        timeRanges={['1H', '24H', '7D', '30D']}
+        selectedRange={selectedTimeRange}
+        onRangeChange={handleTimeRangeChange}
+        onExport={handleExport}
+        className="mb-4"
+      />
+
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3

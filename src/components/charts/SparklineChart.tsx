@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { LineChart, Line, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { cn } from '@/lib/utils';
 
 /**
  * SparklineChart Props 接口
@@ -19,39 +19,33 @@ export interface SparklineChartProps {
   fill?: boolean;
   /** 是否启用动画 */
   animate?: boolean;
-}
-
-/**
- * 将原始数据转换为 Recharts 需要的格式
- */
-function transformData(data: number[]): Array<{ value: number; index: number }> {
-  return data.map((value, index) => ({ value, index }));
+  /** 自定义类名 */
+  className?: string;
 }
 
 /**
  * 判断数据趋势方向
- * @returns 1 表示上涨（绿色），-1 表示下跌（红色）
+ * @returns 'up' | 'down' | 'neutral'
  */
-function getTrendDirection(data: number[]): number {
-  if (data.length < 2) return 1;
+function getTrendDirection(data: number[]): 'up' | 'down' | 'neutral' {
+  if (data.length < 2) return 'neutral';
   const first = data[0];
   const last = data[data.length - 1];
-  return last >= first ? 1 : -1;
-}
+  const diff = last - first;
+  const threshold = Math.abs(first) * 0.001; // 0.1% 阈值
 
-/**
- * 获取趋势颜色
- * 上涨使用绿色（success-500），下跌使用红色（danger-500）
- */
-function getTrendColor(direction: number): string {
-  return direction > 0 ? '#10b981' : '#ef4444';
+  if (diff > threshold) return 'up';
+  if (diff < -threshold) return 'down';
+  return 'neutral';
 }
 
 /**
  * SparklineChart - 迷你折线图组件
  *
- * 一个紧凑的折线图组件，不显示坐标轴，适用于展示价格趋势等场景。
- * 支持自动根据数据趋势显示不同颜色（上涨绿色/下跌红色），支持区域填充和动画效果。
+ * 使用 SVG 渲染的轻量级趋势图表，自动根据数据趋势显示不同颜色
+ * - 上升趋势：绿色 (emerald-500)
+ * - 下降趋势：红色 (rose-500)
+ * - 持平：灰色 (gray-400)
  *
  * @example
  * ```tsx
@@ -75,73 +69,170 @@ export function SparklineChart({
   color,
   fill = false,
   animate = true,
+  className,
 }: SparklineChartProps) {
-  const chartData = useMemo(() => transformData(data), [data]);
+  // 计算趋势方向
+  const trend = useMemo(() => getTrendDirection(data), [data]);
 
-  const trendColor = useMemo(() => {
+  // 确定颜色
+  const lineColor = useMemo(() => {
     if (color) return color;
-    const direction = getTrendDirection(data);
-    return getTrendColor(direction);
-  }, [data, color]);
+    switch (trend) {
+      case 'up':
+        return '#10b981'; // emerald-500
+      case 'down':
+        return '#f43f5e'; // rose-500
+      default:
+        return '#9ca3af'; // gray-400
+    }
+  }, [color, trend]);
 
+  // 填充颜色（带透明度）
   const fillColor = useMemo(() => {
-    return `${trendColor}20`; // 添加 20% 透明度的十六进制
-  }, [trendColor]);
+    if (color) {
+      // 如果是 hex 颜色，转换为 rgba
+      if (color.startsWith('#')) {
+        const r = parseInt(color.slice(1, 3), 16);
+        const g = parseInt(color.slice(3, 5), 16);
+        const b = parseInt(color.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, 0.15)`;
+      }
+      return color;
+    }
+    switch (trend) {
+      case 'up':
+        return 'rgba(16, 185, 129, 0.15)';
+      case 'down':
+        return 'rgba(244, 63, 94, 0.15)';
+      default:
+        return 'rgba(156, 163, 175, 0.15)';
+    }
+  }, [color, trend]);
 
+  // 计算 SVG 路径
+  const { linePath, areaPath, lastPoint } = useMemo(() => {
+    if (data.length === 0) {
+      return { linePath: '', areaPath: '', lastPoint: null };
+    }
+
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min || 1;
+
+    const padding = 2;
+    const chartWidth = width - padding * 2;
+    const chartHeight = height - padding * 2;
+
+    // 单点数据处理
+    if (data.length === 1) {
+      const x = width / 2;
+      const y = height / 2;
+      return {
+        linePath: `M ${x} ${y}`,
+        areaPath: '',
+        lastPoint: { x, y },
+      };
+    }
+
+    const points = data.map((value, index) => {
+      const x = padding + (index / (data.length - 1)) * chartWidth;
+      const y = padding + chartHeight - ((value - min) / range) * chartHeight;
+      return { x, y };
+    });
+
+    // 生成平滑曲线路径（使用贝塞尔曲线）
+    const linePath = points.reduce((path, point, index) => {
+      if (index === 0) return `M ${point.x} ${point.y}`;
+
+      const prev = points[index - 1];
+      const cp1x = prev.x + (point.x - prev.x) / 3;
+      const cp1y = prev.y;
+      const cp2x = point.x - (point.x - prev.x) / 3;
+      const cp2y = point.y;
+
+      return `${path} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${point.x} ${point.y}`;
+    }, '');
+
+    // 生成区域填充路径
+    const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
+
+    return {
+      linePath,
+      areaPath,
+      lastPoint: points[points.length - 1],
+    };
+  }, [data, width, height]);
+
+  // 如果没有数据，显示占位符
   if (data.length === 0) {
     return (
       <div
-        className="bg-gray-100 rounded"
+        className={cn('bg-gray-100 rounded-md', className)}
         style={{ width, height }}
         aria-label="Empty sparkline chart"
       />
     );
   }
 
-  const commonProps = {
-    data: chartData,
-    margin: { top: 2, right: 2, bottom: 2, left: 2 },
-  };
-
-  const lineProps = {
-    type: 'monotone' as const,
-    dataKey: 'value',
-    stroke: trendColor,
-    strokeWidth: 1.5,
-    dot: false,
-    activeDot: false,
-    isAnimationActive: animate,
-    animationDuration: 800,
-    animationEasing: 'ease-out' as const,
-  };
-
-  const areaProps = {
-    type: 'monotone' as const,
-    dataKey: 'value',
-    stroke: trendColor,
-    strokeWidth: 1.5,
-    fill: fillColor,
-    dot: false,
-    activeDot: false,
-    isAnimationActive: animate,
-    animationDuration: 800,
-    animationEasing: 'ease-out' as const,
-  };
-
   return (
-    <div style={{ width, height }} aria-label="Sparkline chart">
-      <ResponsiveContainer width="100%" height="100%">
-        {fill ? (
-          <AreaChart {...commonProps}>
-            <Area {...areaProps} />
-          </AreaChart>
-        ) : (
-          <LineChart {...commonProps}>
-            <Line {...lineProps} />
-          </LineChart>
-        )}
-      </ResponsiveContainer>
-    </div>
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      className={cn('overflow-visible', className)}
+      role="img"
+      aria-label={`Trend chart showing ${trend === 'up' ? 'upward' : trend === 'down' ? 'downward' : 'neutral'} trend`}
+    >
+      <defs>
+        {/* 渐变填充 */}
+        <linearGradient id={`sparkline-gradient-${trend}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={lineColor} stopOpacity={0.3} />
+          <stop offset="100%" stopColor={lineColor} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+
+      {/* 区域填充 */}
+      {fill && data.length > 1 && (
+        <path
+          d={areaPath}
+          fill={`url(#sparkline-gradient-${trend})`}
+          className={cn(animate && 'transition-opacity duration-500')}
+        />
+      )}
+
+      {/* 线条 */}
+      <path
+        d={linePath}
+        fill="none"
+        stroke={lineColor}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={cn(animate && 'transition-all duration-500')}
+      />
+
+      {/* 终点标记点 */}
+      {lastPoint && data.length > 1 && (
+        <circle
+          cx={lastPoint.x}
+          cy={lastPoint.y}
+          r={2}
+          fill={lineColor}
+          className={cn(animate && 'transition-all duration-300')}
+        />
+      )}
+
+      {/* 单点显示为圆点 */}
+      {data.length === 1 && lastPoint && (
+        <circle
+          cx={lastPoint.x}
+          cy={lastPoint.y}
+          r={3}
+          fill={lineColor}
+          className={cn(animate && 'transition-all duration-300')}
+        />
+      )}
+    </svg>
   );
 }
 

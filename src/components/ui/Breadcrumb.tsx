@@ -2,9 +2,9 @@
 
 import { forwardRef, ReactNode } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { ChevronRight, Home } from 'lucide-react';
+import { baseColors } from '@/lib/config/colors';
 
 export interface BreadcrumbItem {
   label: string;
@@ -15,77 +15,104 @@ export interface BreadcrumbItem {
 export interface BreadcrumbProps {
   items: BreadcrumbItem[];
   className?: string;
-  separator?: ReactNode;
+  separator?: 'slash' | 'chevron' | ReactNode;
   showHome?: boolean;
   homeHref?: string;
 }
 
 export const Breadcrumb = forwardRef<HTMLElement, BreadcrumbProps>(
-  (
-    {
-      items,
-      className,
-      separator = <ChevronRight className="w-3.5 h-3.5" />,
-      showHome = true,
-      homeHref = '/',
-    },
-    ref
-  ) => {
-    const t = useTranslations('common.breadcrumb');
+  ({ items, className, separator = 'chevron', showHome = true, homeHref = '/' }, ref) => {
+    const renderSeparator = () => {
+      if (separator === 'slash') {
+        return (
+          <span className="text-sm mx-1" style={{ color: baseColors.gray[400] }}>
+            /
+          </span>
+        );
+      }
+      if (separator === 'chevron') {
+        return (
+          <ChevronRight className="w-3.5 h-3.5 mx-1" style={{ color: baseColors.gray[400] }} />
+        );
+      }
+      return (
+        <span className="mx-1" style={{ color: baseColors.gray[400] }}>
+          {separator}
+        </span>
+      );
+    };
 
     return (
-      <nav
-        ref={ref}
-        aria-label="Breadcrumb"
-        className={cn('flex items-center', className)}
-      >
-        <ol className="flex items-center flex-wrap gap-2">
+      <nav ref={ref} aria-label="Breadcrumb" className={cn('flex items-center', className)}>
+        <ol className="flex items-center flex-wrap">
           {showHome && (
-            <li className="flex items-center gap-2">
+            <li className="flex items-center">
               <Link
                 href={homeHref}
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                className="flex items-center gap-1.5 text-sm rounded-md px-2 py-1 transition-colors duration-200"
+                style={{
+                  color: baseColors.gray[500],
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = baseColors.gray[700];
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = baseColors.gray[500];
+                }}
               >
                 <Home className="w-4 h-4" />
-                <span className="sr-only">{t('home')}</span>
+                <span className="sr-only">Home</span>
               </Link>
-              {items.length > 0 && (
-                <span className="text-gray-400">{separator}</span>
-              )}
+              {items.length > 0 && renderSeparator()}
             </li>
           )}
           {items.map((item, index) => {
             const isLast = index === items.length - 1;
 
             return (
-              <li key={index} className="flex items-center gap-2">
+              <li key={index} className="flex items-center">
                 {isLast ? (
                   <span
-                    className="flex items-center gap-1.5 text-sm font-medium text-gray-900"
+                    className="flex items-center gap-1.5 text-sm font-medium px-2 py-1 rounded-md"
+                    style={{ color: baseColors.gray[500] }}
                     aria-current="page"
                   >
-                    {item.icon && <span className="text-gray-400">{item.icon}</span>}
-                    <span className="px-2 py-0.5 bg-gray-100 rounded-md">
-                      {item.label}
-                    </span>
+                    {item.icon && <span style={{ color: baseColors.gray[400] }}>{item.icon}</span>}
+                    {item.label}
                   </span>
                 ) : (
                   <>
                     {item.href ? (
                       <Link
                         href={item.href}
-                        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                        className="flex items-center gap-1.5 text-sm rounded-md px-2 py-1 transition-colors duration-200"
+                        style={{
+                          color: baseColors.gray[500],
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = baseColors.gray[700];
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = baseColors.gray[500];
+                        }}
                       >
-                        {item.icon && <span className="text-gray-400">{item.icon}</span>}
+                        {item.icon && (
+                          <span style={{ color: baseColors.gray[400] }}>{item.icon}</span>
+                        )}
                         {item.label}
                       </Link>
                     ) : (
-                      <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                        {item.icon && <span className="text-gray-400">{item.icon}</span>}
+                      <span
+                        className="flex items-center gap-1.5 text-sm px-2 py-1"
+                        style={{ color: baseColors.gray[500] }}
+                      >
+                        {item.icon && (
+                          <span style={{ color: baseColors.gray[400] }}>{item.icon}</span>
+                        )}
                         {item.label}
                       </span>
                     )}
-                    <span className="text-gray-400">{separator}</span>
+                    {renderSeparator()}
                   </>
                 )}
               </li>

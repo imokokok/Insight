@@ -18,6 +18,7 @@ import { chainNames, chainColors } from '../utils';
 import { ChartDataPoint } from '../constants';
 import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { ChartToolbar, TimeRange } from '@/components/charts/ChartToolbar';
 
 
 interface ReferenceLineConfig {
@@ -114,6 +115,20 @@ export function InteractivePriceChart({
   const [selectionEnd, setSelectionEnd] = useState<{ x: number; y: number } | null>(null);
   const [isDraggingRefLine, setIsDraggingRefLine] = useState<string | null>(null);
   const [showSelectionBox, setShowSelectionBox] = useState(false);
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24H');
+
+  // Handle time range change
+  const handleTimeRangeChange = useCallback((range: string) => {
+    setSelectedTimeRange(range as TimeRange);
+    // TODO: Implement time range filtering logic
+    console.log('Time range changed to:', range);
+  }, []);
+
+  // Handle export
+  const handleExport = useCallback(() => {
+    console.log('Exporting chart data...');
+    // TODO: Implement export functionality
+  }, []);
 
   // Update view state when data changes - using a microtask to avoid synchronous setState
   const prevDataLengthRef = useRef(chartData.length);
@@ -425,6 +440,15 @@ export function InteractivePriceChart({
 
   return (
     <div className="mb-8 pb-8 border-b border-gray-200">
+      {/* Chart Toolbar */}
+      <ChartToolbar
+        timeRanges={['1H', '24H', '7D', '30D']}
+        selectedRange={selectedTimeRange}
+        onRangeChange={handleTimeRangeChange}
+        onExport={handleExport}
+        className="mb-4"
+      />
+
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">
           {t('crossChain.priceChart')}
