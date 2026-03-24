@@ -16,11 +16,13 @@ import {
   ArrowDown,
   GripVertical,
   Settings2,
-  Eye,
-  EyeOff,
   Check,
+  AlignJustify,
+  Rows3,
+  LayoutList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 
 // ============================================
 // Type Definitions
@@ -73,6 +75,7 @@ export interface DataTableProProps<T extends Record<string, unknown>> {
   resizable?: boolean;
   columnVisibility?: boolean;
   density?: 'compact' | 'normal' | 'comfortable';
+  densityToggle?: boolean;
   virtualScroll?: boolean;
   rowHeight?: number;
   maxHeight?: number;
@@ -80,6 +83,7 @@ export interface DataTableProProps<T extends Record<string, unknown>> {
   emptyText?: string;
   onRowClick?: (row: T, index: number) => void;
   onSort?: (sortConfig: SortConfig[]) => void;
+  onDensityChange?: (density: 'compact' | 'normal' | 'comfortable') => void;
   className?: string;
 }
 
@@ -123,15 +127,44 @@ function getConditionalStyle(
 ): string {
   switch (style) {
     case 'success':
-      return 'bg-emerald-50 text-emerald-700 font-medium';
+      return 'font-medium';
     case 'danger':
-      return 'bg-red-50 text-red-700 font-medium';
+      return 'font-medium';
     case 'warning':
-      return 'bg-amber-50 text-amber-700 font-medium';
+      return 'font-medium';
     case 'info':
-      return 'bg-blue-50 text-blue-700 font-medium';
+      return 'font-medium';
     default:
       return '';
+  }
+}
+
+function getConditionalStyleCSS(
+  style: ConditionalFormattingRule['style']
+): CSSProperties {
+  switch (style) {
+    case 'success':
+      return {
+        backgroundColor: semanticColors.success.light,
+        color: semanticColors.success.text,
+      };
+    case 'danger':
+      return {
+        backgroundColor: semanticColors.danger.light,
+        color: semanticColors.danger.text,
+      };
+    case 'warning':
+      return {
+        backgroundColor: semanticColors.warning.light,
+        color: semanticColors.warning.text,
+      };
+    case 'info':
+      return {
+        backgroundColor: semanticColors.info.light,
+        color: semanticColors.info.text,
+      };
+    default:
+      return {};
   }
 }
 
@@ -145,6 +178,49 @@ function getAlignClass(align?: AlignType): string {
     default:
       return 'text-left';
   }
+}
+
+// ============================================
+// Density Toggle Component
+// ============================================
+
+interface DensityToggleProps {
+  density: 'compact' | 'normal' | 'comfortable';
+  onChange: (density: 'compact' | 'normal' | 'comfortable') => void;
+}
+
+function DensityToggle({ density, onChange }: DensityToggleProps) {
+  const options = [
+    { key: 'compact', icon: AlignJustify, label: '紧凑' },
+    { key: 'normal', icon: Rows3, label: '标准' },
+    { key: 'comfortable', icon: LayoutList, label: '舒适' },
+  ] as const;
+
+  return (
+    <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-md">
+      {options.map((option) => {
+        const Icon = option.icon;
+        const isActive = density === option.key;
+        return (
+          <button
+            key={option.key}
+            type="button"
+            onClick={() => onChange(option.key)}
+            className={cn(
+              'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-all',
+              isActive
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+            )}
+            title={option.label}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{option.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 // ============================================
@@ -194,7 +270,7 @@ function ColumnVisibilityDropdown<T>({
         title="列设置"
       >
         <Settings2 className="w-3.5 h-3.5" />
-        <span>列</span>
+        <span className="hidden sm:inline">列</span>
         {someVisible && (
           <span className="ml-0.5 w-1.5 h-1.5 rounded-full bg-blue-500" />
         )}
@@ -282,7 +358,8 @@ export function DataTablePro<T extends Record<string, unknown>>({
   multiSort = false,
   resizable = false,
   columnVisibility = false,
-  density = 'normal',
+  density: initialDensity = 'normal',
+  densityToggle = false,
   virtualScroll = false,
   rowHeight = 48,
   maxHeight = 600,
@@ -290,6 +367,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
   emptyText,
   onRowClick,
   onSort,
+  onDensityChange,
   className,
 }: DataTableProProps<T>) {
   const t = useTranslations('dataTable');
@@ -300,9 +378,20 @@ export function DataTablePro<T extends Record<string, unknown>>({
   const [startX, setStartX] = useState(0);
   const [startWidth, setStartWidth] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
+  const [density, setDensity] = useState<'compact' | 'normal' | 'comfortable'>(initialDensity);
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
     () => new Set(columns.map((c) => c.key))
   );
+
+  // Sync density with prop changes
+  useEffect(() => {
+    setDensity(initialDensity);
+  }, [initialDensity]);
+
+  const handleDensityChange = useCallback((newDensity: 'compact' | 'normal' | 'comfortable') => {
+    setDensity(newDensity);
+    onDensityChange?.(newDensity);
+  }, [onDensityChange]);
 
   // ============================================
   // Filtered Columns
@@ -491,30 +580,36 @@ export function DataTablePro<T extends Record<string, unknown>>({
   // ============================================
 
   const getCellConditionalClass = useCallback(
-    (columnKey: string, value: unknown): string => {
+    (columnKey: string, value: unknown): { className: string; style: CSSProperties } => {
       // First check column's own conditionalFormat
       const column = columns.find((c) => c.key === columnKey);
       if (column?.conditionalFormat && typeof value === 'number') {
         for (const rule of column.conditionalFormat.rules) {
           if (evaluateCondition(value, rule.condition, rule.value)) {
-            return getConditionalStyle(rule.style);
+            return {
+              className: getConditionalStyle(rule.style),
+              style: getConditionalStyleCSS(rule.style),
+            };
           }
         }
       }
 
       // Then check global conditionalFormatting
-      if (!conditionalFormatting) return '';
-
-      const config = conditionalFormatting.find((c) => c.field === columnKey);
-      if (!config || typeof value !== 'number') return '';
-
-      for (const rule of config.rules) {
-        if (evaluateCondition(value, rule.condition, rule.value)) {
-          return getConditionalStyle(rule.style);
+      if (conditionalFormatting) {
+        const config = conditionalFormatting.find((c) => c.field === columnKey);
+        if (config && typeof value === 'number') {
+          for (const rule of config.rules) {
+            if (evaluateCondition(value, rule.condition, rule.value)) {
+              return {
+                className: getConditionalStyle(rule.style),
+                style: getConditionalStyleCSS(rule.style),
+              };
+            }
+          }
         }
       }
 
-      return '';
+      return { className: '', style: {} };
     },
     [conditionalFormatting, columns]
   );
@@ -697,7 +792,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
       )}
     >
       {/* Toolbar */}
-      {columnVisibility && (
+      {(columnVisibility || densityToggle) && (
         <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50/50">
           <div className="text-xs text-gray-500">
             共 {data.length} 条数据
@@ -707,12 +802,19 @@ export function DataTablePro<T extends Record<string, unknown>>({
               </span>
             )}
           </div>
-          <ColumnVisibilityDropdown
-            columns={columns}
-            visibleColumns={visibleColumns}
-            onToggleColumn={handleToggleColumn}
-            onToggleAll={handleToggleAllColumns}
-          />
+          <div className="flex items-center gap-2">
+            {densityToggle && (
+              <DensityToggle density={density} onChange={handleDensityChange} />
+            )}
+            {columnVisibility && (
+              <ColumnVisibilityDropdown
+                columns={columns}
+                visibleColumns={visibleColumns}
+                onToggleColumn={handleToggleColumn}
+                onToggleAll={handleToggleAllColumns}
+              />
+            )}
+          </div>
         </div>
       )}
 
@@ -812,7 +914,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
                     const isFixedRight = isColumnFixed(column.key, 'right');
                     const stickyStyle = getColumnStickyStyle(column.key);
                     const value = getNestedValue(row, column.key);
-                    const conditionalClass = getCellConditionalClass(
+                    const conditionalFormattingResult = getCellConditionalClass(
                       column.key,
                       value
                     );
@@ -831,11 +933,12 @@ export function DataTablePro<T extends Record<string, unknown>>({
                             'sticky left-0 z-10 bg-white shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]',
                           isFixedRight &&
                             'sticky right-0 z-10 bg-white shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.1)]',
-                          conditionalClass,
+                          conditionalFormattingResult.className,
                           onRowClick && 'group-hover:bg-gray-50'
                         )}
                         style={{
                           ...stickyStyle,
+                          ...conditionalFormattingResult.style,
                           width,
                           minWidth: column.minWidth || 50,
                           maxWidth: column.maxWidth,

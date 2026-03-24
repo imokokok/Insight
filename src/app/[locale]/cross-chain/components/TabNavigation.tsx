@@ -43,43 +43,64 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   ];
 
   return (
-    <div className="mb-6 pb-6 border-b" style={{ borderColor: baseColors.gray[200] }}>
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className={`relative px-4 py-3 text-left transition-all duration-200 border min-w-[140px] ${
-                isActive ? 'bg-white' : 'bg-transparent hover:bg-gray-50'
-              }`}
-              style={{
-                borderColor: isActive ? baseColors.primary[500] : baseColors.gray[300],
-                boxShadow: isActive ? `0 0 0 1px ${baseColors.primary[500]}` : 'none',
-              }}
-            >
-              <div
-                className={`text-sm font-medium ${isActive ? '' : ''}`}
-                style={{ color: isActive ? baseColors.primary[700] : baseColors.gray[700] }}
+    <div className="mb-4">
+      {/* Desktop: SegmentedControl style */}
+      <div className="hidden sm:block">
+        <div
+          className="inline-flex p-1 rounded-lg"
+          style={{ backgroundColor: baseColors.gray[100] }}
+        >
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onTabChange(tab.id)}
+                className={`relative px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
+                  isActive
+                    ? 'shadow-sm'
+                    : 'hover:text-gray-900'
+                }`}
+                style={{
+                  backgroundColor: isActive ? baseColors.primary[600] : 'transparent',
+                  color: isActive ? '#ffffff' : baseColors.gray[600],
+                }}
+                title={tab.description}
               >
                 {tab.label}
-              </div>
-              <div
-                className="text-xs mt-0.5"
-                style={{ color: isActive ? baseColors.primary[500] : baseColors.gray[400] }}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mobile: Horizontal scroll with compact style */}
+      <div className="sm:hidden">
+        <div
+          className="flex gap-1 p-1 rounded-lg overflow-x-auto scrollbar-hide"
+          style={{ backgroundColor: baseColors.gray[100] }}
+        >
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onTabChange(tab.id)}
+                className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                  isActive
+                    ? 'shadow-sm'
+                    : 'hover:text-gray-900'
+                }`}
+                style={{
+                  backgroundColor: isActive ? baseColors.primary[600] : 'transparent',
+                  color: isActive ? '#ffffff' : baseColors.gray[600],
+                }}
               >
-                {tab.description}
-              </div>
-              {isActive && (
-                <div
-                  className="absolute bottom-0 left-0 right-0 h-0.5"
-                  style={{ backgroundColor: baseColors.primary[500] }}
-                />
-              )}
-            </button>
-          );
-        })}
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

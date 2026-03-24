@@ -1,13 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { baseColors } from '@/lib/config/colors';
-import { TrendIndicator } from './SmallComponents';
+import { CompactStatCard } from '@/components/ui/CompactStatCard';
 import { ChainStats } from '../constants';
 
 interface CompactStatsGridProps {
   statsData: ChainStats[];
+}
+
+// 生成模拟 Sparkline 数据
+function generateMockSparklineData(seed: number, points: number = 20): number[] {
+  const data: number[] = [];
+  let value = 50 + (seed % 50);
+
+  for (let i = 0; i < points; i++) {
+    // 基于 seed 生成相对稳定的随机波动
+    const change = (Math.sin(seed + i * 0.5) * 10) + (Math.random() - 0.5) * 15;
+    value = Math.max(10, Math.min(100, value + change));
+    data.push(value);
+  }
+
+  return data;
 }
 
 export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
@@ -16,68 +30,48 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
 
   // 核心指标（始终显示）
   const coreStats = statsData.slice(0, 6);
-  const _extendedStats = statsData.slice(6);
 
   const displayStats = showAll ? statsData : coreStats;
 
+  // 为每个 stat 生成 sparkline 数据（使用 useMemo 缓存）
+  const statsWithSparkline = useMemo(() => {
+    return displayStats.map((stat, index) => ({
+      ...stat,
+      sparklineData: generateMockSparklineData(index + (stat.label.charCodeAt(0) || 0)),
+    }));
+  }, [displayStats]);
+
   return (
-    <div id="stats" className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
+    <div id="stats" className="mb-8 pb-8 border-b border-gray-100">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold" style={{ color: baseColors.gray[900] }}>
+        <h3 className="text-sm font-semibold text-gray-900">
           {t('crossChain.statistics')}
         </h3>
         <button
           onClick={() => setShowAll(!showAll)}
-          className="text-xs px-3 py-1.5 border transition-colors hover:bg-gray-50"
-          style={{ borderColor: baseColors.gray[300], color: baseColors.gray[600] }}
+          className="text-xs px-3 py-1.5 border border-gray-300 rounded-md text-gray-600 transition-colors hover:bg-gray-50"
         >
           {showAll ? t('crossChain.collapse') : t('crossChain.viewAll')}
-          <span className="ml-1" style={{ color: baseColors.gray[400] }}>
+          <span className="ml-1 text-gray-400">
             ({coreStats.length}/{statsData.length})
           </span>
         </button>
       </div>
 
-      <div
-        className={`grid gap-3 transition-all duration-300 ${
-          showAll
-            ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'
-            : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'
-        }`}
-      >
-        {displayStats.map((stat, index) => (
-          <div
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 transition-all duration-300">
+        {statsWithSparkline.map((stat, index) => (
+          <CompactStatCard
             key={index}
-            className="px-3 py-3 border"
-            style={{
-              borderColor: baseColors.gray[200],
-              backgroundColor: 'white',
-            }}
-            title={stat.tooltip}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div
-                className="text-[10px] uppercase truncate"
-                style={{ color: baseColors.gray[500] }}
-              >
-                {stat.label}
-              </div>
-              {stat.trend !== null && stat.trend !== undefined && (
-                <TrendIndicator changePercent={stat.trend} />
-              )}
-            </div>
-            <div
-              className="text-base font-semibold truncate"
-              style={{ color: baseColors.gray[900] }}
-            >
-              {stat.value}
-            </div>
-            {stat.subValue && (
-              <div className="text-[10px] mt-0.5 truncate" style={{ color: baseColors.gray[400] }}>
-                {stat.subValue}
-              </div>
-            )}
-          </div>
+            title={stat.label}
+            value={stat.value}
+            change={stat.trend !== null && stat.trend !== undefined ? {
+              value: stat.trend,
+              percentage: true,
+            } : undefined}
+            sparklineData={stat.sparklineData}
+            breakdown={stat.subValue ? [{ label: t('crossChain.detail'), value: stat.subValue }] : undefined}
+            tooltip={stat.tooltip}
+          />
         ))}
       </div>
     </div>

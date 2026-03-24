@@ -7,7 +7,7 @@ import { chainColors, SparklineProps, ProgressBarProps, JumpIndicatorProps } fro
 export function Sparkline({ data, color, width = 80, height = 20 }: SparklineProps) {
   if (!data || data.length < 2) {
     return (
-      <span className="text-gray-400 text-xs" style={{ color: baseColors.gray[400] }}>
+      <span className="text-xs" style={{ color: baseColors.gray[400] }}>
         -
       </span>
     );
@@ -48,14 +48,15 @@ export function ProgressBar({
   suffix = '%',
 }: ProgressBarProps) {
   const percentage = Math.min((value / max) * 100, 100);
+
   return (
     <div className="flex items-center gap-2">
       <div
-        className="flex-1 h-2 overflow-hidden min-w-[60px]"
-        style={{ backgroundColor: baseColors.gray[200] }}
+        className="flex-1 h-2 min-w-[60px] rounded-full overflow-hidden"
+        style={{ backgroundColor: baseColors.gray[100] }}
       >
         <div
-          className="h-full transition-all duration-300"
+          className="h-full rounded-full transition-all duration-500 ease-out"
           style={{
             width: `${percentage}%`,
             backgroundColor: color,
@@ -64,7 +65,7 @@ export function ProgressBar({
       </div>
       {showValue && (
         <span
-          className="text-xs font-mono min-w-[45px] text-right"
+          className="text-xs font-mono min-w-[45px] text-right tabular-nums"
           style={{ color: baseColors.gray[600] }}
         >
           {value.toFixed(1)}
@@ -85,19 +86,22 @@ export function JumpIndicator({ count }: JumpIndicatorProps) {
   const color = getJumpColor(count);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((level) => (
           <div
             key={level}
-            className="w-2 h-4"
+            className="w-1.5 h-3 rounded-sm transition-colors duration-200"
             style={{
               backgroundColor: count >= level ? color : baseColors.gray[200],
             }}
           />
         ))}
       </div>
-      <span className="text-xs font-mono" style={{ color: baseColors.gray[600] }}>
+      <span
+        className="text-xs font-mono tabular-nums min-w-[16px] text-right"
+        style={{ color: baseColors.gray[600] }}
+      >
         {count}
       </span>
     </div>
