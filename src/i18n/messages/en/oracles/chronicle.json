@@ -1,6 +1,23 @@
 {
   "chronicle": {
     "subtitle": "MakerDAO Native Oracle - High-security decentralized price feeds with Scuttlebutt security protocol",
+    "menu": {
+      "marketData": "Market Data",
+      "networkHealth": "Network Health",
+      "validators": "Validators",
+      "makerDAO": "MakerDAO Integration",
+      "scuttlebutt": "Scuttlebutt Security",
+      "crossOracleComparison": "Cross-Oracle Comparison",
+      "riskAssessment": "Risk Assessment",
+      "title": "Menu"
+    },
+    "navigation": {
+      "title": "Navigation"
+    },
+    "normal": "Normal",
+    "warning": "Warning",
+    "dataSource": "Data Source",
+    "networkStatus": "Network Status",
     "tabs": {
       "market": "Market",
       "makerdao": "MakerDAO",

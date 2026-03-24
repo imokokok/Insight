@@ -1,286 +1,256 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { TellorClient } from '@/lib/oracles/tellor';
+import { useTellorPage } from './hooks/useTellorPage';
 import {
-  PageHeader,
-  PriceChart,
-  MarketDataPanel,
-  DashboardCard,
-  StatCard,
-  TabNavigation,
-  LoadingState,
-  ErrorFallback,
-} from '@/components/oracle';
-import { TellorPriceStreamPanel } from '@/components/oracle/panels/TellorPriceStreamPanel';
-import { TellorMarketDepthPanel } from '@/components/oracle/panels/TellorMarketDepthPanel';
-import { TellorMultiChainAggregationPanel } from '@/components/oracle/panels/TellorMultiChainAggregationPanel';
-import { TellorReportersPanel } from '@/components/oracle/panels/TellorReportersPanel';
-import { TellorRiskPanel } from '@/components/oracle/panels/TellorRiskPanel';
-import { TellorNetworkPanel } from '@/components/oracle/panels/TellorNetworkPanel';
-import { TellorEcosystemPanel } from '@/components/oracle/panels/TellorEcosystemPanel';
-import { TellorStakingCalculator } from '@/components/oracle/panels/TellorStakingCalculator';
-import { TellorDisputesPanel } from '@/components/oracle/panels/TellorDisputesPanel';
+  TellorSidebar,
+  TellorMarketView,
+  TellorNetworkView,
+  TellorReportersView,
+  TellorDisputesView,
+  TellorStakingView,
+  TellorEcosystemView,
+  TellorRiskView,
+} from './components';
+import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
 import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
-import { getOracleConfig } from '@/lib/config/oracles';
-import { OracleProvider } from '@/types/oracle';
-import { useRefresh, useExport } from '@/hooks';
-import { useTellorAllData } from '@/hooks/useTellorData';
+import { LoadingState, ErrorFallback } from '@/components/oracle';
 
 export default function TellorPage() {
-  const t = useTranslations();
-  const [activeTab, setActiveTab] = useState('market');
-
-  const config = getOracleConfig(OracleProvider.TELLOR);
-  const client = useMemo(() => new TellorClient(), []);
-
   const {
+    activeTab,
+    config,
     price,
     historicalData,
-    priceStream,
-    marketDepth,
-    multiChainAggregation,
     networkStats,
-    networkHealth,
-    liquidity,
-    staking,
-    reporters,
-    risk,
-    ecosystem,
-    disputes,
     isLoading,
     isError,
-    errors,
-    refetchAll,
-  } = useTellorAllData({
-    symbol: config.symbol,
-    chain: config.defaultChain,
-    enabled: true,
-  });
+    error,
+    lastUpdated,
+    isRefreshing,
+    setActiveTab,
+    refresh,
+    exportData,
+    t,
+  } = useTellorPage();
 
-  const { exportData } = useExport({
-    data: {
-      timestamp: new Date().toISOString(),
-      price,
-      historical: historicalData,
-      priceStream,
-      marketDepth,
-      multiChainAggregation,
-    },
-    filename: `tellor-data`,
-  });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { isRefreshing, refresh } = useRefresh({
-    onRefresh: async () => {
-      await refetchAll();
-    },
-    minLoadingTime: 500,
-  });
-
-  const stats = useMemo(() => {
-    const activeNodes = networkStats?.activeNodes ?? 72;
-    const totalLiquidity = liquidity?.totalLiquidity ?? 850000000;
-    const stakingApr = staking?.stakingApr ?? 10.2;
-    const nodeUptime = networkStats?.nodeUptime ?? 99.9;
-
-    return [
-      {
-        title: t('tellor.stats.activeNodes'),
-        value: activeNodes > 0 ? `${activeNodes}+` : '-',
-        change: '+3%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('tellor.stats.totalLiquidity'),
-        value: totalLiquidity > 0 ? `$${(totalLiquidity / 1e9).toFixed(2)}B` : '-',
-        change: '+8%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('tellor.stats.stakingApr'),
-        value: `${stakingApr}%`,
-        change: '+0.5%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('tellor.stats.networkUptime'),
-        value: `${nodeUptime}%`,
-        change: '+0.05%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        ),
-      },
-    ];
-  }, [networkStats, liquidity, staking, t]);
-
-  if (isLoading) {
+  if (isLoading && !price) {
     return <LoadingState themeColor={config.themeColor} />;
   }
 
-  if (isError && !isLoading) {
-    return <ErrorFallback error={errors[0]} onRetry={refetchAll} themeColor={config.themeColor} />;
+  if (isError && error) {
+    return <ErrorFallback error={error} onRetry={refresh} themeColor={config.themeColor} />;
   }
 
-  return (
-    <div className="min-h-screen bg-insight rounded-lg">
-      <PageHeader
-        title={t('tellor.title')}
-        subtitle={t('tellor.subtitle')}
-        icon={config.icon}
-        onRefresh={refresh}
-        onExport={exportData}
-        isRefreshing={isRefreshing}
-      />
+  const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
+  const priceChange24h = config.marketData.change24h ?? 0;
+  const isPositive = priceChange24h >= 0;
 
-      <div className="bg-insight border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <TabNavigation
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            oracleTabs={config.tabs}
-            themeColor={config.themeColor}
+  const stats = [
+    {
+      title: t('tellor.stats.activeReporters'),
+      value: `${config.networkData.activeNodes.toLocaleString()}+`,
+      change: '+3%',
+      changeType: 'positive' as const,
+    },
+    {
+      title: t('tellor.stats.supportedChains'),
+      value: `${config.supportedChains.length}+`,
+      change: '0%',
+      changeType: 'neutral' as const,
+    },
+    {
+      title: t('tellor.stats.dataFeeds'),
+      value: `${config.networkData.dataFeeds.toLocaleString()}+`,
+      change: '+8%',
+      changeType: 'positive' as const,
+    },
+    {
+      title: t('tellor.stats.totalValueSecured'),
+      value: `$${(config.marketData.marketCap / 1e9).toFixed(1)}B+`,
+      change: '+8%',
+      changeType: 'positive' as const,
+    },
+  ];
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'market':
+        return (
+          <TellorMarketView
+            config={config}
+            price={price}
+            historicalData={historicalData}
+            isLoading={isLoading}
           />
+        );
+      case 'network':
+        return (
+          <TellorNetworkView
+            config={config}
+            networkStats={networkStats}
+            isLoading={isLoading}
+          />
+        );
+      case 'reporters':
+        return <TellorReportersView isLoading={isLoading} />;
+      case 'disputes':
+        return <TellorDisputesView isLoading={isLoading} />;
+      case 'staking':
+        return <TellorStakingView isLoading={isLoading} />;
+      case 'ecosystem':
+        return <TellorEcosystemView isLoading={isLoading} />;
+      case 'cross-oracle':
+        return (
+          <div className="space-y-4">
+            <CrossOracleComparison />
+          </div>
+        );
+      case 'risk':
+        return <TellorRiskView isLoading={isLoading} />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-insight">
+      {/* Hero Section */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Live Status Bar */}
+          <div className="mb-4">
+            <LiveStatusBar
+              isConnected={!isError}
+              latency={95}
+              lastUpdate={lastUpdated || undefined}
+            />
+          </div>
+
+          {/* Page Header */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-cyan-600 rounded-lg flex items-center justify-center">
+                <img
+                  src="/logos/oracles/tellor.svg"
+                  alt="Tellor"
+                  className="w-7 h-7"
+                />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Tellor</h1>
+                <p className="text-sm text-gray-500">{t('tellor.subtitle')}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-2xl font-bold text-gray-900">
+                  ${currentPrice.toFixed(2)}
+                </p>
+                <p className={`text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {isPositive ? '+' : ''}{priceChange24h.toFixed(2)}%
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={refresh}
+                  disabled={isRefreshing}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <svg className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {t('common.refresh')}
+                </button>
+                <button
+                  onClick={() => exportData()}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-cyan-600 rounded-md hover:bg-cyan-700"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  {t('common.export')}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+            {stats.map((stat, index) => (
+              <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <p className="text-xs text-gray-500 uppercase tracking-wider">{stat.title}</p>
+                <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                <p className={`text-xs mt-1 ${
+                  stat.changeType === 'positive' ? 'text-emerald-600' : 'text-gray-500'
+                }`}>
+                  {stat.changeType === 'positive' ? '↑ ' : '→ '}
+                  {stat.change}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <main className="flex-1 bg-insight">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-white border border-gray-200 rounded-lg">
-            {stats.map((stat, index) => (
-              <StatCard key={index} {...stat} isFirst={index === 0} />
-            ))}
+      {/* Main Content Area */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Sidebar - Desktop */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-6">
+              <TellorSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+            </div>
           </div>
 
-          {activeTab === 'market' && (
-            <>
-              <div className="mb-6">
-                <MarketDataPanel
-                  client={client}
-                  chain={config.defaultChain}
-                  config={config.marketData}
-                  iconBgColor={config.iconBgColor}
-                  icon={config.icon}
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              {t('tellor.menu.title')}
+            </button>
+          </div>
+
+          {/* Mobile Menu Overlay */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="absolute left-0 top-0 h-full w-64 bg-white" onClick={(e) => e.stopPropagation()}>
+                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
+                    {t('tellor.navigation.title')}
+                  </h2>
+                  <button onClick={() => setIsMobileMenuOpen(false)}>
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <TellorSidebar
+                  activeTab={activeTab}
+                  onTabChange={(tab) => {
+                    setActiveTab(tab);
+                    setIsMobileMenuOpen(false);
+                  }}
                 />
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <DashboardCard title={t('tellor.priceTrend')} className="lg:col-span-2">
-                  <PriceChart
-                    client={client}
-                    symbol={config.symbol}
-                    chain={config.defaultChain}
-                    height={320}
-                    showToolbar={true}
-                    defaultPrice={config.marketData.change24hValue}
-                  />
-                </DashboardCard>
-
-                <DashboardCard title={t('tellor.quickStats')}>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('tellor.stats.volume24h')}</span>
-                      <span className="text-sm font-semibold text-gray-900">
-                        ${(config.marketData.volume24h / 1e6).toFixed(1)}M
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('tellor.stats.marketCap')}</span>
-                      <span className="text-sm font-semibold text-gray-900">
-                        ${(config.marketData.marketCap / 1e9).toFixed(2)}B
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">
-                        {t('tellor.stats.circulatingSupply')}
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900">
-                        {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M TRB
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">{t('tellor.stats.stakingApr')}</span>
-                      <span className="text-sm font-semibold text-success-600">
-                        {staking?.stakingApr ?? 10.2}%
-                      </span>
-                    </div>
-                  </div>
-                </DashboardCard>
-              </div>
-            </>
-          )}
-
-          {activeTab === 'network' && networkHealth && <TellorNetworkPanel data={networkHealth} />}
-
-          {activeTab === 'reporters' && reporters && <TellorReportersPanel data={reporters} />}
-
-          {activeTab === 'disputes' && disputes && <TellorDisputesPanel data={disputes} />}
-
-          {activeTab === 'staking' && <TellorStakingCalculator />}
-
-          {activeTab === 'price-stream' && priceStream.length > 0 && (
-            <TellorPriceStreamPanel data={priceStream} />
-          )}
-
-          {activeTab === 'market-depth' && marketDepth && (
-            <TellorMarketDepthPanel data={marketDepth} />
-          )}
-
-          {activeTab === 'multi-chain' && multiChainAggregation && (
-            <TellorMultiChainAggregationPanel data={multiChainAggregation} />
-          )}
-
-          {activeTab === 'risk' && risk && <TellorRiskPanel data={risk} />}
-
-          {activeTab === 'ecosystem' && ecosystem && <TellorEcosystemPanel data={ecosystem} />}
-
-          {activeTab === 'cross-oracle' && (
-            <div className="space-y-6">
-              <DashboardCard title={t('tellor.tabs.crossOracle')}>
-                <CrossOracleComparison />
-              </DashboardCard>
             </div>
           )}
+
+          {/* Content Area */}
+          <div className="flex-1 min-w-0">
+            {renderContent()}
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

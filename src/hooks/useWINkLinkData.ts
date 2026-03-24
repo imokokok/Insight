@@ -9,9 +9,19 @@ import type {
   WINkLinkGamingData,
   WINkLinkRiskMetrics,
 } from '@/lib/oracles';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 
 const client = new WINkLinkClient();
+
+function useLastUpdated() {
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const updateLastUpdated = useCallback(() => {
+    setLastUpdated(new Date());
+  }, []);
+
+  return { lastUpdated, updateLastUpdated };
+}
 
 export function useWINkLinkPrice(symbol: string) {
   return useQuery({
@@ -76,11 +86,17 @@ interface UseWINkLinkAllDataOptions {
 }
 
 export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLinkAllDataOptions) {
+  const { lastUpdated, updateLastUpdated } = useLastUpdated();
+
   const results = useQueries({
     queries: [
       {
         queryKey: ['winklink', 'price', symbol, chain],
-        queryFn: () => client.getPrice(symbol, chain),
+        queryFn: async () => {
+          const result = await client.getPrice(symbol, chain);
+          updateLastUpdated();
+          return result;
+        },
         enabled,
         refetchInterval: 60000,
       },
@@ -137,24 +153,26 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
   const isError = results.some((r) => r.isError);
   const errors = results.map((r) => r.error).filter(Boolean) as Error[];
 
-  const refetchAll = useCallback(() => {
-    results.forEach((r) => r.refetch());
+  const refetchAll = useCallback(async () => {
+    await Promise.all(results.map((r) => r.refetch()));
+    updateLastUpdated();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return useMemo(
     () => ({
       price: priceResult.data,
-      historicalData: historicalResult.data,
-      tronIntegration: tronResult.data,
-      staking: stakingResult.data,
-      gaming: gamingResult.data,
-      networkStats: networkResult.data,
-      riskMetrics: riskResult.data,
+      historicalData: historicalResult.data ?? [],
+      tronIntegration: tronResult.data ?? null,
+      staking: stakingResult.data ?? null,
+      gaming: gamingResult.data ?? null,
+      networkStats: networkResult.data ?? null,
+      riskMetrics: riskResult.data ?? null,
       isLoading,
       isError,
       errors,
       refetchAll,
+      lastUpdated,
     }),
     [
       priceResult.data,
@@ -168,6 +186,7 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
       isError,
       errors,
       refetchAll,
+      lastUpdated,
     ]
   );
 }

@@ -1,0 +1,21 @@
+# Checklist
+
+- [x] Tellor types file created at `src/app/[locale]/tellor/types.ts` with all required interfaces
+- [x] useTellorPage hook created at `src/app/[locale]/tellor/hooks/useTellorPage.ts`
+- [x] TellorSidebar component created at `src/app/[locale]/tellor/components/TellorSidebar.tsx`
+- [x] TellorMarketView component created at `src/app/[locale]/tellor/components/TellorMarketView.tsx`
+- [x] TellorNetworkView component created at `src/app/[locale]/tellor/components/TellorNetworkView.tsx`
+- [x] TellorReportersView component created at `src/app/[locale]/tellor/components/TellorReportersView.tsx`
+- [x] TellorDisputesView component created at `src/app/[locale]/tellor/components/TellorDisputesView.tsx`
+- [x] TellorStakingView component created at `src/app/[locale]/tellor/components/TellorStakingView.tsx`
+- [x] TellorEcosystemView component created at `src/app/[locale]/tellor/components/TellorEcosystemView.tsx`
+- [x] TellorRiskView component created at `src/app/[locale]/tellor/components/TellorRiskView.tsx`
+- [x] Components index file created at `src/app/[locale]/tellor/components/index.ts`
+- [x] Tellor page.tsx refactored with sidebar layout
+- [x] Oracle configs updated with new Tellor tabs
+- [x] Page renders without errors
+- [x] Sidebar navigation works correctly
+- [x] All tabs display correct content
+- [x] Mobile responsive design works
+- [x] Hero section displays correctly with stats
+- [x] Refresh and Export buttons work
