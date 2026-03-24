@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { ChainlinkClient } from '@/lib/oracles/chainlink';
 import { Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -93,6 +93,7 @@ interface UseChainlinkAllDataOptions {
 
 export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
   const { symbol, chain, enabled = true } = options;
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const priceQuery = useChainlinkPrice({ symbol, chain, enabled });
   const historicalQuery = useChainlinkHistorical({ symbol, chain, enabled });
@@ -112,6 +113,12 @@ export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
     staleTime: 300000,
     gcTime: 600000,
   });
+
+  useEffect(() => {
+    if (priceQuery.price && !priceQuery.isLoading) {
+      setLastUpdated(new Date());
+    }
+  }, [priceQuery.price, priceQuery.isLoading]);
 
   const isLoading = priceQuery.isLoading || historicalQuery.isLoading || networkQuery.isLoading;
   const isError = Boolean(priceQuery.error || historicalQuery.error || networkQuery.error);
@@ -134,5 +141,6 @@ export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
     isError,
     errors,
     refetchAll,
+    lastUpdated,
   };
 }

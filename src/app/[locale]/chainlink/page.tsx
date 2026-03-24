@@ -1,258 +1,257 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ChainlinkClient } from '@/lib/oracles/chainlink';
+import { useChainlinkPage } from './hooks/useChainlinkPage';
 import {
-  PageHeader,
-  PriceChart,
-  MarketDataPanel,
-  NetworkHealthPanel,
-  DashboardCard,
-  StatCard,
-  TabNavigation,
-  LoadingState,
-  ErrorFallback,
-} from '@/components/oracle';
-import { ChainlinkNodesPanel } from '@/components/oracle/panels/ChainlinkNodesPanel';
-import { ChainlinkDataFeedsPanel } from '@/components/oracle/panels/ChainlinkDataFeedsPanel';
-import { ChainlinkRiskPanel } from '@/components/oracle/panels/ChainlinkRiskPanel';
-import { ChainlinkEcosystemPanel } from '@/components/oracle/panels/ChainlinkEcosystemPanel';
-import { ChainlinkServicesPanel } from '@/components/oracle/panels/ChainlinkServicesPanel';
+  ChainlinkSidebar,
+  ChainlinkMarketView,
+  ChainlinkNetworkView,
+  ChainlinkNodesView,
+  ChainlinkDataFeedsView,
+  ChainlinkServicesView,
+  ChainlinkEcosystemView,
+  ChainlinkRiskView,
+} from './components';
+import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
 import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
-import { getOracleConfig } from '@/lib/config/oracles';
-import { OracleProvider } from '@/types/oracle';
-import { useRefresh, useExport } from '@/hooks';
-import { useChainlinkAllData } from '@/hooks/useChainlinkData';
+import { LoadingState, ErrorFallback, PageHeader } from '@/components/oracle';
+import { PriceChart } from '@/components/oracle';
 
 export default function ChainlinkPage() {
-  const t = useTranslations();
-  const [activeTab, setActiveTab] = useState('market');
+  const {
+    activeTab,
+    config,
+    price,
+    historicalData,
+    networkStats,
+    isLoading,
+    isError,
+    error,
+    lastUpdated,
+    isRefreshing,
+    setActiveTab,
+    refresh,
+    exportData,
+    t,
+  } = useChainlinkPage();
 
-  const config = getOracleConfig(OracleProvider.CHAINLINK);
-  const client = useMemo(() => new ChainlinkClient(), []);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { price, historicalData, networkStats, isLoading, isError, errors, refetchAll } =
-    useChainlinkAllData({
-      symbol: config.symbol,
-      chain: config.defaultChain,
-      enabled: true,
-    });
-
-  const { exportData } = useExport({
-    data: {
-      timestamp: new Date().toISOString(),
-      price,
-      historical: historicalData,
-      network: networkStats,
-    },
-    filename: `chainlink-data`,
-  });
-
-  const { isRefreshing, refresh } = useRefresh({
-    onRefresh: async () => {
-      await refetchAll();
-    },
-    minLoadingTime: 500,
-  });
-
-  const stats = useMemo(() => {
-    const activeNodes = networkStats?.activeNodes ?? 1847;
-    const dataFeeds = networkStats?.dataFeeds ?? 1243;
-    const _nodeUptime = networkStats?.nodeUptime ?? 99.9;
-    const totalValueSecured = config.marketData.marketCap;
-
-    return [
-      {
-        title: t('chainlink.stats.decentralizedNodes'),
-        value: activeNodes > 0 ? `${activeNodes.toLocaleString()}+` : '-',
-        change: '+5%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('chainlink.stats.supportedChains'),
-        value: `${config.supportedChains.length}+`,
-        change: '0%',
-        changeType: 'neutral' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('chainlink.stats.dataFeeds'),
-        value: dataFeeds > 0 ? `${dataFeeds.toLocaleString()}+` : '-',
-        change: '+12%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('chainlink.stats.totalValueSecured'),
-        value: `$${(totalValueSecured / 1e9).toFixed(1)}B+`,
-        change: '+8%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            />
-          </svg>
-        ),
-      },
-    ];
-  }, [networkStats, config, t]);
-
-  if (isLoading) {
+  if (isLoading && !price) {
     return <LoadingState themeColor={config.themeColor} />;
   }
 
-  if (isError && !isLoading) {
-    return <ErrorFallback error={errors[0]} onRetry={refetchAll} themeColor={config.themeColor} />;
+  if (isError && error) {
+    return <ErrorFallback error={error} onRetry={refresh} themeColor={config.themeColor} />;
   }
 
-  return (
-    <div className="min-h-screen bg-insight rounded-lg">
-      <PageHeader
-        title={config.name}
-        subtitle={config.description}
-        icon={config.icon}
-        onRefresh={refresh}
-        onExport={exportData}
-        isRefreshing={isRefreshing}
-      />
+  const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
+  const priceChange24h = config.marketData.change24h ?? 0;
+  const isPositive = priceChange24h >= 0;
 
-      <div className="bg-insight border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <TabNavigation
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            oracleTabs={config.tabs}
-            themeColor={config.themeColor}
+  const stats = [
+    {
+      title: t('chainlink.stats.decentralizedNodes'),
+      value: `${config.networkData.activeNodes.toLocaleString()}+`,
+      change: '+5%',
+      changeType: 'positive' as const,
+    },
+    {
+      title: t('chainlink.stats.supportedChains'),
+      value: `${config.supportedChains.length}+`,
+      change: '0%',
+      changeType: 'neutral' as const,
+    },
+    {
+      title: t('chainlink.stats.dataFeeds'),
+      value: `${config.networkData.dataFeeds.toLocaleString()}+`,
+      change: '+12%',
+      changeType: 'positive' as const,
+    },
+    {
+      title: t('chainlink.stats.totalValueSecured'),
+      value: `$${(config.marketData.marketCap / 1e9).toFixed(1)}B+`,
+      change: '+8%',
+      changeType: 'positive' as const,
+    },
+  ];
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'market':
+        return (
+          <ChainlinkMarketView
+            config={config}
+            price={price}
+            historicalData={historicalData}
+            isLoading={isLoading}
           />
+        );
+      case 'network':
+        return (
+          <ChainlinkNetworkView
+            config={config}
+            networkStats={networkStats}
+            isLoading={isLoading}
+          />
+        );
+      case 'nodes':
+        return <ChainlinkNodesView />;
+      case 'data-feeds':
+        return <ChainlinkDataFeedsView />;
+      case 'services':
+        return <ChainlinkServicesView />;
+      case 'ecosystem':
+        return <ChainlinkEcosystemView />;
+      case 'cross-oracle':
+        return (
+          <div className="space-y-4">
+            <CrossOracleComparison />
+          </div>
+        );
+      case 'risk':
+        return <ChainlinkRiskView />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-insight">
+      {/* Hero Section */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Live Status Bar */}
+          <div className="mb-4">
+            <LiveStatusBar
+              isConnected={!isError}
+              latency={245}
+              lastUpdate={lastUpdated || undefined}
+            />
+          </div>
+
+          {/* Page Header */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                <img
+                  src="/logos/oracles/chainlink.svg"
+                  alt="Chainlink"
+                  className="w-7 h-7"
+                />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Chainlink</h1>
+                <p className="text-sm text-gray-500">{t('chainlink.subtitle')}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-2xl font-bold text-gray-900">
+                  ${currentPrice.toFixed(2)}
+                </p>
+                <p className={`text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {isPositive ? '+' : ''}{priceChange24h.toFixed(2)}%
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={refresh}
+                  disabled={isRefreshing}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <svg className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {t('common.refresh')}
+                </button>
+                <button
+                  onClick={() => exportData()}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  {t('common.export')}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+            {stats.map((stat, index) => (
+              <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <p className="text-xs text-gray-500 uppercase tracking-wider">{stat.title}</p>
+                <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                <p className={`text-xs mt-1 ${
+                  stat.changeType === 'positive' ? 'text-emerald-600' : 'text-gray-500'
+                }`}>
+                  {stat.changeType === 'positive' ? '↑ ' : '→ '}
+                  {stat.change}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <main className="flex-1 bg-insight">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-white border border-gray-200 rounded-lg">
-            {stats.map((stat, index) => (
-              <StatCard key={index} {...stat} isFirst={index === 0} />
-            ))}
+      {/* Main Content Area */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Sidebar - Desktop */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-6">
+              <ChainlinkSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+            </div>
           </div>
 
-          {activeTab === 'market' && (
-            <>
-              <div className="mb-6">
-                <MarketDataPanel
-                  client={client}
-                  chain={config.defaultChain}
-                  config={config.marketData}
-                  iconBgColor={config.iconBgColor}
-                  icon={config.icon}
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              {t('chainlink.menu.title')}
+            </button>
+          </div>
+
+          {/* Mobile Menu Overlay */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="absolute left-0 top-0 h-full w-64 bg-white" onClick={(e) => e.stopPropagation()}>
+                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
+                    {t('chainlink.navigation.title')}
+                  </h2>
+                  <button onClick={() => setIsMobileMenuOpen(false)}>
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <ChainlinkSidebar 
+                  activeTab={activeTab} 
+                  onTabChange={(tab) => {
+                    setActiveTab(tab);
+                    setIsMobileMenuOpen(false);
+                  }} 
                 />
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <DashboardCard title={t('chainlink.priceTrend')} className="lg:col-span-2">
-                  <PriceChart
-                    client={client}
-                    symbol={config.symbol}
-                    chain={config.defaultChain}
-                    height={320}
-                    showToolbar={true}
-                    defaultPrice={config.marketData.change24hValue}
-                  />
-                </DashboardCard>
-
-                <DashboardCard title={t('chainlink.quickStats')}>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">
-                        {t('chainlink.stats.volume24h')}
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 tracking-tight">
-                        ${(config.marketData.volume24h / 1e6).toFixed(1)}M
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">
-                        {t('chainlink.stats.marketCap')}
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 tracking-tight">
-                        ${(config.marketData.marketCap / 1e9).toFixed(2)}B
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">
-                        {t('chainlink.stats.circulatingSupply')}
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 tracking-tight">
-                        {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M LINK
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">
-                        {t('chainlink.stats.stakingApr')}
-                      </span>
-                      <span className="text-sm font-semibold text-emerald-600">4.32%</span>
-                    </div>
-                  </div>
-                </DashboardCard>
-              </div>
-            </>
-          )}
-
-          {activeTab === 'network' && (
-            <div className="space-y-6">
-              <NetworkHealthPanel config={config.networkData} />
             </div>
           )}
 
-          {activeTab === 'nodes' && <ChainlinkNodesPanel />}
-
-          {activeTab === 'data-feeds' && <ChainlinkDataFeedsPanel />}
-
-          {activeTab === 'services' && <ChainlinkServicesPanel />}
-
-          {activeTab === 'ecosystem' && <ChainlinkEcosystemPanel />}
-
-          {activeTab === 'risk' && <ChainlinkRiskPanel />}
-
-          {activeTab === 'cross-oracle' && (
-            <div className="space-y-6">
-              <CrossOracleComparison />
-            </div>
-          )}
+          {/* Content Area */}
+          <div className="flex-1 min-w-0">
+            {renderContent()}
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
