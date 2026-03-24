@@ -3,7 +3,6 @@
 import { useTranslations, useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { BarChart3 } from 'lucide-react';
-import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
 import UnifiedExportSection from './UnifiedExportSection';
 import RefreshControl from './RefreshControl';
@@ -45,18 +44,8 @@ export default function MarketHeader({
   const t = useTranslations();
   const locale = useLocale();
 
-  const breadcrumbItems = [
-    {
-      label: isChineseLocale(locale) ? '市场概览' : 'Market Overview',
-      icon: <BarChart3 className="w-4 h-4" />,
-    },
-  ];
-
   return (
     <div className="flex flex-col gap-3 mb-4">
-      {/* Breadcrumb */}
-      <Breadcrumb items={breadcrumbItems} />
-
       {/* Main Header Content */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         {/* Title Section */}

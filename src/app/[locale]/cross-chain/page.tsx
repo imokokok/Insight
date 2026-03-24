@@ -25,7 +25,6 @@ import { TabNavigation, TabId } from './components/TabNavigation';
 import { CollapsibleSection } from './components/CollapsibleSection';
 import { DataSourceSection } from './components/DataSourceSection';
 import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';
-import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
 import {
   BarChart,
@@ -534,31 +533,12 @@ export default function CrossChainPage() {
     </>
   );
 
-  // Breadcrumb items
-  const breadcrumbItems = [
-    { label: t('navigation.crossChain'), href: '/cross-chain' },
-  ];
-
   return (
     <div className="min-h-screen bg-insight">
-      {/* Top Bar with Breadcrumb and LiveStatusBar */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <Breadcrumb items={breadcrumbItems} />
-            <LiveStatusBar
-              isConnected={!loading}
-              lastUpdate={lastUpdated || undefined}
-              isReconnecting={refreshStatus === 'refreshing'}
-            />
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Page Header */}
-        <div className="mb-6">
+        <div className="flex flex-col gap-3 mb-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">
@@ -752,6 +732,13 @@ export default function CrossChainPage() {
               </button>
             </div>
           </div>
+
+          {/* Live Status Bar */}
+          <LiveStatusBar
+            isConnected={!loading}
+            lastUpdate={lastUpdated || undefined}
+            isReconnecting={refreshStatus === 'refreshing'}
+          />
         </div>
 
         {/* Two Column Layout */}

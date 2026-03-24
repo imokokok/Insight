@@ -64,7 +64,7 @@ export default function MarketOverviewPage() {
 
   return (
     <div className="min-h-screen bg-insight">
-      <div className="max-w-[1600px] mx-auto px-3 py-3">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="space-y-3">
           <MarketHeader
             loading={isLoading}

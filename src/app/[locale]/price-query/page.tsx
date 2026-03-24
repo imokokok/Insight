@@ -11,6 +11,7 @@ import { useCommonShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { QueryHeader, QueryForm, QueryResults, ExportConfig } from './components';
 import { usePriceQuery } from './hooks/usePriceQuery';
 import { exportToCSV, exportToJSON, exportToPDF } from './utils/exportUtils';
+import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
 
 export default function PriceQueryPage() {
   const t = useTranslations();
@@ -151,32 +152,40 @@ export default function PriceQueryPage() {
       </div>
 
       {/* 页面头部 */}
-      <QueryHeader
-        showHistory={showHistory}
-        setShowHistory={setShowHistory}
-        historyItems={historyItems}
-        onSelectHistory={handleHistorySelect}
-        onClearHistory={handleClearHistory}
-        loading={isLoading}
-        queryResultsLength={queryResults.length}
-        onExportCSV={handleExportCSV}
-        onExportJSON={handleExportJSON}
-        onOpenExportConfig={() => setShowExportConfig(true)}
-        selectedOracles={selectedOracles}
-        selectedChains={selectedChains}
-        selectedSymbol={selectedSymbol}
-        selectedTimeRange={selectedTimeRange}
-        setSelectedOracles={setSelectedOracles}
-        setSelectedChains={setSelectedChains}
-        setSelectedSymbol={setSelectedSymbol}
-        setSelectedTimeRange={setSelectedTimeRange}
-        symbolFavorites={symbolFavorites}
-        currentFavoriteConfig={currentFavoriteConfig}
-        showFavoritesDropdown={showFavoritesDropdown}
-        setShowFavoritesDropdown={setShowFavoritesDropdown}
-        favoritesDropdownRef={favoritesDropdownRef}
-        handleApplyFavorite={handleApplyFavorite}
-      />
+      <div className="flex flex-col gap-3 mb-4">
+        <QueryHeader
+          showHistory={showHistory}
+          setShowHistory={setShowHistory}
+          historyItems={historyItems}
+          onSelectHistory={handleHistorySelect}
+          onClearHistory={handleClearHistory}
+          loading={isLoading}
+          queryResultsLength={queryResults.length}
+          onExportCSV={handleExportCSV}
+          onExportJSON={handleExportJSON}
+          onOpenExportConfig={() => setShowExportConfig(true)}
+          selectedOracles={selectedOracles}
+          selectedChains={selectedChains}
+          selectedSymbol={selectedSymbol}
+          selectedTimeRange={selectedTimeRange}
+          setSelectedOracles={setSelectedOracles}
+          setSelectedChains={setSelectedChains}
+          setSelectedSymbol={setSelectedSymbol}
+          setSelectedTimeRange={setSelectedTimeRange}
+          symbolFavorites={symbolFavorites}
+          currentFavoriteConfig={currentFavoriteConfig}
+          showFavoritesDropdown={showFavoritesDropdown}
+          setShowFavoritesDropdown={setShowFavoritesDropdown}
+          favoritesDropdownRef={favoritesDropdownRef}
+          handleApplyFavorite={handleApplyFavorite}
+        />
+
+        {/* Live Status Bar */}
+        <LiveStatusBar
+          isConnected={!isLoading}
+          lastUpdate={historyItems.length > 0 ? new Date(historyItems[0].timestamp) : undefined}
+        />
+      </div>
 
       {/* 主内容区域 - 左右分栏布局 */}
       <div className="flex flex-col xl:flex-row gap-6">

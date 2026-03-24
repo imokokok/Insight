@@ -11,20 +11,13 @@ import { ThresholdType } from '../utils';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { baseColors, chainColors as configChainColors } from '@/lib/config/colors';
 import { DropdownSelect, SegmentedControl } from '@/components/ui/selectors';
-import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
 
 interface CrossChainFiltersProps {
   data: ReturnType<typeof useCrossChainData>;
-  isConnected?: boolean;
-  latency?: number;
-  lastUpdate?: Date;
 }
 
 export function CrossChainFilters({
   data,
-  isConnected = true,
-  latency,
-  lastUpdate,
 }: CrossChainFiltersProps) {
   const t = useTranslations();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -128,7 +121,7 @@ export function CrossChainFilters({
       className="bg-white border rounded-lg shadow-sm overflow-hidden"
       style={{ borderColor: baseColors.gray[200] }}
     >
-      {/* Header with LiveStatusBar and Collapse Toggle */}
+      {/* Header with Collapse Toggle */}
       <div
         className="flex items-center justify-between gap-2 px-3 py-2 border-b"
         style={{ borderColor: baseColors.gray[200], backgroundColor: baseColors.gray[50] }}
@@ -139,27 +132,14 @@ export function CrossChainFilters({
             {t('crossChain.filters')}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <LiveStatusBar
-            isConnected={isConnected}
-            latency={latency}
-            lastUpdate={lastUpdate}
-            className="hidden sm:flex"
-          />
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded-md transition-colors hover:bg-gray-200 lg:hidden"
-            style={{ color: baseColors.gray[500] }}
-            aria-label={isCollapsed ? t('common.expand') : t('common.collapse')}
-          >
-            {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile LiveStatusBar */}
-      <div className="sm:hidden px-3 py-2 border-b" style={{ borderColor: baseColors.gray[200] }}>
-        <LiveStatusBar isConnected={isConnected} latency={latency} lastUpdate={lastUpdate} />
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1 rounded-md transition-colors hover:bg-gray-200 lg:hidden"
+          style={{ color: baseColors.gray[500] }}
+          aria-label={isCollapsed ? t('common.expand') : t('common.collapse')}
+        >
+          {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+        </button>
       </div>
 
       {/* Collapsible Content */}
