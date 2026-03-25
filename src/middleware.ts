@@ -8,6 +8,10 @@ const authRoutes = ['/login', '/register', '/forgot-password', '/auth'];
 
 const intlMiddleware = createMiddleware(routing);
 
+// 动态生成 locale 正则表达式
+const localePattern = new RegExp(`^/(${routing.locales.join('|')})(/|$)`);
+const localeReplacePattern = new RegExp(`^/(${routing.locales.join('|')})`);
+
 export async function middleware(request: NextRequest) {
   const acceptLanguage = request.headers.get('accept-language');
   const browserLocale = acceptLanguage?.split(',')[0]?.split('-')[0];
@@ -15,7 +19,7 @@ export async function middleware(request: NextRequest) {
   const targetLocale = getValidLocale(browserLocale);
 
   const pathname = request.nextUrl.pathname;
-  const hasLocalePrefix = /^\/(en|zh-CN)(\/|$)/.test(pathname);
+  const hasLocalePrefix = localePattern.test(pathname);
 
   if (!hasLocalePrefix) {
     const url = request.nextUrl.clone();
@@ -48,7 +52,7 @@ export async function middleware(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const pathnameWithoutLocale = pathname.replace(/^\/(en|zh-CN)/, '') || '/';
+  const pathnameWithoutLocale = pathname.replace(localeReplacePattern, '') || '/';
 
   const isProtectedRoute = protectedRoutes.some((route) => pathnameWithoutLocale.startsWith(route));
   const isAuthRoute = authRoutes.some((route) => pathnameWithoutLocale.startsWith(route));

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+import { useTranslations, useLocale } from '@/i18n';
 import {
   startOfHour,
   startOfDay,
@@ -39,7 +39,8 @@ export function TimeRangeSelector({
   maxCustomRangeDays = 365,
 }: TimeRangeSelectorProps) {
   const t = useTranslations('comparison.timeRange');
-  const locale = zhCN;
+  const currentLocale = useLocale();
+  const locale = currentLocale === 'zh-CN' ? zhCN : enUS;
 
   const [isCustomOpen, setIsCustomOpen] = useState(false);
   const [customStart, setCustomStart] = useState('');

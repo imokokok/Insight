@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, User, LogOut, Heart, Bell, Settings } from 'lucide-react';
 import { useTranslations, useLocale } from '@/i18n';
+import { routing } from '@/i18n/routing';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 import LanguageSwitcher from './LanguageSwitcher';
 import { DropdownMenu, MobileDrawer, navigationConfig } from './navigation';
@@ -29,7 +30,8 @@ export default function Navbar() {
   const currentPath = useMemo(() => {
     if (!pathname) return '/';
     const pathWithoutQuery = pathname.split('?')[0];
-    const localeMatch = pathWithoutQuery.match(/^\/(?:zh-CN|en)(\/.*)$/);
+    const localePattern = new RegExp(`^/(?:${routing.locales.join('|')})(/.*)$`);
+    const localeMatch = pathWithoutQuery.match(localePattern);
     return localeMatch ? localeMatch[1] : pathWithoutQuery;
   }, [pathname]);
 
