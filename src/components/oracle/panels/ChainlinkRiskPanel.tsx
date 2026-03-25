@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useTranslations } from '@/i18n';
+import { useTranslations, useLocale } from '@/i18n';
+import { getDateTimeLocale } from '@/lib/utils/dateFormat';
 import { DashboardCard, DataFreshnessIndicator, RiskScoreCard } from '@/components/oracle/common';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
@@ -30,14 +31,15 @@ import {
 } from 'recharts';
 
 // 模拟历史评分数据
-const generateScoreTrendData = () => {
+const generateScoreTrendData = (locale: string = 'en') => {
   const data = [];
   const now = new Date();
+  const dateTimeLocale = locale === 'zh-CN' ? 'zh-CN' : 'en-US';
   for (let i = 29; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
     data.push({
-      date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+      date: date.toLocaleDateString(dateTimeLocale, { month: 'short', day: 'numeric' }),
       score: 92 + Math.random() * 6 - 2,
       decentralization: 90 + Math.random() * 4 - 2,
       security: 93 + Math.random() * 4 - 2,
@@ -90,6 +92,7 @@ const mitigationMeasures: MitigationMeasure[] = [
 
 export function ChainlinkRiskPanel() {
   const t = useTranslations();
+  const locale = useLocale();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const riskEvents = getRiskEvents(t);
@@ -131,7 +134,7 @@ export function ChainlinkRiskPanel() {
 
   const overallScore = calculateOverallScore(riskMetrics);
   const riskLevel = getRiskLevel(overallScore);
-  const scoreTrendData = useMemo(() => generateScoreTrendData(), []);
+  const scoreTrendData = useMemo(() => generateScoreTrendData(locale), [locale]);
 
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
 

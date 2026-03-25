@@ -2,7 +2,7 @@
 
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { Locale } from '@/i18n/routing';
+import { Locale, routing } from '@/i18n/routing';
 
 export default function LanguageSwitcher() {
   const router = useRouter();
@@ -16,7 +16,8 @@ export default function LanguageSwitcher() {
   const switchLanguage = (newLocale: Locale) => {
     // 获取当前路径，替换语言前缀
     const currentPath = pathname;
-    const newPath = currentPath.replace(/^\/(en|zh-CN)/, `/${newLocale}`);
+    const localePattern = new RegExp(`^/(${routing.locales.join('|')})`);
+    const newPath = currentPath.replace(localePattern, `/${newLocale}`);
 
     startTransition(() => {
       router.replace(newPath);

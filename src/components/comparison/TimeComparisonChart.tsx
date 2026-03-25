@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+import { useTranslations, useLocale } from '@/i18n';
 import {
   LineChart,
   Line,
@@ -46,7 +46,8 @@ export function TimeComparisonChart({
   dateFormatter,
 }: TimeComparisonChartProps) {
   const t = useTranslations('comparison.timeComparison');
-  const locale = zhCN;
+  const currentLocale = useLocale();
+  const locale = currentLocale === 'zh-CN' ? zhCN : enUS;
 
   const defaultPrimaryLabel = primaryLabel || t('currentPeriod');
   const defaultComparisonLabel = comparisonLabel || t('comparisonPeriod');
