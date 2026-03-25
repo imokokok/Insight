@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { logger } from '@/lib/utils/logger';
 import { UMAClient } from '@/lib/oracles/uma';
 import { ValidatorData, DisputeEfficiencyStats } from '@/lib/oracles/uma/types';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { DashboardCard, DataFreshnessIndicator, RiskScoreCard } from '@/components/oracle/common';
 
 import { chartColors, getChartColor } from '@/lib/chartColors';

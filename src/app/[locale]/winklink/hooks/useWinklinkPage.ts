@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { WINkLinkClient } from '@/lib/oracles/winklink';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
-import { useWINkLinkAllData } from '@/hooks/useWINkLinkData';
+import { useWINkLinkAllData } from '@/hooks';
 import { WinklinkTabId } from '../types';
 
 export function useWinklinkPage() {

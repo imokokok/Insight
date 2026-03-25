@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, ReactNode } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleConfig } from '@/lib/config/oracles';
 import { PriceData, OracleProvider } from '@/types/oracle';
 import { UMANetworkStats } from '@/lib/oracles/uma/types';

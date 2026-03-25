@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ReporterStats, Reporter } from '@/lib/oracles/tellor';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Users, Trophy, TrendingUp, Activity } from 'lucide-react';
 

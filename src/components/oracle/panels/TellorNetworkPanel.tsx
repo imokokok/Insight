@@ -1,7 +1,7 @@
 'use client';
 
 import { TellorNetworkHealth } from '@/lib/oracles/tellor';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle';
 import { Blockchain } from '@/types/oracle';
 

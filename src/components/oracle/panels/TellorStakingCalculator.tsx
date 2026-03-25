@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle';
-import { useStakingCalculator } from '@/hooks/useTellorData';
+import { useStakingCalculator } from '@/hooks';
 
 export function TellorStakingCalculator() {
   const t = useTranslations();

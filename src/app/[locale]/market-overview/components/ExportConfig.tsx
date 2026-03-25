@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ExportConfig as ExportConfigType } from '../types';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Download, FileSpreadsheet, FileJson, FileCode, Check } from 'lucide-react';
 
 interface ExportConfigProps {

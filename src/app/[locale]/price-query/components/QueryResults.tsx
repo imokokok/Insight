@@ -5,7 +5,7 @@
  * @description 展示价格查询的结果，包括统计、图表和表格
  */
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { TrendingUp } from 'lucide-react';
 import { QueryResult, PriceData } from '../constants';
 import {
@@ -18,10 +18,10 @@ import {
   UnifiedExportSection,
   TimeComparisonSection,
 } from './index';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
-import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
-import { ProgressBar } from '@/components/ui/LoadingProgress';
-import { SegmentedControl } from '@/components/ui/selectors';
+import { ChartSkeleton } from '@/components/ui';
+import { EmptyStateEnhanced } from '@/components/ui';
+import { ProgressBar } from '@/components/ui';
+import { SegmentedControl } from '@/components/ui';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { TimeComparisonConfig as ExternalTimeComparisonConfig } from '@/components/comparison/types';
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { ValidatorData } from '@/lib/oracles/uma';
 import { formatNumber } from '@/lib/utils/format';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { StakingDistributionChart } from '../../charts/StakingDistributionChart';
 import { ValidatorComparison } from '../../charts/ValidatorComparison';
 import { MultiValidatorComparison } from '../../charts/MultiValidatorComparison';

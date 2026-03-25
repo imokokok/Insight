@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 
 interface DeviationDataPoint {

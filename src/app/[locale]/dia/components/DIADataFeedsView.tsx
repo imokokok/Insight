@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useDIACustomFeeds, useDIADataTransparency } from '@/hooks/useDIAData';
+import { useTranslations } from '@/i18n';
+import { useDIACustomFeeds, useDIADataTransparency } from '@/hooks';
 import { formatDistanceToNow } from 'date-fns';
 import { Activity, CheckCircle2, Database, Shield, TrendingUp, Clock } from 'lucide-react';
 

@@ -12,7 +12,7 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 

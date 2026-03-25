@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChartExportButton } from '../../forms/ChartExportButton';
 import { MoreOptionsDropdown } from '../../common/MoreOptionsDropdown';
 import { ChartExportData } from '@/utils/chartExport';

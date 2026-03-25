@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { UMAClient } from '@/lib/oracles/uma';
 import { DashboardCard } from '../../common/DashboardCard';
 import { StakingCalculator } from '../../common/StakingCalculator';

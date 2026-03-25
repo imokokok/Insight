@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { AlertTriangle, ArrowUpDown, CheckCircle2, XCircle } from 'lucide-react';
 import { BandProtocolValidatorsViewProps, SortConfig } from '../types';
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';

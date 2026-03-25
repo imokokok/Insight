@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChartExportButton } from '../../forms/ChartExportButton';
 import { ChartExportData } from '@/utils/chartExport';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';

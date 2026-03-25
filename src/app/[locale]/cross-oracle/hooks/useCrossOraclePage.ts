@@ -5,11 +5,11 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/types/oracle';
 import type { PriceData, SnapshotStats } from '@/types/oracle';
 import { useUser } from '@/stores/authStore';
-import { useFavorites } from '@/hooks/useFavorites';
+import { useFavorites } from '@/hooks';
 import { saveSnapshot } from '@/types/oracle';
 
 import { useOracleData } from './useOracleData';

@@ -1,4 +1,4 @@
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/types/oracle';
 import { PriceComparisonData, DeviationData, oracleNames, oracleColors } from './crossOracleConfig';
 import { TrendIndicator } from './TrendIndicator';

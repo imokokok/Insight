@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { MakerDAOIntegration, MakerDAOAsset } from '@/lib/oracles/chronicle';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Landmark, DollarSign, TrendingUp, Shield, Database } from 'lucide-react';

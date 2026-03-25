@@ -20,7 +20,7 @@ import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import {
   LatencyDataPoint,
   ThresholdHistoryEntry,

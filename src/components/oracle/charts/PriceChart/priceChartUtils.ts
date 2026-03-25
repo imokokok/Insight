@@ -1,5 +1,5 @@
 import { HistoricalPricePoint } from '@/lib/oracles/bandProtocol';
-import { IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
+import { IndicatorDataPoint } from '@/hooks';
 import { createLogger } from '@/lib/utils/logger';
 import {
   TimeRange,

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
 

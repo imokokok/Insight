@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { StakingData } from '@/lib/oracles/api3';
 import { AirnodeNetworkStats } from '@/lib/oracles/api3';
 import { DAPICoverage } from '@/lib/oracles/api3';
@@ -12,7 +12,7 @@ import {
   SecurityTimeline,
   MitigationMeasuresGrid,
 } from '@/components/oracle/common';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import type { RiskEvent, MitigationMeasure } from '@/types/risk';
 
 interface API3RiskAssessmentPanelProps {

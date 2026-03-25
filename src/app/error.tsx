@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 interface ErrorProps {
   error: Error & { digest?: string };

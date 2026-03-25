@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useAuthLoading } from '@/stores/authStore';
 import { FavoritesManager } from '@/components/favorites';
-import { FavoriteConfig } from '@/hooks/useFavorites';
+import { FavoriteConfig } from '@/hooks';
 import type { ConfigType } from '@/lib/supabase/database.types';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 export default function FavoritesPage() {
   const t = useTranslations();

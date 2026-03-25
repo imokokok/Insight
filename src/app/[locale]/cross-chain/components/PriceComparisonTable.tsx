@@ -1,8 +1,8 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Blockchain } from '@/lib/oracles';
-import { DataTablePro, ColumnDef, ConditionalFormattingRule } from '@/components/ui/DataTablePro';
+import { DataTablePro, ColumnDef, ConditionalFormattingRule } from '@/components/ui';
 import { useCrossChainData } from '../useCrossChainData';
 import { chainNames, chainColors, getDiffTextColor, calculateZScore, isOutlier } from '../utils';
 import { Sparkline } from './SmallComponents';

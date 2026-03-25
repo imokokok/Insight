@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChainlinkClient } from '@/lib/oracles/chainlink';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
-import { useChainlinkAllData } from '@/hooks/useChainlinkData';
+import { useChainlinkAllData } from '@/hooks';
 import { ChainlinkTabId } from '../types';
 
 export function useChainlinkPage() {

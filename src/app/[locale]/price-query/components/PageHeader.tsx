@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale } from '@/i18n';
 import { QueryHistoryItem } from '@/utils/queryHistory';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import { Heart, Download, RefreshCw } from 'lucide-react';

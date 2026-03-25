@@ -11,7 +11,7 @@ import {
   Loader2,
   CheckCircle,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 interface NotificationSettings {
   emailNotifications: boolean;

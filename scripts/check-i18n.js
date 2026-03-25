@@ -56,7 +56,7 @@ function loadTranslationsWithNamespace(messagesDir) {
         namespaceMap[key] = 'common.json';
       }
     } else if (namespace === 'components/export') {
-      messages.unifiedExport = content;
+      Object.assign(messages, content);
       for (const key of Object.keys(content)) {
         namespaceMap[key] = 'components/export.json';
       }

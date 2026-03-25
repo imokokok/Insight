@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { SparklineChart } from '@/components/oracle/charts/SparklineChart';
 import { ProgressRing } from '@/components/oracle/charts/ProgressRing';
 import { NodeData } from '../types';

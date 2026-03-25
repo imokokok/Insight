@@ -6,7 +6,7 @@ import { PriceDeviationRisk } from '../charts/PriceDeviationRisk';
 import { ConcentrationRisk } from '../charts/ConcentrationRisk';
 import { CrossChainRisk } from '../charts/CrossChainRisk';
 import { OracleProvider } from '@/types/oracle';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 interface RiskScore {
   overall: number;

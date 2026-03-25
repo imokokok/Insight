@@ -19,7 +19,7 @@ import {
   animationColors,
 } from '@/lib/config/colors';
 import { DashboardCard } from './DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 
 export interface GasFeeData {

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 // ============================================
 // 进度条组件

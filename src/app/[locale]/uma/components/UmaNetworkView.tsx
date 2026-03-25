@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { UmaNetworkViewProps } from '../types';
 import { NetworkHealthPanel } from '@/components/oracle';
 import { UMANetworkStats } from '@/lib/oracles/uma/types';

@@ -12,7 +12,7 @@ import {
   ReferenceLine,
   Cell,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { CDFChart } from './CDFChart';
 import { LatencyTrendMiniChart } from './LatencyTrendMiniChart';

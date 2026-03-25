@@ -6,7 +6,7 @@ import {
   LivePriceTickerSkeleton,
   BentoGridSkeleton,
   CTASkeleton,
-} from '@/components/ui/ChartSkeleton';
+} from '@/components/ui';
 import OracleMarketOverviewSkeleton from './home-components/OracleMarketOverviewSkeleton';
 import ArbitrageHeatmapSkeleton from './home-components/ArbitrageHeatmapSkeleton';
 

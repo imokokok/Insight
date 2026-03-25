@@ -14,9 +14,9 @@ import {
 import { BandProtocolClient, ValidatorInfo, HistoryPeriod } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
 import { formatNumber } from '@/lib/utils/format';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { ChartSkeleton } from '@/components/ui';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 
 type MetricType = 'uptime' | 'staked' | 'commission';

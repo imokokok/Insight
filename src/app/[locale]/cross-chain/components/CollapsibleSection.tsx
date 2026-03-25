@@ -2,7 +2,7 @@
 
 import { useState, ReactNode } from 'react';
 import { baseColors } from '@/lib/config/colors';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 interface CollapsibleSectionProps {
   title: string;

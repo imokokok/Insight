@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useUser } from '@/stores/authStore';
 

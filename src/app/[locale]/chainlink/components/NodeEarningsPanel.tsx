@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { SparklineChart } from '@/components/oracle/charts/SparklineChart';
 import { StatComparisonCard } from '@/components/oracle/charts/StatComparisonCard';
 import { NodeData } from '../types';

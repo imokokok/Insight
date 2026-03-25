@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { TimeComparisonChart, TimeRangeSelector } from '@/components/comparison';
 import { ComparisonChartData, TimeComparisonConfig } from '@/components/comparison/types';
 import { QueryResult } from '../constants';

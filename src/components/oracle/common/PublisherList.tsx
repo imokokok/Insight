@@ -3,8 +3,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Publisher, PublisherStatus } from '@/types/oracle';
-import { useTranslations } from 'next-intl';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { useTranslations } from '@/i18n';
+import { DropdownSelect } from '@/components/ui';
 
 interface AnomalyInfo {
   isPriceDeviationAnomaly: boolean;

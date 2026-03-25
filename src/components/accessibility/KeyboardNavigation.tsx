@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useCallback, useState, type ElementType } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 // ============================================
 // Skip Link Component

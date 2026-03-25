@@ -24,7 +24,7 @@ import {
 import type { TooltipContentProps, DotItemDotProps } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import {
   useSelectedTimeRange,
@@ -33,7 +33,7 @@ import {
   SelectedTimeRange,
 } from '@/stores/uiStore';
 import { createLogger } from '@/lib/utils/logger';
-import { SegmentedControl } from '@/components/ui/selectors';
+import { SegmentedControl } from '@/components/ui';
 
 
 const logger = createLogger('DataQualityTrend');

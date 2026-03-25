@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { FavoriteButton } from '@/components/favorites';
 import { OracleProvider } from '@/types/oracle';
 import { oracleNames } from '../constants';
-import { FavoriteConfig } from '@/hooks/useFavorites';
+import { FavoriteConfig } from '@/hooks';
 
 interface HeaderSectionProps {
   selectedSymbol: string;

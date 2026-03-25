@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { EnhancedStatCard } from '@/components/ui/EnhancedStatCard';
+import { useTranslations } from '@/i18n';
+import { EnhancedStatCard } from '@/components/ui';
 import { MarketStats as MarketStatsType } from '../types';
 
 interface MarketStatsProps {

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, useRef } from 'react';
 import Fuse from 'fuse.js';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 import { SearchResult, SearchGroup, UseGlobalSearchOptions, UseGlobalSearchReturn } from './types';
 import { getAllSearchResults, searchGroupLabels } from './data';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Server, TrendingUp, Globe, Award, Activity, Clock, Shield } from 'lucide-react';
 import { ChainlinkDataTable } from '@/app/[locale]/chainlink/components/ChainlinkDataTable';
 import { StakingRewardsCalculator } from '@/app/[locale]/chainlink/components/StakingRewardsCalculator';

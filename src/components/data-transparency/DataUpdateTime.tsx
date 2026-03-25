@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { useEffect, useState } from 'react';
 import { Clock, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { getTimeAgoDiff, formatTimeAgo } from '@/lib/utils/timestamp';

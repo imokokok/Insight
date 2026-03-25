@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Calculator, Wallet, TrendingUp, Award, Users, BarChart3, CircleDollarSign, Shield } from 'lucide-react';
 import { UmaStakingViewProps } from '../types';
 import { StakingPanel } from '@/components/oracle/panels';

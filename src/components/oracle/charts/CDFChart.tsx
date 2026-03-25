@@ -13,7 +13,7 @@ import {
   ReferenceDot,
   Area,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { calculateCDF, CDFResult } from '@/lib/utils/statistics';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 

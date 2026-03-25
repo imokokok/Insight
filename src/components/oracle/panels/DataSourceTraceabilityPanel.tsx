@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { DataSourceInfo } from '@/lib/oracles/api3';
 import { DashboardCard } from '../common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 
 interface DataSourceTraceabilityPanelProps {

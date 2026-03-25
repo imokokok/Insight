@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Home, BarChart3, Search, Bell, Settings, Menu, X, Heart, Activity } from 'lucide-react';
 
 import { Icon } from '@/components/ui';

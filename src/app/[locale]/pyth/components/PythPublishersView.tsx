@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { PythPublishersViewProps } from '../types';
 import { Search, ArrowUpDown, Activity, Award, TrendingUp, Shield } from 'lucide-react';
 

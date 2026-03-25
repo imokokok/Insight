@@ -1,15 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useCallback, useRef, memo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import { Blockchain } from '@/types/oracle';
 import { ChartExportData } from '@/utils/chartExport';
 import { AdaptiveDownsampleConfig } from '@/utils/downsampling';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { ChartSkeleton } from '@/components/ui';
 import { createLogger } from '@/lib/utils/logger';
 import { baseColors } from '@/lib/config/colors';
-import { useBrushZoom } from '@/hooks/useChartZoom';
+import { useBrushZoom } from '@/hooks';
 import { ConfidenceLevel } from './priceChartConfig';
 import { useChartSettings, useScreenSize } from './usePriceChartSettings';
 import { calculatePredictionIntervals } from './priceChartUtils';

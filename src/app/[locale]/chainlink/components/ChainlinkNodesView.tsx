@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChainlinkDataTable } from './ChainlinkDataTable';
 import { StakingRewardsCalculator } from './StakingRewardsCalculator';
 import { NodeData } from '../types';

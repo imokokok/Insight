@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { RedStoneProvidersViewProps, SortOption, FilterOption } from '../types';
 import { Database, Clock, CheckCircle2, Star, ArrowUpDown, TrendingUp, Filter } from 'lucide-react';
 

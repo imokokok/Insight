@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Camera, Upload, Trash2, Loader2, Check, X, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { supabase } from '@/lib/supabase/client';
 import { updateUserProfile } from '@/lib/supabase/auth';
 import { motion, AnimatePresence } from 'framer-motion';

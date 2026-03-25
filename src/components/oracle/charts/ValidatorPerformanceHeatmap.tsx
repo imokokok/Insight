@@ -8,7 +8,7 @@ import {
   ValidatorPerformanceHeatmapDataByDay,
   TimeRange,
 } from '@/lib/oracles/uma';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { createLogger } from '@/lib/utils/logger';
 import { semanticColors, baseColors } from '@/lib/config/colors';
 

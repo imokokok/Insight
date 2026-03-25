@@ -37,7 +37,7 @@ import {
 } from './utils';
 import { useCrossChainStore } from '@/stores/crossChainStore';
 import { createLogger } from '@/lib/utils/logger';
-import { useFavorites, FavoriteConfig } from '@/hooks/useFavorites';
+import { useFavorites, FavoriteConfig } from '@/hooks';
 import { useUser } from '@/stores/authStore';
 
 const logger = createLogger('useCrossChainData');

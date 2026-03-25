@@ -16,8 +16,8 @@ import {
   Area,
   ReferenceLine,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
-import { IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
+import { useTranslations } from '@/i18n';
+import { IndicatorDataPoint } from '@/hooks';
 import { AnomalyMarker } from '../../common/AnomalyMarker';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { ChartType } from './priceChartConfig';

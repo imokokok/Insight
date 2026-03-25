@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Link, Zap, Trophy, Activity, Server } from 'lucide-react';
 import { RedStoneCrossChainViewProps, ChainInfo } from '../types';
 

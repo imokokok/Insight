@@ -14,7 +14,7 @@ import {
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors } from '@/lib/config/colors';
 

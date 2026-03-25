@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';

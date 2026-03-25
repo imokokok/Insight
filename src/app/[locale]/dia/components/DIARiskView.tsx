@@ -1,8 +1,8 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { useDIANetworkStats, useDIADataSourceVerification } from '@/hooks/useDIAData';
-import { Skeleton } from '@/components/ui/Skeleton';
+import { useTranslations } from '@/i18n';
+import { useDIANetworkStats, useDIADataSourceVerification } from '@/hooks';
+import { Skeleton } from '@/components/ui';
 import {
   Shield,
   Activity,

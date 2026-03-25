@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ScuttlebuttData } from '@/lib/oracles/chronicle';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Shield, CheckCircle, AlertTriangle, Info, Clock } from 'lucide-react';

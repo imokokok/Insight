@@ -1,4 +1,4 @@
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { SolanaNetworkMetrics } from './types';
 
 export function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics }) {

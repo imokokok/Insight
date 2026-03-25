@@ -1,4 +1,4 @@
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { formatCompactNumber } from '@/lib/utils/format';
 import { BandProtocolMetrics } from './types';
 

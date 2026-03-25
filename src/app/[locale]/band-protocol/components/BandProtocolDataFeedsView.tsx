@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 
 interface DataFeed {

@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { logger } from '@/lib/utils/logger';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { SegmentedControl } from '@/components/ui/selectors';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { SegmentedControl } from '@/components/ui';
 import { DashboardCard, MetricCard } from '@/components/oracle/common/DashboardCard';
 import { Globe, Percent, Clock, MapPin, Shield, Users, Award } from 'lucide-react';
 

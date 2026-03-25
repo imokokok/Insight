@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 import { QualityScore, QualityStatus, getStatusConfig, getStatusFromScore } from './qualityUtils';
 

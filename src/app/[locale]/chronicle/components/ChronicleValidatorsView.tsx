@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChronicleValidatorsViewProps } from '../types';
 import { ChronicleDataTable } from './ChronicleDataTable';
 import { Activity, Shield, Award, Server, Globe, TrendingUp, Clock } from 'lucide-react';

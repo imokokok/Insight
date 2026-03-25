@@ -7,7 +7,7 @@
  */
 
 import { useState, useRef, useCallback } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale } from '@/i18n';
 import {
   Download,
   FileSpreadsheet,
@@ -54,7 +54,7 @@ export function UnifiedExport({
   onExportComplete,
   onExportError,
 }: UnifiedExportProps) {
-  const t = useTranslations('unifiedExport');
+  const t = useTranslations('export');
   const locale = useLocale();
   const isZh = locale === 'zh-CN';
 

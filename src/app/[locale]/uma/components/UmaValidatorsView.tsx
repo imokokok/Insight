@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { UmaValidatorsViewProps } from '../types';
 import { ValidatorAnalyticsPanel } from '@/components/oracle';
 import { Users, Clock, Shield, Award, TrendingUp, Building2, UserCircle2, UsersRound } from 'lucide-react';

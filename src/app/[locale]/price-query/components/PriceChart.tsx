@@ -6,7 +6,7 @@
  */
 
 import { useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import {
   LineChart,
   Line,
@@ -20,7 +20,7 @@ import {
 import { TrendingUp, Eye, EyeOff } from 'lucide-react';
 import { QueryResult } from '../constants';
 import { CustomTooltip } from './CustomTooltip';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { ChartSkeleton } from '@/components/ui';
 
 export interface ChartDataPoint {
   timestamp: number;

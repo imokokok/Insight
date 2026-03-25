@@ -25,7 +25,7 @@ export {
 
 export { usePriceData, useHistoricalPrices } from './useOracleData';
 export { useRefresh, useExport, useLocalStorage } from './useUtils';
-export type { ExportOptions, ExportFormat, DataType } from './useUtils';
+export type { ExportOptions, ExportFormat, DataType, ExportScope, Resolution } from './useUtils';
 export { useOraclePrices } from './useOraclePrices';
 export { usePriceHistory } from './usePriceHistory';
 export type {
@@ -84,6 +84,16 @@ export {
   useAPI3CrossOracle,
   useAPI3AllData,
 } from './useAPI3Data';
+
+// API3 WebSocket Hooks
+export {
+  useAPI3Price as useAPI3PriceRealtime,
+} from './useAPI3WebSocket';
+export type {
+  UseAPI3PriceOptions as UseAPI3PriceRealtimeOptions,
+  UseAPI3PriceReturn as UseAPI3PriceRealtimeReturn,
+  API3ConnectionStatus,
+} from './useAPI3WebSocket';
 
 // UMA Realtime Hooks
 export {
@@ -209,3 +219,40 @@ export {
   shortcutKeys,
 } from './useKeyboardShortcuts';
 export type { KeyboardShortcut, ShortcutConflict } from './useKeyboardShortcuts';
+
+// Chainlink Hooks
+export { useChainlinkAllData } from './useChainlinkData';
+
+// Chronicle Hooks
+export { useChronicleAllData } from './useChronicleData';
+
+// DIA Hooks
+export {
+  useDIADataTransparency,
+  useDIADataSourceVerification,
+  useDIANetworkStats,
+  useDIAStaking,
+  useDIANFTData,
+  useDIAStakingDetails,
+  useDIACustomFeeds,
+  useDIAEcosystem,
+  useDIAAllData,
+} from './useDIAData';
+
+// Pyth Hooks
+export { usePythAllData } from './usePythData';
+
+// RedStone Hooks
+export { useRedStoneAllData } from './useRedStoneData';
+
+// WINkLink Hooks
+export { useWINkLinkAllData } from './useWINkLinkData';
+
+// Alerts Hooks
+export { useBatchAlerts } from './useAlerts';
+
+// Tellor Hooks (additional)
+export { useStakingCalculator } from './useTellorData';
+
+// Realtime Hooks
+export { useRealtimeAlerts } from './useRealtimeAlerts';

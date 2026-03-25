@@ -1,6 +1,6 @@
 'use client';
 
-import { SparklineChart } from '@/components/ui/SparklineChart';
+import { SparklineChart } from '@/components/ui';
 import { getTrendIcon, getHealthColor, HistoryMinMax } from '../constants';
 
 interface SparklineData {

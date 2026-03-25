@@ -2,13 +2,13 @@
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Search, X, Command, ArrowUp, ArrowDown, CornerDownLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGlobalSearch } from './useGlobalSearch';
 import { useSearchKeyboardNavigation } from './useSearchKeyboardNavigation';
 import { SearchResult, SearchGroup } from './types';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useKeyboardShortcuts } from '@/hooks';
 
 interface GlobalSearchProps {
   isOpen: boolean;

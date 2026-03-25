@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { useTranslations } from '@/i18n';
+import { DropdownSelect } from '@/components/ui';
 import { AnomalyType, AnomalySeverity, AnomalyFilter } from './types';
 
 interface AlertFiltersProps {

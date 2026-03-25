@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChainEvent, EventType, BandProtocolClient, EVENT_TYPE_VALUES } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from './DashboardCard';
 import { createLogger } from '@/lib/utils/logger';

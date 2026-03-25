@@ -13,10 +13,10 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { QueryResult } from '../constants';
 import { chartColors, semanticColors } from '@/lib/config/colors';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { DropdownSelect } from '@/components/ui';
 
 interface DataQualityMetrics {
   oracle: string;

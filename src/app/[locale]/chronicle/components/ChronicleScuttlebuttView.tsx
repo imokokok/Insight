@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChronicleScuttlebuttViewProps } from '../types';
 import { ChronicleDataTable } from './ChronicleDataTable';
 import { Shield, CheckCircle, Clock, AlertTriangle, Info } from 'lucide-react';

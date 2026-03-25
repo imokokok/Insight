@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 export interface DataQualityScoreCardProps {
   completeness?: number | { successCount: number; totalCount: number };

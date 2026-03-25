@@ -2,10 +2,10 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { AlertEvent } from '@/lib/supabase/database.types';
-import { useAcknowledgeAlert } from '@/hooks/useAlerts';
+import { useAcknowledgeAlert } from '@/hooks';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { useTranslations } from 'next-intl';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { useTranslations } from '@/i18n';
+import { DropdownSelect } from '@/components/ui';
 
 interface AlertHistoryProps {
   events: AlertEvent[];

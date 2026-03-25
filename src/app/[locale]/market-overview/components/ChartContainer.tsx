@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { ResponsiveContainer } from 'recharts';
 import {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChainlinkDataTable } from '../../chainlink/components/ChainlinkDataTable';
 import { DapiFeed, API3DapiViewProps } from '../types';
 import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';

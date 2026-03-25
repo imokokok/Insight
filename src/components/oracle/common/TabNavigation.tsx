@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useMemo, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleTab } from '@/lib/config/oracles';
 
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';

@@ -13,7 +13,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 
 interface BollingerDataPoint {

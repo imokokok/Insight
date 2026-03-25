@@ -6,7 +6,7 @@ import { PublisherList } from '../common/PublisherList';
 import { PublisherReliabilityScore } from '../common/PublisherReliabilityScore';
 import { PublisherContributionPanel } from './PublisherContributionPanel';
 import { DashboardCard } from '../common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 interface AnomalyInfo {
   isPriceDeviationAnomaly: boolean;

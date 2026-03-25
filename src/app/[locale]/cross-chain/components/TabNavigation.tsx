@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { baseColors } from '@/lib/config/colors';
 
 export type TabId = 'overview' | 'correlation' | 'advanced' | 'charts';

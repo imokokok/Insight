@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { UmaDisputesViewProps } from '../types';
 import { DisputeResolutionPanel } from '@/components/oracle';
 import { Activity, CheckCircle2, AlertCircle, Scale, TrendingUp, Clock, Shield } from 'lucide-react';

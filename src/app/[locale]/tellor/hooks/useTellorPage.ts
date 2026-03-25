@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { TellorClient } from '@/lib/oracles/tellor';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
-import { useTellorAllData } from '@/hooks/useTellorData';
+import { useTellorAllData } from '@/hooks';
 import { TellorTabId } from '../types';
 
 export function useTellorPage() {

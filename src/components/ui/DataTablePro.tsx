@@ -9,7 +9,7 @@ import React, {
   type ReactNode,
   type CSSProperties,
 } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import {
   ArrowUpDown,
   ArrowUp,

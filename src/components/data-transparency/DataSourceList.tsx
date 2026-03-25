@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import { DataSourceIndicator, DataSourceInfo, CredibilityLevel } from './DataSourceIndicator';
 import { DataUpdateTime } from './DataUpdateTime';

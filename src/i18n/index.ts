@@ -8,5 +8,11 @@ export {
 } from './config';
 export type { Messages, TranslateFunction, I18nContextType, LoadedMessages } from './types';
 
-// 重新导出 provider 中的 hook
-export { useLocale, useI18n, I18nProvider } from '@/lib/i18n/provider';
+// 重新导出 next-intl 的 hooks
+export { useTranslations, useLocale } from 'next-intl';
+
+// 重新导出 provider 中的自定义 hooks 和工具
+export {
+  useSetLocale,
+  getPreferredLocale,
+} from '@/lib/i18n/provider';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DashboardCard, DataFreshnessIndicator } from '@/components/oracle/common';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 import {
@@ -25,7 +25,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
 
 

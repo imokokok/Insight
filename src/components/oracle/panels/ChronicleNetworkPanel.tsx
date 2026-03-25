@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChronicleNetworkStats, ValidatorNetwork } from '@/lib/oracles/chronicle';
 import { DashboardCard } from '../common/DashboardCard';
 import {

@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import GaugeChart from '@/components/GaugeChart';
-import { useTranslations } from 'next-intl';
-import { AccuracyStats } from '@/hooks/usePriceHistory';
+import { useTranslations } from '@/i18n';
+import { AccuracyStats } from '@/hooks';
 import { semanticColors } from '@/lib/config/colors';
 
 interface PriceAccuracyStatsProps {

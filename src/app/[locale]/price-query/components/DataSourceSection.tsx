@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DataSourceList, DataSourceGroup } from '@/components/data-transparency';
 import { QueryResult } from '../constants';
 import { useMemo } from 'react';

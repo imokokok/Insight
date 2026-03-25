@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { useRouter } from 'next/navigation';
 import { useCrossChainData } from './useCrossChainData';
 import { CrossChainFilters } from './components/CrossChainFilters';
@@ -15,17 +15,17 @@ import { InteractivePriceChart } from './components/InteractivePriceChart';
 import { VolatilitySurface } from './components/VolatilitySurface';
 import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './components/SmallComponents';
 import { CompactStatsGrid } from './components/CompactStatsGrid';
-import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
-import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyStateEnhanced } from '@/components/ui';
+import { ErrorDisplay } from '@/components/ui';
 import {
   ProgressBar as LoadingProgressBar,
   DataLoadingProgress,
-} from '@/components/ui/LoadingProgress';
+} from '@/components/ui';
 import { TabNavigation, TabId } from './components/TabNavigation';
 import { CollapsibleSection } from './components/CollapsibleSection';
 import { DataSourceSection } from './components/DataSourceSection';
 import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';
-import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
+import { LiveStatusBar } from '@/components/ui';
 import {
   BarChart,
   Bar,
@@ -50,9 +50,9 @@ import {
 import { ChainStats, RefreshInterval } from './constants';
 import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStore';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
 import { FavoriteButton } from '@/components/favorites';
-import type { FavoriteConfig } from '@/hooks/useFavorites';
+import type { FavoriteConfig } from '@/hooks';
 import { Network, Download, RefreshCw, Eye } from 'lucide-react';
 
 export default function CrossChainPage() {

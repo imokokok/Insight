@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { useMarketOverviewData } from './useMarketOverviewData';
 import { ChartType, ViewType, TVSTrendData } from './types';

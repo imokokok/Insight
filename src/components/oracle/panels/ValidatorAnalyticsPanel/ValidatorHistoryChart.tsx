@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ValidatorHistoryData } from '@/lib/oracles/uma';
 import { chartColors } from '@/lib/config/colors';
 import { TimeRange, TIME_RANGE_OPTIONS } from './config';

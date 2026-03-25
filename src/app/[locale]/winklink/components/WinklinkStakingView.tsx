@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { WinklinkDataTable } from './WinklinkDataTable';
 import { StakingRewardsCalculator } from './StakingRewardsCalculator';
 import { WinklinkStakingViewProps, SortConfig, StakingNode } from '../types';

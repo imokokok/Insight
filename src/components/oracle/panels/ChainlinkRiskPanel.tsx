@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DashboardCard, DataFreshnessIndicator, RiskScoreCard } from '@/components/oracle/common';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 
 import { chartColors, getChartColor } from '@/lib/chartColors';

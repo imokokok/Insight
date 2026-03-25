@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Publisher, PublisherStats } from '@/types/oracle';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface PublisherReliabilityScoreProps {

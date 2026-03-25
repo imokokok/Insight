@@ -7,7 +7,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { StatItem } from './StatItem';
 import { calculateCurrentVolatility } from '../utils/technicalIndicators';
 

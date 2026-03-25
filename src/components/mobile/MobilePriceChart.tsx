@@ -12,8 +12,8 @@ import {
   ResponsiveContainer,
   Area,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { useTranslations } from '@/i18n';
+import { ChartSkeleton } from '@/components/ui';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';

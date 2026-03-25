@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { PriceChart } from '@/components/oracle';
 import { ChronicleMarketViewProps } from '../types';
 import { Server, Zap, Clock, Shield, TrendingUp, TrendingDown } from 'lucide-react';

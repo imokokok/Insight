@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
 import dynamic from 'next/dynamic';
 import type { SettingsTab } from '@/components/settings';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 
 // 动态导入设置组件
 const SettingsLayout = dynamic(

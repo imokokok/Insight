@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 
 interface CustomTooltipProps {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { QueryResult } from '../constants';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { Icons } from './Icons';

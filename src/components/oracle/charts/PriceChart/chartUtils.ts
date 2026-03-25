@@ -1,4 +1,4 @@
-import { IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
+import { IndicatorDataPoint } from '@/hooks';
 import { AnomalyPoint } from './useChartState';
 
 export function calculatePriceRange(

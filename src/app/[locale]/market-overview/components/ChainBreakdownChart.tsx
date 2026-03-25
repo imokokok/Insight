@@ -15,7 +15,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { Globe } from 'lucide-react';
 import { chartColors } from '@/lib/config/colors';

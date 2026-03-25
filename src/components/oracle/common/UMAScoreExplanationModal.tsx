@@ -14,7 +14,7 @@ import {
   Area,
 } from 'recharts';
 import type { TooltipPayloadEntry } from 'recharts';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 import { UMAClient } from '@/lib/oracles/uma';
 import { createLogger } from '@/lib/utils/logger';

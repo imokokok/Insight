@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { API3NetworkViewProps } from '../types';
 import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 

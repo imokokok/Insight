@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DataSourceList, DataSourceGroup } from '@/components/data-transparency';
 import { PriceData } from '@/types/oracle';
 import { useMemo } from 'react';

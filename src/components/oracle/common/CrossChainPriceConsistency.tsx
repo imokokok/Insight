@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
 import { semanticColors, baseColors, chartColors } from '@/lib/config/colors';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 export interface ChainPriceData {
   chain: string;

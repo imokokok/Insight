@@ -41,7 +41,7 @@ export const messageFilesConfig: MessageFileConfig[] = [
   { name: 'winklink', directory: 'oracles' },
   { name: 'charts', directory: 'components' },
   { name: 'alerts', directory: 'components' },
-  { name: 'export', directory: 'components', namespace: 'unifiedExport' },
+  { name: 'export', directory: 'components' },
   { name: 'favorites', directory: 'components' },
   { name: 'search', directory: 'components' },
   { name: 'settings', directory: 'features' },

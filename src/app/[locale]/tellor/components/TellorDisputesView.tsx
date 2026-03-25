@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { TellorDisputesViewProps } from '../types';
 import { AlertTriangle, CheckCircle2, Clock, TrendingDown, TrendingUp, Scale } from 'lucide-react';
 

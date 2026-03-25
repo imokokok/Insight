@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DIAClient } from '@/lib/oracles/dia';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
-import { useDIAAllData } from '@/hooks/useDIAData';
+import { useDIAAllData } from '@/hooks';
 import { DIATabId } from '../types';
 
 export function useDIAPage() {

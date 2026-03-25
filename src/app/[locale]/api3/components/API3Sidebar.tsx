@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { API3SidebarProps, API3TabId } from '../types';
 
 interface NavItem {

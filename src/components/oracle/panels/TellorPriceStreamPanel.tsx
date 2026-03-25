@@ -1,7 +1,7 @@
 'use client';
 
 import { PriceStreamPoint } from '@/lib/oracles/tellor';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { useEffect, useRef } from 'react';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { TrendingUp, TrendingDown, Activity, Clock } from 'lucide-react';

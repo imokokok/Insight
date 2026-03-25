@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { cn } from '@/lib/utils';
 import {

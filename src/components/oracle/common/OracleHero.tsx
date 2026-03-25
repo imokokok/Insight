@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleConfig } from '@/lib/config/oracles';
 import { PriceData } from '@/types/oracle';
-import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
+import { LiveStatusBar } from '@/components/ui';
 import {
   TrendingUp,
   TrendingDown,

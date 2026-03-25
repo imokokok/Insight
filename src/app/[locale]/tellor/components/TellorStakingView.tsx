@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { TellorStakingViewProps } from '../types';
 import { TellorStakingCalculator } from '@/components/oracle/panels/TellorStakingCalculator';
 import { TrendingUp, TrendingDown, Wallet, Users, PiggyBank, Award } from 'lucide-react';

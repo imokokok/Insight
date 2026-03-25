@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from '@/i18n';
 import { Clock, PieChart as PieChartIcon, TrendingUp, TrendingDown, Activity, Link2 } from 'lucide-react';
 import Link from 'next/link';
 import { OracleMarketData } from '../types';

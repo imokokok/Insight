@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { AlertCircle, RefreshCw, ChevronDown, ChevronUp, Bug, FileText, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

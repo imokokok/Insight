@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { AlertEvent } from '@/lib/supabase/database.types';
-import { useAcknowledgeAlert } from '@/hooks/useAlerts';
-import { useTranslations } from 'next-intl';
+import { useAcknowledgeAlert } from '@/hooks';
+import { useTranslations } from '@/i18n';
 
 interface AlertNotificationProps {
   event: AlertEvent;

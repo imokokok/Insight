@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/types/oracle';
 import type { PriceData, SnapshotStats } from '@/types/oracle';
 import { saveSnapshot } from '@/types/oracle';
@@ -19,7 +19,7 @@ import {
   updateHistoryMinMax,
   symbols,
 } from './constants';
-import { useFavorites, FavoriteConfig } from '@/hooks/useFavorites';
+import { useFavorites, FavoriteConfig } from '@/hooks';
 import { useUser } from '@/stores/authStore';
 import { createLogger } from '@/lib/utils/logger';
 import { getLineStrokeDasharray } from './chartConfig';

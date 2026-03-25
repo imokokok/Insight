@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
+import { IndicatorDataPoint } from '@/hooks';
 import { TimeRange } from '../../common/TabNavigation';
 import { DataGranularity, ComparisonPeriod } from './priceChartConfig';
 

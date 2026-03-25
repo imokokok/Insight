@@ -7,7 +7,7 @@
  */
 
 import { useRef } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale } from '@/i18n';
 import { UnifiedExport, ExportField } from '@/components/export';
 import { OracleMarketData, AssetData } from '../types';
 

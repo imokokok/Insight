@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
-import { CompactStatCard } from '@/components/ui/CompactStatCard';
+import { useTranslations } from '@/i18n';
+import { CompactStatCard } from '@/components/ui';
 import { ChainStats } from '../constants';
 
 interface CompactStatsGridProps {

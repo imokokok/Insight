@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DisputeStats, Dispute } from '@/lib/oracles/tellor';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Gavel, Scale, Clock, TrendingUp } from 'lucide-react';

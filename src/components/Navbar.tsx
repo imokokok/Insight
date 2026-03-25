@@ -5,13 +5,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, User, LogOut, Heart, Bell, Settings } from 'lucide-react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale } from '@/i18n';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 import LanguageSwitcher from './LanguageSwitcher';
 import { DropdownMenu, MobileDrawer, navigationConfig } from './navigation';
 import { NavGroup } from './navigation/types';
 import { GlobalSearch, SearchButton } from './search';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useKeyboardShortcuts } from '@/hooks';
 import { Button } from '@/components/ui';
 
 export default function Navbar() {
@@ -65,8 +65,8 @@ export default function Navbar() {
       <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 transition-all duration-300">
         <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex justify-between h-14">
-            {/* Left: Logo + Navigation */}
-            <div className="flex items-center gap-6">
+            {/* Left: Logo */}
+            <div className="flex items-center">
               <Link href="/" className="flex-shrink-0 flex items-center gap-2 group">
                 <Image
                   src="/logos/owl-logo.svg"
@@ -80,44 +80,44 @@ export default function Navbar() {
                   Insight
                 </div>
               </Link>
+            </div>
 
-              {/* Desktop Navigation */}
-              <div className="hidden lg:flex items-center space-x-0.5">
-                {navigationConfig.map((navItem) => {
-                  if ('items' in navItem) {
-                    const group = navItem as NavGroup;
-                    const isGroupActive = group.items.some((item) => isActive(item.href));
-
-                    return (
-                      <DropdownMenu
-                        key={group.id}
-                        group={group}
-                        isActive={isGroupActive}
-                        currentPath={currentPath}
-                      />
-                    );
-                  }
-
-                  const item = navItem;
-                  const active = isActive(item.href);
-                  const ItemIcon = item.icon;
+            {/* Center: Desktop Navigation */}
+            <div className="hidden lg:flex items-center justify-center space-x-0.5">
+              {navigationConfig.map((navItem) => {
+                if ('items' in navItem) {
+                  const group = navItem as NavGroup;
+                  const isGroupActive = group.items.some((item) => isActive(item.href));
 
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-200 relative rounded-md ${
-                        active
-                          ? 'text-primary-600 bg-primary-50'
-                          : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      {ItemIcon && <ItemIcon className="w-4 h-4" />}
-                      <span>{t(item.label)}</span>
-                    </Link>
+                    <DropdownMenu
+                      key={group.id}
+                      group={group}
+                      isActive={isGroupActive}
+                      currentPath={currentPath}
+                    />
                   );
-                })}
-              </div>
+                }
+
+                const item = navItem;
+                const active = isActive(item.href);
+                const ItemIcon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-200 relative rounded-md ${
+                      active
+                        ? 'text-primary-600 bg-primary-50'
+                        : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {ItemIcon && <ItemIcon className="w-4 h-4" />}
+                    <span>{t(item.label)}</span>
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Right: Search + Language + User Actions */}

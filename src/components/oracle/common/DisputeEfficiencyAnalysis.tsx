@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { UMAClient, DisputeEfficiencyStats } from '@/lib/oracles/uma';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors } from '@/lib/config/colors';
 

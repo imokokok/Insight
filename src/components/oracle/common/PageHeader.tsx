@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { TimeRange } from './TabNavigation';
 import { ExportModal } from '../forms/ExportModal';
 import { ExportOptions } from '@/hooks';
