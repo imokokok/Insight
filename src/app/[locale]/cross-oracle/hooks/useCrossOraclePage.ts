@@ -36,7 +36,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
   const {
     initialSymbol = 'BTC/USD',
-    initialOracles = [OracleProvider.CHAINLINK, OracleProvider.BAND_PROTOCOL],
+    initialOracles = [OracleProvider.CHAINLINK, OracleProvider.PYTH],
   } = options;
 
   // ==========================================================================
