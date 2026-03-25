@@ -53,7 +53,10 @@ import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
 import { FavoriteButton } from '@/components/favorites';
 import type { FavoriteConfig } from '@/hooks';
-import { Network, Download, RefreshCw, Eye } from 'lucide-react';
+import { Network } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 export default function CrossChainPage() {
   const t = useTranslations();

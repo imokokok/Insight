@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { useTranslations } from '@/i18n';
-import { Search, Command } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Command } from 'lucide-react';
 
 interface SearchButtonProps {
   onClick: () => void;

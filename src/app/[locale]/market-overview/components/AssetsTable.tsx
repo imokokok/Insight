@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo, useMemo } from 'react';
 import { useTranslations } from '@/i18n';
 import { TrendingUp } from 'lucide-react';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
@@ -11,11 +12,29 @@ interface AssetsTableProps {
   assets: AssetData[];
 }
 
-export default function AssetsTable({ assets }: AssetsTableProps) {
+// Custom comparison function for AssetsTable props
+function arePropsEqual(prevProps: AssetsTableProps, nextProps: AssetsTableProps): boolean {
+  // Compare arrays by length
+  if (prevProps.assets.length !== nextProps.assets.length) return false;
+
+  // Compare each asset by reference (shallow comparison)
+  for (let i = 0; i < prevProps.assets.length; i++) {
+    if (prevProps.assets[i] !== nextProps.assets[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function AssetsTableComponent({ assets }: AssetsTableProps) {
   const t = useTranslations('marketOverview');
 
   // Convert AssetData to Record<string, unknown> compatible format
-  const tableData = assets.map(asset => ({ ...asset } as Record<string, unknown>));
+  const tableData = useMemo(() =>
+    assets.map(asset => ({ ...asset } as Record<string, unknown>)),
+    [assets]
+  );
 
   const columns: ColumnDef<Record<string, unknown>>[] = [
     {
@@ -169,3 +188,7 @@ export default function AssetsTable({ assets }: AssetsTableProps) {
     </div>
   );
 }
+
+// Export memoized component
+const AssetsTable = memo(AssetsTableComponent, arePropsEqual);
+export default AssetsTable;

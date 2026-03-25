@@ -2,7 +2,10 @@
 
 import { useTranslations } from '@/i18n';
 import { useEffect, useState } from 'react';
-import { Clock, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { getTimeAgoDiff, formatTimeAgo } from '@/lib/utils/timestamp';
 
 export interface DataUpdateTimeProps {

@@ -14,12 +14,10 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import {
-  TrendingUp,
-  Layers,
-  Globe,
-  Zap,
-} from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Layers } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { API3EcosystemViewProps } from '../types';
 

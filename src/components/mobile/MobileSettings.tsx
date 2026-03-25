@@ -4,21 +4,19 @@ import { useState, useCallback } from 'react';
 import { useTranslations } from '@/i18n';
 import { Icon } from '@/components/ui';
 
-import {
-  Moon,
-  Sun,
-  Bell,
-  BellOff,
-  Globe,
-  Smartphone,
-  Wifi,
-  WifiOff,
-  Gauge,
-  Eye,
-  EyeOff,
-  ChevronRight,
-  Check,
-} from 'lucide-react';
+import { Moon } from 'lucide-react';
+import { Sun } from 'lucide-react';
+import { Bell } from 'lucide-react';
+import { BellOff } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
+import { Wifi } from 'lucide-react';
+import { WifiOff } from 'lucide-react';
+import { Gauge } from 'lucide-react';
+import { Eye } from 'lucide-react';
+import { EyeOff } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface MobileSettingsProps {
   className?: string;

@@ -4,7 +4,10 @@ import { useTranslations } from '@/i18n';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import { DataSourceIndicator, DataSourceInfo, CredibilityLevel } from './DataSourceIndicator';
 import { DataUpdateTime } from './DataUpdateTime';
-import { ChevronDown, ChevronUp, Database, Layers } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
+import { Database } from 'lucide-react';
+import { Layers } from 'lucide-react';
 import { useState } from 'react';
 
 export interface DataSourceGroup {

@@ -5,7 +5,10 @@ import { useDIANFTData } from '@/hooks';
 import { Blockchain } from '@/types/oracle';
 import { LoadingState } from '@/components/oracle/common/LoadingState';
 import { ErrorFallback } from '@/components/oracle/common/ErrorFallback';
-import { Layers, TrendingUp, DollarSign, Link2 } from 'lucide-react';
+import { Layers } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
+import { Link2 } from 'lucide-react';
 
 export function DIANFTView() {
   const t = useTranslations('dia');

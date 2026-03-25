@@ -3,7 +3,13 @@
 import { useTranslations } from '@/i18n';
 import { PriceChart } from '@/components/oracle';
 import { BandProtocolMarketViewProps } from '../types';
-import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Zap } from 'lucide-react';
+import { Server } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 export function BandProtocolMarketView({
   config,

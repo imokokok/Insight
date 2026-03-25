@@ -3,7 +3,11 @@
 import { useTranslations } from '@/i18n';
 import { MakerDAOIntegration, MakerDAOAsset } from '@/lib/oracles/chronicle';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { Landmark, DollarSign, TrendingUp, Shield, Database } from 'lucide-react';
+import { Landmark } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { Database } from 'lucide-react';
 
 interface ChronicleMakerDAOIntegrationPanelProps {
   data: MakerDAOIntegration;

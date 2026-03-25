@@ -3,7 +3,10 @@
 import { useTranslations } from '@/i18n';
 import { DisputeStats, Dispute } from '@/lib/oracles/tellor';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { Gavel, Scale, Clock, TrendingUp } from 'lucide-react';
+import { Gavel } from 'lucide-react';
+import { Scale } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 interface TellorDisputesPanelProps {
   data: DisputeStats;

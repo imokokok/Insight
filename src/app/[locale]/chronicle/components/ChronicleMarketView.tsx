@@ -3,7 +3,12 @@
 import { useTranslations } from '@/i18n';
 import { PriceChart } from '@/components/oracle';
 import { ChronicleMarketViewProps } from '../types';
-import { Server, Zap, Clock, Shield, TrendingUp, TrendingDown } from 'lucide-react';
+import { Server } from 'lucide-react';
+import { Zap } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
 
 export function ChronicleMarketView({
   config,

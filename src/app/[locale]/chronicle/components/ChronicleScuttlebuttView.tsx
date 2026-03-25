@@ -3,7 +3,11 @@
 import { useTranslations } from '@/i18n';
 import { ChronicleScuttlebuttViewProps } from '../types';
 import { ChronicleDataTable } from './ChronicleDataTable';
-import { Shield, CheckCircle, Clock, AlertTriangle, Info } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 interface HistoricalEvent {
   id: string;

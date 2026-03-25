@@ -1,9 +1,14 @@
 'use client';
 
-import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from '@/i18n';
-import { Search, X, Command, ArrowUp, ArrowDown, CornerDownLeft } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { X } from 'lucide-react';
+import { Command } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
+import { CornerDownLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGlobalSearch } from './useGlobalSearch';
 import { useSearchKeyboardNavigation } from './useSearchKeyboardNavigation';
@@ -13,6 +18,15 @@ import { useKeyboardShortcuts, useDebounce } from '@/hooks';
 export interface GlobalSearchProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+// Custom comparison function for GlobalSearch props
+function arePropsEqual(prevProps: GlobalSearchProps, nextProps: GlobalSearchProps): boolean {
+  // Compare primitive props
+  if (prevProps.isOpen !== nextProps.isOpen) return false;
+  if (prevProps.onClose !== nextProps.onClose) return false;
+
+  return true;
 }
 
 interface SearchResultItemProps {
@@ -207,7 +221,7 @@ function InitialState() {
 }
 
 // Main GlobalSearch component
-export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
+function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations();
@@ -539,4 +553,6 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   );
 }
 
+// Export memoized component
+export const GlobalSearch = memo(GlobalSearchComponent, arePropsEqual);
 export default GlobalSearch;

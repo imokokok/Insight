@@ -20,18 +20,16 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { TooltipProps, CustomLabelProps } from '@/types/ui/recharts';
-import {
-  PieChart as PieChartIcon,
-  TrendingUp,
-  BarChart3,
-  Table as TableIcon,
-  Activity,
-  DollarSign,
-  Layers,
-  Globe,
-  ChevronRight,
-  Info,
-} from 'lucide-react';
+import { PieChart as PieChartIcon } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
+import { Table as TableIcon } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
+import { Layers } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { ChartSkeleton } from '@/components/ui';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 

@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { useTranslations } from '@/i18n';
-import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
 import { useCrossChainData } from '../useCrossChainData';

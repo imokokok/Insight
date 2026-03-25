@@ -3,7 +3,13 @@
 import { useTranslations } from '@/i18n';
 import { ValidatorNetwork, ChronicleValidator } from '@/lib/oracles/chronicle';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { Users, Activity, Award, Coins, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Award } from 'lucide-react';
+import { Coins } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { XCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 interface ChronicleValidatorPanelProps {
   data: ValidatorNetwork;

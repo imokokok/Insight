@@ -7,7 +7,10 @@
 
 import { useState } from 'react';
 import { useTranslations } from '@/i18n';
-import { ChevronDown, ChevronUp, Search, RefreshCw } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { OracleProvider, Blockchain, BLOCKCHAIN_VALUES } from '@/lib/oracles';
 import { symbols, oracleColors, chainColors, TIME_RANGES, oracleI18nKeys } from '../constants';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';

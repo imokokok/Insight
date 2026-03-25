@@ -1,7 +1,15 @@
 'use client';
 
 import { useMemo } from 'react';
-import { TrendingUp, TrendingDown, Minus, Clock, Activity, Zap, Shield, Users, AlertTriangle } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
+import { Minus } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Zap } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { OracleProvider } from '@/types/oracle';
 import { PriceData } from '@/types/oracle/price';
 import { SparklineChart } from '@/components/ui';

@@ -1,11 +1,11 @@
 export { PriceChart } from './PriceChart';
+export type { DynamicPriceChartProps } from './PriceChart/DynamicPriceChart';
 export { PriceVolatilityChart } from './PriceVolatilityChart';
 export type {
   PriceVolatilityChartProps,
   VolatilityResult,
   VolatilityTrendPoint,
 } from './PriceVolatilityChart';
-export { DynamicPriceChart } from './DynamicPriceChart';
 export { MovingAverageChart } from './MovingAverageChart';
 export { AccuracyTrendChart } from './AccuracyTrendChart';
 export { CrossChainTrendChart } from './CrossChainTrendChart';
@@ -63,6 +63,51 @@ export type { MultiValidatorComparisonProps } from './MultiValidatorComparison';
 export { CrossOracleComparison } from './CrossOracleComparison';
 export { PriceStream } from './PriceStream';
 export { KPIDashboard } from './KPIDashboard';
+
+// Dynamic Chart Components - Code Splitting for Heavy Components
+export {
+  // Core dynamic chart components
+  DynamicPriceChart,
+  DynamicPriceVolatilityChart,
+  DynamicMovingAverageChart,
+  DynamicCrossChainTrendChart,
+  DynamicGasFeeTrendChart,
+  DynamicLatencyTrendChart,
+  DynamicRequestTrendChart,
+  DynamicConfidenceIntervalChart,
+  DynamicCDFChart,
+  DynamicStakingDistributionChart,
+  DynamicPriceDeviationHistoryChart,
+  DynamicValidatorHistoryChart,
+  DynamicDataSourceTrend,
+  DynamicDataQualityTrend,
+  DynamicPriceDistributionBoxPlot,
+  DynamicPriceDeviationHeatmap,
+  DynamicPriceCorrelationMatrix,
+  DynamicUpdateFrequencyHeatmap,
+  DynamicValidatorPerformanceHeatmap,
+  DynamicLatencyDistributionHistogram,
+  DynamicValidatorGeographicMap,
+  DynamicCrossChainPriceComparison,
+  DynamicChainCoverageHeatmap,
+  DynamicConcentrationRisk,
+  DynamicCrossChainRisk,
+  DynamicPriceDeviationRisk,
+  DynamicCorrelationAnalysis,
+  DynamicChainComparison,
+  DynamicValidatorComparison,
+  DynamicMultiValidatorComparison,
+  DynamicCrossOracleComparison,
+  DynamicInteractivePriceChart,
+  DynamicKPIDashboard,
+  DynamicLatencyPrediction,
+  DynamicLatencyHistogram,
+  DynamicPriceStream,
+  // Preload utilities
+  preloadChart,
+  preloadCharts,
+} from './DynamicChartComponents';
+export type { DynamicChartComponent } from './DynamicChartComponents';
 
 // Chart Interaction Components
 export { ChartGuide, useChartGuide } from './ChartGuide';

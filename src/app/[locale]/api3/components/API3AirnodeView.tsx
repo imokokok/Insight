@@ -1,7 +1,13 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { Server, TrendingUp, Globe, Award, Activity, Clock, Shield } from 'lucide-react';
+import { Server } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { Award } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { ChainlinkDataTable } from '@/app/[locale]/chainlink/components/ChainlinkDataTable';
 import { StakingRewardsCalculator } from '@/app/[locale]/chainlink/components/StakingRewardsCalculator';
 import { API3AirnodeViewProps } from '../types';

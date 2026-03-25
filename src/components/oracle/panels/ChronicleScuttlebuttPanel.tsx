@@ -3,7 +3,11 @@
 import { useTranslations } from '@/i18n';
 import { ScuttlebuttData } from '@/lib/oracles/chronicle';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { Shield, CheckCircle, AlertTriangle, Info, Clock } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { Info } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface ChronicleScuttlebuttPanelProps {
   data: ScuttlebuttData;

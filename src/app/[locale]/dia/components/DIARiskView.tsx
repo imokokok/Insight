@@ -3,16 +3,14 @@
 import { useTranslations } from '@/i18n';
 import { useDIANetworkStats, useDIADataSourceVerification } from '@/hooks';
 import { Skeleton } from '@/components/ui';
-import {
-  Shield,
-  Activity,
-  Database,
-  Users,
-  CheckCircle,
-  AlertTriangle,
-  AlertCircle,
-  TrendingUp,
-} from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Database } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 export function DIARiskView() {
   const t = useTranslations('dia');

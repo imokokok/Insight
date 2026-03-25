@@ -1,23 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Search,
-  Database,
-  AlertCircle,
-  Inbox,
-  FolderOpen,
-  Filter,
-  WifiOff,
-  FileQuestion,
-  Sparkles,
-  ArrowRight,
-  Play,
-  Lightbulb,
-  RefreshCw,
-  Plus,
-  ExternalLink,
-} from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Database } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { Inbox } from 'lucide-react';
+import { FolderOpen } from 'lucide-react';
+import { Filter } from 'lucide-react';
+import { WifiOff } from 'lucide-react';
+import { FileQuestion } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { Play } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 

@@ -7,7 +7,12 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from '@/i18n';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, Filter, X } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { ArrowUpDown } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
+import { Filter } from 'lucide-react';
+import { X } from 'lucide-react';
 import { QueryResult, PriceData, oracleI18nKeys } from '../constants';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 

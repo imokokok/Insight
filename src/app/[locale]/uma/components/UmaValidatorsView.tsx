@@ -3,7 +3,14 @@
 import { useTranslations } from '@/i18n';
 import { UmaValidatorsViewProps } from '../types';
 import { ValidatorAnalyticsPanel } from '@/components/oracle';
-import { Users, Clock, Shield, Award, TrendingUp, Building2, UserCircle2, UsersRound } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { Award } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Building2 } from 'lucide-react';
+import { UserCircle2 } from 'lucide-react';
+import { UsersRound } from 'lucide-react';
 
 export function UmaValidatorsView({ validators, networkStats, isLoading }: UmaValidatorsViewProps) {
   const t = useTranslations();

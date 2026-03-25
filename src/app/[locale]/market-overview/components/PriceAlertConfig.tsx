@@ -5,17 +5,15 @@ import { PriceAlert } from '../types';
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { SegmentedControl } from '@/components/ui';
-import {
-  Bell,
-  Plus,
-  Trash2,
-  TrendingUp,
-  TrendingDown,
-  Mail,
-  MessageSquare,
-  Smartphone,
-  Check,
-} from 'lucide-react';
+import { Bell } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface PriceAlertConfigProps {
   alerts: PriceAlert[];

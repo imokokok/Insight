@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { useTranslations } from '@/i18n';
 import { ChainlinkDataTable } from '../../chainlink/components/ChainlinkDataTable';
 import { DapiFeed, API3DapiViewProps } from '../types';
-import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 const mockDapiFeeds: DapiFeed[] = [
   { id: '1', name: 'ETH/USD', category: 'crypto', updateFrequency: '10s', deviationThreshold: '0.5%', status: 'active', totalRequests: 8500000, reliability: 99.98 },

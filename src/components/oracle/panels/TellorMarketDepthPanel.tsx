@@ -3,7 +3,9 @@
 import { useTranslations } from '@/i18n';
 import { MarketDepth, MarketDepthLevel } from '@/lib/oracles/tellor';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { BarChart3, ArrowUp, ArrowDown } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 
 interface TellorMarketDepthPanelProps {
   data: MarketDepth;

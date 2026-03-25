@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { useTranslations } from '@/i18n';
-import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 interface DataFeed {
   id: string;

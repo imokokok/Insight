@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { X, ChevronDown } from 'lucide-react';
+import { X } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useTranslations } from '@/i18n';
 import { NavStructure, NavGroup } from './types';
 import { oracleColors } from './config';

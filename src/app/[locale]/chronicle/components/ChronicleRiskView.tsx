@@ -2,7 +2,12 @@
 
 import { useTranslations } from '@/i18n';
 import { ChronicleRiskViewProps } from '../types';
-import { Shield, CheckCircle, Clock, AlertTriangle, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 export function ChronicleRiskView({
   scuttlebutt,

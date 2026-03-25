@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Clock, Shield, Activity } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { DataQualityScoreCard } from '@/components/oracle/common/DataQualityScoreCard';
 import { StatsCards, MobileStatsCards } from './StatsCards';
 import { HistoryMinMax } from '../constants';

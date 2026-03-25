@@ -2,7 +2,14 @@
 
 import React from 'react';
 import { useTranslations } from '@/i18n';
-import { Contrast, Type, Palette, Monitor, Focus, RotateCcw, Check, Eye } from 'lucide-react';
+import { Contrast } from 'lucide-react';
+import { Type } from 'lucide-react';
+import { Palette } from 'lucide-react';
+import { Monitor } from 'lucide-react';
+import { Focus } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import {
   useTheme,
   type ThemeMode,

@@ -10,15 +10,13 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from 'recharts';
-import {
-  Coins,
-  TrendingUp,
-  Users,
-  Gift,
-  Lock,
-  Clock,
-  RefreshCw,
-} from 'lucide-react';
+import { Coins } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { Gift } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDIAStaking, useDIAStakingDetails } from '@/hooks';
 

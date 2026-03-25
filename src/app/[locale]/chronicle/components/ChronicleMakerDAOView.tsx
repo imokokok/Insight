@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { useTranslations } from '@/i18n';
 import { ChronicleMakerDAOViewProps } from '../types';
 import { ChronicleDataTable } from './ChronicleDataTable';
-import { Database, Coins, TrendingUp, Shield } from 'lucide-react';
+import { Database } from 'lucide-react';
+import { Coins } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 interface AssetData {
   id: string;

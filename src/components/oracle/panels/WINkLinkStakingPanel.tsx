@@ -3,7 +3,12 @@
 import { useTranslations } from '@/i18n';
 import { NodeStakingData } from '@/lib/oracles/winklink';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { Coins, Users, TrendingUp, Award, Globe, CheckCircle } from 'lucide-react';
+import { Coins } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Award } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 interface WINkLinkStakingPanelProps {
   data: NodeStakingData;
