@@ -2,6 +2,95 @@
 
 import { useTranslations } from 'next-intl';
 import { ChronicleValidatorsViewProps } from '../types';
+import { ChronicleDataTable } from './ChronicleDataTable';
+import { Activity, Shield, Award, Server, Globe, TrendingUp, Clock } from 'lucide-react';
+
+interface ValidatorData {
+  id: string;
+  name: string;
+  address: string;
+  region: string;
+  responseTime: number;
+  successRate: number;
+  reputation: number;
+  stakedAmount: number;
+  status: 'active' | 'inactive' | 'jailed';
+}
+
+const mockValidators: ValidatorData[] = [
+  {
+    id: '1',
+    name: 'Chronicle Labs',
+    address: '0x1234...5678',
+    region: 'Europe',
+    responseTime: 120,
+    successRate: 99.9,
+    reputation: 98.5,
+    stakedAmount: 5000000,
+    status: 'active',
+  },
+  {
+    id: '2',
+    name: 'MakerDAO Oracle',
+    address: '0xabcd...efgh',
+    region: 'North America',
+    responseTime: 135,
+    successRate: 99.8,
+    reputation: 97.2,
+    stakedAmount: 4500000,
+    status: 'active',
+  },
+  {
+    id: '3',
+    name: 'DeFi Sentinel',
+    address: '0x9876...5432',
+    region: 'Asia',
+    responseTime: 155,
+    successRate: 99.7,
+    reputation: 95.8,
+    stakedAmount: 3200000,
+    status: 'active',
+  },
+  {
+    id: '4',
+    name: 'BlockWatcher',
+    address: '0xijkl...mnop',
+    region: 'Europe',
+    responseTime: 140,
+    successRate: 99.6,
+    reputation: 94.5,
+    stakedAmount: 2800000,
+    status: 'active',
+  },
+  {
+    id: '5',
+    name: 'PriceGuardian',
+    address: '0xqrst...uvwx',
+    region: 'North America',
+    responseTime: 125,
+    successRate: 99.8,
+    reputation: 93.2,
+    stakedAmount: 2500000,
+    status: 'active',
+  },
+  {
+    id: '6',
+    name: 'DataValidator',
+    address: '0xyzab...cdef',
+    region: 'Asia',
+    responseTime: 165,
+    successRate: 99.5,
+    reputation: 91.8,
+    stakedAmount: 1800000,
+    status: 'active',
+  },
+];
+
+const regionStats = [
+  { region: 'Europe', count: 2, percentage: 33.3 },
+  { region: 'North America', count: 2, percentage: 33.3 },
+  { region: 'Asia', count: 2, percentage: 33.3 },
+];
 
 export function ChronicleValidatorsView({
   validatorMetrics,
@@ -9,181 +98,160 @@ export function ChronicleValidatorsView({
 }: ChronicleValidatorsViewProps) {
   const t = useTranslations();
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active':
-        return (
-          <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        );
-      case 'inactive':
-        return (
-          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        );
-      case 'jailed':
-        return (
-          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
+  const totalStaked = mockValidators.reduce((acc, n) => acc + n.stakedAmount, 0);
+  const avgSuccessRate = (mockValidators.reduce((acc, n) => acc + n.successRate, 0) / mockValidators.length).toFixed(1);
+  const avgResponseTime = Math.round(mockValidators.reduce((acc, n) => acc + n.responseTime, 0) / mockValidators.length);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'inactive':
-        return 'bg-gray-50 text-gray-600 border-gray-200';
-      case 'jailed':
-        return 'bg-red-50 text-red-700 border-red-200';
-      default:
-        return 'bg-gray-50 text-gray-600 border-gray-200';
-    }
-  };
-
-  const getNetworkHealthColor = (health: string) => {
-    switch (health) {
-      case 'excellent':
-        return 'text-emerald-600';
-      case 'good':
-        return 'text-blue-600';
-      case 'fair':
-        return 'text-amber-600';
-      case 'poor':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
-
-  const validators = validatorMetrics?.validators || [];
+  const columns = [
+    { key: 'name', header: t('chronicle.validators.name'), sortable: true },
+    { key: 'region', header: t('chronicle.validators.region'), sortable: true },
+    {
+      key: 'responseTime',
+      header: t('chronicle.validators.responseTime'),
+      sortable: true,
+      render: (item: ValidatorData) => `${item.responseTime}ms`,
+    },
+    {
+      key: 'successRate',
+      header: t('chronicle.validators.successRate'),
+      sortable: true,
+      render: (item: ValidatorData) => `${item.successRate}%`,
+    },
+    {
+      key: 'reputation',
+      header: t('chronicle.validators.reputation'),
+      sortable: true,
+      render: (item: ValidatorData) => (
+        <span
+          className={`font-medium ${item.reputation >= 95 ? 'text-emerald-600' : item.reputation >= 90 ? 'text-amber-600' : 'text-gray-600'}`}
+        >
+          {item.reputation}
+        </span>
+      ),
+    },
+    {
+      key: 'stakedAmount',
+      header: t('chronicle.validators.staked'),
+      sortable: true,
+      render: (item: ValidatorData) => `${(item.stakedAmount / 1e6).toFixed(2)}M MKR`,
+    },
+    {
+      key: 'status',
+      header: t('chronicle.validators.status'),
+      sortable: true,
+      render: (item: ValidatorData) => (
+        <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+          item.status === 'active' ? 'text-emerald-600' :
+          item.status === 'inactive' ? 'text-gray-500' : 'text-red-600'
+        }`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${
+            item.status === 'active' ? 'bg-emerald-500' :
+            item.status === 'inactive' ? 'bg-gray-400' : 'bg-red-500'
+          }`} />
+          {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+        </span>
+      ),
+    },
+  ];
 
   return (
-    <div className="space-y-4">
-      {/* Validator Stats */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="py-2">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <p className="text-xs text-gray-500">{t('chronicle.validators.total')}</p>
-            </div>
-            <p className="text-xl font-bold text-gray-900">{validatorMetrics?.totalValidators ?? 6}</p>
-          </div>
-          <div className="py-2">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-xs text-gray-500">{t('chronicle.validators.active')}</p>
-            </div>
-            <p className="text-xl font-bold text-emerald-600">{validatorMetrics?.activeValidators ?? 6}</p>
-          </div>
-          <div className="py-2">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-              <p className="text-xs text-gray-500">{t('chronicle.validators.avgReputation')}</p>
-            </div>
-            <p className="text-xl font-bold text-gray-900">{validatorMetrics?.averageReputation ?? 94}</p>
-          </div>
-          <div className="py-2">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-xs text-gray-500">{t('chronicle.validators.totalStaked')}</p>
-            </div>
-            <p className="text-xl font-bold text-gray-900">
-              {((validatorMetrics?.totalStaked || 21500000) / 1e6).toFixed(2)}M
-            </p>
-          </div>
+    <div className="space-y-8">
+      {/* 节点统计概览 - 简化内联展示 */}
+      <div className="flex flex-wrap items-center gap-6 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('chronicle.validators.total')}</span>
+          <span className="text-lg font-semibold text-gray-900">{mockValidators.length}</span>
         </div>
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <p className="text-xs text-gray-500">
-            {t('chronicle.validators.networkHealth')}:{' '}
-            <span className={`font-medium capitalize ${getNetworkHealthColor(validatorMetrics?.networkHealth || 'excellent')}`}>
-              {validatorMetrics?.networkHealth || 'excellent'}
-            </span>
-          </p>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('chronicle.validators.avgResponse')}</span>
+          <span className="text-lg font-semibold text-gray-900">{avgResponseTime}ms</span>
+        </div>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Shield className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('chronicle.validators.avgSuccess')}</span>
+          <span className="text-lg font-semibold text-emerald-600">{avgSuccessRate}%</span>
+        </div>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Award className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('chronicle.validators.totalStaked')}</span>
+          <span className="text-lg font-semibold text-gray-900">{(totalStaked / 1e6).toFixed(1)}M MKR</span>
         </div>
       </div>
 
-      {/* Validators List */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('chronicle.validators.list')}</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.validators.name')}
-                </th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.validators.reputation')}
-                </th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.validators.uptime')}
-                </th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.validators.responseTime')}
-                </th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.validators.staked')}
-                </th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.validators.status')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {validators.map((validator, index) => (
-                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-2 px-3">
-                    <div>
-                      <p className="font-semibold text-gray-900">{validator.name}</p>
-                      <p className="text-xs text-gray-500">{validator.address}</p>
-                    </div>
-                  </td>
-                  <td className="py-2 px-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-amber-500 rounded-full"
-                          style={{ width: `${validator.reputationScore}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-gray-700">{validator.reputationScore}</span>
-                    </div>
-                  </td>
-                  <td className="py-2 px-3 text-gray-900">{validator.uptime}%</td>
-                  <td className="py-2 px-3 text-gray-900">{validator.responseTime}ms</td>
-                  <td className="py-2 px-3 text-gray-900">
-                    {(validator.stakedAmount / 1e6).toFixed(2)}M
-                  </td>
-                  <td className="py-2 px-3">
-                    <div className="flex items-center gap-1.5">
-                      {getStatusIcon(validator.status)}
-                      <span
-                        className={`px-2 py-1 text-xs font-medium capitalize border rounded ${getStatusColor(validator.status)}`}
-                      >
-                        {t(`chronicle.status.${validator.status}`)}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
+      {/* 主内容区域 */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* 左侧 - 验证者表格 */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="flex items-center gap-2">
+            <Server className="w-4 h-4 text-gray-500" />
+            <h2 className="text-base font-medium text-gray-900">
+              {t('chronicle.validators.activeValidators')}
+            </h2>
+          </div>
+          <ChronicleDataTable
+            data={mockValidators as unknown as Record<string, unknown>[]}
+            columns={columns as unknown as Array<{key: string; header: string; width?: string; sortable?: boolean; render?: (item: Record<string, unknown>) => React.ReactNode}>}
+          />
+        </div>
+
+        {/* 右侧边栏 */}
+        <div className="space-y-8">
+          {/* 区域分布 */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-gray-500" />
+              <h3 className="text-sm font-medium text-gray-900">
+                {t('chronicle.validators.regionDistribution')}
+              </h3>
+            </div>
+            <div className="space-y-4">
+              {regionStats.map((stat, index) => (
+                <div key={index}>
+                  <div className="flex items-center justify-between text-sm mb-1.5">
+                    <span className="text-gray-600">{stat.region}</span>
+                    <span className="font-medium text-gray-900">{stat.count} <span className="text-gray-400">({stat.percentage}%)</span></span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div
+                      className="bg-amber-500 h-1.5 rounded-full transition-all"
+                      style={{ width: `${stat.percentage}%` }}
+                    />
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </section>
+
+          {/* 概览统计 */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-gray-500" />
+              <h3 className="text-sm font-medium text-gray-900">
+                {t('chronicle.validators.overview')}
+              </h3>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">{t('chronicle.validators.avgReputation')}</span>
+                <span className="font-medium text-gray-900">
+                  {(mockValidators.reduce((acc, n) => acc + n.reputation, 0) / mockValidators.length).toFixed(1)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">{t('chronicle.validators.topPerformers')}</span>
+                <span className="font-medium text-gray-900">3</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">{t('chronicle.validators.regions')}</span>
+                <span className="font-medium text-gray-900">{regionStats.length}</span>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>

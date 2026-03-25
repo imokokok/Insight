@@ -3,10 +3,13 @@ import { PriceData } from '@/types/oracle';
 import {
   TRONEcosystem,
   NodeStakingData,
+  WINkLinkNode,
   WINkLinkGamingData,
   WINkLinkRiskMetrics,
   WINkLinkNetworkStats,
 } from '@/lib/oracles/winklink';
+
+export type StakingNode = WINkLinkNode;
 
 export type WinklinkTabId =
   | 'market'
