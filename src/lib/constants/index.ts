@@ -60,6 +60,13 @@ export const chainNames: Record<Blockchain, string> = {
   [Blockchain.NEAR]: 'Near',
   [Blockchain.AURORA]: 'Aurora',
   [Blockchain.CELO]: 'Celo',
+  [Blockchain.STARKNET]: 'Starknet',
+  [Blockchain.BLAST]: 'Blast',
+  [Blockchain.CARDANO]: 'Cardano',
+  [Blockchain.POLKADOT]: 'Polkadot',
+  [Blockchain.KAVA]: 'Kava',
+  [Blockchain.MOONBEAM]: 'Moonbeam',
+  [Blockchain.STARKEX]: 'StarkEx',
 };
 
 export const chainColors: Record<Blockchain, string> = {
@@ -91,6 +98,13 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.NEAR]: configChainColors.near,
   [Blockchain.AURORA]: configChainColors.aurora,
   [Blockchain.CELO]: configChainColors.celo,
+  [Blockchain.STARKNET]: configChainColors.starknet,
+  [Blockchain.BLAST]: configChainColors.blast,
+  [Blockchain.CARDANO]: configChainColors.cardano,
+  [Blockchain.POLKADOT]: configChainColors.polkadot,
+  [Blockchain.KAVA]: configChainColors.kava,
+  [Blockchain.MOONBEAM]: configChainColors.moonbeam,
+  [Blockchain.STARKEX]: configChainColors.starkex,
 };
 
 export const oracleColors: Record<OracleProvider, string> = {
@@ -153,3 +167,71 @@ export const TIME_RANGES = [
 export const DEVIATION_THRESHOLD = 0.5;
 
 export type RefreshInterval = 0 | 30000 | 60000 | 300000;
+
+// ============================================
+// 链分类定义
+// ============================================
+
+export type ChainCategory = 'l1' | 'l2' | 'cosmos' | 'other';
+
+/**
+ * 链分类映射 - 用于按类型筛选链
+ */
+export const CHAIN_CATEGORIES: Record<Blockchain, ChainCategory> = {
+  // Layer 1
+  [Blockchain.ETHEREUM]: 'l1',
+  [Blockchain.SOLANA]: 'l1',
+  [Blockchain.AVALANCHE]: 'l1',
+  [Blockchain.BNB_CHAIN]: 'l1',
+  [Blockchain.TRON]: 'l1',
+  [Blockchain.TON]: 'l1',
+  [Blockchain.NEAR]: 'l1',
+  [Blockchain.APTOS]: 'l1',
+  [Blockchain.SUI]: 'l1',
+  [Blockchain.INJECTIVE]: 'l1',
+  [Blockchain.SEI]: 'l1',
+  [Blockchain.CELESTIA]: 'l1',
+  [Blockchain.CELO]: 'l1',
+  [Blockchain.FANTOM]: 'l1',
+  [Blockchain.CRONOS]: 'l1',
+  [Blockchain.CARDANO]: 'l1',
+  [Blockchain.POLKADOT]: 'l1',
+  [Blockchain.KAVA]: 'l1',
+  // Layer 2
+  [Blockchain.ARBITRUM]: 'l2',
+  [Blockchain.OPTIMISM]: 'l2',
+  [Blockchain.BASE]: 'l2',
+  [Blockchain.SCROLL]: 'l2',
+  [Blockchain.ZKSYNC]: 'l2',
+  [Blockchain.MANTLE]: 'l2',
+  [Blockchain.LINEA]: 'l2',
+  [Blockchain.AURORA]: 'l2',
+  [Blockchain.STARKNET]: 'l2',
+  [Blockchain.BLAST]: 'l2',
+  [Blockchain.STARKEX]: 'l2',
+  [Blockchain.POLYGON]: 'l2',
+  // Cosmos 生态
+  [Blockchain.COSMOS]: 'cosmos',
+  [Blockchain.OSMOSIS]: 'cosmos',
+  [Blockchain.JUNO]: 'cosmos',
+  [Blockchain.GNOSIS]: 'cosmos',
+  [Blockchain.MOONBEAM]: 'cosmos',
+} as const;
+
+/**
+ * 按分类获取链列表
+ */
+export function getChainsByCategory(category: ChainCategory | 'all'): Blockchain[] {
+  const allChains = Object.keys(CHAIN_CATEGORIES) as Blockchain[];
+  if (category === 'all') {
+    return allChains;
+  }
+  return allChains.filter((chain) => CHAIN_CATEGORIES[chain] === category);
+}
+
+/**
+ * 获取链的分类
+ */
+export function getChainCategory(chain: Blockchain): ChainCategory {
+  return CHAIN_CATEGORIES[chain] || 'other';
+}

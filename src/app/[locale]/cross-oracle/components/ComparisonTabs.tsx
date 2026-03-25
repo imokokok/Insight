@@ -19,6 +19,8 @@ import { LatencyDistributionHistogram } from '@/components/oracle/charts/Latency
 import { OraclePerformanceRanking } from '@/components/oracle/common/OraclePerformanceRanking';
 import { MovingAverageChart } from '@/components/oracle/charts/MovingAverageChart';
 import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
+import { ChainCoverageHeatmap } from '@/components/oracle/charts/ChainCoverageHeatmap';
+import { ChainSelector } from '@/components/oracle/ChainSelector';
 import { SnapshotManager } from '@/components/oracle/common/SnapshotManager';
 import { SnapshotComparison } from '@/components/oracle/common/SnapshotComparison';
 import { ChartSkeleton } from '@/components/ui';
@@ -643,12 +645,49 @@ export function ComparisonTabs({
     </>
   );
 
+  const renderChainsTab = () => (
+    <>
+      {/* 链覆盖热力图 */}
+      <div className="mb-6">
+        <ChainCoverageHeatmap
+          showLabels={true}
+          onCellClick={(provider, chain) => {
+            console.log(`Selected: ${provider} - ${chain}`);
+          }}
+        />
+      </div>
+
+      {/* 链选择器示例 */}
+      <div className="mb-6 bg-white rounded-lg border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('crossOracle.chainsTab.chainSelector')}
+        </h3>
+        <div className="max-w-md">
+          <ChainSelector
+            selectedChains={[]}
+            onChainsChange={(chains) => {
+              console.log('Selected chains:', chains);
+            }}
+            allowMultiSelect={true}
+            showOracleCount={true}
+            placeholder={t('crossOracle.chainsTab.selectChains')}
+          />
+        </div>
+        <p className="text-sm text-gray-500 mt-3">
+          {t('crossOracle.chainsTab.chainSelectorDescription')}
+        </p>
+      </div>
+    </>
+  );
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
         return renderOverviewTab();
       case 'analysis':
         return renderAnalysisTab();
+      case 'chains':
+        return renderChainsTab();
       case 'history':
         return renderHistoryTab();
       default:

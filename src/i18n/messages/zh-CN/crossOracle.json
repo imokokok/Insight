@@ -98,6 +98,12 @@
     "tabAdvanced": "高级分析",
     "tabSnapshots": "快照与对比",
     "tabPerformance": "性能分析",
+    "tabChains": "链覆盖",
+    "chainsTab": {
+      "chainSelector": "链选择器",
+      "selectChains": "选择链...",
+      "chainSelectorDescription": "选择多个链进行跨链数据对比分析"
+    },
     "freshness": "数据时效性",
     "filter": {
       "button": "数据筛选",

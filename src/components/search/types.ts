@@ -40,8 +40,10 @@ export interface UseGlobalSearchOptions {
 export interface UseGlobalSearchReturn {
   results: SearchGroup[];
   isSearching: boolean;
+  error: Error | null;
   search: (query: string) => void;
   clearSearch: () => void;
+  retry: () => void;
 }
 
 export interface KeyboardNavigationState {

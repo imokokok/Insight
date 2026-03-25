@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-export type TabId = 'overview' | 'analysis' | 'history';
+export type TabId = 'overview' | 'analysis' | 'chains' | 'history';
 
 // 旧TabId到新TabId的映射（用于向后兼容）
 const TAB_MIGRATION_MAP: Record<string, TabId> = {

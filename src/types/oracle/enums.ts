@@ -40,6 +40,13 @@ export const enum Blockchain {
   NEAR = 'near',
   AURORA = 'aurora',
   CELO = 'celo',
+  STARKNET = 'starknet',
+  BLAST = 'blast',
+  CARDANO = 'cardano',
+  POLKADOT = 'polkadot',
+  KAVA = 'kava',
+  MOONBEAM = 'moonbeam',
+  STARKEX = 'starkex',
 }
 
 export const BINANCE = Blockchain.BNB_CHAIN;
@@ -86,4 +93,11 @@ export const BLOCKCHAIN_VALUES: readonly Blockchain[] = [
   Blockchain.NEAR,
   Blockchain.AURORA,
   Blockchain.CELO,
+  Blockchain.STARKNET,
+  Blockchain.BLAST,
+  Blockchain.CARDANO,
+  Blockchain.POLKADOT,
+  Blockchain.KAVA,
+  Blockchain.MOONBEAM,
+  Blockchain.STARKEX,
 ] as const;
