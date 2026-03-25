@@ -16,7 +16,7 @@ export function DIANetworkView({
   const metrics = [
     {
       label: t('dia.network.activeDataSources'),
-      value: networkData.activeDataSources?.toLocaleString() || '45+',
+      value: (networkStats?.activeDataSources ?? 45).toLocaleString() + '+',
       change: '+3',
       status: 'healthy',
     },

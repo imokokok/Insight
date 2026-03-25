@@ -105,3 +105,223 @@ export interface ChainlinkDataTableProps<T> {
   onSort?: (key: string) => void;
   isLoading?: boolean;
 }
+
+// ============================================================================
+// Enhanced Component Types
+// ============================================================================
+
+// Market Depth Types
+export interface MarketDepthLevel {
+  price: number;
+  bidVolume: number;
+  askVolume: number;
+  bidOrders: number;
+  askOrders: number;
+}
+
+export interface MarketDepthData {
+  levels: MarketDepthLevel[];
+  spread: number;
+  spreadPercentage: number;
+  bestBid: number;
+  bestAsk: number;
+  totalBidVolume: number;
+  totalAskVolume: number;
+}
+
+// Trading Pair Types
+export interface TradingPair {
+  id: string;
+  base: string;
+  quote: string;
+  price: number;
+  change24h: number;
+  volume24h: number;
+  high24h: number;
+  low24h: number;
+  liquidityScore: number;
+  isActive: boolean;
+}
+
+export interface TradingPairStats {
+  totalPairs: number;
+  activePairs: number;
+  totalVolume24h: number;
+  avgLiquidityScore: number;
+}
+
+// Service Stats Types
+export interface ServiceMetric {
+  id: string;
+  name: string;
+  category: 'vrf' | 'automation' | 'ccip' | 'functions' | 'proof';
+  requests24h: number;
+  successRate: number;
+  avgResponseTime: number;
+  revenue24h: number;
+  growthRate: number;
+  status: 'operational' | 'degraded' | 'down';
+}
+
+export interface ServiceStats {
+  services: ServiceMetric[];
+  totalRequests24h: number;
+  totalRevenue24h: number;
+  overallSuccessRate: number;
+}
+
+// Ecosystem Stats Types
+export interface EcosystemProject {
+  id: string;
+  name: string;
+  category: 'defi' | 'nft' | 'gaming' | 'enterprise' | 'infrastructure';
+  chain: string;
+  tvl?: number;
+  dailyUsers?: number;
+  integrationType: string[];
+  logoUrl?: string;
+  websiteUrl?: string;
+}
+
+export interface EcosystemStats {
+  totalProjects: number;
+  projectsByCategory: Record<string, number>;
+  projectsByChain: Record<string, number>;
+  totalTvl: number;
+  featuredProjects: EcosystemProject[];
+}
+
+// Risk Event Types
+export type RiskSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type RiskStatus = 'open' | 'investigating' | 'resolved' | 'mitigated';
+
+export interface RiskEvent {
+  id: string;
+  title: string;
+  description: string;
+  severity: RiskSeverity;
+  status: RiskStatus;
+  category: 'security' | 'performance' | 'operational' | 'financial';
+  affectedFeeds?: string[];
+  affectedChains?: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  resolvedAt?: Date;
+}
+
+// Node Geographic Distribution Types
+export type Region = 'all' | 'northAmerica' | 'europe' | 'asia' | 'others';
+
+export interface RegionData {
+  id: Region;
+  name: string;
+  nodeCount: number;
+  avgResponseTime: number;
+  successRate: number;
+  percentage: number;
+  color: string;
+}
+
+export interface NodeGeographicDistributionProps {
+  className?: string;
+}
+
+// Realtime Throughput Monitor Types
+export interface ThroughputDataPoint {
+  timestamp: string;
+  rps: number;
+  successRate: number;
+  avgLatency: number;
+}
+
+export interface ThroughputStats {
+  currentRps: number;
+  peakRps: number;
+  avgSuccessRate: number;
+  avgLatency: number;
+  trend: 'up' | 'down' | 'stable';
+  trendValue: number;
+}
+
+export interface RealtimeThroughputMonitorProps {
+  className?: string;
+  autoUpdate?: boolean;
+  updateInterval?: number;
+}
+
+// Network Topology Types
+export interface LayerNode {
+  name: string;
+  status: 'healthy' | 'warning' | 'critical';
+  count?: number;
+}
+
+export interface LayerMetric {
+  label: string;
+  value: string;
+  subValue?: string;
+}
+
+export interface LayerData {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
+  metrics: LayerMetric[];
+  nodes: LayerNode[];
+}
+
+export interface NetworkTopologyOverviewProps {
+  className?: string;
+}
+
+// Node Earnings Types
+export type NodeTier = 'small' | 'medium' | 'large';
+
+export interface TierConfig {
+  minStake: number;
+  maxStake: number;
+  label: string;
+  color: string;
+  avgEarningsPerDay: number;
+}
+
+export interface TierStats {
+  count: number;
+  totalStake: number;
+  avgEarnings: number;
+}
+
+export interface NodeEarningsPanelProps {
+  nodes: NodeData[];
+}
+
+// Node Performance Trends Types
+export interface NodeTrendData {
+  successRateTrend: number[];
+  responseTimeTrend: number[];
+  reputationTrend: number[];
+}
+
+export interface NodePerformanceTrendsProps {
+  nodes: NodeData[];
+}
+
+// Staking Rewards Calculator Types
+export type ScenarioType = 'conservative' | 'moderate' | 'optimistic';
+
+export interface ScenarioConfig {
+  label: string;
+  apy: number;
+  color: string;
+  description: string;
+}
+
+export interface StakingRewards {
+  daily: number;
+  monthly: number;
+  yearly: number;
+  total: number;
+  apy: number;
+}

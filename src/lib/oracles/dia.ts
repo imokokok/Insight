@@ -57,6 +57,12 @@ export interface DIANetworkStats {
   status: 'online' | 'warning' | 'offline';
   latency: number;
   stakingTokenSymbol: string;
+  // Risk view properties
+  uptime?: number;
+  dataQuality?: number;
+  oracleDiversity?: number;
+  avgConfidence?: number;
+  riskLevel?: 'low' | 'medium' | 'high';
 }
 
 export interface NFTCollection {

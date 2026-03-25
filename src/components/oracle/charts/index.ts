@@ -89,3 +89,19 @@ export {
 
 export { InteractivePriceChart } from './InteractivePriceChart';
 export type { InteractivePriceChartProps } from './InteractivePriceChart';
+
+// Shared Data Visualization Components
+export { SparklineChart } from './SparklineChart';
+export type { SparklineChartProps } from './SparklineChart';
+
+export { HeatmapGrid } from './HeatmapGrid';
+export type { HeatmapGridProps } from './HeatmapGrid';
+
+export { TimelineChart } from './TimelineChart';
+export type { TimelineChartProps, TimelineEvent } from './TimelineChart';
+
+export { StatComparisonCard } from './StatComparisonCard';
+export type { StatComparisonCardProps, StatItem } from './StatComparisonCard';
+
+export { ProgressRing } from './ProgressRing';
+export type { ProgressRingProps } from './ProgressRing';

@@ -1,13 +1,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { NetworkHealthPanel } from '@/components/oracle';
 import { ChainlinkNetworkViewProps } from '../types';
+import { Activity, Server, Clock, CheckCircle } from 'lucide-react';
 
 export function ChainlinkNetworkView({
   config,
   networkStats,
-  isLoading,
 }: ChainlinkNetworkViewProps) {
   const t = useTranslations();
 
@@ -18,61 +17,72 @@ export function ChainlinkNetworkView({
       label: t('chainlink.network.activeNodes'),
       value: networkData.activeNodes?.toLocaleString() || '1,847',
       change: '+5%',
-      status: 'healthy',
+      icon: Server,
+      color: 'blue',
     },
     {
       label: t('chainlink.network.dataFeeds'),
       value: networkData.dataFeeds?.toLocaleString() || '1,243',
       change: '+12%',
-      status: 'healthy',
+      icon: Activity,
+      color: 'emerald',
     },
     {
       label: t('chainlink.network.responseTime'),
       value: `${networkData.avgResponseTime || 245}ms`,
       change: '-8%',
-      status: 'healthy',
+      icon: Clock,
+      color: 'amber',
     },
     {
       label: t('chainlink.network.uptime'),
       value: `${networkData.nodeUptime || 99.9}%`,
       change: null,
-      status: 'healthy',
+      icon: CheckCircle,
+      color: 'purple',
     },
   ];
 
+  const colorClasses: Record<string, { bg: string; text: string; light: string }> = {
+    blue: { bg: 'bg-blue-500', text: 'text-blue-600', light: 'bg-blue-50' },
+    emerald: { bg: 'bg-emerald-500', text: 'text-emerald-600', light: 'bg-emerald-50' },
+    amber: { bg: 'bg-amber-500', text: 'text-amber-600', light: 'bg-amber-50' },
+    purple: { bg: 'bg-purple-500', text: 'text-purple-600', light: 'bg-purple-50' },
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((metric, index) => (
-          <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{metric.label}</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
-              {metric.change && (
-                <span className={`text-sm font-medium ${
-                  metric.change.startsWith('+') ? 'text-emerald-600' : 'text-blue-600'
-                }`}>
-                  {metric.change}
-                </span>
-              )}
+    <div className="space-y-6">
+      {/* 核心网络指标 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {metrics.map((metric, index) => {
+          const Icon = metric.icon;
+          const colors = colorClasses[metric.color];
+          return (
+            <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-8 h-8 ${colors.light} rounded-lg flex items-center justify-center`}>
+                  <Icon className={`w-4 h-4 ${colors.text}`} />
+                </div>
+                <span className="text-xs text-gray-500">{metric.label}</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
+                {metric.change && (
+                  <span className={`text-sm font-medium ${
+                    metric.change.startsWith('+') ? 'text-emerald-600' : 'text-blue-600'
+                  }`}>
+                    {metric.change}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className={`w-1.5 h-1.5 rounded-full ${
-                metric.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'
-              }`} />
-              <span className="text-xs text-gray-500">
-                {metric.status === 'healthy' ? t('chainlink.normal') : t('chainlink.warning')}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <NetworkHealthPanel config={config.networkData} />
-      </div>
-
+      {/* 网络性能概览 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* 每小时活动 */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
             {t('chainlink.network.hourlyActivity')}
@@ -100,6 +110,7 @@ export function ChainlinkNetworkView({
           </div>
         </div>
 
+        {/* 网络性能指标 */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
             {t('chainlink.network.performance')}
@@ -132,6 +143,31 @@ export function ChainlinkNetworkView({
                 <div className="bg-amber-500 h-2 rounded-full" style={{ width: '75%' }} />
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 网络统计摘要 */}
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          {t('chainlink.network.overview') || 'Network Overview'}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg p-3">
+            <p className="text-xs text-gray-500">{t('chainlink.network.totalRequests') || 'Total Requests (24h)'}</p>
+            <p className="text-lg font-bold text-gray-900">4.2M</p>
+          </div>
+          <div className="bg-white rounded-lg p-3">
+            <p className="text-xs text-gray-500">{t('chainlink.network.avgGas') || 'Avg Gas Used'}</p>
+            <p className="text-lg font-bold text-gray-900">85,420</p>
+          </div>
+          <div className="bg-white rounded-lg p-3">
+            <p className="text-xs text-gray-500">{t('chainlink.network.activeChains') || 'Active Chains'}</p>
+            <p className="text-lg font-bold text-gray-900">15</p>
+          </div>
+          <div className="bg-white rounded-lg p-3">
+            <p className="text-xs text-gray-500">{t('chainlink.network.nodeOperators') || 'Node Operators'}</p>
+            <p className="text-lg font-bold text-gray-900">1,240</p>
           </div>
         </div>
       </div>
