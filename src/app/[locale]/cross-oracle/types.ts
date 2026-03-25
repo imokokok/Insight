@@ -6,9 +6,10 @@ import {
   DeviationFilter,
   RefreshInterval,
 } from './constants';
-import { TabId } from './components/TabNavigation';
+import type { TabId } from './components/TabNavigation';
 
 export type { TimeRange, DeviationFilter } from './constants';
+export type { TabId } from './components/TabNavigation';
 
 // 跨预言机对比数据
 export interface CrossOracleData {

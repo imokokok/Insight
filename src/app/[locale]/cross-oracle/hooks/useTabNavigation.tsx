@@ -1,18 +1,21 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
+import { useState, useEffect } from 'react';
 
 export type TabId = 'overview' | 'analysis' | 'history';
+
+// 旧TabId到新TabId的映射（用于向后兼容）
+const TAB_MIGRATION_MAP: Record<string, TabId> = {
+  charts: 'analysis',
+  advanced: 'analysis',
+  performance: 'analysis',
+  snapshots: 'history',
+};
 
 interface Tab {
   id: TabId;
   labelKey: string;
   icon: React.ReactNode;
-}
-
-interface TabNavigationProps {
-  activeTab: TabId;
-  onTabChange: (tabId: TabId) => void;
 }
 
 const getTabs = (_t: (key: string) => string): Tab[] => [
@@ -60,35 +63,31 @@ const getTabs = (_t: (key: string) => string): Tab[] => [
   },
 ];
 
-export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
-  const t = useTranslations();
-  const tabs = getTabs(t);
+const STORAGE_KEY = 'cross-oracle-active-tab';
 
-  return (
-    <div className="border-b border-gray-200 mb-6">
-      <nav
-        className="flex space-x-1 overflow-x-auto scrollbar-hide"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={`
-              flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap
-              border-b-2 transition-colors duration-200
-              ${
-                activeTab === tab.id
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }
-            `}
-          >
-            {tab.icon}
-            <span>{t(tab.labelKey)}</span>
-          </button>
-        ))}
-      </nav>
-    </div>
-  );
+export function useTabNavigation() {
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
+
+  useEffect(() => {
+    const savedTab = localStorage.getItem(STORAGE_KEY);
+    if (savedTab) {
+      // 检查是否是旧TabId，如果是则映射到新TabId
+      const migratedTab = TAB_MIGRATION_MAP[savedTab] || (savedTab as TabId);
+      // 验证映射后的TabId是否有效
+      if (getTabs(() => '').some((tab) => tab.id === migratedTab)) {
+        setActiveTab(migratedTab);
+        // 如果发生了迁移，更新本地存储
+        if (migratedTab !== savedTab) {
+          localStorage.setItem(STORAGE_KEY, migratedTab);
+        }
+      }
+    }
+  }, []);
+
+  const handleTabChange = (tab: TabId) => {
+    setActiveTab(tab);
+    localStorage.setItem(STORAGE_KEY, tab);
+  };
+
+  return { activeTab, handleTabChange };
 }

@@ -9,3 +9,5 @@ export { useFilterSort } from './useFilterSort';
 export { useExport } from './useExport';
 export { usePriceStats } from './usePriceStats';
 export { useCrossOraclePage } from './useCrossOraclePage';
+export { useTabNavigation } from './useTabNavigation';
+export type { TabId } from '../components/TabNavigation';

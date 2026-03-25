@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 import { useCrossOraclePage } from './useCrossOraclePage';
+import { useTabNavigation } from './hooks/useTabNavigation';
+import type { TabId } from './components/TabNavigation';
 import {
   HeaderSection,
   StatsOverview,

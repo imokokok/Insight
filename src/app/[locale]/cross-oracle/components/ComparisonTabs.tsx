@@ -36,6 +36,7 @@ import UnifiedExportSection from './UnifiedExportSection';
 import { OracleComparisonSection } from './OracleComparisonSection';
 import { BenchmarkComparisonSection } from './BenchmarkComparisonSection';
 import { ChartTooltip } from './ChartTooltip';
+import { ExportHistoryButton } from './ExportHistoryButton';
 import { DropdownSelect } from '@/components/ui';
 import { TabId, TabNavigation } from './TabNavigation';
 import { ChartToolbar, TimeRange as ChartToolbarTimeRange } from '@/components/ui';
@@ -242,34 +243,6 @@ export function ComparisonTabs({
         t={t}
       />
 
-      {priceData.length > 0 && (
-        <OracleComparisonSection
-          priceData={priceData}
-          benchmarkOracle={selectedOracles[0]}
-          showTable={true}
-        />
-      )}
-
-      {priceData.length > 0 && (
-        <BenchmarkComparisonSection priceData={priceData} loading={isLoading} />
-      )}
-
-      <div className="flex items-center justify-between gap-6">
-        <DataSourcePanel
-          priceData={priceData}
-          lastUpdated={new Date()}
-          onRefresh={fetchPriceData}
-          isLoading={isLoading}
-        />
-        <UnifiedExportSection
-          loading={isLoading}
-          crossOracleData={filteredPriceData}
-          chartContainerRef={chartContainerRef}
-          selectedAssets={[selectedSymbol]}
-          selectedOracles={selectedOracles.map((o) => oracleNames[o])}
-        />
-      </div>
-
       <div ref={chartContainerRef} className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -422,241 +395,95 @@ export function ComparisonTabs({
           </div>
         )}
       </div>
+
+      <div className="flex items-center justify-between gap-6">
+        <DataSourcePanel
+          priceData={priceData}
+          lastUpdated={new Date()}
+          onRefresh={fetchPriceData}
+          isLoading={isLoading}
+        />
+        <UnifiedExportSection
+          loading={isLoading}
+          crossOracleData={filteredPriceData}
+          chartContainerRef={chartContainerRef}
+          selectedAssets={[selectedSymbol]}
+          selectedOracles={selectedOracles.map((o) => oracleNames[o])}
+        />
+      </div>
     </>
   );
 
-  const renderChartsTab = () => (
+  const renderAnalysisTab = () => (
     <>
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('crossOracle.chartsTab.detailedAnalysis')}
-          </h2>
-        </div>
-
-        <ChartToolbar
-          timeRange={timeRange as ChartToolbarTimeRange}
-          onTimeRangeChange={(range) => setTimeRange(range as TimeRange)}
-          zoomLevel={zoomLevel}
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onResetZoom={handleResetZoom}
-          onFullscreen={() => setIsChartFullscreen(true)}
-          showChartType={false}
-          showExport={false}
-          showSync={false}
-          className="mb-4"
+      {/* 预言机对比和基准对比部分 - 从Overview移过来 */}
+      {priceData.length > 0 && (
+        <OracleComparisonSection
+          priceData={priceData}
+          benchmarkOracle={selectedOracles[0]}
+          showTable={true}
         />
+      )}
 
-        <div className="border border-gray-200 p-4 rounded-lg">
-          <ResponsiveContainer width="100%" height={400 * zoomLevel}>
-            <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <defs>
-                <linearGradient id="stdDevGradient1Charts" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.15} />
-                  <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
-                </linearGradient>
-                <linearGradient id="stdDevGradient2Charts" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
-                  <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.01} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
-              <XAxis
-                dataKey="timestamp"
-                stroke={baseColors.gray[500]}
-                fontSize={12}
-                tickLine={false}
-              />
-              <YAxis
-                stroke={baseColors.gray[500]}
-                fontSize={12}
-                tickLine={false}
-                domain={['auto', 'auto']}
-                tickFormatter={(value) => `$${value.toLocaleString()}`}
-              />
-              <RechartsTooltip content={<ChartTooltip t={t} />} />
-              <Legend />
-              <Area
-                type="monotone"
-                dataKey="upperBound2"
-                stroke="none"
-                fill="url(#stdDevGradient2Charts)"
-                fillOpacity={1}
-                isAnimationActive={false}
-              />
-              <Area
-                type="monotone"
-                dataKey="lowerBound2"
-                stroke="none"
-                fill={chartColors.recharts.white}
-                fillOpacity={1}
-                isAnimationActive={false}
-              />
-              <Area
-                type="monotone"
-                dataKey="upperBound1"
-                stroke="none"
-                fill="url(#stdDevGradient1Charts)"
-                fillOpacity={1}
-                isAnimationActive={false}
-              />
-              <Area
-                type="monotone"
-                dataKey="lowerBound1"
-                stroke="none"
-                fill={chartColors.recharts.white}
-                fillOpacity={1}
-                isAnimationActive={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="avgPrice"
-                stroke={chartColors.recharts.purple}
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={false}
-                activeDot={false}
-                name={t('crossOracle.chart.avgPriceLine')}
-              />
-              {selectedOracles.map((oracle) => (
-                <Line
-                  key={oracle}
-                  type="monotone"
-                  dataKey={oracleNames[oracle]}
-                  stroke={oracleChartColors[oracle]}
-                  strokeWidth={hoveredOracle === oracle || hoveredOracle === null ? 2.5 : 1}
-                  strokeDasharray={getLineStrokeDasharray(oracle)}
-                  strokeOpacity={hoveredOracle === oracle ? 1 : hoveredOracle === null ? 1 : 0.3}
-                  dot={false}
-                  activeDot={{
-                    r: hoveredOracle === oracle ? 8 : 6,
-                    strokeWidth: 2,
-                    stroke: baseColors.gray[50],
-                    fill: oracleChartColors[oracle],
-                  }}
-                  onMouseEnter={() => setHoveredOracle(oracle)}
-                  onMouseLeave={() => setHoveredOracle(null)}
-                  onClick={() => {
-                    setOracleFilter(oracle);
-                  }}
-                  style={{ cursor: 'pointer' }}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      {priceData.length > 0 && (
+        <BenchmarkComparisonSection priceData={priceData} loading={isLoading} />
+      )}
 
+      {/* 价格偏差热力图 */}
       {heatmapData.length > 0 && (
         <div className="mb-6">
-          <PriceDeviationHeatmap data={heatmapData} useAccessibleColors={false} />
+          <PriceDeviationHeatmap data={heatmapData} useAccessibleColors={useAccessibleColors} />
         </div>
       )}
 
+      {/* 价格分布箱线图 */}
       {boxPlotData.some((d) => d.prices.length > 0) && (
         <div className="mb-6">
           <PriceDistributionBoxPlot data={boxPlotData} oracleNames={oracleNames} />
         </div>
       )}
 
+      {/* 波动率图表 */}
       {volatilityData.some((d) => d.prices.length > 0) && (
         <div className="mb-6">
           <PriceVolatilityChart data={volatilityData} oracleNames={oracleNames} />
         </div>
       )}
-    </>
-  );
 
-  const renderSnapshotsTab = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-1">
-        <SnapshotManager
-          onSaveSnapshot={handleSaveSnapshot}
-          onSelectSnapshot={handleSelectSnapshot}
-          selectedSnapshotId={selectedSnapshot?.id}
-        />
-      </div>
-      <div className="lg:col-span-2">
-        {showComparison && selectedSnapshot ? (
-          <SnapshotComparison
-            currentStats={currentStats}
-            currentPriceData={priceData}
-            currentSymbol={selectedSymbol}
-            selectedSnapshot={selectedSnapshot}
-            onClose={() => {
-              setShowComparison(false);
-              setSelectedSnapshot(null);
-            }}
-          />
-        ) : (
-          <div className="bg-gray-50 border border-gray-200 border-dashed h-full min-h-[200px] flex items-center justify-center rounded-lg">
-            <div className="text-center">
-              <svg
-                className="w-12 h-12 mx-auto text-gray-300 mb-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              <p className="text-sm text-gray-500">
-                {t('crossOracle.snapshotsTab.selectSnapshot')}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                {t('crossOracle.snapshotsTab.selectHint')}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderAdvancedTab = () => {
-    return (
-      <>
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {t('crossOracle.advancedTab.movingAverage')}
-          </h2>
-          {maData.some((d) => d.prices.length > 0) && (
-            <MovingAverageChart data={maData} oracleNames={oracleNames} />
-          )}
-        </div>
-
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {t('crossOracle.advancedTab.dataQuality')}
-          </h2>
-          {qualityTrendData.some((d) => d.data.length > 0) && (
-            <DataQualityTrend data={qualityTrendData} oracleNames={oracleNames} />
-          )}
-        </div>
-      </>
-    );
-  };
-
-  const renderPerformanceTab = () => (
-    <>
+      {/* 移动平均线图表 */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          {t('crossOracle.performanceTab.performanceComparison')}
+          {t('crossOracle.analysisTab.movingAverage')}
+        </h2>
+        {maData.some((d) => d.prices.length > 0) && (
+          <MovingAverageChart data={maData} oracleNames={oracleNames} />
+        )}
+      </div>
+
+      {/* 数据质量趋势 */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('crossOracle.analysisTab.dataQuality')}
+        </h2>
+        {qualityTrendData.some((d) => d.data.length > 0) && (
+          <DataQualityTrend data={qualityTrendData} oracleNames={oracleNames} />
+        )}
+      </div>
+
+      {/* 性能分析部分 */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('crossOracle.analysisTab.performanceComparison')}
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white border border-gray-200 p-4 rounded-lg">
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('crossOracle.performanceTab.selectOracle')}
+                {t('crossOracle.analysisTab.selectOracle')}
               </label>
               <DropdownSelect
                 options={[
-                  { value: '', label: t('crossOracle.performanceTab.allOracles') },
+                  { value: '', label: t('crossOracle.analysisTab.allOracles') },
                   ...selectedOracles.map((oracle) => ({
                     value: oracle,
                     label: oracleNames[oracle],
@@ -666,7 +493,7 @@ export function ComparisonTabs({
                 onChange={(value) =>
                   setSelectedPerformanceOracle(value ? (value as OracleProvider) : null)
                 }
-                placeholder={t('crossOracle.performanceTab.selectOraclePlaceholder')}
+                placeholder={t('crossOracle.analysisTab.selectOraclePlaceholder')}
                 className="w-full"
               />
             </div>
@@ -675,13 +502,13 @@ export function ComparisonTabs({
               oracleName={
                 selectedPerformanceOracle
                   ? oracleNames[selectedPerformanceOracle]
-                  : t('crossOracle.performanceTab.allOracles')
+                  : t('crossOracle.analysisTab.allOracles')
               }
             />
           </div>
           <div className="bg-white border border-gray-200 p-4 rounded-lg">
             <h3 className="text-sm font-semibold text-gray-900 mb-4">
-              {t('crossOracle.performanceTab.summary')}
+              {t('crossOracle.analysisTab.summary')}
             </h3>
             <div className="space-y-4">
               {performanceData.map((data) => (
@@ -694,7 +521,7 @@ export function ComparisonTabs({
                   }`}
                   onClick={() => setSelectedPerformanceOracle(data.provider)}
                   style={{ cursor: 'pointer' }}
-                  title={t('crossOracle.performanceTab.tooltip', {
+                  title={t('crossOracle.analysisTab.tooltip', {
                     name: data.name,
                     responseTime: data.responseTime,
                     accuracy: data.accuracy.toFixed(1),
@@ -711,16 +538,16 @@ export function ComparisonTabs({
                   <div className="flex items-center gap-4 text-xs text-gray-600 flex-shrink-0">
                     <div className="text-center">
                       <p className="text-gray-400">
-                        {t('crossOracle.performanceTab.responseTime')}
+                        {t('crossOracle.analysisTab.responseTime')}
                       </p>
                       <p className="font-semibold text-gray-900 truncate">{data.responseTime}ms</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-gray-400">{t('crossOracle.performanceTab.accuracy')}</p>
+                      <p className="text-gray-400">{t('crossOracle.analysisTab.accuracy')}</p>
                       <p className="font-semibold text-success-600">{data.accuracy.toFixed(1)}%</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-gray-400">{t('crossOracle.performanceTab.stability')}</p>
+                      <p className="text-gray-400">{t('crossOracle.analysisTab.stability')}</p>
                       <p className="font-semibold text-primary-600">{data.stability.toFixed(1)}%</p>
                     </div>
                   </div>
@@ -731,9 +558,10 @@ export function ComparisonTabs({
         </div>
       </div>
 
+      {/* 相关性矩阵 */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          {t('crossOracle.performanceTab.advancedAnalysis')}
+          {t('crossOracle.analysisTab.advancedAnalysis')}
         </h2>
         {correlationData.length >= 2 && (
           <div className="mb-4">
@@ -742,6 +570,7 @@ export function ComparisonTabs({
         )}
       </div>
 
+      {/* 性能排名 */}
       {performanceData.length > 0 && (
         <div className="mb-6">
           <OraclePerformanceRanking performanceData={performanceData} />
@@ -750,18 +579,78 @@ export function ComparisonTabs({
     </>
   );
 
+  const renderHistoryTab = () => (
+    <>
+      {/* 导出历史数据功能入口 */}
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-gray-900">
+          {t('crossOracle.historyTab.title')}
+        </h2>
+        <ExportHistoryButton
+          selectedSymbol={selectedSymbol}
+          selectedOracles={selectedOracles}
+          oracleNames={oracleNames}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <SnapshotManager
+            onSaveSnapshot={handleSaveSnapshot}
+            onSelectSnapshot={handleSelectSnapshot}
+            selectedSnapshotId={selectedSnapshot?.id}
+          />
+        </div>
+        <div className="lg:col-span-2">
+          {showComparison && selectedSnapshot ? (
+            <SnapshotComparison
+              currentStats={currentStats}
+              currentPriceData={priceData}
+              currentSymbol={selectedSymbol}
+              selectedSnapshot={selectedSnapshot}
+              onClose={() => {
+                setShowComparison(false);
+                setSelectedSnapshot(null);
+              }}
+            />
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 border-dashed h-full min-h-[200px] flex items-center justify-center rounded-lg">
+              <div className="text-center">
+                <svg
+                  className="w-12 h-12 mx-auto text-gray-300 mb-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-sm text-gray-500">
+                  {t('crossOracle.historyTab.selectSnapshot')}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {t('crossOracle.historyTab.selectHint')}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
         return renderOverviewTab();
-      case 'charts':
-        return renderChartsTab();
-      case 'advanced':
-        return renderAdvancedTab();
-      case 'snapshots':
-        return renderSnapshotsTab();
-      case 'performance':
-        return renderPerformanceTab();
+      case 'analysis':
+        return renderAnalysisTab();
+      case 'history':
+        return renderHistoryTab();
       default:
         return renderOverviewTab();
     }
