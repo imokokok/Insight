@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { ChainlinkDataTable } from './ChainlinkDataTable';
 import { StakingRewardsCalculator } from './StakingRewardsCalculator';
 import { NodeData } from '../types';
-import { Server, TrendingUp, Globe, Award } from 'lucide-react';
+import { Server, TrendingUp, Globe, Award, Activity, Clock, Shield } from 'lucide-react';
 
 const mockNodes: NodeData[] = [
   {
@@ -125,133 +125,121 @@ export function ChainlinkNodesView() {
     },
   ];
 
+  const totalStaked = mockNodes.reduce((acc, n) => acc + n.stakedAmount, 0);
+  const avgSuccessRate = (mockNodes.reduce((acc, n) => acc + n.successRate, 0) / mockNodes.length).toFixed(1);
+  const avgResponseTime = Math.round(mockNodes.reduce((acc, n) => acc + n.responseTime, 0) / mockNodes.length);
+
   return (
-    <div className="space-y-6">
-      {/* 节点统计卡片 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Server className="w-4 h-4 text-blue-600" />
-            </div>
-            <span className="text-xs text-gray-500">{t('chainlink.nodes.total')}</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{mockNodes.length}</p>
+    <div className="space-y-8">
+      {/* 节点统计概览 - 简化内联展示 */}
+      <div className="flex flex-wrap items-center gap-6 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('chainlink.nodes.total')}</span>
+          <span className="text-lg font-semibold text-gray-900">{mockNodes.length}</span>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
-            </div>
-            <span className="text-xs text-gray-500">{t('chainlink.nodes.avgSuccess')}</span>
-          </div>
-          <p className="text-2xl font-bold text-emerald-600">
-            {(mockNodes.reduce((acc, n) => acc + n.successRate, 0) / mockNodes.length).toFixed(1)}%
-          </p>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('chainlink.nodes.avgResponse')}</span>
+          <span className="text-lg font-semibold text-gray-900">{avgResponseTime}ms</span>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
-              <Globe className="w-4 h-4 text-amber-600" />
-            </div>
-            <span className="text-xs text-gray-500">{t('chainlink.nodes.regions')}</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{regionStats.length}</p>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Shield className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('chainlink.nodes.avgSuccess')}</span>
+          <span className="text-lg font-semibold text-emerald-600">{avgSuccessRate}%</span>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
-              <Award className="w-4 h-4 text-purple-600" />
-            </div>
-            <span className="text-xs text-gray-500">{t('chainlink.nodes.totalStaked')}</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {(mockNodes.reduce((acc, n) => acc + n.stakedAmount, 0) / 1e6).toFixed(1)}M
-          </p>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Award className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('chainlink.nodes.totalStaked')}</span>
+          <span className="text-lg font-semibold text-gray-900">{(totalStaked / 1e6).toFixed(1)}M LINK</span>
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Left Content - Node Table */}
-        <div className="lg:col-span-3">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Server className="w-5 h-5 text-blue-600" />
-              <h2 className="text-lg font-semibold text-gray-900">
-                {t('chainlink.nodes.activeNodes')}
-              </h2>
-            </div>
-            <ChainlinkDataTable
-              data={mockNodes as unknown as Record<string, unknown>[]}
-              columns={
-                columns as unknown as Array<{
-                  key: string;
-                  header: string;
-                  width?: string;
-                  sortable?: boolean;
-                  render?: (item: Record<string, unknown>) => React.ReactNode;
-                }>
-              }
-            />
+      {/* 主内容区域 */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* 左侧 - 节点表格 */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="flex items-center gap-2">
+            <Server className="w-4 h-4 text-gray-500" />
+            <h2 className="text-base font-medium text-gray-900">
+              {t('chainlink.nodes.activeNodes')}
+            </h2>
           </div>
+          <ChainlinkDataTable
+            data={mockNodes as unknown as Record<string, unknown>[]}
+            columns={
+              columns as unknown as Array<{
+                key: string;
+                header: string;
+                width?: string;
+                sortable?: boolean;
+                render?: (item: Record<string, unknown>) => React.ReactNode;
+              }>
+            }
+          />
         </div>
 
-        {/* Right Sidebar */}
-        <div className="space-y-4">
-          {/* Staking Calculator */}
-          <StakingRewardsCalculator />
+        {/* 右侧边栏 */}
+        <div className="space-y-8">
+          {/* 质押计算器 */}
+          <section>
+            <StakingRewardsCalculator />
+          </section>
 
-          {/* Region Distribution */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              {t('chainlink.nodes.regionDistribution')}
-            </h3>
-            <div className="space-y-3">
+          {/* 区域分布 */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-gray-500" />
+              <h3 className="text-sm font-medium text-gray-900">
+                {t('chainlink.nodes.regionDistribution')}
+              </h3>
+            </div>
+            <div className="space-y-4">
               {regionStats.map((stat, index) => (
                 <div key={index}>
-                  <div className="flex items-center justify-between text-sm mb-1">
+                  <div className="flex items-center justify-between text-sm mb-1.5">
                     <span className="text-gray-600">{stat.region}</span>
-                    <span className="font-medium text-gray-900">{stat.count}</span>
+                    <span className="font-medium text-gray-900">{stat.count} <span className="text-gray-400">({stat.percentage}%)</span></span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
                     <div
-                      className="bg-blue-600 h-2 rounded-full"
+                      className="bg-gray-400 h-1.5 rounded-full transition-all"
                       style={{ width: `${stat.percentage}%` }}
                     />
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* Overview Stats */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              {t('chainlink.nodes.overview')}
-            </h3>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{t('chainlink.nodes.avgResponse')}</span>
-                <span className="font-medium">
-                  {Math.round(
-                    mockNodes.reduce((acc, n) => acc + n.responseTime, 0) / mockNodes.length
-                  )}
-                  ms
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
+          {/* 概览统计 */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-gray-500" />
+              <h3 className="text-sm font-medium text-gray-900">
+                {t('chainlink.nodes.overview')}
+              </h3>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
                 <span className="text-gray-500">{t('chainlink.nodes.avgReputation')}</span>
-                <span className="font-medium text-blue-600">
+                <span className="font-medium text-gray-900">
                   {(mockNodes.reduce((acc, n) => acc + n.reputation, 0) / mockNodes.length).toFixed(1)}
                 </span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between">
                 <span className="text-gray-500">{t('chainlink.nodes.topPerformers')}</span>
-                <span className="font-medium">3</span>
+                <span className="font-medium text-gray-900">3</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">{t('chainlink.nodes.regions')}</span>
+                <span className="font-medium text-gray-900">{regionStats.length}</span>
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>

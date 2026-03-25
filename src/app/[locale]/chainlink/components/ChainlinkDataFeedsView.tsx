@@ -79,68 +79,63 @@ export function ChainlinkDataFeedsView() {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Activity className="w-4 h-4 text-blue-600" />
-            </div>
-            <span className="text-xs text-gray-500">{t('chainlink.dataFeeds.total')}</span>
+    <div className="space-y-8">
+      {/* Stats Row */}
+      <div className="flex flex-wrap items-center gap-6 md:gap-8">
+        <div className="flex items-center gap-3">
+          <Activity className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('chainlink.dataFeeds.total')}</p>
+            <p className="text-xl font-semibold text-gray-900">{mockDataFeeds.length}</p>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{mockDataFeeds.length}</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            </div>
-            <span className="text-xs text-gray-500">{t('chainlink.dataFeeds.active')}</span>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('chainlink.dataFeeds.active')}</p>
+            <p className="text-xl font-semibold text-emerald-600">
+              {mockDataFeeds.filter(f => f.status === 'active').length}
+            </p>
           </div>
-          <p className="text-2xl font-bold text-emerald-600">
-            {mockDataFeeds.filter(f => f.status === 'active').length}
-          </p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-purple-600" />
-            </div>
-            <span className="text-xs text-gray-500">{t('chainlink.dataFeeds.totalRequests')}</span>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <TrendingUp className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('chainlink.dataFeeds.totalRequests')}</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {(mockDataFeeds.reduce((acc, f) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
+            </p>
           </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {(mockDataFeeds.reduce((acc, f) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
-          </p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
-              <Clock className="w-4 h-4 text-amber-600" />
-            </div>
-            <span className="text-xs text-gray-500">{t('chainlink.dataFeeds.avgReliability')}</span>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <Clock className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('chainlink.dataFeeds.avgReliability')}</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {(mockDataFeeds.reduce((acc, f) => acc + f.reliability, 0) / mockDataFeeds.length).toFixed(2)}%
+            </p>
           </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {(mockDataFeeds.reduce((acc, f) => acc + f.reliability, 0) / mockDataFeeds.length).toFixed(2)}%
-          </p>
         </div>
       </div>
 
       {/* Category Filters */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1 border-b border-gray-200 pb-4">
         {categories.map((category) => (
           <button
             key={category.id}
             onClick={() => setSelectedCategory(category.id)}
             className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
               selectedCategory === category.id
-                ? 'bg-blue-600 text-white'
-                : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                ? 'text-gray-900 bg-gray-100'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
             {category.label}
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-              selectedCategory === category.id ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
+            <span className={`text-xs ${
+              selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
             }`}>
               {category.count}
             </span>
@@ -149,8 +144,8 @@ export function ChainlinkDataFeedsView() {
       </div>
 
       {/* Data Table */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
+      <div>
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('chainlink.dataFeeds.title') || 'Data Feeds'}
         </h3>
         <ChainlinkDataTable 
@@ -159,12 +154,12 @@ export function ChainlinkDataFeedsView() {
         />
       </div>
 
-      {/* 数据喂送说明 */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+      {/* About Section */}
+      <div className="pt-6 border-t border-gray-200">
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('chainlink.dataFeeds.about') || 'About Data Feeds'}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">{t('chainlink.dataFeeds.updateFrequency') || 'Update Frequency'}:</span>
