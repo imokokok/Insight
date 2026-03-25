@@ -3,17 +3,15 @@
 import { useTranslations } from '@/i18n';
 import { ChronicleNetworkStats, ValidatorNetwork } from '@/lib/oracles/chronicle';
 import { DashboardCard } from '../common/DashboardCard';
-import {
-  Network,
-  Activity,
-  Zap,
-  Shield,
-  Users,
-  Globe,
-  Clock,
-  TrendingUp,
-  Server,
-} from 'lucide-react';
+import { Network } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Zap } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Server } from 'lucide-react';
 
 interface ChronicleNetworkPanelProps {
   networkStats: ChronicleNetworkStats;

@@ -4,7 +4,9 @@ import { useMemo } from 'react';
 import { Blockchain } from '@/types/oracle';
 import { chainNames, chainColors } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
+import { Minus } from 'lucide-react';
 
 interface ChainPriceData {
   chain: Blockchain;

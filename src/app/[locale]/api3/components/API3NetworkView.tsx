@@ -2,7 +2,12 @@
 
 import { useTranslations } from '@/i18n';
 import { API3NetworkViewProps } from '../types';
-import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Server } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
 
 export function API3NetworkView({
   config,

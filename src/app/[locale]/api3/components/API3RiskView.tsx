@@ -16,18 +16,16 @@ import {
   TimelineEvent,
 } from '@/components/oracle/charts/TimelineChart';
 import { chartColors } from '@/lib/config/colors';
-import {
-  Shield,
-  AlertTriangle,
-  CheckCircle,
-  Award,
-  Info,
-  ChevronDown,
-  ChevronUp,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-} from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { Award } from 'lucide-react';
+import { Info } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
+import { Minus } from 'lucide-react';
 import { API3RiskViewProps } from '../types';
 
 // 历史风险事件

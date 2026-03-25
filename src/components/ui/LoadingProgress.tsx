@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslations } from '@/i18n';
 

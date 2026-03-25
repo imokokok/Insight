@@ -3,16 +3,14 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useTranslations } from '@/i18n';
 import { WINkLinkRiskMetrics } from '@/lib/oracles/winklink';
-import {
-  Shield,
-  AlertTriangle,
-  TrendingUp,
-  Activity,
-  Globe,
-  Zap,
-  Server,
-  Gamepad2,
-} from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { Zap } from 'lucide-react';
+import { Server } from 'lucide-react';
+import { Gamepad2 } from 'lucide-react';
 import { DataFreshnessIndicator } from '@/components/oracle/common/DataFreshnessIndicator';
 import { RiskScoreCard } from '@/components/oracle/common/RiskScoreCard';
 import { SecurityTimeline } from '@/components/oracle/common/SecurityTimeline';

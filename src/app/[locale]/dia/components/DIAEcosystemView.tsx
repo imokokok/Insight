@@ -15,21 +15,19 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import {
-  Building2,
-  Wallet,
-  ArrowRightLeft,
-  TrendingUp,
-  Shield,
-  Sprout,
-  Layers,
-  ExternalLink,
-  CheckCircle2,
-  AlertCircle,
-  FlaskConical,
-  Globe,
-  Zap,
-} from 'lucide-react';
+import { Building2 } from 'lucide-react';
+import { Wallet } from 'lucide-react';
+import { ArrowRightLeft } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { Sprout } from 'lucide-react';
+import { Layers } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { FlaskConical } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // TVL Trend Data (12 months)

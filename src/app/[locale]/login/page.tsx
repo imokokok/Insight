@@ -5,7 +5,14 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
 import { useTranslations, useLocale } from '@/i18n';
-import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle, MailWarning } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import { Eye } from 'lucide-react';
+import { EyeOff } from 'lucide-react';
+import { LogIn } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { MailWarning } from 'lucide-react';
 import { Button } from '@/components/ui';
 
 interface ErrorInfo {

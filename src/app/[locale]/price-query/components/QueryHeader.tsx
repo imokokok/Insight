@@ -7,7 +7,11 @@
 
 import { useTranslations } from '@/i18n';
 import { useState } from 'react';
-import { History, Download, FileSpreadsheet, FileJson, Settings2 } from 'lucide-react';
+import { History } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { FileSpreadsheet } from 'lucide-react';
+import { FileJson } from 'lucide-react';
+import { Settings2 } from 'lucide-react';
 import { QueryHistoryItem } from '@/utils/queryHistory';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { FavoriteButton } from '@/components/favorites';

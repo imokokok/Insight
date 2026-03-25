@@ -4,7 +4,12 @@ import { useState } from 'react';
 import { useTranslations } from '@/i18n';
 import { useDIACustomFeeds, useDIADataTransparency } from '@/hooks';
 import { formatDistanceToNow } from 'date-fns';
-import { Activity, CheckCircle2, Database, Shield, TrendingUp, Clock } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
+import { Database } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 const categories = [
   { id: 'all', label: 'All' },

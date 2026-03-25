@@ -10,19 +10,18 @@ import React, {
   type CSSProperties,
 } from 'react';
 import { useTranslations } from '@/i18n';
-import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  GripVertical,
-  Settings2,
-  Check,
-  AlignJustify,
-  Rows3,
-  LayoutList,
-} from 'lucide-react';
+import { ArrowUpDown } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
+import { GripVertical } from 'lucide-react';
+import { Settings2 } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { AlignJustify } from 'lucide-react';
+import { Rows3 } from 'lucide-react';
+import { LayoutList } from 'lucide-react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@/lib/utils';
-import { baseColors, semanticColors } from '@/lib/config/colors';
+import { semanticColors } from '@/lib/config/colors';
 
 // ============================================
 // Type Definitions
@@ -372,12 +371,12 @@ export function DataTablePro<T extends Record<string, unknown>>({
 }: DataTableProProps<T>) {
   const t = useTranslations('dataTable');
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig[]>([]);
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>({});
   const [resizingColumn, setResizingColumn] = useState<string | null>(null);
   const [startX, setStartX] = useState(0);
   const [startWidth, setStartWidth] = useState(0);
-  const [scrollTop, setScrollTop] = useState(0);
   const [density, setDensity] = useState<'compact' | 'normal' | 'comfortable'>(initialDensity);
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
     () => new Set(columns.map((c) => c.key))
@@ -615,46 +614,20 @@ export function DataTablePro<T extends Record<string, unknown>>({
   );
 
   // ============================================
-  // Virtual Scrolling Logic
+  // Virtual Scrolling with @tanstack/react-virtual
   // ============================================
 
-  const visibleRowCount = useMemo(() => {
-    if (!virtualScroll) return sortedData.length;
-    return Math.ceil(maxHeight / (rowHeight || densityConfig.rowHeight)) + 2;
-  }, [virtualScroll, maxHeight, rowHeight, densityConfig.rowHeight, sortedData.length]);
+  const currentRowHeight = rowHeight || densityConfig.rowHeight;
 
-  const startIndex = useMemo(() => {
-    if (!virtualScroll) return 0;
-    return Math.floor(scrollTop / (rowHeight || densityConfig.rowHeight));
-  }, [virtualScroll, scrollTop, rowHeight, densityConfig.rowHeight]);
+  const virtualizer = useVirtualizer({
+    count: virtualScroll ? sortedData.length : 0,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => currentRowHeight,
+    overscan: 5,
+    enabled: virtualScroll,
+  });
 
-  const endIndex = useMemo(() => {
-    if (!virtualScroll) return sortedData.length;
-    return Math.min(startIndex + visibleRowCount, sortedData.length);
-  }, [virtualScroll, startIndex, visibleRowCount, sortedData.length]);
-
-  const visibleData = useMemo(() => {
-    if (!virtualScroll) return sortedData;
-    return sortedData.slice(startIndex, endIndex);
-  }, [virtualScroll, sortedData, startIndex, endIndex]);
-
-  const handleScroll = useCallback(
-    (e: React.UIEvent<HTMLDivElement>) => {
-      if (!virtualScroll) return;
-      setScrollTop(e.currentTarget.scrollTop);
-    },
-    [virtualScroll]
-  );
-
-  const totalHeight = useMemo(() => {
-    if (!virtualScroll) return 'auto';
-    return sortedData.length * (rowHeight || densityConfig.rowHeight);
-  }, [virtualScroll, sortedData.length, rowHeight, densityConfig.rowHeight]);
-
-  const offsetY = useMemo(() => {
-    if (!virtualScroll) return 0;
-    return startIndex * (rowHeight || densityConfig.rowHeight);
-  }, [virtualScroll, startIndex, rowHeight, densityConfig.rowHeight]);
+  const virtualItems = virtualizer.getVirtualItems();
 
   // ============================================
   // Fixed Columns Logic
@@ -820,15 +793,15 @@ export function DataTablePro<T extends Record<string, unknown>>({
 
       {/* Table Container */}
       <div
+        ref={scrollRef}
         className={cn('overflow-auto', virtualScroll && 'overflow-y-auto')}
         style={{ maxHeight: virtualScroll ? maxHeight : undefined }}
-        onScroll={handleScroll}
       >
         <table className="w-full border-collapse">
           {/* Header */}
           <thead className="sticky top-0 z-30">
             <tr className="bg-gray-50">
-              {visibleColumnsList.map((column, index) => {
+              {visibleColumnsList.map((column) => {
                 const isFixedLeft = isColumnFixed(column.key, 'left');
                 const isFixedRight = isColumnFixed(column.key, 'right');
                 const stickyStyle = getColumnStickyStyle(column.key);
@@ -882,88 +855,136 @@ export function DataTablePro<T extends Record<string, unknown>>({
           </thead>
 
           {/* Body */}
-          <tbody>
-            {virtualScroll && (
-              <tr style={{ height: offsetY }}>
-                <td colSpan={visibleColumnsList.length} />
-              </tr>
-            )}
+          <tbody
+            style={
+              virtualScroll
+                ? {
+                    height: `${virtualizer.getTotalSize()}px`,
+                    position: 'relative',
+                  }
+                : undefined
+            }
+          >
+            {virtualScroll
+              ? // Virtual scrolling rendering
+                virtualItems.map((virtualItem) => {
+                  const row = sortedData[virtualItem.index];
+                  const actualIndex = virtualItem.index;
 
-            {visibleData.map((row, rowIndex) => {
-              const actualIndex = virtualScroll
-                ? startIndex + rowIndex
-                : rowIndex;
+                  return (
+                    <tr
+                      key={virtualItem.key}
+                      data-index={virtualItem.index}
+                      ref={virtualizer.measureElement}
+                      className={cn(
+                        'transition-colors duration-150',
+                        onRowClick && 'cursor-pointer hover:bg-gray-50',
+                        'border-b border-gray-100 last:border-b-0'
+                      )}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: `${virtualItem.size}px`,
+                        transform: `translateY(${virtualItem.start}px)`,
+                      }}
+                      onClick={() => onRowClick?.(row, actualIndex)}
+                    >
+                      {visibleColumnsList.map((column) => {
+                        const isFixedLeft = isColumnFixed(column.key, 'left');
+                        const isFixedRight = isColumnFixed(column.key, 'right');
+                        const stickyStyle = getColumnStickyStyle(column.key);
+                        const value = getNestedValue(row, column.key);
+                        const conditionalFormattingResult = getCellConditionalClass(
+                          column.key,
+                          value
+                        );
+                        const width = columnWidths[column.key] || column.width || 150;
+                        const alignClass = getAlignClass(column.align);
 
-              return (
-                <tr
-                  key={actualIndex}
-                  className={cn(
-                    'transition-colors duration-150',
-                    onRowClick && 'cursor-pointer hover:bg-gray-50',
-                    'border-b border-gray-100 last:border-b-0'
-                  )}
-                  style={{
-                    height: virtualScroll
-                      ? rowHeight || densityConfig.rowHeight
-                      : undefined,
-                  }}
-                  onClick={() => onRowClick?.(row, actualIndex)}
-                >
-                  {visibleColumnsList.map((column, colIndex) => {
-                    const isFixedLeft = isColumnFixed(column.key, 'left');
-                    const isFixedRight = isColumnFixed(column.key, 'right');
-                    const stickyStyle = getColumnStickyStyle(column.key);
-                    const value = getNestedValue(row, column.key);
-                    const conditionalFormattingResult = getCellConditionalClass(
-                      column.key,
-                      value
-                    );
-                    const width = columnWidths[column.key] || column.width || 150;
-                    const alignClass = getAlignClass(column.align);
+                        return (
+                          <td
+                            key={column.key}
+                            className={cn(
+                              densityConfig.cellPadding,
+                              densityConfig.fontSize,
+                              'text-gray-900 border-gray-100',
+                              alignClass,
+                              isFixedLeft &&
+                                'sticky left-0 z-10 bg-white shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]',
+                              isFixedRight &&
+                                'sticky right-0 z-10 bg-white shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.1)]',
+                              conditionalFormattingResult.className,
+                              onRowClick && 'group-hover:bg-gray-50'
+                            )}
+                            style={{
+                              ...stickyStyle,
+                              ...conditionalFormattingResult.style,
+                              width,
+                              minWidth: column.minWidth || 50,
+                              maxWidth: column.maxWidth,
+                            }}
+                          >
+                            <div className="truncate">{renderCell(column, row)}</div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })
+              : // Normal rendering without virtualization
+                sortedData.map((row, rowIndex) => (
+                  <tr
+                    key={rowIndex}
+                    className={cn(
+                      'transition-colors duration-150',
+                      onRowClick && 'cursor-pointer hover:bg-gray-50',
+                      'border-b border-gray-100 last:border-b-0'
+                    )}
+                    onClick={() => onRowClick?.(row, rowIndex)}
+                  >
+                    {visibleColumnsList.map((column) => {
+                      const isFixedLeft = isColumnFixed(column.key, 'left');
+                      const isFixedRight = isColumnFixed(column.key, 'right');
+                      const stickyStyle = getColumnStickyStyle(column.key);
+                      const value = getNestedValue(row, column.key);
+                      const conditionalFormattingResult = getCellConditionalClass(
+                        column.key,
+                        value
+                      );
+                      const width = columnWidths[column.key] || column.width || 150;
+                      const alignClass = getAlignClass(column.align);
 
-                    return (
-                      <td
-                        key={column.key}
-                        className={cn(
-                          densityConfig.cellPadding,
-                          densityConfig.fontSize,
-                          'text-gray-900 border-gray-100',
-                          alignClass,
-                          isFixedLeft &&
-                            'sticky left-0 z-10 bg-white shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]',
-                          isFixedRight &&
-                            'sticky right-0 z-10 bg-white shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.1)]',
-                          conditionalFormattingResult.className,
-                          onRowClick && 'group-hover:bg-gray-50'
-                        )}
-                        style={{
-                          ...stickyStyle,
-                          ...conditionalFormattingResult.style,
-                          width,
-                          minWidth: column.minWidth || 50,
-                          maxWidth: column.maxWidth,
-                        }}
-                      >
-                        <div className="truncate">{renderCell(column, row)}</div>
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-
-            {virtualScroll && (
-              <tr
-                style={{
-                  height:
-                    (totalHeight as number) -
-                    offsetY -
-                    visibleData.length * (rowHeight || densityConfig.rowHeight),
-                }}
-              >
-                <td colSpan={visibleColumnsList.length} />
-              </tr>
-            )}
+                      return (
+                        <td
+                          key={column.key}
+                          className={cn(
+                            densityConfig.cellPadding,
+                            densityConfig.fontSize,
+                            'text-gray-900 border-gray-100',
+                            alignClass,
+                            isFixedLeft &&
+                              'sticky left-0 z-10 bg-white shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]',
+                            isFixedRight &&
+                              'sticky right-0 z-10 bg-white shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.1)]',
+                            conditionalFormattingResult.className,
+                            onRowClick && 'group-hover:bg-gray-50'
+                          )}
+                          style={{
+                            ...stickyStyle,
+                            ...conditionalFormattingResult.style,
+                            width,
+                            minWidth: column.minWidth || 50,
+                            maxWidth: column.maxWidth,
+                          }}
+                        >
+                          <div className="truncate">{renderCell(column, row)}</div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
           </tbody>
         </table>
       </div>

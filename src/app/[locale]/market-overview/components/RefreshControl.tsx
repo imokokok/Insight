@@ -3,7 +3,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import { RefreshCw, Clock, Check } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { DropdownSelect } from '@/components/ui';
 
 interface RefreshControlProps {

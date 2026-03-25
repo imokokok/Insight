@@ -4,7 +4,10 @@ import { PriceStreamPoint } from '@/lib/oracles/tellor';
 import { useTranslations } from '@/i18n';
 import { useEffect, useRef } from 'react';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { TrendingUp, TrendingDown, Activity, Clock } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface TellorPriceStreamPanelProps {
   data: PriceStreamPoint[];

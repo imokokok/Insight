@@ -17,7 +17,9 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { TrendingUp, Eye, EyeOff } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Eye } from 'lucide-react';
+import { EyeOff } from 'lucide-react';
 import { QueryResult } from '../constants';
 import { CustomTooltip } from './CustomTooltip';
 import { ChartSkeleton } from '@/components/ui';

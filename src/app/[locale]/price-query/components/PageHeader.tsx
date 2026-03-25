@@ -4,7 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from '@/i18n';
 import { QueryHistoryItem } from '@/utils/queryHistory';
 import { OracleProvider, Blockchain } from '@/types/oracle';
-import { Heart, Download, RefreshCw } from 'lucide-react';
+import { Heart } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 interface PageHeaderProps {
   showHistory: boolean;

@@ -4,7 +4,15 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from '@/i18n';
-import { Home, BarChart3, Search, Bell, Settings, Menu, X, Heart, Activity } from 'lucide-react';
+import { Home } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Bell } from 'lucide-react';
+import { Settings } from 'lucide-react';
+import { Menu } from 'lucide-react';
+import { X } from 'lucide-react';
+import { Heart } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 import { Icon } from '@/components/ui';
 

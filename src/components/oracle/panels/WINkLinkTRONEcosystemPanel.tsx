@@ -3,17 +3,15 @@
 import { useTranslations } from '@/i18n';
 import { TRONEcosystem, TRONNetworkGrowth } from '@/lib/oracles/winklink';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import {
-  Zap,
-  Users,
-  Activity,
-  Gamepad2,
-  Coins,
-  Image,
-  MessageSquare,
-  TrendingUp,
-  TrendingDown,
-} from 'lucide-react';
+import { Zap } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Gamepad2 } from 'lucide-react';
+import { Coins } from 'lucide-react';
+import { Image } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
 
 interface WINkLinkTRONEcosystemPanelProps {
   data: TRONEcosystem & {

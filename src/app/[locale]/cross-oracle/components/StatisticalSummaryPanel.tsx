@@ -13,7 +13,11 @@ import {
   ComposedChart,
   ReferenceLine,
 } from 'recharts';
-import { TrendingUp, BarChart3, Activity, Sigma, Target } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Sigma } from 'lucide-react';
+import { Target } from 'lucide-react';
 import type { PriceData } from '@/types/oracle';
 
 interface StatisticalSummaryPanelProps {

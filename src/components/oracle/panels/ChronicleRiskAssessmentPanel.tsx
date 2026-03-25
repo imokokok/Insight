@@ -10,16 +10,14 @@ import {
 } from '@/components/oracle/common';
 import { ScuttlebuttData } from '@/lib/oracles/chronicle';
 import type { MitigationMeasure } from '@/types/risk';
-import {
-  Shield,
-  AlertTriangle,
-  CheckCircle,
-  TrendingDown,
-  Activity,
-  Lock,
-  FileCheck,
-  Clock,
-} from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import { FileCheck } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface ChronicleRiskData {
   overallRiskScore: number;

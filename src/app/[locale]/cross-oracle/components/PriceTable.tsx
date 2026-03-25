@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import React, { useMemo, useState, useCallback, useEffect, memo } from 'react';
 import { DataTablePro, type ColumnDef, type SortConfig } from '@/components/ui';
 import { OracleProvider, PriceData } from '@/types/oracle';
 import {
@@ -51,7 +51,35 @@ interface PriceTableRow extends Record<string, unknown> {
   originalIndex: number;
 }
 
-export function PriceTable({
+// Custom comparison function for PriceTable props
+function arePropsEqual(prevProps: PriceTableProps, nextProps: PriceTableProps): boolean {
+  // Compare primitive props
+  if (prevProps.isLoading !== nextProps.isLoading) return false;
+  if (prevProps.sortColumn !== nextProps.sortColumn) return false;
+  if (prevProps.sortDirection !== nextProps.sortDirection) return false;
+  if (prevProps.expandedRow !== nextProps.expandedRow) return false;
+  if (prevProps.selectedRowIndex !== nextProps.selectedRowIndex) return false;
+  if (prevProps.hoveredRowIndex !== nextProps.hoveredRowIndex) return false;
+  if (prevProps.avgPrice !== nextProps.avgPrice) return false;
+  if (prevProps.standardDeviation !== nextProps.standardDeviation) return false;
+  if (prevProps.onSort !== nextProps.onSort) return false;
+  if (prevProps.onExpandRow !== nextProps.onExpandRow) return false;
+  if (prevProps.onSetHoveredRow !== nextProps.onSetHoveredRow) return false;
+  if (prevProps.onHoverOracle !== nextProps.onHoverOracle) return false;
+  if (prevProps.t !== nextProps.t) return false;
+
+  // Compare arrays by length and reference (shallow check)
+  if (prevProps.priceData.length !== nextProps.priceData.length) return false;
+  if (prevProps.filteredPriceData.length !== nextProps.filteredPriceData.length) return false;
+  if (prevProps.validPrices.length !== nextProps.validPrices.length) return false;
+
+  // Compare chartColors by reference
+  if (prevProps.chartColors !== nextProps.chartColors) return false;
+
+  return true;
+}
+
+function PriceTableComponent({
   filteredPriceData,
   isLoading,
   sortColumn: _sortColumn,
@@ -503,3 +531,6 @@ export function PriceTable({
     </div>
   );
 }
+
+// Export memoized component
+export const PriceTable = memo(PriceTableComponent, arePropsEqual);

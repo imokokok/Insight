@@ -5,7 +5,12 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { ProtocolDetail } from '../types';
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import { Layers, ExternalLink, Search, ChevronUp, ChevronDown, Building2 } from 'lucide-react';
+import { Layers } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { DropdownSelect, SelectorOption } from '@/components/ui';
 
 interface ProtocolListProps {

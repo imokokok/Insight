@@ -7,7 +7,11 @@ import {
   GamingCategoryDistribution,
 } from '@/lib/oracles/winklink';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { Gamepad2, Dices, Clock, DollarSign, Zap } from 'lucide-react';
+import { Gamepad2 } from 'lucide-react';
+import { Dices } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 interface WINkLinkGamingDataPanelProps {
   data: WINkLinkGamingData & {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import { Blockchain, OracleProvider, BLOCKCHAIN_VALUES } from '@/types/oracle';
 import { chainNames, chainColors, getChainsByCategory, getChainCategory } from '@/lib/constants';
 import { oracleConfigs } from '@/lib/config/oracles';
@@ -25,7 +25,39 @@ const categoryLabels: Record<string, string> = {
   cosmos: 'Cosmos',
 };
 
-export function ChainSelector({
+// Custom comparison function for ChainSelector props
+function arePropsEqual(prevProps: ChainSelectorProps, nextProps: ChainSelectorProps): boolean {
+  // Compare primitive props
+  if (prevProps.allowMultiSelect !== nextProps.allowMultiSelect) return false;
+  if (prevProps.filterByType !== nextProps.filterByType) return false;
+  if (prevProps.showOracleCount !== nextProps.showOracleCount) return false;
+  if (prevProps.className !== nextProps.className) return false;
+  if (prevProps.placeholder !== nextProps.placeholder) return false;
+  if (prevProps.onChainsChange !== nextProps.onChainsChange) return false;
+
+  // Compare arrays by length and content
+  if (prevProps.selectedChains.length !== nextProps.selectedChains.length) return false;
+  for (let i = 0; i < prevProps.selectedChains.length; i++) {
+    if (prevProps.selectedChains[i] !== nextProps.selectedChains[i]) {
+      return false;
+    }
+  }
+
+  // Compare supportedChains
+  if (prevProps.supportedChains !== nextProps.supportedChains) {
+    if (!prevProps.supportedChains || !nextProps.supportedChains) return false;
+    if (prevProps.supportedChains.length !== nextProps.supportedChains.length) return false;
+    for (let i = 0; i < prevProps.supportedChains.length; i++) {
+      if (prevProps.supportedChains[i] !== nextProps.supportedChains[i]) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+function ChainSelectorComponent({
   selectedChains,
   onChainsChange,
   supportedChains,
@@ -65,7 +97,7 @@ export function ChainSelector({
   };
 
   // 处理链选择
-  const handleChainSelect = (chain: Blockchain) => {
+  const handleChainSelect = useCallback((chain: Blockchain) => {
     if (allowMultiSelect) {
       if (selectedChains.includes(chain)) {
         onChainsChange(selectedChains.filter((c) => c !== chain));
@@ -76,13 +108,13 @@ export function ChainSelector({
       onChainsChange([chain]);
       setIsOpen(false);
     }
-  };
+  }, [allowMultiSelect, selectedChains, onChainsChange]);
 
   // 清除选择
-  const handleClear = (e: React.MouseEvent) => {
+  const handleClear = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onChainsChange([]);
-  };
+  }, [onChainsChange]);
 
   // 获取选中链的显示文本
   const getSelectedLabel = (): string => {
@@ -237,4 +269,6 @@ export function ChainSelector({
   );
 }
 
+// Export memoized component
+export const ChainSelector = memo(ChainSelectorComponent, arePropsEqual);
 export default ChainSelector;

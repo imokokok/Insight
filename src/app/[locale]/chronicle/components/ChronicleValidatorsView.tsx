@@ -3,7 +3,13 @@
 import { useTranslations } from '@/i18n';
 import { ChronicleValidatorsViewProps } from '../types';
 import { ChronicleDataTable } from './ChronicleDataTable';
-import { Activity, Shield, Award, Server, Globe, TrendingUp, Clock } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { Award } from 'lucide-react';
+import { Server } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface ValidatorData {
   id: string;
