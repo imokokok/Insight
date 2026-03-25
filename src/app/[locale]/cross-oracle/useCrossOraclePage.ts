@@ -23,7 +23,7 @@ import { useFavorites, FavoriteConfig } from '@/hooks';
 import { useUser } from '@/stores/authStore';
 import { createLogger } from '@/lib/utils/logger';
 import { getLineStrokeDasharray } from './chartConfig';
-import { useTabNavigation } from './components/TabNavigation';
+import { useTabNavigation } from './hooks/useTabNavigation';
 import { UseCrossOraclePageReturn } from './types';
 import { usePriceStats } from './usePriceStats';
 import { useChartData } from './useChartData';
