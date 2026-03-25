@@ -108,6 +108,16 @@
     },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
+    "networkStatus": "网络状态",
+    "dataSource": "数据来源",
+    "normal": "正常",
+    "warning": "警告",
+    "networkHealth": {
+      "activePublishers": "活跃 Publishers",
+      "priceFeeds": "价格馈送",
+      "responseTime": "响应时间",
+      "confidence": "置信度"
+    },
     "publishers": {
       "title": "数据发布方",
       "stake": "质押",
