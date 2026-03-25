@@ -40,7 +40,7 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
 
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,
-    OracleProvider.BAND_PROTOCOL,
+    OracleProvider.PYTH,
   ]);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC/USD');
   const [priceData, setPriceData] = useState<PriceData[]>([]);
