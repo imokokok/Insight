@@ -14,7 +14,6 @@ import {
   RedStoneRiskView,
   RedStoneHero,
 } from './components';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { LoadingState, ErrorFallback } from '@/components/oracle';
 import { useQuery } from '@tanstack/react-query';
 import { RedStoneClient } from '@/lib/oracles/redstone';
@@ -118,12 +117,6 @@ export default function RedStonePage() {
           <RedStoneEcosystemView
             isLoading={isLoading}
           />
-        );
-      case 'cross-oracle':
-        return (
-          <div className="space-y-4">
-            <CrossOracleComparison />
-          </div>
         );
       case 'risk':
         return (

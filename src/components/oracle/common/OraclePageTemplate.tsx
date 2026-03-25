@@ -24,7 +24,6 @@ import {
   EcosystemPanel,
   PriceStream,
   UpdateFrequencyHeatmap,
-  CrossOracleComparison,
   AccuracyAnalysisPanel,
   ConfidenceIntervalChart,
   PublisherContributionPanel,
@@ -337,8 +336,6 @@ export function OraclePageTemplate({
         return getTitle('risk');
       case 'cross-chain':
         return getTitle('crossChain');
-      case 'cross-oracle':
-        return getTitle('crossOracle');
       default:
         return '';
     }
@@ -443,16 +440,7 @@ export function OraclePageTemplate({
     return null;
   };
 
-  const renderProviderSpecificCrossOracleContent = () => {
-    if (panelConfig.renderCrossOracleTab) {
-      return panelConfig.renderCrossOracleTab(panelContext);
-    }
-    return (
-      <div className="mb-6">
-        <CrossOracleComparison />
-      </div>
-    );
-  };
+
 
   const renderProviderSpecificGamingContent = () => {
     if (panelConfig.renderGamingTab) {
@@ -636,8 +624,6 @@ export function OraclePageTemplate({
               )}
             </div>
           )}
-
-          {activeTab === 'cross-oracle' && renderProviderSpecificCrossOracleContent()}
 
           {activeTab === 'gaming' && renderProviderSpecificGamingContent()}
 

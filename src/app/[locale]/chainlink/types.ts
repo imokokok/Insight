@@ -8,7 +8,6 @@ export type ChainlinkTabId =
   | 'data-feeds'
   | 'services'
   | 'ecosystem'
-  | 'cross-oracle'
   | 'risk';
 
 export interface NetworkStats {

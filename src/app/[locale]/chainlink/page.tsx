@@ -14,7 +14,6 @@ import {
   ChainlinkEcosystemView,
   ChainlinkRiskView,
 } from './components';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { LoadingState, ErrorFallback } from '@/components/oracle';
 
 export default function ChainlinkPage() {
@@ -72,12 +71,6 @@ export default function ChainlinkPage() {
         return <ChainlinkServicesView />;
       case 'ecosystem':
         return <ChainlinkEcosystemView />;
-      case 'cross-oracle':
-        return (
-          <div className="space-y-4">
-            <CrossOracleComparison />
-          </div>
-        );
       case 'risk':
         return <ChainlinkRiskView />;
       default:

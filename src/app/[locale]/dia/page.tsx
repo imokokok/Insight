@@ -14,7 +14,6 @@ import {
   DIARiskView,
   DIAHero,
 } from './components';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { LoadingState, ErrorFallback } from '@/components/oracle';
 
 export default function DIAPage() {
@@ -72,12 +71,6 @@ export default function DIAPage() {
         return <DIAStakingView />;
       case 'ecosystem':
         return <DIAEcosystemView />;
-      case 'cross-oracle':
-        return (
-          <div className="space-y-4">
-            <CrossOracleComparison />
-          </div>
-        );
       case 'risk':
         return <DIARiskView />;
       default:

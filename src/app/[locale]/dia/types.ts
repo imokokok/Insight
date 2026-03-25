@@ -8,7 +8,6 @@ export type DIATabId =
   | 'nft-data'
   | 'staking'
   | 'ecosystem'
-  | 'cross-oracle'
   | 'risk';
 
 export interface DIANetworkStats {

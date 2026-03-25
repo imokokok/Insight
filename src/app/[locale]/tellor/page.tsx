@@ -14,7 +14,6 @@ import {
   TellorRiskView,
   TellorHero,
 } from './components';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { LoadingState, ErrorFallback } from '@/components/oracle';
 
 export default function TellorPage() {
@@ -72,12 +71,6 @@ export default function TellorPage() {
         return <TellorStakingView isLoading={isLoading} />;
       case 'ecosystem':
         return <TellorEcosystemView isLoading={isLoading} />;
-      case 'cross-oracle':
-        return (
-          <div className="space-y-4">
-            <CrossOracleComparison />
-          </div>
-        );
       case 'risk':
         return <TellorRiskView isLoading={isLoading} />;
       default:

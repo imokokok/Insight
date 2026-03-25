@@ -16,7 +16,6 @@ export type UmaTabId =
   | 'validators'
   | 'staking'
   | 'ecosystem'
-  | 'cross-oracle'
   | 'risk';
 
 export interface UMAStats {

@@ -16,7 +16,6 @@ import {
 import { BandCrossChainPanel } from '@/components/oracle';
 import { CosmosEcosystemPanel } from '@/components/oracle';
 import { BandRiskAssessmentPanel } from '@/components/oracle';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 
 const renderNetworkTab = (context: PanelRenderContext): ReactNode => {
   const { config } = context;
@@ -127,14 +126,6 @@ const renderEcosystemTab = (context: PanelRenderContext): ReactNode => {
   );
 };
 
-const renderCrossOracleTab = (context: PanelRenderContext): ReactNode => {
-  return (
-    <div className="mb-6">
-      <CrossOracleComparison />
-    </div>
-  );
-};
-
 export const bandProtocolPanelConfig: PanelConfig = {
   renderNetworkTab,
   renderValidatorsTab,
@@ -143,7 +134,6 @@ export const bandProtocolPanelConfig: PanelConfig = {
   renderCrossChainTab,
   renderRiskTab,
   renderEcosystemTab,
-  renderCrossOracleTab,
 };
 
 export default bandProtocolPanelConfig;
