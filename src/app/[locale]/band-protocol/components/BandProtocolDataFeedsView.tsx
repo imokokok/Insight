@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 
 interface DataFeed {
   id: string;
@@ -13,98 +15,104 @@ interface DataFeed {
   reliability: number;
 }
 
+const dataFeeds: DataFeed[] = [
+  {
+    id: '1',
+    name: 'BTC/USD',
+    category: 'crypto',
+    updateFrequency: '30s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 1250000,
+    reliability: 99.98,
+  },
+  {
+    id: '2',
+    name: 'ETH/USD',
+    category: 'crypto',
+    updateFrequency: '30s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 980000,
+    reliability: 99.97,
+  },
+  {
+    id: '3',
+    name: 'ATOM/USD',
+    category: 'crypto',
+    updateFrequency: '60s',
+    deviationThreshold: '1.0%',
+    status: 'active',
+    totalRequests: 650000,
+    reliability: 99.95,
+  },
+  {
+    id: '4',
+    name: 'OSMO/USD',
+    category: 'crypto',
+    updateFrequency: '60s',
+    deviationThreshold: '1.0%',
+    status: 'active',
+    totalRequests: 420000,
+    reliability: 99.94,
+  },
+  {
+    id: '5',
+    name: 'USDC/USD',
+    category: 'crypto',
+    updateFrequency: '300s',
+    deviationThreshold: '0.1%',
+    status: 'active',
+    totalRequests: 890000,
+    reliability: 99.99,
+  },
+  {
+    id: '6',
+    name: 'EUR/USD',
+    category: 'forex',
+    updateFrequency: '300s',
+    deviationThreshold: '0.2%',
+    status: 'active',
+    totalRequests: 320000,
+    reliability: 99.96,
+  },
+  {
+    id: '7',
+    name: 'GBP/USD',
+    category: 'forex',
+    updateFrequency: '300s',
+    deviationThreshold: '0.2%',
+    status: 'active',
+    totalRequests: 180000,
+    reliability: 99.95,
+  },
+  {
+    id: '8',
+    name: 'Gold/USD',
+    category: 'commodities',
+    updateFrequency: '600s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 150000,
+    reliability: 99.93,
+  },
+];
+
+const categories = [
+  { id: 'all', label: 'All', count: dataFeeds.length },
+  { id: 'crypto', label: 'Crypto', count: dataFeeds.filter(f => f.category === 'crypto').length },
+  { id: 'forex', label: 'Forex', count: dataFeeds.filter(f => f.category === 'forex').length },
+  { id: 'commodities', label: 'Commodities', count: dataFeeds.filter(f => f.category === 'commodities').length },
+  { id: 'defi', label: 'DeFi', count: dataFeeds.filter(f => f.category === 'defi').length },
+];
+
 export function BandProtocolDataFeedsView() {
   const t = useTranslations();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const dataFeeds: DataFeed[] = [
-    {
-      id: '1',
-      name: 'BTC/USD',
-      category: 'crypto',
-      updateFrequency: '30s',
-      deviationThreshold: '0.5%',
-      status: 'active',
-      totalRequests: 1250000,
-      reliability: 99.98,
-    },
-    {
-      id: '2',
-      name: 'ETH/USD',
-      category: 'crypto',
-      updateFrequency: '30s',
-      deviationThreshold: '0.5%',
-      status: 'active',
-      totalRequests: 980000,
-      reliability: 99.97,
-    },
-    {
-      id: '3',
-      name: 'ATOM/USD',
-      category: 'crypto',
-      updateFrequency: '60s',
-      deviationThreshold: '1.0%',
-      status: 'active',
-      totalRequests: 650000,
-      reliability: 99.95,
-    },
-    {
-      id: '4',
-      name: 'OSMO/USD',
-      category: 'crypto',
-      updateFrequency: '60s',
-      deviationThreshold: '1.0%',
-      status: 'active',
-      totalRequests: 420000,
-      reliability: 99.94,
-    },
-    {
-      id: '5',
-      name: 'USDC/USD',
-      category: 'crypto',
-      updateFrequency: '300s',
-      deviationThreshold: '0.1%',
-      status: 'active',
-      totalRequests: 890000,
-      reliability: 99.99,
-    },
-    {
-      id: '6',
-      name: 'EUR/USD',
-      category: 'forex',
-      updateFrequency: '300s',
-      deviationThreshold: '0.2%',
-      status: 'active',
-      totalRequests: 320000,
-      reliability: 99.96,
-    },
-    {
-      id: '7',
-      name: 'GBP/USD',
-      category: 'forex',
-      updateFrequency: '300s',
-      deviationThreshold: '0.2%',
-      status: 'active',
-      totalRequests: 180000,
-      reliability: 99.95,
-    },
-    {
-      id: '8',
-      name: 'Gold/USD',
-      category: 'commodities',
-      updateFrequency: '600s',
-      deviationThreshold: '0.5%',
-      status: 'active',
-      totalRequests: 150000,
-      reliability: 99.93,
-    },
-  ];
-
-  const stats = [
-    { label: t('bandProtocol.dataFeeds.totalFeeds'), value: '180+' },
-    { label: t('bandProtocol.dataFeeds.activeFeeds'), value: '175' },
-    { label: t('bandProtocol.dataFeeds.avgReliability'), value: '99.95%' },
-    { label: t('bandProtocol.dataFeeds.avgUpdateFreq'), value: '60s' },
-  ];
+  const filteredFeeds = selectedCategory === 'all'
+    ? dataFeeds
+    : dataFeeds.filter(feed => feed.category === selectedCategory);
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -118,22 +126,75 @@ export function BandProtocolDataFeedsView() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{stat.label}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+    <div className="space-y-8">
+      {/* Stats Row */}
+      <div className="flex flex-wrap items-center gap-6 md:gap-8">
+        <div className="flex items-center gap-3">
+          <Activity className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.dataFeeds.total')}</p>
+            <p className="text-xl font-semibold text-gray-900">{dataFeeds.length}</p>
           </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.dataFeeds.active')}</p>
+            <p className="text-xl font-semibold text-emerald-600">
+              {dataFeeds.filter(f => f.status === 'active').length}
+            </p>
+          </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <TrendingUp className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.dataFeeds.totalRequests')}</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {(dataFeeds.reduce((acc, f) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
+            </p>
+          </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <Clock className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.dataFeeds.avgReliability')}</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {(dataFeeds.reduce((acc, f) => acc + f.reliability, 0) / dataFeeds.length).toFixed(2)}%
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Category Filters */}
+      <div className="flex flex-wrap gap-1 border-b border-gray-200 pb-4">
+        {categories.map((category) => (
+          <button
+            key={category.id}
+            onClick={() => setSelectedCategory(category.id)}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              selectedCategory === category.id
+                ? 'text-gray-900 bg-gray-100'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            {category.label}
+            <span className={`text-xs ${
+              selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
+            }`}>
+              {category.count}
+            </span>
+          </button>
         ))}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('bandProtocol.dataFeeds.availableFeeds')}
-          </h3>
-        </div>
+      {/* Data Table */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+          {t('bandProtocol.dataFeeds.title')}
+        </h3>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -162,14 +223,14 @@ export function BandProtocolDataFeedsView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {dataFeeds.map((feed) => (
+              {filteredFeeds.map((feed) => (
                 <tr key={feed.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <span className="text-sm font-medium text-gray-900">{feed.name}</span>
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${getCategoryColor(
+                      className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${getCategoryColor(
                         feed.category
                       )}`}
                     >
@@ -201,19 +262,16 @@ export function BandProtocolDataFeedsView() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {feed.status === 'active' ? (
-                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded-full">
-                        {t('bandProtocol.dataFeeds.active')}
-                      </span>
-                    ) : feed.status === 'paused' ? (
-                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-100 rounded-full">
-                        {t('bandProtocol.dataFeeds.paused')}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-full">
-                        {t('bandProtocol.dataFeeds.deprecated')}
-                      </span>
-                    )}
+                    <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+                      feed.status === 'active' ? 'text-emerald-600' :
+                      feed.status === 'paused' ? 'text-amber-600' : 'text-red-600'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        feed.status === 'active' ? 'bg-emerald-500' :
+                        feed.status === 'paused' ? 'bg-amber-500' : 'bg-red-500'
+                      }`} />
+                      {feed.status.charAt(0).toUpperCase() + feed.status.slice(1)}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -222,96 +280,31 @@ export function BandProtocolDataFeedsView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">
-            {t('bandProtocol.dataFeeds.categoryDistribution')}
-          </h3>
-          <div className="space-y-2">
-            {[
-              { category: 'crypto', count: 120, percentage: 67 },
-              { category: 'forex', count: 35, percentage: 19 },
-              { category: 'commodities', count: 15, percentage: 8 },
-              { category: 'defi', count: 8, percentage: 4 },
-              { category: 'equities', count: 2, percentage: 2 },
-            ].map((item) => (
-              <div key={item.category}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600 capitalize">{item.category}</span>
-                  <span className="font-medium">{item.count}</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div
-                    className="bg-purple-500 h-2 rounded-full"
-                    style={{ width: `${item.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+      {/* About Section */}
+      <div className="pt-6 border-t border-gray-200">
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+          {t('bandProtocol.dataFeeds.about')}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
+          <div>
+            <p className="mb-2">
+              <span className="font-medium text-gray-900">{t('bandProtocol.dataFeeds.updateFrequency')}:</span>
+              {' '}{t('bandProtocol.dataFeeds.frequencyDesc')}
+            </p>
+            <p>
+              <span className="font-medium text-gray-900">{t('bandProtocol.dataFeeds.deviationThreshold')}:</span>
+              {' '}{t('bandProtocol.dataFeeds.thresholdDesc')}
+            </p>
           </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">
-            {t('bandProtocol.dataFeeds.updateFrequency')}
-          </h3>
-          <div className="space-y-3">
-            {[
-              { freq: '10s', count: 25, label: 'High Frequency' },
-              { freq: '30s', count: 45, label: 'Standard' },
-              { freq: '60s', count: 60, label: 'Regular' },
-              { freq: '300s', count: 35, label: 'Low Frequency' },
-              { freq: '600s+', count: 15, label: 'Batch Updates' },
-            ].map((item) => (
-              <div key={item.freq} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{item.freq}</p>
-                  <p className="text-xs text-gray-500">{item.label}</p>
-                </div>
-                <span className="text-sm font-medium text-purple-600">{item.count} feeds</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">
-            {t('bandProtocol.dataFeeds.dataQuality')}
-          </h3>
-          <div className="space-y-3">
-            <div className="p-3 bg-emerald-50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-600">✓</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {t('bandProtocol.dataFeeds.multiSource')}
-                </span>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                {t('bandProtocol.dataFeeds.multiSourceDesc')}
-              </p>
-            </div>
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <span className="text-blue-600">⚡</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {t('bandProtocol.dataFeeds.fastFinality')}
-                </span>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                {t('bandProtocol.dataFeeds.finalityDesc')}
-              </p>
-            </div>
-            <div className="p-3 bg-purple-50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <span className="text-purple-600">🛡️</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {t('bandProtocol.dataFeeds.tendermint')}
-                </span>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                {t('bandProtocol.dataFeeds.tendermintDesc')}
-              </p>
-            </div>
+          <div>
+            <p className="mb-2">
+              <span className="font-medium text-gray-900">{t('bandProtocol.dataFeeds.reliability')}:</span>
+              {' '}{t('bandProtocol.dataFeeds.reliabilityDesc')}
+            </p>
+            <p>
+              <span className="font-medium text-gray-900">{t('bandProtocol.dataFeeds.decentralization')}:</span>
+              {' '}{t('bandProtocol.dataFeeds.decentralizationDesc')}
+            </p>
           </div>
         </div>
       </div>

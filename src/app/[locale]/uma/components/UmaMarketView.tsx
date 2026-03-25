@@ -3,13 +3,12 @@
 import { useTranslations } from 'next-intl';
 import { PriceChart } from '@/components/oracle';
 import { UmaMarketViewProps } from '../types';
+import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield, Scale } from 'lucide-react';
 
 export function UmaMarketView({
   config,
   price,
-  historicalData,
   networkStats,
-  isLoading,
 }: UmaMarketViewProps) {
   const t = useTranslations();
 
@@ -44,43 +43,39 @@ export function UmaMarketView({
     { 
       label: t('uma.stats.activeValidators'), 
       value: `${networkStats?.activeValidators ?? 850}+`, 
-      status: 'healthy' as const 
+      status: 'healthy' as const,
+      icon: Server 
     },
     { 
       label: t('uma.stats.totalDisputes'), 
       value: `${networkStats?.totalDisputes ?? 1250}+`, 
-      status: 'healthy' as const 
+      status: 'healthy' as const,
+      icon: Scale 
     },
     { 
       label: t('uma.stats.disputeSuccessRate'), 
       value: `${networkStats?.disputeSuccessRate ?? 78}%`, 
-      status: 'healthy' as const 
+      status: 'healthy' as const,
+      icon: Shield 
     },
     { 
       label: t('uma.stats.avgResolutionTime'), 
       value: `${networkStats?.avgResolutionTime ?? 4.2}h`, 
-      status: 'healthy' as const 
+      status: 'healthy' as const,
+      icon: Clock 
     },
   ];
 
   return (
-    <div className="space-y-4">
-      {/* 主内容区域 - 使用 items-stretch 让左右两侧等高 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+    <div className="space-y-8">
+      {/* 主内容区域 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
         {/* 左侧价格趋势图表 - 占2列 */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-4 flex flex-col">
+        <div className="lg:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900">
+            <h3 className="text-base font-medium text-gray-900">
               {t('uma.priceTrend')}
             </h3>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-gray-900">
-                ${currentPrice.toFixed(2)}
-              </span>
-              <span className={`text-sm font-medium ${priceChange24h >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                {priceChange24h >= 0 ? '+' : ''}{priceChange24h.toFixed(2)}%
-              </span>
-            </div>
           </div>
           <div className="flex-1">
             <PriceChart
@@ -94,30 +89,34 @@ export function UmaMarketView({
           </div>
         </div>
 
-        {/* 右侧三个卡片 - 使用flex布局自动填充高度 */}
-        <div className="flex flex-col gap-4">
-          {/* 快速统计卡片 */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 flex-1 flex flex-col">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+        {/* 右侧统计区域 */}
+        <div className="flex flex-col gap-8">
+          {/* 快速统计 */}
+          <div className="flex-1 flex flex-col">
+            <h3 className="text-base font-medium text-gray-900 mb-4">
               {t('uma.quickStats')}
             </h3>
-            <div className="flex-1 flex flex-col justify-between">
+            <div className="flex-1 flex flex-col">
               {stats.map((stat, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                  className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
                 >
-                  <span className="text-sm text-gray-600">{stat.label}</span>
+                  <span className="text-sm text-gray-500">{stat.label}</span>
                   <div className="text-right">
                     <span
-                      className={`text-sm font-semibold ${
+                      className={`text-sm font-medium ${
                         stat.highlight ? 'text-emerald-600' : 'text-gray-900'
                       }`}
                     >
                       {stat.value}
                     </span>
                     {stat.change && (
-                      <span className="text-xs text-emerald-600 ml-2">
+                      <span className={`text-xs ml-2 ${
+                        stat.change.startsWith('+') 
+                          ? 'text-emerald-600' 
+                          : 'text-red-600'
+                      }`}>
                         {stat.change}
                       </span>
                     )}
@@ -127,39 +126,40 @@ export function UmaMarketView({
             </div>
           </div>
 
-          {/* 网络状态卡片 */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 flex-1 flex flex-col">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          {/* 网络状态 - 内联布局 */}
+          <div className="flex-1 flex flex-col">
+            <h3 className="text-base font-medium text-gray-900 mb-4">
               {t('uma.networkStatus')}
             </h3>
-            <div className="flex-1 grid grid-cols-2 gap-3">
-              {networkStatus.map((item, index) => (
-                <div key={index} className="flex flex-col items-center justify-center py-2">
-                  <p className="text-xs text-gray-500 mb-1">{item.label}</p>
-                  <p className="text-sm font-semibold text-gray-900">{item.value}</p>
-                  <div className="flex items-center justify-center gap-1 mt-1">
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        item.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'
-                      }`}
-                    />
-                    <span className="text-xs text-gray-500">
-                      {item.status === 'healthy'
-                        ? t('uma.normal')
-                        : t('uma.warning')}
-                    </span>
+            <div className="flex-1 flex flex-col gap-3">
+              {networkStatus.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-500">{item.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900">{item.value}</span>
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          item.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'
+                        }`}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          {/* 数据来源卡片 */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 flex-1 flex flex-col">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          {/* 数据来源 */}
+          <div className="flex-1 flex flex-col">
+            <h3 className="text-base font-medium text-gray-900 mb-4">
               {t('uma.dataSource')}
             </h3>
-            <div className="flex-1 flex flex-col justify-between gap-2">
+            <div className="flex-1 flex flex-col">
               {[
                 { name: 'UMA Market', status: 'active', latency: '150ms' },
                 { name: 'Ethereum Mainnet', status: 'active', latency: '300ms' },
@@ -168,20 +168,61 @@ export function UmaMarketView({
               ].map((source, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-md"
+                  className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0"
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className={`w-2 h-2 rounded-full ${
+                      className={`w-1.5 h-1.5 rounded-full ${
                         source.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
                       }`}
                     />
                     <span className="text-sm text-gray-700">{source.name}</span>
                   </div>
-                  <span className="text-xs text-gray-500 font-mono">{source.latency}</span>
+                  <span className="text-xs text-gray-400 font-mono">{source.latency}</span>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 核心交易对信息 */}
+      <div>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('uma.tradingPair') || '主要交易对'}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div>
+            <p className="text-xs text-gray-400 mb-1">UMA/USDC</p>
+            <p className="text-2xl font-semibold text-gray-900">${currentPrice.toFixed(2)}</p>
+            <div className="flex items-center gap-1 mt-1">
+              {priceChange24h >= 0 ? (
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+              ) : (
+                <TrendingDown className="w-3.5 h-3.5 text-red-600" />
+              )}
+              <span className={`text-sm ${priceChange24h >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {priceChange24h >= 0 ? '+' : ''}{priceChange24h.toFixed(2)}%
+              </span>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-1">{t('uma.volume24h')}</p>
+            <p className="text-2xl font-semibold text-gray-900">${(config.marketData.volume24h / 1e6).toFixed(1)}M</p>
+            <p className="text-sm text-emerald-600 mt-1">+8.2%</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-1">{t('uma.liquidity')}</p>
+            <p className="text-2xl font-semibold text-gray-900">$28.5M</p>
+            <p className="text-sm text-emerald-600 mt-1">+3.5%</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-1">{t('uma.marketDepth')}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-2xl font-semibold text-gray-900">7.8</span>
+              <span className="text-sm text-gray-400">/10</span>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">{t('uma.depthScore')}</p>
           </div>
         </div>
       </div>

@@ -296,8 +296,8 @@ export function ChainlinkRiskView() {
                   <Radar
                     name="Band"
                     dataKey="band"
-                    stroke={chartColors.oracle.band}
-                    fill={chartColors.oracle.band}
+                    stroke={chartColors.oracle['band-protocol']}
+                    fill={chartColors.oracle['band-protocol']}
                     fillOpacity={0.1}
                     strokeWidth={1.5}
                   />

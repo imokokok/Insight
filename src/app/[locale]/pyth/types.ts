@@ -89,3 +89,49 @@ export interface PythPriceFeedsViewProps {
 export interface PythRiskViewProps {
   isLoading: boolean;
 }
+
+// Price Feed types
+export interface PriceFeed {
+  id: string;
+  name: string;
+  category: 'crypto' | 'forex' | 'commodities' | 'equities';
+  updateFrequency: string;
+  deviationThreshold: string;
+  status: 'active' | 'paused' | 'deprecated';
+  totalRequests: number;
+  reliability: number;
+}
+
+// Risk analysis types
+export interface RiskMetric {
+  id: string;
+  name: string;
+  value: number;
+  max: number;
+  description: string;
+  status: 'low' | 'medium' | 'high';
+  trend: 'up' | 'down' | 'stable';
+}
+
+export interface RiskFactor {
+  category: string;
+  level: 'low' | 'medium' | 'high';
+  description: string;
+  details: string[];
+}
+
+export interface TimelineEvent {
+  date: string;
+  title: string;
+  description: string;
+  type: 'success' | 'warning' | 'info' | 'error';
+}
+
+// Benchmark comparison data
+export interface BenchmarkData {
+  metric: string;
+  pyth: number;
+  chainlink: number;
+  band: number;
+  api3: number;
+}

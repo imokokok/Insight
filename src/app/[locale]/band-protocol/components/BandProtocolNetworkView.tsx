@@ -1,14 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { NetworkHealthPanel } from '@/components/oracle';
 import { BandProtocolNetworkViewProps } from '../types';
 import type { BandNetworkStats } from '@/lib/oracles/bandProtocol';
+import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
 export function BandProtocolNetworkView({
   config,
   networkStats,
-  isLoading,
 }: BandProtocolNetworkViewProps) {
   const t = useTranslations();
 
@@ -19,25 +18,29 @@ export function BandProtocolNetworkView({
       label: t('bandProtocol.network.activeValidators'),
       value: data?.activeValidators?.toLocaleString() || '70',
       change: '+2%',
-      status: 'healthy',
+      trend: 'up' as const,
+      icon: Server,
     },
     {
       label: t('bandProtocol.network.stakingRatio'),
       value: `${data?.stakingRatio?.toFixed(1) || '51.5'}%`,
       change: '+1.2%',
-      status: 'healthy',
+      trend: 'up' as const,
+      icon: Activity,
     },
     {
       label: t('bandProtocol.network.blockTime'),
       value: `${data?.blockTime?.toFixed(1) || '2.8'}s`,
       change: '-5%',
-      status: 'healthy',
+      trend: 'down' as const,
+      icon: Clock,
     },
     {
       label: t('bandProtocol.network.inflationRate'),
       value: `${data?.inflationRate?.toFixed(1) || '8.5'}%`,
       change: null,
-      status: 'healthy',
+      trend: null,
+      icon: CheckCircle,
     },
   ];
 
@@ -46,58 +49,70 @@ export function BandProtocolNetworkView({
     14800, 14400, 13900, 14100, 14500, 15000, 14700, 13200, 11800, 9800, 7800, 6500,
   ];
 
+  const overviewStats = [
+    { label: t('bandProtocol.network.blockHeight') || 'Block Height', value: data?.latestBlockHeight?.toLocaleString() || '15,500,000' },
+    { label: t('bandProtocol.network.totalValidators') || 'Total Validators', value: data?.totalValidators?.toLocaleString() || '80' },
+    { label: t('bandProtocol.network.bondedTokens') || 'Bonded Tokens', value: `${((data?.bondedTokens || 85000000) / 1e6).toFixed(1)}M BAND` },
+    { label: t('bandProtocol.network.communityPool') || 'Community Pool', value: `${((data?.communityPool || 550000) / 1e3).toFixed(1)}K BAND` },
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((metric, index) => (
-          <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{metric.label}</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
-              {metric.change && (
-                <span className={`text-sm font-medium ${
-                  metric.change.startsWith('+') ? 'text-emerald-600' : 'text-blue-600'
-                }`}>
-                  {metric.change}
-                </span>
-              )}
+    <div className="space-y-8">
+      {/* 核心网络指标 - 简洁统计布局 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {metrics.map((metric, index) => {
+          const Icon = metric.icon;
+          const TrendIcon = metric.trend === 'up' ? TrendingUp : TrendingDown;
+          return (
+            <div key={index} className="py-2">
+              <div className="flex items-center gap-2 text-gray-500 mb-1">
+                <Icon className="w-4 h-4" />
+                <span className="text-sm">{metric.label}</span>
+              </div>
+              <div className="flex items-baseline gap-3">
+                <p className="text-3xl font-semibold text-gray-900 tracking-tight">{metric.value}</p>
+                {metric.change && (
+                  <div className={`flex items-center gap-0.5 text-sm font-medium ${
+                    metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
+                  }`}>
+                    <TrendIcon className="w-3.5 h-3.5" />
+                    <span>{metric.change}</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className={`w-1.5 h-1.5 rounded-full ${
-                metric.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'
-              }`} />
-              <span className="text-xs text-gray-500">
-                {metric.status === 'healthy' ? t('chainlink.normal') : t('chainlink.warning')}
-              </span>
-            </div>
+          );
+        })}
+      </div>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 网络性能概览 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* 每小时活动 - 简化容器 */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-medium text-gray-900">
+              {t('chainlink.network.hourlyActivity')}
+            </h3>
+            <span className="text-sm text-gray-500">24h</span>
           </div>
-        ))}
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <NetworkHealthPanel config={config.networkData} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('chainlink.network.hourlyActivity')}
-          </h3>
-          <div className="h-48 flex items-end gap-1">
+          <div className="h-40 flex items-end gap-0.5">
             {hourlyActivity.map((value, index) => {
               const max = Math.max(...hourlyActivity);
               const height = (value / max) * 100;
               return (
                 <div
                   key={index}
-                  className="flex-1 bg-purple-100 hover:bg-purple-200 transition-colors rounded-t"
-                  style={{ height: `${height}%` }}
+                  className="flex-1 bg-purple-500/20 hover:bg-purple-500/30 transition-colors rounded-t"
+                  style={{ height: `${Math.max(height, 8)}%` }}
                   title={`${value.toLocaleString()} requests`}
                 />
               );
             })}
           </div>
-          <div className="flex justify-between text-xs text-gray-500 mt-2">
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
             <span>00:00</span>
             <span>06:00</span>
             <span>12:00</span>
@@ -106,80 +121,67 @@ export function BandProtocolNetworkView({
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+        {/* 网络性能指标 - 简洁进度条 */}
+        <div>
+          <h3 className="text-base font-medium text-gray-900 mb-5">
             {t('chainlink.network.performance')}
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <div className="flex justify-between text-sm mb-1">
+              <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.successRate')}</span>
-                <span className="font-medium">99.85%</span>
+                <span className="font-medium text-gray-900">99.85%</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '99.85%' }} />
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '99.85%' }} />
               </div>
             </div>
             <div>
-              <div className="flex justify-between text-sm mb-1">
+              <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.availability')}</span>
-                <span className="font-medium">99.99%</span>
+                <span className="font-medium text-gray-900">99.99%</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="bg-purple-500 h-2 rounded-full" style={{ width: '99.99%' }} />
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: '99.99%' }} />
               </div>
             </div>
             <div>
-              <div className="flex justify-between text-sm mb-1">
+              <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.latency')}</span>
-                <span className="font-medium">150ms avg</span>
+                <span className="font-medium text-gray-900">150ms avg</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="bg-amber-500 h-2 rounded-full" style={{ width: '75%' }} />
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '75%' }} />
               </div>
             </div>
             <div>
-              <div className="flex justify-between text-sm mb-1">
+              <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('bandProtocol.network.stakingParticipation')}</span>
-                <span className="font-medium">51.5%</span>
+                <span className="font-medium text-gray-900">51.5%</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '51.5%' }} />
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '51.5%' }} />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('bandProtocol.network.cosmosMetrics')}
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 网络统计摘要 - 简洁行内布局 */}
+      <div>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('bandProtocol.network.cosmosMetrics') || 'Network Overview'}
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500">{t('bandProtocol.network.blockHeight')}</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {data?.latestBlockHeight?.toLocaleString() || '15,500,000'}
-            </p>
-          </div>
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500">{t('bandProtocol.network.totalValidators')}</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {data?.totalValidators || '80'}
-            </p>
-          </div>
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500">{t('bandProtocol.network.bondedTokens')}</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {((data?.bondedTokens || 85000000) / 1e6).toFixed(1)}M BAND
-            </p>
-          </div>
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500">{t('bandProtocol.network.communityPool')}</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {((data?.communityPool || 550000) / 1e3).toFixed(1)}K BAND
-            </p>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {overviewStats.map((stat, index) => (
+            <div key={index}>
+              <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
+              <p className="text-xl font-semibold text-gray-900">{stat.value}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
