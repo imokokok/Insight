@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl';
 import { useDIANetworkStats, useDIADataSourceVerification } from '@/hooks/useDIAData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Shield,
@@ -18,8 +17,8 @@ import {
 
 export function DIARiskView() {
   const t = useTranslations('dia');
-  const { data: networkStats, isLoading: isStatsLoading } = useDIANetworkStats();
-  const { data: verificationData, isLoading: isVerificationLoading } = useDIADataSourceVerification();
+  const { networkStats, isLoading: isStatsLoading } = useDIANetworkStats();
+  const { dataSourceVerification: verificationData, isLoading: isVerificationLoading } = useDIADataSourceVerification();
 
   const getRiskLevelColor = (level: string) => {
     switch (level?.toLowerCase()) {
@@ -155,17 +154,14 @@ export function DIARiskView() {
           {/* 整体风险等级 */}
           <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">{t('risk.overallLevel')}</span>
-            <Badge
-              variant="outline"
-              className={`px-3 py-1 text-sm font-medium ${getRiskLevelColor(
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full border ${getRiskLevelColor(
                 networkStats?.riskLevel ?? 'low'
               )}`}
             >
-              <span className="flex items-center gap-1.5">
-                {getRiskLevelIcon(networkStats?.riskLevel ?? 'low')}
-                {t(`risk.level.${networkStats?.riskLevel ?? 'low'}`)}
-              </span>
-            </Badge>
+              {getRiskLevelIcon(networkStats?.riskLevel ?? 'low')}
+              {t(`risk.level.${networkStats?.riskLevel ?? 'low'}`)}
+            </span>
           </div>
 
           {/* 风险因素列表 */}
@@ -179,12 +175,11 @@ export function DIARiskView() {
                 <span className="text-sm text-gray-600">
                   {t(`risk.factor.${factor.key}`)}
                 </span>
-                <Badge
-                  variant="outline"
-                  className={`text-xs ${getRiskLevelColor(factor.severity)}`}
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${getRiskLevelColor(factor.severity)}`}
                 >
                   {t(`risk.severity.${factor.severity}`)}
-                </Badge>
+                </span>
               </div>
             ))}
           </div>
@@ -208,7 +203,7 @@ export function DIARiskView() {
             </div>
           ) : (
             <div className="space-y-3">
-              {(verificationData?.sources ?? []).map((source: { name: string; status: string; lastVerified: string }, index: number) => (
+              {(verificationData ?? []).map((source: { sourceId: string; status: string; timestamp: number }, index: number) => (
                 <div
                   key={index}
                   className="flex items-center justify-between p-3 border border-gray-100 rounded-md"
@@ -224,16 +219,15 @@ export function DIARiskView() {
                       }`}
                     />
                     <span className="text-sm font-medium text-gray-700">
-                      {source.name}
+                      {source.sourceId}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-xs text-gray-400">
-                      {t('risk.lastVerified')}: {source.lastVerified}
+                      {t('risk.lastVerified')}: {new Date(source.timestamp).toLocaleDateString()}
                     </span>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs ${
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${
                         source.status === 'verified'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           : source.status === 'pending'
@@ -242,7 +236,7 @@ export function DIARiskView() {
                       }`}
                     >
                       {t(`risk.status.${source.status}`)}
-                    </Badge>
+                    </span>
                   </div>
                 </div>
               ))}

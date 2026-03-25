@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { NetworkHealthPanel } from '@/components/oracle';
 import { BandProtocolNetworkViewProps } from '../types';
+import type { BandNetworkStats } from '@/lib/oracles/bandProtocol';
 
 export function BandProtocolNetworkView({
   config,
@@ -11,7 +12,7 @@ export function BandProtocolNetworkView({
 }: BandProtocolNetworkViewProps) {
   const t = useTranslations();
 
-  const data = networkStats || config.networkData.bandProtocolMetrics;
+  const data = (networkStats || config.networkData.bandProtocolMetrics) as BandNetworkStats | undefined;
 
   const metrics = [
     {
@@ -22,7 +23,7 @@ export function BandProtocolNetworkView({
     },
     {
       label: t('bandProtocol.network.stakingRatio'),
-      value: `${data?.stakingRate?.toFixed(1) || '51.5'}%`,
+      value: `${data?.stakingRatio?.toFixed(1) || '51.5'}%`,
       change: '+1.2%',
       status: 'healthy',
     },
@@ -158,7 +159,7 @@ export function BandProtocolNetworkView({
           <div className="p-3 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-500">{t('bandProtocol.network.blockHeight')}</p>
             <p className="text-lg font-semibold text-gray-900">
-              {data?.blockHeight?.toLocaleString() || '15,500,000'}
+              {data?.latestBlockHeight?.toLocaleString() || '15,500,000'}
             </p>
           </div>
           <div className="p-3 bg-gray-50 rounded-lg">

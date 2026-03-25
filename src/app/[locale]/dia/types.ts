@@ -18,6 +18,12 @@ export interface DIANetworkStats {
   avgResponseTime: number;
   latency: number;
   hourlyActivity?: number[];
+  // Risk view properties
+  uptime?: number;
+  dataQuality?: number;
+  oracleDiversity?: number;
+  avgConfidence?: number;
+  riskLevel?: 'low' | 'medium' | 'high';
 }
 
 export interface DIAPageState {

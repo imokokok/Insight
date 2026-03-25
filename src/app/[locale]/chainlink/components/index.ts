@@ -9,3 +9,13 @@ export { ChainlinkServicesView } from './ChainlinkServicesView';
 export { ChainlinkEcosystemView } from './ChainlinkEcosystemView';
 export { ChainlinkRiskView } from './ChainlinkRiskView';
 export { ChainlinkDataTable } from './ChainlinkDataTable';
+
+// Enhanced Network Components
+export { NodeGeographicDistribution } from './NodeGeographicDistribution';
+export { RealtimeThroughputMonitor } from './RealtimeThroughputMonitor';
+export { NetworkTopologyOverview } from './NetworkTopologyOverview';
+
+// Enhanced Node Components
+export { NodeEarningsPanel } from './NodeEarningsPanel';
+export { NodePerformanceTrends } from './NodePerformanceTrends';
+export { StakingRewardsCalculator } from './StakingRewardsCalculator';
