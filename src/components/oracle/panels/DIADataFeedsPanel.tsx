@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { CustomFeed, DataSourceTransparency } from '@/lib/oracles/dia';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Blockchain } from '@/types/oracle/enums';
 import { DashboardCard } from '@/components/oracle';
 

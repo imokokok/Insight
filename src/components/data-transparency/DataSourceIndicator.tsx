@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import { Shield, ShieldCheck, ShieldAlert, ShieldX, Info } from 'lucide-react';
 import Image from 'next/image';

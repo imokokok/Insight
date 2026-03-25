@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 import { updateUserProfile } from '@/lib/supabase/auth';
 import { User, Mail, Save, Key, Loader2, CheckCircle } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 // AvatarUploader component placeholder
 const AvatarUploader = ({
   currentAvatarUrl,

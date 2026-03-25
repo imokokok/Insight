@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 

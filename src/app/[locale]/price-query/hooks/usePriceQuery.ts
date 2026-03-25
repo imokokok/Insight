@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { usePreferences } from '@/hooks';
 import {
   OracleProvider,
@@ -27,7 +27,7 @@ import {
 import { parseQueryParams, updateUrlParams, QueryConfig } from '@/utils/urlParams';
 import { QueryResult, providerNames, chainNames, oracleI18nKeys } from '../constants';
 import { createLogger } from '@/lib/utils/logger';
-import { useFavorites, FavoriteConfig } from '@/hooks/useFavorites';
+import { useFavorites, FavoriteConfig } from '@/hooks';
 import { useUser } from '@/stores/authStore';
 
 const logger = createLogger('price-query-hook');

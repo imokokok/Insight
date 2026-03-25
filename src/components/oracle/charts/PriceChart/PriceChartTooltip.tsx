@@ -1,8 +1,8 @@
 'use client';
 
 import { memo } from 'react';
-import { useTranslations } from 'next-intl';
-import { IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
+import { useTranslations } from '@/i18n';
+import { IndicatorDataPoint } from '@/hooks';
 import { ChartType } from './priceChartConfig';
 import { semanticColors } from '@/lib/config/colors';
 

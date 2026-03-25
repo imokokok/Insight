@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
 import { SortField, SortDirection, FilterStatus, statusConfig } from './config';

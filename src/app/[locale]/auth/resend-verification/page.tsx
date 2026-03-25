@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Mail, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 

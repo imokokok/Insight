@@ -3,7 +3,7 @@
 import { useState, useEffect, ReactNode, useCallback } from 'react';
 import { DashboardCard } from '../../common/DashboardCard';
 import { UMAClient, ValidatorData, ValidatorHistoryData } from '@/lib/oracles/uma';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ValidatorPerformanceHeatmap } from '../../charts/ValidatorPerformanceHeatmap';
 import { ValidatorComparison } from '../../charts/ValidatorComparison';
 import { StakingCalculator } from '../../common/StakingCalculator';
@@ -19,7 +19,7 @@ import {
   VALIDATOR_TYPE_STYLES,
   VALIDATOR_TYPE_LABELS,
 } from './config';
-import { SegmentedControl } from '@/components/ui/selectors';
+import { SegmentedControl } from '@/components/ui';
 import { formatNumber } from '@/lib/utils/format';
 
 const logger = createLogger('ValidatorAnalyticsPanel');

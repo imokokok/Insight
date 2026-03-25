@@ -14,7 +14,7 @@ import {
 import { DashboardCard } from '../common/DashboardCard';
 import { TooltipProps } from '@/types/ui/recharts';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 
 interface TrendDataPoint {

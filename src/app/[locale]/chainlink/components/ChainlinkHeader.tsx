@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChainlinkHeaderProps } from '../types';
 
 export function ChainlinkHeader({

@@ -16,7 +16,7 @@ import {
 import { Blockchain } from '@/lib/oracles';
 import { chainNames, chainColors } from '../utils';
 import { ChartDataPoint } from '../constants';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { ChartToolbar, TimeRange } from '@/components/charts/ChartToolbar';
 

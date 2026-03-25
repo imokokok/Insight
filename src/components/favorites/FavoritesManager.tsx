@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useUser } from '@/stores/authStore';
-import { useFavorites, FavoriteConfig, mapConfigTypeFromDB } from '@/hooks/useFavorites';
+import { useFavorites, FavoriteConfig, mapConfigTypeFromDB } from '@/hooks';
 import { FavoriteCard } from './FavoriteCard';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import type { UserFavorite } from '@/lib/supabase/queries';

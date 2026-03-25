@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleProvider, PriceData } from '@/types/oracle';
 import { oracleColors } from '@/components/oracle/charts/CrossOracleComparison/crossOracleConfig';
 

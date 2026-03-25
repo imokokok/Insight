@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { PriceChart } from '@/components/oracle';
 import { PythClient } from '@/lib/oracles/pythNetwork';
 import { PythMarketViewProps } from '../types';

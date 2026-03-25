@@ -3,7 +3,7 @@
 import { OracleProvider } from '@/types/oracle';
 import { oracleNames, TimeRange, DeviationFilter, timeRanges } from '../constants';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { DropdownSelect } from '@/components/ui';
 
 interface FilterPanelProps {
   isOpen: boolean;

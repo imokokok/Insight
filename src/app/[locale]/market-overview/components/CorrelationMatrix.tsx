@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { CorrelationData, CorrelationPair } from '../types';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { BarChart3, Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { semanticColors, baseColors } from '@/lib/config/colors';
-import { SegmentedControl } from '@/components/ui/selectors';
+import { SegmentedControl } from '@/components/ui';
 
 import { chartColors, getChartColor } from '@/lib/chartColors';
 

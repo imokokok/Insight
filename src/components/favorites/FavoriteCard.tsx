@@ -3,8 +3,8 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { UserFavorite } from '@/lib/supabase/queries';
-import { mapConfigTypeFromDB, FavoriteConfig, useRemoveFavorite } from '@/hooks/useFavorites';
-import { useTranslations } from 'next-intl';
+import { mapConfigTypeFromDB, FavoriteConfig, useRemoveFavorite } from '@/hooks';
+import { useTranslations } from '@/i18n';
 
 interface FavoriteCardProps {
   favorite: UserFavorite;

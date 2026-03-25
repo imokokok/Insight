@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { UMAClient } from '@/lib/oracles/uma';
 import { DashboardCard } from './DashboardCard';
-import { SegmentedControl } from '@/components/ui/selectors';
+import { SegmentedControl } from '@/components/ui';
 
 const umaClient = new UMAClient();
 

@@ -62,8 +62,7 @@ function loadTranslations(messagesDir) {
       messages.common = content;
       Object.assign(messages, content);
     } else if (namespace === 'components/export') {
-      // export.json 使用 unifiedExport 作为命名空间
-      messages.unifiedExport = content;
+      Object.assign(messages, content);
     } else {
       Object.assign(messages, content);
     }

@@ -3,7 +3,7 @@
 import { OracleHero, StatItem } from '@/components/oracle/common/OracleHero';
 import { OracleConfig } from '@/lib/config/oracles';
 import { PriceData } from '@/types/oracle';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import {
   TrendingUp,
   TrendingDown,

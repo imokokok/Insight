@@ -11,10 +11,10 @@ import {
   RefreshCw,
   DollarSign,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
 import { updateUserProfile } from '@/lib/supabase/auth';
-import { DropdownSelect, SegmentedControl } from '@/components/ui/selectors';
+import { DropdownSelect, SegmentedControl } from '@/components/ui';
 
 interface UserPreferences {
   defaultOracle: string;

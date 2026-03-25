@@ -17,7 +17,7 @@ import { ChainComparison } from '../charts/ChainComparison';
 import { RequestTypeDistribution } from '../common/RequestTypeDistribution';
 import { CrossChainTrendChart } from '../charts/CrossChainTrendChart';
 import { DataExportButton, ExportDataRow } from '../forms/DataExportButton';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import {
   chainColors,
   chartColors,

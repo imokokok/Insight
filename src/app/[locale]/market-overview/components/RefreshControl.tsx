@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { RefreshCw, Clock, Check } from 'lucide-react';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { DropdownSelect } from '@/components/ui';
 
 interface RefreshControlProps {
   lastUpdated?: Date;

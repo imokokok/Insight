@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { ChartSkeleton, MiniChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { ChartSkeleton, MiniChartSkeleton } from '@/components/ui';
 
 import { chartColors, getChartColor } from '@/lib/chartColors';
 

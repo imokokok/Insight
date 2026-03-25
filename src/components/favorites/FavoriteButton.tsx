@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useUser } from '@/stores/authStore';
-import { useToggleFavorite, useIsFavorited, FavoriteConfig } from '@/hooks/useFavorites';
+import { useToggleFavorite, useIsFavorited, FavoriteConfig } from '@/hooks';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import { createLogger } from '@/lib/utils/logger';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import OraclePrefetchCard from './OraclePrefetchCard';
 import {
@@ -32,7 +32,7 @@ import {
   ChevronRight,
   Info,
 } from 'lucide-react';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { ChartSkeleton } from '@/components/ui';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 

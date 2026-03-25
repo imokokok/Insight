@@ -10,7 +10,7 @@ import {
   FullscreenChart,
   StatsSection,
 } from './components';
-import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
+import { LiveStatusBar } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
 
 export default function CrossOraclePage() {

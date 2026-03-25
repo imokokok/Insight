@@ -12,8 +12,8 @@ import {
   ResponsiveContainer,
   ReferenceDot,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
-import { AccuracyTrendPoint } from '@/hooks/usePriceHistory';
+import { useTranslations } from '@/i18n';
+import { AccuracyTrendPoint } from '@/hooks';
 import { chartColors, baseColors } from '@/lib/config/colors';
 
 

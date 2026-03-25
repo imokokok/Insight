@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { MetricCardSkeleton } from '@/components/ui/ChartSkeleton';
+import { MetricCardSkeleton } from '@/components/ui';
 
 export const DynamicBentoMetricsGrid = dynamic(
   () => import('./BentoMetricsGrid').then((mod) => mod.default),

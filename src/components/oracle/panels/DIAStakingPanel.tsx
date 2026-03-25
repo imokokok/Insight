@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { StakingDetails } from '@/lib/oracles/dia';
 import { DashboardCard } from '@/components/oracle';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
 interface DIAStakingPanelProps {
   stakingDetails: StakingDetails | undefined;

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from './DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 
 export interface OraclePerformanceData {

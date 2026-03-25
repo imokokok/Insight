@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { UMAClient, DataQualityScore } from '@/lib/oracles/uma';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { createLogger } from '@/lib/utils/logger';
 import { UMAScoreExplanationModal } from './UMAScoreExplanationModal';
 import { chartColors, semanticColors } from '@/lib/config/colors';

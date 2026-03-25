@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { MarketDepth, MarketDepthLevel } from '@/lib/oracles/tellor';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { BarChart3, ArrowUp, ArrowDown } from 'lucide-react';

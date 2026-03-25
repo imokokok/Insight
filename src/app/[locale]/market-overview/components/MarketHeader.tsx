@@ -1,9 +1,9 @@
 'use client';
 
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { BarChart3 } from 'lucide-react';
-import { LiveStatusBar } from '@/components/ui/LiveStatusBar';
+import { LiveStatusBar } from '@/components/ui';
 import UnifiedExportSection from './UnifiedExportSection';
 import RefreshControl from './RefreshControl';
 import RealtimeIndicator from './RealtimeIndicator';

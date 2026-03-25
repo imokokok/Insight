@@ -9,88 +9,110 @@ async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
   try {
     const common = (await import(`./messages/${locale}/common.json`)).default;
     Object.assign(messages, common);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/common.json`, error);
+    }
   }
 
   // Load navigation
   try {
     const navigation = (await import(`./messages/${locale}/navigation.json`)).default;
     Object.assign(messages, navigation);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/navigation.json`, error);
+    }
   }
 
   // Load home
   try {
     const home = (await import(`./messages/${locale}/home.json`)).default;
     Object.assign(messages, home);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/home.json`, error);
+    }
   }
 
   // Load ui
   try {
     const ui = (await import(`./messages/${locale}/ui.json`)).default;
     Object.assign(messages, ui);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/ui.json`, error);
+    }
   }
 
   // Load marketOverview
   try {
     const marketOverview = (await import(`./messages/${locale}/marketOverview.json`)).default;
     Object.assign(messages, marketOverview);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/marketOverview.json`, error);
+    }
   }
 
   // Load priceQuery
   try {
     const priceQuery = (await import(`./messages/${locale}/priceQuery.json`)).default;
     Object.assign(messages, priceQuery);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/priceQuery.json`, error);
+    }
   }
 
   // Load comparison
   try {
     const comparison = (await import(`./messages/${locale}/comparison.json`)).default;
     Object.assign(messages, comparison);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/comparison.json`, error);
+    }
   }
 
   // Load crossOracle
   try {
     const crossOracle = (await import(`./messages/${locale}/crossOracle.json`)).default;
     Object.assign(messages, crossOracle);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/crossOracle.json`, error);
+    }
   }
 
   // Load crossChain
   try {
     const crossChain = (await import(`./messages/${locale}/crossChain.json`)).default;
     Object.assign(messages, crossChain);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/crossChain.json`, error);
+    }
   }
 
   // Load dataQuality
   try {
     const dataQuality = (await import(`./messages/${locale}/dataQuality.json`)).default;
     Object.assign(messages, dataQuality);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/dataQuality.json`, error);
+    }
   }
 
   // Load dataTransparency
   try {
     const dataTransparency = (await import(`./messages/${locale}/dataTransparency.json`)).default;
     Object.assign(messages, dataTransparency);
-  } catch {
-    // ignore
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/dataTransparency.json`, error);
+    }
   }
 
   // Load oracle files
@@ -111,8 +133,10 @@ async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
     try {
       const oracleMessages = (await import(`./messages/${locale}/oracles/${oracle}.json`)).default;
       Object.assign(messages, oracleMessages);
-    } catch {
-      // ignore
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[i18n] Failed to load messages: ${locale}/oracles/${oracle}.json`, error);
+      }
     }
   }
 
@@ -123,17 +147,21 @@ async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
       const componentMessages = (await import(`./messages/${locale}/components/${component}.json`))
         .default;
       Object.assign(messages, componentMessages);
-    } catch {
-      // ignore
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[i18n] Failed to load messages: ${locale}/components/${component}.json`, error);
+      }
     }
   }
 
-  // Load export with namespace
+  // Load export
   try {
     const exportMessages = (await import(`./messages/${locale}/components/export.json`)).default;
-    messages.unifiedExport = exportMessages;
-  } catch {
-    // ignore
+    Object.assign(messages, exportMessages);
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Failed to load messages: ${locale}/components/export.json`, error);
+    }
   }
 
   // Load feature files
@@ -143,8 +171,10 @@ async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
       const featureMessages = (await import(`./messages/${locale}/features/${feature}.json`))
         .default;
       Object.assign(messages, featureMessages);
-    } catch {
-      // ignore
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[i18n] Failed to load messages: ${locale}/features/${feature}.json`, error);
+      }
     }
   }
 

@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 import { DashboardCard } from '../common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { formatNumber } from '@/lib/utils/format';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
 
 export type VotePosition = 'for' | 'against' | 'abstain';
 

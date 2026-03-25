@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
 

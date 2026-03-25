@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { TellorReportersViewProps, ReporterData } from '../types';
 import { TellorDataTable } from './TellorDataTable';
 import { Activity, Clock, Shield, Award, Globe, Server, TrendingUp } from 'lucide-react';

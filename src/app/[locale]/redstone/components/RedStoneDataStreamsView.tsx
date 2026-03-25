@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Database, Clock, DollarSign, Users, Zap, Shield, TrendingUp } from 'lucide-react';
 import { RedStoneDataStreamsViewProps } from '../types';
 

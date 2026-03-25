@@ -15,7 +15,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DashboardCard, RiskScoreCard } from '@/components/oracle/common';
 import {
   DataFreshnessIndicator,
@@ -32,7 +32,7 @@ import {
   calculateOverallScore,
   formatLatency,
 } from '@/lib/utils/riskUtils';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
 
 

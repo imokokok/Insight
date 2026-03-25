@@ -6,7 +6,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, Filter, X } from 'lucide-react';
 import { QueryResult, PriceData, oracleI18nKeys } from '../constants';
 import { OracleProvider, Blockchain } from '@/lib/oracles';

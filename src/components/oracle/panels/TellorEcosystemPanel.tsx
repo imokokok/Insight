@@ -1,7 +1,7 @@
 'use client';
 
 import { EcosystemStats, EcosystemProtocol } from '@/lib/oracles/tellor';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle';
 
 interface TellorEcosystemPanelProps {

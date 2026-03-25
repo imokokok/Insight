@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { useKeyboardShortcuts, useGlobalKeyboardListener } from '@/hooks/useKeyboardShortcuts';
+import { useTranslations } from '@/i18n';
+import { useKeyboardShortcuts, useGlobalKeyboardListener } from '@/hooks';
 import { useShortcutContext } from './ShortcutContext';
 import { useUIStore } from '@/stores/uiStore';
 

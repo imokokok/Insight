@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import { BandProtocolClient, ValidatorHistory, HistoryPeriod } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { ChartSkeleton } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
 
 

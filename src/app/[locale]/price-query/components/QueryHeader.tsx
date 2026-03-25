@@ -5,13 +5,13 @@
  * @description 包含页面标题、收藏夹、历史记录和导出功能
  */
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { useState } from 'react';
 import { History, Download, FileSpreadsheet, FileJson, Settings2 } from 'lucide-react';
 import { QueryHistoryItem } from '@/utils/queryHistory';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { FavoriteButton } from '@/components/favorites';
-import { FavoriteConfig } from '@/hooks/useFavorites';
+import { FavoriteConfig } from '@/hooks';
 import { useUser } from '@/stores/authStore';
 import { useRouter } from 'next/navigation';
 

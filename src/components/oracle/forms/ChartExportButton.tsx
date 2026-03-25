@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, RefObject } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import {
   exportChart,
   exportMultipleCharts,
@@ -18,7 +18,7 @@ import {
   PDFExportOptions,
   BatchExportItem,
 } from '@/utils/chartExport';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { DropdownSelect } from '@/components/ui';
 
 interface ChartExportButtonProps {
   chartRef?: RefObject<HTMLElement | HTMLDivElement | null>;

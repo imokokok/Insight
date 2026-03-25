@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale } from '@/i18n';
 import { motion } from 'framer-motion';
 import {
   X,
@@ -46,7 +46,7 @@ const formatColors: Record<ExportFormat, string> = {
 };
 
 export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportHistoryPanelProps) {
-  const t = useTranslations('unifiedExport.history');
+  const t = useTranslations('export.history');
   const locale = useLocale();
   const isZh = locale === 'zh-CN';
 

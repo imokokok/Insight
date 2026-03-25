@@ -12,7 +12,7 @@ import {
   Cell,
 } from 'recharts';
 import { BoxPlotData } from '../constants';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 
 

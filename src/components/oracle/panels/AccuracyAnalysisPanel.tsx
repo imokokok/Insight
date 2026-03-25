@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { usePriceHistory } from '@/hooks';
 import { PriceAccuracyStats } from '../common/PriceAccuracyStats';
 import { ExtremeMarketAnalysis } from '../common/ExtremeMarketAnalysis';

@@ -11,8 +11,8 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { useTranslations } from '@/i18n';
+import { ChartSkeleton } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
 
 

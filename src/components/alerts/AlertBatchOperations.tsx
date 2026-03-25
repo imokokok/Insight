@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { PriceAlert } from '@/lib/supabase/database.types';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 interface AlertBatchOperationsProps {
   selectedAlerts: string[];

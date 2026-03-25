@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { TellorRiskViewProps } from '../types';
 import { Shield, AlertTriangle, CheckCircle2, XCircle, Info } from 'lucide-react';
 

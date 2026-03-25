@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { UnifiedExport, ExportField } from '@/components/export';
 import { CrossOracleData } from '../types';
 

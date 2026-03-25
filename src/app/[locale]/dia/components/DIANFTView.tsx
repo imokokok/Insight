@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { useDIANFTData } from '@/hooks/useDIAData';
+import { useTranslations } from '@/i18n';
+import { useDIANFTData } from '@/hooks';
 import { Blockchain } from '@/types/oracle';
 import { LoadingState } from '@/components/oracle/common/LoadingState';
 import { ErrorFallback } from '@/components/oracle/common/ErrorFallback';

@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { Publisher } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 
 

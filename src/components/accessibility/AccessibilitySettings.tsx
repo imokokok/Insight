@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Contrast, Type, Palette, Monitor, Focus, RotateCcw, Check, Eye } from 'lucide-react';
 import {
   useTheme,

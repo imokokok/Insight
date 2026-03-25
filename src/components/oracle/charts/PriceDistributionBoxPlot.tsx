@@ -13,7 +13,7 @@ import {
   ZAxis,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Publisher } from '@/types/oracle';
 import { chartColors } from '@/lib/config/colors';
 

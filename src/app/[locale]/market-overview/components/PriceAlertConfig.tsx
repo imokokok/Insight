@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { PriceAlert } from '../types';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import { SegmentedControl } from '@/components/ui/selectors';
+import { SegmentedControl } from '@/components/ui';
 import {
   Bell,
   Plus,

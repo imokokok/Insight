@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/types/oracle';
 import {
   PriceComparisonData,

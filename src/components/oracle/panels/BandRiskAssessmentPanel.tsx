@@ -12,7 +12,7 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
@@ -33,7 +33,7 @@ import {
   SecurityTimeline,
   MitigationMeasuresGrid,
 } from '@/components/oracle/common';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
 
 

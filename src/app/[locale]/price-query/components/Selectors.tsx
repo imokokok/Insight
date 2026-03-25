@@ -6,12 +6,12 @@
  */
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChevronDown, ChevronUp, Search, RefreshCw } from 'lucide-react';
 import { OracleProvider, Blockchain, BLOCKCHAIN_VALUES } from '@/lib/oracles';
 import { symbols, oracleColors, chainColors, TIME_RANGES, oracleI18nKeys } from '../constants';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
-import { SegmentedControl, MultiSelect, SelectorOption } from '@/components/ui/selectors';
+import { SegmentedControl, MultiSelect, SelectorOption } from '@/components/ui';
 
 interface SelectorsProps {
   selectedOracles: OracleProvider[];

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import {
   Mail,
   Lock,

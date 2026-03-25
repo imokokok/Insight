@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { PythClient } from '@/lib/oracles/pythNetwork';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
-import { usePythAllData } from '@/hooks/usePythData';
+import { usePythAllData } from '@/hooks';
 import { PythTabId } from '../types';
 
 export function usePythPage() {

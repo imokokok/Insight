@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { useDIAEcosystem } from '@/hooks/useDIAData';
+import { useTranslations } from '@/i18n';
+import { useDIAEcosystem } from '@/hooks';
 import { useState, useMemo } from 'react';
 import {
   AreaChart,

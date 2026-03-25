@@ -11,7 +11,7 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { PriceDeviationData } from './qualityUtils';
 

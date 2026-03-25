@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { useCrossChainData } from '../useCrossChainData';
 import { chainNames, getCorrelationColor } from '../utils';
 import { useColorblindMode } from '@/stores/crossChainStore';

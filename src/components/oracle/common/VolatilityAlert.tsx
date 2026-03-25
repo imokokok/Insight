@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { semanticColors } from '@/lib/config/colors';
 
 export interface VolatilityAlertProps {

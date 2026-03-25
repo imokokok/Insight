@@ -15,7 +15,7 @@ import {
 import { OracleProvider } from '@/types/oracle';
 import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
 import { DashboardCard } from '../common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import {
   calculateSMA,
@@ -23,7 +23,7 @@ import {
   calculateBollingerBands,
   calculateRollingStdDev,
 } from '@/lib/indicators';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { DropdownSelect } from '@/components/ui';
 
 
 export interface OraclePriceHistory {

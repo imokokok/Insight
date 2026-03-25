@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
-import { ExportFormat, DataType, ExportOptions, ExportScope, Resolution } from '@/hooks/useUtils';
+import { useTranslations } from '@/i18n';
+import { ExportFormat, DataType, ExportOptions, ExportScope, Resolution } from '@/hooks';
 
 interface ExportModalProps {
   isOpen: boolean;

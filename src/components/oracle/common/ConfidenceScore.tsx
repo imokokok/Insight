@@ -15,7 +15,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 

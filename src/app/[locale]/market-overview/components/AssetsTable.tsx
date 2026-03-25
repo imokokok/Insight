@@ -1,10 +1,10 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { TrendingUp } from 'lucide-react';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { formatCompactNumber } from '@/lib/utils/format';
-import { DataTablePro, ColumnDef, ConditionalFormattingConfig } from '@/components/ui/DataTablePro';
+import { DataTablePro, ColumnDef, ConditionalFormattingConfig } from '@/components/ui';
 import { AssetData } from '../types';
 
 interface AssetsTableProps {

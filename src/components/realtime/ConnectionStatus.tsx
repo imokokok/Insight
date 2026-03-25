@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 import { ConnectionStatus } from '@/lib/supabase/realtime';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 interface ConnectionStatusIndicatorProps {
   showLabel?: boolean;

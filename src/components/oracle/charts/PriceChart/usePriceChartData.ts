@@ -14,8 +14,8 @@ import {
   DataPoint,
 } from '@/utils/downsampling';
 import { createLogger } from '@/lib/utils/logger';
-import { useTechnicalIndicators, IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
-import { useUMARealtimePrice, UMAPriceData } from '@/hooks/useUMARealtime';
+import { useTechnicalIndicators, IndicatorDataPoint } from '@/hooks';
+import { useUMARealtimePrice, UMAPriceData } from '@/hooks';
 import { DataGranularity } from './priceChartConfig';
 import {
   generateHistoricalData,

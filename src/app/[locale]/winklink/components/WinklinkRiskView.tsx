@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { WinklinkRiskViewProps } from '../types';
 import { Shield, CheckCircle } from 'lucide-react';
 

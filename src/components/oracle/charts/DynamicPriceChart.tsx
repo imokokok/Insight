@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { ChartSkeleton } from '@/components/ui';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import { Blockchain } from '@/types/oracle';
 

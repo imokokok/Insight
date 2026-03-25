@@ -1,8 +1,8 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/types/oracle';
-import { SegmentedControl, DropdownSelect } from '@/components/ui/selectors';
+import { SegmentedControl, DropdownSelect } from '@/components/ui';
 import {
   symbols,
   oracleNames,

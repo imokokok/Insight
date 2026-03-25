@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { ScheduledExport } from '../types';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Calendar, Mail, Trash2, Plus, Check, Repeat } from 'lucide-react';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
 
 interface ScheduledExportConfigProps {
   schedules: ScheduledExport[];

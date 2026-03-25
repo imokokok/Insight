@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { useCrossChainData } from '../useCrossChainData';
 import { chainNames, chainColors } from '../utils';
 import { analyzeCointegrationPairs, CointegrationPair } from '../cointegration';

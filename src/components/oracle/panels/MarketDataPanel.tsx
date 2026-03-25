@@ -6,7 +6,7 @@ import { Blockchain, OracleProvider, ConfidenceInterval } from '@/types/oracle';
 import { MetricCard } from '../common/DashboardCard';
 import { formatCurrency, formatNumber } from '@/lib/utils/format';
 import { ConfidenceIntervalDisplay } from '../common/ConfidenceIntervalDisplay';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('MarketDataPanel');

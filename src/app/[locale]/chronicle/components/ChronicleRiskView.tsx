@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChronicleRiskViewProps } from '../types';
 import { Shield, CheckCircle, Clock, AlertTriangle, CheckCircle2, AlertCircle } from 'lucide-react';
 

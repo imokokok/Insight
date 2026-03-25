@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { BandProtocolNetworkViewProps } from '../types';
 import type { BandNetworkStats } from '@/lib/oracles/bandProtocol';
 import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';

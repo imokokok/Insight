@@ -21,7 +21,7 @@ import { MovingAverageChart } from '@/components/oracle/charts/MovingAverageChar
 import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
 import { SnapshotManager } from '@/components/oracle/common/SnapshotManager';
 import { SnapshotComparison } from '@/components/oracle/common/SnapshotComparison';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { ChartSkeleton } from '@/components/ui';
 // NoDataEmptyState is not available, using EmptyState instead
 import { EmptyState } from '@/components/ui';
 import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
@@ -36,9 +36,9 @@ import UnifiedExportSection from './UnifiedExportSection';
 import { OracleComparisonSection } from './OracleComparisonSection';
 import { BenchmarkComparisonSection } from './BenchmarkComparisonSection';
 import { ChartTooltip } from './ChartTooltip';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { DropdownSelect } from '@/components/ui';
 import { TabId, TabNavigation } from './TabNavigation';
-import { ChartToolbar, TimeRange as ChartToolbarTimeRange } from '@/components/ui/ChartToolbar';
+import { ChartToolbar, TimeRange as ChartToolbarTimeRange } from '@/components/ui';
 import { ControlPanel } from './ControlPanel';
 
 

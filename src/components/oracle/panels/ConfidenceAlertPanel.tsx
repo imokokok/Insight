@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 
 export type AlertType = 'sudden_expansion' | 'sustained_high';
 export type AlertSeverity = 'warning' | 'critical';

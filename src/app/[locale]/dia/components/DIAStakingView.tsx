@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import {
   AreaChart,
   Area,
@@ -20,7 +20,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useDIAStaking, useDIAStakingDetails } from '@/hooks/useDIAData';
+import { useDIAStaking, useDIAStakingDetails } from '@/hooks';
 
 export function DIAStakingView() {
   const t = useTranslations();

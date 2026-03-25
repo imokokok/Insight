@@ -1,7 +1,7 @@
 'use client';
 
 import { NFTData } from '@/lib/oracles/dia';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { Blockchain } from '@/types/oracle';
 import { DashboardCard } from '@/components/oracle';
 

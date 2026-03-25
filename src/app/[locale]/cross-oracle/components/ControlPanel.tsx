@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { Search, RefreshCw, ChevronDown, ChevronUp, Filter, X, Eye } from 'lucide-react';
 import { OracleProvider } from '@/types/oracle';
-import { SegmentedControl, MultiSelect, DropdownSelect } from '@/components/ui/selectors';
+import { SegmentedControl, MultiSelect, DropdownSelect } from '@/components/ui';
 import { timeRanges, oracleNames, symbols, tradingPairs } from '../constants';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import type { TimeRange, DeviationFilter } from '../constants';

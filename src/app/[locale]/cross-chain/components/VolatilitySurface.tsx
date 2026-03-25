@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { useCrossChainData } from '../useCrossChainData';
 import {
   LineChart,
@@ -27,7 +27,7 @@ import {
 } from '../utils';
 import { Blockchain } from '@/types/oracle';
 import { chartColors, semanticColors } from '@/lib/config/colors';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { DropdownSelect } from '@/components/ui';
 
 
 interface VolatilitySurfaceProps {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { useAPI3Page } from './hooks/useAPI3Page';
 import {
   API3Sidebar,

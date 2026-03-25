@@ -6,7 +6,7 @@ import {
   shortcutManager,
   checkShortcutConflicts,
   ShortcutConflict,
-} from '@/hooks/useKeyboardShortcuts';
+} from '@/hooks';
 
 export interface ShortcutCategory {
   id: string;

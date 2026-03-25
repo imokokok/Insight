@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import {
   ComposedChart,
   Line,
@@ -19,7 +19,7 @@ import { CustomTooltip } from './CustomTooltip';
 import { CustomLegend } from './CustomLegend';
 import { QueryResult, oracleColors, oracleI18nKeys } from '../constants';
 import { createLogger } from '@/lib/utils/logger';
-import { useAPI3Price } from '@/hooks/useAPI3WebSocket';
+import { useAPI3PriceRealtime } from '@/hooks';
 import { API3PriceData } from '@/lib/services/api3WebSocket';
 import { format } from 'date-fns';
 import { chartColors, semanticColors } from '@/lib/config/colors';
@@ -141,7 +141,7 @@ export function PriceChartRealtime({
   const lastPriceRef = useRef<number | null>(null);
 
   // API3 WebSocket 实时价格
-  const { priceData, status, lastUpdate } = useAPI3Price({
+  const { priceData, status, lastUpdate } = useAPI3PriceRealtime({
     symbol,
     enabled: enableRealtime,
     updateInterval,

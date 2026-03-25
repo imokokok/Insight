@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import { DataTablePro, type ColumnDef, type SortConfig } from '@/components/ui/DataTablePro';
+import { DataTablePro, type ColumnDef, type SortConfig } from '@/components/ui';
 import { OracleProvider, PriceData } from '@/types/oracle';
 import {
   oracleNames,

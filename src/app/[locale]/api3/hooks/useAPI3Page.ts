@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { API3Client } from '@/lib/oracles/api3';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
-import { useAPI3AllData } from '@/hooks/useAPI3Data';
+import { useAPI3AllData } from '@/hooks';
 import { API3TabId } from '../types';
 
 export function useAPI3Page() {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import {
   UMAClient,
   DisputeData,
@@ -22,9 +22,9 @@ import {
   generateMockVotingData,
   DisputeVotingData,
 } from './DisputeVotingPanel';
-import { useUMARealtimeDisputes, UMADisputeUpdate } from '@/hooks/useUMARealtime';
+import { useUMARealtimeDisputes, UMADisputeUpdate } from '@/hooks';
 import { createLogger } from '@/lib/utils/logger';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { DropdownSelect } from '@/components/ui';
 
 const logger = createLogger('DisputeResolutionPanel');
 

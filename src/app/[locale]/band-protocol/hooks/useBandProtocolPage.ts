@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { PerformanceGaugeGroup } from '../common/PerformanceGauge';
 import { DataQualityScoreCard } from '../common/DataQualityScoreCard';
 import { NetworkStatusIndicator } from './NetworkStatusIndicator';

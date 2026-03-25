@@ -2,10 +2,10 @@
 
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { X, Command, Keyboard } from 'lucide-react';
 import { useShortcutContext } from './ShortcutContext';
-import { getPlatformShortcut, KeyboardShortcut } from '@/hooks/useKeyboardShortcuts';
+import { getPlatformShortcut, KeyboardShortcut } from '@/hooks';
 
 interface ShortcutItemProps {
   shortcut: KeyboardShortcut;

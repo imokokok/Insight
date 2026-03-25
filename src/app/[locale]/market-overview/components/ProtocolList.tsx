@@ -3,10 +3,10 @@
 import { useState, useMemo, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ProtocolDetail } from '../types';
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { Layers, ExternalLink, Search, ChevronUp, ChevronDown, Building2 } from 'lucide-react';
-import { DropdownSelect, SelectorOption } from '@/components/ui/selectors';
+import { DropdownSelect, SelectorOption } from '@/components/ui';
 
 interface ProtocolListProps {
   data: ProtocolDetail[];

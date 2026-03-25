@@ -4,8 +4,8 @@ import { useMemo, useState, useEffect } from 'react';
 import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
 import { BandProtocolClient, CrossChainPriceComparison } from '@/lib/oracles/bandProtocol';
 import { semanticColors, chainColors } from '@/lib/config/colors';
-import { useTranslations } from 'next-intl';
-import { SegmentedControl } from '@/components/ui/selectors';
+import { useTranslations } from '@/i18n';
+import { SegmentedControl } from '@/components/ui';
 
 export interface BandChainPriceData {
   chain: string;

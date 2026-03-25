@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
@@ -10,7 +10,7 @@ import { useCrossChainStore } from '@/stores/crossChainStore';
 import { ThresholdType } from '../utils';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { baseColors, chainColors as configChainColors } from '@/lib/config/colors';
-import { DropdownSelect, SegmentedControl } from '@/components/ui/selectors';
+import { DropdownSelect, SegmentedControl } from '@/components/ui';
 
 interface CrossChainFiltersProps {
   data: ReturnType<typeof useCrossChainData>;

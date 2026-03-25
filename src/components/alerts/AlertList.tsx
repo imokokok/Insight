@@ -4,9 +4,9 @@ import { useState, useCallback, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { PriceAlert } from '@/lib/supabase/database.types';
 import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
-import { useUpdateAlert, useDeleteAlert, useBatchAlerts } from '@/hooks/useAlerts';
+import { useUpdateAlert, useDeleteAlert, useBatchAlerts } from '@/hooks';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { AlertBatchOperations } from './AlertBatchOperations';
 
 interface AlertListProps {

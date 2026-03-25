@@ -1,9 +1,9 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/i18n';
 import { baseColors } from '@/lib/config/colors';
 import { PredictionAccuracy } from './latencyUtils';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
 
 interface LatencyPredictionProps {
   predictionPeriod: number;
