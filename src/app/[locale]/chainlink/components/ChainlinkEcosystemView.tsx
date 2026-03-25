@@ -3,8 +3,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   BarChart,
@@ -22,7 +20,6 @@ import {
   Globe,
   Zap,
 } from 'lucide-react';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { cn } from '@/lib/utils';
 
 // TVL Trend Data (12 months)
@@ -61,7 +58,7 @@ const chainColors: Record<string, string> = {
   base: '#0052ff',
 };
 
-function FilterButton({
+function TimeRangeButton({
   active,
   onClick,
   children,
@@ -74,10 +71,10 @@ function FilterButton({
     <button
       onClick={onClick}
       className={cn(
-        'px-3 py-1.5 text-xs font-medium rounded-md transition-all',
+        'px-3 py-1 text-xs font-medium transition-colors',
         active
-          ? 'bg-blue-600 text-white shadow-sm'
-          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          ? 'text-gray-900 border-b-2 border-gray-900'
+          : 'text-gray-500 hover:text-gray-700'
       )}
     >
       {children}
@@ -116,170 +113,185 @@ export function ChainlinkEcosystemView() {
   }, [filteredTvlData]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* TVL Trend Analysis */}
-      <DashboardCard
-        title={t('ecosystem.tvlAnalysis.title')}
-        headerAction={
-          <div className="flex items-center gap-2">
+      <section>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">{t('ecosystem.tvlAnalysis.title')}</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Total Value Locked across Chainlink ecosystem</p>
+          </div>
+          <div className="flex items-center border-b border-gray-200">
             {(['1M', '3M', '6M', '1Y'] as const).map((range) => (
-              <FilterButton
+              <TimeRangeButton
                 key={range}
                 active={timeRange === range}
                 onClick={() => setTimeRange(range)}
               >
                 {range}
-              </FilterButton>
+              </TimeRangeButton>
             ))}
-          </div>
-        }
-      >
-        <div className="space-y-6">
-          {/* TVL Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('ecosystem.tvlAnalysis.totalTvl')}</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">${tvlStats.current.toFixed(1)}B</p>
-              <div className="mt-1">
-                <span className={`text-sm ${tvlStats.change >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {tvlStats.change >= 0 ? '+' : ''}{tvlStats.change.toFixed(1)}%
-                </span>
-              </div>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('ecosystem.tvlAnalysis.ethereum')}</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">${tvlStats.breakdown[0].value.toFixed(1)}B</p>
-              <p className="text-xs text-gray-500 mt-1">{((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)}%</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('ecosystem.tvlAnalysis.l2Networks')}</p>
-              <p className="text-2xl font-bold text-emerald-600 mt-1">
-                ${(tvlStats.breakdown[1].value + tvlStats.breakdown[3].value + tvlStats.breakdown[5].value).toFixed(1)}B
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {(((tvlStats.breakdown[1].value + tvlStats.breakdown[3].value + tvlStats.breakdown[5].value) / tvlStats.current) * 100).toFixed(1)}%
-              </p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('ecosystem.tvlAnalysis.altL1')}</p>
-              <p className="text-2xl font-bold text-purple-600 mt-1">
-                ${(tvlStats.breakdown[2].value + tvlStats.breakdown[4].value).toFixed(1)}B
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {(((tvlStats.breakdown[2].value + tvlStats.breakdown[4].value) / tvlStats.current) * 100).toFixed(1)}%
-              </p>
-            </div>
-          </div>
-
-          {/* Chain Filter */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-gray-500 mr-2">{t('ecosystem.tvlAnalysis.filterByChain')}:</span>
-            {tvlStats.breakdown.map((item) => (
-              <button
-                key={item.chain}
-                onClick={() => {
-                  setSelectedChains((prev) =>
-                    prev.includes(item.chain.toLowerCase())
-                      ? prev.filter((c) => c !== item.chain.toLowerCase())
-                      : [...prev, item.chain.toLowerCase()]
-                  );
-                }}
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full transition-all',
-                  selectedChains.includes(item.chain.toLowerCase())
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                )}
-              >
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                {item.chain}
-              </button>
-            ))}
-          </div>
-
-          {/* Stacked Area Chart */}
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={filteredTvlData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorEthereum" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={chainColors.ethereum} stopOpacity={0.8} />
-                    <stop offset="95%" stopColor={chainColors.ethereum} stopOpacity={0.1} />
-                  </linearGradient>
-                  <linearGradient id="colorArbitrum" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={chainColors.arbitrum} stopOpacity={0.8} />
-                    <stop offset="95%" stopColor={chainColors.arbitrum} stopOpacity={0.1} />
-                  </linearGradient>
-                  <linearGradient id="colorPolygon" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={chainColors.polygon} stopOpacity={0.8} />
-                    <stop offset="95%" stopColor={chainColors.polygon} stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis
-                  dataKey="month"
-                  stroke="#9ca3af"
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(value) => value.slice(5)}
-                />
-                <YAxis
-                  stroke="#9ca3af"
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(value) => `$${value}B`}
-                />
-                <RechartsTooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                  }}
-                  formatter={(value) => [`$${Number(value).toFixed(2)}B`, '']}
-                />
-                {selectedChains.includes('ethereum') && (
-                  <Area
-                    type="monotone"
-                    dataKey="ethereum"
-                    name="Ethereum"
-                    stackId="1"
-                    stroke={chainColors.ethereum}
-                    fill="url(#colorEthereum)"
-                  />
-                )}
-                {selectedChains.includes('arbitrum') && (
-                  <Area
-                    type="monotone"
-                    dataKey="arbitrum"
-                    name="Arbitrum"
-                    stackId="1"
-                    stroke={chainColors.arbitrum}
-                    fill="url(#colorArbitrum)"
-                  />
-                )}
-                {selectedChains.includes('polygon') && (
-                  <Area
-                    type="monotone"
-                    dataKey="polygon"
-                    name="Polygon"
-                    stackId="1"
-                    stroke={chainColors.polygon}
-                    fill="url(#colorPolygon)"
-                  />
-                )}
-              </AreaChart>
-            </ResponsiveContainer>
           </div>
         </div>
-      </DashboardCard>
+
+        {/* TVL Stats - Clean text layout */}
+        <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4 mb-6">
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('ecosystem.tvlAnalysis.totalTvl')}</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-3xl font-bold text-gray-900">${tvlStats.current.toFixed(1)}B</p>
+              <span className={cn('text-sm font-medium', tvlStats.change >= 0 ? 'text-emerald-600' : 'text-red-600')}>
+                {tvlStats.change >= 0 ? '+' : ''}{tvlStats.change.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('ecosystem.tvlAnalysis.ethereum')}</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-xl font-semibold text-gray-900">${tvlStats.breakdown[0].value.toFixed(1)}B</p>
+              <span className="text-xs text-gray-500">{((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)}%</span>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('ecosystem.tvlAnalysis.l2Networks')}</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-xl font-semibold text-gray-900">
+                ${(tvlStats.breakdown[1].value + tvlStats.breakdown[3].value + tvlStats.breakdown[5].value).toFixed(1)}B
+              </p>
+              <span className="text-xs text-gray-500">
+                {(((tvlStats.breakdown[1].value + tvlStats.breakdown[3].value + tvlStats.breakdown[5].value) / tvlStats.current) * 100).toFixed(1)}%
+              </span>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('ecosystem.tvlAnalysis.altL1')}</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-xl font-semibold text-gray-900">
+                ${(tvlStats.breakdown[2].value + tvlStats.breakdown[4].value).toFixed(1)}B
+              </p>
+              <span className="text-xs text-gray-500">
+                {(((tvlStats.breakdown[2].value + tvlStats.breakdown[4].value) / tvlStats.current) * 100).toFixed(1)}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Chain Filter - Subtle pill buttons */}
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          <span className="text-xs text-gray-400 mr-1">{t('ecosystem.tvlAnalysis.filterByChain')}:</span>
+          {tvlStats.breakdown.map((item) => (
+            <button
+              key={item.chain}
+              onClick={() => {
+                setSelectedChains((prev) =>
+                  prev.includes(item.chain.toLowerCase())
+                    ? prev.filter((c) => c !== item.chain.toLowerCase())
+                    : [...prev, item.chain.toLowerCase()]
+                );
+              }}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-1 text-xs transition-all border',
+                selectedChains.includes(item.chain.toLowerCase())
+                  ? 'bg-gray-900 text-white border-gray-900'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+              )}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: selectedChains.includes(item.chain.toLowerCase()) ? 'white' : item.color }}
+              />
+              {item.chain}
+            </button>
+          ))}
+        </div>
+
+        {/* Stacked Area Chart */}
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={filteredTvlData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorEthereum" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chainColors.ethereum} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={chainColors.ethereum} stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="colorArbitrum" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chainColors.arbitrum} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={chainColors.arbitrum} stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="colorPolygon" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chainColors.polygon} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={chainColors.polygon} stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis
+                dataKey="month"
+                stroke="#9ca3af"
+                tick={{ fontSize: 11 }}
+                tickFormatter={(value) => value.slice(5)}
+              />
+              <YAxis
+                stroke="#9ca3af"
+                tick={{ fontSize: 11 }}
+                tickFormatter={(value) => `$${value}B`}
+              />
+              <RechartsTooltip
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                }}
+                formatter={(value) => [`$${Number(value).toFixed(2)}B`, '']}
+              />
+              {selectedChains.includes('ethereum') && (
+                <Area
+                  type="monotone"
+                  dataKey="ethereum"
+                  name="Ethereum"
+                  stackId="1"
+                  stroke={chainColors.ethereum}
+                  fill="url(#colorEthereum)"
+                />
+              )}
+              {selectedChains.includes('arbitrum') && (
+                <Area
+                  type="monotone"
+                  dataKey="arbitrum"
+                  name="Arbitrum"
+                  stackId="1"
+                  stroke={chainColors.arbitrum}
+                  fill="url(#colorArbitrum)"
+                />
+              )}
+              {selectedChains.includes('polygon') && (
+                <Area
+                  type="monotone"
+                  dataKey="polygon"
+                  name="Polygon"
+                  stackId="1"
+                  stroke={chainColors.polygon}
+                  fill="url(#colorPolygon)"
+                />
+              )}
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      {/* Section Divider */}
+      <div className="border-t border-gray-200" />
 
       {/* 生态概览 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* 项目分布 */}
-        <DashboardCard title={t('ecosystem.projectAnalysis.projectsByChain') || 'Projects by Chain'}>
-          <div className="h-64">
+        <section>
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-gray-900">{t('ecosystem.projectAnalysis.projectsByChain') || 'Projects by Chain'}</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Distribution of projects across supported networks</p>
+          </div>
+          <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={projectsByChainData} layout="vertical" margin={{ left: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
@@ -295,7 +307,7 @@ export function ChainlinkEcosystemView() {
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
+                    borderRadius: '6px',
                     fontSize: '12px',
                   }}
                 />
@@ -307,49 +319,64 @@ export function ChainlinkEcosystemView() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex items-center justify-between mt-4 text-xs text-gray-500">
-            <span>{t('ecosystem.projectAnalysis.totalProjects')}: 1,500+</span>
-            <span className="text-emerald-600">+156 {t('ecosystem.projectAnalysis.thisMonth')}</span>
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 text-sm">
+            <span className="text-gray-500">{t('ecosystem.projectAnalysis.totalProjects')}: <span className="font-medium text-gray-900">1,500+</span></span>
+            <span className="text-emerald-600 font-medium">+156 {t('ecosystem.projectAnalysis.thisMonth')}</span>
           </div>
-        </DashboardCard>
+        </section>
 
-        {/* 核心指标 */}
-        <DashboardCard title={t('ecosystem.growth.title') || 'Ecosystem Growth'}>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Layers className="w-4 h-4 text-blue-600" />
-                <span className="text-xs font-medium text-blue-900">{t('ecosystem.growth.newProjects') || 'New Projects'}</span>
+        {/* Section Divider for mobile */}
+        <div className="border-t border-gray-200 lg:hidden" />
+
+        {/* 核心指标 - Clean layout without colored backgrounds */}
+        <section>
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-gray-900">{t('ecosystem.growth.title') || 'Ecosystem Growth'}</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Key performance indicators</p>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Layers className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">{t('ecosystem.growth.newProjects') || 'New Projects'}</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">156</p>
-              <p className="text-xs text-emerald-600 mt-1">+21.9% {t('ecosystem.growth.vsLastMonth') || 'vs last month'}</p>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">156</p>
+                <p className="text-xs text-emerald-600">+21.9%</p>
+              </div>
             </div>
-            <div className="bg-emerald-50 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-4 h-4 text-emerald-600" />
-                <span className="text-xs font-medium text-emerald-900">{t('ecosystem.growth.integrations') || 'Integrations'}</span>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Zap className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">{t('ecosystem.growth.integrations') || 'Integrations'}</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">892</p>
-              <p className="text-xs text-emerald-600 mt-1">+18.0% {t('ecosystem.growth.vsLastMonth') || 'vs last month'}</p>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">892</p>
+                <p className="text-xs text-emerald-600">+18.0%</p>
+              </div>
             </div>
-            <div className="bg-purple-50 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Globe className="w-4 h-4 text-purple-600" />
-                <span className="text-xs font-medium text-purple-900">{t('ecosystem.growth.communityGrowth') || 'Community'}</span>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Globe className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">{t('ecosystem.growth.communityGrowth') || 'Community'}</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">48.5K</p>
-              <p className="text-xs text-emerald-600 mt-1">+17.7% {t('ecosystem.growth.vsLastMonth') || 'vs last month'}</p>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">48.5K</p>
+                <p className="text-xs text-emerald-600">+17.7%</p>
+              </div>
             </div>
-            <div className="bg-amber-50 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="w-4 h-4 text-amber-600" />
-                <span className="text-xs font-medium text-amber-900">{t('ecosystem.growth.protocolRevenue') || 'Revenue'}</span>
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">{t('ecosystem.growth.protocolRevenue') || 'Revenue'}</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">$2.4M</p>
-              <p className="text-xs text-emerald-600 mt-1">+15.3% {t('ecosystem.growth.vsLastMonth') || 'vs last month'}</p>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">$2.4M</p>
+                <p className="text-xs text-emerald-600">+15.3%</p>
+              </div>
             </div>
           </div>
-        </DashboardCard>
+        </section>
       </div>
     </div>
   );

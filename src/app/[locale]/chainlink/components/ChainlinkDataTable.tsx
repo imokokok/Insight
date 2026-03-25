@@ -56,61 +56,57 @@ export function ChainlinkDataTable<T extends Record<string, unknown>>({
 
   if (isLoading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="animate-pulse">
-          <div className="h-10 bg-gray-100 border-b border-gray-200" />
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-10 bg-gray-50 border-b border-gray-100" />
-          ))}
-        </div>
+      <div className="animate-pulse">
+        <div className="h-10 bg-gray-50 border-b border-gray-200" />
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-12 border-b border-gray-100" />
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-gray-200">
+            {columns.map((column) => (
+              <th
+                key={column.key}
+                className={`
+                  px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider
+                  ${column.sortable ? 'cursor-pointer hover:text-gray-700' : ''}
+                  ${column.width ? column.width : ''}
+                `}
+                onClick={() => column.sortable && handleSort(column.key)}
+              >
+                <div className="flex items-center gap-1">
+                  {column.header}
+                  {column.sortable && sortConfig?.key === column.key && (
+                    <span className="text-gray-400">
+                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {sortedData.map((item, index) => (
+            <tr
+              key={index}
+              className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
+            >
               {columns.map((column) => (
-                <th
-                  key={column.key}
-                  className={`
-                    px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider
-                    ${column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''}
-                    ${column.width ? column.width : ''}
-                  `}
-                  onClick={() => column.sortable && handleSort(column.key)}
-                >
-                  <div className="flex items-center gap-1">
-                    {column.header}
-                    {column.sortable && sortConfig?.key === column.key && (
-                      <span className="text-gray-400">
-                        {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
-                  </div>
-                </th>
+                <td key={column.key} className="px-4 py-3 text-sm text-gray-900">
+                  {column.render ? column.render(item as T) : String((item as Record<string, unknown>)[column.key] ?? '-')}
+                </td>
               ))}
             </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {sortedData.map((item, index) => (
-              <tr
-                key={index}
-                className="hover:bg-gray-50 transition-colors h-10"
-              >
-                {columns.map((column) => (
-                  <td key={column.key} className="px-4 py-2 text-sm text-gray-900">
-                    {column.render ? column.render(item as T) : String((item as Record<string, unknown>)[column.key] ?? '-')}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

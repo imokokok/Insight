@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { ChainlinkNetworkViewProps } from '../types';
-import { Activity, Server, Clock, CheckCircle } from 'lucide-react';
+import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
 export function ChainlinkNetworkView({
   config,
@@ -17,62 +17,61 @@ export function ChainlinkNetworkView({
       label: t('chainlink.network.activeNodes'),
       value: networkData.activeNodes?.toLocaleString() || '1,847',
       change: '+5%',
+      trend: 'up',
       icon: Server,
-      color: 'blue',
     },
     {
       label: t('chainlink.network.dataFeeds'),
       value: networkData.dataFeeds?.toLocaleString() || '1,243',
       change: '+12%',
+      trend: 'up',
       icon: Activity,
-      color: 'emerald',
     },
     {
       label: t('chainlink.network.responseTime'),
       value: `${networkData.avgResponseTime || 245}ms`,
       change: '-8%',
+      trend: 'down',
       icon: Clock,
-      color: 'amber',
     },
     {
       label: t('chainlink.network.uptime'),
       value: `${networkData.nodeUptime || 99.9}%`,
       change: null,
+      trend: null,
       icon: CheckCircle,
-      color: 'purple',
     },
   ];
 
-  const colorClasses: Record<string, { bg: string; text: string; light: string }> = {
-    blue: { bg: 'bg-blue-500', text: 'text-blue-600', light: 'bg-blue-50' },
-    emerald: { bg: 'bg-emerald-500', text: 'text-emerald-600', light: 'bg-emerald-50' },
-    amber: { bg: 'bg-amber-500', text: 'text-amber-600', light: 'bg-amber-50' },
-    purple: { bg: 'bg-purple-500', text: 'text-purple-600', light: 'bg-purple-50' },
-  };
+  const overviewStats = [
+    { label: t('chainlink.network.totalRequests') || 'Total Requests (24h)', value: '4.2M' },
+    { label: t('chainlink.network.avgGas') || 'Avg Gas Used', value: '85,420' },
+    { label: t('chainlink.network.activeChains') || 'Active Chains', value: '15' },
+    { label: t('chainlink.network.nodeOperators') || 'Node Operators', value: '1,240' },
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* 核心网络指标 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-8">
+      {/* 核心网络指标 - 简洁统计布局 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {metrics.map((metric, index) => {
           const Icon = metric.icon;
-          const colors = colorClasses[metric.color];
+          const TrendIcon = metric.trend === 'up' ? TrendingUp : TrendingDown;
           return (
-            <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-8 h-8 ${colors.light} rounded-lg flex items-center justify-center`}>
-                  <Icon className={`w-4 h-4 ${colors.text}`} />
-                </div>
-                <span className="text-xs text-gray-500">{metric.label}</span>
+            <div key={index} className="py-2">
+              <div className="flex items-center gap-2 text-gray-500 mb-1">
+                <Icon className="w-4 h-4" />
+                <span className="text-sm">{metric.label}</span>
               </div>
-              <div className="flex items-baseline gap-2">
-                <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
+              <div className="flex items-baseline gap-3">
+                <p className="text-3xl font-semibold text-gray-900 tracking-tight">{metric.value}</p>
                 {metric.change && (
-                  <span className={`text-sm font-medium ${
-                    metric.change.startsWith('+') ? 'text-emerald-600' : 'text-blue-600'
+                  <div className={`flex items-center gap-0.5 text-sm font-medium ${
+                    metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
                   }`}>
-                    {metric.change}
-                  </span>
+                    <TrendIcon className="w-3.5 h-3.5" />
+                    <span>{metric.change}</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -80,28 +79,34 @@ export function ChainlinkNetworkView({
         })}
       </div>
 
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
       {/* 网络性能概览 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* 每小时活动 */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('chainlink.network.hourlyActivity')}
-          </h3>
-          <div className="h-48 flex items-end gap-1">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* 每小时活动 - 简化容器 */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-medium text-gray-900">
+              {t('chainlink.network.hourlyActivity')}
+            </h3>
+            <span className="text-sm text-gray-500">24h</span>
+          </div>
+          <div className="h-40 flex items-end gap-0.5">
             {config.networkData.hourlyActivity?.map((value, index) => {
               const max = Math.max(...(config.networkData.hourlyActivity || []));
               const height = (value / max) * 100;
               return (
                 <div
                   key={index}
-                  className="flex-1 bg-blue-100 hover:bg-blue-200 transition-colors rounded-t"
-                  style={{ height: `${height}%` }}
+                  className="flex-1 bg-blue-500/20 hover:bg-blue-500/30 transition-colors rounded-t"
+                  style={{ height: `${Math.max(height, 8)}%` }}
                   title={`${value.toLocaleString()} requests`}
                 />
               );
             })}
           </div>
-          <div className="flex justify-between text-xs text-gray-500 mt-2">
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
             <span>00:00</span>
             <span>06:00</span>
             <span>12:00</span>
@@ -110,65 +115,58 @@ export function ChainlinkNetworkView({
           </div>
         </div>
 
-        {/* 网络性能指标 */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+        {/* 网络性能指标 - 简洁进度条 */}
+        <div>
+          <h3 className="text-base font-medium text-gray-900 mb-5">
             {t('chainlink.network.performance')}
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <div className="flex justify-between text-sm mb-1">
+              <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.successRate')}</span>
-                <span className="font-medium">99.9%</span>
+                <span className="font-medium text-gray-900">99.9%</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '99.9%' }} />
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '99.9%' }} />
               </div>
             </div>
             <div>
-              <div className="flex justify-between text-sm mb-1">
+              <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.availability')}</span>
-                <span className="font-medium">99.99%</span>
+                <span className="font-medium text-gray-900">99.99%</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '99.99%' }} />
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '99.99%' }} />
               </div>
             </div>
             <div>
-              <div className="flex justify-between text-sm mb-1">
+              <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.latency')}</span>
-                <span className="font-medium">245ms avg</span>
+                <span className="font-medium text-gray-900">245ms avg</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="bg-amber-500 h-2 rounded-full" style={{ width: '75%' }} />
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '75%' }} />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 网络统计摘要 */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 网络统计摘要 - 简洁行内布局 */}
+      <div>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
           {t('chainlink.network.overview') || 'Network Overview'}
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg p-3">
-            <p className="text-xs text-gray-500">{t('chainlink.network.totalRequests') || 'Total Requests (24h)'}</p>
-            <p className="text-lg font-bold text-gray-900">4.2M</p>
-          </div>
-          <div className="bg-white rounded-lg p-3">
-            <p className="text-xs text-gray-500">{t('chainlink.network.avgGas') || 'Avg Gas Used'}</p>
-            <p className="text-lg font-bold text-gray-900">85,420</p>
-          </div>
-          <div className="bg-white rounded-lg p-3">
-            <p className="text-xs text-gray-500">{t('chainlink.network.activeChains') || 'Active Chains'}</p>
-            <p className="text-lg font-bold text-gray-900">15</p>
-          </div>
-          <div className="bg-white rounded-lg p-3">
-            <p className="text-xs text-gray-500">{t('chainlink.network.nodeOperators') || 'Node Operators'}</p>
-            <p className="text-lg font-bold text-gray-900">1,240</p>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {overviewStats.map((stat, index) => (
+            <div key={index}>
+              <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
+              <p className="text-xl font-semibold text-gray-900">{stat.value}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

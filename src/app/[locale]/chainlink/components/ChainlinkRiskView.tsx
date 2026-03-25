@@ -22,6 +22,11 @@ import {
   CheckCircle,
   Award,
   Info,
+  ChevronDown,
+  ChevronUp,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from 'lucide-react';
 
 // 历史风险事件
@@ -82,6 +87,7 @@ const riskMetrics = [
     max: 100,
     description: 'Based on node operator diversity and geographic distribution',
     status: 'low',
+    trend: 'up',
   },
   {
     id: 'security',
@@ -90,6 +96,7 @@ const riskMetrics = [
     max: 100,
     description: 'Based on audit history, bug bounty programs, and incident response',
     status: 'low',
+    trend: 'stable',
   },
   {
     id: 'reliability',
@@ -98,6 +105,7 @@ const riskMetrics = [
     max: 100,
     description: 'Uptime and successful response rate over the last 30 days',
     status: 'low',
+    trend: 'up',
   },
   {
     id: 'transparency',
@@ -106,6 +114,7 @@ const riskMetrics = [
     max: 100,
     description: 'Based on documentation quality and open-source availability',
     status: 'low',
+    trend: 'stable',
   },
 ];
 
@@ -114,39 +123,84 @@ const riskFactors = [
   {
     category: 'Smart Contract Risk',
     level: 'low',
-    description: 'Multiple audits by leading security firms',
+    description: 'Multiple audits by leading security firms including Trail of Bits, OpenZeppelin, and CertiK. No critical vulnerabilities found in recent audits.',
+    details: [
+      'Trail of Bits audit completed Q1 2024',
+      'OpenZeppelin continuous monitoring active',
+      'Bug bounty program with $500K+ rewards paid',
+    ],
   },
   {
     category: 'Oracle Risk',
     level: 'low',
-    description: 'Decentralized node network with reputation system',
+    description: 'Decentralized node network with reputation system and economic incentives.',
+    details: [
+      '1000+ node operators across 45+ countries',
+      'Reputation-based node selection algorithm',
+      'Staking mechanism with slashing conditions',
+    ],
   },
   {
     category: 'Market Risk',
     level: 'medium',
-    description: 'LINK token price volatility affects staking economics',
+    description: 'LINK token price volatility affects staking economics and network security budget.',
+    details: [
+      'LINK price correlation with market sentiment',
+      'Staking rewards denominated in LINK',
+      'Treasury diversification in progress',
+    ],
   },
   {
     category: 'Regulatory Risk',
     level: 'medium',
-    description: 'Potential regulatory changes in DeFi sector',
+    description: 'Potential regulatory changes in DeFi sector and oracle services classification.',
+    details: [
+      'Ongoing regulatory clarity discussions',
+      'Compliance framework development',
+      'Geographic node distribution mitigates jurisdiction risk',
+    ],
   },
 ];
 
 export function ChainlinkRiskView() {
   const t = useTranslations();
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
+  const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
 
   const getRiskColor = (level: string) => {
     switch (level) {
       case 'low':
-        return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+        return 'text-emerald-600';
       case 'medium':
-        return 'text-amber-600 bg-amber-50 border-amber-200';
+        return 'text-amber-600';
       case 'high':
-        return 'text-red-600 bg-red-50 border-red-200';
+        return 'text-red-600';
       default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+        return 'text-gray-600';
+    }
+  };
+
+  const getRiskBgColor = (level: string) => {
+    switch (level) {
+      case 'low':
+        return 'bg-emerald-50';
+      case 'medium':
+        return 'bg-amber-50';
+      case 'high':
+        return 'bg-red-50';
+      default:
+        return 'bg-gray-50';
+    }
+  };
+
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up':
+        return <TrendingUp className="w-4 h-4 text-emerald-500" />;
+      case 'down':
+        return <TrendingDown className="w-4 h-4 text-red-500" />;
+      default:
+        return <Minus className="w-4 h-4 text-gray-400" />;
     }
   };
 
@@ -154,134 +208,153 @@ export function ChainlinkRiskView() {
   const overallScore = riskMetrics.reduce((sum, m) => sum + m.value, 0) / riskMetrics.length;
 
   return (
-    <div className="space-y-6">
-      {/* 风险指标卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {riskMetrics.map((metric) => (
-          <div key={metric.id} className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-900">{metric.name}</h3>
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getRiskColor(
-                  metric.status
-                )}`}
-              >
-                {metric.status.charAt(0).toUpperCase() + metric.status.slice(1)} Risk
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-3xl font-bold text-gray-900">{metric.value}</span>
-              <span className="text-sm text-gray-500">/ {metric.max}</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full"
-                style={{ width: `${(metric.value / metric.max) * 100}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-500">{metric.description}</p>
+    <div className="space-y-8">
+      {/* 风险指标统计 */}
+      <section>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {t('chainlink.risk.metrics') || 'Risk Metrics'}
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {t('chainlink.risk.metricsDesc') || 'Key performance indicators across decentralization, security, and reliability'}
+            </p>
           </div>
-        ))}
-      </div>
-
-      {/* 综合评分和对比 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 综合评分卡片 */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="w-6 h-6" />
-            <span className="text-lg font-medium">{t('chainlink.risk.overallScore') || 'Overall Risk Score'}</span>
-          </div>
-          <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-5xl font-bold">{overallScore.toFixed(1)}</span>
-            <span className="text-blue-100">/ 100</span>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-blue-100" />
-              <span className="text-sm text-blue-100">{t('chainlink.risk.audited') || 'Audited by leading firms'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-blue-100" />
-              <span className="text-sm text-blue-100">{t('chainlink.risk.decentralized') || 'Decentralized network'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-blue-100" />
-              <span className="text-sm text-blue-100">{t('chainlink.risk.bugBounty') || 'Active bug bounty program'}</span>
-            </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
+            <Shield className="w-5 h-5 text-emerald-600" />
+            <span className="text-sm font-medium text-emerald-700">
+              {t('chainlink.risk.overallScore') || 'Overall'}: {overallScore.toFixed(1)}/100
+            </span>
           </div>
         </div>
 
-        {/* 行业对比雷达图 */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Award className="w-5 h-5 text-amber-600" />
-            <h3 className="text-sm font-semibold text-gray-900">
-              {t('chainlink.risk.benchmark') || 'Industry Benchmark Comparison'}
-            </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {riskMetrics.map((metric) => (
+            <div key={metric.id} className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">{metric.name}</span>
+                {getTrendIcon(metric.trend)}
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-gray-900">{metric.value}</span>
+                <span className="text-sm text-gray-400">/ {metric.max}</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div
+                  className="h-1.5 rounded-full transition-all duration-500"
+                  style={{
+                    width: `${(metric.value / metric.max) * 100}%`,
+                    backgroundColor: metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
+                  }}
+                />
+              </div>
+              <p className="text-xs text-gray-400 leading-relaxed">{metric.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 行业基准对比 */}
+      <section>
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {t('chainlink.risk.benchmark') || 'Industry Benchmark Comparison'}
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {t('chainlink.risk.benchmarkDesc') || 'Performance comparison against other leading oracle providers'}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* 雷达图 */}
+          <div className="lg:col-span-2">
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={benchmarkData}>
+                  <PolarGrid stroke="#e5e7eb" />
+                  <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                  <Radar
+                    name="Chainlink"
+                    dataKey="chainlink"
+                    stroke={chartColors.oracle.chainlink}
+                    fill={chartColors.oracle.chainlink}
+                    fillOpacity={0.25}
+                    strokeWidth={2}
+                  />
+                  <Radar
+                    name="Pyth"
+                    dataKey="pyth"
+                    stroke={chartColors.oracle.pyth}
+                    fill={chartColors.oracle.pyth}
+                    fillOpacity={0.1}
+                    strokeWidth={1.5}
+                  />
+                  <Radar
+                    name="Band"
+                    dataKey="band"
+                    stroke={chartColors.oracle.band}
+                    fill={chartColors.oracle.band}
+                    fillOpacity={0.1}
+                    strokeWidth={1.5}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={benchmarkData}>
-                <PolarGrid stroke="#e5e7eb" />
-                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                <Radar
-                  name="Chainlink"
-                  dataKey="chainlink"
-                  stroke={chartColors.oracle.chainlink}
-                  fill={chartColors.oracle.chainlink}
-                  fillOpacity={0.3}
-                  strokeWidth={2}
-                />
-                <Radar
-                  name="Pyth"
-                  dataKey="pyth"
-                  stroke={chartColors.oracle.pyth}
-                  fill={chartColors.oracle.pyth}
-                  fillOpacity={0.1}
-                  strokeWidth={1.5}
-                />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-              </RadarChart>
-            </ResponsiveContainer>
+
+          {/* 对比表格 */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-700">{t('chainlink.risk.comparison') || 'Detailed Comparison'}</h3>
+            <div className="space-y-3">
+              {benchmarkData.map((item) => (
+                <div key={item.metric} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">{item.metric}</span>
+                    <span className="font-medium text-gray-900">{item.chainlink}</span>
+                  </div>
+                  <div className="flex gap-1 h-1.5">
+                    <div
+                      className="rounded-full"
+                      style={{
+                        width: `${item.chainlink}%`,
+                        backgroundColor: chartColors.oracle.chainlink,
+                      }}
+                    />
+                    <div
+                      className="rounded-full opacity-40"
+                      style={{
+                        width: `${item.pyth}%`,
+                        backgroundColor: chartColors.oracle.pyth,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
 
       {/* 历史风险事件时间线 */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Info className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                {t('chainlink.risk.timeline') || 'Historical Risk Events'}
-              </h3>
-              <p className="text-sm text-gray-500">
-                {t('chainlink.risk.timelineDesc') || 'Security audits, incidents and upgrades over the past 24 months'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-500" />
-              {t('chainlink.risk.success') || 'Success'}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
-              {t('chainlink.risk.info') || 'Info'}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
-              {t('chainlink.risk.warning') || 'Warning'}
-            </span>
-          </div>
+      <section>
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {t('chainlink.risk.timeline') || 'Historical Risk Events'}
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {t('chainlink.risk.timelineDesc') || 'Security audits, incidents and upgrades over the past 24 months'}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* 时间线 */}
           <div className="lg:col-span-2">
             <TimelineChart
@@ -292,76 +365,127 @@ export function ChainlinkRiskView() {
             />
           </div>
 
-          {/* 事件详情面板 */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">
+          {/* 事件详情 */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-4">
               {t('chainlink.risk.eventDetails') || 'Event Details'}
-            </h4>
+            </h3>
             {selectedEvent ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  {selectedEvent.type === 'success' && <CheckCircle className="w-5 h-5 text-green-500" />}
-                  {selectedEvent.type === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-500" />}
-                  {selectedEvent.type === 'info' && <Info className="w-5 h-5 text-blue-500" />}
-                  {selectedEvent.type === 'error' && <AlertTriangle className="w-5 h-5 text-red-500" />}
-                  <span className="text-sm font-medium text-gray-900">{selectedEvent.title}</span>
+              <div className="space-y-4 p-4 bg-gray-50 rounded-md">
+                <div className="flex items-start gap-3">
+                  {selectedEvent.type === 'success' && (
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                    </div>
+                  )}
+                  {selectedEvent.type === 'warning' && (
+                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    </div>
+                  )}
+                  {selectedEvent.type === 'info' && (
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <Info className="w-4 h-4 text-blue-600" />
+                    </div>
+                  )}
+                  {selectedEvent.type === 'error' && (
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-medium text-gray-900">{selectedEvent.title}</h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(selectedEvent.date).toLocaleDateString('zh-CN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500">
-                  {new Date(selectedEvent.date).toLocaleDateString('zh-CN', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
                 <p className="text-sm text-gray-600 leading-relaxed">{selectedEvent.description}</p>
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Info className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <div className="text-center py-12 bg-gray-50 rounded-md">
+                <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
                 <p className="text-sm text-gray-500">{t('chainlink.risk.clickEvent') || 'Click an event to view details'}</p>
               </div>
             )}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
 
       {/* 风险因素 */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('chainlink.risk.factors')}
-        </h3>
-        <div className="space-y-3">
+      <section>
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {t('chainlink.risk.factors') || 'Risk Factor Analysis'}
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {t('chainlink.risk.factorsDesc') || 'Detailed breakdown of identified risk categories'}
+          </p>
+        </div>
+
+        <div className="space-y-2">
           {riskFactors.map((factor, index) => (
             <div
               key={index}
-              className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+              className="border-b border-gray-100 last:border-0"
             >
-              <div>
-                <p className="text-sm font-medium text-gray-900">{factor.category}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{factor.description}</p>
-              </div>
-              <span
-                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getRiskColor(
-                  factor.level
-                )}`}
+              <button
+                onClick={() => setExpandedFactor(expandedFactor === index ? null : index)}
+                className="w-full py-4 flex items-center justify-between hover:bg-gray-50 transition-colors px-2 -mx-2 rounded-md"
               >
-                {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
-              </span>
+                <div className="flex items-center gap-4">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}>
+                    {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
+                  </span>
+                  <span className="text-sm font-medium text-gray-900">{factor.category}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500 hidden sm:block max-w-xs truncate">
+                    {factor.description}
+                  </span>
+                  {expandedFactor === index ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </div>
+              </button>
+              {expandedFactor === index && (
+                <div className="pb-4 px-2">
+                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">{factor.description}</p>
+                  <ul className="space-y-2">
+                    {factor.details.map((detail, detailIndex) => (
+                      <li key={detailIndex} className="flex items-start gap-2 text-sm text-gray-500">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
+                        <span>{detail}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           ))}
         </div>
-      </div>
+      </section>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
 
       {/* 免责声明 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-          <div>
-            <h4 className="text-sm font-semibold text-blue-900">{t('chainlink.risk.disclaimer')}</h4>
-            <p className="text-sm text-blue-700 mt-1">{t('chainlink.risk.disclaimerText')}</p>
-          </div>
+      <section className="flex items-start gap-4 py-2">
+        <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">{t('chainlink.risk.disclaimer')}</h3>
+          <p className="text-sm text-gray-500 mt-1 leading-relaxed">{t('chainlink.risk.disclaimerText')}</p>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

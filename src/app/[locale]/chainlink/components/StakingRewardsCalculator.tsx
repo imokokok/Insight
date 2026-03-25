@@ -77,19 +77,19 @@ export function StakingRewardsCalculator() {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
-        <Calculator className="w-4 h-4 text-blue-600" />
-        <h3 className="text-sm font-semibold text-gray-900">
+        <Calculator className="w-4 h-4 text-gray-500" />
+        <h3 className="text-sm font-medium text-gray-900">
           {t('chainlink.nodes.stakingCalculator')}
         </h3>
       </div>
 
       {/* Input Section */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">
+          <label className="block text-xs font-medium text-gray-600 mb-1.5">
             {t('chainlink.nodes.stakeAmount')}
           </label>
           <div className="relative">
@@ -97,31 +97,31 @@ export function StakingRewardsCalculator() {
               type="number"
               value={stakeAmount}
               onChange={(e) => setStakeAmount(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-gray-300 focus:border-gray-300 outline-none"
               placeholder="10000"
               min="0"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-medium">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium">
               LINK
             </span>
           </div>
-          <div className="text-xs text-gray-500 mt-1">≈ {formatUsd(amount)}</div>
+          <div className="text-xs text-gray-400 mt-1">≈ {formatUsd(amount)}</div>
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">
+          <label className="block text-xs font-medium text-gray-600 mb-1.5">
             {t('chainlink.nodes.stakingPeriod')}
           </label>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <input
               type="range"
               min="1"
               max="36"
               value={stakingPeriod}
               onChange={(e) => setStakingPeriod(parseInt(e.target.value))}
-              className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-500"
             />
-            <span className="text-sm font-medium text-gray-700 w-16 text-right">
+            <span className="text-sm text-gray-600 w-16 text-right">
               {stakingPeriod} {t('chainlink.nodes.months')}
             </span>
           </div>
@@ -130,7 +130,7 @@ export function StakingRewardsCalculator() {
 
       {/* Scenario Selection */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-2">
+        <label className="block text-xs font-medium text-gray-600 mb-2">
           {t('chainlink.nodes.scenario')}
         </label>
         <div className="grid grid-cols-3 gap-2">
@@ -139,87 +139,84 @@ export function StakingRewardsCalculator() {
               key={key}
               onClick={() => setSelectedScenario(key)}
               className={`
-                px-2 py-2 rounded-md text-xs font-medium transition-all
+                px-2 py-2 rounded text-xs font-medium transition-all
                 ${
                   selectedScenario === key
-                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
-                    : 'bg-gray-50 text-gray-600 border-2 border-transparent hover:bg-gray-100'
+                    ? 'bg-gray-100 text-gray-900 border border-gray-300'
+                    : 'bg-transparent text-gray-500 border border-gray-200 hover:border-gray-300'
                 }
               `}
             >
               <div>{SCENARIOS[key].label}</div>
-              <div className="text-xs opacity-75">{SCENARIOS[key].apy}% APY</div>
+              <div className="text-xs opacity-60">{SCENARIOS[key].apy}% APY</div>
             </button>
           ))}
         </div>
-        <p className="text-xs text-gray-500 mt-2 flex items-start gap-1">
+        <p className="text-xs text-gray-400 mt-2 flex items-start gap-1">
           <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
           {scenario.description}
         </p>
       </div>
 
       {/* Rewards Display */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 space-y-3">
+      <div className="border-t border-gray-100 pt-4 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-gray-600">
+          <span className="text-xs font-medium text-gray-500">
             {t('chainlink.nodes.expectedRewards')}
           </span>
-          <span
-            className="text-xs font-bold px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: `${scenario.color}20`, color: scenario.color }}
-          >
+          <span className="text-xs font-medium text-gray-700">
             {scenario.apy}% APY
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-3">
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Clock className="w-3 h-3 text-gray-400" />
-              <span className="text-xs text-gray-500">{t('chainlink.nodes.daily')}</span>
+              <span className="text-xs text-gray-400">{t('chainlink.nodes.daily')}</span>
             </div>
-            <div className="text-sm font-bold text-gray-900">{formatCurrency(rewards.daily)}</div>
+            <div className="text-sm font-semibold text-gray-900">{formatCurrency(rewards.daily)}</div>
             <div className="text-xs text-gray-400">LINK</div>
           </div>
 
-          <div className="text-center border-x border-blue-200">
+          <div className="text-center border-x border-gray-100">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Calendar className="w-3 h-3 text-gray-400" />
-              <span className="text-xs text-gray-500">{t('chainlink.nodes.monthly')}</span>
+              <span className="text-xs text-gray-400">{t('chainlink.nodes.monthly')}</span>
             </div>
-            <div className="text-sm font-bold text-gray-900">{formatCurrency(rewards.monthly)}</div>
+            <div className="text-sm font-semibold text-gray-900">{formatCurrency(rewards.monthly)}</div>
             <div className="text-xs text-gray-400">LINK</div>
           </div>
 
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <TrendingUp className="w-3 h-3 text-gray-400" />
-              <span className="text-xs text-gray-500">{t('chainlink.nodes.yearly')}</span>
+              <span className="text-xs text-gray-400">{t('chainlink.nodes.yearly')}</span>
             </div>
-            <div className="text-sm font-bold text-gray-900">{formatCurrency(rewards.yearly)}</div>
+            <div className="text-sm font-semibold text-gray-900">{formatCurrency(rewards.yearly)}</div>
             <div className="text-xs text-gray-400">LINK</div>
           </div>
         </div>
 
-        <div className="border-t border-blue-200 pt-3">
+        <div className="border-t border-gray-100 pt-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-500">
               {t('chainlink.nodes.totalAfter')} {stakingPeriod} {t('chainlink.nodes.months')}
             </span>
             <div className="text-right">
-              <div className="text-lg font-bold text-blue-700">
+              <div className="text-base font-bold text-gray-900">
                 +{formatCurrency(rewards.total)} LINK
               </div>
-              <div className="text-xs text-gray-500">≈ {formatUsd(rewards.total)}</div>
+              <div className="text-xs text-gray-400">≈ {formatUsd(rewards.total)}</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Disclaimer */}
-      <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
-        <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-amber-700 leading-relaxed">
+      <div className="flex items-start gap-2 pt-3 border-t border-gray-100">
+        <AlertCircle className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-gray-400 leading-relaxed">
           {t('chainlink.nodes.calculatorDisclaimer')}
         </p>
       </div>

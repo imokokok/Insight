@@ -41,45 +41,55 @@ export function ChainlinkServicesView() {
   const t = useTranslations('chainlink');
 
   return (
-    <div className="space-y-6">
-      {/* 服务概览卡片 */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {services.map((service) => {
-          const Icon = service.icon;
-          return (
-            <div
-              key={service.id}
-              className="bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <div
-                  className="w-8 h-8 rounded-md flex items-center justify-center"
-                  style={{ backgroundColor: `${service.color}15` }}
-                >
-                  <Icon className="w-4 h-4" style={{ color: service.color }} />
+    <div className="space-y-8">
+      {/* 服务概览列表 */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">
+          {t('services.overview') || 'Service Overview'}
+        </h3>
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          {/* 表头 */}
+          <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <div className="col-span-5">{t('services.service') || 'Service'}</div>
+            <div className="col-span-4 text-right">{t('services.requests') || 'Requests'}</div>
+            <div className="col-span-3 text-right">{t('services.uptime') || 'Uptime'}</div>
+          </div>
+          {/* 服务行 */}
+          {services.map((service, index) => {
+            const Icon = service.icon;
+            return (
+              <div
+                key={service.id}
+                className={`grid grid-cols-12 gap-4 px-4 py-4 items-center hover:bg-gray-50 transition-colors cursor-pointer ${
+                  index !== services.length - 1 ? 'border-b border-gray-100' : ''
+                }`}
+              >
+                <div className="col-span-5 flex items-center gap-3">
+                  <div
+                    className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: `${service.color}15` }}
+                  >
+                    <Icon className="w-4 h-4" style={{ color: service.color }} />
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">{service.name}</span>
                 </div>
-                <span className="text-sm font-medium text-gray-900">{service.name}</span>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">{t('services.requests') || 'Requests'}</span>
+                <div className="col-span-4 text-right">
                   <span className="text-sm font-semibold text-gray-900">{service.requests}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">{t('services.uptime') || 'Uptime'}</span>
-                  <div className="flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                <div className="col-span-3 text-right">
+                  <div className="flex items-center justify-end gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                     <span className="text-sm font-semibold text-emerald-600">{service.uptime}%</span>
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* 服务使用分布 */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
           {t('services.usageDistribution') || 'Service Usage Distribution'}
         </h3>
@@ -125,55 +135,55 @@ export function ChainlinkServicesView() {
       </div>
 
       {/* 服务说明 */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+      <div>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">
           {t('services.about') || 'About Chainlink Services'}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-gray-900">Data Feeds</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+          <div className="flex items-start gap-3">
+            <Activity className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <span className="text-sm font-medium text-gray-900 block mb-1">Data Feeds</span>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                {t('services.dataFeedsDesc') || 'Decentralized price oracles for DeFi applications, providing high-quality financial market data.'}
+              </p>
             </div>
-            <p className="text-xs text-gray-600">
-              {t('services.dataFeedsDesc') || 'Decentralized price oracles for DeFi applications, providing high-quality financial market data.'}
-            </p>
           </div>
-          <div className="bg-white rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-purple-600" />
-              <span className="text-sm font-medium text-gray-900">VRF</span>
+          <div className="flex items-start gap-3">
+            <Zap className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <span className="text-sm font-medium text-gray-900 block mb-1">VRF</span>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                {t('services.vrfDesc') || 'Verifiable Random Function for provably fair randomness in gaming and NFT applications.'}
+              </p>
             </div>
-            <p className="text-xs text-gray-600">
-              {t('services.vrfDesc') || 'Verifiable Random Function for provably fair randomness in gaming and NFT applications.'}
-            </p>
           </div>
-          <div className="bg-white rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-emerald-600" />
-              <span className="text-sm font-medium text-gray-900">Automation</span>
+          <div className="flex items-start gap-3">
+            <Clock className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <span className="text-sm font-medium text-gray-900 block mb-1">Automation</span>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                {t('services.automationDesc') || 'Decentralized automation for smart contracts, enabling conditional execution of on-chain functions.'}
+              </p>
             </div>
-            <p className="text-xs text-gray-600">
-              {t('services.automationDesc') || 'Decentralized automation for smart contracts, enabling conditional execution of on-chain functions.'}
-            </p>
           </div>
-          <div className="bg-white rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-amber-600" />
-              <span className="text-sm font-medium text-gray-900">CCIP</span>
+          <div className="flex items-start gap-3">
+            <TrendingUp className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <span className="text-sm font-medium text-gray-900 block mb-1">CCIP</span>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                {t('services.ccipDesc') || 'Cross-Chain Interoperability Protocol for secure cross-chain messaging and token transfers.'}
+              </p>
             </div>
-            <p className="text-xs text-gray-600">
-              {t('services.ccipDesc') || 'Cross-Chain Interoperability Protocol for secure cross-chain messaging and token transfers.'}
-            </p>
           </div>
-          <div className="bg-white rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <BarChart3 className="w-4 h-4 text-red-600" />
-              <span className="text-sm font-medium text-gray-900">Functions</span>
+          <div className="flex items-start gap-3">
+            <BarChart3 className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <span className="text-sm font-medium text-gray-900 block mb-1">Functions</span>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                {t('services.functionsDesc') || 'Serverless compute for smart contracts, allowing custom off-chain computations and API integrations.'}
+              </p>
             </div>
-            <p className="text-xs text-gray-600">
-              {t('services.functionsDesc') || 'Serverless compute for smart contracts, allowing custom off-chain computations and API integrations.'}
-            </p>
           </div>
         </div>
       </div>
