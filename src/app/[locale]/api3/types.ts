@@ -84,3 +84,48 @@ export interface API3RiskViewProps {
   dapiCoverage?: DAPICoverage | null;
   isLoading: boolean;
 }
+
+export interface AirnodeNode {
+  id: string;
+  name: string;
+  region: string;
+  responseTime: number;
+  successRate: number;
+  reputation: number;
+  stakedAmount: number;
+}
+
+export interface DapiFeed {
+  id: string;
+  name: string;
+  category: 'crypto' | 'forex' | 'commodities' | 'stocks';
+  updateFrequency: string;
+  deviationThreshold: string;
+  status: 'active' | 'paused' | 'deprecated';
+  totalRequests: number;
+  reliability: number;
+}
+
+export interface RiskMetric {
+  id: string;
+  name: string;
+  value: number;
+  max: number;
+  description: string;
+  status: 'low' | 'medium' | 'high';
+  trend: 'up' | 'down' | 'stable';
+}
+
+export interface RiskFactor {
+  category: string;
+  level: 'low' | 'medium' | 'high';
+  description: string;
+  details: string[];
+}
+
+export interface TimelineEvent {
+  date: string;
+  title: string;
+  description: string;
+  type: 'success' | 'warning' | 'info' | 'error';
+}

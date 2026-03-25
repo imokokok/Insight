@@ -128,91 +128,95 @@ export function BandProtocolCrossChainView({
     return iconMap[chainName] || '🔗';
   };
 
+  const totalRequests = chains.reduce((sum, chain) => sum + chain.requestCount24h, 0);
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-8">
+      {/* Stats Section - Inline Layout */}
+      <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{stat.label}</p>
-            <div className="flex items-baseline gap-2 mt-1">
+          <div key={index} className="flex items-center gap-3">
+            <div>
               <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-              {stat.change && (
-                <span className="text-sm font-medium text-emerald-600">{stat.change}</span>
-              )}
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500">{stat.label}</p>
+                {stat.change && (
+                  <span className="text-xs font-medium text-emerald-600">{stat.change}</span>
+                )}
+              </div>
             </div>
+            {index < stats.length - 1 && (
+              <div className="hidden sm:block w-px h-10 bg-gray-200 ml-4" />
+            )}
           </div>
         ))}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('bandProtocol.crossChain.supportedChains')}
-          </h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+      {/* Chain List Section */}
+      <div className="border-t border-gray-200 pt-8">
+        <h3 className="text-base font-semibold text-gray-900 mb-4">
+          {t('bandProtocol.crossChain.supportedChains')}
+        </h3>
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50/50">
+                <th className="px-4 py-2.5 text-left font-medium text-gray-600">
                   {t('bandProtocol.crossChain.chain')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2.5 text-left font-medium text-gray-600">
                   {t('bandProtocol.crossChain.chainId')}
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2.5 text-right font-medium text-gray-600">
                   {t('bandProtocol.crossChain.requests24h')}
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2.5 text-right font-medium text-gray-600">
                   {t('bandProtocol.crossChain.requests7d')}
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2.5 text-right font-medium text-gray-600">
                   {t('bandProtocol.crossChain.avgGasCost')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2.5 text-left font-medium text-gray-600">
                   {t('bandProtocol.crossChain.supportedAssets')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {chains.map((chain) => (
-                <tr key={chain.chainId} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
+            <tbody>
+              {chains.map((chain, idx) => (
+                <tr
+                  key={chain.chainId}
+                  className={`${idx !== chains.length - 1 ? 'border-b border-gray-100' : ''} hover:bg-gray-50/50`}
+                >
+                  <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{getChainIcon(chain.chainName)}</span>
-                      <span className="text-sm font-medium text-gray-900">{chain.chainName}</span>
+                      <span>{getChainIcon(chain.chainName)}</span>
+                      <span className="font-medium text-gray-900">{chain.chainName}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs text-gray-500 font-mono">{chain.chainId}</span>
+                  <td className="px-4 py-2.5">
+                    <span className="text-gray-500 font-mono text-xs">{chain.chainId}</span>
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-sm text-gray-900">
-                      {chain.requestCount24h.toLocaleString()}
-                    </span>
+                  <td className="px-4 py-2.5 text-right text-gray-900">
+                    {chain.requestCount24h.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-sm text-gray-900">
-                      {chain.requestCount7d.toLocaleString()}
-                    </span>
+                  <td className="px-4 py-2.5 text-right text-gray-900">
+                    {chain.requestCount7d.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-sm text-gray-900">
-                      {chain.avgGasCost.toFixed(4)} BAND
-                    </span>
+                  <td className="px-4 py-2.5 text-right text-gray-900">
+                    {chain.avgGasCost.toFixed(4)} BAND
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-2.5">
                     <div className="flex flex-wrap gap-1">
                       {chain.supportedSymbols.slice(0, 4).map((symbol) => (
                         <span
                           key={symbol}
-                          className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-600 bg-gray-100 rounded"
+                          className="inline-flex items-center px-1.5 py-0.5 text-xs text-gray-600 bg-gray-100 rounded"
                         >
                           {symbol}
                         </span>
                       ))}
                       {chain.supportedSymbols.length > 4 && (
-                        <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-500">
+                        <span className="inline-flex items-center px-1.5 py-0.5 text-xs text-gray-400">
                           +{chain.supportedSymbols.length - 4}
                         </span>
                       )}
@@ -225,66 +229,39 @@ export function BandProtocolCrossChainView({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('bandProtocol.crossChain.requestDistribution')}
-          </h3>
-          <div className="space-y-3">
-            {chains.slice(0, 5).map((chain) => {
-              const maxRequests = Math.max(...chains.map((c) => c.requestCount24h));
-              const percentage = (chain.requestCount24h / maxRequests) * 100;
+      {/* Request Distribution - Progress Bars */}
+      <div className="border-t border-gray-200 pt-8">
+        <h3 className="text-base font-semibold text-gray-900 mb-4">
+          {t('bandProtocol.crossChain.requestDistribution')}
+        </h3>
+        <div className="space-y-3">
+          {chains
+            .sort((a, b) => b.requestCount24h - a.requestCount24h)
+            .map((chain) => {
+              const percentage = totalRequests > 0 ? (chain.requestCount24h / totalRequests) * 100 : 0;
               return (
-                <div key={chain.chainId}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">{chain.chainName}</span>
-                    <span className="font-medium">{chain.requestCount24h.toLocaleString()}</span>
+                <div key={chain.chainId} className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 w-32 shrink-0">
+                    <span>{getChainIcon(chain.chainName)}</span>
+                    <span className="text-sm text-gray-700 truncate">{chain.chainName}</span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
-                    <div
-                      className="bg-purple-500 h-2 rounded-full"
-                      style={{ width: `${percentage}%` }}
-                    />
+                  <div className="flex-1 min-w-0">
+                    <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div
+                        className="bg-purple-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="w-20 text-right shrink-0">
+                    <span className="text-sm font-medium text-gray-900">
+                      {chain.requestCount24h.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-gray-500 ml-1">({percentage.toFixed(1)}%)</span>
                   </div>
                 </div>
               );
             })}
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('bandProtocol.crossChain.cosmosEcosystem')}
-          </h3>
-          <div className="space-y-4">
-            <div className="p-3 bg-purple-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">⚛️</span>
-                <span className="font-medium text-gray-900">Cosmos SDK Native</span>
-              </div>
-              <p className="text-sm text-gray-600">
-                {t('bandProtocol.crossChain.cosmosDescription')}
-              </p>
-            </div>
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">🔗</span>
-                <span className="font-medium text-gray-900">IBC Protocol</span>
-              </div>
-              <p className="text-sm text-gray-600">
-                {t('bandProtocol.crossChain.ibcDescription')}
-              </p>
-            </div>
-            <div className="p-3 bg-emerald-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">⚡</span>
-                <span className="font-medium text-gray-900">Fast Finality</span>
-              </div>
-              <p className="text-sm text-gray-600">
-                {t('bandProtocol.crossChain.finalityDescription')}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

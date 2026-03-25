@@ -1,133 +1,198 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { PythPriceFeedsViewProps } from '../types';
+import { PriceFeed } from '../types';
+import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 
-interface PriceFeedCategory {
-  category: string;
-  count: number;
-  icon: string;
-  color: string;
-}
+const mockPriceFeeds: PriceFeed[] = [
+  { id: '1', name: 'BTC/USD', category: 'crypto', updateFrequency: '400ms', deviationThreshold: '0.1%', status: 'active', totalRequests: 12500000, reliability: 99.99 },
+  { id: '2', name: 'ETH/USD', category: 'crypto', updateFrequency: '400ms', deviationThreshold: '0.1%', status: 'active', totalRequests: 15200000, reliability: 99.99 },
+  { id: '3', name: 'SOL/USD', category: 'crypto', updateFrequency: '400ms', deviationThreshold: '0.2%', status: 'active', totalRequests: 8900000, reliability: 99.98 },
+  { id: '4', name: 'EUR/USD', category: 'forex', updateFrequency: '1s', deviationThreshold: '0.05%', status: 'active', totalRequests: 5600000, reliability: 99.97 },
+  { id: '5', name: 'GBP/USD', category: 'forex', updateFrequency: '1s', deviationThreshold: '0.05%', status: 'active', totalRequests: 3200000, reliability: 99.96 },
+  { id: '6', name: 'XAU/USD', category: 'commodities', updateFrequency: '2s', deviationThreshold: '0.1%', status: 'active', totalRequests: 2100000, reliability: 99.95 },
+  { id: '7', name: 'AAPL/USD', category: 'equities', updateFrequency: '3s', deviationThreshold: '0.2%', status: 'active', totalRequests: 7800000, reliability: 99.98 },
+  { id: '8', name: 'TSLA/USD', category: 'equities', updateFrequency: '3s', deviationThreshold: '0.2%', status: 'active', totalRequests: 9200000, reliability: 99.98 },
+  { id: '9', name: 'NVDA/USD', category: 'equities', updateFrequency: '3s', deviationThreshold: '0.2%', status: 'active', totalRequests: 8500000, reliability: 99.97 },
+  { id: '10', name: 'JPY/USD', category: 'forex', updateFrequency: '1s', deviationThreshold: '0.05%', status: 'active', totalRequests: 4100000, reliability: 99.96 },
+];
 
-export function PythPriceFeedsView({ isLoading }: PythPriceFeedsViewProps) {
+const categories = [
+  { id: 'all', label: 'All', count: mockPriceFeeds.length },
+  { id: 'crypto', label: 'Crypto', count: mockPriceFeeds.filter(f => f.category === 'crypto').length },
+  { id: 'forex', label: 'Forex', count: mockPriceFeeds.filter(f => f.category === 'forex').length },
+  { id: 'commodities', label: 'Commodities', count: mockPriceFeeds.filter(f => f.category === 'commodities').length },
+  { id: 'equities', label: 'Equities', count: mockPriceFeeds.filter(f => f.category === 'equities').length },
+];
+
+export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
   const t = useTranslations();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const categories: PriceFeedCategory[] = [
-    {
-      category: t('pyth.priceFeeds.categories.crypto') || '加密货币',
-      count: 350,
-      icon: '₿',
-      color: 'bg-orange-100 text-orange-600',
-    },
-    {
-      category: t('pyth.priceFeeds.categories.equities') || '股票',
-      count: 80,
-      icon: '📈',
-      color: 'bg-blue-100 text-blue-600',
-    },
-    {
-      category: t('pyth.priceFeeds.categories.commodities') || '商品',
-      count: 45,
-      icon: '🛢️',
-      color: 'bg-amber-100 text-amber-600',
-    },
-    {
-      category: t('pyth.priceFeeds.categories.forex') || '外汇',
-      count: 45,
-      icon: '💱',
-      color: 'bg-emerald-100 text-emerald-600',
-    },
-  ];
+  const filteredFeeds = selectedCategory === 'all'
+    ? mockPriceFeeds
+    : mockPriceFeeds.filter(feed => feed.category === selectedCategory);
 
-  const totalFeeds = categories.reduce((sum, cat) => sum + cat.count, 0);
+  const totalRequests = mockPriceFeeds.reduce((acc, f) => acc + f.totalRequests, 0);
+  const avgReliability = (mockPriceFeeds.reduce((acc, f) => acc + f.reliability, 0) / mockPriceFeeds.length).toFixed(2);
 
   return (
-    <div className="space-y-4">
-      {/* Category Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {categories.map((feed) => (
-          <div
-            key={feed.category}
-            className="bg-white border border-gray-200 rounded-lg p-6 text-center hover:border-violet-300 transition-colors"
-          >
-            <div className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center text-2xl mb-3 ${feed.color}`}>
-              {feed.icon}
-            </div>
-            <h4 className="font-semibold text-gray-900 text-sm">{feed.category}</h4>
-            <p className="text-2xl font-bold text-gray-900 mt-2">{feed.count}</p>
-            <p className="text-xs text-gray-500 mt-1">{t('pyth.priceFeeds.priceFeeds')}</p>
+    <div className="space-y-8">
+      {/* Stats Row */}
+      <div className="flex flex-wrap items-center gap-6 md:gap-8">
+        <div className="flex items-center gap-3">
+          <Activity className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('pyth.priceFeeds.total') || 'Total Feeds'}</p>
+            <p className="text-xl font-semibold text-gray-900">{mockPriceFeeds.length}</p>
           </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('pyth.priceFeeds.active') || 'Active'}</p>
+            <p className="text-xl font-semibold text-emerald-600">
+              {mockPriceFeeds.filter(f => f.status === 'active').length}
+            </p>
+          </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <TrendingUp className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('pyth.priceFeeds.totalRequests') || 'Total Requests'}</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {(totalRequests / 1e6).toFixed(1)}M
+            </p>
+          </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <Clock className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('pyth.priceFeeds.avgReliability') || 'Avg Reliability'}</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {avgReliability}%
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Category Filters */}
+      <div className="flex flex-wrap gap-1 border-b border-gray-200 pb-4">
+        {categories.map((category) => (
+          <button
+            key={category.id}
+            onClick={() => setSelectedCategory(category.id)}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              selectedCategory === category.id
+                ? 'text-gray-900 bg-gray-100'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            {category.label}
+            <span className={`text-xs ${
+              selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
+            }`}>
+              {category.count}
+            </span>
+          </button>
         ))}
       </div>
 
-      {/* Summary Card */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {t('pyth.priceFeeds.totalTitle') || '总价格源'}
-            </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('pyth.priceFeeds.totalDescription', { count: totalFeeds }) ||
-                `Pyth Network 目前支持 ${totalFeeds} 个价格源，涵盖加密货币、股票、商品和外汇等多个资产类别。`}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-4xl font-bold text-violet-600">{totalFeeds}+</p>
-            <p className="text-sm text-gray-500">{t('pyth.priceFeeds.activeFeeds') || '活跃价格源'}</p>
-          </div>
+      {/* Data Table */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+          {t('pyth.priceFeeds.title') || 'Price Feeds'}
+        </h3>
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.priceFeeds.name') || 'Name'}
+                </th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.priceFeeds.category') || 'Category'}
+                </th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.priceFeeds.frequency') || 'Update Frequency'}
+                </th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.priceFeeds.threshold') || 'Deviation Threshold'}
+                </th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.priceFeeds.status') || 'Status'}
+                </th>
+                <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.priceFeeds.reliability') || 'Reliability'}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredFeeds.map((feed) => (
+                <tr
+                  key={feed.id}
+                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                >
+                  <td className="py-3 px-4 font-medium text-gray-900">{feed.name}</td>
+                  <td className="py-3 px-4">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
+                      {feed.category}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600">{feed.updateFrequency}</td>
+                  <td className="py-3 px-4 text-sm text-gray-600">{feed.deviationThreshold}</td>
+                  <td className="py-3 px-4">
+                    <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+                      feed.status === 'active' ? 'text-emerald-600' :
+                      feed.status === 'paused' ? 'text-amber-600' : 'text-red-600'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        feed.status === 'active' ? 'bg-emerald-500' :
+                        feed.status === 'paused' ? 'bg-amber-500' : 'bg-red-500'
+                      }`} />
+                      {feed.status.charAt(0).toUpperCase() + feed.status.slice(1)}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-right text-sm font-medium text-gray-900">
+                    {feed.reliability}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Features Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-gray-900 text-sm">
-              {t('pyth.priceFeeds.features.highFrequency') || '高频更新'}
-            </h4>
+      {/* About Section */}
+      <div className="pt-6 border-t border-gray-200">
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+          {t('pyth.priceFeeds.about') || 'About Price Feeds'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
+          <div>
+            <p className="mb-2">
+              <span className="font-medium text-gray-900">{t('pyth.priceFeeds.updateFrequency') || 'Update Frequency'}:</span>
+              {' '}{t('pyth.priceFeeds.frequencyDesc') || 'Pyth price feeds update based on sub-second intervals, providing near real-time price data from first-party sources.'}
+            </p>
+            <p>
+              <span className="font-medium text-gray-900">{t('pyth.priceFeeds.deviationThreshold') || 'Deviation Threshold'}:</span>
+              {' '}{t('pyth.priceFeeds.thresholdDesc') || 'Minimum price change required to trigger a new update on-chain.'}
+            </p>
           </div>
-          <p className="text-xs text-gray-500">
-            {t('pyth.priceFeeds.features.highFrequencyDesc') || '亚秒级价格更新，平均延迟低于 1 秒'}
-          </p>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-gray-900 text-sm">
-              {t('pyth.priceFeeds.features.firstParty') || '第一方数据'}
-            </h4>
+          <div>
+            <p className="mb-2">
+              <span className="font-medium text-gray-900">{t('pyth.priceFeeds.reliability') || 'Reliability'}:</span>
+              {' '}{t('pyth.priceFeeds.reliabilityDesc') || 'Percentage of successful updates over the last 30 days, maintained by publisher consensus.'}
+            </p>
+            <p>
+              <span className="font-medium text-gray-900">{t('pyth.priceFeeds.firstParty') || 'First-Party Data'}:</span>
+              {' '}{t('pyth.priceFeeds.firstPartyDesc') || 'Data comes directly from leading trading firms and exchanges, not aggregated from third parties.'}
+            </p>
           </div>
-          <p className="text-xs text-gray-500">
-            {t('pyth.priceFeeds.features.firstPartyDesc') || '直接来自顶级交易所和做市商'}
-          </p>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-gray-900 text-sm">
-              {t('pyth.priceFeeds.features.crossChain') || '跨链支持'}
-            </h4>
-          </div>
-          <p className="text-xs text-gray-500">
-            {t('pyth.priceFeeds.features.crossChainDesc') || '通过 Wormhole 支持多条区块链'}
-          </p>
         </div>
       </div>
     </div>

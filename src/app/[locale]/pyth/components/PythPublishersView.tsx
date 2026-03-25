@@ -2,26 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { SegmentedControl } from '@/components/ui/selectors';
 import { PythPublishersViewProps } from '../types';
+import { Search, ArrowUpDown, Activity, Award, TrendingUp, Shield } from 'lucide-react';
 
 type SortField = 'stake' | 'accuracy' | 'name';
 type SortOrder = 'asc' | 'desc';
-
-interface FlatStatItemProps {
-  label: string;
-  value: string | number;
-  className?: string;
-}
-
-function FlatStatItem({ label, value, className = '' }: FlatStatItemProps) {
-  return (
-    <div className={className}>
-      <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
-      <p className="text-lg font-semibold text-gray-900 mt-1">{value}</p>
-    </div>
-  );
-}
 
 export function PythPublishersView({ publishers, isLoading }: PythPublishersViewProps) {
   const t = useTranslations();
@@ -57,115 +42,164 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
     : 0;
   const topPublisher = publishers.sort((a, b) => b.stake - a.stake)[0];
 
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('desc');
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Search and Sort Controls */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder={t('pyth.publishers.searchPlaceholder') || '搜索发布者...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-            />
-          </div>
-          <div className="flex gap-2">
-            <SegmentedControl
-              options={[
-                { value: 'stake', label: t('pyth.publishers.sortByStake') || '按质押排序' },
-                { value: 'accuracy', label: t('pyth.publishers.sortByAccuracy') || '按准确率排序' },
-                { value: 'name', label: t('pyth.publishers.sortByName') || '按名称排序' },
-              ]}
-              value={sortField}
-              onChange={(value) => setSortField(value as SortField)}
-              size="sm"
-            />
-            <button
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              {sortOrder === 'asc' ? '↑' : '↓'}
-            </button>
-          </div>
+    <div className="space-y-8">
+      {/* 统计概览 - 行内展示 */}
+      <div className="flex flex-wrap items-center gap-6 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('pyth.publishers.total') || 'Total Publishers'}</span>
+          <span className="text-lg font-semibold text-gray-900">{publishers.length}</span>
+        </div>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Award className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('pyth.publishers.totalStaked') || 'Total Staked'}</span>
+          <span className="text-lg font-semibold text-gray-900">{(totalStake / 1e9).toFixed(2)}B PYTH</span>
+        </div>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('pyth.publishers.avgAccuracy') || 'Avg Accuracy'}</span>
+          <span className="text-lg font-semibold text-emerald-600">{avgAccuracy}%</span>
+        </div>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Shield className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('pyth.publishers.topPublisher') || 'Top Publisher'}</span>
+          <span className="text-lg font-semibold text-gray-900">{topPublisher?.name || '-'}</span>
         </div>
       </div>
 
-      {/* Publisher Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-gray-200 rounded-lg bg-white">
-        <FlatStatItem
-          label={t('pyth.publishers.totalPublishers') || '发布者总数'}
-          value={publishers.length || 0}
-          className="px-4 py-4 border-r border-gray-200"
-        />
-        <FlatStatItem
-          label={t('pyth.publishers.totalStaked') || '总质押'}
-          value={`${(totalStake / 1e9).toFixed(2)}B`}
-          className="px-4 py-4 border-r border-gray-200"
-        />
-        <FlatStatItem
-          label={t('pyth.publishers.avgAccuracy') || '平均准确率'}
-          value={`${avgAccuracy}%`}
-          className="px-4 py-4 border-r border-gray-200"
-        />
-        <FlatStatItem
-          label={t('pyth.publishers.topPublisher') || '头部发布者'}
-          value={topPublisher?.name || '-'}
-          className="px-4 py-4"
-        />
+      {/* 搜索和排序控制 */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder={t('pyth.publishers.searchPlaceholder') || 'Search publishers...'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleSort('name')}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+              sortField === 'name'
+                ? 'bg-gray-900 text-white border-gray-900'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            {t('pyth.publishers.sortByName') || 'Name'}
+            <ArrowUpDown className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => handleSort('stake')}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+              sortField === 'stake'
+                ? 'bg-gray-900 text-white border-gray-900'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            {t('pyth.publishers.sortByStake') || 'Stake'}
+            <ArrowUpDown className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => handleSort('accuracy')}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+              sortField === 'accuracy'
+                ? 'bg-gray-900 text-white border-gray-900'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            {t('pyth.publishers.sortByAccuracy') || 'Accuracy'}
+            <ArrowUpDown className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
-      {/* Publisher Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredPublishers.map((publisher, index) => (
-          <div
-            key={publisher.id}
-            className="bg-white border border-gray-200 rounded-lg p-4 hover:border-violet-300 transition-colors"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-semibold text-gray-900">{publisher.name}</h4>
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                #{index + 1}
-              </span>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">{t('pyth.publishers.stake')}</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {(publisher.stake / 1e6).toFixed(1)}M PYTH
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 h-1.5 rounded-full">
-                <div
-                  className="bg-violet-500 h-1.5 rounded-full"
-                  style={{
-                    width: `${Math.min((publisher.stake / (topPublisher?.stake || 1)) * 100, 100)}%`,
-                  }}
-                />
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">{t('pyth.publishers.accuracy')}</span>
-                <span
-                  className={`text-sm font-medium ${
-                    publisher.accuracy >= 99 ? 'text-emerald-600' : 'text-amber-600'
-                  }`}
-                >
-                  {publisher.accuracy}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                <span className="text-sm text-gray-600">
-                  {t('pyth.publishers.contribution') || '贡献度'}
-                </span>
-                <span className="text-sm font-medium text-gray-900">
+      {/* 数据表格 */}
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-200 bg-gray-50">
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                {t('pyth.publishers.rank') || 'Rank'}
+              </th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                {t('pyth.publishers.name') || 'Name'}
+              </th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                {t('pyth.publishers.stake') || 'Stake'}
+              </th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                {t('pyth.publishers.contribution') || 'Contribution'}
+              </th>
+              <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
+                {t('pyth.publishers.accuracy') || 'Accuracy'}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredPublishers.map((publisher, index) => (
+              <tr
+                key={publisher.id}
+                className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+              >
+                <td className="py-3 px-4">
+                  <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                    {index + 1}
+                  </span>
+                </td>
+                <td className="py-3 px-4 font-medium text-gray-900">{publisher.name}</td>
+                <td className="py-3 px-4">
+                  <div className="space-y-1">
+                    <span className="text-sm text-gray-900">{(publisher.stake / 1e6).toFixed(1)}M PYTH</span>
+                    <div className="w-32 bg-gray-100 rounded-full h-1.5">
+                      <div
+                        className="bg-violet-500 h-1.5 rounded-full"
+                        style={{
+                          width: `${Math.min((publisher.stake / (topPublisher?.stake || 1)) * 100, 100)}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-sm text-gray-600">
                   {((publisher.stake / (totalStake || 1)) * 100).toFixed(2)}%
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
+                </td>
+                <td className="py-3 px-4 text-right">
+                  <span
+                    className={`text-sm font-medium ${
+                      publisher.accuracy >= 99 ? 'text-emerald-600' : 'text-amber-600'
+                    }`}
+                  >
+                    {publisher.accuracy}%
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      {/* 空状态 */}
+      {filteredPublishers.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-sm text-gray-500">{t('pyth.publishers.noResults') || 'No publishers found'}</p>
+        </div>
+      )}
     </div>
   );
 }
