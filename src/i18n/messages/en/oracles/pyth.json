@@ -108,6 +108,16 @@
     },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
+    "networkStatus": "Network Status",
+    "dataSource": "Data Source",
+    "normal": "Normal",
+    "warning": "Warning",
+    "networkHealth": {
+      "activePublishers": "Active Publishers",
+      "priceFeeds": "Price Feeds",
+      "responseTime": "Response Time",
+      "confidence": "Confidence"
+    },
     "publishers": {
       "title": "Data Publishers",
       "stake": "Staked Amount",
