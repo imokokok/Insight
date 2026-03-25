@@ -12,7 +12,6 @@ import {
   ChronicleRiskView,
   ChronicleHero,
 } from './components';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { LoadingState, ErrorFallback } from '@/components/oracle';
 
 export default function ChroniclePage() {
@@ -88,12 +87,6 @@ export default function ChroniclePage() {
             scuttlebutt={scuttlebutt}
             isLoading={isLoading}
           />
-        );
-      case 'cross-oracle':
-        return (
-          <div className="space-y-4">
-            <CrossOracleComparison />
-          </div>
         );
       case 'risk':
         return (

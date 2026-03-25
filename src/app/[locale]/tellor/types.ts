@@ -8,7 +8,6 @@ export type TellorTabId =
   | 'disputes'
   | 'staking'
   | 'ecosystem'
-  | 'cross-oracle'
   | 'risk';
 
 export interface NetworkStats {

@@ -8,7 +8,6 @@ export type RedStoneTabId =
   | 'providers'
   | 'cross-chain'
   | 'ecosystem'
-  | 'cross-oracle'
   | 'risk';
 
 export interface NetworkStats {

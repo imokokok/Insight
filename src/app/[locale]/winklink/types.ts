@@ -17,8 +17,7 @@ export type WinklinkTabId =
   | 'tron'
   | 'staking'
   | 'gaming'
-  | 'risk'
-  | 'cross-oracle';
+  | 'risk';
 
 export interface WinklinkPageState {
   activeTab: WinklinkTabId;

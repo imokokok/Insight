@@ -13,7 +13,6 @@ export type ChronicleTabId =
   | 'validators'
   | 'makerdao'
   | 'scuttlebutt'
-  | 'cross-oracle'
   | 'risk';
 
 export interface NetworkStats {

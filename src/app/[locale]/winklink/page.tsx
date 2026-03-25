@@ -13,7 +13,6 @@ import {
   WinklinkRiskView,
   WinklinkHero,
 } from './components';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { LoadingState, ErrorFallback } from '@/components/oracle';
 
 export default function WinklinkPage() {
@@ -95,12 +94,6 @@ export default function WinklinkPage() {
             riskMetrics={riskMetrics}
             isLoading={isLoading}
           />
-        );
-      case 'cross-oracle':
-        return (
-          <div className="space-y-4">
-            <CrossOracleComparison />
-          </div>
         );
       default:
         return null;

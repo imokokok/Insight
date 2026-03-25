@@ -42,7 +42,6 @@ export interface PanelConfig {
   renderStakingTab?: (context: PanelRenderContext) => ReactNode;
   renderRiskTab?: (context: PanelRenderContext) => ReactNode;
   renderEcosystemTab?: (context: PanelRenderContext) => ReactNode;
-  renderCrossOracleTab?: (context: PanelRenderContext) => ReactNode;
   renderGamingTab?: (context: PanelRenderContext) => ReactNode;
   renderTronTab?: (context: PanelRenderContext) => ReactNode;
   renderDataFeedsTab?: (context: PanelRenderContext) => ReactNode;
