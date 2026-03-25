@@ -6,6 +6,13 @@
     "noResultsDesc": "未找到与 \"{query}\" 相关的结果，请尝试其他关键词",
     "initialTitle": "开始搜索",
     "initialDesc": "输入关键词搜索预言机、交易对、区块链、页面和功能",
+    "inputLabel": "搜索输入",
+    "resultsLabel": "搜索结果",
+    "clearButton": "清除搜索",
+    "error": "搜索错误",
+    "errorDesc": "搜索时发生错误，请重试。",
+    "retry": "重试",
+    "resultsCount": "找到 {count} 个结果",
     "groups": {
       "oracles": "预言机",
       "pairs": "交易对",
@@ -25,6 +32,36 @@
       "tellorDesc": "去中心化透明预言机",
       "chronicleDesc": "MakerDAO 基础设施预言机",
       "winklinkDesc": "TRON 生态系统预言机"
+    },
+    "blockchains": {
+      "ethereumDesc": "以太坊区块链生态系统",
+      "arbitrumDesc": "Arbitrum Layer 2 扩容解决方案",
+      "optimismDesc": "Optimism Layer 2 扩容解决方案",
+      "polygonDesc": "Polygon PoS 侧链",
+      "solanaDesc": "Solana 高性能区块链",
+      "avalancheDesc": "Avalanche 子网平台",
+      "fantomDesc": "Fantom Opera 链",
+      "cronosDesc": "Cronos EVM 链",
+      "junoDesc": "Juno Cosmos SDK 链",
+      "cosmosDesc": "Cosmos Hub 区块链",
+      "osmosisDesc": "Osmosis DEX 链",
+      "bnbchainDesc": "BNB Chain 生态系统",
+      "baseDesc": "Base Layer 2 by Coinbase",
+      "scrollDesc": "Scroll zkEVM Layer 2",
+      "zksyncDesc": "zkSync Era Layer 2",
+      "aptosDesc": "Aptos Move 语言区块链",
+      "suiDesc": "Sui Move 语言区块链",
+      "gnosisDesc": "Gnosis Chain",
+      "mantleDesc": "Mantle Layer 2",
+      "lineaDesc": "Linea zkEVM by Consensys",
+      "celestiaDesc": "Celestia 模块化区块链",
+      "injectiveDesc": "Injective DeFi 链",
+      "seiDesc": "Sei 交易优化链",
+      "tronDesc": "TRON 生态系统",
+      "tonDesc": "The Open Network",
+      "nearDesc": "NEAR Protocol",
+      "auroraDesc": "Aurora NEAR 上的 EVM",
+      "celoDesc": "Celo 移动优先区块链"
     },
     "pairs": {
       "priceFeed": "价格数据喂价"
@@ -70,7 +107,10 @@
     "shortcuts": {
       "navigate": "导航",
       "select": "选择",
-      "close": "关闭"
+      "close": "关闭",
+      "arrowKeys": "方向键",
+      "enterKey": "回车键",
+      "escapeKey": "Esc 键"
     },
     "footer": {
       "navigate": "导航",

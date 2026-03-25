@@ -84,6 +84,13 @@ export abstract class BaseOracleClient {
       [Blockchain.NEAR]: 0.026,
       [Blockchain.AURORA]: 0.024,
       [Blockchain.CELO]: 0.022,
+      [Blockchain.STARKNET]: 0.024,
+      [Blockchain.BLAST]: 0.026,
+      [Blockchain.CARDANO]: 0.028,
+      [Blockchain.POLKADOT]: 0.025,
+      [Blockchain.KAVA]: 0.03,
+      [Blockchain.MOONBEAM]: 0.027,
+      [Blockchain.STARKEX]: 0.024,
     };
     const volatility =
       chain && chainVolatility[chain] !== undefined ? chainVolatility[chain] : 0.02;
@@ -147,6 +154,13 @@ export abstract class BaseOracleClient {
       [Blockchain.NEAR]: 0.0026,
       [Blockchain.AURORA]: 0.0024,
       [Blockchain.CELO]: 0.0022,
+      [Blockchain.STARKNET]: 0.0024,
+      [Blockchain.BLAST]: 0.0026,
+      [Blockchain.CARDANO]: 0.0028,
+      [Blockchain.POLKADOT]: 0.0025,
+      [Blockchain.KAVA]: 0.003,
+      [Blockchain.MOONBEAM]: 0.0027,
+      [Blockchain.STARKEX]: 0.0024,
     };
     const volatility =
       chain && chainVolatility[chain] !== undefined ? chainVolatility[chain] : 0.002;

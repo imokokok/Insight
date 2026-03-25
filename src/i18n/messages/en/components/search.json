@@ -6,6 +6,13 @@
     "noResultsDesc": "No results found for \"{query}\", try different keywords",
     "initialTitle": "Start Searching",
     "initialDesc": "Type to search oracles, trading pairs, blockchains, pages, and features",
+    "inputLabel": "Search input",
+    "resultsLabel": "Search results",
+    "clearButton": "Clear search",
+    "error": "Search error",
+    "errorDesc": "An error occurred while searching. Please try again.",
+    "retry": "Retry",
+    "resultsCount": "{count} results found",
     "groups": {
       "oracles": "Oracles",
       "pairs": "Trading Pairs",
@@ -25,6 +32,36 @@
       "tellorDesc": "Decentralized transparent oracle",
       "chronicleDesc": "MakerDAO infrastructure oracle",
       "winklinkDesc": "TRON ecosystem oracle"
+    },
+    "blockchains": {
+      "ethereumDesc": "Ethereum blockchain ecosystem",
+      "arbitrumDesc": "Arbitrum Layer 2 scaling solution",
+      "optimismDesc": "Optimism Layer 2 scaling solution",
+      "polygonDesc": "Polygon PoS sidechain",
+      "solanaDesc": "Solana high-performance blockchain",
+      "avalancheDesc": "Avalanche subnet-based platform",
+      "fantomDesc": "Fantom Opera chain",
+      "cronosDesc": "Cronos EVM chain",
+      "junoDesc": "Juno Cosmos SDK chain",
+      "cosmosDesc": "Cosmos Hub blockchain",
+      "osmosisDesc": "Osmosis DEX chain",
+      "bnbchainDesc": "BNB Chain ecosystem",
+      "baseDesc": "Base Layer 2 by Coinbase",
+      "scrollDesc": "Scroll zkEVM Layer 2",
+      "zksyncDesc": "zkSync Era Layer 2",
+      "aptosDesc": "Aptos Move-based blockchain",
+      "suiDesc": "Sui Move-based blockchain",
+      "gnosisDesc": "Gnosis Chain",
+      "mantleDesc": "Mantle Layer 2",
+      "lineaDesc": "Linea zkEVM by Consensys",
+      "celestiaDesc": "Celestia modular blockchain",
+      "injectiveDesc": "Injective DeFi chain",
+      "seiDesc": "Sei trading-optimized chain",
+      "tronDesc": "TRON ecosystem",
+      "tonDesc": "The Open Network",
+      "nearDesc": "NEAR Protocol",
+      "auroraDesc": "Aurora EVM on NEAR",
+      "celoDesc": "Celo mobile-first blockchain"
     },
     "pairs": {
       "priceFeed": "Price feed"
@@ -70,7 +107,10 @@
     "shortcuts": {
       "navigate": "to navigate",
       "select": "to select",
-      "close": "to close"
+      "close": "to close",
+      "arrowKeys": "Arrow keys",
+      "enterKey": "Enter key",
+      "escapeKey": "Escape key"
     },
     "footer": {
       "navigate": "Navigate",

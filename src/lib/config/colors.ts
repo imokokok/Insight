@@ -187,6 +187,13 @@ export const chainColors = {
   near: '#00C08B',
   aurora: '#6BBE47',
   celo: '#FBCC5C',
+  starknet: '#0C0C4F',
+  blast: '#FCFC03',
+  cardano: '#0033AD',
+  polkadot: '#E6007A',
+  kava: '#FF564F',
+  moonbeam: '#53CBC8',
+  starkex: '#0C0C4F',
 } as const;
 
 // ============================================

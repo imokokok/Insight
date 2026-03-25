@@ -80,11 +80,15 @@ export function Selectors({
     })
   );
 
-  const chainOptions: SelectorOption<Blockchain>[] = BLOCKCHAIN_VALUES.map((chain) => ({
+  // 只显示被选中预言机支持的链（如果选择了预言机）
+  const supportedChains = selectedOracles.length > 0
+    ? BLOCKCHAIN_VALUES.filter((chain) => supportedChainsBySelectedOracles.has(chain))
+    : BLOCKCHAIN_VALUES;
+
+  const chainOptions: SelectorOption<Blockchain>[] = supportedChains.map((chain) => ({
     value: chain,
     label: t(`blockchain.${chain.toLowerCase()}`),
     color: chainColors[chain],
-    disabled: selectedOracles.length > 0 && !supportedChainsBySelectedOracles.has(chain),
     icon: (
       <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: chainColors[chain] }} />
     ),

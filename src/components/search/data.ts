@@ -98,6 +98,13 @@ const blockchainIcons: Record<Blockchain, string> = {
   [Blockchain.NEAR]: '/logos/cryptos/near.svg',
   [Blockchain.AURORA]: '',
   [Blockchain.CELO]: '',
+  [Blockchain.STARKNET]: '',
+  [Blockchain.BLAST]: '',
+  [Blockchain.CARDANO]: '',
+  [Blockchain.POLKADOT]: '',
+  [Blockchain.KAVA]: '',
+  [Blockchain.MOONBEAM]: '',
+  [Blockchain.STARKEX]: '',
 };
 
 // Generate blockchain search results

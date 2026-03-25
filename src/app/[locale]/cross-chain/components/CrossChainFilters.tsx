@@ -90,6 +90,13 @@ export function CrossChainFilters({
     [Blockchain.NEAR]: configChainColors.near,
     [Blockchain.AURORA]: configChainColors.aurora,
     [Blockchain.CELO]: configChainColors.celo,
+    [Blockchain.STARKNET]: configChainColors.starknet,
+    [Blockchain.BLAST]: configChainColors.blast,
+    [Blockchain.CARDANO]: configChainColors.cardano,
+    [Blockchain.POLKADOT]: configChainColors.polkadot,
+    [Blockchain.KAVA]: configChainColors.kava,
+    [Blockchain.MOONBEAM]: configChainColors.moonbeam,
+    [Blockchain.STARKEX]: configChainColors.starkex,
   };
 
   const maPeriodOptions = [

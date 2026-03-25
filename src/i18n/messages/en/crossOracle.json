@@ -96,6 +96,12 @@
     "tabAdvanced": "Advanced",
     "tabSnapshots": "Snapshots",
     "tabPerformance": "Performance",
+    "tabChains": "Chain Coverage",
+    "chainsTab": {
+      "chainSelector": "Chain Selector",
+      "selectChains": "Select chains...",
+      "chainSelectorDescription": "Select multiple chains for cross-chain data comparison and analysis"
+    },
     "freshness": "Data Timeliness",
     "filter": {
       "button": "Data Filter",

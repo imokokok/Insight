@@ -256,3 +256,7 @@ export { useStakingCalculator } from './useTellorData';
 
 // Realtime Hooks
 export { useRealtimeAlerts } from './useRealtimeAlerts';
+
+// Debounce Hook
+export { useDebounce, useDebouncedCallback } from './useDebounce';
+export type { UseDebounceOptions } from './useDebounce';

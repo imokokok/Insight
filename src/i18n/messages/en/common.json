@@ -144,7 +144,14 @@
     "optimism": "Optimism",
     "polygon": "Polygon",
     "base": "Base",
-    "avalanche": "Avalanche"
+    "avalanche": "Avalanche",
+    "starknet": "Starknet",
+    "blast": "Blast",
+    "cardano": "Cardano",
+    "polkadot": "Polkadot",
+    "kava": "Kava",
+    "moonbeam": "Moonbeam",
+    "starkex": "StarkEx"
   },
   "filters": {
     "filter": "Filter",
