@@ -6,3 +6,4 @@ export { ChronicleMakerDAOView } from './ChronicleMakerDAOView';
 export { ChronicleScuttlebuttView } from './ChronicleScuttlebuttView';
 export { ChronicleRiskView } from './ChronicleRiskView';
 export { ChronicleHero } from './ChronicleHero';
+export { ChronicleDataTable } from './ChronicleDataTable';

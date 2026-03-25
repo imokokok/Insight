@@ -3,79 +3,23 @@
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { RedStoneProvidersViewProps, SortOption, FilterOption } from '../types';
-import { SegmentedControl } from '@/components/ui/selectors';
+import { Database, Clock, CheckCircle2, Star, ArrowUpDown, TrendingUp, Filter } from 'lucide-react';
+
+interface SortConfig {
+  key: string;
+  direction: 'asc' | 'desc';
+}
 
 export function RedStoneProvidersView({ providers, metrics, isLoading }: RedStoneProvidersViewProps) {
   const t = useTranslations();
   const [sortBy, setSortBy] = useState<SortOption>('reputation');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'reputation', direction: 'desc' });
 
-  const stats = [
-    {
-      title: t('redstone.providers.dataSources'),
-      value: String(providers?.length || 4),
-      change: '+1',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: t('redstone.providers.updateFrequency'),
-      value: '~60s',
-      change: '-5s',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: t('redstone.providers.dataQuality'),
-      value: '99.8%',
-      change: '+0.1%',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: t('redstone.dataStreams.avgReputation'),
-      value: `${metrics?.avgProviderReputation ? (metrics.avgProviderReputation * 100).toFixed(1) : '93.5'}%`,
-      change: '+0.5%',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-          />
-        </svg>
-      ),
-    },
-  ];
+  const providerCount = providers?.length || 4;
+  const avgReputation = metrics?.avgProviderReputation
+    ? (metrics.avgProviderReputation * 100).toFixed(1)
+    : '93.5';
 
   const sortedProviders = useMemo(() => {
     if (!providers) return [];
@@ -101,104 +45,210 @@ export function RedStoneProvidersView({ providers, metrics, isLoading }: RedSton
     });
   }, [providers, sortBy, filterBy]);
 
+  const handleSort = (key: string) => {
+    setSortConfig((current) => {
+      if (current.key !== key) {
+        return { key, direction: 'desc' };
+      }
+      return { key, direction: current.direction === 'asc' ? 'desc' : 'asc' };
+    });
+  };
+
+  const tableData = useMemo(() => {
+    const data = [...sortedProviders];
+    if (sortConfig.key === 'reputation') {
+      data.sort((a, b) =>
+        sortConfig.direction === 'asc' ? a.reputation - b.reputation : b.reputation - a.reputation
+      );
+    } else if (sortConfig.key === 'dataPoints') {
+      data.sort((a, b) =>
+        sortConfig.direction === 'asc' ? a.dataPoints - b.dataPoints : b.dataPoints - a.dataPoints
+      );
+    } else if (sortConfig.key === 'lastUpdate') {
+      data.sort((a, b) =>
+        sortConfig.direction === 'asc' ? a.lastUpdate - b.lastUpdate : b.lastUpdate - a.lastUpdate
+      );
+    }
+    return data;
+  }, [sortedProviders, sortConfig]);
+
+  const filterOptions = [
+    { id: 'all', label: t('redstone.providers.all') || 'All', count: providers?.length || 4 },
+    { id: 'highReputation', label: t('redstone.providers.highReputation') || 'High Reputation', count: providers?.filter((p) => p.reputation >= 0.9).length || 0 },
+    { id: 'mostData', label: t('redstone.providers.mostData') || 'Most Data', count: providers?.filter((p) => p.dataPoints >= 500000).length || 0 },
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-red-500">{stat.icon}</span>
-              <span
-                className={`text-xs font-medium ${
-                  stat.changeType === 'positive'
-                    ? 'text-emerald-600'
-                    : stat.changeType === 'negative'
-                    ? 'text-red-600'
-                    : 'text-gray-500'
-                }`}
-              >
-                {stat.changeType === 'positive' ? '↑' : stat.changeType === 'negative' ? '↓' : '→'}{' '}
-                {stat.change}
-              </span>
-            </div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{stat.title}</p>
-            <p className="text-xl font-bold text-gray-900 mt-1">
-              {isLoading ? '-' : stat.value}
-            </p>
+    <div className="space-y-8">
+      {/* Stats Row - Inline Layout */}
+      <div className="flex flex-wrap items-center gap-6 md:gap-8">
+        <div className="flex items-center gap-3">
+          <Database className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('redstone.providers.dataSources') || 'Data Sources'}</p>
+            <p className="text-xl font-semibold text-gray-900">{isLoading ? '-' : providerCount}</p>
           </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <Clock className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('redstone.providers.updateFrequency') || 'Update Frequency'}</p>
+            <p className="text-xl font-semibold text-gray-900">~60s</p>
+          </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('redstone.providers.dataQuality') || 'Data Quality'}</p>
+            <p className="text-xl font-semibold text-emerald-600">99.8%</p>
+          </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <Star className="w-5 h-5 text-amber-500" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('redstone.dataStreams.avgReputation') || 'Avg Reputation'}</p>
+            <p className="text-xl font-semibold text-gray-900">{isLoading ? '-' : `${avgReputation}%`}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex flex-wrap gap-1 border-b border-gray-200 pb-4">
+        {filterOptions.map((option) => (
+          <button
+            key={option.id}
+            onClick={() => setFilterBy(option.id as FilterOption)}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              filterBy === option.id
+                ? 'text-gray-900 bg-gray-100'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            {option.id === 'all' && <Filter className="w-3.5 h-3.5" />}
+            {option.id === 'highReputation' && <Star className="w-3.5 h-3.5" />}
+            {option.id === 'mostData' && <TrendingUp className="w-3.5 h-3.5" />}
+            {option.label}
+            <span className={`text-xs ${filterBy === option.id ? 'text-gray-600' : 'text-gray-400'}`}>
+              {option.count}
+            </span>
+          </button>
         ))}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="flex flex-wrap gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">{t('redstone.providers.sortBy')}:</span>
-            <SegmentedControl
-              options={[
-                { value: 'reputation', label: t('redstone.providers.reputation') },
-                { value: 'dataPoints', label: t('redstone.providers.dataPoints') },
-                { value: 'lastUpdate', label: t('redstone.providers.lastUpdate') },
-              ]}
-              value={sortBy}
-              onChange={(value) => setSortBy(value as SortOption)}
-              size="sm"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">{t('redstone.providers.filter')}:</span>
-            <SegmentedControl
-              options={[
-                { value: 'all', label: t('redstone.providers.all') },
-                { value: 'highReputation', label: t('redstone.providers.highReputation') },
-                { value: 'mostData', label: t('redstone.providers.mostData') },
-              ]}
-              value={filterBy}
-              onChange={(value) => setFilterBy(value as FilterOption)}
-              size="sm"
-            />
-          </div>
-        </div>
-
-        <div className="border border-gray-200 divide-y divide-gray-200 rounded-lg overflow-hidden">
-          {isLoading ? (
-            <div className="text-center py-8 text-gray-500">
-              {t('redstone.providers.loading')}
-            </div>
-          ) : (
-            sortedProviders.map((provider, index) => (
-              <div
-                key={provider.id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-gray-400 w-6">
-                    #{index + 1}
-                  </span>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{provider.name}</h4>
-                    <p className="text-xs text-gray-500">
-                      {t('redstone.providers.dataPoints')}: {provider.dataPoints.toLocaleString()}
-                    </p>
+      {/* Providers Table */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+          {t('redstone.providers.title') || 'Data Providers'}
+        </h3>
+        <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50/50">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                  Rank
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Provider
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                  onClick={() => handleSort('reputation')}
+                >
+                  <div className="flex items-center gap-1">
+                    {t('redstone.providers.reputation') || 'Reputation'}
+                    <ArrowUpDown className="w-3.5 h-3.5" />
+                    {sortConfig.key === 'reputation' && (
+                      <span className="text-gray-400">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                    )}
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <div className="flex items-center gap-1">
-                      <span className="text-sm font-medium text-gray-900">
-                        {(provider.reputation * 100).toFixed(1)}%
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {t('redstone.providers.reputation')}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400">
-                      {new Date(provider.lastUpdate).toLocaleTimeString()}
-                    </p>
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                  onClick={() => handleSort('dataPoints')}
+                >
+                  <div className="flex items-center gap-1">
+                    {t('redstone.providers.dataPoints') || 'Data Points'}
+                    <ArrowUpDown className="w-3.5 h-3.5" />
+                    {sortConfig.key === 'dataPoints' && (
+                      <span className="text-gray-400">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                    )}
                   </div>
-                </div>
-              </div>
-            ))
-          )}
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                  onClick={() => handleSort('lastUpdate')}
+                >
+                  <div className="flex items-center gap-1">
+                    {t('redstone.providers.lastUpdate') || 'Last Update'}
+                    <ArrowUpDown className="w-3.5 h-3.5" />
+                    {sortConfig.key === 'lastUpdate' && (
+                      <span className="text-gray-400">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                    {t('redstone.providers.loading') || 'Loading...'}
+                  </td>
+                </tr>
+              ) : tableData.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                    {t('redstone.providers.noData') || 'No providers found'}
+                  </td>
+                </tr>
+              ) : (
+                tableData.map((provider, index) => (
+                  <tr
+                    key={provider.id}
+                    className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
+                  >
+                    <td className="px-4 py-3 text-sm text-gray-400 font-medium">
+                      #{index + 1}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{provider.name}</p>
+                        <p className="text-xs text-gray-500">ID: {provider.id}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-3.5 h-3.5 ${
+                                i < Math.floor(provider.reputation * 5)
+                                  ? 'text-amber-400 fill-amber-400'
+                                  : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm font-medium text-gray-900">
+                          {(provider.reputation * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {provider.dataPoints.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {new Date(provider.lastUpdate).toLocaleString()}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

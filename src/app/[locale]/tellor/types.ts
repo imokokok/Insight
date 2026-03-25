@@ -74,6 +74,19 @@ export interface TellorRiskViewProps {
   isLoading: boolean;
 }
 
+export interface ReporterData {
+  id: string;
+  name: string;
+  address: string;
+  region: string;
+  responseTime: number;
+  successRate: number;
+  reputation: number;
+  stakedAmount: number;
+  reports: number;
+  reward: number;
+}
+
 export interface DataFeed {
   id: string;
   name: string;

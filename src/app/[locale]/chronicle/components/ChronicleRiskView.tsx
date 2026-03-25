@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { ChronicleRiskViewProps } from '../types';
+import { Shield, CheckCircle, Clock, AlertTriangle, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export function ChronicleRiskView({
   scuttlebutt,
@@ -24,22 +25,21 @@ export function ChronicleRiskView({
   const auditScore = scuttlebutt?.auditScore ?? 98;
   const securityLevel = scuttlebutt?.securityLevel ?? 'high';
   const verificationStatus = scuttlebutt?.verificationStatus ?? 'verified';
-  const lastAuditTimestamp = scuttlebutt?.lastAuditTimestamp;
 
   const mitigationMeasures = [
-    { name: 'chronicle.risk.mitigationMeasures.scuttlebuttVerification', effectiveness: 96 },
-    { name: 'chronicle.risk.mitigationMeasures.validatorRotation', effectiveness: 92 },
-    { name: 'chronicle.risk.mitigationMeasures.multiChainValidation', effectiveness: 89 },
-    { name: 'chronicle.risk.mitigationMeasures.thresholdSignature', effectiveness: 94 },
-    { name: 'chronicle.risk.mitigationMeasures.decentralizedGovernance', effectiveness: 87 },
-    { name: 'chronicle.risk.mitigationMeasures.monitoring', effectiveness: 93 },
+    { name: 'Scuttlebutt Verification', effectiveness: 96 },
+    { name: 'Validator Rotation', effectiveness: 92 },
+    { name: 'Multi-Chain Validation', effectiveness: 89 },
+    { name: 'Threshold Signature', effectiveness: 94 },
+    { name: 'Decentralized Governance', effectiveness: 87 },
+    { name: 'Real-time Monitoring', effectiveness: 93 },
   ];
 
   const getRiskColor = (score: number) => {
-    if (score >= 90) return 'bg-emerald-500 text-emerald-700';
-    if (score >= 70) return 'bg-amber-500 text-amber-700';
-    if (score >= 50) return 'bg-orange-500 text-orange-700';
-    return 'bg-red-500 text-red-700';
+    if (score >= 90) return 'bg-emerald-500';
+    if (score >= 70) return 'bg-amber-500';
+    if (score >= 50) return 'bg-orange-500';
+    return 'bg-red-500';
   };
 
   const getRiskLabel = (score: number) => {
@@ -49,70 +49,60 @@ export function ChronicleRiskView({
     return t('chronicle.risk.criticalRisk');
   };
 
+  const getRiskTextColor = (score: number) => {
+    if (score >= 90) return 'text-emerald-600';
+    if (score >= 70) return 'text-amber-600';
+    if (score >= 50) return 'text-orange-600';
+    return 'text-red-600';
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Overall Risk Overview */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-6">
+    <div className="space-y-8">
+      {/* 整体风险评分 - 简洁进度条展示 */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">{t('chronicle.risk.overviewTitle')}</h3>
+            <h3 className="text-base font-medium text-gray-900">{t('chronicle.risk.overviewTitle')}</h3>
             <p className="text-sm text-gray-500 mt-1">{t('chronicle.risk.overviewDescription')}</p>
           </div>
           <div className="text-right">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">{t('chronicle.risk.overallRiskScore')}</span>
-              <span
-                className={`px-3 py-1 text-sm font-medium border rounded ${
-                  riskData.overallRiskScore >= 90
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : riskData.overallRiskScore >= 70
-                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                      : 'bg-red-50 text-red-700 border-red-200'
-                }`}
-              >
-                {getRiskLabel(riskData.overallRiskScore)}
-              </span>
-            </div>
-            <div className="flex items-end justify-end gap-1 mt-2">
-              <span
-                className={`text-4xl font-bold ${
-                  riskData.overallRiskScore >= 90
-                    ? 'text-emerald-600'
-                    : riskData.overallRiskScore >= 70
-                      ? 'text-amber-600'
-                      : 'text-red-600'
-                }`}
-              >
-                {riskData.overallRiskScore}
-              </span>
-              <span className="text-lg text-gray-500 mb-1">/100</span>
-            </div>
+            <span className={`text-3xl font-bold ${getRiskTextColor(riskData.overallRiskScore)}`}>
+              {riskData.overallRiskScore}
+            </span>
+            <span className="text-lg text-gray-400 ml-1">/100</span>
+            <p className={`text-sm font-medium ${getRiskTextColor(riskData.overallRiskScore)}`}>
+              {getRiskLabel(riskData.overallRiskScore)}
+            </p>
           </div>
         </div>
-
-        <div className="w-full bg-gray-200 h-3 rounded-full">
+        <div className="w-full bg-gray-100 h-3 rounded-full">
           <div
-            className={`h-3 rounded-full transition-all duration-500 ${getRiskColor(riskData.overallRiskScore).split(' ')[0]}`}
+            className={`h-3 rounded-full transition-all duration-500 ${getRiskColor(riskData.overallRiskScore)}`}
             style={{ width: `${riskData.overallRiskScore}%` }}
           />
         </div>
       </div>
 
-      {/* Four Dimension Score Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 四个维度分数 - 内联4列布局 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { title: t('chronicle.risk.dataQuality'), score: riskData.dataQualityScore, desc: t('chronicle.risk.dataQualityDesc') },
-          { title: t('chronicle.risk.validatorConcentration'), score: riskData.validatorConcentration, desc: t('chronicle.risk.validatorConcentrationDesc') },
-          { title: t('chronicle.risk.priceDeviation'), score: riskData.priceDeviation, desc: t('chronicle.risk.priceDeviationDesc') },
-          { title: t('chronicle.risk.systemStability'), score: riskData.systemStability, desc: t('chronicle.risk.systemStabilityDesc') },
+          { title: t('chronicle.risk.dataQuality'), score: riskData.dataQualityScore },
+          { title: t('chronicle.risk.validatorConcentration'), score: riskData.validatorConcentration },
+          { title: t('chronicle.risk.priceDeviation'), score: riskData.priceDeviation },
+          { title: t('chronicle.risk.systemStability'), score: riskData.systemStability },
         ].map((item, index) => (
-          <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-            <p className="text-xs text-gray-500 mb-1">{item.title}</p>
-            <p className="text-2xl font-bold text-gray-900">{item.score}</p>
-            <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
-            <div className="w-full bg-gray-200 h-1.5 rounded-full mt-2">
+          <div key={index} className="py-2">
+            <p className="text-sm text-gray-500 mb-1">{item.title}</p>
+            <div className="flex items-baseline gap-2">
+              <p className={`text-2xl font-semibold ${getRiskTextColor(item.score)}`}>{item.score}</p>
+              <span className="text-sm text-gray-400">/100</span>
+            </div>
+            <div className="w-full bg-gray-100 h-1.5 rounded-full mt-2">
               <div
-                className={`h-1.5 rounded-full ${getRiskColor(item.score).split(' ')[0]}`}
+                className={`h-1.5 rounded-full ${getRiskColor(item.score)}`}
                 style={{ width: `${item.score}%` }}
               />
             </div>
@@ -120,15 +110,18 @@ export function ChronicleRiskView({
         ))}
       </div>
 
-      {/* Mitigation Measures */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('chronicle.risk.mitigationMeasures')}</h3>
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 风险缓解措施 - 紧凑列表布局 */}
+      <div>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('chronicle.risk.mitigationMeasures')}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {mitigationMeasures.map((measure, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-700">{t(measure.name)}</span>
+            <div key={index} className="flex items-center justify-between py-2">
+              <span className="text-sm text-gray-700">{measure.name}</span>
               <div className="flex items-center gap-2">
-                <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full"
                     style={{ width: `${measure.effectiveness}%` }}
@@ -141,127 +134,97 @@ export function ChronicleRiskView({
         </div>
       </div>
 
-      {/* Scuttlebutt Security Integration */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('chronicle.risk.scuttlebuttIntegration')}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
-              <svg className={`w-6 h-6 ${securityLevel === 'high' ? 'text-emerald-600' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">{t('chronicle.risk.securityLevel')}</p>
-              <p className="text-xl font-bold text-gray-900 capitalize">{securityLevel}</p>
-            </div>
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* Scuttlebutt 集成信息 - 简洁3列图标展示 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="flex items-center gap-4">
+          <div className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+            <Shield className={`w-5 h-5 ${securityLevel === 'high' ? 'text-emerald-600' : 'text-amber-600'}`} />
           </div>
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
-              <svg className={`w-6 h-6 ${verificationStatus === 'verified' ? 'text-emerald-600' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">{t('chronicle.risk.verificationStatus')}</p>
-              <p className="text-xl font-bold text-gray-900 capitalize">{verificationStatus}</p>
-            </div>
+          <div>
+            <p className="text-sm text-gray-500">{t('chronicle.risk.securityLevel')}</p>
+            <p className="text-lg font-semibold text-gray-900 capitalize">{securityLevel}</p>
           </div>
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">{t('chronicle.risk.lastAudit')}</p>
-              <p className="text-xl font-bold text-gray-900">
-                {lastAuditTimestamp
-                  ? new Date(lastAuditTimestamp).toLocaleDateString()
-                  : '7 days ago'}
-              </p>
-            </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+            <CheckCircle className={`w-5 h-5 ${verificationStatus === 'verified' ? 'text-emerald-600' : 'text-amber-600'}`} />
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">{t('chronicle.risk.verificationStatus')}</p>
+            <p className="text-lg font-semibold text-gray-900 capitalize">{verificationStatus}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-blue-100 rounded-full">
+            <Clock className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">{t('chronicle.risk.lastAudit')}</p>
+            <p className="text-lg font-semibold text-gray-900">7 days ago</p>
           </div>
         </div>
       </div>
 
-      {/* Audit Score & Incident Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-500 mb-1">{t('chronicle.risk.auditScore')}</p>
-          <p className="text-2xl font-bold text-gray-900">{auditScore}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('chronicle.risk.auditScoreDesc')}</p>
-          <div className="w-full bg-gray-200 h-1.5 rounded-full mt-2">
-            <div
-              className="h-1.5 rounded-full bg-emerald-500"
-              style={{ width: `${auditScore}%` }}
-            />
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 事件摘要 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-emerald-100 rounded-full">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">{t('chronicle.risk.incidents30d')}</p>
+            <p className="text-2xl font-semibold text-gray-900">{riskData.incidentCount30d}</p>
           </div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('chronicle.risk.incidentSummary')}</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-              <div className="p-2 bg-emerald-100 rounded-full">
-                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">{t('chronicle.risk.incidents30d')}</p>
-                <p className="text-xl font-bold text-gray-900">{riskData.incidentCount30d}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-              <div className="p-2 bg-blue-100 rounded-full">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">{t('chronicle.risk.lastIncident')}</p>
-                <p className="text-lg font-bold text-gray-900">{riskData.lastIncident}</p>
-              </div>
-            </div>
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-blue-100 rounded-full">
+            <AlertCircle className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">{t('chronicle.risk.lastIncident')}</p>
+            <p className="text-lg font-semibold text-gray-900">{riskData.lastIncident}</p>
           </div>
         </div>
       </div>
 
-      {/* Risk Factors */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('chronicle.risk.riskFactors')}</h3>
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 风险因素列表 - 图标+描述行布局 */}
+      <div>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('chronicle.risk.riskFactors')}</h3>
         <div className="space-y-3">
-          <div className="flex items-start gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-            <svg className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div className="flex items-start gap-3 py-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-emerald-800">
+              <p className="text-sm font-medium text-gray-900">
                 {t('chronicle.risk.factor1Title')}
               </p>
-              <p className="text-xs text-emerald-600 mt-1">{t('chronicle.risk.factor1Desc')}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t('chronicle.risk.factor1Desc')}</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-            <svg className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div className="flex items-start gap-3 py-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-emerald-800">
+              <p className="text-sm font-medium text-gray-900">
                 {t('chronicle.risk.factor2Title')}
               </p>
-              <p className="text-xs text-emerald-600 mt-1">{t('chronicle.risk.factor2Desc')}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t('chronicle.risk.factor2Desc')}</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+          <div className="flex items-start gap-3 py-2">
+            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-amber-800">
+              <p className="text-sm font-medium text-gray-900">
                 {t('chronicle.risk.factor3Title')}
               </p>
-              <p className="text-xs text-amber-600 mt-1">{t('chronicle.risk.factor3Desc')}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t('chronicle.risk.factor3Desc')}</p>
             </div>
           </div>
         </div>

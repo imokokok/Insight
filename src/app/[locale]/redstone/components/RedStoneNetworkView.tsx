@@ -2,164 +2,173 @@
 
 import { useTranslations } from 'next-intl';
 import { RedStoneNetworkViewProps } from '../types';
+import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
 export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetworkViewProps) {
   const t = useTranslations();
 
-  const stats = [
+  const metrics = [
     {
-      title: t('redstone.stats.activeNodes'),
-      value: networkStats?.activeNodes ?? 25,
+      label: t('redstone.stats.activeNodes'),
+      value: networkStats?.activeNodes?.toLocaleString() ?? '25',
       change: '+2',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-          />
-        </svg>
-      ),
+      trend: 'up',
+      icon: Server,
     },
     {
-      title: t('redstone.stats.dataFeeds'),
+      label: t('redstone.stats.dataFeeds'),
       value: `${networkStats?.dataFeeds ?? 1000}+`,
       change: '+50',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
-          />
-        </svg>
-      ),
+      trend: 'up',
+      icon: Activity,
     },
     {
-      title: t('redstone.stats.networkUptime'),
-      value: `${networkStats?.nodeUptime ?? 99.9}%`,
-      change: '+0.05%',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: t('redstone.stats.avgResponse'),
+      label: t('redstone.stats.avgResponse'),
       value: `${networkStats?.avgResponseTime ?? 200}ms`,
       change: '-15ms',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M13 10V3L4 14h7v7l9-11h-7z"
-          />
-        </svg>
-      ),
+      trend: 'down',
+      icon: Clock,
+    },
+    {
+      label: t('redstone.stats.networkUptime'),
+      value: `${networkStats?.nodeUptime ?? 99.9}%`,
+      change: '+0.05%',
+      trend: 'up',
+      icon: CheckCircle,
     },
   ];
 
+  const overviewStats = [
+    { label: t('redstone.network.totalRequests') || 'Total Requests (24h)', value: '2.8M' },
+    { label: t('redstone.network.avgGas') || 'Avg Gas Used', value: '62,150' },
+    { label: t('redstone.network.activeChains') || 'Active Chains', value: '12' },
+    { label: t('redstone.network.nodeOperators') || 'Node Operators', value: '25' },
+  ];
+
+  const hourlyActivity = [
+    65, 72, 68, 75, 82, 78, 85, 92, 88, 95, 102, 98,
+    105, 112, 108, 115, 122, 118, 125, 132, 128, 135, 142, 138
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-400">{stat.icon}</span>
-              <span
-                className={`text-xs font-medium ${
-                  stat.changeType === 'positive'
-                    ? 'text-emerald-600'
-                    : stat.changeType === 'negative'
-                    ? 'text-red-600'
-                    : 'text-gray-500'
-                }`}
-              >
-                {stat.changeType === 'positive' ? '↑' : stat.changeType === 'negative' ? '↓' : '→'}{' '}
-                {stat.change}
-              </span>
+    <div className="space-y-8">
+      {/* 核心网络指标 - 简洁统计布局 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {metrics.map((metric, index) => {
+          const Icon = metric.icon;
+          const TrendIcon = metric.trend === 'up' ? TrendingUp : TrendingDown;
+          return (
+            <div key={index} className="py-2">
+              <div className="flex items-center gap-2 text-gray-500 mb-1">
+                <Icon className="w-4 h-4" />
+                <span className="text-sm">{metric.label}</span>
+              </div>
+              <div className="flex items-baseline gap-3">
+                <p className="text-3xl font-semibold text-gray-900 tracking-tight">
+                  {isLoading ? '-' : metric.value}
+                </p>
+                {metric.change && (
+                  <div className={`flex items-center gap-0.5 text-sm font-medium ${
+                    metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
+                  }`}>
+                    <TrendIcon className="w-3.5 h-3.5" />
+                    <span>{metric.change}</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{stat.title}</p>
-            <p className="text-xl font-bold text-gray-900 mt-1">
-              {isLoading ? '-' : stat.value}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('redstone.networkHealth.title')}
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 网络性能概览 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* 每小时活动 - 简化容器 */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-medium text-gray-900">
+              {t('redstone.network.hourlyActivity') || 'Hourly Activity'}
+            </h3>
+            <span className="text-sm text-gray-500">24h</span>
+          </div>
+          <div className="h-40 flex items-end gap-0.5">
+            {hourlyActivity.map((value, index) => {
+              const max = Math.max(...hourlyActivity);
+              const height = (value / max) * 100;
+              return (
+                <div
+                  key={index}
+                  className="flex-1 bg-red-500/20 hover:bg-red-500/30 transition-colors rounded-t"
+                  style={{ height: `${Math.max(height, 8)}%` }}
+                  title={`${value.toLocaleString()} requests`}
+                />
+              );
+            })}
+          </div>
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
+            <span>00:00</span>
+            <span>06:00</span>
+            <span>12:00</span>
+            <span>18:00</span>
+            <span>23:59</span>
+          </div>
+        </div>
+
+        {/* 网络性能指标 - 简洁进度条 */}
+        <div>
+          <h3 className="text-base font-medium text-gray-900 mb-5">
+            {t('redstone.network.performance') || 'Network Performance'}
+          </h3>
+          <div className="space-y-5">
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-600">{t('redstone.network.successRate') || 'Success Rate'}</span>
+                <span className="font-medium text-gray-900">99.9%</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '99.9%' }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-600">{t('redstone.network.availability') || 'Availability'}</span>
+                <span className="font-medium text-gray-900">99.99%</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-red-500 h-1.5 rounded-full" style={{ width: '99.99%' }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-600">{t('redstone.network.latency') || 'Latency'}</span>
+                <span className="font-medium text-gray-900">200ms avg</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '80%' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 网络统计摘要 - 简洁行内布局 */}
+      <div>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('redstone.network.overview') || 'Network Overview'}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">{t('redstone.networkHealth.nodeDistribution')}</span>
-                <span className="text-sm font-semibold text-gray-900">25 {t('redstone.nodes')}</span>
-              </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: '85%' }} />
-              </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {overviewStats.map((stat, index) => (
+            <div key={index}>
+              <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
+              <p className="text-xl font-semibold text-gray-900">{stat.value}</p>
             </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">{t('redstone.networkHealth.dataAvailability')}</span>
-                <span className="text-sm font-semibold text-gray-900">99.9%</span>
-              </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: '99.9%' }} />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">{t('redstone.networkHealth.consensusRate')}</span>
-                <span className="text-sm font-semibold text-gray-900">98.5%</span>
-              </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: '98.5%' }} />
-              </div>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">
-                {t('redstone.networkHealth.regionalDistribution')}
-              </h4>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('redstone.regions.northAmerica')}</span>
-                  <span className="font-medium">35%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('redstone.regions.europe')}</span>
-                  <span className="font-medium">30%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('redstone.regions.asiaPacific')}</span>
-                  <span className="font-medium">25%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('redstone.regions.others')}</span>
-                  <span className="font-medium">10%</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

@@ -1,13 +1,54 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChronicleMakerDAOViewProps } from '../types';
+import { ChronicleDataTable } from './ChronicleDataTable';
+import { Database, Coins, TrendingUp, Shield } from 'lucide-react';
+
+interface AssetData {
+  id: string;
+  symbol: string;
+  name: string;
+  type: 'stablecoin' | 'crypto' | 'rwa';
+  price: number;
+  collateralRatio: number;
+  stabilityFee: number;
+  debtCeiling: number;
+}
+
+const mockAssets: AssetData[] = [
+  { id: '1', symbol: 'ETH', name: 'Ethereum', type: 'crypto', price: 3250.45, collateralRatio: 145, stabilityFee: 2.5, debtCeiling: 500000000 },
+  { id: '2', symbol: 'WBTC', name: 'Wrapped Bitcoin', type: 'crypto', price: 67500.20, collateralRatio: 145, stabilityFee: 2.0, debtCeiling: 300000000 },
+  { id: '3', symbol: 'USDC', name: 'USD Coin', type: 'stablecoin', price: 1.00, collateralRatio: 101, stabilityFee: 0.5, debtCeiling: 800000000 },
+  { id: '4', symbol: 'DAI', name: 'Dai Stablecoin', type: 'stablecoin', price: 1.00, collateralRatio: 0, stabilityFee: 0, debtCeiling: 0 },
+  { id: '5', symbol: 'RWA001', name: 'Real World Asset', type: 'rwa', price: 1000000.00, collateralRatio: 110, stabilityFee: 3.5, debtCeiling: 100000000 },
+  { id: '6', symbol: 'LINK', name: 'Chainlink', type: 'crypto', price: 14.85, collateralRatio: 165, stabilityFee: 3.0, debtCeiling: 50000000 },
+];
+
+const categories = [
+  { id: 'all', label: 'All', count: mockAssets.length },
+  { id: 'crypto', label: 'Crypto', count: mockAssets.filter(f => f.type === 'crypto').length },
+  { id: 'stablecoin', label: 'Stablecoin', count: mockAssets.filter(f => f.type === 'stablecoin').length },
+  { id: 'rwa', label: 'RWA', count: mockAssets.filter(f => f.type === 'rwa').length },
+];
 
 export function ChronicleMakerDAOView({
   makerDAO,
   isLoading,
 }: ChronicleMakerDAOViewProps) {
   const t = useTranslations();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const formatCurrency = (value: number) => {
+    if (value >= 1e9) {
+      return `$${(value / 1e9).toFixed(2)}B`;
+    } else if (value >= 1e6) {
+      return `$${(value / 1e6).toFixed(2)}M`;
+    } else {
+      return `$${value.toLocaleString()}`;
+    }
+  };
 
   const getAssetTypeColor = (type: string) => {
     switch (type) {
@@ -22,129 +63,167 @@ export function ChronicleMakerDAOView({
     }
   };
 
-  const formatCurrency = (value: number) => {
-    if (value >= 1e9) {
-      return `$${(value / 1e9).toFixed(2)}B`;
-    } else if (value >= 1e6) {
-      return `$${(value / 1e6).toFixed(2)}M`;
-    } else {
-      return `$${value.toLocaleString()}`;
-    }
-  };
+  const filteredAssets = selectedCategory === 'all'
+    ? mockAssets
+    : mockAssets.filter(asset => asset.type === selectedCategory);
 
-  const supportedAssets = makerDAO?.supportedAssets || [];
+  const columns = [
+    {
+      key: 'symbol',
+      header: t('chronicle.makerdao.asset'),
+      sortable: true,
+      render: (item: AssetData) => (
+        <div>
+          <span className="font-semibold text-gray-900">{item.symbol}</span>
+          <span className="text-sm text-gray-500 ml-2">{item.name}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'type',
+      header: t('chronicle.makerdao.type'),
+      sortable: true,
+      render: (item: AssetData) => (
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize`}>
+          {item.type}
+        </span>
+      ),
+    },
+    {
+      key: 'price',
+      header: t('chronicle.makerdao.price'),
+      sortable: true,
+      render: (item: AssetData) => `$${item.price.toLocaleString()}`,
+    },
+    {
+      key: 'collateralRatio',
+      header: t('chronicle.makerdao.collateralRatio'),
+      sortable: true,
+      render: (item: AssetData) => item.collateralRatio > 0 ? `${item.collateralRatio}%` : '-',
+    },
+    {
+      key: 'stabilityFee',
+      header: t('chronicle.makerdao.stabilityFee'),
+      sortable: true,
+      render: (item: AssetData) => item.stabilityFee > 0 ? `${item.stabilityFee}%` : '-',
+    },
+    {
+      key: 'debtCeiling',
+      header: t('chronicle.makerdao.debtCeiling'),
+      sortable: true,
+      render: (item: AssetData) => item.debtCeiling > 0 ? formatCurrency(item.debtCeiling) : '-',
+    },
+  ];
+
+  const keyMetrics = [
+    {
+      label: t('chronicle.makerdao.tvl'),
+      value: formatCurrency(makerDAO?.totalValueLocked || 4500000000),
+      icon: Database,
+    },
+    {
+      label: t('chronicle.makerdao.daiSupply'),
+      value: formatCurrency(makerDAO?.daiSupply || 3200000000),
+      icon: Coins,
+    },
+    {
+      label: t('chronicle.makerdao.systemSurplus'),
+      value: formatCurrency(makerDAO?.systemSurplus || 85000000),
+      icon: TrendingUp,
+      highlight: true,
+    },
+    {
+      label: t('chronicle.makerdao.debtCeiling'),
+      value: formatCurrency(makerDAO?.globalDebtCeiling || 5000000000),
+      icon: Shield,
+    },
+  ];
 
   return (
-    <div className="space-y-4">
-      {/* Key Metrics */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="py-2">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-              </svg>
-              <p className="text-xs text-gray-500">{t('chronicle.makerdao.tvl')}</p>
+    <div className="space-y-8">
+      {/* 关键指标 - 4列内联布局 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {keyMetrics.map((metric, index) => {
+          const Icon = metric.icon;
+          return (
+            <div key={index} className="py-2">
+              <div className="flex items-center gap-2 text-gray-500 mb-1">
+                <Icon className="w-4 h-4" />
+                <span className="text-sm">{metric.label}</span>
+              </div>
+              <p className={`text-2xl font-semibold tracking-tight ${metric.highlight ? 'text-emerald-600' : 'text-gray-900'}`}>
+                {metric.value}
+              </p>
             </div>
-            <p className="text-xl font-bold text-gray-900">
-              {formatCurrency(makerDAO?.totalValueLocked || 4500000000)}
-            </p>
-          </div>
-          <div className="py-2">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-xs text-gray-500">{t('chronicle.makerdao.daiSupply')}</p>
-            </div>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(makerDAO?.daiSupply || 3200000000)}</p>
-          </div>
-          <div className="py-2">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              <p className="text-xs text-gray-500">{t('chronicle.makerdao.systemSurplus')}</p>
-            </div>
-            <p className="text-xl font-bold text-emerald-600">{formatCurrency(makerDAO?.systemSurplus || 85000000)}</p>
-          </div>
-          <div className="py-2">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <p className="text-xs text-gray-500">{t('chronicle.makerdao.debtCeiling')}</p>
-            </div>
-            <p className="text-xl font-bold text-gray-900">
-              {formatCurrency(makerDAO?.globalDebtCeiling || 5000000000)}
-            </p>
-          </div>
-        </div>
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <p className="text-xs text-gray-500">
-            {t('chronicle.makerdao.integrationVersion')}:{' '}
-            <span className="font-medium text-gray-900">{makerDAO?.integrationVersion || '2.5.1'}</span>
-          </p>
-        </div>
+          );
+        })}
       </div>
 
-      {/* Supported Assets */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('chronicle.makerdao.supportedAssets')}</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.makerdao.asset')}
-                </th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.makerdao.type')}
-                </th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.makerdao.price')}
-                </th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.makerdao.collateralRatio')}
-                </th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.makerdao.stabilityFee')}
-                </th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
-                  {t('chronicle.makerdao.debtCeiling')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {supportedAssets.map((asset, index) => (
-                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-2 px-3">
-                    <div>
-                      <span className="font-semibold text-gray-900">{asset.symbol}</span>
-                      <span className="text-sm text-gray-500 ml-2">{asset.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-2 px-3">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium capitalize border rounded ${getAssetTypeColor(asset.type)}`}
-                    >
-                      {t(`chronicle.assetType.${asset.type}`)}
-                    </span>
-                  </td>
-                  <td className="py-2 px-3 text-gray-900">${asset.price.toLocaleString()}</td>
-                  <td className="py-2 px-3 text-gray-900">
-                    {asset.collateralRatio > 0 ? `${asset.collateralRatio}%` : '-'}
-                  </td>
-                  <td className="py-2 px-3 text-gray-900">
-                    {asset.stabilityFee > 0 ? `${asset.stabilityFee}%` : '-'}
-                  </td>
-                  <td className="py-2 px-3 text-gray-900">
-                    {asset.debtCeiling > 0 ? formatCurrency(asset.debtCeiling) : '-'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 分类筛选 */}
+      <div className="flex flex-wrap gap-1 border-b border-gray-200 pb-4">
+        {categories.map((category) => (
+          <button
+            key={category.id}
+            onClick={() => setSelectedCategory(category.id)}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              selectedCategory === category.id
+                ? 'text-gray-900 bg-gray-100'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            {category.label}
+            <span className={`text-xs ${
+              selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
+            }`}>
+              {category.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* 数据表格 */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+          {t('chronicle.makerdao.supportedAssets')}
+        </h3>
+        <ChronicleDataTable
+          data={filteredAssets as unknown as Record<string, unknown>[]}
+          columns={columns as unknown as Array<{key: string; header: string; width?: string; sortable?: boolean; render?: (item: Record<string, unknown>) => React.ReactNode}>}
+        />
+      </div>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 集成信息说明 */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+          {t('chronicle.makerdao.integrationInfo') || 'Integration Information'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
+          <div>
+            <p className="mb-2">
+              <span className="font-medium text-gray-900">{t('chronicle.makerdao.integrationVersion')}:</span>
+              {' '}{makerDAO?.integrationVersion || '2.5.1'}
+            </p>
+            <p>
+              <span className="font-medium text-gray-900">{t('chronicle.makerdao.lastUpdate')}:</span>
+              {' '}2 hours ago
+            </p>
+          </div>
+          <div>
+            <p className="mb-2">
+              <span className="font-medium text-gray-900">{t('chronicle.makerdao.oracleType')}:</span>
+              {' '}Primary Price Feed
+            </p>
+            <p>
+              <span className="font-medium text-gray-900">{t('chronicle.makerdao.updateFrequency')}:</span>
+              {' '}~60s
+            </p>
+          </div>
         </div>
       </div>
     </div>

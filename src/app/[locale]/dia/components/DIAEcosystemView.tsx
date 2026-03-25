@@ -2,7 +2,19 @@
 
 import { useTranslations } from 'next-intl';
 import { useDIAEcosystem } from '@/hooks/useDIAData';
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts';
 import {
   Building2,
   Wallet,
@@ -15,7 +27,46 @@ import {
   CheckCircle2,
   AlertCircle,
   FlaskConical,
+  Globe,
+  Zap,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+// TVL Trend Data (12 months)
+const tvlTrendData = [
+  { month: '2024-01', ethereum: 2.1, arbitrum: 0.8, polygon: 0.6, optimism: 0.4, avalanche: 0.3, base: 0.1, total: 4.3 },
+  { month: '2024-02', ethereum: 2.3, arbitrum: 0.9, polygon: 0.7, optimism: 0.5, avalanche: 0.3, base: 0.15, total: 4.85 },
+  { month: '2024-03', ethereum: 2.5, arbitrum: 1.0, polygon: 0.75, optimism: 0.55, avalanche: 0.35, base: 0.2, total: 5.35 },
+  { month: '2024-04', ethereum: 2.4, arbitrum: 1.1, polygon: 0.7, optimism: 0.6, avalanche: 0.3, base: 0.25, total: 5.35 },
+  { month: '2024-05', ethereum: 2.8, arbitrum: 1.2, polygon: 0.85, optimism: 0.65, avalanche: 0.4, base: 0.3, total: 6.2 },
+  { month: '2024-06', ethereum: 3.1, arbitrum: 1.35, polygon: 0.9, optimism: 0.75, avalanche: 0.45, base: 0.4, total: 6.95 },
+  { month: '2024-07', ethereum: 2.9, arbitrum: 1.45, polygon: 0.85, optimism: 0.8, avalanche: 0.4, base: 0.5, total: 6.9 },
+  { month: '2024-08', ethereum: 3.3, arbitrum: 1.6, polygon: 1.0, optimism: 0.9, avalanche: 0.5, base: 0.6, total: 7.9 },
+  { month: '2024-09', ethereum: 3.5, arbitrum: 1.8, polygon: 1.1, optimism: 1.0, avalanche: 0.55, base: 0.75, total: 8.7 },
+  { month: '2024-10', ethereum: 3.4, arbitrum: 1.9, polygon: 1.15, optimism: 1.1, avalanche: 0.6, base: 0.85, total: 9.0 },
+  { month: '2024-11', ethereum: 3.8, arbitrum: 2.05, polygon: 1.25, optimism: 1.2, avalanche: 0.65, base: 0.95, total: 9.9 },
+  { month: '2024-12', ethereum: 4.1, arbitrum: 2.2, polygon: 1.35, optimism: 1.3, avalanche: 0.7, base: 1.1, total: 10.75 },
+];
+
+// Projects by Chain Data
+const projectsByChainData = [
+  { chain: 'Ethereum', projects: 320, color: '#627eea' },
+  { chain: 'Arbitrum', projects: 145, color: '#28a0f0' },
+  { chain: 'Polygon', projects: 128, color: '#8247e5' },
+  { chain: 'Optimism', projects: 95, color: '#ff0420' },
+  { chain: 'Base', projects: 78, color: '#0052ff' },
+  { chain: 'Avalanche', projects: 65, color: '#e84142' },
+];
+
+// Chain Colors
+const chainColors: Record<string, string> = {
+  ethereum: '#627eea',
+  arbitrum: '#28a0f0',
+  polygon: '#8247e5',
+  optimism: '#ff0420',
+  avalanche: '#e84142',
+  base: '#0052ff',
+};
 
 interface StatCardProps {
   title: string;
@@ -215,9 +266,60 @@ function IntegrationStat({
   );
 }
 
+function TimeRangeButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'px-3 py-1 text-xs font-medium transition-colors',
+        active
+          ? 'text-gray-900 border-b-2 border-gray-900'
+          : 'text-gray-500 hover:text-gray-700'
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function DIAEcosystemView() {
   const t = useTranslations();
   const { ecosystem, isLoading, error } = useDIAEcosystem();
+  const [selectedChains, setSelectedChains] = useState<string[]>(['ethereum', 'arbitrum', 'polygon']);
+  const [timeRange, setTimeRange] = useState<'1M' | '3M' | '6M' | '1Y'>('1Y');
+
+  // Filter TVL data based on time range
+  const filteredTvlData = useMemo(() => {
+    const months = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12 };
+    return tvlTrendData.slice(-months[timeRange]);
+  }, [timeRange]);
+
+  // Calculate TVL stats
+  const tvlStats = useMemo(() => {
+    const latest = filteredTvlData[filteredTvlData.length - 1];
+    const previous = filteredTvlData[0];
+    const change = ((latest.total - previous.total) / previous.total) * 100;
+    return {
+      current: latest.total,
+      change,
+      breakdown: [
+        { chain: 'Ethereum', value: latest.ethereum, color: chainColors.ethereum },
+        { chain: 'Arbitrum', value: latest.arbitrum, color: chainColors.arbitrum },
+        { chain: 'Polygon', value: latest.polygon, color: chainColors.polygon },
+        { chain: 'Optimism', value: latest.optimism, color: chainColors.optimism },
+        { chain: 'Avalanche', value: latest.avalanche, color: chainColors.avalanche },
+        { chain: 'Base', value: latest.base, color: chainColors.base },
+      ],
+    };
+  }, [filteredTvlData]);
 
   const stats = useMemo(() => {
     if (!ecosystem || ecosystem.length === 0) {
@@ -401,6 +503,274 @@ export function DIAEcosystemView() {
         />
       </div>
 
+      {/* TVL Trend Analysis */}
+      <section>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">{t('dia.ecosystem.tvlAnalysis.title') || 'TVL Analysis'}</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Total Value Locked across DIA ecosystem</p>
+          </div>
+          <div className="flex items-center border-b border-gray-200">
+            {(['1M', '3M', '6M', '1Y'] as const).map((range) => (
+              <TimeRangeButton
+                key={range}
+                active={timeRange === range}
+                onClick={() => setTimeRange(range)}
+              >
+                {range}
+              </TimeRangeButton>
+            ))}
+          </div>
+        </div>
+
+        {/* TVL Stats - Clean text layout */}
+        <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4 mb-6">
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('dia.ecosystem.tvlAnalysis.totalTvl') || 'Total TVL'}</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-3xl font-bold text-gray-900">${tvlStats.current.toFixed(1)}B</p>
+              <span className={cn('text-sm font-medium', tvlStats.change >= 0 ? 'text-emerald-600' : 'text-red-600')}>
+                {tvlStats.change >= 0 ? '+' : ''}{tvlStats.change.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('dia.ecosystem.tvlAnalysis.ethereum') || 'Ethereum'}</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-xl font-semibold text-gray-900">${tvlStats.breakdown[0].value.toFixed(1)}B</p>
+              <span className="text-xs text-gray-500">{((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)}%</span>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('dia.ecosystem.tvlAnalysis.l2Networks') || 'L2 Networks'}</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-xl font-semibold text-gray-900">
+                ${(tvlStats.breakdown[1].value + tvlStats.breakdown[3].value + tvlStats.breakdown[5].value).toFixed(1)}B
+              </p>
+              <span className="text-xs text-gray-500">
+                {(((tvlStats.breakdown[1].value + tvlStats.breakdown[3].value + tvlStats.breakdown[5].value) / tvlStats.current) * 100).toFixed(1)}%
+              </span>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('dia.ecosystem.tvlAnalysis.altL1') || 'Alt L1'}</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-xl font-semibold text-gray-900">
+                ${(tvlStats.breakdown[2].value + tvlStats.breakdown[4].value).toFixed(1)}B
+              </p>
+              <span className="text-xs text-gray-500">
+                {(((tvlStats.breakdown[2].value + tvlStats.breakdown[4].value) / tvlStats.current) * 100).toFixed(1)}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Chain Filter - Subtle pill buttons */}
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          <span className="text-xs text-gray-400 mr-1">{t('dia.ecosystem.tvlAnalysis.filterByChain') || 'Filter by chain'}:</span>
+          {tvlStats.breakdown.map((item) => (
+            <button
+              key={item.chain}
+              onClick={() => {
+                setSelectedChains((prev) =>
+                  prev.includes(item.chain.toLowerCase())
+                    ? prev.filter((c) => c !== item.chain.toLowerCase())
+                    : [...prev, item.chain.toLowerCase()]
+                );
+              }}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-1 text-xs transition-all border',
+                selectedChains.includes(item.chain.toLowerCase())
+                  ? 'bg-gray-900 text-white border-gray-900'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+              )}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: selectedChains.includes(item.chain.toLowerCase()) ? 'white' : item.color }}
+              />
+              {item.chain}
+            </button>
+          ))}
+        </div>
+
+        {/* Stacked Area Chart */}
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={filteredTvlData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorEthereum" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chainColors.ethereum} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={chainColors.ethereum} stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="colorArbitrum" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chainColors.arbitrum} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={chainColors.arbitrum} stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="colorPolygon" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chainColors.polygon} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={chainColors.polygon} stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis
+                dataKey="month"
+                stroke="#9ca3af"
+                tick={{ fontSize: 11 }}
+                tickFormatter={(value) => value.slice(5)}
+              />
+              <YAxis
+                stroke="#9ca3af"
+                tick={{ fontSize: 11 }}
+                tickFormatter={(value) => `$${value}B`}
+              />
+              <RechartsTooltip
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                }}
+                formatter={(value) => [`$${Number(value).toFixed(2)}B`, '']}
+              />
+              {selectedChains.includes('ethereum') && (
+                <Area
+                  type="monotone"
+                  dataKey="ethereum"
+                  name="Ethereum"
+                  stackId="1"
+                  stroke={chainColors.ethereum}
+                  fill="url(#colorEthereum)"
+                />
+              )}
+              {selectedChains.includes('arbitrum') && (
+                <Area
+                  type="monotone"
+                  dataKey="arbitrum"
+                  name="Arbitrum"
+                  stackId="1"
+                  stroke={chainColors.arbitrum}
+                  fill="url(#colorArbitrum)"
+                />
+              )}
+              {selectedChains.includes('polygon') && (
+                <Area
+                  type="monotone"
+                  dataKey="polygon"
+                  name="Polygon"
+                  stackId="1"
+                  stroke={chainColors.polygon}
+                  fill="url(#colorPolygon)"
+                />
+              )}
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      {/* Section Divider */}
+      <div className="border-t border-gray-200" />
+
+      {/* 生态概览 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* 项目分布 */}
+        <section>
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-gray-900">{t('dia.ecosystem.projectAnalysis.projectsByChain') || 'Projects by Chain'}</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Distribution of projects across supported networks</p>
+          </div>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={projectsByChainData} layout="vertical" margin={{ left: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                <XAxis type="number" stroke="#9ca3af" tick={{ fontSize: 11 }} />
+                <YAxis
+                  type="category"
+                  dataKey="chain"
+                  stroke="#9ca3af"
+                  tick={{ fontSize: 11 }}
+                  width={60}
+                />
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                  }}
+                />
+                <Bar dataKey="projects" radius={[0, 4, 4, 0]}>
+                  {projectsByChainData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 text-sm">
+            <span className="text-gray-500">{t('dia.ecosystem.projectAnalysis.totalProjects') || 'Total Projects'}: <span className="font-medium text-gray-900">800+</span></span>
+            <span className="text-emerald-600 font-medium">+48 {t('dia.ecosystem.projectAnalysis.thisMonth') || 'this month'}</span>
+          </div>
+        </section>
+
+        {/* Section Divider for mobile */}
+        <div className="border-t border-gray-200 lg:hidden" />
+
+        {/* 核心指标 - Clean layout without colored backgrounds */}
+        <section>
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-gray-900">{t('dia.ecosystem.growth.title') || 'Ecosystem Growth'}</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Key performance indicators</p>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Layers className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">{t('dia.ecosystem.growth.newProjects') || 'New Projects'}</span>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">48</p>
+                <p className="text-xs text-emerald-600">+18.5%</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Zap className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">{t('dia.ecosystem.growth.integrations') || 'Integrations'}</span>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">256</p>
+                <p className="text-xs text-emerald-600">+22.3%</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Globe className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">{t('dia.ecosystem.growth.communityGrowth') || 'Community'}</span>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">18.2K</p>
+                <p className="text-xs text-emerald-600">+12.8%</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">{t('dia.ecosystem.growth.protocolRevenue') || 'Revenue'}</span>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">$680K</p>
+                <p className="text-xs text-emerald-600">+8.7%</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* Section Divider */}
+      <div className="border-t border-gray-200" />
+
       {/* 生态合作伙伴列表 */}
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-gray-900">
@@ -441,6 +811,9 @@ export function DIAEcosystemView() {
           );
         })}
       </div>
+
+      {/* Section Divider */}
+      <div className="border-t border-gray-200" />
 
       {/* 集成统计 */}
       <div className="space-y-4">

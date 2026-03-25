@@ -5,4 +5,5 @@ export { WinklinkTRONView } from './WinklinkTRONView';
 export { WinklinkStakingView } from './WinklinkStakingView';
 export { WinklinkGamingView } from './WinklinkGamingView';
 export { WinklinkRiskView } from './WinklinkRiskView';
+export { WinklinkDataTable } from './WinklinkDataTable';
 export { default as WinklinkHero } from './WinklinkHero';

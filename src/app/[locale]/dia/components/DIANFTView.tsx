@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl';
 import { useDIANFTData } from '@/hooks/useDIAData';
 import { Blockchain } from '@/types/oracle';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { LoadingState } from '@/components/oracle/common/LoadingState';
 import { ErrorFallback } from '@/components/oracle/common/ErrorFallback';
 import { Layers, TrendingUp, DollarSign, Link2 } from 'lucide-react';
@@ -22,9 +21,9 @@ export function DIANFTView() {
 
   if (!nftData) {
     return (
-      <DashboardCard className="p-6">
+      <div className="p-6">
         <div className="text-center text-gray-500 py-8">{t('nft.noData')}</div>
-      </DashboardCard>
+      </div>
     );
   }
 
@@ -99,147 +98,130 @@ export function DIANFTView() {
     return `${sign}${change.toFixed(2)}%`;
   };
 
-  const stats = [
-    {
-      label: t('nft.totalCollections'),
-      value: totalCollections.toString(),
-      icon: Layers,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-    },
-    {
-      label: t('nft.trendingCount'),
-      value: trending?.length?.toString() || '0',
-      icon: TrendingUp,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-50',
-    },
-    {
-      label: t('nft.avgFloorPrice'),
-      value: `${avgFloorPrice.toFixed(2)} ETH`,
-      icon: DollarSign,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      label: t('nft.chainsSupported'),
-      value: chainDistribution.length.toString(),
-      icon: Link2,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-    },
-  ];
-
   return (
-    <div className="space-y-6">
-      {/* Statistics Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <DashboardCard key={stat.label} className="p-4">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">{stat.label}</p>
-                <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
-              </div>
-            </div>
-          </DashboardCard>
-        ))}
+    <div className="space-y-8">
+      {/* Stats Row */}
+      <div className="flex flex-wrap items-center gap-6 md:gap-8">
+        <div className="flex items-center gap-3">
+          <Layers className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('nft.totalCollections')}</p>
+            <p className="text-xl font-semibold text-gray-900">{totalCollections}</p>
+          </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <TrendingUp className="w-5 h-5 text-emerald-500" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('nft.trendingCount')}</p>
+            <p className="text-xl font-semibold text-emerald-600">{trending?.length || 0}</p>
+          </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <DollarSign className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('nft.avgFloorPrice')}</p>
+            <p className="text-xl font-semibold text-gray-900">{avgFloorPrice.toFixed(2)} ETH</p>
+          </div>
+        </div>
+        <div className="hidden md:block w-px h-8 bg-gray-200" />
+        <div className="flex items-center gap-3">
+          <Link2 className="w-5 h-5 text-gray-400" />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('nft.chainsSupported')}</p>
+            <p className="text-xl font-semibold text-gray-900">{chainDistribution.length}</p>
+          </div>
+        </div>
       </div>
 
-      {/* NFT Collections List */}
-      <DashboardCard className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      {/* NFT Collections Table */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('nft.collections')}
         </h3>
-
-        {/* Table Header */}
-        <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 rounded-t-lg text-sm font-medium text-gray-600">
-          <div className="col-span-4">{t('nft.name')}</div>
-          <div className="col-span-2 text-right">{t('nft.floorPrice')}</div>
-          <div className="col-span-2 text-right">{t('nft.change24h')}</div>
-          <div className="col-span-2 text-right">{t('nft.volume24h')}</div>
-          <div className="col-span-2 text-center">{t('nft.chain')}</div>
-        </div>
-
-        {/* Collection Items */}
-        <div className="divide-y divide-gray-100">
-          {collections.map((collection) => (
-            <div
-              key={collection.id}
-              className="grid grid-cols-2 md:grid-cols-12 gap-4 px-4 py-4 items-center hover:bg-gray-50 transition-colors"
-            >
-              {/* Name */}
-              <div className="col-span-2 md:col-span-4">
-                <p className="font-semibold text-gray-900 truncate">{collection.name}</p>
-                <p className="text-sm text-gray-500">{collection.symbol}</p>
-              </div>
-
-              {/* Floor Price */}
-              <div className="col-span-1 md:col-span-2 text-right">
-                <p className="font-semibold text-gray-900">{collection.floorPrice} ETH</p>
-              </div>
-
-              {/* 24h Change */}
-              <div className="col-span-1 md:col-span-2 text-right">
-                <span
-                  className={`inline-flex px-2 py-1 rounded text-sm font-medium ${getPriceChangeBg(
-                    collection.floorPriceChange24h
-                  )} ${getPriceChangeColor(collection.floorPriceChange24h)}`}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('nft.name')}
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('nft.floorPrice')}
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('nft.change24h')}
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('nft.volume24h')}
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('nft.chain')}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {collections.map((collection) => (
+                <tr
+                  key={collection.id}
+                  className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
                 >
-                  {formatPriceChange(collection.floorPriceChange24h)}
-                </span>
-              </div>
-
-              {/* Volume */}
-              <div className="col-span-1 md:col-span-2 text-right">
-                <p className="text-gray-900">{collection.volume24h.toLocaleString()} ETH</p>
-              </div>
-
-              {/* Chain */}
-              <div className="col-span-1 md:col-span-2 text-center">
-                <span
-                  className={`inline-flex px-2 py-1 rounded text-xs border ${getChainBadgeColor(
-                    collection.chain
-                  )}`}
-                >
-                  {getChainLabel(collection.chain)}
-                </span>
-              </div>
-            </div>
-          ))}
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-gray-900">{collection.name}</p>
+                    <p className="text-sm text-gray-500">{collection.symbol}</p>
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm text-gray-900">
+                    {collection.floorPrice} ETH
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span
+                      className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${getPriceChangeBg(
+                        collection.floorPriceChange24h
+                      )} ${getPriceChangeColor(collection.floorPriceChange24h)}`}
+                    >
+                      {formatPriceChange(collection.floorPriceChange24h)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm text-gray-900">
+                    {collection.volume24h.toLocaleString()} ETH
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span
+                      className={`inline-flex px-2 py-0.5 rounded text-xs border ${getChainBadgeColor(
+                        collection.chain
+                      )}`}
+                    >
+                      {getChainLabel(collection.chain)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-
         {collections.length === 0 && (
           <div className="text-center py-8 text-gray-500">{t('nft.noCollections')}</div>
         )}
-      </DashboardCard>
+      </div>
 
       {/* Distribution by Chain */}
-      <DashboardCard className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div>
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('nft.byChain')}
         </h3>
-
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {chainDistribution.map(([chain, count]) => (
-            <div
-              key={chain}
-              className={`p-4 rounded-lg border ${getChainBadgeColor(chain as Blockchain)}`}
-            >
-              <p className="text-sm font-medium">{getChainLabel(chain as Blockchain)}</p>
-              <p className="text-2xl font-bold mt-1">{count}</p>
-              <p className="text-xs opacity-75 mt-1">{t('nft.collections')}</p>
+            <div key={chain} className="flex items-center justify-between py-2">
+              <span className="text-sm text-gray-600">{getChainLabel(chain as Blockchain)}</span>
+              <span className="text-sm font-semibold text-gray-900">{count}</span>
             </div>
           ))}
         </div>
-
         {chainDistribution.length === 0 && (
           <div className="text-center py-8 text-gray-500">{t('nft.noChainData')}</div>
         )}
-      </DashboardCard>
+      </div>
     </div>
   );
 }

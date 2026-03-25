@@ -1,0 +1,33 @@
+# Checklist
+
+- [x] DIAMarketView 统计展示使用横向行布局
+- [x] DIAMarketView 左侧图表+右侧统计布局优化完成
+- [x] DIAMarketView 网络状态使用行内列表展示
+- [x] DIAMarketView 数据来源使用简洁行内状态展示
+- [x] DIAMarketView 主要交易对信息展示区域添加完成
+- [x] DIANetworkView 核心指标使用简洁文本布局
+- [x] DIANetworkView 每小时活动柱状图展示优化
+- [x] DIANetworkView 网络性能指标进度条展示优化
+- [x] DIANetworkView 网络统计摘要区域添加完成
+- [x] DIADataFeedsView 统计概览使用横向行布局
+- [x] DIADataFeedsView 分类筛选功能实现（Crypto、Fiat、Commodity、NFT）
+- [x] DIADataFeedsView 数据馈送表格展示优化
+- [x] DIADataFeedsView 关于数据馈送的说明区域添加
+- [x] DIANFTView 统计使用简洁行布局
+- [x] DIANFTView NFT收藏列表表格优化
+- [x] DIANFTView 链分布展示简化
+- [x] DIAStakingView 质押统计使用简洁行布局
+- [x] DIAStakingView 锁定期APR使用进度条对比展示
+- [x] DIAStakingView 历史APR趋势图表优化
+- [x] DIAStakingView 质押详情布局简化
+- [x] DIAEcosystemView TVL趋势分析区域添加
+- [x] DIAEcosystemView 堆叠面积图展示各链TVL实现
+- [x] DIAEcosystemView 链筛选功能实现
+- [x] DIAEcosystemView 项目分布柱状图添加
+- [x] DIAEcosystemView 生态增长指标展示添加
+- [x] DIARiskView 风险指标使用简洁文本布局
+- [x] DIARiskView 风险评估面板使用列表布局
+- [x] DIARiskView 数据验证状态展示简化
+- [x] 所有组件减少卡片样式使用
+- [x] 代码通过 TypeScript 类型检查
+- [x] 页面渲染无错误

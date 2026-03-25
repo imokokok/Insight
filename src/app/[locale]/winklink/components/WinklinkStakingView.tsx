@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { WinklinkStakingViewProps, SortConfig } from '../types';
+import { WinklinkDataTable } from './WinklinkDataTable';
+import { StakingRewardsCalculator } from './StakingRewardsCalculator';
+import { WinklinkStakingViewProps, SortConfig, StakingNode } from '../types';
+import { Activity, Clock, Shield, Award, Server, TrendingUp } from 'lucide-react';
 
 export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewProps) {
   const t = useTranslations();
@@ -54,16 +57,6 @@ export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewP
     },
   ];
 
-  const sortedNodes = [...nodes].sort((a, b) => {
-    const aValue = a[sortConfig.key as keyof typeof a];
-    const bValue = b[sortConfig.key as keyof typeof b];
-    if (aValue === bValue) return 0;
-    if (aValue === null || aValue === undefined) return 1;
-    if (bValue === null || bValue === undefined) return -1;
-    const comparison = aValue < bValue ? -1 : 1;
-    return sortConfig.direction === 'asc' ? comparison : -comparison;
-  });
-
   const handleSort = (key: string) => {
     setSortConfig((current) => ({
       key,
@@ -78,128 +71,186 @@ export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewP
     platinum: 'bg-pink-500',
   };
 
+  const tierTextColors: Record<string, string> = {
+    bronze: 'text-amber-600',
+    silver: 'text-gray-500',
+    gold: 'text-yellow-600',
+    platinum: 'text-pink-600',
+  };
+
+  const columns = [
+    {
+      key: 'name',
+      header: t('winklink.staking.nodeName'),
+      sortable: true,
+      render: (item: StakingNode) => (
+        <div>
+          <p className="text-sm font-medium text-gray-900">{item.name}</p>
+          <p className="text-xs text-gray-500">{item.region}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'tier',
+      header: t('winklink.staking.tier'),
+      sortable: true,
+      render: (item: StakingNode) => (
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white capitalize ${tierColors[item.tier]}`}>
+          {item.tier}
+        </span>
+      ),
+    },
+    {
+      key: 'stakedAmount',
+      header: t('winklink.staking.staked'),
+      sortable: true,
+      render: (item: StakingNode) => (
+        <span className="text-sm text-gray-900">{(item.stakedAmount / 1e6).toFixed(2)}M</span>
+      ),
+    },
+    {
+      key: 'uptime',
+      header: t('winklink.staking.uptime'),
+      sortable: true,
+      render: (item: StakingNode) => (
+        <span className="text-sm text-gray-900">{item.uptime.toFixed(2)}%</span>
+      ),
+    },
+    {
+      key: 'status',
+      header: t('winklink.staking.status'),
+      sortable: false,
+      render: (item: StakingNode) => (
+        <span className={`inline-flex items-center gap-1 text-xs font-medium ${
+          item.status === 'active' ? 'text-emerald-600' : 'text-red-600'
+        }`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${
+            item.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
+          }`} />
+          {item.status === 'active' ? 'Active' : 'Inactive'}
+        </span>
+      ),
+    },
+  ];
+
+  const totalTierNodes = stakingData.stakingTiers.reduce((acc, tier) => acc + tier.nodeCount, 0);
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('winklink.staking.totalStaked')}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">
-            ${(stakingData.totalStaked / 1e6).toFixed(1)}M
-          </p>
+    <div className="space-y-8">
+      {/* 质押统计概览 - 内联图标+文本布局 */}
+      <div className="flex flex-wrap items-center gap-6 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('winklink.staking.totalStaked')}</span>
+          <span className="text-lg font-semibold text-gray-900">${(stakingData.totalStaked / 1e6).toFixed(1)}M</span>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('winklink.staking.totalNodes')}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stakingData.totalNodes}</p>
-          <p className="text-xs text-emerald-600 mt-1">{stakingData.activeNodes} active</p>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Server className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('winklink.staking.totalNodes')}</span>
+          <span className="text-lg font-semibold text-gray-900">{stakingData.totalNodes}</span>
+          <span className="text-xs text-emerald-600">({stakingData.activeNodes} active)</span>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('winklink.staking.averageApr')}</p>
-          <p className="text-2xl font-bold text-pink-600 mt-1">{stakingData.averageApr}%</p>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('winklink.staking.averageApr')}</span>
+          <span className="text-lg font-semibold text-pink-600">{stakingData.averageApr}%</span>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('winklink.staking.rewardPool')}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">
-            ${(stakingData.rewardPool / 1e6).toFixed(2)}M
-          </p>
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Award className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-500">{t('winklink.staking.rewardPool')}</span>
+          <span className="text-lg font-semibold text-gray-900">${(stakingData.rewardPool / 1e6).toFixed(2)}M</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('winklink.staking.tierDistribution')}
-          </h3>
-          <div className="space-y-3">
-            {stakingData.stakingTiers.map((tier) => (
-              <div key={tier.tier} className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${tierColors[tier.tier]}`} />
-                <div className="flex-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium capitalize">{tier.tier}</span>
-                    <span className="text-gray-600">{tier.apr}% APR</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-0.5">
-                    <span>{tier.nodeCount} nodes</span>
-                    <span>{(tier.minStake / 1e3).toFixed(0)}K - {(tier.maxStake / 1e6).toFixed(1)}M WIN</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* 主内容区域 */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* 左侧 - 节点表格 */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="flex items-center gap-2">
+            <Server className="w-4 h-4 text-gray-500" />
+            <h2 className="text-base font-medium text-gray-900">
+              {t('winklink.staking.nodeList')}
+            </h2>
           </div>
+          <WinklinkDataTable
+            data={nodes}
+            columns={columns}
+            sortConfig={sortConfig}
+            onSort={handleSort}
+            isLoading={isLoading}
+          />
         </div>
 
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('winklink.staking.nodeList')}
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th
-                    className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('name')}
-                  >
-                    {t('winklink.staking.nodeName')} {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th
-                    className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('tier')}
-                  >
-                    {t('winklink.staking.tier')} {sortConfig.key === 'tier' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th
-                    className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('stakedAmount')}
-                  >
-                    {t('winklink.staking.staked')} {sortConfig.key === 'stakedAmount' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th
-                    className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('uptime')}
-                  >
-                    {t('winklink.staking.uptime')} {sortConfig.key === 'uptime' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">
-                    {t('winklink.staking.status')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {sortedNodes.map((node) => (
-                  <tr key={node.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{node.name}</p>
-                        <p className="text-xs text-gray-500">{node.region}</p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white capitalize ${tierColors[node.tier]}`}>
-                        {node.tier}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                      {(node.stakedAmount / 1e6).toFixed(2)}M
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                      {node.uptime.toFixed(2)}%
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex items-center gap-1 text-xs font-medium ${
-                        node.status === 'active' ? 'text-emerald-600' : 'text-red-600'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                          node.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
-                        }`} />
-                        {node.status === 'active' ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* 右侧边栏 */}
+        <div className="space-y-8">
+          {/* 质押计算器 */}
+          <section>
+            <StakingRewardsCalculator />
+          </section>
+
+          {/* 质押等级分布 - 紧凑进度条 */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-gray-500" />
+              <h3 className="text-sm font-medium text-gray-900">
+                {t('winklink.staking.tierDistribution')}
+              </h3>
+            </div>
+            <div className="space-y-4">
+              {stakingData.stakingTiers.map((tier) => {
+                const percentage = (tier.nodeCount / totalTierNodes) * 100;
+                return (
+                  <div key={tier.tier}>
+                    <div className="flex items-center justify-between text-sm mb-1.5">
+                      <span className={`font-medium capitalize ${tierTextColors[tier.tier]}`}>{tier.tier}</span>
+                      <span className="text-gray-900">{tier.nodeCount} <span className="text-gray-400">({percentage.toFixed(1)}%)</span></span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                      <div
+                        className={`${tierColors[tier.tier]} h-1.5 rounded-full transition-all`}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>{tier.apr}% APR</span>
+                      <span>{(tier.minStake / 1e3).toFixed(0)}K - {(tier.maxStake / 1e6).toFixed(1)}M WIN</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* 概览统计 */}
+          <section className="space-y-4 border-t border-gray-100 pt-6">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-gray-500" />
+              <h3 className="text-sm font-medium text-gray-900">
+                {t('winklink.staking.overview')}
+              </h3>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Active Rate</span>
+                <span className="font-medium text-gray-900">
+                  {((stakingData.activeNodes / stakingData.totalNodes) * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Top Tier Nodes</span>
+                <span className="font-medium text-gray-900">
+                  {stakingData.stakingTiers.find(t => t.tier === 'platinum')?.nodeCount || 0}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Tier Levels</span>
+                <span className="font-medium text-gray-900">{stakingData.stakingTiers.length}</span>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
