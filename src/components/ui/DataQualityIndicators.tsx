@@ -213,6 +213,11 @@ function CircularProgress({
   const level = getQualityLevel(value);
   const colors = getQualityColorConfig(level);
 
+  // 根据数值位数调整字体大小
+  const valueStr = value.toString();
+  const fontSize =
+    valueStr.length >= 3 ? 'text-sm' : valueStr.length >= 2 ? 'text-base' : 'text-lg';
+
   return (
     <div className={cn('relative inline-flex items-center justify-center', className)}>
       <svg width={size} height={size} className="-rotate-90">
@@ -241,9 +246,9 @@ function CircularProgress({
         />
       </svg>
       {showValue && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={cn('text-lg font-bold', colors.text)}>{value}</span>
-          <span className="text-xs text-gray-400">分</span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+          <span className={cn('font-bold', fontSize, colors.text)}>{value}</span>
+          {valueStr.length < 3 && <span className="text-[8px] text-gray-400 mt-0.5">分</span>}
         </div>
       )}
     </div>
@@ -251,7 +256,7 @@ function CircularProgress({
 }
 
 /**
- * 紧凑评分卡片组件
+ * 紧凑评分卡片组件 - 高密度信息展示
  */
 interface CompactScoreCardProps {
   title: string;
@@ -259,12 +264,53 @@ interface CompactScoreCardProps {
   icon: React.ReactNode;
   description: string;
   details: React.ReactNode;
-  rightContent: string;
+  primaryMetric: { label: string; value: string };
+  secondaryMetric?: { label: string; value: string };
+  trend?: 'up' | 'down' | 'stable';
 }
 
-function CompactScoreCard({ title, score, icon, description, details, rightContent }: CompactScoreCardProps) {
+function CompactScoreCard({
+  title,
+  score,
+  icon,
+  description,
+  details,
+  primaryMetric,
+  secondaryMetric,
+  trend,
+}: CompactScoreCardProps) {
   const level = getQualityLevel(score);
   const colors = getQualityColorConfig(level);
+
+  const trendIcon =
+    trend === 'up' ? (
+      <svg
+        className="w-3 h-3 text-emerald-500"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M5 10l7-7m0 0l7 7m-7-7v18"
+        />
+      </svg>
+    ) : trend === 'down' ? (
+      <svg className="w-3 h-3 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M19 14l-7 7m0 0l-7-7m7 7V3"
+        />
+      </svg>
+    ) : (
+      <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+      </svg>
+    );
 
   return (
     <Tooltip
@@ -279,30 +325,42 @@ function CompactScoreCard({ title, score, icon, description, details, rightConte
     >
       <div
         className={cn(
-          'flex items-center justify-between gap-4 px-4 py-3 rounded-lg border transition-all duration-200',
+          'flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all duration-200 h-full',
           'bg-white dark:bg-gray-800',
           colors.border,
           colors.borderDark,
-          'hover:shadow-md cursor-pointer min-w-[200px] flex-1'
+          'hover:shadow-md cursor-pointer'
         )}
       >
-        {/* 左侧：图标和标题 */}
-        <div className="flex items-center gap-3">
-          <div className={cn('p-2 rounded-lg', colors.bgLight, colors.bgDark)}>
-            <span className={cn('w-5 h-5 block', colors.text)}>{icon}</span>
+        {/* 左侧：图标 */}
+        <div className={cn('p-1.5 rounded-lg flex-shrink-0', colors.bgLight, colors.bgDark)}>
+          <span className={cn('w-4 h-4 block', colors.text)}>{icon}</span>
+        </div>
+
+        {/* 中间：标题和指标 */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">{title}</span>
+            {trendIcon}
           </div>
-          <div>
-            <span className="text-xs text-gray-500 dark:text-gray-400 block">{title}</span>
-            <span className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 block">{rightContent}</span>
+          <div className="flex items-baseline gap-2 mt-0.5">
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {primaryMetric.value}
+            </span>
+            {secondaryMetric && (
+              <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                {secondaryMetric.label} {secondaryMetric.value}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* 右侧：分数和状态 */}
-        <div className="flex flex-col items-end">
-          <span className={cn('text-lg font-bold leading-none', colors.text)}>{score}</span>
-          <span className="text-[10px] text-gray-400 mt-1">
-            {level === 'excellent' ? '优秀' : level === 'good' ? '良好' : '需改进'}
-          </span>
+        {/* 右侧：分数和进度条 */}
+        <div className="flex flex-col items-end gap-1">
+          <span className={cn('text-base font-bold leading-none', colors.text)}>{score}</span>
+          <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className={cn('h-full rounded-full', colors.bg)} style={{ width: `${score}%` }} />
+          </div>
         </div>
       </div>
     </Tooltip>
@@ -443,18 +501,66 @@ function QualityDashboard({ scores, compact }: QualityDashboardProps) {
       >
         <div
           className={cn(
-            'flex items-center gap-3 px-4 py-3 rounded-xl border',
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg border h-full',
             'bg-white dark:bg-gray-800',
             colors.border,
-            colors.borderDark
+            colors.borderDark,
+            'hover:shadow-md cursor-pointer transition-all duration-200'
           )}
         >
-          <CircularProgress value={scores.overall} size={56} strokeWidth={5} showValue={true} />
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">综合评分</p>
-            <p className={cn('text-lg font-bold', colors.text)}>
-              {level === 'excellent' ? '优秀' : level === 'good' ? '良好' : '需改进'}
-            </p>
+          <CircularProgress value={scores.overall} size={44} strokeWidth={4} showValue={true} />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-300">综合评分</p>
+            <div className="flex items-baseline gap-1.5 mt-0.5">
+              <span className={cn('text-sm font-bold', colors.text)}>
+                {level === 'excellent' ? '优秀' : level === 'good' ? '良好' : '需改进'}
+              </span>
+              <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                {scores.overall}分
+              </span>
+            </div>
+            {/* 迷你三维度进度条 */}
+            <div className="flex items-center gap-1 mt-1.5">
+              <div className="flex-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    'h-full rounded-full',
+                    scores.freshness >= 80
+                      ? 'bg-emerald-500'
+                      : scores.freshness >= 50
+                        ? 'bg-amber-500'
+                        : 'bg-red-500'
+                  )}
+                  style={{ width: `${scores.freshness}%` }}
+                />
+              </div>
+              <div className="flex-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    'h-full rounded-full',
+                    scores.completeness >= 80
+                      ? 'bg-emerald-500'
+                      : scores.completeness >= 50
+                        ? 'bg-amber-500'
+                        : 'bg-red-500'
+                  )}
+                  style={{ width: `${scores.completeness}%` }}
+                />
+              </div>
+              <div className="flex-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    'h-full rounded-full',
+                    scores.reliability >= 80
+                      ? 'bg-emerald-500'
+                      : scores.reliability >= 50
+                        ? 'bg-amber-500'
+                        : 'bg-red-500'
+                  )}
+                  style={{ width: `${scores.reliability}%` }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </Tooltip>
@@ -577,8 +683,13 @@ export function DataQualityIndicators({
   }, [freshness, completeness, reliability]);
 
   if (compact) {
+    const completenessRate =
+      completeness.totalCount > 0
+        ? ((completeness.successCount / completeness.totalCount) * 100).toFixed(1)
+        : '0';
+
     return (
-      <div className={cn('flex flex-wrap items-center gap-2', className)}>
+      <div className={cn('grid grid-cols-2 lg:grid-cols-4 gap-2', className)}>
         <CompactScoreCard
           title="新鲜度"
           score={scores.freshness}
@@ -588,9 +699,12 @@ export function DataQualityIndicators({
             <div className="space-y-1 text-sm">
               <p>最后更新: {formatTimeAgo(freshness.lastUpdated)}</p>
               <p>更新时间: {new Date(freshness.lastUpdated).toLocaleString('zh-CN')}</p>
+              <p className="text-gray-400 mt-1">评分: {scores.freshness}分</p>
             </div>
           }
-          rightContent={formatTimeAgo(freshness.lastUpdated)}
+          primaryMetric={{ label: '', value: formatTimeAgo(freshness.lastUpdated) }}
+          secondaryMetric={{ label: '更新于', value: '' }}
+          trend="stable"
         />
         <CompactScoreCard
           title="完整度"
@@ -601,16 +715,15 @@ export function DataQualityIndicators({
             <div className="space-y-1 text-sm">
               <p>成功请求: {completeness.successCount.toLocaleString()}</p>
               <p>总请求数: {completeness.totalCount.toLocaleString()}</p>
-              <p>
-                成功率:{' '}
-                {completeness.totalCount > 0
-                  ? ((completeness.successCount / completeness.totalCount) * 100).toFixed(1)
-                  : 0}
-                %
-              </p>
+              <p>成功率: {completenessRate}%</p>
             </div>
           }
-          rightContent={`${completeness.successCount}/${completeness.totalCount}`}
+          primaryMetric={{ label: '', value: `${completenessRate}%` }}
+          secondaryMetric={{
+            label: '成功',
+            value: `${completeness.successCount}/${completeness.totalCount}`,
+          }}
+          trend={scores.completeness >= 95 ? 'up' : scores.completeness >= 80 ? 'stable' : 'down'}
         />
         <CompactScoreCard
           title="可靠性"
@@ -619,11 +732,17 @@ export function DataQualityIndicators({
           description="基于历史准确率和响应成功率综合计算"
           details={
             <div className="space-y-1 text-sm">
-              <p>历史准确率: {reliability.historicalAccuracy}%</p>
-              <p>响应成功率: {reliability.responseSuccessRate}%</p>
+              <p>历史准确率: {reliability.historicalAccuracy.toFixed(1)}%</p>
+              <p>响应成功率: {reliability.responseSuccessRate.toFixed(1)}%</p>
+              <p className="text-gray-400 mt-1">权重: 历史60% + 响应40%</p>
             </div>
           }
-          rightContent={`${reliability.historicalAccuracy}%`}
+          primaryMetric={{ label: '', value: `${reliability.historicalAccuracy.toFixed(1)}%` }}
+          secondaryMetric={{
+            label: '响应',
+            value: `${reliability.responseSuccessRate.toFixed(0)}%`,
+          }}
+          trend={scores.reliability >= 90 ? 'up' : scores.reliability >= 70 ? 'stable' : 'down'}
         />
         <QualityDashboard scores={scores} compact />
       </div>
@@ -678,8 +797,8 @@ export function DataQualityIndicators({
           description="基于历史准确率和响应成功率综合计算"
           details={
             <div className="space-y-1 text-sm">
-              <p>历史准确率: {reliability.historicalAccuracy}%</p>
-              <p>响应成功率: {reliability.responseSuccessRate}%</p>
+              <p>历史准确率: {reliability.historicalAccuracy.toFixed(1)}%</p>
+              <p>响应成功率: {reliability.responseSuccessRate.toFixed(1)}%</p>
               <p className="text-gray-400 mt-2">权重: 历史准确率60% + 响应成功率40%</p>
             </div>
           }
