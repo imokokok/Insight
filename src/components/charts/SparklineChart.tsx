@@ -64,8 +64,8 @@ function getTrendDirection(data: number[]): 'up' | 'down' | 'neutral' {
  */
 export function SparklineChart({
   data,
-  width = 120,
-  height = 40,
+  width = 60,
+  height = 24,
   color,
   fill = false,
   animate = true,
@@ -79,9 +79,9 @@ export function SparklineChart({
     if (color) return color;
     switch (trend) {
       case 'up':
-        return '#10b981'; // emerald-500
+        return '#10b981'; // green
       case 'down':
-        return '#f43f5e'; // rose-500
+        return '#ef4444'; // red
       default:
         return '#9ca3af'; // gray-400
     }
@@ -101,9 +101,9 @@ export function SparklineChart({
     }
     switch (trend) {
       case 'up':
-        return 'rgba(16, 185, 129, 0.15)';
+        return 'rgba(16, 185, 129, 0.15)'; // green with opacity
       case 'down':
-        return 'rgba(244, 63, 94, 0.15)';
+        return 'rgba(239, 68, 68, 0.15)'; // red with opacity
       default:
         return 'rgba(156, 163, 175, 0.15)';
     }

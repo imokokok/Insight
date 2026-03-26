@@ -15,10 +15,12 @@ import {
   RedStoneHero,
 } from './components';
 import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useQuery } from '@tanstack/react-query';
 import { RedStoneClient } from '@/lib/oracles/redstone';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
+import { Menu } from 'lucide-react';
 
 const redstoneClient = new RedStoneClient();
 const redstoneConfig = getOracleConfig(OracleProvider.REDSTONE);
@@ -161,37 +163,25 @@ export default function RedStonePage() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              <Menu className="w-5 h-5" />
               {t('redstone.menu.title')}
             </button>
           </div>
 
-          {/* Mobile Menu Overlay */}
-          {isMobileMenuOpen && (
-            <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
-              <div className="absolute left-0 top-0 h-full w-64 bg-white" onClick={(e) => e.stopPropagation()}>
-                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
-                    {t('redstone.navigation.title')}
-                  </h2>
-                  <button onClick={() => setIsMobileMenuOpen(false)}>
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <RedStoneSidebar
-                  activeTab={activeTab}
-                  onTabChange={(tab) => {
-                    setActiveTab(tab);
-                    setIsMobileMenuOpen(false);
-                  }}
-                />
-              </div>
-            </div>
-          )}
+          {/* Mobile Sidebar */}
+          <MobileSidebar
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+            title={t('redstone.navigation.title')}
+          >
+            <RedStoneSidebar
+              activeTab={activeTab}
+              onTabChange={(tab) => {
+                setActiveTab(tab);
+                setIsMobileMenuOpen(false);
+              }}
+            />
+          </MobileSidebar>
 
           {/* Content Area */}
           <div className="flex-1 min-w-0">

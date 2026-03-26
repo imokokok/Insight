@@ -19,7 +19,11 @@
       "validatorUptime": "验证者在线率",
       "totalDisputes": "总争议数",
       "disputeSuccessRate": "争议成功率",
-      "dataFeeds": "数据喂价"
+      "dataFeeds": "数据喂价",
+      "marketCap": "市值",
+      "volume24h": "24小时交易量",
+      "circulatingSupply": "流通供应量",
+      "stakingApr": "质押年化收益率"
     },
     "networkHealth": {
       "responseTime": "响应时间",
@@ -377,7 +381,17 @@
       "resolvedDisputes": "已解决争议",
       "successRate": "成功率",
       "totalValue": "总价值",
-      "trend": "争议趋势（7天）"
+      "trend": "争议趋势（7天）",
+      "id": "ID",
+      "type": "类型",
+      "status": "状态",
+      "stakeAmount": "质押金额",
+      "reward": "奖励",
+      "recentDisputes": "最近争议",
+      "total": "总计",
+      "active": "活跃",
+      "resolved": "已解决",
+      "resolutionPanel": "争议解决"
     },
     "pageTitles": {
       "market": "市场数据",

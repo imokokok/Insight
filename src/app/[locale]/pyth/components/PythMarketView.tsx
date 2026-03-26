@@ -197,12 +197,12 @@ export function PythMarketView({
             <p className="text-sm text-emerald-600 mt-1">+12.5%</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-1">{t('pyth.liquidity')}</p>
+            <p className="text-xs text-gray-400 mb-1">{t('pyth.stats.liquidity')}</p>
             <p className="text-2xl font-semibold text-gray-900">$18.5M</p>
             <p className="text-sm text-emerald-600 mt-1">+5.2%</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-1">{t('pyth.marketDepth')}</p>
+            <p className="text-xs text-gray-400 mb-1">{t('pyth.stats.marketDepth')}</p>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-2xl font-semibold text-gray-900">8.2</span>
               <span className="text-sm text-gray-400">/10</span>

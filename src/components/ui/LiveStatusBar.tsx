@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { Wifi, WifiOff, Clock, Zap, RefreshCw } from 'lucide-react';
-import { baseColors, semanticColors } from '@/lib/config/colors';
+import { Wifi, WifiOff, Clock, Zap, RefreshCw, Activity } from 'lucide-react';
+import { semanticColors } from '@/lib/config/colors';
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
+
+export type DataFreshnessLevel = 'fresh' | 'stale' | 'expired';
 
 export interface LiveStatusBarProps {
   isConnected: boolean;
@@ -13,12 +15,20 @@ export interface LiveStatusBarProps {
   lastUpdate?: Date;
   isReconnecting?: boolean;
   className?: string;
+  freshnessThreshold?: number;
 }
 
 interface StatusConfig {
   label: string;
   icon: typeof Wifi;
   color: string;
+}
+
+interface FreshnessConfig {
+  label: string;
+  color: string;
+  bgColor: string;
+  pulse: boolean;
 }
 
 const statusConfig: Record<ConnectionStatus, StatusConfig> = {
@@ -36,6 +46,27 @@ const statusConfig: Record<ConnectionStatus, StatusConfig> = {
     label: '重连中',
     icon: RefreshCw,
     color: semanticColors.warning.DEFAULT,
+  },
+};
+
+const freshnessConfig: Record<DataFreshnessLevel, FreshnessConfig> = {
+  fresh: {
+    label: '数据新鲜',
+    color: semanticColors.success.DEFAULT,
+    bgColor: 'bg-emerald-50',
+    pulse: false,
+  },
+  stale: {
+    label: '数据稍旧',
+    color: semanticColors.warning.DEFAULT,
+    bgColor: 'bg-amber-50',
+    pulse: true,
+  },
+  expired: {
+    label: '数据过期',
+    color: semanticColors.danger.DEFAULT,
+    bgColor: 'bg-red-50',
+    pulse: true,
   },
 };
 
@@ -65,12 +96,27 @@ function formatLastUpdate(date?: Date): string {
   return date.toLocaleDateString();
 }
 
+function getDataFreshnessLevel(
+  lastUpdate?: Date,
+  threshold: number = 30000
+): DataFreshnessLevel {
+  if (!lastUpdate) return 'expired';
+
+  const now = new Date();
+  const diff = now.getTime() - lastUpdate.getTime();
+
+  if (diff < threshold) return 'fresh';
+  if (diff < threshold * 2) return 'stale';
+  return 'expired';
+}
+
 export function LiveStatusBar({
   isConnected,
   latency,
   lastUpdate,
   isReconnecting = false,
   className,
+  freshnessThreshold = 30000,
 }: LiveStatusBarProps) {
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
@@ -88,7 +134,13 @@ export function LiveStatusBar({
       ? 'connected'
       : 'disconnected';
 
+  const freshnessLevel = useMemo(
+    () => getDataFreshnessLevel(lastUpdate, freshnessThreshold),
+    [lastUpdate, freshnessThreshold, currentTime]
+  );
+
   const status = statusConfig[connectionStatus];
+  const freshness = freshnessConfig[freshnessLevel];
   const StatusIcon = status.icon;
 
   return (
@@ -99,10 +151,7 @@ export function LiveStatusBar({
       )}
     >
       {/* UTC Time */}
-      <div
-        className="flex items-center gap-1.5 text-xs"
-        style={{ color: baseColors.gray[500] }}
-      >
+      <div className="flex items-center gap-1.5 text-xs text-gray-500">
         <Clock className="w-3.5 h-3.5" />
         <span className="font-mono whitespace-nowrap">
           {formatUTCTime(currentTime)}
@@ -110,16 +159,10 @@ export function LiveStatusBar({
       </div>
 
       {/* Separator - Hidden on mobile */}
-      <div
-        className="hidden sm:block w-px h-3"
-        style={{ backgroundColor: baseColors.gray[200] }}
-      />
+      <div className="hidden sm:block w-px h-3 bg-gray-200" />
 
       {/* Latency */}
-      <div
-        className="flex items-center gap-1.5 text-xs"
-        style={{ color: baseColors.gray[500] }}
-      >
+      <div className="flex items-center gap-1.5 text-xs text-gray-500">
         <Zap className="w-3.5 h-3.5" />
         <span className="font-mono whitespace-nowrap">
           {formatLatency(latency)}
@@ -127,30 +170,42 @@ export function LiveStatusBar({
       </div>
 
       {/* Separator - Hidden on mobile */}
-      <div
-        className="hidden sm:block w-px h-3"
-        style={{ backgroundColor: baseColors.gray[200] }}
-      />
+      <div className="hidden sm:block w-px h-3 bg-gray-200" />
 
       {/* Last Update */}
-      <div
-        className="flex items-center gap-1.5 text-xs"
-        style={{ color: baseColors.gray[500] }}
-      >
-        <span
-          className="hidden sm:inline"
-          style={{ color: baseColors.gray[400] }}
-        >
-          更新:
-        </span>
+      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+        <span className="hidden sm:inline text-gray-400">更新:</span>
         <span className="whitespace-nowrap">{formatLastUpdate(lastUpdate)}</span>
       </div>
 
       {/* Separator - Hidden on mobile */}
+      <div className="hidden sm:block w-px h-3 bg-gray-200" />
+
+      {/* Data Freshness Indicator */}
       <div
-        className="hidden sm:block w-px h-3"
-        style={{ backgroundColor: baseColors.gray[200] }}
-      />
+        className={cn(
+          'flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs',
+          freshness.bgColor
+        )}
+        title={`数据新鲜度: ${freshness.label}`}
+      >
+        <Activity
+          className={cn(
+            'w-3 h-3',
+            freshness.pulse && 'animate-pulse'
+          )}
+          style={{ color: freshness.color }}
+        />
+        <span
+          className="font-medium whitespace-nowrap"
+          style={{ color: freshness.color }}
+        >
+          {freshness.label}
+        </span>
+      </div>
+
+      {/* Separator - Hidden on mobile */}
+      <div className="hidden sm:block w-px h-3 bg-gray-200" />
 
       {/* Connection Status */}
       <div className="flex items-center gap-1.5">
