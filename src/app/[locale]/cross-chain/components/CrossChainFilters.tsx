@@ -141,9 +141,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
       <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">
-            {t('crossChain.filters')}
-          </span>
+          <span className="text-sm font-medium text-gray-700">{t('crossChain.filters')}</span>
           {activeFilterCount > 0 && (
             <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
               {activeFilterCount}
@@ -235,7 +233,9 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           <div>
             <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
               {t('crossChain.visibleChains')}
-              <span className="ml-1 text-gray-400">({visibleChains.length}/{supportedChains.length})</span>
+              <span className="ml-1 text-gray-400">
+                ({visibleChains.length}/{supportedChains.length})
+              </span>
             </h3>
             <div className="flex flex-wrap gap-1.5">
               {supportedChains.map((chain) => {

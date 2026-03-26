@@ -27,26 +27,27 @@ import {
   DropdownSelect,
   MultiSelect,
 } from '@/components/ui';
+import type { FavoriteConfig } from '@/hooks';
+import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStore';
 import { Blockchain } from '@/types/oracle';
 
 import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';
 import { CointegrationAnalysis } from './components/CointegrationAnalysis';
+import { CollapsibleSection } from './components/CollapsibleSection';
 import { CompactStatsGrid } from './components/CompactStatsGrid';
 import { CorrelationMatrix } from './components/CorrelationMatrix';
 import { CrossChainFilters } from './components/CrossChainFilters';
-import { PriceSpreadHeatmap, HeatmapDetailView } from './components/PriceSpreadHeatmap';
+import { DataSourceSection } from './components/DataSourceSection';
+import { InteractivePriceChart } from './components/InteractivePriceChart';
 import { PriceComparisonTable } from './components/PriceComparisonTable';
+import { PriceSpreadHeatmap, HeatmapDetailView } from './components/PriceSpreadHeatmap';
 import { RollingCorrelationChart } from './components/RollingCorrelationChart';
 import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './components/SmallComponents';
 import { StandardBoxPlot } from './components/StandardBoxPlot';
-import { InteractivePriceChart } from './components/InteractivePriceChart';
-import { TabNavigation, TabId } from './components/TabNavigation';
+import { TabNavigation, type TabId } from './components/TabNavigation';
 import { VolatilitySurface } from './components/VolatilitySurface';
-
-import { CollapsibleSection } from './components/CollapsibleSection';
-import { DataSourceSection } from './components/DataSourceSection';
 import { type ChainStats, type RefreshInterval } from './constants';
 import { useCrossChainData } from './useCrossChainData';
 import {
@@ -59,9 +60,6 @@ import {
   calculateChangePercent,
   formatPrice,
 } from './utils';
-
-import type { FavoriteConfig } from '@/hooks';
-import { useTranslations } from '@/i18n';
 
 export default function CrossChainPage() {
   const t = useTranslations();
@@ -786,9 +784,7 @@ export default function CrossChainPage() {
             {loading ? (
               <div className="py-16 flex flex-col justify-center items-center gap-3 bg-white rounded-lg border border-gray-200 mt-4">
                 <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
-                <div className="text-sm text-gray-500">
-                  {t('crossChain.loadingData')}
-                </div>
+                <div className="text-sm text-gray-500">{t('crossChain.loadingData')}</div>
               </div>
             ) : (
               <div className="mt-4">

@@ -92,9 +92,7 @@ function CoreMetricCard({
     <div
       className={`px-4 py-4 ${hasBorder ? 'border-r border-gray-200' : ''} ${compareMode && diffPercent !== undefined && diffPercent !== 0 ? (diffPercent > 0 ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-red-500') : ''}`}
     >
-      <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-        {label}
-      </div>
+      <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">{label}</div>
       <div className="flex items-baseline gap-1">
         {prefix && <span className="text-sm text-gray-400 font-mono">{prefix}</span>}
         <span className={`text-xl font-bold font-mono ${trendColor}`}>
@@ -284,7 +282,9 @@ export function StatsGrid({
     });
   };
 
-  const formatChange24h = (change: number | undefined): { value: string; trend: 'up' | 'down' | 'neutral' } => {
+  const formatChange24h = (
+    change: number | undefined
+  ): { value: string; trend: 'up' | 'down' | 'neutral' } => {
     if (change === undefined) return { value: '-', trend: 'neutral' };
     return {
       value: `${change >= 0 ? '+' : ''}${change.toFixed(2)}`,
@@ -303,7 +303,9 @@ export function StatsGrid({
           label={t('priceQuery.stats.avgPrice')}
           value={formatPrice(avgPrice)}
           prefix="$"
-          diffPercent={compareMode && avgPrice > 0 && compareAvgPrice > 0 ? avgPriceDiff : undefined}
+          diffPercent={
+            compareMode && avgPrice > 0 && compareAvgPrice > 0 ? avgPriceDiff : undefined
+          }
           compareMode={compareMode}
           hasBorder
         />
@@ -334,10 +336,7 @@ export function StatsGrid({
         />
 
         {/* 数据点数 */}
-        <CoreMetricCard
-          label={t('priceQuery.stats.dataPoints')}
-          value={dataPoints.toString()}
-        />
+        <CoreMetricCard label={t('priceQuery.stats.dataPoints')} value={dataPoints.toString()} />
       </div>
 
       {/* 展开的详细统计区域 */}
@@ -351,7 +350,9 @@ export function StatsGrid({
           label={t('priceQuery.stats.maxPrice')}
           value={formatPrice(maxPrice)}
           prefix="$"
-          diffPercent={compareMode && maxPrice > 0 && compareMaxPrice > 0 ? maxPriceDiff : undefined}
+          diffPercent={
+            compareMode && maxPrice > 0 && compareMaxPrice > 0 ? maxPriceDiff : undefined
+          }
           compareMode={compareMode}
           hasBorder
         />
@@ -361,7 +362,9 @@ export function StatsGrid({
           label={t('priceQuery.stats.minPrice')}
           value={formatPrice(minPrice)}
           prefix="$"
-          diffPercent={compareMode && minPrice > 0 && compareMinPrice > 0 ? minPriceDiff : undefined}
+          diffPercent={
+            compareMode && minPrice > 0 && compareMinPrice > 0 ? minPriceDiff : undefined
+          }
           compareMode={compareMode}
           hasBorder
         />

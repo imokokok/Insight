@@ -22,8 +22,8 @@ import {
 
 import { ChartSkeleton } from '@/components/ui';
 import { useTranslations } from '@/i18n';
-import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { chainNames } from '@/lib/constants';
+import { formatPrice } from '@/lib/utils/chartSharedUtils';
 
 import { type QueryResult } from '../constants';
 
@@ -217,7 +217,14 @@ export function PriceChart({
     // 添加一些边距
     const padding = (max - min) * 0.1;
     return [min - padding, max + padding];
-  }, [enhancedChartData, compareChartData, seriesNames, compareSeriesNames, hiddenSeries, compareMode]);
+  }, [
+    enhancedChartData,
+    compareChartData,
+    seriesNames,
+    compareSeriesNames,
+    hiddenSeries,
+    compareMode,
+  ]);
 
   // 鼠标移动处理 - 更新十字准星位置
   const handleMouseMove = useCallback(
@@ -340,10 +347,14 @@ export function PriceChart({
             {cursorPosition.visible && enhancedChartData.length > 0 && (
               <>
                 <ReferenceLine
-                  x={enhancedChartData[Math.min(
-                    Math.floor((cursorPosition.x / 100) * enhancedChartData.length),
-                    enhancedChartData.length - 1
-                  )]?.timestamp}
+                  x={
+                    enhancedChartData[
+                      Math.min(
+                        Math.floor((cursorPosition.x / 100) * enhancedChartData.length),
+                        enhancedChartData.length - 1
+                      )
+                    ]?.timestamp
+                  }
                   stroke="#9ca3af"
                   strokeDasharray="3 3"
                   ifOverflow="hidden"

@@ -8,7 +8,12 @@
 // 色盲类型定义
 // ============================================
 
-export type ColorBlindType = 'normal' | 'deuteranopia' | 'protanopia' | 'tritanopia' | 'achromatopsia';
+export type ColorBlindType =
+  | 'normal'
+  | 'deuteranopia'
+  | 'protanopia'
+  | 'tritanopia'
+  | 'achromatopsia';
 
 export interface ColorBlindConfig {
   type: ColorBlindType;
@@ -106,7 +111,14 @@ export const colorBlindSafeColors = {
 // 图案/纹理配置
 // ============================================
 
-export type PatternType = 'solid' | 'striped' | 'dotted' | 'crossHatch' | 'diagonal' | 'checkerboard' | 'waves';
+export type PatternType =
+  | 'solid'
+  | 'striped'
+  | 'dotted'
+  | 'crossHatch'
+  | 'diagonal'
+  | 'checkerboard'
+  | 'waves';
 
 export interface PatternConfig {
   type: PatternType;
@@ -335,12 +347,14 @@ export function getPatternConfig(type: PatternType): PatternConfig {
  * @returns 色盲友好配置
  */
 export function getOracleColorBlindConfig(oracleName: keyof typeof oracleColorBlindFriendly) {
-  return oracleColorBlindFriendly[oracleName] || {
-    color: '#555555',
-    pattern: 'solid' as PatternType,
-    symbol: '●',
-    description: '默认配置',
-  };
+  return (
+    oracleColorBlindFriendly[oracleName] || {
+      color: '#555555',
+      pattern: 'solid' as PatternType,
+      symbol: '●',
+      description: '默认配置',
+    }
+  );
 }
 
 /**
@@ -362,7 +376,7 @@ export function generateSvgPatterns(patterns: PatternType[]): string {
  * @param index - 样式索引
  * @returns 线条样式配置
  */
-export function getLineStyleByIndex(index: number): typeof lineStyles[keyof typeof lineStyles] {
+export function getLineStyleByIndex(index: number): (typeof lineStyles)[keyof typeof lineStyles] {
   const keys = Object.keys(lineStyles) as (keyof typeof lineStyles)[];
   return lineStyles[keys[index % keys.length]];
 }
@@ -378,7 +392,15 @@ export function generateAccessibleChartConfig(dataCount: number): Array<{
   lineStyle: keyof typeof lineStyles;
   symbol: string;
 }> {
-  const patterns: PatternType[] = ['solid', 'striped', 'dotted', 'crossHatch', 'diagonal', 'checkerboard', 'waves'];
+  const patterns: PatternType[] = [
+    'solid',
+    'striped',
+    'dotted',
+    'crossHatch',
+    'diagonal',
+    'checkerboard',
+    'waves',
+  ];
   const lineStyleKeys = Object.keys(lineStyles) as (keyof typeof lineStyles)[];
   const symbols = ['●', '▲', '■', '◆', '★', '◉', '◇', '○'];
 
@@ -394,7 +416,10 @@ export function generateAccessibleChartConfig(dataCount: number): Array<{
 // 色盲模拟器配置
 // ============================================
 
-export const colorBlindSimulations: Record<ColorBlindType, { matrix: number[]; description: string }> = {
+export const colorBlindSimulations: Record<
+  ColorBlindType,
+  { matrix: number[]; description: string }
+> = {
   normal: {
     matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
     description: '正常视觉',

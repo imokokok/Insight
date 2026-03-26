@@ -8,8 +8,9 @@
 import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
-import { type ChartDataPoint } from './PriceChart';
+
 import { Icons } from './Icons';
+import { type ChartDataPoint } from './PriceChart';
 
 interface CustomTooltipPayloadItem {
   name: string;
@@ -133,9 +134,7 @@ export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
                   style={{ backgroundColor: color }}
                 />
                 <span className="text-xs font-medium text-gray-700">{provider}</span>
-                {chainName && (
-                  <span className="text-xs text-gray-400">({chainName})</span>
-                )}
+                {chainName && <span className="text-xs text-gray-400">({chainName})</span>}
               </div>
 
               {/* 价格和涨跌幅行 */}
@@ -175,9 +174,7 @@ export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
               )}
 
               {/* 分割线（如果不是最后一项） */}
-              {index < payload.length - 1 && (
-                <div className="border-t border-gray-100 mt-2 pt-2" />
-              )}
+              {index < payload.length - 1 && <div className="border-t border-gray-100 mt-2 pt-2" />}
             </div>
           );
         })}

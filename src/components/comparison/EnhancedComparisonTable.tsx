@@ -223,15 +223,18 @@ export function EnhancedComparisonTable({
   const [announcement, setAnnouncement] = useState<string>('');
 
   // 列配置
-  const columns = useMemo(() => [
-    { key: 'status', label: '状态', sortable: false },
-    { key: 'provider', label: '数据源', sortable: true },
-    { key: 'name', label: '名称', sortable: true },
-    { key: 'price', label: '价格', sortable: true },
-    { key: 'deviation', label: '偏离值', sortable: true },
-    { key: 'confidence', label: '置信度', sortable: true },
-    { key: 'responseTime', label: '响应时间', sortable: true },
-  ], []);
+  const columns = useMemo(
+    () => [
+      { key: 'status', label: '状态', sortable: false },
+      { key: 'provider', label: '数据源', sortable: true },
+      { key: 'name', label: '名称', sortable: true },
+      { key: 'price', label: '价格', sortable: true },
+      { key: 'deviation', label: '偏离值', sortable: true },
+      { key: 'confidence', label: '置信度', sortable: true },
+      { key: 'responseTime', label: '响应时间', sortable: true },
+    ],
+    []
+  );
 
   // 计算统计数据
   const stats = useMemo(() => {
@@ -254,88 +257,91 @@ export function EnhancedComparisonTable({
   }, [data, deviationThreshold]);
 
   // 键盘导航处理
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (!focusedCell) {
-      // 如果没有焦点单元格，按 Enter 或 Space 开始导航
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        setFocusedCell({ row: 0, col: 0 });
-        setAnnouncement('已进入表格导航模式，使用方向键移动，S键排序当前列，Esc退出');
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (!focusedCell) {
+        // 如果没有焦点单元格，按 Enter 或 Space 开始导航
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          setFocusedCell({ row: 0, col: 0 });
+          setAnnouncement('已进入表格导航模式，使用方向键移动，S键排序当前列，Esc退出');
+        }
+        return;
       }
-      return;
-    }
 
-    const { row, col } = focusedCell;
-    const maxRow = data.length - 1;
-    const maxCol = columns.length - 1;
+      const { row, col } = focusedCell;
+      const maxRow = data.length - 1;
+      const maxCol = columns.length - 1;
 
-    switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        if (row < maxRow) {
-          setFocusedCell({ row: row + 1, col });
-          setAnnouncement(`第 ${row + 2} 行`);
-        }
-        break;
-      case 'ArrowUp':
-        event.preventDefault();
-        if (row > 0) {
-          setFocusedCell({ row: row - 1, col });
-          setAnnouncement(`第 ${row} 行`);
-        }
-        break;
-      case 'ArrowRight':
-        event.preventDefault();
-        if (col < maxCol) {
-          setFocusedCell({ row, col: col + 1 });
-          setAnnouncement(`${columns[col + 1].label} 列`);
-        }
-        break;
-      case 'ArrowLeft':
-        event.preventDefault();
-        if (col > 0) {
-          setFocusedCell({ row, col: col - 1 });
-          setAnnouncement(`${columns[col - 1].label} 列`);
-        }
-        break;
-      case 'Home':
-        event.preventDefault();
-        setFocusedCell({ row, col: 0 });
-        setAnnouncement('行首');
-        break;
-      case 'End':
-        event.preventDefault();
-        setFocusedCell({ row, col: maxCol });
-        setAnnouncement('行尾');
-        break;
-      case 'PageDown':
-        event.preventDefault();
-        setFocusedCell({ row: Math.min(row + 5, maxRow), col });
-        setAnnouncement(`第 ${Math.min(row + 6, maxRow + 1)} 行`);
-        break;
-      case 'PageUp':
-        event.preventDefault();
-        setFocusedCell({ row: Math.max(row - 5, 0), col });
-        setAnnouncement(`第 ${Math.max(row - 4, 1)} 行`);
-        break;
-      case 's':
-      case 'S':
-        event.preventDefault();
-        // 按 S 键排序当前列
-        if (onSort && columns[col].sortable) {
-          onSort(columns[col].key);
-          setAnnouncement(`已按 ${columns[col].label} 排序`);
-        }
-        break;
-      case 'Escape':
-        event.preventDefault();
-        setFocusedCell(null);
-        setAnnouncement('已退出表格导航模式');
-        // 将焦点返回到表格
-        tableRef.current?.focus();
-        break;
-    }
-  }, [focusedCell, data.length, columns, onSort]);
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          if (row < maxRow) {
+            setFocusedCell({ row: row + 1, col });
+            setAnnouncement(`第 ${row + 2} 行`);
+          }
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          if (row > 0) {
+            setFocusedCell({ row: row - 1, col });
+            setAnnouncement(`第 ${row} 行`);
+          }
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          if (col < maxCol) {
+            setFocusedCell({ row, col: col + 1 });
+            setAnnouncement(`${columns[col + 1].label} 列`);
+          }
+          break;
+        case 'ArrowLeft':
+          event.preventDefault();
+          if (col > 0) {
+            setFocusedCell({ row, col: col - 1 });
+            setAnnouncement(`${columns[col - 1].label} 列`);
+          }
+          break;
+        case 'Home':
+          event.preventDefault();
+          setFocusedCell({ row, col: 0 });
+          setAnnouncement('行首');
+          break;
+        case 'End':
+          event.preventDefault();
+          setFocusedCell({ row, col: maxCol });
+          setAnnouncement('行尾');
+          break;
+        case 'PageDown':
+          event.preventDefault();
+          setFocusedCell({ row: Math.min(row + 5, maxRow), col });
+          setAnnouncement(`第 ${Math.min(row + 6, maxRow + 1)} 行`);
+          break;
+        case 'PageUp':
+          event.preventDefault();
+          setFocusedCell({ row: Math.max(row - 5, 0), col });
+          setAnnouncement(`第 ${Math.max(row - 4, 1)} 行`);
+          break;
+        case 's':
+        case 'S':
+          event.preventDefault();
+          // 按 S 键排序当前列
+          if (onSort && columns[col].sortable) {
+            onSort(columns[col].key);
+            setAnnouncement(`已按 ${columns[col].label} 排序`);
+          }
+          break;
+        case 'Escape':
+          event.preventDefault();
+          setFocusedCell(null);
+          setAnnouncement('已退出表格导航模式');
+          // 将焦点返回到表格
+          tableRef.current?.focus();
+          break;
+      }
+    },
+    [focusedCell, data.length, columns, onSort]
+  );
 
   // 设置焦点到当前单元格
   useEffect(() => {
@@ -421,12 +427,7 @@ export function EnhancedComparisonTable({
       aria-label={ariaLabel || '数据对比表格'}
     >
       {/* 实时公告区域 - 用于屏幕阅读器 */}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement}
       </div>
 
@@ -627,7 +628,10 @@ export function EnhancedComparisonTable({
                     <div className="flex items-center justify-end gap-1">
                       <span>{formatDeviation(item.deviation)}</span>
                       {Math.abs(item.deviation) >= deviationThreshold.danger && (
-                        <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" aria-hidden="true" />
+                        <AlertTriangle
+                          className="w-3.5 h-3.5 text-red-600 dark:text-red-400"
+                          aria-hidden="true"
+                        />
                       )}
                     </div>
                   </td>

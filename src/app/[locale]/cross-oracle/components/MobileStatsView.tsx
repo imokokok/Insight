@@ -6,7 +6,18 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Minus, ChevronLeft, ChevronRight, Activity, BarChart3, Scale, Sigma } from 'lucide-react';
+
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  BarChart3,
+  Scale,
+  Sigma,
+} from 'lucide-react';
 
 import { SparklineChart } from '@/components/ui';
 import { type OracleProvider } from '@/types/oracle';
@@ -93,8 +104,7 @@ function TrendIndicator({ change }: { change: number | null }) {
   if (change === null) {
     return (
       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-        <Minus className="w-3 h-3 mr-0.5" />
-        -
+        <Minus className="w-3 h-3 mr-0.5" />-
       </span>
     );
   }
@@ -103,9 +113,7 @@ function TrendIndicator({ change }: { change: number | null }) {
   return (
     <span
       className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-        isPositive
-          ? 'bg-emerald-100 text-emerald-700'
-          : 'bg-rose-100 text-rose-700'
+        isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
       }`}
     >
       {isPositive ? (
@@ -166,9 +174,10 @@ export function MobileStatsView({
       id: 'avgPrice',
       label: t('crossOracle.averagePrice') || 'Average Price',
       value: avgPrice,
-      subValue: `${t('crossOracle.weighted') || 'Weighted'}: ${weightedAvgPrice > 0
-        ? `$${weightedAvgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-        : '-'
+      subValue: `${t('crossOracle.weighted') || 'Weighted'}: ${
+        weightedAvgPrice > 0
+          ? `$${weightedAvgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : '-'
       }`,
       change: calculateChangePercent(avgPrice, lastStats?.avgPrice || 0),
       icon: <BarChart3 className="w-5 h-5" />,
@@ -191,9 +200,10 @@ export function MobileStatsView({
       id: 'maxPrice',
       label: t('crossOracle.highestPrice') || 'Highest Price',
       value: maxPrice,
-      subValue: `${t('crossOracle.low') || 'Low'}: ${minPrice > 0
-        ? `$${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-        : '-'
+      subValue: `${t('crossOracle.low') || 'Low'}: ${
+        minPrice > 0
+          ? `$${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : '-'
       }`,
       change: calculateChangePercent(maxPrice, lastStats?.maxPrice || 0),
       icon: <TrendingUp className="w-5 h-5" />,
@@ -324,9 +334,7 @@ export function MobileStatsView({
 
           {/* 主数值 */}
           <div className="mb-2">
-            <div className={`text-2xl font-bold ${colors.text}`}>
-              {formatValue(currentStat)}
-            </div>
+            <div className={`text-2xl font-bold ${colors.text}`}>{formatValue(currentStat)}</div>
             {currentStat.subValue && (
               <div className="text-xs text-gray-500 mt-1">{currentStat.subValue}</div>
             )}
@@ -352,14 +360,20 @@ export function MobileStatsView({
               <div className="text-xs text-gray-500">
                 {t('crossOracle.historyRange') || 'History Range'}:{' '}
                 {currentStat.format === 'currency' && '$'}
-                {historyMinMax[currentStat.id as keyof HistoryMinMax]?.min.toLocaleString(undefined, {
-                  maximumFractionDigits: 0,
-                })}
+                {historyMinMax[currentStat.id as keyof HistoryMinMax]?.min.toLocaleString(
+                  undefined,
+                  {
+                    maximumFractionDigits: 0,
+                  }
+                )}
                 {' - '}
                 {currentStat.format === 'currency' && '$'}
-                {historyMinMax[currentStat.id as keyof HistoryMinMax]?.max.toLocaleString(undefined, {
-                  maximumFractionDigits: 0,
-                })}
+                {historyMinMax[currentStat.id as keyof HistoryMinMax]?.max.toLocaleString(
+                  undefined,
+                  {
+                    maximumFractionDigits: 0,
+                  }
+                )}
               </div>
             </div>
           )}
@@ -393,9 +407,7 @@ export function MobileStatsView({
             key={index}
             onClick={() => setCurrentIndex(index)}
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              index === currentIndex
-                ? 'w-6 bg-primary-500'
-                : 'w-1.5 bg-gray-300 hover:bg-gray-400'
+              index === currentIndex ? 'w-6 bg-primary-500' : 'w-1.5 bg-gray-300 hover:bg-gray-400'
             }`}
             aria-label={`Go to stat ${index + 1}`}
           />
@@ -407,12 +419,13 @@ export function MobileStatsView({
         {[
           { label: t('crossOracle.avg') || 'Avg', value: avgPrice, format: 'currency' },
           { label: t('crossOracle.range') || 'Range', value: priceRange, format: 'currency' },
-          { label: t('crossOracle.stdDev') || 'Std', value: standardDeviationPercent, format: 'percent' },
+          {
+            label: t('crossOracle.stdDev') || 'Std',
+            value: standardDeviationPercent,
+            format: 'percent',
+          },
         ].map((item, index) => (
-          <div
-            key={index}
-            className="bg-gray-50 rounded-lg p-2 text-center border border-gray-100"
-          >
+          <div key={index} className="bg-gray-50 rounded-lg p-2 text-center border border-gray-100">
             <div className="text-xs text-gray-500 mb-0.5">{item.label}</div>
             <div className="text-sm font-semibold text-gray-900">
               {item.value > 0

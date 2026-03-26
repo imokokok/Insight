@@ -24,14 +24,17 @@ import {
   ZAxis,
 } from 'recharts';
 
+import {
+  EnhancedComparisonTable,
+  type DeviationThreshold,
+} from '@/components/comparison/EnhancedComparisonTable';
+import { DeviationHighlighter, DeviationIndicator } from '@/components/ui/DeviationHighlighter';
+import { EnhancedStatCard } from '@/components/ui/EnhancedStatCard';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { getOracleColor } from '@/lib/oracles/colors';
 import { type OracleProvider } from '@/types/oracle';
 
-import { EnhancedStatCard } from '@/components/ui/EnhancedStatCard';
-import { DeviationHighlighter, DeviationIndicator } from '@/components/ui/DeviationHighlighter';
-import { EnhancedComparisonTable, type DeviationThreshold } from '@/components/comparison/EnhancedComparisonTable';
 import { DifferenceBadge } from './DifferenceBadge';
 import { type OracleComparisonItem, type OracleComparisonResult } from './types';
 
@@ -252,12 +255,7 @@ export function OracleComparisonView({
       aria-label={t('comparisonViewLabel', { defaultValue: '预言机价格对比视图' })}
     >
       {/* 实时公告区域 - 用于屏幕阅读器 */}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement}
       </div>
 
@@ -322,11 +320,7 @@ export function OracleComparisonView({
             aria-labelledby={priceChartId}
           >
             <div className="flex items-center justify-between mb-4">
-              <h4
-                id={priceChartId}
-                className="text-sm font-semibold text-gray-900"
-                tabIndex={0}
-              >
+              <h4 id={priceChartId} className="text-sm font-semibold text-gray-900" tabIndex={0}>
                 {t('priceComparison')}
               </h4>
               {/* 异常指示器 */}
@@ -347,7 +341,7 @@ export function OracleComparisonView({
                       aria-label={t('anomalyIndicator', {
                         name: point.name,
                         deviation: point.deviation.toFixed(3),
-                        defaultValue: `${point.name} 偏离 ${point.deviation.toFixed(3)}%`
+                        defaultValue: `${point.name} 偏离 ${point.deviation.toFixed(3)}%`,
                       })}
                     />
                   ))}
@@ -359,7 +353,7 @@ export function OracleComparisonView({
               role="img"
               aria-label={t('priceChartDescription', {
                 count: priceChartData.length,
-                defaultValue: `柱状图显示 ${priceChartData.length} 个预言机的价格对比`
+                defaultValue: `柱状图显示 ${priceChartData.length} 个预言机的价格对比`,
               })}
             >
               <ResponsiveContainer width="100%" height="100%">
@@ -411,7 +405,7 @@ export function OracleComparisonView({
                           name: entry.name,
                           price: entry.price.toFixed(2),
                           deviation: entry.deviation.toFixed(3),
-                          defaultValue: `${entry.name}: 价格 $${entry.price.toFixed(2)}, 偏离 ${entry.deviation.toFixed(3)}%`
+                          defaultValue: `${entry.name}: 价格 $${entry.price.toFixed(2)}, 偏离 ${entry.deviation.toFixed(3)}%`,
                         })}
                         onFocus={() => setHoveredOracle(entry.name)}
                         onBlur={() => setHoveredOracle(null)}
@@ -442,7 +436,7 @@ export function OracleComparisonView({
               aria-label={t('deviationChartDescription', {
                 warning: deviationThreshold.warning,
                 danger: deviationThreshold.danger,
-                defaultValue: `偏离值图表，警告阈值 ${deviationThreshold.warning}%，危险阈值 ${deviationThreshold.danger}%`
+                defaultValue: `偏离值图表，警告阈值 ${deviationThreshold.warning}%，危险阈值 ${deviationThreshold.danger}%`,
               })}
             >
               <ResponsiveContainer width="100%" height="100%">
@@ -484,29 +478,49 @@ export function OracleComparisonView({
                     x={deviationThreshold.warning}
                     stroke={highContrastColors.semantic.warning}
                     strokeDasharray="5 5"
-                    label={{ value: `+${deviationThreshold.warning}%`, position: 'top', fontSize: 10 }}
+                    label={{
+                      value: `+${deviationThreshold.warning}%`,
+                      position: 'top',
+                      fontSize: 10,
+                    }}
                     aria-label={t('warningThresholdLine', { defaultValue: '警告阈值线' })}
                   />
                   <ReferenceLine
                     x={-deviationThreshold.warning}
                     stroke={highContrastColors.semantic.warning}
                     strokeDasharray="5 5"
-                    label={{ value: `-${deviationThreshold.warning}%`, position: 'top', fontSize: 10 }}
-                    aria-label={t('warningThresholdLineNegative', { defaultValue: '负向警告阈值线' })}
+                    label={{
+                      value: `-${deviationThreshold.warning}%`,
+                      position: 'top',
+                      fontSize: 10,
+                    }}
+                    aria-label={t('warningThresholdLineNegative', {
+                      defaultValue: '负向警告阈值线',
+                    })}
                   />
                   <ReferenceLine
                     x={deviationThreshold.danger}
                     stroke={highContrastColors.semantic.danger}
                     strokeDasharray="5 5"
-                    label={{ value: `+${deviationThreshold.danger}%`, position: 'top', fontSize: 10 }}
+                    label={{
+                      value: `+${deviationThreshold.danger}%`,
+                      position: 'top',
+                      fontSize: 10,
+                    }}
                     aria-label={t('dangerThresholdLine', { defaultValue: '危险阈值线' })}
                   />
                   <ReferenceLine
                     x={-deviationThreshold.danger}
                     stroke={highContrastColors.semantic.danger}
                     strokeDasharray="5 5"
-                    label={{ value: `-${deviationThreshold.danger}%`, position: 'top', fontSize: 10 }}
-                    aria-label={t('dangerThresholdLineNegative', { defaultValue: '负向危险阈值线' })}
+                    label={{
+                      value: `-${deviationThreshold.danger}%`,
+                      position: 'top',
+                      fontSize: 10,
+                    }}
+                    aria-label={t('dangerThresholdLineNegative', {
+                      defaultValue: '负向危险阈值线',
+                    })}
                   />
                   <Bar
                     dataKey="deviation"
@@ -525,7 +539,13 @@ export function OracleComparisonView({
                               ? highContrastColors.semantic.positive
                               : highContrastColors.semantic.negative
                           }
-                          opacity={hoveredOracle && hoveredOracle !== entry.name ? 0.3 : isDeviated ? 1 : 0.7}
+                          opacity={
+                            hoveredOracle && hoveredOracle !== entry.name
+                              ? 0.3
+                              : isDeviated
+                                ? 1
+                                : 0.7
+                          }
                           stroke={isDanger ? highContrastColors.semantic.danger : 'none'}
                           strokeWidth={isDanger ? 2 : 0}
                           tabIndex={0}
@@ -534,7 +554,7 @@ export function OracleComparisonView({
                             name: entry.name,
                             deviation: entry.deviation.toFixed(3),
                             status: isDanger ? 'danger' : isDeviated ? 'warning' : 'normal',
-                            defaultValue: `${entry.name}: 偏离 ${entry.deviation.toFixed(3)}%, 状态: ${isDanger ? '危险' : isDeviated ? '警告' : '正常'}`
+                            defaultValue: `${entry.name}: 偏离 ${entry.deviation.toFixed(3)}%, 状态: ${isDanger ? '危险' : isDeviated ? '警告' : '正常'}`,
                           })}
                           onFocus={() => setHoveredOracle(entry.name)}
                           onBlur={() => setHoveredOracle(null)}
@@ -556,11 +576,7 @@ export function OracleComparisonView({
           role="region"
           aria-label={t('radarChartRegionLabel', { defaultValue: '性能雷达图' })}
         >
-          <h4
-            id={radarChartId}
-            className="text-sm font-semibold text-gray-900 mb-4"
-            tabIndex={0}
-          >
+          <h4 id={radarChartId} className="text-sm font-semibold text-gray-900 mb-4" tabIndex={0}>
             {t('performanceRadar')}
           </h4>
           <div
@@ -568,8 +584,8 @@ export function OracleComparisonView({
             role="img"
             aria-label={t('radarChartDescription', {
               count: oracles.length,
-              metrics: radarData.map(d => d.metric).join(', '),
-              defaultValue: `雷达图比较 ${oracles.length} 个预言机在 ${radarData.length} 个维度上的表现`
+              metrics: radarData.map((d) => d.metric).join(', '),
+              defaultValue: `雷达图比较 ${oracles.length} 个预言机在 ${radarData.length} 个维度上的表现`,
             })}
           >
             <ResponsiveContainer width="100%" height="100%">
@@ -604,7 +620,7 @@ export function OracleComparisonView({
                     role="graphics-symbol"
                     aria-label={t('radarSeriesAriaLabel', {
                       name: oracle.name,
-                      defaultValue: `${oracle.name} 性能数据`
+                      defaultValue: `${oracle.name} 性能数据`,
                     })}
                     tabIndex={0}
                     onFocus={() => setHoveredOracle(oracle.name)}
@@ -619,10 +635,12 @@ export function OracleComparisonView({
                     const oracleName = e?.value;
                     if (oracleName) {
                       setHoveredOracle(hoveredOracle === oracleName ? null : oracleName);
-                      setAnnouncement(t('oracleHighlighted', {
-                        name: oracleName,
-                        defaultValue: `已高亮 ${oracleName}`
-                      }));
+                      setAnnouncement(
+                        t('oracleHighlighted', {
+                          name: oracleName,
+                          defaultValue: `已高亮 ${oracleName}`,
+                        })
+                      );
                     }
                   }}
                   onMouseEnter={(e: any) => {
@@ -647,10 +665,7 @@ export function OracleComparisonView({
           aria-label={t('tableRegionLabel', { defaultValue: '详细对比数据表' })}
         >
           <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-            <h4
-              className="text-sm font-semibold text-gray-900"
-              tabIndex={0}
-            >
+            <h4 className="text-sm font-semibold text-gray-900" tabIndex={0}>
               {t('detailedComparison')}
             </h4>
             <div
@@ -658,10 +673,7 @@ export function OracleComparisonView({
               role="group"
               aria-label={t('sortControlsLabel', { defaultValue: '排序控制' })}
             >
-              <label
-                htmlFor="sort-select"
-                className="text-xs text-gray-500"
-              >
+              <label htmlFor="sort-select" className="text-xs text-gray-500">
                 {t('sortBy')}:
               </label>
               <select
@@ -669,10 +681,12 @@ export function OracleComparisonView({
                 value={sortBy}
                 onChange={(e) => {
                   setSortBy(e.target.value as typeof sortBy);
-                  setAnnouncement(t('sortChanged', {
-                    column: t(`metrics.${e.target.value}`),
-                    defaultValue: `已按 ${t(`metrics.${e.target.value}`)} 排序`
-                  }));
+                  setAnnouncement(
+                    t('sortChanged', {
+                      column: t(`metrics.${e.target.value}`),
+                      defaultValue: `已按 ${t(`metrics.${e.target.value}`)} 排序`,
+                    })
+                  );
                 }}
                 className="text-xs border border-gray-300 px-2 py-1 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 aria-label={t('sortByAriaLabel', { defaultValue: '选择排序列' })}
@@ -686,15 +700,17 @@ export function OracleComparisonView({
                 onClick={() => {
                   const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
                   setSortOrder(newOrder);
-                  setAnnouncement(t('sortOrderChanged', {
-                    order: newOrder === 'asc' ? t('ascending') : t('descending'),
-                    defaultValue: `排序方向已改为 ${newOrder === 'asc' ? '升序' : '降序'}`
-                  }));
+                  setAnnouncement(
+                    t('sortOrderChanged', {
+                      order: newOrder === 'asc' ? t('ascending') : t('descending'),
+                      defaultValue: `排序方向已改为 ${newOrder === 'asc' ? '升序' : '降序'}`,
+                    })
+                  );
                 }}
                 className="p-1 text-gray-500 hover:text-gray-700 focus:ring-2 focus:ring-primary-500 rounded"
                 aria-label={t('toggleSortOrder', {
                   current: sortOrder,
-                  defaultValue: `切换排序方向，当前为 ${sortOrder === 'asc' ? '升序' : '降序'}`
+                  defaultValue: `切换排序方向，当前为 ${sortOrder === 'asc' ? '升序' : '降序'}`,
                 })}
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
@@ -714,11 +730,14 @@ export function OracleComparisonView({
                 setSortBy(column as typeof sortBy);
                 setSortOrder('desc');
               }
-              setAnnouncement(t('sortedBy', {
-                column: t(`metrics.${column}`),
-                order: sortBy === column && sortOrder === 'asc' ? t('descending') : t('ascending'),
-                defaultValue: `已按 ${t(`metrics.${column}`)} ${sortBy === column && sortOrder === 'asc' ? '降序' : '升序'} 排序`
-              }));
+              setAnnouncement(
+                t('sortedBy', {
+                  column: t(`metrics.${column}`),
+                  order:
+                    sortBy === column && sortOrder === 'asc' ? t('descending') : t('ascending'),
+                  defaultValue: `已按 ${t(`metrics.${column}`)} ${sortBy === column && sortOrder === 'asc' ? '降序' : '升序'} 排序`,
+                })
+              );
             }}
             aria-label={t('comparisonTableLabel', { defaultValue: '预言机数据对比表' })}
           />

@@ -48,7 +48,11 @@ export function UnifiedSidebar({
               }}
             >
               <span style={{ color: isActive ? themeColor : '#9ca3af' }}>{item.icon}</span>
-              <span>{translationNamespace ? t(`${translationNamespace}.${item.labelKey}`) : t(item.labelKey)}</span>
+              <span>
+                {translationNamespace
+                  ? t(`${translationNamespace}.${item.labelKey}`)
+                  : t(item.labelKey)}
+              </span>
             </button>
           );
         })}
@@ -87,17 +91,9 @@ export function MobileMenuButton({
         strokeWidth={2}
       >
         {isOpen ? (
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M6 18L18 6M6 6l12 12"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         ) : (
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M4 6h16M4 12h16M4 18h16"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         )}
       </svg>
       <span>{label}</span>

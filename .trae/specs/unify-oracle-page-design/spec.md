@@ -26,31 +26,34 @@
 
 - Affected specs: 所有预言机详情页面
 - Affected code:
-  - src/app/[locale]/chainlink/components/*
-  - src/app/[locale]/pyth/components/*
-  - src/app/[locale]/api3/components/*
-  - src/app/[locale]/tellor/components/*
-  - src/app/[locale]/uma/components/*
-  - src/app/[locale]/band-protocol/components/*
-  - src/app/[locale]/dia/components/*
-  - src/app/[locale]/redstone/components/*
-  - src/app/[locale]/chronicle/components/*
-  - src/app/[locale]/winklink/components/*
+  - src/app/[locale]/chainlink/components/\*
+  - src/app/[locale]/pyth/components/\*
+  - src/app/[locale]/api3/components/\*
+  - src/app/[locale]/tellor/components/\*
+  - src/app/[locale]/uma/components/\*
+  - src/app/[locale]/band-protocol/components/\*
+  - src/app/[locale]/dia/components/\*
+  - src/app/[locale]/redstone/components/\*
+  - src/app/[locale]/chronicle/components/\*
+  - src/app/[locale]/winklink/components/\*
   - src/components/oracle/data-display/OracleHero.tsx
   - src/components/ui/MobileSidebar.tsx
 
 ## ADDED Requirements
 
 ### Requirement: Hero 区域分层布局
+
 The system SHALL provide 分层的 Hero 信息展示：
 
 #### Scenario: 核心指标突出显示
+
 - **WHEN** 显示 Hero 区域统计数据
 - **THEN** 应将价格、TVS/市值、24h变化、节点/发布者数作为核心指标
 - **AND** 核心指标使用更大的卡片、更突出的视觉权重
 - **AND** 次要指标（响应时间、成功率等）使用更紧凑的展示方式
 
 #### Scenario: 统计卡片网格响应式
+
 - **WHEN** 屏幕宽度变化
 - **THEN** 网格应自适应：
   - lg 屏幕：4列核心指标 + 4列次要指标（紧凑）
@@ -58,53 +61,64 @@ The system SHALL provide 分层的 Hero 信息展示：
   - sm 屏幕：1列堆叠
 
 ### Requirement: 统一 Sidebar 设计规范
+
 The system SHALL provide 一致的 Sidebar 组件：
 
 #### Scenario: 图标规范
+
 - **WHEN** 渲染 Sidebar 导航项
 - **THEN** 所有图标应使用 Lucide React 图标库
 - **AND** 图标尺寸统一为 w-5 h-5
 - **AND** 描边宽度统一为 1.5
 
 #### Scenario: 交互反馈
+
 - **WHEN** 用户点击导航项
 - **THEN** 应显示左侧边框高亮（border-l-4）
 - **AND** 背景色变化提供视觉反馈
 - **AND** 过渡动画时长 200ms
 
 ### Requirement: 移动端菜单按钮优化
+
 The system SHALL provide 专业的移动端菜单按钮：
 
 #### Scenario: 按钮样式
+
 - **WHEN** 在移动端显示菜单按钮
 - **THEN** 应使用与页面主题一致的样式
 - **AND** 包含图标 + 文字标签
 - **AND** 使用主题色边框或背景
 
 ### Requirement: 主题色系统完善
+
 The system SHALL provide 一致的主题色应用：
 
 #### Scenario: Hero 组件主题色
+
 - **WHEN** 渲染 Hero 区域
 - **THEN** 导出按钮应使用 config.themeColor
 - **AND** 统计卡片图标背景应使用主题色 15% 透明度
 - **AND** 多链支持链接应使用主题色
 
 #### Scenario: Sidebar 主题色
+
 - **WHEN** 渲染 Sidebar 激活状态
 - **THEN** 应使用 config.themeColor 作为激活色
 - **AND** 未激活状态使用灰色系
 
 ### Requirement: 增强统计卡片功能
+
 The system SHALL provide 专业的统计卡片：
 
 #### Scenario: Sparkline 趋势图
+
 - **WHEN** 显示价格或指标卡片
 - **THEN** 应显示 24h Sparkline 趋势图
 - **AND** 上涨趋势使用绿色，下跌使用红色
 - **AND** 图表高度 24px，宽度 60px
 
 #### Scenario: 变化率指示
+
 - **WHEN** 显示变化率
 - **THEN** 应使用颜色编码：绿色（上涨）、红色（下跌）、灰色（持平）
 - **AND** 包含趋势图标（TrendingUp/TrendingDown）
@@ -112,18 +126,22 @@ The system SHALL provide 专业的统计卡片：
 ## MODIFIED Requirements
 
 ### Requirement: Hero 组件统计网格
+
 **Current**: 8个统计卡片平级展示，lg 屏幕下 8 列布局
 **Modified**: 分层展示，核心指标 4 列突出，次要指标 4 列紧凑
 
 ### Requirement: Sidebar 图标规范
+
 **Current**: 混合使用 SVG 和 Lucide 图标，风格不一致
 **Modified**: 全部使用 Lucide React 图标，统一尺寸和描边
 
 ### Requirement: 移动端菜单按钮
+
 **Current**: 简单按钮，白色背景，灰色边框
 **Modified**: 主题色边框，更专业的视觉设计
 
 ### Requirement: 主题色应用
+
 **Current**: 部分组件硬编码蓝色（#3b82f6）
 **Modified**: 全部使用 config.themeColor，支持各预言机品牌色
 

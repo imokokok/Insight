@@ -51,7 +51,11 @@ const getNavItems = (t: (key: string) => string): NavItem[] => [
   },
 ];
 
-export function TellorSidebar({ activeTab, onTabChange, themeColor }: TellorSidebarProps & { themeColor?: string }) {
+export function TellorSidebar({
+  activeTab,
+  onTabChange,
+  themeColor,
+}: TellorSidebarProps & { themeColor?: string }) {
   const t = useTranslations();
   const navItems = getNavItems(t);
 

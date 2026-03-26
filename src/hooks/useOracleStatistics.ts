@@ -63,10 +63,7 @@ export interface OracleStatisticsResult {
   /** 获取一致性评级函数 */
   getConsistencyRating: (stdDevPercent: number) => ConsistencyRating;
   /** 更新历史极值 */
-  updateHistoryMinMax: (
-    currentStats: SnapshotStats,
-    prevHistory: HistoryMinMax
-  ) => HistoryMinMax;
+  updateHistoryMinMax: (currentStats: SnapshotStats, prevHistory: HistoryMinMax) => HistoryMinMax;
 }
 
 /**
@@ -177,8 +174,14 @@ function updateHistoryMinMax(
       max: Math.max(prevHistory.priceRange.max, currentStats.priceRange),
     },
     standardDeviationPercent: {
-      min: Math.min(prevHistory.standardDeviationPercent.min, currentStats.standardDeviationPercent),
-      max: Math.max(prevHistory.standardDeviationPercent.max, currentStats.standardDeviationPercent),
+      min: Math.min(
+        prevHistory.standardDeviationPercent.min,
+        currentStats.standardDeviationPercent
+      ),
+      max: Math.max(
+        prevHistory.standardDeviationPercent.max,
+        currentStats.standardDeviationPercent
+      ),
     },
     variance: {
       min: Math.min(prevHistory.variance.min, currentStats.variance),
@@ -252,7 +255,16 @@ export function useOracleStatistics(priceData: PriceData[]): OracleStatisticsRes
       standardDeviation,
       standardDeviationPercent,
     }),
-    [avgPrice, weightedAvgPrice, maxPrice, minPrice, priceRange, variance, standardDeviation, standardDeviationPercent]
+    [
+      avgPrice,
+      weightedAvgPrice,
+      maxPrice,
+      minPrice,
+      priceRange,
+      variance,
+      standardDeviation,
+      standardDeviationPercent,
+    ]
   );
 
   // 计算一致性评级
