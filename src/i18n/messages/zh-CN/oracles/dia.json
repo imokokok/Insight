@@ -64,7 +64,8 @@
       "dexIntegrations": "DEX 集成",
       "lendingIntegrations": "借贷集成",
       "dataQuality": "数据质量",
-      "oracleDiversity": "预言机多样性"
+      "oracleDiversity": "预言机多样性",
+      "successRate": "成功率"
     },
     "dataTransparency": {
       "title": "数据透明度",
@@ -278,6 +279,37 @@
       "risk": "风险评估",
       "crossChain": "跨链",
       "crossOracle": "跨预言机分析"
+    },
+    "risk": {
+      "uptime": "网络正常运行时间",
+      "dataQuality": "数据质量",
+      "oracleDiversity": "预言机多样性",
+      "avgConfidence": "平均置信度",
+      "assessment": "风险评估",
+      "overallLevel": "整体风险等级",
+      "level": {
+        "low": "低风险",
+        "medium": "中等风险",
+        "high": "高风险"
+      },
+      "factors": "风险因素",
+      "factor": {
+        "dataSource": "数据源风险",
+        "smartContract": "智能合约风险",
+        "marketManipulation": "市场操纵风险",
+        "networkCongestion": "网络拥堵风险"
+      },
+      "severity": {
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      },
+      "verification": "数据验证状态",
+      "status": {
+        "verified": "已验证",
+        "pending": "待验证",
+        "failed": "验证失败"
+      }
     }
   }
 }

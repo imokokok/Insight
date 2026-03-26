@@ -117,9 +117,10 @@ export function LiveStatusBar({
   className,
   freshnessThreshold = 30000,
 }: LiveStatusBarProps) {
-  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    setCurrentTime(new Date());
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -138,6 +139,8 @@ export function LiveStatusBar({
     [lastUpdate, freshnessThreshold, currentTime]
   );
 
+  const displayTime = currentTime ?? new Date();
+
   const status = statusConfig[connectionStatus];
   const freshness = freshnessConfig[freshnessLevel];
   const StatusIcon = status.icon;
@@ -152,7 +155,7 @@ export function LiveStatusBar({
       {/* UTC Time */}
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
         <Clock className="w-3.5 h-3.5" />
-        <span className="font-mono whitespace-nowrap">{formatUTCTime(currentTime)}</span>
+        <span className="font-mono whitespace-nowrap">{formatUTCTime(displayTime)}</span>
       </div>
 
       {/* Separator - Hidden on mobile */}

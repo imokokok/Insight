@@ -39,7 +39,7 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
     { label: t('dia.stats.activeDataSources'), value: '45+', status: 'healthy', icon: Server },
     { label: t('dia.stats.dataFeeds'), value: '280+', status: 'healthy', icon: Zap },
     { label: t('dia.stats.avgResponseTime'), value: '150ms', status: 'healthy', icon: Clock },
-    { label: t('dia.successRate'), value: '99.8%', status: 'healthy', icon: Shield },
+    { label: t('dia.stats.successRate'), value: '99.8%', status: 'healthy', icon: Shield },
   ];
 
   return (

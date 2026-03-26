@@ -292,7 +292,7 @@ export function PriceResultsTable({
       <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between">
         <span>
           {t('priceQuery.results.showing', {
-            count: filteredResults.length,
+            filtered: filteredResults.length,
             total: results.length,
           })}
         </span>

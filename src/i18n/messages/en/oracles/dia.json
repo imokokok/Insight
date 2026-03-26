@@ -55,7 +55,8 @@
       "dexIntegrations": "DEX Partners",
       "lendingIntegrations": "Lending Protocols",
       "dataQuality": "Data Integrity Score",
-      "oracleDiversity": "Source Diversity Index"
+      "oracleDiversity": "Source Diversity Index",
+      "successRate": "Success Rate"
     },
     "dataTransparency": {
       "title": "Data Transparency",
@@ -258,6 +259,47 @@
       "coverage": "Network Coverage",
       "scoreTrend": "Risk Score Trend",
       "overall": "Composite Score"
+    },
+    "pageTitles": {
+      "market": "Market Data",
+      "network": "Network Status",
+      "validators": "Validators",
+      "disputes": "Disputes",
+      "ecosystem": "Ecosystem",
+      "risk": "Risk Assessment",
+      "crossChain": "Cross Chain",
+      "crossOracle": "Cross-Oracle Analysis"
+    },
+    "risk": {
+      "uptime": "Network Uptime",
+      "dataQuality": "Data Quality",
+      "oracleDiversity": "Oracle Diversity",
+      "avgConfidence": "Average Confidence",
+      "assessment": "Risk Assessment",
+      "overallLevel": "Overall Risk Level",
+      "level": {
+        "low": "Low Risk",
+        "medium": "Medium Risk",
+        "high": "High Risk"
+      },
+      "factors": "Risk Factors",
+      "factor": {
+        "dataSource": "Data Source Risk",
+        "smartContract": "Smart Contract Risk",
+        "marketManipulation": "Market Manipulation Risk",
+        "networkCongestion": "Network Congestion Risk"
+      },
+      "severity": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "verification": "Data Verification Status",
+      "status": {
+        "verified": "Verified",
+        "pending": "Pending",
+        "failed": "Failed"
+      }
     }
   }
 }
