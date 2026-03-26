@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { LoadingState, ErrorFallback, MobileMenuButton } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -18,6 +18,7 @@ import {
   DIAHero,
 } from './components';
 import { useDIAPage } from './hooks/useDIAPage';
+import { type DIATabId } from './types';
 
 export default function DIAPage() {
   const {
@@ -97,26 +98,21 @@ export default function DIAPage() {
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
-              <DIASidebar activeTab={activeTab} onTabChange={setActiveTab} />
+              <DIASidebar
+                activeTab={activeTab}
+                onTabChange={(tab) => setActiveTab(tab as DIATabId)}
+              />
             </div>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden">
-            <button
+            <MobileMenuButton
+              isOpen={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              {t('dia.menu.title')}
-            </button>
+              themeColor={config.themeColor}
+              label={t('dia.menu.title')}
+            />
           </div>
 
           {/* Mobile Sidebar */}
@@ -128,7 +124,7 @@ export default function DIAPage() {
             <DIASidebar
               activeTab={activeTab}
               onTabChange={(tab) => {
-                setActiveTab(tab);
+                setActiveTab(tab as DIATabId);
                 setIsMobileMenuOpen(false);
               }}
             />

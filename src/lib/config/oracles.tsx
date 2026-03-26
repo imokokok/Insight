@@ -84,7 +84,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new ChainlinkClient(),
     iconBgColor: 'bg-primary-600',
-    themeColor: 'blue',
+    themeColor: '#375bd2',
     icon: <img src="/logos/oracles/chainlink.svg" alt="Chainlink" className="w-12 h-12" />,
     marketData: {
       symbol: 'LINK',
@@ -184,7 +184,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new BandProtocolClient(),
     iconBgColor: 'bg-purple-600',
-    themeColor: 'purple',
+    themeColor: '#7c3aed',
     icon: <img src="/logos/oracles/band.svg" alt="Band Protocol" className="w-12 h-12" />,
     marketData: {
       symbol: 'BAND',
@@ -265,7 +265,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new UMAClient(),
     iconBgColor: `bg-[${chartColors.marketOverview.uma}]`,
-    themeColor: 'red',
+    themeColor: '#dc2626',
     icon: <img src="/logos/oracles/uma.svg" alt="UMA" className="w-12 h-12" />,
     marketData: {
       symbol: 'UMA',
@@ -340,7 +340,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new PythClient(),
     iconBgColor: `bg-[${chartColors.marketOverview.pyth}]`,
-    themeColor: 'violet',
+    themeColor: '#8b5cf6',
     icon: <img src="/logos/oracles/pyth.svg" alt="Pyth" className="w-12 h-12" />,
     marketData: {
       symbol: 'PYTH',
@@ -427,7 +427,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new API3Client(),
     iconBgColor: `bg-[${chartColors.marketOverview.api3}]`,
-    themeColor: 'green',
+    themeColor: '#10b981',
     icon: <img src="/logos/oracles/api3.svg" alt="API3" className="w-12 h-12" />,
     marketData: {
       symbol: 'API3',
@@ -505,7 +505,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new RedStoneClient(),
     iconBgColor: `bg-[${chartColors.oracle.redstone}]`,
-    themeColor: 'red',
+    themeColor: '#ef4444',
     icon: <img src="/logos/oracles/redstone.svg" alt="RedStone" className="w-12 h-12" />,
     marketData: {
       symbol: 'REDSTONE',
@@ -580,7 +580,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new DIAClient(),
     iconBgColor: 'bg-indigo-600',
-    themeColor: 'indigo',
+    themeColor: '#6366f1',
     icon: <img src="/logos/oracles/dia.svg" alt="DIA" className="w-12 h-12" />,
     marketData: {
       symbol: 'DIA',
@@ -652,7 +652,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new TellorClient(),
     iconBgColor: `bg-[${chartColors.oracle.tellor}]`,
-    themeColor: 'cyan',
+    themeColor: '#06b6d4',
     icon: <img src="/logos/oracles/tellor.svg" alt="Tellor" className="w-12 h-12" />,
     marketData: {
       symbol: 'TRB',
@@ -723,7 +723,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new ChronicleClient(),
     iconBgColor: `bg-[${chartColors.oracle.chronicle}]`,
-    themeColor: 'amber',
+    themeColor: '#f59e0b',
     icon: <img src="/logos/oracles/chronicle.svg" alt="Chronicle" className="w-12 h-12" />,
     marketData: {
       symbol: 'CHRONICLE',
@@ -783,7 +783,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     supportedChains: [Blockchain.BNB_CHAIN, Blockchain.TRON, Blockchain.ETHEREUM],
     client: new WINkLinkClient(),
     iconBgColor: `bg-[${chartColors.oracle.winklink}]`,
-    themeColor: 'pink',
+    themeColor: '#ec4899',
     icon: <img src="/logos/oracles/winklink.svg" alt="WINkLink" className="w-12 h-12" />,
     marketData: {
       symbol: 'WINKLINK',

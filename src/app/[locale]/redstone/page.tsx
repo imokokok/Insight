@@ -3,9 +3,8 @@
 import { useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
-import { Menu } from 'lucide-react';
 
-import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { LoadingState, ErrorFallback, MobileMenuButton } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
@@ -24,6 +23,7 @@ import {
   RedStoneHero,
 } from './components';
 import { useRedStonePage } from './hooks/useRedStonePage';
+import { type RedStoneTabId } from './types';
 
 const redstoneClient = new RedStoneClient();
 const redstoneConfig = getOracleConfig(OracleProvider.REDSTONE);
@@ -70,11 +70,11 @@ export default function RedStonePage() {
   const { data: metrics, isLoading: metricsLoading } = useRedStoneMetrics();
 
   if (isLoading && !price) {
-    return <LoadingState themeColor="red" />;
+    return <LoadingState themeColor={redstoneConfig.themeColor} />;
   }
 
   if (isError && error) {
-    return <ErrorFallback error={error} onRetry={refresh} themeColor="red" />;
+    return <ErrorFallback error={error} onRetry={refresh} themeColor={redstoneConfig.themeColor} />;
   }
 
   const renderContent = () => {
@@ -134,19 +134,21 @@ export default function RedStonePage() {
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
-              <RedStoneSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+              <RedStoneSidebar
+                activeTab={activeTab}
+                onTabChange={(tab) => setActiveTab(tab as RedStoneTabId)}
+              />
             </div>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden">
-            <button
+            <MobileMenuButton
+              isOpen={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
-            >
-              <Menu className="w-5 h-5" />
-              {t('redstone.menu.title')}
-            </button>
+              themeColor={redstoneConfig.themeColor}
+              label={t('redstone.menu.title')}
+            />
           </div>
 
           {/* Mobile Sidebar */}
@@ -158,7 +160,7 @@ export default function RedStonePage() {
             <RedStoneSidebar
               activeTab={activeTab}
               onTabChange={(tab) => {
-                setActiveTab(tab);
+                setActiveTab(tab as RedStoneTabId);
                 setIsMobileMenuOpen(false);
               }}
             />

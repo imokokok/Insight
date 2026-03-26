@@ -1,144 +1,67 @@
 'use client';
 
+import {
+  BarChart3,
+  Globe,
+  Server,
+  Database,
+  Layers,
+  Network,
+  ShieldAlert,
+} from 'lucide-react';
+
+import { UnifiedSidebar } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
 
 import { type ChainlinkSidebarProps, type ChainlinkTabId } from '../types';
 
-interface NavItem {
-  id: ChainlinkTabId;
-  labelKey: string;
-  icon: React.ReactNode;
-}
-
-const getNavItems = (t: (key: string) => string): NavItem[] => [
+const navItems = [
   {
-    id: 'market',
+    id: 'market' as ChainlinkTabId,
     labelKey: 'chainlink.menu.marketData',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-        />
-      </svg>
-    ),
+    icon: <BarChart3 className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
-    id: 'network',
+    id: 'network' as ChainlinkTabId,
     labelKey: 'chainlink.menu.networkHealth',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
-    ),
+    icon: <Globe className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
-    id: 'nodes',
+    id: 'nodes' as ChainlinkTabId,
     labelKey: 'chainlink.menu.nodes',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-        />
-      </svg>
-    ),
+    icon: <Server className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
-    id: 'data-feeds',
+    id: 'data-feeds' as ChainlinkTabId,
     labelKey: 'chainlink.menu.dataFeeds',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
-        />
-      </svg>
-    ),
+    icon: <Database className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
-    id: 'services',
+    id: 'services' as ChainlinkTabId,
     labelKey: 'chainlink.menu.services',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-        />
-      </svg>
-    ),
+    icon: <Layers className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
-    id: 'ecosystem',
+    id: 'ecosystem' as ChainlinkTabId,
     labelKey: 'chainlink.menu.ecosystem',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-        />
-      </svg>
-    ),
+    icon: <Network className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
-    id: 'risk',
+    id: 'risk' as ChainlinkTabId,
     labelKey: 'chainlink.menu.riskAssessment',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-        />
-      </svg>
-    ),
+    icon: <ShieldAlert className="w-5 h-5" strokeWidth={1.5} />,
   },
 ];
 
 export function ChainlinkSidebar({ activeTab, onTabChange }: ChainlinkSidebarProps) {
   const t = useTranslations();
-  const navItems = getNavItems(t);
 
   return (
-    <aside className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <nav className="py-2">
-        {navItems.map((item) => {
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onTabChange(item.id)}
-              className={`
-                w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200
-                ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent'
-                }
-              `}
-            >
-              <span className={`${isActive ? 'text-blue-600' : 'text-gray-400'}`}>{item.icon}</span>
-              <span>{t(item.labelKey)}</span>
-            </button>
-          );
-        })}
-      </nav>
-    </aside>
+    <UnifiedSidebar
+      items={navItems}
+      activeTab={activeTab}
+      onTabChange={(tab) => onTabChange(tab as ChainlinkTabId)}
+      themeColor="#375bd2"
+    />
   );
 }

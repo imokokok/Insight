@@ -54,6 +54,22 @@
       "crossChain": "Cross-Chain",
       "crossOracle": "Cross-Oracle Analysis"
     },
+    "risk": {
+      "metrics": "Risk Metrics",
+      "metricsDesc": "Key performance indicators across decentralization, security, and reliability",
+      "overallScore": "Overall",
+      "benchmark": "Industry Benchmark Comparison",
+      "benchmarkDesc": "Performance comparison against other leading oracle providers",
+      "comparison": "Detailed Comparison",
+      "timeline": "Historical Risk Events",
+      "timelineDesc": "Security audits, incidents and upgrades over the past 24 months",
+      "eventDetails": "Event Details",
+      "clickEvent": "Click an event to view details",
+      "factors": "Risk Factor Analysis",
+      "factorsDesc": "Detailed breakdown of identified risk categories",
+      "disclaimer": "Risk Disclaimer",
+      "disclaimerText": "The risk assessments provided are for informational purposes only and should not be considered as financial advice. Cryptocurrency investments carry significant risks including potential loss of capital. Past performance does not guarantee future results. Please conduct your own research and consult with qualified financial advisors before making investment decisions."
+    },
     "riskAssessment": {
       "overallRiskScore": "Composite Risk Rating",
       "comprehensiveAssessment": "Multi-Dimensional Risk Evaluation",
@@ -96,6 +112,8 @@
       "requests30d": "30d Requests",
       "avgGasCost": "Avg Gas Cost",
       "supportedSymbols": "Supported Symbols",
+      "supportedAssets": "Supported Assets",
+      "requestDistribution": "Request Distribution",
       "ibcInfo": "IBC Info",
       "ibcTransfers": "IBC Transfers",
       "ibcChannels": "IBC Channels",
@@ -140,6 +158,9 @@
     },
     "validators": {
       "totalValidators": "Total Validators",
+      "totalStaked": "Total Staked",
+      "votingPower": "Voting Power",
+      "jailedWarning": "{{count}} validators jailed",
       "active": "Active",
       "avgCommission": "Avg Commission",
       "networkAverage": "Network Average",

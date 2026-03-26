@@ -54,7 +54,7 @@ interface StatCardProps {
   icon: React.ReactNode;
   subtitle?: string;
   sparklineData?: number[];
-  themeColor: string;
+  themeColor?: string;
 }
 
 // 迷你走势图组件
@@ -85,8 +85,8 @@ function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
   );
 }
 
-// 统计卡片组件
-function StatCard({
+// 核心统计卡片组件
+function PrimaryStatCard({
   title,
   value,
   change,
@@ -100,33 +100,72 @@ function StatCard({
   const isNegative = changeType === 'negative';
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <div
-            className="p-1.5 rounded-md"
-            style={{ backgroundColor: `${themeColor}20`, color: themeColor }}
+            className="p-2 rounded-lg"
+            style={{ backgroundColor: `${themeColor}15`, color: themeColor }}
           >
             {icon}
           </div>
-          <span className="text-xs text-gray-500">{title}</span>
+          <span className="text-sm text-gray-500">{title}</span>
         </div>
         {sparklineData && <Sparkline data={sparklineData} positive={isPositive} />}
       </div>
-      <div className="mt-2">
-        <div className="text-xl font-bold text-gray-900">{value}</div>
+      <div className="mt-3">
+        <div className="text-2xl font-bold text-gray-900">{value}</div>
         <div className="flex items-center gap-2 mt-1">
           {change && (
             <span
-              className={`text-xs font-medium flex items-center gap-0.5 ${
+              className={`text-sm font-medium flex items-center gap-0.5 ${
                 isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
               }`}
             >
-              {isPositive && <TrendingUp className="w-3 h-3" />}
-              {isNegative && <TrendingDown className="w-3 h-3" />}
+              {isPositive && <TrendingUp className="w-3.5 h-3.5" />}
+              {isNegative && <TrendingDown className="w-3.5 h-3.5" />}
               {change}
             </span>
           )}
+          {subtitle && <span className="text-xs text-gray-400">{subtitle}</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 次要统计卡片组件
+function SecondaryStatCard({
+  title,
+  value,
+  change,
+  changeType,
+  icon,
+  subtitle,
+}: Omit<StatCardProps, 'sparklineData' | 'themeColor'>) {
+  const isPositive = changeType === 'positive';
+  const isNegative = changeType === 'negative';
+
+  return (
+    <div className="bg-gray-50/50 border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+      <div className="flex items-center gap-2">
+        <div className="p-1.5 bg-white text-gray-500 rounded-md border border-gray-200">{icon}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500 truncate">{title}</span>
+            {change && (
+              <span
+                className={`text-xs font-medium flex items-center gap-0.5 ${
+                  isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
+                }`}
+              >
+                {isPositive && <TrendingUp className="w-3 h-3" />}
+                {isNegative && <TrendingDown className="w-3 h-3" />}
+                {change}
+              </span>
+            )}
+          </div>
+          <div className="text-lg font-semibold text-gray-900">{value}</div>
           {subtitle && <span className="text-xs text-gray-400">{subtitle}</span>}
         </div>
       </div>
@@ -143,34 +182,34 @@ function NetworkHealthScore({ score, themeColor }: { score: number; themeColor: 
   };
 
   const getBgColor = () => {
-    if (score >= 90) return 'bg-emerald-100';
-    if (score >= 70) return 'bg-yellow-100';
-    return 'bg-red-100';
+    if (score >= 90) return 'bg-emerald-500';
+    if (score >= 70) return 'bg-yellow-500';
+    return 'bg-red-500';
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-500">网络健康度</span>
-        <span className={`text-lg font-bold ${getColor()}`}>{score}</span>
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-medium text-gray-700">网络健康度</span>
+        <span className={`text-2xl font-bold ${getColor()}`}>{score}</span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="w-full bg-gray-200 rounded-full h-2.5">
         <div
-          className={`h-2 rounded-full transition-all ${getBgColor()}`}
+          className={`h-2.5 rounded-full transition-all ${getBgColor()}`}
           style={{ width: `${score}%` }}
         />
       </div>
-      <div className="flex items-center gap-3 mt-2 text-xs">
-        <span className="flex items-center gap-1 text-emerald-600">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+      <div className="flex items-center gap-4 mt-3 text-xs">
+        <span className="flex items-center gap-1.5 text-emerald-600">
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
           乐观预言机
         </span>
-        <span className="flex items-center gap-1 text-emerald-600">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+        <span className="flex items-center gap-1.5 text-emerald-600">
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
           验证者网络
         </span>
-        <span className="flex items-center gap-1 text-yellow-600">
-          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
+        <span className="flex items-center gap-1.5 text-yellow-600">
+          <span className="w-2 h-2 rounded-full bg-yellow-500" />
           争议解决
         </span>
       </div>
@@ -183,10 +222,12 @@ function OnChainMetrics({
   avgResponseTime,
   nodeUptime,
   dataFeeds,
+  themeColor,
 }: {
   avgResponseTime: number;
   nodeUptime: number;
   dataFeeds: number;
+  themeColor: string;
 }) {
   const gasLevel = useMemo(() => {
     if (avgResponseTime < 150)
@@ -197,36 +238,33 @@ function OnChainMetrics({
   }, [avgResponseTime]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3">
-      <h4 className="text-xs font-medium text-gray-700 mb-3">链上实时指标</h4>
-      <div className="space-y-3">
-        {/* Gas 费水平 */}
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <h4 className="text-sm font-medium text-gray-700 mb-4">链上实时指标</h4>
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">Gas 费水平</span>
+          <span className="text-sm text-gray-500">Gas 费水平</span>
           <span
-            className={`text-xs font-medium px-2 py-0.5 rounded ${gasLevel.bg} ${gasLevel.color}`}
+            className={`text-xs font-medium px-2.5 py-1 rounded-full ${gasLevel.bg} ${gasLevel.color}`}
           >
             {gasLevel.label}
           </span>
         </div>
-
-        {/* 响应时间分布 */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-gray-500">响应时间分布</span>
-            <span className="text-xs text-gray-700">{avgResponseTime}ms</span>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-500">响应时间分布</span>
+            <span className="text-sm font-medium text-gray-700">{avgResponseTime}ms</span>
           </div>
-          <div className="flex gap-1 h-4">
+          <div className="flex gap-1 h-5">
             <div className="flex-1 bg-emerald-400 rounded-sm" style={{ width: '60%' }} />
             <div className="flex-1 bg-yellow-400 rounded-sm" style={{ width: '30%' }} />
             <div className="flex-1 bg-red-400 rounded-sm" style={{ width: '10%' }} />
           </div>
         </div>
-
-        {/* 数据更新频率 */}
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">每秒更新</span>
-          <span className="text-xs font-mono text-red-600">~{Math.round(dataFeeds / 100)} 次</span>
+          <span className="text-sm text-gray-500">每秒更新</span>
+          <span className="text-sm font-mono font-medium" style={{ color: themeColor }}>
+            ~{Math.round(dataFeeds / 100)} 次
+          </span>
         </div>
       </div>
     </div>
@@ -239,18 +277,18 @@ function MultiChainSupport({ chains, themeColor }: { chains: string[]; themeColo
   const displayChains = showAll ? chains : chains.slice(0, 6);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-500">多链支持</span>
-        <span className="text-xs font-medium" style={{ color: themeColor }}>
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-medium text-gray-700">多链支持</span>
+        <span className="text-sm font-medium" style={{ color: themeColor }}>
           {chains.length}+ 链
         </span>
       </div>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-2">
         {displayChains.map((chain, index) => (
           <span
             key={index}
-            className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md border border-gray-200"
+            className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-md border border-gray-200 hover:bg-gray-200 transition-colors"
           >
             {chain}
           </span>
@@ -258,7 +296,7 @@ function MultiChainSupport({ chains, themeColor }: { chains: string[]; themeColo
         {!showAll && chains.length > 6 && (
           <button
             onClick={() => setShowAll(true)}
-            className="px-2 py-1 text-xs hover:bg-red-50 rounded-md transition-colors"
+            className="px-2.5 py-1 text-xs hover:bg-gray-100 rounded-md transition-colors border border-transparent"
             style={{ color: themeColor }}
           >
             +{chains.length - 6}
@@ -293,45 +331,6 @@ function QuickActions({ themeColor }: { themeColor: string }) {
   );
 }
 
-// 最新动态滚动条
-function LatestUpdates() {
-  const updates = [
-    { type: 'price', text: 'UMA 价格更新: $3.85 (+1.8%)', time: '2分钟前' },
-    { type: 'node', text: '新验证者加入: 0x9c2d...8f1a (欧洲地区)', time: '5分钟前' },
-    { type: 'feed', text: '乐观预言机请求处理: 1,234 次', time: '8分钟前' },
-    { type: 'system', text: '争议解决机制升级完成', time: '15分钟前' },
-  ];
-
-  return (
-    <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
-      <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">最新动态:</span>
-        <div className="flex-1 overflow-hidden">
-          <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
-            {updates.map((update, index) => (
-              <div key={index} className="flex items-center gap-2 text-xs">
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    update.type === 'price'
-                      ? 'bg-red-500'
-                      : update.type === 'node'
-                        ? 'bg-emerald-500'
-                        : update.type === 'feed'
-                          ? 'bg-purple-500'
-                          : 'bg-gray-500'
-                  }`}
-                />
-                <span className="text-gray-700">{update.text}</span>
-                <span className="text-gray-400">{update.time}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function UMAHero({
   config,
   price,
@@ -346,8 +345,8 @@ export function UMAHero({
 }: UMAHeroProps) {
   const t = useTranslations();
 
-  // 使用 config.themeColor 获取主题色，默认为红色
-  const themeColor = config.themeColor || '#ef4444';
+  // 使用 config.themeColor 获取主题色
+  const themeColor = config.themeColor || '#dc2626';
 
   const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
   const priceChange24h = config.marketData.change24h ?? 0;
@@ -362,45 +361,45 @@ export function UMAHero({
     return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + (Math.random() - 0.5) * 0.1));
   }, [historicalData, currentPrice]);
 
-  // 8个统计指标
-  const stats: StatCardProps[] = [
+  // 核心统计指标 (Primary Stats)
+  const primaryStats: StatCardProps[] = [
     {
       title: 'UMA 价格',
       value: `$${currentPrice.toFixed(2)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
-      icon: <Activity className="w-4 h-4" />,
+      icon: <Activity className="w-5 h-5" />,
       subtitle: '24h 变化',
       sparklineData: priceSparkline,
-      themeColor,
     },
     {
       title: '市值',
       value: marketCap > 0 ? `$${(marketCap / 1e6).toFixed(1)}M` : '$250M+',
       change: '+8.5%',
       changeType: 'positive',
-      icon: <Wallet className="w-4 h-4" />,
+      icon: <Wallet className="w-5 h-5" />,
       subtitle: '30天增长',
-      themeColor,
     },
     {
       title: '活跃验证者',
       value: `${config.networkData?.activeNodes?.toLocaleString() ?? '100+'}`,
       change: '+12%',
       changeType: 'positive',
-      icon: <Shield className="w-4 h-4" />,
+      icon: <Shield className="w-5 h-5" />,
       subtitle: '本月新增 15 个',
-      themeColor,
     },
     {
-      title: '争议解决',
-      value: '2,456',
-      change: '+5.2%',
+      title: '争议解决率',
+      value: '98.5%',
+      change: '+0.3%',
       changeType: 'positive',
-      icon: <Gavel className="w-4 h-4" />,
-      subtitle: '成功率 98.5%',
-      themeColor,
+      icon: <Gavel className="w-5 h-5" />,
+      subtitle: '成功率',
     },
+  ];
+
+  // 次要统计指标 (Secondary Stats)
+  const secondaryStats: Omit<StatCardProps, 'sparklineData' | 'themeColor'>[] = [
     {
       title: '支持链数',
       value: `${config.supportedChains?.length ?? 8}+`,
@@ -408,16 +407,14 @@ export function UMAHero({
       changeType: 'neutral',
       icon: <Link2 className="w-4 h-4" />,
       subtitle: 'EVM 兼容链',
-      themeColor,
     },
     {
-      title: '数据源',
-      value: `${config.networkData?.dataFeeds?.toLocaleString() ?? '50+'}`,
-      change: '+15%',
+      title: '质押量',
+      value: `${(config.marketData?.circulatingSupply ?? 0 / 1e6).toFixed(1)}M`,
+      change: '+5.2%',
       changeType: 'positive',
-      icon: <Database className="w-4 h-4" />,
-      subtitle: '本周新增 8 个',
-      themeColor,
+      icon: <Wallet className="w-4 h-4" />,
+      subtitle: `APR ${config.marketData?.stakingApr ?? 5.2}%`,
     },
     {
       title: '平均响应',
@@ -426,20 +423,18 @@ export function UMAHero({
       changeType: 'positive',
       icon: <Clock className="w-4 h-4" />,
       subtitle: '优于行业平均',
-      themeColor,
     },
     {
-      title: '验证者运行时间',
+      title: '网络运行时间',
       value: `${networkStats?.nodeUptime ?? config.networkData?.nodeUptime ?? 99.9}%`,
       change: '+0.1%',
       changeType: 'positive',
       icon: <Server className="w-4 h-4" />,
       subtitle: '24h 统计',
-      themeColor,
     },
   ];
 
-  // 网络健康度评分（模拟计算）
+  // 网络健康度评分
   const healthScore = useMemo(() => {
     const uptime = networkStats?.nodeUptime ?? config.networkData?.nodeUptime ?? 99.9;
     const responseTime =
@@ -467,13 +462,13 @@ export function UMAHero({
       </div>
 
       {/* 主要内容区 */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
         {/* 头部信息 */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             <div
               className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
-              style={{ backgroundColor: themeColor }}
+              style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
             >
               <img src="/logos/oracles/uma.svg" alt="UMA" className="w-8 h-8" />
             </div>
@@ -494,7 +489,7 @@ export function UMAHero({
             </button>
             <button
               onClick={onExport}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-colors shadow-sm"
               style={{ backgroundColor: themeColor }}
             >
               <ExternalLink className="w-4 h-4" />
@@ -503,14 +498,21 @@ export function UMAHero({
           </div>
         </div>
 
-        {/* 统计卡片网格 - 8个指标 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
-          {stats.map((stat, index) => (
-            <StatCard key={index} {...stat} />
+        {/* 核心统计指标 - 4列布局 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {primaryStats.map((stat, index) => (
+            <PrimaryStatCard key={index} {...stat} themeColor={themeColor} />
           ))}
         </div>
 
-        {/* 中间信息区 - 链上指标、网络健康度、多链支持 */}
+        {/* 次要统计指标 - 4列紧凑布局 */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3 mb-5">
+          {secondaryStats.map((stat, index) => (
+            <SecondaryStatCard key={index} {...stat} />
+          ))}
+        </div>
+
+        {/* 中间信息区 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <OnChainMetrics
             avgResponseTime={
@@ -518,6 +520,7 @@ export function UMAHero({
             }
             nodeUptime={networkStats?.nodeUptime ?? config.networkData?.nodeUptime ?? 99.9}
             dataFeeds={networkStats?.dataFeeds ?? config.networkData?.dataFeeds ?? 50}
+            themeColor={themeColor}
           />
           <NetworkHealthScore score={healthScore} themeColor={themeColor} />
           <MultiChainSupport
@@ -535,9 +538,6 @@ export function UMAHero({
           />
         </div>
       </div>
-
-      {/* 最新动态滚动条 */}
-      <LatestUpdates />
     </div>
   );
 }

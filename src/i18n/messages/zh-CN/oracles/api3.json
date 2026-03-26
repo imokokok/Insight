@@ -177,7 +177,9 @@
       "volume24h": "24h 成交额",
       "marketCap": "市值",
       "circulatingSupply": "流通供应量",
-      "networkUptime": "网络正常运行时间"
+      "networkUptime": "网络正常运行时间",
+      "responseTime": "响应时间",
+      "successRate": "成功率"
     },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",

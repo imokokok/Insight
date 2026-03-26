@@ -165,7 +165,8 @@
         "macd": "MACD",
         "macdValue": "MACD:",
         "signal": "Signal:",
-        "histogram": "Histogram:"
+        "histogram": "Histogram:",
+        "deviationFromAvg": "Deviation from Avg"
       },
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",

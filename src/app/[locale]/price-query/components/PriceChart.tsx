@@ -2,10 +2,10 @@
 
 /**
  * @fileoverview 价格图表组件
- * @description 展示价格历史数据的交互式图表，支持多数据源和对比模式
+ * @description 展示价格历史数据的交互式图表，支持多数据源、对比模式、Brush选择器和十字准星
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 
 import { TrendingUp, Eye, EyeOff } from 'lucide-react';
 import {
@@ -17,10 +17,13 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
+  Brush,
 } from 'recharts';
 
 import { ChartSkeleton } from '@/components/ui';
 import { useTranslations } from '@/i18n';
+import { formatPrice } from '@/lib/utils/chartSharedUtils';
+import { chainNames } from '@/lib/constants';
 
 import { type QueryResult } from '../constants';
 
@@ -29,7 +32,7 @@ import { CustomTooltip } from './CustomTooltip';
 export interface ChartDataPoint {
   timestamp: number;
   time: string;
-  [key: string]: number | string;
+  [key: string]: number | string | Record<string, unknown>;
 }
 
 interface PriceChartProps {
@@ -67,12 +70,19 @@ export function PriceChart({
 }: PriceChartProps) {
   const t = useTranslations();
 
+  // 十字准星状态
+  const [cursorPosition, setCursorPosition] = useState<{
+    x: number;
+    y: number;
+    visible: boolean;
+  }>({ x: 0, y: 0, visible: false });
+
   // 获取系列名称
   const seriesNames = useMemo(() => {
     const names = new Set<string>();
     chartData.forEach((point) => {
       Object.keys(point).forEach((key) => {
-        if (key !== 'timestamp' && key !== 'time') {
+        if (key !== 'timestamp' && key !== 'time' && !key.startsWith('_')) {
           names.add(key);
         }
       });
@@ -80,13 +90,53 @@ export function PriceChart({
     return Array.from(names);
   }, [chartData]);
 
+  // 构建数据源信息映射
+  const oracleInfoMap = useMemo(() => {
+    const map: Record<string, { chain?: string; provider?: string }> = {};
+    queryResults.forEach((result) => {
+      const key = `${result.provider}_${result.chain}`;
+      map[key] = {
+        provider: result.provider,
+        chain: chainNames[result.chain],
+      };
+    });
+    return map;
+  }, [queryResults]);
+
+  // 处理图表数据，添加 Tooltip 所需的额外信息
+  const enhancedChartData = useMemo(() => {
+    if (chartData.length === 0) return [];
+
+    return chartData.map((point, index) => {
+      const prevPoint = index > 0 ? chartData[index - 1] : null;
+      const prevValues: Record<string, number> = {};
+
+      // 计算前一个时间点的值
+      if (prevPoint) {
+        seriesNames.forEach((name) => {
+          const prevValue = prevPoint[name];
+          if (typeof prevValue === 'number') {
+            prevValues[name] = prevValue;
+          }
+        });
+      }
+
+      return {
+        ...point,
+        _avgPrice: avgPrice,
+        _prevValues: prevValues,
+        _oracleInfo: oracleInfoMap,
+      };
+    });
+  }, [chartData, seriesNames, avgPrice, oracleInfoMap]);
+
   // 获取对比系列名称
   const compareSeriesNames = useMemo(() => {
     if (!compareMode || compareChartData.length === 0) return [];
     const names = new Set<string>();
     compareChartData.forEach((point) => {
       Object.keys(point).forEach((key) => {
-        if (key !== 'timestamp' && key !== 'time') {
+        if (key !== 'timestamp' && key !== 'time' && !key.startsWith('_')) {
           names.add(key);
         }
       });
@@ -131,15 +181,15 @@ export function PriceChart({
 
   // 计算 Y 轴范围
   const yAxisDomain = useMemo(() => {
-    if (chartData.length === 0) return ['auto', 'auto'];
+    if (enhancedChartData.length === 0) return ['auto', 'auto'];
 
     let min = Infinity;
     let max = -Infinity;
 
-    chartData.forEach((point) => {
+    enhancedChartData.forEach((point) => {
       seriesNames.forEach((name) => {
         if (!hiddenSeries.has(name)) {
-          const value = point[name] as number;
+          const value = (point as Record<string, unknown>)[name] as number;
           if (typeof value === 'number' && !isNaN(value)) {
             min = Math.min(min, value);
             max = Math.max(max, value);
@@ -167,10 +217,29 @@ export function PriceChart({
     // 添加一些边距
     const padding = (max - min) * 0.1;
     return [min - padding, max + padding];
-  }, [chartData, compareChartData, seriesNames, compareSeriesNames, hiddenSeries, compareMode]);
+  }, [enhancedChartData, compareChartData, seriesNames, compareSeriesNames, hiddenSeries, compareMode]);
+
+  // 鼠标移动处理 - 更新十字准星位置
+  const handleMouseMove = useCallback(
+    (e: { activeCoordinate?: { x: number; y: number }; activePayload?: unknown[] }) => {
+      if (e.activeCoordinate && e.activePayload && e.activePayload.length > 0) {
+        setCursorPosition({
+          x: e.activeCoordinate.x,
+          y: e.activeCoordinate.y,
+          visible: true,
+        });
+      }
+    },
+    []
+  );
+
+  // 鼠标离开处理 - 隐藏十字准星
+  const handleMouseLeave = useCallback(() => {
+    setCursorPosition((prev) => ({ ...prev, visible: false }));
+  }, []);
 
   // 空状态
-  if (chartData.length === 0) {
+  if (enhancedChartData.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -241,8 +310,13 @@ export function PriceChart({
 
       {/* 图表区域 */}
       <div className="p-4">
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+        <ResponsiveContainer width="100%" height={360}>
+          <LineChart
+            data={enhancedChartData}
+            margin={{ top: 5, right: 5, left: 0, bottom: 65 }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="timestamp"
@@ -257,10 +331,25 @@ export function PriceChart({
               tick={{ fontSize: 11, fill: '#6b7280' }}
               axisLine={{ stroke: '#e5e7eb' }}
               tickLine={{ stroke: '#e5e7eb' }}
-              tickFormatter={(value) => `$${value.toLocaleString()}`}
+              tickFormatter={(value) => formatPrice(value)}
               width={70}
             />
             <Tooltip content={<CustomTooltip />} />
+
+            {/* 十字准星参考线 - 只在有数据且鼠标悬停时显示 */}
+            {cursorPosition.visible && enhancedChartData.length > 0 && (
+              <>
+                <ReferenceLine
+                  x={enhancedChartData[Math.min(
+                    Math.floor((cursorPosition.x / 100) * enhancedChartData.length),
+                    enhancedChartData.length - 1
+                  )]?.timestamp}
+                  stroke="#9ca3af"
+                  strokeDasharray="3 3"
+                  ifOverflow="hidden"
+                />
+              </>
+            )}
 
             {/* 基准线 */}
             {showBaseline && avgPrice > 0 && (
@@ -309,6 +398,16 @@ export function PriceChart({
                   isAnimationActive={false}
                 />
               ))}
+
+            {/* Brush 时间范围选择器 */}
+            <Brush
+              dataKey="timestamp"
+              height={60}
+              stroke="#6366f1"
+              fill="#e0e7ff"
+              travellerWidth={8}
+              tickFormatter={formatXAxisLabel}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -316,7 +415,7 @@ export function PriceChart({
       {/* 图表底部信息 */}
       <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between">
         <span>
-          {t('priceQuery.charts.dataPoints')}: {chartData.length}
+          {t('priceQuery.charts.dataPoints')}: {enhancedChartData.length}
         </span>
         <span>
           {t('priceQuery.charts.timeRange')}: {selectedTimeRange}h

@@ -52,18 +52,12 @@ interface StatCardProps {
   icon: React.ReactNode;
   subtitle?: string;
   sparklineData?: number[];
+  themeColor?: string;
+  isPrimary?: boolean;
 }
 
 // 迷你走势图组件
-function Sparkline({
-  data,
-  positive,
-  themeColor,
-}: {
-  data: number[];
-  positive: boolean;
-  themeColor: string;
-}) {
+function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
   if (!data || data.length < 2) return null;
 
   const min = Math.min(...data);
@@ -78,19 +72,20 @@ function Sparkline({
     })
     .join(' ');
 
-  // 根据主题色设置颜色
-  const strokeColor =
-    themeColor === 'pink' ? (positive ? '#ec4899' : '#f472b6') : positive ? '#10b981' : '#ef4444';
-
   return (
     <svg width="60" height="24" className="ml-auto">
-      <polyline fill="none" stroke={strokeColor} strokeWidth="2" points={points} />
+      <polyline
+        fill="none"
+        stroke={positive ? '#10b981' : '#ef4444'}
+        strokeWidth="2"
+        points={points}
+      />
     </svg>
   );
 }
 
-// 统计卡片组件
-function StatCard({
+// 核心统计卡片组件
+function PrimaryStatCard({
   title,
   value,
   change,
@@ -99,46 +94,77 @@ function StatCard({
   subtitle,
   sparklineData,
   themeColor,
-}: StatCardProps & { themeColor: string }) {
+}: StatCardProps) {
   const isPositive = changeType === 'positive';
   const isNegative = changeType === 'negative';
 
-  // 根据主题色设置背景色
-  const getIconBgColor = () => {
-    if (themeColor === 'pink') return 'bg-pink-50';
-    return 'bg-blue-50';
-  };
-
-  const getIconTextColor = () => {
-    if (themeColor === 'pink') return 'text-pink-600';
-    return 'text-blue-600';
-  };
-
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <div className={`p-1.5 ${getIconBgColor()} ${getIconTextColor()} rounded-md`}>{icon}</div>
-          <span className="text-xs text-gray-500">{title}</span>
+          <div
+            className="p-2 rounded-lg"
+            style={{ backgroundColor: `${themeColor}15`, color: themeColor }}
+          >
+            {icon}
+          </div>
+          <span className="text-sm text-gray-500">{title}</span>
         </div>
-        {sparklineData && (
-          <Sparkline data={sparklineData} positive={isPositive} themeColor={themeColor} />
-        )}
+        {sparklineData && <Sparkline data={sparklineData} positive={isPositive} />}
       </div>
-      <div className="mt-2">
-        <div className="text-xl font-bold text-gray-900">{value}</div>
+      <div className="mt-3">
+        <div className="text-2xl font-bold text-gray-900">{value}</div>
         <div className="flex items-center gap-2 mt-1">
           {change && (
             <span
-              className={`text-xs font-medium flex items-center gap-0.5 ${
+              className={`text-sm font-medium flex items-center gap-0.5 ${
                 isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
               }`}
             >
-              {isPositive && <TrendingUp className="w-3 h-3" />}
-              {isNegative && <TrendingDown className="w-3 h-3" />}
+              {isPositive && <TrendingUp className="w-3.5 h-3.5" />}
+              {isNegative && <TrendingDown className="w-3.5 h-3.5" />}
               {change}
             </span>
           )}
+          {subtitle && <span className="text-xs text-gray-400">{subtitle}</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 次要统计卡片组件
+function SecondaryStatCard({
+  title,
+  value,
+  change,
+  changeType,
+  icon,
+  subtitle,
+}: Omit<StatCardProps, 'sparklineData' | 'themeColor' | 'isPrimary'>) {
+  const isPositive = changeType === 'positive';
+  const isNegative = changeType === 'negative';
+
+  return (
+    <div className="bg-gray-50/50 border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+      <div className="flex items-center gap-2">
+        <div className="p-1.5 bg-white text-gray-500 rounded-md border border-gray-200">{icon}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500 truncate">{title}</span>
+            {change && (
+              <span
+                className={`text-xs font-medium flex items-center gap-0.5 ${
+                  isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
+                }`}
+              >
+                {isPositive && <TrendingUp className="w-3 h-3" />}
+                {isNegative && <TrendingDown className="w-3 h-3" />}
+                {change}
+              </span>
+            )}
+          </div>
+          <div className="text-lg font-semibold text-gray-900">{value}</div>
           {subtitle && <span className="text-xs text-gray-400">{subtitle}</span>}
         </div>
       </div>
@@ -155,40 +181,34 @@ function NetworkHealthScore({ score, themeColor }: { score: number; themeColor: 
   };
 
   const getBgColor = () => {
-    if (score >= 90) return 'bg-emerald-100';
-    if (score >= 70) return 'bg-yellow-100';
-    return 'bg-red-100';
-  };
-
-  // 根据主题色设置状态点颜色
-  const getThemeDotColor = () => {
-    if (themeColor === 'pink') return 'bg-pink-500';
-    return 'bg-blue-500';
+    if (score >= 90) return 'bg-emerald-500';
+    if (score >= 70) return 'bg-yellow-500';
+    return 'bg-red-500';
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-500">网络健康度</span>
-        <span className={`text-lg font-bold ${getColor()}`}>{score}</span>
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-medium text-gray-700">网络健康度</span>
+        <span className={`text-2xl font-bold ${getColor()}`}>{score}</span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="w-full bg-gray-200 rounded-full h-2.5">
         <div
-          className={`h-2 rounded-full transition-all ${getBgColor()}`}
+          className={`h-2.5 rounded-full transition-all ${getBgColor()}`}
           style={{ width: `${score}%` }}
         />
       </div>
-      <div className="flex items-center gap-3 mt-2 text-xs">
-        <span className="flex items-center gap-1 text-emerald-600">
-          <span className={`w-1.5 h-1.5 rounded-full ${getThemeDotColor()}`} />
+      <div className="flex items-center gap-4 mt-3 text-xs">
+        <span className="flex items-center gap-1.5 text-emerald-600">
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
           数据喂价
         </span>
-        <span className="flex items-center gap-1 text-emerald-600">
-          <span className={`w-1.5 h-1.5 rounded-full ${getThemeDotColor()}`} />
+        <span className="flex items-center gap-1.5 text-emerald-600">
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
           TRON网络
         </span>
-        <span className="flex items-center gap-1 text-yellow-600">
-          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
+        <span className="flex items-center gap-1.5 text-yellow-600">
+          <span className="w-2 h-2 rounded-full bg-yellow-500" />
           游戏数据
         </span>
       </div>
@@ -199,12 +219,10 @@ function NetworkHealthScore({ score, themeColor }: { score: number; themeColor: 
 // 链上指标组件
 function OnChainMetrics({
   avgResponseTime,
-  nodeUptime,
   dataFeeds,
   themeColor,
 }: {
   avgResponseTime: number;
-  nodeUptime: number;
   dataFeeds: number;
   themeColor: string;
 }) {
@@ -216,43 +234,32 @@ function OnChainMetrics({
     return { label: '高', color: 'text-red-600', bg: 'bg-red-100' };
   }, [avgResponseTime]);
 
-  // 根据主题色设置文本颜色
-  const getThemeTextColor = () => {
-    if (themeColor === 'pink') return 'text-pink-600';
-    return 'text-blue-600';
-  };
-
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3">
-      <h4 className="text-xs font-medium text-gray-700 mb-3">链上实时指标</h4>
-      <div className="space-y-3">
-        {/* Gas 费水平 */}
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <h4 className="text-sm font-medium text-gray-700 mb-4">链上实时指标</h4>
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">Gas 费水平</span>
+          <span className="text-sm text-gray-500">Gas 费水平</span>
           <span
-            className={`text-xs font-medium px-2 py-0.5 rounded ${gasLevel.bg} ${gasLevel.color}`}
+            className={`text-xs font-medium px-2.5 py-1 rounded-full ${gasLevel.bg} ${gasLevel.color}`}
           >
             {gasLevel.label}
           </span>
         </div>
-
-        {/* 响应时间分布 */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-gray-500">响应时间分布</span>
-            <span className="text-xs text-gray-700">{avgResponseTime}ms</span>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-500">响应时间分布</span>
+            <span className="text-sm font-medium text-gray-700">{avgResponseTime}ms</span>
           </div>
-          <div className="flex gap-1 h-4">
+          <div className="flex gap-1 h-5">
             <div className="flex-1 bg-emerald-400 rounded-sm" style={{ width: '60%' }} />
             <div className="flex-1 bg-yellow-400 rounded-sm" style={{ width: '30%' }} />
             <div className="flex-1 bg-red-400 rounded-sm" style={{ width: '10%' }} />
           </div>
         </div>
-
-        {/* 数据更新频率 */}
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">每秒更新</span>
-          <span className={`text-xs font-mono ${getThemeTextColor()}`}>
+          <span className="text-sm text-gray-500">每秒更新</span>
+          <span className="text-sm font-mono font-medium" style={{ color: themeColor }}>
             ~{Math.round(dataFeeds / 10)} 次
           </span>
         </div>
@@ -266,28 +273,19 @@ function MultiChainSupport({ chains, themeColor }: { chains: string[]; themeColo
   const [showAll, setShowAll] = useState(false);
   const displayChains = showAll ? chains : chains.slice(0, 6);
 
-  // 根据主题色设置文本颜色
-  const getThemeTextColor = () => {
-    if (themeColor === 'pink') return 'text-pink-600';
-    return 'text-blue-600';
-  };
-
-  const getThemeHoverBg = () => {
-    if (themeColor === 'pink') return 'hover:bg-pink-50';
-    return 'hover:bg-blue-50';
-  };
-
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-500">多链支持</span>
-        <span className={`text-xs font-medium ${getThemeTextColor()}`}>{chains.length}+ 链</span>
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-medium text-gray-700">多链支持</span>
+        <span className="text-sm font-medium" style={{ color: themeColor }}>
+          {chains.length}+ 链
+        </span>
       </div>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-2">
         {displayChains.map((chain, index) => (
           <span
             key={index}
-            className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md border border-gray-200"
+            className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-md border border-gray-200 hover:bg-gray-200 transition-colors"
           >
             {chain}
           </span>
@@ -295,7 +293,8 @@ function MultiChainSupport({ chains, themeColor }: { chains: string[]; themeColo
         {!showAll && chains.length > 6 && (
           <button
             onClick={() => setShowAll(true)}
-            className={`px-2 py-1 ${getThemeTextColor()} text-xs ${getThemeHoverBg()} rounded-md transition-colors`}
+            className="px-2.5 py-1 text-xs hover:bg-gray-100 rounded-md transition-colors border border-transparent"
+            style={{ color: themeColor }}
           >
             +{chains.length - 6}
           </button>
@@ -338,12 +337,6 @@ function LatestUpdates({ themeColor }: { themeColor: string }) {
     { type: 'system', text: 'TRON网络同步完成', time: '15分钟前' },
   ];
 
-  // 根据主题色设置状态点颜色
-  const getThemeDotColor = () => {
-    if (themeColor === 'pink') return 'bg-pink-500';
-    return 'bg-blue-500';
-  };
-
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
@@ -355,7 +348,7 @@ function LatestUpdates({ themeColor }: { themeColor: string }) {
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
                     update.type === 'price'
-                      ? getThemeDotColor()
+                      ? 'bg-pink-500'
                       : update.type === 'node'
                         ? 'bg-emerald-500'
                         : update.type === 'feed'
@@ -389,7 +382,7 @@ export default function WinklinkHero({
   const t = useTranslations();
 
   // 使用 config.themeColor 获取主题色
-  const themeColor = config.themeColor || 'pink';
+  const themeColor = config.themeColor || '#ec4899';
 
   const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
   const priceChange24h = config.marketData.change24h ?? 0;
@@ -404,43 +397,47 @@ export default function WinklinkHero({
     return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + (Math.random() - 0.5) * 0.1));
   }, [historicalData, currentPrice]);
 
-  // 8个统计指标
-  const stats: StatCardProps[] = [
+  // 核心统计指标 (Primary stats)
+  const primaryStats: StatCardProps[] = [
     {
-      title: 'WIN 价格',
+      title: 'WINKLINK Price',
       value: `$${currentPrice.toFixed(6)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
-      icon: <Activity className="w-4 h-4" />,
+      icon: <Activity className="w-5 h-5" />,
       subtitle: '24h 变化',
       sparklineData: priceSparkline,
     },
     {
-      title: '市值',
+      title: 'Market Cap',
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
       change: '+8.3%',
       changeType: 'positive',
-      icon: <Shield className="w-4 h-4" />,
+      icon: <Shield className="w-5 h-5" />,
       subtitle: '30天增长',
     },
     {
-      title: 'TRON 生态集成度',
+      title: 'TRON Integration',
       value: '85%',
       change: '+2.1%',
       changeType: 'positive',
-      icon: <Globe className="w-4 h-4" />,
+      icon: <Globe className="w-5 h-5" />,
       subtitle: '本月提升',
     },
     {
-      title: '游戏数据支持',
+      title: 'Gaming Data Feeds',
       value: '20+',
       change: '+15%',
       changeType: 'positive',
-      icon: <Gamepad2 className="w-4 h-4" />,
+      icon: <Gamepad2 className="w-5 h-5" />,
       subtitle: '本周新增 3 个',
     },
+  ];
+
+  // 次要统计指标 (Secondary stats)
+  const secondaryStats: Omit<StatCardProps, 'sparklineData' | 'themeColor' | 'isPrimary'>[] = [
     {
-      title: '支持链数',
+      title: 'Supported Chains',
       value: `${config.supportedChains.length}+`,
       change: '0%',
       changeType: 'neutral',
@@ -448,7 +445,7 @@ export default function WinklinkHero({
       subtitle: '主流链覆盖',
     },
     {
-      title: '质押量',
+      title: 'Staking Amount',
       value: `${(config.marketData.circulatingSupply / 1e6).toFixed(0)}M`,
       change: '+5.7%',
       changeType: 'positive',
@@ -456,7 +453,7 @@ export default function WinklinkHero({
       subtitle: `APR 12%`,
     },
     {
-      title: '平均响应时间',
+      title: 'Avg Response Time',
       value: `${config.networkData.avgResponseTime}ms`,
       change: '-8%',
       changeType: 'positive',
@@ -464,7 +461,7 @@ export default function WinklinkHero({
       subtitle: '优于行业平均',
     },
     {
-      title: '网络正常运行时间',
+      title: 'Network Uptime',
       value: `${config.networkData.nodeUptime}%`,
       change: '+0.02%',
       changeType: 'positive',
@@ -481,22 +478,6 @@ export default function WinklinkHero({
     return Math.round(uptimeScore + responseScore + feedScore);
   }, [config]);
 
-  // 根据主题色设置按钮颜色
-  const getThemeButtonClass = () => {
-    if (themeColor === 'pink') {
-      return 'bg-pink-600 hover:bg-pink-700';
-    }
-    return 'bg-blue-600 hover:bg-blue-700';
-  };
-
-  // 根据主题色设置图标背景渐变
-  const getIconGradient = () => {
-    if (themeColor === 'pink') {
-      return 'bg-gradient-to-br from-pink-500 to-pink-700';
-    }
-    return 'bg-gradient-to-br from-blue-500 to-blue-700';
-  };
-
   return (
     <div className="bg-white border-b border-gray-200">
       {/* 顶部状态栏 */}
@@ -512,12 +493,13 @@ export default function WinklinkHero({
       </div>
 
       {/* 主要内容区 */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
         {/* 头部信息 */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             <div
-              className={`w-14 h-14 ${getIconGradient()} rounded-xl flex items-center justify-center shadow-lg`}
+              className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
             >
               <img src="/logos/oracles/winklink.svg" alt="WINkLink" className="w-8 h-8" />
             </div>
@@ -538,7 +520,8 @@ export default function WinklinkHero({
             </button>
             <button
               onClick={onExport}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${getThemeButtonClass()}`}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-colors shadow-sm"
+              style={{ backgroundColor: themeColor }}
             >
               <ExternalLink className="w-4 h-4" />
               {t('common.export')}
@@ -546,18 +529,24 @@ export default function WinklinkHero({
           </div>
         </div>
 
-        {/* 统计卡片网格 - 8个指标 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
-          {stats.map((stat, index) => (
-            <StatCard key={index} {...stat} themeColor={themeColor} />
+        {/* 核心统计指标 - 4列布局 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {primaryStats.map((stat, index) => (
+            <PrimaryStatCard key={index} {...stat} themeColor={themeColor} />
           ))}
         </div>
 
-        {/* 中间信息区 - 链上指标、网络健康度、多链支持 */}
+        {/* 次要统计指标 - 4列紧凑布局 */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3 mb-5">
+          {secondaryStats.map((stat, index) => (
+            <SecondaryStatCard key={index} {...stat} />
+          ))}
+        </div>
+
+        {/* 中间信息区 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <OnChainMetrics
             avgResponseTime={networkStats?.avgResponseTime ?? config.networkData.avgResponseTime}
-            nodeUptime={networkStats?.nodeUptime ?? config.networkData.nodeUptime}
             dataFeeds={networkStats?.dataFeeds ?? config.networkData.dataFeeds}
             themeColor={themeColor}
           />

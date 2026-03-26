@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { LoadingState, ErrorFallback, MobileMenuButton } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -109,20 +109,12 @@ export default function ChainlinkPage() {
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden">
-            <button
+            <MobileMenuButton
+              isOpen={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              {t('chainlink.menu.title')}
-            </button>
+              themeColor={config.themeColor}
+              label={t('chainlink.menu.title')}
+            />
           </div>
 
           {/* Mobile Sidebar */}

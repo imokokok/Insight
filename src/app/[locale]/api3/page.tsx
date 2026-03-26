@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { LoadingState, ErrorFallback, MobileMenuButton } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -17,6 +17,7 @@ import {
   API3Hero,
 } from './components';
 import { useAPI3Page } from './hooks/useAPI3Page';
+import { type API3TabId } from './types';
 
 export default function API3Page() {
   const {
@@ -137,6 +138,16 @@ export default function API3Page() {
             <div className="sticky top-6">
               <API3Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
             </div>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden">
+            <MobileMenuButton
+              isOpen={isMobileMenuOpen}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              themeColor={config.themeColor}
+              label={t('api3.menu.title')}
+            />
           </div>
 
           {/* Mobile Sidebar */}

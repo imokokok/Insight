@@ -323,12 +323,20 @@ export const getDataFreshness = (
   return { status: 'slow', color: 'text-danger-700' };
 };
 
-export const formatPrice = (price: number, decimals = 4): string => {
-  return formatPriceUtil(price, decimals);
+/**
+ * 自适应价格格式化
+ * 根据价格大小自动调整小数位数
+ */
+export const formatPrice = (price: number, _decimals?: number): string => {
+  // 忽略 decimals 参数，使用自适应格式化
+  return formatPriceUtil(price);
 };
 
+/**
+ * 格式化价格值（使用自适应精度）
+ */
 export const formatPriceValue = (price: number): string => {
-  return formatPriceUtil(price, 4);
+  return formatPriceUtil(price);
 };
 
 export const generateFilename = (symbol: string, extension: string): string => {

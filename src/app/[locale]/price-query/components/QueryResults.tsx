@@ -233,7 +233,7 @@ export function QueryResults({
       <DataQualityPanel results={queryResults} historicalData={historicalData} />
 
       {/* 数据源和导出区域 */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <DataSourceSection
           results={queryResults}
           lastUpdated={
@@ -258,26 +258,10 @@ export function QueryResults({
         />
       </div>
 
-      {/* 表格和图表区域 */}
-      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6">
-        {/* 价格结果表格 */}
-        <PriceResultsTable
-          results={queryResults}
-          filteredResults={filteredQueryResults}
-          filterText={filterText}
-          setFilterText={setFilterText}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onSort={onSort}
-          avgPrice={avgPrice}
-          selectedRow={selectedRow}
-          onRowSelect={onRowSelect}
-          historicalData={historicalData}
-          filterInputRef={filterInputRef}
-        />
-
-        {/* 价格图表 */}
-        <div ref={chartContainerRef} className="min-w-0">
+      {/* 图表和表格区域 - 2xl以上使用3:2比例布局 */}
+      <div className="grid grid-cols-1 2xl:grid-cols-5 gap-6">
+        {/* 价格图表 - 占3/5 */}
+        <div ref={chartContainerRef} className="min-w-0 2xl:col-span-3 order-1 2xl:order-1">
           <PriceChart
             chartData={chartData}
             queryResults={queryResults}
@@ -290,6 +274,24 @@ export function QueryResults({
             compareQueryResults={compareQueryResults}
             showBaseline={showBaseline}
             avgPrice={avgPrice}
+          />
+        </div>
+
+        {/* 价格结果表格 - 占2/5 */}
+        <div className="2xl:col-span-2 order-2 2xl:order-2">
+          <PriceResultsTable
+            results={queryResults}
+            filteredResults={filteredQueryResults}
+            filterText={filterText}
+            setFilterText={setFilterText}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={onSort}
+            avgPrice={avgPrice}
+            selectedRow={selectedRow}
+            onRowSelect={onRowSelect}
+            historicalData={historicalData}
+            filterInputRef={filterInputRef}
           />
         </div>
       </div>

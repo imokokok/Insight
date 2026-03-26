@@ -54,6 +54,22 @@
       "crossChain": "跨链",
       "crossOracle": "跨预言机分析"
     },
+    "risk": {
+      "metrics": "风险指标",
+      "metricsDesc": "去中心化、安全性和可靠性的关键绩效指标",
+      "overallScore": "综合评分",
+      "benchmark": "行业基准对比",
+      "benchmarkDesc": "与其他领先预言机提供商的性能比较",
+      "comparison": "详细对比",
+      "timeline": "历史风险事件",
+      "timelineDesc": "过去24个月的安全审计、事件和升级",
+      "eventDetails": "事件详情",
+      "clickEvent": "点击事件查看详情",
+      "factors": "风险因素分析",
+      "factorsDesc": "已识别风险类别的详细分解",
+      "disclaimer": "风险提示",
+      "disclaimerText": "所提供的风险评估仅供参考，不应被视为财务建议。加密货币投资存在重大风险，包括可能损失本金。过往业绩不能保证未来结果。在做出投资决策前，请进行自己的研究并咨询合格的财务顾问。"
+    },
     "riskAssessment": {
       "overallRiskScore": "综合风险评级",
       "comprehensiveAssessment": "综合风险评估",
@@ -96,6 +112,8 @@
       "requests30d": "30天请求",
       "avgGasCost": "平均Gas费用",
       "supportedSymbols": "支持的代币",
+      "supportedAssets": "支持的资产",
+      "requestDistribution": "请求分布",
       "ibcInfo": "IBC信息",
       "ibcTransfers": "IBC转账",
       "ibcChannels": "IBC通道",
@@ -140,6 +158,9 @@
     },
     "validators": {
       "totalValidators": "验证者总数",
+      "totalStaked": "总质押",
+      "votingPower": "投票权",
+      "jailedWarning": "{{count}} 个验证者被监禁",
       "active": "活跃",
       "avgCommission": "平均佣金",
       "networkAverage": "网络平均值",

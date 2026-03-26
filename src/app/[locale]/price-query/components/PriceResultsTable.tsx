@@ -65,13 +65,46 @@ export function PriceResultsTable({
   };
 
   // 计算价格偏差
-  const getPriceDeviation = (price: number): { value: string; color: string } => {
-    if (avgPrice === 0) return { value: '-', color: 'text-gray-400' };
+  const getPriceDeviation = (price: number): {
+    value: string;
+    textColor: string;
+    bgColor: string;
+    indicatorColor: string;
+  } => {
+    if (avgPrice === 0) {
+      return {
+        value: '-',
+        textColor: 'text-gray-400',
+        bgColor: '',
+        indicatorColor: '',
+      };
+    }
     const deviation = ((price - avgPrice) / avgPrice) * 100;
     const formatted = deviation >= 0 ? `+${deviation.toFixed(2)}%` : `${deviation.toFixed(2)}%`;
-    if (Math.abs(deviation) < 0.1) return { value: formatted, color: 'text-success-600' };
-    if (Math.abs(deviation) < 0.5) return { value: formatted, color: 'text-warning-600' };
-    return { value: formatted, color: 'text-danger-600' };
+    const absDeviation = Math.abs(deviation);
+
+    if (absDeviation < 0.1) {
+      return {
+        value: formatted,
+        textColor: 'text-emerald-600',
+        bgColor: 'bg-emerald-50/60',
+        indicatorColor: 'border-l-emerald-500',
+      };
+    }
+    if (absDeviation < 0.5) {
+      return {
+        value: formatted,
+        textColor: 'text-amber-600',
+        bgColor: 'bg-amber-50/60',
+        indicatorColor: 'border-l-amber-500',
+      };
+    }
+    return {
+      value: formatted,
+      textColor: 'text-red-600',
+      bgColor: 'bg-red-50/60',
+      indicatorColor: 'border-l-red-500',
+    };
   };
 
   // 格式化时间
@@ -270,8 +303,12 @@ export function PriceResultsTable({
                         })}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className={`text-xs font-medium ${deviation.color}`}>
+                    <td
+                      className={`px-4 py-3 text-right relative border-l-[3px] ${deviation.indicatorColor} ${
+                        !isSelected && deviation.bgColor ? deviation.bgColor : ''
+                      }`}
+                    >
+                      <span className={`text-xs font-medium ${deviation.textColor}`}>
                         {deviation.value}
                       </span>
                     </td>
