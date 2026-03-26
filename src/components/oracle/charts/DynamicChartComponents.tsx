@@ -9,7 +9,7 @@ import { ChartSkeleton, MiniChartSkeleton } from '@/components/ui';
 // ============================================================================
 
 function createChartLoading(height: number = 400, variant: 'price' | 'mini' | 'heatmap' = 'price') {
-  return function LoadingComponent({ error }: { error?: Error }) {
+  return function LoadingComponent({ error }: { error?: Error | null }) {
     if (error) {
       return (
         <div 
@@ -23,7 +23,9 @@ function createChartLoading(height: number = 400, variant: 'price' | 'mini' | 'h
     if (variant === 'mini') {
       return <MiniChartSkeleton />;
     }
-    return <ChartSkeleton height={height} showToolbar={variant === 'price'} variant={variant} />;
+    // 'heatmap' variant uses 'area' skeleton as fallback
+    const skeletonVariant = variant === 'heatmap' ? 'area' : variant;
+    return <ChartSkeleton height={height} showToolbar={variant === 'price'} variant={skeletonVariant} />;
   };
 }
 
