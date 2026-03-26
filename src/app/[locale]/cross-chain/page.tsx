@@ -1,31 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { useRouter } from 'next/navigation';
-import { useCrossChainData } from './useCrossChainData';
+
+import { CorrelationMatrix } from './components/CorrelationMatrix';
 import { CrossChainFilters } from './components/CrossChainFilters';
 import { PriceSpreadHeatmap, HeatmapDetailView } from './components/PriceSpreadHeatmap';
 import { PriceComparisonTable } from './components/PriceComparisonTable';
-import { CorrelationMatrix } from './components/CorrelationMatrix';
 import { RollingCorrelationChart } from './components/RollingCorrelationChart';
 import { CointegrationAnalysis } from './components/CointegrationAnalysis';
+import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './components/SmallComponents';
 import { StandardBoxPlot } from './components/StandardBoxPlot';
 import { InteractivePriceChart } from './components/InteractivePriceChart';
 import { VolatilitySurface } from './components/VolatilitySurface';
-import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './components/SmallComponents';
 import { CompactStatsGrid } from './components/CompactStatsGrid';
-import { EmptyStateEnhanced } from '@/components/ui';
-import { ErrorDisplay } from '@/components/ui';
-import {
+
+import { EmptyStateEnhanced , ErrorDisplay ,
   ProgressBar as LoadingProgressBar,
   DataLoadingProgress,
-} from '@/components/ui';
+  LiveStatusBar , SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
 import { TabNavigation, TabId } from './components/TabNavigation';
 import { CollapsibleSection } from './components/CollapsibleSection';
 import { DataSourceSection } from './components/DataSourceSection';
 import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';
-import { LiveStatusBar } from '@/components/ui';
 import {
   BarChart,
   Bar,
@@ -50,13 +48,13 @@ import {
 import { ChainStats, RefreshInterval } from './constants';
 import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStore';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
 import { FavoriteButton } from '@/components/favorites';
 import type { FavoriteConfig } from '@/hooks';
-import { Network } from 'lucide-react';
-import { Download } from 'lucide-react';
-import { RefreshCw } from 'lucide-react';
-import { Eye } from 'lucide-react';
+
+import { Network , Download , RefreshCw , Eye } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+
+import { useCrossChainData } from './useCrossChainData';
 
 export default function CrossChainPage() {
   const t = useTranslations();
@@ -544,12 +542,8 @@ export default function CrossChainPage() {
         <div className="flex flex-col gap-3 mb-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                {t('crossChain.title')}
-              </h1>
-              <p className="text-sm mt-1 text-gray-500">
-                {t('crossOracle.subtitle')}
-              </p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t('crossChain.title')}</h1>
+              <p className="text-sm mt-1 text-gray-500">{t('crossOracle.subtitle')}</p>
             </div>
 
             {/* Header Controls */}
@@ -678,11 +672,7 @@ export default function CrossChainPage() {
                 <Eye className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('crossChain.colorblindFriendly')}</span>
                 {colorblindMode && (
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -726,7 +716,9 @@ export default function CrossChainPage() {
                         : baseColors.gray[900],
                 }}
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${refreshStatus === 'refreshing' ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-3.5 h-3.5 ${refreshStatus === 'refreshing' ? 'animate-spin' : ''}`}
+                />
                 {refreshStatus === 'refreshing'
                   ? t('status.loading')
                   : showRefreshSuccess

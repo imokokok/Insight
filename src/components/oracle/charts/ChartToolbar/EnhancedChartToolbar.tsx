@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+
 import { useTranslations } from '@/i18n';
-import { ChartExportButton } from '../../forms/ChartExportButton';
-import { ChartExportData } from '@/utils/chartExport';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
+import { type ChartExportData } from '@/utils/chartExport';
+
+import { ChartExportButton } from '../../forms/ChartExportButton';
 
 const logger = createLogger('EnhancedChartToolbar');
 
@@ -225,7 +227,9 @@ function PriceDisplay({ symbol, currentPrice, priceChange, isMobile = false }: P
           >
             ${currentPrice.toFixed(4)}
           </span>
-          <span className={`text-sm font-medium ${isPositive ? 'text-success-600' : 'text-danger-600'}`}>
+          <span
+            className={`text-sm font-medium ${isPositive ? 'text-success-600' : 'text-danger-600'}`}
+          >
             {isPositive ? '+' : ''}
             {priceChange.percent.toFixed(2)}%
           </span>

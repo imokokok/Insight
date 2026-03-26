@@ -1,15 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
-import { WinklinkDataTable } from './WinklinkDataTable';
-import { StakingRewardsCalculator } from './StakingRewardsCalculator';
-import { WinklinkStakingViewProps, SortConfig, StakingNode } from '../types';
+
 import { Activity, Clock, Shield, Award, Server, TrendingUp } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
+
+import { type WinklinkStakingViewProps, type SortConfig, type StakingNode } from '../types';
+
+import { StakingRewardsCalculator } from './StakingRewardsCalculator';
+import { WinklinkDataTable } from './WinklinkDataTable';
 
 export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewProps) {
   const t = useTranslations();
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'stakedAmount', direction: 'desc' });
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: 'stakedAmount',
+    direction: 'desc',
+  });
 
   const stakingData = staking || {
     totalStaked: 45000000,
@@ -95,7 +102,9 @@ export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewP
       header: t('winklink.staking.tier'),
       sortable: true,
       render: (item: StakingNode) => (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white capitalize ${tierColors[item.tier]}`}>
+        <span
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white capitalize ${tierColors[item.tier]}`}
+        >
           {item.tier}
         </span>
       ),
@@ -121,12 +130,16 @@ export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewP
       header: t('winklink.staking.status'),
       sortable: false,
       render: (item: StakingNode) => (
-        <span className={`inline-flex items-center gap-1 text-xs font-medium ${
-          item.status === 'active' ? 'text-emerald-600' : 'text-red-600'
-        }`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${
-            item.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
-          }`} />
+        <span
+          className={`inline-flex items-center gap-1 text-xs font-medium ${
+            item.status === 'active' ? 'text-emerald-600' : 'text-red-600'
+          }`}
+        >
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              item.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
+            }`}
+          />
           {item.status === 'active' ? 'Active' : 'Inactive'}
         </span>
       ),
@@ -142,7 +155,9 @@ export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewP
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{t('winklink.staking.totalStaked')}</span>
-          <span className="text-lg font-semibold text-gray-900">${(stakingData.totalStaked / 1e6).toFixed(1)}M</span>
+          <span className="text-lg font-semibold text-gray-900">
+            ${(stakingData.totalStaked / 1e6).toFixed(1)}M
+          </span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
@@ -161,7 +176,9 @@ export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewP
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{t('winklink.staking.rewardPool')}</span>
-          <span className="text-lg font-semibold text-gray-900">${(stakingData.rewardPool / 1e6).toFixed(2)}M</span>
+          <span className="text-lg font-semibold text-gray-900">
+            ${(stakingData.rewardPool / 1e6).toFixed(2)}M
+          </span>
         </div>
       </div>
 
@@ -205,8 +222,13 @@ export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewP
                 return (
                   <div key={tier.tier}>
                     <div className="flex items-center justify-between text-sm mb-1.5">
-                      <span className={`font-medium capitalize ${tierTextColors[tier.tier]}`}>{tier.tier}</span>
-                      <span className="text-gray-900">{tier.nodeCount} <span className="text-gray-400">({percentage.toFixed(1)}%)</span></span>
+                      <span className={`font-medium capitalize ${tierTextColors[tier.tier]}`}>
+                        {tier.tier}
+                      </span>
+                      <span className="text-gray-900">
+                        {tier.nodeCount}{' '}
+                        <span className="text-gray-400">({percentage.toFixed(1)}%)</span>
+                      </span>
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-1.5">
                       <div
@@ -216,7 +238,10 @@ export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewP
                     </div>
                     <div className="flex justify-between text-xs text-gray-500 mt-1">
                       <span>{tier.apr}% APR</span>
-                      <span>{(tier.minStake / 1e3).toFixed(0)}K - {(tier.maxStake / 1e6).toFixed(1)}M WIN</span>
+                      <span>
+                        {(tier.minStake / 1e3).toFixed(0)}K - {(tier.maxStake / 1e6).toFixed(1)}M
+                        WIN
+                      </span>
                     </div>
                   </div>
                 );
@@ -242,7 +267,7 @@ export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewP
               <div className="flex justify-between">
                 <span className="text-gray-500">Top Tier Nodes</span>
                 <span className="font-medium text-gray-900">
-                  {stakingData.stakingTiers.find(t => t.tier === 'platinum')?.nodeCount || 0}
+                  {stakingData.stakingTiers.find((t) => t.tier === 'platinum')?.nodeCount || 0}
                 </span>
               </div>
               <div className="flex justify-between">

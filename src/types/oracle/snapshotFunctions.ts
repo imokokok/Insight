@@ -1,6 +1,7 @@
 import { createLogger } from '@/lib/utils/logger';
-import { OracleSnapshot, SnapshotStats, SnapshotComparisonResult } from './snapshot';
-import { PriceData } from './price';
+
+import { type PriceData } from './price';
+import { type OracleSnapshot, type SnapshotStats, type SnapshotComparisonResult } from './snapshot';
 
 const logger = createLogger('snapshot-types');
 

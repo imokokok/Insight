@@ -2,14 +2,14 @@
  * @fileoverview Tests for /api/health route
  */
 
+import { getSupabaseClient } from '@/lib/supabase/client';
+
 import { GET } from './route';
 
 // Mock Supabase client
 jest.mock('@/lib/supabase/client', () => ({
   getSupabaseClient: jest.fn(),
 }));
-
-import { getSupabaseClient } from '@/lib/supabase/client';
 
 describe('/api/health', () => {
   beforeEach(() => {

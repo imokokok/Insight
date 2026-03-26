@@ -1,10 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { DataSourceList, DataSourceGroup } from '@/components/data-transparency';
-import { PriceData } from '@/types/oracle';
 import { useMemo } from 'react';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+
+import { DataSourceList, type DataSourceGroup } from '@/components/data-transparency';
+import { useTranslations } from '@/i18n';
+import { type PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 
 interface DataSourcePanelProps {
   priceData: PriceData[];

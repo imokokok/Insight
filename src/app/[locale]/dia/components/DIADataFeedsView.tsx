@@ -1,15 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
-import { useDIACustomFeeds, useDIADataTransparency } from '@/hooks';
+
 import { formatDistanceToNow } from 'date-fns';
-import { Activity } from 'lucide-react';
-import { CheckCircle2 } from 'lucide-react';
-import { Database } from 'lucide-react';
-import { Shield } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Clock } from 'lucide-react';
+import { Activity, CheckCircle2, Database, Shield, TrendingUp, Clock } from 'lucide-react';
+
+import { useDIACustomFeeds, useDIADataTransparency } from '@/hooks';
+import { useTranslations } from '@/i18n';
 
 const categories = [
   { id: 'all', label: 'All' },
@@ -26,14 +23,16 @@ export function DIADataFeedsView() {
   const { customFeeds, isLoading: feedsLoading } = useDIACustomFeeds();
   const { dataTransparency, isLoading: transparencyLoading } = useDIADataTransparency();
 
-  const activeFeeds = customFeeds.filter(feed => feed.status === 'active');
-  const avgConfidence = customFeeds.length > 0
-    ? customFeeds.reduce((acc, feed) => acc + feed.confidence, 0) / customFeeds.length
-    : 0;
+  const activeFeeds = customFeeds.filter((feed) => feed.status === 'active');
+  const avgConfidence =
+    customFeeds.length > 0
+      ? customFeeds.reduce((acc, feed) => acc + feed.confidence, 0) / customFeeds.length
+      : 0;
 
-  const filteredFeeds = selectedCategory === 'all'
-    ? customFeeds
-    : customFeeds.filter(feed => feed.assetType === selectedCategory);
+  const filteredFeeds =
+    selectedCategory === 'all'
+      ? customFeeds
+      : customFeeds.filter((feed) => feed.assetType === selectedCategory);
 
   const getAssetTypeLabel = (type: string) => {
     switch (type) {
@@ -85,7 +84,9 @@ export function DIADataFeedsView() {
         <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('dia.dataFeeds.total')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('dia.dataFeeds.total')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">
               {feedsLoading ? '-' : customFeeds.length}
             </p>
@@ -95,7 +96,9 @@ export function DIADataFeedsView() {
         <div className="flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('dia.dataFeeds.active')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('dia.dataFeeds.active')}
+            </p>
             <p className="text-xl font-semibold text-emerald-600">
               {feedsLoading ? '-' : activeFeeds.length}
             </p>
@@ -105,7 +108,9 @@ export function DIADataFeedsView() {
         <div className="flex items-center gap-3">
           <Shield className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('dia.dataFeeds.avgConfidence')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('dia.dataFeeds.avgConfidence')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">
               {feedsLoading ? '-' : `${(avgConfidence * 100).toFixed(1)}%`}
             </p>
@@ -115,7 +120,9 @@ export function DIADataFeedsView() {
         <div className="flex items-center gap-3">
           <Database className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('dia.dataFeeds.dataSources')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('dia.dataFeeds.dataSources')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">
               {transparencyLoading ? '-' : dataTransparency.length}
             </p>
@@ -136,12 +143,14 @@ export function DIADataFeedsView() {
             }`}
           >
             {category.label}
-            <span className={`text-xs ${
-              selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
-            }`}>
-              {category.id === 'all' 
-                ? customFeeds.length 
-                : customFeeds.filter(f => f.assetType === category.id).length}
+            <span
+              className={`text-xs ${
+                selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
+              }`}
+            >
+              {category.id === 'all'
+                ? customFeeds.length
+                : customFeeds.filter((f) => f.assetType === category.id).length}
             </span>
           </button>
         ))}
@@ -222,8 +231,12 @@ export function DIADataFeedsView() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${getStatusTextColor(feed.status)}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${getStatusColor(feed.status)}`} />
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-sm font-medium ${getStatusTextColor(feed.status)}`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${getStatusColor(feed.status)}`}
+                          />
                           {feed.status.charAt(0).toUpperCase() + feed.status.slice(1)}
                         </span>
                       </td>
@@ -287,7 +300,7 @@ export function DIADataFeedsView() {
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                       {t('common.loading')}
-                  </td>
+                    </td>
                   </tr>
                 ) : dataTransparency.length === 0 ? (
                   <tr>
@@ -315,14 +328,16 @@ export function DIADataFeedsView() {
                               style={{ width: `${source.credibilityScore}%` }}
                             />
                           </div>
-                          <span className="text-sm text-gray-600">
-                            {source.credibilityScore}%
-                          </span>
+                          <span className="text-sm text-gray-600">{source.credibilityScore}%</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${getStatusTextColor(source.status)}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${getStatusColor(source.status)}`} />
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-sm font-medium ${getStatusTextColor(source.status)}`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${getStatusColor(source.status)}`}
+                          />
                           {source.status.charAt(0).toUpperCase() + source.status.slice(1)}
                         </span>
                       </td>
@@ -349,22 +364,34 @@ export function DIADataFeedsView() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">{t('dia.dataFeeds.confidence') || 'Confidence Score'}:</span>
-              {' '}{t('dia.dataFeeds.confidenceDesc') || 'Measures the reliability of data sources based on historical accuracy and verification methods.'}
+              <span className="font-medium text-gray-900">
+                {t('dia.dataFeeds.confidence') || 'Confidence Score'}:
+              </span>{' '}
+              {t('dia.dataFeeds.confidenceDesc') ||
+                'Measures the reliability of data sources based on historical accuracy and verification methods.'}
             </p>
             <p>
-              <span className="font-medium text-gray-900">{t('dia.dataFeeds.multiChain') || 'Multi-Chain Support'}:</span>
-              {' '}{t('dia.dataFeeds.multiChainDesc') || 'DIA data feeds are available across multiple blockchain networks for maximum interoperability.'}
+              <span className="font-medium text-gray-900">
+                {t('dia.dataFeeds.multiChain') || 'Multi-Chain Support'}:
+              </span>{' '}
+              {t('dia.dataFeeds.multiChainDesc') ||
+                'DIA data feeds are available across multiple blockchain networks for maximum interoperability.'}
             </p>
           </div>
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">{t('dia.dataFeeds.transparency') || 'Data Transparency'}:</span>
-              {' '}{t('dia.dataFeeds.transparencyDesc') || 'All data sources are publicly verified with credibility scores and transparent verification methods.'}
+              <span className="font-medium text-gray-900">
+                {t('dia.dataFeeds.transparency') || 'Data Transparency'}:
+              </span>{' '}
+              {t('dia.dataFeeds.transparencyDesc') ||
+                'All data sources are publicly verified with credibility scores and transparent verification methods.'}
             </p>
             <p>
-              <span className="font-medium text-gray-900">{t('dia.dataFeeds.customFeeds') || 'Custom Feeds'}:</span>
-              {' '}{t('dia.dataFeeds.customFeedsDesc') || 'DIA supports custom data feeds for specific assets, NFT collections, and specialized use cases.'}
+              <span className="font-medium text-gray-900">
+                {t('dia.dataFeeds.customFeeds') || 'Custom Feeds'}:
+              </span>{' '}
+              {t('dia.dataFeeds.customFeedsDesc') ||
+                'DIA supports custom data feeds for specific assets, NFT collections, and specialized use cases.'}
             </p>
           </div>
         </div>

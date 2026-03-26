@@ -1,6 +1,10 @@
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/types/oracle';
-import { BandNetworkStats, ValidatorInfo, CrossChainStats } from '@/lib/oracles/bandProtocol';
+import { type OracleConfig } from '@/lib/config/oracles';
+import {
+  type BandNetworkStats,
+  type ValidatorInfo,
+  type CrossChainStats,
+} from '@/lib/oracles/bandProtocol';
+import { type PriceData } from '@/types/oracle';
 
 export type BandProtocolTabId =
   | 'market'

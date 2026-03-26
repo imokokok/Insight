@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+
 import {
   LineChart,
   AreaChart,
@@ -10,8 +11,9 @@ import {
   ChevronDown,
   Settings,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
 import { baseColors } from '@/lib/config/colors';
+import { cn } from '@/lib/utils';
 
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '1Y' | 'ALL';
 export type ChartType = 'line' | 'area' | 'candle';
@@ -35,7 +37,7 @@ const timeRangeLabels: Record<TimeRange, string> = {
   '7D': '7D',
   '30D': '30D',
   '1Y': '1Y',
-  'ALL': 'ALL',
+  ALL: 'ALL',
 };
 
 const chartTypeConfig: Record<ChartType, { label: string; icon: typeof LineChart }> = {

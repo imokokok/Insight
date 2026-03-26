@@ -1,23 +1,27 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
-import { UMAClient } from '@/lib/oracles/uma';
-import { getOracleConfig } from '@/lib/config/oracles';
-import { OracleProvider, PriceData } from '@/types/oracle';
+
 import { useRefresh, useExport } from '@/hooks';
-import { UmaTabId } from '../types';
+import { useTranslations } from '@/i18n';
+import { getOracleConfig } from '@/lib/config/oracles';
+import { UMAClient } from '@/lib/oracles/uma';
 import {
-  ValidatorData,
-  DisputeData,
-  UMANetworkStats,
+  type ValidatorData,
+  type DisputeData,
+  type UMANetworkStats,
 } from '@/lib/oracles/uma/types';
+import { OracleProvider, type PriceData } from '@/types/oracle';
+
+import { type UmaTabId } from '../types';
 
 export function useUmaPage() {
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState<UmaTabId>('market');
   const [price, setPrice] = useState<PriceData | null>(null);
-  const [historicalData, setHistoricalData] = useState<ReturnType<UMAClient['getHistoricalPrices']> extends Promise<infer T> ? T : never>([]);
+  const [historicalData, setHistoricalData] = useState<
+    ReturnType<UMAClient['getHistoricalPrices']> extends Promise<infer T> ? T : never
+  >([]);
   const [networkStats, setNetworkStats] = useState<UMANetworkStats | null>(null);
   const [validators, setValidators] = useState<ValidatorData[]>([]);
   const [disputes, setDisputes] = useState<DisputeData[]>([]);

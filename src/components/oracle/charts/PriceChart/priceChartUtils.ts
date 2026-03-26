@@ -1,10 +1,11 @@
-import { HistoricalPricePoint } from '@/lib/oracles/bandProtocol';
-import { IndicatorDataPoint } from '@/hooks';
+import { type IndicatorDataPoint } from '@/hooks';
+import { type HistoricalPricePoint } from '@/lib/oracles/bandProtocol';
 import { createLogger } from '@/lib/utils/logger';
+
 import {
-  TimeRange,
-  DataGranularity,
-  ConfidenceLevel,
+  type TimeRange,
+  type DataGranularity,
+  type ConfidenceLevel,
   TIME_RANGE_CONFIG,
   GRANULARITY_CONFIG,
   CONFIDENCE_Z_SCORES,

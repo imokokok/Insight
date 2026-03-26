@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
+
 import type { PriceUpdatePayload } from '@/lib/supabase/realtime';
+import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 import type { OracleProvider, Blockchain } from '@/types/oracle';
 
 export interface RealtimePriceData {

@@ -1,17 +1,21 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { PriceData, OracleProvider } from '@/types/oracle';
+
+import {
+  Info,
+  ArrowUp,
+  ArrowDown,
+  Minus,
+  TrendingUp,
+  Shield,
+  Zap,
+  Clock,
+  Activity,
+} from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Info } from 'lucide-react';
-import { ArrowUp } from 'lucide-react';
-import { ArrowDown } from 'lucide-react';
-import { Minus } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Shield } from 'lucide-react';
-import { Zap } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { Activity } from 'lucide-react';
+import { type PriceData, type OracleProvider } from '@/types/oracle';
 
 interface OracleReliabilityMatrixProps {
   priceData: PriceData[];

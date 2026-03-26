@@ -18,6 +18,9 @@
     "warning": "Warning",
     "dataSource": "Data Source",
     "networkStatus": "Network Status",
+    "volume24h": "24h Volume",
+    "liquidity": "Liquidity",
+    "marketDepth": "Market Depth",
     "tabs": {
       "market": "Market",
       "makerdao": "MakerDAO",
@@ -29,6 +32,7 @@
     },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
+    "tradingPair": "Trading Pair",
     "stats": {
       "activeValidators": "Active Validators",
       "makerDAOSupport": "MakerDAO Support",
@@ -131,6 +135,7 @@
       "total": "Total Validators",
       "active": "Active Validators",
       "avgReputation": "Average Reputation",
+      "avgSuccess": "Avg Success Rate",
       "totalStaked": "Total Staked",
       "networkHealth": "Network Health",
       "list": "Validators List",

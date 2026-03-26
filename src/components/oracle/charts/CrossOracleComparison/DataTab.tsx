@@ -1,12 +1,17 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { OracleProvider } from '@/types/oracle';
-import { PriceComparisonData, DeviationData, OraclePerformance } from './crossOracleConfig';
+import { type OracleProvider } from '@/types/oracle';
+
 import { CollapsiblePanel } from './CollapsiblePanel';
-import { PriceComparisonTable } from './PriceComparisonTable';
+import {
+  type PriceComparisonData,
+  type DeviationData,
+  type OraclePerformance,
+} from './crossOracleConfig';
 import { DeviationTable } from './DeviationTable';
 import { PerformanceTable } from './PerformanceTable';
+import { PriceComparisonTable } from './PriceComparisonTable';
 
 interface PriceStats {
   avg: number;

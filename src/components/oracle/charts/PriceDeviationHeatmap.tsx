@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { OracleProvider } from '@/types/oracle';
+import { useTranslations } from '@/i18n';
 import { heatmapColors, baseColors } from '@/lib/config/colors';
+import { OracleProvider } from '@/types/oracle';
 
 export interface PriceDeviationDataPoint {
   timestamp: number;
@@ -215,15 +216,21 @@ export function PriceDeviationHeatmap({
       <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-primary-50  p-3 text-center">
-            <p className="text-xs text-primary-600 mb-1">{t('priceDeviationHeatmap.avgDeviation')}</p>
+            <p className="text-xs text-primary-600 mb-1">
+              {t('priceDeviationHeatmap.avgDeviation')}
+            </p>
             <p className="text-xl font-bold text-primary-700">{stats.avgDeviation.toFixed(3)}%</p>
           </div>
           <div className="bg-danger-50  p-3 text-center">
-            <p className="text-xs text-danger-600 mb-1">{t('priceDeviationHeatmap.maxDeviation')}</p>
+            <p className="text-xs text-danger-600 mb-1">
+              {t('priceDeviationHeatmap.maxDeviation')}
+            </p>
             <p className="text-xl font-bold text-danger-700">{stats.maxDeviation.toFixed(3)}%</p>
           </div>
           <div className="bg-success-50  p-3 text-center">
-            <p className="text-xs text-success-600 mb-1">{t('priceDeviationHeatmap.minDeviation')}</p>
+            <p className="text-xs text-success-600 mb-1">
+              {t('priceDeviationHeatmap.minDeviation')}
+            </p>
             <p className="text-xl font-bold text-success-700">{stats.minDeviation.toFixed(3)}%</p>
           </div>
           <div className="bg-warning-50  p-3 text-center">

@@ -1,7 +1,8 @@
 'use client';
 
+import { type OracleProvider, type Blockchain } from '@/lib/oracles';
+
 import { Selectors } from './Selectors';
-import { OracleProvider, Blockchain } from '@/lib/oracles';
 
 interface QueryFormProps {
   selectedOracles: OracleProvider[];

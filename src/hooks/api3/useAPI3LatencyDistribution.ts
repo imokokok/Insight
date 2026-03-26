@@ -1,7 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+
 import { API3Client } from '@/lib/oracles/api3';
 
 const api3Client = new API3Client();

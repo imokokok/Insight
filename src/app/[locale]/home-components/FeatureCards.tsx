@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useTranslations } from '@/i18n';
+
+import Link from 'next/link';
+
 import {
   Search,
   GitCompare,
@@ -13,7 +15,6 @@ import {
   BarChart3,
   LineChart,
 } from 'lucide-react';
-import Link from 'next/link';
 import {
   AreaChart,
   Area,
@@ -23,10 +24,11 @@ import {
   LineChart as ReLineChart,
   Line,
 } from 'recharts';
-import { chartColors } from '@/lib/config/colors';
-import { useRoutePrefetch } from '@/hooks';
 
 import { Icon } from '@/components/ui';
+import { useRoutePrefetch } from '@/hooks';
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
 
 interface FeatureCard {
   id: string;

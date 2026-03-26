@@ -18,8 +18,10 @@ import {
   Landmark,
   Gamepad2,
 } from 'lucide-react';
-import { NavStructure } from './types';
+
 import { oracleColors } from '@/lib/constants';
+
+import { type NavStructure } from './types';
 
 export const navigationConfig: NavStructure = [
   {

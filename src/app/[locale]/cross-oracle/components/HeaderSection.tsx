@@ -1,10 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+
 import { FavoriteButton } from '@/components/favorites';
-import { OracleProvider } from '@/types/oracle';
+import { type FavoriteConfig } from '@/hooks';
+import { type OracleProvider } from '@/types/oracle';
+
 import { oracleNames } from '../constants';
-import { FavoriteConfig } from '@/hooks';
 
 interface HeaderSectionProps {
   selectedSymbol: string;
@@ -67,7 +69,12 @@ export function HeaderSection({
                 {isLoading ? (
                   <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"

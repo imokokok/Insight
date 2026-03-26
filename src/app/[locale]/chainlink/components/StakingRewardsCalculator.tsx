@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { Calculator, TrendingUp, Clock, Calendar, AlertCircle, Info } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 
 type ScenarioType = 'conservative' | 'moderate' | 'optimistic';
 
@@ -164,9 +166,7 @@ export function StakingRewardsCalculator() {
           <span className="text-xs font-medium text-gray-500">
             {t('chainlink.nodes.expectedRewards')}
           </span>
-          <span className="text-xs font-medium text-gray-700">
-            {scenario.apy}% APY
-          </span>
+          <span className="text-xs font-medium text-gray-700">{scenario.apy}% APY</span>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
@@ -175,7 +175,9 @@ export function StakingRewardsCalculator() {
               <Clock className="w-3 h-3 text-gray-400" />
               <span className="text-xs text-gray-400">{t('chainlink.nodes.daily')}</span>
             </div>
-            <div className="text-sm font-semibold text-gray-900">{formatCurrency(rewards.daily)}</div>
+            <div className="text-sm font-semibold text-gray-900">
+              {formatCurrency(rewards.daily)}
+            </div>
             <div className="text-xs text-gray-400">LINK</div>
           </div>
 
@@ -184,7 +186,9 @@ export function StakingRewardsCalculator() {
               <Calendar className="w-3 h-3 text-gray-400" />
               <span className="text-xs text-gray-400">{t('chainlink.nodes.monthly')}</span>
             </div>
-            <div className="text-sm font-semibold text-gray-900">{formatCurrency(rewards.monthly)}</div>
+            <div className="text-sm font-semibold text-gray-900">
+              {formatCurrency(rewards.monthly)}
+            </div>
             <div className="text-xs text-gray-400">LINK</div>
           </div>
 
@@ -193,7 +197,9 @@ export function StakingRewardsCalculator() {
               <TrendingUp className="w-3 h-3 text-gray-400" />
               <span className="text-xs text-gray-400">{t('chainlink.nodes.yearly')}</span>
             </div>
-            <div className="text-sm font-semibold text-gray-900">{formatCurrency(rewards.yearly)}</div>
+            <div className="text-sm font-semibold text-gray-900">
+              {formatCurrency(rewards.yearly)}
+            </div>
             <div className="text-xs text-gray-400">LINK</div>
           </div>
         </div>

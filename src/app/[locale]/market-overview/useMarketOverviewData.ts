@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import {
   OracleMarketData,
   AssetData,
-  MarketStats,
-  ChartType,
-  ViewType,
-  UseMarketOverviewDataReturn,
+  type MarketStats,
+  type ChartType,
+  type ViewType,
+  type UseMarketOverviewDataReturn,
 } from './types';
 import { useDataFetching } from './useDataFetching';
 import { useExport } from './useExport';

@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+
 import Link from 'next/link';
-import { useTranslations } from '@/i18n';
+import { useSearchParams } from 'next/navigation';
+
 import { Mail, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 import { supabase } from '@/lib/supabase/client';
 
 function ResendVerificationContent() {

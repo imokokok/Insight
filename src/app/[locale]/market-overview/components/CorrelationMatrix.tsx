@@ -1,18 +1,16 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { CorrelationData, CorrelationPair } from '../types';
+
+import { BarChart3, Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+
+import { SegmentedControl } from '@/components/ui';
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import { BarChart3 } from 'lucide-react';
-import { Info } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
-import { Minus } from 'lucide-react';
-import { semanticColors, baseColors } from '@/lib/config/colors';
-import { SegmentedControl } from '@/components/ui';
-
 import { chartColors, getChartColor } from '@/lib/chartColors';
+import { semanticColors, baseColors } from '@/lib/config/colors';
+
+import { type CorrelationData, type CorrelationPair } from '../types';
 
 interface CorrelationMatrixProps {
   data: CorrelationData;

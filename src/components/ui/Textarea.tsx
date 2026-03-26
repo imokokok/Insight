@@ -1,6 +1,7 @@
 'use client';
 
-import { forwardRef, TextareaHTMLAttributes, useState } from 'react';
+import { forwardRef, type TextareaHTMLAttributes, useState } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -51,10 +52,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={textareaId}
-            className="block text-sm font-medium text-gray-700 mb-1.5"
-          >
+          <label htmlFor={textareaId} className="block text-sm font-medium text-gray-700 mb-1.5">
             {label}
           </label>
         )}
@@ -80,22 +78,12 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         />
         <div className="flex items-center justify-between mt-1.5">
           {(error || helperText) && (
-            <p
-              className={cn(
-                'text-sm',
-                error ? 'text-danger-600' : 'text-gray-500'
-              )}
-            >
+            <p className={cn('text-sm', error ? 'text-danger-600' : 'text-gray-500')}>
               {error || helperText}
             </p>
           )}
           {(showCharacterCount || maxLength) && (
-            <p
-              className={cn(
-                'text-xs text-gray-400 ml-auto',
-                !error && !helperText && 'mt-1.5'
-              )}
-            >
+            <p className={cn('text-xs text-gray-400 ml-auto', !error && !helperText && 'mt-1.5')}>
               {characterCount}
               {maxLength && ` / ${maxLength}`}
             </p>

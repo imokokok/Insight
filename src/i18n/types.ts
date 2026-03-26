@@ -1,7 +1,7 @@
 // 类型定义文件 - 将在迁移完成后启用完整类型
 // 目前使用动态类型以支持渐进式迁移
 
-import { Locale } from './config';
+import { type Locale } from './config';
 
 export type { Locale };
 

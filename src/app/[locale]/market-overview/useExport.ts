@@ -1,8 +1,15 @@
 'use client';
 
 import { useCallback } from 'react';
-import { OracleMarketData, AssetData, TVSTrendData, MarketStats } from './types';
+
 import { checkApiHealth } from '@/lib/services/marketData';
+
+import {
+  type OracleMarketData,
+  type AssetData,
+  type TVSTrendData,
+  type MarketStats,
+} from './types';
 
 export interface UseExportReturn {
   exportToCSV: () => void;

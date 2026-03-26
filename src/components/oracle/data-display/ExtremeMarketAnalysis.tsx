@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
+
+import { type ExtremeMarketEvent } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { ExtremeMarketEvent } from '@/hooks';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface ExtremeMarketAnalysisProps {

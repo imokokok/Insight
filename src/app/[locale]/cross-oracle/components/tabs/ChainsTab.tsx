@@ -1,7 +1,7 @@
 'use client';
 
-import { ChainCoverageHeatmap } from '@/components/oracle/charts/ChainCoverageHeatmap';
 import { ChainSelector } from '@/components/oracle/ChainSelector';
+import { ChainCoverageHeatmap } from '@/components/oracle/charts/ChainCoverageHeatmap';
 
 interface ChainsTabProps {
   t: (key: string, params?: Record<string, string | number>) => string;

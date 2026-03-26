@@ -12,7 +12,4 @@ export type { Messages, TranslateFunction, I18nContextType, LoadedMessages } fro
 export { useTranslations, useLocale } from 'next-intl';
 
 // 重新导出 provider 中的自定义 hooks 和工具
-export {
-  useSetLocale,
-  getPreferredLocale,
-} from '@/lib/i18n/provider';
+export { useSetLocale, getPreferredLocale } from '@/lib/i18n/provider';

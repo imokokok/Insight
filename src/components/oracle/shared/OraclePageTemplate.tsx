@@ -1,10 +1,7 @@
 'use client';
 
-import { useState, useCallback, useMemo, ReactNode } from 'react';
-import { useTranslations } from '@/i18n';
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData, OracleProvider } from '@/types/oracle';
-import { UMANetworkStats } from '@/lib/oracles/uma/types';
+import { useState, useCallback, useMemo, type ReactNode } from 'react';
+
 import {
   TabNavigation,
   PageHeader,
@@ -42,6 +39,10 @@ import {
   CosmosEcosystemPanel,
   BandRiskAssessmentPanel,
 } from '@/components/oracle';
+import DataQualityIndicator from '@/components/oracle/data-display/DataQualityIndicator';
+import { DataSourceCredibility } from '@/components/oracle/data-display/DataSourceCredibility';
+import { UMADataQualityScoreCard } from '@/components/oracle/data-display/UMADataQualityScoreCard';
+import { getPanelConfig, type PanelRenderContext } from '@/components/oracle/oracle-panels';
 import {
   WINkLinkGamingDataPanel,
   WINkLinkTRONEcosystemPanel,
@@ -51,24 +52,28 @@ import {
   BandDataFeedsPanel,
   BandValidatorsPanel,
 } from '@/components/oracle/panels';
-import { RSIIndicator } from '../indicators/RSIIndicator';
-import { MACDIndicator } from '../indicators/MACDIndicator';
-import { GasFeeTrendChart } from '../charts/GasFeeTrendChart';
-import { useRefresh, useExport, ExportOptions } from '@/hooks';
-import { useGlobalTimeRange, useSetGlobalTimeRange } from '@/stores/uiStore';
-import { UMAClient } from '@/lib/oracles/uma';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-import { KPIDashboard } from '../charts/KPIDashboard';
-import { UMADataQualityScoreCard } from '@/components/oracle/data-display/UMADataQualityScoreCard';
-import DataQualityIndicator from '@/components/oracle/data-display/DataQualityIndicator';
-import { DataSourceCredibility } from '@/components/oracle/data-display/DataSourceCredibility';
 import { StakingPanel } from '@/components/oracle/panels/StakingPanel';
 import { UMADashboardPanel } from '@/components/oracle/panels/UMADashboardPanel';
 import { UMAEcosystemPanel } from '@/components/oracle/panels/UMAEcosystemPanel';
+import { useRefresh, useExport, type ExportOptions } from '@/hooks';
+import { useTranslations } from '@/i18n';
+import { OracleConfig } from '@/lib/config/oracles';
+import { PriceData, OracleProvider } from '@/types/oracle';
+import { UMANetworkStats } from '@/lib/oracles/uma/types';
+
+import { GasFeeTrendChart } from '../charts/GasFeeTrendChart';
+import { MACDIndicator } from '../indicators/MACDIndicator';
+import { RSIIndicator } from '../indicators/RSIIndicator';
+
+import { useGlobalTimeRange, useSetGlobalTimeRange } from '@/stores/uiStore';
+import { UMAClient } from '@/lib/oracles/uma';
+import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
+
+import { KPIDashboard } from '../charts/KPIDashboard';
+
 import { UMANetworkPanel } from '@/components/oracle/panels/UMANetworkPanel';
 import { UMARiskPanel } from '@/components/oracle/panels/UMARiskPanel';
 import { createLogger } from '@/lib/utils/logger';
-import { getPanelConfig, PanelRenderContext } from '@/components/oracle/oracle-panels';
 
 const logger = createLogger('OraclePageTemplate');
 
@@ -439,8 +444,6 @@ export function OraclePageTemplate({
     }
     return null;
   };
-
-
 
   const renderProviderSpecificGamingContent = () => {
     if (panelConfig.renderGamingTab) {

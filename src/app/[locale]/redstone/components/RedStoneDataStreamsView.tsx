@@ -1,8 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { Database, Clock, DollarSign, Users, Zap, Shield, TrendingUp } from 'lucide-react';
-import { RedStoneDataStreamsViewProps } from '../types';
+
+import { useTranslations } from '@/i18n';
+
+import { type RedStoneDataStreamsViewProps } from '../types';
 
 export function RedStoneDataStreamsView({ metrics, isLoading }: RedStoneDataStreamsViewProps) {
   const t = useTranslations();
@@ -49,9 +51,21 @@ export function RedStoneDataStreamsView({ metrics, isLoading }: RedStoneDataStre
   ];
 
   const pullModelAdvantages = [
-    { icon: Zap, label: t('redstone.dataStreams.lowLatency'), desc: t('redstone.dataStreams.lowLatencyDesc') },
-    { icon: DollarSign, label: t('redstone.dataStreams.costEfficient'), desc: t('redstone.dataStreams.costEfficientDesc') },
-    { icon: Shield, label: t('redstone.dataStreams.secure'), desc: t('redstone.dataStreams.secureDesc') },
+    {
+      icon: Zap,
+      label: t('redstone.dataStreams.lowLatency'),
+      desc: t('redstone.dataStreams.lowLatencyDesc'),
+    },
+    {
+      icon: DollarSign,
+      label: t('redstone.dataStreams.costEfficient'),
+      desc: t('redstone.dataStreams.costEfficientDesc'),
+    },
+    {
+      icon: Shield,
+      label: t('redstone.dataStreams.secure'),
+      desc: t('redstone.dataStreams.secureDesc'),
+    },
   ];
 
   return (

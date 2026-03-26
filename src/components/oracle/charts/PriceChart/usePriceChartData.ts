@@ -1,35 +1,41 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { BaseOracleClient } from '@/lib/oracles/base';
+
+import { type TimeRange } from '@/components/oracle/shared/TabNavigation';
+import {
+  useTechnicalIndicators,
+  type IndicatorDataPoint,
+  useUMARealtimePrice,
+  type UMAPriceData,
+} from '@/hooks';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
+import { type BaseOracleClient } from '@/lib/oracles/base';
 import { UMAClient } from '@/lib/oracles/uma';
-import { Blockchain } from '@/types/oracle';
-import { TimeRange } from '@/components/oracle/shared/TabNavigation';
+import { createLogger } from '@/lib/utils/logger';
+import { useGlobalTimeRange } from '@/stores/uiStore';
+import { type Blockchain } from '@/types/oracle';
 import {
   downsampleData,
   shouldDownsample,
   getDownsamplingMetrics,
-  AdaptiveDownsampleConfig,
-  DataPoint,
+  type AdaptiveDownsampleConfig,
+  type DataPoint,
 } from '@/utils/downsampling';
-import { createLogger } from '@/lib/utils/logger';
-import { useTechnicalIndicators, IndicatorDataPoint } from '@/hooks';
-import { useUMARealtimePrice, UMAPriceData } from '@/hooks';
-import { DataGranularity } from './priceChartConfig';
-import {
-  generateHistoricalData,
-  convertHistoricalPricePoints,
-  generateDataWithGranularity,
-} from './priceChartUtils';
-import { useChartState } from './useChartState';
+
 import {
   calculatePriceRange,
   calculateVolumeRange,
   calculatePriceChange,
   detectAnomalies,
 } from './chartUtils';
-import { useGlobalTimeRange } from '@/stores/uiStore';
+import { type DataGranularity } from './priceChartConfig';
+import {
+  generateHistoricalData,
+  convertHistoricalPricePoints,
+  generateDataWithGranularity,
+} from './priceChartUtils';
+import { useChartState } from './useChartState';
 
 const logger = createLogger('usePriceChartData');
 

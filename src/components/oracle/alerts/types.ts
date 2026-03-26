@@ -1,6 +1,6 @@
 'use client';
 
-import { OracleProvider, Blockchain } from '@/lib/oracles';
+import { type OracleProvider, type Blockchain } from '@/lib/oracles';
 
 export type AnomalyType = 'price_spike' | 'price_deviation' | 'data_delay' | 'price_drop';
 export type AnomalySeverity = 'low' | 'medium' | 'high';

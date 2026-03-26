@@ -1,6 +1,7 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
+import { useMemo, useState, useCallback } from 'react';
+
 import {
   LineChart,
   Line,
@@ -10,16 +11,16 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { useCrossChainData } from '../useCrossChainData';
-import { chainNames, chainColors, getHeatmapColor } from '../utils';
-import { useColorblindMode } from '@/stores/crossChainStore';
-import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
-import { useMemo, useState, useCallback } from 'react';
-import { Blockchain } from '@/lib/oracles';
-import { PriceData } from '@/lib/oracles';
-import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
-import { ChartToolbar, TimeRange } from '@/components/charts/ChartToolbar';
 
+import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
+import { useTranslations } from '@/i18n';
+import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
+import { type Blockchain, type PriceData } from '@/lib/oracles';
+import { useColorblindMode } from '@/stores/crossChainStore';
+
+import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
+import { type useCrossChainData } from '../useCrossChainData';
+import { chainNames, chainColors, getHeatmapColor } from '../utils';
 
 interface PriceSpreadHeatmapProps {
   data: ReturnType<typeof useCrossChainData>;

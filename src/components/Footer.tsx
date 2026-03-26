@@ -1,8 +1,9 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
+
+import { useTranslations } from '@/i18n';
 
 // Twitter/X Icon
 function TwitterIcon({ className }: { className?: string }) {

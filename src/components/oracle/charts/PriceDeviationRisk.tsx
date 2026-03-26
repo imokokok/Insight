@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   LineChart,
   Line,
@@ -11,10 +12,10 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
-import { useTranslations } from '@/i18n';
 
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
+import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 
 interface DeviationDataPoint {
   timestamp: string;

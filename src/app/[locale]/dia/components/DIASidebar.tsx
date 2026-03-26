@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { DIASidebarProps, DIATabId } from '../types';
+
+import { type DIASidebarProps, type DIATabId } from '../types';
 
 interface NavItem {
   id: DIATabId;

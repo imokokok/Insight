@@ -1,15 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { RiskMetrics } from '@/lib/oracles/tellor';
-import { useTranslations } from '@/i18n';
+
 import { DashboardCard } from '@/components/oracle';
 import { DataFreshnessIndicator } from '@/components/oracle/alerts';
-import {
-  SecurityTimeline,
-  MitigationMeasuresGrid,
-} from '@/components/oracle/data-display';
+import { SecurityTimeline, MitigationMeasuresGrid } from '@/components/oracle/data-display';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { type RiskMetrics } from '@/lib/oracles/tellor';
 import type { RiskEvent, MitigationMeasure } from '@/types/risk';
 
 interface TellorRiskPanelProps {

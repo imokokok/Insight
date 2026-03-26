@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+
+import { useRefresh, useExport, usePythAllData } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { PythClient } from '@/lib/oracles/pythNetwork';
 import { getOracleConfig } from '@/lib/config/oracles';
+import { PythClient } from '@/lib/oracles/pythNetwork';
 import { OracleProvider } from '@/types/oracle';
-import { useRefresh, useExport } from '@/hooks';
-import { usePythAllData } from '@/hooks';
-import { PythTabId } from '../types';
+
+import { type PythTabId } from '../types';
 
 export function usePythPage() {
   const t = useTranslations();

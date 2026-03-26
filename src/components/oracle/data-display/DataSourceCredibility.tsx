@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+
 import {
   RadarChart,
   PolarGrid,
@@ -9,8 +10,10 @@ import {
   Radar,
   ResponsiveContainer,
 } from 'recharts';
-import { DashboardCard } from './DashboardCard';
+
 import { chartColors, semanticColors } from '@/lib/config/colors';
+
+import { DashboardCard } from './DashboardCard';
 
 interface DataSourceCredibilityProps {
   sources: Array<{

@@ -1,6 +1,19 @@
 {
   "redstone": {
     "title": "Redstone Analytics",
+    "menu": {
+      "title": "Menu",
+      "marketData": "Market Data",
+      "networkHealth": "Network Health",
+      "dataStreams": "Data Streams",
+      "providers": "Providers",
+      "crossChain": "Cross-Chain",
+      "ecosystem": "Ecosystem",
+      "riskAssessment": "Risk Assessment"
+    },
+    "navigation": {
+      "title": "Navigation"
+    },
     "subtitle": "Modular Oracle Solution",
     "stats": {
       "activeNodes": "Active Nodes",

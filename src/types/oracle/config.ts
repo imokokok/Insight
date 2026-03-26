@@ -1,6 +1,7 @@
 import { financeColors, baseColors, semanticColors } from '@/lib/config/colors';
+
 import { OracleProvider, Blockchain } from './enums';
-import { OracleProviderConfig } from './oracle';
+import { type OracleProviderConfig } from './oracle';
 
 export interface ChartThemeColors {
   primary: string;

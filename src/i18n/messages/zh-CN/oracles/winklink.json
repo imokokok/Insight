@@ -8,6 +8,9 @@
     "menu": {
       "title": "菜单"
     },
+    "navigation": {
+      "title": "WINkLink 导航"
+    },
     "tabs": {
       "market": "市场数据",
       "network": "网络",

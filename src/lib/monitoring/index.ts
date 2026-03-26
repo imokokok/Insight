@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
-import type { User } from '@supabase/supabase-js';
+
 import {
   initWebVitals,
   onMetric,
@@ -10,6 +10,8 @@ import {
   type WebVitalMetric,
   type MetricName,
 } from './webVitals';
+
+import type { User } from '@supabase/supabase-js';
 
 interface SentryUser {
   id: string;

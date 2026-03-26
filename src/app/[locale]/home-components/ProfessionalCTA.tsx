@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+
+import { ArrowRight, Sparkles, Zap } from 'lucide-react';
+
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 
 export default function ProfessionalCTA() {
   const locale = useLocale();

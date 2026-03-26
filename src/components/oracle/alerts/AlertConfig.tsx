@@ -1,8 +1,9 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { AnomalyDetectionConfig } from './types';
+import { useTranslations } from '@/i18n';
+
+import { type AnomalyDetectionConfig } from './types';
 
 interface AlertConfigProps {
   config: AnomalyDetectionConfig;

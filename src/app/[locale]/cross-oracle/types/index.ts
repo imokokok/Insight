@@ -3,16 +3,15 @@
  * @description 统一导出所有类型定义，确保类型系统清晰一致
  */
 
-import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
-import type { OracleSnapshot } from '@/types/oracle';
+import {
+  type OracleProvider,
+  type PriceData,
+  type SnapshotStats,
+  type OracleSnapshot,
+} from '@/types/oracle';
 
 // 从 constants.tsx 导入基础类型
-import type {
-  SortColumn,
-  SortDirection,
-  TimeRange,
-  DeviationFilter,
-} from '../constants';
+import type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../constants';
 
 // 重新导出基础类型
 export type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../constants';
@@ -150,7 +149,7 @@ export interface ChartConfigResult {
 }
 
 // 旧版 ChartDataResult（兼容 useChartData.ts）
-export interface ChartDataResult extends ChartConfigResult {}
+export type ChartDataResult = ChartConfigResult;
 
 // ============================================================================
 // 技术指标结果类型
@@ -237,7 +236,7 @@ export interface CrossOraclePageState {
   // 选择状态
   selectedOracles: OracleProvider[];
   selectedSymbol: string;
-  
+
   // UI 状态
   expandedRow: number | null;
   selectedRowIndex: number | null;
@@ -247,16 +246,16 @@ export interface CrossOraclePageState {
   isChartFullscreen: boolean;
   showFavoritesDropdown: boolean;
   useAccessibleColors: boolean;
-  
+
   // 图表状态
   zoomLevel: number;
   timeRange: TimeRange;
-  
+
   // 快照状态
   selectedSnapshot: OracleSnapshot | null;
   showComparison: boolean;
   selectedPerformanceOracle: OracleProvider | null;
-  
+
   // 历史统计
   lastStats: SnapshotStats | null;
 }

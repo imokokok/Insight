@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { ValidationError } from '@/lib/errors';
+import { type NextRequest, NextResponse } from 'next/server';
+
+import { type ValidationError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
+
 import { ApiResponseBuilder } from '../response';
-import { ObjectSchema, validateObject } from '../validation';
+import { type ObjectSchema, validateObject } from '../validation';
 
 const logger = createLogger('validation-middleware');
 

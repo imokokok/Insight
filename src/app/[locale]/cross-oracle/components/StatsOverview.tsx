@@ -1,6 +1,6 @@
 'use client';
 
-import { OracleProvider } from '@/types/oracle';
+import { type OracleProvider } from '@/types/oracle';
 
 interface OutlierStats {
   count: number;

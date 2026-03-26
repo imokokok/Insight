@@ -1,7 +1,8 @@
-import { PythClient } from '../pythNetwork';
-import { OracleProvider, Blockchain } from '@/types/oracle/enums';
-import { ConfidenceInterval } from '@/types/oracle/price';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { OracleProvider, Blockchain } from '@/types/oracle/enums';
+import { type ConfidenceInterval } from '@/types/oracle/price';
+
+import { PythClient } from '../pythNetwork';
 
 jest.mock('../storage', () => ({
   shouldUseDatabase: jest.fn().mockReturnValue(false),

@@ -1,10 +1,12 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { DataSourceList, DataSourceGroup } from '@/components/data-transparency';
-import { QueryResult } from '../constants';
 import { useMemo } from 'react';
+
+import { DataSourceList, type DataSourceGroup } from '@/components/data-transparency';
+import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/types/oracle';
+
+import { type QueryResult } from '../constants';
 
 interface DataSourceSectionProps {
   results: QueryResult[];

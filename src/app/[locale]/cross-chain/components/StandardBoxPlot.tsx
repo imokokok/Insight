@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -11,10 +12,11 @@ import {
   Scatter,
   Cell,
 } from 'recharts';
-import { BoxPlotData } from '../constants';
+
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 
+import { type BoxPlotData } from '../constants';
 
 interface StandardBoxPlotProps {
   data: BoxPlotData[];

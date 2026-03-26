@@ -1,17 +1,20 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { ChronicleNetworkStats, ValidatorNetwork } from '@/lib/oracles/chronicle';
+import {
+  Network,
+  Activity,
+  Zap,
+  Shield,
+  Users,
+  Globe,
+  Clock,
+  TrendingUp,
+  Server,
+} from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Network } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Zap } from 'lucide-react';
-import { Shield } from 'lucide-react';
-import { Users } from 'lucide-react';
-import { Globe } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Server } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type ChronicleNetworkStats, type ValidatorNetwork } from '@/lib/oracles/chronicle';
 
 interface ChronicleNetworkPanelProps {
   networkStats: ChronicleNetworkStats;

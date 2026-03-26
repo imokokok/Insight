@@ -1,10 +1,18 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
+
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  Legend,
+} from 'recharts';
+
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
-
 
 export interface RequestTypeData {
   type: string;
@@ -160,7 +168,10 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
       <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {data.slice(0, 6).map((item) => (
-            <div key={item.type} className="bg-gray-50 border border-gray-100 rounded-lg p-3 hover:bg-gray-100 transition-colors">
+            <div
+              key={item.type}
+              className="bg-gray-50 border border-gray-100 rounded-lg p-3 hover:bg-gray-100 transition-colors"
+            >
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-2.5 h-2.5 " style={{ backgroundColor: item.color }} />
                 <span className="text-xs font-medium text-gray-700">{item.type}</span>

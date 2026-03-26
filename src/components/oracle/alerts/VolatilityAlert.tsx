@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { semanticColors } from '@/lib/config/colors';
@@ -231,7 +232,9 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
           </div>
           <div className="text-center p-2 rounded bg-danger-50">
             <p className="text-xs text-gray-500 mb-1">{t('volatilityAlert.riskLevel.high')}</p>
-            <p className="text-xs font-medium text-danger-600">&gt; {(threshold * 1.5).toFixed(2)}%</p>
+            <p className="text-xs font-medium text-danger-600">
+              &gt; {(threshold * 1.5).toFixed(2)}%
+            </p>
           </div>
         </div>
       </div>

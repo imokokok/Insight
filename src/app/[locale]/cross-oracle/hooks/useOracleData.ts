@@ -4,13 +4,12 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { OracleProvider, PriceData } from '@/types/oracle';
+
 import { createLogger } from '@/lib/utils/logger';
-import {
-  oracleClients,
-  TimeRange,
-  RefreshInterval,
-} from '../constants';
+import { type OracleProvider, type PriceData } from '@/types/oracle';
+
+import { oracleClients, type TimeRange, type RefreshInterval } from '../constants';
+
 import type { UseOracleDataReturn } from '../types/index';
 
 const logger = createLogger('useOracleData');
@@ -36,7 +35,7 @@ export function useOracleData({
   const [error, setError] = useState<Error | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(initialRefreshInterval);
-  
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
 
@@ -84,7 +83,7 @@ export function useOracleData({
             client.getPrice(baseSymbol),
             client.getHistoricalPrices(baseSymbol, undefined, hours),
           ]);
-          
+
           if (isMountedRef.current) {
             prices.push(price);
             histories[oracle] = history;

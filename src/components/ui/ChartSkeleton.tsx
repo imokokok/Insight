@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+
 import { chartColors } from '@/lib/config/colors';
 
 interface ChartSkeletonProps {
@@ -193,7 +194,9 @@ interface MetricCardSkeletonProps {
 
 export function MetricCardSkeleton({ className = '' }: MetricCardSkeletonProps) {
   return (
-    <div className={`skeleton-shimmer border border-gray-200/60 bg-gray-50/80 rounded-lg p-6 ${className}`}>
+    <div
+      className={`skeleton-shimmer border border-gray-200/60 bg-gray-50/80 rounded-lg p-6 ${className}`}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="p-3 bg-gray-200 h-11 w-11 rounded-lg" />
         <div className="h-6 w-16 bg-gray-200 rounded-md" />

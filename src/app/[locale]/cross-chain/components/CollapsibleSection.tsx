@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, ReactNode } from 'react';
-import { baseColors } from '@/lib/config/colors';
+import { useState, type ReactNode } from 'react';
+
 import { useTranslations } from '@/i18n';
+import { baseColors } from '@/lib/config/colors';
 
 interface CollapsibleSectionProps {
   title: string;

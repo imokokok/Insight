@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, Suspense } from 'react';
+
 import Link from 'next/link';
-import { useTranslations } from '@/i18n';
+
 import { Mail, Loader2, CheckCircle, ArrowLeft, KeyRound } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 import { useAuthActions } from '@/stores/authStore';
 
 function ForgotPasswordContent() {

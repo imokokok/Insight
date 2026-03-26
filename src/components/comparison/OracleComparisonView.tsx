@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
 import {
   BarChart,
   Bar,
@@ -20,12 +20,14 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
-import { OracleComparisonItem, OracleComparisonResult } from './types';
+
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { getOracleColor } from '@/lib/oracles/colors';
-import { DifferenceBadge } from './DifferenceBadge';
+import { type OracleProvider } from '@/types/oracle';
 
+import { DifferenceBadge } from './DifferenceBadge';
+import { type OracleComparisonItem, type OracleComparisonResult } from './types';
 
 interface OracleComparisonViewProps {
   oracles: OracleComparisonItem[];

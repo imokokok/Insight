@@ -1,6 +1,7 @@
 'use client';
 
-import { forwardRef, LabelHTMLAttributes, ReactNode } from 'react';
+import { forwardRef, type LabelHTMLAttributes, type ReactNode } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface FormLabelProps extends LabelHTMLAttributes<HTMLLabelElement> {
@@ -50,9 +51,7 @@ export const FormLabel = forwardRef<HTMLLabelElement, FormLabelProps>(
             *
           </span>
         )}
-        {optional && !required && (
-          <span className="text-gray-400 font-normal">(可选)</span>
-        )}
+        {optional && !required && <span className="text-gray-400 font-normal">(可选)</span>}
       </label>
     );
   }

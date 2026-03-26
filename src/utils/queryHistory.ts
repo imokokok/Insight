@@ -1,4 +1,4 @@
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 export interface QueryHistoryItem {
   id: string;

@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { PriceAlert } from '@/lib/supabase/database.types';
-import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
-import { useUpdateAlert, useDeleteAlert, useBatchAlerts } from '@/hooks';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useUpdateAlert, useDeleteAlert, useBatchAlerts } from '@/hooks';
 import { useTranslations } from '@/i18n';
+import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
+import { type PriceAlert } from '@/lib/supabase/database.types';
+
 import { AlertBatchOperations } from './AlertBatchOperations';
 
 interface AlertListProps {

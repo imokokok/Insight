@@ -1,16 +1,12 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { Server } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Globe } from 'lucide-react';
-import { Award } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { Shield } from 'lucide-react';
+import { Server, TrendingUp, Globe, Award, Activity, Clock, Shield } from 'lucide-react';
+
 import { ChainlinkDataTable } from '@/app/[locale]/chainlink/components/ChainlinkDataTable';
 import { StakingRewardsCalculator } from '@/app/[locale]/chainlink/components/StakingRewardsCalculator';
-import { API3AirnodeViewProps } from '../types';
+import { useTranslations } from '@/i18n';
+
+import { type API3AirnodeViewProps } from '../types';
 
 interface AirnodeNode {
   id: string;
@@ -103,11 +99,7 @@ const regionStats = [
   { region: 'Asia', count: 2, percentage: 25 },
 ];
 
-export function API3AirnodeView({
-  airnodeStats,
-  firstParty,
-  isLoading,
-}: API3AirnodeViewProps) {
+export function API3AirnodeView({ airnodeStats, firstParty, isLoading }: API3AirnodeViewProps) {
   const t = useTranslations();
 
   const columns = [
@@ -146,8 +138,12 @@ export function API3AirnodeView({
   ];
 
   const totalStaked = mockAirnodes.reduce((acc, n) => acc + n.staked, 0);
-  const avgSuccessRate = (mockAirnodes.reduce((acc, n) => acc + n.successRate, 0) / mockAirnodes.length).toFixed(1);
-  const avgResponseTime = Math.round(mockAirnodes.reduce((acc, n) => acc + n.responseTime, 0) / mockAirnodes.length);
+  const avgSuccessRate = (
+    mockAirnodes.reduce((acc, n) => acc + n.successRate, 0) / mockAirnodes.length
+  ).toFixed(1);
+  const avgResponseTime = Math.round(
+    mockAirnodes.reduce((acc, n) => acc + n.responseTime, 0) / mockAirnodes.length
+  );
 
   const advantages = [
     {
@@ -192,7 +188,9 @@ export function API3AirnodeView({
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{t('api3.airnode.totalStaked')}</span>
-          <span className="text-lg font-semibold text-gray-900">{(totalStaked / 1e6).toFixed(1)}M API3</span>
+          <span className="text-lg font-semibold text-gray-900">
+            {(totalStaked / 1e6).toFixed(1)}M API3
+          </span>
         </div>
       </div>
 
@@ -240,7 +238,9 @@ export function API3AirnodeView({
                 <div key={index}>
                   <div className="flex items-center justify-between text-sm mb-1.5">
                     <span className="text-gray-600">{stat.region}</span>
-                    <span className="font-medium text-gray-900">{stat.count} <span className="text-gray-400">({stat.percentage}%)</span></span>
+                    <span className="font-medium text-gray-900">
+                      {stat.count} <span className="text-gray-400">({stat.percentage}%)</span>
+                    </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
                     <div
@@ -257,15 +257,15 @@ export function API3AirnodeView({
           <section className="space-y-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">
-                {t('api3.airnode.overview')}
-              </h3>
+              <h3 className="text-sm font-medium text-gray-900">{t('api3.airnode.overview')}</h3>
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('api3.airnode.avgReputation')}</span>
                 <span className="font-medium text-gray-900">
-                  {(mockAirnodes.reduce((acc, n) => acc + n.reputation, 0) / mockAirnodes.length).toFixed(1)}
+                  {(
+                    mockAirnodes.reduce((acc, n) => acc + n.reputation, 0) / mockAirnodes.length
+                  ).toFixed(1)}
                 </span>
               </div>
               <div className="flex justify-between">

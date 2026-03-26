@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { getPythHermesClient, type PythPriceUpdate } from '@/lib/oracles/pythHermesClient';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { createLogger } from '@/lib/utils/logger';
-import { getPythHermesClient, PythPriceUpdate } from '@/lib/oracles/pythHermesClient';
 
 const logger = createLogger('PriceStream');
 
@@ -305,7 +306,9 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
             </svg>
             筛选
             {anomalyCount > 0 && (
-              <span className="bg-danger-500 text-white text-xs px-1.5 py-0.5 ">{anomalyCount}</span>
+              <span className="bg-danger-500 text-white text-xs px-1.5 py-0.5 ">
+                {anomalyCount}
+              </span>
             )}
           </button>
           <button

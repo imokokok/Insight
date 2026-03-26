@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
 import {
   BarChart,
   Bar,
@@ -11,12 +12,8 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { BandProtocolClient, CrossChainStats, ChainDataRequest } from '@/lib/oracles/bandProtocol';
-import { RequestTrendChart } from '../charts/RequestTrendChart';
-import { ChainComparison } from '../charts/ChainComparison';
+
 import { RequestTypeDistribution } from '@/components/oracle/data-display/RequestTypeDistribution';
-import { CrossChainTrendChart } from '../charts/CrossChainTrendChart';
-import { DataExportButton, ExportDataRow } from '../forms/DataExportButton';
 import { useTranslations } from '@/i18n';
 import {
   chainColors,
@@ -25,8 +22,17 @@ import {
   semanticColors,
   animationColors,
 } from '@/lib/config/colors';
+import {
+  type BandProtocolClient,
+  type CrossChainStats,
+  type ChainDataRequest,
+} from '@/lib/oracles/bandProtocol';
 import { formatNumber as formatNumberCompact } from '@/lib/utils/format';
 
+import { ChainComparison } from '../charts/ChainComparison';
+import { CrossChainTrendChart } from '../charts/CrossChainTrendChart';
+import { RequestTrendChart } from '../charts/RequestTrendChart';
+import { DataExportButton, type ExportDataRow } from '../forms/DataExportButton';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 

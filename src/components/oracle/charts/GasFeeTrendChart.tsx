@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -11,10 +13,9 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { chartColors } from '@/lib/config/colors';
 
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { chartColors } from '@/lib/config/colors';
 
 type TimeRange = '24H' | '7D' | '30D' | '90D';
 

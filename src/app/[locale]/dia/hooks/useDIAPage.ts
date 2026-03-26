@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
+
+import { useRefresh, useExport, useDIAAllData } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { DIAClient } from '@/lib/oracles/dia';
 import { getOracleConfig } from '@/lib/config/oracles';
+import { DIAClient } from '@/lib/oracles/dia';
 import { OracleProvider } from '@/types/oracle';
-import { useRefresh, useExport } from '@/hooks';
-import { useDIAAllData } from '@/hooks';
-import { DIATabId } from '../types';
+
+import { type DIATabId } from '../types';
 
 export function useDIAPage() {
   const t = useTranslations();
@@ -17,19 +18,12 @@ export function useDIAPage() {
   const config = useMemo(() => getOracleConfig(OracleProvider.DIA), []);
   const client = useMemo(() => new DIAClient(), []);
 
-  const {
-    price,
-    historicalData,
-    networkStats,
-    isLoading,
-    isError,
-    errors,
-    refetchAll,
-  } = useDIAAllData({
-    symbol: config.symbol,
-    chain: config.defaultChain,
-    enabled: true,
-  });
+  const { price, historicalData, networkStats, isLoading, isError, errors, refetchAll } =
+    useDIAAllData({
+      symbol: config.symbol,
+      chain: config.defaultChain,
+      enabled: true,
+    });
 
   // Update lastUpdated when price changes
   useEffect(() => {

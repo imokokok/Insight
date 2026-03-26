@@ -4,10 +4,11 @@ import {
   forwardRef,
   ButtonHTMLAttributes,
   AnchorHTMLAttributes,
-  ReactNode,
-  ElementType,
+  type ReactNode,
+  type ElementType,
   ComponentPropsWithoutRef,
 } from 'react';
+
 import Link from 'next/link';
 
 // Minimum touch target size (44x44 points as per Apple HIG and Material Design)
@@ -49,12 +50,14 @@ export const TouchButton = forwardRef<HTMLButtonElement, TouchButtonProps>(
       'inline-flex items-center justify-center font-medium transition-all duration-200';
 
     const variantStyles = {
-      primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-300',
+      primary:
+        'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-300',
       secondary:
         'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400',
       ghost:
         'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 disabled:text-gray-400',
-      danger: 'bg-danger-600 text-white hover:bg-danger-700 active:bg-danger-800 disabled:bg-red-300',
+      danger:
+        'bg-danger-600 text-white hover:bg-danger-700 active:bg-danger-800 disabled:bg-red-300',
     };
 
     const sizeStyles = {

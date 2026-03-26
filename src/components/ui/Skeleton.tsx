@@ -1,6 +1,7 @@
 'use client';
 
-import { forwardRef, HTMLAttributes } from 'react';
+import { forwardRef, type HTMLAttributes } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
@@ -11,18 +12,7 @@ export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
-  (
-    {
-      className,
-      variant = 'text',
-      width,
-      height,
-      animation = 'pulse',
-      style,
-      ...props
-    },
-    ref
-  ) => {
+  ({ className, variant = 'text', width, height, animation = 'pulse', style, ...props }, ref) => {
     const variantStyles = {
       text: 'rounded',
       circular: 'rounded-full',
@@ -38,11 +28,11 @@ export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
 
     const getSizeStyles = () => {
       const styles: Record<string, string> = {};
-      
+
       if (width !== undefined) {
         styles.width = typeof width === 'number' ? `${width}px` : width;
       }
-      
+
       if (height !== undefined) {
         styles.height = typeof height === 'number' ? `${height}px` : height;
       }
@@ -90,14 +80,7 @@ export interface SkeletonTextProps extends HTMLAttributes<HTMLDivElement> {
 
 export const SkeletonText = forwardRef<HTMLDivElement, SkeletonTextProps>(
   (
-    {
-      className,
-      lines = 3,
-      lineHeight = 16,
-      lastLineWidth = '60%',
-      animation = 'pulse',
-      ...props
-    },
+    { className, lines = 3, lineHeight = 16, lastLineWidth = '60%', animation = 'pulse', ...props },
     ref
   ) => {
     return (
@@ -131,14 +114,7 @@ export interface SkeletonCardProps extends HTMLAttributes<HTMLDivElement> {
 
 export const SkeletonCard = forwardRef<HTMLDivElement, SkeletonCardProps>(
   (
-    {
-      className,
-      hasImage = true,
-      imageHeight = 160,
-      lines = 3,
-      animation = 'pulse',
-      ...props
-    },
+    { className, hasImage = true, imageHeight = 160, lines = 3, animation = 'pulse', ...props },
     ref
   ) => {
     return (

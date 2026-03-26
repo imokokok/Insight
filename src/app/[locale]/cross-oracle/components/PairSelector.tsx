@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { ChevronDown, Search } from 'lucide-react';
+
 import Image from 'next/image';
-import { tradingPairs } from '../constants';
+
+import { ChevronDown, Search } from 'lucide-react';
+
 import { baseColors, chartColors } from '@/lib/config/colors';
+
+import { tradingPairs } from '../constants';
 
 interface PairSelectorProps {
   selectedSymbol: string;

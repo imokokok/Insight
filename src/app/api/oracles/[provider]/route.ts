@@ -1,6 +1,5 @@
-import { NextRequest } from 'next/server';
-import { Blockchain, OracleProvider } from '@/types/oracle';
-import { createErrorResponse, ErrorCodes } from '@/lib/api/utils';
+import { type NextRequest } from 'next/server';
+
 import {
   validateProvider,
   validatePeriod,
@@ -8,7 +7,9 @@ import {
   handleGetHistoricalPrices,
   createUnexpectedErrorResponse,
 } from '@/lib/api/oracleHandlers';
+import { createErrorResponse, ErrorCodes } from '@/lib/api/utils';
 import { createLogger } from '@/lib/utils/logger';
+import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
 const logger = createLogger('api-oracles-provider');
 

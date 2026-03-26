@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+
 import {
   ResponsiveContainer,
   ScatterChart,
@@ -11,12 +12,12 @@ import {
   Tooltip as RechartsTooltip,
   ReferenceLine,
 } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
-import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
-
+import { OracleProvider } from '@/types/oracle';
+import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
 
 type TimeWindow = '1h' | '6h' | '24h' | '7d' | '30d';
 

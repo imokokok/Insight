@@ -1,17 +1,19 @@
 'use client';
 
+import { useState, useCallback } from 'react';
+
+import { ChartToolbar } from '@/components/charts/ChartToolbar';
 import { useTranslations } from '@/i18n';
-import { useCrossChainData } from '../useCrossChainData';
-import { chainNames, getCorrelationColor } from '../utils';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 import { useColorblindMode } from '@/stores/crossChainStore';
+
 import {
   getColorblindCorrelationColor,
   getCorrelationSizeScale,
   colorblindLegendConfig,
 } from '../colorblindTheme';
-import { baseColors, semanticColors } from '@/lib/config/colors';
-import { ChartToolbar } from '@/components/charts/ChartToolbar';
-import { useState, useCallback } from 'react';
+import { type useCrossChainData } from '../useCrossChainData';
+import { chainNames, getCorrelationColor } from '../utils';
 
 interface CorrelationMatrixProps {
   data: ReturnType<typeof useCrossChainData>;

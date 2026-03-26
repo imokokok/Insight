@@ -1,7 +1,8 @@
-import { ReactNode } from 'react';
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/types/oracle';
-import { UMANetworkStats } from '@/lib/oracles/uma/types';
+import { type ReactNode } from 'react';
+
+import { type OracleConfig } from '@/lib/config/oracles';
+import { type UMANetworkStats } from '@/lib/oracles/uma/types';
+import { type PriceData } from '@/types/oracle';
 
 export interface PanelRenderContext {
   config: OracleConfig;

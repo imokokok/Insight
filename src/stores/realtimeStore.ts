@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
+
 import {
   realtimeManager,
-  ConnectionStatus,
-  PriceUpdatePayload,
-  AlertEventPayload,
-  SnapshotChangePayload,
-  FavoriteChangePayload,
+  type ConnectionStatus,
+  type PriceUpdatePayload,
+  type AlertEventPayload,
+  type SnapshotChangePayload,
+  type FavoriteChangePayload,
 } from '@/lib/supabase/realtime';
 
 interface RealtimeState {

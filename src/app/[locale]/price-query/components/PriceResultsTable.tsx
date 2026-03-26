@@ -6,15 +6,13 @@
  */
 
 import { useMemo, useState } from 'react';
+
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, Filter, X } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import { Search } from 'lucide-react';
-import { ArrowUpDown } from 'lucide-react';
-import { ArrowUp } from 'lucide-react';
-import { ArrowDown } from 'lucide-react';
-import { Filter } from 'lucide-react';
-import { X } from 'lucide-react';
-import { QueryResult, PriceData, oracleI18nKeys } from '../constants';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
+
+import { type QueryResult, type PriceData, oracleI18nKeys } from '../constants';
 
 interface PriceResultsTableProps {
   results: QueryResult[];
@@ -217,9 +215,7 @@ export function PriceResultsTable({
                     key={rowKey}
                     onClick={() => handleRowClick(result)}
                     className={`cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'bg-primary-50 hover:bg-primary-100'
-                        : 'hover:bg-gray-50'
+                      isSelected ? 'bg-primary-50 hover:bg-primary-100' : 'hover:bg-gray-50'
                     }`}
                     role="button"
                     tabIndex={0}
@@ -267,7 +263,11 @@ export function PriceResultsTable({
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="font-medium font-tabular text-gray-900">
-                        ${result.priceData.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                        $
+                        {result.priceData.price.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 4,
+                        })}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">

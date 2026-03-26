@@ -1,8 +1,10 @@
 'use client';
 
-import { ReactNode, ButtonHTMLAttributes, forwardRef } from 'react';
-import { cn } from '@/lib/utils';
+import { type ReactNode, type ButtonHTMLAttributes, forwardRef } from 'react';
+
 import { Loader2 } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -88,7 +90,8 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 active:scale-[0.98]',
       secondary:
         'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 active:scale-[0.98]',
-      ghost: 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-700 active:bg-gray-200',
+      ghost:
+        'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-700 active:bg-gray-200',
     };
 
     const sizes = {

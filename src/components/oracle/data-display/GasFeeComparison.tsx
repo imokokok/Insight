@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import {
   BarChart,
   Bar,
@@ -11,6 +12,8 @@ import {
   CartesianGrid,
   Cell,
 } from 'recharts';
+
+import { useTranslations } from '@/i18n';
 import {
   chainColors,
   chartColors,
@@ -18,9 +21,8 @@ import {
   baseColors,
   animationColors,
 } from '@/lib/config/colors';
-import { DashboardCard } from './DashboardCard';
-import { useTranslations } from '@/i18n';
 
+import { DashboardCard } from './DashboardCard';
 
 export interface GasFeeData {
   chain: string;
@@ -256,7 +258,10 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
                 tickLine={false}
                 tickFormatter={(value) => `$${value.toFixed(2)}`}
               />
-              <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
+              <RechartsTooltip
+                content={<CustomTooltip />}
+                cursor={{ fill: animationColors.fade.cursor }}
+              />
               <Bar dataKey="total" radius={[4, 4, 0, 0]}>
                 {processedData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={getChainColor(entry.chain)} />

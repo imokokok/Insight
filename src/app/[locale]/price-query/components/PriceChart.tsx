@@ -6,7 +6,8 @@
  */
 
 import { useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
+import { TrendingUp, Eye, EyeOff } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -17,12 +18,13 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { TrendingUp } from 'lucide-react';
-import { Eye } from 'lucide-react';
-import { EyeOff } from 'lucide-react';
-import { QueryResult } from '../constants';
-import { CustomTooltip } from './CustomTooltip';
+
 import { ChartSkeleton } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+
+import { type QueryResult } from '../constants';
+
+import { CustomTooltip } from './CustomTooltip';
 
 export interface ChartDataPoint {
   timestamp: number;

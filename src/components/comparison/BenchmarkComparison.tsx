@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
 import {
   BarChart,
   Bar,
@@ -16,15 +16,17 @@ import {
   Line,
   Cell,
 } from 'recharts';
-import {
-  BenchmarkType,
-  BenchmarkData,
-  BenchmarkComparisonResult,
-  BenchmarkChartData,
-} from './types';
-import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
-import { DifferenceBadge } from './DifferenceBadge';
 
+import { useTranslations } from '@/i18n';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+
+import { DifferenceBadge } from './DifferenceBadge';
+import {
+  type BenchmarkType,
+  type BenchmarkData,
+  BenchmarkComparisonResult,
+  type BenchmarkChartData,
+} from './types';
 
 interface BenchmarkComparisonProps {
   actualValue: number;
@@ -190,7 +192,9 @@ export function BenchmarkComparison({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header with comparison summary */}
-      <div className={`p-6 border rounded-lg ${getPerformanceBg(comparison.performance)} border-gray-200`}>
+      <div
+        className={`p-6 border rounded-lg ${getPerformanceBg(comparison.performance)} border-gray-200`}
+      >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             {title && <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>}

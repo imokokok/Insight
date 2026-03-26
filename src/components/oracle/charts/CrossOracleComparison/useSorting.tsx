@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
+
 import {
-  SortField,
+  type SortField,
   SortDirection,
-  SortConfig,
-  PriceComparisonData,
+  type SortConfig,
+  type PriceComparisonData,
   oracleNames,
 } from './crossOracleConfig';
 

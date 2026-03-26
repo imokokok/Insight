@@ -1,8 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+import { Menu } from 'lucide-react';
+
+import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
-import { useRedStonePage } from './hooks/useRedStonePage';
+import { getOracleConfig } from '@/lib/config/oracles';
+import { RedStoneClient } from '@/lib/oracles/redstone';
+import { OracleProvider } from '@/types/oracle';
+
 import {
   RedStoneSidebar,
   RedStoneMarketView,
@@ -14,13 +23,7 @@ import {
   RedStoneRiskView,
   RedStoneHero,
 } from './components';
-import { LoadingState, ErrorFallback } from '@/components/oracle';
-import { MobileSidebar } from '@/components/ui/MobileSidebar';
-import { useQuery } from '@tanstack/react-query';
-import { RedStoneClient } from '@/lib/oracles/redstone';
-import { getOracleConfig } from '@/lib/config/oracles';
-import { OracleProvider } from '@/types/oracle';
-import { Menu } from 'lucide-react';
+import { useRedStonePage } from './hooks/useRedStonePage';
 
 const redstoneClient = new RedStoneClient();
 const redstoneConfig = getOracleConfig(OracleProvider.REDSTONE);
@@ -87,19 +90,9 @@ export default function RedStonePage() {
           />
         );
       case 'network':
-        return (
-          <RedStoneNetworkView
-            networkStats={networkStats || null}
-            isLoading={isLoading}
-          />
-        );
+        return <RedStoneNetworkView networkStats={networkStats || null} isLoading={isLoading} />;
       case 'data-streams':
-        return (
-          <RedStoneDataStreamsView
-            metrics={metrics || null}
-            isLoading={metricsLoading}
-          />
-        );
+        return <RedStoneDataStreamsView metrics={metrics || null} isLoading={metricsLoading} />;
       case 'providers':
         return (
           <RedStoneProvidersView
@@ -109,23 +102,11 @@ export default function RedStonePage() {
           />
         );
       case 'cross-chain':
-        return (
-          <RedStoneCrossChainView
-            isLoading={isLoading}
-          />
-        );
+        return <RedStoneCrossChainView isLoading={isLoading} />;
       case 'ecosystem':
-        return (
-          <RedStoneEcosystemView
-            isLoading={isLoading}
-          />
-        );
+        return <RedStoneEcosystemView isLoading={isLoading} />;
       case 'risk':
-        return (
-          <RedStoneRiskView
-            isLoading={isLoading}
-          />
-        );
+        return <RedStoneRiskView isLoading={isLoading} />;
       default:
         return null;
     }
@@ -184,9 +165,7 @@ export default function RedStonePage() {
           </MobileSidebar>
 
           {/* Content Area */}
-          <div className="flex-1 min-w-0">
-            {renderContent()}
-          </div>
+          <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>
     </div>

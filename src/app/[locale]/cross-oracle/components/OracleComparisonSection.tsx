@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from '@/i18n';
-import { OracleProvider, PriceData } from '@/types/oracle';
+
 import { oracleColors } from '@/components/oracle/charts/CrossOracleComparison/crossOracleConfig';
+import { useTranslations } from '@/i18n';
+import { OracleProvider, type PriceData } from '@/types/oracle';
 
 interface OracleComparisonSectionProps {
   priceData: PriceData[];

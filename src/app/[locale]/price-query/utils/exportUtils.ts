@@ -1,13 +1,15 @@
 'use client';
 
+import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import html2canvas from 'html2canvas';
-import { QueryResult, providerNames, chainNames } from '../constants';
-import { ExportConfigData } from '../components/ExportConfig';
-import { OracleProvider, Blockchain } from '@/lib/oracles';
-import { createLogger } from '@/lib/utils/logger';
+
 import { exportColors } from '@/lib/config/colors';
+import { type OracleProvider, type Blockchain } from '@/lib/oracles';
+import { createLogger } from '@/lib/utils/logger';
+
+import { type ExportConfigData } from '../components/ExportConfig';
+import { type QueryResult, providerNames, chainNames } from '../constants';
 
 const logger = createLogger('ExportUtils');
 

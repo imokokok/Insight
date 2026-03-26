@@ -1,13 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { ScuttlebuttData } from '@/lib/oracles/chronicle';
+import { Shield, CheckCircle, AlertTriangle, Info, Clock } from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Shield } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { Info } from 'lucide-react';
-import { Clock } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type ScuttlebuttData } from '@/lib/oracles/chronicle';
 
 interface ChronicleScuttlebuttPanelProps {
   data: ScuttlebuttData;

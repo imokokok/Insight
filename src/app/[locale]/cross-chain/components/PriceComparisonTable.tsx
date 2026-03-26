@@ -1,10 +1,12 @@
 'use client';
 
+import { DataTablePro, type ColumnDef, type ConditionalFormattingRule } from '@/components/ui';
 import { useTranslations } from '@/i18n';
-import { Blockchain } from '@/lib/oracles';
-import { DataTablePro, ColumnDef, ConditionalFormattingRule } from '@/components/ui';
-import { useCrossChainData } from '../useCrossChainData';
+import { type Blockchain } from '@/lib/oracles';
+
+import { type useCrossChainData } from '../useCrossChainData';
 import { chainNames, chainColors, getDiffTextColor, calculateZScore, isOutlier } from '../utils';
+
 import { Sparkline } from './SmallComponents';
 
 interface PriceComparisonTableProps {

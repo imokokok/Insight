@@ -1,7 +1,8 @@
 'use client';
 
-import { DashboardCard } from './DashboardCard';
 import { useTranslations } from '@/i18n';
+
+import { DashboardCard } from './DashboardCard';
 
 interface Protocol {
   name: string;

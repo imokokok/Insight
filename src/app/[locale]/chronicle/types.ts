@@ -1,11 +1,11 @@
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/types/oracle';
+import { type OracleConfig } from '@/lib/config/oracles';
 import type {
   ScuttlebuttData,
   MakerDAOIntegration,
   ValidatorNetwork,
   ChronicleNetworkStats,
 } from '@/lib/oracles';
+import { type PriceData } from '@/types/oracle';
 
 export type ChronicleTabId =
   | 'market'

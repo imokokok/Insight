@@ -1,6 +1,6 @@
 'use client';
 
-import { MultiSelectProps, SelectorOption } from './types';
+import { type MultiSelectProps, type SelectorOption } from './types';
 
 const sizeClasses = {
   xs: 'px-2 py-1 text-[10px]',

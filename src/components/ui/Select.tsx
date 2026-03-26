@@ -1,8 +1,10 @@
 'use client';
 
-import { forwardRef, SelectHTMLAttributes, ReactNode, useState, useMemo } from 'react';
-import { cn } from '@/lib/utils';
+import { forwardRef, type SelectHTMLAttributes, ReactNode, useState, useMemo } from 'react';
+
 import { ChevronDown, Search, Check } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 
 export interface SelectOption {
   value: string;
@@ -75,10 +77,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={selectId}
-            className="block text-sm font-medium text-gray-700 mb-1.5"
-          >
+          <label htmlFor={selectId} className="block text-sm font-medium text-gray-700 mb-1.5">
             {label}
           </label>
         )}
@@ -153,10 +152,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                   </div>
                 </div>
               )}
-              <ul
-                className="max-h-60 overflow-auto py-1"
-                role="listbox"
-              >
+              <ul className="max-h-60 overflow-auto py-1" role="listbox">
                 {Object.entries(groupedOptions).map(([group, groupOptions]) => (
                   <li key={group}>
                     {group !== 'default' && (
@@ -180,29 +176,20 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                         aria-selected={value === option.value}
                       >
                         <span>{option.label}</span>
-                        {value === option.value && (
-                          <Check className="w-4 h-4 text-primary-600" />
-                        )}
+                        {value === option.value && <Check className="w-4 h-4 text-primary-600" />}
                       </button>
                     ))}
                   </li>
                 ))}
                 {searchable && searchQuery && Object.values(groupedOptions).flat().length === 0 && (
-                  <li className="px-4 py-3 text-sm text-gray-500 text-center">
-                    未找到匹配项
-                  </li>
+                  <li className="px-4 py-3 text-sm text-gray-500 text-center">未找到匹配项</li>
                 )}
               </ul>
             </div>
           )}
         </div>
         {(error || helperText) && (
-          <p
-            className={cn(
-              'mt-1.5 text-sm',
-              error ? 'text-danger-600' : 'text-gray-500'
-            )}
-          >
+          <p className={cn('mt-1.5 text-sm', error ? 'text-danger-600' : 'text-gray-500')}>
             {error || helperText}
           </p>
         )}

@@ -1,21 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search } from 'lucide-react';
-import { Database } from 'lucide-react';
-import { AlertCircle } from 'lucide-react';
-import { Inbox } from 'lucide-react';
-import { FolderOpen } from 'lucide-react';
-import { Filter } from 'lucide-react';
-import { WifiOff } from 'lucide-react';
-import { FileQuestion } from 'lucide-react';
-import { Sparkles } from 'lucide-react';
-import { ArrowRight } from 'lucide-react';
-import { Play } from 'lucide-react';
-import { Lightbulb } from 'lucide-react';
-import { RefreshCw } from 'lucide-react';
-import { Plus } from 'lucide-react';
-import { ExternalLink } from 'lucide-react';
+
+import {
+  Search,
+  Database,
+  AlertCircle,
+  Inbox,
+  FolderOpen,
+  Filter,
+  WifiOff,
+  FileQuestion,
+  Sparkles,
+  ArrowRight,
+  Play,
+  Lightbulb,
+  RefreshCw,
+  Plus,
+  ExternalLink,
+} from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
@@ -169,7 +173,8 @@ export function EmptyStateWithActions({
     const baseClasses =
       'inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200';
     const variantClasses = {
-      primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm hover:shadow',
+      primary:
+        'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm hover:shadow',
       secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300',
       outline: 'border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50',
     };

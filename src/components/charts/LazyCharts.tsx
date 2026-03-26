@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { ChartSkeleton, MiniChartSkeleton } from '@/components/ui';
 
+import { ChartSkeleton, MiniChartSkeleton } from '@/components/ui';
 import { chartColors, getChartColor } from '@/lib/chartColors';
 
 export const LazyAreaChart = lazy(() =>

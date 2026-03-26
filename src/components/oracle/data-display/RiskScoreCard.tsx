@@ -1,8 +1,9 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from './DashboardCard';
 import { getScoreColor, getScoreBarColor, getRiskLevel } from '@/lib/utils/riskUtils';
+
+import { DashboardCard } from './DashboardCard';
 
 export interface RiskScoreCardProps {
   title: string;

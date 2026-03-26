@@ -1,8 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { RedStoneNetworkViewProps } from '../types';
 import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
+
+import { type RedStoneNetworkViewProps } from '../types';
 
 export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetworkViewProps) {
   const t = useTranslations();
@@ -46,8 +48,8 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
   ];
 
   const hourlyActivity = [
-    65, 72, 68, 75, 82, 78, 85, 92, 88, 95, 102, 98,
-    105, 112, 108, 115, 122, 118, 125, 132, 128, 135, 142, 138
+    65, 72, 68, 75, 82, 78, 85, 92, 88, 95, 102, 98, 105, 112, 108, 115, 122, 118, 125, 132, 128,
+    135, 142, 138,
   ];
 
   return (
@@ -68,9 +70,11 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
                   {isLoading ? '-' : metric.value}
                 </p>
                 {metric.change && (
-                  <div className={`flex items-center gap-0.5 text-sm font-medium ${
-                    metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
-                  }`}>
+                  <div
+                    className={`flex items-center gap-0.5 text-sm font-medium ${
+                      metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
+                    }`}
+                  >
                     <TrendIcon className="w-3.5 h-3.5" />
                     <span>{metric.change}</span>
                   </div>
@@ -125,7 +129,9 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
           <div className="space-y-5">
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">{t('redstone.network.successRate') || 'Success Rate'}</span>
+                <span className="text-gray-600">
+                  {t('redstone.network.successRate') || 'Success Rate'}
+                </span>
                 <span className="font-medium text-gray-900">99.9%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -134,7 +140,9 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">{t('redstone.network.availability') || 'Availability'}</span>
+                <span className="text-gray-600">
+                  {t('redstone.network.availability') || 'Availability'}
+                </span>
                 <span className="font-medium text-gray-900">99.99%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">

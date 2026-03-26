@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import {
   LineChart,
   Line,
@@ -12,9 +13,9 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from 'recharts';
+
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
-
 
 interface LatencyDataPoint {
   timestamp: string;

@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { cn } from '@/lib/utils';
+
 import { Wifi, WifiOff, Clock, Zap, RefreshCw, Activity } from 'lucide-react';
+
 import { semanticColors } from '@/lib/config/colors';
+import { cn } from '@/lib/utils';
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
 
@@ -96,10 +98,7 @@ function formatLastUpdate(date?: Date): string {
   return date.toLocaleDateString();
 }
 
-function getDataFreshnessLevel(
-  lastUpdate?: Date,
-  threshold: number = 30000
-): DataFreshnessLevel {
+function getDataFreshnessLevel(lastUpdate?: Date, threshold: number = 30000): DataFreshnessLevel {
   if (!lastUpdate) return 'expired';
 
   const now = new Date();
@@ -153,9 +152,7 @@ export function LiveStatusBar({
       {/* UTC Time */}
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
         <Clock className="w-3.5 h-3.5" />
-        <span className="font-mono whitespace-nowrap">
-          {formatUTCTime(currentTime)}
-        </span>
+        <span className="font-mono whitespace-nowrap">{formatUTCTime(currentTime)}</span>
       </div>
 
       {/* Separator - Hidden on mobile */}
@@ -164,9 +161,7 @@ export function LiveStatusBar({
       {/* Latency */}
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
         <Zap className="w-3.5 h-3.5" />
-        <span className="font-mono whitespace-nowrap">
-          {formatLatency(latency)}
-        </span>
+        <span className="font-mono whitespace-nowrap">{formatLatency(latency)}</span>
       </div>
 
       {/* Separator - Hidden on mobile */}
@@ -190,16 +185,10 @@ export function LiveStatusBar({
         title={`数据新鲜度: ${freshness.label}`}
       >
         <Activity
-          className={cn(
-            'w-3 h-3',
-            freshness.pulse && 'animate-pulse'
-          )}
+          className={cn('w-3 h-3', freshness.pulse && 'animate-pulse')}
           style={{ color: freshness.color }}
         />
-        <span
-          className="font-medium whitespace-nowrap"
-          style={{ color: freshness.color }}
-        >
+        <span className="font-medium whitespace-nowrap" style={{ color: freshness.color }}>
           {freshness.label}
         </span>
       </div>
@@ -209,21 +198,12 @@ export function LiveStatusBar({
 
       {/* Connection Status */}
       <div className="flex items-center gap-1.5">
-        <span
-          className="w-2 h-2 rounded-full"
-          style={{ backgroundColor: status.color }}
-        />
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }} />
         <StatusIcon
-          className={cn(
-            'w-3.5 h-3.5',
-            connectionStatus === 'reconnecting' && 'animate-spin'
-          )}
+          className={cn('w-3.5 h-3.5', connectionStatus === 'reconnecting' && 'animate-spin')}
           style={{ color: status.color }}
         />
-        <span
-          className="text-xs font-medium"
-          style={{ color: status.color }}
-        >
+        <span className="text-xs font-medium" style={{ color: status.color }}>
           {status.label}
         </span>
       </div>

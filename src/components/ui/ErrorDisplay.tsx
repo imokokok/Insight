@@ -1,15 +1,11 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useTranslations } from '@/i18n';
-import { AlertCircle } from 'lucide-react';
-import { RefreshCw } from 'lucide-react';
-import { ChevronDown } from 'lucide-react';
-import { ChevronUp } from 'lucide-react';
-import { Bug } from 'lucide-react';
-import { FileText } from 'lucide-react';
-import { X } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
+import { AlertCircle, RefreshCw, ChevronDown, ChevronUp, Bug, FileText, X } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 
 export type ErrorSeverity = 'error' | 'warning' | 'info';
 

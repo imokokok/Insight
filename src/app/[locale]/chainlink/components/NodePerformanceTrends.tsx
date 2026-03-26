@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
-import { SparklineChart } from '@/components/oracle/charts/SparklineChart';
-import { ProgressRing } from '@/components/oracle/charts/ProgressRing';
-import { NodeData } from '../types';
+
 import { Activity, Clock, Award, ChevronDown, ChevronUp, TrendingUp, Zap } from 'lucide-react';
+
+import { ProgressRing } from '@/components/oracle/charts/ProgressRing';
+import { SparklineChart } from '@/components/oracle/charts/SparklineChart';
+import { useTranslations } from '@/i18n';
+
+import { type NodeData } from '../types';
 
 interface NodePerformanceTrendsProps {
   nodes: NodeData[];

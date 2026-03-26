@@ -1,7 +1,7 @@
 import WebSocketManager, {
   MockWebSocketManager,
-  WebSocketStatus,
-  WebSocketMessage,
+  type WebSocketStatus,
+  type WebSocketMessage,
   calculateBackoffDelay,
 } from '../websocket';
 

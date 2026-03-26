@@ -17,30 +17,32 @@ import {
   ReferenceDot,
   Area,
 } from 'recharts';
-import { TooltipProps } from '@/types/ui/recharts';
-import { isChineseLocale } from '@/i18n/routing';
-import {
-  OracleMarketData,
-  TVSTrendData,
-  ChartType,
-  ViewType,
-  ChainBreakdown,
-  ProtocolDetail,
-  AssetCategory,
-  ComparisonData,
-  BenchmarkData,
-  CorrelationData,
-  ChainSupportData,
-} from '../types';
-import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
-import ChainBreakdownChart from './ChainBreakdownChart';
-import ProtocolList from './ProtocolList';
-import AssetCategoryChart from './AssetCategoryChart';
-import OracleComparison from './OracleComparison';
-import BenchmarkComparison from './BenchmarkComparison';
-import CorrelationMatrix from './CorrelationMatrix';
-import { CHAIN_SUPPORT_DATA } from '../constants';
 
+import { isChineseLocale } from '@/i18n/routing';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { type TooltipProps } from '@/types/ui/recharts';
+
+import { CHAIN_SUPPORT_DATA } from '../constants';
+import {
+  type OracleMarketData,
+  type TVSTrendData,
+  type ChartType,
+  type ViewType,
+  type ChainBreakdown,
+  type ProtocolDetail,
+  type AssetCategory,
+  type ComparisonData,
+  type BenchmarkData,
+  type CorrelationData,
+  type ChainSupportData,
+} from '../types';
+
+import AssetCategoryChart from './AssetCategoryChart';
+import BenchmarkComparison from './BenchmarkComparison';
+import ChainBreakdownChart from './ChainBreakdownChart';
+import CorrelationMatrix from './CorrelationMatrix';
+import OracleComparison from './OracleComparison';
+import ProtocolList from './ProtocolList';
 
 interface ChartRendererProps {
   activeChart: ChartType;
@@ -674,47 +676,54 @@ export default function ChartRenderer({
             {data.map((item, index: number) => {
               const oracleItem = item as OracleMarketData;
               return (
-              <tr
-                key={oracleItem.name}
-                className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                  selectedItem === oracleItem.name ? 'bg-primary-50' : ''
-                }`}
-                onClick={() => setSelectedItem(oracleItem.name === selectedItem ? null : oracleItem.name)}
-                onMouseEnter={() => setHoveredItem(oracleItem.name)}
-                onMouseLeave={() => setHoveredItem(null)}
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded" style={{ backgroundColor: oracleItem.color }} />
-                    <span className="font-medium text-gray-900">{oracleItem.name}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="font-semibold text-gray-900">
-                    {activeChart === 'pie' ? `${oracleItem.share}%` : oracleItem.tvs}
-                  </span>
-                </td>
-                {activeChart === 'pie' && (
-                  <>
-                    <td className="px-4 py-3 text-right">
-                      <span className="text-gray-600">{oracleItem.tvs}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="text-gray-600">{oracleItem.chains}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span
-                        className={`font-medium ${
-                          (oracleItem.change24h ?? 0) >= 0 ? 'text-success-600' : 'text-danger-600'
-                        }`}
-                      >
-                        {(oracleItem.change24h ?? 0) >= 0 ? '+' : ''}
-                        {(oracleItem.change24h ?? 0).toFixed(2)}%
-                      </span>
-                    </td>
-                  </>
-                )}
-              </tr>
+                <tr
+                  key={oracleItem.name}
+                  className={`hover:bg-gray-50 transition-colors cursor-pointer ${
+                    selectedItem === oracleItem.name ? 'bg-primary-50' : ''
+                  }`}
+                  onClick={() =>
+                    setSelectedItem(oracleItem.name === selectedItem ? null : oracleItem.name)
+                  }
+                  onMouseEnter={() => setHoveredItem(oracleItem.name)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-3 h-3 rounded"
+                        style={{ backgroundColor: oracleItem.color }}
+                      />
+                      <span className="font-medium text-gray-900">{oracleItem.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span className="font-semibold text-gray-900">
+                      {activeChart === 'pie' ? `${oracleItem.share}%` : oracleItem.tvs}
+                    </span>
+                  </td>
+                  {activeChart === 'pie' && (
+                    <>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-gray-600">{oracleItem.tvs}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-gray-600">{oracleItem.chains}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span
+                          className={`font-medium ${
+                            (oracleItem.change24h ?? 0) >= 0
+                              ? 'text-success-600'
+                              : 'text-danger-600'
+                          }`}
+                        >
+                          {(oracleItem.change24h ?? 0) >= 0 ? '+' : ''}
+                          {(oracleItem.change24h ?? 0).toFixed(2)}%
+                        </span>
+                      </td>
+                    </>
+                  )}
+                </tr>
               );
             })}
           </tbody>

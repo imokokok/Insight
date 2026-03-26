@@ -1,10 +1,11 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+
 import { RedStoneClient } from '@/lib/oracles/redstone';
-import { Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 const redstoneClient = new RedStoneClient();
 
@@ -188,9 +189,7 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
   }, [priceQuery, historicalQuery, networkQuery, ecosystemQuery, riskQuery]);
 
   // Get the most recent timestamp from price data as lastUpdated
-  const lastUpdated = priceQuery.price?.timestamp 
-    ? new Date(priceQuery.price.timestamp) 
-    : null;
+  const lastUpdated = priceQuery.price?.timestamp ? new Date(priceQuery.price.timestamp) : null;
 
   return {
     price: priceQuery.price,

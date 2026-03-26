@@ -1,6 +1,7 @@
 'use client';
 
 import { memo } from 'react';
+
 import {
   ComposedChart,
   Line,
@@ -16,14 +17,15 @@ import {
   Area,
   ReferenceLine,
 } from 'recharts';
-import { useTranslations } from '@/i18n';
-import { IndicatorDataPoint } from '@/hooks';
-import { AnomalyMarker } from '@/components/oracle/alerts/AnomalyMarker';
-import { chartColors, baseColors } from '@/lib/config/colors';
-import { ChartType } from './priceChartConfig';
-import { MainChartTooltip, RSITooltip, MACDTooltip, CandlestickShape } from './PriceChartTooltip';
-import { AnomalyPoint } from './useChartState';
 
+import { AnomalyMarker } from '@/components/oracle/alerts/AnomalyMarker';
+import { type IndicatorDataPoint } from '@/hooks';
+import { useTranslations } from '@/i18n';
+import { chartColors, baseColors } from '@/lib/config/colors';
+
+import { type ChartType } from './priceChartConfig';
+import { MainChartTooltip, RSITooltip, MACDTooltip, CandlestickShape } from './PriceChartTooltip';
+import { type AnomalyPoint } from './useChartState';
 
 interface ChartCanvasProps {
   data: IndicatorDataPoint[];

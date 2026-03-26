@@ -5,9 +5,11 @@
 
 'use client';
 
-import { ErrorInfo } from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { type ErrorInfo } from 'react';
+
 import Link from 'next/link';
+
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 interface ErrorFallbackProps {
   error: Error | null;
@@ -29,9 +31,7 @@ export function ErrorFallback({ error, errorInfo, onReset }: ErrorFallbackProps)
         </div>
 
         {/* 错误标题 */}
-        <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">
-          页面加载出错
-        </h2>
+        <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">页面加载出错</h2>
 
         {/* 错误描述 */}
         <p className="text-sm text-gray-500 text-center mb-6">
@@ -78,9 +78,7 @@ export function ErrorFallback({ error, errorInfo, onReset }: ErrorFallbackProps)
 
         {/* 帮助链接 */}
         <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-          <p className="text-xs text-gray-400">
-            如果问题持续存在，请联系技术支持
-          </p>
+          <p className="text-xs text-gray-400">如果问题持续存在，请联系技术支持</p>
         </div>
       </div>
     </div>

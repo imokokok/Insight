@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
+
+import { ChartType, ViewType, type TVSTrendData } from './types';
 import { useMarketOverviewData } from './useMarketOverviewData';
-import { ChartType, ViewType, TVSTrendData } from './types';
 
 export function useMarketPage() {
   const locale = useLocale();

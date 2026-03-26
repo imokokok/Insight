@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { BandProtocolSidebarProps, BandProtocolTabId } from '../types';
+
+import { type BandProtocolSidebarProps, type BandProtocolTabId } from '../types';
 
 interface NavItem {
   id: BandProtocolTabId;

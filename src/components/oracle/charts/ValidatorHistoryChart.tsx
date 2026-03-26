@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+
 import {
   ComposedChart,
   Line,
@@ -12,11 +13,15 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { BandProtocolClient, ValidatorHistory, HistoryPeriod } from '@/lib/oracles/bandProtocol';
-import { formatNumber } from '@/lib/utils/format';
+
 import { ChartSkeleton } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
-
+import {
+  type BandProtocolClient,
+  type ValidatorHistory,
+  type HistoryPeriod,
+} from '@/lib/oracles/bandProtocol';
+import { formatNumber } from '@/lib/utils/format';
 
 type TimeRange = '7D' | '30D' | '90D';
 

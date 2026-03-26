@@ -1,8 +1,9 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { AnomalyStats as AnomalyStatsType } from './types';
+import { useTranslations } from '@/i18n';
+
+import { type AnomalyStats as AnomalyStatsType } from './types';
 
 interface AlertStatsProps {
   stats: AnomalyStatsType;

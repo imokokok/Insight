@@ -1,7 +1,12 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+
+import type { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
+import type { GasFeeData } from '@/components/oracle/data-display/GasFeeComparison';
+import type { OHLCVDataPoint } from '@/lib/indicators';
 import { API3Client } from '@/lib/oracles/api3';
 import type {
   AirnodeNetworkStats,
@@ -12,11 +17,7 @@ import type {
   DataSourceInfo,
   CoveragePoolEvent,
 } from '@/lib/oracles/api3';
-import type { GasFeeData } from '@/components/oracle/data-display/GasFeeComparison';
-import type { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
-import type { OHLCVDataPoint } from '@/lib/indicators';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 const api3Client = new API3Client();
 

@@ -1,7 +1,8 @@
 'use client';
 
 import { useReducer, useCallback, useMemo } from 'react';
-import { SearchGroup, KeyboardNavigationState, SearchAction } from './types';
+
+import { type SearchGroup, type KeyboardNavigationState, type SearchAction } from './types';
 
 const initialState: KeyboardNavigationState = {
   activeGroupIndex: 0,

@@ -1,11 +1,14 @@
 import {
-  RealtimeChannel,
-  RealtimePostgresChangesPayload,
-  SupabaseClient,
+  type RealtimeChannel,
+  type RealtimePostgresChangesPayload,
+  type SupabaseClient,
 } from '@supabase/supabase-js';
-import { supabase } from './client';
-import type { PriceRecord, AlertEvent, UserSnapshot, UserFavorite } from './queries';
+
 import { createLogger } from '@/lib/utils/logger';
+
+import { supabase } from './client';
+
+import type { PriceRecord, AlertEvent, UserSnapshot, UserFavorite } from './queries';
 
 const logger = createLogger('supabase-realtime');
 

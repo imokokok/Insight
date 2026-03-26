@@ -1,5 +1,5 @@
-import { OracleProvider } from '@/types/oracle';
 import { chartColors, accessibleColors } from '@/lib/config/colors';
+import { OracleProvider } from '@/types/oracle';
 
 export const getMaxPointsForTimeRange = (timeRange: string): number => {
   switch (timeRange) {

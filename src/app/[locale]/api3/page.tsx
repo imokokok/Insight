@@ -1,8 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+
+import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
-import { useAPI3Page } from './hooks/useAPI3Page';
+
 import {
   API3Sidebar,
   API3MarketView,
@@ -13,8 +16,7 @@ import {
   API3RiskView,
   API3Hero,
 } from './components';
-import { LoadingState, ErrorFallback } from '@/components/oracle';
-import { MobileSidebar } from '@/components/ui/MobileSidebar';
+import { useAPI3Page } from './hooks/useAPI3Page';
 
 export default function API3Page() {
   const {
@@ -153,9 +155,7 @@ export default function API3Page() {
           </MobileSidebar>
 
           {/* Content Area */}
-          <div className="flex-1 min-w-0">
-            {renderContent()}
-          </div>
+          <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>
     </div>

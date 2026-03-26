@@ -1,8 +1,14 @@
 'use client';
 
-import { Blockchain } from '@/lib/oracles';
 import { baseColors, semanticColors } from '@/lib/config/colors';
-import { chainColors, SparklineProps, ProgressBarProps, JumpIndicatorProps } from '../constants';
+import { type Blockchain } from '@/lib/oracles';
+
+import {
+  chainColors,
+  type SparklineProps,
+  type ProgressBarProps,
+  type JumpIndicatorProps,
+} from '../constants';
 
 export function Sparkline({ data, color, width = 80, height = 20 }: SparklineProps) {
   if (!data || data.length < 2) {

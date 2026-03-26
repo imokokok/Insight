@@ -1,6 +1,7 @@
 'use client';
 
-import { ComponentType, lazy, Suspense, ReactNode } from 'react';
+import React, { type ComponentType, lazy, Suspense, type ReactNode } from 'react';
+
 import dynamic from 'next/dynamic';
 
 // ============================================================================
@@ -103,9 +104,6 @@ class DynamicComponentErrorBoundary extends React.Component<
     return this.props.children;
   }
 }
-
-// Need to import React for class component
-import React from 'react';
 
 // ============================================================================
 // withCodeSplitting HOC
@@ -307,10 +305,12 @@ export function createRouteSplitting(routes: RouteComponent[]) {
       return Promise.resolve();
     },
     preloadRoutes: (paths: string[]) => {
-      return Promise.all(paths.map((path) => {
-        const component = routeMap.get(path);
-        return component ? component.preload() : Promise.resolve();
-      }));
+      return Promise.all(
+        paths.map((path) => {
+          const component = routeMap.get(path);
+          return component ? component.preload() : Promise.resolve();
+        })
+      );
     },
     preloadAll: () => {
       return preloadComponents(Array.from(routeMap.values()));
@@ -365,10 +365,7 @@ export function createVisibilityLoadedComponent<T extends Record<string, unknown
       return () => observer.disconnect();
     }, []);
 
-    const LazyComponent = React.useMemo(
-      () => lazy(importFn),
-      []
-    );
+    const LazyComponent = React.useMemo(() => lazy(importFn), []);
 
     return (
       <div ref={containerRef}>
@@ -406,13 +403,13 @@ class PriorityLoadQueue {
   add(id: string, load: () => Promise<void>, priority = 0): void {
     // Remove existing item with same id
     this.queue = this.queue.filter((item) => item.id !== id);
-    
+
     // Add new item
     this.queue.push({ id, load, priority });
-    
+
     // Sort by priority (higher first)
     this.queue.sort((a, b) => b.priority - a.priority);
-    
+
     // Start processing if not already
     if (!this.isProcessing) {
       this.process();

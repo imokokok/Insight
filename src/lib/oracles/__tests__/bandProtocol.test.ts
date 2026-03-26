@@ -1,6 +1,12 @@
-import { BandProtocolClient, calculateMovingAverage, calculateStandardDeviation, calculateTechnicalIndicators } from '../bandProtocol';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
+
+import {
+  BandProtocolClient,
+  calculateMovingAverage,
+  calculateStandardDeviation,
+  calculateTechnicalIndicators,
+} from '../bandProtocol';
 import * as storage from '../storage';
 
 jest.mock('@/lib/oracles/storage', () => ({

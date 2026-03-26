@@ -1,9 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { OracleMarketData, AssetData } from './types';
-import { useWebSocket, WebSocketStatus, WebSocketMessage } from '@/lib/realtime/websocket';
-import { usePriceAlerts, AlertCheckResult, PriceDataForAlert } from '@/lib/realtime/priceAlerts';
+
+import {
+  usePriceAlerts,
+  type AlertCheckResult,
+  type PriceDataForAlert,
+} from '@/lib/realtime/priceAlerts';
+import {
+  useWebSocket,
+  type WebSocketStatus,
+  type WebSocketMessage,
+} from '@/lib/realtime/websocket';
+
+import { type OracleMarketData, type AssetData } from './types';
 
 export interface UseWebSocketHandlerReturn {
   wsStatus: WebSocketStatus;

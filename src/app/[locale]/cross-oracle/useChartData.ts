@@ -1,9 +1,11 @@
 import { useMemo, useCallback } from 'react';
-import { OracleProvider, PriceData } from '@/types/oracle';
-import { oracleNames, TimeRange } from './constants';
-import { getMaxPointsForTimeRange, getOracleChartColors } from './chartConfig';
+
 import { lttbDownsample } from '@/lib/utils/lttb';
-import { ChartDataResult, ChartDataPoint } from './types';
+import { type OracleProvider, type PriceData } from '@/types/oracle';
+
+import { getMaxPointsForTimeRange, getOracleChartColors } from './chartConfig';
+import { oracleNames, type TimeRange } from './constants';
+import { type ChartDataResult, type ChartDataPoint } from './types';
 
 export function useChartData(
   historicalData: Partial<Record<OracleProvider, PriceData[]>>,

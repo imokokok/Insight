@@ -67,8 +67,11 @@
     "paused": "Temporarily Paused",
     "deprecated": "Legacy",
     "mostPopular": "Most Requested",
+    "name": "Name",
     "feedName": "Feed Identifier",
     "category": "Asset Class",
+    "frequency": "Update Frequency",
+    "threshold": "Deviation Threshold",
     "updateFrequency": "Update Cadence",
     "deviationThreshold": "Deviation Trigger",
     "status": "Operational Status",
@@ -98,7 +101,10 @@
     "ccipIntegration": "CCIP Cross-Chain Integration",
     "ccipValueTransferred": "Value Transferred",
     "ccipMessages": "Messages",
-    "ccipProtocols": "CCIP Protocols"
+    "ccipProtocols": "CCIP Protocols",
+    "tvlAnalysis": {
+      "title": "TVL Trend Analysis"
+    }
   },
   "riskAssessment": {
     "overallRiskScore": "Composite Risk Score",

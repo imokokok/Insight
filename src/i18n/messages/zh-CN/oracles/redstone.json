@@ -1,6 +1,19 @@
 {
   "redstone": {
     "title": "Redstone",
+    "menu": {
+      "title": "菜单",
+      "marketData": "市场数据",
+      "networkHealth": "网络健康",
+      "dataStreams": "数据流",
+      "providers": "提供者",
+      "crossChain": "跨链",
+      "ecosystem": "生态系统",
+      "riskAssessment": "风险评估"
+    },
+    "navigation": {
+      "title": "导航"
+    },
     "subtitle": "模块化预言机解决方案，支持高效的数据流和灵活的集成选项",
     "analytics": "Redstone 数据分析",
     "tabs": {

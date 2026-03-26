@@ -1,16 +1,20 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { Shield, AlertTriangle, CheckCircle, Info } from 'lucide-react';
-import { UmaRiskViewProps } from '../types';
+
+import { useTranslations } from '@/i18n';
+
+import { type UmaRiskViewProps } from '../types';
 
 export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
   const t = useTranslations();
 
-  const resolvedDisputes = disputes.filter(d => d.status === 'resolved');
-  const avgResolutionTime = resolvedDisputes.length > 0 && resolvedDisputes.some(d => d.resolutionTime)
-    ? resolvedDisputes.reduce((sum, d) => sum + (d.resolutionTime || 0), 0) / resolvedDisputes.filter(d => d.resolutionTime).length
-    : 0;
+  const resolvedDisputes = disputes.filter((d) => d.status === 'resolved');
+  const avgResolutionTime =
+    resolvedDisputes.length > 0 && resolvedDisputes.some((d) => d.resolutionTime)
+      ? resolvedDisputes.reduce((sum, d) => sum + (d.resolutionTime || 0), 0) /
+        resolvedDisputes.filter((d) => d.resolutionTime).length
+      : 0;
 
   const riskScore = 85;
 
@@ -140,16 +144,12 @@ export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
         <div>
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-900">
-              {t('uma.risk.overallScore')}
-            </span>
+            <span className="text-sm font-medium text-gray-900">{t('uma.risk.overallScore')}</span>
           </div>
           <p className={`text-sm font-semibold mt-1 ${getScoreColor(riskScore)}`}>
             {getScoreLabel(riskScore)}
           </p>
-          <p className="text-xs text-gray-500 mt-1 max-w-sm">
-            {t('uma.risk.scoreDescription')}
-          </p>
+          <p className="text-xs text-gray-500 mt-1 max-w-sm">{t('uma.risk.scoreDescription')}</p>
         </div>
       </div>
 
@@ -157,9 +157,7 @@ export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
       <div className="border-t border-gray-200 pt-6">
         <div className="flex items-center gap-2 mb-4">
           <Info className="w-4 h-4 text-gray-500" />
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('uma.risk.overview')}
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">{t('uma.risk.overview')}</h3>
         </div>
         <div className="grid grid-cols-2 gap-x-8 gap-y-4">
           {riskMetrics.map((metric, index) => (
@@ -178,19 +176,23 @@ export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
       <div className="border-t border-gray-200 pt-6">
         <div className="flex items-center gap-2 mb-4">
           <AlertTriangle className="w-4 h-4 text-gray-500" />
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('uma.risk.factors')}
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">{t('uma.risk.factors')}</h3>
         </div>
         <div className="space-y-3">
           {riskFactors.map((factor, index) => (
             <div key={index} className="flex items-start gap-3">
-              <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${getStatusDotColor(factor.status)}`} />
+              <div
+                className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${getStatusDotColor(factor.status)}`}
+              />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-900">{factor.title}</span>
                   <span className={`text-xs ${getStatusTextColor(factor.status)}`}>
-                    {factor.status === 'low' ? t('uma.risk.statusLow') : factor.status === 'medium' ? t('uma.risk.statusMedium') : t('uma.risk.statusHigh')}
+                    {factor.status === 'low'
+                      ? t('uma.risk.statusLow')
+                      : factor.status === 'medium'
+                        ? t('uma.risk.statusMedium')
+                        : t('uma.risk.statusHigh')}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">{factor.description}</p>
@@ -204,9 +206,7 @@ export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
       <div className="border-t border-gray-200 pt-6">
         <div className="flex items-center gap-2 mb-4">
           <CheckCircle className="w-4 h-4 text-gray-500" />
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('uma.risk.mitigation')}
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">{t('uma.risk.mitigation')}</h3>
         </div>
         <div className="flex flex-wrap gap-2">
           {mitigationMeasures.map((measure, index) => (

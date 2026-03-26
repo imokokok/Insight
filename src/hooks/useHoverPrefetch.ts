@@ -1,7 +1,9 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+
 import { useQueryClient } from '@tanstack/react-query';
+
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('HoverPrefetch');

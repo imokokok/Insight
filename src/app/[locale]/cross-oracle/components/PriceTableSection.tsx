@@ -1,10 +1,13 @@
 'use client';
 
 import React from 'react';
-import { OracleProvider, PriceData } from '@/types/oracle';
-import { oracleNames, SortColumn, SortDirection } from '../constants';
-import { PriceTable } from './PriceTable';
+
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { type OracleProvider, type PriceData } from '@/types/oracle';
+
+import { oracleNames, type SortColumn, type SortDirection } from '../constants';
+
+import { PriceTable } from './PriceTable';
 
 interface PriceTableSectionProps {
   priceData: PriceData[];

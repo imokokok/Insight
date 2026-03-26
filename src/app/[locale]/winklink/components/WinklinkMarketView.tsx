@@ -1,9 +1,11 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { PriceChart } from '@/components/oracle';
-import { WinklinkMarketViewProps } from '../types';
 import { TrendingUp, TrendingDown, Server, Zap, Clock, Shield } from 'lucide-react';
+
+import { PriceChart } from '@/components/oracle';
+import { useTranslations } from '@/i18n';
+
+import { type WinklinkMarketViewProps } from '../types';
 
 export function WinklinkMarketView({
   config,
@@ -43,7 +45,12 @@ export function WinklinkMarketView({
   ];
 
   const networkStatus = [
-    { label: t('winklink.stats.activeNodes'), value: `${staking?.activeNodes ?? 82}+`, status: 'healthy', icon: Server },
+    {
+      label: t('winklink.stats.activeNodes'),
+      value: `${staking?.activeNodes ?? 82}+`,
+      status: 'healthy',
+      icon: Server,
+    },
     { label: t('winklink.stats.dataFeeds'), value: '180+', status: 'healthy', icon: Zap },
     { label: t('winklink.stats.responseTime'), value: '110ms', status: 'healthy', icon: Clock },
     { label: t('winklink.stats.successRate'), value: '99.92%', status: 'healthy', icon: Shield },
@@ -56,9 +63,7 @@ export function WinklinkMarketView({
         {/* 左侧价格趋势图表 - 占2列 */}
         <div className="lg:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium text-gray-900">
-              {t('winklink.priceTrend')}
-            </h3>
+            <h3 className="text-base font-medium text-gray-900">{t('winklink.priceTrend')}</h3>
           </div>
           <div className="flex-1">
             <PriceChart
@@ -76,9 +81,7 @@ export function WinklinkMarketView({
         <div className="flex flex-col gap-8">
           {/* 快速统计 */}
           <div className="flex-1 flex flex-col">
-            <h3 className="text-base font-medium text-gray-900 mb-4">
-              {t('winklink.quickStats')}
-            </h3>
+            <h3 className="text-base font-medium text-gray-900 mb-4">{t('winklink.quickStats')}</h3>
             <div className="flex-1 flex flex-col">
               {stats.map((stat, index) => (
                 <div
@@ -95,11 +98,11 @@ export function WinklinkMarketView({
                       {stat.value}
                     </span>
                     {stat.change && (
-                      <span className={`text-xs ml-2 ${
-                        stat.change.startsWith('+') 
-                          ? 'text-emerald-600' 
-                          : 'text-red-600'
-                      }`}>
+                      <span
+                        className={`text-xs ml-2 ${
+                          stat.change.startsWith('+') ? 'text-emerald-600' : 'text-red-600'
+                        }`}
+                      >
                         {stat.change}
                       </span>
                     )}
@@ -139,9 +142,7 @@ export function WinklinkMarketView({
 
           {/* 数据来源 */}
           <div className="flex-1 flex flex-col">
-            <h3 className="text-base font-medium text-gray-900 mb-4">
-              {t('winklink.dataSource')}
-            </h3>
+            <h3 className="text-base font-medium text-gray-900 mb-4">{t('winklink.dataSource')}</h3>
             <div className="flex-1 flex flex-col">
               {[
                 { name: 'TRON Mainnet', status: 'active', latency: '85ms' },
@@ -185,13 +186,16 @@ export function WinklinkMarketView({
                 <TrendingDown className="w-3.5 h-3.5 text-red-600" />
               )}
               <span className={`text-sm ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
-                {isPositive ? '+' : ''}{priceChange24h.toFixed(2)}%
+                {isPositive ? '+' : ''}
+                {priceChange24h.toFixed(2)}%
               </span>
             </div>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('winklink.volume24h')}</p>
-            <p className="text-2xl font-semibold text-gray-900">${(config.marketData.volume24h / 1e6).toFixed(1)}M</p>
+            <p className="text-2xl font-semibold text-gray-900">
+              ${(config.marketData.volume24h / 1e6).toFixed(1)}M
+            </p>
             <p className="text-sm text-emerald-600 mt-1">+12%</p>
           </div>
           <div>

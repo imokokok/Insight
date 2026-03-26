@@ -1,5 +1,6 @@
 import { useTranslations } from '@/i18n';
-import { NetworkMetric } from './types';
+
+import { type NetworkMetric } from './types';
 
 export function MetricCard({ metric }: { metric: NetworkMetric }) {
   const t = useTranslations();
@@ -31,7 +32,9 @@ export function MetricCard({ metric }: { metric: NetworkMetric }) {
             <span className="text-gray-400 ml-1">{t('networkHealth.vsLastWeek')}</span>
           </div>
         </div>
-        <div className="p-2.5 bg-primary-50 border border-primary-100 rounded-lg text-primary-600">{metric.icon}</div>
+        <div className="p-2.5 bg-primary-50 border border-primary-100 rounded-lg text-primary-600">
+          {metric.icon}
+        </div>
       </div>
     </div>
   );

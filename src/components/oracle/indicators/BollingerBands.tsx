@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   ComposedChart,
   Line,
@@ -12,9 +13,9 @@ import {
   ReferenceLine,
   CartesianGrid,
 } from 'recharts';
-import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
-import { useTranslations } from '@/i18n';
 
+import { useTranslations } from '@/i18n';
+import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 
 interface BollingerDataPoint {
   timestamp: number;
@@ -270,7 +271,10 @@ export function BollingerBands({
               tickFormatter={(value) => `$${value.toFixed(0)}`}
               domain={['auto', 'auto']}
             />
-            <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
+            <RechartsTooltip
+              content={<CustomTooltip />}
+              cursor={{ fill: animationColors.fade.cursor }}
+            />
 
             {/* %B reference lines */}
             <ReferenceLine y={0} stroke={chartColors.recharts.grid} strokeDasharray="3 3" />

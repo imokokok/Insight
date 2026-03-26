@@ -1,9 +1,12 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { TellorReportersViewProps, ReporterData } from '../types';
-import { TellorDataTable } from './TellorDataTable';
 import { Activity, Clock, Shield, Award, Globe, Server, TrendingUp } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
+
+import { type TellorReportersViewProps, type ReporterData } from '../types';
+
+import { TellorDataTable } from './TellorDataTable';
 
 const mockReporters: ReporterData[] = [
   {
@@ -114,8 +117,12 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
   const t = useTranslations();
 
   const totalStaked = mockReporters.reduce((acc, r) => acc + r.stakedAmount, 0);
-  const avgSuccessRate = (mockReporters.reduce((acc, r) => acc + r.successRate, 0) / mockReporters.length).toFixed(1);
-  const avgResponseTime = Math.round(mockReporters.reduce((acc, r) => acc + r.responseTime, 0) / mockReporters.length);
+  const avgSuccessRate = (
+    mockReporters.reduce((acc, r) => acc + r.successRate, 0) / mockReporters.length
+  ).toFixed(1);
+  const avgResponseTime = Math.round(
+    mockReporters.reduce((acc, r) => acc + r.responseTime, 0) / mockReporters.length
+  );
 
   const columns = [
     { key: 'address', header: t('tellor.reporters.address'), sortable: true },
@@ -130,7 +137,9 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
       header: t('tellor.reporters.accuracy'),
       sortable: true,
       render: (item: ReporterData) => (
-        <span className={`font-medium ${item.successRate >= 99.5 ? 'text-emerald-600' : item.successRate >= 99.0 ? 'text-amber-600' : 'text-gray-600'}`}>
+        <span
+          className={`font-medium ${item.successRate >= 99.5 ? 'text-emerald-600' : item.successRate >= 99.0 ? 'text-amber-600' : 'text-gray-600'}`}
+        >
           {item.successRate}%
         </span>
       ),
@@ -176,7 +185,9 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{t('tellor.reporters.totalStaked')}</span>
-          <span className="text-lg font-semibold text-gray-900">{(totalStaked / 1e3).toFixed(1)}K TRB</span>
+          <span className="text-lg font-semibold text-gray-900">
+            {(totalStaked / 1e3).toFixed(1)}K TRB
+          </span>
         </div>
       </div>
 
@@ -219,7 +230,9 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
                 <div key={index}>
                   <div className="flex items-center justify-between text-sm mb-1.5">
                     <span className="text-gray-600">{stat.region}</span>
-                    <span className="font-medium text-gray-900">{stat.count} <span className="text-gray-400">({stat.percentage}%)</span></span>
+                    <span className="font-medium text-gray-900">
+                      {stat.count} <span className="text-gray-400">({stat.percentage}%)</span>
+                    </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
                     <div
@@ -244,7 +257,9 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('tellor.reporters.avgReputation')}</span>
                 <span className="font-medium text-gray-900">
-                  {(mockReporters.reduce((acc, r) => acc + r.reputation, 0) / mockReporters.length).toFixed(1)}
+                  {(
+                    mockReporters.reduce((acc, r) => acc + r.reputation, 0) / mockReporters.length
+                  ).toFixed(1)}
                 </span>
               </div>
               <div className="flex justify-between">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+
 import {
   Globe,
   Clock,
@@ -11,10 +12,11 @@ import {
   RefreshCw,
   DollarSign,
 } from 'lucide-react';
-import { useTranslations } from '@/i18n';
-import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
-import { updateUserProfile } from '@/lib/supabase/auth';
+
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { updateUserProfile } from '@/lib/supabase/auth';
+import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
 
 interface UserPreferences {
   defaultOracle: string;

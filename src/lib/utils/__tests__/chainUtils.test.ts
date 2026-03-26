@@ -1,3 +1,5 @@
+import { Blockchain } from '@/types/oracle';
+
 import {
   formatChainName,
   getChainColor,
@@ -11,7 +13,6 @@ import {
   getSupportedChains,
   getChainById,
 } from '../chainUtils';
-import { Blockchain } from '@/types/oracle';
 
 describe('chainUtils', () => {
   describe('formatChainName', () => {

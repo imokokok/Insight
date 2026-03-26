@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations, useLocale } from '@/i18n';
+
 import {
   ArrowRight,
   Search,
@@ -19,24 +20,26 @@ import {
   Link2,
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+
+import { Icon } from '@/components/ui';
+import { useTranslations, useLocale } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 import { symbols } from '@/lib/constants';
-import {
-  getSearchHistory,
-  saveSearchHistory,
-  clearSearchHistory,
-  removeFromSearchHistory,
-  SearchHistoryItem,
-} from '@/lib/utils/searchHistory';
 import {
   searchAll,
   getTokenSymbol,
   type SearchableItem,
   type SearchResult,
 } from '@/lib/constants/searchConfig';
-import HeroBackground from './HeroBackground';
+import {
+  getSearchHistory,
+  saveSearchHistory,
+  clearSearchHistory,
+  removeFromSearchHistory,
+  type SearchHistoryItem,
+} from '@/lib/utils/searchHistory';
 
-import { Icon } from '@/components/ui';
+import HeroBackground from './HeroBackground';
 
 interface TrendData {
   value: number;
@@ -458,7 +461,8 @@ export default function ProfessionalHero() {
                           if (dropdownItem.type === 'popular')
                             return 'text-emerald-600 bg-emerald-50';
                           if (searchableItem?.type === 'token') return 'text-amber-600 bg-amber-50';
-                          if (searchableItem?.type === 'oracle') return 'text-primary-600 bg-primary-50';
+                          if (searchableItem?.type === 'oracle')
+                            return 'text-primary-600 bg-primary-50';
                           if (searchableItem?.type === 'chain')
                             return 'text-purple-600 bg-purple-50';
                           return 'text-gray-600 bg-gray-50';

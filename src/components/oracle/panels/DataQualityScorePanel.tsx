@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+
 import { useTranslations } from '@/i18n';
-import { Publisher } from '@/types/oracle';
 import { chartColors } from '@/lib/config/colors';
+import { type Publisher } from '@/types/oracle';
 
 export interface DataQualityScorePanelProps {
   symbol?: string;
@@ -550,7 +551,9 @@ export function DataQualityScorePanel({
                 {getScoreLabel(scoreLevel, t)}
               </span>
               {scoreChange !== 0 && (
-                <span className={`text-xs ${scoreChange > 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                <span
+                  className={`text-xs ${scoreChange > 0 ? 'text-success-600' : 'text-danger-600'}`}
+                >
                   {scoreChange > 0 ? '+' : ''}
                   {scoreChange.toFixed(1)}
                 </span>

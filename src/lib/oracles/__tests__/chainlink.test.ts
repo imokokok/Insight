@@ -1,6 +1,7 @@
-import { ChainlinkClient } from '../chainlink';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
-import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
+import { type PriceData, OracleProvider, Blockchain } from '@/types/oracle';
+
+import { ChainlinkClient } from '../chainlink';
 import * as storage from '../storage';
 
 jest.mock('next/server', () => ({

@@ -1,9 +1,9 @@
 'use client';
 
 import { ReferenceDot } from 'recharts';
-import { semanticColors, baseColors, shadowColors } from '@/lib/config/colors';
 
 import { chartColors, getChartColor } from '@/lib/chartColors';
+import { semanticColors, baseColors, shadowColors } from '@/lib/config/colors';
 
 export interface AnomalyPoint {
   timestamp: number;

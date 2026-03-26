@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { AssetCategory } from '../types';
+
+import {
+  PieChart as PieChartIcon,
+  BarChart3,
+  Activity,
+  TrendingUp,
+  Droplets,
+  Zap,
+} from 'lucide-react';
 import {
   PieChart,
   Pie,
@@ -20,19 +28,13 @@ import {
   Radar,
   Legend,
 } from 'recharts';
-import { TooltipProps } from '@/types/ui/recharts';
+
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import {
-  PieChart as PieChartIcon,
-  BarChart3,
-  Activity,
-  TrendingUp,
-  Droplets,
-  Zap,
-} from 'lucide-react';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { type TooltipProps } from '@/types/ui/recharts';
 
+import { type AssetCategory } from '../types';
 
 interface AssetCategoryChartProps {
   data: AssetCategory[];

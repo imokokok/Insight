@@ -86,9 +86,7 @@ export {
 } from './oracles/api3';
 
 // API3 WebSocket Hooks
-export {
-  useAPI3Price as useAPI3PriceRealtime,
-} from './useAPI3WebSocket';
+export { useAPI3Price as useAPI3PriceRealtime } from './useAPI3WebSocket';
 export type {
   UseAPI3PriceOptions as UseAPI3PriceRealtimeOptions,
   UseAPI3PriceReturn as UseAPI3PriceRealtimeReturn,

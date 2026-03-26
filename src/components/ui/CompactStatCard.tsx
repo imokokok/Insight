@@ -1,11 +1,14 @@
 'use client';
 
 import { forwardRef, useMemo } from 'react';
+
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+
+import { semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
+
 import { SparklineChart } from './SparklineChart';
 import { Tooltip } from './Tooltip';
-import { semanticColors } from '@/lib/config/colors';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 export interface CompactStatCardProps {
   title: string;
@@ -79,9 +82,7 @@ export const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
           </span>
 
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold text-gray-900 font-tabular truncate">
-              {value}
-            </span>
+            <span className="text-xl font-bold text-gray-900 font-tabular truncate">{value}</span>
 
             {change && (
               <div

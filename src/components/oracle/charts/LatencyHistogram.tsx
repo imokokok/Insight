@@ -1,10 +1,19 @@
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from 'recharts';
+
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
-import { HistogramDataPoint } from './latencyUtils';
 
+import { type HistogramDataPoint } from './latencyUtils';
 
 interface LatencyHistogramProps {
   histogramData: HistogramDataPoint[];

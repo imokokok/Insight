@@ -1,3 +1,12 @@
+import { container, SERVICE_TOKENS } from '@/lib/di';
+import { OracleProvider, Blockchain } from '@/types/oracle';
+
+import { API3Client } from '../api3';
+import { BandProtocolClient } from '../bandProtocol';
+import { BaseOracleClient } from '../base';
+import { ChainlinkClient } from '../chainlink';
+import { ChronicleClient } from '../chronicle';
+import { DIAClient } from '../dia';
 import {
   OracleClientFactory,
   getOracleClient,
@@ -6,20 +15,12 @@ import {
   registerMockOracleFactory,
   unregisterMockOracleFactory,
 } from '../factory';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import { container, SERVICE_TOKENS } from '@/lib/di';
-import { IOracleClientFactory } from '../interfaces';
-import { BaseOracleClient } from '../base';
-import { ChainlinkClient } from '../chainlink';
+import { type IOracleClientFactory } from '../interfaces';
 import { PythClient } from '../pythNetwork';
 import { RedStoneClient } from '../redstone';
-import { DIAClient } from '../dia';
 import { TellorClient } from '../tellor';
-import { ChronicleClient } from '../chronicle';
-import { WINkLinkClient } from '../winklink';
-import { BandProtocolClient } from '../bandProtocol';
 import { UMAClient } from '../uma';
-import { API3Client } from '../api3';
+import { WINkLinkClient } from '../winklink';
 
 jest.mock('@/lib/di', () => ({
   container: {

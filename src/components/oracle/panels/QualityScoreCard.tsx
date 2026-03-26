@@ -2,7 +2,13 @@
 
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
-import { QualityScore, QualityStatus, getStatusConfig, getStatusFromScore } from './qualityUtils';
+
+import {
+  type QualityScore,
+  type QualityStatus,
+  getStatusConfig,
+  getStatusFromScore,
+} from './qualityUtils';
 
 interface QualityScoreCardProps {
   score: QualityScore;

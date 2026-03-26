@@ -1,10 +1,23 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useTranslations } from '@/i18n';
-import { DashboardCard } from '@/components/oracle/data-display';
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+} from 'recharts';
+
 import { DataFreshnessIndicator } from '@/components/oracle/alerts';
-import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
+import { DashboardCard } from '@/components/oracle/data-display';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
 import {
   getScoreColor,
   getScoreBg,
@@ -16,19 +29,7 @@ import {
   getStatusColor,
   getMeasureStatusColor,
 } from '@/lib/utils/riskUtils';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from 'recharts';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { chartColors } from '@/lib/config/colors';
-
+import { type RiskMetric, type RiskEvent, type MitigationMeasure } from '@/types/risk';
 
 const riskMetrics: RiskMetric[] = [
   {
@@ -293,7 +294,9 @@ export function RedStoneRiskAssessmentPanel() {
             >
               <div className="flex-shrink-0 w-24 text-xs text-gray-500">{event.date}</div>
               <div className="flex-shrink-0">
-                <span className={`px-2 py-1 text-xs border rounded-md ${getEventTypeColor(event.type)}`}>
+                <span
+                  className={`px-2 py-1 text-xs border rounded-md ${getEventTypeColor(event.type)}`}
+                >
                   {t(`redstone.riskAssessment.eventTypes.${event.type}`)}
                 </span>
               </div>
@@ -302,7 +305,9 @@ export function RedStoneRiskAssessmentPanel() {
                 <p className="text-xs text-gray-500 mt-1">{event.description}</p>
               </div>
               <div className="flex-shrink-0">
-                <span className={`px-2 py-1 text-xs border rounded-md ${getStatusColor(event.status)}`}>
+                <span
+                  className={`px-2 py-1 text-xs border rounded-md ${getStatusColor(event.status)}`}
+                >
                   {event.status === 'resolved'
                     ? t('redstone.riskAssessment.resolved')
                     : t('redstone.riskAssessment.monitoring')}
@@ -359,7 +364,9 @@ export function RedStoneRiskAssessmentPanel() {
                 <span className="text-sm text-gray-600">
                   {t('redstone.riskAssessment.lastAudit')}: {item.lastAudit}
                 </span>
-                <span className={`px-2 py-1 text-xs border rounded-md ${getRiskLevelColor(item.riskLevel)}`}>
+                <span
+                  className={`px-2 py-1 text-xs border rounded-md ${getRiskLevelColor(item.riskLevel)}`}
+                >
                   {t(`redstone.riskAssessment.riskLevel.${item.riskLevel}`)}
                 </span>
               </div>

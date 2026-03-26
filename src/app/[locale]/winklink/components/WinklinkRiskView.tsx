@@ -1,8 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { WinklinkRiskViewProps } from '../types';
 import { Shield, CheckCircle } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
+
+import { type WinklinkRiskViewProps } from '../types';
 
 export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewProps) {
   const t = useTranslations();
@@ -22,7 +24,12 @@ export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewPro
       name: t('winklink.risk.decentralization'),
       score: riskData.decentralization,
       description: 'Node distribution and network decentralization',
-      status: riskData.decentralization >= 80 ? 'low' : riskData.decentralization >= 60 ? 'medium' : 'high',
+      status:
+        riskData.decentralization >= 80
+          ? 'low'
+          : riskData.decentralization >= 60
+            ? 'medium'
+            : 'high',
     },
     {
       name: t('winklink.risk.dataQuality'),
@@ -89,7 +96,8 @@ export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewPro
     }
   };
 
-  const overallRiskStatus = riskData.overallRisk <= 3 ? 'low' : riskData.overallRisk <= 6 ? 'medium' : 'high';
+  const overallRiskStatus =
+    riskData.overallRisk <= 3 ? 'low' : riskData.overallRisk <= 6 ? 'medium' : 'high';
 
   return (
     <div className="space-y-8">
@@ -101,13 +109,15 @@ export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewPro
               {t('winklink.risk.overallRisk')}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {t('winklink.risk.metricsDesc') || 'Key performance indicators across decentralization, security, and reliability'}
+              {t('winklink.risk.metricsDesc') ||
+                'Key performance indicators across decentralization, security, and reliability'}
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
             <Shield className="w-5 h-5 text-emerald-600" />
             <span className="text-sm font-medium text-emerald-700">
-              {t('winklink.risk.overallScore') || 'Overall'}: {(10 - riskData.overallRisk).toFixed(1)}/10
+              {t('winklink.risk.overallScore') || 'Overall'}:{' '}
+              {(10 - riskData.overallRisk).toFixed(1)}/10
             </span>
           </div>
         </div>
@@ -117,7 +127,9 @@ export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewPro
             <div key={factor.name} className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">{factor.name}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${getRiskBgColor(factor.status)} ${getRiskTextColor(factor.status)}`}>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-md font-medium ${getRiskBgColor(factor.status)} ${getRiskTextColor(factor.status)}`}
+                >
                   {factor.status}
                 </span>
               </div>
@@ -182,7 +194,9 @@ export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewPro
                 <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="text-sm font-medium text-gray-900">Multi-node consensus</h4>
-                  <p className="text-xs text-gray-500">Data validated by multiple independent nodes</p>
+                  <p className="text-xs text-gray-500">
+                    Data validated by multiple independent nodes
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -212,7 +226,9 @@ export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewPro
         <p className="text-xs text-gray-500">
           Last updated: {new Date(riskData.lastUpdate).toLocaleString()}
         </p>
-        <span className={`text-xs px-2.5 py-1 rounded-md font-medium ${getRiskBgColor(overallRiskStatus)} ${getRiskTextColor(overallRiskStatus)}`}>
+        <span
+          className={`text-xs px-2.5 py-1 rounded-md font-medium ${getRiskBgColor(overallRiskStatus)} ${getRiskTextColor(overallRiskStatus)}`}
+        >
           {overallRiskStatus.charAt(0).toUpperCase() + overallRiskStatus.slice(1)} Risk
         </span>
       </section>

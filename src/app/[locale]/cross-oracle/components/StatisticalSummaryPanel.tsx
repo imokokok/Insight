@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
+
+import { TrendingUp, BarChart3, Activity, Sigma, Target } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -13,11 +15,7 @@ import {
   ComposedChart,
   ReferenceLine,
 } from 'recharts';
-import { TrendingUp } from 'lucide-react';
-import { BarChart3 } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Sigma } from 'lucide-react';
-import { Target } from 'lucide-react';
+
 import type { PriceData } from '@/types/oracle';
 
 interface StatisticalSummaryPanelProps {
@@ -93,9 +91,8 @@ export function StatisticalSummaryPanel({
     const min = sorted[0];
     const max = sorted[n - 1];
 
-    const median = n % 2 === 0
-      ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2
-      : sorted[Math.floor(n / 2)];
+    const median =
+      n % 2 === 0 ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 : sorted[Math.floor(n / 2)];
 
     const q1Index = Math.floor(n * 0.25);
     const q3Index = Math.floor(n * 0.75);
@@ -118,13 +115,17 @@ export function StatisticalSummaryPanel({
 
     const mad = sorted.reduce((sum, p) => sum + Math.abs(p - avgPrice), 0) / n;
 
-    const skewness = sorted.reduce((sum, p) => {
-      return sum + Math.pow((p - avgPrice) / standardDeviation, 3);
-    }, 0) / n;
+    const skewness =
+      sorted.reduce((sum, p) => {
+        return sum + Math.pow((p - avgPrice) / standardDeviation, 3);
+      }, 0) / n;
 
-    const kurtosis = sorted.reduce((sum, p) => {
-      return sum + Math.pow((p - avgPrice) / standardDeviation, 4);
-    }, 0) / n - 3;
+    const kurtosis =
+      sorted.reduce((sum, p) => {
+        return sum + Math.pow((p - avgPrice) / standardDeviation, 4);
+      }, 0) /
+        n -
+      3;
 
     const coefficientOfVariation = avgPrice !== 0 ? (standardDeviation / avgPrice) * 100 : 0;
     const standardError = standardDeviation / Math.sqrt(n);
@@ -158,11 +159,14 @@ export function StatisticalSummaryPanel({
     for (let i = 0; i < binCount; i++) {
       const binStart = min + i * binWidth;
       const binEnd = min + (i + 1) * binWidth;
-      const count = prices.filter((p) => p >= binStart && (i === binCount - 1 ? p <= binEnd : p < binEnd)).length;
+      const count = prices.filter(
+        (p) => p >= binStart && (i === binCount - 1 ? p <= binEnd : p < binEnd)
+      ).length;
       const frequency = count / n;
 
       const midPoint = (binStart + binEnd) / 2;
-      const normalCurve = (1 / (standardDeviation * Math.sqrt(2 * Math.PI))) *
+      const normalCurve =
+        (1 / (standardDeviation * Math.sqrt(2 * Math.PI))) *
         Math.exp(-0.5 * Math.pow((midPoint - avgPrice) / standardDeviation, 2));
 
       bins.push({
@@ -237,10 +241,14 @@ export function StatisticalSummaryPanel({
             <div className="p-1.5 bg-blue-50 rounded">
               <TrendingUp className="w-4 h-4 text-blue-600" />
             </div>
-            <span className="text-xs font-medium text-gray-600">{t('crossOracle.statistics.skewness')}</span>
+            <span className="text-xs font-medium text-gray-600">
+              {t('crossOracle.statistics.skewness')}
+            </span>
           </div>
           <div className="space-y-1">
-            <p className="text-lg font-semibold text-gray-900">{formatNumber(metrics.skewness, 4)}</p>
+            <p className="text-lg font-semibold text-gray-900">
+              {formatNumber(metrics.skewness, 4)}
+            </p>
             <p className="text-xs text-gray-500">{getSkewnessInterpretation(metrics.skewness)}</p>
           </div>
         </div>
@@ -250,10 +258,14 @@ export function StatisticalSummaryPanel({
             <div className="p-1.5 bg-purple-50 rounded">
               <BarChart3 className="w-4 h-4 text-purple-600" />
             </div>
-            <span className="text-xs font-medium text-gray-600">{t('crossOracle.statistics.kurtosis')}</span>
+            <span className="text-xs font-medium text-gray-600">
+              {t('crossOracle.statistics.kurtosis')}
+            </span>
           </div>
           <div className="space-y-1">
-            <p className="text-lg font-semibold text-gray-900">{formatNumber(metrics.kurtosis, 4)}</p>
+            <p className="text-lg font-semibold text-gray-900">
+              {formatNumber(metrics.kurtosis, 4)}
+            </p>
             <p className="text-xs text-gray-500">{getKurtosisInterpretation(metrics.kurtosis)}</p>
           </div>
         </div>
@@ -263,11 +275,17 @@ export function StatisticalSummaryPanel({
             <div className="p-1.5 bg-emerald-50 rounded">
               <Activity className="w-4 h-4 text-emerald-600" />
             </div>
-            <span className="text-xs font-medium text-gray-600">{t('crossOracle.statistics.cv')}</span>
+            <span className="text-xs font-medium text-gray-600">
+              {t('crossOracle.statistics.cv')}
+            </span>
           </div>
           <div className="space-y-1">
-            <p className="text-lg font-semibold text-gray-900">{formatNumber(metrics.coefficientOfVariation, 2)}%</p>
-            <p className="text-xs text-gray-500">{t('crossOracle.statistics.relativeDispersion')}</p>
+            <p className="text-lg font-semibold text-gray-900">
+              {formatNumber(metrics.coefficientOfVariation, 2)}%
+            </p>
+            <p className="text-xs text-gray-500">
+              {t('crossOracle.statistics.relativeDispersion')}
+            </p>
           </div>
         </div>
 
@@ -276,11 +294,17 @@ export function StatisticalSummaryPanel({
             <div className="p-1.5 bg-amber-50 rounded">
               <Sigma className="w-4 h-4 text-amber-600" />
             </div>
-            <span className="text-xs font-medium text-gray-600">{t('crossOracle.statistics.sem')}</span>
+            <span className="text-xs font-medium text-gray-600">
+              {t('crossOracle.statistics.sem')}
+            </span>
           </div>
           <div className="space-y-1">
-            <p className="text-lg font-semibold text-gray-900">{formatPrice(metrics.standardError)}</p>
-            <p className="text-xs text-gray-500">{t('crossOracle.statistics.sampleMeanPrecision')}</p>
+            <p className="text-lg font-semibold text-gray-900">
+              {formatPrice(metrics.standardError)}
+            </p>
+            <p className="text-xs text-gray-500">
+              {t('crossOracle.statistics.sampleMeanPrecision')}
+            </p>
           </div>
         </div>
 
@@ -289,7 +313,9 @@ export function StatisticalSummaryPanel({
             <div className="p-1.5 bg-rose-50 rounded">
               <Target className="w-4 h-4 text-rose-600" />
             </div>
-            <span className="text-xs font-medium text-gray-600">{t('crossOracle.statistics.iqr')}</span>
+            <span className="text-xs font-medium text-gray-600">
+              {t('crossOracle.statistics.iqr')}
+            </span>
           </div>
           <div className="space-y-1">
             <p className="text-lg font-semibold text-gray-900">{formatPrice(metrics.iqr)}</p>
@@ -302,18 +328,24 @@ export function StatisticalSummaryPanel({
             <div className="p-1.5 bg-cyan-50 rounded">
               <Activity className="w-4 h-4 text-cyan-600" />
             </div>
-            <span className="text-xs font-medium text-gray-600">{t('crossOracle.statistics.mad')}</span>
+            <span className="text-xs font-medium text-gray-600">
+              {t('crossOracle.statistics.mad')}
+            </span>
           </div>
           <div className="space-y-1">
             <p className="text-lg font-semibold text-gray-900">{formatPrice(metrics.mad)}</p>
-            <p className="text-xs text-gray-500">{t('crossOracle.statistics.meanAbsoluteDeviation')}</p>
+            <p className="text-xs text-gray-500">
+              {t('crossOracle.statistics.meanAbsoluteDeviation')}
+            </p>
           </div>
         </div>
       </div>
 
       {/* 价格分布直方图 */}
       <div className="bg-white border border-gray-200 p-4">
-        <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('crossOracle.statistics.priceDistribution')}</h4>
+        <h4 className="text-sm font-semibold text-gray-900 mb-4">
+          {t('crossOracle.statistics.priceDistribution')}
+        </h4>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={histogramData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -330,14 +362,24 @@ export function StatisticalSummaryPanel({
                 yAxisId="left"
                 tick={{ fontSize: 10 }}
                 stroke="#6b7280"
-                label={{ value: t('crossOracle.statistics.frequency'), angle: -90, position: 'insideLeft', fontSize: 10 }}
+                label={{
+                  value: t('crossOracle.statistics.frequency'),
+                  angle: -90,
+                  position: 'insideLeft',
+                  fontSize: 10,
+                }}
               />
               <YAxis
                 yAxisId="right"
                 orientation="right"
                 tick={{ fontSize: 10 }}
                 stroke="#6b7280"
-                label={{ value: t('crossOracle.statistics.density'), angle: 90, position: 'insideRight', fontSize: 10 }}
+                label={{
+                  value: t('crossOracle.statistics.density'),
+                  angle: 90,
+                  position: 'insideRight',
+                  fontSize: 10,
+                }}
               />
               <Tooltip
                 contentStyle={{
@@ -347,10 +389,16 @@ export function StatisticalSummaryPanel({
                   fontSize: '12px',
                 }}
                 formatter={(value, name) => {
-                  if (name === 'frequency') return [`${(Number(value) * 100).toFixed(2)}%`, t('crossOracle.statistics.frequency')];
+                  if (name === 'frequency')
+                    return [
+                      `${(Number(value) * 100).toFixed(2)}%`,
+                      t('crossOracle.statistics.frequency'),
+                    ];
                   return [Number(value).toFixed(6), t('crossOracle.statistics.normalCurve')];
                 }}
-                labelFormatter={(label) => `${t('crossOracle.statistics.priceRange')}: ${String(label)}`}
+                labelFormatter={(label) =>
+                  `${t('crossOracle.statistics.priceRange')}: ${String(label)}`
+                }
               />
               <Bar
                 yAxisId="left"
@@ -372,13 +420,27 @@ export function StatisticalSummaryPanel({
                 x={histogramData.find((d) => d.binStart <= avgPrice && d.binEnd >= avgPrice)?.bin}
                 stroke="#10b981"
                 strokeDasharray="5 5"
-                label={{ value: `${t('crossOracle.statistics.mean')}: ${formatPrice(avgPrice)}`, position: 'top', fontSize: 10, fill: '#10b981' }}
+                label={{
+                  value: `${t('crossOracle.statistics.mean')}: ${formatPrice(avgPrice)}`,
+                  position: 'top',
+                  fontSize: 10,
+                  fill: '#10b981',
+                }}
               />
               <ReferenceLine
-                x={histogramData.find((d) => d.binStart <= metrics.median && d.binEnd >= metrics.median)?.bin}
+                x={
+                  histogramData.find(
+                    (d) => d.binStart <= metrics.median && d.binEnd >= metrics.median
+                  )?.bin
+                }
                 stroke="#f59e0b"
                 strokeDasharray="5 5"
-                label={{ value: `${t('crossOracle.statistics.median')}: ${formatPrice(metrics.median)}`, position: 'top', fontSize: 10, fill: '#f59e0b' }}
+                label={{
+                  value: `${t('crossOracle.statistics.median')}: ${formatPrice(metrics.median)}`,
+                  position: 'top',
+                  fontSize: 10,
+                  fill: '#f59e0b',
+                }}
               />
             </ComposedChart>
           </ResponsiveContainer>
@@ -393,11 +455,17 @@ export function StatisticalSummaryPanel({
             <span className="text-gray-600">{t('crossOracle.statistics.normalCurve')}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-0.5 bg-emerald-500 border-dashed" style={{ borderTop: '2px dashed #10b981' }} />
+            <div
+              className="w-4 h-0.5 bg-emerald-500 border-dashed"
+              style={{ borderTop: '2px dashed #10b981' }}
+            />
             <span className="text-gray-600">{t('crossOracle.statistics.mean')}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-0.5 bg-amber-500 border-dashed" style={{ borderTop: '2px dashed #f59e0b' }} />
+            <div
+              className="w-4 h-0.5 bg-amber-500 border-dashed"
+              style={{ borderTop: '2px dashed #f59e0b' }}
+            />
             <span className="text-gray-600">{t('crossOracle.statistics.median')}</span>
           </div>
         </div>
@@ -405,17 +473,22 @@ export function StatisticalSummaryPanel({
 
       {/* 置信区间展示 */}
       <div className="bg-white border border-gray-200 p-4">
-        <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('crossOracle.statistics.confidenceIntervals')}</h4>
+        <h4 className="text-sm font-semibold text-gray-900 mb-4">
+          {t('crossOracle.statistics.confidenceIntervals')}
+        </h4>
         <div className="space-y-3">
           {confidenceIntervals.map((ci) => (
             <div key={ci.level} className="border border-gray-100 p-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-900">{ci.level}% {t('crossOracle.statistics.ci')}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {ci.level}% {t('crossOracle.statistics.ci')}
+                  </span>
                   <span className="text-xs text-gray-500">(z = {ci.zScore})</span>
                 </div>
                 <span className="text-xs font-medium text-gray-600">
-                  {t('crossOracle.statistics.width')}: {formatPrice(ci.width)} ({formatNumber(ci.widthPercent, 2)}%)
+                  {t('crossOracle.statistics.width')}: {formatPrice(ci.width)} (
+                  {formatNumber(ci.widthPercent, 2)}%)
                 </span>
               </div>
               <div className="relative h-8 bg-gray-100 rounded overflow-hidden">
@@ -428,7 +501,9 @@ export function StatisticalSummaryPanel({
                 />
                 <div
                   className="absolute top-0 w-0.5 h-full bg-red-500"
-                  style={{ left: `${((avgPrice - metrics.min) / (metrics.max - metrics.min)) * 100}%` }}
+                  style={{
+                    left: `${((avgPrice - metrics.min) / (metrics.max - metrics.min)) * 100}%`,
+                  }}
                 />
               </div>
               <div className="flex justify-between mt-1 text-xs text-gray-500">
@@ -444,119 +519,197 @@ export function StatisticalSummaryPanel({
       {/* 统计摘要表格 */}
       <div className="bg-white border border-gray-200 overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-200">
-          <h4 className="text-sm font-semibold text-gray-900">{t('crossOracle.statistics.summaryTable')}</h4>
+          <h4 className="text-sm font-semibold text-gray-900">
+            {t('crossOracle.statistics.summaryTable')}
+          </h4>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600">{t('crossOracle.statistics.metric')}</th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-gray-600">{t('crossOracle.statistics.value')}</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600">{t('crossOracle.statistics.description')}</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600">{t('crossOracle.statistics.formula')}</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600">
+                  {t('crossOracle.statistics.metric')}
+                </th>
+                <th className="px-4 py-2 text-right text-xs font-medium text-gray-600">
+                  {t('crossOracle.statistics.value')}
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600">
+                  {t('crossOracle.statistics.description')}
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600">
+                  {t('crossOracle.statistics.formula')}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.count')}</td>
                 <td className="px-4 py-2 text-right font-medium text-gray-900">{prices.length}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.countDesc')}</td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.countDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">n</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.mean')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(avgPrice)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.meanDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(avgPrice)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.meanDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">x̄ = Σxᵢ/n</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.median')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(metrics.median)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.medianDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(metrics.median)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.medianDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">Q₂</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.mode')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(metrics.mode)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.modeDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(metrics.mode)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.modeDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">max(frequency)</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.min')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(metrics.min)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.minDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(metrics.min)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.minDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">min(x)</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.max')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(metrics.max)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.maxDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(metrics.max)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.maxDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">max(x)</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.range')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(metrics.max - metrics.min)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.rangeDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(metrics.max - metrics.min)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.rangeDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">max - min</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.variance')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatNumber(variance)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.varianceDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatNumber(variance)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.varianceDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">σ² = Σ(xᵢ-x̄)²/n</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.stdDev')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatNumber(standardDeviation)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.stdDevDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatNumber(standardDeviation)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.stdDevDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">σ = √σ²</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.cv')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatNumber(metrics.coefficientOfVariation, 2)}%</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.cvDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatNumber(metrics.coefficientOfVariation, 2)}%
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.cvDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">CV = σ/x̄ × 100%</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.skewness')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatNumber(metrics.skewness, 4)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.skewnessDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatNumber(metrics.skewness, 4)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.skewnessDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">γ₁ = Σ[(xᵢ-x̄)/σ]³/n</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.kurtosis')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatNumber(metrics.kurtosis, 4)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.kurtosisDesc')}</td>
-                <td className="px-4 py-2 text-gray-400 text-xs font-mono">γ₂ = Σ[(xᵢ-x̄)/σ]⁴/n - 3</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatNumber(metrics.kurtosis, 4)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.kurtosisDesc')}
+                </td>
+                <td className="px-4 py-2 text-gray-400 text-xs font-mono">
+                  γ₂ = Σ[(xᵢ-x̄)/σ]⁴/n - 3
+                </td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.q1')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(metrics.q1)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.q1Desc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(metrics.q1)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.q1Desc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">Q₁ (25th percentile)</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.q3')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(metrics.q3)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.q3Desc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(metrics.q3)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.q3Desc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">Q₃ (75th percentile)</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.iqr')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(metrics.iqr)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.iqrDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(metrics.iqr)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.iqrDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">IQR = Q₃ - Q₁</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.mad')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(metrics.mad)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.madDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(metrics.mad)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.madDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">MAD = Σ|xᵢ-x̄|/n</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-gray-700">{t('crossOracle.statistics.sem')}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPrice(metrics.standardError)}</td>
-                <td className="px-4 py-2 text-gray-500 text-xs">{t('crossOracle.statistics.semDesc')}</td>
+                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                  {formatPrice(metrics.standardError)}
+                </td>
+                <td className="px-4 py-2 text-gray-500 text-xs">
+                  {t('crossOracle.statistics.semDesc')}
+                </td>
                 <td className="px-4 py-2 text-gray-400 text-xs font-mono">SEM = σ/√n</td>
               </tr>
             </tbody>

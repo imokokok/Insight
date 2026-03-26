@@ -1,17 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
-import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import { chartColors } from '@/lib/config/colors';
+
 import {
   Shield,
   AlertTriangle,
@@ -23,7 +13,20 @@ import {
   TrendingDown,
   Minus,
 } from 'lucide-react';
-import { TimelineEvent, RiskMetric, RiskFactor } from '../types';
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
+
+import { type TimelineEvent, type RiskMetric, type RiskFactor } from '../types';
 
 // 历史风险事件
 const historicalRiskEvents: TimelineEvent[] = [
@@ -113,7 +116,8 @@ const riskFactors: RiskFactor[] = [
   {
     category: 'Smart Contract Risk',
     level: 'low',
-    description: 'Multiple audits by leading security firms including OtterSec and Neodyme. No critical vulnerabilities found.',
+    description:
+      'Multiple audits by leading security firms including OtterSec and Neodyme. No critical vulnerabilities found.',
     details: [
       'OtterSec audit completed Q1 2024',
       'Neodyme continuous monitoring active',
@@ -123,7 +127,8 @@ const riskFactors: RiskFactor[] = [
   {
     category: 'Oracle Risk',
     level: 'medium',
-    description: 'First-party data model with 80+ publishers. Relies on publisher reputation and staking.',
+    description:
+      'First-party data model with 80+ publishers. Relies on publisher reputation and staking.',
     details: [
       '80+ first-party data publishers',
       'Publisher staking mechanism',
@@ -143,7 +148,8 @@ const riskFactors: RiskFactor[] = [
   {
     category: 'Market Risk',
     level: 'low',
-    description: 'PYTH token used for governance and staking. Price volatility affects staking economics.',
+    description:
+      'PYTH token used for governance and staking. Price volatility affects staking economics.',
     details: [
       'PYTH token governance rights',
       'Staking rewards in PYTH',
@@ -207,7 +213,8 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
               {t('pyth.risk.metrics') || 'Risk Metrics'}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {t('pyth.risk.metricsDesc') || 'Key performance indicators across decentralization, security, and reliability'}
+              {t('pyth.risk.metricsDesc') ||
+                'Key performance indicators across decentralization, security, and reliability'}
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
@@ -234,7 +241,8 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
                   className="h-1.5 rounded-full transition-all duration-500"
                   style={{
                     width: `${(metric.value / metric.max) * 100}%`,
-                    backgroundColor: metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#8b5cf6' : '#f59e0b',
+                    backgroundColor:
+                      metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#8b5cf6' : '#f59e0b',
                   }}
                 />
               </div>
@@ -254,7 +262,8 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
             {t('pyth.risk.benchmark') || 'Industry Benchmark Comparison'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('pyth.risk.benchmarkDesc') || 'Performance comparison against other leading oracle providers'}
+            {t('pyth.risk.benchmarkDesc') ||
+              'Performance comparison against other leading oracle providers'}
           </p>
         </div>
 
@@ -266,7 +275,11 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={benchmarkData}>
                   <PolarGrid stroke="#e5e7eb" />
                   <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                  <PolarRadiusAxis
+                    angle={90}
+                    domain={[0, 100]}
+                    tick={{ fontSize: 10, fill: '#9ca3af' }}
+                  />
                   <Radar
                     name="Pyth"
                     dataKey="pyth"
@@ -299,7 +312,9 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
 
           {/* 对比表格 */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700">{t('pyth.risk.comparison') || 'Detailed Comparison'}</h3>
+            <h3 className="text-sm font-medium text-gray-700">
+              {t('pyth.risk.comparison') || 'Detailed Comparison'}
+            </h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
                 <div key={item.metric} className="space-y-2">
@@ -340,7 +355,8 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
             {t('pyth.risk.timeline') || 'Historical Risk Events'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('pyth.risk.timelineDesc') || 'Security audits, incidents and upgrades over the past 24 months'}
+            {t('pyth.risk.timelineDesc') ||
+              'Security audits, incidents and upgrades over the past 24 months'}
           </p>
         </div>
 
@@ -431,7 +447,9 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">{t('pyth.risk.clickEvent') || 'Click an event to view details'}</p>
+                <p className="text-sm text-gray-500">
+                  {t('pyth.risk.clickEvent') || 'Click an event to view details'}
+                </p>
               </div>
             )}
           </div>
@@ -454,16 +472,15 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
 
         <div className="space-y-2">
           {riskFactors.map((factor, index) => (
-            <div
-              key={index}
-              className="border-b border-gray-100 last:border-0"
-            >
+            <div key={index} className="border-b border-gray-100 last:border-0">
               <button
                 onClick={() => setExpandedFactor(expandedFactor === index ? null : index)}
                 className="w-full py-4 flex items-center justify-between hover:bg-gray-50 transition-colors px-2 -mx-2 rounded-md"
               >
                 <div className="flex items-center gap-4">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}
+                  >
                     {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
                   </span>
                   <span className="text-sm font-medium text-gray-900">{factor.category}</span>
@@ -484,7 +501,10 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
                   <p className="text-sm text-gray-600 mb-3 leading-relaxed">{factor.description}</p>
                   <ul className="space-y-2">
                     {factor.details.map((detail, detailIndex) => (
-                      <li key={detailIndex} className="flex items-start gap-2 text-sm text-gray-500">
+                      <li
+                        key={detailIndex}
+                        className="flex items-start gap-2 text-sm text-gray-500"
+                      >
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
                         <span>{detail}</span>
                       </li>
@@ -504,9 +524,12 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
       <section className="flex items-start gap-4 py-2">
         <Info className="w-5 h-5 text-violet-600 mt-0.5 flex-shrink-0" />
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{t('pyth.risk.disclaimer') || 'Disclaimer'}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {t('pyth.risk.disclaimer') || 'Disclaimer'}
+          </h3>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-            {t('pyth.risk.disclaimerText') || 'Risk assessments are based on publicly available information and historical data. They do not constitute financial advice. Always conduct your own research before making investment decisions.'}
+            {t('pyth.risk.disclaimerText') ||
+              'Risk assessments are based on publicly available information and historical data. They do not constitute financial advice. Always conduct your own research before making investment decisions.'}
           </p>
         </div>
       </section>

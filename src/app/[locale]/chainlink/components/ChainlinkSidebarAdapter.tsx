@@ -1,16 +1,18 @@
 'use client';
 
-import { OracleSidebarProps } from '@/components/oracle/shared/OraclePageTemplateNew';
+import { type OracleSidebarProps } from '@/components/oracle/shared/OraclePageTemplateNew';
+
+import { type ChainlinkTabId } from '../types';
+
 import { ChainlinkSidebar as OriginalChainlinkSidebar } from './ChainlinkSidebar';
-import { ChainlinkTabId } from '../types';
 
-interface ChainlinkSidebarAdapterProps extends OracleSidebarProps {}
+type ChainlinkSidebarAdapterProps = OracleSidebarProps;
 
-export function ChainlinkSidebarAdapter({ 
-  activeTab, 
-  onTabChange, 
+export function ChainlinkSidebarAdapter({
+  activeTab,
+  onTabChange,
   tabs,
-  themeColor 
+  themeColor,
 }: ChainlinkSidebarAdapterProps) {
   return (
     <OriginalChainlinkSidebar

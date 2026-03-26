@@ -2,10 +2,12 @@
  * @fileoverview Tests for /api/oracles route
  */
 
-import { GET, POST } from './route';
 import { NextRequest } from 'next/server';
+
 import * as oracleHandlers from '@/lib/api/oracleHandlers';
 import { OracleProvider } from '@/types/oracle';
+
+import { GET, POST } from './route';
 
 // Mock the oracle handlers
 jest.mock('@/lib/api/oracleHandlers', () => ({
@@ -102,10 +104,9 @@ describe('/api/oracles', () => {
     });
 
     it('should return validation error for invalid provider', async () => {
-      const mockErrorResponse = new Response(
-        JSON.stringify({ error: 'Invalid provider' }),
-        { status: 400 }
-      );
+      const mockErrorResponse = new Response(JSON.stringify({ error: 'Invalid provider' }), {
+        status: 400,
+      });
 
       (oracleHandlers.validateRequiredParams as jest.Mock).mockReturnValue(null);
       (oracleHandlers.validateProvider as jest.Mock).mockReturnValue(mockErrorResponse);
@@ -120,10 +121,9 @@ describe('/api/oracles', () => {
     });
 
     it('should return validation error for invalid period', async () => {
-      const mockErrorResponse = new Response(
-        JSON.stringify({ error: 'Invalid period' }),
-        { status: 400 }
-      );
+      const mockErrorResponse = new Response(JSON.stringify({ error: 'Invalid period' }), {
+        status: 400,
+      });
 
       (oracleHandlers.validateRequiredParams as jest.Mock).mockReturnValue(null);
       (oracleHandlers.validateProvider as jest.Mock).mockReturnValue(null);

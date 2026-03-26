@@ -1,4 +1,5 @@
-import { NextRequest } from 'next/server';
+import { type NextRequest } from 'next/server';
+
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('logging-middleware');

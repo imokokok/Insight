@@ -1,17 +1,21 @@
 'use client';
 
-import { OracleProvider } from '@/types/oracle';
-import { OraclePageTemplate, OracleViewProps } from '@/components/oracle/shared/OraclePageTemplateNew';
+import {
+  OraclePageTemplate,
+  type OracleViewProps,
+} from '@/components/oracle/shared/OraclePageTemplateNew';
 import { useOraclePage } from '@/hooks/oracles/useOraclePage';
+import { OracleProvider } from '@/types/oracle';
+
+import { ChainlinkDataFeedsView } from './components/ChainlinkDataFeedsView';
+import { ChainlinkEcosystemView } from './components/ChainlinkEcosystemView';
 import { ChainlinkHero } from './components/ChainlinkHero';
-import { ChainlinkSidebar } from './components/ChainlinkSidebar';
 import { ChainlinkMarketView } from './components/ChainlinkMarketView';
 import { ChainlinkNetworkView } from './components/ChainlinkNetworkView';
 import { ChainlinkNodesView } from './components/ChainlinkNodesView';
-import { ChainlinkDataFeedsView } from './components/ChainlinkDataFeedsView';
-import { ChainlinkServicesView } from './components/ChainlinkServicesView';
-import { ChainlinkEcosystemView } from './components/ChainlinkEcosystemView';
 import { ChainlinkRiskView } from './components/ChainlinkRiskView';
+import { ChainlinkServicesView } from './components/ChainlinkServicesView';
+import { ChainlinkSidebar } from './components/ChainlinkSidebar';
 
 const views = [
   {

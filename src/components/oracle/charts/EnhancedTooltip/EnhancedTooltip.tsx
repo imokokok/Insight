@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useMemo } from 'react';
+
 import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 import { formatNumber as formatNumberCompact } from '@/lib/utils/format';

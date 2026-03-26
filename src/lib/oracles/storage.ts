@@ -1,7 +1,7 @@
-import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
+import { type PriceRecordInsert, type PriceRecord } from '@/lib/supabase/queries';
 import { getServerQueries } from '@/lib/supabase/server';
-import { PriceRecordInsert, PriceRecord } from '@/lib/supabase/queries';
 import { createLogger } from '@/lib/utils/logger';
+import { type PriceData, type OracleProvider, type Blockchain } from '@/types/oracle';
 
 const logger = createLogger('oracle-storage');
 

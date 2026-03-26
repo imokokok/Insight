@@ -71,8 +71,11 @@
     "paused": "服务暂停",
     "deprecated": "已下线",
     "mostPopular": "最受欢迎",
+    "name": "名称",
     "feedName": "数据流名称",
     "category": "分类",
+    "frequency": "更新频率",
+    "threshold": "偏差阈值",
     "updateFrequency": "更新频率",
     "deviationThreshold": "偏差阈值",
     "status": "状态",
@@ -102,7 +105,10 @@
     "ccipIntegration": "CCIP 跨链集成",
     "ccipValueTransferred": "转移价值",
     "ccipMessages": "消息数",
-    "ccipProtocols": "CCIP 协议"
+    "ccipProtocols": "CCIP 协议",
+    "tvlAnalysis": {
+      "title": "TVL 趋势分析"
+    }
   },
   "riskAssessment": {
     "overallRiskScore": "综合风险评级",
@@ -316,6 +322,7 @@
       "useCase4": "DeFi 抵押品"
     },
     "comparison": "服务对比",
+    "service": "服务",
     "serviceName": "服务",
     "requests": "请求数",
     "avgResponse": "平均响应",

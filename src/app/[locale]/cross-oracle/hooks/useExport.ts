@@ -4,9 +4,16 @@
  */
 
 import { useCallback } from 'react';
-import { PriceData, OracleProvider, SnapshotStats, OracleSnapshot } from '@/types/oracle';
-import { exportToCSV, exportToJSON, oracleNames } from '../constants';
+
+import {
+  type PriceData,
+  type OracleProvider,
+  type SnapshotStats,
+  type OracleSnapshot,
+} from '@/types/oracle';
 import { saveSnapshot as saveSnapshotToStorage } from '@/types/oracle/snapshotFunctions';
+
+import { exportToCSV, exportToJSON, oracleNames } from '../constants';
 
 export interface UseExportParams {
   priceData: PriceData[];

@@ -1,13 +1,15 @@
-import { ReactNode } from 'react';
-import { PanelConfig, PanelRenderContext } from './types';
-import { UMAClient } from '@/lib/oracles/uma';
+import { type ReactNode } from 'react';
+
 import { DisputeResolutionPanel, ValidatorAnalyticsPanel } from '@/components/oracle';
-import { StakingPanel } from '@/components/oracle/panels/StakingPanel';
 import { UMADataQualityScoreCard } from '@/components/oracle/data-display/UMADataQualityScoreCard';
+import { StakingPanel } from '@/components/oracle/panels/StakingPanel';
 import { UMADashboardPanel } from '@/components/oracle/panels/UMADashboardPanel';
 import { UMAEcosystemPanel } from '@/components/oracle/panels/UMAEcosystemPanel';
 import { UMANetworkPanel } from '@/components/oracle/panels/UMANetworkPanel';
 import { UMARiskPanel } from '@/components/oracle/panels/UMARiskPanel';
+import { UMAClient } from '@/lib/oracles/uma';
+
+import { type PanelConfig, type PanelRenderContext } from './types';
 
 const getStats = (context: PanelRenderContext) => {
   const { config, t, umaNetworkStats } = context;

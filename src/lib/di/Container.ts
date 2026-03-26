@@ -1,5 +1,6 @@
-import { ContainerInterface, ServiceFactory, ServiceDescriptor } from './types';
 import { createLogger } from '@/lib/utils/logger';
+
+import { type ContainerInterface, type ServiceFactory, type ServiceDescriptor } from './types';
 
 const logger = createLogger('DIContainer');
 

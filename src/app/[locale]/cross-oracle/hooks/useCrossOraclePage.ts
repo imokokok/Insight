@@ -4,24 +4,23 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from '@/i18n';
-import { OracleProvider } from '@/types/oracle';
-import type { PriceData, SnapshotStats } from '@/types/oracle';
-import { useUser } from '@/stores/authStore';
-import { useFavorites } from '@/hooks';
-import { saveSnapshot } from '@/types/oracle';
 
+import { useRouter } from 'next/navigation';
+
+import { useFavorites } from '@/hooks';
+import { useTranslations } from '@/i18n';
+import { useUser } from '@/stores/authStore';
+import type { PriceData, SnapshotStats } from '@/types/oracle';
+import { OracleProvider, saveSnapshot } from '@/types/oracle';
+
+import { type TimeRange, type DeviationFilter } from '../constants';
+
+import { useChartConfig } from './useChartConfig';
+import { useExport } from './useExport';
+import { useFilterSort } from './useFilterSort';
 import { useOracleData } from './useOracleData';
 import { usePriceStats } from './usePriceStats';
-import { useChartConfig } from './useChartConfig';
-import { useFilterSort } from './useFilterSort';
-import { useExport } from './useExport';
 
-import {
-  type TimeRange,
-  type DeviationFilter,
-} from '../constants';
 import type { TabId, HistoryMinMax, MovingAverageData } from '../types/index';
 
 interface UseCrossOraclePageOptions {
@@ -61,9 +60,13 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const [zoomLevel, setZoomLevel] = useState(1);
 
   // 快照状态
-  const [selectedSnapshot, setSelectedSnapshot] = useState<import('@/types/oracle').OracleSnapshot | null>(null);
+  const [selectedSnapshot, setSelectedSnapshot] = useState<
+    import('@/types/oracle').OracleSnapshot | null
+  >(null);
   const [showComparison, setShowComparison] = useState(false);
-  const [selectedPerformanceOracle, setSelectedPerformanceOracle] = useState<OracleProvider | null>(null);
+  const [selectedPerformanceOracle, setSelectedPerformanceOracle] = useState<OracleProvider | null>(
+    null
+  );
 
   // 历史统计
   const [lastStats, setLastStats] = useState<SnapshotStats | null>(null);
@@ -76,18 +79,12 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   // ==========================================================================
   // 数据获取
   // ==========================================================================
-  const {
-    priceData,
-    historicalData,
-    isLoading,
-    error,
-    lastUpdated,
-    fetchPriceData,
-  } = useOracleData({
-    selectedOracles,
-    selectedSymbol,
-    timeRange,
-  });
+  const { priceData, historicalData, isLoading, error, lastUpdated, fetchPriceData } =
+    useOracleData({
+      selectedOracles,
+      selectedSymbol,
+      timeRange,
+    });
 
   // ==========================================================================
   // 统计数据
@@ -175,15 +172,18 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     setZoomLevel(1);
   }, []);
 
-  const handleApplyFavorite = useCallback((config: { selectedOracles?: string[]; symbol?: string }) => {
-    if (config.selectedOracles) {
-      setSelectedOracles(config.selectedOracles as OracleProvider[]);
-    }
-    if (config.symbol) {
-      setSelectedSymbol(config.symbol);
-    }
-    setShowFavoritesDropdown(false);
-  }, []);
+  const handleApplyFavorite = useCallback(
+    (config: { selectedOracles?: string[]; symbol?: string }) => {
+      if (config.selectedOracles) {
+        setSelectedOracles(config.selectedOracles as OracleProvider[]);
+      }
+      if (config.symbol) {
+        setSelectedSymbol(config.symbol);
+      }
+      setShowFavoritesDropdown(false);
+    },
+    []
+  );
 
   const handleSelectSnapshot = useCallback((snapshot: import('@/types/oracle').OracleSnapshot) => {
     setSelectedSnapshot(snapshot);
@@ -202,36 +202,39 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     return 'poor';
   }, []);
 
-  const getLineStrokeDasharray = useCallback((oracle: OracleProvider): string => {
-    const index = selectedOracles.indexOf(oracle);
-    if (index === -1) return '0';
-    // 为不同的预言机使用不同的虚线样式
-    const patterns = ['0', '5 5', '10 5', '5 10', '10 10', '15 5', '5 15'];
-    return patterns[index % patterns.length];
-  }, [selectedOracles]);
+  const getLineStrokeDasharray = useCallback(
+    (oracle: OracleProvider): string => {
+      const index = selectedOracles.indexOf(oracle);
+      if (index === -1) return '0';
+      // 为不同的预言机使用不同的虚线样式
+      const patterns = ['0', '5 5', '10 5', '5 10', '10 10', '15 5', '5 15'];
+      return patterns[index % patterns.length];
+    },
+    [selectedOracles]
+  );
 
-  const getOracleLatencyData = useCallback((oracle: OracleProvider | null): number[] => {
-    if (!oracle) return chartConfig.latencyData;
-    const latencies: number[] = [];
-    const history = historicalData[oracle] || [];
-    for (let i = 1; i < history.length; i++) {
-      const timeDiff = history[i].timestamp - history[i - 1].timestamp;
-      if (timeDiff > 0 && timeDiff < 3600000) {
-        latencies.push(timeDiff);
+  const getOracleLatencyData = useCallback(
+    (oracle: OracleProvider | null): number[] => {
+      if (!oracle) return chartConfig.latencyData;
+      const latencies: number[] = [];
+      const history = historicalData[oracle] || [];
+      for (let i = 1; i < history.length; i++) {
+        const timeDiff = history[i].timestamp - history[i - 1].timestamp;
+        if (timeDiff > 0 && timeDiff < 3600000) {
+          latencies.push(timeDiff);
+        }
       }
-    }
-    return latencies.length > 0 ? latencies : chartConfig.latencyData;
-  }, [historicalData, chartConfig.latencyData]);
+      return latencies.length > 0 ? latencies : chartConfig.latencyData;
+    },
+    [historicalData, chartConfig.latencyData]
+  );
 
   // ==========================================================================
   // 点击外部关闭
   // ==========================================================================
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        filterPanelRef.current &&
-        !filterPanelRef.current.contains(event.target as Node)
-      ) {
+      if (filterPanelRef.current && !filterPanelRef.current.contains(event.target as Node)) {
         setIsFilterPanelOpen(false);
       }
       if (
@@ -295,9 +298,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
       reliability: {
         historicalAccuracy: 98.5,
         responseSuccessRate:
-          selectedOracles.length > 0
-            ? (priceData.length / selectedOracles.length) * 100
-            : 0,
+          selectedOracles.length > 0 ? (priceData.length / selectedOracles.length) * 100 : 0,
       },
     }),
     [priceData.length, selectedOracles.length, lastUpdated]
@@ -315,20 +316,22 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
       };
     });
 
-    const qualityTrendData: import('../types').QualityTrendData[] = selectedOracles.map((oracle) => {
-      const history = historicalData[oracle] || [];
-      return {
-        oracle,
-        data: history.map((h: PriceData, i: number) => ({
-          timestamp: h.timestamp,
-          updateLatency: i > 0 ? h.timestamp - (history[i - 1]?.timestamp || 0) : 0,
-          deviationFromMedian: 0,
-          isOutlier: false,
-          isStale: false,
-          heartbeatCompliance: 100,
-        })),
-      };
-    });
+    const qualityTrendData: import('../types').QualityTrendData[] = selectedOracles.map(
+      (oracle) => {
+        const history = historicalData[oracle] || [];
+        return {
+          oracle,
+          data: history.map((h: PriceData, i: number) => ({
+            timestamp: h.timestamp,
+            updateLatency: i > 0 ? h.timestamp - (history[i - 1]?.timestamp || 0) : 0,
+            deviationFromMedian: 0,
+            isOutlier: false,
+            isStale: false,
+            heartbeatCompliance: 100,
+          })),
+        };
+      }
+    );
 
     return { maData, qualityTrendData };
   }, [historicalData, selectedOracles]);

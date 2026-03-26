@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface SparklineChartProps {
@@ -127,12 +128,7 @@ export function SparklineChart({
 
   // 如果没有数据，显示占位符
   if (data.length === 0) {
-    return (
-      <div
-        className={cn('bg-gray-100 rounded', className)}
-        style={{ width, height }}
-      />
-    );
+    return <div className={cn('bg-gray-100 rounded', className)} style={{ width, height }} />;
   }
 
   return (
@@ -147,26 +143,13 @@ export function SparklineChart({
       <defs>
         {/* 渐变填充 */}
         <linearGradient id={`gradient-${trend}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop
-            offset="0%"
-            stopColor={fillColor}
-            stopOpacity={0.3}
-          />
-          <stop
-            offset="100%"
-            stopColor={fillColor}
-            stopOpacity={0}
-          />
+          <stop offset="0%" stopColor={fillColor} stopOpacity={0.3} />
+          <stop offset="100%" stopColor={fillColor} stopOpacity={0} />
         </linearGradient>
 
         {/* 裁剪路径用于动画 */}
         <clipPath id="sparkline-clip">
-          <rect
-            x="0"
-            y="0"
-            width={isVisible ? width : 0}
-            height={height}
-          >
+          <rect x="0" y="0" width={isVisible ? width : 0} height={height}>
             {animate && (
               <animate
                 attributeName="width"
@@ -203,14 +186,13 @@ export function SparklineChart({
           strokeWidth={1.5}
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={cn(
-            'transition-all duration-500',
-            isVisible ? 'opacity-100' : 'opacity-0'
-          )}
+          className={cn('transition-all duration-500', isVisible ? 'opacity-100' : 'opacity-0')}
           style={{
             strokeDasharray: animate ? 1000 : undefined,
             strokeDashoffset: animate ? (isVisible ? 0 : 1000) : undefined,
-            transition: animate ? 'stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s' : undefined,
+            transition: animate
+              ? 'stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s'
+              : undefined,
           }}
         />
 

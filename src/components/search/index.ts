@@ -1,8 +1,11 @@
 'use client';
 
 import React from 'react';
+
 import { ComponentErrorBoundary } from '@/components/ErrorBoundaries';
+
 import { GlobalSearch as GlobalSearchComponent } from './GlobalSearch';
+
 export { SearchButton } from './SearchButton';
 export { useGlobalSearch } from './useGlobalSearch';
 export { useSearchKeyboardNavigation } from './useSearchKeyboardNavigation';

@@ -1,9 +1,10 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from './DashboardCard';
 import { getMeasureStatusColor } from '@/lib/utils/riskUtils';
 import type { MitigationMeasure } from '@/types/risk';
+
+import { DashboardCard } from './DashboardCard';
 
 export interface MitigationMeasuresGridProps {
   measures: MitigationMeasure[];

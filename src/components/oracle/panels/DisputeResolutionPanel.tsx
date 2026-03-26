@@ -1,11 +1,17 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { DisputeAmountDistribution } from '@/components/oracle/data-display/DisputeAmountDistribution';
+import { DisputeEfficiencyAnalysis } from '@/components/oracle/data-display/DisputeEfficiencyAnalysis';
+import { DropdownSelect } from '@/components/ui';
+import { useUMARealtimeDisputes, type UMADisputeUpdate } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import {
   UMAClient,
-  DisputeData,
-  DisputeType,
+  type DisputeData,
+  type DisputeType,
   DISPUTE_TYPE_LABELS,
   DISPUTE_TYPE_STYLES,
   DISPUTE_TYPE_CHART_COLORS,
@@ -14,17 +20,13 @@ import {
   LiquidationDisputeIcon,
   OtherDisputeIcon,
 } from '@/lib/oracles/uma';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { DisputeEfficiencyAnalysis } from '@/components/oracle/data-display/DisputeEfficiencyAnalysis';
-import { DisputeAmountDistribution } from '@/components/oracle/data-display/DisputeAmountDistribution';
+import { createLogger } from '@/lib/utils/logger';
+
 import {
   DisputeVotingPanel,
   generateMockVotingData,
-  DisputeVotingData,
+  type DisputeVotingData,
 } from './DisputeVotingPanel';
-import { useUMARealtimeDisputes, UMADisputeUpdate } from '@/hooks';
-import { createLogger } from '@/lib/utils/logger';
-import { DropdownSelect } from '@/components/ui';
 
 const logger = createLogger('DisputeResolutionPanel');
 

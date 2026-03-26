@@ -1,13 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from '@/i18n';
-import { logger } from '@/lib/utils/logger';
-import { UMAClient } from '@/lib/oracles/uma';
-import { UMANetworkStats, VerificationActivity } from '@/lib/oracles/uma/types';
-import { DashboardCard, StatCard } from '@/components/oracle/data-display/DashboardCard';
-
-import { chartColors, getChartColor } from '@/lib/chartColors';
 
 import {
   XAxis,
@@ -20,6 +13,13 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
+
+import { DashboardCard, StatCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
+import { chartColors, getChartColor } from '@/lib/chartColors';
+import { type UMAClient } from '@/lib/oracles/uma';
+import { type UMANetworkStats, type VerificationActivity } from '@/lib/oracles/uma/types';
+import { logger } from '@/lib/utils/logger';
 
 interface UMANetworkPanelProps {
   networkStats: UMANetworkStats | null;

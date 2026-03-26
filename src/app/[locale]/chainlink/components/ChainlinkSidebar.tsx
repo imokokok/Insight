@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { ChainlinkSidebarProps, ChainlinkTabId } from '../types';
+
+import { type ChainlinkSidebarProps, type ChainlinkTabId } from '../types';
 
 interface NavItem {
   id: ChainlinkTabId;
@@ -132,9 +133,7 @@ export function ChainlinkSidebar({ activeTab, onTabChange }: ChainlinkSidebarPro
                 }
               `}
             >
-              <span className={`${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
-                {item.icon}
-              </span>
+              <span className={`${isActive ? 'text-blue-600' : 'text-gray-400'}`}>{item.icon}</span>
               <span>{t(item.labelKey)}</span>
             </button>
           );

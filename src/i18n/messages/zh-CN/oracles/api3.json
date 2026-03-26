@@ -25,6 +25,9 @@
       "riskAssessment": "风险评估",
       "crossOracleComparison": "跨预言机分析"
     },
+    "navigation": {
+      "title": "API3"
+    },
     "firstPartyOracle": {
       "title": "第一方预言机分析",
       "noMiddlemen": "无中间商",

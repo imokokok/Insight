@@ -1,26 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
-import { ChevronDown } from 'lucide-react';
-import { ChevronUp } from 'lucide-react';
-import { Filter } from 'lucide-react';
-import { OracleProvider, Blockchain } from '@/lib/oracles';
-import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
-import { useCrossChainData } from '../useCrossChainData';
-import { useCrossChainStore } from '@/stores/crossChainStore';
-import { ThresholdType } from '../utils';
-import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
-import { baseColors, chainColors as configChainColors } from '@/lib/config/colors';
+
+import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { baseColors, chainColors as configChainColors } from '@/lib/config/colors';
+import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { type OracleProvider, Blockchain } from '@/lib/oracles';
+import { useCrossChainStore } from '@/stores/crossChainStore';
+
+import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
+import { type useCrossChainData } from '../useCrossChainData';
+import { type ThresholdType } from '../utils';
 
 interface CrossChainFiltersProps {
   data: ReturnType<typeof useCrossChainData>;
 }
 
-export function CrossChainFilters({
-  data,
-}: CrossChainFiltersProps) {
+export function CrossChainFilters({ data }: CrossChainFiltersProps) {
   const t = useTranslations();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const {
@@ -237,7 +236,10 @@ export function CrossChainFilters({
 
           {/* Visible Chains */}
           <div>
-            <h3 className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: baseColors.gray[700] }}>
+            <h3
+              className="text-xs font-medium uppercase tracking-wide mb-2"
+              style={{ color: baseColors.gray[700] }}
+            >
               {t('crossChain.visibleChains')}
             </h3>
             <div className="flex flex-wrap gap-1.5">
@@ -256,7 +258,9 @@ export function CrossChainFilters({
                   >
                     <span
                       className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: isVisible ? baseColors.gray[50] : chainColors[chain] }}
+                      style={{
+                        backgroundColor: isVisible ? baseColors.gray[50] : chainColors[chain],
+                      }}
                     />
                     {chainNames[chain]}
                   </button>
@@ -270,7 +274,10 @@ export function CrossChainFilters({
 
           {/* Technical Indicators */}
           <div>
-            <h3 className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: baseColors.gray[700] }}>
+            <h3
+              className="text-xs font-medium uppercase tracking-wide mb-2"
+              style={{ color: baseColors.gray[700] }}
+            >
               {t('crossChain.technicalIndicators')}
             </h3>
             <div className="space-y-2">
@@ -320,7 +327,10 @@ export function CrossChainFilters({
 
           {/* Anomaly Detection */}
           <div>
-            <h3 className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: baseColors.gray[700] }}>
+            <h3
+              className="text-xs font-medium uppercase tracking-wide mb-2"
+              style={{ color: baseColors.gray[700] }}
+            >
               {t('crossChain.anomalyDetectionConfig')}
             </h3>
             <div className="space-y-2">

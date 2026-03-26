@@ -7,8 +7,8 @@
  * - 价格异动预警
  */
 
-import { createLogger } from '@/lib/utils/logger';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('anomalyDetection');
 

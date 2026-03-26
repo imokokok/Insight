@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { oracleKeys } from '@/lib/queries/queryKeys';
+
 import { PriceFetchError } from '@/lib/errors';
+import { oracleKeys } from '@/lib/queries/queryKeys';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 
 interface OracleData {

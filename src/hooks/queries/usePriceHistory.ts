@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { priceKeys } from '@/lib/queries/queryKeys';
+
 import { PriceFetchError } from '@/lib/errors';
+import { priceKeys } from '@/lib/queries/queryKeys';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 import type { PriceDataForChart } from '@/types/oracle/price';
 

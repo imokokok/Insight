@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
-import { OracleProvider, PriceData } from '@/types/oracle';
-import { TechnicalIndicatorsResult, QualityTrendDataPoint } from './types';
+
+import { type OracleProvider, type PriceData } from '@/types/oracle';
+
+import { type TechnicalIndicatorsResult, type QualityTrendDataPoint } from './types';
 
 export function useTechnicalIndicators(
   historicalData: Partial<Record<OracleProvider, PriceData[]>>,

@@ -3,8 +3,9 @@
  * @description 定义所有图表相关的类型，包括 Recharts 扩展和通用图表类型
  */
 
-import { ReactNode } from 'react';
-import { OracleProvider } from '../oracle';
+import { type ReactNode } from 'react';
+
+import { type OracleProvider } from '../oracle';
 
 // ============================================================================
 // 基础图表数据类型

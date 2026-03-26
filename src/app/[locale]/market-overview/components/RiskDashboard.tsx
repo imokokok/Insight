@@ -1,9 +1,5 @@
 'use client';
 
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
-import { RiskMetrics, RiskLevel } from '../types';
-import { getRiskLevelColor } from '@/lib/analytics/riskMetrics';
 import {
   AlertTriangle,
   Shield,
@@ -13,9 +9,14 @@ import {
   BarChart3,
   Info,
 } from 'lucide-react';
+
+import { useLocale } from '@/i18n';
+import { isChineseLocale } from '@/i18n/routing';
+import { getRiskLevelColor } from '@/lib/analytics/riskMetrics';
+import { chartColors, getChartColor } from '@/lib/chartColors';
 import { semanticColors } from '@/lib/config/colors';
 
-import { chartColors, getChartColor } from '@/lib/chartColors';
+import { type RiskMetrics, type RiskLevel } from '../types';
 
 interface RiskDashboardProps {
   data: RiskMetrics | null;

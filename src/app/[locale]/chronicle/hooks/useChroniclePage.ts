@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+
+import { useRefresh, useExport, useChronicleAllData } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { ChronicleClient } from '@/lib/oracles';
 import { getOracleConfig } from '@/lib/config/oracles';
+import { ChronicleClient } from '@/lib/oracles';
 import { OracleProvider } from '@/types/oracle';
-import { useRefresh, useExport } from '@/hooks';
-import { useChronicleAllData } from '@/hooks';
-import { ChronicleTabId } from '../types';
+
+import { type ChronicleTabId } from '../types';
 
 export function useChroniclePage() {
   const t = useTranslations();

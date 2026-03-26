@@ -1,11 +1,14 @@
 'use client';
 
 import { memo, useCallback } from 'react';
+
 import Link from 'next/link';
+
 import { ChevronRight } from 'lucide-react';
+
 import { useHoverPrefetch } from '@/hooks';
-import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 import { createLogger } from '@/lib/utils/logger';
+import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 
 const logger = createLogger('OraclePrefetchCard');
 

@@ -1,12 +1,12 @@
-import { Blockchain } from '@/lib/oracles';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 import { chainNames, chainColors } from '@/lib/constants';
+import { type Blockchain } from '@/lib/oracles';
 import {
   getHeatmapColor as getHeatmapColorUtil,
   calculateStandardDeviation as calculateStdDev,
   calculateMovingAverage,
   formatPrice as formatPriceUtil,
 } from '@/lib/utils/chartSharedUtils';
-import { baseColors, semanticColors } from '@/lib/config/colors';
 
 export { chainNames, chainColors };
 export type { Blockchain };

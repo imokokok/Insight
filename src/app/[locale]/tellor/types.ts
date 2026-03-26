@@ -1,5 +1,5 @@
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/types/oracle';
+import { type OracleConfig } from '@/lib/config/oracles';
+import { type PriceData } from '@/types/oracle';
 
 export type TellorTabId =
   | 'market'

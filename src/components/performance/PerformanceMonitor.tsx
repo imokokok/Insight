@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { usePerformanceOptimizer } from '@/hooks/usePerformanceOptimizer';
+
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { usePerformanceOptimizer } from '@/hooks/usePerformanceOptimizer';
 import { cn } from '@/lib/utils';
 
 // ============================================================================
@@ -102,13 +103,7 @@ export function PerformanceMonitor({
   const { webVitals, resources, navigation, memory, health } = performance;
 
   return (
-    <div
-      className={cn(
-        'fixed z-50',
-        positionClasses[position],
-        className
-      )}
-    >
+    <div className={cn('fixed z-50', positionClasses[position], className)}>
       {/* Collapsed View */}
       {!isExpanded && (
         <button
@@ -149,7 +144,12 @@ export function PerformanceMonitor({
                   className="p-1 hover:bg-gray-100 rounded"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
                 <button
@@ -157,7 +157,12 @@ export function PerformanceMonitor({
                   className="p-1 hover:bg-gray-100 rounded"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -260,7 +265,8 @@ export function PerformanceMonitor({
                       className={cn(
                         'text-xs p-2 rounded border',
                         suggestion.type === 'critical' && 'bg-red-50 border-red-200 text-red-700',
-                        suggestion.type === 'warning' && 'bg-yellow-50 border-yellow-200 text-yellow-700',
+                        suggestion.type === 'warning' &&
+                          'bg-yellow-50 border-yellow-200 text-yellow-700',
                         suggestion.type === 'info' && 'bg-blue-50 border-blue-200 text-blue-700'
                       )}
                     >
@@ -285,7 +291,7 @@ export function PerformanceMonitor({
 export function PerformanceBadge({ className }: { className?: string }) {
   const { health } = usePerformanceOptimizer();
 
-  const colors = {
+  const colors: Record<string, string> = {
     excellent: 'bg-green-500',
     good: 'bg-blue-500',
     fair: 'bg-yellow-500',
@@ -296,7 +302,7 @@ export function PerformanceBadge({ className }: { className?: string }) {
     <div
       className={cn(
         'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium text-white',
-        colors[health],
+        colors[health] ?? 'bg-gray-500',
         className
       )}
     >
@@ -317,7 +323,7 @@ export function PerformanceReportButton({ className }: { className?: string }) {
   const generateReport = useCallback(() => {
     setIsGenerating(true);
     const report = performance.getReport();
-    
+
     // Create and download report
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -328,7 +334,7 @@ export function PerformanceReportButton({ className }: { className?: string }) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     setIsGenerating(false);
   }, [performance]);
 
@@ -351,7 +357,12 @@ export function PerformanceReportButton({ className }: { className?: string }) {
       ) : (
         <>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
           </svg>
           Export Report
         </>

@@ -3,7 +3,7 @@
  * Provides consistent mock data for various types used in tests
  */
 
-import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
+import { type PriceData, type OracleProvider, type Blockchain } from '@/types/oracle';
 
 /**
  * Generate mock price data

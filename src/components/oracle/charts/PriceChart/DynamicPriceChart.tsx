@@ -1,10 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+
 import { ChartSkeleton } from '@/components/ui';
-import { BaseOracleClient } from '@/lib/oracles/base';
-import { Blockchain } from '@/types/oracle';
-import { AdaptiveDownsampleConfig } from '@/utils/downsampling';
+import { type BaseOracleClient } from '@/lib/oracles/base';
+import { type Blockchain } from '@/types/oracle';
+import { type AdaptiveDownsampleConfig } from '@/utils/downsampling';
 
 export interface DynamicPriceChartProps {
   client: BaseOracleClient;

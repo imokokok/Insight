@@ -1,17 +1,14 @@
 'use client';
 
+import { Gamepad2, Dices, Clock, DollarSign, Zap } from 'lucide-react';
+
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import {
-  WINkLinkGamingData,
-  VRFUseCase,
-  GamingCategoryDistribution,
+  type WINkLinkGamingData,
+  type VRFUseCase,
+  type GamingCategoryDistribution,
 } from '@/lib/oracles/winklink';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Gamepad2 } from 'lucide-react';
-import { Dices } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { DollarSign } from 'lucide-react';
-import { Zap } from 'lucide-react';
 
 interface WINkLinkGamingDataPanelProps {
   data: WINkLinkGamingData & {
@@ -162,7 +159,9 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">{t('winklink.gaming.reliability')}</span>
-                  <span className="text-sm font-medium text-success-600">{source.reliability}%</span>
+                  <span className="text-sm font-medium text-success-600">
+                    {source.reliability}%
+                  </span>
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-1">
@@ -248,7 +247,9 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
                 </div>
                 <div className="flex justify-between mt-1">
                   <span className="text-sm text-gray-600">{t('winklink.gaming.reliability')}</span>
-                  <span className="text-sm font-medium text-success-600">{useCase.reliability}%</span>
+                  <span className="text-sm font-medium text-success-600">
+                    {useCase.reliability}%
+                  </span>
                 </div>
               </div>
             ))}

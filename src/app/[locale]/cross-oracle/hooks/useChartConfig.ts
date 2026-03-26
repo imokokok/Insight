@@ -4,14 +4,13 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { OracleProvider, PriceData } from '@/types/oracle';
+
 import { chartColors } from '@/lib/config/colors';
+import { type OracleProvider, type PriceData } from '@/types/oracle';
+
 import { oracleNames, type TimeRange } from '../constants';
-import type {
-  ChartDataPoint,
-  HistoryMinMax,
-  UseChartConfigReturn,
-} from '../types/index';
+
+import type { ChartDataPoint, HistoryMinMax, UseChartConfigReturn } from '../types/index';
 
 interface UseChartConfigOptions {
   historicalData: Partial<Record<OracleProvider, PriceData[]>>;
@@ -48,7 +47,14 @@ export function useChartConfig({
     selectedOracles.forEach((oracle, index) => {
       if (useAccessibleColors) {
         // 使用色盲友好的颜色
-        const accessiblePalette = ['#0066CC', '#FF6600', '#009900', '#CC0000', '#6600CC', '#CC9900'];
+        const accessiblePalette = [
+          '#0066CC',
+          '#FF6600',
+          '#009900',
+          '#CC0000',
+          '#6600CC',
+          '#CC9900',
+        ];
         colors[oracle] = accessiblePalette[index % accessiblePalette.length];
       } else {
         colors[oracle] = chartColors.oracle[oracle as keyof typeof chartColors.oracle] || '#888888';
@@ -113,8 +119,9 @@ export function useChartConfig({
 
   // 生成热力图数据
   const heatmapData = useMemo(() => {
-    const data: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[] = [];
-    
+    const data: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[] =
+      [];
+
     selectedOracles.forEach((oracle) => {
       const history = historicalData[oracle] || [];
       history.forEach((item) => {
@@ -181,17 +188,16 @@ export function useChartConfig({
     return selectedOracles.map((oracle, index) => {
       const history = historicalData[oracle] || [];
       const prices = history.map((h) => h.price);
-      
+
       // 计算响应时间（模拟）
       const responseTime = 150 + index * 50;
-      
+
       // 计算准确率（基于数据完整性）
       const accuracy = prices.length > 0 ? Math.min(95 + Math.random() * 5, 99.9) : 0;
-      
+
       // 计算稳定性（基于价格波动）
-      const stability = prices.length > 1 
-        ? Math.max(80, 100 - (calculateStdDev(prices) / avgPrice) * 100)
-        : 0;
+      const stability =
+        prices.length > 1 ? Math.max(80, 100 - (calculateStdDev(prices) / avgPrice) * 100) : 0;
 
       return {
         provider: oracle,

@@ -1,14 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell } from 'lucide-react';
-import { Mail } from 'lucide-react';
-import { Globe } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Save } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
+
+import {
+  Bell,
+  Mail,
+  Globe,
+  AlertTriangle,
+  TrendingUp,
+  Save,
+  Loader2,
+  CheckCircle,
+} from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
 
 interface NotificationSettings {

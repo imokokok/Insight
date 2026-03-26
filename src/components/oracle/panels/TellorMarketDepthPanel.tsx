@@ -1,11 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { MarketDepth, MarketDepthLevel } from '@/lib/oracles/tellor';
+import { BarChart3, ArrowUp, ArrowDown } from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { BarChart3 } from 'lucide-react';
-import { ArrowUp } from 'lucide-react';
-import { ArrowDown } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type MarketDepth, MarketDepthLevel } from '@/lib/oracles/tellor';
 
 interface TellorMarketDepthPanelProps {
   data: MarketDepth;
@@ -33,7 +32,9 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
           </div>
           <div className="py-2">
             <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalAskVolume')}</p>
-            <p className="text-xl font-bold text-danger-600">{data.totalAskVolume.toLocaleString()}</p>
+            <p className="text-xl font-bold text-danger-600">
+              {data.totalAskVolume.toLocaleString()}
+            </p>
           </div>
           <div className="py-2">
             <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.spread')}</p>

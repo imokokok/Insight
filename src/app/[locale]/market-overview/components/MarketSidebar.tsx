@@ -1,10 +1,20 @@
 'use client';
 
-import { useLocale, useTranslations } from '@/i18n';
-import { Clock, PieChart as PieChartIcon, TrendingUp, TrendingDown, Activity, Link2 } from 'lucide-react';
 import Link from 'next/link';
-import { OracleMarketData } from '../types';
+
+import {
+  Clock,
+  PieChart as PieChartIcon,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Link2,
+} from 'lucide-react';
+
+import { useLocale, useTranslations } from '@/i18n';
 import { baseColors, semanticColors } from '@/lib/config/colors';
+
+import { type OracleMarketData } from '../types';
 
 interface MarketSidebarProps {
   selectedTimeRange: string;
@@ -20,10 +30,18 @@ interface MarketSidebarProps {
 }
 
 // 迷你 Sparkline 图表组件
-function MiniSparkline({ data, color, isPositive }: { data: number[]; color: string; isPositive: boolean }) {
+function MiniSparkline({
+  data,
+  color,
+  isPositive,
+}: {
+  data: number[];
+  color: string;
+  isPositive: boolean;
+}) {
   if (!data || data.length < 2) {
     // 生成模拟数据用于展示
-    data = isPositive 
+    data = isPositive
       ? [30, 35, 32, 38, 42, 40, 45, 48, 52, 55]
       : [55, 52, 48, 45, 40, 42, 38, 35, 32, 30];
   }
@@ -35,11 +53,13 @@ function MiniSparkline({ data, color, isPositive }: { data: number[]; color: str
   const height = 20;
   const padding = 2;
 
-  const points = data.map((value, index) => {
-    const x = (index / (data.length - 1)) * width;
-    const y = height - padding - ((value - min) / range) * (height - 2 * padding);
-    return `${x},${y}`;
-  }).join(' ');
+  const points = data
+    .map((value, index) => {
+      const x = (index / (data.length - 1)) * width;
+      const y = height - padding - ((value - min) / range) * (height - 2 * padding);
+      return `${x},${y}`;
+    })
+    .join(' ');
 
   return (
     <svg width={width} height={height} className="flex-shrink-0">
@@ -67,13 +87,13 @@ function MiniSparkline({ data, color, isPositive }: { data: number[]; color: str
 }
 
 // 进度条组件
-function ProgressBar({ 
-  value, 
-  color, 
-  animated = false 
-}: { 
-  value: number; 
-  color: string; 
+function ProgressBar({
+  value,
+  color,
+  animated = false,
+}: {
+  value: number;
+  color: string;
   animated?: boolean;
 }) {
   return (
@@ -94,7 +114,7 @@ function ProgressBar({
 function ChangeBadge({ value }: { value: number }) {
   const isPositive = value >= 0;
   const Icon = isPositive ? TrendingUp : TrendingDown;
-  
+
   return (
     <span
       className="inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded"
@@ -104,7 +124,8 @@ function ChangeBadge({ value }: { value: number }) {
       }}
     >
       <Icon className="w-3 h-3" />
-      {isPositive ? '+' : ''}{value.toFixed(1)}%
+      {isPositive ? '+' : ''}
+      {value.toFixed(1)}%
     </span>
   );
 }
@@ -126,9 +147,7 @@ export default function MarketSidebar({
   const generateSparklineData = (change24h: number): number[] => {
     const base = 50;
     const trend = change24h / 10;
-    return Array.from({ length: 10 }, (_, i) => 
-      base + (trend * i) + (Math.random() - 0.5) * 10
-    );
+    return Array.from({ length: 10 }, (_, i) => base + trend * i + (Math.random() - 0.5) * 10);
   };
 
   return (
@@ -199,18 +218,20 @@ export default function MarketSidebar({
                   <span className="font-semibold text-gray-900 text-sm">{item.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MiniSparkline 
-                    data={generateSparklineData(item.change24h)} 
+                  <MiniSparkline
+                    data={generateSparklineData(item.change24h)}
                     color={item.color}
                     isPositive={item.change24h >= 0}
                   />
-                  <span className="text-sm font-bold text-gray-900 w-10 text-right">{item.share}%</span>
+                  <span className="text-sm font-bold text-gray-900 w-10 text-right">
+                    {item.share}%
+                  </span>
                 </div>
               </div>
 
               {/* 第二行：进度条 */}
-              <ProgressBar 
-                value={item.share} 
+              <ProgressBar
+                value={item.share}
                 color={item.color}
                 animated={selectedItem === item.name}
               />
@@ -251,7 +272,10 @@ export default function MarketSidebar({
           </div>
         </div>
         <div className="text-xs text-gray-400 mt-2 flex items-center justify-between">
-          <span>{t('coveringOracles', { count: marketStats.oracleCount }) || `Covering ${marketStats.oracleCount} major oracles`}</span>
+          <span>
+            {t('coveringOracles', { count: marketStats.oracleCount }) ||
+              `Covering ${marketStats.oracleCount} major oracles`}
+          </span>
           <span className="text-emerald-500 font-medium">{sortedOracleData.length} Active</span>
         </div>
       </div>

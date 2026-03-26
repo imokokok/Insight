@@ -1,9 +1,10 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from './DashboardCard';
 import { getEventTypeColor, getStatusColor } from '@/lib/utils/riskUtils';
 import type { RiskEvent } from '@/types/risk';
+
+import { DashboardCard } from './DashboardCard';
 
 export interface SecurityTimelineProps {
   events: RiskEvent[];

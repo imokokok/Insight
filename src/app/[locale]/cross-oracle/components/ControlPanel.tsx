@@ -6,17 +6,15 @@
  */
 
 import { useState } from 'react';
-import { Search } from 'lucide-react';
-import { RefreshCw } from 'lucide-react';
-import { ChevronDown } from 'lucide-react';
-import { ChevronUp } from 'lucide-react';
-import { Filter } from 'lucide-react';
-import { X } from 'lucide-react';
-import { Eye } from 'lucide-react';
-import { OracleProvider } from '@/types/oracle';
+
+import { Search, RefreshCw, ChevronDown, ChevronUp, Filter, X, Eye } from 'lucide-react';
+
 import { SegmentedControl, MultiSelect, DropdownSelect } from '@/components/ui';
-import { timeRanges, oracleNames, symbols, tradingPairs } from '../constants';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { type OracleProvider } from '@/types/oracle';
+
+import { timeRanges, oracleNames, symbols, tradingPairs } from '../constants';
+
 import type { TimeRange, DeviationFilter } from '../constants';
 
 interface ControlPanelProps {

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
+import { TrendingUp, Layers, Globe, Zap } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -14,28 +15,132 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import {
-  TrendingUp,
-  Layers,
-  Globe,
-  Zap,
-} from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 // TVL Trend Data (12 months)
 const tvlTrendData = [
-  { month: '2024-01', ethereum: 8.5, arbitrum: 2.1, polygon: 1.8, optimism: 1.2, avalanche: 0.9, base: 0.3, total: 14.8 },
-  { month: '2024-02', ethereum: 9.2, arbitrum: 2.4, polygon: 1.9, optimism: 1.4, avalanche: 1.0, base: 0.5, total: 16.4 },
-  { month: '2024-03', ethereum: 10.1, arbitrum: 2.8, polygon: 2.1, optimism: 1.6, avalanche: 1.1, base: 0.7, total: 18.4 },
-  { month: '2024-04', ethereum: 9.8, arbitrum: 3.1, polygon: 2.0, optimism: 1.7, avalanche: 1.0, base: 0.9, total: 18.5 },
-  { month: '2024-05', ethereum: 11.2, arbitrum: 3.5, polygon: 2.3, optimism: 1.9, avalanche: 1.2, base: 1.1, total: 21.2 },
-  { month: '2024-06', ethereum: 12.5, arbitrum: 3.9, polygon: 2.5, optimism: 2.1, avalanche: 1.3, base: 1.4, total: 23.7 },
-  { month: '2024-07', ethereum: 11.8, arbitrum: 4.2, polygon: 2.4, optimism: 2.3, avalanche: 1.2, base: 1.6, total: 23.5 },
-  { month: '2024-08', ethereum: 13.2, arbitrum: 4.6, polygon: 2.7, optimism: 2.5, avalanche: 1.4, base: 1.9, total: 26.3 },
-  { month: '2024-09', ethereum: 14.1, arbitrum: 5.1, polygon: 2.9, optimism: 2.7, avalanche: 1.5, base: 2.2, total: 28.5 },
-  { month: '2024-10', ethereum: 13.8, arbitrum: 5.4, polygon: 3.1, optimism: 2.9, avalanche: 1.6, base: 2.5, total: 29.3 },
-  { month: '2024-11', ethereum: 15.2, arbitrum: 5.8, polygon: 3.3, optimism: 3.1, avalanche: 1.7, base: 2.8, total: 31.9 },
-  { month: '2024-12', ethereum: 16.5, arbitrum: 6.2, polygon: 3.5, optimism: 3.3, avalanche: 1.8, base: 3.1, total: 34.4 },
+  {
+    month: '2024-01',
+    ethereum: 8.5,
+    arbitrum: 2.1,
+    polygon: 1.8,
+    optimism: 1.2,
+    avalanche: 0.9,
+    base: 0.3,
+    total: 14.8,
+  },
+  {
+    month: '2024-02',
+    ethereum: 9.2,
+    arbitrum: 2.4,
+    polygon: 1.9,
+    optimism: 1.4,
+    avalanche: 1.0,
+    base: 0.5,
+    total: 16.4,
+  },
+  {
+    month: '2024-03',
+    ethereum: 10.1,
+    arbitrum: 2.8,
+    polygon: 2.1,
+    optimism: 1.6,
+    avalanche: 1.1,
+    base: 0.7,
+    total: 18.4,
+  },
+  {
+    month: '2024-04',
+    ethereum: 9.8,
+    arbitrum: 3.1,
+    polygon: 2.0,
+    optimism: 1.7,
+    avalanche: 1.0,
+    base: 0.9,
+    total: 18.5,
+  },
+  {
+    month: '2024-05',
+    ethereum: 11.2,
+    arbitrum: 3.5,
+    polygon: 2.3,
+    optimism: 1.9,
+    avalanche: 1.2,
+    base: 1.1,
+    total: 21.2,
+  },
+  {
+    month: '2024-06',
+    ethereum: 12.5,
+    arbitrum: 3.9,
+    polygon: 2.5,
+    optimism: 2.1,
+    avalanche: 1.3,
+    base: 1.4,
+    total: 23.7,
+  },
+  {
+    month: '2024-07',
+    ethereum: 11.8,
+    arbitrum: 4.2,
+    polygon: 2.4,
+    optimism: 2.3,
+    avalanche: 1.2,
+    base: 1.6,
+    total: 23.5,
+  },
+  {
+    month: '2024-08',
+    ethereum: 13.2,
+    arbitrum: 4.6,
+    polygon: 2.7,
+    optimism: 2.5,
+    avalanche: 1.4,
+    base: 1.9,
+    total: 26.3,
+  },
+  {
+    month: '2024-09',
+    ethereum: 14.1,
+    arbitrum: 5.1,
+    polygon: 2.9,
+    optimism: 2.7,
+    avalanche: 1.5,
+    base: 2.2,
+    total: 28.5,
+  },
+  {
+    month: '2024-10',
+    ethereum: 13.8,
+    arbitrum: 5.4,
+    polygon: 3.1,
+    optimism: 2.9,
+    avalanche: 1.6,
+    base: 2.5,
+    total: 29.3,
+  },
+  {
+    month: '2024-11',
+    ethereum: 15.2,
+    arbitrum: 5.8,
+    polygon: 3.3,
+    optimism: 3.1,
+    avalanche: 1.7,
+    base: 2.8,
+    total: 31.9,
+  },
+  {
+    month: '2024-12',
+    ethereum: 16.5,
+    arbitrum: 6.2,
+    polygon: 3.5,
+    optimism: 3.3,
+    avalanche: 1.8,
+    base: 3.1,
+    total: 34.4,
+  },
 ];
 
 // Projects by Chain Data
@@ -72,9 +177,7 @@ function TimeRangeButton({
       onClick={onClick}
       className={cn(
         'px-3 py-1 text-xs font-medium transition-colors',
-        active
-          ? 'text-gray-900 border-b-2 border-gray-900'
-          : 'text-gray-500 hover:text-gray-700'
+        active ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'
       )}
     >
       {children}
@@ -84,7 +187,11 @@ function TimeRangeButton({
 
 export function ChainlinkEcosystemView() {
   const t = useTranslations('chainlink');
-  const [selectedChains, setSelectedChains] = useState<string[]>(['ethereum', 'arbitrum', 'polygon']);
+  const [selectedChains, setSelectedChains] = useState<string[]>([
+    'ethereum',
+    'arbitrum',
+    'polygon',
+  ]);
   const [timeRange, setTimeRange] = useState<'1M' | '3M' | '6M' | '1Y'>('1Y');
 
   // Filter TVL data based on time range
@@ -118,8 +225,12 @@ export function ChainlinkEcosystemView() {
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">{t('ecosystem.tvlAnalysis.title')}</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Total Value Locked across Chainlink ecosystem</p>
+            <h3 className="text-base font-semibold text-gray-900">
+              {t('ecosystem.tvlAnalysis.title')}
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Total Value Locked across Chainlink ecosystem
+            </p>
           </div>
           <div className="flex items-center border-b border-gray-200">
             {(['1M', '3M', '6M', '1Y'] as const).map((range) => (
@@ -137,41 +248,76 @@ export function ChainlinkEcosystemView() {
         {/* TVL Stats - Clean text layout */}
         <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4 mb-6">
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('ecosystem.tvlAnalysis.totalTvl')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('ecosystem.tvlAnalysis.totalTvl')}
+            </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-bold text-gray-900">${tvlStats.current.toFixed(1)}B</p>
-              <span className={cn('text-sm font-medium', tvlStats.change >= 0 ? 'text-emerald-600' : 'text-red-600')}>
-                {tvlStats.change >= 0 ? '+' : ''}{tvlStats.change.toFixed(1)}%
+              <span
+                className={cn(
+                  'text-sm font-medium',
+                  tvlStats.change >= 0 ? 'text-emerald-600' : 'text-red-600'
+                )}
+              >
+                {tvlStats.change >= 0 ? '+' : ''}
+                {tvlStats.change.toFixed(1)}%
               </span>
             </div>
           </div>
           <div className="h-8 w-px bg-gray-200 hidden sm:block" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('ecosystem.tvlAnalysis.ethereum')}</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <p className="text-xl font-semibold text-gray-900">${tvlStats.breakdown[0].value.toFixed(1)}B</p>
-              <span className="text-xs text-gray-500">{((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)}%</span>
-            </div>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('ecosystem.tvlAnalysis.l2Networks')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('ecosystem.tvlAnalysis.ethereum')}
+            </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
-                ${(tvlStats.breakdown[1].value + tvlStats.breakdown[3].value + tvlStats.breakdown[5].value).toFixed(1)}B
+                ${tvlStats.breakdown[0].value.toFixed(1)}B
               </p>
               <span className="text-xs text-gray-500">
-                {(((tvlStats.breakdown[1].value + tvlStats.breakdown[3].value + tvlStats.breakdown[5].value) / tvlStats.current) * 100).toFixed(1)}%
+                {((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)}%
               </span>
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('ecosystem.tvlAnalysis.altL1')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('ecosystem.tvlAnalysis.l2Networks')}
+            </p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-xl font-semibold text-gray-900">
+                $
+                {(
+                  tvlStats.breakdown[1].value +
+                  tvlStats.breakdown[3].value +
+                  tvlStats.breakdown[5].value
+                ).toFixed(1)}
+                B
+              </p>
+              <span className="text-xs text-gray-500">
+                {(
+                  ((tvlStats.breakdown[1].value +
+                    tvlStats.breakdown[3].value +
+                    tvlStats.breakdown[5].value) /
+                    tvlStats.current) *
+                  100
+                ).toFixed(1)}
+                %
+              </span>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('ecosystem.tvlAnalysis.altL1')}
+            </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
                 ${(tvlStats.breakdown[2].value + tvlStats.breakdown[4].value).toFixed(1)}B
               </p>
               <span className="text-xs text-gray-500">
-                {(((tvlStats.breakdown[2].value + tvlStats.breakdown[4].value) / tvlStats.current) * 100).toFixed(1)}%
+                {(
+                  ((tvlStats.breakdown[2].value + tvlStats.breakdown[4].value) / tvlStats.current) *
+                  100
+                ).toFixed(1)}
+                %
               </span>
             </div>
           </div>
@@ -179,7 +325,9 @@ export function ChainlinkEcosystemView() {
 
         {/* Chain Filter - Subtle pill buttons */}
         <div className="flex flex-wrap items-center gap-2 mb-6">
-          <span className="text-xs text-gray-400 mr-1">{t('ecosystem.tvlAnalysis.filterByChain')}:</span>
+          <span className="text-xs text-gray-400 mr-1">
+            {t('ecosystem.tvlAnalysis.filterByChain')}:
+          </span>
           {tvlStats.breakdown.map((item) => (
             <button
               key={item.chain}
@@ -199,7 +347,11 @@ export function ChainlinkEcosystemView() {
             >
               <span
                 className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: selectedChains.includes(item.chain.toLowerCase()) ? 'white' : item.color }}
+                style={{
+                  backgroundColor: selectedChains.includes(item.chain.toLowerCase())
+                    ? 'white'
+                    : item.color,
+                }}
               />
               {item.chain}
             </button>
@@ -288,8 +440,12 @@ export function ChainlinkEcosystemView() {
         {/* 项目分布 */}
         <section>
           <div className="mb-4">
-            <h3 className="text-base font-semibold text-gray-900">{t('ecosystem.projectAnalysis.projectsByChain') || 'Projects by Chain'}</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Distribution of projects across supported networks</p>
+            <h3 className="text-base font-semibold text-gray-900">
+              {t('ecosystem.projectAnalysis.projectsByChain') || 'Projects by Chain'}
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Distribution of projects across supported networks
+            </p>
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -320,8 +476,13 @@ export function ChainlinkEcosystemView() {
             </ResponsiveContainer>
           </div>
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 text-sm">
-            <span className="text-gray-500">{t('ecosystem.projectAnalysis.totalProjects')}: <span className="font-medium text-gray-900">1,500+</span></span>
-            <span className="text-emerald-600 font-medium">+156 {t('ecosystem.projectAnalysis.thisMonth')}</span>
+            <span className="text-gray-500">
+              {t('ecosystem.projectAnalysis.totalProjects')}:{' '}
+              <span className="font-medium text-gray-900">1,500+</span>
+            </span>
+            <span className="text-emerald-600 font-medium">
+              +156 {t('ecosystem.projectAnalysis.thisMonth')}
+            </span>
           </div>
         </section>
 
@@ -331,14 +492,18 @@ export function ChainlinkEcosystemView() {
         {/* 核心指标 - Clean layout without colored backgrounds */}
         <section>
           <div className="mb-4">
-            <h3 className="text-base font-semibold text-gray-900">{t('ecosystem.growth.title') || 'Ecosystem Growth'}</h3>
+            <h3 className="text-base font-semibold text-gray-900">
+              {t('ecosystem.growth.title') || 'Ecosystem Growth'}
+            </h3>
             <p className="text-sm text-gray-500 mt-0.5">Key performance indicators</p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Layers className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">{t('ecosystem.growth.newProjects') || 'New Projects'}</span>
+                <span className="text-sm text-gray-600">
+                  {t('ecosystem.growth.newProjects') || 'New Projects'}
+                </span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">156</p>
@@ -348,7 +513,9 @@ export function ChainlinkEcosystemView() {
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Zap className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">{t('ecosystem.growth.integrations') || 'Integrations'}</span>
+                <span className="text-sm text-gray-600">
+                  {t('ecosystem.growth.integrations') || 'Integrations'}
+                </span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">892</p>
@@ -358,7 +525,9 @@ export function ChainlinkEcosystemView() {
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Globe className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">{t('ecosystem.growth.communityGrowth') || 'Community'}</span>
+                <span className="text-sm text-gray-600">
+                  {t('ecosystem.growth.communityGrowth') || 'Community'}
+                </span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">48.5K</p>
@@ -368,7 +537,9 @@ export function ChainlinkEcosystemView() {
             <div className="flex items-center justify-between py-3">
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">{t('ecosystem.growth.protocolRevenue') || 'Revenue'}</span>
+                <span className="text-sm text-gray-600">
+                  {t('ecosystem.growth.protocolRevenue') || 'Revenue'}
+                </span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">$2.4M</p>

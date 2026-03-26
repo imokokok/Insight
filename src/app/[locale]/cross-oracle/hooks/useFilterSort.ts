@@ -4,7 +4,9 @@
  */
 
 import { useMemo, useCallback, useState } from 'react';
-import { OracleProvider, PriceData } from '@/types/oracle';
+
+import { type OracleProvider, type PriceData } from '@/types/oracle';
+
 import {
   oracleNames,
   calculateZScore,
@@ -14,6 +16,7 @@ import {
   type DeviationFilter,
   type TimeRange,
 } from '../constants';
+
 import type {
   FilterSortResult,
   UseFilterSortReturn,
@@ -92,9 +95,7 @@ export function useFilterSort({
         return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
       }
       if (sortColumn === 'timestamp') {
-        return sortDirection === 'asc'
-          ? a.timestamp - b.timestamp
-          : b.timestamp - a.timestamp;
+        return sortDirection === 'asc' ? a.timestamp - b.timestamp : b.timestamp - a.timestamp;
       }
       return 0;
     });
@@ -188,8 +189,7 @@ export function useFilterSort({
       const zScore = calculateZScore(data.price, avgPrice, standardDeviation);
 
       if (isOutlier(zScore)) {
-        const deviation =
-          avgPrice > 0 ? Math.abs(((data.price - avgPrice) / avgPrice) * 100) : 0;
+        const deviation = avgPrice > 0 ? Math.abs(((data.price - avgPrice) / avgPrice) * 100) : 0;
 
         outliers.push({
           index,
@@ -201,9 +201,7 @@ export function useFilterSort({
     });
 
     const avgDeviation =
-      outliers.length > 0
-        ? outliers.reduce((sum, o) => sum + o.deviation, 0) / outliers.length
-        : 0;
+      outliers.length > 0 ? outliers.reduce((sum, o) => sum + o.deviation, 0) / outliers.length : 0;
 
     return {
       count: outliers.length,

@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
 import { useTranslations } from '@/i18n';
 import { baseColors } from '@/lib/config/colors';
-import { QualityScoreCard } from './QualityScoreCard';
-import { PriceDeviationChart } from './PriceDeviationChart';
-import { LatencyDistributionChart } from './LatencyDistributionChart';
+
 import { DataSourceList } from './DataSourceList';
+import { LatencyDistributionChart } from './LatencyDistributionChart';
+import { PriceDeviationChart } from './PriceDeviationChart';
+import { QualityScoreCard } from './QualityScoreCard';
 import {
-  DataQualityConfig,
+  type DataQualityConfig,
   generatePriceDeviationData,
   generateLatencyDistribution,
   calculateLatencyMetrics,

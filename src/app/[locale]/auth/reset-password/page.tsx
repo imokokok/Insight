@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, Suspense, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+
 import Link from 'next/link';
-import { useTranslations } from '@/i18n';
+import { useSearchParams, useRouter } from 'next/navigation';
+
 import { Lock, Eye, EyeOff, Loader2, CheckCircle, XCircle } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 import { supabase } from '@/lib/supabase/client';
 
 function ResetPasswordContent() {

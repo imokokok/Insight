@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
-import { OracleProvider, Blockchain, PriceData } from '@/lib/oracles';
-import { RefreshInterval } from '@/app/[locale]/cross-chain/constants';
-import { ThresholdConfig, defaultThresholdConfig } from '@/app/[locale]/cross-chain/utils';
+
+import { type RefreshInterval } from '@/app/[locale]/cross-chain/constants';
+import { type ThresholdConfig, defaultThresholdConfig } from '@/app/[locale]/cross-chain/utils';
+import { OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 
 interface SelectorState {
   selectedProvider: OracleProvider;

@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from '@/i18n';
-import { logger } from '@/lib/utils/logger';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { SegmentedControl } from '@/components/ui';
-import { DashboardCard, MetricCard } from '@/components/oracle/data-display/DashboardCard';
+
 import { Database, Server, CheckCircle, Clock, Shield, Zap, Globe } from 'lucide-react';
+
+import { DashboardCard, MetricCard } from '@/components/oracle/data-display/DashboardCard';
+import { Card, CardContent, CardHeader, CardTitle, SegmentedControl } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { type BandProtocolClient } from '@/lib/oracles/bandProtocol';
+import { logger } from '@/lib/utils/logger';
 
 interface BandDataFeedsPanelProps {
   client: BandProtocolClient;

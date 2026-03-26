@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useUser } from '@/stores/authStore';
-import type { OracleSnapshot } from '@/types/oracle';
-import { OracleProvider } from '@/types/oracle';
-import { formatTimestamp, getTimeAgo } from '@/types/common/timestamps';
+
+import { useTranslations } from '@/i18n';
 import {
   getSnapshotsFromDatabase,
   deleteSnapshotFromDatabase,
@@ -19,8 +17,11 @@ import {
   clearLocalStorageSnapshots,
   markMigrationComplete,
 } from '@/lib/snapshots';
-import { useTranslations } from '@/i18n';
 import { createLogger } from '@/lib/utils/logger';
+import { useUser } from '@/stores/authStore';
+import { formatTimestamp, getTimeAgo } from '@/types/common/timestamps';
+import type { OracleSnapshot } from '@/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 
 const logger = createLogger('SnapshotManager');
 

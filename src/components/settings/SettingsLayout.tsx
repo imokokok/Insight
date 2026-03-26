@@ -1,6 +1,7 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
+
 import { Settings, User, Bell, Palette, Database } from 'lucide-react';
 
 import { Icon } from '@/components/ui';

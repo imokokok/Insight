@@ -84,9 +84,7 @@ export function SparklineChart({
         )}
       </defs>
 
-      {showArea && areaD && (
-        <path d={areaD} fill={`url(#${gradientId})`} stroke="none" />
-      )}
+      {showArea && areaD && <path d={areaD} fill={`url(#${gradientId})`} stroke="none" />}
 
       <path
         d={pathD}

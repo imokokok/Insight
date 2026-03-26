@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { UmaSidebarProps, UmaTabId } from '../types';
+
+import { type UmaSidebarProps, type UmaTabId } from '../types';
 
 interface NavItem {
   id: UmaTabId;
@@ -132,9 +133,7 @@ export function UmaSidebar({ activeTab, onTabChange }: UmaSidebarProps) {
                 }
               `}
             >
-              <span className={`${isActive ? 'text-red-600' : 'text-gray-400'}`}>
-                {item.icon}
-              </span>
+              <span className={`${isActive ? 'text-red-600' : 'text-gray-400'}`}>{item.icon}</span>
               <span>{t(item.labelKey)}</span>
             </button>
           );

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+
 import { useTranslations } from '@/i18n';
-import { OracleProvider } from '@/types/oracle';
+import { type OracleProvider } from '@/types/oracle';
 
 interface ExportHistoryButtonProps {
   selectedSymbol: string;
@@ -78,12 +79,7 @@ export function ExportHistoryButton({
         </>
       ) : (
         <>
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

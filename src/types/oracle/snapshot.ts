@@ -1,5 +1,5 @@
-import { OracleProvider } from '../oracle/enums';
-import { PriceData } from '../oracle/price';
+import { type OracleProvider } from '../oracle/enums';
+import { type PriceData } from '../oracle/price';
 
 export interface SnapshotStats {
   avgPrice: number;

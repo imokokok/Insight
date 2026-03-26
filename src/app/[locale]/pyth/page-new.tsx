@@ -1,16 +1,20 @@
 'use client';
 
-import { OracleProvider } from '@/types/oracle';
-import { OraclePageTemplate, OracleViewProps } from '@/components/oracle/shared/OraclePageTemplateNew';
+import {
+  OraclePageTemplate,
+  type OracleViewProps,
+} from '@/components/oracle/shared/OraclePageTemplateNew';
 import { useOraclePage } from '@/hooks/oracles/useOraclePage';
+import { OracleProvider } from '@/types/oracle';
+
 import { PythHero } from './components/PythHero';
-import { PythSidebar } from './components/PythSidebar';
 import { PythMarketView } from './components/PythMarketView';
 import { PythNetworkView } from './components/PythNetworkView';
-import { PythPublishersView } from './components/PythPublishersView';
-import { PythValidatorsView } from './components/PythValidatorsView';
 import { PythPriceFeedsView } from './components/PythPriceFeedsView';
+import { PythPublishersView } from './components/PythPublishersView';
 import { PythRiskView } from './components/PythRiskView';
+import { PythSidebar } from './components/PythSidebar';
+import { PythValidatorsView } from './components/PythValidatorsView';
 
 const views = [
   {
@@ -42,20 +46,14 @@ const views = [
     id: 'publishers',
     labelKey: 'pyth.menu.publishers',
     component: ({ data, isLoading }: OracleViewProps) => (
-      <PythPublishersView
-        publishers={data.publishers ?? []}
-        isLoading={isLoading}
-      />
+      <PythPublishersView publishers={data.publishers ?? []} isLoading={isLoading} />
     ),
   },
   {
     id: 'validators',
     labelKey: 'pyth.menu.validators',
     component: ({ data, isLoading }: OracleViewProps) => (
-      <PythValidatorsView
-        validators={data.validators ?? []}
-        isLoading={isLoading}
-      />
+      <PythValidatorsView validators={data.validators ?? []} isLoading={isLoading} />
     ),
   },
   {

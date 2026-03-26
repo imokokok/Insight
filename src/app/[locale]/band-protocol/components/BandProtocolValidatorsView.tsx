@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
+import { AlertTriangle, ArrowUpDown, CheckCircle2, XCircle } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import { AlertTriangle } from 'lucide-react';
-import { ArrowUpDown } from 'lucide-react';
-import { CheckCircle2 } from 'lucide-react';
-import { XCircle } from 'lucide-react';
-import { BandProtocolValidatorsViewProps, SortConfig } from '../types';
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
+
+import { type BandProtocolValidatorsViewProps, type SortConfig } from '../types';
 
 export function BandProtocolValidatorsView({
   validators,
@@ -97,19 +97,31 @@ export function BandProtocolValidatorsView({
       {/* Inline Stats */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-1">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.validators.totalValidators')}</span>
+          <span className="text-xs text-gray-500 uppercase tracking-wider">
+            {t('bandProtocol.validators.totalValidators')}
+          </span>
           <span className="text-sm font-semibold text-gray-900">{validators.length}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.validators.totalStaked')}</span>
-          <span className="text-sm font-semibold text-gray-900">{(totalStaked / 1e6).toFixed(1)}M BAND</span>
+          <span className="text-xs text-gray-500 uppercase tracking-wider">
+            {t('bandProtocol.validators.totalStaked')}
+          </span>
+          <span className="text-sm font-semibold text-gray-900">
+            {(totalStaked / 1e6).toFixed(1)}M BAND
+          </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.validators.avgCommission')}</span>
-          <span className="text-sm font-semibold text-gray-900">{(avgCommission * 100).toFixed(1)}%</span>
+          <span className="text-xs text-gray-500 uppercase tracking-wider">
+            {t('bandProtocol.validators.avgCommission')}
+          </span>
+          <span className="text-sm font-semibold text-gray-900">
+            {(avgCommission * 100).toFixed(1)}%
+          </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.validators.avgUptime')}</span>
+          <span className="text-xs text-gray-500 uppercase tracking-wider">
+            {t('bandProtocol.validators.avgUptime')}
+          </span>
           <span className="text-sm font-semibold text-gray-900">{avgUptime.toFixed(2)}%</span>
         </div>
       </div>
@@ -142,7 +154,10 @@ export function BandProtocolValidatorsView({
                   <SortHeader label={t('bandProtocol.validators.votingPower')} sortKey="tokens" />
                 </th>
                 <th className="px-3 py-2 text-right whitespace-nowrap">
-                  <SortHeader label={t('bandProtocol.validators.commission')} sortKey="commissionRate" />
+                  <SortHeader
+                    label={t('bandProtocol.validators.commission')}
+                    sortKey="commissionRate"
+                  />
                 </th>
                 <th className="px-3 py-2 text-right whitespace-nowrap">
                   <SortHeader label={t('bandProtocol.validators.uptime')} sortKey="uptime" />
@@ -174,11 +189,17 @@ export function BandProtocolValidatorsView({
                     </div>
                   </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">
-                    <p className="font-medium text-gray-900">{(validator.tokens / 1e6).toFixed(2)}M</p>
-                    <p className="text-xs text-gray-500">{((validator.tokens / totalStaked) * 100).toFixed(2)}%</p>
+                    <p className="font-medium text-gray-900">
+                      {(validator.tokens / 1e6).toFixed(2)}M
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {((validator.tokens / totalStaked) * 100).toFixed(2)}%
+                    </p>
                   </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">
-                    <span className="text-gray-900">{(validator.commissionRate * 100).toFixed(2)}%</span>
+                    <span className="text-gray-900">
+                      {(validator.commissionRate * 100).toFixed(2)}%
+                    </span>
                   </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">
                     <span
@@ -186,8 +207,8 @@ export function BandProtocolValidatorsView({
                         validator.uptime >= 99
                           ? 'text-emerald-600'
                           : validator.uptime >= 95
-                          ? 'text-amber-600'
-                          : 'text-red-600'
+                            ? 'text-amber-600'
+                            : 'text-red-600'
                       }`}
                     >
                       {validator.uptime.toFixed(2)}%

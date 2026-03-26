@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, type NextResponse } from 'next/server';
+
 import {
   API_VERSIONS,
   DEPRECATED_VERSIONS,
   VERSION_DEPRECATION_DATES,
   VERSION_HEADERS,
-  ApiVersion,
-  VersionInfo,
+  type ApiVersion,
+  type VersionInfo,
 } from './constants';
 
 export interface VersionMiddlewareOptions {

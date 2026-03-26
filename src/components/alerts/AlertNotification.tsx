@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { AlertEvent } from '@/lib/supabase/database.types';
+
 import { useAcknowledgeAlert } from '@/hooks';
 import { useTranslations } from '@/i18n';
+import { type AlertEvent } from '@/lib/supabase/database.types';
 
 interface AlertNotificationProps {
   event: AlertEvent;

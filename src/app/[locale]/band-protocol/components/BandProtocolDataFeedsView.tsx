@@ -1,11 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+
+import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import { Activity } from 'lucide-react';
-import { CheckCircle2 } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
 
 interface DataFeed {
   id: string;
@@ -103,19 +102,24 @@ const dataFeeds: DataFeed[] = [
 
 const categories = [
   { id: 'all', label: 'All', count: dataFeeds.length },
-  { id: 'crypto', label: 'Crypto', count: dataFeeds.filter(f => f.category === 'crypto').length },
-  { id: 'forex', label: 'Forex', count: dataFeeds.filter(f => f.category === 'forex').length },
-  { id: 'commodities', label: 'Commodities', count: dataFeeds.filter(f => f.category === 'commodities').length },
-  { id: 'defi', label: 'DeFi', count: dataFeeds.filter(f => f.category === 'defi').length },
+  { id: 'crypto', label: 'Crypto', count: dataFeeds.filter((f) => f.category === 'crypto').length },
+  { id: 'forex', label: 'Forex', count: dataFeeds.filter((f) => f.category === 'forex').length },
+  {
+    id: 'commodities',
+    label: 'Commodities',
+    count: dataFeeds.filter((f) => f.category === 'commodities').length,
+  },
+  { id: 'defi', label: 'DeFi', count: dataFeeds.filter((f) => f.category === 'defi').length },
 ];
 
 export function BandProtocolDataFeedsView() {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const filteredFeeds = selectedCategory === 'all'
-    ? dataFeeds
-    : dataFeeds.filter(feed => feed.category === selectedCategory);
+  const filteredFeeds =
+    selectedCategory === 'all'
+      ? dataFeeds
+      : dataFeeds.filter((feed) => feed.category === selectedCategory);
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -135,7 +139,9 @@ export function BandProtocolDataFeedsView() {
         <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.dataFeeds.total')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('bandProtocol.dataFeeds.total')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">{dataFeeds.length}</p>
           </div>
         </div>
@@ -143,9 +149,11 @@ export function BandProtocolDataFeedsView() {
         <div className="flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.dataFeeds.active')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('bandProtocol.dataFeeds.active')}
+            </p>
             <p className="text-xl font-semibold text-emerald-600">
-              {dataFeeds.filter(f => f.status === 'active').length}
+              {dataFeeds.filter((f) => f.status === 'active').length}
             </p>
           </div>
         </div>
@@ -153,7 +161,9 @@ export function BandProtocolDataFeedsView() {
         <div className="flex items-center gap-3">
           <TrendingUp className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.dataFeeds.totalRequests')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('bandProtocol.dataFeeds.totalRequests')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">
               {(dataFeeds.reduce((acc, f) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
             </p>
@@ -163,9 +173,12 @@ export function BandProtocolDataFeedsView() {
         <div className="flex items-center gap-3">
           <Clock className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('bandProtocol.dataFeeds.avgReliability')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('bandProtocol.dataFeeds.avgReliability')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">
-              {(dataFeeds.reduce((acc, f) => acc + f.reliability, 0) / dataFeeds.length).toFixed(2)}%
+              {(dataFeeds.reduce((acc, f) => acc + f.reliability, 0) / dataFeeds.length).toFixed(2)}
+              %
             </p>
           </div>
         </div>
@@ -184,9 +197,11 @@ export function BandProtocolDataFeedsView() {
             }`}
           >
             {category.label}
-            <span className={`text-xs ${
-              selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
-            }`}>
+            <span
+              className={`text-xs ${
+                selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
+              }`}
+            >
               {category.count}
             </span>
           </button>
@@ -257,22 +272,32 @@ export function BandProtocolDataFeedsView() {
                         feed.reliability >= 99.95
                           ? 'text-emerald-600'
                           : feed.reliability >= 99.9
-                          ? 'text-blue-600'
-                          : 'text-amber-600'
+                            ? 'text-blue-600'
+                            : 'text-amber-600'
                       }`}
                     >
                       {feed.reliability.toFixed(2)}%
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${
-                      feed.status === 'active' ? 'text-emerald-600' :
-                      feed.status === 'paused' ? 'text-amber-600' : 'text-red-600'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${
-                        feed.status === 'active' ? 'bg-emerald-500' :
-                        feed.status === 'paused' ? 'bg-amber-500' : 'bg-red-500'
-                      }`} />
+                    <span
+                      className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+                        feed.status === 'active'
+                          ? 'text-emerald-600'
+                          : feed.status === 'paused'
+                            ? 'text-amber-600'
+                            : 'text-red-600'
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          feed.status === 'active'
+                            ? 'bg-emerald-500'
+                            : feed.status === 'paused'
+                              ? 'bg-amber-500'
+                              : 'bg-red-500'
+                        }`}
+                      />
                       {feed.status.charAt(0).toUpperCase() + feed.status.slice(1)}
                     </span>
                   </td>
@@ -291,22 +316,30 @@ export function BandProtocolDataFeedsView() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">{t('bandProtocol.dataFeeds.updateFrequency')}:</span>
-              {' '}{t('bandProtocol.dataFeeds.frequencyDesc')}
+              <span className="font-medium text-gray-900">
+                {t('bandProtocol.dataFeeds.updateFrequency')}:
+              </span>{' '}
+              {t('bandProtocol.dataFeeds.frequencyDesc')}
             </p>
             <p>
-              <span className="font-medium text-gray-900">{t('bandProtocol.dataFeeds.deviationThreshold')}:</span>
-              {' '}{t('bandProtocol.dataFeeds.thresholdDesc')}
+              <span className="font-medium text-gray-900">
+                {t('bandProtocol.dataFeeds.deviationThreshold')}:
+              </span>{' '}
+              {t('bandProtocol.dataFeeds.thresholdDesc')}
             </p>
           </div>
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">{t('bandProtocol.dataFeeds.reliability')}:</span>
-              {' '}{t('bandProtocol.dataFeeds.reliabilityDesc')}
+              <span className="font-medium text-gray-900">
+                {t('bandProtocol.dataFeeds.reliability')}:
+              </span>{' '}
+              {t('bandProtocol.dataFeeds.reliabilityDesc')}
             </p>
             <p>
-              <span className="font-medium text-gray-900">{t('bandProtocol.dataFeeds.decentralization')}:</span>
-              {' '}{t('bandProtocol.dataFeeds.decentralizationDesc')}
+              <span className="font-medium text-gray-900">
+                {t('bandProtocol.dataFeeds.decentralization')}:
+              </span>{' '}
+              {t('bandProtocol.dataFeeds.decentralizationDesc')}
             </p>
           </div>
         </div>

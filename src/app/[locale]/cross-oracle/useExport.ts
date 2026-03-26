@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
-import { PriceData } from '@/types/oracle';
+
+import { type PriceData } from '@/types/oracle';
+
 import { exportToCSV, exportToJSON, oracleNames } from './constants';
 
 interface UseExportParams {

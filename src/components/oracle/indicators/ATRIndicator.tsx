@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   LineChart,
   Line,
@@ -10,10 +11,10 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from 'recharts';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
-import { calculateATR, OHLCVDataPoint } from '@/lib/indicators';
-
+import { calculateATR, type OHLCVDataPoint } from '@/lib/indicators';
 
 export interface ATRDataPoint {
   time: string;

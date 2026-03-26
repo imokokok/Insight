@@ -1,7 +1,7 @@
 'use client';
 
-import React, { Component, ReactNode, useEffect } from 'react';
-import { createLogger } from '@/lib/utils/logger';
+import React, { Component, type ReactNode, useEffect } from 'react';
+
 import {
   isAppError,
   ValidationError,
@@ -10,6 +10,7 @@ import {
   RateLimitError,
 } from '@/lib/errors';
 import { captureException, setUser } from '@/lib/monitoring';
+import { createLogger } from '@/lib/utils/logger';
 import { useAuthStore } from '@/stores/authStore';
 
 const logger = createLogger('ErrorBoundaries');
@@ -210,13 +211,21 @@ function DefaultErrorFallback({ error, onReset, translations: _translations }: E
   const config = getErrorConfig(error);
 
   const colorMap: Record<string, { bg: string; text: string; button: string }> = {
-    red: { bg: 'bg-danger-100', text: 'text-danger-600', button: 'bg-primary-600 hover:bg-primary-700' },
+    red: {
+      bg: 'bg-danger-100',
+      text: 'text-danger-600',
+      button: 'bg-primary-600 hover:bg-primary-700',
+    },
     yellow: {
       bg: 'bg-warning-100',
       text: 'text-warning-600',
       button: 'bg-primary-600 hover:bg-primary-700',
     },
-    blue: { bg: 'bg-primary-100', text: 'text-primary-600', button: 'bg-primary-600 hover:bg-primary-700' },
+    blue: {
+      bg: 'bg-primary-100',
+      text: 'text-primary-600',
+      button: 'bg-primary-600 hover:bg-primary-700',
+    },
     orange: {
       bg: 'bg-warning-100',
       text: 'text-warning-600',

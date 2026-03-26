@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+
+import { Database, Coins, TrendingUp, Shield } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import { ChronicleMakerDAOViewProps } from '../types';
+
+import { type ChronicleMakerDAOViewProps } from '../types';
+
 import { ChronicleDataTable } from './ChronicleDataTable';
-import { Database } from 'lucide-react';
-import { Coins } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Shield } from 'lucide-react';
 
 interface AssetData {
   id: string;
@@ -21,25 +22,80 @@ interface AssetData {
 }
 
 const mockAssets: AssetData[] = [
-  { id: '1', symbol: 'ETH', name: 'Ethereum', type: 'crypto', price: 3250.45, collateralRatio: 145, stabilityFee: 2.5, debtCeiling: 500000000 },
-  { id: '2', symbol: 'WBTC', name: 'Wrapped Bitcoin', type: 'crypto', price: 67500.20, collateralRatio: 145, stabilityFee: 2.0, debtCeiling: 300000000 },
-  { id: '3', symbol: 'USDC', name: 'USD Coin', type: 'stablecoin', price: 1.00, collateralRatio: 101, stabilityFee: 0.5, debtCeiling: 800000000 },
-  { id: '4', symbol: 'DAI', name: 'Dai Stablecoin', type: 'stablecoin', price: 1.00, collateralRatio: 0, stabilityFee: 0, debtCeiling: 0 },
-  { id: '5', symbol: 'RWA001', name: 'Real World Asset', type: 'rwa', price: 1000000.00, collateralRatio: 110, stabilityFee: 3.5, debtCeiling: 100000000 },
-  { id: '6', symbol: 'LINK', name: 'Chainlink', type: 'crypto', price: 14.85, collateralRatio: 165, stabilityFee: 3.0, debtCeiling: 50000000 },
+  {
+    id: '1',
+    symbol: 'ETH',
+    name: 'Ethereum',
+    type: 'crypto',
+    price: 3250.45,
+    collateralRatio: 145,
+    stabilityFee: 2.5,
+    debtCeiling: 500000000,
+  },
+  {
+    id: '2',
+    symbol: 'WBTC',
+    name: 'Wrapped Bitcoin',
+    type: 'crypto',
+    price: 67500.2,
+    collateralRatio: 145,
+    stabilityFee: 2.0,
+    debtCeiling: 300000000,
+  },
+  {
+    id: '3',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    type: 'stablecoin',
+    price: 1.0,
+    collateralRatio: 101,
+    stabilityFee: 0.5,
+    debtCeiling: 800000000,
+  },
+  {
+    id: '4',
+    symbol: 'DAI',
+    name: 'Dai Stablecoin',
+    type: 'stablecoin',
+    price: 1.0,
+    collateralRatio: 0,
+    stabilityFee: 0,
+    debtCeiling: 0,
+  },
+  {
+    id: '5',
+    symbol: 'RWA001',
+    name: 'Real World Asset',
+    type: 'rwa',
+    price: 1000000.0,
+    collateralRatio: 110,
+    stabilityFee: 3.5,
+    debtCeiling: 100000000,
+  },
+  {
+    id: '6',
+    symbol: 'LINK',
+    name: 'Chainlink',
+    type: 'crypto',
+    price: 14.85,
+    collateralRatio: 165,
+    stabilityFee: 3.0,
+    debtCeiling: 50000000,
+  },
 ];
 
 const categories = [
   { id: 'all', label: 'All', count: mockAssets.length },
-  { id: 'crypto', label: 'Crypto', count: mockAssets.filter(f => f.type === 'crypto').length },
-  { id: 'stablecoin', label: 'Stablecoin', count: mockAssets.filter(f => f.type === 'stablecoin').length },
-  { id: 'rwa', label: 'RWA', count: mockAssets.filter(f => f.type === 'rwa').length },
+  { id: 'crypto', label: 'Crypto', count: mockAssets.filter((f) => f.type === 'crypto').length },
+  {
+    id: 'stablecoin',
+    label: 'Stablecoin',
+    count: mockAssets.filter((f) => f.type === 'stablecoin').length,
+  },
+  { id: 'rwa', label: 'RWA', count: mockAssets.filter((f) => f.type === 'rwa').length },
 ];
 
-export function ChronicleMakerDAOView({
-  makerDAO,
-  isLoading,
-}: ChronicleMakerDAOViewProps) {
+export function ChronicleMakerDAOView({ makerDAO, isLoading }: ChronicleMakerDAOViewProps) {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -66,9 +122,10 @@ export function ChronicleMakerDAOView({
     }
   };
 
-  const filteredAssets = selectedCategory === 'all'
-    ? mockAssets
-    : mockAssets.filter(asset => asset.type === selectedCategory);
+  const filteredAssets =
+    selectedCategory === 'all'
+      ? mockAssets
+      : mockAssets.filter((asset) => asset.type === selectedCategory);
 
   const columns = [
     {
@@ -87,7 +144,9 @@ export function ChronicleMakerDAOView({
       header: t('chronicle.makerdao.type'),
       sortable: true,
       render: (item: AssetData) => (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize`}>
+        <span
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize`}
+        >
           {item.type}
         </span>
       ),
@@ -102,19 +161,19 @@ export function ChronicleMakerDAOView({
       key: 'collateralRatio',
       header: t('chronicle.makerdao.collateralRatio'),
       sortable: true,
-      render: (item: AssetData) => item.collateralRatio > 0 ? `${item.collateralRatio}%` : '-',
+      render: (item: AssetData) => (item.collateralRatio > 0 ? `${item.collateralRatio}%` : '-'),
     },
     {
       key: 'stabilityFee',
       header: t('chronicle.makerdao.stabilityFee'),
       sortable: true,
-      render: (item: AssetData) => item.stabilityFee > 0 ? `${item.stabilityFee}%` : '-',
+      render: (item: AssetData) => (item.stabilityFee > 0 ? `${item.stabilityFee}%` : '-'),
     },
     {
       key: 'debtCeiling',
       header: t('chronicle.makerdao.debtCeiling'),
       sortable: true,
-      render: (item: AssetData) => item.debtCeiling > 0 ? formatCurrency(item.debtCeiling) : '-',
+      render: (item: AssetData) => (item.debtCeiling > 0 ? formatCurrency(item.debtCeiling) : '-'),
     },
   ];
 
@@ -154,7 +213,9 @@ export function ChronicleMakerDAOView({
                 <Icon className="w-4 h-4" />
                 <span className="text-sm">{metric.label}</span>
               </div>
-              <p className={`text-2xl font-semibold tracking-tight ${metric.highlight ? 'text-emerald-600' : 'text-gray-900'}`}>
+              <p
+                className={`text-2xl font-semibold tracking-tight ${metric.highlight ? 'text-emerald-600' : 'text-gray-900'}`}
+              >
                 {metric.value}
               </p>
             </div>
@@ -178,9 +239,11 @@ export function ChronicleMakerDAOView({
             }`}
           >
             {category.label}
-            <span className={`text-xs ${
-              selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
-            }`}>
+            <span
+              className={`text-xs ${
+                selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
+              }`}
+            >
               {category.count}
             </span>
           </button>
@@ -194,7 +257,15 @@ export function ChronicleMakerDAOView({
         </h3>
         <ChronicleDataTable
           data={filteredAssets as unknown as Record<string, unknown>[]}
-          columns={columns as unknown as Array<{key: string; header: string; width?: string; sortable?: boolean; render?: (item: Record<string, unknown>) => React.ReactNode}>}
+          columns={
+            columns as unknown as Array<{
+              key: string;
+              header: string;
+              width?: string;
+              sortable?: boolean;
+              render?: (item: Record<string, unknown>) => React.ReactNode;
+            }>
+          }
         />
       </div>
 
@@ -209,22 +280,30 @@ export function ChronicleMakerDAOView({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">{t('chronicle.makerdao.integrationVersion')}:</span>
-              {' '}{makerDAO?.integrationVersion || '2.5.1'}
+              <span className="font-medium text-gray-900">
+                {t('chronicle.makerdao.integrationVersion')}:
+              </span>{' '}
+              {makerDAO?.integrationVersion || '2.5.1'}
             </p>
             <p>
-              <span className="font-medium text-gray-900">{t('chronicle.makerdao.lastUpdate')}:</span>
-              {' '}2 hours ago
+              <span className="font-medium text-gray-900">
+                {t('chronicle.makerdao.lastUpdate')}:
+              </span>{' '}
+              2 hours ago
             </p>
           </div>
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">{t('chronicle.makerdao.oracleType')}:</span>
-              {' '}Primary Price Feed
+              <span className="font-medium text-gray-900">
+                {t('chronicle.makerdao.oracleType')}:
+              </span>{' '}
+              Primary Price Feed
             </p>
             <p>
-              <span className="font-medium text-gray-900">{t('chronicle.makerdao.updateFrequency')}:</span>
-              {' '}~60s
+              <span className="font-medium text-gray-900">
+                {t('chronicle.makerdao.updateFrequency')}:
+              </span>{' '}
+              ~60s
             </p>
           </div>
         </div>

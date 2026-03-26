@@ -1,5 +1,5 @@
 import {
-  ValidatorFn,
+  type ValidatorFn,
   isString,
   isNumber,
   isInteger,

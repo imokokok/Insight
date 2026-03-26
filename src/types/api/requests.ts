@@ -1,4 +1,4 @@
-import { PaginationParams } from '../common/pagination';
+import { type PaginationParams } from '../common/pagination';
 
 export interface BaseApiRequest extends PaginationParams {
   search?: string;

@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import GaugeChart from '@/components/GaugeChart';
+import { type AccuracyStats } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { AccuracyStats } from '@/hooks';
 import { semanticColors } from '@/lib/config/colors';
 
 interface PriceAccuracyStatsProps {

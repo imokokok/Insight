@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useTranslations } from '@/i18n';
+
+import { Activity, Zap, TrendingUp, Clock } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -12,10 +13,11 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { cn } from '@/lib/utils';
-import { Activity, Zap, TrendingUp, Clock } from 'lucide-react';
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { cn } from '@/lib/utils';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
 
 interface ThroughputDataPoint {
@@ -152,7 +154,15 @@ export function RealtimeThroughputMonitor({
     };
   }, [data]);
 
-  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ payload: ThroughputDataPoint }>; label?: string }) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{ payload: ThroughputDataPoint }>;
+    label?: string;
+  }) => {
     if (active && payload && payload.length) {
       const dataPoint = payload[0].payload;
       return (
@@ -370,11 +380,7 @@ export function RealtimeThroughputMonitor({
                 <RechartsTooltip content={<CustomTooltip />} />
                 <ReferenceLine
                   y={
-                    selectedMetric === 'rps'
-                      ? 12500
-                      : selectedMetric === 'successRate'
-                        ? 99.5
-                        : 170
+                    selectedMetric === 'rps' ? 12500 : selectedMetric === 'successRate' ? 99.5 : 170
                   }
                   stroke={chartColors.recharts.gridLight}
                   strokeDasharray="5 5"
@@ -397,10 +403,7 @@ export function RealtimeThroughputMonitor({
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: getChartColor() }}
-              />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getChartColor() }} />
               <span className="text-xs text-gray-600">
                 {selectedMetric === 'rps'
                   ? t('chainlink.network.requestsPerSecond')

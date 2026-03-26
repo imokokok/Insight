@@ -1,18 +1,18 @@
-import { createLogger } from '@/lib/utils/logger';
-import {
-  OracleMarketData,
-  AssetData,
-  ChainBreakdown,
-  ProtocolDetail,
-  AssetCategory,
-  ComparisonData,
-  BenchmarkData,
-  CorrelationData,
-  CorrelationPair,
-  RadarDataPoint,
-} from '@/app/[locale]/market-overview/types';
 import { ORACLE_COLORS } from '@/app/[locale]/market-overview/constants';
+import {
+  type OracleMarketData,
+  type AssetData,
+  type ChainBreakdown,
+  type ProtocolDetail,
+  type AssetCategory,
+  type ComparisonData,
+  type BenchmarkData,
+  type CorrelationData,
+  type CorrelationPair,
+  type RadarDataPoint,
+} from '@/app/[locale]/market-overview/types';
 import { chartColors, chainColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('marketData:defiLlamaApi');
 

@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { DataSourceReliability, getStatusConfig, getTimeAgo } from './qualityUtils';
+
+import { type DataSourceReliability, getStatusConfig, getTimeAgo } from './qualityUtils';
 
 interface DataSourceListProps {
   sources: DataSourceReliability[];

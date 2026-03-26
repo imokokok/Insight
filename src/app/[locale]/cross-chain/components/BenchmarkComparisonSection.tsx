@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import { useTranslations } from '@/i18n';
 
 interface ChainPriceData {
@@ -14,9 +15,7 @@ interface BenchmarkComparisonSectionProps {
   loading?: boolean;
 }
 
-export function BenchmarkComparisonSection({
-  chainPrices,
-}: BenchmarkComparisonSectionProps) {
+export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonSectionProps) {
   const t = useTranslations();
 
   const benchmarkData = useMemo(() => {

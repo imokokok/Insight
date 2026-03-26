@@ -1,6 +1,6 @@
 'use client';
 
-import { SegmentedControlProps, SelectorOption } from './types';
+import { type SegmentedControlProps, type SelectorOption } from './types';
 
 const sizeClasses = {
   xs: 'px-2 py-1 text-[10px]',

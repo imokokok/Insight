@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { useTranslations } from '@/i18n';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
 
 interface NetworkStatusItem {
   label: string;

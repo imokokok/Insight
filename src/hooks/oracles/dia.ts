@@ -1,7 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useMemo, useCallback } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+
 import { DIAClient } from '@/lib/oracles/dia';
 import type {
   DataSourceTransparency,
@@ -13,8 +15,7 @@ import type {
   CustomFeed,
   EcosystemIntegration,
 } from '@/lib/oracles/dia';
-import { Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 const diaClient = new DIAClient();
 

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+
 import { errorToResponse, isAppError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
+
 import { ApiResponseBuilder } from '../response';
 
 const logger = createLogger('error-middleware');

@@ -1,11 +1,13 @@
-import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
+import { type OracleProvider, type PriceData, type SnapshotStats } from '@/types/oracle';
+
 import {
-  SortColumn,
-  SortDirection,
-  TimeRange,
-  DeviationFilter,
-  RefreshInterval,
+  type SortColumn,
+  type SortDirection,
+  type TimeRange,
+  type DeviationFilter,
+  type RefreshInterval,
 } from './constants';
+
 import type { TabId } from './components/TabNavigation';
 
 export type { TimeRange, DeviationFilter } from './constants';

@@ -1,12 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Blockchain } from '@/types/oracle';
+
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+
 import { chainNames, chainColors } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { TrendingUp } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
-import { Minus } from 'lucide-react';
+import { type Blockchain } from '@/types/oracle';
 
 interface ChainPriceData {
   chain: Blockchain;
@@ -105,17 +105,13 @@ export function CrossChainPriceComparison({
       <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">
-              {symbol} 跨链价格对比
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900">{symbol} 跨链价格对比</h3>
             <p className="text-xs text-gray-500 mt-0.5">
               跨链价格差异: {priceRangePercent.toFixed(2)}%
             </p>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-gray-900">
-              {formatPrice(avgPrice)}
-            </div>
+            <div className="text-lg font-bold text-gray-900">{formatPrice(avgPrice)}</div>
             <div className="text-xs text-gray-500">平均价格</div>
           </div>
         </div>
@@ -211,15 +207,11 @@ export function CrossChainPriceComparison({
             <div className="text-sm font-semibold text-red-600">
               {formatPrice(mostExpensive.price)}
             </div>
-            <div className="text-[10px] text-gray-400">
-              {chainNames[mostExpensive.chain]}
-            </div>
+            <div className="text-[10px] text-gray-400">{chainNames[mostExpensive.chain]}</div>
           </div>
           <div>
             <div className="text-xs text-gray-500">平均价格</div>
-            <div className="text-sm font-semibold text-gray-900">
-              {formatPrice(avgPrice)}
-            </div>
+            <div className="text-sm font-semibold text-gray-900">{formatPrice(avgPrice)}</div>
             <div className="text-[10px] text-gray-400">所有链</div>
           </div>
           <div>
@@ -227,9 +219,7 @@ export function CrossChainPriceComparison({
             <div className="text-sm font-semibold text-emerald-600">
               {formatPrice(cheapest.price)}
             </div>
-            <div className="text-[10px] text-gray-400">
-              {chainNames[cheapest.chain]}
-            </div>
+            <div className="text-[10px] text-gray-400">{chainNames[cheapest.chain]}</div>
           </div>
         </div>
       </div>

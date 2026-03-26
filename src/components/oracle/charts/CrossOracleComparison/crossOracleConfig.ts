@@ -1,3 +1,4 @@
+import { chartColors } from '@/lib/config/colors';
 import {
   ChainlinkClient,
   BandProtocolClient,
@@ -11,7 +12,6 @@ import {
   WINkLinkClient,
 } from '@/lib/oracles';
 import { OracleProvider } from '@/types/oracle';
-import { chartColors } from '@/lib/config/colors';
 
 export type SortField = 'price' | 'deviation' | 'confidence' | 'responseTime' | 'name';
 export type SortDirection = 'asc' | 'desc' | null;

@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
+import { createLogger } from '@/lib/utils/logger';
 import {
   useSelectedTimeRange,
   useSetSelectedTimeRange,
   useSelectedHour,
   useSetSelectedHour,
   useSyncEnabled,
-  SelectedTimeRange,
+  type SelectedTimeRange,
 } from '@/stores/uiStore';
-import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('UpdateFrequencyHeatmap');
 
@@ -133,10 +134,14 @@ export function UpdateFrequencyHeatmap({
         <div className="grid grid-cols-4 gap-3">
           <div className="bg-primary-50  p-3 text-center">
             <p className="text-xs text-primary-600 mb-1">{t('updateFrequency.avgHourlyUpdates')}</p>
-            <p className="text-xl font-bold text-primary-700">{avgHourlyUpdates.toLocaleString()}</p>
+            <p className="text-xl font-bold text-primary-700">
+              {avgHourlyUpdates.toLocaleString()}
+            </p>
           </div>
           <div className="bg-success-50  p-3 text-center">
-            <p className="text-xs text-success-600 mb-1">{t('updateFrequency.maxUpdateFrequency')}</p>
+            <p className="text-xs text-success-600 mb-1">
+              {t('updateFrequency.maxUpdateFrequency')}
+            </p>
             <p className="text-xl font-bold text-success-700">{maxCount.toLocaleString()}</p>
           </div>
           <div className="bg-purple-50  p-3 text-center">

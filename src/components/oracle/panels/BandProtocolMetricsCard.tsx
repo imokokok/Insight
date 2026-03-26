@@ -1,6 +1,7 @@
 import { useTranslations } from '@/i18n';
 import { formatCompactNumber } from '@/lib/utils/format';
-import { BandProtocolMetrics } from './types';
+
+import { type BandProtocolMetrics } from './types';
 
 export function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) {
   const t = useTranslations();

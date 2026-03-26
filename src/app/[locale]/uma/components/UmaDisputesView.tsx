@@ -1,9 +1,19 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { UmaDisputesViewProps } from '../types';
+import {
+  Activity,
+  CheckCircle2,
+  AlertCircle,
+  Scale,
+  TrendingUp,
+  Clock,
+  Shield,
+} from 'lucide-react';
+
 import { DisputeResolutionPanel } from '@/components/oracle';
-import { Activity, CheckCircle2, AlertCircle, Scale, TrendingUp, Clock, Shield } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+
+import { type UmaDisputesViewProps } from '../types';
 
 // 模拟争议趋势数据（7天）
 const disputeTrendData = [
@@ -19,13 +29,13 @@ const disputeTrendData = [
 export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisputesViewProps) {
   const t = useTranslations();
 
-  const activeDisputes = disputes.filter(d => d.status === 'active').length;
-  const resolvedDisputes = disputes.filter(d => d.status === 'resolved').length;
-  const rejectedDisputes = disputes.filter(d => d.status === 'rejected').length;
+  const activeDisputes = disputes.filter((d) => d.status === 'active').length;
+  const resolvedDisputes = disputes.filter((d) => d.status === 'resolved').length;
+  const rejectedDisputes = disputes.filter((d) => d.status === 'rejected').length;
   const totalValue = disputes.reduce((sum, d) => sum + d.totalValue, 0);
 
-  const maxActive = Math.max(...disputeTrendData.map(d => d.active));
-  const maxResolved = Math.max(...disputeTrendData.map(d => d.resolved));
+  const maxActive = Math.max(...disputeTrendData.map((d) => d.active));
+  const maxResolved = Math.max(...disputeTrendData.map((d) => d.resolved));
 
   if (isLoading) {
     return (
@@ -55,7 +65,9 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
         <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-amber-500" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('uma.disputes.activeDisputes')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('uma.disputes.activeDisputes')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">{activeDisputes}</p>
           </div>
         </div>
@@ -63,7 +75,9 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
         <div className="flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('uma.disputes.resolvedDisputes')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('uma.disputes.resolvedDisputes')}
+            </p>
             <p className="text-xl font-semibold text-emerald-600">{resolvedDisputes}</p>
           </div>
         </div>
@@ -71,15 +85,21 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
         <div className="flex items-center gap-3">
           <Shield className="w-5 h-5 text-blue-500" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('uma.disputes.successRate')}</p>
-            <p className="text-xl font-semibold text-gray-900">{networkStats?.disputeSuccessRate ?? 78}%</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('uma.disputes.successRate')}
+            </p>
+            <p className="text-xl font-semibold text-gray-900">
+              {networkStats?.disputeSuccessRate ?? 78}%
+            </p>
           </div>
         </div>
         <div className="hidden md:block w-px h-8 bg-gray-200" />
         <div className="flex items-center gap-3">
           <Scale className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('uma.disputes.totalValue')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('uma.disputes.totalValue')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">${(totalValue / 1e6).toFixed(2)}M</p>
           </div>
         </div>
@@ -177,20 +197,26 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
                   <td className="py-3 pr-4 text-sm text-gray-900 font-mono">
                     {dispute.id.slice(0, 8)}...
                   </td>
-                  <td className="py-3 pr-4 text-sm text-gray-600 capitalize">
-                    {dispute.type}
-                  </td>
+                  <td className="py-3 pr-4 text-sm text-gray-600 capitalize">{dispute.type}</td>
                   <td className="py-3 pr-4">
-                    <span className={`inline-flex items-center gap-1 text-xs ${
-                      dispute.status === 'resolved' ? 'text-emerald-600' :
-                      dispute.status === 'active' ? 'text-amber-600' :
-                      'text-red-600'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${
-                        dispute.status === 'resolved' ? 'bg-emerald-500' :
-                        dispute.status === 'active' ? 'bg-amber-500' :
-                        'bg-red-500'
-                      }`} />
+                    <span
+                      className={`inline-flex items-center gap-1 text-xs ${
+                        dispute.status === 'resolved'
+                          ? 'text-emerald-600'
+                          : dispute.status === 'active'
+                            ? 'text-amber-600'
+                            : 'text-red-600'
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          dispute.status === 'resolved'
+                            ? 'bg-emerald-500'
+                            : dispute.status === 'active'
+                              ? 'bg-amber-500'
+                              : 'bg-red-500'
+                        }`}
+                      />
                       {dispute.status}
                     </span>
                   </td>
@@ -217,7 +243,9 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t('uma.disputes.avgResolutionTime') || 'Avg. Resolution Time'}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('uma.disputes.avgResolutionTime') || 'Avg. Resolution Time'}
+            </p>
             <p className="text-lg font-semibold text-gray-900">
               {networkStats?.avgResolutionTime ? `${networkStats.avgResolutionTime}h` : '24h'}
             </p>
@@ -227,9 +255,16 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
             <p className="text-lg font-semibold text-red-600">{rejectedDisputes}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t('uma.disputes.avgStake') || 'Avg. Stake Amount'}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('uma.disputes.avgStake') || 'Avg. Stake Amount'}
+            </p>
             <p className="text-lg font-semibold text-gray-900">
-              ${disputes.length > 0 ? Math.round(disputes.reduce((sum, d) => sum + d.stakeAmount, 0) / disputes.length).toLocaleString() : '0'}
+              $
+              {disputes.length > 0
+                ? Math.round(
+                    disputes.reduce((sum, d) => sum + d.stakeAmount, 0) / disputes.length
+                  ).toLocaleString()
+                : '0'}
             </p>
           </div>
         </div>

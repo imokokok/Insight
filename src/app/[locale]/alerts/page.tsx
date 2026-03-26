@@ -1,14 +1,16 @@
 'use client';
 
 import { useCallback } from 'react';
+
 import Link from 'next/link';
-import { useUser, useAuthLoading } from '@/stores/authStore';
-import { useAlerts, useAlertEvents, useAlertEventsRealtime } from '@/hooks';
+
 import { AlertConfig } from '@/components/alerts/AlertConfig';
-import { AlertList } from '@/components/alerts/AlertList';
 import { AlertHistory } from '@/components/alerts/AlertHistory';
+import { AlertList } from '@/components/alerts/AlertList';
 import { AlertNotificationContainer } from '@/components/alerts/AlertNotification';
+import { useAlerts, useAlertEvents, useAlertEventsRealtime } from '@/hooks';
 import { useTranslations } from '@/i18n';
+import { useUser, useAuthLoading } from '@/stores/authStore';
 
 export default function AlertsPage() {
   const t = useTranslations();

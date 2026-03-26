@@ -1,5 +1,5 @@
-import type { OHLCVDataPoint } from '@/lib/indicators/types';
 import type { AnomalyLevel, AnomalyType } from '@/lib/analytics/anomalyDetection';
+import type { OHLCVDataPoint } from '@/lib/indicators/types';
 
 export interface PriceSeriesOptions {
   basePrice: number;

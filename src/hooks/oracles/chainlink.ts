@@ -1,10 +1,11 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useCallback, useState, useEffect } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+
 import { ChainlinkClient } from '@/lib/oracles/chainlink';
-import { Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 const chainlinkClient = new ChainlinkClient();
 

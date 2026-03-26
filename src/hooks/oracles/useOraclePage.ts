@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useTranslations } from '@/i18n';
-import { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
-import { getOracleConfig, OracleConfig } from '@/lib/config/oracles';
+
 import { useRefresh, useExport } from '@/hooks';
+import { useTranslations } from '@/i18n';
+import { getOracleConfig, type OracleConfig } from '@/lib/config/oracles';
+import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
+
 import { useChainlinkAllData } from './chainlink';
 import { usePythAllData } from './pyth';
 
@@ -23,8 +25,8 @@ export interface NetworkStats {
 export interface PublisherData {
   id: string;
   name: string;
-  status: string;
-  contribution: number;
+  status?: string;
+  contribution?: number;
   accuracy: number;
   stake?: number;
 }
@@ -32,8 +34,8 @@ export interface PublisherData {
 export interface ValidatorData {
   id: string;
   name: string;
-  stake: number;
-  performance: number;
+  stake?: number;
+  performance?: number;
   status: string;
   uptime?: number;
   rewards?: number;
@@ -97,16 +99,16 @@ interface ProviderDataResult {
 export function useOraclePage(options: UseOraclePageOptions): UseOraclePageReturn {
   const { provider, symbol: customSymbol, chain: customChain, enabled = true } = options;
   const t = useTranslations();
-  
+
   const [activeTab, setActiveTab] = useState('market');
-  
+
   const config = useMemo(() => getOracleConfig(provider), [provider]);
-  
+
   const symbol = customSymbol || config.symbol;
   const chain = customChain || config.defaultChain;
 
   const providerHook = providerHooks[provider] || useChainlinkAllData;
-  
+
   const providerData = providerHook({
     symbol,
     chain,

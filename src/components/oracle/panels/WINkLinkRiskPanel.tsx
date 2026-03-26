@@ -1,25 +1,17 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useTranslations } from '@/i18n';
-import { WINkLinkRiskMetrics } from '@/lib/oracles/winklink';
-import { Shield } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Globe } from 'lucide-react';
-import { Zap } from 'lucide-react';
-import { Server } from 'lucide-react';
-import { Gamepad2 } from 'lucide-react';
-import { DataFreshnessIndicator } from '@/components/oracle/alerts/DataFreshnessIndicator';
-import { RiskScoreCard } from '@/components/oracle/data-display/RiskScoreCard';
-import { SecurityTimeline } from '@/components/oracle/data-display/SecurityTimeline';
-import { MitigationMeasuresGrid } from '@/components/oracle/data-display/MitigationMeasuresGrid';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { RiskEvent, MitigationMeasure, CrossChainRisk } from '@/types/risk';
 
-import { chartColors, getChartColor } from '@/lib/chartColors';
-
+import {
+  Shield,
+  AlertTriangle,
+  TrendingUp,
+  Activity,
+  Globe,
+  Zap,
+  Server,
+  Gamepad2,
+} from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -30,6 +22,16 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+
+import { DataFreshnessIndicator } from '@/components/oracle/alerts/DataFreshnessIndicator';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { MitigationMeasuresGrid } from '@/components/oracle/data-display/MitigationMeasuresGrid';
+import { RiskScoreCard } from '@/components/oracle/data-display/RiskScoreCard';
+import { SecurityTimeline } from '@/components/oracle/data-display/SecurityTimeline';
+import { useTranslations } from '@/i18n';
+import { chartColors, getChartColor } from '@/lib/chartColors';
+import { type WINkLinkRiskMetrics } from '@/lib/oracles/winklink';
+import { type RiskEvent, type MitigationMeasure, type CrossChainRisk } from '@/types/risk';
 
 interface WINkLinkRiskPanelProps {
   data: WINkLinkRiskMetrics;
@@ -69,12 +71,14 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
 
   const getRiskLevel = (score: number) => {
     if (score >= 90) return { level: 'low', color: 'text-success-600', bgColor: 'bg-success-100' };
-    if (score >= 70) return { level: 'medium', color: 'text-warning-600', bgColor: 'bg-warning-100' };
+    if (score >= 70)
+      return { level: 'medium', color: 'text-warning-600', bgColor: 'bg-warning-100' };
     return { level: 'high', color: 'text-danger-600', bgColor: 'bg-danger-100' };
   };
 
   const getDeviationRisk = (deviation: number) => {
-    if (deviation <= 0.2) return { level: 'low', color: 'text-success-600', bgColor: 'bg-success-100' };
+    if (deviation <= 0.2)
+      return { level: 'low', color: 'text-success-600', bgColor: 'bg-success-100' };
     if (deviation <= 0.5)
       return { level: 'medium', color: 'text-warning-600', bgColor: 'bg-warning-100' };
     return { level: 'high', color: 'text-danger-600', bgColor: 'bg-danger-100' };
@@ -544,7 +548,9 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-600">{t('winklink.risk.priceStability')}</span>
-            <span className="text-sm font-medium text-success-600">{t('winklink.risk.stable')}</span>
+            <span className="text-sm font-medium text-success-600">
+              {t('winklink.risk.stable')}
+            </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-600">{t('winklink.risk.nodeDistribution')}</span>

@@ -1,22 +1,25 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useTranslations } from '@/i18n';
-import { Icon } from '@/components/ui';
 
-import { Moon } from 'lucide-react';
-import { Sun } from 'lucide-react';
-import { Bell } from 'lucide-react';
-import { BellOff } from 'lucide-react';
-import { Globe } from 'lucide-react';
-import { Smartphone } from 'lucide-react';
-import { Wifi } from 'lucide-react';
-import { WifiOff } from 'lucide-react';
-import { Gauge } from 'lucide-react';
-import { Eye } from 'lucide-react';
-import { EyeOff } from 'lucide-react';
-import { ChevronRight } from 'lucide-react';
-import { Check } from 'lucide-react';
+import {
+  Moon,
+  Sun,
+  Bell,
+  BellOff,
+  Globe,
+  Smartphone,
+  Wifi,
+  WifiOff,
+  Gauge,
+  Eye,
+  EyeOff,
+  ChevronRight,
+  Check,
+} from 'lucide-react';
+
+import { Icon } from '@/components/ui';
+import { useTranslations } from '@/i18n';
 
 interface MobileSettingsProps {
   className?: string;
@@ -121,7 +124,9 @@ export function MobileSettings({ className = '' }: MobileSettingsProps) {
             key={option.value}
             onClick={() => onChange(option.value)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[32px] ${
-              isSelected ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              isSelected
+                ? 'bg-primary-500 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             {Icon && <Icon className="w-3.5 h-3.5" />}

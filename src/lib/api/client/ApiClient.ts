@@ -1,5 +1,5 @@
-import { ApiResponse, RequestConfig } from './types';
 import { ApiError } from './ApiError';
+import { type ApiResponse, type RequestConfig } from './types';
 
 type RequestInterceptor = (config: RequestInit) => RequestInit;
 type ResponseInterceptor = (response: Response) => Response | Promise<Response>;

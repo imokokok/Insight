@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { IndicatorDataPoint } from '@/hooks';
+
 import { TimeRange } from '@/components/oracle/shared/TabNavigation';
-import { DataGranularity, ComparisonPeriod } from './priceChartConfig';
+import { type IndicatorDataPoint } from '@/hooks';
+
+import { type DataGranularity, type ComparisonPeriod } from './priceChartConfig';
 
 export interface ChartState {
   chartType: 'line' | 'candlestick';

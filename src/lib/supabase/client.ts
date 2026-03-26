@@ -1,6 +1,7 @@
 import { createBrowserClient } from '@supabase/ssr';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { DatabaseQueries, createQueries } from './queries';
+import { type SupabaseClient } from '@supabase/supabase-js';
+
+import { type DatabaseQueries, createQueries } from './queries';
 
 export type {
   PriceRecord,
@@ -20,8 +21,8 @@ export type {
 
 export { DatabaseQueries, createQueries } from './queries';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'test-key';
 
 export const supabase: SupabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey);
 

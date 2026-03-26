@@ -1,10 +1,23 @@
 'use client';
 
 import { useState } from 'react';
+
+import {
+  Activity,
+  CheckCircle2,
+  Clock,
+  TrendingUp,
+  Gamepad2,
+  Users,
+  Zap,
+  Shield,
+} from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
+
+import { type WinklinkGamingViewProps } from '../types';
+
 import { WinklinkDataTable } from './WinklinkDataTable';
-import { WinklinkGamingViewProps } from '../types';
-import { Activity, CheckCircle2, Clock, TrendingUp, Gamepad2, Users, Zap, Shield } from 'lucide-react';
 
 export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProps) {
   const t = useTranslations();
@@ -100,21 +113,58 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
   };
 
   const vrfUseCases = [
-    { id: '1', name: 'Casino Games', category: 'Gaming', description: 'Random outcomes for dice, slots, and card games', usageCount: 2500000, reliability: 99.9 },
-    { id: '2', name: 'Lottery Draws', category: 'Gaming', description: 'Fair and verifiable lottery number generation', usageCount: 850000, reliability: 99.95 },
-    { id: '3', name: 'NFT Minting', category: 'Gaming', description: 'Random NFT attribute generation', usageCount: 420000, reliability: 99.8 },
-    { id: '4', name: 'Tournament Brackets', category: 'Esports', description: 'Random tournament seeding and matchmaking', usageCount: 180000, reliability: 99.9 },
+    {
+      id: '1',
+      name: 'Casino Games',
+      category: 'Gaming',
+      description: 'Random outcomes for dice, slots, and card games',
+      usageCount: 2500000,
+      reliability: 99.9,
+    },
+    {
+      id: '2',
+      name: 'Lottery Draws',
+      category: 'Gaming',
+      description: 'Fair and verifiable lottery number generation',
+      usageCount: 850000,
+      reliability: 99.95,
+    },
+    {
+      id: '3',
+      name: 'NFT Minting',
+      category: 'Gaming',
+      description: 'Random NFT attribute generation',
+      usageCount: 420000,
+      reliability: 99.8,
+    },
+    {
+      id: '4',
+      name: 'Tournament Brackets',
+      category: 'Esports',
+      description: 'Random tournament seeding and matchmaking',
+      usageCount: 180000,
+      reliability: 99.9,
+    },
   ];
 
   const categories = [
     { id: 'all', label: 'All', count: gamingData.dataSources.length },
-    { id: 'casino', label: 'Casino', count: gamingData.dataSources.filter(f => f.category === 'casino').length },
-    { id: 'card', label: 'Card Games', count: gamingData.dataSources.filter(f => f.category === 'card').length },
+    {
+      id: 'casino',
+      label: 'Casino',
+      count: gamingData.dataSources.filter((f) => f.category === 'casino').length,
+    },
+    {
+      id: 'card',
+      label: 'Card Games',
+      count: gamingData.dataSources.filter((f) => f.category === 'card').length,
+    },
   ];
 
-  const filteredDataSources = selectedCategory === 'all'
-    ? gamingData.dataSources
-    : gamingData.dataSources.filter(source => source.category === selectedCategory);
+  const filteredDataSources =
+    selectedCategory === 'all'
+      ? gamingData.dataSources
+      : gamingData.dataSources.filter((source) => source.category === selectedCategory);
 
   const dataSourceColumns = [
     { key: 'name', header: t('winklink.gaming.gameName'), sortable: true },
@@ -122,7 +172,7 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
       key: 'category',
       header: t('winklink.gaming.category'),
       sortable: true,
-      render: (item: typeof gamingData.dataSources[0]) => (
+      render: (item: (typeof gamingData.dataSources)[0]) => (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
           {item.category}
         </span>
@@ -132,19 +182,20 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
       key: 'users',
       header: t('winklink.gaming.users'),
       sortable: true,
-      render: (item: typeof gamingData.dataSources[0]) => item.users.toLocaleString(),
+      render: (item: (typeof gamingData.dataSources)[0]) => item.users.toLocaleString(),
     },
     {
       key: 'volume24h',
       header: t('winklink.gaming.volume24h'),
       sortable: true,
-      render: (item: typeof gamingData.dataSources[0]) => `$${(item.volume24h / 1e6).toFixed(2)}M`,
+      render: (item: (typeof gamingData.dataSources)[0]) =>
+        `$${(item.volume24h / 1e6).toFixed(2)}M`,
     },
     {
       key: 'reliability',
       header: t('winklink.gaming.reliability'),
       sortable: true,
-      render: (item: typeof gamingData.dataSources[0]) => (
+      render: (item: (typeof gamingData.dataSources)[0]) => (
         <span className="text-emerald-600">{item.reliability}%</span>
       ),
     },
@@ -156,14 +207,16 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
       key: 'securityLevel',
       header: t('winklink.gaming.securityLevel'),
       sortable: true,
-      render: (item: typeof gamingData.randomNumberServices[0]) => (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-          item.securityLevel === 'high'
-            ? 'bg-emerald-100 text-emerald-700'
-            : item.securityLevel === 'medium'
-            ? 'bg-amber-100 text-amber-700'
-            : 'bg-gray-100 text-gray-700'
-        }`}>
+      render: (item: (typeof gamingData.randomNumberServices)[0]) => (
+        <span
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+            item.securityLevel === 'high'
+              ? 'bg-emerald-100 text-emerald-700'
+              : item.securityLevel === 'medium'
+                ? 'bg-amber-100 text-amber-700'
+                : 'bg-gray-100 text-gray-700'
+          }`}
+        >
           {item.securityLevel}
         </span>
       ),
@@ -172,18 +225,20 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
       key: 'requestCount',
       header: t('winklink.gaming.requests'),
       sortable: true,
-      render: (item: typeof gamingData.randomNumberServices[0]) => `${(item.requestCount / 1e6).toFixed(1)}M`,
+      render: (item: (typeof gamingData.randomNumberServices)[0]) =>
+        `${(item.requestCount / 1e6).toFixed(1)}M`,
     },
     {
       key: 'averageResponseTime',
       header: t('winklink.gaming.avgResponse'),
       sortable: true,
-      render: (item: typeof gamingData.randomNumberServices[0]) => `${item.averageResponseTime}ms`,
+      render: (item: (typeof gamingData.randomNumberServices)[0]) =>
+        `${item.averageResponseTime}ms`,
     },
     {
       key: 'supportedChains',
       header: t('winklink.gaming.chains'),
-      render: (item: typeof gamingData.randomNumberServices[0]) => (
+      render: (item: (typeof gamingData.randomNumberServices)[0]) => (
         <div className="flex flex-wrap gap-1">
           {item.supportedChains.map((chain) => (
             <span
@@ -205,15 +260,21 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
         <div className="flex items-center gap-3">
           <TrendingUp className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('winklink.gaming.totalVolume')}</p>
-            <p className="text-xl font-semibold text-gray-900">${(gamingData.totalGamingVolume / 1e9).toFixed(2)}B</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('winklink.gaming.totalVolume')}
+            </p>
+            <p className="text-xl font-semibold text-gray-900">
+              ${(gamingData.totalGamingVolume / 1e9).toFixed(2)}B
+            </p>
           </div>
         </div>
         <div className="hidden md:block w-px h-8 bg-gray-200" />
         <div className="flex items-center gap-3">
           <Gamepad2 className="w-5 h-5 text-emerald-500" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('winklink.gaming.activeGames')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('winklink.gaming.activeGames')}
+            </p>
             <p className="text-xl font-semibold text-emerald-600">{gamingData.activeGames}</p>
           </div>
         </div>
@@ -221,15 +282,21 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
         <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('winklink.gaming.dailyRandomRequests')}</p>
-            <p className="text-xl font-semibold text-gray-900">{(gamingData.dailyRandomRequests / 1e3).toFixed(0)}K</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('winklink.gaming.dailyRandomRequests')}
+            </p>
+            <p className="text-xl font-semibold text-gray-900">
+              {(gamingData.dailyRandomRequests / 1e3).toFixed(0)}K
+            </p>
           </div>
         </div>
         <div className="hidden md:block w-px h-8 bg-gray-200" />
         <div className="flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('winklink.gaming.avgReliability')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('winklink.gaming.avgReliability')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">99.85%</p>
           </div>
         </div>
@@ -248,9 +315,11 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
             }`}
           >
             {category.label}
-            <span className={`text-xs ${
-              selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
-            }`}>
+            <span
+              className={`text-xs ${
+                selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
+              }`}
+            >
               {category.count}
             </span>
           </button>
@@ -262,9 +331,17 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('winklink.gaming.dataSources')}
         </h3>
-        <WinklinkDataTable 
-          data={filteredDataSources as Record<string, unknown>[]} 
-          columns={dataSourceColumns as Array<{key: string; header: string; width?: string; sortable?: boolean; render?: (item: Record<string, unknown>) => React.ReactNode}>} 
+        <WinklinkDataTable
+          data={filteredDataSources as Record<string, unknown>[]}
+          columns={
+            dataSourceColumns as Array<{
+              key: string;
+              header: string;
+              width?: string;
+              sortable?: boolean;
+              render?: (item: Record<string, unknown>) => React.ReactNode;
+            }>
+          }
           isLoading={isLoading}
         />
       </div>
@@ -274,9 +351,17 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('winklink.gaming.randomNumberServices')}
         </h3>
-        <WinklinkDataTable 
-          data={gamingData.randomNumberServices as Record<string, unknown>[]} 
-          columns={vrfColumns as Array<{key: string; header: string; width?: string; sortable?: boolean; render?: (item: Record<string, unknown>) => React.ReactNode}>} 
+        <WinklinkDataTable
+          data={gamingData.randomNumberServices as Record<string, unknown>[]}
+          columns={
+            vrfColumns as Array<{
+              key: string;
+              header: string;
+              width?: string;
+              sortable?: boolean;
+              render?: (item: Record<string, unknown>) => React.ReactNode;
+            }>
+          }
           isLoading={isLoading}
         />
       </div>
@@ -288,7 +373,10 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {vrfUseCases.map((useCase) => (
-            <div key={useCase.id} className="flex items-start gap-3 p-3 border-b border-gray-100 last:border-0">
+            <div
+              key={useCase.id}
+              className="flex items-start gap-3 p-3 border-b border-gray-100 last:border-0"
+            >
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
                 <Zap className="w-4 h-4 text-pink-600" />
               </div>
@@ -300,10 +388,14 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
                 <p className="text-xs text-gray-600 mt-1">{useCase.description}</p>
                 <div className="flex items-center gap-4 mt-2 text-xs">
                   <span className="text-gray-500">
-                    Usage: <span className="font-medium text-gray-900">{(useCase.usageCount / 1e6).toFixed(1)}M</span>
+                    Usage:{' '}
+                    <span className="font-medium text-gray-900">
+                      {(useCase.usageCount / 1e6).toFixed(1)}M
+                    </span>
                   </span>
                   <span className="text-gray-500">
-                    Reliability: <span className="font-medium text-emerald-600">{useCase.reliability}%</span>
+                    Reliability:{' '}
+                    <span className="font-medium text-emerald-600">{useCase.reliability}%</span>
                   </span>
                 </div>
               </div>
@@ -320,22 +412,34 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">{t('winklink.gaming.vrfTitle') || 'Verifiable Randomness'}:</span>
-              {' '}{t('winklink.gaming.vrfDesc') || 'WINkLink VRF provides cryptographically secure random numbers for fair gaming outcomes.'}
+              <span className="font-medium text-gray-900">
+                {t('winklink.gaming.vrfTitle') || 'Verifiable Randomness'}:
+              </span>{' '}
+              {t('winklink.gaming.vrfDesc') ||
+                'WINkLink VRF provides cryptographically secure random numbers for fair gaming outcomes.'}
             </p>
             <p>
-              <span className="font-medium text-gray-900">{t('winklink.gaming.securityTitle') || 'Security Level'}:</span>
-              {' '}{t('winklink.gaming.securityDesc') || 'High security VRF uses multiple oracle nodes for maximum randomness guarantee.'}
+              <span className="font-medium text-gray-900">
+                {t('winklink.gaming.securityTitle') || 'Security Level'}:
+              </span>{' '}
+              {t('winklink.gaming.securityDesc') ||
+                'High security VRF uses multiple oracle nodes for maximum randomness guarantee.'}
             </p>
           </div>
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">{t('winklink.gaming.responseTitle') || 'Response Time'}:</span>
-              {' '}{t('winklink.gaming.responseDesc') || 'Average response time under 110ms ensures smooth gaming experience.'}
+              <span className="font-medium text-gray-900">
+                {t('winklink.gaming.responseTitle') || 'Response Time'}:
+              </span>{' '}
+              {t('winklink.gaming.responseDesc') ||
+                'Average response time under 110ms ensures smooth gaming experience.'}
             </p>
             <p>
-              <span className="font-medium text-gray-900">{t('winklink.gaming.multiChainTitle') || 'Multi-Chain Support'}:</span>
-              {' '}{t('winklink.gaming.multiChainDesc') || 'Available on TRON, BNB Chain, and BTTC networks.'}
+              <span className="font-medium text-gray-900">
+                {t('winklink.gaming.multiChainTitle') || 'Multi-Chain Support'}:
+              </span>{' '}
+              {t('winklink.gaming.multiChainDesc') ||
+                'Available on TRON, BNB Chain, and BTTC networks.'}
             </p>
           </div>
         </div>

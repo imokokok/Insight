@@ -1,19 +1,22 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useUser, useAuthActions } from '@/stores/authStore';
-import { supabase } from '@/lib/supabase/client';
-import { queries } from '@/lib/supabase/client';
-import { Database } from 'lucide-react';
-import { Download } from 'lucide-react';
-import { Trash2 } from 'lucide-react';
-import { UserX } from 'lucide-react';
-import { FileJson } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { X } from 'lucide-react';
+
+import {
+  Database,
+  Download,
+  Trash2,
+  UserX,
+  FileJson,
+  AlertTriangle,
+  Loader2,
+  CheckCircle,
+  X,
+} from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
+import { queries, supabase } from '@/lib/supabase/client';
+import { useUser, useAuthActions } from '@/stores/authStore';
 
 export function DataManagementPanel() {
   const t = useTranslations();

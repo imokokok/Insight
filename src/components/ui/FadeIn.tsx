@@ -1,6 +1,7 @@
 'use client';
 
-import { forwardRef, ReactNode, CSSProperties } from 'react';
+import { forwardRef, type ReactNode, type CSSProperties } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface FadeInProps {
@@ -48,12 +49,14 @@ export const FadeIn = forwardRef<HTMLDivElement, FadeInProps>(
       <div
         ref={ref}
         className={cn('animate-fade-in', className)}
-        style={{
-          ...style,
-          '--fade-in-delay': `${delay}ms`,
-          '--fade-in-duration': `${duration}ms`,
-          '--fade-in-transform': getInitialTransform(),
-        } as CSSProperties}
+        style={
+          {
+            ...style,
+            '--fade-in-delay': `${delay}ms`,
+            '--fade-in-duration': `${duration}ms`,
+            '--fade-in-transform': getInitialTransform(),
+          } as CSSProperties
+        }
       >
         {children}
       </div>
@@ -71,15 +74,7 @@ export interface StaggerContainerProps {
 }
 
 export const StaggerContainer = forwardRef<HTMLDivElement, StaggerContainerProps>(
-  (
-    {
-      children,
-      className,
-      staggerDelay = 100,
-      initialDelay = 0,
-    },
-    ref
-  ) => {
+  ({ children, className, staggerDelay = 100, initialDelay = 0 }, ref) => {
     return (
       <div
         ref={ref}

@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ChartSettings, ScreenSize, CHART_SETTINGS_STORAGE_KEY } from './priceChartConfig';
+
+import {
+  type ChartSettings,
+  type ScreenSize,
+  CHART_SETTINGS_STORAGE_KEY,
+} from './priceChartConfig';
 import { loadChartSettings, saveChartSettings } from './priceChartUtils';
 
 const DEFAULT_CHART_SETTINGS: ChartSettings = {

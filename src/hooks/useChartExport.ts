@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback, useRef, useMemo } from 'react';
-import { createLogger } from '@/lib/utils/logger';
+
 import { exportColors } from '@/lib/config/colors';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('useChartExport');
 

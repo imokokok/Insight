@@ -1,5 +1,5 @@
-import { createLogger } from '@/lib/utils/logger';
 import { InternalError } from '@/lib/errors';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('EnvConfig');
 

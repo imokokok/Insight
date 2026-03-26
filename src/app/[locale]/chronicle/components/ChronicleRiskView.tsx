@@ -1,18 +1,12 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { ChronicleRiskViewProps } from '../types';
-import { Shield } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { CheckCircle2 } from 'lucide-react';
-import { AlertCircle } from 'lucide-react';
+import { Shield, CheckCircle, Clock, AlertTriangle, CheckCircle2, AlertCircle } from 'lucide-react';
 
-export function ChronicleRiskView({
-  scuttlebutt,
-  isLoading,
-}: ChronicleRiskViewProps) {
+import { useTranslations } from '@/i18n';
+
+import { type ChronicleRiskViewProps } from '../types';
+
+export function ChronicleRiskView({ scuttlebutt, isLoading }: ChronicleRiskViewProps) {
   const t = useTranslations();
 
   // Default mock data
@@ -67,7 +61,9 @@ export function ChronicleRiskView({
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-base font-medium text-gray-900">{t('chronicle.risk.overviewTitle')}</h3>
+            <h3 className="text-base font-medium text-gray-900">
+              {t('chronicle.risk.overviewTitle')}
+            </h3>
             <p className="text-sm text-gray-500 mt-1">{t('chronicle.risk.overviewDescription')}</p>
           </div>
           <div className="text-right">
@@ -95,14 +91,19 @@ export function ChronicleRiskView({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { title: t('chronicle.risk.dataQuality'), score: riskData.dataQualityScore },
-          { title: t('chronicle.risk.validatorConcentration'), score: riskData.validatorConcentration },
+          {
+            title: t('chronicle.risk.validatorConcentration'),
+            score: riskData.validatorConcentration,
+          },
           { title: t('chronicle.risk.priceDeviation'), score: riskData.priceDeviation },
           { title: t('chronicle.risk.systemStability'), score: riskData.systemStability },
         ].map((item, index) => (
           <div key={index} className="py-2">
             <p className="text-sm text-gray-500 mb-1">{item.title}</p>
             <div className="flex items-baseline gap-2">
-              <p className={`text-2xl font-semibold ${getRiskTextColor(item.score)}`}>{item.score}</p>
+              <p className={`text-2xl font-semibold ${getRiskTextColor(item.score)}`}>
+                {item.score}
+              </p>
               <span className="text-sm text-gray-400">/100</span>
             </div>
             <div className="w-full bg-gray-100 h-1.5 rounded-full mt-2">
@@ -120,7 +121,9 @@ export function ChronicleRiskView({
 
       {/* 风险缓解措施 - 紧凑列表布局 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">{t('chronicle.risk.mitigationMeasures')}</h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('chronicle.risk.mitigationMeasures')}
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {mitigationMeasures.map((measure, index) => (
             <div key={index} className="flex items-center justify-between py-2">
@@ -145,8 +148,12 @@ export function ChronicleRiskView({
       {/* Scuttlebutt 集成信息 - 简洁3列图标展示 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
-            <Shield className={`w-5 h-5 ${securityLevel === 'high' ? 'text-emerald-600' : 'text-amber-600'}`} />
+          <div
+            className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-emerald-100' : 'bg-amber-100'}`}
+          >
+            <Shield
+              className={`w-5 h-5 ${securityLevel === 'high' ? 'text-emerald-600' : 'text-amber-600'}`}
+            />
           </div>
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.risk.securityLevel')}</p>
@@ -154,8 +161,12 @@ export function ChronicleRiskView({
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
-            <CheckCircle className={`w-5 h-5 ${verificationStatus === 'verified' ? 'text-emerald-600' : 'text-amber-600'}`} />
+          <div
+            className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-emerald-100' : 'bg-amber-100'}`}
+          >
+            <CheckCircle
+              className={`w-5 h-5 ${verificationStatus === 'verified' ? 'text-emerald-600' : 'text-amber-600'}`}
+            />
           </div>
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.risk.verificationStatus')}</p>
@@ -203,7 +214,9 @@ export function ChronicleRiskView({
 
       {/* 风险因素列表 - 图标+描述行布局 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">{t('chronicle.risk.riskFactors')}</h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('chronicle.risk.riskFactors')}
+        </h3>
         <div className="space-y-3">
           <div className="flex items-start gap-3 py-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />

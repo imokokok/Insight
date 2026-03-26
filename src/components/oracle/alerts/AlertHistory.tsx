@@ -1,9 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { AnomalyEvent, AnomalyStats } from './types';
+import { useTranslations } from '@/i18n';
+
 import { formatDuration } from './anomalyUtils';
+import { type AnomalyEvent, type AnomalyStats } from './types';
 
 interface AlertHistoryProps {
   anomalies: AnomalyEvent[];

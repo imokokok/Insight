@@ -4,8 +4,10 @@
  */
 
 import { useState, useRef, RefObject } from 'react';
-import { OracleProvider } from '@/types/oracle';
-import { DeviationFilter, SortColumn, SortDirection } from '../../constants';
+
+import { type OracleProvider } from '@/types/oracle';
+
+import { type DeviationFilter, type SortColumn, type SortDirection } from '../../constants';
 
 export function useFilterState() {
   const [sortColumn, setSortColumn] = useState<SortColumn>(null);

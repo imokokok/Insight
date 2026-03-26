@@ -1,16 +1,22 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+
 import { useRouter } from 'next/navigation';
+
+import { useFavorites, type FavoriteConfig } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { OracleProvider } from '@/types/oracle';
+import { createLogger } from '@/lib/utils/logger';
+import { useUser } from '@/stores/authStore';
 import type { PriceData, SnapshotStats } from '@/types/oracle';
-import { saveSnapshot } from '@/types/oracle';
+import { OracleProvider, saveSnapshot } from '@/types/oracle';
+
+import { getLineStrokeDasharray } from './chartConfig';
 import {
   oracleClients,
-  TimeRange,
-  DeviationFilter,
-  RefreshInterval,
-  SortColumn,
-  SortDirection,
+  type TimeRange,
+  type DeviationFilter,
+  type RefreshInterval,
+  type SortColumn,
+  type SortDirection,
   calculateWeightedAverage,
   calculateVariance,
   calculateStandardDeviation,
@@ -19,17 +25,13 @@ import {
   updateHistoryMinMax,
   symbols,
 } from './constants';
-import { useFavorites, FavoriteConfig } from '@/hooks';
-import { useUser } from '@/stores/authStore';
-import { createLogger } from '@/lib/utils/logger';
-import { getLineStrokeDasharray } from './chartConfig';
 import { useTabNavigation } from './hooks/useTabNavigation';
-import { UseCrossOraclePageReturn } from './types';
-import { usePriceStats } from './usePriceStats';
+import { type UseCrossOraclePageReturn } from './types';
 import { useChartData } from './useChartData';
-import { useTechnicalIndicators } from './useTechnicalIndicators';
-import { useFilterSort } from './useFilterSort';
 import { useExport } from './useExport';
+import { useFilterSort } from './useFilterSort';
+import { usePriceStats } from './usePriceStats';
+import { useTechnicalIndicators } from './useTechnicalIndicators';
 
 const logger = createLogger('cross-oracle-page');
 

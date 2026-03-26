@@ -1,6 +1,9 @@
 {
   "winklink": {
     "subtitle": "TRON Ecosystem Oracle - Reliable off-chain data for gaming, DeFi, and entertainment",
+    "navigation": {
+      "title": "WINkLink Navigation"
+    },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
     "tabs": {

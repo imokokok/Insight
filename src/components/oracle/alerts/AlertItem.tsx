@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { AnomalyEvent } from './types';
+
 import {
   PROVIDER_NAMES,
   SEVERITY_COLORS,
@@ -9,6 +9,7 @@ import {
   formatTime,
   formatDuration,
 } from './anomalyUtils';
+import { type AnomalyEvent } from './types';
 
 interface AlertItemProps {
   anomaly: AnomalyEvent;

@@ -1,24 +1,26 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
 import { useTranslations } from '@/i18n';
+import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
+
+import { ChartsTab } from './ChartsTab';
 import {
   oracleClients,
   oracleNames,
-  PriceComparisonData,
-  PriceHistoryPoint,
-  OracleGroup,
+  type PriceComparisonData,
+  type PriceHistoryPoint,
+  type OracleGroup,
   ORACLE_GROUPS,
 } from './crossOracleConfig';
-import { useSorting } from './useSorting';
-import { useComparisonStats } from './useComparisonStats';
-import { CrossOracleSubTabs, SubTab } from './CrossOracleSubTabs';
-import { OverviewTab } from './OverviewTab';
-import { ChartsTab } from './ChartsTab';
+import { CrossOracleSubTabs, type SubTab } from './CrossOracleSubTabs';
 import { DataTab } from './DataTab';
+import { OverviewTab } from './OverviewTab';
 import { SettingsTab } from './SettingsTab';
-import { createLogger } from '@/lib/utils/logger';
+import { useComparisonStats } from './useComparisonStats';
+import { useSorting } from './useSorting';
 
 const logger = createLogger('CrossOracleComparison');
 

@@ -1,21 +1,25 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { useDIANetworkStats, useDIADataSourceVerification } from '@/hooks';
+import {
+  Shield,
+  Activity,
+  Database,
+  Users,
+  CheckCircle,
+  AlertTriangle,
+  AlertCircle,
+  TrendingUp,
+} from 'lucide-react';
+
 import { Skeleton } from '@/components/ui';
-import { Shield } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Database } from 'lucide-react';
-import { Users } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { AlertCircle } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
+import { useDIANetworkStats, useDIADataSourceVerification } from '@/hooks';
+import { useTranslations } from '@/i18n';
 
 export function DIARiskView() {
   const t = useTranslations('dia');
   const { networkStats, isLoading: isStatsLoading } = useDIANetworkStats();
-  const { dataSourceVerification: verificationData, isLoading: isVerificationLoading } = useDIADataSourceVerification();
+  const { dataSourceVerification: verificationData, isLoading: isVerificationLoading } =
+    useDIADataSourceVerification();
 
   const getRiskLevelColor = (level: string) => {
     switch (level?.toLowerCase()) {
@@ -137,15 +141,15 @@ export function DIARiskView() {
 
         {/* 风险因素列表 */}
         <div className="space-y-0">
-          <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">{t('risk.factors')}</h4>
+          <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+            {t('risk.factors')}
+          </h4>
           {riskFactors.map((factor) => (
             <div
               key={factor.key}
               className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0"
             >
-              <span className="text-sm text-gray-600">
-                {t(`risk.factor.${factor.key}`)}
-              </span>
+              <span className="text-sm text-gray-600">{t(`risk.factor.${factor.key}`)}</span>
               <span
                 className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${getRiskLevelColor(factor.severity)}`}
               >
@@ -171,43 +175,43 @@ export function DIARiskView() {
           </div>
         ) : (
           <div className="space-y-0">
-            {(verificationData ?? []).map((source: { sourceId: string; status: string; timestamp: number }, index: number) => (
-              <div
-                key={index}
-                className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0"
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      source.status === 'verified'
-                        ? 'bg-emerald-500'
-                        : source.status === 'pending'
-                          ? 'bg-amber-500'
-                          : 'bg-rose-500'
-                    }`}
-                  />
-                  <span className="text-sm text-gray-700">
-                    {source.sourceId}
-                  </span>
+            {(verificationData ?? []).map(
+              (source: { sourceId: string; status: string; timestamp: number }, index: number) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        source.status === 'verified'
+                          ? 'bg-emerald-500'
+                          : source.status === 'pending'
+                            ? 'bg-amber-500'
+                            : 'bg-rose-500'
+                      }`}
+                    />
+                    <span className="text-sm text-gray-700">{source.sourceId}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400">
+                      {new Date(source.timestamp).toLocaleDateString()}
+                    </span>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${
+                        source.status === 'verified'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : source.status === 'pending'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-rose-50 text-rose-700 border-rose-200'
+                      }`}
+                    >
+                      {t(`risk.status.${source.status}`)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-400">
-                    {new Date(source.timestamp).toLocaleDateString()}
-                  </span>
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${
-                      source.status === 'verified'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : source.status === 'pending'
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : 'bg-rose-50 text-rose-700 border-rose-200'
-                    }`}
-                  >
-                    {t(`risk.status.${source.status}`)}
-                  </span>
-                </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         )}
       </div>

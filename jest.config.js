@@ -29,7 +29,7 @@ const customJestConfig = {
   coverageReporters: ['text', 'text-summary', 'lcov'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|@vercel/analytics|@vercel/speed-insights))',
+    'node_modules/(?!(.*\.mjs$|@vercel/analytics|@vercel/speed-insights|next-intl|use-intl))',
   ],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],

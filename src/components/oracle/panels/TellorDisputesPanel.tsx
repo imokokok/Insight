@@ -1,12 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { DisputeStats, Dispute } from '@/lib/oracles/tellor';
+import { Gavel, Scale, Clock, TrendingUp } from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Gavel } from 'lucide-react';
-import { Scale } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type DisputeStats, Dispute } from '@/lib/oracles/tellor';
 
 interface TellorDisputesPanelProps {
   data: DisputeStats;

@@ -1,8 +1,9 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { DataSourceList, DataSourceGroup } from '@/components/data-transparency';
 import { useMemo } from 'react';
+
+import { DataSourceList, type DataSourceGroup } from '@/components/data-transparency';
+import { useTranslations } from '@/i18n';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 interface CrossChainDataPoint {

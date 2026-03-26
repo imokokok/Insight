@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { DashboardCard } from '@/components/oracle';
 import { useStakingCalculator } from '@/hooks';
+import { useTranslations } from '@/i18n';
 
 export function TellorStakingCalculator() {
   const t = useTranslations();

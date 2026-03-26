@@ -1,5 +1,9 @@
-import { PriceData } from '@/types/oracle';
-import { RedStoneClient, RedStoneProviderInfo, RedStoneMetrics } from '@/lib/oracles/redstone';
+import {
+  type RedStoneClient,
+  type RedStoneProviderInfo,
+  type RedStoneMetrics,
+} from '@/lib/oracles/redstone';
+import { type PriceData } from '@/types/oracle';
 
 export type RedStoneTabId =
   | 'market'

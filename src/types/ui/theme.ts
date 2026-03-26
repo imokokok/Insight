@@ -22,7 +22,18 @@ export type ThemeColor =
 /**
  * 颜色变体类型
  */
-export type ColorVariant = '50' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900' | '950';
+export type ColorVariant =
+  | '50'
+  | '100'
+  | '200'
+  | '300'
+  | '400'
+  | '500'
+  | '600'
+  | '700'
+  | '800'
+  | '900'
+  | '950';
 
 /**
  * 颜色强度类型（简化版）
@@ -113,7 +124,25 @@ export interface RadiusConfig {
 /**
  * 间距大小类型
  */
-export type SpacingSize = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '8' | '10' | '12' | '16' | '20' | '24' | '32' | '40' | '48' | '56' | '64';
+export type SpacingSize =
+  | '0'
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '8'
+  | '10'
+  | '12'
+  | '16'
+  | '20'
+  | '24'
+  | '32'
+  | '40'
+  | '48'
+  | '56'
+  | '64';
 
 /**
  * 间距配置（单位：rem）
@@ -174,7 +203,16 @@ export type FontSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl
 /**
  * 字体粗细类型
  */
-export type FontWeight = 'thin' | 'extralight' | 'light' | 'normal' | 'medium' | 'semibold' | 'bold' | 'extrabold' | 'black';
+export type FontWeight =
+  | 'thin'
+  | 'extralight'
+  | 'light'
+  | 'normal'
+  | 'medium'
+  | 'semibold'
+  | 'bold'
+  | 'extrabold'
+  | 'black';
 
 /**
  * 行高类型
@@ -269,7 +307,16 @@ export interface TransitionConfig {
 /**
  * Z-Index 层级类型
  */
-export type ZIndexLevel = 'hide' | 'base' | 'dropdown' | 'sticky' | 'fixed' | 'modal' | 'popover' | 'tooltip' | 'toast';
+export type ZIndexLevel =
+  | 'hide'
+  | 'base'
+  | 'dropdown'
+  | 'sticky'
+  | 'fixed'
+  | 'modal'
+  | 'popover'
+  | 'tooltip'
+  | 'toast';
 
 /**
  * Z-Index 配置

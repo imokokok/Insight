@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { SortConfig } from '../types';
+
+import { type SortConfig } from '../types';
 
 interface Column<T> {
   key: string;
@@ -100,7 +101,9 @@ export function WinklinkDataTable<T extends Record<string, unknown> | object>({
             >
               {columns.map((column) => (
                 <td key={column.key} className="px-4 py-3 text-sm text-gray-900">
-                  {column.render ? column.render(item as T) : String((item as Record<string, unknown>)[column.key] ?? '-')}
+                  {column.render
+                    ? column.render(item as T)
+                    : String((item as Record<string, unknown>)[column.key] ?? '-')}
                 </td>
               ))}
             </tr>

@@ -3,8 +3,10 @@
  */
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import { BaseErrorBoundary, GlobalErrorFallback, SectionErrorFallback } from './ErrorBoundaries';
+
 import { ValidationError, NotFoundError, PriceFetchError, RateLimitError } from '@/lib/errors';
+
+import { BaseErrorBoundary, GlobalErrorFallback, SectionErrorFallback } from './ErrorBoundaries';
 
 // Mock the monitoring module
 jest.mock('@/lib/monitoring', () => ({
@@ -122,7 +124,7 @@ describe('BaseErrorBoundary', () => {
       </BaseErrorBoundary>
     );
 
-    expect(screen.getByText(/not found/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /not found/i })).toBeInTheDocument();
   });
 
   it('should handle PriceFetchError correctly', () => {

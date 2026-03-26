@@ -1,4 +1,8 @@
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { type ReactNode, ComponentType } from 'react';
+
+import { type MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
+import { type NetworkDataConfig } from '@/components/oracle/panels/NetworkHealthPanel';
+import { chartColors } from '@/lib/config/colors';
 import {
   ChainlinkClient,
   BandProtocolClient,
@@ -11,10 +15,7 @@ import {
   ChronicleClient,
   WINkLinkClient,
 } from '@/lib/oracles';
-import { MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
-import { NetworkDataConfig } from '@/components/oracle/panels/NetworkHealthPanel';
-import { ReactNode, ComponentType } from 'react';
-import { chartColors } from '@/lib/config/colors';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 
 export interface OracleTab {
   id: string;
@@ -136,12 +137,29 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'risk', labelKey: 'chainlink.menu.riskAssessment' },
     ],
     views: [
-      { id: 'market', labelKey: 'chainlink.menu.marketData', component: 'ChainlinkMarketView', default: true },
-      { id: 'network', labelKey: 'chainlink.menu.networkHealth', component: 'ChainlinkNetworkView' },
+      {
+        id: 'market',
+        labelKey: 'chainlink.menu.marketData',
+        component: 'ChainlinkMarketView',
+        default: true,
+      },
+      {
+        id: 'network',
+        labelKey: 'chainlink.menu.networkHealth',
+        component: 'ChainlinkNetworkView',
+      },
       { id: 'nodes', labelKey: 'chainlink.menu.nodes', component: 'ChainlinkNodesView' },
-      { id: 'data-feeds', labelKey: 'chainlink.menu.dataFeeds', component: 'ChainlinkDataFeedsView' },
+      {
+        id: 'data-feeds',
+        labelKey: 'chainlink.menu.dataFeeds',
+        component: 'ChainlinkDataFeedsView',
+      },
       { id: 'services', labelKey: 'chainlink.menu.services', component: 'ChainlinkServicesView' },
-      { id: 'ecosystem', labelKey: 'chainlink.menu.ecosystem', component: 'ChainlinkEcosystemView' },
+      {
+        id: 'ecosystem',
+        labelKey: 'chainlink.menu.ecosystem',
+        component: 'ChainlinkEcosystemView',
+      },
       { id: 'risk', labelKey: 'chainlink.menu.riskAssessment', component: 'ChainlinkRiskView' },
     ],
   },
@@ -373,7 +391,12 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'risk', labelKey: 'pyth.menu.riskAssessment' },
     ],
     views: [
-      { id: 'market', labelKey: 'pyth.menu.marketData', component: 'PythMarketView', default: true },
+      {
+        id: 'market',
+        labelKey: 'pyth.menu.marketData',
+        component: 'PythMarketView',
+        default: true,
+      },
       { id: 'network', labelKey: 'pyth.menu.networkHealth', component: 'PythNetworkView' },
       { id: 'publishers', labelKey: 'pyth.menu.publishers', component: 'PythPublishersView' },
       { id: 'validators', labelKey: 'pyth.menu.validators', component: 'PythValidatorsView' },
@@ -853,9 +876,12 @@ export function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
 
 export function getOracleViews(provider: OracleProvider): OracleViewConfig[] {
   const config = getOracleConfig(provider);
-  return config.views || config.tabs.map(tab => ({
-    id: tab.id,
-    labelKey: tab.labelKey,
-    component: `${provider.charAt(0).toUpperCase() + provider.slice(1).replace(/-/g, '')}View`,
-  }));
+  return (
+    config.views ||
+    config.tabs.map((tab) => ({
+      id: tab.id,
+      labelKey: tab.labelKey,
+      component: `${provider.charAt(0).toUpperCase() + provider.slice(1).replace(/-/g, '')}View`,
+    }))
+  );
 }

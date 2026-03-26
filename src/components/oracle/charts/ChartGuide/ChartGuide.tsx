@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+
 import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors } from '@/lib/config/colors';
 

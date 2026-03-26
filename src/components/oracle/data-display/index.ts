@@ -1,6 +1,10 @@
 export { DashboardCard, StatCard, MetricCard, StatGrid, StatGridItem } from './DashboardCard';
 export { PageHeader } from './PageHeader';
-export { OracleHero, type OracleHeroProps, type StatItem as OracleHeroStatItem } from './OracleHero';
+export {
+  OracleHero,
+  type OracleHeroProps,
+  type StatItem as OracleHeroStatItem,
+} from './OracleHero';
 export { ConfidenceScore } from './ConfidenceScore';
 export { ConfidenceIntervalDisplay } from './ConfidenceIntervalDisplay';
 export { default as DataQualityIndicator } from './DataQualityIndicator';

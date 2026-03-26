@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { chartColors } from '@/lib/config/colors';
 
 interface GaugeChartProps {

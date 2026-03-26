@@ -1,10 +1,11 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+
 import { PythClient } from '@/lib/oracles/pythNetwork';
-import { Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 const pythClient = new PythClient();
 
@@ -150,12 +151,54 @@ export function usePythAllData(options: UsePythAllDataOptions) {
     queryKey: getPythKey('validators', { symbol, chain }),
     queryFn: async () => {
       return [
-        { id: '1', name: 'Validator A', stake: 5000000, uptime: 99.9, rewards: 125000, status: 'active' },
-        { id: '2', name: 'Validator B', stake: 4200000, uptime: 99.8, rewards: 105000, status: 'active' },
-        { id: '3', name: 'Validator C', stake: 3800000, uptime: 99.7, rewards: 95000, status: 'active' },
-        { id: '4', name: 'Validator D', stake: 2900000, uptime: 98.5, rewards: 72500, status: 'active' },
-        { id: '5', name: 'Validator E', stake: 2100000, uptime: 97.2, rewards: 52500, status: 'inactive' },
-        { id: '6', name: 'Validator F', stake: 1500000, uptime: 95.0, rewards: 37500, status: 'jailed' },
+        {
+          id: '1',
+          name: 'Validator A',
+          stake: 5000000,
+          uptime: 99.9,
+          rewards: 125000,
+          status: 'active',
+        },
+        {
+          id: '2',
+          name: 'Validator B',
+          stake: 4200000,
+          uptime: 99.8,
+          rewards: 105000,
+          status: 'active',
+        },
+        {
+          id: '3',
+          name: 'Validator C',
+          stake: 3800000,
+          uptime: 99.7,
+          rewards: 95000,
+          status: 'active',
+        },
+        {
+          id: '4',
+          name: 'Validator D',
+          stake: 2900000,
+          uptime: 98.5,
+          rewards: 72500,
+          status: 'active',
+        },
+        {
+          id: '5',
+          name: 'Validator E',
+          stake: 2100000,
+          uptime: 97.2,
+          rewards: 52500,
+          status: 'inactive',
+        },
+        {
+          id: '6',
+          name: 'Validator F',
+          stake: 1500000,
+          uptime: 95.0,
+          rewards: 37500,
+          status: 'jailed',
+        },
       ];
     },
     enabled,

@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { RefreshCw } from 'lucide-react';
-import { Home } from 'lucide-react';
+
 import Link from 'next/link';
+
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
 
 interface ErrorProps {

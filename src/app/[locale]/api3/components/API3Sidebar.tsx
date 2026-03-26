@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { API3SidebarProps, API3TabId } from '../types';
+
+import { type API3SidebarProps, type API3TabId } from '../types';
 
 interface NavItem {
   id: API3TabId;

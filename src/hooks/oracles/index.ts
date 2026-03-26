@@ -1,23 +1,11 @@
 // Chainlink
-export {
-  useChainlinkPrice,
-  useChainlinkHistorical,
-  useChainlinkAllData,
-} from './chainlink';
+export { useChainlinkPrice, useChainlinkHistorical, useChainlinkAllData } from './chainlink';
 
 // Pyth
-export {
-  usePythPrice,
-  usePythHistorical,
-  usePythAllData,
-} from './pyth';
+export { usePythPrice, usePythHistorical, usePythAllData } from './pyth';
 
 // RedStone
-export {
-  useRedStonePrice,
-  useRedStoneHistorical,
-  useRedStoneAllData,
-} from './redstone';
+export { useRedStonePrice, useRedStoneHistorical, useRedStoneAllData } from './redstone';
 
 // DIA
 export {

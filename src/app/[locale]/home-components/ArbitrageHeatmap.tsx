@@ -1,12 +1,16 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+
+import Image from 'next/image';
+
+import { TrendingUp, Activity, Globe, ChevronDown, Search } from 'lucide-react';
+
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import { TrendingUp, Activity, Globe, ChevronDown, Search } from 'lucide-react';
-import Image from 'next/image';
-import { tradingPairs } from '../cross-oracle/constants';
 import { baseColors } from '@/lib/config/colors';
+
+import { tradingPairs } from '../cross-oracle/constants';
 
 interface ChainData {
   name: string;

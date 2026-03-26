@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   LineChart,
   Line,
@@ -12,10 +13,10 @@ import {
   ResponsiveContainer,
   ReferenceDot,
 } from 'recharts';
-import { useTranslations } from '@/i18n';
-import { AccuracyTrendPoint } from '@/hooks';
-import { chartColors, baseColors } from '@/lib/config/colors';
 
+import { type AccuracyTrendPoint } from '@/hooks';
+import { useTranslations } from '@/i18n';
+import { chartColors, baseColors } from '@/lib/config/colors';
 
 interface AccuracyTrendChartProps {
   data: AccuracyTrendPoint[];
@@ -37,11 +38,15 @@ function CustomTooltip({ active, payload, label, t }: CustomTooltipProps) {
         <div className="space-y-1">
           <p className="text-sm">
             <span className="text-gray-500">{t('pyth.trend.accuracy')}:</span>
-            <span className="ml-2 font-bold text-primary-600">{dataPoint.accuracy.toFixed(2)}%</span>
+            <span className="ml-2 font-bold text-primary-600">
+              {dataPoint.accuracy.toFixed(2)}%
+            </span>
           </p>
           <p className="text-sm">
             <span className="text-gray-500">{t('pyth.trend.deviation')}:</span>
-            <span className="ml-2 font-bold text-danger-600">{dataPoint.deviation.toFixed(4)}%</span>
+            <span className="ml-2 font-bold text-danger-600">
+              {dataPoint.deviation.toFixed(4)}%
+            </span>
           </p>
           {dataPoint.event && (
             <div className="mt-2 pt-2 border-t border-gray-200">

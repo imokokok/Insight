@@ -2,7 +2,7 @@
  * 数据对比功能类型定义
  */
 
-import { OracleProvider } from '@/types/oracle';
+import { type OracleProvider } from '@/types/oracle';
 
 // ============================================
 // 时间段对比类型

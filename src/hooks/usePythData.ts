@@ -1,10 +1,11 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+
 import { PythClient } from '@/lib/oracles/pythNetwork';
-import { Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 const pythClient = new PythClient();
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { DisputeType } from './types';
+
+import { type DisputeType } from './types';
 
 export const PriceDisputeIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
   <svg

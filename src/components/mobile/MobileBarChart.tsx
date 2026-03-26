@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, memo } from 'react';
+
 import {
   BarChart,
   Bar,
@@ -11,10 +12,10 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { useTranslations } from '@/i18n';
-import { ChartSkeleton } from '@/components/ui';
-import { chartColors } from '@/lib/config/colors';
 
+import { ChartSkeleton } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
 
 interface DataPoint {
   name: string;

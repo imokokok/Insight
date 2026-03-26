@@ -1,11 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
-
 
 interface PublisherData {
   name: string;

@@ -1,5 +1,6 @@
 import { useTranslations } from '@/i18n';
-import { DeviationData } from './crossOracleConfig';
+
+import { type DeviationData } from './crossOracleConfig';
 
 interface DeviationTableProps {
   deviationData: DeviationData[];

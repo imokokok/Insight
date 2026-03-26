@@ -1,15 +1,17 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import { providerNames, chainNames, symbols, oracleColors } from '@/lib/constants';
-import { useCreateAlert, CreateAlertInput } from '@/hooks';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import type { AlertConditionType } from '@/lib/supabase/database.types';
+import { DropdownSelect, SegmentedControl, type SelectorOption } from '@/components/ui';
+import { useCreateAlert, type CreateAlertInput } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { DropdownSelect, SegmentedControl, SelectorOption } from '@/components/ui';
-import { AlertTemplates, AlertTemplate } from './AlertTemplates';
-import { AlertMutePeriod, MutePeriodConfig } from './AlertMutePeriod';
+import { providerNames, chainNames, symbols, oracleColors } from '@/lib/constants';
+import type { AlertConditionType } from '@/lib/supabase/database.types';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
+
+import { AlertMutePeriod, type MutePeriodConfig } from './AlertMutePeriod';
+import { AlertTemplates, type AlertTemplate } from './AlertTemplates';
 
 interface AlertConfigProps {
   onAlertCreated?: () => void;
@@ -342,7 +344,9 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         </div>
 
         {error && (
-          <div className="p-3 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-600">{error}</div>
+          <div className="p-3 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-600">
+            {error}
+          </div>
         )}
 
         <button

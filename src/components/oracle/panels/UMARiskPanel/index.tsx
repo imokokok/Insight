@@ -1,15 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useTranslations } from '@/i18n';
-import { logger } from '@/lib/utils/logger';
-import { UMAClient } from '@/lib/oracles/uma';
-import { ValidatorData, DisputeEfficiencyStats } from '@/lib/oracles/uma/types';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { DashboardCard, RiskScoreCard } from '@/components/oracle/data-display';
-import { DataFreshnessIndicator } from '@/components/oracle/alerts';
-
-import { chartColors, getChartColor } from '@/lib/chartColors';
 
 import {
   PieChart,
@@ -25,6 +16,15 @@ import {
   LineChart,
   Line,
 } from 'recharts';
+
+import { DataFreshnessIndicator } from '@/components/oracle/alerts';
+import { DashboardCard, RiskScoreCard } from '@/components/oracle/data-display';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { chartColors, getChartColor } from '@/lib/chartColors';
+import { type UMAClient } from '@/lib/oracles/uma';
+import { type ValidatorData, type DisputeEfficiencyStats } from '@/lib/oracles/uma/types';
+import { logger } from '@/lib/utils/logger';
 
 interface UMARiskPanelProps {
   client: UMAClient;
@@ -476,7 +476,9 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
             </svg>
             <div>
               <p className="font-semibold text-primary-900">{t('uma.risk.economicSecurity')}</p>
-              <p className="text-sm text-primary-700 mt-0.5">{t('uma.risk.economicSecurityDesc')}</p>
+              <p className="text-sm text-primary-700 mt-0.5">
+                {t('uma.risk.economicSecurityDesc')}
+              </p>
             </div>
           </div>
           {concentrationRisk !== 'low' && (

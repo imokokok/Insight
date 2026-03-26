@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Publisher, PublisherStats } from '@/types/oracle';
+
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { type Publisher, type PublisherStats } from '@/types/oracle';
 
 interface PublisherReliabilityScoreProps {
   publisher: Publisher;

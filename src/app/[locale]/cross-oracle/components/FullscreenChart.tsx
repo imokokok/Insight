@@ -11,11 +11,13 @@ import {
   ResponsiveContainer,
   Area,
 } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
-import { oracleNames } from '../constants';
-import { chartColors, baseColors } from '@/lib/config/colors';
-import { ChartTooltip } from './ChartTooltip';
 
+import { chartColors, baseColors } from '@/lib/config/colors';
+import { type OracleProvider } from '@/types/oracle';
+
+import { oracleNames } from '../constants';
+
+import { ChartTooltip } from './ChartTooltip';
 
 interface FullscreenChartProps {
   isOpen: boolean;

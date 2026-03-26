@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+
 import {
   ComposedChart,
   Line,
@@ -11,13 +12,17 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { BandProtocolClient, ValidatorInfo, HistoryPeriod } from '@/lib/oracles/bandProtocol';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { formatNumber } from '@/lib/utils/format';
-import { ChartSkeleton } from '@/components/ui';
-import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
-import { useTranslations } from '@/i18n';
 
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { ChartSkeleton } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
+import {
+  type BandProtocolClient,
+  type ValidatorInfo,
+  type HistoryPeriod,
+} from '@/lib/oracles/bandProtocol';
+import { formatNumber } from '@/lib/utils/format';
 
 type MetricType = 'uptime' | 'staked' | 'commission';
 type TimeRange = '7D' | '30D' | '90D';

@@ -1,7 +1,9 @@
 'use client';
 
+import { type ComponentType } from 'react';
+
 import dynamic from 'next/dynamic';
-import { ComponentType } from 'react';
+
 import { ChartSkeleton, MiniChartSkeleton } from '@/components/ui';
 
 // ============================================================================
@@ -12,7 +14,7 @@ function createChartLoading(height: number = 400, variant: 'price' | 'mini' | 'h
   return function LoadingComponent({ error }: { error?: Error | null }) {
     if (error) {
       return (
-        <div 
+        <div
           className="flex items-center justify-center rounded-lg border border-red-200 bg-red-50"
           style={{ height }}
         >
@@ -25,7 +27,9 @@ function createChartLoading(height: number = 400, variant: 'price' | 'mini' | 'h
     }
     // 'heatmap' variant uses 'area' skeleton as fallback
     const skeletonVariant = variant === 'heatmap' ? 'area' : variant;
-    return <ChartSkeleton height={height} showToolbar={variant === 'price'} variant={skeletonVariant} />;
+    return (
+      <ChartSkeleton height={height} showToolbar={variant === 'price'} variant={skeletonVariant} />
+    );
   };
 }
 
@@ -50,7 +54,10 @@ export const DynamicPriceChart = dynamic(
  * Best for: Volatility analysis, risk assessment
  */
 export const DynamicPriceVolatilityChart = dynamic(
-  () => import('@/components/oracle/charts/PriceVolatilityChart').then((mod) => mod.PriceVolatilityChart),
+  () =>
+    import('@/components/oracle/charts/PriceVolatilityChart').then(
+      (mod) => mod.PriceVolatilityChart
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -62,7 +69,8 @@ export const DynamicPriceVolatilityChart = dynamic(
  * Best for: Trend analysis, technical indicators
  */
 export const DynamicMovingAverageChart = dynamic(
-  () => import('@/components/oracle/charts/MovingAverageChart').then((mod) => mod.MovingAverageChart),
+  () =>
+    import('@/components/oracle/charts/MovingAverageChart').then((mod) => mod.MovingAverageChart),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -74,7 +82,10 @@ export const DynamicMovingAverageChart = dynamic(
  * Best for: Multi-chain price comparison
  */
 export const DynamicCrossChainTrendChart = dynamic(
-  () => import('@/components/oracle/charts/CrossChainTrendChart').then((mod) => mod.CrossChainTrendChart),
+  () =>
+    import('@/components/oracle/charts/CrossChainTrendChart').then(
+      (mod) => mod.CrossChainTrendChart
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -122,7 +133,10 @@ export const DynamicRequestTrendChart = dynamic(
  * Best for: Statistical analysis
  */
 export const DynamicConfidenceIntervalChart = dynamic(
-  () => import('@/components/oracle/charts/ConfidenceIntervalChart').then((mod) => mod.ConfidenceIntervalChart),
+  () =>
+    import('@/components/oracle/charts/ConfidenceIntervalChart').then(
+      (mod) => mod.ConfidenceIntervalChart
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -146,7 +160,10 @@ export const DynamicCDFChart = dynamic(
  * Best for: Validator stake visualization
  */
 export const DynamicStakingDistributionChart = dynamic(
-  () => import('@/components/oracle/charts/StakingDistributionChart').then((mod) => mod.StakingDistributionChart),
+  () =>
+    import('@/components/oracle/charts/StakingDistributionChart').then(
+      (mod) => mod.StakingDistributionChart
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -158,7 +175,10 @@ export const DynamicStakingDistributionChart = dynamic(
  * Best for: Price deviation tracking
  */
 export const DynamicPriceDeviationHistoryChart = dynamic(
-  () => import('@/components/oracle/charts/PriceDeviationHistoryChart').then((mod) => mod.PriceDeviationHistoryChart),
+  () =>
+    import('@/components/oracle/charts/PriceDeviationHistoryChart').then(
+      (mod) => mod.PriceDeviationHistoryChart
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -170,7 +190,10 @@ export const DynamicPriceDeviationHistoryChart = dynamic(
  * Best for: Validator performance history
  */
 export const DynamicValidatorHistoryChart = dynamic(
-  () => import('@/components/oracle/charts/ValidatorHistoryChart').then((mod) => mod.ValidatorHistoryChart),
+  () =>
+    import('@/components/oracle/charts/ValidatorHistoryChart').then(
+      (mod) => mod.ValidatorHistoryChart
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -206,7 +229,10 @@ export const DynamicDataQualityTrend = dynamic(
  * Best for: Statistical distribution visualization
  */
 export const DynamicPriceDistributionBoxPlot = dynamic(
-  () => import('@/components/oracle/charts/PriceDistributionBoxPlot').then((mod) => mod.PriceDistributionBoxPlot),
+  () =>
+    import('@/components/oracle/charts/PriceDistributionBoxPlot').then(
+      (mod) => mod.PriceDistributionBoxPlot
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -218,7 +244,10 @@ export const DynamicPriceDistributionBoxPlot = dynamic(
  * Best for: Deviation pattern analysis
  */
 export const DynamicPriceDeviationHeatmap = dynamic(
-  () => import('@/components/oracle/charts/PriceDeviationHeatmap').then((mod) => mod.PriceDeviationHeatmap),
+  () =>
+    import('@/components/oracle/charts/PriceDeviationHeatmap').then(
+      (mod) => mod.PriceDeviationHeatmap
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'heatmap'),
@@ -230,7 +259,10 @@ export const DynamicPriceDeviationHeatmap = dynamic(
  * Best for: Asset correlation analysis
  */
 export const DynamicPriceCorrelationMatrix = dynamic(
-  () => import('@/components/oracle/charts/PriceCorrelationMatrix').then((mod) => mod.PriceCorrelationMatrix),
+  () =>
+    import('@/components/oracle/charts/PriceCorrelationMatrix').then(
+      (mod) => mod.PriceCorrelationMatrix
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'heatmap'),
@@ -242,7 +274,10 @@ export const DynamicPriceCorrelationMatrix = dynamic(
  * Best for: Update pattern analysis
  */
 export const DynamicUpdateFrequencyHeatmap = dynamic(
-  () => import('@/components/oracle/charts/UpdateFrequencyHeatmap').then((mod) => mod.UpdateFrequencyHeatmap),
+  () =>
+    import('@/components/oracle/charts/UpdateFrequencyHeatmap').then(
+      (mod) => mod.UpdateFrequencyHeatmap
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'heatmap'),
@@ -254,7 +289,10 @@ export const DynamicUpdateFrequencyHeatmap = dynamic(
  * Best for: Validator comparison
  */
 export const DynamicValidatorPerformanceHeatmap = dynamic(
-  () => import('@/components/oracle/charts/ValidatorPerformanceHeatmap').then((mod) => mod.ValidatorPerformanceHeatmap),
+  () =>
+    import('@/components/oracle/charts/ValidatorPerformanceHeatmap').then(
+      (mod) => mod.ValidatorPerformanceHeatmap
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'heatmap'),
@@ -266,7 +304,10 @@ export const DynamicValidatorPerformanceHeatmap = dynamic(
  * Best for: Latency distribution analysis
  */
 export const DynamicLatencyDistributionHistogram = dynamic(
-  () => import('@/components/oracle/charts/LatencyDistributionHistogram').then((mod) => mod.LatencyDistributionHistogram),
+  () =>
+    import('@/components/oracle/charts/LatencyDistributionHistogram').then(
+      (mod) => mod.LatencyDistributionHistogram
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -278,7 +319,10 @@ export const DynamicLatencyDistributionHistogram = dynamic(
  * Best for: Geographic distribution visualization
  */
 export const DynamicValidatorGeographicMap = dynamic(
-  () => import('@/components/oracle/charts/ValidatorGeographicMap').then((mod) => mod.ValidatorGeographicMap),
+  () =>
+    import('@/components/oracle/charts/ValidatorGeographicMap').then(
+      (mod) => mod.ValidatorGeographicMap
+    ),
   {
     ssr: false,
     loading: createChartLoading(500, 'price'),
@@ -290,7 +334,10 @@ export const DynamicValidatorGeographicMap = dynamic(
  * Best for: Cross-chain price analysis
  */
 export const DynamicCrossChainPriceComparison = dynamic(
-  () => import('@/components/oracle/charts/CrossChainPriceComparison').then((mod) => mod.CrossChainPriceComparison),
+  () =>
+    import('@/components/oracle/charts/CrossChainPriceComparison').then(
+      (mod) => mod.CrossChainPriceComparison
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -302,7 +349,10 @@ export const DynamicCrossChainPriceComparison = dynamic(
  * Best for: Chain coverage visualization
  */
 export const DynamicChainCoverageHeatmap = dynamic(
-  () => import('@/components/oracle/charts/ChainCoverageHeatmap').then((mod) => mod.ChainCoverageHeatmap),
+  () =>
+    import('@/components/oracle/charts/ChainCoverageHeatmap').then(
+      (mod) => mod.ChainCoverageHeatmap
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'heatmap'),
@@ -338,7 +388,8 @@ export const DynamicCrossChainRisk = dynamic(
  * Best for: Price deviation risk analysis
  */
 export const DynamicPriceDeviationRisk = dynamic(
-  () => import('@/components/oracle/charts/PriceDeviationRisk').then((mod) => mod.PriceDeviationRisk),
+  () =>
+    import('@/components/oracle/charts/PriceDeviationRisk').then((mod) => mod.PriceDeviationRisk),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -350,7 +401,8 @@ export const DynamicPriceDeviationRisk = dynamic(
  * Best for: Correlation analysis
  */
 export const DynamicCorrelationAnalysis = dynamic(
-  () => import('@/components/oracle/charts/CorrelationAnalysis').then((mod) => mod.CorrelationAnalysis),
+  () =>
+    import('@/components/oracle/charts/CorrelationAnalysis').then((mod) => mod.CorrelationAnalysis),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -374,7 +426,8 @@ export const DynamicChainComparison = dynamic(
  * Best for: Validator performance comparison
  */
 export const DynamicValidatorComparison = dynamic(
-  () => import('@/components/oracle/charts/ValidatorComparison').then((mod) => mod.ValidatorComparison),
+  () =>
+    import('@/components/oracle/charts/ValidatorComparison').then((mod) => mod.ValidatorComparison),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -386,7 +439,10 @@ export const DynamicValidatorComparison = dynamic(
  * Best for: Multiple validator comparison
  */
 export const DynamicMultiValidatorComparison = dynamic(
-  () => import('@/components/oracle/charts/MultiValidatorComparison').then((mod) => mod.MultiValidatorComparison),
+  () =>
+    import('@/components/oracle/charts/MultiValidatorComparison').then(
+      (mod) => mod.MultiValidatorComparison
+    ),
   {
     ssr: false,
     loading: createChartLoading(400, 'price'),
@@ -398,7 +454,10 @@ export const DynamicMultiValidatorComparison = dynamic(
  * Best for: Oracle provider comparison
  */
 export const DynamicCrossOracleComparison = dynamic(
-  () => import('@/components/oracle/charts/CrossOracleComparison').then((mod) => mod.CrossOracleComparison),
+  () =>
+    import('@/components/oracle/charts/CrossOracleComparison').then(
+      (mod) => mod.CrossOracleComparison
+    ),
   {
     ssr: false,
     loading: createChartLoading(600, 'price'),
@@ -410,7 +469,10 @@ export const DynamicCrossOracleComparison = dynamic(
  * Best for: Interactive price exploration
  */
 export const DynamicInteractivePriceChart = dynamic(
-  () => import('@/components/oracle/charts/InteractivePriceChart').then((mod) => mod.InteractivePriceChart),
+  () =>
+    import('@/components/oracle/charts/InteractivePriceChart').then(
+      (mod) => mod.InteractivePriceChart
+    ),
   {
     ssr: false,
     loading: createChartLoading(600, 'price'),
@@ -485,7 +547,8 @@ export function preloadChart(componentName: string): void {
     ConfidenceIntervalChart: () => import('@/components/oracle/charts/ConfidenceIntervalChart'),
     CDFChart: () => import('@/components/oracle/charts/CDFChart'),
     StakingDistributionChart: () => import('@/components/oracle/charts/StakingDistributionChart'),
-    PriceDeviationHistoryChart: () => import('@/components/oracle/charts/PriceDeviationHistoryChart'),
+    PriceDeviationHistoryChart: () =>
+      import('@/components/oracle/charts/PriceDeviationHistoryChart'),
     ValidatorHistoryChart: () => import('@/components/oracle/charts/ValidatorHistoryChart'),
     DataSourceTrend: () => import('@/components/oracle/charts/DataSourceTrend'),
     DataQualityTrend: () => import('@/components/oracle/charts/DataQualityTrend'),
@@ -493,8 +556,10 @@ export function preloadChart(componentName: string): void {
     PriceDeviationHeatmap: () => import('@/components/oracle/charts/PriceDeviationHeatmap'),
     PriceCorrelationMatrix: () => import('@/components/oracle/charts/PriceCorrelationMatrix'),
     UpdateFrequencyHeatmap: () => import('@/components/oracle/charts/UpdateFrequencyHeatmap'),
-    ValidatorPerformanceHeatmap: () => import('@/components/oracle/charts/ValidatorPerformanceHeatmap'),
-    LatencyDistributionHistogram: () => import('@/components/oracle/charts/LatencyDistributionHistogram'),
+    ValidatorPerformanceHeatmap: () =>
+      import('@/components/oracle/charts/ValidatorPerformanceHeatmap'),
+    LatencyDistributionHistogram: () =>
+      import('@/components/oracle/charts/LatencyDistributionHistogram'),
     ValidatorGeographicMap: () => import('@/components/oracle/charts/ValidatorGeographicMap'),
     CrossChainPriceComparison: () => import('@/components/oracle/charts/CrossChainPriceComparison'),
     ChainCoverageHeatmap: () => import('@/components/oracle/charts/ChainCoverageHeatmap'),

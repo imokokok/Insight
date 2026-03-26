@@ -4,13 +4,16 @@
  */
 
 import { useState, useCallback, useRef, RefObject } from 'react';
-import { OracleProvider } from '@/types/oracle';
+
+import { type OracleProvider } from '@/types/oracle';
 
 export function useChartInteractions() {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isChartFullscreen, setIsChartFullscreen] = useState(false);
   const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
-  const [selectedPerformanceOracle, setSelectedPerformanceOracle] = useState<OracleProvider | null>(null);
+  const [selectedPerformanceOracle, setSelectedPerformanceOracle] = useState<OracleProvider | null>(
+    null
+  );
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
   const handleZoomIn = useCallback(() => {

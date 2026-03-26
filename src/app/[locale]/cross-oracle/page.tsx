@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useCrossOraclePage } from './useCrossOraclePage';
-import { useTabNavigation } from './hooks/useTabNavigation';
-import type { TabId } from './components/TabNavigation';
+
+import { LiveStatusBar } from '@/components/ui';
+import { chartColors } from '@/lib/config/colors';
+
 import {
   HeaderSection,
   StatsOverview,
@@ -12,8 +13,10 @@ import {
   FullscreenChart,
   StatsSection,
 } from './components';
-import { LiveStatusBar } from '@/components/ui';
-import { chartColors } from '@/lib/config/colors';
+import { useTabNavigation } from './hooks/useTabNavigation';
+import { useCrossOraclePage } from './useCrossOraclePage';
+
+import type { TabId } from './components/TabNavigation';
 
 export default function CrossOraclePage() {
   const {
@@ -127,7 +130,10 @@ export default function CrossOraclePage() {
     const variances: number[] = [];
 
     for (let i = 0; i < dataPoints; i++) {
-      const slice = priceData.slice(0, Math.max(1, Math.floor((priceData.length * (i + 1)) / dataPoints)));
+      const slice = priceData.slice(
+        0,
+        Math.max(1, Math.floor((priceData.length * (i + 1)) / dataPoints))
+      );
       const prices = slice.map((p) => p.price).filter((p) => p > 0);
 
       if (prices.length > 0) {
@@ -179,28 +185,28 @@ export default function CrossOraclePage() {
 
       <div className="flex flex-col gap-3 mb-4">
         <HeaderSection
-        selectedSymbol={selectedSymbol}
-        selectedOracles={selectedOracles}
-        isLoading={isLoading}
-        lastUpdated={lastUpdated}
-        showFavoritesDropdown={showFavoritesDropdown}
-        setShowFavoritesDropdown={setShowFavoritesDropdown}
-        favoritesDropdownRef={favoritesDropdownRef}
-        user={user}
-        oracleFavorites={oracleFavorites}
-        currentFavoriteConfig={currentFavoriteConfig}
-        handleApplyFavorite={handleApplyFavorite}
-        fetchPriceData={fetchPriceData}
-        t={t}
-      />
+          selectedSymbol={selectedSymbol}
+          selectedOracles={selectedOracles}
+          isLoading={isLoading}
+          lastUpdated={lastUpdated}
+          showFavoritesDropdown={showFavoritesDropdown}
+          setShowFavoritesDropdown={setShowFavoritesDropdown}
+          favoritesDropdownRef={favoritesDropdownRef}
+          user={user}
+          oracleFavorites={oracleFavorites}
+          currentFavoriteConfig={currentFavoriteConfig}
+          handleApplyFavorite={handleApplyFavorite}
+          fetchPriceData={fetchPriceData}
+          t={t}
+        />
 
-      {/* Live Status Bar */}
-      <LiveStatusBar
-        isConnected={!isLoading}
-        latency={undefined}
-        lastUpdate={lastUpdated || undefined}
-      />
-    </div>
+        {/* Live Status Bar */}
+        <LiveStatusBar
+          isConnected={!isLoading}
+          latency={undefined}
+          lastUpdate={lastUpdated || undefined}
+        />
+      </div>
 
       <StatsSection
         qualityScoreData={qualityScoreData}

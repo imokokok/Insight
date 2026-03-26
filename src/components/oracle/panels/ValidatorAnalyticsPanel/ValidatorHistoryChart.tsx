@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+
 import { useTranslations } from '@/i18n';
-import { ValidatorHistoryData } from '@/lib/oracles/uma';
 import { chartColors } from '@/lib/config/colors';
-import { TimeRange, TIME_RANGE_OPTIONS } from './config';
+import { type ValidatorHistoryData } from '@/lib/oracles/uma';
+
+import { type TimeRange, TIME_RANGE_OPTIONS } from './config';
 
 export function ValidatorHistoryChart({
   data,

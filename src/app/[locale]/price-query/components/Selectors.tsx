@@ -6,15 +6,15 @@
  */
 
 import { useState } from 'react';
+
+import { ChevronDown, ChevronUp, Search, RefreshCw } from 'lucide-react';
+
+import { SegmentedControl, MultiSelect, type SelectorOption } from '@/components/ui';
 import { useTranslations } from '@/i18n';
-import { ChevronDown } from 'lucide-react';
-import { ChevronUp } from 'lucide-react';
-import { Search } from 'lucide-react';
-import { RefreshCw } from 'lucide-react';
-import { OracleProvider, Blockchain, BLOCKCHAIN_VALUES } from '@/lib/oracles';
-import { symbols, oracleColors, chainColors, TIME_RANGES, oracleI18nKeys } from '../constants';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
-import { SegmentedControl, MultiSelect, SelectorOption } from '@/components/ui';
+import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/lib/oracles';
+
+import { symbols, oracleColors, chainColors, TIME_RANGES, oracleI18nKeys } from '../constants';
 
 interface SelectorsProps {
   selectedOracles: OracleProvider[];
@@ -84,9 +84,10 @@ export function Selectors({
   );
 
   // 只显示被选中预言机支持的链（如果选择了预言机）
-  const supportedChains = selectedOracles.length > 0
-    ? BLOCKCHAIN_VALUES.filter((chain) => supportedChainsBySelectedOracles.has(chain))
-    : BLOCKCHAIN_VALUES;
+  const supportedChains =
+    selectedOracles.length > 0
+      ? BLOCKCHAIN_VALUES.filter((chain) => supportedChainsBySelectedOracles.has(chain))
+      : BLOCKCHAIN_VALUES;
 
   const chainOptions: SelectorOption<Blockchain>[] = supportedChains.map((chain) => ({
     value: chain,

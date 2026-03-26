@@ -1,11 +1,20 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { DashboardCard } from './DashboardCard';
+
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  Legend,
+} from 'recharts';
+
 import { useTranslations } from '@/i18n';
 import { chartColors, shadowColors } from '@/lib/config/colors';
 
+import { DashboardCard } from './DashboardCard';
 
 type DataSourceCategory = 'crypto' | 'forex' | 'commodities' | 'stocks' | 'etf' | 'indices';
 

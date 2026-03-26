@@ -1,10 +1,13 @@
 'use client';
 
+import { Server, TrendingUp, Globe, Award, Activity, Clock, Shield } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
+
+import { type NodeData } from '../types';
+
 import { ChainlinkDataTable } from './ChainlinkDataTable';
 import { StakingRewardsCalculator } from './StakingRewardsCalculator';
-import { NodeData } from '../types';
-import { Server, TrendingUp, Globe, Award, Activity, Clock, Shield } from 'lucide-react';
 
 const mockNodes: NodeData[] = [
   {
@@ -126,8 +129,12 @@ export function ChainlinkNodesView() {
   ];
 
   const totalStaked = mockNodes.reduce((acc, n) => acc + n.stakedAmount, 0);
-  const avgSuccessRate = (mockNodes.reduce((acc, n) => acc + n.successRate, 0) / mockNodes.length).toFixed(1);
-  const avgResponseTime = Math.round(mockNodes.reduce((acc, n) => acc + n.responseTime, 0) / mockNodes.length);
+  const avgSuccessRate = (
+    mockNodes.reduce((acc, n) => acc + n.successRate, 0) / mockNodes.length
+  ).toFixed(1);
+  const avgResponseTime = Math.round(
+    mockNodes.reduce((acc, n) => acc + n.responseTime, 0) / mockNodes.length
+  );
 
   return (
     <div className="space-y-8">
@@ -154,7 +161,9 @@ export function ChainlinkNodesView() {
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{t('chainlink.nodes.totalStaked')}</span>
-          <span className="text-lg font-semibold text-gray-900">{(totalStaked / 1e6).toFixed(1)}M LINK</span>
+          <span className="text-lg font-semibold text-gray-900">
+            {(totalStaked / 1e6).toFixed(1)}M LINK
+          </span>
         </div>
       </div>
 
@@ -202,7 +211,9 @@ export function ChainlinkNodesView() {
                 <div key={index}>
                   <div className="flex items-center justify-between text-sm mb-1.5">
                     <span className="text-gray-600">{stat.region}</span>
-                    <span className="font-medium text-gray-900">{stat.count} <span className="text-gray-400">({stat.percentage}%)</span></span>
+                    <span className="font-medium text-gray-900">
+                      {stat.count} <span className="text-gray-400">({stat.percentage}%)</span>
+                    </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
                     <div
@@ -219,15 +230,15 @@ export function ChainlinkNodesView() {
           <section className="space-y-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">
-                {t('chainlink.nodes.overview')}
-              </h3>
+              <h3 className="text-sm font-medium text-gray-900">{t('chainlink.nodes.overview')}</h3>
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('chainlink.nodes.avgReputation')}</span>
                 <span className="font-medium text-gray-900">
-                  {(mockNodes.reduce((acc, n) => acc + n.reputation, 0) / mockNodes.length).toFixed(1)}
+                  {(mockNodes.reduce((acc, n) => acc + n.reputation, 0) / mockNodes.length).toFixed(
+                    1
+                  )}
                 </span>
               </div>
               <div className="flex justify-between">

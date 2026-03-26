@@ -1,8 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+
+import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
-import { useChainlinkPage } from './hooks/useChainlinkPage';
+
+import { type ChainlinkTabId } from './types';
+
 import {
   ChainlinkSidebar,
   ChainlinkHero,
@@ -14,8 +19,7 @@ import {
   ChainlinkEcosystemView,
   ChainlinkRiskView,
 } from './components';
-import { LoadingState, ErrorFallback } from '@/components/oracle';
-import { MobileSidebar } from '@/components/ui/MobileSidebar';
+import { useChainlinkPage } from './hooks/useChainlinkPage';
 
 export default function ChainlinkPage() {
   const {
@@ -58,11 +62,7 @@ export default function ChainlinkPage() {
         );
       case 'network':
         return (
-          <ChainlinkNetworkView
-            config={config}
-            networkStats={networkStats}
-            isLoading={isLoading}
-          />
+          <ChainlinkNetworkView config={config} networkStats={networkStats} isLoading={isLoading} />
         );
       case 'nodes':
         return <ChainlinkNodesView />;
@@ -101,7 +101,7 @@ export default function ChainlinkPage() {
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
-              <ChainlinkSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+              <ChainlinkSidebar activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as ChainlinkTabId)} />
             </div>
           </div>
 
@@ -112,7 +112,12 @@ export default function ChainlinkPage() {
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
               {t('chainlink.menu.title')}
             </button>
@@ -127,16 +132,14 @@ export default function ChainlinkPage() {
             <ChainlinkSidebar
               activeTab={activeTab}
               onTabChange={(tab) => {
-                setActiveTab(tab);
+                setActiveTab(tab as ChainlinkTabId);
                 setIsMobileMenuOpen(false);
               }}
             />
           </MobileSidebar>
 
           {/* Content Area */}
-          <div className="flex-1 min-w-0">
-            {renderContent()}
-          </div>
+          <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>
     </div>

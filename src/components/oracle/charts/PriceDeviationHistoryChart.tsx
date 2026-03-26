@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import {
   LineChart,
   Line,
@@ -14,12 +15,12 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { useTranslations } from '@/i18n';
-import { OracleProvider } from '@/types/oracle';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
 
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
+import { OracleProvider } from '@/types/oracle';
 
 type BaselineType = 'average' | 'median' | 'chainlink';
 
@@ -554,7 +555,9 @@ export function PriceDeviationHistoryChart({
             <p className="text-sm text-gray-600 mb-1">
               {t('charts.priceDeviationHistory.baselineType')}
             </p>
-            <p className="text-lg font-semibold text-primary-600">{getBaselineLabel(baselineType)}</p>
+            <p className="text-lg font-semibold text-primary-600">
+              {getBaselineLabel(baselineType)}
+            </p>
           </div>
           <div className="bg-success-50 p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">

@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { cn } from '@/lib/utils';
+
 import { Globe, MapPin, Clock, CheckCircle } from 'lucide-react';
+
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { cn } from '@/lib/utils';
 
 type Region = 'all' | 'northAmerica' | 'europe' | 'asia' | 'others';
 
@@ -65,9 +67,7 @@ const generateRegionData = (): RegionData[] => {
   return data;
 };
 
-export function NodeGeographicDistribution({
-  className,
-}: NodeGeographicDistributionProps) {
+export function NodeGeographicDistribution({ className }: NodeGeographicDistributionProps) {
   const t = useTranslations();
   const [selectedRegion, setSelectedRegion] = useState<Region>('all');
 
@@ -84,18 +84,12 @@ export function NodeGeographicDistribution({
   );
 
   const avgResponseTime = useMemo(() => {
-    const total = regionData.reduce(
-      (sum, r) => sum + r.avgResponseTime * r.nodeCount,
-      0
-    );
+    const total = regionData.reduce((sum, r) => sum + r.avgResponseTime * r.nodeCount, 0);
     return Math.round(total / totalNodes);
   }, [regionData, totalNodes]);
 
   const avgSuccessRate = useMemo(() => {
-    const total = regionData.reduce(
-      (sum, r) => sum + r.successRate * r.nodeCount,
-      0
-    );
+    const total = regionData.reduce((sum, r) => sum + r.successRate * r.nodeCount, 0);
     return (total / totalNodes).toFixed(2);
   }, [regionData, totalNodes]);
 
@@ -140,24 +134,16 @@ export function NodeGeographicDistribution({
           <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
               <MapPin className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-blue-600">
-                {t('chainlink.network.totalNodes')}
-              </span>
+              <span className="text-xs text-blue-600">{t('chainlink.network.totalNodes')}</span>
             </div>
-            <p className="text-xl font-bold text-blue-700">
-              {totalNodes.toLocaleString()}
-            </p>
+            <p className="text-xl font-bold text-blue-700">{totalNodes.toLocaleString()}</p>
           </div>
           <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
               <Clock className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs text-emerald-600">
-                {t('chainlink.network.avgResponse')}
-              </span>
+              <span className="text-xs text-emerald-600">{t('chainlink.network.avgResponse')}</span>
             </div>
-            <p className="text-xl font-bold text-emerald-700">
-              {avgResponseTime}ms
-            </p>
+            <p className="text-xl font-bold text-emerald-700">{avgResponseTime}ms</p>
           </div>
           <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
@@ -171,9 +157,7 @@ export function NodeGeographicDistribution({
           <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
               <Globe className="w-4 h-4 text-amber-600" />
-              <span className="text-xs text-amber-600">
-                {t('chainlink.network.regions')}
-              </span>
+              <span className="text-xs text-amber-600">{t('chainlink.network.regions')}</span>
             </div>
             <p className="text-xl font-bold text-amber-700">4</p>
           </div>
@@ -187,15 +171,10 @@ export function NodeGeographicDistribution({
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: region.color }}
-                  />
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: region.color }} />
                   <span className="font-medium text-gray-900">{region.name}</span>
                 </div>
-                <span className="text-sm text-gray-500">
-                  {region.percentage}%
-                </span>
+                <span className="text-sm text-gray-500">{region.percentage}%</span>
               </div>
 
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
@@ -210,9 +189,7 @@ export function NodeGeographicDistribution({
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">
-                    {t('chainlink.network.nodes')}
-                  </p>
+                  <p className="text-xs text-gray-500 mb-1">{t('chainlink.network.nodes')}</p>
                   <p className="text-lg font-semibold text-gray-900">
                     {region.nodeCount.toLocaleString()}
                   </p>
@@ -221,14 +198,10 @@ export function NodeGeographicDistribution({
                   <p className="text-xs text-gray-500 mb-1">
                     {t('chainlink.network.responseTime')}
                   </p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {region.avgResponseTime}ms
-                  </p>
+                  <p className="text-lg font-semibold text-gray-900">{region.avgResponseTime}ms</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">
-                    {t('chainlink.network.successRate')}
-                  </p>
+                  <p className="text-xs text-gray-500 mb-1">{t('chainlink.network.successRate')}</p>
                   <p
                     className="text-lg font-semibold"
                     style={{
@@ -254,10 +227,7 @@ export function NodeGeographicDistribution({
             <div className="flex items-center gap-4">
               {regionData.map((region) => (
                 <div key={region.id} className="flex items-center gap-1.5">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: region.color }}
-                  />
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: region.color }} />
                   <span>{region.name}</span>
                 </div>
               ))}

@@ -1,7 +1,7 @@
 // Cointegration Analysis Module
 // Implements Engle-Granger two-step cointegration test
 
-import { Blockchain } from '@/lib/oracles';
+import { type Blockchain } from '@/lib/oracles';
 
 export interface CointegrationResult {
   isCointegrated: boolean;

@@ -1,6 +1,7 @@
-import { UMAClient } from '../../uma/client';
-import { Blockchain } from '@/types/oracle';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { Blockchain } from '@/types/oracle';
+
+import { UMAClient } from '../../uma/client';
 
 jest.mock('next/server', () => ({
   NextResponse: {

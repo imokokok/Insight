@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { usePathname } from 'next/navigation';
 
 // ============================================================================
@@ -123,7 +124,9 @@ export function useWebVitalsOptimizer() {
 
     // Time to First Byte
     const measureTTFB = () => {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
       if (navigation) {
         const ttfb = navigation.responseStart - navigation.startTime;
         setMetrics((prev) => ({ ...prev, ttfb }));
@@ -158,7 +161,8 @@ export function useWebVitalsOptimizer() {
         title: 'First Contentful Paint is slow',
         description: `FCP is ${metrics.fcp.toFixed(0)}ms, which is above the recommended 1.8s`,
         impact: 'high',
-        recommendation: 'Consider optimizing critical rendering path, reducing server response time, and inlining critical CSS.',
+        recommendation:
+          'Consider optimizing critical rendering path, reducing server response time, and inlining critical CSS.',
       });
     }
 
@@ -170,7 +174,8 @@ export function useWebVitalsOptimizer() {
         title: 'Largest Contentful Paint is slow',
         description: `LCP is ${metrics.lcp.toFixed(0)}ms, which is above the recommended 2.5s`,
         impact: 'high',
-        recommendation: 'Optimize images, use next-gen formats like WebP, and implement lazy loading for below-fold images.',
+        recommendation:
+          'Optimize images, use next-gen formats like WebP, and implement lazy loading for below-fold images.',
       });
     }
 
@@ -182,7 +187,8 @@ export function useWebVitalsOptimizer() {
         title: 'First Input Delay is high',
         description: `FID is ${metrics.fid.toFixed(0)}ms, which is above the recommended 100ms`,
         impact: 'medium',
-        recommendation: 'Break up long tasks, use web workers for heavy computations, and optimize event handlers.',
+        recommendation:
+          'Break up long tasks, use web workers for heavy computations, and optimize event handlers.',
       });
     }
 
@@ -194,7 +200,8 @@ export function useWebVitalsOptimizer() {
         title: 'Cumulative Layout Shift is high',
         description: `CLS is ${metrics.cls.toFixed(3)}, which is above the recommended 0.1`,
         impact: 'medium',
-        recommendation: 'Set explicit dimensions for images and videos, reserve space for dynamic content, and avoid inserting content above existing content.',
+        recommendation:
+          'Set explicit dimensions for images and videos, reserve space for dynamic content, and avoid inserting content above existing content.',
       });
     }
 
@@ -230,7 +237,7 @@ export function useResourceOptimizer() {
 
     const analyzeResources = () => {
       const entries = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
-      
+
       const resourceMetrics: ResourceMetric[] = entries.map((entry) => {
         const type = getResourceType(entry.name);
         return {
@@ -291,8 +298,10 @@ export function useNavigationOptimizer() {
     if (typeof window === 'undefined') return;
 
     const analyzeNavigation = () => {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
+
       if (navigation) {
         setTiming({
           dnsLookup: navigation.domainLookupEnd - navigation.domainLookupStart,
@@ -345,18 +354,21 @@ export function useLazyLoadOptimizer(options?: IntersectionObserverInit) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    observerRef.current = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        const id = entry.target.id;
-        if (entry.isIntersecting) {
-          setVisibleElements((prev) => new Set([...prev, id]));
-        }
-      });
-    }, {
-      rootMargin: '50px',
-      threshold: 0.1,
-      ...options,
-    });
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.id;
+          if (entry.isIntersecting) {
+            setVisibleElements((prev) => new Set([...prev, id]));
+          }
+        });
+      },
+      {
+        rootMargin: '50px',
+        threshold: 0.1,
+        ...options,
+      }
+    );
 
     return () => observerRef.current?.disconnect();
   }, [options]);
@@ -404,11 +416,14 @@ export function useRouteOptimizer() {
     return total / routeMetrics.size;
   }, [routeMetrics]);
 
-  const getSlowestRoutes = useCallback((limit = 5) => {
-    return Array.from(routeMetrics.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, limit);
-  }, [routeMetrics]);
+  const getSlowestRoutes = useCallback(
+    (limit = 5) => {
+      return Array.from(routeMetrics.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit);
+    },
+    [routeMetrics]
+  );
 
   return {
     currentRoute: pathname,
@@ -488,7 +503,12 @@ export function usePerformanceOptimizer() {
     if (issues === 1) return 'good';
     if (issues <= 3) return 'fair';
     return 'poor';
-  }, [webVitals.isOptimized, resources.slowResources.length, navigation.isSlow, memory.isHighUsage]);
+  }, [
+    webVitals.isOptimized,
+    resources.slowResources.length,
+    navigation.isSlow,
+    memory.isHighUsage,
+  ]);
 
   const getReport = useCallback(() => {
     return {

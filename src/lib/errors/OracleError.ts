@@ -1,4 +1,4 @@
-import { AppError, AppErrorDetails } from './AppError';
+import { AppError, type AppErrorDetails } from './AppError';
 
 export interface OracleErrorDetails extends AppErrorDetails {
   provider?: string;

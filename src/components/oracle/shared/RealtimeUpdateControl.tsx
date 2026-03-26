@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
 
 export type UpdateInterval = 5000 | 10000 | 30000 | 60000;
 

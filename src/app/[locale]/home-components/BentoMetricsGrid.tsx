@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+
 import {
   TrendingUp,
   TrendingDown,
@@ -16,11 +15,20 @@ import {
   AlertCircle,
   Info,
 } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer, LineChart, Line, Tooltip as RechartsTooltip } from 'recharts';
-import { TooltipProps } from '@/types/ui/recharts';
-import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import {
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  Tooltip as RechartsTooltip,
+} from 'recharts';
 
 import { Icon } from '@/components/ui';
+import { useLocale } from '@/i18n';
+import { isChineseLocale } from '@/i18n/routing';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { type TooltipProps } from '@/types/ui/recharts';
 
 interface ChartDataPoint {
   time: string;
@@ -257,7 +265,10 @@ function AlertBadge({ type, message }: { type: 'info' | 'warning' | 'success'; m
 function ChartTooltip({ active, payload, label }: TooltipProps<ChartDataPoint>) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border px-3 py-2 rounded-lg" style={{ borderColor: baseColors.gray[200] }}>
+      <div
+        className="bg-white border px-3 py-2 rounded-lg"
+        style={{ borderColor: baseColors.gray[200] }}
+      >
         <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>
           {payload[0]?.payload?.fullTime || label}
         </p>

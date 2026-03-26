@@ -57,9 +57,7 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
                 className={`relative px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
-                  isActive
-                    ? 'shadow-sm'
-                    : 'hover:text-gray-900'
+                  isActive ? 'shadow-sm' : 'hover:text-gray-900'
                 }`}
                 style={{
                   backgroundColor: isActive ? baseColors.primary[600] : 'transparent',
@@ -87,9 +85,7 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
                 className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
-                  isActive
-                    ? 'shadow-sm'
-                    : 'hover:text-gray-900'
+                  isActive ? 'shadow-sm' : 'hover:text-gray-900'
                 }`}
                 style={{
                   backgroundColor: isActive ? baseColors.primary[600] : 'transparent',

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+
 import { withVersionHeaders } from '@/lib/api/versioning';
 
 export const dynamic = 'force-dynamic';

@@ -1,9 +1,11 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { TellorStakingViewProps } from '../types';
-import { TellorStakingCalculator } from '@/components/oracle/panels/TellorStakingCalculator';
 import { TrendingUp, TrendingDown, Wallet, Users, PiggyBank, Award } from 'lucide-react';
+
+import { TellorStakingCalculator } from '@/components/oracle/panels/TellorStakingCalculator';
+import { useTranslations } from '@/i18n';
+
+import { type TellorStakingViewProps } from '../types';
 
 export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
   const t = useTranslations();
@@ -40,9 +42,24 @@ export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
   ];
 
   const stakingTiers = [
-    { tier: 'Bronze', minStake: '100 TRB', reward: 'Base', features: ['Basic reporting', 'Standard rewards'] },
-    { tier: 'Silver', minStake: '1,000 TRB', reward: '+20%', features: ['Priority reporting', 'Bonus rewards', 'Dispute voting'] },
-    { tier: 'Gold', minStake: '5,000 TRB', reward: '+50%', features: ['Highest priority', 'Maximum rewards', 'Governance rights', 'Early access'] },
+    {
+      tier: 'Bronze',
+      minStake: '100 TRB',
+      reward: 'Base',
+      features: ['Basic reporting', 'Standard rewards'],
+    },
+    {
+      tier: 'Silver',
+      minStake: '1,000 TRB',
+      reward: '+20%',
+      features: ['Priority reporting', 'Bonus rewards', 'Dispute voting'],
+    },
+    {
+      tier: 'Gold',
+      minStake: '5,000 TRB',
+      reward: '+50%',
+      features: ['Highest priority', 'Maximum rewards', 'Governance rights', 'Early access'],
+    },
   ];
 
   return (
@@ -60,9 +77,11 @@ export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
               </div>
               <div className="flex items-baseline gap-3">
                 <p className="text-3xl font-semibold text-gray-900 tracking-tight">{stat.value}</p>
-                <div className={`flex items-center gap-0.5 text-sm font-medium ${
-                  stat.trend === 'up' ? 'text-emerald-600' : 'text-red-600'
-                }`}>
+                <div
+                  className={`flex items-center gap-0.5 text-sm font-medium ${
+                    stat.trend === 'up' ? 'text-emerald-600' : 'text-red-600'
+                  }`}
+                >
                   <TrendIcon className="w-3.5 h-3.5" />
                   <span>{stat.change}</span>
                 </div>
@@ -87,17 +106,13 @@ export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
 
         {/* 质押等级 */}
         <div>
-          <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('tellor.staking.tiers')}
-          </h3>
+          <h3 className="text-base font-medium text-gray-900 mb-4">{t('tellor.staking.tiers')}</h3>
           <div className="space-y-4">
             {stakingTiers.map((tier, index) => (
               <div
                 key={index}
                 className={`p-4 rounded-lg border ${
-                  index === 1
-                    ? 'border-cyan-500 bg-cyan-50/50'
-                    : 'border-gray-200'
+                  index === 1 ? 'border-cyan-500 bg-cyan-50/50' : 'border-gray-200'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -110,8 +125,16 @@ export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
                 <ul className="space-y-1">
                   {tier.features.map((feature, fIndex) => (
                     <li key={fIndex} className="text-xs text-gray-600 flex items-center gap-1.5">
-                      <svg className="w-3 h-3 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-3 h-3 text-emerald-500 flex-shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       {feature}
                     </li>
@@ -160,20 +183,44 @@ export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
           </h3>
           <ul className="space-y-3 text-sm text-gray-600">
             <li className="flex items-start gap-3">
-              <svg className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <svg
+                className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
               <span>Slashing risk: Stake may be slashed for inaccurate data submissions</span>
             </li>
             <li className="flex items-start gap-3">
-              <svg className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <svg
+                className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
               <span>Lock-up period: Staked tokens have a 7-day withdrawal delay</span>
             </li>
             <li className="flex items-start gap-3">
-              <svg className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <svg
+                className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
               <span>Market risk: TRB price fluctuations affect staking value</span>
             </li>

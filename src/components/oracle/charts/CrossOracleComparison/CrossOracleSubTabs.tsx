@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { useTranslations } from '@/i18n';
 
 export type SubTab = 'overview' | 'charts' | 'data' | 'settings';

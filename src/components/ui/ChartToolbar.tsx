@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+
 import {
   ZoomIn,
   ZoomOut,
@@ -14,6 +15,7 @@ import {
   AreaChart,
   CandlestickChart,
 } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';

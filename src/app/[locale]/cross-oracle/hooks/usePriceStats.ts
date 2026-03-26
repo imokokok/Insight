@@ -4,8 +4,10 @@
  */
 
 import { useMemo } from 'react';
-import { PriceData, SnapshotStats } from '@/types/oracle';
-import { PriceStatsResult } from '../types';
+
+import { type PriceData, type SnapshotStats } from '@/types/oracle';
+
+import { type PriceStatsResult } from '../types';
 
 /**
  * 计算加权平均值
@@ -83,16 +85,10 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
   const priceRange = maxPrice - minPrice;
 
   // 计算方差
-  const variance = useMemo(
-    () => calculateVariance(validPrices, avgPrice),
-    [validPrices, avgPrice]
-  );
+  const variance = useMemo(() => calculateVariance(validPrices, avgPrice), [validPrices, avgPrice]);
 
   // 计算标准差
-  const standardDeviation = useMemo(
-    () => calculateStandardDeviation(variance),
-    [variance]
-  );
+  const standardDeviation = useMemo(() => calculateStandardDeviation(variance), [variance]);
 
   // 计算标准差百分比（相对于平均值）
   const standardDeviationPercent = useMemo(

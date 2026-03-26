@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+
 import { useUser, useProfile } from '@/stores/authStore';
 
 export interface UserPreferences {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { createLogger } from '@/lib/utils/logger';
+
 import {
   calculateSMA,
   calculateBollingerBands,
@@ -15,6 +15,7 @@ import type {
   MAConfig,
   IndicatorSettings,
 } from '@/lib/indicators';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('useTechnicalIndicators');
 

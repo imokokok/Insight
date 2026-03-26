@@ -3,8 +3,9 @@
  * @description 定义页面布局、导航、Hero 等组件的类型
  */
 
-import { ReactNode, HTMLAttributes } from 'react';
-import { OracleProvider } from '../oracle';
+import { type ReactNode, type HTMLAttributes } from 'react';
+
+import { type OracleProvider } from '../oracle';
 
 // ============================================================================
 // 页面头部类型

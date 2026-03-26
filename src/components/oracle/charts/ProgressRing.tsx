@@ -133,10 +133,7 @@ export function ProgressRing({
         {/* Center content */}
         {showValue && (
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span
-              className="text-2xl font-bold"
-              style={{ color: currentColor }}
-            >
+            <span className="text-2xl font-bold" style={{ color: currentColor }}>
               {formatValue(animatedValue, max)}
             </span>
           </div>
@@ -144,9 +141,7 @@ export function ProgressRing({
       </div>
 
       {/* Label */}
-      {label && (
-        <span className="mt-2 text-sm text-gray-600 text-center">{label}</span>
-      )}
+      {label && <span className="mt-2 text-sm text-gray-600 text-center">{label}</span>}
     </div>
   );
 }

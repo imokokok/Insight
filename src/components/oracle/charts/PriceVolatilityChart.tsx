@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+
 import {
   ComposedChart,
   Bar,
@@ -15,15 +16,15 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
-import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
-import { TooltipProps } from '@/types/ui/recharts';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+
 import { VolatilityAlert } from '@/components/oracle/alerts/VolatilityAlert';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { getOracleColor } from '@/lib/oracles';
-
+import { OracleProvider } from '@/types/oracle';
+import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
+import { type TooltipProps } from '@/types/ui/recharts';
 
 export interface OraclePriceHistory {
   oracle: OracleProvider;
@@ -404,7 +405,9 @@ export function PriceVolatilityChart({
   const CustomTooltip = ({ active, payload }: TooltipProps<ChartDataPayload>) => {
     if (!active || !payload || payload.length === 0) return null;
 
-    const dataPoint = payload[0].payload;
+    const dataPoint = payload[0]?.payload;
+    if (!dataPoint) return null;
+
     const result = multiScaleVolatility.find((r) => r.oracle === dataPoint.oracle);
 
     if (!result) return null;
@@ -481,7 +484,9 @@ export function PriceVolatilityChart({
   }: TooltipProps<VolatilityDecomposition>) => {
     if (!active || !payload || payload.length === 0) return null;
 
-    const data = payload[0].payload;
+    const data = payload[0]?.payload;
+    if (!data) return null;
+
     return (
       <div className="bg-white p-3 rounded-lg border border-gray-200 min-w-[180px]">
         <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
@@ -490,7 +495,9 @@ export function PriceVolatilityChart({
             <span className="text-xs text-gray-600">
               {t('priceVolatility.shortTermVolatility')}
             </span>
-            <span className="text-xs font-medium text-primary-600">{data.shortTerm.toFixed(1)}%</span>
+            <span className="text-xs font-medium text-primary-600">
+              {data.shortTerm.toFixed(1)}%
+            </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-600">{t('priceVolatility.midTermVolatility')}</span>

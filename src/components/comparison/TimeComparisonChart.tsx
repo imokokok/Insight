@@ -1,7 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations, useLocale } from '@/i18n';
+
+import { format } from 'date-fns';
+import { zhCN, enUS } from 'date-fns/locale';
 import {
   LineChart,
   Line,
@@ -18,11 +20,11 @@ import {
   BarChart,
   Cell,
 } from 'recharts';
-import { format } from 'date-fns';
-import { zhCN, enUS } from 'date-fns/locale';
-import { ComparisonChartData } from './types';
+
+import { useTranslations, useLocale } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
 
+import { type ComparisonChartData } from './types';
 
 interface TimeComparisonChartProps {
   data: ComparisonChartData[];

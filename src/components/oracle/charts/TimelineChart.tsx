@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+
 import { Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 
 export interface TimelineEvent {
@@ -81,9 +82,7 @@ export function TimelineChart({
   const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
 
   const sortedEvents = useMemo(() => {
-    return [...events].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    return [...events].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [events]);
 
   const handleEventClick = (event: TimelineEvent, index: number) => {
@@ -141,9 +140,7 @@ export function TimelineChart({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <h4 className={`font-medium ${config.textColor} truncate`}>
-                      {event.title}
-                    </h4>
+                    <h4 className={`font-medium ${config.textColor} truncate`}>{event.title}</h4>
                     {showDateLabels && (
                       <span className="text-xs text-gray-500">
                         {compact ? formatDateShort(event.date) : formatDate(event.date)}

@@ -1,15 +1,13 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { PriceChart } from '@/components/oracle';
-import { ChainlinkMarketViewProps } from '../types';
 import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield } from 'lucide-react';
 
-export function ChainlinkMarketView({
-  config,
-  price,
-  isLoading,
-}: ChainlinkMarketViewProps) {
+import { PriceChart } from '@/components/oracle';
+import { useTranslations } from '@/i18n';
+
+import { type ChainlinkMarketViewProps } from '../types';
+
+export function ChainlinkMarketView({ config, price, isLoading }: ChainlinkMarketViewProps) {
   const t = useTranslations();
 
   // 核心市场统计数据
@@ -38,9 +36,19 @@ export function ChainlinkMarketView({
   ];
 
   const networkStatus = [
-    { label: t('chainlink.networkHealth.activeNodes'), value: '1,847+', status: 'healthy', icon: Server },
+    {
+      label: t('chainlink.networkHealth.activeNodes'),
+      value: '1,847+',
+      status: 'healthy',
+      icon: Server,
+    },
     { label: t('chainlink.stats.dataFeeds'), value: '1,243+', status: 'healthy', icon: Zap },
-    { label: t('chainlink.networkHealth.responseTime'), value: '245ms', status: 'healthy', icon: Clock },
+    {
+      label: t('chainlink.networkHealth.responseTime'),
+      value: '245ms',
+      status: 'healthy',
+      icon: Clock,
+    },
     { label: t('chainlink.successRate'), value: '99.9%', status: 'healthy', icon: Shield },
   ];
 
@@ -51,9 +59,7 @@ export function ChainlinkMarketView({
         {/* 左侧价格趋势图表 - 占2列 */}
         <div className="lg:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium text-gray-900">
-              {t('chainlink.priceTrend')}
-            </h3>
+            <h3 className="text-base font-medium text-gray-900">{t('chainlink.priceTrend')}</h3>
           </div>
           <div className="flex-1">
             <PriceChart
@@ -90,11 +96,13 @@ export function ChainlinkMarketView({
                       {stat.value}
                     </span>
                     {stat.change && (
-                      <span className={`text-xs ml-2 ${
-                        typeof stat.change === 'string' && stat.change.startsWith('+') 
-                          ? 'text-emerald-600' 
-                          : 'text-red-600'
-                      }`}>
+                      <span
+                        className={`text-xs ml-2 ${
+                          typeof stat.change === 'string' && stat.change.startsWith('+')
+                            ? 'text-emerald-600'
+                            : 'text-red-600'
+                        }`}
+                      >
                         {typeof stat.change === 'string' ? stat.change : `${stat.change}%`}
                       </span>
                     )}
@@ -172,15 +180,20 @@ export function ChainlinkMarketView({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-xs text-gray-400 mb-1">LINK/USDC</p>
-            <p className="text-2xl font-semibold text-gray-900">${price?.price?.toFixed(2) || '14.85'}</p>
+            <p className="text-2xl font-semibold text-gray-900">
+              ${price?.price?.toFixed(2) || '14.85'}
+            </p>
             <div className="flex items-center gap-1 mt-1">
               {config.marketData.change24hValue >= 0 ? (
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
               ) : (
                 <TrendingDown className="w-3.5 h-3.5 text-red-600" />
               )}
-              <span className={`text-sm ${config.marketData.change24hValue >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                {config.marketData.change24hValue >= 0 ? '+' : ''}{config.marketData.change24hValue}%
+              <span
+                className={`text-sm ${config.marketData.change24hValue >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+              >
+                {config.marketData.change24hValue >= 0 ? '+' : ''}
+                {config.marketData.change24hValue}%
               </span>
             </div>
           </div>

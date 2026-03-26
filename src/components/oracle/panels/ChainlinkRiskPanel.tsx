@@ -1,15 +1,23 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useTranslations, useLocale } from '@/i18n';
-import { getDateTimeLocale } from '@/lib/utils/dateFormat';
-import { DashboardCard, RiskScoreCard } from '@/components/oracle/data-display';
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from 'recharts';
+
 import { DataFreshnessIndicator } from '@/components/oracle/alerts';
+import { DashboardCard, RiskScoreCard } from '@/components/oracle/data-display';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
-
+import { useTranslations, useLocale } from '@/i18n';
 import { chartColors, getChartColor } from '@/lib/chartColors';
-
+import { getDateTimeLocale } from '@/lib/utils/dateFormat';
 import {
   getScoreColor,
   getScoreBg,
@@ -21,15 +29,7 @@ import {
   getStatusColor,
   getMeasureStatusColor,
 } from '@/lib/utils/riskUtils';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { type RiskMetric, type RiskEvent, type MitigationMeasure } from '@/types/risk';
 
 // 模拟历史评分数据
 const generateScoreTrendData = (locale: string = 'en') => {

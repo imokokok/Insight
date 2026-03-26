@@ -1,16 +1,20 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import { X } from 'lucide-react';
-import { ChevronRight } from 'lucide-react';
-import { ChevronLeft } from 'lucide-react';
-import { Check } from 'lucide-react';
-import { Sparkles } from 'lucide-react';
-import { Lightbulb } from 'lucide-react';
-import { Target } from 'lucide-react';
-import { BookOpen } from 'lucide-react';
-import { ArrowRight } from 'lucide-react';
-import { RotateCcw } from 'lucide-react';
+
+import {
+  X,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  Sparkles,
+  Lightbulb,
+  Target,
+  BookOpen,
+  ArrowRight,
+  RotateCcw,
+} from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 

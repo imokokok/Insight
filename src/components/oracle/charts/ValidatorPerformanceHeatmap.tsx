@@ -1,16 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
+import { semanticColors, baseColors } from '@/lib/config/colors';
 import {
   UMAClient,
-  ValidatorPerformanceHeatmapData,
-  ValidatorPerformanceHeatmapDataByDay,
-  TimeRange,
+  type ValidatorPerformanceHeatmapData,
+  type ValidatorPerformanceHeatmapDataByDay,
+  type TimeRange,
 } from '@/lib/oracles/uma';
-import { useTranslations } from '@/i18n';
 import { createLogger } from '@/lib/utils/logger';
-import { semanticColors, baseColors } from '@/lib/config/colors';
 
 const logger = createLogger('ValidatorPerformanceHeatmap');
 

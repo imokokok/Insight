@@ -1,8 +1,9 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { EnhancedStatCard } from '@/components/ui';
-import { MarketStats as MarketStatsType } from '../types';
+import { useTranslations } from '@/i18n';
+
+import { type MarketStats as MarketStatsType } from '../types';
 
 interface MarketStatsProps {
   marketStats: MarketStatsType;

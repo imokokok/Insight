@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
 import {
   BarChart,
   Bar,
@@ -14,9 +14,11 @@ import {
   Line,
   ComposedChart,
 } from 'recharts';
-import { calculateACF, calculateLjungBox, calculateResidualHistogram } from '../cointegration';
+
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
+import { calculateACF, calculateLjungBox, calculateResidualHistogram } from '../cointegration';
 
 interface ResidualDiagnosticsProps {
   residuals: number[];

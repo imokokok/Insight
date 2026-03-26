@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import { useTranslations } from '@/i18n';
-import { QueryResult } from '../constants';
-import { OracleProvider, Blockchain } from '@/lib/oracles';
+import { type OracleProvider, type Blockchain } from '@/lib/oracles';
+
+import { type QueryResult } from '../constants';
+
 import { Icons } from './Icons';
 
 export type ExportFormat = 'csv' | 'json' | 'pdf';
