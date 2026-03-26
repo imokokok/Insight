@@ -231,6 +231,8 @@
   "common": {
     "loading": "加载中...",
     "home": "首页",
+    "refresh": "刷新",
+    "export": "导出",
     "breadcrumb": {
       "home": "首页"
     },

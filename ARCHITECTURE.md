@@ -898,6 +898,15 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.ARBITRUM,
     Blockchain.OPTIMISM,
     Blockchain.POLYGON,
+    Blockchain.AVALANCHE,
+    Blockchain.BASE,
+    Blockchain.BNB_CHAIN,
+    Blockchain.FANTOM,
+    Blockchain.STARKNET,
+    Blockchain.BLAST,
+    Blockchain.MOONBEAM,
+    Blockchain.KAVA,
+    Blockchain.POLKADOT,
   ];
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
@@ -915,11 +924,19 @@ export class ChainlinkClient extends BaseOracleClient {
 export class PythClient extends BaseOracleClient {
   name = OracleProvider.PYTH;
   supportedChains = [
+    Blockchain.SOLANA,
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
     Blockchain.OPTIMISM,
     Blockchain.POLYGON,
-    Blockchain.SOLANA,
+    Blockchain.AVALANCHE,
+    Blockchain.BASE,
+    Blockchain.STARKNET,
+    Blockchain.BLAST,
+    Blockchain.SUI,
+    Blockchain.APTOS,
+    Blockchain.INJECTIVE,
+    Blockchain.SEI,
   ];
 
   private generateConfidenceInterval(price: number, symbol: string): ConfidenceInterval {
@@ -941,9 +958,16 @@ export class BandProtocolClient extends BaseOracleClient {
   name = OracleProvider.BAND_PROTOCOL;
   supportedChains = [
     Blockchain.COSMOS,
-    Blockchain.JUNO,
     Blockchain.OSMOSIS,
-    // ... more chains
+    Blockchain.JUNO,
+    Blockchain.ETHEREUM,
+    Blockchain.POLYGON,
+    Blockchain.AVALANCHE,
+    Blockchain.FANTOM,
+    Blockchain.CRONOS,
+    Blockchain.INJECTIVE,
+    Blockchain.SEI,
+    Blockchain.KAVA,
   ];
 }
 ```
@@ -957,7 +981,16 @@ export class API3Client extends BaseOracleClient {
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
     Blockchain.POLYGON,
-    // ... more chains
+    Blockchain.AVALANCHE,
+    Blockchain.BASE,
+    Blockchain.BNB_CHAIN,
+    Blockchain.OPTIMISM,
+    Blockchain.MOONBEAM,
+    Blockchain.KAVA,
+    Blockchain.FANTOM,
+    Blockchain.GNOSIS,
+    Blockchain.LINEA,
+    Blockchain.SCROLL,
   ];
 }
 ```
@@ -967,7 +1000,17 @@ export class API3Client extends BaseOracleClient {
 ```typescript
 export class UMAClient extends BaseOracleClient {
   name = OracleProvider.UMA;
-  supportedChains = [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.OPTIMISM];
+  supportedChains = [
+    Blockchain.ETHEREUM,
+    Blockchain.ARBITRUM,
+    Blockchain.OPTIMISM,
+    Blockchain.POLYGON,
+    Blockchain.BASE,
+    Blockchain.BNB_CHAIN,
+    Blockchain.AVALANCHE,
+    Blockchain.FANTOM,
+    Blockchain.GNOSIS,
+  ];
 }
 ```
 

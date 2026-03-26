@@ -226,52 +226,52 @@ insight/
 
 ### Chainlink
 
-- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Starknet, Blast, Moonbeam, Kava, Polkadot
 - **Features**: Node analytics, extensive data feeds, high reliability
 
 ### Band Protocol
 
-- **Supported Chains**: Cosmos, Osmosis, Juno, Ethereum, Polygon, Avalanche, Fantom, Cronos
+- **Supported Chains**: Cosmos, Osmosis, Juno, Ethereum, Polygon, Avalanche, Fantom, Cronos, Injective, Sei, Kava
 - **Features**: Validator analytics, cross-chain data feeds
 
 ### UMA
 
-- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain, Avalanche, Fantom, Gnosis
 - **Features**: Optimistic oracle, dispute resolution, validator analytics
 
 ### Pyth
 
-- **Supported Chains**: Solana, Ethereum, Arbitrum, Polygon, Optimism, Avalanche, Base
+- **Supported Chains**: Solana, Ethereum, Arbitrum, Polygon, Optimism, Avalanche, Base, Starknet, Blast, Sui, Aptos, Injective, Sei
 - **Features**: Publisher analytics, high-frequency updates, confidence intervals
 
 ### API3
 
-- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, Base, BNB Chain, Optimism
+- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, Base, BNB Chain, Optimism, Moonbeam, Kava, Fantom, Gnosis, Linea, Scroll
 - **Features**: First-party oracle, quantifiable security, Airnode deployments
 
 ### RedStone
 
-- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, Base, BNB Chain, Optimism
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync, Blast, Starknet, Aptos, Sui
 - **Features**: Modular oracle design, data streams, cross-chain support
 
 ### DIA
 
-- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, Base, BNB Chain, Fantom
+- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Fantom, Cronos, Moonbeam, Gnosis, Kava
 - **Features**: Open-source cross-chain oracle, NFT data feeds, transparent methodology
 
 ### Tellor
 
-- **Supported Chains**: Ethereum, Arbitrum, Polygon, BNB Chain, Optimism
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base, Avalanche, BNB Chain, Fantom, Moonbeam, Gnosis
 - **Features**: Stake-based reporting, dispute mechanism, mining rewards
 
 ### Chronicle
 
-- **Supported Chains**: Ethereum, Arbitrum, Polygon, Base
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain, Avalanche, Fantom, Gnosis
 - **Features**: MakerDAO native oracle, Scuttlebutt protocol, on-chain verification
 
 ### WINkLink
 
-- **Supported Chains**: BNB Chain, TRON
+- **Supported Chains**: BNB Chain, TRON, Ethereum
 - **Features**: TRON ecosystem integration, gaming data feeds, entertainment focus
 
 ## Database Schema

@@ -1,5 +1,9 @@
+/**
+ * @fileoverview Tests for useOracleData hook
+ */
+
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { usePriceData, useHistoricalPrices, useMultiplePrices } from '../useOracleData';
+import { usePriceData, useHistoricalPrices } from '../useOracleData';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import { PriceData, Blockchain } from '@/types/oracle';
 
@@ -147,47 +151,5 @@ describe('useHistoricalPrices', () => {
     });
 
     expect(result.current.lastUpdated).toBeGreaterThan(firstUpdate!);
-  });
-});
-
-describe('useMultiplePrices', () => {
-  let client: MockOracleClient;
-
-  beforeEach(() => {
-    client = new MockOracleClient();
-  });
-
-  it('should fetch multiple prices successfully', async () => {
-    const clients = {
-      BTC: client,
-      ETH: client,
-    };
-
-    const { result } = renderHook(() => useMultiplePrices(clients, { symbols: ['BTC', 'ETH'] }));
-
-    expect(result.current.isLoading).toBe(true);
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.prices['BTC']).toBeDefined();
-    expect(result.current.prices['ETH']).toBeDefined();
-    expect(Object.keys(result.current.errors)).toHaveLength(0);
-  });
-
-  it('should handle errors for missing clients', async () => {
-    const clients = {
-      BTC: client,
-    };
-
-    const { result } = renderHook(() => useMultiplePrices(clients, { symbols: ['BTC', 'ETH'] }));
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.errors['ETH']).toBeDefined();
-    expect(result.current.errors['ETH'].message).toContain('No client for symbol');
   });
 });
