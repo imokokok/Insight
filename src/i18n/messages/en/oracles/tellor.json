@@ -146,6 +146,7 @@
     },
     "risk": {
       "overallLevel": "Composite Risk Assessment",
+      "categories": "Risk Categories",
       "basedOnMetrics": "Derived from multi-dimensional risk indicators",
       "dataQualityScore": "Data Quality Index",
       "priceDeviation": "Price Variance",
@@ -202,9 +203,16 @@
       "overallScore": "Overall Score",
       "overallDescription": "Comprehensive assessment based on multi-dimensional risk indicators",
       "outOf100": "out of 100",
+      "strengths": "Strengths",
+      "strength1": "Robust dispute resolution mechanism ensures data accuracy",
+      "strength2": "Decentralized reporter network reduces single points of failure",
+      "strength3": "Transparent staking and slashing mechanism incentivizes honest behavior",
+      "strength4": "Multi-source data aggregation enhances reliability",
+      "considerations": "Key Considerations",
       "consideration1": "Smart contracts have been audited by multiple security firms",
       "consideration2": "Diversified oracle data sources reduce single point of failure risk",
-      "consideration3": "Community governance mechanism is sound with effective dispute resolution"
+      "consideration3": "Community governance mechanism is sound with effective dispute resolution",
+      "disclaimer": "Risk assessment is for reference only and does not constitute investment advice"
     },
     "networkStatus": "Network Status",
     "network": {

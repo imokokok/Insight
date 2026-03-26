@@ -4,3 +4,4 @@ export * from './api';
 export * from './auth';
 export * from './ui';
 export * from './risk';
+export * from './comparison';

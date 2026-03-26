@@ -1,5 +1,4 @@
 export { FilterPanel } from './FilterPanel';
-export { StatsCards, MobileStatsCards } from './StatsCards';
 export { PriceTable } from './PriceTable';
 export { TabNavigation } from './TabNavigation';
 export { StatsSection } from './StatsSection';
@@ -15,3 +14,6 @@ export { ComparisonTabs } from './ComparisonTabs';
 export { ExportSection } from './ExportSection';
 export { ChartTooltip } from './ChartTooltip';
 export { FullscreenChart } from './FullscreenChart';
+export { HeaderStats } from './HeaderStats';
+export { MobileStatsView } from './MobileStatsView';
+export { MobileComparisonTable } from './MobileComparisonTable';

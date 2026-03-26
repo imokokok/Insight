@@ -96,7 +96,7 @@ export default function MarketStats({
     {
       title: t('totalTVS'),
       value: totalTVS,
-      change: {
+      changeData: {
         value: marketStats.change24h,
         percentage: true,
         timeframe: '24h',
@@ -107,7 +107,7 @@ export default function MarketStats({
     {
       title: t('totalChains'),
       value: totalChains,
-      change: {
+      changeData: {
         value: 12.5,
         percentage: true,
         timeframe: '30d',
@@ -118,7 +118,7 @@ export default function MarketStats({
     {
       title: t('totalProtocols'),
       value: `${totalProtocols}+`,
-      change: {
+      changeData: {
         value: 8.3,
         percentage: true,
         timeframe: '30d',
@@ -129,7 +129,7 @@ export default function MarketStats({
     {
       title: t('marketDominance'),
       value: `${marketStats.marketDominance}%`,
-      change: {
+      changeData: {
         value: -0.5,
         percentage: true,
         timeframe: '7d',
@@ -140,7 +140,7 @@ export default function MarketStats({
     {
       title: t('avgLatency'),
       value: `${marketStats.avgUpdateLatency}ms`,
-      change: {
+      changeData: {
         value: -5.2,
         percentage: true,
         timeframe: '7d',
@@ -151,7 +151,7 @@ export default function MarketStats({
     {
       title: t('oracleCount'),
       value: marketStats.oracleCount,
-      change: {
+      changeData: {
         value: 2,
         percentage: false,
         timeframe: '30d',
@@ -168,7 +168,7 @@ export default function MarketStats({
           key={stat.title}
           title={stat.title}
           value={stat.value}
-          change={stat.change}
+          changeData={stat.changeData}
           sparklineData={stat.sparklineData}
           breakdown={stat.breakdown}
           variant="compact"

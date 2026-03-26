@@ -18,3 +18,6 @@ export { BenchmarkComparison } from './BenchmarkComparison';
 
 // 差异高亮组件
 export { DifferenceBadge, DifferenceCell, ComparisonRow } from './DifferenceBadge';
+
+// 增强对比表格组件
+export { EnhancedComparisonTable } from './EnhancedComparisonTable';

@@ -1,6 +1,15 @@
 {
   "winklink": {
     "subtitle": "TRON Ecosystem Oracle - Reliable off-chain data for gaming, DeFi, and entertainment",
+    "menu": {
+      "title": "Menu",
+      "marketData": "Market Data",
+      "networkHealth": "Network Health",
+      "tronEcosystem": "TRON Ecosystem",
+      "staking": "Staking",
+      "gaming": "Gaming",
+      "riskAssessment": "Risk Assessment"
+    },
     "navigation": {
       "title": "WINkLink Navigation"
     },
@@ -26,7 +35,33 @@
       "circulatingSupply": "Circulating Supply",
       "vrfDailyRequests": "VRF Daily Requests",
       "gamingVolume": "Gaming Volume",
-      "activeGames": "Active Games"
+      "activeGames": "Active Games",
+      "dataFeeds": "Data Feeds",
+      "responseTime": "Response Time",
+      "successRate": "Success Rate"
+    },
+    "networkStatus": "Network Status",
+    "dataSource": "Data Source",
+    "tradingPair": "Trading Pair",
+    "liquidity": "Liquidity",
+    "marketDepth": "Market Depth",
+    "depthScore": "Depth Score",
+    "volume24h": "24h Volume",
+    "network": {
+      "activeNodes": "Active Nodes",
+      "dataFeeds": "Data Feeds",
+      "responseTime": "Response Time",
+      "uptime": "Uptime",
+      "totalRequests": "Total Requests (24h)",
+      "avgGas": "Avg Gas Used",
+      "activeChains": "Active Chains",
+      "nodeOperators": "Node Operators",
+      "hourlyActivity": "Hourly Activity",
+      "performance": "Network Performance",
+      "successRate": "Success Rate",
+      "availability": "Availability",
+      "latency": "Latency",
+      "overview": "Network Overview"
     },
     "tron": {
       "title": "TRON Ecosystem Integration",
@@ -38,7 +73,21 @@
       "users": "Users",
       "volume24h": "24h Volume",
       "tvl": "TVL",
-      "integrationCoverage": "Integration Coverage"
+      "integrationCoverage": "Integration Coverage",
+      "dappName": "DApp Name",
+      "category": "Category",
+      "status": "Status",
+      "blockHeight": "Block Height",
+      "dailyActiveUsers": "Daily Active Users",
+      "integrationStats": "Integration Stats",
+      "about": "About TRON Integration",
+      "networkPerformance": "Network Performance",
+      "performanceDesc": "TRON network provides high throughput with 65+ TPS and low transaction costs, making it ideal for oracle data feeds",
+      "ecosystem": "Ecosystem",
+      "ecosystemDesc": "Winklink is the official oracle solution on TRON, powering DeFi, gaming, and NFT applications with reliable price data",
+      "coverageDesc": "Percentage of major dApps on TRON that have integrated Winklink oracle services for price feeds",
+      "dataReliability": "Data Reliability",
+      "reliabilityDesc": "Winklink aggregates data from multiple sources to ensure accurate and tamper-proof price feeds"
     },
     "staking": {
       "title": "Node Staking",
@@ -54,15 +103,34 @@
       "staked": "Staked",
       "uptime": "Uptime",
       "rewards": "Rewards",
-      "aprLabel": "APR"
+      "aprLabel": "APR",
+      "nodeName": "Node Name",
+      "status": "Status",
+      "totalNodes": "Total Nodes",
+      "nodeList": "Node List",
+      "tierDistribution": "Tier Distribution",
+      "overview": "Overview",
+      "calculator": "Staking Calculator",
+      "stakeAmount": "Stake Amount",
+      "stakingPeriod": "Staking Period",
+      "months": "months",
+      "scenario": "Scenario",
+      "expectedRewards": "Expected Rewards",
+      "daily": "Daily",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "totalAfter": "Total after",
+      "calculatorDisclaimer": "This calculator is for reference only. Actual rewards may vary due to network conditions, node performance, and market fluctuations."
     },
     "gaming": {
       "title": "Gaming & Entertainment Data",
       "totalVolume": "Total Gaming Volume",
       "activeGames": "Active Games",
       "dailyRngRequests": "Daily RNG Requests",
+      "dailyRandomRequests": "Daily Random Requests",
       "dataSources": "Data Sources",
       "rngServices": "Random Number Services",
+      "randomNumberServices": "Random Number Services",
       "users": "Users",
       "volume24h": "24h Volume",
       "reliability": "Reliability",
@@ -73,7 +141,21 @@
       "games": "games",
       "vrfUseCases": "VRF Use Cases",
       "usageCount": "Usage Count",
-      "categoryDistribution": "Category Distribution"
+      "categoryDistribution": "Category Distribution",
+      "gameName": "Game Name",
+      "category": "Category",
+      "serviceName": "Service Name",
+      "securityLevel": "Security Level",
+      "avgReliability": "Avg Reliability",
+      "about": "About Gaming Services",
+      "vrfTitle": "Verifiable Randomness",
+      "vrfDesc": "WINkLink VRF provides cryptographically secure random numbers for fair gaming outcomes",
+      "securityTitle": "Security Level",
+      "securityDesc": "High security VRF uses multiple oracle nodes for maximum randomness guarantee",
+      "responseTitle": "Response Time",
+      "responseDesc": "Average response time under 110ms ensures smooth gaming experience",
+      "multiChainTitle": "Multi-Chain Support",
+      "multiChainDesc": "Available on TRON, BNB Chain, and BTTC networks"
     },
     "risk": {
       "title": "Risk Assessment",
@@ -138,7 +220,14 @@
         "auditCycle": "Regular Security Audits",
         "decentralizationIncentive": "Decentralization Incentives",
         "realTimeMonitoring": "Real-Time Risk Monitoring"
-      }
+      },
+      "staleness": "Data Staleness",
+      "deviation": "Price Deviation",
+      "overallRisk": "Overall Risk",
+      "metricsDesc": "Key performance indicators across decentralization, security, and reliability",
+      "overallScore": "Overall",
+      "riskTrend": "Risk Trend",
+      "mitigationMeasures": "Mitigation Measures"
     }
   }
 }

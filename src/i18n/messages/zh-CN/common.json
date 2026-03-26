@@ -369,7 +369,9 @@
     "oracleCount": "预言机数量",
     "highCorrelationPairs": "高相关性对",
     "avgCorrelation": "平均相关性",
-    "maxCorrelation": "最大相关性"
+    "maxCorrelation": "最大相关性",
+    "minCorrelation": "最小相关性",
+    "highCorrelationCount": "高相关性数量"
   },
   "crossChainRisk": {
     "title": "跨链风险"

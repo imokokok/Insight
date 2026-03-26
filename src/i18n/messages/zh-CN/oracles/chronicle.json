@@ -24,6 +24,7 @@
     "volume24h": "24小时交易量",
     "liquidity": "流动性",
     "marketDepth": "市场深度",
+    "depthScore": "深度评分",
     "networkHealth": {
       "responseTime": "响应时间"
     },
@@ -57,7 +58,9 @@
       "verificationStatus": "验证状态",
       "lastAudit": "上次审计",
       "historicalEvents": "历史安全事件",
-      "date": "日期"
+      "date": "日期",
+      "severity": "严重程度",
+      "event": "事件"
     },
     "makerdao": {
       "title": "MakerDAO 集成",
@@ -72,7 +75,10 @@
       "price": "价格",
       "collateralRatio": "抵押率",
       "stabilityFee": "稳定费",
-      "integrationInfo": "集成信息"
+      "integrationInfo": "集成信息",
+      "lastUpdate": "最后更新",
+      "oracleType": "预言机类型",
+      "updateFrequency": "更新频率"
     },
     "assetType": {
       "stablecoin": "稳定币",
@@ -126,7 +132,11 @@
       "totalRequests": "总请求数 (24h)",
       "avgGas": "平均 Gas 消耗",
       "activeChains": "活跃链",
-      "validatorOperators": "验证者运营者"
+      "validatorOperators": "验证者运营者",
+      "performance": "网络性能",
+      "successRate": "成功率",
+      "availability": "可用性",
+      "overview": "网络概览"
     },
     "securityLevel": {
       "high": "高",
@@ -160,7 +170,12 @@
       "avgResponse": "平均响应",
       "successRate": "成功率",
       "staked": "质押",
-      "status": "状态"
+      "status": "状态",
+      "activeValidators": "活跃验证者",
+      "regionDistribution": "区域分布",
+      "overview": "概览",
+      "topPerformers": "表现最佳",
+      "regions": "区域"
     },
     "risk": {
       "overviewTitle": "风险评估概览",
@@ -196,6 +211,7 @@
       "scuttlebuttIntegration": "Scuttlebutt 安全集成",
       "scuttlebuttNote": "Scuttlebutt 安全：",
       "scuttlebuttNoteDesc": "Chronicle 使用 Scuttlebutt 协议确保数据传输安全和验证者身份验证。",
+      "mitigationMeasuresTitle": "风险缓解措施",
       "mitigationMeasures": {
         "scuttlebuttVerification": "Scuttlebutt 验证",
         "validatorRotation": "验证者轮换",

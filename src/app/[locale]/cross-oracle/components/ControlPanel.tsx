@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 
-import { Search, RefreshCw, ChevronDown, ChevronUp, Filter, X, Eye } from 'lucide-react';
+import { Search, RefreshCw, ChevronDown, ChevronUp, Filter, X, Eye, SlidersHorizontal } from 'lucide-react';
 
 import { SegmentedControl, MultiSelect, DropdownSelect } from '@/components/ui';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
@@ -123,38 +123,44 @@ export function ControlPanel({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      {/* 面板头部 */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-500" aria-hidden="true" />
-          {t('controlPanel.title') || 'Query Configuration'}
+      {/* 面板头部 - 优化移动端显示 */}
+      <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+        <h2 className="text-xs sm:text-sm font-semibold text-gray-900 flex items-center gap-1.5 sm:gap-2">
+          <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" aria-hidden="true" />
+          <span className="hidden sm:inline">{t('controlPanel.title') || 'Query Configuration'}</span>
+          <span className="sm:hidden">{t('controlPanel.titleShort') || 'Filters'}</span>
         </h2>
 
         {/* 移动端展开/收起按钮 */}
         <button
           onClick={() => setIsMobileExpanded(!isMobileExpanded)}
-          className="lg:hidden inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900"
+          className="lg:hidden inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors"
           aria-expanded={isMobileExpanded}
         >
           {isMobileExpanded ? (
             <>
-              <ChevronUp className="w-4 h-4" />
-              {t('controlPanel.collapse') || 'Collapse'}
+              <ChevronUp className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">{t('controlPanel.collapse') || 'Collapse'}</span>
             </>
           ) : (
             <>
-              <ChevronDown className="w-4 h-4" />
-              {t('controlPanel.expand') || 'Expand'}
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              {activeFilterCount > 0 && (
+                <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-medium bg-primary-500 text-white rounded-full">
+                  {activeFilterCount}
+                </span>
+              )}
+              <span className="hidden xs:inline">{t('controlPanel.expand') || 'Expand'}</span>
             </>
           )}
         </button>
       </div>
 
-      {/* 控制面板内容 */}
-      <div className={`p-4 space-y-4 ${isMobileExpanded ? '' : 'hidden lg:block'}`}>
+      {/* 控制面板内容 - 移动端优化间距 */}
+      <div className={`p-3 sm:p-4 space-y-3 sm:space-y-4 ${isMobileExpanded ? '' : 'hidden lg:block'}`}>
         {/* 活跃筛选器标签 */}
         {activeFilterCount > 0 && (
-          <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div className="flex items-center justify-between pb-2 sm:pb-3 border-b border-gray-100">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-primary-50 text-primary-700 border border-primary-100 rounded-md">
                 {activeFilterCount} {t('crossOracle.filter.filtersActive') || 'filters active'}
@@ -171,8 +177,8 @@ export function ControlPanel({
         )}
 
         {/* 资产选择 */}
-        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
-          <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">
+        <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
+          <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">
             {t('controlPanel.symbol') || 'Trading Pair'}
           </label>
           <DropdownSelect
@@ -186,8 +192,8 @@ export function ControlPanel({
           />
         </section>
 
-        {/* 预言机多选 */}
-        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
+        {/* 预言机多选 - 移动端优化 */}
+        <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
           <MultiSelect
             options={oracleOptions}
             value={selectedOracles}
@@ -199,20 +205,21 @@ export function ControlPanel({
           />
         </section>
 
-        {/* 时间范围选择 */}
-        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
+        {/* 时间范围选择 - 移动端使用更紧凑的布局 */}
+        <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
           <SegmentedControl
             options={timeRangeOptions}
             value={timeRange}
             onChange={(value) => onTimeRangeChange(value as TimeRange)}
             label={t('controlPanel.timeRange') || 'Time Range'}
             size="sm"
+            className="flex-wrap"
           />
         </section>
 
         {/* 偏差筛选 */}
-        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
-          <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">
+        <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
+          <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">
             {t('controlPanel.deviationFilter') || 'Deviation Filter'}
           </label>
           <DropdownSelect
@@ -231,7 +238,7 @@ export function ControlPanel({
             className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors py-2 px-3 rounded-md hover:bg-gray-50/80"
             aria-expanded={showAdvanced}
           >
-            <span className="text-[11px] font-semibold uppercase tracking-wider">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider">
               {t('controlPanel.advancedOptions') || 'Advanced Options'}
             </span>
             {showAdvanced ? (
@@ -262,12 +269,12 @@ export function ControlPanel({
           )}
         </div>
 
-        {/* 查询按钮 */}
+        {/* 查询按钮 - 移动端优化 */}
         <div className="pt-2 border-t border-gray-200">
           <button
             onClick={onQuery}
             disabled={isLoading || selectedOracles.length === 0}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md shadow-sm"
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md shadow-sm active:scale-[0.98] transform"
           >
             {isLoading ? (
               <>

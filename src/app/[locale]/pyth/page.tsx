@@ -6,8 +6,6 @@ import { LoadingState, ErrorFallback } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
-import { type PythTabId } from './types';
-
 import {
   PythSidebar,
   PythMarketView,
@@ -19,6 +17,7 @@ import {
   PythHero,
 } from './components';
 import { usePythPage } from './hooks/usePythPage';
+import { type PythTabId } from './types';
 
 export default function PythPage() {
   const {
@@ -103,7 +102,10 @@ export default function PythPage() {
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
-              <PythSidebar activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as PythTabId)} />
+              <PythSidebar
+                activeTab={activeTab}
+                onTabChange={(tab) => setActiveTab(tab as PythTabId)}
+              />
             </div>
           </div>
 

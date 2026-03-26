@@ -143,10 +143,14 @@
       "baseReward": "基础奖励",
       "accuracyBonus": "准确率奖励",
       "stakeBonus": "质押奖励",
-      "regionDistribution": "地区分布"
+      "regionDistribution": "地区分布",
+      "avgReputation": "平均声誉",
+      "topPerformers": "顶级表现者",
+      "regions": "地区"
     },
     "risk": {
       "overallLevel": "整体风险等级",
+      "categories": "风险类别",
       "basedOnMetrics": "基于多维度指标评估",
       "dataQualityScore": "数据质量评分",
       "priceDeviation": "价格偏差",
@@ -203,9 +207,16 @@
       "overallScore": "综合评分",
       "overallDescription": "基于多维度风险指标的综合评估",
       "outOf100": "满分 100",
+      "strengths": "优势",
+      "strength1": "强大的争议解决机制确保数据准确性",
+      "strength2": "去中心化报告者网络减少单点故障",
+      "strength3": "透明的质押和罚没机制激励诚实行为",
+      "strength4": "多源数据聚合增强可靠性",
+      "considerations": "关键考虑因素",
       "consideration1": "智能合约已通过多家安全公司审计",
       "consideration2": "预言机数据源多样化，降低单点故障风险",
-      "consideration3": "社区治理机制完善，争议解决机制有效"
+      "consideration3": "社区治理机制完善，争议解决机制有效",
+      "disclaimer": "风险评估仅供参考，不构成投资建议"
     },
     "networkStatus": "网络状态",
     "network": {

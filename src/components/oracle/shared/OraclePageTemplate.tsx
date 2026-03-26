@@ -55,25 +55,22 @@ import {
 import { StakingPanel } from '@/components/oracle/panels/StakingPanel';
 import { UMADashboardPanel } from '@/components/oracle/panels/UMADashboardPanel';
 import { UMAEcosystemPanel } from '@/components/oracle/panels/UMAEcosystemPanel';
-import { useRefresh, useExport, type ExportOptions } from '@/hooks';
-import { useTranslations } from '@/i18n';
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData, OracleProvider } from '@/types/oracle';
-import { UMANetworkStats } from '@/lib/oracles/uma/types';
-
-import { GasFeeTrendChart } from '../charts/GasFeeTrendChart';
-import { MACDIndicator } from '../indicators/MACDIndicator';
-import { RSIIndicator } from '../indicators/RSIIndicator';
-
-import { useGlobalTimeRange, useSetGlobalTimeRange } from '@/stores/uiStore';
-import { UMAClient } from '@/lib/oracles/uma';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-
-import { KPIDashboard } from '../charts/KPIDashboard';
-
 import { UMANetworkPanel } from '@/components/oracle/panels/UMANetworkPanel';
 import { UMARiskPanel } from '@/components/oracle/panels/UMARiskPanel';
+import { useRefresh, useExport, type ExportOptions } from '@/hooks';
+import { useTranslations } from '@/i18n';
+import { type OracleConfig } from '@/lib/config/oracles';
+import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
+import { UMAClient } from '@/lib/oracles/uma';
+import { type UMANetworkStats } from '@/lib/oracles/uma/types';
 import { createLogger } from '@/lib/utils/logger';
+import { useGlobalTimeRange, useSetGlobalTimeRange } from '@/stores/uiStore';
+import { type PriceData, OracleProvider } from '@/types/oracle';
+
+import { GasFeeTrendChart } from '../charts/GasFeeTrendChart';
+import { KPIDashboard } from '../charts/KPIDashboard';
+import { MACDIndicator } from '../indicators/MACDIndicator';
+import { RSIIndicator } from '../indicators/RSIIndicator';
 
 const logger = createLogger('OraclePageTemplate');
 

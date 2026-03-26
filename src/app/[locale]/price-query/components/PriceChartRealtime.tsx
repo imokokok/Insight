@@ -28,7 +28,6 @@ import { CustomLegend } from './CustomLegend';
 import { CustomTooltip } from './CustomTooltip';
 import { Icons } from './Icons';
 
-
 const logger = createLogger('price-query-PriceChartRealtime');
 
 export interface RealtimeChartDataPoint {

@@ -21,6 +21,7 @@
     "volume24h": "24h Volume",
     "liquidity": "Liquidity",
     "marketDepth": "Market Depth",
+    "depthScore": "Depth Score",
     "tabs": {
       "market": "Market",
       "makerdao": "MakerDAO",
@@ -49,7 +50,10 @@
       "securityFeatures": "Active Security Features",
       "verificationStatus": "Verification Status",
       "lastAudit": "Last Audit",
-      "historicalEvents": "Historical Security Events"
+      "historicalEvents": "Historical Security Events",
+      "date": "Date",
+      "severity": "Severity",
+      "event": "Event"
     },
     "makerdao": {
       "title": "MakerDAO Integration",
@@ -63,7 +67,11 @@
       "type": "Type",
       "price": "Price",
       "collateralRatio": "Collateral Ratio",
-      "stabilityFee": "Stability Fee"
+      "stabilityFee": "Stability Fee",
+      "integrationInfo": "Integration Information",
+      "lastUpdate": "Last Update",
+      "oracleType": "Oracle Type",
+      "updateFrequency": "Update Frequency"
     },
     "assetType": {
       "stablecoin": "Stablecoin",
@@ -113,7 +121,11 @@
       "secure": "Secure by Design",
       "secureDesc": "Multi-layered security with cryptographic verification",
       "monitoring": "24/7 Monitoring",
-      "monitoringDesc": "Continuous network monitoring and automated alerting"
+      "monitoringDesc": "Continuous network monitoring and automated alerting",
+      "performance": "Network Performance",
+      "successRate": "Success Rate",
+      "availability": "Availability",
+      "overview": "Network Overview"
     },
     "securityLevel": {
       "high": "High",
@@ -146,7 +158,12 @@
       "responseTime": "Response Time",
       "successRate": "Success Rate",
       "staked": "Staked",
-      "status": "Status"
+      "status": "Status",
+      "activeValidators": "Active Validators",
+      "regionDistribution": "Region Distribution",
+      "overview": "Overview",
+      "topPerformers": "Top Performers",
+      "regions": "Regions"
     },
     "risk": {
       "overviewTitle": "Risk Assessment Overview",
@@ -182,6 +199,7 @@
       "scuttlebuttIntegration": "Scuttlebutt Security Integration",
       "scuttlebuttNote": "Scuttlebutt Security:",
       "scuttlebuttNoteDesc": " Chronicle uses the Scuttlebutt protocol to ensure data transmission security and validator identity verification.",
+      "mitigationMeasuresTitle": "Mitigation Measures",
       "mitigationMeasures": {
         "scuttlebuttVerification": "Scuttlebutt Verification",
         "validatorRotation": "Validator Rotation",

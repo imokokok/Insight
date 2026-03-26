@@ -6,8 +6,6 @@ import { LoadingState, ErrorFallback } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
-import { type ChainlinkTabId } from './types';
-
 import {
   ChainlinkSidebar,
   ChainlinkHero,
@@ -20,6 +18,7 @@ import {
   ChainlinkRiskView,
 } from './components';
 import { useChainlinkPage } from './hooks/useChainlinkPage';
+import { type ChainlinkTabId } from './types';
 
 export default function ChainlinkPage() {
   const {
@@ -101,7 +100,10 @@ export default function ChainlinkPage() {
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
-              <ChainlinkSidebar activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as ChainlinkTabId)} />
+              <ChainlinkSidebar
+                activeTab={activeTab}
+                onTabChange={(tab) => setActiveTab(tab as ChainlinkTabId)}
+              />
             </div>
           </div>
 
