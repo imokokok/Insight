@@ -542,12 +542,12 @@ export default function CrossChainPage() {
   );
 
   return (
-    <div className="min-h-screen bg-insight">
+    <div className="min-h-screen bg-gray-50">
       {/* Main Content */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Page Header */}
-        <div className="flex flex-col gap-3 mb-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">{t('crossChain.title')}</h1>
               <p className="text-sm mt-1 text-gray-500">{t('crossOracle.subtitle')}</p>
@@ -713,15 +713,13 @@ export default function CrossChainPage() {
               <button
                 onClick={fetchData}
                 disabled={refreshStatus === 'refreshing'}
-                className="flex items-center gap-1.5 px-4 py-1.5 text-sm text-white disabled:opacity-50 rounded-md transition-colors"
-                style={{
-                  backgroundColor:
-                    refreshStatus === 'error'
-                      ? semanticColors.danger.main
-                      : refreshStatus === 'success' && showRefreshSuccess
-                        ? semanticColors.success.main
-                        : baseColors.gray[900],
-                }}
+                className={`flex items-center gap-1.5 px-4 py-1.5 text-sm text-white disabled:opacity-50 rounded-md transition-all duration-200 ${
+                  refreshStatus === 'error'
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : refreshStatus === 'success' && showRefreshSuccess
+                      ? 'bg-emerald-600 hover:bg-emerald-700'
+                      : 'bg-gray-900 hover:bg-gray-800'
+                }`}
               >
                 <RefreshCw
                   className={`w-3.5 h-3.5 ${refreshStatus === 'refreshing' ? 'animate-spin' : ''}`}
@@ -744,10 +742,10 @@ export default function CrossChainPage() {
         </div>
 
         {/* Two Column Layout */}
-        <div className="flex flex-col xl:flex-row gap-6">
+        <div className="flex flex-col xl:flex-row gap-4">
           {/* Left Sidebar - Sticky */}
-          <div className="xl:w-[400px] flex-shrink-0">
-            <div className="xl:sticky xl:top-6 space-y-6">
+          <div className="xl:w-[360px] flex-shrink-0">
+            <div className="xl:sticky xl:top-6 space-y-4">
               {/* Filters */}
               <CrossChainFilters data={data} />
 
@@ -755,7 +753,7 @@ export default function CrossChainPage() {
               <PriceSpreadHeatmap data={data} />
 
               {/* Auto Refresh Setting */}
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{t('crossChain.autoRefresh')}</span>
                   <SegmentedControl
@@ -786,17 +784,14 @@ export default function CrossChainPage() {
 
             {/* Tab Content */}
             {loading ? (
-              <div className="py-16 flex flex-col justify-center items-center gap-3">
-                <div
-                  className="w-8 h-8 border-2 border-t-transparent animate-spin"
-                  style={{ borderColor: baseColors.gray[400] }}
-                />
-                <div className="text-sm" style={{ color: baseColors.gray[500] }}>
+              <div className="py-16 flex flex-col justify-center items-center gap-3 bg-white rounded-lg border border-gray-200 mt-4">
+                <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+                <div className="text-sm text-gray-500">
                   {t('crossChain.loadingData')}
                 </div>
               </div>
             ) : (
-              <div className="mt-6">
+              <div className="mt-4">
                 {activeTab === 'overview' && renderOverviewTab()}
                 {activeTab === 'correlation' && renderCorrelationTab()}
                 {activeTab === 'advanced' && renderAdvancedTab()}

@@ -76,6 +76,13 @@
     "skewness": "偏度",
     "kurtosis": "峰度",
     "confidenceInterval95": "95%置信区间",
+    "keyMetrics": "核心指标",
+    "advancedMetrics": "高级指标",
+    "detail": "详情",
+    "zScore": "Z-分数",
+    "noData": "暂无数据",
+    "lowestPrice": "最低价格",
+    "dataIntegrityScore": "数据完整性评分",
     "tooltip": {
       "averagePrice": "所有链价格的平均值，反映整体价格水平",
       "medianPrice": "中位数是排序后位于中间位置的价格值，比平均值更稳健",

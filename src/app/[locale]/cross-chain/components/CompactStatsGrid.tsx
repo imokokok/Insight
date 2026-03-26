@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
+
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import { CompactStatCard } from '@/components/ui';
 import { useTranslations } from '@/i18n';
@@ -11,57 +13,62 @@ interface CompactStatsGridProps {
   statsData: ChainStats[];
 }
 
-// 生成模拟 Sparkline 数据
-function generateMockSparklineData(seed: number, points: number = 20): number[] {
-  const data: number[] = [];
-  let value = 50 + (seed % 50);
-
-  for (let i = 0; i < points; i++) {
-    // 基于 seed 生成相对稳定的随机波动
-    const change = Math.sin(seed + i * 0.5) * 10 + (Math.random() - 0.5) * 15;
-    value = Math.max(10, Math.min(100, value + change));
-    data.push(value);
-  }
-
-  return data;
-}
-
 export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
   const t = useTranslations();
   const [showAll, setShowAll] = useState(false);
 
-  // 核心指标（始终显示）
-  const coreStats = statsData.slice(0, 6);
+  // 核心指标索引（始终显示）
+  const coreIndices = [0, 1, 2, 3, 4, 11]; // 平均价格、价格区间、标准差、中位数、数据点、一致性评级
 
-  const displayStats = showAll ? statsData : coreStats;
+  // 获取核心指标
+  const coreStats = coreIndices
+    .map((index) => statsData[index])
+    .filter((stat): stat is ChainStats => stat !== undefined);
 
-  // 为每个 stat 生成 sparkline 数据（使用 useMemo 缓存）
-  const statsWithSparkline = useMemo(() => {
-    return displayStats.map((stat, index) => ({
-      ...stat,
-      sparklineData: generateMockSparklineData(index + (stat.label.charCodeAt(0) || 0)),
-    }));
-  }, [displayStats]);
+  // 获取额外指标（非核心指标）
+  const extraStats = statsData.filter((_, index) => !coreIndices.includes(index));
+
+  const displayStats = showAll ? [...coreStats, ...extraStats] : coreStats;
 
   return (
-    <div id="stats" className="mb-8 pb-8 border-b border-gray-100">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-900">{t('crossChain.statistics')}</h3>
+    <div id="stats" className="mb-6 pb-6 border-b border-gray-200">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+          {t('crossChain.keyMetrics')}
+        </h3>
         <button
           onClick={() => setShowAll(!showAll)}
-          className="text-xs px-3 py-1.5 border border-gray-300 rounded-md text-gray-600 transition-colors hover:bg-gray-50"
+          className="inline-flex items-center gap-1 text-xs px-3 py-1.5 
+                     bg-white border border-gray-300 rounded-md 
+                     text-gray-600 transition-all duration-200
+                     hover:bg-gray-50 hover:border-gray-400
+                     active:bg-gray-100"
         >
-          {showAll ? t('crossChain.collapse') : t('crossChain.viewAll')}
+          {showAll ? (
+            <>
+              <ChevronUp className="w-3.5 h-3.5" />
+              {t('crossChain.collapse')}
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-3.5 h-3.5" />
+              {t('crossChain.viewAll')}
+            </>
+          )}
           <span className="ml-1 text-gray-400">
             ({coreStats.length}/{statsData.length})
           </span>
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 transition-all duration-300">
-        {statsWithSparkline.map((stat, index) => (
+      <div
+        className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 transition-all duration-300 ${
+          showAll ? 'grid-rows-auto' : ''
+        }`}
+      >
+        {displayStats.map((stat, index) => (
           <CompactStatCard
-            key={index}
+            key={`${stat.label}-${index}`}
             title={stat.label}
             value={stat.value}
             change={
@@ -72,7 +79,6 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
                   }
                 : undefined
             }
-            sparklineData={stat.sparklineData}
             breakdown={
               stat.subValue ? [{ label: t('crossChain.detail'), value: stat.subValue }] : undefined
             }
@@ -80,6 +86,40 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
           />
         ))}
       </div>
+
+      {/* 额外指标区域（展开时显示） */}
+      {showAll && extraStats.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+            {t('crossChain.advancedMetrics')}
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {extraStats.map((stat, index) => (
+              <CompactStatCard
+                key={`extra-${stat.label}-${index}`}
+                title={stat.label}
+                value={stat.value}
+                change={
+                  stat.trend !== null && stat.trend !== undefined
+                    ? {
+                        value: stat.trend,
+                        percentage: true,
+                      }
+                    : undefined
+                }
+                breakdown={
+                  stat.subValue
+                    ? [{ label: t('crossChain.detail'), value: stat.subValue }]
+                    : undefined
+                }
+                tooltip={stat.tooltip}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+export default CompactStatsGrid;

@@ -73,7 +73,12 @@
       "connectedChains": "Integrated Chains",
       "ibcRelayers": "Active IBC Relayers",
       "oracleScripts": "Deployed Oracle Scripts",
-      "crossChainRisk": "Cross-Chain Transmission Risk"
+      "crossChainRisk": "Cross-Chain Transmission Risk",
+      "riskLevel": {
+        "low": "Low Risk",
+        "medium": "Medium Risk",
+        "high": "High Risk"
+      }
     },
     "crossChain": {
       "title": "Cross-Chain Data",
@@ -84,6 +89,8 @@
       "supportedChains": "Supported Chains",
       "chainDataRequests": "Chain Data Requests",
       "chainName": "Chain Name",
+      "chain": "Chain",
+      "chainId": "Chain ID",
       "requests24h": "24h Requests",
       "requests7d": "7d Requests",
       "requests30d": "30d Requests",
@@ -130,34 +137,6 @@
       "blockchains": "Blockchains",
       "dataFeeds": "Data Feeds",
       "tvlSecured": "TVL Secured"
-    }
-  },
-  "band": {
-    "riskAssessment": {
-      "overallRiskScore": "Overall Risk Score",
-      "comprehensiveAssessment": "Comprehensive Assessment",
-      "dimensionScores": "Dimension Scores",
-      "decentralization": "Decentralization",
-      "security": "Security",
-      "stability": "Stability",
-      "dataQuality": "Data Quality",
-      "scoreTrend": "Score Trend",
-      "overall": "Overall",
-      "riskMetrics": "Risk Metrics",
-      "validatorConcentration": "Validator Concentration",
-      "topValidatorsShare": "Top Validators Share",
-      "top10ValidatorsShare": "Top 10 Validators Share",
-      "giniCoefficient": "Gini Coefficient",
-      "ibcMetrics": "IBC Metrics",
-      "connectedChains": "Connected Chains",
-      "ibcRelayers": "IBC Relayers",
-      "oracleScripts": "Oracle Scripts",
-      "crossChainRisk": "Cross-Chain Risk",
-      "riskLevel": {
-        "low": "Low Risk",
-        "medium": "Medium Risk",
-        "high": "High Risk"
-      }
     },
     "validators": {
       "totalValidators": "Total Validators",
@@ -190,7 +169,16 @@
     },
     "dataFeeds": {
       "totalFeeds": "Total Feeds",
+      "total": "Total",
       "active": "Active",
+      "totalRequests": "Total Requests",
+      "avgReliability": "Avg Reliability",
+      "title": "Data Feeds",
+      "feed": "Feed",
+      "category": "Category",
+      "updateFreq": "Update Freq",
+      "deviation": "Deviation",
+      "reliability": "Reliability",
       "dataSources": "Data Sources",
       "totalSources": "Total Sources",
       "avgConfidence": "Avg Confidence",
@@ -204,12 +192,10 @@
       "symbol": "Symbol",
       "price": "Price",
       "change24h": "24h Change",
-      "updateFreq": "Update Freq",
       "confidence": "Confidence",
       "sources": "Sources",
       "status": "Status",
       "feeds": "Feeds",
-      "reliability": "Reliability",
       "latency": "Latency",
       "dataQuality": "Data Quality",
       "multiSource": "Multi-Source Verification",
@@ -217,7 +203,15 @@
       "realTime": "Real-Time Updates",
       "realTimeDesc": "High-frequency price updates with sub-second latency for responsive applications",
       "decentralized": "Decentralized Validation",
-      "decentralizedDesc": "Validator network ensures data integrity through cryptographic proofs and economic incentives"
+      "decentralizedDesc": "Validator network ensures data integrity through cryptographic proofs and economic incentives",
+      "about": "About Data Feeds",
+      "updateFrequency": "Update Frequency",
+      "frequencyDesc": "Data feeds are updated based on deviation thresholds and heartbeat intervals to ensure price accuracy.",
+      "deviationThreshold": "Deviation Threshold",
+      "thresholdDesc": "Minimum price change required to trigger a new on-chain update.",
+      "reliabilityDesc": "Percentage of successful updates over the last 30 days, excluding planned maintenance.",
+      "decentralization": "Decentralization",
+      "decentralizationDesc": "Each data feed is secured by multiple independent validators."
     },
     "staking": {
       "totalStaked": "Total Staked",

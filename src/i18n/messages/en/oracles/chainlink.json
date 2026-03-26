@@ -83,7 +83,13 @@
     "feedsByCategory": "Feeds by Asset Class",
     "feedPerformance": "Feed Reliability",
     "reliability": "Uptime Score",
-    "avgReliability": "Avg Reliability"
+    "avgReliability": "Avg Reliability",
+    "about": "About Data Feeds",
+    "frequencyDesc": "Data feeds are updated based on deviation thresholds and heartbeat intervals to ensure price accuracy.",
+    "thresholdDesc": "Minimum price change required to trigger a new on-chain update.",
+    "reliabilityDesc": "Percentage of successful updates over the last 30 days, excluding planned maintenance.",
+    "decentralization": "Decentralization",
+    "decentralizationDesc": "Each data feed is secured by multiple independent node operators."
   },
   "ecosystem": {
     "totalIntegratedProtocols": "Total Integrated Protocols",
@@ -110,7 +116,21 @@
       "title": "TVL Trend Analysis",
       "totalTvl": "Total TVL",
       "ethereum": "Ethereum",
-      "l2Networks": "L2 Networks"
+      "l2Networks": "L2 Networks",
+      "altL1": "Alt L1",
+      "filterByChain": "Filter by chain"
+    },
+    "projectAnalysis": {
+      "projectsByChain": "Projects by Chain",
+      "totalProjects": "Total Projects",
+      "thisMonth": "this month"
+    },
+    "growth": {
+      "title": "Ecosystem Growth",
+      "newProjects": "New Projects",
+      "integrations": "Integrations",
+      "communityGrowth": "Community",
+      "protocolRevenue": "Revenue"
     }
   },
   "riskAssessment": {
@@ -328,7 +348,16 @@
     "serviceName": "Service",
     "requests": "Requests",
     "avgResponse": "Avg Response",
-    "topUseCases": "Top Use Cases"
+    "topUseCases": "Top Use Cases",
+    "overview": "Service Overview",
+    "uptime": "Uptime",
+    "usageDistribution": "Service Usage Distribution",
+    "about": "About Chainlink Services",
+    "dataFeedsDesc": "Decentralized price feeds for cryptocurrencies, commodities, forex, and more.",
+    "vrfDesc": "Verifiable Random Function for provably fair and tamper-proof randomness.",
+    "automationDesc": "Reliable smart contract automation for conditional execution.",
+    "ccipDesc": "Cross-Chain Interoperability Protocol for secure cross-chain messaging.",
+    "functionsDesc": "Serverless Web3 platform for fetching data from any API."
   },
   "quickStats": "Quick Stats",
   "24hVolume": "24h Volume",
