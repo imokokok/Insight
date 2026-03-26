@@ -55,7 +55,7 @@ interface ViewState {
   endIndex: number;
 }
 
-// Custom tooltip component - defined outside main component to avoid re-creation
+// Custom tooltip component
 interface CustomTooltipProps {
   active?: boolean;
   payload?: ReadonlyArray<{ dataKey?: string | number; value?: number; color?: string }>;
@@ -74,22 +74,22 @@ function CustomTooltip({ active, payload, label, filteredChains }: CustomTooltip
   );
 
   return (
-    <div className="bg-white border border-gray-200 p-4 min-w-[280px]">
-      <p className="text-gray-600 text-xs mb-3 font-medium border-b border-gray-100 pb-2">
+    <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-lg min-w-[240px]">
+      <p className="text-gray-600 text-xs mb-2 font-medium border-b border-gray-100 pb-2">
         {label}
       </p>
-      {priceData.map((entry, _index: number) => (
+      {priceData.map((entry) => (
         <div
           key={String(entry.dataKey)}
-          className="mb-2 pb-2 border-b border-gray-100 last:border-0"
+          className="mb-1.5 pb-1.5 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0"
         >
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-3 h-3" style={{ backgroundColor: entry.color }} />
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
             <span className="text-sm font-medium text-gray-900">
               {chainNames[entry.dataKey as Blockchain]}
             </span>
           </div>
-          <div className="text-sm text-gray-700 pl-5 font-mono">
+          <div className="text-sm text-gray-700 pl-4.5 font-mono">
             ${Number(entry.value).toFixed(4)}
           </div>
         </div>
@@ -118,30 +118,25 @@ export function InteractivePriceChart({
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
   const [selectionEnd, setSelectionEnd] = useState<{ x: number; y: number } | null>(null);
-  const [isDraggingRefLine, setIsDraggingRefLine] = useState<string | null>(null);
   const [showSelectionBox, setShowSelectionBox] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24H');
 
   // Handle time range change
   const handleTimeRangeChange = useCallback((range: string) => {
     setSelectedTimeRange(range as TimeRange);
-    // TODO: Implement time range filtering logic
-    console.log('Time range changed to:', range);
   }, []);
 
   // Handle export
   const handleExport = useCallback(() => {
     console.log('Exporting chart data...');
-    // TODO: Implement export functionality
   }, []);
 
-  // Update view state when data changes - using a microtask to avoid synchronous setState
+  // Update view state when data changes
   const prevDataLengthRef = useRef(chartData.length);
   useEffect(() => {
     if (chartData.length !== prevDataLengthRef.current) {
       prevDataLengthRef.current = chartData.length;
       if (chartData.length > 0) {
-        // Use queueMicrotask to defer the state update
         queueMicrotask(() => {
           setViewState({
             startIndex: 0,
@@ -175,7 +170,6 @@ export function InteractivePriceChart({
       });
     });
 
-    // Add some padding
     const padding = (maxPrice - minPrice) * 0.1;
     return [minPrice - padding, maxPrice + padding] as [number, number];
   }, [visibleData, filteredChains]);
@@ -236,7 +230,7 @@ export function InteractivePriceChart({
   // Box selection for zoom
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (e.button === 0 && !isDraggingRefLine) {
+      if (e.button === 0) {
         const rect = containerRef.current?.getBoundingClientRect();
         if (rect) {
           setIsSelecting(true);
@@ -246,7 +240,7 @@ export function InteractivePriceChart({
         }
       }
     },
-    [isDraggingRefLine]
+    []
   );
 
   const handleMouseMove = useCallback(
@@ -263,17 +257,13 @@ export function InteractivePriceChart({
 
   const handleMouseUp = useCallback(() => {
     if (isSelecting && selectionStart && selectionEnd) {
-      // Calculate selection as percentage of chart width
       const chartWidth = containerRef.current?.clientWidth || 1;
-
       const selectionWidth = Math.abs(selectionEnd.x - selectionStart.x);
       const selectionHeight = Math.abs(selectionEnd.y - selectionStart.y);
 
-      // Only zoom if selection is significant
       if (selectionWidth > 30 && selectionHeight > 30) {
         const leftPercent = Math.min(selectionStart.x, selectionEnd.x) / chartWidth;
         const rightPercent = Math.max(selectionStart.x, selectionEnd.x) / chartWidth;
-
         const currentRange = viewState.endIndex - viewState.startIndex;
         const newStart = Math.floor(viewState.startIndex + leftPercent * currentRange);
         const newEnd = Math.ceil(viewState.startIndex + rightPercent * currentRange);
@@ -291,7 +281,6 @@ export function InteractivePriceChart({
     setSelectionStart(null);
     setSelectionEnd(null);
     setShowSelectionBox(false);
-    setIsDraggingRefLine(null);
   }, [isSelecting, selectionStart, selectionEnd, viewState, chartData.length]);
 
   // Reference line functions
@@ -353,7 +342,6 @@ export function InteractivePriceChart({
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl + Arrow keys for panning
       if (e.ctrlKey) {
         switch (e.key) {
           case 'ArrowLeft':
@@ -371,7 +359,6 @@ export function InteractivePriceChart({
         }
       }
 
-      // Arrow keys without Ctrl for panning
       if (!e.ctrlKey && !e.altKey && !e.metaKey) {
         switch (e.key) {
           case 'ArrowLeft':
@@ -444,122 +431,72 @@ export function InteractivePriceChart({
   );
 
   return (
-    <div className="mb-8 pb-8 border-b border-gray-200">
+    <div className="mb-6 pb-6 border-b border-gray-200">
       {/* Chart Toolbar */}
       <ChartToolbar
         timeRanges={['1H', '24H', '7D', '30D']}
         selectedRange={selectedTimeRange}
         onRangeChange={handleTimeRangeChange}
         onExport={handleExport}
-        className="mb-4"
+        className="mb-3"
       />
 
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
           {t('crossChain.priceChart')}
         </h3>
 
         {/* Control Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Zoom Controls */}
-          <div className="flex items-center gap-1 bg-gray-100 p-1">
+          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-md">
             <button
               onClick={handleZoomIn}
-              className="p-1.5 hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+              className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
               title={t('crossChain.zoomIn')}
             >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                />
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
               </svg>
             </button>
             <button
               onClick={handleZoomOut}
-              className="p-1.5 hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+              className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
               title={t('crossChain.zoomOut')}
             >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"
-                />
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
               </svg>
             </button>
             <button
               onClick={handleResetZoom}
-              className="p-1.5 hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+              className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
               title={t('crossChain.resetZoom')}
             >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
           </div>
 
           {/* Pan Controls */}
-          <div className="flex items-center gap-1 bg-gray-100 p-1">
+          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-md">
             <button
               onClick={handlePanLeft}
-              className="p-1.5 hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+              className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
               title={t('crossChain.panLeft')}
             >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <button
               onClick={handlePanRight}
-              className="p-1.5 hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+              className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
               title={t('crossChain.panRight')}
             >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
           </div>
@@ -568,32 +505,26 @@ export function InteractivePriceChart({
           <div className="flex items-center gap-1">
             <button
               onClick={() => addReferenceLine('current')}
-              className="px-2 py-1.5 text-xs bg-primary-50 text-primary-700 hover:border-primary-300 border border-transparent transition-colors"
+              className="px-2 py-1.5 text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded transition-all duration-200"
             >
               {t('crossChain.currentPrice')}
             </button>
             <button
               onClick={() => addReferenceLine('avg')}
-              className="px-2 py-1.5 text-xs bg-success-50 text-success-700 hover:border-green-300 border border-transparent transition-colors"
+              className="px-2 py-1.5 text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded transition-all duration-200"
             >
               {t('crossChain.averagePrice')}
             </button>
             <button
               onClick={() => addReferenceLine('median')}
-              className="px-2 py-1.5 text-xs bg-warning-50 text-warning-700 hover:border-yellow-300 border border-transparent transition-colors"
+              className="px-2 py-1.5 text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded transition-all duration-200"
             >
               {t('crossChain.medianPrice')}
-            </button>
-            <button
-              onClick={() => addReferenceLine('custom')}
-              className="px-2 py-1.5 text-xs bg-purple-50 text-purple-700 hover:border-purple-300 border border-transparent transition-colors"
-            >
-              {t('crossChain.customLine')}
             </button>
             {referenceLines.length > 0 && (
               <button
                 onClick={clearAllReferenceLines}
-                className="px-2 py-1.5 text-xs bg-danger-50 text-danger-700 hover:border-red-300 border border-transparent transition-colors"
+                className="px-2 py-1.5 text-xs bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded transition-all duration-200"
               >
                 {t('crossChain.clearAll')}
               </button>
@@ -614,14 +545,14 @@ export function InteractivePriceChart({
           {referenceLines.map((line) => (
             <div
               key={line.id}
-              className="flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 text-xs"
+              className="flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs"
             >
-              <span className="w-2 h-0.5" style={{ backgroundColor: line.color }} />
+              <span className="w-2 h-0.5 rounded-full" style={{ backgroundColor: line.color }} />
               <span className="text-gray-600">{line.label}:</span>
               <span className="font-mono text-gray-800">${line.y.toFixed(4)}</span>
               <button
                 onClick={() => removeReferenceLine(line.id)}
-                className="ml-1 text-gray-400 hover:text-danger-500 border border-transparent hover:border-gray-200"
+                className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
               >
                 ×
               </button>
@@ -633,7 +564,7 @@ export function InteractivePriceChart({
       {/* Chart Container */}
       <div
         ref={containerRef}
-        className="h-96 relative select-none"
+        className="h-80 relative select-none bg-white border border-gray-200 rounded-lg p-2"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -641,12 +572,18 @@ export function InteractivePriceChart({
       >
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={visibleData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis 
+              dataKey="time" 
+              stroke="#9ca3af"
+              tick={{ fill: '#6b7280', fontSize: 11 }}
+            />
             <YAxis
               domain={priceDomain}
               tickFormatter={(v) => `$${Number(v).toLocaleString()}`}
               width={70}
+              stroke="#9ca3af"
+              tick={{ fill: '#6b7280', fontSize: 11 }}
             />
             <RechartsTooltip content={renderTooltip} />
             <Legend
@@ -705,24 +642,22 @@ export function InteractivePriceChart({
         {/* Selection Box Overlay */}
         {showSelectionBox && (
           <div
-            className="absolute border-2 border-primary-500 bg-primary-500/10 pointer-events-none"
+            className="absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none rounded"
             style={selectionBoxStyle}
           />
         )}
       </div>
 
       {/* Keyboard Shortcuts Hint */}
-      <div className="mt-2 text-xs text-gray-400 flex items-center gap-4">
+      <div className="mt-2 text-xs text-gray-400 flex items-center gap-4 flex-wrap">
         <span>{t('crossChain.shortcuts')}:</span>
-        <span>
-          Ctrl + {t('crossChain.scroll')}: {t('crossChain.zoom')}
-        </span>
+        <span>Ctrl + {t('crossChain.scroll')}: {t('crossChain.zoom')}</span>
         <span>← →: {t('crossChain.pan')}</span>
         <span>Home: {t('crossChain.reset')}</span>
-        <span>
-          {t('crossChain.dragSelect')}: {t('crossChain.zoomToArea')}
-        </span>
+        <span>{t('crossChain.dragSelect')}: {t('crossChain.zoomToArea')}</span>
       </div>
     </div>
   );
 }
+
+export default InteractivePriceChart;

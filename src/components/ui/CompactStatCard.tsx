@@ -4,10 +4,8 @@ import { forwardRef, useMemo } from 'react';
 
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-import { semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 
-import { SparklineChart } from './SparklineChart';
 import { Tooltip } from './Tooltip';
 
 export interface CompactStatCardProps {
@@ -18,7 +16,6 @@ export interface CompactStatCardProps {
     percentage: boolean;
     timeframe?: string;
   };
-  sparklineData?: number[];
   breakdown?: {
     label: string;
     value: string | number;
@@ -28,7 +25,7 @@ export interface CompactStatCardProps {
 }
 
 export const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
-  ({ title, value, change, sparklineData, breakdown, tooltip, className }, ref) => {
+  ({ title, value, change, breakdown, tooltip, className }, ref) => {
     const trend = useMemo(() => {
       if (!change) return 'neutral';
       if (change.value > 0) return 'up';
@@ -36,14 +33,23 @@ export const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
       return 'neutral';
     }, [change]);
 
-    const trendColor = useMemo(() => {
+    const trendColors = useMemo(() => {
       switch (trend) {
         case 'up':
-          return semanticColors.success;
+          return {
+            text: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+          };
         case 'down':
-          return semanticColors.danger;
+          return {
+            text: 'text-red-600',
+            bg: 'bg-red-50',
+          };
         default:
-          return semanticColors.neutral;
+          return {
+            text: 'text-gray-500',
+            bg: 'bg-gray-50',
+          };
       }
     }, [trend]);
 
@@ -62,32 +68,37 @@ export const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
       if (!change) return null;
       const sign = change.value > 0 ? '+' : '';
       const suffix = change.percentage ? '%' : '';
-      return `${sign}${change.value}${suffix}`;
+      return `${sign}${change.value.toFixed(2)}${suffix}`;
     };
 
     const cardContent = (
       <div
         ref={ref}
         className={cn(
-          'relative flex items-center justify-between',
+          'relative flex flex-col',
           'p-4 bg-white rounded-lg border border-gray-200',
           'transition-all duration-200',
           'hover:border-gray-300 hover:shadow-sm',
           className
         )}
       >
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
+        <div className="flex flex-col gap-1.5">
+          {/* 标题 */}
           <span className="text-xs font-medium text-gray-500 uppercase tracking-wider truncate">
             {title}
           </span>
 
-          <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold text-gray-900 font-tabular truncate">{value}</span>
+          {/* 主数值和趋势 */}
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-lg font-bold text-gray-900 font-tabular">{value}</span>
 
             {change && (
               <div
-                className="inline-flex items-center gap-0.5 text-xs font-medium"
-                style={{ color: trendColor.DEFAULT }}
+                className={cn(
+                  'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium',
+                  trendColors.bg,
+                  trendColors.text
+                )}
               >
                 <TrendIcon className="w-3 h-3" />
                 <span>{formatChangeValue()}</span>
@@ -98,8 +109,9 @@ export const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
             )}
           </div>
 
+          {/* 详细数据 */}
           {breakdown && breakdown.length > 0 && (
-            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
+            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
               {breakdown.map((item, index) => (
                 <div key={index} className="flex items-center gap-1 text-xs">
                   <span className="text-gray-400">{item.label}:</span>
@@ -109,18 +121,6 @@ export const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
             </div>
           )}
         </div>
-
-        {sparklineData && sparklineData.length > 0 && (
-          <div className="flex-shrink-0 ml-4">
-            <SparklineChart
-              data={sparklineData}
-              width={80}
-              height={32}
-              fill={true}
-              animate={true}
-            />
-          </div>
-        )}
       </div>
     );
 

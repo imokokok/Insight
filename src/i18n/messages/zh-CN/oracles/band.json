@@ -73,7 +73,12 @@
       "connectedChains": "已连接链数",
       "ibcRelayers": "IBC中继器",
       "oracleScripts": "预言机脚本",
-      "crossChainRisk": "跨链风险"
+      "crossChainRisk": "跨链风险",
+      "riskLevel": {
+        "low": "低风险等级",
+        "medium": "中等风险",
+        "high": "高风险等级"
+      }
     },
     "crossChain": {
       "title": "跨链数据",
@@ -84,6 +89,8 @@
       "supportedChains": "支持的链",
       "chainDataRequests": "链数据请求",
       "chainName": "链名称",
+      "chain": "链",
+      "chainId": "链ID",
       "requests24h": "24小时请求",
       "requests7d": "7天请求",
       "requests30d": "30天请求",
@@ -130,34 +137,6 @@
       "blockchains": "区块链",
       "dataFeeds": "数据馈送",
       "tvlSecured": "保障的 TVL"
-    }
-  },
-  "band": {
-    "riskAssessment": {
-      "overallRiskScore": "整体风险评分",
-      "comprehensiveAssessment": "综合评估",
-      "dimensionScores": "维度评分",
-      "decentralization": "去中心化",
-      "security": "安全性",
-      "stability": "稳定性",
-      "dataQuality": "数据质量",
-      "scoreTrend": "评分趋势",
-      "overall": "综合",
-      "riskMetrics": "风险指标",
-      "validatorConcentration": "验证者集中度",
-      "topValidatorsShare": "头部验证者份额",
-      "top10ValidatorsShare": "前10验证者份额",
-      "giniCoefficient": "基尼系数",
-      "ibcMetrics": "IBC指标",
-      "connectedChains": "已连接链",
-      "ibcRelayers": "IBC中继器",
-      "oracleScripts": "预言机脚本",
-      "crossChainRisk": "跨链风险",
-      "riskLevel": {
-        "low": "低风险等级",
-        "medium": "中等风险",
-        "high": "高风险等级"
-      }
     },
     "validators": {
       "totalValidators": "验证者总数",
@@ -190,7 +169,16 @@
     },
     "dataFeeds": {
       "totalFeeds": "总数据馈送",
+      "total": "总数",
       "active": "活跃",
+      "totalRequests": "总请求数",
+      "avgReliability": "平均可靠性",
+      "title": "数据源",
+      "feed": "数据馈送",
+      "category": "分类",
+      "updateFreq": "更新频率",
+      "deviation": "偏差",
+      "reliability": "可靠性",
       "dataSources": "数据源",
       "totalSources": "总数据源",
       "avgConfidence": "平均置信度",
@@ -204,12 +192,10 @@
       "symbol": "交易对",
       "price": "价格",
       "change24h": "24小时变化",
-      "updateFreq": "更新频率",
       "confidence": "置信度",
       "sources": "数据源数量",
       "status": "状态",
       "feeds": "馈送数",
-      "reliability": "可靠性",
       "latency": "延迟",
       "dataQuality": "数据质量",
       "multiSource": "多源验证",
@@ -217,7 +203,15 @@
       "realTime": "实时更新",
       "realTimeDesc": "高频价格更新，亚秒级延迟，满足响应式应用需求",
       "decentralized": "去中心化验证",
-      "decentralizedDesc": "验证者网络通过加密证明和经济激励确保数据完整性"
+      "decentralizedDesc": "验证者网络通过加密证明和经济激励确保数据完整性",
+      "about": "关于数据源",
+      "updateFrequency": "更新频率",
+      "frequencyDesc": "数据源根据偏差阈值和心跳间隔进行更新，以确保价格准确性。",
+      "deviationThreshold": "偏差阈值",
+      "thresholdDesc": "触发新的链上更新所需的最小价格变化。",
+      "reliabilityDesc": "过去30天内成功更新的百分比，不包括计划维护时间。",
+      "decentralization": "去中心化",
+      "decentralizationDesc": "每个数据源都由多个独立的验证者保护。"
     },
     "staking": {
       "totalStaked": "总质押量",

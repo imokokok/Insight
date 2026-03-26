@@ -67,6 +67,13 @@
     "skewness": "Skewness",
     "kurtosis": "Kurtosis",
     "confidenceInterval95": "95% Confidence Interval",
+    "keyMetrics": "Key Metrics",
+    "advancedMetrics": "Advanced Metrics",
+    "detail": "Detail",
+    "zScore": "Z-Score",
+    "noData": "No data available",
+    "lowestPrice": "Lowest Price",
+    "dataIntegrityScore": "Data Integrity Score",
     "tooltip": {
       "averagePrice": "Average of all chain prices, reflecting overall price level",
       "medianPrice": "Median is the middle value when prices are sorted, more robust than mean",

@@ -87,7 +87,13 @@
     "feedsByCategory": "按分类数据流",
     "feedPerformance": "数据流性能",
     "reliability": "可靠性",
-    "avgReliability": "平均可靠性"
+    "avgReliability": "平均可靠性",
+    "about": "关于数据源",
+    "frequencyDesc": "数据源根据偏差阈值和心跳间隔进行更新，以确保价格准确性。",
+    "thresholdDesc": "触发新的链上更新所需的最小价格变化。",
+    "reliabilityDesc": "过去30天内成功更新的百分比，不包括计划维护时间。",
+    "decentralization": "去中心化",
+    "decentralizationDesc": "每个数据源都由多个独立的节点运营者保护。"
   },
   "ecosystem": {
     "totalIntegratedProtocols": "集成协议总数",
@@ -114,7 +120,21 @@
       "title": "TVL 趋势分析",
       "totalTvl": "TVL 总额",
       "ethereum": "以太坊",
-      "l2Networks": "L2 网络"
+      "l2Networks": "L2 网络",
+      "altL1": "其他 L1",
+      "filterByChain": "按链筛选"
+    },
+    "projectAnalysis": {
+      "projectsByChain": "按链项目分布",
+      "totalProjects": "项目总数",
+      "thisMonth": "本月"
+    },
+    "growth": {
+      "title": "生态系统增长",
+      "newProjects": "新项目",
+      "integrations": "集成数",
+      "communityGrowth": "社区增长",
+      "protocolRevenue": "协议收入"
     }
   },
   "riskAssessment": {
@@ -333,7 +353,16 @@
     "serviceName": "服务",
     "requests": "请求数",
     "avgResponse": "平均响应",
-    "topUseCases": "主要用例"
+    "topUseCases": "主要用例",
+    "overview": "服务概览",
+    "uptime": "在线率",
+    "usageDistribution": "服务使用分布",
+    "about": "关于 Chainlink 服务",
+    "dataFeedsDesc": "加密货币、大宗商品、外汇等的去中心化价格数据源。",
+    "vrfDesc": "可验证随机函数，提供可证明公平且防篡改的随机数。",
+    "automationDesc": "可靠的智能合约自动化，支持条件执行。",
+    "ccipDesc": "跨链互操作协议，支持安全的跨链消息传递。",
+    "functionsDesc": "无服务器 Web3 平台，可从任意 API 获取数据。"
   },
   "quickStats": "快速统计",
   "24hVolume": "24h 成交额",
