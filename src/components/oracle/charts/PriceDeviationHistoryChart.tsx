@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/types/oracle';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
 

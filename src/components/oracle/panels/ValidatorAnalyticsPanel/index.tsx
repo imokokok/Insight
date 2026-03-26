@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, ReactNode, useCallback } from 'react';
-import { DashboardCard } from '../../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { UMAClient, ValidatorData, ValidatorHistoryData } from '@/lib/oracles/uma';
 import { useTranslations } from '@/i18n';
 import { ValidatorPerformanceHeatmap } from '../../charts/ValidatorPerformanceHeatmap';
 import { ValidatorComparison } from '../../charts/ValidatorComparison';
-import { StakingCalculator } from '../../common/StakingCalculator';
+import { StakingCalculator } from '@/components/oracle/data-display/StakingCalculator';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { ValidatorHistoryChart } from './ValidatorHistoryChart';

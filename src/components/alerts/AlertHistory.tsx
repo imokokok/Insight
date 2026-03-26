@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { AlertEvent } from '@/lib/supabase/database.types';
 import { useAcknowledgeAlert } from '@/hooks';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { DropdownSelect } from '@/components/ui';
 

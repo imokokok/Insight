@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from '@/i18n';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { DashboardCard, MetricCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard, MetricCard } from '@/components/oracle/data-display/DashboardCard';
 import { Wallet, Percent, Users, TrendingUp, Clock, Award, PiggyBank } from 'lucide-react';
 
 interface BandStakingPanelProps {

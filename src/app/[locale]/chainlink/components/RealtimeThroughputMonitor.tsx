@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { cn } from '@/lib/utils';
 import { Activity, Zap, TrendingUp, Clock } from 'lucide-react';
 import { chartColors, semanticColors } from '@/lib/config/colors';

@@ -21,7 +21,7 @@ export {
   useTellorLiquidity,
   useTellorStaking,
   useTellorAllData,
-} from './useTellorData';
+} from './oracles/tellor';
 
 export { usePriceData, useHistoricalPrices } from './useOracleData';
 export { useRefresh, useExport, useLocalStorage } from './useUtils';
@@ -83,7 +83,7 @@ export {
   useAPI3QualityHistory,
   useAPI3CrossOracle,
   useAPI3AllData,
-} from './useAPI3Data';
+} from './oracles/api3';
 
 // API3 WebSocket Hooks
 export {
@@ -174,6 +174,23 @@ export type {
   PerformanceReport,
 } from './usePerformanceMetrics';
 
+// Performance Optimizer Hooks
+export {
+  usePerformanceOptimizer,
+  useWebVitalsOptimizer,
+  useResourceOptimizer,
+  useNavigationOptimizer,
+  useLazyLoadOptimizer,
+  useRouteOptimizer,
+  useMemoryOptimizer,
+} from './usePerformanceOptimizer';
+export type {
+  PerformanceMetrics,
+  ResourceMetric,
+  NavigationTiming,
+  OptimizationSuggestion,
+} from './usePerformanceOptimizer';
+
 // Hover Prefetch Hooks
 export {
   useHoverPrefetch,
@@ -221,10 +238,10 @@ export {
 export type { KeyboardShortcut, ShortcutConflict } from './useKeyboardShortcuts';
 
 // Chainlink Hooks
-export { useChainlinkAllData } from './useChainlinkData';
+export { useChainlinkAllData } from './oracles/chainlink';
 
 // Chronicle Hooks
-export { useChronicleAllData } from './useChronicleData';
+export { useChronicleAllData } from './oracles/chronicle';
 
 // DIA Hooks
 export {
@@ -237,22 +254,22 @@ export {
   useDIACustomFeeds,
   useDIAEcosystem,
   useDIAAllData,
-} from './useDIAData';
+} from './oracles/dia';
 
 // Pyth Hooks
-export { usePythAllData } from './usePythData';
+export { usePythAllData } from './oracles/pyth';
 
 // RedStone Hooks
-export { useRedStoneAllData } from './useRedStoneData';
+export { useRedStoneAllData } from './oracles/redstone';
 
 // WINkLink Hooks
-export { useWINkLinkAllData } from './useWINkLinkData';
+export { useWINkLinkAllData } from './oracles/winklink';
 
 // Alerts Hooks
 export { useBatchAlerts } from './useAlerts';
 
 // Tellor Hooks (additional)
-export { useStakingCalculator } from './useTellorData';
+export { useStakingCalculator } from './oracles/tellor';
 
 // Realtime Hooks
 export { useRealtimeAlerts } from './useRealtimeAlerts';

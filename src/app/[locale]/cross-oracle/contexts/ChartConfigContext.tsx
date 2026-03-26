@@ -35,7 +35,7 @@ interface ChartConfigContextValue {
   boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
   volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
   correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
-  performanceData: import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[];
+  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
   maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
   qualityTrendData: import('../types').QualityTrendData[];
   

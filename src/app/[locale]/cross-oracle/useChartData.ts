@@ -147,7 +147,7 @@ export function useChartData(
   }, [historicalData, selectedOracles]);
 
   const performanceData =
-    useMemo((): import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[] => {
+    useMemo((): import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[] => {
       return selectedOracles.map((oracle) => {
         const history = historicalData[oracle] || [];
         const prices = history.map((d) => d.price);

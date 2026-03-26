@@ -18,8 +18,8 @@ import {
 import { OracleProvider } from '@/types/oracle';
 import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
 import { TooltipProps } from '@/types/ui/recharts';
-import { DashboardCard } from '../common/DashboardCard';
-import { VolatilityAlert } from '../common/VolatilityAlert';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { VolatilityAlert } from '@/components/oracle/alerts/VolatilityAlert';
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { getOracleColor } from '@/lib/oracles';

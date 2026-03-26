@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
-import { TimeRange } from '@/components/oracle/common/TabNavigation';
+import { TimeRange } from '@/components/oracle/shared/TabNavigation';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('uiStore');

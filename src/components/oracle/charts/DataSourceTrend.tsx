@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { TooltipProps } from '@/types/ui/recharts';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { useTranslations } from '@/i18n';

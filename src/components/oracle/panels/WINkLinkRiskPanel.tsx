@@ -11,11 +11,11 @@ import { Globe } from 'lucide-react';
 import { Zap } from 'lucide-react';
 import { Server } from 'lucide-react';
 import { Gamepad2 } from 'lucide-react';
-import { DataFreshnessIndicator } from '@/components/oracle/common/DataFreshnessIndicator';
-import { RiskScoreCard } from '@/components/oracle/common/RiskScoreCard';
-import { SecurityTimeline } from '@/components/oracle/common/SecurityTimeline';
-import { MitigationMeasuresGrid } from '@/components/oracle/common/MitigationMeasuresGrid';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DataFreshnessIndicator } from '@/components/oracle/alerts/DataFreshnessIndicator';
+import { RiskScoreCard } from '@/components/oracle/data-display/RiskScoreCard';
+import { SecurityTimeline } from '@/components/oracle/data-display/SecurityTimeline';
+import { MitigationMeasuresGrid } from '@/components/oracle/data-display/MitigationMeasuresGrid';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { RiskEvent, MitigationMeasure, CrossChainRisk } from '@/types/risk';
 
 import { chartColors, getChartColor } from '@/lib/chartColors';

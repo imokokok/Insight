@@ -146,7 +146,7 @@ export { TimelineChart } from './TimelineChart';
 export type { TimelineChartProps, TimelineEvent } from './TimelineChart';
 
 export { StatComparisonCard } from './StatComparisonCard';
-export type { StatComparisonCardProps, StatItem } from './StatComparisonCard';
+export type { StatComparisonCardProps, StatItem as ChartStatItem } from './StatComparisonCard';
 
 export { ProgressRing } from './ProgressRing';
 export type { ProgressRingProps } from './ProgressRing';

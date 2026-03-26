@@ -7,6 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "lint:fix": "eslint --fix .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "validate": "npm run lint && npm run typecheck && npm run test",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -16,7 +21,8 @@
     "perf:quick": "node scripts/quick-perf.mjs",
     "i18n:types": "node scripts/generate-i18n-types.js",
     "i18n:check": "node scripts/check-i18n.js",
-    "i18n:validate": "node scripts/check-i18n.js --json"
+    "i18n:validate": "node scripts/check-i18n.js --json",
+    "naming:check": "node scripts/check-naming-convention.js"
   },
   "performanceBudget": {
     "webVitals": {
@@ -120,6 +126,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
     "html2canvas": "^1.4.1",
     "jest": "^30.3.0",

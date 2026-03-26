@@ -13,7 +13,7 @@ import {
   ReferenceLine,
   Scatter,
 } from 'recharts';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
 import { calculateMACDExtended } from '@/lib/indicators';
 import type { MACDExtendedResult } from '@/lib/indicators';

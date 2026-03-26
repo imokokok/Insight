@@ -107,7 +107,7 @@ export interface UseCrossOraclePageReturn {
   volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
   correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
   latencyData: number[];
-  performanceData: import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[];
+  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
   maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
   gasFeeData: {
     oracle: OracleProvider;
@@ -196,7 +196,7 @@ export interface ChartDataResult {
   volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
   correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
   latencyData: number[];
-  performanceData: import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[];
+  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
 }
 
 export interface QualityTrendDataPoint {

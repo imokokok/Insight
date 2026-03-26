@@ -2,7 +2,7 @@
 
 import { useTranslations } from '@/i18n';
 import { MakerDAOIntegration, MakerDAOAsset } from '@/lib/oracles/chronicle';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Landmark } from 'lucide-react';
 import { DollarSign } from 'lucide-react';
 import { TrendingUp } from 'lucide-react';

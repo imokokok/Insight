@@ -3,7 +3,7 @@
 import { PriceStreamPoint } from '@/lib/oracles/tellor';
 import { useTranslations } from '@/i18n';
 import { useEffect, useRef } from 'react';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { TrendingUp } from 'lucide-react';
 import { TrendingDown } from 'lucide-react';
 import { Activity } from 'lucide-react';

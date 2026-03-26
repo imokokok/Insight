@@ -23,7 +23,7 @@ import {
 } from 'recharts';
 import type { TooltipContentProps, DotItemDotProps } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import {

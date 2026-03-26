@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { OracleProvider } from '@/types/oracle';
 import { heatmapColors, baseColors } from '@/lib/config/colors';
 

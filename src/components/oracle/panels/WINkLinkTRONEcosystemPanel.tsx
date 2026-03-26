@@ -2,7 +2,7 @@
 
 import { useTranslations } from '@/i18n';
 import { TRONEcosystem, TRONNetworkGrowth } from '@/lib/oracles/winklink';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Zap } from 'lucide-react';
 import { Users } from 'lucide-react';
 import { Activity } from 'lucide-react';

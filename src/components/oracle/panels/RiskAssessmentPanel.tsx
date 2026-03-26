@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { PriceDeviationRisk } from '../charts/PriceDeviationRisk';
 import { ConcentrationRisk } from '../charts/ConcentrationRisk';
 import { CrossChainRisk } from '../charts/CrossChainRisk';

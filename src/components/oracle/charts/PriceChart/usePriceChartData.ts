@@ -5,7 +5,7 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { UMAClient } from '@/lib/oracles/uma';
 import { Blockchain } from '@/types/oracle';
-import { TimeRange } from '../../common/TabNavigation';
+import { TimeRange } from '@/components/oracle/shared/TabNavigation';
 import {
   downsampleData,
   shouldDownsample,

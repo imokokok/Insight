@@ -2,7 +2,7 @@
 
 import { MultiChainAggregation, MultiChainPrice } from '@/lib/oracles/tellor';
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Globe } from 'lucide-react';
 import { Link2 } from 'lucide-react';
 import { Clock } from 'lucide-react';

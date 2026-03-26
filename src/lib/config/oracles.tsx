@@ -13,12 +13,20 @@ import {
 } from '@/lib/oracles';
 import { MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
 import { NetworkDataConfig } from '@/components/oracle/panels/NetworkHealthPanel';
-import { ReactNode } from 'react';
+import { ReactNode, ComponentType } from 'react';
 import { chartColors } from '@/lib/config/colors';
 
 export interface OracleTab {
   id: string;
   labelKey: string;
+}
+
+export interface OracleViewConfig {
+  id: string;
+  labelKey: string;
+  component: string;
+  requiredData?: string[];
+  default?: boolean;
 }
 
 export interface OracleConfig {
@@ -48,6 +56,7 @@ export interface OracleConfig {
     hasRiskAssessment?: boolean;
   };
   tabs: OracleTab[];
+  views?: OracleViewConfig[];
 }
 
 export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
@@ -125,6 +134,15 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'services', labelKey: 'chainlink.menu.services' },
       { id: 'ecosystem', labelKey: 'chainlink.menu.ecosystem' },
       { id: 'risk', labelKey: 'chainlink.menu.riskAssessment' },
+    ],
+    views: [
+      { id: 'market', labelKey: 'chainlink.menu.marketData', component: 'ChainlinkMarketView', default: true },
+      { id: 'network', labelKey: 'chainlink.menu.networkHealth', component: 'ChainlinkNetworkView' },
+      { id: 'nodes', labelKey: 'chainlink.menu.nodes', component: 'ChainlinkNodesView' },
+      { id: 'data-feeds', labelKey: 'chainlink.menu.dataFeeds', component: 'ChainlinkDataFeedsView' },
+      { id: 'services', labelKey: 'chainlink.menu.services', component: 'ChainlinkServicesView' },
+      { id: 'ecosystem', labelKey: 'chainlink.menu.ecosystem', component: 'ChainlinkEcosystemView' },
+      { id: 'risk', labelKey: 'chainlink.menu.riskAssessment', component: 'ChainlinkRiskView' },
     ],
   },
   [OracleProvider.BAND_PROTOCOL]: {
@@ -353,6 +371,14 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'validators', labelKey: 'pyth.menu.validators' },
       { id: 'price-feeds', labelKey: 'pyth.menu.priceFeeds' },
       { id: 'risk', labelKey: 'pyth.menu.riskAssessment' },
+    ],
+    views: [
+      { id: 'market', labelKey: 'pyth.menu.marketData', component: 'PythMarketView', default: true },
+      { id: 'network', labelKey: 'pyth.menu.networkHealth', component: 'PythNetworkView' },
+      { id: 'publishers', labelKey: 'pyth.menu.publishers', component: 'PythPublishersView' },
+      { id: 'validators', labelKey: 'pyth.menu.validators', component: 'PythValidatorsView' },
+      { id: 'price-feeds', labelKey: 'pyth.menu.priceFeeds', component: 'PythPriceFeedsView' },
+      { id: 'risk', labelKey: 'pyth.menu.riskAssessment', component: 'PythRiskView' },
     ],
   },
   [OracleProvider.API3]: {
@@ -801,7 +827,6 @@ export function getAllOracleConfigs(): OracleConfig[] {
 
 export function getAllOracleConfigsSortedByMarketCap(): OracleConfig[] {
   return Object.values(oracleConfigs).sort((a, b) => {
-    // 特殊处理：API3 排在 RedStone 前面
     if (a.provider === OracleProvider.API3 && b.provider === OracleProvider.REDSTONE) {
       return -1;
     }
@@ -815,7 +840,6 @@ export function getAllOracleConfigsSortedByMarketCap(): OracleConfig[] {
 export function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
   return Object.values(oracleConfigs)
     .sort((a, b) => {
-      // 特殊处理：API3 排在 RedStone 前面
       if (a.provider === OracleProvider.API3 && b.provider === OracleProvider.REDSTONE) {
         return -1;
       }
@@ -825,4 +849,13 @@ export function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
       return b.marketData.marketCap - a.marketData.marketCap;
     })
     .map((config) => config.provider);
+}
+
+export function getOracleViews(provider: OracleProvider): OracleViewConfig[] {
+  const config = getOracleConfig(provider);
+  return config.views || config.tabs.map(tab => ({
+    id: tab.id,
+    labelKey: tab.labelKey,
+    component: `${provider.charAt(0).toUpperCase() + provider.slice(1).replace(/-/g, '')}View`,
+  }));
 }

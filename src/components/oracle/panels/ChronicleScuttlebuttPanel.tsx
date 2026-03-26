@@ -2,7 +2,7 @@
 
 import { useTranslations } from '@/i18n';
 import { ScuttlebuttData } from '@/lib/oracles/chronicle';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Shield } from 'lucide-react';
 import { CheckCircle } from 'lucide-react';
 import { AlertTriangle } from 'lucide-react';

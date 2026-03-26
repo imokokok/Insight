@@ -3,7 +3,8 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslations, useLocale } from '@/i18n';
 import { getDateTimeLocale } from '@/lib/utils/dateFormat';
-import { DashboardCard, DataFreshnessIndicator, RiskScoreCard } from '@/components/oracle/common';
+import { DashboardCard, RiskScoreCard } from '@/components/oracle/data-display';
+import { DataFreshnessIndicator } from '@/components/oracle/alerts';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 

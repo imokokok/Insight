@@ -1,6 +1,6 @@
 'use client';
 
-import { OracleHero, StatItem } from '@/components/oracle/common/OracleHero';
+import { OracleHero, StatItem } from '@/components/oracle/data-display/OracleHero';
 import { OracleConfig } from '@/lib/config/oracles';
 import { PriceData } from '@/types/oracle';
 import { useTranslations } from '@/i18n';

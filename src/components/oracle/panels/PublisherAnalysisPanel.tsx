@@ -2,10 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import { Publisher, PublisherStats } from '@/types/oracle';
-import { PublisherList } from '../common/PublisherList';
-import { PublisherReliabilityScore } from '../common/PublisherReliabilityScore';
+import { PublisherList } from '@/components/oracle/data-display/PublisherList';
+import { PublisherReliabilityScore } from '@/components/oracle/data-display/PublisherReliabilityScore';
 import { PublisherContributionPanel } from './PublisherContributionPanel';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 
 interface AnomalyInfo {

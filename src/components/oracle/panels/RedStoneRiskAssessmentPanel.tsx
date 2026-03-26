@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from '@/i18n';
-import { DashboardCard, DataFreshnessIndicator } from '@/components/oracle/common';
+import { DashboardCard } from '@/components/oracle/data-display';
+import { DataFreshnessIndicator } from '@/components/oracle/alerts';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 import {
   getScoreColor,

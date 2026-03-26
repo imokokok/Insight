@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { formatNumber } from '@/lib/utils/format';
 import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';

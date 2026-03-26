@@ -6,7 +6,7 @@ import {
   VRFUseCase,
   GamingCategoryDistribution,
 } from '@/lib/oracles/winklink';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Gamepad2 } from 'lucide-react';
 import { Dices } from 'lucide-react';
 import { Clock } from 'lucide-react';

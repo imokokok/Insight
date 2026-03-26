@@ -2,7 +2,7 @@
 
 import { useTranslations } from '@/i18n';
 import { ChronicleNetworkStats, ValidatorNetwork } from '@/lib/oracles/chronicle';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Network } from 'lucide-react';
 import { Activity } from 'lucide-react';
 import { Zap } from 'lucide-react';

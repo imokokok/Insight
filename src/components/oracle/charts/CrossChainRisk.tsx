@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 
 interface ChainPriceData {

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ReporterStats, Reporter } from '@/lib/oracles/tellor';
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Users } from 'lucide-react';
 import { Trophy } from 'lucide-react';
 import { TrendingUp } from 'lucide-react';

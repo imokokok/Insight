@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { createLogger } from '@/lib/utils/logger';
 import { getPythHermesClient, PythPriceUpdate } from '@/lib/oracles/pythHermesClient';

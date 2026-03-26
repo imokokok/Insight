@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslations } from '@/i18n';
-import { PerformanceGaugeGroup } from '../common/PerformanceGauge';
-import { DataQualityScoreCard } from '../common/DataQualityScoreCard';
+import { PerformanceGaugeGroup } from '@/components/oracle/data-display/PerformanceGauge';
+import { DataQualityScoreCard } from '@/components/oracle/data-display/DataQualityScoreCard';
 import { NetworkStatusIndicator } from './NetworkStatusIndicator';
 import { MetricCard } from './MetricCard';
 import { ActivityHeatmap } from './ActivityHeatmap';

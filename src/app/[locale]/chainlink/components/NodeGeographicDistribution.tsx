@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { cn } from '@/lib/utils';
 import { Globe, MapPin, Clock, CheckCircle } from 'lucide-react';
 import { chartColors, semanticColors } from '@/lib/config/colors';
