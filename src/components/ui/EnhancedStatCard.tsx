@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 
-import { TrendingUp, TrendingDown, Info } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
 
-import { SparklineChart } from '@/components/charts/SparklineChart';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { SparklineChart } from '@/components/ui/SparklineChart';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/lib/utils';
 
 /**
@@ -17,87 +19,250 @@ interface BreakdownItem {
 }
 
 /**
- * Change 数据接口
- */
-interface ChangeData {
-  value: number;
-  percentage?: boolean;
-  timeframe?: string;
-}
-
-/**
- * Benchmark 数据接口
- */
-interface BenchmarkData {
-  label: string;
-  value: number;
-}
-
-/**
  * EnhancedStatCard Props 接口
  */
 export interface EnhancedStatCardProps {
   /** 标题 */
   title: string;
   /** 主值 */
-  value: string | number;
-  /** 变化数据 */
-  change?: ChangeData;
-  /** Sparkline 图表数据 */
+  value: number | string;
+  /** 变化百分比（新接口） */
+  change?: number;
+  /** 变化数据（旧接口兼容） */
+  changeData?: {
+    value: number;
+    percentage?: boolean;
+    timeframe?: string;
+  };
+  /** 趋势方向 */
+  trend?: 'up' | 'down' | 'stable';
+  /** Sparkline 图表数据 (24小时趋势数据) */
   sparklineData?: number[];
+  /** 置信度 (0-100) */
+  confidence?: number;
   /** 细分数据（hover 时显示） */
   breakdown?: BreakdownItem[];
-  /** 基准对比数据 */
-  benchmark?: BenchmarkData;
   /** 变体：紧凑或标准 */
   variant?: 'compact' | 'standard';
+  /** 是否加载中 */
+  isLoading?: boolean;
+  /** 悬停提示内容 */
+  tooltipContent?: string;
   /** 自定义类名 */
   className?: string;
+  /** ARIA role */
+  role?: string;
+  /** ARIA label */
+  'aria-label'?: string;
+}
+
+/**
+ * 格式化数值显示
+ */
+function formatValue(value: number | string): string {
+  if (typeof value === 'string') return value;
+
+  // 处理大数值
+  if (value >= 1000000000) {
+    return `${(value / 1000000000).toFixed(2)}B`;
+  }
+  if (value >= 1000000) {
+    return `${(value / 1000000).toFixed(2)}M`;
+  }
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(2)}K`;
+  }
+
+  // 处理小数
+  if (value < 1 && value > -1) {
+    return value.toFixed(4);
+  }
+
+  return value.toFixed(2);
 }
 
 /**
  * 格式化变化值显示
  */
-function formatChangeValue(value: number, isPercentage?: boolean): string {
+function formatChangeValue(value: number, isPercentage: boolean = true): string {
   const sign = value >= 0 ? '+' : '';
   const suffix = isPercentage ? '%' : '';
   return `${sign}${value.toFixed(2)}${suffix}`;
 }
 
 /**
+ * 圆形进度条组件
+ */
+function CircularProgress({
+  value,
+  size = 40,
+  strokeWidth = 3,
+}: {
+  value: number;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (value / 100) * circumference;
+
+  // 根据置信度确定颜色
+  const getColor = () => {
+    if (value >= 80) return 'var(--success-500, #10b981)';
+    if (value >= 60) return 'var(--warning-500, #f59e0b)';
+    return 'var(--danger-500, #ef4444)';
+  };
+
+  return (
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* 背景圆环 */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-gray-200 dark:text-gray-700"
+        />
+        {/* 进度圆环 */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={getColor()}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-all duration-500 ease-out"
+        />
+      </svg>
+      {/* 中心文字 */}
+      <span className="absolute text-xs font-medium text-gray-600 dark:text-gray-400">
+        {Math.round(value)}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * 线性进度条组件
+ */
+function LinearProgress({ value, className }: { value: number; className?: string }) {
+  // 根据置信度确定颜色
+  const getColor = () => {
+    if (value >= 80) return 'bg-success-500';
+    if (value >= 60) return 'bg-warning-500';
+    return 'bg-danger-500';
+  };
+
+  return (
+    <div className={cn('w-full', className)}>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-gray-500 dark:text-gray-400">置信度</span>
+        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+          {Math.round(value)}%
+        </span>
+      </div>
+      <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div
+          className={cn('h-full rounded-full transition-all duration-500 ease-out', getColor())}
+          style={{ width: `${value}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 加载状态骨架屏
+ */
+function EnhancedStatCardSkeleton({ variant = 'standard' }: { variant?: 'compact' | 'standard' }) {
+  const isCompact = variant === 'compact';
+
+  return (
+    <div
+      className={cn(
+        'bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm',
+        isCompact ? 'p-3' : 'p-4'
+      )}
+    >
+      {/* 标题 */}
+      <div className="flex items-center justify-between mb-3">
+        <Skeleton variant="text" width={isCompact ? 60 : 80} height={isCompact ? 12 : 16} />
+        <Skeleton variant="circular" width={isCompact ? 12 : 16} height={isCompact ? 12 : 16} />
+      </div>
+
+      {/* 主值 */}
+      <div className="flex items-baseline gap-2 mb-3">
+        <Skeleton variant="text" width={isCompact ? 80 : 120} height={isCompact ? 24 : 32} />
+        {!isCompact && <Skeleton variant="text" width={60} height={20} />}
+      </div>
+
+      {/* Sparkline 占位 */}
+      <Skeleton variant="rounded" width="100%" height={isCompact ? 28 : 40} className="mb-3" />
+
+      {/* 置信度进度条 */}
+      {!isCompact && <Skeleton variant="text" width="100%" height={24} />}
+    </div>
+  );
+}
+
+/**
  * EnhancedStatCard - 增强型统计卡片组件
  *
- * 显示关键指标的主值、变化趋势、迷你图表，并支持 hover 查看细分数据。
- * 适用于仪表盘、市场概览等场景。
+ * 功能特性：
+ * - 大字数值显示和趋势指示（箭头+颜色）
+ * - 集成 SparklineChart 迷你趋势图
+ * - 置信度进度条指示器（圆形或线性）
+ * - 细分数据展示（hover 时显示）
+ * - 悬停效果显示详细信息（Tooltip）
+ * - 加载状态支持（Skeleton）
+ * - 暗色模式支持
  *
  * @example
  * ```tsx
- * // 基础用法
+ * // 基础用法（新接口）
  * <EnhancedStatCard
- *   title="Total Value"
- *   value="$1.2M"
- *   change={{ value: 5.2, percentage: true, timeframe: '24h' }}
+ *   title="总交易量"
+ *   value={1234567}
+ *   change={5.2}
+ *   trend="up"
  *   sparklineData={[1, 2, 3, 2, 4, 5, 4, 6]}
+ *   confidence={85}
  * />
  *
- * // 带细分数据
+ * // 兼容旧接口
  * <EnhancedStatCard
- *   title="Volume"
- *   value="8,432"
- *   change={{ value: -2.1, percentage: true }}
- *   breakdown={[
- *     { label: 'Ethereum', value: '5,200', percentage: 61.6 },
- *     { label: 'Arbitrum', value: '2,100', percentage: 24.9 },
- *     { label: 'Others', value: '1,132', percentage: 13.5 },
- *   ]}
- * />
- *
- * // 紧凑模式
- * <EnhancedStatCard
- *   title="Price"
- *   value="$45,230"
+ *   title="TVS"
+ *   value="$1.2B"
+ *   changeData={{ value: 5.2, percentage: true, timeframe: '24h' }}
+ *   sparklineData={[1, 2, 3, 2, 4, 5, 4, 6]}
+ *   breakdown={[{ label: 'ETH', value: '1B', percentage: 80 }]}
  *   variant="compact"
- *   sparklineData={[45, 46, 44, 47, 45, 48]}
+ * />
+ *
+ * // 加载状态
+ * <EnhancedStatCard
+ *   title="加载中..."
+ *   value={0}
+ *   isLoading={true}
+ * />
+ *
+ * // 带 Tooltip
+ * <EnhancedStatCard
+ *   title="预测价格"
+ *   value={45230}
+ *   change={-2.1}
+ *   trend="down"
+ *   confidence={72}
+ *   tooltipContent="基于过去24小时数据预测的BTC价格"
  * />
  * ```
  */
@@ -105,79 +270,116 @@ export function EnhancedStatCard({
   title,
   value,
   change,
+  changeData,
+  trend = 'stable',
   sparklineData,
+  confidence,
   breakdown,
-  benchmark,
   variant = 'standard',
+  isLoading = false,
+  tooltipContent,
   className,
+  role,
+  'aria-label': ariaLabel,
 }: EnhancedStatCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-
-  const isPositive = change ? change.value >= 0 : true;
-  const changeColor = isPositive ? 'text-success-500' : 'text-danger-500';
-  const ChangeIcon = isPositive ? TrendingUp : TrendingDown;
-
   const isCompact = variant === 'compact';
 
-  // 计算 sparkline 颜色（基于变化方向）
-  const sparklineColor = useMemo(() => {
-    if (!change) return undefined;
-    return isPositive ? '#10b981' : '#ef4444';
-  }, [change, isPositive]);
+  // 加载状态
+  if (isLoading) {
+    return <EnhancedStatCardSkeleton variant={variant} />;
+  }
 
-  return (
+  // 确定变化值（兼容新旧接口）
+  const changeValue = change !== undefined ? change : changeData?.value;
+  const isPercentage = changeData?.percentage ?? true;
+
+  // 确定趋势方向和颜色
+  const isPositive = changeValue ? changeValue > 0 : trend === 'up';
+  const isNegative = changeValue ? changeValue < 0 : trend === 'down';
+
+  // 趋势颜色
+  const trendColorClass = isPositive
+    ? 'text-success-500'
+    : isNegative
+      ? 'text-danger-500'
+      : 'text-gray-500';
+
+  // 趋势图标
+  const TrendIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
+
+  // Sparkline 颜色
+  const sparklineColor = isPositive ? '#10b981' : isNegative ? '#ef4444' : '#6b7280';
+
+  // 卡片内容
+  const cardContent = (
     <div
       className={cn(
         // 基础样式
-        'relative bg-white rounded-lg border border-gray-200',
-        'transition-all duration-200 ease-out',
-        'hover:border-gray-300 hover:shadow-md',
-        // 尺寸
+        'relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700',
+        'shadow-sm hover:shadow-md transition-all duration-200 ease-out',
+        'hover:border-gray-300 dark:hover:border-gray-600',
         isCompact ? 'p-3' : 'p-4',
         className
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      role={role}
+      aria-label={ariaLabel}
     >
       {/* 标题行 */}
       <div className="flex items-center justify-between mb-2">
-        <span className={cn('font-medium text-gray-600', isCompact ? 'text-xs' : 'text-sm')}>
+        <span
+          className={cn(
+            'font-medium text-gray-600 dark:text-gray-400',
+            isCompact ? 'text-xs' : 'text-sm'
+          )}
+        >
           {title}
         </span>
-        {breakdown && <Info className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />}
+        {(breakdown || tooltipContent) && (
+          <Info
+            className={cn(
+              'text-gray-400 dark:text-gray-500',
+              isCompact ? 'w-3 h-3' : 'w-4 h-4',
+              tooltipContent && 'cursor-help'
+            )}
+            aria-hidden="true"
+          />
+        )}
       </div>
 
       {/* 主值和变化指示器 */}
       <div className="flex items-baseline gap-2 mb-2">
         <span
           className={cn(
-            'font-semibold text-gray-900 tabular-nums',
+            'font-bold text-gray-900 dark:text-white tabular-nums',
             isCompact ? 'text-lg' : 'text-2xl'
           )}
         >
-          {value}
+          {formatValue(value)}
         </span>
-        {change && (
-          <div className={cn('flex items-center gap-0.5', changeColor)}>
-            <ChangeIcon
+        {changeValue !== undefined && (
+          <div className={cn('flex items-center gap-0.5', trendColorClass)}>
+            <TrendIcon
               className={cn('flex-shrink-0', isCompact ? 'w-3 h-3' : 'w-4 h-4')}
               aria-hidden="true"
             />
             <span className={cn('font-medium tabular-nums', isCompact ? 'text-xs' : 'text-sm')}>
-              {formatChangeValue(change.value, change.percentage)}
+              {formatChangeValue(changeValue, isPercentage)}
             </span>
           </div>
         )}
       </div>
 
       {/* 时间范围标签（仅在标准模式下显示） */}
-      {!isCompact && change?.timeframe && (
-        <div className="text-xs text-gray-500 mb-2">{change.timeframe}</div>
+      {!isCompact && changeData?.timeframe && (
+        <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">{changeData.timeframe}</div>
       )}
 
-      {/* Sparkline 图表和基准对比 */}
-      <div className="flex items-center justify-between">
-        {sparklineData && sparklineData.length > 0 && (
+      {/* Sparkline 图表 */}
+      {sparklineData && sparklineData.length > 0 && (
+        <div className={cn('flex items-center justify-between', !isCompact && 'mb-3')}>
           <SparklineChart
             data={sparklineData}
             width={isCompact ? 80 : 120}
@@ -186,53 +388,43 @@ export function EnhancedStatCard({
             fill
             animate={!isCompact}
           />
-        )}
+        </div>
+      )}
 
-        {/* 基准对比 */}
-        {benchmark && !isCompact && (
-          <div className="text-right ml-4">
-            <div className="text-xs text-gray-500">{benchmark.label}</div>
-            <div className="text-sm font-medium text-gray-700 tabular-nums">
-              {benchmark.value >= 1000000
-                ? `${(benchmark.value / 1000000).toFixed(1)}M`
-                : benchmark.value >= 1000
-                  ? `${(benchmark.value / 1000).toFixed(1)}K`
-                  : benchmark.value.toFixed(2)}
-            </div>
-          </div>
-        )}
-      </div>
+      {/* 置信度指示器（仅在标准模式下显示） */}
+      {!isCompact && confidence !== undefined && (
+        <LinearProgress value={Math.max(0, Math.min(100, confidence))} />
+      )}
 
       {/* Hover 时的 Breakdown Tooltip */}
       {breakdown && isHovered && (
         <div
           className={cn(
             'absolute z-50 left-0 right-0',
-            'bg-white rounded-lg border border-gray-200 shadow-lg',
+            'bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg',
             'p-3 animate-in fade-in zoom-in-95 duration-150',
-            // 位置：根据卡片位置调整
             'top-full mt-2'
           )}
         >
-          <div className="text-xs font-medium text-gray-500 mb-2">Breakdown</div>
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Breakdown</div>
           <div className="space-y-1.5">
             {breakdown.map((item, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {/* 进度条 */}
-                  <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-16 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-primary-500 rounded-full"
                       style={{ width: `${Math.min(item.percentage, 100)}%` }}
                     />
                   </div>
-                  <span className="text-xs text-gray-600">{item.label}</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">{item.label}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-900 tabular-nums">
+                  <span className="text-xs font-medium text-gray-900 dark:text-gray-200 tabular-nums">
                     {item.value}
                   </span>
-                  <span className="text-xs text-gray-400 tabular-nums w-10 text-right">
+                  <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums w-10 text-right">
                     {item.percentage.toFixed(1)}%
                   </span>
                 </div>
@@ -241,13 +433,24 @@ export function EnhancedStatCard({
           </div>
           {/* 小三角箭头 */}
           <div
-            className="absolute -top-1 left-6 w-2 h-2 bg-white border-l border-t border-gray-200 transform rotate-45"
+            className="absolute -top-1 left-6 w-2 h-2 bg-white dark:bg-gray-800 border-l border-t border-gray-200 dark:border-gray-700 transform rotate-45"
             aria-hidden="true"
           />
         </div>
       )}
     </div>
   );
+
+  // 如果有 tooltipContent 且没有 breakdown，包裹在 Tooltip 组件中
+  if (tooltipContent && !breakdown) {
+    return (
+      <Tooltip content={tooltipContent} placement="top">
+        {cardContent}
+      </Tooltip>
+    );
+  }
+
+  return cardContent;
 }
 
 export default EnhancedStatCard;

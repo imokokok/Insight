@@ -55,6 +55,7 @@
     "nodeOperators": "节点运营者"
   },
   "dataFeeds": {
+    "title": "数据源",
     "totalDataFeeds": "数据流总数",
     "total": "总数",
     "activeFeeds": "活跃数据流",

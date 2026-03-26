@@ -52,10 +52,7 @@ export {
 } from './pythHermesClient';
 export { BaseOracleClient, shouldUseDatabase, configureStorage, getStorageConfig } from './base';
 export type { OracleClientConfig, OracleStorageConfig } from './base';
-export type {
-  IOracleClient,
-  IOracleClientFactory,
-} from './interfaces';
+export type { IOracleClient, IOracleClientFactory } from './interfaces';
 export {
   savePriceToDatabase,
   savePricesToDatabase,

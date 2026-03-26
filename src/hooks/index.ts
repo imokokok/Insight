@@ -275,3 +275,23 @@ export { useRealtimeAlerts } from './useRealtimeAlerts';
 // Debounce Hook
 export { useDebounce, useDebouncedCallback } from './useDebounce';
 export type { UseDebounceOptions } from './useDebounce';
+
+// Oracle Statistics Hook
+export { useOracleStatistics } from './useOracleStatistics';
+export type {
+  HistoryMinMaxValue,
+  HistoryMinMax,
+  ConsistencyRating,
+  OracleStatisticsResult,
+  initialHistoryMinMax,
+} from './useOracleStatistics';
+
+// Deviation Detection Hook
+export { useDeviationDetection, useBatchDeviationDetection } from './useDeviationDetection';
+export type {
+  DeviationLevel,
+  DeviationType,
+  DeviationThreshold,
+  DeviationDetectionResult,
+  DEFAULT_DEVIATION_THRESHOLD,
+} from './useDeviationDetection';

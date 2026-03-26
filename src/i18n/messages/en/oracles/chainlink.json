@@ -51,6 +51,7 @@
     "nodeOperators": "Node Operators"
   },
   "dataFeeds": {
+    "title": "Data Feeds",
     "totalDataFeeds": "Total Data Feeds",
     "total": "Total",
     "activeFeeds": "Active Feeds",

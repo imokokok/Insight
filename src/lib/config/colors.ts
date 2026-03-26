@@ -518,6 +518,141 @@ export const accessibleColors = {
 } as const;
 
 // ============================================
+// WCAG AA 标准高对比度配色方案
+// ============================================
+
+export const wcagColors = {
+  // WCAG AA 标准：文本与背景对比度至少 4.5:1
+  // WCAG AAA 标准：文本与背景对比度至少 7:1
+
+  // 高对比度文本颜色
+  text: {
+    // 浅色背景上的文本（对比度 >= 4.5:1）
+    onLight: {
+      primary: '#000000', // 黑色，对比度 21:1
+      secondary: '#1a1a1a', // 深灰，对比度 ~18:1
+      tertiary: '#333333', // 中深灰，对比度 ~12:1
+      muted: '#595959', // 灰色，对比度 7:1 (AA)
+      disabled: '#757575', // 禁用状态，对比度 4.6:1 (AA)
+    },
+    // 深色背景上的文本（对比度 >= 4.5:1）
+    onDark: {
+      primary: '#ffffff', // 白色，对比度 21:1
+      secondary: '#f0f0f0', // 浅灰，对比度 ~18:1
+      tertiary: '#e0e0e0', // 中浅灰，对比度 ~14:1
+      muted: '#b3b3b3', // 灰色，对比度 7:1 (AA)
+      disabled: '#949494', // 禁用状态，对比度 4.6:1 (AA)
+    },
+  },
+
+  // 高对比度状态色（确保文本可读性）
+  status: {
+    success: {
+      bg: '#006600', // 深绿背景
+      text: '#ffffff', // 白字，对比度 7.5:1
+      border: '#004d00',
+      light: '#e6f4ea', // 浅绿背景
+      lightText: '#1e4620', // 深绿字，对比度 8.6:1
+    },
+    warning: {
+      bg: '#b35900', // 深橙背景
+      text: '#ffffff', // 白字，对比度 5.2:1
+      border: '#8f4700',
+      light: '#fff3e0', // 浅橙背景
+      lightText: '#663c00', // 深橙字，对比度 7.2:1
+    },
+    danger: {
+      bg: '#cc0000', // 深红背景
+      text: '#ffffff', // 白字，对比度 5.7:1
+      border: '#a30000',
+      light: '#fce8e8', // 浅红背景
+      lightText: '#7f1d1d', // 深红字，对比度 8.4:1
+    },
+    info: {
+      bg: '#005fcc', // 深蓝背景
+      text: '#ffffff', // 白字，对比度 6.1:1
+      border: '#004ba0',
+      light: '#e8f4fd', // 浅蓝背景
+      lightText: '#0c3b6e', // 深蓝字，对比度 8.9:1
+    },
+  },
+
+  // 图表高对比度配色（WCAG AA 标准）
+  chart: {
+    // 主色序列 - 确保相邻颜色有足够对比度
+    primary: [
+      '#0033a0', // 深蓝
+      '#d90000', // 深红
+      '#008000', // 深绿
+      '#b35900', // 深橙
+      '#6b2c91', // 深紫
+      '#c75b12', // 深棕橙
+      '#005a9c', // 中蓝
+      '#8b0000', // 暗红
+    ],
+    // 辅助色序列
+    secondary: [
+      '#4a4a4a', // 深灰
+      '#707070', // 中灰
+      '#969696', // 浅灰
+      '#1a1a1a', // 近黑
+    ],
+    // 背景色
+    background: {
+      default: '#ffffff',
+      subtle: '#f5f5f5',
+      grid: '#e0e0e0',
+    },
+    // 轴线颜色
+    axis: {
+      line: '#595959',
+      text: '#333333',
+      grid: '#d9d9d9',
+    },
+  },
+
+  // 焦点指示器（键盘导航可见性）
+  focus: {
+    outline: '#005fcc', // 蓝色焦点环
+    outlineWidth: '3px',
+    outlineOffset: '2px',
+    boxShadow: '0 0 0 3px rgba(0, 95, 204, 0.4)',
+  },
+
+  // 链接颜色
+  link: {
+    default: '#005fcc', // 蓝色，对比度 6.1:1
+    visited: '#6b2c91', // 紫色，对比度 7.2:1
+    hover: '#003d7a', // 深蓝，对比度 8.4:1
+    active: '#cc0000', // 红色，对比度 5.7:1
+  },
+} as const;
+
+// ============================================
+// 图表配色方案集合
+// ============================================
+
+export const chartColorSchemes = {
+  // 默认配色
+  default: chartColors.sequence,
+  // 高对比度配色（WCAG AA）
+  highContrast: wcagColors.chart.primary,
+  // 色盲友好配色
+  colorblind: accessibleColors.chart.sequence,
+  // 深色主题配色
+  dark: [
+    '#60a5fa', // 浅蓝
+    '#f87171', // 浅红
+    '#4ade80', // 浅绿
+    '#fbbf24', // 浅黄
+    '#a78bfa', // 浅紫
+    '#fb923c', // 浅橙
+    '#22d3ee', // 青
+    '#f472b6', // 粉
+  ],
+} as const;
+
+// ============================================
 // UI 组件颜色
 // ============================================
 
@@ -887,6 +1022,8 @@ export const colors = {
   chart: chartColors,
   shadow: shadowColors,
   accessible: accessibleColors,
+  wcag: wcagColors,
+  chartSchemes: chartColorSchemes,
   tailwind: tailwindClasses,
   ui: uiColors,
   heatmap: heatmapColors,

@@ -154,16 +154,22 @@ export function calculatePortfolioRisk(
     return { totalRisk: 0, diversificationBenefit: 0, weightedVolatility: 0 };
   }
 
-  const weightedVolatility = assets.reduce((sum, asset) => sum + asset.weight * asset.volatility, 0);
+  const weightedVolatility = assets.reduce(
+    (sum, asset) => sum + asset.weight * asset.volatility,
+    0
+  );
 
   // Calculate portfolio variance with correlation
   let portfolioVariance = 0;
   for (let i = 0; i < assets.length; i++) {
     for (let j = 0; j < assets.length; j++) {
-      const correlation =
-        i === j ? 1 : calculateCorrelation(assets[i].returns, assets[j].returns);
+      const correlation = i === j ? 1 : calculateCorrelation(assets[i].returns, assets[j].returns);
       portfolioVariance +=
-        assets[i].weight * assets[j].weight * assets[i].volatility * assets[j].volatility * correlation;
+        assets[i].weight *
+        assets[j].weight *
+        assets[i].volatility *
+        assets[j].volatility *
+        correlation;
     }
   }
 

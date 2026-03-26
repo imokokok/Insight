@@ -6,7 +6,13 @@
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
     "menu": {
-      "title": "菜单"
+      "title": "菜单",
+      "marketData": "市场数据",
+      "networkHealth": "网络健康",
+      "tronEcosystem": "TRON生态",
+      "staking": "质押",
+      "gaming": "游戏",
+      "riskAssessment": "风险评估"
     },
     "navigation": {
       "title": "WINkLink 导航"
@@ -31,7 +37,33 @@
       "circulatingSupply": "流通供应量",
       "vrfDailyRequests": "VRF 日请求",
       "gamingVolume": "游戏交易量",
-      "activeGames": "活跃游戏"
+      "activeGames": "活跃游戏",
+      "dataFeeds": "数据喂送",
+      "responseTime": "响应时间",
+      "successRate": "成功率"
+    },
+    "networkStatus": "网络状态",
+    "dataSource": "数据来源",
+    "tradingPair": "交易对",
+    "liquidity": "流动性",
+    "marketDepth": "市场深度",
+    "depthScore": "深度评分",
+    "volume24h": "24h 交易量",
+    "network": {
+      "activeNodes": "活跃节点",
+      "dataFeeds": "数据喂送",
+      "responseTime": "响应时间",
+      "uptime": "正常运行时间",
+      "totalRequests": "总请求数(24h)",
+      "avgGas": "平均 Gas 消耗",
+      "activeChains": "活跃链数",
+      "nodeOperators": "节点运营者",
+      "hourlyActivity": "每小时活动",
+      "performance": "网络性能",
+      "successRate": "成功率",
+      "availability": "可用性",
+      "latency": "延迟",
+      "overview": "网络概览"
     },
     "tron": {
       "title": "TRON 生态集成",
@@ -43,7 +75,21 @@
       "users": "用户",
       "volume24h": "24h 交易量",
       "tvl": "TVL",
-      "integrationCoverage": "集成覆盖率"
+      "integrationCoverage": "集成覆盖率",
+      "dappName": "DApp 名称",
+      "category": "分类",
+      "status": "状态",
+      "blockHeight": "区块高度",
+      "dailyActiveUsers": "日活跃用户",
+      "integrationStats": "集成统计",
+      "about": "关于 TRON 集成",
+      "networkPerformance": "网络性能",
+      "performanceDesc": "TRON 网络提供高吞吐量，65+ TPS 和低交易成本，非常适合预言机数据喂送",
+      "ecosystem": "生态系统",
+      "ecosystemDesc": "Winklink 是 TRON 上的官方预言机解决方案，为 DeFi、游戏和 NFT 应用提供可靠的价格数据",
+      "coverageDesc": "TRON 上主要 DApp 集成 Winklink 预言机服务进行价格喂送的百分比",
+      "dataReliability": "数据可靠性",
+      "reliabilityDesc": "Winklink 从多个来源聚合数据，确保准确和防篡改的价格喂送"
     },
     "staking": {
       "title": "节点质押",
@@ -59,15 +105,34 @@
       "staked": "质押",
       "uptime": "在线率",
       "rewards": "奖励",
-      "aprLabel": "APR"
+      "aprLabel": "APR",
+      "nodeName": "节点名称",
+      "status": "状态",
+      "totalNodes": "总节点数",
+      "nodeList": "节点列表",
+      "tierDistribution": "等级分布",
+      "overview": "概览",
+      "calculator": "质押计算器",
+      "stakeAmount": "质押数量",
+      "stakingPeriod": "质押周期",
+      "months": "月",
+      "scenario": "收益场景",
+      "expectedRewards": "预期收益",
+      "daily": "每日",
+      "monthly": "每月",
+      "yearly": "每年",
+      "totalAfter": "总计收益",
+      "calculatorDisclaimer": "此计算器仅供参考，实际收益可能因网络状况、节点表现和市场波动而有所不同。"
     },
     "gaming": {
       "title": "游戏与娱乐数据",
       "totalVolume": "总游戏交易量",
       "activeGames": "活跃游戏",
       "dailyRngRequests": "日 RNG 请求",
+      "dailyRandomRequests": "日随机数请求",
       "dataSources": "数据源",
       "rngServices": "随机数服务",
+      "randomNumberServices": "随机数服务",
       "users": "用户",
       "volume24h": "24h 交易量",
       "reliability": "可靠性",
@@ -78,7 +143,21 @@
       "games": "游戏",
       "vrfUseCases": "VRF 用例",
       "usageCount": "使用次数",
-      "categoryDistribution": "分类分布"
+      "categoryDistribution": "分类分布",
+      "gameName": "游戏名称",
+      "category": "分类",
+      "serviceName": "服务名称",
+      "securityLevel": "安全等级",
+      "avgReliability": "平均可靠性",
+      "about": "关于游戏服务",
+      "vrfTitle": "可验证随机数",
+      "vrfDesc": "WINkLink VRF 为公平的游戏结果提供加密安全的随机数",
+      "securityTitle": "安全等级",
+      "securityDesc": "高安全性 VRF 使用多个预言机节点以确保最大程度的随机性保证",
+      "responseTitle": "响应时间",
+      "responseDesc": "平均响应时间低于 110 毫秒，确保流畅的游戏体验",
+      "multiChainTitle": "多链支持",
+      "multiChainDesc": "可在 TRON、BNB Chain 和 BTTC 网络上使用"
     },
     "risk": {
       "title": "风险评估",
@@ -143,7 +222,14 @@
         "auditCycle": "定期安全审计",
         "decentralizationIncentive": "去中心化激励",
         "realTimeMonitoring": "实时风险监控"
-      }
+      },
+      "staleness": "数据时效性",
+      "deviation": "价格偏差",
+      "overallRisk": "整体风险",
+      "metricsDesc": "去中心化、安全性和可靠性的关键绩效指标",
+      "overallScore": "整体评分",
+      "riskTrend": "风险趋势",
+      "mitigationMeasures": "风险缓解措施"
     },
     "pageTitles": {
       "market": "市场数据",

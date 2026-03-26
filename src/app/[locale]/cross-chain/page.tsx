@@ -4,26 +4,7 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { CorrelationMatrix } from './components/CorrelationMatrix';
-import { CrossChainFilters } from './components/CrossChainFilters';
-import { PriceSpreadHeatmap, HeatmapDetailView } from './components/PriceSpreadHeatmap';
-import { PriceComparisonTable } from './components/PriceComparisonTable';
-import { RollingCorrelationChart } from './components/RollingCorrelationChart';
-import { CointegrationAnalysis } from './components/CointegrationAnalysis';
-import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './components/SmallComponents';
-import { StandardBoxPlot } from './components/StandardBoxPlot';
-import { InteractivePriceChart } from './components/InteractivePriceChart';
-import { VolatilitySurface } from './components/VolatilitySurface';
-import { CompactStatsGrid } from './components/CompactStatsGrid';
-
-import { EmptyStateEnhanced , ErrorDisplay ,
-  ProgressBar as LoadingProgressBar,
-  DataLoadingProgress,
-  LiveStatusBar , SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui';
-import { TabNavigation, TabId } from './components/TabNavigation';
-import { CollapsibleSection } from './components/CollapsibleSection';
-import { DataSourceSection } from './components/DataSourceSection';
-import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';
+import { Network, Download, RefreshCw, Eye } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -34,7 +15,40 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
+
+import { FavoriteButton } from '@/components/favorites';
+import {
+  EmptyStateEnhanced,
+  ErrorDisplay,
+  ProgressBar as LoadingProgressBar,
+  DataLoadingProgress,
+  LiveStatusBar,
+  SegmentedControl,
+  DropdownSelect,
+  MultiSelect,
+} from '@/components/ui';
+import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
+import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStore';
 import { Blockchain } from '@/types/oracle';
+
+import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';
+import { CointegrationAnalysis } from './components/CointegrationAnalysis';
+import { CompactStatsGrid } from './components/CompactStatsGrid';
+import { CorrelationMatrix } from './components/CorrelationMatrix';
+import { CrossChainFilters } from './components/CrossChainFilters';
+import { PriceSpreadHeatmap, HeatmapDetailView } from './components/PriceSpreadHeatmap';
+import { PriceComparisonTable } from './components/PriceComparisonTable';
+import { RollingCorrelationChart } from './components/RollingCorrelationChart';
+import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './components/SmallComponents';
+import { StandardBoxPlot } from './components/StandardBoxPlot';
+import { InteractivePriceChart } from './components/InteractivePriceChart';
+import { TabNavigation, TabId } from './components/TabNavigation';
+import { VolatilitySurface } from './components/VolatilitySurface';
+
+import { CollapsibleSection } from './components/CollapsibleSection';
+import { DataSourceSection } from './components/DataSourceSection';
+import { type ChainStats, type RefreshInterval } from './constants';
+import { useCrossChainData } from './useCrossChainData';
 import {
   chainNames,
   chainColors,
@@ -45,16 +59,9 @@ import {
   calculateChangePercent,
   formatPrice,
 } from './utils';
-import { ChainStats, RefreshInterval } from './constants';
-import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStore';
-import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
-import { FavoriteButton } from '@/components/favorites';
+
 import type { FavoriteConfig } from '@/hooks';
-
-import { Network , Download , RefreshCw , Eye } from 'lucide-react';
 import { useTranslations } from '@/i18n';
-
-import { useCrossChainData } from './useCrossChainData';
 
 export default function CrossChainPage() {
   const t = useTranslations();

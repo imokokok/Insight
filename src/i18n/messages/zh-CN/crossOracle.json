@@ -185,6 +185,20 @@
       "movingAverage": "移动平均线分析",
       "dataQuality": "数据质量趋势"
     },
+    "analysisTab": {
+      "movingAverage": "移动平均线分析",
+      "dataQuality": "数据质量趋势",
+      "performanceComparison": "性能对比分析",
+      "selectOracle": "选择预言机查看延迟数据",
+      "allOracles": "所有预言机",
+      "selectOraclePlaceholder": "选择预言机",
+      "summary": "预言机性能摘要",
+      "responseTime": "响应时间",
+      "accuracy": "准确率",
+      "stability": "稳定性",
+      "advancedAnalysis": "高级分析",
+      "tooltip": "{name} - 响应时间: {responseTime}ms, 准确率: {accuracy}%, 稳定性: {stability}%"
+    },
     "performanceTab": {
       "performanceComparison": "性能对比分析",
       "selectOracle": "选择预言机查看延迟数据",

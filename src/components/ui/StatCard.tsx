@@ -174,8 +174,15 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
                   <span>{change}</span>
                 </span>
                 {subtitle && (
-                  <Tooltip content={subtitle} placement="bottom" delay={300} className="flex-1 min-w-0">
-                    <span className="text-xs text-gray-400 truncate cursor-default block">{subtitle}</span>
+                  <Tooltip
+                    content={subtitle}
+                    placement="bottom"
+                    delay={300}
+                    className="flex-1 min-w-0"
+                  >
+                    <span className="text-xs text-gray-400 truncate cursor-default block">
+                      {subtitle}
+                    </span>
                   </Tooltip>
                 )}
               </div>

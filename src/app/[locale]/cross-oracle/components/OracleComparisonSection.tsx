@@ -1,7 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
+import {
+  EnhancedComparisonTable,
+  type ComparisonDataItem,
+  type DeviationThreshold,
+} from '@/components/comparison/EnhancedComparisonTable';
 import { oracleColors } from '@/components/oracle/charts/CrossOracleComparison/crossOracleConfig';
 import { useTranslations } from '@/i18n';
 import { OracleProvider, type PriceData } from '@/types/oracle';
@@ -12,14 +17,22 @@ interface OracleComparisonSectionProps {
   showTable?: boolean;
 }
 
+// 默认偏离阈值配置
+const DEFAULT_DEVIATION_THRESHOLD: DeviationThreshold = {
+  warning: 1,
+  danger: 2,
+};
+
 export function OracleComparisonSection({
   priceData,
   benchmarkOracle = OracleProvider.CHAINLINK,
   showTable = true,
 }: OracleComparisonSectionProps) {
   const t = useTranslations();
+  const [sortColumn, setSortColumn] = useState<string | undefined>(undefined);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Calculate statistics
+  // 计算统计数据
   const stats = useMemo(() => {
     if (priceData.length === 0) return null;
 
@@ -45,6 +58,35 @@ export function OracleComparisonSection({
       oracleCount: priceData.length,
     };
   }, [priceData]);
+
+  // 将 PriceData 转换为 EnhancedComparisonTable 需要的格式
+  const comparisonData: ComparisonDataItem[] = useMemo(() => {
+    if (!stats) return [];
+
+    return priceData.map((data) => {
+      const deviation = ((data.price - stats.avgPrice) / stats.avgPrice) * 100;
+
+      return {
+        provider: data.provider,
+        name: data.source || data.provider,
+        price: data.price,
+        deviation,
+        confidence: data.confidence ? data.confidence * 100 : undefined,
+        responseTime: undefined, // PriceData 中没有响应时间字段
+        color: oracleColors[data.provider] || '#6B7280',
+      };
+    });
+  }, [priceData, stats]);
+
+  // 处理排序
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
 
   if (priceData.length === 0) {
     return null;
@@ -101,7 +143,7 @@ export function OracleComparisonSection({
         </div>
       )}
 
-      {/* Price Comparison Table */}
+      {/* Enhanced Price Comparison Table */}
       {showTable && (
         <div className="bg-white border border-gray-200 overflow-hidden">
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
@@ -110,77 +152,20 @@ export function OracleComparisonSection({
             </h3>
           </div>
           <div className="p-4">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      {t('crossOracle.oracle')}
-                    </th>
-                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                      {t('crossOracle.price')}
-                    </th>
-                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                      {t('crossOracle.deviation')}
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">
-                      {t('crossOracle.confidence')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {priceData.map((data) => {
-                    const deviation = stats?.avgPrice
-                      ? ((data.price - stats.avgPrice) / stats.avgPrice) * 100
-                      : 0;
-                    const isBenchmark = data.provider === benchmarkOracle;
-
-                    return (
-                      <tr
-                        key={data.provider}
-                        className={`border-b border-gray-100 hover:bg-gray-50 ${
-                          isBenchmark ? 'bg-primary-50/50' : ''
-                        }`}
-                      >
-                        <td className="px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-2.5 h-2.5"
-                              style={{ backgroundColor: oracleColors[data.provider] }}
-                            />
-                            <span className="font-medium text-gray-900">{data.provider}</span>
-                            {isBenchmark && (
-                              <span className="text-xs text-primary-600">
-                                ({t('comparison.oracleComparison.benchmark')})
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 text-right font-mono">${data.price.toFixed(2)}</td>
-                        <td
-                          className={`px-3 py-2 text-right font-mono ${
-                            deviation > 0
-                              ? 'text-success-600'
-                              : deviation < 0
-                                ? 'text-danger-600'
-                                : 'text-gray-600'
-                          }`}
-                        >
-                          {deviation > 0 ? '+' : ''}
-                          {deviation.toFixed(3)}%
-                        </td>
-                        <td className="px-3 py-2 text-center text-gray-500">
-                          {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <EnhancedComparisonTable
+              data={comparisonData}
+              benchmarkProvider={benchmarkOracle}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              deviationThreshold={DEFAULT_DEVIATION_THRESHOLD}
+              className="w-full"
+            />
           </div>
         </div>
       )}
     </div>
   );
 }
+
+export default OracleComparisonSection;
