@@ -191,7 +191,15 @@
         "connecting": "Connecting",
         "reconnecting": "Reconnecting",
         "disconnected": "Disconnected"
-      }
+      },
+      "priceHistory": "Price History",
+      "current": "Current",
+      "comparison": "Comparison",
+      "show": "Show",
+      "hide": "Hide",
+      "avgPrice": "Average Price",
+      "dataPoints": "Data Points",
+      "timeRange": "Time Range"
     },
     "consistency": {
       "excellent": "Excellent",

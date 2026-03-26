@@ -92,11 +92,13 @@
       "rank": "Rank"
     },
     "tabOverview": "Data Overview",
+    "tabAnalysis": "Analysis",
     "tabCharts": "Charts",
     "tabAdvanced": "Advanced",
     "tabSnapshots": "Snapshots",
     "tabPerformance": "Performance",
     "tabChains": "Chain Coverage",
+    "tabHistory": "History",
     "chainsTab": {
       "chainSelector": "Chain Selector",
       "selectChains": "Select chains...",

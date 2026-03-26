@@ -2,6 +2,9 @@
   "uma": {
     "subtitle": "去中心化金融合约的乐观预言机，通过经济担保机制确保数据可靠性",
     "analytics": "UMA 数据分析",
+    "navigation": {
+      "title": "导航"
+    },
     "menu": {
       "title": "菜单",
       "marketData": "市场数据",

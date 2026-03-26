@@ -19,6 +19,21 @@
       "crossOracle": "跨预言机分析",
       "riskAssessment": "风险评估"
     },
+    "navigation": {
+      "title": "导航"
+    },
+    "network": {
+      "activeValidators": "活跃验证者",
+      "stakingRatio": "质押比例",
+      "blockTime": "区块时间",
+      "inflationRate": "通胀率",
+      "blockHeight": "区块高度",
+      "totalValidators": "验证者总数",
+      "bondedTokens": "质押代币",
+      "communityPool": "社区池",
+      "stakingParticipation": "质押参与率",
+      "cosmosMetrics": "网络概览"
+    },
     "activeValidators": "活跃验证者",
     "activePercent": "活跃",
     "stakedTokens": "质押代币总量",

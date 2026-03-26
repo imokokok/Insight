@@ -8,6 +8,7 @@
     "analytics": "Analytics",
     "subtitle": "On-chain validators and staking data",
     "menu": {
+      "title": "Menu",
       "marketData": "Market Data",
       "networkHealth": "Network Health",
       "validators": "Validators",
@@ -17,6 +18,21 @@
       "ecosystem": "Ecosystem",
       "crossOracle": "Cross-Oracle",
       "riskAssessment": "Risk Assessment"
+    },
+    "navigation": {
+      "title": "Navigation"
+    },
+    "network": {
+      "activeValidators": "Active Validators",
+      "stakingRatio": "Staking Ratio",
+      "blockTime": "Block Time",
+      "inflationRate": "Inflation Rate",
+      "blockHeight": "Block Height",
+      "totalValidators": "Total Validators",
+      "bondedTokens": "Bonded Tokens",
+      "communityPool": "Community Pool",
+      "stakingParticipation": "Staking Participation",
+      "cosmosMetrics": "Network Overview"
     },
     "activeValidators": "Active Validators",
     "activePercent": "active",

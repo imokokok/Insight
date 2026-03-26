@@ -2,6 +2,9 @@
   "uma": {
     "subtitle": "Optimistic oracle for decentralized financial contracts with economic guarantee mechanism",
     "analytics": "UMA Analytics",
+    "navigation": {
+      "title": "Navigation"
+    },
     "menu": {
       "marketData": "Market Data",
       "networkHealth": "Network Health",
