@@ -38,6 +38,7 @@ export interface TellorPageActions {
 export interface TellorSidebarProps {
   activeTab: TellorTabId;
   onTabChange: (tab: TellorTabId) => void;
+  themeColor?: string;
 }
 
 export interface TellorMarketViewProps {

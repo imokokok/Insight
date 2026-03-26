@@ -165,7 +165,8 @@
         "macd": "MACD",
         "macdValue": "MACD:",
         "signal": "信号:",
-        "histogram": "柱状:"
+        "histogram": "柱状:",
+        "deviationFromAvg": "与均价偏差"
       },
       "zoomIn": "放大",
       "zoomOut": "缩小",

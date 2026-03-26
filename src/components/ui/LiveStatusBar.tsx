@@ -6,6 +6,7 @@ import { Wifi, WifiOff, Clock, Zap, RefreshCw, Activity } from 'lucide-react';
 
 import { semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
+import { Tooltip } from './Tooltip';
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
 
@@ -28,6 +29,7 @@ interface StatusConfig {
 
 interface FreshnessConfig {
   label: string;
+  shortLabel: string;
   color: string;
   bgColor: string;
   pulse: boolean;
@@ -54,18 +56,21 @@ const statusConfig: Record<ConnectionStatus, StatusConfig> = {
 const freshnessConfig: Record<DataFreshnessLevel, FreshnessConfig> = {
   fresh: {
     label: '数据新鲜',
+    shortLabel: '新鲜',
     color: semanticColors.success.DEFAULT,
     bgColor: 'bg-emerald-50',
     pulse: false,
   },
   stale: {
     label: '数据稍旧',
+    shortLabel: '稍旧',
     color: semanticColors.warning.DEFAULT,
     bgColor: 'bg-amber-50',
     pulse: true,
   },
   expired: {
     label: '数据过期',
+    shortLabel: '过期',
     color: semanticColors.danger.DEFAULT,
     bgColor: 'bg-red-50',
     pulse: true,
@@ -145,72 +150,89 @@ export function LiveStatusBar({
   const freshness = freshnessConfig[freshnessLevel];
   const StatusIcon = status.icon;
 
-  return (
-    <div
-      className={cn(
-        'flex flex-wrap items-center gap-2 sm:gap-3 px-3 py-2 bg-white border border-gray-200 rounded-md shadow-sm',
-        className
-      )}
-    >
-      {/* UTC Time */}
-      <div className="flex items-center gap-1.5 text-xs text-gray-500">
-        <Clock className="w-3.5 h-3.5" />
-        <span className="font-mono whitespace-nowrap">{formatUTCTime(displayTime)}</span>
+  // Tooltip 内容
+  const tooltipContent = (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <Clock className="w-3 h-3 text-gray-400" />
+        <span className="font-mono">{formatUTCTime(displayTime)}</span>
       </div>
-
-      {/* Separator - Hidden on mobile */}
-      <div className="hidden sm:block w-px h-3 bg-gray-200" />
-
-      {/* Latency */}
-      <div className="flex items-center gap-1.5 text-xs text-gray-500">
-        <Zap className="w-3.5 h-3.5" />
-        <span className="font-mono whitespace-nowrap">{formatLatency(latency)}</span>
+      <div className="flex items-center gap-2">
+        <Zap className="w-3 h-3 text-gray-400" />
+        <span>延迟: {formatLatency(latency)}</span>
       </div>
-
-      {/* Separator - Hidden on mobile */}
-      <div className="hidden sm:block w-px h-3 bg-gray-200" />
-
-      {/* Last Update */}
-      <div className="flex items-center gap-1.5 text-xs text-gray-500">
-        <span className="hidden sm:inline text-gray-400">更新:</span>
-        <span className="whitespace-nowrap">{formatLastUpdate(lastUpdate)}</span>
+      <div className="flex items-center gap-2">
+        <StatusIcon className="w-3 h-3" style={{ color: status.color }} />
+        <span style={{ color: status.color }}>{status.label}</span>
       </div>
-
-      {/* Separator - Hidden on mobile */}
-      <div className="hidden sm:block w-px h-3 bg-gray-200" />
-
-      {/* Data Freshness Indicator */}
-      <div
-        className={cn(
-          'flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs',
-          freshness.bgColor
-        )}
-        title={`数据新鲜度: ${freshness.label}`}
-      >
-        <Activity
-          className={cn('w-3 h-3', freshness.pulse && 'animate-pulse')}
-          style={{ color: freshness.color }}
-        />
-        <span className="font-medium whitespace-nowrap" style={{ color: freshness.color }}>
-          {freshness.label}
-        </span>
-      </div>
-
-      {/* Separator - Hidden on mobile */}
-      <div className="hidden sm:block w-px h-3 bg-gray-200" />
-
-      {/* Connection Status */}
-      <div className="flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }} />
-        <StatusIcon
-          className={cn('w-3.5 h-3.5', connectionStatus === 'reconnecting' && 'animate-spin')}
-          style={{ color: status.color }}
-        />
-        <span className="text-xs font-medium" style={{ color: status.color }}>
-          {status.label}
-        </span>
+      <div className="flex items-center gap-2">
+        <Activity className="w-3 h-3" style={{ color: freshness.color }} />
+        <span style={{ color: freshness.color }}>{freshness.label}</span>
       </div>
     </div>
+  );
+
+  return (
+    <Tooltip content={tooltipContent} placement="bottom">
+      <div
+        className={cn(
+          'inline-flex items-center gap-2 px-2 py-1 bg-white border border-gray-200 rounded-md shadow-sm cursor-help',
+          className
+        )}
+      >
+        {/* 数据新鲜度 - Pill 样式 */}
+        <div
+          className={cn(
+            'flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs',
+            freshness.bgColor
+          )}
+        >
+          <Activity
+            className={cn('w-3 h-3', freshness.pulse && 'animate-pulse')}
+            style={{ color: freshness.color }}
+          />
+          <span className="hidden sm:inline font-medium whitespace-nowrap" style={{ color: freshness.color }}>
+            {freshness.label}
+          </span>
+          <span className="sm:hidden font-medium whitespace-nowrap" style={{ color: freshness.color }}>
+            {freshness.shortLabel}
+          </span>
+        </div>
+
+        {/* 分隔线 */}
+        <div className="w-px h-3 bg-gray-200" />
+
+        {/* 最后更新时间 */}
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <Clock className="w-3 h-3" />
+          <span className="whitespace-nowrap">{formatLastUpdate(lastUpdate)}</span>
+        </div>
+
+        {/* 分隔线 - 小屏幕隐藏 */}
+        <div className="hidden sm:block w-px h-3 bg-gray-200" />
+
+        {/* 连接状态 - 小屏幕只显示图标 */}
+        <div className="flex items-center gap-1">
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: status.color }}
+          />
+          <StatusIcon
+            className={cn(
+              'w-3.5 h-3.5',
+              connectionStatus === 'reconnecting' && 'animate-spin'
+            )}
+            style={{ color: status.color }}
+          />
+          <span
+            className="hidden sm:inline text-xs font-medium"
+            style={{ color: status.color }}
+          >
+            {status.label}
+          </span>
+        </div>
+      </div>
+    </Tooltip>
   );
 }
 

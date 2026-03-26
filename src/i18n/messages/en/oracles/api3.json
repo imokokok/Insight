@@ -184,7 +184,9 @@
       "volume24h": "24h Volume",
       "marketCap": "Market Cap",
       "circulatingSupply": "Circulating Supply",
-      "networkUptime": "Network Uptime"
+      "networkUptime": "Network Uptime",
+      "responseTime": "Response Time",
+      "successRate": "Success Rate"
     },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats"

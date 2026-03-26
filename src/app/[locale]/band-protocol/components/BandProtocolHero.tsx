@@ -61,17 +61,18 @@ interface StatCardProps {
   icon: React.ReactNode;
   subtitle?: string;
   sparklineData?: number[];
+  themeColor: string;
 }
 
 // 迷你走势图组件
 function Sparkline({
   data,
   positive,
-  themeColor,
+  color,
 }: {
   data: number[];
   positive: boolean;
-  themeColor: string;
+  color: string;
 }) {
   if (!data || data.length < 2) return null;
 
@@ -109,7 +110,7 @@ function StatCard({
   subtitle,
   sparklineData,
   themeColor,
-}: StatCardProps & { themeColor: string }) {
+}: StatCardProps) {
   const isPositive = changeType === 'positive';
   const isNegative = changeType === 'negative';
 
@@ -119,14 +120,17 @@ function StatCard({
         <div className="flex items-center gap-2">
           <div
             className="p-1.5 rounded-md"
-            style={{ backgroundColor: `${themeColor}15`, color: themeColor }}
+            style={{
+              backgroundColor: `${themeColor}15`,
+              color: themeColor,
+            }}
           >
             {icon}
           </div>
           <span className="text-xs text-gray-500">{title}</span>
         </div>
         {sparklineData && (
-          <Sparkline data={sparklineData} positive={isPositive} themeColor={themeColor} />
+          <Sparkline data={sparklineData} positive={isPositive} color={themeColor} />
         )}
       </div>
       <div className="mt-2">
@@ -303,7 +307,7 @@ function QuickActions({ themeColor }: { themeColor: string }) {
 }
 
 // 最新动态滚动条
-function LatestUpdates({ themeColor }: { themeColor: string }) {
+function LatestUpdates() {
   const updates = [
     { type: 'price', text: 'BAND 价格更新: $1.24 (+3.2%)', time: '2分钟前' },
     { type: 'validator', text: '新验证者加入: BandVal...8x9y (亚太地区)', time: '5分钟前' },
@@ -320,17 +324,15 @@ function LatestUpdates({ themeColor }: { themeColor: string }) {
             {updates.map((update, index) => (
               <div key={index} className="flex items-center gap-2 text-xs">
                 <span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{
-                    backgroundColor:
-                      update.type === 'price'
-                        ? themeColor
-                        : update.type === 'validator'
-                          ? '#10b981'
-                          : update.type === 'feed'
-                            ? '#8b5cf6'
-                            : '#6b7280',
-                  }}
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    update.type === 'price'
+                      ? 'bg-purple-500'
+                      : update.type === 'validator'
+                        ? 'bg-emerald-500'
+                        : update.type === 'feed'
+                          ? 'bg-violet-500'
+                          : 'bg-gray-500'
+                  }`}
                 />
                 <span className="text-gray-700">{update.text}</span>
                 <span className="text-gray-400">{update.time}</span>
@@ -360,7 +362,7 @@ export function BandProtocolHero({
   const t = useTranslations();
 
   // 使用 config.themeColor 获取主题色（purple）
-  const themeColor = config.themeColor || '#9333ea';
+  const themeColor = config.themeColor || '#7c3aed';
 
   const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
   const priceChange24h = config.marketData.change24h ?? 0;
@@ -381,8 +383,8 @@ export function BandProtocolHero({
   const totalValidators = validators?.totalValidators ?? bandMetrics?.totalValidators ?? 100;
   const stakingRate = bandMetrics?.stakingRate ?? 51.5;
 
-  // 8个统计指标
-  const stats: StatCardProps[] = [
+  // 主要统计指标 (Primary stats)
+  const primaryStats: StatCardProps[] = [
     {
       title: 'BAND 价格',
       value: `$${currentPrice.toFixed(2)}`,
@@ -391,6 +393,7 @@ export function BandProtocolHero({
       icon: <Activity className="w-4 h-4" />,
       subtitle: '24h 变化',
       sparklineData: priceSparkline,
+      themeColor,
     },
     {
       title: '市值',
@@ -399,6 +402,7 @@ export function BandProtocolHero({
       changeType: isPositive ? 'positive' : 'negative',
       icon: <Coins className="w-4 h-4" />,
       subtitle: '完全稀释',
+      themeColor,
     },
     {
       title: '活跃验证者',
@@ -407,22 +411,7 @@ export function BandProtocolHero({
       changeType: 'positive',
       icon: <Shield className="w-4 h-4" />,
       subtitle: `共 ${totalValidators} 个`,
-    },
-    {
-      title: '总验证者数',
-      value: `${totalValidators}`,
-      change: '0%',
-      changeType: 'neutral',
-      icon: <Database className="w-4 h-4" />,
-      subtitle: '去中心化网络',
-    },
-    {
-      title: '支持链数',
-      value: `${config.supportedChains.length}+`,
-      change: 'Multi-chain',
-      changeType: 'neutral',
-      icon: <Globe className="w-4 h-4" />,
-      subtitle: '跨链覆盖',
+      themeColor,
     },
     {
       title: '数据喂价',
@@ -431,14 +420,20 @@ export function BandProtocolHero({
       changeType: 'positive',
       icon: <Zap className="w-4 h-4" />,
       subtitle: '本周新增',
+      themeColor,
     },
+  ];
+
+  // 次要统计指标 (Secondary stats)
+  const secondaryStats: StatCardProps[] = [
     {
-      title: '平均出块时间',
-      value: `${bandMetrics?.blockTime ?? 2.8}s`,
-      change: '-5%',
-      changeType: 'positive',
-      icon: <Clock className="w-4 h-4" />,
-      subtitle: '性能优化',
+      title: '支持链数',
+      value: `${config.supportedChains.length}+`,
+      change: 'Multi-chain',
+      changeType: 'neutral',
+      icon: <Globe className="w-4 h-4" />,
+      subtitle: '跨链覆盖',
+      themeColor,
     },
     {
       title: '质押率',
@@ -447,6 +442,25 @@ export function BandProtocolHero({
       changeType: 'positive',
       icon: <Wallet className="w-4 h-4" />,
       subtitle: `APR ${config.marketData.stakingApr ?? 15.2}%`,
+      themeColor,
+    },
+    {
+      title: '平均出块时间',
+      value: `${bandMetrics?.blockTime ?? 2.8}s`,
+      change: '-5%',
+      changeType: 'positive',
+      icon: <Clock className="w-4 h-4" />,
+      subtitle: '性能优化',
+      themeColor,
+    },
+    {
+      title: '网络正常运行时间',
+      value: `${networkStats?.nodeUptime ?? 99.9}%`,
+      change: '+0.01%',
+      changeType: 'positive',
+      icon: <TrendingUp className="w-4 h-4" />,
+      subtitle: '24h 统计',
+      themeColor,
     },
   ];
 
@@ -479,9 +493,11 @@ export function BandProtocolHero({
           <div className="flex items-center gap-4">
             <div
               className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
-              style={{ background: `linear-gradient(135deg, ${themeColor}, #7c3aed)` }}
+              style={{
+                background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)`,
+              }}
             >
-              <img src="/logos/oracles/band-protocol.svg" alt="Band Protocol" className="w-8 h-8" />
+              <img src="/logos/oracles/band.svg" alt="Band Protocol" className="w-8 h-8" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Band Protocol</h1>
@@ -509,10 +525,17 @@ export function BandProtocolHero({
           </div>
         </div>
 
-        {/* 统计卡片网格 - 8个指标 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
-          {stats.map((stat, index) => (
-            <StatCard key={index} {...stat} themeColor={themeColor} />
+        {/* 主要统计指标 - 4个 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+          {primaryStats.map((stat, index) => (
+            <StatCard key={index} {...stat} />
+          ))}
+        </div>
+
+        {/* 次要统计指标 - 4个 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          {secondaryStats.map((stat, index) => (
+            <StatCard key={index} {...stat} />
           ))}
         </div>
 
@@ -525,7 +548,7 @@ export function BandProtocolHero({
       </div>
 
       {/* 最新动态滚动条 */}
-      <LatestUpdates themeColor={themeColor} />
+      <LatestUpdates />
     </div>
   );
 }

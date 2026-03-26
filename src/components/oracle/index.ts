@@ -69,5 +69,14 @@ export {
   ErrorFallback,
 } from './shared';
 
+// Unified Sidebar components
+export {
+  UnifiedSidebar,
+  MobileMenuButton,
+  type SidebarItem,
+  type UnifiedSidebarProps,
+  type MobileMenuButtonProps,
+} from './UnifiedSidebar';
+
 // Oracle panels
 export * from './oracle-panels';

@@ -111,9 +111,27 @@ export const getResponsiveSettings = (screenWidth: number) => {
   return chartResponsiveSettings.desktop;
 };
 
-export const formatPrice = (price: number, decimals: number = 4): string => {
-  if (price >= 1000) {
-    return `$${price.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/**
+ * 自适应价格格式化函数
+ * 根据价格大小自动调整小数位数
+ * - 价格 >= $100: 2位小数
+ * - 价格 $1-$100: 4位小数
+ * - 价格 < $1: 6位小数
+ */
+export const formatPrice = (price: number): string => {
+  const absPrice = Math.abs(price);
+  let decimals: number;
+
+  if (absPrice >= 100) {
+    decimals = 2;
+  } else if (absPrice >= 1) {
+    decimals = 4;
+  } else {
+    decimals = 6;
+  }
+
+  if (absPrice >= 1000) {
+    return `$${price.toLocaleString('zh-CN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
   }
   return `$${price.toFixed(decimals)}`;
 };

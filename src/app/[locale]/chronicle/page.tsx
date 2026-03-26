@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { LoadingState, ErrorFallback, MobileMenuButton } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 
 import {
@@ -16,6 +16,7 @@ import {
   ChronicleHero,
 } from './components';
 import { useChroniclePage } from './hooks/useChroniclePage';
+import { type ChronicleTabId } from './types';
 
 export default function ChroniclePage() {
   const {
@@ -107,26 +108,21 @@ export default function ChroniclePage() {
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
-              <ChronicleSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+              <ChronicleSidebar
+                activeTab={activeTab}
+                onTabChange={(tab) => setActiveTab(tab as ChronicleTabId)}
+              />
             </div>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden">
-            <button
+            <MobileMenuButton
+              isOpen={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              {t('chronicle.menu.title')}
-            </button>
+              themeColor={config.themeColor}
+              label={t('chronicle.menu.title')}
+            />
           </div>
 
           {/* Mobile Sidebar */}

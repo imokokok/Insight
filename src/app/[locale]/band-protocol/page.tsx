@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { LoadingState, ErrorFallback, MobileMenuButton } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -17,6 +17,7 @@ import {
   BandProtocolHero,
 } from './components';
 import { useBandProtocolPage } from './hooks/useBandProtocolPage';
+import { type BandProtocolTabId } from './types';
 
 export default function BandProtocolPage() {
   const {
@@ -131,29 +132,25 @@ export default function BandProtocolPage() {
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
-              <BandProtocolSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+              <BandProtocolSidebar
+                activeTab={activeTab}
+                onTabChange={(tab) => setActiveTab(tab as BandProtocolTabId)}
+                themeColor={config.themeColor}
+              />
             </div>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden">
-            <button
+            <MobileMenuButton
+              isOpen={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              {t('bandProtocol.menu.title')}
-            </button>
+              themeColor={config.themeColor}
+              label={t('bandProtocol.menu.title')}
+            />
           </div>
 
-          {/* Mobile Menu Overlay */}
+          {/* Mobile Sidebar */}
           <MobileSidebar
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
@@ -162,9 +159,10 @@ export default function BandProtocolPage() {
             <BandProtocolSidebar
               activeTab={activeTab}
               onTabChange={(tab) => {
-                setActiveTab(tab);
+                setActiveTab(tab as BandProtocolTabId);
                 setIsMobileMenuOpen(false);
               }}
+              themeColor={config.themeColor}
             />
           </MobileSidebar>
 

@@ -62,7 +62,7 @@ export function Selectors({
   setShowBaseline,
 }: SelectorsProps) {
   const t = useTranslations();
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(true);
 
   const symbolOptions: SelectorOption<string>[] = symbols.slice(0, 12).map((symbol) => ({
     value: symbol,
@@ -114,13 +114,10 @@ export function Selectors({
         <button
           onClick={onQuery}
           disabled={isLoading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md shadow-sm"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md shadow-sm"
         >
           {isLoading ? (
-            <div
-              className="w-3 h-3 border-2 border-white border-t-transparent animate-spin"
-              aria-hidden="true"
-            />
+            <RefreshCw className="w-3 h-3 animate-spin" aria-hidden="true" />
           ) : (
             <RefreshCw className="w-3 h-3" aria-hidden="true" />
           )}
@@ -129,9 +126,9 @@ export function Selectors({
       </div>
 
       {/* 选择器内容 */}
-      <div className="p-4 space-y-4">
+      <div className="p-4">
         {/* 资产选择 */}
-        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
+        <section className="py-3 first:pt-0">
           <SegmentedControl
             options={symbolOptions}
             value={selectedSymbol}
@@ -141,7 +138,7 @@ export function Selectors({
         </section>
 
         {/* 预言机选择 */}
-        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
+        <section className="py-3 border-t border-gray-100">
           <MultiSelect
             options={oracleOptions}
             value={selectedOracles}
@@ -154,7 +151,7 @@ export function Selectors({
         </section>
 
         {/* 区块链选择 */}
-        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
+        <section className="py-3 border-t border-gray-100">
           <MultiSelect
             options={chainOptions}
             value={selectedChains}
@@ -168,7 +165,7 @@ export function Selectors({
         </section>
 
         {/* 时间范围选择 */}
-        <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
+        <section className="py-3 border-t border-gray-100">
           <SegmentedControl
             options={timeRangeOptions}
             value={selectedTimeRange}
@@ -178,7 +175,7 @@ export function Selectors({
         </section>
 
         {/* 高级选项 */}
-        <div className="pt-1">
+        <div className="border-t border-gray-100 pt-3">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors py-2 px-3 rounded-md hover:bg-gray-50/80"
@@ -188,14 +185,16 @@ export function Selectors({
               {t('priceQuery.selectors.advancedOptions')}
             </span>
             {showAdvanced ? (
-              <ChevronUp className="w-4 h-4" aria-hidden="true" />
+              <ChevronUp className="w-4 h-4 text-gray-400" aria-hidden="true" />
             ) : (
-              <ChevronDown className="w-4 h-4" aria-hidden="true" />
+              <ChevronDown className="w-4 h-4 text-gray-400" aria-hidden="true" />
             )}
           </button>
 
-          {showAdvanced && (
-            <div className="mt-2 space-y-2 p-3 bg-gray-50/80 rounded-lg border border-gray-100 animate-in slide-in-from-top-1 duration-200">
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${showAdvanced ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}
+          >
+            <div className="space-y-2 p-3 bg-gray-50/50 rounded-lg border border-gray-100">
               {/* 对比模式 */}
               <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
                 <input
@@ -235,7 +234,7 @@ export function Selectors({
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
