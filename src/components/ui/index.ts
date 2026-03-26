@@ -1,5 +1,5 @@
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, StatCard } from './Card';
-export type { CardProps, CardHeaderProps, CardTitleProps, CardDescriptionProps, CardContentProps, CardFooterProps, StatCardProps } from './Card';
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
+export type { CardProps, CardHeaderProps, CardTitleProps, CardDescriptionProps, CardContentProps, CardFooterProps } from './Card';
 
 export { Button, IconButton } from './Button';
 export type { ButtonProps, IconButtonProps } from './Button';
@@ -96,6 +96,9 @@ export type { CompactStatCardProps } from './CompactStatCard';
 
 export { EnhancedStatCard } from './EnhancedStatCard';
 export type { EnhancedStatCardProps } from './EnhancedStatCard';
+
+export { StatCard } from './StatCard';
+export type { StatCardProps } from './StatCard';
 
 export { ErrorDisplay } from './ErrorDisplay';
 

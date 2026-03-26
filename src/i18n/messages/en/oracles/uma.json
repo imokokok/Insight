@@ -18,7 +18,11 @@
       "validatorUptime": "Validator Availability",
       "totalDisputes": "Total Disputes Resolved",
       "disputeSuccessRate": "Dispute Resolution Rate",
-      "dataFeeds": "Data Feeds"
+      "dataFeeds": "Data Feeds",
+      "marketCap": "Market Cap",
+      "volume24h": "24h Volume",
+      "circulatingSupply": "Circulating Supply",
+      "stakingApr": "Staking APR"
     },
     "networkHealth": {
       "responseTime": "Response Time",
@@ -376,7 +380,17 @@
       "resolvedDisputes": "Resolved Disputes",
       "successRate": "Success Rate",
       "totalValue": "Total Value",
-      "trend": "Dispute Trend (7 Days)"
+      "trend": "Dispute Trend (7 Days)",
+      "id": "ID",
+      "type": "Type",
+      "status": "Status",
+      "stakeAmount": "Stake Amount",
+      "reward": "Reward",
+      "recentDisputes": "Recent Disputes",
+      "total": "total",
+      "active": "Active",
+      "resolved": "Resolved",
+      "resolutionPanel": "Dispute Resolution"
     },
     "disputeVoting": {
       "support": "Support",

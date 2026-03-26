@@ -15,6 +15,7 @@ import {
   UMAHero,
 } from './components';
 import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { MobileSidebar } from '@/components/ui/MobileSidebar';
 
 export default function UmaPage() {
   const {
@@ -148,30 +149,20 @@ export default function UmaPage() {
             </button>
           </div>
 
-          {/* Mobile Menu Overlay */}
-          {isMobileMenuOpen && (
-            <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
-              <div className="absolute left-0 top-0 h-full w-64 bg-white" onClick={(e) => e.stopPropagation()}>
-                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
-                    {t('uma.navigation.title')}
-                  </h2>
-                  <button onClick={() => setIsMobileMenuOpen(false)}>
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <UmaSidebar 
-                  activeTab={activeTab} 
-                  onTabChange={(tab) => {
-                    setActiveTab(tab);
-                    setIsMobileMenuOpen(false);
-                  }} 
-                />
-              </div>
-            </div>
-          )}
+          {/* Mobile Sidebar */}
+          <MobileSidebar
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+            title={t('uma.navigation.title')}
+          >
+            <UmaSidebar
+              activeTab={activeTab}
+              onTabChange={(tab) => {
+                setActiveTab(tab);
+                setIsMobileMenuOpen(false);
+              }}
+            />
+          </MobileSidebar>
 
           {/* Content Area */}
           <div className="flex-1 min-w-0">
