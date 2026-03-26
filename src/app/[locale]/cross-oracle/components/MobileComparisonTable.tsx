@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useCallback, memo } from 'react';
+
 import {
   ChevronDown,
   ChevronUp,
@@ -231,7 +232,10 @@ function MobileComparisonTableComponent({
     return (
       <div className="flex items-center gap-2">
         <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div className={`h-full ${colorClass} rounded-full`} style={{ width: `${percentage}%` }} />
+          <div
+            className={`h-full ${colorClass} rounded-full`}
+            style={{ width: `${percentage}%` }}
+          />
         </div>
         <span className="text-xs font-medium text-gray-600 min-w-[36px]">{percentage}%</span>
       </div>
@@ -308,7 +312,9 @@ function MobileComparisonTableComponent({
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
             <Filter className="w-8 h-8 text-gray-400" />
           </div>
-          <p className="text-gray-500 font-medium">{t('crossOracle.noData') || 'No data available'}</p>
+          <p className="text-gray-500 font-medium">
+            {t('crossOracle.noData') || 'No data available'}
+          </p>
           <p className="text-sm text-gray-400 mt-1">
             {t('crossOracle.tryAdjustingFilters') || 'Try adjusting your filters'}
           </p>
@@ -322,7 +328,9 @@ function MobileComparisonTableComponent({
       {/* 排序和过滤工具栏 */}
       <div className="flex items-center justify-between bg-white rounded-lg border border-gray-200 p-2">
         <div className="flex items-center gap-1">
-          <span className="text-xs text-gray-500 mr-2">{t('crossOracle.sortBy') || 'Sort by'}:</span>
+          <span className="text-xs text-gray-500 mr-2">
+            {t('crossOracle.sortBy') || 'Sort by'}:
+          </span>
           {[
             { key: 'price', label: t('crossOracle.price') || 'Price' },
             { key: 'deviation', label: t('crossOracle.deviation') || 'Dev' },
@@ -339,9 +347,7 @@ function MobileComparisonTableComponent({
             >
               <span className="flex items-center gap-1">
                 {option.label}
-                {sortField === option.key && (
-                  <ArrowUpDown className="w-3 h-3" />
-                )}
+                {sortField === option.key && <ArrowUpDown className="w-3 h-3" />}
               </span>
             </button>
           ))}
@@ -349,9 +355,7 @@ function MobileComparisonTableComponent({
         <button
           onClick={() => setFilterOutliers(!filterOutliers)}
           className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-            filterOutliers
-              ? 'bg-amber-100 text-amber-700'
-              : 'text-gray-600 hover:bg-gray-100'
+            filterOutliers ? 'bg-amber-100 text-amber-700' : 'text-gray-600 hover:bg-gray-100'
           }`}
         >
           {filterOutliers
@@ -369,8 +373,8 @@ function MobileComparisonTableComponent({
               card.isOutlier
                 ? 'border-amber-200 shadow-sm'
                 : expandedCard === index
-                ? 'border-primary-200 shadow-md'
-                : 'border-gray-200'
+                  ? 'border-primary-200 shadow-md'
+                  : 'border-gray-200'
             }`}
             onTouchStart={handleTouchStart}
             onTouchEnd={(e) => handleTouchEnd(e, index)}
@@ -378,10 +382,7 @@ function MobileComparisonTableComponent({
             onMouseLeave={() => onHoverOracle?.(null)}
           >
             {/* 卡片头部 */}
-            <button
-              onClick={() => toggleExpand(index)}
-              className="w-full p-4 text-left"
-            >
+            <button onClick={() => toggleExpand(index)} className="w-full p-4 text-left">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   {/* 颜色指示器 */}
@@ -410,7 +411,8 @@ function MobileComparisonTableComponent({
 
                 <div className="flex items-center gap-2">
                   <span className="text-lg font-bold text-gray-900">
-                    ${card.price.toLocaleString(undefined, {
+                    $
+                    {card.price.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
@@ -498,10 +500,11 @@ function MobileComparisonTableComponent({
                         }`}
                       >
                         {card.deviation >= 0 ? '+' : ''}
-                        {((card.price - avgPrice)).toFixed(2)}
+                        {(card.price - avgPrice).toFixed(2)}
                       </div>
                       <div className="text-xs text-gray-400 mt-0.5">
-                        ${avgPrice.toLocaleString(undefined, {
+                        $
+                        {avgPrice.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}{' '}

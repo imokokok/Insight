@@ -4,8 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 import { Clock, Shield, Activity } from 'lucide-react';
 
-import { EnhancedStatCard } from '@/components/ui/EnhancedStatCard';
 import { DataQualityIndicators } from '@/components/ui/DataQualityIndicators';
+import { EnhancedStatCard } from '@/components/ui/EnhancedStatCard';
 
 import { type HistoryMinMax, getTrendIcon, getHealthColor } from '../constants';
 
@@ -101,98 +101,128 @@ export function StatsSection({
   }, [standardDeviationPercent]);
 
   // 桌面端统计卡片数据
-  const desktopStats = useMemo(() => [
-    {
-      title: t('crossOracle.averagePrice'),
-      value: avgPrice,
-      change: avgPriceChange,
-      sparkline: sparklineData?.avgPrice,
-      tooltipContent: `${t('crossOracle.weighted')}: ${formatPrice(weightedAvgPrice)}`,
-    },
-    {
-      title: t('crossOracle.highestPrice'),
-      value: maxPrice,
-      change: maxPriceChange,
-      sparkline: sparklineData?.maxPrice,
-      tooltipContent: `${t('crossOracle.low')}: ${formatPrice(minPrice)}`,
-    },
-    {
-      title: t('crossOracle.priceRange'),
-      value: priceRange,
-      change: null,
-      sparkline: sparklineData?.priceRange,
-      tooltipContent: `${t('crossOracle.ofAverage')}: ${avgPrice > 0 ? ((priceRange / avgPrice) * 100).toFixed(2) : '-'}%`,
-    },
-    {
-      title: t('crossOracle.standardDeviation'),
-      value: standardDeviationPercent,
-      change: null,
-      sparkline: sparklineData?.standardDeviation,
-      tooltipContent: `σ: ${variance > 0 ? `$${Math.sqrt(variance).toFixed(2)}` : '-'}`,
-      isPercent: true,
-    },
-    {
-      title: t('crossOracle.variance'),
-      value: variance,
-      change: null,
-      sparkline: sparklineData?.variance,
-      tooltipContent: 'V[x]',
-      isCurrency: false,
-    },
-    {
-      title: t('crossOracle.consistencyRating'),
-      value: consistencyRating,
-      change: null,
-      sparkline: sparklineData?.avgPrice,
-      tooltipContent: t('crossOracle.basedOnStdDev'),
-      isBadge: true,
-    },
-  ], [avgPrice, weightedAvgPrice, maxPrice, minPrice, priceRange, standardDeviationPercent, variance, consistencyRating, avgPriceChange, maxPriceChange, sparklineData, t]);
+  const desktopStats = useMemo(
+    () => [
+      {
+        title: t('crossOracle.averagePrice'),
+        value: avgPrice,
+        change: avgPriceChange,
+        sparkline: sparklineData?.avgPrice,
+        tooltipContent: `${t('crossOracle.weighted')}: ${formatPrice(weightedAvgPrice)}`,
+      },
+      {
+        title: t('crossOracle.highestPrice'),
+        value: maxPrice,
+        change: maxPriceChange,
+        sparkline: sparklineData?.maxPrice,
+        tooltipContent: `${t('crossOracle.low')}: ${formatPrice(minPrice)}`,
+      },
+      {
+        title: t('crossOracle.priceRange'),
+        value: priceRange,
+        change: null,
+        sparkline: sparklineData?.priceRange,
+        tooltipContent: `${t('crossOracle.ofAverage')}: ${avgPrice > 0 ? ((priceRange / avgPrice) * 100).toFixed(2) : '-'}%`,
+      },
+      {
+        title: t('crossOracle.standardDeviation'),
+        value: standardDeviationPercent,
+        change: null,
+        sparkline: sparklineData?.standardDeviation,
+        tooltipContent: `σ: ${variance > 0 ? `$${Math.sqrt(variance).toFixed(2)}` : '-'}`,
+        isPercent: true,
+      },
+      {
+        title: t('crossOracle.variance'),
+        value: variance,
+        change: null,
+        sparkline: sparklineData?.variance,
+        tooltipContent: 'V[x]',
+        isCurrency: false,
+      },
+      {
+        title: t('crossOracle.consistencyRating'),
+        value: consistencyRating,
+        change: null,
+        sparkline: sparklineData?.avgPrice,
+        tooltipContent: t('crossOracle.basedOnStdDev'),
+        isBadge: true,
+      },
+    ],
+    [
+      avgPrice,
+      weightedAvgPrice,
+      maxPrice,
+      minPrice,
+      priceRange,
+      standardDeviationPercent,
+      variance,
+      consistencyRating,
+      avgPriceChange,
+      maxPriceChange,
+      sparklineData,
+      t,
+    ]
+  );
 
   // 移动端统计卡片数据
-  const mobileStats = useMemo(() => [
-    {
-      title: t('crossOracle.averagePrice'),
-      value: avgPrice,
-      change: avgPriceChange,
-      sparkline: sparklineData?.avgPrice,
-    },
-    {
-      title: t('crossOracle.highestPrice'),
-      value: maxPrice,
-      change: maxPriceChange,
-      sparkline: sparklineData?.maxPrice,
-    },
-    {
-      title: t('crossOracle.priceRange'),
-      value: priceRange,
-      change: null,
-      sparkline: sparklineData?.priceRange,
-    },
-    {
-      title: t('crossOracle.standardDeviation'),
-      value: standardDeviationPercent,
-      change: null,
-      sparkline: sparklineData?.standardDeviation,
-      isPercent: true,
-    },
-    {
-      title: t('crossOracle.variance'),
-      value: variance,
-      change: null,
-      sparkline: sparklineData?.variance,
-    },
-    {
-      title: t('crossOracle.consistencyRating'),
-      value: consistencyRating,
-      change: null,
-      sparkline: sparklineData?.avgPrice,
-      isBadge: true,
-    },
-  ], [avgPrice, maxPrice, priceRange, standardDeviationPercent, variance, consistencyRating, avgPriceChange, maxPriceChange, sparklineData, t]);
+  const mobileStats = useMemo(
+    () => [
+      {
+        title: t('crossOracle.averagePrice'),
+        value: avgPrice,
+        change: avgPriceChange,
+        sparkline: sparklineData?.avgPrice,
+      },
+      {
+        title: t('crossOracle.highestPrice'),
+        value: maxPrice,
+        change: maxPriceChange,
+        sparkline: sparklineData?.maxPrice,
+      },
+      {
+        title: t('crossOracle.priceRange'),
+        value: priceRange,
+        change: null,
+        sparkline: sparklineData?.priceRange,
+      },
+      {
+        title: t('crossOracle.standardDeviation'),
+        value: standardDeviationPercent,
+        change: null,
+        sparkline: sparklineData?.standardDeviation,
+        isPercent: true,
+      },
+      {
+        title: t('crossOracle.variance'),
+        value: variance,
+        change: null,
+        sparkline: sparklineData?.variance,
+      },
+      {
+        title: t('crossOracle.consistencyRating'),
+        value: consistencyRating,
+        change: null,
+        sparkline: sparklineData?.avgPrice,
+        isBadge: true,
+      },
+    ],
+    [
+      avgPrice,
+      maxPrice,
+      priceRange,
+      standardDeviationPercent,
+      variance,
+      consistencyRating,
+      avgPriceChange,
+      maxPriceChange,
+      sparklineData,
+      t,
+    ]
+  );
 
   // 格式化数值显示
-  const formatValue = (stat: typeof desktopStats[0]): string => {
+  const formatValue = (stat: (typeof desktopStats)[0]): string => {
     if (stat.isBadge) return stat.value as string;
     if (stat.isPercent) return formatPercent(stat.value as number);
     if (stat.isCurrency === false) return (stat.value as number).toFixed(2);
@@ -278,7 +308,15 @@ export function StatsSection({
             title={stat.title}
             value={formatValue(stat)}
             change={stat.change ?? undefined}
-            trend={stat.change !== null ? (stat.change > 0 ? 'up' : stat.change < 0 ? 'down' : 'stable') : 'stable'}
+            trend={
+              stat.change !== null
+                ? stat.change > 0
+                  ? 'up'
+                  : stat.change < 0
+                    ? 'down'
+                    : 'stable'
+                : 'stable'
+            }
             sparklineData={stat.sparkline}
             confidence={stat.isBadge ? undefined : confidence}
             tooltipContent={stat.tooltipContent}
@@ -290,15 +328,26 @@ export function StatsSection({
       {/* 移动端统计卡片 - 横向滚动 */}
       <div className="md:hidden flex overflow-x-auto gap-4 pb-4 -mx-4 px-4">
         {mobileStats.map((stat, index) => (
-          <div
-            key={index}
-            className="flex-shrink-0 w-44"
-          >
+          <div key={index} className="flex-shrink-0 w-44">
             <EnhancedStatCard
               title={stat.title}
-              value={stat.isBadge ? (stat.value as string) : stat.isPercent ? formatPercent(stat.value as number) : formatPrice(stat.value as number)}
+              value={
+                stat.isBadge
+                  ? (stat.value as string)
+                  : stat.isPercent
+                    ? formatPercent(stat.value as number)
+                    : formatPrice(stat.value as number)
+              }
               change={stat.change ?? undefined}
-              trend={stat.change !== null ? (stat.change > 0 ? 'up' : stat.change < 0 ? 'down' : 'stable') : 'stable'}
+              trend={
+                stat.change !== null
+                  ? stat.change > 0
+                    ? 'up'
+                    : stat.change < 0
+                      ? 'down'
+                      : 'stable'
+                  : 'stable'
+              }
               sparklineData={stat.sparkline}
               confidence={stat.isBadge ? undefined : confidence}
               variant="compact"

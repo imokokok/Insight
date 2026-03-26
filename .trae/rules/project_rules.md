@@ -22,6 +22,7 @@
 15. [注释和文档规范](#15-注释和文档规范)
 
 **附录**
+
 - [附录 A: 快速参考](#附录-a-快速参考)
 - [附录 B: 最佳实践检查清单](#附录-b-最佳实践检查清单)
 - [附录 C: Git 提交规范](#附录-c-git-提交规范)
@@ -32,21 +33,21 @@
 
 ### 1.1 技术栈
 
-| 类别 | 技术 | 版本 | 用途 |
-|------|------|------|------|
-| 框架 | Next.js | 16.1.6 | React 全栈框架 |
-| UI 库 | React | 19.2.3 | 用户界面 |
-| 语言 | TypeScript | 5.x | 类型安全 |
-| 样式 | Tailwind CSS | 4.x | 原子化 CSS |
-| 图表 | Recharts | 3.8.0 | 数据可视化 |
-| 状态管理 | React Query | 5.90.21 | 服务端状态 |
-| 客户端状态 | Zustand | 5.0.11 | UI 状态 |
-| 数据库 | Supabase | 2.98.0 | PostgreSQL + Auth |
-| 国际化 | next-intl | 4.8.3 | 多语言支持 |
-| 动画 | Framer Motion | 12.36.0 | 交互动画 |
-| 图标 | Lucide React | 0.577.0 | 图标库 |
-| 监控 | Sentry | 10.43.0 | 错误监控 |
-| 分析 | Vercel Analytics | 2.0.1 | 性能分析 |
+| 类别       | 技术             | 版本    | 用途              |
+| ---------- | ---------------- | ------- | ----------------- |
+| 框架       | Next.js          | 16.1.6  | React 全栈框架    |
+| UI 库      | React            | 19.2.3  | 用户界面          |
+| 语言       | TypeScript       | 5.x     | 类型安全          |
+| 样式       | Tailwind CSS     | 4.x     | 原子化 CSS        |
+| 图表       | Recharts         | 3.8.0   | 数据可视化        |
+| 状态管理   | React Query      | 5.90.21 | 服务端状态        |
+| 客户端状态 | Zustand          | 5.0.11  | UI 状态           |
+| 数据库     | Supabase         | 2.98.0  | PostgreSQL + Auth |
+| 国际化     | next-intl        | 4.8.3   | 多语言支持        |
+| 动画       | Framer Motion    | 12.36.0 | 交互动画          |
+| 图标       | Lucide React     | 0.577.0 | 图标库            |
+| 监控       | Sentry           | 10.43.0 | 错误监控          |
+| 分析       | Vercel Analytics | 2.0.1   | 性能分析          |
 
 ### 1.2 项目特点
 
@@ -850,7 +851,7 @@ interface PriceData {
 }
 
 // ❌ 避免
- type PriceData = {
+type PriceData = {
   provider: OracleProvider;
   // ...
 };
@@ -1221,9 +1222,9 @@ export function InteractiveChart({ symbol }: { symbol: string }) {
 
 ```typescript
 // ✅ Props 接口命名
-interface ButtonProps { }
-interface PriceChartProps { }
-interface OracleComparisonSectionProps { }
+interface ButtonProps {}
+interface PriceChartProps {}
+interface OracleComparisonSectionProps {}
 
 // ✅ Props 解构
 function Button({
@@ -1428,11 +1429,7 @@ export type PriceListParams = Parameters<typeof priceKeys.list>[0];
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queries/queryKeys';
 
-export function useOraclePrice(
-  provider: OracleProvider,
-  symbol: string,
-  chain?: Blockchain
-) {
+export function useOraclePrice(provider: OracleProvider, symbol: string, chain?: Blockchain) {
   return useQuery({
     queryKey: queryKeys.oracles.price(provider, symbol, chain),
     queryFn: () => fetchOraclePrice(provider, symbol, chain),
@@ -1450,11 +1447,7 @@ export function useRefreshOraclePrice() {
     mutationFn: refreshPrice,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.oracles.price(
-          variables.provider,
-          variables.symbol,
-          variables.chain
-        ),
+        queryKey: queryKeys.oracles.price(variables.provider, variables.symbol, variables.chain),
       });
     },
   });
@@ -1531,7 +1524,9 @@ interface CrossChainStore extends SelectorState, UIState, DataState, ConfigState
   setHiddenLines: (lines: Set<string>) => void;
   setFocusedChain: (chain: Blockchain | null) => void;
   setTableFilter: (filter: 'all' | 'abnormal' | 'normal') => void;
-  setHoveredCell: (cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null) => void;
+  setHoveredCell: (
+    cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null
+  ) => void;
   setSelectedCell: (cell: { xChain: Blockchain; yChain: Blockchain } | null) => void;
   setTooltipPosition: (position: { x: number; y: number }) => void;
   setSortColumn: (column: string) => void;
@@ -1753,15 +1748,15 @@ export function useAuth() {
 
 #### 圆角值标准
 
-| 变量名 | 值 | 用途 |
-|--------|-----|------|
-| `--radius-none` | 0 | 数据表格、分割线 |
-| `--radius-sm` | 0.25rem (4px) | 小按钮、标签、状态指示器 |
-| `--radius-md` | 0.375rem (6px) | 标准按钮、输入框 |
-| `--radius-lg` | 0.5rem (8px) | 卡片、面板、模态框 |
-| `--radius-xl` | 0.75rem (12px) | 大卡片、弹窗 |
-| `--radius-2xl` | 1rem (16px) | 特殊容器 |
-| `--radius-full` | 9999px | 圆形元素（头像、徽章） |
+| 变量名          | 值             | 用途                     |
+| --------------- | -------------- | ------------------------ |
+| `--radius-none` | 0              | 数据表格、分割线         |
+| `--radius-sm`   | 0.25rem (4px)  | 小按钮、标签、状态指示器 |
+| `--radius-md`   | 0.375rem (6px) | 标准按钮、输入框         |
+| `--radius-lg`   | 0.5rem (8px)   | 卡片、面板、模态框       |
+| `--radius-xl`   | 0.75rem (12px) | 大卡片、弹窗             |
+| `--radius-2xl`  | 1rem (16px)    | 特殊容器                 |
+| `--radius-full` | 9999px         | 圆形元素（头像、徽章）   |
 
 #### 组件圆角应用规范
 
@@ -1986,36 +1981,35 @@ import { validateProvider } from '@/lib/api/validation';
 import { createCachedJsonResponse } from '@/lib/api/response';
 import { withErrorHandler } from '@/lib/api/middleware';
 
-export const GET = withErrorHandler(async (
-  request: NextRequest,
-  { params }: { params: { provider: string } }
-) => {
-  // 1. 验证 provider
-  const validationError = validateProvider(params.provider);
-  if (validationError) return validationError;
+export const GET = withErrorHandler(
+  async (request: NextRequest, { params }: { params: { provider: string } }) => {
+    // 1. 验证 provider
+    const validationError = validateProvider(params.provider);
+    if (validationError) return validationError;
 
-  // 2. 获取查询参数
-  const searchParams = request.nextUrl.searchParams;
-  const symbol = searchParams.get('symbol');
-  const chain = searchParams.get('chain');
+    // 2. 获取查询参数
+    const searchParams = request.nextUrl.searchParams;
+    const symbol = searchParams.get('symbol');
+    const chain = searchParams.get('chain');
 
-  if (!symbol) {
-    return NextResponse.json(
-      { error: { code: 'MISSING_PARAMS', message: 'Symbol is required' } },
-      { status: 400 }
-    );
+    if (!symbol) {
+      return NextResponse.json(
+        { error: { code: 'MISSING_PARAMS', message: 'Symbol is required' } },
+        { status: 400 }
+      );
+    }
+
+    // 3. 获取数据
+    const client = OracleClientFactory.getClient(params.provider as OracleProvider);
+    const price = await client.getPrice(symbol, chain as Blockchain);
+
+    // 4. 返回缓存响应
+    return createCachedJsonResponse(price, {
+      maxAge: 30,
+      staleWhileRevalidate: 60,
+    });
   }
-
-  // 3. 获取数据
-  const client = OracleClientFactory.getClient(params.provider as OracleProvider);
-  const price = await client.getPrice(symbol, chain as Blockchain);
-
-  // 4. 返回缓存响应
-  return createCachedJsonResponse(price, {
-    maxAge: 30,
-    staleWhileRevalidate: 60,
-  });
-});
+);
 ```
 
 ### 7.2 API 客户端
@@ -2189,17 +2183,21 @@ export type AlertConfigInput = z.infer<typeof AlertConfigSchema>;
 
 ```typescript
 // lib/api/validation/manual.ts
-export function validatePriceQuery(input: unknown): { symbol: string; chain?: string; period: number } {
+export function validatePriceQuery(input: unknown): {
+  symbol: string;
+  chain?: string;
+  period: number;
+} {
   if (typeof input !== 'object' || input === null) {
     throw new Error('Invalid input: expected object');
   }
-  
+
   const { symbol, chain, period } = input as Record<string, unknown>;
-  
+
   if (typeof symbol !== 'string' || symbol.length === 0 || symbol.length > 20) {
     throw new Error('Invalid symbol');
   }
-  
+
   return {
     symbol: symbol.toUpperCase(),
     chain: typeof chain === 'string' ? chain : undefined,
@@ -2594,10 +2592,7 @@ function ErrorFallback({
 
 ```typescript
 // ✅ 使用 try-catch 处理异步错误
-async function fetchPriceData(
-  provider: OracleProvider,
-  symbol: string
-): Promise<PriceData | null> {
+async function fetchPriceData(provider: OracleProvider, symbol: string): Promise<PriceData | null> {
   try {
     const client = OracleClientFactory.getClient(provider);
     return await client.getPrice(symbol);
@@ -2614,9 +2609,7 @@ async function fetchPriceData(
 }
 
 // ✅ 使用 Result 模式
-type Result<T, E = Error> =
-  | { success: true; data: T }
-  | { success: false; error: E };
+type Result<T, E = Error> = { success: true; data: T } | { success: false; error: E };
 
 async function fetchPriceSafe(
   provider: OracleProvider,
@@ -3072,9 +3065,7 @@ import { GET } from '../[provider]/route';
 
 describe('/api/oracles/[provider]', () => {
   it('returns price data for valid provider and symbol', async () => {
-    const request = new NextRequest(
-      'http://localhost:3000/api/oracles/chainlink?symbol=BTC'
-    );
+    const request = new NextRequest('http://localhost:3000/api/oracles/chainlink?symbol=BTC');
 
     const response = await GET(request, {
       params: { provider: 'chainlink' },
@@ -3089,9 +3080,7 @@ describe('/api/oracles/[provider]', () => {
   });
 
   it('returns 400 for missing symbol', async () => {
-    const request = new NextRequest(
-      'http://localhost:3000/api/oracles/chainlink'
-    );
+    const request = new NextRequest('http://localhost:3000/api/oracles/chainlink');
 
     const response = await GET(request, {
       params: { provider: 'chainlink' },
@@ -3101,9 +3090,7 @@ describe('/api/oracles/[provider]', () => {
   });
 
   it('returns 400 for invalid provider', async () => {
-    const request = new NextRequest(
-      'http://localhost:3000/api/oracles/invalid?symbol=BTC'
-    );
+    const request = new NextRequest('http://localhost:3000/api/oracles/invalid?symbol=BTC');
 
     const response = await GET(request, {
       params: { provider: 'invalid' },
@@ -3491,15 +3478,15 @@ export const GET = withRateLimit(
 
 ### 13.1 文件命名
 
-| 类型 | 命名方式 | 示例 |
-|------|----------|------|
-| 组件 | PascalCase | `PriceCard.tsx`, `OracleComparison.tsx` |
-| Hooks | camelCase + use 前缀 | `usePriceData.ts`, `useChartZoom.ts` |
-| 工具函数 | camelCase | `formatPrice.ts`, `calculateAverage.ts` |
-| 类型定义 | PascalCase | `OracleTypes.ts`, `PriceData.ts` |
-| 常量 | SCREAMING_SNAKE_CASE | `ORACLE_PROVIDERS.ts`, `API_ENDPOINTS.ts` |
-| 配置文件 | camelCase 或 kebab-case | `next.config.ts`, `tailwind.config.js` |
-| 测试文件 | 同被测文件 + .test | `PriceCard.test.tsx` |
+| 类型     | 命名方式                | 示例                                      |
+| -------- | ----------------------- | ----------------------------------------- |
+| 组件     | PascalCase              | `PriceCard.tsx`, `OracleComparison.tsx`   |
+| Hooks    | camelCase + use 前缀    | `usePriceData.ts`, `useChartZoom.ts`      |
+| 工具函数 | camelCase               | `formatPrice.ts`, `calculateAverage.ts`   |
+| 类型定义 | PascalCase              | `OracleTypes.ts`, `PriceData.ts`          |
+| 常量     | SCREAMING_SNAKE_CASE    | `ORACLE_PROVIDERS.ts`, `API_ENDPOINTS.ts` |
+| 配置文件 | camelCase 或 kebab-case | `next.config.ts`, `tailwind.config.js`    |
+| 测试文件 | 同被测文件 + .test      | `PriceCard.test.tsx`                      |
 
 ### 13.2 变量命名
 
@@ -3524,9 +3511,9 @@ const DEFAULT_TIMEOUT = 5000;
 const ORACLE_PROVIDERS = ['chainlink', 'pyth'] as const;
 
 // ✅ 接口使用描述性名称
-interface PriceData { }
-interface OracleConfig { }
-interface ApiResponse<T> { }
+interface PriceData {}
+interface OracleConfig {}
+interface ApiResponse<T> {}
 
 // ✅ 类型别名使用描述性名称
 type PriceMap = Map<string, PriceData>;
@@ -3537,8 +3524,8 @@ type LoadingState = 'idle' | 'loading' | 'success' | 'error';
 
 ```typescript
 // ✅ Props 接口使用 ComponentName + Props
-interface ButtonProps { }
-interface PriceChartProps { }
+interface ButtonProps {}
+interface PriceChartProps {}
 
 // ✅ 回调函数使用 on + EventName
 interface Props {
@@ -3588,12 +3575,12 @@ import type { ButtonProps } from '@/components/ui/Button';
 
 ```typescript
 // ✅ 命名导出（推荐）
-export function Button() { }
+export function Button() {}
 export const ORACLE_PROVIDERS = ['chainlink', 'pyth'];
-export interface ButtonProps { }
+export interface ButtonProps {}
 
 // ✅ 默认导出（仅用于页面和主要组件）
-export default function HomePage() { }
+export default function HomePage() {}
 
 // ✅ 重新导出
 export { Button } from './Button';
@@ -3644,7 +3631,7 @@ import { useState } from 'react';
 
 ### 15.2 函数和组件文档
 
-```typescript
+````typescript
 /**
  * 获取指定预言机和资产的价格数据
  *
@@ -3676,15 +3663,10 @@ export async function getPrice(
  * @param showChange - 是否显示 24 小时变化，默认为 true
  * @param onClick - 点击回调函数
  */
-export function PriceCard({
-  symbol,
-  provider,
-  showChange = true,
-  onClick,
-}: PriceCardProps) {
+export function PriceCard({ symbol, provider, showChange = true, onClick }: PriceCardProps) {
   // ...
 }
-```
+````
 
 ### 15.3 行内注释
 
@@ -3694,8 +3676,7 @@ function calculateMetrics(data: PriceData[]) {
   const validData = data.filter((d) => d.price > 0);
 
   // 计算平均值
-  const average =
-    validData.reduce((sum, d) => sum + d.price, 0) / validData.length;
+  const average = validData.reduce((sum, d) => sum + d.price, 0) / validData.length;
 
   // TODO: 添加更多指标计算
   return { average };
@@ -3725,10 +3706,7 @@ export default [
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        { argsIgnorePattern: '^_' },
-      ],
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
     },
@@ -3852,21 +3830,22 @@ npm run naming:check     # 检查命名规范
 
 ### C.2 提交类型
 
-| 类型 | 说明 | 示例 |
-|------|------|------|
-| `feat` | 新功能 | `feat(oracles): add Pyth Network support` |
-| `fix` | 修复 bug | `fix(charts): resolve tooltip positioning issue` |
-| `docs` | 文档更新 | `docs(readme): update installation guide` |
-| `style` | 代码格式 | `style(components): format with prettier` |
-| `refactor` | 重构 | `refactor(hooks): simplify usePriceData logic` |
-| `perf` | 性能优化 | `perf(queries): add caching for price data` |
-| `test` | 测试相关 | `test(api): add unit tests for oracle handlers` |
-| `chore` | 构建/工具 | `chore(deps): update dependencies` |
-| `ci` | CI/CD | `ci(github): add automated testing workflow` |
+| 类型       | 说明      | 示例                                             |
+| ---------- | --------- | ------------------------------------------------ |
+| `feat`     | 新功能    | `feat(oracles): add Pyth Network support`        |
+| `fix`      | 修复 bug  | `fix(charts): resolve tooltip positioning issue` |
+| `docs`     | 文档更新  | `docs(readme): update installation guide`        |
+| `style`    | 代码格式  | `style(components): format with prettier`        |
+| `refactor` | 重构      | `refactor(hooks): simplify usePriceData logic`   |
+| `perf`     | 性能优化  | `perf(queries): add caching for price data`      |
+| `test`     | 测试相关  | `test(api): add unit tests for oracle handlers`  |
+| `chore`    | 构建/工具 | `chore(deps): update dependencies`               |
+| `ci`       | CI/CD     | `ci(github): add automated testing workflow`     |
 
 ### C.3 提交范围
 
 常用范围：
+
 - `oracles` - 预言机相关
 - `components` - 组件
 - `hooks` - Hooks
@@ -3930,16 +3909,18 @@ fixed bug
 ## 更新日志
 
 ### v1.5.0 (2026-03-26)
+
 - 更新 lib/services 目录结构（添加 api3WebSocket.ts 和 marketData/index.ts）
-- 更新 lib/analytics 目录结构（添加 __tests__ 目录）
+- 更新 lib/analytics 目录结构（添加 **tests** 目录）
 - 更新 lib/snapshots 目录结构（添加 migration.ts）
-- 更新 lib/realtime 目录结构（添加 websocket.ts 和 __tests__）
+- 更新 lib/realtime 目录结构（添加 websocket.ts 和 **tests**）
 - 更新 lib/constants 目录结构（添加 searchConfig.ts）
 - 更新 lib/di 目录结构（添加 index.ts）
-- 更新 lib/errors 目录结构（添加 __tests__ 目录）
+- 更新 lib/errors 目录结构（添加 **tests** 目录）
 - 更新 stores 目录结构（添加 uiStore.ts, authStore.ts, realtimeStore.ts, selectors.ts）
 
 ### v1.4.0 (2026-03-26)
+
 - 修复 lib/config 目录结构（移除不存在的 oracles.tsx）
 - 更新 package.json scripts 文档（添加所有实际可用的命令）
 - 添加 performanceBudget 配置文档（Web Vitals 和 Bundle 预算）
@@ -3947,6 +3928,7 @@ fixed bug
 - 添加详细的 UI 组件库列表（components/ui/ 完整组件清单）
 
 ### v1.3.0 (2026-03-26)
+
 - 修复 lib/utils 目录结构（实际为分散文件，添加 lib/utils.ts 根级别文件）
 - 更新 i18n 配置文档（添加 config.ts、routing.ts、request.ts 完整内容）
 - 更新翻译文件结构（添加 en/ 和 zh-CN/ 子目录）
@@ -3954,6 +3936,7 @@ fixed bug
 - 添加 lib/oracles/index.ts 统一导出说明
 
 ### v1.2.0 (2026-03-26)
+
 - 更新 Query Keys 结构与实际代码一致
 - 更新 API Client 实现（添加拦截器支持）
 - 添加完整的 Zustand Store 文档
@@ -3962,6 +3945,7 @@ fixed bug
 - 添加枚举值数组导出文档
 
 ### v1.1.0 (2026-03-26)
+
 - 更新目录结构与实际代码一致
 - 更新 OracleClientFactory（添加 DI 支持）
 - 更新 DI Container（添加完整方法）

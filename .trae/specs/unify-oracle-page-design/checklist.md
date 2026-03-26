@@ -13,51 +13,61 @@
 ## 十个预言机页面检查
 
 ### Chainlink
+
 - [x] ChainlinkHero 使用分层布局
 - [x] ChainlinkSidebar 使用 Lucide 图标
 - [x] 移动端菜单按钮已更新
 
 ### Pyth
+
 - [x] PythHero 使用分层布局
 - [x] PythSidebar 使用 Lucide 图标
 - [x] 移动端菜单按钮已更新
 
 ### API3
+
 - [x] API3Hero 使用分层布局
 - [x] API3Sidebar 使用 Lucide 图标
 - [x] 移动端菜单按钮已更新
 
 ### Tellor
+
 - [x] TellorHero 使用分层布局
 - [x] TellorSidebar 使用 Lucide 图标
 - [x] 移动端菜单按钮已更新
 
 ### UMA
+
 - [x] UMAHero 使用分层布局
 - [x] UmaSidebar 使用 Lucide 图标
 - [x] 移动端菜单按钮已更新
 
 ### Band Protocol
+
 - [x] BandProtocolHero 使用分层布局
 - [x] BandProtocolSidebar 使用 Lucide 图标
 - [x] 移动端菜单按钮已更新
 
 ### DIA
+
 - [x] DIAHero 使用分层布局
 - [x] DIASidebar 使用 Lucide 图标
 - [x] 移动端菜单按钮已更新
 
 ### RedStone
+
 - [x] RedStoneHero 使用分层布局
 - [x] RedStoneSidebar 使用 Lucide 图标
 - [x] 移动端菜单按钮已更新
 
 ### Chronicle
+
 - [x] ChronicleHero 使用分层布局
 - [x] ChronicleSidebar 使用 Lucide 图标
 - [x] 移动端菜单按钮已更新
 
 ### Winklink
+
 - [x] WinklinkHero 使用分层布局
 - [x] WinklinkSidebar 使用 Lucide 图标
 - [x] 移动端菜单按钮已更新

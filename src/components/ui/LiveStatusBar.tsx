@@ -6,6 +6,7 @@ import { Wifi, WifiOff, Clock, Zap, RefreshCw, Activity } from 'lucide-react';
 
 import { semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
+
 import { Tooltip } from './Tooltip';
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
@@ -191,10 +192,16 @@ export function LiveStatusBar({
             className={cn('w-3 h-3', freshness.pulse && 'animate-pulse')}
             style={{ color: freshness.color }}
           />
-          <span className="hidden sm:inline font-medium whitespace-nowrap" style={{ color: freshness.color }}>
+          <span
+            className="hidden sm:inline font-medium whitespace-nowrap"
+            style={{ color: freshness.color }}
+          >
             {freshness.label}
           </span>
-          <span className="sm:hidden font-medium whitespace-nowrap" style={{ color: freshness.color }}>
+          <span
+            className="sm:hidden font-medium whitespace-nowrap"
+            style={{ color: freshness.color }}
+          >
             {freshness.shortLabel}
           </span>
         </div>
@@ -213,21 +220,12 @@ export function LiveStatusBar({
 
         {/* 连接状态 - 小屏幕只显示图标 */}
         <div className="flex items-center gap-1">
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: status.color }}
-          />
+          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color }} />
           <StatusIcon
-            className={cn(
-              'w-3.5 h-3.5',
-              connectionStatus === 'reconnecting' && 'animate-spin'
-            )}
+            className={cn('w-3.5 h-3.5', connectionStatus === 'reconnecting' && 'animate-spin')}
             style={{ color: status.color }}
           />
-          <span
-            className="hidden sm:inline text-xs font-medium"
-            style={{ color: status.color }}
-          >
+          <span className="hidden sm:inline text-xs font-medium" style={{ color: status.color }}>
             {status.label}
           </span>
         </div>

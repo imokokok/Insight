@@ -118,12 +118,12 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
       <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
         {t('crossChain.priceSpreadHeatmap')}
       </h3>
-      
+
       <div className="overflow-x-auto">
         <div className="min-w-max">
           {/* 表头 */}
           <div className="flex">
-            <div 
+            <div
               className="flex-shrink-0 flex items-end justify-center pb-2"
               style={{ width: HEADER_SIZE }}
             />
@@ -134,18 +134,18 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                 <div
                   key={chain}
                   className="flex-shrink-0 flex items-end justify-center px-1 pb-2 transition-colors duration-150"
-                  style={{ 
+                  style={{
                     width: CELL_SIZE,
-                    backgroundColor: isHighlighted ? baseColors.gray[100] : 'transparent'
+                    backgroundColor: isHighlighted ? baseColors.gray[100] : 'transparent',
                   }}
                 >
                   <span
                     className="text-xs font-medium text-center transition-colors"
-                    style={{ 
+                    style={{
                       color: isHighlighted ? baseColors.gray[900] : baseColors.gray[600],
                       writingMode: 'vertical-rl',
                       textOrientation: 'mixed',
-                      transform: 'rotate(180deg)'
+                      transform: 'rotate(180deg)',
                     }}
                   >
                     {chainNames[chain]}
@@ -154,7 +154,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
               );
             })}
           </div>
-          
+
           {/* 热力图主体 */}
           {filteredChains.map((xChain) => (
             <div key={xChain} className="flex">
@@ -181,7 +181,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                   {chainNames[xChain]}
                 </span>
               </div>
-              
+
               {/* 单元格 */}
               {filteredChains.map((yChain) => {
                 const cell = heatmapData.find((d) => d.xChain === xChain && d.yChain === yChain);
@@ -196,7 +196,9 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                   <div
                     key={`${xChain}-${yChain}`}
                     className={`flex-shrink-0 flex items-center justify-center transition-all duration-150 ${
-                      isDiagonal ? '' : 'hover:ring-2 hover:ring-gray-400 hover:ring-inset cursor-pointer'
+                      isDiagonal
+                        ? ''
+                        : 'hover:ring-2 hover:ring-gray-400 hover:ring-inset cursor-pointer'
                     }`}
                     style={{
                       width: CELL_SIZE,
@@ -390,10 +392,7 @@ function HeatmapTooltip({
           <span>{chainNames[cell.yChain]}</span>
         </div>
         {isPinned && (
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded transition-colors"
-          >
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded transition-colors">
             <svg
               className="w-4 h-4 text-gray-500"
               fill="none"
@@ -484,13 +483,7 @@ function HeatmapTooltip({
 
 function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainData> }) {
   const t = useTranslations();
-  const {
-    selectedCell,
-    setSelectedCell,
-    heatmapData,
-    currentPrices,
-    chartData,
-  } = data;
+  const { selectedCell, setSelectedCell, heatmapData, currentPrices, chartData } = data;
 
   if (!selectedCell) return null;
 

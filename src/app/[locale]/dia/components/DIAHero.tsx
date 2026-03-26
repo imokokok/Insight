@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import {
   TrendingUp,
@@ -13,7 +13,9 @@ import {
   Shield,
   RefreshCw,
   ExternalLink,
-  Image,
+  Clock,
+  Server,
+  TrendingUp as TrendingUpIcon,
 } from 'lucide-react';
 
 import { LiveStatusBar } from '@/components/ui';
@@ -38,20 +40,18 @@ export interface DIAHeroProps {
   onExport: () => void;
 }
 
-interface StatCardProps {
+interface StatItem {
   title: string;
   value: string;
   change?: string;
-  changeType?: 'positive' | 'negative' | 'neutral';
+  changeType: 'positive' | 'negative' | 'neutral';
   icon: React.ReactNode;
   subtitle?: string;
   sparklineData?: number[];
-  themeColor?: string;
-  isPrimary?: boolean;
 }
 
 // 迷你走势图组件
-function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
+function Sparkline({ data, positive, width = 60, height = 24 }: { data: number[]; positive: boolean; width?: number; height?: number }) {
   if (!data || data.length < 2) return null;
 
   const min = Math.min(...data);
@@ -60,239 +60,355 @@ function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
 
   const points = data
     .map((value, index) => {
-      const x = (index / (data.length - 1)) * 60;
-      const y = 20 - ((value - min) / range) * 20;
+      const x = (index / (data.length - 1)) * width;
+      const y = height - ((value - min) / range) * height * 0.8 - height * 0.1;
       return `${x},${y}`;
     })
     .join(' ');
 
   return (
-    <svg width="60" height="24" className="ml-auto">
+    <svg width={width} height={height} className="overflow-visible">
+      <defs>
+        <linearGradient id={`gradient-${positive ? 'up' : 'down'}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={positive ? '#10b981' : '#ef4444'} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={positive ? '#10b981' : '#ef4444'} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon
+        points={`0,${height} ${points} ${width},${height}`}
+        fill={`url(#gradient-${positive ? 'up' : 'down'})`}
+      />
       <polyline
         fill="none"
         stroke={positive ? '#10b981' : '#ef4444'}
         strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         points={points}
       />
     </svg>
   );
 }
 
-// 核心统计卡片组件
-function PrimaryStatCard({
-  title,
-  value,
-  change,
-  changeType,
-  icon,
-  subtitle,
-  sparklineData,
-  themeColor,
-}: StatCardProps) {
-  const isPositive = changeType === 'positive';
-  const isNegative = changeType === 'negative';
+// 增强版核心统计组件 - 5个指标，响应式网格布局
+function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColor: string }) {
+  // 取前5个指标
+  const displayStats = stats.slice(0, 5);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      {displayStats.map((stat, index) => {
+        const isPositive = stat.changeType === 'positive';
+        const isNegative = stat.changeType === 'negative';
+
+        return (
           <div
-            className="p-2 rounded-lg"
-            style={{ backgroundColor: `${themeColor}15`, color: themeColor }}
+            key={index}
+            className="relative p-3 rounded-xl bg-gray-50/50 border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all group"
           >
-            {icon}
-          </div>
-          <span className="text-sm text-gray-500">{title}</span>
-        </div>
-        {sparklineData && <Sparkline data={sparklineData} positive={isPositive} />}
-      </div>
-      <div className="mt-3">
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
-        <div className="flex items-center gap-2 mt-1">
-          {change && (
-            <span
-              className={`text-sm font-medium flex items-center gap-0.5 ${
-                isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
-              }`}
-            >
-              {isPositive && <TrendingUp className="w-3.5 h-3.5" />}
-              {isNegative && <TrendingDown className="w-3.5 h-3.5" />}
-              {change}
-            </span>
-          )}
-          {subtitle && <span className="text-xs text-gray-400">{subtitle}</span>}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 次要统计卡片组件
-function SecondaryStatCard({
-  title,
-  value,
-  change,
-  changeType,
-  icon,
-  subtitle,
-}: Omit<StatCardProps, 'sparklineData' | 'themeColor' | 'isPrimary'>) {
-  const isPositive = changeType === 'positive';
-  const isNegative = changeType === 'negative';
-
-  return (
-    <div className="bg-gray-50/50 border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
-      <div className="flex items-center gap-2">
-        <div className="p-1.5 bg-white text-gray-500 rounded-md border border-gray-200">{icon}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500 truncate">{title}</span>
-            {change && (
-              <span
-                className={`text-xs font-medium flex items-center gap-0.5 ${
-                  isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
-                }`}
+            <div className="flex items-start justify-between mb-2">
+              <div
+                className="p-2 rounded-lg"
+                style={{ backgroundColor: `${themeColor}15` }}
               >
-                {isPositive && <TrendingUp className="w-3 h-3" />}
-                {isNegative && <TrendingDown className="w-3 h-3" />}
-                {change}
-              </span>
+                <div style={{ color: themeColor }} className="w-4 h-4">
+                  {stat.icon}
+                </div>
+              </div>
+              {stat.sparklineData && (
+                <div className="opacity-60 group-hover:opacity-100 transition-opacity">
+                  <Sparkline data={stat.sparklineData} positive={isPositive} width={50} height={20} />
+                </div>
+              )}
+            </div>
+            <div className="text-xs text-gray-500 mb-1">{stat.title}</div>
+            <div className="text-lg font-bold text-gray-900 tracking-tight">{stat.value}</div>
+            {stat.change && (
+              <div className="flex items-center gap-1 mt-1">
+                <span
+                  className={`text-xs font-medium flex items-center gap-0.5 ${
+                    isPositive
+                      ? 'text-emerald-600'
+                      : isNegative
+                        ? 'text-red-600'
+                        : 'text-gray-500'
+                  }`}
+                >
+                  {isPositive && <TrendingUp className="w-3 h-3" />}
+                  {isNegative && <TrendingDown className="w-3 h-3" />}
+                  {stat.change}
+                </span>
+                {stat.subtitle && <span className="text-[10px] text-gray-400">{stat.subtitle}</span>}
+              </div>
             )}
           </div>
-          <div className="text-lg font-semibold text-gray-900">{value}</div>
-          {subtitle && <span className="text-xs text-gray-400">{subtitle}</span>}
+        );
+      })}
+    </div>
+  );
+}
+
+// 右侧迷你价格图表组件
+function MiniPriceChart({
+  historicalData,
+  currentPrice,
+  themeColor,
+}: {
+  historicalData: PriceData[];
+  currentPrice: PriceData | null;
+  themeColor: string;
+}) {
+  const chartData = useMemo(() => {
+    if (historicalData.length >= 20) {
+      return historicalData.slice(-20).map((d) => d.price);
+    }
+    // 生成模拟数据
+    const basePrice = currentPrice?.price || 100;
+    return Array.from({ length: 20 }, (_, i) => basePrice * (1 + (Math.sin(i * 0.5) * 0.05)));
+  }, [historicalData, currentPrice]);
+
+  const priceChange = useMemo(() => {
+    if (chartData.length < 2) return 0;
+    return ((chartData[chartData.length - 1] - chartData[0]) / chartData[0]) * 100;
+  }, [chartData]);
+
+  const isPositive = priceChange >= 0;
+
+  if (!chartData.length) return null;
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <TrendingUpIcon className="w-3.5 h-3.5" />
+          <span>24H 走势</span>
         </div>
+        <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+          {isPositive ? '+' : ''}{priceChange.toFixed(2)}%
+        </span>
+      </div>
+      <div className="flex-1 min-h-[80px] flex items-end">
+        <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
+      </div>
+      <div className="flex justify-between mt-2 text-[10px] text-gray-400">
+        <span>24h前</span>
+        <span>现在</span>
       </div>
     </div>
   );
 }
 
-// 网络健康度组件
-function NetworkHealthScore({ score }: { score: number }) {
-  const getColor = () => {
-    if (score >= 90) return 'text-emerald-600';
-    if (score >= 70) return 'text-yellow-600';
+// 操作按钮组件
+function ActionButtons({
+  onRefresh,
+  onExport,
+  isRefreshing,
+  themeColor,
+}: {
+  onRefresh: () => void;
+  onExport: () => void;
+  isRefreshing: boolean;
+  themeColor: string;
+}) {
+  const t = useTranslations();
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={onRefresh}
+        disabled={isRefreshing}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 transition-all"
+      >
+        <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+        <span className="hidden sm:inline">{t('common.refresh')}</span>
+      </button>
+      <button
+        onClick={onExport}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-90 transition-all shadow-sm"
+        style={{ backgroundColor: themeColor }}
+      >
+        <ExternalLink className="w-3.5 h-3.5" />
+        <span className="hidden sm:inline">{t('common.export')}</span>
+      </button>
+    </div>
+  );
+}
+
+// 整合的次要指标行 - 4个指标在一行展示，纯文本+图标，无卡片背景，用分隔符区分
+function CompactMetricsRow({ stats }: { stats: StatItem[] }) {
+  // 只取前4个次要指标
+  const displayStats = stats.slice(0, 4);
+
+  return (
+    <div className="flex flex-wrap items-center gap-y-2 py-2">
+      {displayStats.map((stat, index) => {
+        const isPositive = stat.changeType === 'positive';
+        const isNegative = stat.changeType === 'negative';
+        const isLast = index === displayStats.length - 1;
+
+        return (
+          <div key={index} className="flex items-center">
+            <div className="flex items-center gap-1.5 px-3 first:pl-0">
+              <div className="text-gray-400">{stat.icon}</div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-gray-500">{stat.title}</span>
+                <span className="text-xs font-semibold text-gray-900">{stat.value}</span>
+                {stat.change && (
+                  <span
+                    className={`text-[10px] font-medium flex items-center gap-0.5 ${
+                      isPositive
+                        ? 'text-emerald-600'
+                        : isNegative
+                          ? 'text-red-600'
+                          : 'text-gray-500'
+                    }`}
+                  >
+                    {isPositive && <TrendingUp className="w-2.5 h-2.5" />}
+                    {isNegative && <TrendingDown className="w-2.5 h-2.5" />}
+                    {stat.change}
+                  </span>
+                )}
+              </div>
+            </div>
+            {!isLast && <div className="w-px h-3 bg-gray-200" />}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// 整合的信息区 - 链上指标、网络健康度、多链支持整合为紧凑形式
+function UnifiedInfoSection({
+  networkStats,
+  healthScore,
+  chains,
+  themeColor,
+}: {
+  networkStats?: {
+    avgResponseTime: number;
+    nodeUptime: number;
+    dataFeeds: number;
+  };
+  healthScore: number;
+  chains: string[];
+  themeColor: string;
+}) {
+  const getHealthColor = () => {
+    if (healthScore >= 90) return 'text-emerald-600';
+    if (healthScore >= 70) return 'text-yellow-600';
     return 'text-red-600';
   };
 
-  const getBgColor = () => {
-    if (score >= 90) return 'bg-emerald-500';
-    if (score >= 70) return 'bg-yellow-500';
+  const getHealthBgColor = () => {
+    if (healthScore >= 90) return 'bg-emerald-500';
+    if (healthScore >= 70) return 'bg-yellow-500';
     return 'bg-red-500';
   };
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-gray-700">网络健康度</span>
-        <span className={`text-2xl font-bold ${getColor()}`}>{score}</span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-2.5">
-        <div
-          className={`h-2.5 rounded-full transition-all ${getBgColor()}`}
-          style={{ width: `${score}%` }}
-        />
-      </div>
-      <div className="flex items-center gap-4 mt-3 text-xs">
-        <span className="flex items-center gap-1.5 text-emerald-600">
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
-          数据喂价
-        </span>
-        <span className="flex items-center gap-1.5 text-emerald-600">
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
-          数据源
-        </span>
-        <span className="flex items-center gap-1.5 text-yellow-600">
-          <span className="w-2 h-2 rounded-full bg-yellow-500" />
-          跨链桥
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// 链上指标组件
-function OnChainMetrics({
-  avgResponseTime,
-  dataFeeds,
-  themeColor,
-}: {
-  avgResponseTime: number;
-  dataFeeds: number;
-  themeColor: string;
-}) {
   const gasLevel = useMemo(() => {
+    if (!networkStats)
+      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-100' };
+      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-100' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-100' };
-  }, [avgResponseTime]);
+      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats]);
+
+  // 只显示前3个链
+  const displayChains = chains.slice(0, 3);
+  const remainingCount = Math.max(0, chains.length - 3);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <h4 className="text-sm font-medium text-gray-700 mb-4">链上实时指标</h4>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">Gas 费水平</span>
-          <span
-            className={`text-xs font-medium px-2.5 py-1 rounded-full ${gasLevel.bg} ${gasLevel.color}`}
-          >
-            {gasLevel.label}
-          </span>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 py-3 border-t border-gray-100">
+      {/* 网络健康度 - 进度条+数字紧凑形式 */}
+      <div className="flex items-center gap-2 min-w-[120px]">
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <Activity className="w-3.5 h-3.5" />
+          <span>健康度</span>
         </div>
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-500">响应时间分布</span>
-            <span className="text-sm font-medium text-gray-700">{avgResponseTime}ms</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full ${getHealthBgColor()}`}
+              style={{ width: `${healthScore}%` }}
+            />
           </div>
-          <div className="flex gap-1 h-5">
-            <div className="flex-1 bg-emerald-400 rounded-sm" style={{ width: '60%' }} />
-            <div className="flex-1 bg-yellow-400 rounded-sm" style={{ width: '30%' }} />
-            <div className="flex-1 bg-red-400 rounded-sm" style={{ width: '10%' }} />
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">每秒更新</span>
-          <span className="text-sm font-mono font-medium" style={{ color: themeColor }}>
-            ~{Math.round(dataFeeds / 10)} 次
-          </span>
+          <span className={`text-xs font-semibold ${getHealthColor()}`}>{healthScore}</span>
         </div>
       </div>
-    </div>
-  );
-}
 
-// 多链支持组件
-function MultiChainSupport({ chains, themeColor }: { chains: string[]; themeColor: string }) {
-  const [showAll, setShowAll] = useState(false);
-  const displayChains = showAll ? chains : chains.slice(0, 6);
+      {/* 分隔符 */}
+      <div className="hidden sm:block w-px h-4 bg-gray-200" />
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-gray-700">多链支持</span>
-        <span className="text-sm font-medium" style={{ color: themeColor }}>
-          {chains.length}+ 链
-        </span>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {displayChains.map((chain, index) => (
-          <span
-            key={index}
-            className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-md border border-gray-200 hover:bg-gray-200 transition-colors"
-          >
-            {chain}
+      {/* 链上指标 - 紧凑展示 */}
+      {networkStats && (
+        <div className="flex items-center gap-3">
+          {/* Gas 费水平 */}
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Zap className="w-3.5 h-3.5" />
+              <span>Gas</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${gasLevel.bg}`}
+                  style={{ width: gasLevel.width }}
+                />
+              </div>
+              <span className={`text-[10px] font-medium ${gasLevel.color}`}>{gasLevel.label}</span>
+            </div>
+          </div>
+
+          {/* 响应时间 */}
+          <div className="flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5 text-gray-400" />
+            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs font-medium text-gray-900">
+              {networkStats.avgResponseTime}ms
+            </span>
+          </div>
+
+          {/* 节点在线率 */}
+          <div className="flex items-center gap-1">
+            <Server className="w-3.5 h-3.5 text-gray-400" />
+            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
+          </div>
+        </div>
+      )}
+
+      {/* 分隔符 */}
+      <div className="hidden sm:block w-px h-4 bg-gray-200" />
+
+      {/* 多链支持 - 只显示链数量+前3个链图标 */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <Globe className="w-3.5 h-3.5" />
+          <span>支持</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {/* 链数量 */}
+          <span className="text-xs font-semibold" style={{ color: themeColor }}>
+            {chains.length}+ 链
           </span>
-        ))}
-        {!showAll && chains.length > 6 && (
-          <button
-            onClick={() => setShowAll(true)}
-            className="px-2.5 py-1 text-xs hover:bg-gray-100 rounded-md transition-colors border border-transparent"
-            style={{ color: themeColor }}
-          >
-            +{chains.length - 6}
-          </button>
-        )}
+          {/* 前3个链图标 */}
+          <div className="flex -space-x-1">
+            {displayChains.map((chain, index) => (
+              <div
+                key={index}
+                className="w-5 h-5 rounded-full bg-gray-100 border border-white flex items-center justify-center text-[8px] font-medium text-gray-600"
+                title={chain}
+              >
+                {chain.slice(0, 2).toUpperCase()}
+              </div>
+            ))}
+          </div>
+          {remainingCount > 0 && <span className="text-[10px] text-gray-400">+{remainingCount}</span>}
+        </div>
       </div>
     </div>
   );
@@ -324,11 +440,15 @@ export function DIAHero({
     if (historicalData.length > 0) {
       return historicalData.slice(-24).map((d) => d.price);
     }
-    return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + (Math.random() - 0.5) * 0.1));
+    // 使用固定种子生成模拟数据，避免在渲染时调用 Math.random
+    return Array.from(
+      { length: 24 },
+      (_, index) => currentPrice * (1 + Math.sin(index * 0.5) * 0.05)
+    );
   }, [historicalData, currentPrice]);
 
-  // 核心统计指标 (Primary stats)
-  const primaryStats: StatCardProps[] = [
+  // 核心统计指标 (Primary stats) - 增加到5个
+  const primaryStats: StatItem[] = [
     {
       title: 'DIA 价格',
       value: `$${currentPrice.toFixed(4)}`,
@@ -355,48 +475,52 @@ export function DIAHero({
       subtitle: 'Data providers',
     },
     {
-      title: 'NFT 数据喂价',
-      value: '50+',
-      change: '+15%',
+      title: '数据喂价',
+      value: `${networkStats?.dataFeeds ?? config.networkData.dataFeeds}`,
+      change: '+12',
       changeType: 'positive',
-      icon: <Image className="w-5 h-5" />,
-      subtitle: 'NFT collections',
+      icon: <Zap className="w-5 h-5" />,
+      subtitle: '24h 新增',
+    },
+    {
+      title: '质押量',
+      value: '2.5M',
+      change: '+3.5%',
+      changeType: 'positive',
+      icon: <Shield className="w-5 h-5" />,
+      subtitle: '24h 变化',
     },
   ];
 
-  // 次要统计指标 (Secondary stats)
-  const secondaryStats: Omit<StatCardProps, 'sparklineData' | 'themeColor' | 'isPrimary'>[] = [
+  // 次要统计指标 (Secondary stats) - 保持4个用于紧凑行展示
+  const secondaryStats: StatItem[] = [
     {
       title: '支持链数',
       value: `${config.supportedChains.length}+`,
       change: '+1',
       changeType: 'positive',
       icon: <Globe className="w-4 h-4" />,
-      subtitle: 'Blockchains',
-    },
-    {
-      title: '质押数量',
-      value: '2.5M',
-      change: '+3.5%',
-      changeType: 'positive',
-      icon: <Wallet className="w-4 h-4" />,
-      subtitle: 'DIA 质押',
     },
     {
       title: '平均响应时间',
       value: `${networkStats?.avgResponseTime ?? config.networkData.avgResponseTime}ms`,
       change: '-10%',
       changeType: 'positive',
-      icon: <Zap className="w-4 h-4" />,
-      subtitle: '优于行业平均',
+      icon: <Clock className="w-4 h-4" />,
     },
     {
-      title: '网络正常运行时间',
+      title: '节点在线率',
       value: `${networkStats?.nodeUptime ?? config.networkData.nodeUptime}%`,
       change: '+0.1%',
       changeType: 'positive',
-      icon: <Shield className="w-4 h-4" />,
-      subtitle: '30天统计',
+      icon: <Server className="w-4 h-4" />,
+    },
+    {
+      title: '24h 交易量',
+      value: '$1.2M',
+      change: '+15%',
+      changeType: 'positive',
+      icon: <TrendingUp className="w-4 h-4" />,
     },
   ];
 
@@ -406,15 +530,16 @@ export function DIAHero({
     const responseScore =
       Math.max(0, 100 - (networkStats?.avgResponseTime ?? config.networkData.avgResponseTime) / 5) *
       0.3;
-    const feedScore = Math.min(100, (networkStats?.dataFeeds ?? config.networkData.dataFeeds) / 5) * 0.3;
+    const feedScore =
+      Math.min(100, (networkStats?.dataFeeds ?? config.networkData.dataFeeds) / 5) * 0.3;
     return Math.round(uptimeScore + responseScore + feedScore);
   }, [config, networkStats]);
 
   return (
     <div className="bg-white border-b border-gray-200">
       {/* 顶部状态栏 */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <LiveStatusBar
             isConnected={!isError}
             latency={networkStats?.avgResponseTime ?? config.networkData.avgResponseTime}
@@ -423,66 +548,77 @@ export function DIAHero({
         </div>
       </div>
 
-      {/* 主要内容区 */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        {/* 头部信息 */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
+      {/* 主要内容区 - 桌面端左右分栏布局 */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        {/* 头部信息 - Logo、标题 */}
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
+          {/* 左侧：Logo + 标题 */}
+          <div className="flex items-center gap-3">
             <div
-              className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
+              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
             >
-              <img src="/logos/oracles/dia.svg" alt="DIA" className="w-8 h-8" />
+              <img src="/logos/oracles/dia.svg" alt="DIA" className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">DIA</h1>
-              <p className="text-sm text-gray-500">开源的跨链数据预言机平台</p>
+              <h1 className="text-xl font-bold text-gray-900">DIA</h1>
+              <p className="text-xs text-gray-500">开源的跨链数据预言机平台</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onRefresh}
-              disabled={isRefreshing}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {t('common.refresh')}
-            </button>
-            <button
-              onClick={onExport}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-colors shadow-sm"
-              style={{ backgroundColor: themeColor }}
-            >
-              <ExternalLink className="w-4 h-4" />
-              {t('common.export')}
-            </button>
+          {/* 右侧：操作按钮（桌面端显示在标题右侧） */}
+          <div className="hidden lg:block">
+            <ActionButtons
+              onRefresh={onRefresh}
+              onExport={onExport}
+              isRefreshing={isRefreshing}
+              themeColor={themeColor}
+            />
           </div>
         </div>
 
-        {/* 核心统计指标 - 4列布局 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {primaryStats.map((stat, index) => (
-            <PrimaryStatCard key={index} {...stat} themeColor={themeColor} />
-          ))}
-        </div>
+        {/* 桌面端左右分栏布局 */}
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+          {/* 左侧区域（70%）- 核心指标 */}
+          <div className="flex-1 lg:w-[70%] lg:flex-none">
+            <EnhancedCoreStats stats={primaryStats} themeColor={themeColor} />
+            
+            {/* 次要指标行 */}
+            <CompactMetricsRow stats={secondaryStats} />
+            
+            {/* 整合信息区 */}
+            <UnifiedInfoSection
+              networkStats={networkStats}
+              healthScore={healthScore}
+              chains={config.supportedChains}
+              themeColor={themeColor}
+            />
+          </div>
 
-        {/* 次要统计指标 - 4列紧凑布局 */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3 mb-5">
-          {secondaryStats.map((stat, index) => (
-            <SecondaryStatCard key={index} {...stat} />
-          ))}
-        </div>
+          {/* 分隔线（仅桌面端显示） */}
+          <div className="hidden lg:block w-px bg-gray-200 self-stretch" />
 
-        {/* 中间信息区 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <OnChainMetrics
-            avgResponseTime={networkStats?.avgResponseTime ?? config.networkData.avgResponseTime}
-            dataFeeds={networkStats?.dataFeeds ?? config.networkData.dataFeeds}
-            themeColor={themeColor}
-          />
-          <NetworkHealthScore score={healthScore} />
-          <MultiChainSupport chains={config.supportedChains} themeColor={themeColor} />
+          {/* 右侧区域（30%）- 迷你图表 + 操作按钮 */}
+          <div className="lg:w-[30%] flex flex-col gap-3">
+            {/* 操作按钮（平板/移动端显示在右侧区域顶部） */}
+            <div className="lg:hidden">
+              <ActionButtons
+                onRefresh={onRefresh}
+                onExport={onExport}
+                isRefreshing={isRefreshing}
+                themeColor={themeColor}
+              />
+            </div>
+            
+            {/* 迷你价格图表 */}
+            <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex-1">
+              <MiniPriceChart
+                historicalData={historicalData}
+                currentPrice={price}
+                themeColor={themeColor}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -65,7 +65,9 @@ export function PriceResultsTable({
   };
 
   // 计算价格偏差
-  const getPriceDeviation = (price: number): {
+  const getPriceDeviation = (
+    price: number
+  ): {
     value: string;
     textColor: string;
     bgColor: string;

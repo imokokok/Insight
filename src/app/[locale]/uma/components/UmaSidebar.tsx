@@ -1,16 +1,9 @@
 'use client';
 
-import {
-  BarChart3,
-  Globe,
-  Gavel,
-  Shield,
-  Wallet,
-  Network,
-  ShieldAlert,
-} from 'lucide-react';
+import { BarChart3, Globe, Gavel, Shield, Wallet, Network, ShieldAlert } from 'lucide-react';
 
 import { UnifiedSidebar } from '@/components/oracle';
+
 import { type UmaSidebarProps, type UmaTabId } from '../types';
 
 interface NavItem {
@@ -57,7 +50,11 @@ const getNavItems = (): NavItem[] => [
   },
 ];
 
-export function UmaSidebar({ activeTab, onTabChange, themeColor }: UmaSidebarProps & { themeColor?: string }) {
+export function UmaSidebar({
+  activeTab,
+  onTabChange,
+  themeColor,
+}: UmaSidebarProps & { themeColor?: string }) {
   const navItems = getNavItems();
 
   return (

@@ -44,11 +44,8 @@ export function HeaderStats({
   const qualityScore = useMemo(() => {
     const { completeness, reliability } = qualityScoreData;
     const completenessScore =
-      completeness.totalCount > 0
-        ? (completeness.successCount / completeness.totalCount) * 100
-        : 0;
-    const reliabilityScore =
-      (reliability.historicalAccuracy + reliability.responseSuccessRate) / 2;
+      completeness.totalCount > 0 ? (completeness.successCount / completeness.totalCount) * 100 : 0;
+    const reliabilityScore = (reliability.historicalAccuracy + reliability.responseSuccessRate) / 2;
     return ((completenessScore + reliabilityScore) / 2).toFixed(1);
   }, [qualityScoreData]);
 
@@ -109,7 +106,11 @@ export function HeaderStats({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d={formattedChange.isPositive ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3'}
+                    d={
+                      formattedChange.isPositive
+                        ? 'M5 10l7-7m0 0l7 7m-7-7v18'
+                        : 'M19 14l-7 7m0 0l-7-7m7 7V3'
+                    }
                   />
                 </svg>
                 <span

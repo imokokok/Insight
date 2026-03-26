@@ -17,14 +17,14 @@
 
 ### 1.1 当前水平评估
 
-| 维度 | 当前评分 | 目标评分 | 差距 |
-|------|----------|----------|------|
-| 视觉设计系统 | 7.5/10 | 9/10 | 较小 |
-| 信息密度 | 5/10 | 8/10 | **较大** |
-| 数据可视化 | 6/10 | 9/10 | **较大** |
-| 交互体验 | 7/10 | 8/10 | 中等 |
-| 移动端体验 | 6/10 | 8/10 | 中等 |
-| 专业性 | 6/10 | 9/10 | **较大** |
+| 维度         | 当前评分   | 目标评分   | 差距      |
+| ------------ | ---------- | ---------- | --------- |
+| 视觉设计系统 | 7.5/10     | 9/10       | 较小      |
+| 信息密度     | 5/10       | 8/10       | **较大**  |
+| 数据可视化   | 6/10       | 9/10       | **较大**  |
+| 交互体验     | 7/10       | 8/10       | 中等      |
+| 移动端体验   | 6/10       | 8/10       | 中等      |
+| 专业性       | 6/10       | 9/10       | **较大**  |
 | **整体评分** | **6.2/10** | **8.7/10** | **2.5分** |
 
 ### 1.2 重构目标
@@ -84,11 +84,11 @@
 ### 2.3 圆角规范 ✅
 
 ```css
---radius-sm: 0.25rem;   /* 4px - 按钮、输入框 */
---radius-md: 0.375rem;  /* 6px - 标准组件 */
---radius-lg: 0.5rem;    /* 8px - 卡片、面板 */
---radius-xl: 0.75rem;   /* 12px - 模态框 */
---radius-full: 9999px;  /* 完全圆角 - 徽章 */
+--radius-sm: 0.25rem; /* 4px - 按钮、输入框 */
+--radius-md: 0.375rem; /* 6px - 标准组件 */
+--radius-lg: 0.5rem; /* 8px - 卡片、面板 */
+--radius-xl: 0.75rem; /* 12px - 模态框 */
+--radius-full: 9999px; /* 完全圆角 - 徽章 */
 ```
 
 **保留原因**: 微妙的圆角保持专业感，避免"卡通化"。
@@ -108,23 +108,24 @@
 
 ```css
 /* 专业数据平台间距规范 - 参考价格查询页面 */
---spacing-page-x: 1rem;         /* 16px - 页面水平内边距（移动端） */
---spacing-page-x-sm: 1.5rem;    /* 24px - 页面水平内边距（sm断点） */
---spacing-page-x-lg: 2rem;      /* 32px - 页面水平内边距（lg断点） */
---spacing-page-y: 1.5rem;       /* 24px - 页面垂直内边距 */
---spacing-section: 1.5rem;      /* 24px - 组件间距 space-y */
---spacing-grid: 1rem;           /* 16px - 网格间距 gap */
---spacing-grid-lg: 1.5rem;      /* 24px - 大屏网格间距 */
---spacing-card: 1rem;           /* 16px - 卡片内边距 p */
---spacing-element: 0.5rem;      /* 8px - 元素间距 */
---spacing-tight: 0.25rem;       /* 4px - 紧凑间距 */
+--spacing-page-x: 1rem; /* 16px - 页面水平内边距（移动端） */
+--spacing-page-x-sm: 1.5rem; /* 24px - 页面水平内边距（sm断点） */
+--spacing-page-x-lg: 2rem; /* 32px - 页面水平内边距（lg断点） */
+--spacing-page-y: 1.5rem; /* 24px - 页面垂直内边距 */
+--spacing-section: 1.5rem; /* 24px - 组件间距 space-y */
+--spacing-grid: 1rem; /* 16px - 网格间距 gap */
+--spacing-grid-lg: 1.5rem; /* 24px - 大屏网格间距 */
+--spacing-card: 1rem; /* 16px - 卡片内边距 p */
+--spacing-element: 0.5rem; /* 8px - 元素间距 */
+--spacing-tight: 0.25rem; /* 4px - 紧凑间距 */
 
 /* 容器规范 */
---container-max: 1600px;        /* 最大宽度，大屏充分利用 */
---sidebar-width: 400px;         /* 左侧控制面板宽度 */
+--container-max: 1600px; /* 最大宽度，大屏充分利用 */
+--sidebar-width: 400px; /* 左侧控制面板宽度 */
 ```
 
 **使用规范**:
+
 - 页面容器: `px-4 sm:px-6 lg:px-8 py-6`
 - 组件间距: `space-y-6` (24px)
 - 网格间距: `gap-4` / `gap-6` (16px/24px)
@@ -133,6 +134,7 @@
 - 左侧边栏 sticky: `xl:sticky xl:top-6`
 
 **页面布局示例**:
+
 ```typescript
 // 标准左右分栏布局（参考 price-query, cross-oracle 页面）
 <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -170,15 +172,15 @@
 
 以下组件**必须保留**现有 API 和功能，仅进行样式优化：
 
-| 组件 | 保留功能 | 允许优化 |
-|------|----------|----------|
-| Button | 所有 variant/size/loading 功能 | 样式微调 |
-| Card | 所有 variant/headerAction/onClick | 间距调整 |
-| Input | icon/error/disabled 功能 | 紧凑模式 |
-| Select | 搜索、分组功能 | 样式优化 |
-| Table | 基础表格功能 | 添加高级功能 |
-| Badge | 所有 variant | 样式微调 |
-| Tooltip | 基础提示功能 | 动画优化 |
+| 组件    | 保留功能                          | 允许优化     |
+| ------- | --------------------------------- | ------------ |
+| Button  | 所有 variant/size/loading 功能    | 样式微调     |
+| Card    | 所有 variant/headerAction/onClick | 间距调整     |
+| Input   | icon/error/disabled 功能          | 紧凑模式     |
+| Select  | 搜索、分组功能                    | 样式优化     |
+| Table   | 基础表格功能                      | 添加高级功能 |
+| Badge   | 所有 variant                      | 样式微调     |
+| Tooltip | 基础提示功能                      | 动画优化     |
 
 ### 2.7 响应式断点 ✅
 
@@ -198,10 +200,12 @@ xl: 1280px  /* 标准桌面 */
 ### 3.1 信息密度优化 ✅
 
 **问题描述**:
+
 - 页面留白比例 25-30%，需要平衡信息密度和可读性
 - 需要统一的间距规范确保所有页面一致性
 
 **改进规则**:
+
 ```css
 /* 页面内边距 - 统一使用标准规范 */
 /* 标准 */
@@ -223,6 +227,7 @@ xl:sticky xl:top-6
 ```
 
 **设计原则**:
+
 - 统一的页面内边距标准 (`px-4 sm:px-6 lg:px-8 py-6`)
 - 统一的组件间距 (`space-y-6`, `gap-6`)
 - 左侧控制面板固定宽度 400px，支持 sticky 跟随滚动
@@ -231,26 +236,28 @@ xl:sticky xl:top-6
 ### 3.2 实时数据展示不专业 ❌
 
 **问题描述**:
+
 - 仅小圆点闪烁，缺少专业实时状态栏
 - 数值变化无动画
 - WebSocket 状态展示弱
 
 **改进规则**:
+
 ```typescript
 // 必须添加的新组件
 
 // 1. LiveIndicator - 实时状态指示器
 interface LiveIndicatorProps {
   isConnected: boolean;
-  latency?: number;  // 网络延迟 ms
+  latency?: number; // 网络延迟 ms
   lastUpdate?: Date;
 }
 
 // 2. LiveStatusBar - 实时状态栏
 interface LiveStatusBarProps {
-  currentTime: Date;      // UTC 时间，精确到秒
-  latency: number;        // 网络延迟
-  lastUpdate: Date;       // 最后更新时间
+  currentTime: Date; // UTC 时间，精确到秒
+  latency: number; // 网络延迟
+  lastUpdate: Date; // 最后更新时间
   connectionStatus: 'connected' | 'disconnected' | 'reconnecting';
 }
 
@@ -259,15 +266,15 @@ interface PriceChangeProps {
   currentPrice: number;
   previousPrice: number;
   currency?: string;
-  animated?: boolean;     // 是否启用数值动画
+  animated?: boolean; // 是否启用数值动画
 }
 
 // 4. DataFreshness - 数据新鲜度指示
 interface DataFreshnessProps {
   lastUpdate: Date;
   threshold?: {
-    warning: number;      // 警告阈值（秒）
-    danger: number;       // 危险阈值（秒）
+    warning: number; // 警告阈值（秒）
+    danger: number; // 危险阈值（秒）
   };
 }
 ```
@@ -275,23 +282,25 @@ interface DataFreshnessProps {
 ### 3.3 数据表格功能基础 ❌
 
 **问题描述**:
+
 - 无固定列功能
 - 单字段排序
 - 缺少条件格式
 
 **改进规则**:
+
 ```typescript
 // DataTablePro - 专业数据表格
 interface DataTableProProps<T> {
   data: T[];
   columns: ColumnDef<T>[];
-  
+
   // 新增功能
   fixedColumns?: {
-    left?: string[];      // 左侧固定列的 key
-    right?: string[];     // 右侧固定列的 key
+    left?: string[]; // 左侧固定列的 key
+    right?: string[]; // 右侧固定列的 key
   };
-  
+
   conditionalFormatting?: {
     field: string;
     rules: {
@@ -300,11 +309,11 @@ interface DataTableProProps<T> {
       style: 'success' | 'danger' | 'warning' | 'info';
     }[];
   }[];
-  
-  multiSort?: boolean;    // 是否支持多字段排序
-  resizable?: boolean;    // 是否支持列宽调整
+
+  multiSort?: boolean; // 是否支持多字段排序
+  resizable?: boolean; // 是否支持列宽调整
   columnVisibility?: boolean; // 是否支持列显示/隐藏
-  
+
   density?: 'compact' | 'normal' | 'comfortable';
 }
 ```
@@ -312,11 +321,13 @@ interface DataTableProProps<T> {
 ### 3.4 KPI 卡片信息单一 ❌
 
 **问题描述**:
+
 - 仅显示当前值和变化率
 - 缺少趋势微图
 - 无细分数据
 
 **改进规则**:
+
 ```typescript
 // 增强 StatCard 组件
 interface StatCardProps {
@@ -325,30 +336,30 @@ interface StatCardProps {
   change?: {
     value: number;
     percentage: boolean;
-    timeframe: string;    // "vs last 24h"
+    timeframe: string; // "vs last 24h"
   };
-  
+
   // 新增功能
   sparkline?: {
     data: number[];
     trend: 'up' | 'down' | 'neutral';
   };
-  
+
   breakdown?: {
     label: string;
     value: string | number;
     percentage: number;
-  }[];  // 细分数据
-  
+  }[]; // 细分数据
+
   benchmark?: {
     label: string;
     value: number;
-  };  // 对比基准
-  
+  }; // 对比基准
+
   actions?: {
-    info?: string;        // 信息提示
-    link?: string;        // 查看详情链接
-    favorite?: boolean;   // 收藏功能
+    info?: string; // 信息提示
+    link?: string; // 查看详情链接
+    favorite?: boolean; // 收藏功能
   };
 }
 ```
@@ -356,11 +367,13 @@ interface StatCardProps {
 ### 3.5 数据可视化不够专业 ❌
 
 **问题描述**:
+
 - 缺少 K线图、成交量图、深度图
 - 图表工具栏简陋
 - 无图表联动
 
 **改进规则**:
+
 ```typescript
 // 新增专业图表组件
 
@@ -370,7 +383,7 @@ interface SparklineChartProps {
   width?: number;
   height?: number;
   color?: string;
-  fill?: boolean;         // 是否填充面积
+  fill?: boolean; // 是否填充面积
   animate?: boolean;
 }
 
@@ -391,7 +404,7 @@ interface VolumeChartProps {
   data: {
     timestamp: number;
     volume: number;
-    color?: string;       // 根据涨跌显示不同颜色
+    color?: string; // 根据涨跌显示不同颜色
   }[];
 }
 
@@ -400,22 +413,22 @@ interface ChartToolbarProps {
   timeRanges: ('1H' | '24H' | '7D' | '30D' | '1Y' | 'ALL')[];
   selectedRange: string;
   onRangeChange: (range: string) => void;
-  
+
   chartTypes: ('line' | 'area' | 'candle')[];
   selectedType: string;
   onTypeChange: (type: string) => void;
-  
-  indicators?: string[];  // 可添加的技术指标
+
+  indicators?: string[]; // 可添加的技术指标
   onAddIndicator?: (indicator: string) => void;
-  
-  onExport?: () => void;  // 导出图表
+
+  onExport?: () => void; // 导出图表
 }
 
 // 5. 图表联动
 interface ChartSyncProps {
-  charts: string[];       // 需要联动的图表 ID
-  syncZoom: boolean;      // 同步缩放
-  syncPan: boolean;       // 同步平移
+  charts: string[]; // 需要联动的图表 ID
+  syncZoom: boolean; // 同步缩放
+  syncPan: boolean; // 同步平移
   syncTimeRange: boolean; // 同步时间范围
 }
 ```
@@ -423,10 +436,12 @@ interface ChartSyncProps {
 ### 3.6 导航信息架构不清晰 ❌
 
 **问题描述**:
+
 - 面包屑导航缺失
 - 快捷操作不足
 
 **改进规则**:
+
 ```typescript
 // 1. Breadcrumb 组件
 interface BreadcrumbProps {
@@ -441,10 +456,10 @@ interface BreadcrumbProps {
 interface CommandSearchProps {
   isOpen: boolean;
   onClose: () => void;
-  
+
   // 支持自然语言查询
   onSearch: (query: string) => void;
-  
+
   // 搜索结果分类
   results: {
     tokens?: SearchResult[];
@@ -457,10 +472,12 @@ interface CommandSearchProps {
 ### 3.7 移动端体验待优化 ❌
 
 **问题描述**:
+
 - 表格在移动端体验差
 - 图表触摸交互不流畅
 
 **改进规则**:
+
 ```typescript
 // 移动端专用组件
 
@@ -474,8 +491,8 @@ interface CardTableProps<T> {
 // 2. MobileChart - 移动端优化图表
 interface MobileChartProps {
   data: any[];
-  enablePinchZoom: boolean;   // 双指缩放
-  enablePan: boolean;         // 单指平移
+  enablePinchZoom: boolean; // 双指缩放
+  enablePan: boolean; // 单指平移
   onLongPress?: (dataPoint: any) => void;
 }
 
@@ -497,6 +514,7 @@ interface BottomNavProps {
 ### 4.1 首页 (Home)
 
 **保留功能**:
+
 - ProfessionalHero 搜索功能
 - LivePriceTicker 实时价格滚动
 - BentoMetricsGrid 指标网格
@@ -505,6 +523,7 @@ interface BottomNavProps {
 - ProfessionalCTA 行动号召
 
 **改进规则**:
+
 ```typescript
 // 1. ProfessionalHero 优化
 // - 减小内边距: py-12 → py-8
@@ -524,6 +543,7 @@ interface BottomNavProps {
 ### 4.2 市场概览 (MarketOverview)
 
 **保留功能**:
+
 - MarketHeader 页面头部
 - MarketStats 市场统计
 - ChartContainer 图表容器
@@ -532,6 +552,7 @@ interface BottomNavProps {
 - AnomalyModal 异常详情弹窗
 
 **改进规则**:
+
 ```typescript
 // 1. 布局优化 - 标准专业风格
 // - 页面容器: px-4 sm:px-6 lg:px-8 py-6 (标准内边距)
@@ -564,6 +585,7 @@ interface BottomNavProps {
 ### 4.3 价格查询 (PriceQuery)
 
 **保留功能**:
+
 - QueryForm 查询表单
 - QueryResults 查询结果
 - PriceChart 价格图表
@@ -572,6 +594,7 @@ interface BottomNavProps {
 - ExportConfig 导出配置
 
 **改进规则**:
+
 ```typescript
 // 1. 布局优化
 // - 紧凑布局，减小间距
@@ -597,12 +620,14 @@ interface BottomNavProps {
 ### 4.4 跨链分析 (CrossChain)
 
 **保留功能**:
+
 - 所有现有图表组件
 - 跨链数据对比功能
 - 相关性分析
 - 波动性分析
 
 **改进规则**:
+
 ```typescript
 // 1. 布局优化
 // - 紧凑布局，信息密度提升
@@ -620,12 +645,14 @@ interface BottomNavProps {
 ### 4.5 跨预言机对比 (CrossOracle)
 
 **保留功能**:
+
 - 预言机对比功能
 - 价格偏差分析
 - 性能对比表格
 - 导出功能
 
 **改进规则**:
+
 ```typescript
 // 1. 表格优化
 // - 使用 DataTablePro
@@ -644,12 +671,14 @@ interface BottomNavProps {
 ### 4.6 预言机详情页 (Oracle Pages)
 
 **保留功能**:
+
 - OraclePageTemplate 模板
 - 所有面板组件（Panels）
 - 图表组件
 - 数据展示
 
 **改进规则**:
+
 ```typescript
 // 1. 统一使用紧凑布局
 // 2. 所有表格使用 DataTablePro
@@ -667,6 +696,7 @@ interface BottomNavProps {
 #### Navbar 导航栏
 
 **保留功能**:
+
 - 所有导航链接
 - 搜索按钮（Cmd+K）
 - 语言切换
@@ -674,6 +704,7 @@ interface BottomNavProps {
 - 移动端抽屉
 
 **改进规则**:
+
 ```typescript
 // 1. 减小高度: h-16 → h-14
 // 2. 添加 LiveIndicator 到导航栏右侧
@@ -683,10 +714,12 @@ interface BottomNavProps {
 #### Footer 页脚
 
 **保留功能**:
+
 - 所有链接
 - 版权信息
 
 **改进规则**:
+
 ```typescript
 // 1. 减小内边距
 // 2. 紧凑布局
@@ -697,66 +730,86 @@ interface BottomNavProps {
 #### Button
 
 **保留功能**:
+
 - 所有 variant（primary/secondary/ghost）
 - 所有 size（sm/md/lg）
 - loading 状态
 - disabled 状态
 
 **允许优化**:
+
 ```css
 /* 减小 padding，更紧凑 */
-.btn-sm { padding: 0.375rem 0.75rem; }  /* 原 0.5rem 1rem */
-.btn-md { padding: 0.5rem 1rem; }       /* 原 0.625rem 1.25rem */
-.btn-lg { padding: 0.75rem 1.5rem; }    /* 原 0.875rem 1.5rem */
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+} /* 原 0.5rem 1rem */
+.btn-md {
+  padding: 0.5rem 1rem;
+} /* 原 0.625rem 1.25rem */
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+} /* 原 0.875rem 1.5rem */
 ```
 
 #### Card
 
 **保留功能**:
+
 - 所有 variant（default/elevated/bordered）
 - headerAction
 - onClick
 
 **允许优化**:
+
 ```css
 /* 减小内边距 */
-.card-header { padding: 0.75rem 1rem; }  /* 原 1rem 1.25rem */
-.card-body { padding: 1rem; }            /* 原 1.25rem */
-.card-footer { padding: 0.5rem 1rem; }   /* 原 0.75rem 1.25rem */
+.card-header {
+  padding: 0.75rem 1rem;
+} /* 原 1rem 1.25rem */
+.card-body {
+  padding: 1rem;
+} /* 原 1.25rem */
+.card-footer {
+  padding: 0.5rem 1rem;
+} /* 原 0.75rem 1.25rem */
 ```
 
 #### Input / Select
 
 **保留功能**:
+
 - icon 支持
 - error 状态
 - disabled 状态
 
 **允许优化**:
+
 ```css
 /* 减小高度，更紧凑 */
-.input { height: 2.25rem; }  /* 原 2.5rem */
+.input {
+  height: 2.25rem;
+} /* 原 2.5rem */
 ```
 
 ### 5.3 新增组件
 
 必须新增的组件清单：
 
-| 组件 | 优先级 | 用途 |
-|------|--------|------|
-| LiveIndicator | P0 | 实时状态指示 |
-| LiveStatusBar | P0 | 实时状态栏 |
-| PriceChange | P0 | 价格变化显示 |
-| DataFreshness | P0 | 数据新鲜度 |
-| DataTablePro | P0 | 专业数据表格 |
-| SparklineChart | P1 | 迷你趋势图 |
-| ChartToolbar | P1 | 图表工具栏 |
-| CandlestickChart | P1 | 蜡烛图 |
-| VolumeChart | P1 | 成交量图 |
-| Breadcrumb | P1 | 面包屑导航 |
-| CommandSearch | P2 | 命令式搜索 |
-| CardTable | P2 | 移动端卡片表格 |
-| BottomNav | P2 | 移动端底部导航 |
+| 组件             | 优先级 | 用途           |
+| ---------------- | ------ | -------------- |
+| LiveIndicator    | P0     | 实时状态指示   |
+| LiveStatusBar    | P0     | 实时状态栏     |
+| PriceChange      | P0     | 价格变化显示   |
+| DataFreshness    | P0     | 数据新鲜度     |
+| DataTablePro     | P0     | 专业数据表格   |
+| SparklineChart   | P1     | 迷你趋势图     |
+| ChartToolbar     | P1     | 图表工具栏     |
+| CandlestickChart | P1     | 蜡烛图         |
+| VolumeChart      | P1     | 成交量图       |
+| Breadcrumb       | P1     | 面包屑导航     |
+| CommandSearch    | P2     | 命令式搜索     |
+| CardTable        | P2     | 移动端卡片表格 |
+| BottomNav        | P2     | 移动端底部导航 |
 
 ---
 

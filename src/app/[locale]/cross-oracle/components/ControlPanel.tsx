@@ -7,7 +7,16 @@
 
 import { useState } from 'react';
 
-import { Search, RefreshCw, ChevronDown, ChevronUp, Filter, X, Eye, SlidersHorizontal } from 'lucide-react';
+import {
+  Search,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Filter,
+  X,
+  Eye,
+  SlidersHorizontal,
+} from 'lucide-react';
 
 import { SegmentedControl, MultiSelect, DropdownSelect } from '@/components/ui';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
@@ -127,7 +136,9 @@ export function ControlPanel({
       <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <h2 className="text-xs sm:text-sm font-semibold text-gray-900 flex items-center gap-1.5 sm:gap-2">
           <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" aria-hidden="true" />
-          <span className="hidden sm:inline">{t('controlPanel.title') || 'Query Configuration'}</span>
+          <span className="hidden sm:inline">
+            {t('controlPanel.title') || 'Query Configuration'}
+          </span>
           <span className="sm:hidden">{t('controlPanel.titleShort') || 'Filters'}</span>
         </h2>
 
@@ -157,7 +168,9 @@ export function ControlPanel({
       </div>
 
       {/* 控制面板内容 - 移动端优化间距 */}
-      <div className={`p-3 sm:p-4 space-y-3 sm:space-y-4 ${isMobileExpanded ? '' : 'hidden lg:block'}`}>
+      <div
+        className={`p-3 sm:p-4 space-y-3 sm:space-y-4 ${isMobileExpanded ? '' : 'hidden lg:block'}`}
+      >
         {/* 活跃筛选器标签 */}
         {activeFilterCount > 0 && (
           <div className="flex items-center justify-between pb-2 sm:pb-3 border-b border-gray-100">

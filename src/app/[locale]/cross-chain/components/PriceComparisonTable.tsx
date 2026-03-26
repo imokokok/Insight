@@ -85,9 +85,9 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
 
         return (
           <div className="flex items-center gap-2">
-            <div 
-              className="w-2.5 h-2.5 rounded-sm flex-shrink-0" 
-              style={{ backgroundColor: color }} 
+            <div
+              className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+              style={{ backgroundColor: color }}
             />
             <span className="text-sm font-medium text-gray-900 truncate">{chainName}</span>
             {row.isOutlier && (
@@ -111,7 +111,8 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
         const price = value as number;
         return (
           <span className="font-mono text-sm text-gray-900">
-            ${price.toLocaleString(undefined, {
+            $
+            {price.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 4,
             })}
@@ -132,7 +133,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
         const diff = value as number;
         const isPositive = diff >= 0;
         const isSignificant = Math.abs(row.diffPercent) > 0.5;
-        
+
         return (
           <span
             className={`font-mono text-sm ${
@@ -160,9 +161,9 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
       formatter: (value: unknown, row: TableRow) => {
         const diffPercent = value as number;
         const isSignificant = Math.abs(diffPercent) > 0.5;
-        
+
         return (
-          <span 
+          <span
             className={`font-mono text-sm ${
               isSignificant ? 'font-semibold' : ''
             } ${diffPercent > 0 ? 'text-red-600' : 'text-emerald-600'}`}
@@ -197,14 +198,12 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
       formatter: (value: unknown, row: TableRow) => {
         const zScore = value as number | null;
         if (zScore === null) return <span className="text-gray-400">-</span>;
-        
+
         const isSignificant = Math.abs(zScore) > 2;
         return (
-          <span 
+          <span
             className={`font-mono text-sm ${
-              isSignificant 
-                ? 'text-amber-600 font-semibold' 
-                : 'text-gray-600'
+              isSignificant ? 'text-amber-600 font-semibold' : 'text-gray-600'
             }`}
           >
             {zScore.toFixed(2)}
@@ -223,24 +222,24 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
         const chain = row.chain;
         const color = chainColors[chain];
         const prices = row.priceHistory;
-        
+
         if (!prices || prices.length < 2) {
           return <span className="text-gray-300">-</span>;
         }
-        
+
         // 简单的趋势指示
         const firstPrice = prices[0];
         const lastPrice = prices[prices.length - 1];
         const trend = lastPrice > firstPrice ? 'up' : lastPrice < firstPrice ? 'down' : 'neutral';
-        
+
         return (
           <div className="flex items-center justify-center">
-            <span 
+            <span
               className={`text-lg ${
-                trend === 'up' 
-                  ? 'text-emerald-500' 
-                  : trend === 'down' 
-                    ? 'text-red-500' 
+                trend === 'up'
+                  ? 'text-emerald-500'
+                  : trend === 'down'
+                    ? 'text-red-500'
                     : 'text-gray-400'
               }`}
             >
