@@ -2,7 +2,7 @@
 
 import { useTranslations } from '@/i18n';
 import { MarketDepth, MarketDepthLevel } from '@/lib/oracles/tellor';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { BarChart3 } from 'lucide-react';
 import { ArrowUp } from 'lucide-react';
 import { ArrowDown } from 'lucide-react';

@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from '@/i18n';
+import { DataFreshnessIndicator } from '@/components/oracle/alerts';
 import {
   DashboardCard,
-  DataFreshnessIndicator,
   RiskScoreCard,
   MitigationMeasuresGrid,
-} from '@/components/oracle/common';
+} from '@/components/oracle/data-display';
 import { ScuttlebuttData } from '@/lib/oracles/chronicle';
 import type { MitigationMeasure } from '@/types/risk';
 import { Shield } from 'lucide-react';

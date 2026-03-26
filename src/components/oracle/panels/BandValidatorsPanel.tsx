@@ -6,7 +6,7 @@ import { logger } from '@/lib/utils/logger';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { SegmentedControl } from '@/components/ui';
-import { DashboardCard, MetricCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard, MetricCard } from '@/components/oracle/data-display/DashboardCard';
 import { Globe, Percent, Clock, MapPin, Shield, Users, Award } from 'lucide-react';
 
 interface BandValidatorsPanelProps {

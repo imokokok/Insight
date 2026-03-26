@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { RiskMetrics } from '@/lib/oracles/tellor';
 import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle';
+import { DataFreshnessIndicator } from '@/components/oracle/alerts';
 import {
-  DataFreshnessIndicator,
   SecurityTimeline,
   MitigationMeasuresGrid,
-} from '@/components/oracle/common';
+} from '@/components/oracle/data-display';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import type { RiskEvent, MitigationMeasure } from '@/types/risk';
 

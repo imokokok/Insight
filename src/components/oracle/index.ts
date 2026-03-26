@@ -1,7 +1,9 @@
 export * from './charts';
 export * from './panels';
 export * from './forms';
-// Note: common module exports are imported individually to avoid naming conflicts
+export * from './indicators';
+
+// Data display components
 export {
   DashboardCard,
   StatCard,
@@ -9,20 +11,9 @@ export {
   StatGrid,
   StatGridItem,
   PageHeader,
-  TabNavigation,
-  type TimeRange,
-  OraclePageTemplate,
   OracleHero,
   type OracleHeroProps,
-  type StatItem as HeroStatItem,
-  FloatingActionButton,
-  MoreOptionsDropdown,
-  RealtimeUpdateControl,
-  SnapshotManager,
-  SnapshotComparison,
-  AnomalyAlert,
-  AnomalyMarker,
-  type AnomalyPoint,
+  type OracleHeroStatItem as HeroStatItem,
   ConfidenceScore,
   ConfidenceIntervalDisplay,
   DataQualityIndicator,
@@ -30,7 +21,6 @@ export {
   UMADataQualityScoreCard,
   UMAScoreExplanationModal,
   CoveragePoolTimeline,
-  DapiPriceDeviationMonitor,
   FirstPartyOracleAdvantages,
   IntegratedProtocols,
   DataSourceCoverage,
@@ -48,17 +38,36 @@ export {
   DisputeAmountDistribution,
   DisputeEfficiencyAnalysis,
   RequestTypeDistribution,
-  CrossChainPriceConsistency,
-  BandCrossChainPriceConsistency,
-  ChainEventMonitor,
-  DataFreshnessIndicator,
-  RiskScoreCard,
   SecurityTimeline,
   MitigationMeasuresGrid,
+  SnapshotManager,
+  SnapshotComparison,
+} from './data-display';
+
+// Alert components
+export {
+  AnomalyAlert,
+  AnomalyMarker,
+  type AnomalyPoint,
+  VolatilityAlert,
+  DapiPriceDeviationMonitor,
+  ChainEventMonitor,
+  DataFreshnessIndicator,
+  CrossChainPriceConsistency,
+  BandCrossChainPriceConsistency,
+} from './alerts';
+
+// Shared components
+export {
+  OraclePageTemplate,
+  TabNavigation,
+  type TimeRange,
+  FloatingActionButton,
+  MoreOptionsDropdown,
+  RealtimeUpdateControl,
   LoadingState,
   ErrorFallback,
-} from './common';
-export { RSIIndicator, type RSIIndicatorProps, type RSIDataPoint } from './indicators';
-export { MACDIndicator, type MACDIndicatorProps, type MACDDataPoint } from './indicators';
-export { BollingerBands, type BollingerBandsProps } from './indicators';
-export { ATRIndicator, type ATRIndicatorProps } from './indicators';
+} from './shared';
+
+// Oracle panels
+export * from './oracle-panels';

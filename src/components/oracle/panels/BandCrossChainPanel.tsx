@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from '@/i18n';
 import { BandProtocolClient, CrossChainStats } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { DashboardCard, MetricCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard, MetricCard } from '@/components/oracle/data-display/DashboardCard';
 import { Activity, TrendingUp, Globe, Zap, Layers, Clock } from 'lucide-react';
 
 interface BandCrossChainPanelProps {

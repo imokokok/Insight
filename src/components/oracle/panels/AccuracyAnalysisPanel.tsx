@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useTranslations } from '@/i18n';
 import { usePriceHistory } from '@/hooks';
-import { PriceAccuracyStats } from '../common/PriceAccuracyStats';
-import { ExtremeMarketAnalysis } from '../common/ExtremeMarketAnalysis';
+import { PriceAccuracyStats } from '@/components/oracle/data-display/PriceAccuracyStats';
+import { ExtremeMarketAnalysis } from '@/components/oracle/data-display/ExtremeMarketAnalysis';
 import { AccuracyTrendChart } from '../charts/AccuracyTrendChart';
 
 type ViewMode = 'stats' | 'extreme' | 'trend';

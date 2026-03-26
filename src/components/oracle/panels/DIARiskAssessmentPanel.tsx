@@ -16,12 +16,12 @@ import {
   Cell,
 } from 'recharts';
 import { useTranslations } from '@/i18n';
-import { DashboardCard, RiskScoreCard } from '@/components/oracle/common';
+import { DashboardCard, RiskScoreCard } from '@/components/oracle/data-display';
+import { DataFreshnessIndicator } from '@/components/oracle/alerts';
 import {
-  DataFreshnessIndicator,
   SecurityTimeline,
   MitigationMeasuresGrid,
-} from '@/components/oracle/common';
+} from '@/components/oracle/data-display';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 import {
   getScoreColor,

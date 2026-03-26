@@ -6,7 +6,8 @@ import { logger } from '@/lib/utils/logger';
 import { UMAClient } from '@/lib/oracles/uma';
 import { ValidatorData, DisputeEfficiencyStats } from '@/lib/oracles/uma/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { DashboardCard, DataFreshnessIndicator, RiskScoreCard } from '@/components/oracle/common';
+import { DashboardCard, RiskScoreCard } from '@/components/oracle/data-display';
+import { DataFreshnessIndicator } from '@/components/oracle/alerts';
 
 import { chartColors, getChartColor } from '@/lib/chartColors';
 

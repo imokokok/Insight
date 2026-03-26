@@ -5,7 +5,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { PriceAlert } from '@/lib/supabase/database.types';
 import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
 import { useUpdateAlert, useDeleteAlert, useBatchAlerts } from '@/hooks';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { AlertBatchOperations } from './AlertBatchOperations';
 

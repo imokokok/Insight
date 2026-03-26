@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { chartColors } from '@/lib/config/colors';
 

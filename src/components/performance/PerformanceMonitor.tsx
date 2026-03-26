@@ -1,0 +1,361 @@
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+import { usePerformanceOptimizer } from '@/hooks/usePerformanceOptimizer';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { cn } from '@/lib/utils';
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export interface PerformanceMonitorProps {
+  enabled?: boolean;
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+  showDetails?: boolean;
+  className?: string;
+  onPerformanceIssue?: (issue: string) => void;
+}
+
+interface MetricCardProps {
+  label: string;
+  value: string | number;
+  unit?: string;
+  status: 'good' | 'warning' | 'critical';
+  description?: string;
+}
+
+// ============================================================================
+// Metric Card Component
+// ============================================================================
+
+function MetricCard({ label, value, unit, status, description }: MetricCardProps) {
+  const statusColors = {
+    good: 'bg-green-50 border-green-200 text-green-700',
+    warning: 'bg-yellow-50 border-yellow-200 text-yellow-700',
+    critical: 'bg-red-50 border-red-200 text-red-700',
+  };
+
+  return (
+    <div className={cn('p-3 rounded-lg border', statusColors[status])}>
+      <div className="text-xs opacity-80">{label}</div>
+      <div className="text-lg font-semibold">
+        {value}
+        {unit && <span className="text-sm ml-1">{unit}</span>}
+      </div>
+      {description && <div className="text-xs mt-1 opacity-70">{description}</div>}
+    </div>
+  );
+}
+
+// ============================================================================
+// Performance Monitor Component
+// ============================================================================
+
+export function PerformanceMonitor({
+  enabled = true,
+  position = 'bottom-right',
+  showDetails = false,
+  className,
+  onPerformanceIssue,
+}: PerformanceMonitorProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const performance = usePerformanceOptimizer();
+
+  const positionClasses = {
+    'top-right': 'top-4 right-4',
+    'top-left': 'top-4 left-4',
+    'bottom-right': 'bottom-4 right-4',
+    'bottom-left': 'bottom-4 left-4',
+  };
+
+  // Report performance issues
+  useEffect(() => {
+    if (!enabled || !onPerformanceIssue) return;
+
+    const { webVitals, memory } = performance;
+
+    if (webVitals.metrics.fcp && webVitals.metrics.fcp > 1800) {
+      onPerformanceIssue('FCP_TOO_SLOW');
+    }
+    if (webVitals.metrics.lcp && webVitals.metrics.lcp > 2500) {
+      onPerformanceIssue('LCP_TOO_SLOW');
+    }
+    if (memory.isCritical) {
+      onPerformanceIssue('MEMORY_CRITICAL');
+    }
+  }, [performance, enabled, onPerformanceIssue]);
+
+  const getMetricStatus = useCallback(
+    (value: number | undefined, thresholds: { good: number; poor: number }) => {
+      if (value === undefined) return 'good';
+      if (value <= thresholds.good) return 'good';
+      if (value <= thresholds.poor) return 'warning';
+      return 'critical';
+    },
+    []
+  );
+
+  if (!enabled || !isVisible) return null;
+
+  const { webVitals, resources, navigation, memory, health } = performance;
+
+  return (
+    <div
+      className={cn(
+        'fixed z-50',
+        positionClasses[position],
+        className
+      )}
+    >
+      {/* Collapsed View */}
+      {!isExpanded && (
+        <button
+          onClick={() => setIsExpanded(true)}
+          className={cn(
+            'flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg border transition-colors',
+            health === 'excellent' && 'bg-green-50 border-green-200 text-green-700',
+            health === 'good' && 'bg-blue-50 border-blue-200 text-blue-700',
+            health === 'fair' && 'bg-yellow-50 border-yellow-200 text-yellow-700',
+            health === 'poor' && 'bg-red-50 border-red-200 text-red-700'
+          )}
+        >
+          <div className="flex items-center gap-1.5">
+            <div
+              className={cn(
+                'w-2 h-2 rounded-full',
+                health === 'excellent' && 'bg-green-500',
+                health === 'good' && 'bg-blue-500',
+                health === 'fair' && 'bg-yellow-500',
+                health === 'poor' && 'bg-red-500'
+              )}
+            />
+            <span className="text-sm font-medium capitalize">{health}</span>
+          </div>
+          <span className="text-xs opacity-60">Click for details</span>
+        </button>
+      )}
+
+      {/* Expanded View */}
+      {isExpanded && (
+        <Card className="w-80 shadow-xl">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold">Performance Monitor</CardTitle>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setIsExpanded(false)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setIsVisible(false)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Web Vitals */}
+            <div>
+              <h4 className="text-xs font-medium text-gray-500 mb-2">Web Vitals</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <MetricCard
+                  label="FCP"
+                  value={webVitals.metrics.fcp ? Math.round(webVitals.metrics.fcp) : '-'}
+                  unit="ms"
+                  status={getMetricStatus(webVitals.metrics.fcp, { good: 1800, poor: 3000 })}
+                />
+                <MetricCard
+                  label="LCP"
+                  value={webVitals.metrics.lcp ? Math.round(webVitals.metrics.lcp) : '-'}
+                  unit="ms"
+                  status={getMetricStatus(webVitals.metrics.lcp, { good: 2500, poor: 4000 })}
+                />
+                <MetricCard
+                  label="FID"
+                  value={webVitals.metrics.fid ? Math.round(webVitals.metrics.fid) : '-'}
+                  unit="ms"
+                  status={getMetricStatus(webVitals.metrics.fid, { good: 100, poor: 300 })}
+                />
+                <MetricCard
+                  label="CLS"
+                  value={webVitals.metrics.cls ? webVitals.metrics.cls.toFixed(3) : '-'}
+                  status={getMetricStatus(webVitals.metrics.cls, { good: 0.1, poor: 0.25 })}
+                />
+              </div>
+            </div>
+
+            {/* Memory */}
+            {memory.memory && (
+              <div>
+                <h4 className="text-xs font-medium text-gray-500 mb-2">Memory</h4>
+                <MetricCard
+                  label="Heap Usage"
+                  value={memory.formatSize(memory.memory.used)}
+                  status={memory.isCritical ? 'critical' : memory.isHighUsage ? 'warning' : 'good'}
+                  description={`${memory.memory.percentage.toFixed(1)}% of limit`}
+                />
+              </div>
+            )}
+
+            {/* Resources */}
+            {showDetails && resources.resources.length > 0 && (
+              <div>
+                <h4 className="text-xs font-medium text-gray-500 mb-2">Resources</h4>
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span>Total Resources:</span>
+                    <span>{resources.resources.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Slow Resources:</span>
+                    <span className={resources.slowResources.length > 0 ? 'text-red-600' : ''}>
+                      {resources.slowResources.length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Total Size:</span>
+                    <span>{(resources.totalSize / 1024 / 1024).toFixed(2)} MB</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation */}
+            {showDetails && navigation.timing && (
+              <div>
+                <h4 className="text-xs font-medium text-gray-500 mb-2">Navigation</h4>
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span>Total Time:</span>
+                    <span>{Math.round(navigation.timing.total)}ms</span>
+                  </div>
+                  {navigation.bottleneck && (
+                    <div className="flex justify-between text-yellow-600">
+                      <span>Bottleneck:</span>
+                      <span>{navigation.bottleneck.name}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Suggestions */}
+            {webVitals.suggestions.length > 0 && (
+              <div>
+                <h4 className="text-xs font-medium text-gray-500 mb-2">Suggestions</h4>
+                <div className="space-y-2">
+                  {webVitals.suggestions.slice(0, 2).map((suggestion) => (
+                    <div
+                      key={suggestion.id}
+                      className={cn(
+                        'text-xs p-2 rounded border',
+                        suggestion.type === 'critical' && 'bg-red-50 border-red-200 text-red-700',
+                        suggestion.type === 'warning' && 'bg-yellow-50 border-yellow-200 text-yellow-700',
+                        suggestion.type === 'info' && 'bg-blue-50 border-blue-200 text-blue-700'
+                      )}
+                    >
+                      <div className="font-medium">{suggestion.title}</div>
+                      <div className="opacity-80 mt-0.5">{suggestion.recommendation}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Performance Badge Component
+// ============================================================================
+
+export function PerformanceBadge({ className }: { className?: string }) {
+  const { health } = usePerformanceOptimizer();
+
+  const colors = {
+    excellent: 'bg-green-500',
+    good: 'bg-blue-500',
+    fair: 'bg-yellow-500',
+    poor: 'bg-red-500',
+  };
+
+  return (
+    <div
+      className={cn(
+        'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium text-white',
+        colors[health],
+        className
+      )}
+    >
+      <div className="w-1.5 h-1.5 bg-white rounded-full" />
+      <span className="capitalize">{health}</span>
+    </div>
+  );
+}
+
+// ============================================================================
+// Performance Report Button
+// ============================================================================
+
+export function PerformanceReportButton({ className }: { className?: string }) {
+  const performance = usePerformanceOptimizer();
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const generateReport = useCallback(() => {
+    setIsGenerating(true);
+    const report = performance.getReport();
+    
+    // Create and download report
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `performance-report-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    setIsGenerating(false);
+  }, [performance]);
+
+  return (
+    <button
+      onClick={generateReport}
+      disabled={isGenerating}
+      className={cn(
+        'inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md',
+        'bg-gray-100 hover:bg-gray-200 text-gray-700',
+        'disabled:opacity-50 disabled:cursor-not-allowed',
+        className
+      )}
+    >
+      {isGenerating ? (
+        <>
+          <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+          Generating...
+        </>
+      ) : (
+        <>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Export Report
+        </>
+      )}
+    </button>
+  );
+}

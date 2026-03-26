@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import { providerNames, chainNames, symbols, oracleColors } from '@/lib/constants';
 import { useCreateAlert, CreateAlertInput } from '@/hooks';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import { useTranslations } from '@/i18n';
 import { DropdownSelect, SegmentedControl, SelectorOption } from '@/components/ui';

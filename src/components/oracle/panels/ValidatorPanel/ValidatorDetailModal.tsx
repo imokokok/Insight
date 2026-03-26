@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
 import { ValidatorHistoryChart } from '../../charts/ValidatorHistoryChart';
-import { StakingCalculator } from '../../common/StakingCalculator';
+import { StakingCalculator } from '@/components/oracle/data-display/StakingCalculator';
 import { TabType } from './config';
 
 function useValidatorDetailModal(validator: ValidatorInfo | null, isOpen: boolean) {

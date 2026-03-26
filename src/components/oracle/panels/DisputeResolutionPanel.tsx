@@ -14,9 +14,9 @@ import {
   LiquidationDisputeIcon,
   OtherDisputeIcon,
 } from '@/lib/oracles/uma';
-import { DashboardCard } from '../common/DashboardCard';
-import { DisputeEfficiencyAnalysis } from '../common/DisputeEfficiencyAnalysis';
-import { DisputeAmountDistribution } from '../common/DisputeAmountDistribution';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { DisputeEfficiencyAnalysis } from '@/components/oracle/data-display/DisputeEfficiencyAnalysis';
+import { DisputeAmountDistribution } from '@/components/oracle/data-display/DisputeAmountDistribution';
 import {
   DisputeVotingPanel,
   generateMockVotingData,

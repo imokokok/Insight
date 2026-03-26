@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import {
   UMAClient,
   ValidatorPerformanceHeatmapData,

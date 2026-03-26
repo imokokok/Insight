@@ -19,7 +19,7 @@ import {
   Radar,
 } from 'recharts';
 import type { ChainDataRequest } from '@/lib/oracles/bandProtocol';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { chainColors, chartColors, animationColors } from '@/lib/config/colors';
 import { formatNumber as formatNumberCompact } from '@/lib/utils/format';
 

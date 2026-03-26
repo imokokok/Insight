@@ -1,7 +1,7 @@
 'use client';
 
-import { SnapshotManager } from '@/components/oracle/common/SnapshotManager';
-import { SnapshotComparison } from '@/components/oracle/common/SnapshotComparison';
+import { SnapshotManager } from '@/components/oracle/data-display/SnapshotManager';
+import { SnapshotComparison } from '@/components/oracle/data-display/SnapshotComparison';
 import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
 import { OracleSnapshot } from '@/types/oracle';
 import { oracleNames } from '../../constants';

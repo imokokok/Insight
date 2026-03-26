@@ -2,7 +2,7 @@
 
 import { useTranslations } from '@/i18n';
 import { ValidatorNetwork, ChronicleValidator } from '@/lib/oracles/chronicle';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Users } from 'lucide-react';
 import { Activity } from 'lucide-react';
 import { Award } from 'lucide-react';

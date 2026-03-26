@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from '../../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Blockchain } from '@/types/oracle';
 
 interface Protocol {

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { PriceData, OracleProvider } from '@/types/oracle';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Info } from 'lucide-react';
 import { ArrowUp } from 'lucide-react';
 import { ArrowDown } from 'lucide-react';

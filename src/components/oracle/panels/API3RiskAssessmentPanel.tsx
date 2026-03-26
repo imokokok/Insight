@@ -1,17 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { StakingData } from '@/lib/oracles/api3';
 import { AirnodeNetworkStats } from '@/lib/oracles/api3';
 import { DAPICoverage } from '@/lib/oracles/api3';
+import { DataFreshnessIndicator } from '@/components/oracle/alerts';
 import {
-  DataFreshnessIndicator,
   RiskScoreCard,
   SecurityTimeline,
   MitigationMeasuresGrid,
-} from '@/components/oracle/common';
+} from '@/components/oracle/data-display';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import type { RiskEvent, MitigationMeasure } from '@/types/risk';
 

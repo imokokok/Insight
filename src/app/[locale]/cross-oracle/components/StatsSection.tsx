@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import { Shield } from 'lucide-react';
 import { Activity } from 'lucide-react';
-import { DataQualityScoreCard } from '@/components/oracle/common/DataQualityScoreCard';
+import { DataQualityScoreCard } from '@/components/oracle/data-display/DataQualityScoreCard';
 import { StatsCards, MobileStatsCards } from './StatsCards';
 import { HistoryMinMax } from '../constants';
 

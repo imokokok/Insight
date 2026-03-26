@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { chartColors, semanticColors, chainColors, shadowColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';

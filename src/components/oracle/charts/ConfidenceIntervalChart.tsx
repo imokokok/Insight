@@ -12,7 +12,7 @@ import {
   ReferenceLine,
   Dot,
 } from 'recharts';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 
 interface ServiceData {
   id: string;

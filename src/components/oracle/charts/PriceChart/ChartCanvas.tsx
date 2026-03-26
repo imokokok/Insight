@@ -18,7 +18,7 @@ import {
 } from 'recharts';
 import { useTranslations } from '@/i18n';
 import { IndicatorDataPoint } from '@/hooks';
-import { AnomalyMarker } from '../../common/AnomalyMarker';
+import { AnomalyMarker } from '@/components/oracle/alerts/AnomalyMarker';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { ChartType } from './priceChartConfig';
 import { MainChartTooltip, RSITooltip, MACDTooltip, CandlestickShape } from './PriceChartTooltip';

@@ -6,7 +6,7 @@ export function useTechnicalIndicators(
   historicalData: Partial<Record<OracleProvider, PriceData[]>>,
   selectedOracles: OracleProvider[],
   priceData: PriceData[],
-  performanceData: import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[]
+  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[]
 ): TechnicalIndicatorsResult {
   const maData = useMemo(() => {
     return selectedOracles.map((oracle) => ({

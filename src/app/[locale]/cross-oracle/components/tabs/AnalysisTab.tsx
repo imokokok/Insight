@@ -5,7 +5,7 @@ import { PriceDistributionBoxPlot } from '@/components/oracle/charts/PriceDistri
 import { PriceVolatilityChart } from '@/components/oracle/charts/PriceVolatilityChart';
 import { PriceCorrelationMatrix } from '@/components/oracle/charts/PriceCorrelationMatrix';
 import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
-import { OraclePerformanceRanking } from '@/components/oracle/common/OraclePerformanceRanking';
+import { OraclePerformanceRanking } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import { MovingAverageChart } from '@/components/oracle/charts/MovingAverageChart';
 import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
 import { DropdownSelect } from '@/components/ui';
@@ -26,7 +26,7 @@ interface AnalysisTabProps {
   boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
   volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
   correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
-  performanceData: import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[];
+  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
   maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
   qualityTrendData: QualityTrendData[];
   getOracleLatencyData: (oracle: OracleProvider | null) => number[];

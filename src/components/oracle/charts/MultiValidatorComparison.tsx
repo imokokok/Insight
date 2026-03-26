@@ -12,7 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import { BandProtocolClient, ValidatorInfo, HistoryPeriod } from '@/lib/oracles/bandProtocol';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { formatNumber } from '@/lib/utils/format';
 import { ChartSkeleton } from '@/components/ui';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';

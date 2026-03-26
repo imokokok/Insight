@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
 
 interface DAPICoverage {

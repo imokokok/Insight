@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import { useTranslations } from '@/i18n';
-import { IntegratedProtocols } from '../common/IntegratedProtocols';
-import { DataSourceCoverage } from '../common/DataSourceCoverage';
+import { IntegratedProtocols } from '@/components/oracle/data-display/IntegratedProtocols';
+import { DataSourceCoverage } from '@/components/oracle/data-display/DataSourceCoverage';
 import { DataSourceTrend } from '../charts/DataSourceTrend';
 
 interface EcosystemStats {

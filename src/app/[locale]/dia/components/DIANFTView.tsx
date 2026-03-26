@@ -3,8 +3,8 @@
 import { useTranslations } from '@/i18n';
 import { useDIANFTData } from '@/hooks';
 import { Blockchain } from '@/types/oracle';
-import { LoadingState } from '@/components/oracle/common/LoadingState';
-import { ErrorFallback } from '@/components/oracle/common/ErrorFallback';
+import { LoadingState } from '@/components/oracle/shared/LoadingState';
+import { ErrorFallback } from '@/components/oracle/shared/ErrorFallback';
 import { Layers } from 'lucide-react';
 import { TrendingUp } from 'lucide-react';
 import { DollarSign } from 'lucide-react';

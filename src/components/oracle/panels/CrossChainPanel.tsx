@@ -14,7 +14,7 @@ import {
 import { BandProtocolClient, CrossChainStats, ChainDataRequest } from '@/lib/oracles/bandProtocol';
 import { RequestTrendChart } from '../charts/RequestTrendChart';
 import { ChainComparison } from '../charts/ChainComparison';
-import { RequestTypeDistribution } from '../common/RequestTypeDistribution';
+import { RequestTypeDistribution } from '@/components/oracle/data-display/RequestTypeDistribution';
 import { CrossChainTrendChart } from '../charts/CrossChainTrendChart';
 import { DataExportButton, ExportDataRow } from '../forms/DataExportButton';
 import { useTranslations } from '@/i18n';

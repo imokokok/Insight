@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from '@/i18n';
 import { UMAClient } from '@/lib/oracles/uma';
-import { DashboardCard } from '../../common/DashboardCard';
-import { StakingCalculator } from '../../common/StakingCalculator';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { StakingCalculator } from '@/components/oracle/data-display/StakingCalculator';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 

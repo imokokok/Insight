@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
 import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import {

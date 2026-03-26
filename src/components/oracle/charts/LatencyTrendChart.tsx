@@ -14,7 +14,7 @@ import {
   Area,
   ComposedChart,
 } from 'recharts';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { TooltipProps, CustomDotProps } from '@/types/ui/recharts';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';

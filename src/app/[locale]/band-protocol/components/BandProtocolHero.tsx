@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { OracleHero, StatItem } from '@/components/oracle/common/OracleHero';
+import { OracleHero, StatItem } from '@/components/oracle/data-display/OracleHero';
 import { OracleConfig } from '@/lib/config/oracles';
 import { PriceData } from '@/types/oracle';
 import {

@@ -10,7 +10,7 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
 import { calculateATR, OHLCVDataPoint } from '@/lib/indicators';
 

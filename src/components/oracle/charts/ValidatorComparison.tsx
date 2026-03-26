@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { DashboardCard } from '../common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import type { ValidatorData } from '@/lib/oracles/uma';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';

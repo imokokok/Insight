@@ -5,7 +5,7 @@ import { useTranslations } from '@/i18n';
 import { logger } from '@/lib/utils/logger';
 import { UMAClient } from '@/lib/oracles/uma';
 import { UMANetworkStats, VerificationActivity } from '@/lib/oracles/uma/types';
-import { DashboardCard, StatCard } from '../../common/DashboardCard';
+import { DashboardCard, StatCard } from '@/components/oracle/data-display/DashboardCard';
 
 import { chartColors, getChartColor } from '@/lib/chartColors';
 

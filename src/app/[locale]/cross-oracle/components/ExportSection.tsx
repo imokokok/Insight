@@ -1,6 +1,6 @@
 'use client';
 
-import { FloatingActionButton } from '@/components/oracle/common/FloatingActionButton';
+import { FloatingActionButton } from '@/components/oracle/shared/FloatingActionButton';
 
 interface ExportSectionProps {
   handleExportCSV: () => void;

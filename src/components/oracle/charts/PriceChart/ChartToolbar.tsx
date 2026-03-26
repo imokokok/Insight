@@ -2,7 +2,7 @@
 
 import { useTranslations } from '@/i18n';
 import { ChartExportButton } from '../../forms/ChartExportButton';
-import { MoreOptionsDropdown } from '../../common/MoreOptionsDropdown';
+import { MoreOptionsDropdown } from '@/components/oracle/shared/MoreOptionsDropdown';
 import { ChartExportData } from '@/utils/chartExport';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import {

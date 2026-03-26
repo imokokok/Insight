@@ -13,7 +13,7 @@ import {
   AreaChart,
 } from 'recharts';
 import { useTranslations } from '@/i18n';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 import {
@@ -28,11 +28,11 @@ import {
   getMeasureStatusColor,
   formatLatency,
 } from '@/lib/utils/riskUtils';
+import { DataFreshnessIndicator } from '@/components/oracle/alerts';
 import {
-  DataFreshnessIndicator,
   SecurityTimeline,
   MitigationMeasuresGrid,
-} from '@/components/oracle/common';
+} from '@/components/oracle/data-display';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
 
