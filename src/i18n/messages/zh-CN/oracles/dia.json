@@ -2,6 +2,28 @@
   "dia": {
     "title": "DIA",
     "subtitle": "去中心化信息资产跨链数据预言机",
+    "menu": {
+      "marketData": "市场数据",
+      "networkHealth": "网络健康",
+      "dataFeeds": "数据馈送",
+      "nftData": "NFT 数据",
+      "staking": "质押",
+      "ecosystem": "生态系统",
+      "riskAssessment": "风险评估"
+    },
+    "menu": {
+      "title": "菜单",
+      "marketData": "市场数据",
+      "networkHealth": "网络健康",
+      "dataFeeds": "数据馈送",
+      "nftData": "NFT 数据",
+      "staking": "质押",
+      "ecosystem": "生态系统",
+      "riskAssessment": "风险评估"
+    },
+    "navigation": {
+      "title": "导航"
+    },
     "tabs": {
       "market": "市场数据",
       "network": "网络",
@@ -14,6 +36,7 @@
       "crossOracle": "跨预言机分析"
     },
     "priceTrend": "价格趋势",
+    "tradingPair": "主要交易对",
     "quickStats": "快速统计",
     "stats": {
       "stakingApr": "质押 APR",

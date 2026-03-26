@@ -56,6 +56,7 @@
   },
   "dataFeeds": {
     "totalDataFeeds": "数据流总数",
+    "total": "总数",
     "activeFeeds": "活跃数据流",
     "categories": "分类",
     "defi": "DeFi",
@@ -81,9 +82,11 @@
     "status": "状态",
     "usageStats": "使用统计",
     "totalRequests": "总请求数",
+    "requests": "请求数",
     "feedsByCategory": "按分类数据流",
     "feedPerformance": "数据流性能",
-    "reliability": "可靠性"
+    "reliability": "可靠性",
+    "avgReliability": "平均可靠性"
   },
   "ecosystem": {
     "totalIntegratedProtocols": "集成协议总数",
@@ -107,7 +110,10 @@
     "ccipMessages": "消息数",
     "ccipProtocols": "CCIP 协议",
     "tvlAnalysis": {
-      "title": "TVL 趋势分析"
+      "title": "TVL 趋势分析",
+      "totalTvl": "TVL 总额",
+      "ethereum": "以太坊",
+      "l2Networks": "L2 网络"
     }
   },
   "riskAssessment": {

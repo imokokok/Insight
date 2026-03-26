@@ -117,6 +117,7 @@
       "liquidity": "流动性",
       "marketDepth": "市场深度"
     },
+    "depthScore": "深度评分",
     "priceTrend": "价格趋势",
     "tradingPair": "主要交易对",
     "quickStats": "快速统计",

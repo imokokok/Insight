@@ -117,6 +117,7 @@
       "liquidity": "Liquidity",
       "marketDepth": "Market Depth"
     },
+    "depthScore": "Depth Score",
     "priceTrend": "Price Trend",
     "tradingPair": "Trading Pair",
     "quickStats": "Quick Stats",

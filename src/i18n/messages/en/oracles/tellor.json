@@ -91,6 +91,8 @@
     },
     "reporters": {
       "title": "Reporters",
+      "activeReporters": "Active Reporters",
+      "overview": "Reporters Overview",
       "total": "Total",
       "active24h": "Active (24h)",
       "avgStake": "Avg Stake",
@@ -99,6 +101,8 @@
       "active": "Active",
       "totalStaked": "Total Staked",
       "avg": "Avg",
+      "avgResponse": "Avg Response",
+      "avgSuccess": "Avg Success",
       "reports24h": "24h Reports",
       "avgRewards": "Avg Rewards",
       "activityRate": "Activity Rate",
@@ -137,7 +141,8 @@
       "rewards": "Reward Structure",
       "baseReward": "Base Reward",
       "accuracyBonus": "Accuracy Bonus",
-      "stakeBonus": "Stake Bonus"
+      "stakeBonus": "Stake Bonus",
+      "regionDistribution": "Region Distribution"
     },
     "risk": {
       "overallLevel": "Composite Risk Assessment",
@@ -185,7 +190,21 @@
         "decentralizedGovernance": "Community Governance",
         "reporterIncentives": "Reporter Incentive Structure",
         "transparencyReports": "Transparency Reporting"
-      }
+      },
+      "smartContract": "Smart Contract Risk",
+      "smartContractDesc": "Smart contracts are audited with good code quality, no major vulnerabilities found",
+      "oracleRisk": "Oracle Risk",
+      "oracleRiskDesc": "Diversified data sources with strong anti-manipulation capabilities",
+      "centralization": "Centralization Risk",
+      "centralizationDesc": "Node distribution is relatively decentralized, but some concentration still exists",
+      "liquidity": "Liquidity Risk",
+      "liquidityDesc": "Sufficient market liquidity with good trading depth",
+      "overallScore": "Overall Score",
+      "overallDescription": "Comprehensive assessment based on multi-dimensional risk indicators",
+      "outOf100": "out of 100",
+      "consideration1": "Smart contracts have been audited by multiple security firms",
+      "consideration2": "Diversified oracle data sources reduce single point of failure risk",
+      "consideration3": "Community governance mechanism is sound with effective dispute resolution"
     },
     "networkStatus": "Network Status",
     "network": {
@@ -219,6 +238,7 @@
     },
     "ecosystem": {
       "totalProtocols": "Total Protocols",
+      "protocolIntegrations": "Protocol Integrations",
       "integrated": "Integrated",
       "totalTvl": "Total TVL",
       "tvl": "TVL",
@@ -265,6 +285,7 @@
       "stakingApr": "Staking APR",
       "totalStakers": "Total Stakers",
       "rewardPool": "Reward Pool",
+      "tiers": "Staking Tiers",
       "calculator": {
         "title": "Staking Calculator",
         "stakeAmount": "Stake Amount",
@@ -285,7 +306,9 @@
         "baseApr": "Base APR",
         "reporterBonus": "Reporter Bonus",
         "totalApr": "Total APR"
-      }
+      },
+      "howItWorks": "How Staking Works",
+      "risks": "Staking Risks"
     },
     "disputes": {
       "title": "Disputes",

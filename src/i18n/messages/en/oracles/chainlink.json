@@ -52,6 +52,7 @@
   },
   "dataFeeds": {
     "totalDataFeeds": "Total Data Feeds",
+    "total": "Total",
     "activeFeeds": "Active Feeds",
     "categories": "Asset Categories",
     "defi": "DeFi Assets",
@@ -77,9 +78,11 @@
     "status": "Operational Status",
     "usageStats": "Consumption Metrics",
     "totalRequests": "Total Requests",
+    "requests": "Requests",
     "feedsByCategory": "Feeds by Asset Class",
     "feedPerformance": "Feed Reliability",
-    "reliability": "Uptime Score"
+    "reliability": "Uptime Score",
+    "avgReliability": "Avg Reliability"
   },
   "ecosystem": {
     "totalIntegratedProtocols": "Total Integrated Protocols",
@@ -103,7 +106,10 @@
     "ccipMessages": "Messages",
     "ccipProtocols": "CCIP Protocols",
     "tvlAnalysis": {
-      "title": "TVL Trend Analysis"
+      "title": "TVL Trend Analysis",
+      "totalTvl": "Total TVL",
+      "ethereum": "Ethereum",
+      "l2Networks": "L2 Networks"
     }
   },
   "riskAssessment": {

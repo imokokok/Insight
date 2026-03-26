@@ -92,6 +92,8 @@
     },
     "reporters": {
       "title": "报告者",
+      "activeReporters": "活跃报告者",
+      "overview": "报告者概览",
       "total": "总计",
       "active24h": "24小时活跃",
       "avgStake": "平均质押",
@@ -100,6 +102,8 @@
       "active": "活跃",
       "totalStaked": "总质押量",
       "avg": "平均",
+      "avgResponse": "平均响应",
+      "avgSuccess": "平均成功率",
       "reports24h": "24小时报告数",
       "avgRewards": "平均奖励",
       "activityRate": "活跃率",
@@ -138,7 +142,8 @@
       "rewards": "奖励结构",
       "baseReward": "基础奖励",
       "accuracyBonus": "准确率奖励",
-      "stakeBonus": "质押奖励"
+      "stakeBonus": "质押奖励",
+      "regionDistribution": "地区分布"
     },
     "risk": {
       "overallLevel": "整体风险等级",
@@ -186,7 +191,21 @@
         "decentralizedGovernance": "去中心化治理",
         "reporterIncentives": "报告者激励",
         "transparencyReports": "透明度报告"
-      }
+      },
+      "smartContract": "智能合约风险",
+      "smartContractDesc": "智能合约经过审计，代码质量良好，未发现重大漏洞",
+      "oracleRisk": "预言机风险",
+      "oracleRiskDesc": "数据源多样化，抗操纵能力较强",
+      "centralization": "中心化风险",
+      "centralizationDesc": "节点分布较为分散，但仍存在一定程度的集中",
+      "liquidity": "流动性风险",
+      "liquidityDesc": "市场流动性充足，交易深度良好",
+      "overallScore": "综合评分",
+      "overallDescription": "基于多维度风险指标的综合评估",
+      "outOf100": "满分 100",
+      "consideration1": "智能合约已通过多家安全公司审计",
+      "consideration2": "预言机数据源多样化，降低单点故障风险",
+      "consideration3": "社区治理机制完善，争议解决机制有效"
     },
     "networkStatus": "网络状态",
     "network": {
@@ -220,6 +239,7 @@
     },
     "ecosystem": {
       "totalProtocols": "总协议数",
+      "protocolIntegrations": "协议集成",
       "integrated": "已集成",
       "totalTvl": "总锁仓价值",
       "tvl": "TVL",
@@ -266,6 +286,7 @@
       "stakingApr": "质押 APR",
       "totalStakers": "总质押者",
       "rewardPool": "奖励池",
+      "tiers": "质押等级",
       "calculator": {
         "title": "质押计算器",
         "stakeAmount": "质押数量",
@@ -286,7 +307,9 @@
         "baseApr": "基础 APR",
         "reporterBonus": "报告者奖励",
         "totalApr": "总 APR"
-      }
+      },
+      "howItWorks": "质押说明",
+      "risks": "质押风险"
     },
     "disputes": {
       "title": "争议",
