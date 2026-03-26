@@ -64,8 +64,8 @@ export default function MarketOverviewPage() {
 
   return (
     <div className="min-h-screen bg-insight">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="space-y-3">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-8">
           <MarketHeader
             loading={isLoading}
             oracleData={oracleData}
@@ -82,7 +82,7 @@ export default function MarketOverviewPage() {
             wsReconnect={wsReconnect}
           />
 
-          <div className="bg-white border border-gray-200 p-3 rounded-lg transition-all duration-200 hover:border-gray-300">
+          <div className="p-3">
             <MarketStats
               marketStats={marketStats}
               totalTVS={totalTVS}
@@ -91,10 +91,10 @@ export default function MarketOverviewPage() {
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               <div className="lg:col-span-2">
-                <div className="bg-white border border-gray-200 p-3 rounded-lg transition-all duration-200 hover:border-gray-300">
+                <div className="p-3">
                   <ChartContainer
                     chartContainerRef={chartContainerRef}
                     activeChart={activeChart}
@@ -137,7 +137,7 @@ export default function MarketOverviewPage() {
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 p-3 rounded-lg transition-all duration-200 hover:border-gray-300">
+              <div className="p-3">
                 <MarketSidebar
                   selectedTimeRange={selectedTimeRange}
                   lastUpdated={lastUpdated}
@@ -147,11 +147,12 @@ export default function MarketOverviewPage() {
                   hoveredItem={hoveredItem}
                   setHoveredItem={setHoveredItem}
                   marketStats={marketStats}
+                  trendData={trendData}
                 />
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 p-3 rounded-lg transition-all duration-200 hover:border-gray-300">
+            <div className="p-3">
               <AssetsTable assets={assets} />
             </div>
           </div>

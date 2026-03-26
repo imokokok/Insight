@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
-import { RefreshCw, Clock, Check } from 'lucide-react';
+import { RefreshCw, Clock } from 'lucide-react';
 
 import { DropdownSelect } from '@/components/ui';
 import { useLocale } from '@/i18n';
@@ -25,7 +25,6 @@ export default function RefreshControl({
 }: RefreshControlProps) {
   const locale = useLocale();
   const [countdown, setCountdown] = useState<number>(0);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const intervalOptions = useMemo(
     () => [
@@ -55,20 +54,12 @@ export default function RefreshControl({
     return () => clearInterval(timer);
   }, [autoRefreshInterval, onRefresh]);
 
-  useEffect(() => {
-    if (!isRefreshing && lastUpdated) {
-      setShowSuccess(true);
-      const timer = setTimeout(() => setShowSuccess(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [isRefreshing, lastUpdated]);
-
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     onRefresh?.();
     if (autoRefreshInterval > 0) {
       setCountdown(autoRefreshInterval);
     }
-  };
+  }, [onRefresh, autoRefreshInterval]);
 
   const formatTime = (date?: Date) => {
     if (!date) return isChineseLocale(locale) ? '从未' : 'Never';
@@ -85,12 +76,24 @@ export default function RefreshControl({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getTooltipText = () => {
+    const parts: string[] = [];
+    if (lastUpdated) {
+      parts.push(isChineseLocale(locale) ? `最后更新: ${formatTime(lastUpdated)}` : `Last updated: ${formatTime(lastUpdated)}`);
+    }
+    if (autoRefreshInterval > 0 && countdown > 0) {
+      parts.push(isChineseLocale(locale) ? `下次刷新: ${formatCountdown(countdown)}` : `Next refresh: ${formatCountdown(countdown)}`);
+    }
+    return parts.join('\n') || (isChineseLocale(locale) ? '点击刷新数据' : 'Click to refresh data');
+  };
+
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-1">
       <button
         onClick={handleRefresh}
         disabled={isRefreshing}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50"
+        title={getTooltipText()}
+        className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
       >
         <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
         <span className="hidden sm:inline">
@@ -104,34 +107,14 @@ export default function RefreshControl({
         </span>
       </button>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1 px-1">
         <Clock className="w-3.5 h-3.5 text-gray-400" />
         <DropdownSelect
           options={intervalOptions}
           value={autoRefreshInterval}
           onChange={(value) => onAutoRefreshChange?.(value)}
-          className="w-24"
+          className="w-20"
         />
-      </div>
-
-      {autoRefreshInterval > 0 && countdown > 0 && (
-        <div className="text-xs text-gray-500">{formatCountdown(countdown)}</div>
-      )}
-
-      <div className="flex items-center gap-1.5 text-xs text-gray-500">
-        {showSuccess ? (
-          <>
-            <Check className="w-3.5 h-3.5 text-success-500" />
-            <span className="text-success-600">
-              {isChineseLocale(locale) ? '已更新' : 'Updated'}
-            </span>
-          </>
-        ) : (
-          <>
-            <span>{isChineseLocale(locale) ? '更新于:' : 'Updated:'}</span>
-            <span>{formatTime(lastUpdated)}</span>
-          </>
-        )}
       </div>
     </div>
   );

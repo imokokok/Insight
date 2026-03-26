@@ -87,6 +87,7 @@ interface ChartRendererProps {
   comparisonMode: 'none' | 'yoy' | 'mom';
   trendComparisonData: TVSTrendData[];
   showConfidenceInterval: boolean;
+  chartType?: 'line' | 'area' | 'candle';
 }
 
 export default function ChartRenderer({
@@ -118,6 +119,7 @@ export default function ChartRenderer({
   comparisonMode,
   trendComparisonData,
   showConfidenceInterval,
+  chartType: _chartType,
 }: ChartRendererProps) {
   const CustomTooltip = ({ active, payload, label }: TooltipProps<OracleMarketData>) => {
     if (active && payload && payload.length) {
@@ -207,54 +209,179 @@ export default function ChartRenderer({
     return name === linkedOracle.primary || name === linkedOracle.secondary;
   };
 
-  const renderPieChart = () => (
-    <PieChart>
-      <Pie
-        data={sortedOracleData}
-        cx="50%"
-        cy="50%"
-        labelLine={false}
-        outerRadius={120}
-        innerRadius={70}
-        fill={chartColors.pie.default}
-        dataKey="share"
-        paddingAngle={2}
-        onMouseEnter={(_, index) => setHoveredItem(sortedOracleData[index]?.name)}
-        onMouseLeave={() => setHoveredItem(null)}
-        onClick={(_, index) => {
-          const name = sortedOracleData[index]?.name;
-          setSelectedItem(name === selectedItem ? null : name);
-        }}
-      >
-        {sortedOracleData.map((entry, index) => {
-          const isHighlighted = isCellHighlighted(entry.name);
-          return (
-            <Cell
-              key={`cell-${index}`}
-              fill={entry.color}
-              stroke={
-                selectedItem === entry.name
-                  ? chartColors.pie.stroke.selected
-                  : chartColors.pie.stroke.none
-              }
-              strokeWidth={selectedItem === entry.name ? 3 : 0}
-              opacity={
-                !linkedOracle
-                  ? hoveredItem && hoveredItem !== entry.name
-                    ? 0.6
-                    : 1
-                  : isHighlighted
-                    ? 1
-                    : 0.2
-              }
-              style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-            />
-          );
-        })}
-      </Pie>
-      <RechartsTooltip content={<CustomTooltip />} />
-    </PieChart>
-  );
+  const renderPieChart = () => {
+    // 计算总 TVS
+    const totalTVS = sortedOracleData.reduce((sum, item) => sum + (typeof item.tvs === 'number' ? item.tvs : 0), 0);
+    
+    // 获取悬停或选中的预言机数据
+    const activeItem = hoveredItem 
+      ? sortedOracleData.find(d => d.name === hoveredItem)
+      : selectedItem
+        ? sortedOracleData.find(d => d.name === selectedItem)
+        : null;
+    
+    // 计算洞察数据
+    const fastestGrowing = [...sortedOracleData].sort((a, b) => (b.change24h || 0) - (a.change24h || 0))[0];
+    const largestChange = [...sortedOracleData].sort((a, b) => Math.abs(b.change24h || 0) - Math.abs(a.change24h || 0))[0];
+    const cr4 = sortedOracleData.slice(0, 4).reduce((sum, item) => sum + (item.share || 0), 0);
+    
+    return (
+      <div className="flex flex-col h-full">
+        {/* 主图表区域 - 左右布局 */}
+        <div className="flex-1 flex">
+          {/* 左侧：环形图 + 中心信息 */}
+          <div className="flex-1 relative">
+            <PieChart width={400} height={350}>
+              <Pie
+                data={sortedOracleData}
+                cx="50%"
+                cy="45%"
+                labelLine={false}
+                outerRadius={140}
+                innerRadius={85}
+                fill={chartColors.pie.default}
+                dataKey="share"
+                paddingAngle={2}
+                onMouseEnter={(_, index) => setHoveredItem(sortedOracleData[index]?.name)}
+                onMouseLeave={() => setHoveredItem(null)}
+                onClick={(_, index) => {
+                  const name = sortedOracleData[index]?.name;
+                  setSelectedItem(name === selectedItem ? null : name);
+                }}
+                label={(props) => {
+                  const share = typeof props.value === 'number' ? props.value : 0;
+                  // 只在份额大于 8% 的扇形上显示标签
+                  if (share < 8) return null;
+                  return `${share}%`;
+                }}
+              >
+                {sortedOracleData.map((entry, index) => {
+                  const isHighlighted = isCellHighlighted(entry.name);
+                  const isActive = hoveredItem === entry.name || selectedItem === entry.name;
+                  return (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                      stroke={
+                        selectedItem === entry.name
+                          ? chartColors.pie.stroke.selected
+                          : chartColors.pie.stroke.none
+                      }
+                      strokeWidth={selectedItem === entry.name ? 3 : 0}
+                      opacity={
+                        !linkedOracle
+                          ? hoveredItem && hoveredItem !== entry.name
+                            ? 0.5
+                            : 1
+                          : isHighlighted
+                            ? 1
+                            : 0.2
+                      }
+                      style={{ 
+                        cursor: 'pointer', 
+                        transition: 'all 0.3s ease',
+                        transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                        transformOrigin: 'center'
+                      }}
+                    />
+                  );
+                })}
+              </Pie>
+              <RechartsTooltip content={<CustomTooltip />} />
+            </PieChart>
+            
+            {/* 中心信息 */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center mt-[-20px]">
+                {activeItem ? (
+                  <>
+                    <p className="text-xs text-gray-500 mb-1">{activeItem.name}</p>
+                    <p className="text-2xl font-bold text-gray-900">{activeItem.share}%</p>
+                    <p className="text-xs text-gray-500 mt-1">${(typeof activeItem.tvs === 'number' ? activeItem.tvs : 0).toFixed(1)}B</p>
+                    <p className={`text-xs mt-1 ${(activeItem.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                      {(activeItem.change24h || 0) >= 0 ? '+' : ''}{(activeItem.change24h || 0).toFixed(1)}%
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-500 mb-1">Total TVS</p>
+                    <p className="text-2xl font-bold text-gray-900">${totalTVS.toFixed(1)}B</p>
+                    <p className="text-xs text-gray-500 mt-1">{sortedOracleData.length} Oracles</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* 右侧：预言机列表 */}
+          <div className="w-48 flex flex-col justify-center space-y-2 pr-4">
+            {sortedOracleData.slice(0, 6).map((item) => (
+              <div 
+                key={item.name}
+                className={`flex items-center justify-between py-1.5 px-2 rounded cursor-pointer transition-all ${
+                  hoveredItem === item.name || selectedItem === item.name 
+                    ? 'bg-gray-100' 
+                    : 'hover:bg-gray-50'
+                }`}
+                onMouseEnter={() => setHoveredItem(item.name)}
+                onMouseLeave={() => setHoveredItem(null)}
+                onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
+              >
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-2.5 h-2.5 rounded-full" 
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-xs text-gray-700 truncate max-w-[80px]">{item.name}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-medium text-gray-900">{item.share}%</span>
+                  <span className={`text-xs ml-1.5 ${(item.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                    {(item.change24h || 0) >= 0 ? '+' : ''}{(item.change24h || 0).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            ))}
+            {sortedOracleData.length > 6 && (
+              <div className="text-xs text-gray-400 text-center py-1">
+                +{sortedOracleData.length - 6} more
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* 底部：洞察行 */}
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="flex justify-between items-start">
+            {/* 增长最快 */}
+            <div className="flex-1 px-2">
+              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">增长最快</p>
+              <p className="text-sm font-medium text-gray-900 truncate">{fastestGrowing?.name}</p>
+              <p className="text-xs text-success-600">+{(fastestGrowing?.change24h || 0).toFixed(1)}%</p>
+            </div>
+            {/* 分隔线 */}
+            <div className="w-px h-12 bg-gray-200 mx-2"></div>
+            {/* 份额变化最大 */}
+            <div className="flex-1 px-2">
+              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">份额变化</p>
+              <p className="text-sm font-medium text-gray-900 truncate">{largestChange?.name}</p>
+              <p className={`text-xs ${(largestChange?.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                {(largestChange?.change24h || 0) >= 0 ? '+' : ''}{(largestChange?.change24h || 0).toFixed(1)}%
+              </p>
+            </div>
+            {/* 分隔线 */}
+            <div className="w-px h-12 bg-gray-200 mx-2"></div>
+            {/* 市场集中度 */}
+            <div className="flex-1 px-2">
+              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">市场集中度</p>
+              <p className="text-sm font-medium text-gray-900">{cr4.toFixed(1)}%</p>
+              <p className="text-xs text-gray-400">CR4</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderTrendChart = () => {
     const oracleKeys = [

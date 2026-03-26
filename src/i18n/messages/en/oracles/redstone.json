@@ -14,6 +14,30 @@
     "navigation": {
       "title": "Navigation"
     },
+    "networkHealth": {
+      "activeNodes": "Active Nodes",
+      "responseTime": "Response Time"
+    },
+    "network": {
+      "totalRequests": "Total Requests (24h)",
+      "avgGas": "Avg Gas Used",
+      "activeChains": "Active Chains",
+      "nodeOperators": "Node Operators",
+      "hourlyActivity": "Hourly Activity",
+      "performance": "Network Performance",
+      "successRate": "Success Rate",
+      "availability": "Availability",
+      "latency": "Latency",
+      "overview": "Network Overview"
+    },
+    "successRate": "Success Rate",
+    "networkStatus": "Network Status",
+    "dataSource": "Data Source",
+    "tradingPair": "Trading Pair",
+    "volume24h": "24h Volume",
+    "liquidity": "Liquidity",
+    "marketDepth": "Market Depth",
+    "depthScore": "Depth Score",
     "subtitle": "Modular Oracle Solution",
     "stats": {
       "activeNodes": "Active Nodes",
@@ -74,13 +98,23 @@
       "updateFrequencyTitle": "Update Frequency",
       "highFrequency": "High Frequency",
       "standard": "Standard",
-      "lowFrequency": "Low Frequency"
+      "lowFrequency": "Low Frequency",
+      "lowLatency": "Low Latency",
+      "lowLatencyDesc": "On-demand pull model, data only transmitted when needed",
+      "costEfficient": "Cost Efficient",
+      "costEfficientDesc": "Save 70% on gas costs compared to traditional push models",
+      "secure": "Secure & Reliable",
+      "secureDesc": "Multi-signature verification ensures data accuracy",
+      "pullModelAdvantages": "Pull Model Advantages"
     },
     "crossChain": {
       "supportedChains": "Supported Chains",
       "chainList": "Chain List",
+      "chainName": "Chain Name",
       "updateFrequency": "Update Frequency",
       "latency": "Latency",
+      "latencyComparison": "Latency Comparison",
+      "status": "Status",
       "active": "Active",
       "inactive": "Inactive",
       "activeNetworks": "Active networks",
@@ -91,6 +125,20 @@
       "allChains": "All chains"
     },
     "risk": {
+      "metrics": "Risk Metrics",
+      "metricsDesc": "Key performance indicators across decentralization, security, and reliability",
+      "overallScore": "Overall Score",
+      "benchmark": "Industry Benchmark Comparison",
+      "benchmarkDesc": "Performance comparison against other leading oracle providers",
+      "comparison": "Detailed Comparison",
+      "timeline": "Historical Risk Events",
+      "timelineDesc": "Security audits, incidents and upgrades over the past 24 months",
+      "eventDetails": "Event Details",
+      "clickEvent": "Click an event to view details",
+      "factors": "Risk Factor Analysis",
+      "factorsDesc": "Detailed breakdown of identified risk categories",
+      "disclaimer": "Disclaimer",
+      "disclaimerText": "This risk analysis is for informational purposes only and does not constitute investment advice. Please do your own research and consult with professional advisors.",
       "securityEvents": {
         "dataStreamsV2": {
           "title": "Data Streams V2 Launch",

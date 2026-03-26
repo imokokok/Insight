@@ -1,7 +1,8 @@
 'use client';
 
-import { EnhancedStatCard } from '@/components/ui';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useTranslations } from '@/i18n';
+import { cn } from '@/lib/utils';
 
 import { type MarketStats as MarketStatsType } from '../types';
 
@@ -13,19 +14,108 @@ interface MarketStatsProps {
 }
 
 /**
- * 生成模拟趋势数据用于 sparkline 图表
+ * 格式化变化值显示
  */
-function generateTrendData(baseValue: number, points: number = 20): number[] {
-  const data: number[] = [];
-  let currentValue = baseValue;
+function formatChangeValue(value: number, isPercentage: boolean = true): string {
+  const sign = value >= 0 ? '+' : '';
+  const suffix = isPercentage ? '%' : '';
+  return `${sign}${value.toFixed(2)}${suffix}`;
+}
 
-  for (let i = 0; i < points; i++) {
-    const change = (Math.random() - 0.5) * baseValue * 0.1;
-    currentValue += change;
-    data.push(Math.max(currentValue, baseValue * 0.5));
-  }
+/**
+ * 单个指标项组件
+ */
+function StatItem({
+  label,
+  value,
+  change,
+  isPositive,
+  isNegative,
+  showDivider = true,
+}: {
+  label: string;
+  value: string | number;
+  change: number;
+  isPositive: boolean;
+  isNegative: boolean;
+  showDivider?: boolean;
+}) {
+  const TrendIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
+  const trendColorClass = isPositive
+    ? 'text-success-600'
+    : isNegative
+      ? 'text-danger-600'
+      : 'text-gray-500';
 
-  return data;
+  return (
+    <div className="flex items-center">
+      <div className="flex flex-col">
+        {/* 标签 */}
+        <span className="text-xs text-gray-500 uppercase tracking-wider">
+          {label}
+        </span>
+        {/* 数值和变化 */}
+        <div className="flex items-baseline gap-2 mt-0.5">
+          <span className="text-xl font-semibold text-gray-900 tabular-nums">
+            {value}
+          </span>
+          <div className={cn('flex items-center gap-0.5', trendColorClass)}>
+            <TrendIcon className="w-3 h-3 flex-shrink-0" />
+            <span className="text-xs font-medium tabular-nums">
+              {formatChangeValue(change, true)}
+            </span>
+          </div>
+        </div>
+      </div>
+      {/* 分隔线 */}
+      {showDivider && (
+        <span className="text-gray-300 mx-4 sm:mx-6 hidden sm:block">|</span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * 移动端优先显示的简化指标项（无分隔线）
+ */
+function MobileStatItem({
+  label,
+  value,
+  change,
+  isPositive,
+  isNegative,
+}: {
+  label: string;
+  value: string | number;
+  change: number;
+  isPositive: boolean;
+  isNegative: boolean;
+}) {
+  const TrendIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
+  const trendColorClass = isPositive
+    ? 'text-success-600'
+    : isNegative
+      ? 'text-danger-600'
+      : 'text-gray-500';
+
+  return (
+    <div className="flex flex-col flex-shrink-0">
+      <span className="text-xs text-gray-500 uppercase tracking-wider">
+        {label}
+      </span>
+      <div className="flex items-baseline gap-1.5 mt-0.5">
+        <span className="text-lg font-semibold text-gray-900 tabular-nums">
+          {value}
+        </span>
+        <div className={cn('flex items-center gap-0.5', trendColorClass)}>
+          <TrendIcon className="w-3 h-3 flex-shrink-0" />
+          <span className="text-xs font-medium tabular-nums">
+            {formatChangeValue(change, true)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function MarketStats({
@@ -36,144 +126,97 @@ export default function MarketStats({
 }: MarketStatsProps) {
   const t = useTranslations('marketOverview.stats');
 
-  // 生成各指标的 sparkline 趋势数据
-  const tvsTrendData = generateTrendData(marketStats.totalTVS / 1e9, 24);
-  const chainsTrendData = generateTrendData(totalChains, 20);
-  const protocolsTrendData = generateTrendData(totalProtocols, 20);
-  const dominanceTrendData = generateTrendData(marketStats.marketDominance, 20);
-  const latencyTrendData = generateTrendData(marketStats.avgUpdateLatency, 20);
-  const oracleCountTrendData = generateTrendData(marketStats.oracleCount, 20);
-
-  // TVS 细分数据（按主要预言机）
-  const tvsBreakdown = [
-    { label: 'Chainlink', value: '$12.5B', percentage: 45.2 },
-    { label: 'Pyth', value: '$6.8B', percentage: 24.6 },
-    { label: 'Band', value: '$4.2B', percentage: 15.2 },
-    { label: 'Others', value: '$4.1B', percentage: 15.0 },
-  ];
-
-  // 链支持细分数据
-  const chainsBreakdown = [
-    { label: 'Ethereum', value: '1', percentage: 100 },
-    { label: 'Arbitrum', value: '1', percentage: 100 },
-    { label: 'Optimism', value: '1', percentage: 100 },
-    { label: 'Base', value: '1', percentage: 100 },
-  ];
-
-  // 协议细分数据
-  const protocolsBreakdown = [
-    { label: 'DeFi', value: '85', percentage: 56.7 },
-    { label: 'NFT', value: '35', percentage: 23.3 },
-    { label: 'Gaming', value: '20', percentage: 13.3 },
-    { label: 'Others', value: '10', percentage: 6.7 },
-  ];
-
-  // 市场主导细分数据
-  const dominanceBreakdown = [
-    { label: 'Chainlink', value: '62%', percentage: 62 },
-    { label: 'Pyth', value: '18%', percentage: 18 },
-    { label: 'Band', value: '12%', percentage: 12 },
-    { label: 'Others', value: '8%', percentage: 8 },
-  ];
-
-  // 延迟细分数据
-  const latencyBreakdown = [
-    { label: 'Chainlink', value: '450ms', percentage: 30 },
-    { label: 'Pyth', value: '320ms', percentage: 22 },
-    { label: 'Band', value: '380ms', percentage: 25 },
-    { label: 'Others', value: '350ms', percentage: 23 },
-  ];
-
-  // 预言机细分数据
-  const oracleBreakdown = [
-    { label: 'Price Feeds', value: '85', percentage: 85 },
-    { label: 'VRF', value: '8', percentage: 8 },
-    { label: 'Automation', value: '4', percentage: 4 },
-    { label: 'CCIP', value: '3', percentage: 3 },
-  ];
-
-  const stats = [
+  // 核心指标数据
+  const coreStats = [
     {
-      title: t('totalTVS'),
+      label: t('totalTVS'),
       value: totalTVS,
-      changeData: {
-        value: marketStats.change24h,
-        percentage: true,
-        timeframe: '24h',
-      },
-      sparklineData: tvsTrendData,
-      breakdown: tvsBreakdown,
+      change: marketStats.change24h,
     },
     {
-      title: t('totalChains'),
+      label: t('totalChains'),
       value: totalChains,
-      changeData: {
-        value: 12.5,
-        percentage: true,
-        timeframe: '30d',
-      },
-      sparklineData: chainsTrendData,
-      breakdown: chainsBreakdown,
+      change: 12.5,
     },
     {
-      title: t('totalProtocols'),
+      label: t('totalProtocols'),
       value: `${totalProtocols}+`,
-      changeData: {
-        value: 8.3,
-        percentage: true,
-        timeframe: '30d',
-      },
-      sparklineData: protocolsTrendData,
-      breakdown: protocolsBreakdown,
+      change: 8.3,
     },
+  ];
+
+  // 次要指标数据
+  const secondaryStats = [
     {
-      title: t('marketDominance'),
+      label: t('marketDominance'),
       value: `${marketStats.marketDominance}%`,
-      changeData: {
-        value: -0.5,
-        percentage: true,
-        timeframe: '7d',
-      },
-      sparklineData: dominanceTrendData,
-      breakdown: dominanceBreakdown,
+      change: -0.5,
     },
     {
-      title: t('avgLatency'),
+      label: t('avgLatency'),
       value: `${marketStats.avgUpdateLatency}ms`,
-      changeData: {
-        value: -5.2,
-        percentage: true,
-        timeframe: '7d',
-      },
-      sparklineData: latencyTrendData,
-      breakdown: latencyBreakdown,
+      change: -5.2,
     },
     {
-      title: t('oracleCount'),
+      label: t('oracleCount'),
       value: marketStats.oracleCount,
-      changeData: {
-        value: 2,
-        percentage: false,
-        timeframe: '30d',
-      },
-      sparklineData: oracleCountTrendData,
-      breakdown: oracleBreakdown,
+      change: 2,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-      {stats.map((stat) => (
-        <EnhancedStatCard
-          key={stat.title}
-          title={stat.title}
-          value={stat.value}
-          changeData={stat.changeData}
-          sparklineData={stat.sparklineData}
-          breakdown={stat.breakdown}
-          variant="compact"
-        />
-      ))}
+    <div className="w-full">
+      {/* 桌面端和平板端：完整显示，使用分隔线 */}
+      <div className="hidden sm:flex items-center overflow-x-auto">
+        {coreStats.map((stat, index) => (
+          <StatItem
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            change={stat.change}
+            isPositive={stat.change > 0}
+            isNegative={stat.change < 0}
+            showDivider={index < coreStats.length - 1}
+          />
+        ))}
+        <span className="text-gray-300 mx-6">|</span>
+        {secondaryStats.map((stat, index) => (
+          <StatItem
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            change={stat.change}
+            isPositive={stat.change > 0}
+            isNegative={stat.change < 0}
+            showDivider={index < secondaryStats.length - 1}
+          />
+        ))}
+      </div>
+
+      {/* 移动端：优先显示核心指标，可横向滚动 */}
+      <div className="flex sm:hidden items-start gap-6 overflow-x-auto pb-2">
+        {coreStats.map((stat) => (
+          <MobileStatItem
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            change={stat.change}
+            isPositive={stat.change > 0}
+            isNegative={stat.change < 0}
+          />
+        ))}
+        {/* 次要指标在移动端也可滚动查看 */}
+        {secondaryStats.map((stat) => (
+          <MobileStatItem
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            change={stat.change}
+            isPositive={stat.change > 0}
+            isNegative={stat.change < 0}
+          />
+        ))}
+      </div>
     </div>
   );
 }

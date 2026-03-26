@@ -55,6 +55,39 @@
       "responseTimeValue": "180ms",
       "traditionalResponseTime": "200-500ms"
     },
+    "airnode": {
+      "name": "名称",
+      "region": "地区",
+      "responseTime": "响应时间",
+      "successRate": "成功率",
+      "reputation": "声誉",
+      "staked": "质押量",
+      "totalNodes": "节点总数",
+      "avgResponse": "平均响应",
+      "avgSuccess": "平均成功率",
+      "totalStaked": "总质押量",
+      "activeAirnodes": "活跃 Airnodes",
+      "regionDistribution": "地区分布",
+      "overview": "概览",
+      "avgReputation": "平均声誉",
+      "topPerformers": "顶级表现者",
+      "regions": "地区数"
+    },
+    "firstPartyAdvantages": "第一方数据优势",
+    "advantages": {
+      "firstParty": {
+        "title": "第一方架构",
+        "description": "直接连接 API 提供商，消除中间商"
+      },
+      "transparency": {
+        "title": "数据源透明",
+        "description": "完全透明的数据来源和可追溯性"
+      },
+      "security": {
+        "title": "安全保障",
+        "description": "去中心化覆盖池提供安全保证"
+      }
+    },
     "risk": {
       "overview": {
         "title": "风险评估概览",
@@ -181,8 +214,31 @@
       "responseTime": "响应时间",
       "successRate": "成功率"
     },
+    "networkStatus": "网络状态",
+    "dataSource": "数据来源",
+    "network": {
+      "activeAirnodes": "活跃 Airnodes",
+      "dapiFeeds": "dAPI 数据源",
+      "responseTime": "响应时间",
+      "uptime": "正常运行时间",
+      "totalRequests": "总请求数 (24h)",
+      "avgGas": "平均 Gas 消耗",
+      "activeChains": "活跃链数",
+      "nodeOperators": "节点运营者",
+      "hourlyActivity": "每小时活动",
+      "performance": "网络性能",
+      "successRate": "成功率",
+      "availability": "可用性",
+      "latency": "延迟",
+      "overview": "网络概览"
+    },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
+    "tradingPair": "交易对",
+    "volume24h": "24h 交易量",
+    "liquidity": "流动性",
+    "marketDepth": "市场深度",
+    "depthScore": "深度评分",
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",

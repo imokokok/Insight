@@ -2,8 +2,7 @@
 
 import { BarChart3 } from 'lucide-react';
 
-import { LiveStatusBar } from '@/components/ui';
-import { useTranslations, useLocale } from '@/i18n';
+import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 
 import { type RefreshInterval } from '../constants';
@@ -44,11 +43,10 @@ export default function MarketHeader({
   wsStatus,
   wsReconnect,
 }: MarketHeaderProps) {
-  const t = useTranslations();
   const locale = useLocale();
 
   return (
-    <div className="flex flex-col gap-3 mb-4">
+    <div className="flex flex-col gap-3 mb-6 border-b border-gray-100 pb-4">
       {/* Main Header Content */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         {/* Title Section */}
@@ -68,31 +66,33 @@ export default function MarketHeader({
           </div>
         </div>
 
-        {/* Operation Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <UnifiedExportSection
-            loading={loading}
-            oracleData={oracleData}
-            assets={assets}
-            chartContainerRef={chartContainerRef}
-            activeChart={activeChart}
-            getChartTitle={getChartTitle}
-          />
+        {/* Operation Buttons - Text-only Style */}
+        <div className="flex items-center gap-4">
+          {/* Data Operations Group: Export, Refresh */}
+          <div className="flex items-center gap-2">
+            <UnifiedExportSection
+              loading={loading}
+              oracleData={oracleData}
+              assets={assets}
+              chartContainerRef={chartContainerRef}
+              activeChart={activeChart}
+              getChartTitle={getChartTitle}
+            />
+            <RefreshControl
+              lastUpdated={lastUpdated ?? undefined}
+              isRefreshing={refreshStatus === 'refreshing'}
+              onRefresh={fetchData}
+              autoRefreshInterval={refreshInterval}
+              onAutoRefreshChange={(interval) => setRefreshInterval(interval as RefreshInterval)}
+            />
+          </div>
 
-          <RefreshControl
-            lastUpdated={lastUpdated ?? undefined}
-            isRefreshing={refreshStatus === 'refreshing'}
-            onRefresh={fetchData}
-            autoRefreshInterval={refreshInterval}
-            onAutoRefreshChange={(interval) => setRefreshInterval(interval as RefreshInterval)}
-          />
-
-          <RealtimeIndicator isConnected={wsStatus === 'connected'} onReconnect={wsReconnect} />
+          {/* View Control Group: Realtime Status */}
+          <div className="flex items-center">
+            <RealtimeIndicator isConnected={wsStatus === 'connected'} onReconnect={wsReconnect} />
+          </div>
         </div>
       </div>
-
-      {/* Live Status Bar */}
-      <LiveStatusBar isConnected={wsStatus === 'connected'} lastUpdate={lastUpdated ?? undefined} />
     </div>
   );
 }
