@@ -1,5 +1,19 @@
 {
   "marketOverview": {
+    "asset": "Asset",
+    "price": "Price",
+    "change24h": "24h Change",
+    "change7d": "7d Change",
+    "volume24h": "24h Volume",
+    "primaryOracle": "Primary Oracle",
+    "topAssets": "Top Assets",
+    "assetsCount": "assets",
+    "timeRange": "Time Range",
+    "updatedAt": "Updated",
+    "dataUpdated": "Data updated",
+    "oracleMarketShare": "Oracle Market Share",
+    "totalMarketShare": "Total Market Share",
+    "coveringOracles": "Covering {count} major oracles",
     "stats": {
       "totalTVS": "Total TVS",
       "totalChains": "Total Chains",

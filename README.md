@@ -194,8 +194,13 @@ insight/
 │   │   ├── services/           # External services
 │   │   ├── snapshots/          # Snapshot management
 │   │   ├── supabase/           # Supabase client and utilities
-│   │   ├── types/              # TypeScript type definitions
 │   │   └── utils/              # Utility functions
+│   ├── types/                  # TypeScript type definitions
+│   │   ├── oracle/             # Oracle types
+│   │   ├── api/                # API types
+│   │   ├── ui/                 # UI types
+│   │   ├── auth/               # Auth types
+│   │   └── common/             # Common types
 │   ├── i18n/                   # Internationalization
 │   │   ├── messages/           # Translation messages
 │   │   │   ├── common.json

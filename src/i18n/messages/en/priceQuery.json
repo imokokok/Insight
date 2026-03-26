@@ -1,4 +1,7 @@
 {
+  "filter": "Filter",
+  "clear": "Clear",
+  "clearFilter": "Clear Filter",
   "priceQuery": {
     "title": "Price Query",
     "description": "Query real-time price data across multiple oracles and blockchains",
@@ -249,6 +252,14 @@
       "title": "Price Query Results",
       "count": "{count} results",
       "empty": "Please select oracles and blockchains to query",
+      "filterPlaceholder": "Filter results...",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "price": "Price",
+      "deviation": "Deviation",
+      "timestamp": "Timestamp",
+      "noMatchingData": "No matching data",
+      "showing": "Showing {filtered} / {total} results",
       "table": {
         "oracle": "Oracle",
         "blockchain": "Blockchain",

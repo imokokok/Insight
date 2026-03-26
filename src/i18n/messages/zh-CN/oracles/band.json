@@ -1,9 +1,14 @@
 {
+  "band-protocol": {
+    "title": "Band Protocol",
+    "subtitle": "跨链数据预言机平台"
+  },
   "bandProtocol": {
     "title": "Band Protocol 网络指标",
     "analytics": "分析",
     "subtitle": "链上验证者与质押数据",
     "menu": {
+      "title": "菜单",
       "marketData": "市场数据",
       "networkHealth": "网络健康度",
       "validators": "验证节点",

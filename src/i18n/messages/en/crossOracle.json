@@ -261,6 +261,25 @@
     "highFrequency": "High Frequency",
     "standardFrequency": "Standard Frequency"
   },
+  "controlPanel": {
+    "title": "Query Configuration",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "symbol": "Trading Pair",
+    "selectSymbol": "Select symbol...",
+    "searchSymbol": "Search symbol...",
+    "oracles": "Oracles",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "timeRange": "Time Range",
+    "deviationFilter": "Deviation Filter",
+    "selectDeviation": "Select deviation range...",
+    "advancedOptions": "Advanced Options",
+    "accessibleColors": "Color Blind Friendly Mode",
+    "loading": "Loading...",
+    "query": "Query",
+    "selectOracleHint": "Please select at least one oracle"
+  },
   "crossOracleComparison": {
     "title": "Multi-Oracle Comparative Analytics",
     "subtitle": "Comprehensive Multi-Source Price Aggregation & Convergence Analysis",

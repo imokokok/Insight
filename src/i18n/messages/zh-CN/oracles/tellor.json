@@ -1,6 +1,19 @@
 {
   "tellor": {
     "title": "Tellor",
+    "menu": {
+      "title": "菜单",
+      "marketData": "市场数据",
+      "networkHealth": "网络健康度",
+      "reporters": "报告者",
+      "disputes": "争议",
+      "staking": "质押",
+      "ecosystem": "生态系统",
+      "riskAssessment": "风险评估"
+    },
+    "navigation": {
+      "title": "导航"
+    },
     "subtitle": "去中心化加密原生预言机，通过质押挖矿机制确保数据透明度和安全性",
     "analytics": "Tellor 数据分析",
     "tabs": {
@@ -26,8 +39,18 @@
       "networkUptime": "网络可用率",
       "volume24h": "24h 成交额",
       "marketCap": "市值",
-      "circulatingSupply": "流通供应量"
+      "circulatingSupply": "流通供应量",
+      "activeReporters": "活跃报告者",
+      "dataFeeds": "数据馈送",
+      "responseTime": "响应时间"
     },
+    "successRate": "成功率",
+    "networkStatus": "网络状态",
+    "dataSource": "数据源",
+    "tradingPair": "交易对",
+    "liquidity": "流动性",
+    "marketDepth": "市场深度",
+    "depthScore": "深度评分",
     "priceStream": {
       "title": "实时价格流",
       "currentPrice": "当前价格",
@@ -105,7 +128,15 @@
       "revenueAttribution": "收益归因",
       "reportingRevenue": "报告收益",
       "disputeRevenue": "争议收益",
-      "totalRevenue": "总收益"
+      "totalRevenue": "总收益",
+      "howToBecome": "如何成为报告者",
+      "step1": "质押至少 100 TRB 代币作为保证金",
+      "step2": "运行 Tellor 报告者节点软件",
+      "step3": "开始提交数据并赚取奖励",
+      "rewards": "奖励结构",
+      "baseReward": "基础奖励",
+      "accuracyBonus": "准确率奖励",
+      "stakeBonus": "质押奖励"
     },
     "risk": {
       "overallLevel": "整体风险等级",
@@ -155,6 +186,7 @@
         "transparencyReports": "透明度报告"
       }
     },
+    "networkStatus": "网络状态",
     "network": {
       "overallHealth": "整体网络健康度",
       "basedOnMetrics": "基于网络性能指标",
@@ -187,9 +219,25 @@
       "derivatives": "衍生品",
       "yield": "收益",
       "insurance": "保险",
-      "other": "其他"
+      "other": "其他",
+      "tvlAnalysis": {
+        "title": "TVL 分析",
+        "totalTvl": "总 TVL",
+        "ethereum": "以太坊",
+        "l2Networks": "L2 网络",
+        "filterByChain": "按链筛选"
+      },
+      "projectAnalysis": {
+        "projectsByChain": "按链分布的项目",
+        "totalProjects": "总项目数",
+        "thisMonth": "本月新增"
+      }
     },
     "staking": {
+      "totalStaked": "总质押量",
+      "stakingApr": "质押 APR",
+      "totalStakers": "总质押者",
+      "rewardPool": "奖励池",
       "calculator": {
         "title": "质押计算器",
         "stakeAmount": "质押数量",
@@ -250,7 +298,20 @@
       "votes": "投票",
       "reward": "奖励",
       "reporterWon": "报告者获胜",
-      "disputerWon": "争议者获胜"
+      "disputerWon": "争议者获胜",
+      "id": "ID",
+      "reason": "原因",
+      "result": "结果",
+      "time": "时间",
+      "resolvedDisputes": "已解决争议",
+      "pendingDisputes": "待处理争议",
+      "howItWorks": "工作原理",
+      "step1Title": "提交数据",
+      "step1Desc": "报告者提交价格数据到网络",
+      "step2Title": "发起挑战",
+      "step2Desc": "任何参与者都可以对数据提出质疑",
+      "step3Title": "投票解决",
+      "step3Desc": "社区投票决定争议结果"
     }
   }
 }

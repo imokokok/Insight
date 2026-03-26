@@ -15,6 +15,16 @@
       "ecosystem": "Ecosystem",
       "risk": "Risk"
     },
+    "menu": {
+      "title": "API3",
+      "marketData": "Market Data",
+      "networkHealth": "Network Health",
+      "airnode": "Airnode",
+      "dapi": "dAPI",
+      "ecosystem": "Ecosystem",
+      "riskAssessment": "Risk Assessment",
+      "crossOracleComparison": "Cross-Oracle Comparison"
+    },
     "firstPartyOracle": {
       "title": "First-Party Oracle Infrastructure",
       "subtitle": "Direct API provider integration eliminating intermediary layers",
