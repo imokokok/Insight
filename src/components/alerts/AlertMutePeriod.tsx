@@ -31,13 +31,13 @@ const DURATION_OPTIONS = [
 ];
 
 const DAYS_OF_WEEK = [
-  { value: 0, label: 'Sun', labelZh: '周日' },
-  { value: 1, label: 'Mon', labelZh: '周一' },
-  { value: 2, label: 'Tue', labelZh: '周二' },
-  { value: 3, label: 'Wed', labelZh: '周三' },
-  { value: 4, label: 'Thu', labelZh: '周四' },
-  { value: 5, label: 'Fri', labelZh: '周五' },
-  { value: 6, label: 'Sat', labelZh: '周六' },
+  { value: 0, label: 'Sun' },
+  { value: 1, label: 'Mon' },
+  { value: 2, label: 'Tue' },
+  { value: 3, label: 'Wed' },
+  { value: 4, label: 'Thu' },
+  { value: 5, label: 'Fri' },
+  { value: 6, label: 'Sat' },
 ];
 
 export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
@@ -75,18 +75,9 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
     [localConfig, onChange]
   );
 
-  const handleStartTimeChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newConfig = { ...localConfig, startTime: e.target.value };
-      setLocalConfig(newConfig);
-      onChange(newConfig);
-    },
-    [localConfig, onChange]
-  );
-
-  const handleEndTimeChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newConfig = { ...localConfig, endTime: e.target.value };
+  const handleTimeChange = useCallback(
+    (field: 'startTime' | 'endTime') => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newConfig = { ...localConfig, [field]: e.target.value };
       setLocalConfig(newConfig);
       onChange(newConfig);
     },
@@ -153,7 +144,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                   <input
                     type="time"
                     value={localConfig.startTime || '22:00'}
-                    onChange={handleStartTimeChange}
+                    onChange={handleTimeChange('startTime')}
                     className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
@@ -164,7 +155,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                   <input
                     type="time"
                     value={localConfig.endTime || '08:00'}
-                    onChange={handleEndTimeChange}
+                    onChange={handleTimeChange('endTime')}
                     className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500"
                   />
                 </div>

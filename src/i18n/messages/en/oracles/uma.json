@@ -25,8 +25,17 @@
       "marketCap": "Market Cap",
       "volume24h": "24h Volume",
       "circulatingSupply": "Circulating Supply",
-      "stakingApr": "Staking APR"
+      "stakingApr": "Staking APR",
+      "avgResolutionTime": "Avg Resolution Time"
     },
+    "networkStatus": "Network Status",
+    "priceTrend": "Price Trend",
+    "quickStats": "Quick Stats",
+    "dataSource": "Data Source",
+    "tradingPair": "Trading Pair",
+    "liquidity": "Liquidity",
+    "marketDepth": "Market Depth",
+    "depthScore": "Depth Score",
     "networkHealth": {
       "responseTime": "Response Time",
       "online": "Online",
@@ -180,12 +189,22 @@
     "ecosystem": {
       "ooTitle": "Optimistic Oracle",
       "ooDescription": "UMA's Optimistic Oracle (OO) is a decentralized truth verification mechanism that allows anyone to propose answers for any data, with economic incentives ensuring correctness.",
+      "features": "Features",
+      "optimisticOracle": "Optimistic Oracle",
+      "optimisticOracleDesc": "Decentralized truth verification mechanism",
+      "disputeResolution": "Dispute Resolution",
+      "disputeResolutionDesc": "Secure and efficient dispute resolution mechanism",
+      "fastFinality": "Fast Finality",
+      "fastFinalityDesc": "Quick transaction confirmation and settlement",
+      "decentralizedValidators": "Decentralized Validators",
+      "decentralizedValidatorsDesc": "Distributed validator network ensuring security",
       "stats": {
         "requests": "Total Requests",
         "protocols": "Integrated Protocols",
         "secured": "Secured Value"
       },
       "requestDistribution": "Request Type Distribution",
+      "integrations": "Integrations",
       "useCasesTitle": "Optimistic Oracle Use Cases",
       "protocolsTitle": "Protocols Using UMA",
       "supportedChains": "Supported Chains",
