@@ -11,10 +11,10 @@ import {
   Link2,
 } from 'lucide-react';
 
-import { useLocale, useTranslations } from '@/i18n';
-import { baseColors, semanticColors } from '@/lib/config/colors';
+import { useTranslations } from '@/i18n';
+import { semanticColors } from '@/lib/config/colors';
 
-import { type OracleMarketData } from '../types';
+import { type OracleMarketData, type TVSTrendData } from '../types';
 
 interface MarketSidebarProps {
   selectedTimeRange: string;
@@ -27,30 +27,38 @@ interface MarketSidebarProps {
   marketStats: {
     oracleCount: number;
   };
+  trendData: TVSTrendData[];
 }
 
+// 预言机名称到 trendData 字段的映射
+const ORACLE_FIELD_MAP: Record<string, string> = {
+  Chainlink: 'chainlink',
+  Pyth: 'pyth',
+  Band: 'band',
+  API3: 'api3',
+  UMA: 'uma',
+  RedStone: 'redstone',
+  DIA: 'dia',
+  Tellor: 'tellor',
+  Chronicle: 'chronicle',
+  WinkLink: 'winklink',
+};
+
 // 迷你 Sparkline 图表组件
-function MiniSparkline({
-  data,
-  color,
-  isPositive,
-}: {
-  data: number[];
-  color: string;
-  isPositive: boolean;
-}) {
+function MiniSparkline({ data, color }: { data: number[]; color: string }) {
   if (!data || data.length < 2) {
-    // 生成模拟数据用于展示
-    data = isPositive
-      ? [30, 35, 32, 38, 42, 40, 45, 48, 52, 55]
-      : [55, 52, 48, 45, 40, 42, 38, 35, 32, 30];
+    return (
+      <svg width={48} height={24} className="flex-shrink-0">
+        <line x1="0" y1="12" x2="48" y2="12" stroke={color} strokeWidth="1" strokeDasharray="2,2" />
+      </svg>
+    );
   }
 
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
   const width = 48;
-  const height = 20;
+  const height = 24;
   const padding = 2;
 
   const points = data
@@ -74,7 +82,7 @@ function MiniSparkline({
       {/* 渐变填充 */}
       <defs>
         <linearGradient id={`gradient-${color.replace('#', '')}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
@@ -86,30 +94,6 @@ function MiniSparkline({
   );
 }
 
-// 进度条组件
-function ProgressBar({
-  value,
-  color,
-  animated = false,
-}: {
-  value: number;
-  color: string;
-  animated?: boolean;
-}) {
-  return (
-    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-      <div
-        className={`h-full rounded-full transition-all duration-700 ease-out ${animated ? 'animate-pulse' : ''}`}
-        style={{
-          background: `linear-gradient(90deg, ${color}dd, ${color})`,
-          width: `${Math.max(value, 1)}%`,
-          boxShadow: `0 0 4px ${color}40`,
-        }}
-      />
-    </div>
-  );
-}
-
 // 变化率徽章组件
 function ChangeBadge({ value }: { value: number }) {
   const isPositive = value >= 0;
@@ -117,16 +101,28 @@ function ChangeBadge({ value }: { value: number }) {
 
   return (
     <span
-      className="inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded"
+      className="inline-flex items-center gap-0.5 text-xs font-medium"
       style={{
         color: isPositive ? semanticColors.success.text : semanticColors.danger.text,
-        backgroundColor: isPositive ? semanticColors.success.light : semanticColors.danger.light,
       }}
     >
       <Icon className="w-3 h-3" />
       {isPositive ? '+' : ''}
       {value.toFixed(1)}%
     </span>
+  );
+}
+
+// Tooltip 组件
+function Tooltip({ children, content }: { children: React.ReactNode; content: React.ReactNode }) {
+  return (
+    <div className="group relative">
+      {children}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10">
+        {content}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+      </div>
+    </div>
   );
 }
 
@@ -139,21 +135,30 @@ export default function MarketSidebar({
   hoveredItem,
   setHoveredItem,
   marketStats,
+  trendData,
 }: MarketSidebarProps) {
-  const locale = useLocale();
   const t = useTranslations('marketOverview');
 
-  // 生成模拟的 sparkline 数据
-  const generateSparklineData = (change24h: number): number[] => {
-    const base = 50;
-    const trend = change24h / 10;
-    return Array.from({ length: 10 }, (_, i) => base + trend * i + (Math.random() - 0.5) * 10);
+  // 从 trendData 提取真实历史数据生成 sparkline
+  const getSparklineData = (oracleName: string): number[] => {
+    const fieldName = ORACLE_FIELD_MAP[oracleName];
+    if (!fieldName || !trendData || trendData.length === 0) {
+      return [];
+    }
+
+    // 提取该预言机的历史数据（最多取最近20个点）
+    const data = trendData
+      .slice(-20)
+      .map((item) => (item as unknown as Record<string, number>)[fieldName])
+      .filter((v): v is number => typeof v === 'number');
+
+    return data;
   };
 
   return (
-    <div className="space-y-4">
-      {/* 时间范围卡片 */}
-      <div className="p-3 bg-white rounded-lg border border-gray-200">
+    <div className="space-y-3">
+      {/* 时间范围卡片 - 简化：移除 bg-white border */}
+      <div className="py-2">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-0.5 font-medium flex items-center gap-1">
@@ -162,10 +167,7 @@ export default function MarketSidebar({
             </p>
             <p className="text-xl font-bold text-gray-900">{selectedTimeRange}</p>
           </div>
-          <div
-            className="p-2 rounded-md border"
-            style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
-          >
+          <div className="p-2">
             <Activity className="w-4 h-4 text-gray-400" />
           </div>
         </div>
@@ -177,107 +179,96 @@ export default function MarketSidebar({
         </div>
       </div>
 
-      {/* 预言机列表 */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="px-3 py-2 border-b border-gray-100 bg-gray-50/50">
-          <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
+      {/* 预言机列表 - 简化：移除外层卡片样式 */}
+      <div className="overflow-hidden">
+        {/* 标题简化：使用 text-xs text-gray-500 uppercase tracking-wider */}
+        <div className="py-2 border-b border-gray-100">
+          <h4 className="text-xs text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
             <PieChartIcon className="w-3 h-3" />
             {t('oracleMarketShare') || 'Oracle Market Share'}
           </h4>
         </div>
-        <div className="max-h-[360px] overflow-y-auto">
-          {sortedOracleData.map((item, index) => (
-            <Link
-              key={item.name}
-              href={`/${item.name.toLowerCase().replace(/\s+/g, '-')}`}
-              className={`block px-3 py-2 border-l-2 transition-all duration-200 cursor-pointer ${
-                selectedItem === item.name
-                  ? 'bg-blue-50/70 border-blue-500'
-                  : 'border-transparent hover:bg-gray-50/80'
-              } ${hoveredItem && hoveredItem !== item.name ? 'opacity-40' : 'opacity-100'} ${
-                index !== sortedOracleData.length - 1 ? 'border-b border-gray-50' : ''
-              }`}
-              onMouseEnter={() => setHoveredItem(item.name)}
-              onMouseLeave={() => setHoveredItem(null)}
-              onClick={(e) => {
-                e.preventDefault();
-                if (selectedItem === item.name) {
-                  setSelectedItem(null);
-                } else {
-                  setSelectedItem(item.name);
+        <div className="max-h-[400px] overflow-y-auto">
+          {sortedOracleData.map((item, index) => {
+            const isSelected = selectedItem === item.name;
+            const isHovered = hoveredItem === item.name;
+            const hasHover = hoveredItem !== null;
+            const sparklineData = getSparklineData(item.name);
+            const isLast = index === sortedOracleData.length - 1;
+
+            return (
+              <Tooltip
+                key={item.name}
+                content={
+                  <div className="flex items-center gap-3">
+                    <span>
+                      TVS: <span className="font-semibold">{item.tvs}</span>
+                    </span>
+                    <span className="text-gray-500">|</span>
+                    <span className="flex items-center gap-1">
+                      <Link2 className="w-3 h-3" />
+                      {item.chains} chains
+                    </span>
+                  </div>
                 }
-              }}
-            >
-              {/* 第一行：名称、Sparkline、份额 */}
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: item.color, boxShadow: `0 0 4px ${item.color}60` }}
-                  />
-                  <span className="font-semibold text-gray-900 text-sm">{item.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MiniSparkline
-                    data={generateSparklineData(item.change24h)}
-                    color={item.color}
-                    isPositive={item.change24h >= 0}
-                  />
-                  <span className="text-sm font-bold text-gray-900 w-10 text-right">
-                    {item.share}%
-                  </span>
-                </div>
-              </div>
+              >
+                <Link
+                  href={`/${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  className={`flex items-center py-2 pl-3 transition-all duration-200 cursor-pointer border-l-2 ${
+                    isSelected
+                      ? 'border-primary-500'
+                      : 'border-transparent'
+                  } ${!isLast ? 'border-b border-gray-100' : ''} ${
+                    hasHover && !isHovered ? 'opacity-50' : 'opacity-100'
+                  } hover:text-primary-600`}
+                  onMouseEnter={() => setHoveredItem(item.name)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (isSelected) {
+                      setSelectedItem(null);
+                    } else {
+                      setSelectedItem(item.name);
+                    }
+                  }}
+                >
+                  {/* 左侧：名称 + 颜色点 */}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: item.color, boxShadow: `0 0 4px ${item.color}60` }}
+                    />
+                    <span className={`font-semibold text-sm truncate ${isSelected ? 'text-primary-600' : 'text-gray-900'}`}>
+                      {item.name}
+                    </span>
+                  </div>
 
-              {/* 第二行：进度条 */}
-              <ProgressBar
-                value={item.share}
-                color={item.color}
-                animated={selectedItem === item.name}
-              />
+                  {/* 中间：迷你图 */}
+                  <div className="flex-shrink-0 mx-2">
+                    <MiniSparkline data={sparklineData} color={item.color} />
+                  </div>
 
-              {/* 第三行：统计数据 */}
-              <div className="flex items-center justify-between mt-1.5">
-                <div className="flex items-center gap-3 text-xs">
-                  <span className="text-gray-500">
-                    TVS: <span className="text-gray-700 font-medium">{item.tvs}</span>
-                  </span>
-                  <span className="text-gray-400">|</span>
-                  <span className="text-gray-500 flex items-center gap-0.5">
-                    <Link2 className="w-3 h-3" />
-                    {item.chains}
-                  </span>
-                </div>
-                <ChangeBadge value={item.change24h} />
-              </div>
-            </Link>
-          ))}
+                  {/* 右侧：份额 + 变化 */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-sm font-bold text-gray-900 w-10 text-right">
+                      {item.share}%
+                    </span>
+                    <ChangeBadge value={item.change24h} />
+                  </div>
+                </Link>
+              </Tooltip>
+            );
+          })}
         </div>
       </div>
 
-      {/* 底部统计 */}
-      <div className="p-3 bg-white rounded-lg border border-gray-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-500 mb-0.5 font-medium">
-              {t('totalMarketShare') || 'Total Market Share'}
-            </p>
-            <p className="text-xl font-bold text-gray-900">100%</p>
-          </div>
-          <div
-            className="p-2 rounded-md border"
-            style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
-          >
-            <PieChartIcon className="w-4 h-4 text-gray-400" />
-          </div>
-        </div>
-        <div className="text-xs text-gray-400 mt-2 flex items-center justify-between">
-          <span>
-            {t('coveringOracles', { count: marketStats.oracleCount }) ||
-              `Covering ${marketStats.oracleCount} major oracles`}
-          </span>
-          <span className="text-emerald-500 font-medium">{sortedOracleData.length} Active</span>
-        </div>
+      {/* 底部统计 - 简化版 */}
+      <div className="py-2 text-xs text-gray-400 flex items-center justify-between">
+        <span>
+          {t('coveringOracles', { count: marketStats.oracleCount }) ||
+            `Covering ${marketStats.oracleCount} major oracles`}
+        </span>
+        <span className="text-emerald-500 font-medium">{sortedOracleData.length} Active</span>
       </div>
     </div>
   );

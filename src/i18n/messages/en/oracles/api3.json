@@ -62,6 +62,39 @@
       "responseTimeValue": "180ms",
       "traditionalResponseTime": "200-500ms"
     },
+    "airnode": {
+      "name": "Name",
+      "region": "Region",
+      "responseTime": "Response Time",
+      "successRate": "Success Rate",
+      "reputation": "Reputation",
+      "staked": "Staked",
+      "totalNodes": "Total Nodes",
+      "avgResponse": "Avg Response",
+      "avgSuccess": "Avg Success Rate",
+      "totalStaked": "Total Staked",
+      "activeAirnodes": "Active Airnodes",
+      "regionDistribution": "Region Distribution",
+      "overview": "Overview",
+      "avgReputation": "Avg Reputation",
+      "topPerformers": "Top Performers",
+      "regions": "Regions"
+    },
+    "firstPartyAdvantages": "First-Party Data Advantages",
+    "advantages": {
+      "firstParty": {
+        "title": "First-Party Architecture",
+        "description": "Direct connection to API providers, eliminating middlemen"
+      },
+      "transparency": {
+        "title": "Source Transparency",
+        "description": "Fully transparent data sources and traceability"
+      },
+      "security": {
+        "title": "Security",
+        "description": "Decentralized coverage pool provides security guarantees"
+      }
+    },
     "risk": {
       "overview": {
         "title": "Risk Assessment Dashboard",
@@ -188,8 +221,31 @@
       "responseTime": "Response Time",
       "successRate": "Success Rate"
     },
+    "networkStatus": "Network Status",
+    "dataSource": "Data Source",
+    "network": {
+      "activeAirnodes": "Active Airnodes",
+      "dapiFeeds": "dAPI Feeds",
+      "responseTime": "Response Time",
+      "uptime": "Uptime",
+      "totalRequests": "Total Requests (24h)",
+      "avgGas": "Avg Gas Used",
+      "activeChains": "Active Chains",
+      "nodeOperators": "Node Operators",
+      "hourlyActivity": "Hourly Activity",
+      "performance": "Network Performance",
+      "successRate": "Success Rate",
+      "availability": "Availability",
+      "latency": "Latency",
+      "overview": "Network Overview"
+    },
     "priceTrend": "Price Trend",
-    "quickStats": "Quick Stats"
+    "quickStats": "Quick Stats",
+    "tradingPair": "Trading Pair",
+    "volume24h": "24h Volume",
+    "liquidity": "Liquidity",
+    "marketDepth": "Market Depth",
+    "depthScore": "Depth Score"
   },
   "dapiCoverage": {
     "totalDapis": "Total dAPIs",

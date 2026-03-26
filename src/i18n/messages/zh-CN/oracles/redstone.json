@@ -14,6 +14,30 @@
     "navigation": {
       "title": "导航"
     },
+    "networkHealth": {
+      "activeNodes": "活跃节点",
+      "responseTime": "响应时间"
+    },
+    "network": {
+      "totalRequests": "总请求数 (24h)",
+      "avgGas": "平均 Gas 消耗",
+      "activeChains": "活跃链数",
+      "nodeOperators": "节点运营者",
+      "hourlyActivity": "每小时活动",
+      "performance": "网络性能",
+      "successRate": "成功率",
+      "availability": "可用性",
+      "latency": "延迟",
+      "overview": "网络概览"
+    },
+    "successRate": "成功率",
+    "networkStatus": "网络状态",
+    "dataSource": "数据来源",
+    "tradingPair": "交易对",
+    "volume24h": "24小时交易量",
+    "liquidity": "流动性",
+    "marketDepth": "市场深度",
+    "depthScore": "深度评分",
     "subtitle": "模块化预言机解决方案，支持高效的数据流和灵活的集成选项",
     "analytics": "Redstone 数据分析",
     "tabs": {
@@ -75,13 +99,23 @@
       "updateFrequencyTitle": "更新频率",
       "highFrequency": "高频",
       "standard": "标准",
-      "lowFrequency": "低频"
+      "lowFrequency": "低频",
+      "lowLatency": "低延迟",
+      "lowLatencyDesc": "按需拉取模式，数据仅在需要时传输",
+      "costEfficient": "成本效益",
+      "costEfficientDesc": "相比传统推送模式节省70% Gas 费用",
+      "secure": "安全可靠",
+      "secureDesc": "多重签名验证，确保数据准确性",
+      "pullModelAdvantages": "Pull 模型优势"
     },
     "crossChain": {
       "supportedChains": "支持的链",
       "chainList": "链列表",
+      "chainName": "链名称",
       "updateFrequency": "更新频率",
       "latency": "延迟",
+      "latencyComparison": "延迟对比",
+      "status": "状态",
       "active": "活跃",
       "inactive": "非活跃",
       "activeNetworks": "活跃网络",
@@ -92,6 +126,20 @@
       "allChains": "所有链"
     },
     "risk": {
+      "metrics": "风险指标",
+      "metricsDesc": "去中心化、安全性和可靠性的关键绩效指标",
+      "overallScore": "综合评分",
+      "benchmark": "行业基准对比",
+      "benchmarkDesc": "与其他领先预言机提供商的性能对比",
+      "comparison": "详细对比",
+      "timeline": "历史风险事件",
+      "timelineDesc": "过去24个月的安全审计、事件和升级",
+      "eventDetails": "事件详情",
+      "clickEvent": "点击事件查看详情",
+      "factors": "风险因素分析",
+      "factorsDesc": "已识别风险类别的详细分解",
+      "disclaimer": "免责声明",
+      "disclaimerText": "本风险分析仅供参考，不构成投资建议。请自行研究并咨询专业顾问。",
       "securityEvents": {
         "dataStreamsV2": {
           "title": "数据流 V2 上线",

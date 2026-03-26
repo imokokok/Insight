@@ -428,7 +428,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
       case 'compact':
         return {
           rowHeight: 36,
-          cellPadding: 'px-3 py-1.5',
+          cellPadding: 'px-3 py-2',
           headerPadding: 'px-3 py-2',
           fontSize: 'text-xs',
         };
@@ -442,8 +442,8 @@ export function DataTablePro<T extends Record<string, unknown>>({
       default:
         return {
           rowHeight: 48,
-          cellPadding: 'px-4 py-3',
-          headerPadding: 'px-4 py-3',
+          cellPadding: 'px-3 py-2',
+          headerPadding: 'px-3 py-2',
           fontSize: 'text-sm',
         };
     }
@@ -749,7 +749,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
     <div
       ref={containerRef}
       className={cn(
-        'relative overflow-hidden bg-white rounded-lg border border-gray-200',
+        'relative overflow-hidden',
         className
       )}
     >
@@ -788,7 +788,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
         <table className="w-full border-collapse">
           {/* Header */}
           <thead className="sticky top-0 z-30">
-            <tr className="bg-gray-50">
+            <tr className="bg-transparent">
               {visibleColumnsList.map((column) => {
                 const isFixedLeft = isColumnFixed(column.key, 'left');
                 const isFixedRight = isColumnFixed(column.key, 'right');
@@ -805,9 +805,9 @@ export function DataTablePro<T extends Record<string, unknown>>({
                       'font-semibold text-gray-700 border-b border-gray-200 whitespace-nowrap select-none',
                       alignClass,
                       isFixedLeft &&
-                        'sticky left-0 z-20 bg-gray-50 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]',
+                        'sticky left-0 z-20 bg-white shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]',
                       isFixedRight &&
-                        'sticky right-0 z-20 bg-gray-50 shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.1)]',
+                        'sticky right-0 z-20 bg-white shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.1)]',
                       column.sortable && 'cursor-pointer group'
                     )}
                     style={{
@@ -857,14 +857,14 @@ export function DataTablePro<T extends Record<string, unknown>>({
 
                   return (
                     <tr
-                      key={virtualItem.key}
-                      data-index={virtualItem.index}
-                      ref={virtualizer.measureElement}
-                      className={cn(
-                        'transition-colors duration-150',
-                        onRowClick && 'cursor-pointer hover:bg-gray-50',
-                        'border-b border-gray-100 last:border-b-0'
-                      )}
+                    key={virtualItem.key}
+                    data-index={virtualItem.index}
+                    ref={virtualizer.measureElement}
+                    className={cn(
+                      'transition-colors duration-150 hover:bg-gray-50',
+                      onRowClick && 'cursor-pointer',
+                      'border-b border-gray-100 last:border-b-0'
+                    )}
                       style={{
                         position: 'absolute',
                         top: 0,
@@ -922,8 +922,8 @@ export function DataTablePro<T extends Record<string, unknown>>({
                   <tr
                     key={rowIndex}
                     className={cn(
-                      'transition-colors duration-150',
-                      onRowClick && 'cursor-pointer hover:bg-gray-50',
+                      'transition-colors duration-150 hover:bg-gray-50',
+                      onRowClick && 'cursor-pointer',
                       'border-b border-gray-100 last:border-b-0'
                     )}
                     onClick={() => onRowClick?.(row, rowIndex)}
