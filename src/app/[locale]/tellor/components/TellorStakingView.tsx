@@ -99,7 +99,7 @@ export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
         {/* 质押计算器 */}
         <div className="lg:col-span-2">
           <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('tellor.staking.calculator')}
+            {t('tellor.staking.calculator.title')}
           </h3>
           <TellorStakingCalculator />
         </div>

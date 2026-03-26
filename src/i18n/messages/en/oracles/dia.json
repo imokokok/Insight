@@ -2,6 +2,19 @@
   "dia": {
     "title": "DIA",
     "subtitle": "Decentralized Information Asset cross-chain data oracle",
+    "menu": {
+      "title": "Menu",
+      "marketData": "Market Data",
+      "networkHealth": "Network Health",
+      "dataFeeds": "Data Feeds",
+      "nftData": "NFT Data",
+      "staking": "Staking",
+      "ecosystem": "Ecosystem",
+      "riskAssessment": "Risk Assessment"
+    },
+    "navigation": {
+      "title": "Navigation"
+    },
     "tabs": {
       "market": "Market",
       "network": "Network",
@@ -14,6 +27,7 @@
       "crossOracle": "Cross-Oracle Analysis"
     },
     "priceTrend": "Price Trend",
+    "tradingPair": "Trading Pair",
     "quickStats": "Quick Stats",
     "stats": {
       "stakingApr": "Staking Yield",

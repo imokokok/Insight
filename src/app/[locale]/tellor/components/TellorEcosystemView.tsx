@@ -526,7 +526,7 @@ export function TellorEcosystemView({ isLoading }: TellorEcosystemViewProps) {
       {/* 协议集成 */}
       <section>
         <h3 className="text-base font-semibold text-gray-900 mb-4">
-          {t('tellor.ecosystem.protocolIntegrations') || 'Protocol Integrations'}
+          {t('ecosystem.protocolIntegrations') || 'Protocol Integrations'}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
