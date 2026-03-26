@@ -15,6 +15,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "clean:dev": "rm -rf .next && next dev",
     "clean:start": "rm -rf .next && next build && next start",
     "perf:test": "ts-node scripts/performance-test.ts",
@@ -115,6 +117,7 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/html2canvas": "^0.5.35",

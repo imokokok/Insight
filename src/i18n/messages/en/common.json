@@ -231,6 +231,8 @@
   "common": {
     "loading": "Loading...",
     "home": "Home",
+    "refresh": "Refresh",
+    "export": "Export",
     "breadcrumb": {
       "home": "Home"
     },

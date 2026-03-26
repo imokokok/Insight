@@ -103,6 +103,11 @@ interface OracleStorageConfig {
 | Base      | 8453     | Active |
 | BNB Chain | 56       | Active |
 | Fantom    | 250      | Active |
+| Starknet  | -        | Active |
+| Blast     | -        | Active |
+| Moonbeam  | -        | Active |
+| Kava      | -        | Active |
+| Polkadot  | -        | Active |
 
 ### Features
 
@@ -162,6 +167,9 @@ const history = await client.getHistoricalPrices('LINK', Blockchain.ETHEREUM, 24
 | Avalanche | 43114       | Active |
 | Fantom    | 250         | Active |
 | Cronos    | 25          | Active |
+| Injective | -           | Active |
+| Sei       | -           | Active |
+| Kava      | -           | Active |
 
 ### Features
 
@@ -252,6 +260,10 @@ interface BandNetworkStats {
 | Optimism | 10       | Active |
 | Polygon  | 137      | Active |
 | Base     | 8453     | Active |
+| BNB Chain| 56       | Active |
+| Avalanche| 43114    | Active |
+| Fantom   | 250      | Active |
+| Gnosis   | -        | Active |
 
 ### Features
 
@@ -352,6 +364,12 @@ interface DataQualityScore {
 | Optimism  | 10           | Active |
 | Avalanche | 43114        | Active |
 | Base      | 8453         | Active |
+| Starknet  | -            | Active |
+| Blast     | -            | Active |
+| Sui       | -            | Active |
+| Aptos     | -            | Active |
+| Injective | -            | Active |
+| Sei       | -            | Active |
 
 ### Features
 
@@ -455,6 +473,12 @@ client.subscribeToPriceUpdates('ETH/USD', (update) => {
 | Base      | 8453     | Active |
 | BNB Chain | 56       | Active |
 | Optimism  | 10       | Active |
+| Moonbeam  | -        | Active |
+| Kava      | -        | Active |
+| Fantom    | 250      | Active |
+| Gnosis    | -        | Active |
+| Linea     | -        | Active |
+| Scroll    | -        | Active |
 
 ### Features
 
@@ -613,6 +637,18 @@ enum Blockchain {
   CELESTIA = 'celestia',
   INJECTIVE = 'injective',
   SEI = 'sei',
+  TRON = 'tron',
+  TON = 'ton',
+  NEAR = 'near',
+  AURORA = 'aurora',
+  CELO = 'celo',
+  STARKNET = 'starknet',
+  BLAST = 'blast',
+  CARDANO = 'cardano',
+  POLKADOT = 'polkadot',
+  KAVA = 'kava',
+  MOONBEAM = 'moonbeam',
+  STARKEX = 'starkex',
 }
 ```
 
@@ -721,11 +757,20 @@ setTimeout(() => unsubscribe(), 60000);
 | --------- | -------- | ------ |
 | Ethereum  | 1        | Active |
 | Arbitrum  | 42161    | Active |
+| Optimism  | 10       | Active |
 | Polygon   | 137      | Active |
 | Avalanche | 43114    | Active |
 | Base      | 8453     | Active |
 | BNB Chain | 56       | Active |
-| Optimism  | 10       | Active |
+| Fantom    | 250      | Active |
+| Linea     | -        | Active |
+| Mantle    | -        | Active |
+| Scroll    | -        | Active |
+| zkSync    | -        | Active |
+| Blast     | -        | Active |
+| Starknet  | -        | Active |
+| Aptos     | -        | Active |
+| Sui       | -        | Active |
 
 ### Features
 
@@ -792,9 +837,13 @@ interface ModularStats {
 | Arbitrum  | 42161    | Active |
 | Polygon   | 137      | Active |
 | Avalanche | 43114    | Active |
-| Base      | 8453     | Active |
 | BNB Chain | 56       | Active |
+| Base      | 8453     | Active |
 | Fantom    | 250      | Active |
+| Cronos    | 25       | Active |
+| Moonbeam  | -        | Active |
+| Gnosis    | -        | Active |
+| Kava      | -        | Active |
 
 ### Features
 
@@ -859,9 +908,14 @@ interface DIAMethodology {
 | --------- | -------- | ------ |
 | Ethereum  | 1        | Active |
 | Arbitrum  | 42161    | Active |
-| Polygon   | 137      | Active |
-| BNB Chain | 56       | Active |
 | Optimism  | 10       | Active |
+| Polygon   | 137      | Active |
+| Base      | 8453     | Active |
+| Avalanche | 43114    | Active |
+| BNB Chain | 56       | Active |
+| Fantom    | 250      | Active |
+| Moonbeam  | -        | Active |
+| Gnosis    | -        | Active |
 
 ### Features
 
@@ -925,8 +979,13 @@ interface DisputeInfo {
 | -------- | -------- | ------ |
 | Ethereum | 1        | Active |
 | Arbitrum | 42161    | Active |
+| Optimism | 10       | Active |
 | Polygon  | 137      | Active |
 | Base     | 8453     | Active |
+| BNB Chain| 56       | Active |
+| Avalanche| 43114    | Active |
+| Fantom   | 250      | Active |
+| Gnosis   | -        | Active |
 
 ### Features
 
@@ -989,6 +1048,7 @@ interface MakerDAOIntegration {
 | --------- | -------- | ------ |
 | BNB Chain | 56       | Active |
 | TRON      | -        | Active |
+| Ethereum  | 1        | Active |
 
 ### Features
 
@@ -1047,7 +1107,7 @@ interface TRONEcosystemStats {
 | **Update Frequency**     | 60s       | 30s           | 120s  | 1s    | 10s   | 5s       | 60s   | 300s   | 60s       | 30s      |
 | **Avg Response Time**    | 245ms     | 150ms         | 300ms | 100ms | 180ms | 120ms    | 200ms | 400ms  | 200ms     | 250ms    |
 | **Node Uptime**          | 99.9%     | 99.85%        | 99.7% | 99.9% | 99.7% | 99.8%    | 99.5% | 99.6%  | 99.99%    | 99.7%    |
-| **Supported Chains**     | 8         | 8             | 5     | 7     | 7     | 7        | 7     | 5      | 4         | 2        |
+| **Supported Chains**     | 13        | 11            | 9     | 12    | 13    | 16       | 11    | 10     | 9         | 3        |
 | **Data Feeds**           | 1,243     | 180           | 50    | 500   | 168   | 285      | 2,000+| 100    | 45        | 80       |
 | **Node Analytics**       | ✅        | ❌            | ❌    | ❌    | ❌    | ❌       | ❌    | ❌     | ❌        | ❌       |
 | **Validator Analytics**  | ❌        | ✅            | ✅    | ❌    | ❌    | ❌       | ❌    | ❌     | ❌        | ❌       |

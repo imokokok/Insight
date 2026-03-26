@@ -10,7 +10,7 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testMatch: ['<rootDir>/src/**/*.test.{ts,tsx}', '<rootDir>/src/**/__tests__/**/*.{ts,tsx}'],
+  testMatch: ['<rootDir>/src/**/*.test.{ts,tsx}'],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
@@ -20,16 +20,20 @@ const customJestConfig = {
   ],
   coverageThreshold: {
     global: {
-      branches: 50,
-      functions: 50,
-      lines: 50,
-      statements: 50,
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
     },
   },
   coverageReporters: ['text', 'text-summary', 'lcov'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(.*\\.mjs$|@vercel/analytics|@vercel/speed-insights))',
+  ],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
+    '^.+\\.mjs$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
   },
 };
 

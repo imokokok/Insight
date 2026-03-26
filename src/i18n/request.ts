@@ -26,7 +26,12 @@ async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
   for (const config of messageFilesConfig) {
     const fileMessages = await loadMessageFile(locale, config.name, config.directory);
     if (fileMessages) {
-      Object.assign(messages, fileMessages);
+      // 如果配置了 namespace，将文件内容放到对应的命名空间下
+      if (config.namespace) {
+        messages[config.namespace] = fileMessages;
+      } else {
+        Object.assign(messages, fileMessages);
+      }
     }
   }
 

@@ -3,8 +3,12 @@
  * Provides common testing helpers and mock data generators
  */
 
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
+import { render, RenderOptions } from '@testing-library/react';
+import { BaseOracleClient } from '@/lib/oracles/base';
+import { PriceData, Blockchain, OracleProvider } from '@/types/oracle';
+import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 
 /**
  * Create a test QueryClient with default options
@@ -27,8 +31,26 @@ export function createTestQueryClient(): QueryClient {
 export function createWrapper(queryClient: QueryClient) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <div>{children}</div>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
     );
+  };
+}
+
+/**
+ * Render a component with QueryClient provider
+ */
+export function renderWithQueryClient(
+  ui: React.ReactElement,
+  options?: Omit<RenderOptions, 'wrapper'>
+) {
+  const queryClient = createTestQueryClient();
+  const Wrapper = createWrapper(queryClient);
+
+  return {
+    ...render(ui, { wrapper: Wrapper, ...options }),
+    queryClient,
   };
 }
 
@@ -83,6 +105,22 @@ export function mockFetchError(message: string, status = 500) {
 }
 
 /**
+ * Mock fetch function globally
+ */
+export function mockFetch(mockImplementation: typeof fetch) {
+  global.fetch = mockImplementation;
+}
+
+/**
+ * Restore original fetch
+ */
+export function restoreFetch() {
+  if (typeof global !== 'undefined' && global.fetch) {
+    jest.restoreAllMocks();
+  }
+}
+
+/**
  * Calculate coefficient of variation
  */
 export function calculateCoefficientOfVariation(values: number[]): number {
@@ -115,4 +153,119 @@ export function isSortedDescending<T>(arr: T[], key?: keyof T): boolean {
     if (prev < curr) return false;
   }
   return true;
+}
+
+/**
+ * Mock Oracle Client for testing
+ */
+export class MockOracleClient extends BaseOracleClient {
+  name: OracleProvider = 'chainlink';
+  supportedChains: Blockchain[] = [Blockchain.ETHEREUM, Blockchain.POLYGON];
+
+  private mockPrice: PriceData = {
+    provider: 'chainlink',
+    symbol: 'BTC',
+    price: 68000,
+    timestamp: Date.now(),
+    decimals: 8,
+    confidence: 0.98,
+  };
+
+  async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+    return { ...this.mockPrice, symbol, chain };
+  }
+
+  async getHistoricalPrices(
+    symbol: string,
+    chain?: Blockchain,
+    period?: number
+  ): Promise<PriceData[]> {
+    const prices: PriceData[] = [];
+    for (let i = 0; i < (period || 24); i++) {
+      prices.push({
+        provider: 'chainlink',
+        symbol,
+        chain,
+        price: 68000 + i * 100,
+        timestamp: Date.now() - i * 3600000,
+        decimals: 8,
+        confidence: 0.98,
+      });
+    }
+    return prices;
+  }
+}
+
+/**
+ * Create a mock oracle client with custom configuration
+ */
+export function createMockOracleClient(
+  provider: OracleProvider = 'chainlink',
+  options?: {
+    basePrice?: number;
+    symbol?: string;
+    supportedChains?: Blockchain[];
+  }
+): MockOracleClient {
+  const client = new MockOracleClient();
+  client.name = provider;
+
+  if (options?.supportedChains) {
+    client.supportedChains = options.supportedChains;
+  }
+
+  return client;
+}
+
+/**
+ * Wait for loading state to finish
+ */
+export async function waitForLoadingToFinish(
+  queryClient: QueryClient,
+  timeout = 1000
+): Promise<void> {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < timeout) {
+    const isFetching = queryClient.isFetching();
+    if (isFetching === 0) {
+      return;
+    }
+    await wait(10);
+  }
+
+  throw new Error('Timeout waiting for loading to finish');
+}
+
+/**
+ * Create mock price data
+ */
+export function createMockPriceData(overrides?: Partial<PriceData>): PriceData {
+  return {
+    provider: 'chainlink',
+    symbol: 'BTC',
+    price: 68000,
+    timestamp: Date.now(),
+    decimals: 8,
+    confidence: 0.98,
+    ...overrides,
+  };
+}
+
+/**
+ * Create mock historical price data
+ */
+export function createMockHistoricalPriceData(
+  symbol: string,
+  count: number,
+  basePrice: number = 68000
+): PriceData[] {
+  return Array.from({ length: count }, (_, i) => ({
+    provider: 'chainlink',
+    symbol,
+    price: basePrice + (Math.random() - 0.5) * basePrice * 0.02,
+    timestamp: Date.now() - i * 3600000,
+    decimals: 8,
+    confidence: 0.95 + Math.random() * 0.05,
+  }));
 }
