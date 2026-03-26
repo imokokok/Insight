@@ -1,10 +1,19 @@
 'use client';
 
-import { forwardRef, HTMLAttributes, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+
 import { X } from 'lucide-react';
 
-export type BadgeVariant = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info';
+import { cn } from '@/lib/utils';
+
+export type BadgeVariant =
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info';
 export type BadgeSize = 'sm' | 'md' | 'lg';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -69,12 +78,7 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
         {...props}
       >
         {dot && (
-          <span
-            className={cn(
-              'w-1.5 h-1.5 rounded-full flex-shrink-0',
-              dotStyles[variant]
-            )}
-          />
+          <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', dotStyles[variant])} />
         )}
         <span className="truncate">{children}</span>
         {removable && (

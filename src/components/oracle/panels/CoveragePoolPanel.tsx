@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
 
 export interface CoveragePoolData {
   totalValue: number;
@@ -45,7 +45,11 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
         color: 'text-warning-600',
         bgColor: 'bg-warning-100',
       };
-    return { label: t('coveragePool.status.low'), color: 'text-danger-600', bgColor: 'bg-danger-100' };
+    return {
+      label: t('coveragePool.status.low'),
+      color: 'text-danger-600',
+      bgColor: 'bg-danger-100',
+    };
   };
 
   const coverageStatus = getCoverageStatus(data.coverageRatio);

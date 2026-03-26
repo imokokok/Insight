@@ -1,20 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { ComparisonData } from '../types';
-import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  Legend,
-} from 'recharts';
-import { TooltipProps } from '@/types/ui/recharts';
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+
 import {
   Check,
   ChevronDown,
@@ -29,8 +16,23 @@ import {
   BarChart3,
   X,
 } from 'lucide-react';
-import { chartColors } from '@/lib/config/colors';
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  Legend,
+} from 'recharts';
 
+import { useLocale } from '@/i18n';
+import { isChineseLocale } from '@/i18n/routing';
+import { chartColors } from '@/lib/config/colors';
+import { type TooltipProps } from '@/types/ui/recharts';
+
+import { type ComparisonData } from '../types';
 
 interface OracleComparisonProps {
   data: ComparisonData[];

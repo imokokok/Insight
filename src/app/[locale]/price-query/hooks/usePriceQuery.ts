@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { usePreferences } from '@/hooks';
+import { useFavorites, type FavoriteConfig } from '@/hooks';
+import { useTranslations } from '@/i18n';
 import {
   OracleProvider,
   Blockchain,
-  PriceData,
+  type PriceData,
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
@@ -18,17 +20,17 @@ import {
   ChronicleClient,
   WINkLinkClient,
 } from '@/lib/oracles';
+import { createLogger } from '@/lib/utils/logger';
+import { useUser } from '@/stores/authStore';
 import {
   saveQueryHistory,
   getQueryHistory,
   clearQueryHistory,
-  QueryHistoryItem,
+  type QueryHistoryItem,
 } from '@/utils/queryHistory';
-import { parseQueryParams, updateUrlParams, QueryConfig } from '@/utils/urlParams';
-import { QueryResult, providerNames, chainNames, oracleI18nKeys } from '../constants';
-import { createLogger } from '@/lib/utils/logger';
-import { useFavorites, FavoriteConfig } from '@/hooks';
-import { useUser } from '@/stores/authStore';
+import { parseQueryParams, updateUrlParams, type QueryConfig } from '@/utils/urlParams';
+
+import { type QueryResult, providerNames, chainNames, oracleI18nKeys } from '../constants';
 
 const logger = createLogger('price-query-hook');
 

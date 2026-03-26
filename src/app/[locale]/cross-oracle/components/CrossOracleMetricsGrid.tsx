@@ -1,18 +1,22 @@
 'use client';
 
 import { useMemo } from 'react';
-import { TrendingUp } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
-import { Minus } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Zap } from 'lucide-react';
-import { Shield } from 'lucide-react';
-import { Users } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { OracleProvider } from '@/types/oracle';
-import { PriceData } from '@/types/oracle/price';
+
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Clock,
+  Activity,
+  Zap,
+  Shield,
+  Users,
+  AlertTriangle,
+} from 'lucide-react';
+
 import { SparklineChart } from '@/components/ui';
+import { type OracleProvider } from '@/types/oracle';
+import { type PriceData } from '@/types/oracle/price';
 
 interface CrossOracleMetricsGridProps {
   priceData: PriceData[];
@@ -49,29 +53,33 @@ function MetricCard({
   sparklineData,
   color,
 }: MetricCardProps) {
-  const trendIcon = trend === 'up' ? <TrendingUp className="w-3.5 h-3.5" /> : 
-                    trend === 'down' ? <TrendingDown className="w-3.5 h-3.5" /> : 
-                    <Minus className="w-3.5 h-3.5" />;
+  const trendIcon =
+    trend === 'up' ? (
+      <TrendingUp className="w-3.5 h-3.5" />
+    ) : trend === 'down' ? (
+      <TrendingDown className="w-3.5 h-3.5" />
+    ) : (
+      <Minus className="w-3.5 h-3.5" />
+    );
 
-  const trendColorClass = trendPositive ? 'text-emerald-600 bg-emerald-50' : 
-                          trend === 'flat' ? 'text-gray-600 bg-gray-50' : 
-                          'text-rose-600 bg-rose-50';
+  const trendColorClass = trendPositive
+    ? 'text-emerald-600 bg-emerald-50'
+    : trend === 'flat'
+      ? 'text-gray-600 bg-gray-50'
+      : 'text-rose-600 bg-rose-50';
 
   return (
     <div className="bg-white rounded-md border border-gray-200 p-4 hover:border-gray-300 transition-colors">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div 
-            className="p-1.5 rounded-md"
-            style={{ backgroundColor: `${color}15`, color }}
-          >
+          <div className="p-1.5 rounded-md" style={{ backgroundColor: `${color}15`, color }}>
             {icon}
           </div>
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-            {title}
-          </span>
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{title}</span>
         </div>
-        <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${trendColorClass}`}>
+        <div
+          className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${trendColorClass}`}
+        >
           {trendIcon}
           <span>{trendValue}</span>
         </div>
@@ -83,14 +91,7 @@ function MetricCard({
 
       {sparklineData && sparklineData.length > 0 && (
         <div className="mb-3">
-          <SparklineChart
-            data={sparklineData}
-            width={120}
-            height={32}
-            color={color}
-            fill
-            animate
-          />
+          <SparklineChart data={sparklineData} width={120} height={32} color={color} fill animate />
         </div>
       )}
 
@@ -100,11 +101,11 @@ function MetricCard({
           <span className="text-xs font-medium text-gray-700">{comparisonValue}</span>
         </div>
         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full rounded-full transition-all duration-500"
-            style={{ 
+            style={{
               width: `${Math.min(Math.max(comparisonProgress, 0), 100)}%`,
-              backgroundColor: color
+              backgroundColor: color,
             }}
           />
         </div>
@@ -122,30 +123,30 @@ export function CrossOracleMetricsGrid({
 }: CrossOracleMetricsGridProps) {
   const metrics = useMemo(() => {
     const now = Date.now();
-    const validPrices = priceData.filter(p => p.price > 0 && p.timestamp > 0);
-    
+    const validPrices = priceData.filter((p) => p.price > 0 && p.timestamp > 0);
+
     if (validPrices.length === 0) {
       return null;
     }
 
-    const timestamps = validPrices.map(p => p.timestamp);
+    const timestamps = validPrices.map((p) => p.timestamp);
     const newestTimestamp = Math.max(...timestamps);
     const oldestTimestamp = Math.min(...timestamps);
     const timeRange = newestTimestamp - oldestTimestamp;
 
-    const responseTimes = validPrices.map(p => {
+    const responseTimes = validPrices.map((p) => {
       const age = now - p.timestamp;
       return Math.max(0, age / 1000);
     });
     const avgResponseTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
 
-    const prices = validPrices.map(p => p.price);
+    const prices = validPrices.map((p) => p.price);
     const maxPrice = Math.max(...prices);
     const minPrice = Math.min(...prices);
     const priceRange = maxPrice - minPrice;
     const deviationRate = avgPrice > 0 ? (priceRange / avgPrice) * 100 : 0;
 
-    const freshnessScores = validPrices.map(p => {
+    const freshnessScores = validPrices.map((p) => {
       const age = now - p.timestamp;
       const maxAge = 5 * 60 * 1000;
       return Math.max(0, 100 - (age / maxAge) * 100);
@@ -153,24 +154,31 @@ export function CrossOracleMetricsGrid({
     const avgFreshness = freshnessScores.reduce((a, b) => a + b, 0) / freshnessScores.length;
 
     const recentThreshold = 2 * 60 * 1000;
-    const availableCount = validPrices.filter(p => now - p.timestamp < recentThreshold).length;
+    const availableCount = validPrices.filter((p) => now - p.timestamp < recentThreshold).length;
     const availabilityRate = (availableCount / validPrices.length) * 100;
 
-    const priceVariance = prices.reduce((sum, price) => {
-      return sum + Math.pow(price - avgPrice, 2);
-    }, 0) / prices.length;
+    const priceVariance =
+      prices.reduce((sum, price) => {
+        return sum + Math.pow(price - avgPrice, 2);
+      }, 0) / prices.length;
     const priceStdDev = Math.sqrt(priceVariance);
     const consensusThreshold = avgPrice * 0.01;
-    const consensusCount = prices.filter(p => Math.abs(p - avgPrice) <= consensusThreshold).length;
+    const consensusCount = prices.filter(
+      (p) => Math.abs(p - avgPrice) <= consensusThreshold
+    ).length;
     const consensusRate = (consensusCount / prices.length) * 100;
 
     const deviationThreshold = avgPrice * 0.02;
-    const anomalyCount = prices.filter(p => Math.abs(p - avgPrice) > deviationThreshold).length;
+    const anomalyCount = prices.filter((p) => Math.abs(p - avgPrice) > deviationThreshold).length;
 
-    const generateSparkline = (baseValue: number, variance: number, count: number = 20): number[] => {
+    const generateSparkline = (
+      baseValue: number,
+      variance: number,
+      count: number = 20
+    ): number[] => {
       return Array.from({ length: count }, (_, i) => {
         const randomFactor = (Math.random() - 0.5) * variance;
-        const trendFactor = Math.sin(i / count * Math.PI) * variance * 0.3;
+        const trendFactor = Math.sin((i / count) * Math.PI) * variance * 0.3;
         return Math.max(0, baseValue + randomFactor + trendFactor);
       });
     };
@@ -178,9 +186,10 @@ export function CrossOracleMetricsGrid({
     return {
       responseTime: {
         value: avgResponseTime,
-        formatted: avgResponseTime < 1 
-          ? `${(avgResponseTime * 1000).toFixed(0)}ms` 
-          : `${avgResponseTime.toFixed(1)}s`,
+        formatted:
+          avgResponseTime < 1
+            ? `${(avgResponseTime * 1000).toFixed(0)}ms`
+            : `${avgResponseTime.toFixed(1)}s`,
         trend: 'down' as const,
         trendValue: '-12%',
         trendPositive: true,

@@ -1,4 +1,4 @@
-import { PanelConfig } from './types';
+import { type PanelConfig } from './types';
 
 export const redStonePanelConfig: PanelConfig = {};
 

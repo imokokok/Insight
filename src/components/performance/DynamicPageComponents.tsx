@@ -1,7 +1,9 @@
 'use client';
 
+import { type ComponentType, type ReactNode } from 'react';
+
 import dynamic from 'next/dynamic';
-import { ComponentType, ReactNode } from 'react';
+
 import { Card, CardContent } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 
@@ -53,25 +55,19 @@ function PageSkeleton({ children }: { children: ReactNode }) {
  * Dynamic Cross Oracle Page
  * Heavy comparison page with multiple charts and data tables
  */
-export const DynamicCrossOraclePage = dynamic(
-  () => import('@/app/[locale]/cross-oracle/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Cross-Oracle Comparison..." />,
-  }
-);
+export const DynamicCrossOraclePage = dynamic(() => import('@/app/[locale]/cross-oracle/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Cross-Oracle Comparison..." />,
+});
 
 /**
  * Dynamic Cross Chain Page
  * Multi-chain analysis with complex visualizations
  */
-export const DynamicCrossChainPage = dynamic(
-  () => import('@/app/[locale]/cross-chain/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Cross-Chain Analysis..." />,
-  }
-);
+export const DynamicCrossChainPage = dynamic(() => import('@/app/[locale]/cross-chain/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Cross-Chain Analysis..." />,
+});
 
 /**
  * Dynamic Market Overview Page
@@ -89,49 +85,37 @@ export const DynamicMarketOverviewPage = dynamic(
  * Dynamic Price Query Page
  * Interactive price query interface
  */
-export const DynamicPriceQueryPage = dynamic(
-  () => import('@/app/[locale]/price-query/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Price Query..." height="600px" />,
-  }
-);
+export const DynamicPriceQueryPage = dynamic(() => import('@/app/[locale]/price-query/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Price Query..." height="600px" />,
+});
 
 /**
  * Dynamic Alerts Page
  * Alert management interface
  */
-export const DynamicAlertsPage = dynamic(
-  () => import('@/app/[locale]/alerts/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Alerts..." height="600px" />,
-  }
-);
+export const DynamicAlertsPage = dynamic(() => import('@/app/[locale]/alerts/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Alerts..." height="600px" />,
+});
 
 /**
  * Dynamic Favorites Page
  * User favorites dashboard
  */
-export const DynamicFavoritesPage = dynamic(
-  () => import('@/app/[locale]/favorites/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Favorites..." height="600px" />,
-  }
-);
+export const DynamicFavoritesPage = dynamic(() => import('@/app/[locale]/favorites/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Favorites..." height="600px" />,
+});
 
 /**
  * Dynamic Settings Page
  * User settings interface
  */
-export const DynamicSettingsPage = dynamic(
-  () => import('@/app/[locale]/settings/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Settings..." height="600px" />,
-  }
-);
+export const DynamicSettingsPage = dynamic(() => import('@/app/[locale]/settings/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Settings..." height="600px" />,
+});
 
 // ============================================================================
 // Oracle Provider Pages
@@ -140,112 +124,82 @@ export const DynamicSettingsPage = dynamic(
 /**
  * Dynamic Chainlink Page
  */
-export const DynamicChainlinkPage = dynamic(
-  () => import('@/app/[locale]/chainlink/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Chainlink Data..." />,
-  }
-);
+export const DynamicChainlinkPage = dynamic(() => import('@/app/[locale]/chainlink/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Chainlink Data..." />,
+});
 
 /**
  * Dynamic Pyth Page
  */
-export const DynamicPythPage = dynamic(
-  () => import('@/app/[locale]/pyth/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Pyth Network Data..." />,
-  }
-);
+export const DynamicPythPage = dynamic(() => import('@/app/[locale]/pyth/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Pyth Network Data..." />,
+});
 
 /**
  * Dynamic API3 Page
  */
-export const DynamicAPI3Page = dynamic(
-  () => import('@/app/[locale]/api3/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading API3 Data..." />,
-  }
-);
+export const DynamicAPI3Page = dynamic(() => import('@/app/[locale]/api3/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading API3 Data..." />,
+});
 
 /**
  * Dynamic Band Protocol Page
  */
-export const DynamicBandProtocolPage = dynamic(
-  () => import('@/app/[locale]/band-protocol/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Band Protocol Data..." />,
-  }
-);
+export const DynamicBandProtocolPage = dynamic(() => import('@/app/[locale]/band-protocol/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Band Protocol Data..." />,
+});
 
 /**
  * Dynamic DIA Page
  */
-export const DynamicDIAPage = dynamic(
-  () => import('@/app/[locale]/dia/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading DIA Data..." />,
-  }
-);
+export const DynamicDIAPage = dynamic(() => import('@/app/[locale]/dia/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading DIA Data..." />,
+});
 
 /**
  * Dynamic UMA Page
  */
-export const DynamicUMAPage = dynamic(
-  () => import('@/app/[locale]/uma/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading UMA Data..." />,
-  }
-);
+export const DynamicUMAPage = dynamic(() => import('@/app/[locale]/uma/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading UMA Data..." />,
+});
 
 /**
  * Dynamic Tellor Page
  */
-export const DynamicTellorPage = dynamic(
-  () => import('@/app/[locale]/tellor/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Tellor Data..." />,
-  }
-);
+export const DynamicTellorPage = dynamic(() => import('@/app/[locale]/tellor/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Tellor Data..." />,
+});
 
 /**
  * Dynamic RedStone Page
  */
-export const DynamicRedStonePage = dynamic(
-  () => import('@/app/[locale]/redstone/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading RedStone Data..." />,
-  }
-);
+export const DynamicRedStonePage = dynamic(() => import('@/app/[locale]/redstone/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading RedStone Data..." />,
+});
 
 /**
  * Dynamic Chronicle Page
  */
-export const DynamicChroniclePage = dynamic(
-  () => import('@/app/[locale]/chronicle/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading Chronicle Data..." />,
-  }
-);
+export const DynamicChroniclePage = dynamic(() => import('@/app/[locale]/chronicle/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading Chronicle Data..." />,
+});
 
 /**
  * Dynamic WINkLink Page
  */
-export const DynamicWINkLinkPage = dynamic(
-  () => import('@/app/[locale]/winklink/page'),
-  {
-    ssr: false,
-    loading: () => <PageLoading message="Loading WINkLink Data..." />,
-  }
-);
+export const DynamicWINkLinkPage = dynamic(() => import('@/app/[locale]/winklink/page'), {
+  ssr: false,
+  loading: () => <PageLoading message="Loading WINkLink Data..." />,
+});
 
 // ============================================================================
 // Utility Functions

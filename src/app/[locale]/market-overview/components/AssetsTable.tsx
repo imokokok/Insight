@@ -1,12 +1,15 @@
 'use client';
 
 import React, { memo, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { TrendingUp } from 'lucide-react';
+
+import { DataTablePro, type ColumnDef, type ConditionalFormattingConfig } from '@/components/ui';
+import { useTranslations } from '@/i18n';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { formatCompactNumber } from '@/lib/utils/format';
-import { DataTablePro, ColumnDef, ConditionalFormattingConfig } from '@/components/ui';
-import { AssetData } from '../types';
+
+import { type AssetData } from '../types';
 
 interface AssetsTableProps {
   assets: AssetData[];
@@ -31,8 +34,8 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
   const t = useTranslations('marketOverview');
 
   // Convert AssetData to Record<string, unknown> compatible format
-  const tableData = useMemo(() =>
-    assets.map(asset => ({ ...asset } as Record<string, unknown>)),
+  const tableData = useMemo(
+    () => assets.map((asset) => ({ ...asset }) as Record<string, unknown>),
     [assets]
   );
 
@@ -51,9 +54,7 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
               {index + 1}
             </span>
             <div>
-              <span className="font-semibold text-gray-900 block text-sm">
-                {assetRow.symbol}
-              </span>
+              <span className="font-semibold text-gray-900 block text-sm">{assetRow.symbol}</span>
               <span className="text-xs text-gray-400">
                 ${formatCompactNumber(assetRow.marketCap)}
               </span>
@@ -69,11 +70,7 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
       sortable: true,
       formatter: (_value: unknown, row: Record<string, unknown>) => {
         const assetRow = row as unknown as AssetData;
-        return (
-          <span className="font-semibold text-gray-900">
-            {formatPrice(assetRow.price)}
-          </span>
-        );
+        return <span className="font-semibold text-gray-900">{formatPrice(assetRow.price)}</span>;
       },
     },
     {
@@ -86,7 +83,8 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
         const sign = change >= 0 ? '+' : '';
         return (
           <span className="inline-flex items-center gap-1 text-xs font-medium">
-            {sign}{change.toFixed(2)}%
+            {sign}
+            {change.toFixed(2)}%
           </span>
         );
       },
@@ -101,7 +99,8 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
         const sign = change >= 0 ? '+' : '';
         return (
           <span className="inline-flex items-center gap-1 text-xs font-medium">
-            {sign}{change.toFixed(2)}%
+            {sign}
+            {change.toFixed(2)}%
           </span>
         );
       },
@@ -168,9 +167,7 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
       <div className="pb-3 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-gray-400" />
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('topAssets')}
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">{t('topAssets')}</h3>
         </div>
         <span className="text-xs text-gray-400">
           {assets.length} {t('assetsCount')}

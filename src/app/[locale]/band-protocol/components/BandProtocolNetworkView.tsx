@@ -1,22 +1,18 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { BandProtocolNetworkViewProps } from '../types';
-import type { BandNetworkStats } from '@/lib/oracles/bandProtocol';
-import { Activity } from 'lucide-react';
-import { Server } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
+import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
-export function BandProtocolNetworkView({
-  config,
-  networkStats,
-}: BandProtocolNetworkViewProps) {
+import { useTranslations } from '@/i18n';
+import type { BandNetworkStats } from '@/lib/oracles/bandProtocol';
+
+import { type BandProtocolNetworkViewProps } from '../types';
+
+export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNetworkViewProps) {
   const t = useTranslations();
 
-  const data = (networkStats || config.networkData.bandProtocolMetrics) as BandNetworkStats | undefined;
+  const data = (networkStats || config.networkData.bandProtocolMetrics) as
+    | BandNetworkStats
+    | undefined;
 
   const metrics = [
     {
@@ -50,15 +46,27 @@ export function BandProtocolNetworkView({
   ];
 
   const hourlyActivity = config.networkData.hourlyActivity || [
-    5800, 5200, 4800, 4400, 4100, 4300, 5600, 7800, 10200, 12500, 14200, 15100,
-    14800, 14400, 13900, 14100, 14500, 15000, 14700, 13200, 11800, 9800, 7800, 6500,
+    5800, 5200, 4800, 4400, 4100, 4300, 5600, 7800, 10200, 12500, 14200, 15100, 14800, 14400, 13900,
+    14100, 14500, 15000, 14700, 13200, 11800, 9800, 7800, 6500,
   ];
 
   const overviewStats = [
-    { label: t('bandProtocol.network.blockHeight') || 'Block Height', value: data?.latestBlockHeight?.toLocaleString() || '15,500,000' },
-    { label: t('bandProtocol.network.totalValidators') || 'Total Validators', value: data?.totalValidators?.toLocaleString() || '80' },
-    { label: t('bandProtocol.network.bondedTokens') || 'Bonded Tokens', value: `${((data?.bondedTokens || 85000000) / 1e6).toFixed(1)}M BAND` },
-    { label: t('bandProtocol.network.communityPool') || 'Community Pool', value: `${((data?.communityPool || 550000) / 1e3).toFixed(1)}K BAND` },
+    {
+      label: t('bandProtocol.network.blockHeight') || 'Block Height',
+      value: data?.latestBlockHeight?.toLocaleString() || '15,500,000',
+    },
+    {
+      label: t('bandProtocol.network.totalValidators') || 'Total Validators',
+      value: data?.totalValidators?.toLocaleString() || '80',
+    },
+    {
+      label: t('bandProtocol.network.bondedTokens') || 'Bonded Tokens',
+      value: `${((data?.bondedTokens || 85000000) / 1e6).toFixed(1)}M BAND`,
+    },
+    {
+      label: t('bandProtocol.network.communityPool') || 'Community Pool',
+      value: `${((data?.communityPool || 550000) / 1e3).toFixed(1)}K BAND`,
+    },
   ];
 
   return (
@@ -75,11 +83,15 @@ export function BandProtocolNetworkView({
                 <span className="text-sm">{metric.label}</span>
               </div>
               <div className="flex items-baseline gap-3">
-                <p className="text-3xl font-semibold text-gray-900 tracking-tight">{metric.value}</p>
+                <p className="text-3xl font-semibold text-gray-900 tracking-tight">
+                  {metric.value}
+                </p>
                 {metric.change && (
-                  <div className={`flex items-center gap-0.5 text-sm font-medium ${
-                    metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
-                  }`}>
+                  <div
+                    className={`flex items-center gap-0.5 text-sm font-medium ${
+                      metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
+                    }`}
+                  >
                     <TrendIcon className="w-3.5 h-3.5" />
                     <span>{metric.change}</span>
                   </div>
@@ -161,7 +173,9 @@ export function BandProtocolNetworkView({
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">{t('bandProtocol.network.stakingParticipation')}</span>
+                <span className="text-gray-600">
+                  {t('bandProtocol.network.stakingParticipation')}
+                </span>
                 <span className="font-medium text-gray-900">51.5%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">

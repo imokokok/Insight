@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import { TrendingUp, TrendingDown, Info } from 'lucide-react';
+
 import { SparklineChart } from '@/components/charts/SparklineChart';
 import { cn } from '@/lib/utils';
 
@@ -139,17 +141,10 @@ export function EnhancedStatCard({
     >
       {/* 标题行 */}
       <div className="flex items-center justify-between mb-2">
-        <span
-          className={cn(
-            'font-medium text-gray-600',
-            isCompact ? 'text-xs' : 'text-sm'
-          )}
-        >
+        <span className={cn('font-medium text-gray-600', isCompact ? 'text-xs' : 'text-sm')}>
           {title}
         </span>
-        {breakdown && (
-          <Info className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
-        )}
+        {breakdown && <Info className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />}
       </div>
 
       {/* 主值和变化指示器 */}
@@ -165,18 +160,10 @@ export function EnhancedStatCard({
         {change && (
           <div className={cn('flex items-center gap-0.5', changeColor)}>
             <ChangeIcon
-              className={cn(
-                'flex-shrink-0',
-                isCompact ? 'w-3 h-3' : 'w-4 h-4'
-              )}
+              className={cn('flex-shrink-0', isCompact ? 'w-3 h-3' : 'w-4 h-4')}
               aria-hidden="true"
             />
-            <span
-              className={cn(
-                'font-medium tabular-nums',
-                isCompact ? 'text-xs' : 'text-sm'
-              )}
-            >
+            <span className={cn('font-medium tabular-nums', isCompact ? 'text-xs' : 'text-sm')}>
               {formatChangeValue(change.value, change.percentage)}
             </span>
           </div>
@@ -227,9 +214,7 @@ export function EnhancedStatCard({
             'top-full mt-2'
           )}
         >
-          <div className="text-xs font-medium text-gray-500 mb-2">
-            Breakdown
-          </div>
+          <div className="text-xs font-medium text-gray-500 mb-2">Breakdown</div>
           <div className="space-y-1.5">
             {breakdown.map((item, index) => (
               <div key={index} className="flex items-center justify-between">

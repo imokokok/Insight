@@ -7,9 +7,11 @@
  */
 
 import { useRef } from 'react';
+
+import { UnifiedExport, type ExportField } from '@/components/export';
 import { useTranslations, useLocale } from '@/i18n';
-import { UnifiedExport, ExportField } from '@/components/export';
-import { QueryResult } from '../constants';
+
+import { type QueryResult } from '../constants';
 
 interface UnifiedExportSectionProps {
   loading: boolean;

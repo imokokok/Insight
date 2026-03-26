@@ -1,14 +1,12 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { TellorNetworkViewProps } from '../types';
 import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
-export function TellorNetworkView({
-  config,
-  networkStats,
-  isLoading,
-}: TellorNetworkViewProps) {
+import { useTranslations } from '@/i18n';
+
+import { type TellorNetworkViewProps } from '../types';
+
+export function TellorNetworkView({ config, networkStats, isLoading }: TellorNetworkViewProps) {
   const t = useTranslations();
 
   const metrics = [
@@ -63,11 +61,15 @@ export function TellorNetworkView({
                 <span className="text-sm">{metric.label}</span>
               </div>
               <div className="flex items-baseline gap-3">
-                <p className="text-3xl font-semibold text-gray-900 tracking-tight">{metric.value}</p>
+                <p className="text-3xl font-semibold text-gray-900 tracking-tight">
+                  {metric.value}
+                </p>
                 {metric.change && (
-                  <div className={`flex items-center gap-0.5 text-sm font-medium ${
-                    metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
-                  }`}>
+                  <div
+                    className={`flex items-center gap-0.5 text-sm font-medium ${
+                      metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
+                    }`}
+                  >
                     <TrendIcon className="w-3.5 h-3.5" />
                     <span>{metric.change}</span>
                   </div>

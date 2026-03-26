@@ -1,3 +1,17 @@
+import { OracleProvider } from '@/types/oracle';
+
+import { api3PanelConfig } from './API3PanelConfig';
+import { bandProtocolPanelConfig } from './BandProtocolPanelConfig';
+import { chainlinkPanelConfig } from './ChainlinkPanelConfig';
+import { chroniclePanelConfig } from './ChroniclePanelConfig';
+import { diaPanelConfig } from './DIAPanelConfig';
+import { pythPanelConfig } from './PythPanelConfig';
+import { redStonePanelConfig } from './RedStonePanelConfig';
+import { tellorPanelConfig } from './TellorPanelConfig';
+import { type PanelConfig } from './types';
+import { umaPanelConfig } from './UMAPanelConfig';
+import { winKLinkPanelConfig } from './WINkLinkPanelConfig';
+
 export * from './types';
 export { chainlinkPanelConfig } from './ChainlinkPanelConfig';
 export { pythPanelConfig } from './PythPanelConfig';
@@ -9,19 +23,6 @@ export { diaPanelConfig } from './DIAPanelConfig';
 export { chroniclePanelConfig } from './ChroniclePanelConfig';
 export { redStonePanelConfig } from './RedStonePanelConfig';
 export { winKLinkPanelConfig } from './WINkLinkPanelConfig';
-
-import { OracleProvider } from '@/types/oracle';
-import { PanelConfig } from './types';
-import { chainlinkPanelConfig } from './ChainlinkPanelConfig';
-import { pythPanelConfig } from './PythPanelConfig';
-import { api3PanelConfig } from './API3PanelConfig';
-import { tellorPanelConfig } from './TellorPanelConfig';
-import { bandProtocolPanelConfig } from './BandProtocolPanelConfig';
-import { umaPanelConfig } from './UMAPanelConfig';
-import { diaPanelConfig } from './DIAPanelConfig';
-import { chroniclePanelConfig } from './ChroniclePanelConfig';
-import { redStonePanelConfig } from './RedStonePanelConfig';
-import { winKLinkPanelConfig } from './WINkLinkPanelConfig';
 
 export const getPanelConfig = (provider: OracleProvider): PanelConfig => {
   switch (provider) {

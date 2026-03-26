@@ -1,6 +1,7 @@
 'use client';
 
-import { forwardRef, SVGAttributes } from 'react';
+import { forwardRef, type SVGAttributes } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export type SpinnerSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -13,15 +14,7 @@ export interface SpinnerProps extends Omit<SVGAttributes<SVGSVGElement>, 'size'>
 }
 
 export const Spinner = forwardRef<SVGSVGElement, SpinnerProps>(
-  (
-    {
-      className,
-      size = 'md',
-      variant = 'primary',
-      ...props
-    },
-    ref
-  ) => {
+  ({ className, size = 'md', variant = 'primary', ...props }, ref) => {
     const sizeStyles = {
       xs: 'w-3 h-3',
       sm: 'w-4 h-4',
@@ -40,12 +33,7 @@ export const Spinner = forwardRef<SVGSVGElement, SpinnerProps>(
     return (
       <svg
         ref={ref}
-        className={cn(
-          'animate-spin',
-          sizeStyles[size],
-          variantStyles[variant],
-          className
-        )}
+        className={cn('animate-spin', sizeStyles[size], variantStyles[variant], className)}
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -105,9 +93,7 @@ export const LoadingOverlay = forwardRef<HTMLDivElement, LoadingOverlayProps>(
             )}
           >
             <Spinner size={spinnerSize} variant={spinnerVariant} />
-            {text && (
-              <p className="mt-3 text-sm text-gray-600">{text}</p>
-            )}
+            {text && <p className="mt-3 text-sm text-gray-600">{text}</p>}
           </div>
         )}
       </div>

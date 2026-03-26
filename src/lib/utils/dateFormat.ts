@@ -22,26 +22,17 @@ export function useDateFormatter() {
   const locale = useLocale();
   const dateTimeLocale = getDateTimeLocale(locale);
 
-  const formatDate = (
-    date: Date | number,
-    options?: Intl.DateTimeFormatOptions
-  ): string => {
+  const formatDate = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {
     const d = typeof date === 'number' ? new Date(date) : date;
     return d.toLocaleDateString(dateTimeLocale, options);
   };
 
-  const formatTime = (
-    date: Date | number,
-    options?: Intl.DateTimeFormatOptions
-  ): string => {
+  const formatTime = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {
     const d = typeof date === 'number' ? new Date(date) : date;
     return d.toLocaleTimeString(dateTimeLocale, options);
   };
 
-  const formatDateTime = (
-    date: Date | number,
-    options?: Intl.DateTimeFormatOptions
-  ): string => {
+  const formatDateTime = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {
     const d = typeof date === 'number' ? new Date(date) : date;
     return d.toLocaleString(dateTimeLocale, options);
   };

@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+
 import { MetricCardSkeleton } from '@/components/ui';
 
 export const DynamicBentoMetricsGrid = dynamic(

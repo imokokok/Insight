@@ -1,19 +1,13 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Camera } from 'lucide-react';
-import { Upload } from 'lucide-react';
-import { Trash2 } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
-import { Check } from 'lucide-react';
-import { X } from 'lucide-react';
-import { ZoomIn } from 'lucide-react';
-import { ZoomOut } from 'lucide-react';
-import { RotateCw } from 'lucide-react';
-import { useTranslations } from '@/i18n';
-import { supabase } from '@/lib/supabase/client';
-import { updateUserProfile } from '@/lib/supabase/auth';
+
 import { motion, AnimatePresence } from 'framer-motion';
+import { Camera, Upload, Trash2, Loader2, Check, X, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
+import { updateUserProfile } from '@/lib/supabase/auth';
+import { supabase } from '@/lib/supabase/client';
 
 interface AvatarUploaderProps {
   currentAvatarUrl?: string | null;

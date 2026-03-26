@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+
 import { useRouter } from 'next/navigation';
-import type { UserFavorite } from '@/lib/supabase/queries';
-import { mapConfigTypeFromDB, FavoriteConfig, useRemoveFavorite } from '@/hooks';
+
+import { mapConfigTypeFromDB, type FavoriteConfig, useRemoveFavorite } from '@/hooks';
 import { useTranslations } from '@/i18n';
+import type { UserFavorite } from '@/lib/supabase/queries';
 
 interface FavoriteCardProps {
   favorite: UserFavorite;

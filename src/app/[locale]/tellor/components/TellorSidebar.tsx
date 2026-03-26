@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { TellorSidebarProps, TellorTabId } from '../types';
+
+import { type TellorSidebarProps, type TellorTabId } from '../types';
 
 interface NavItem {
   id: TellorTabId;
@@ -132,9 +133,7 @@ export function TellorSidebar({ activeTab, onTabChange }: TellorSidebarProps) {
                 }
               `}
             >
-              <span className={`${isActive ? 'text-cyan-600' : 'text-gray-400'}`}>
-                {item.icon}
-              </span>
+              <span className={`${isActive ? 'text-cyan-600' : 'text-gray-400'}`}>{item.icon}</span>
               <span>{t(item.labelKey)}</span>
             </button>
           );

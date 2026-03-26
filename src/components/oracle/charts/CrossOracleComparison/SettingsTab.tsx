@@ -1,17 +1,18 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { OracleProvider } from '@/types/oracle';
+import { ComparisonReportExporter } from '@/components/oracle/forms/ComparisonReportExporter';
 import { SegmentedControl, DropdownSelect } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { OracleProvider } from '@/types/oracle';
+
 import {
   symbols,
   oracleNames,
   oracleColors,
-  OracleGroup,
+  type OracleGroup,
   ORACLE_GROUPS,
 } from './crossOracleConfig';
-import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
-import { ComparisonReportExporter } from '@/components/oracle/forms/ComparisonReportExporter';
 
 interface DeviationAlert {
   provider: OracleProvider;

@@ -1,7 +1,7 @@
 'use client';
 
-import type { ConfidenceInterval } from '@/types/oracle';
 import { useTranslations } from '@/i18n';
+import type { ConfidenceInterval } from '@/types/oracle';
 
 interface ConfidenceIntervalDisplayProps {
   confidenceInterval: ConfidenceInterval;
@@ -94,7 +94,9 @@ export function ConfidenceIntervalDisplay({
             >
               <div className="flex flex-col items-center">
                 <div className="w-0.5 h-2 bg-primary-400" />
-                <span className="text-[9px] text-primary-600 font-medium">${midPrice.toFixed(2)}</span>
+                <span className="text-[9px] text-primary-600 font-medium">
+                  ${midPrice.toFixed(2)}
+                </span>
               </div>
             </div>
             <div

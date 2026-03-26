@@ -1,6 +1,5 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import {
   Calculator,
   Shield,
@@ -17,9 +16,10 @@ import {
   GitBranch,
   Target,
 } from 'lucide-react';
-import { baseColors, semanticColors } from '@/lib/config/colors';
 
+import { useTranslations } from '@/i18n';
 import { chartColors, getChartColor } from '@/lib/chartColors';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 
 export default function MethodologyPage() {
   const t = useTranslations();
@@ -497,7 +497,9 @@ export default function MethodologyPage() {
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="font-medium text-primary-900 mb-1">{t('methodology.disclaimer.title')}</h4>
+            <h4 className="font-medium text-primary-900 mb-1">
+              {t('methodology.disclaimer.title')}
+            </h4>
             <p className="text-sm text-primary-700">{t('methodology.disclaimer.content')}</p>
           </div>
         </div>

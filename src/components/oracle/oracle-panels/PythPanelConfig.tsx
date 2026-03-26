@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import { PanelConfig, PanelRenderContext } from './types';
+import { type ReactNode } from 'react';
+
 import {
   PriceStream,
   DataQualityScorePanel,
@@ -9,7 +9,10 @@ import {
   UpdateFrequencyHeatmap,
   LatencyTrendChart,
   CrossChainPriceConsistency,
+  EcosystemPanel,
 } from '@/components/oracle';
+
+import { type PanelConfig, type PanelRenderContext } from './types';
 
 const getStats = (context: PanelRenderContext) => {
   const { config, t } = context;
@@ -132,8 +135,6 @@ const renderEcosystemTab = (context: PanelRenderContext): ReactNode => {
     </div>
   );
 };
-
-import { EcosystemPanel } from '@/components/oracle';
 
 export const pythPanelConfig: PanelConfig = {
   getStats,

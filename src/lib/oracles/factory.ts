@@ -1,20 +1,22 @@
+import { container, SERVICE_TOKENS } from '@/lib/di';
+import { OracleClientError, ValidationError } from '@/lib/errors';
+import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider } from '@/types/oracle';
+
+import { API3Client } from './api3';
+import { BandProtocolClient } from './bandProtocol';
 import { BaseOracleClient } from './base';
 import { ChainlinkClient } from './chainlink';
-import { BandProtocolClient } from './bandProtocol';
-import { UMAClient } from './uma';
-import { PythClient } from './pythNetwork';
-import { API3Client } from './api3';
-import { RedStoneClient } from './redstone';
-import { DIAClient } from './dia';
-import { TellorClient } from './tellor';
 import { ChronicleClient } from './chronicle';
+import { DIAClient } from './dia';
+import { PythClient } from './pythNetwork';
+import { RedStoneClient } from './redstone';
+import { TellorClient } from './tellor';
+import { UMAClient } from './uma';
 import { WINkLinkClient } from './winklink';
+
 import type { OracleClientConfig } from './base';
-import { createLogger } from '@/lib/utils/logger';
-import { container, SERVICE_TOKENS } from '@/lib/di';
 import type { IOracleClient, IOracleClientFactory } from './interfaces';
-import { OracleClientError, ValidationError } from '@/lib/errors';
 
 const logger = createLogger('OracleClientFactory');
 

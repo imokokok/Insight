@@ -1,14 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { NodeStakingData } from '@/lib/oracles/winklink';
+import { Coins, Users, TrendingUp, Award, Globe, CheckCircle } from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Coins } from 'lucide-react';
-import { Users } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Award } from 'lucide-react';
-import { Globe } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type NodeStakingData } from '@/lib/oracles/winklink';
 
 interface WINkLinkStakingPanelProps {
   data: NodeStakingData;

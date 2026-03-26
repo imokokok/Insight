@@ -1,4 +1,4 @@
-import { AppError, AppErrorOptions } from '../AppError';
+import { AppError, type AppErrorOptions } from '../AppError';
 
 // Test implementation of AppError
 class TestError extends AppError {

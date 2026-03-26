@@ -1,10 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { TimeComparisonChart, TimeRangeSelector } from '@/components/comparison';
-import { ComparisonChartData, TimeComparisonConfig } from '@/components/comparison/types';
-import { QueryResult } from '../constants';
+import { type ComparisonChartData, type TimeComparisonConfig } from '@/components/comparison/types';
+import { useTranslations } from '@/i18n';
+
+import { type QueryResult } from '../constants';
 
 interface ChartDataPoint {
   timestamp: number;

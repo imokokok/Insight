@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
-  LatencyDataPoint,
-  HistogramDataPoint,
+  type LatencyDataPoint,
+  type HistogramDataPoint,
   calculatePercentile,
   generateHistogramData,
 } from './latencyUtils';

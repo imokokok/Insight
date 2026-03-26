@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import { AlertOctagon, RefreshCw, Home } from 'lucide-react';
 
 interface GlobalErrorProps {

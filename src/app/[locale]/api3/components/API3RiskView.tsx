@@ -1,7 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
+
+import {
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  Award,
+  Info,
+  ChevronDown,
+  ChevronUp,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from 'lucide-react';
 import {
   RadarChart,
   PolarGrid,
@@ -11,53 +23,48 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import {
-  TimelineChart,
-  TimelineEvent,
-} from '@/components/oracle/charts/TimelineChart';
+
+import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
+import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
-import { Shield } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { Award } from 'lucide-react';
-import { Info } from 'lucide-react';
-import { ChevronDown } from 'lucide-react';
-import { ChevronUp } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
-import { Minus } from 'lucide-react';
-import { API3RiskViewProps } from '../types';
+
+import { type API3RiskViewProps } from '../types';
 
 // 历史风险事件
 const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2024-02-20T10:30:00',
     title: 'API3 DAO 治理升级',
-    description: '成功完成 DAO 治理机制升级，引入新的提案流程和投票权重计算机制，提升治理效率和安全性。',
+    description:
+      '成功完成 DAO 治理机制升级，引入新的提案流程和投票权重计算机制，提升治理效率和安全性。',
     type: 'success',
   },
   {
     date: '2023-12-15T14:20:00',
     title: 'OEV Network 主网上线',
-    description: 'OEV (Oracle Extractable Value) Network 正式在主网启动，为 dApps 提供 MEV 回收功能。',
+    description:
+      'OEV (Oracle Extractable Value) Network 正式在主网启动，为 dApps 提供 MEV 回收功能。',
     type: 'success',
   },
   {
     date: '2023-10-08T09:15:00',
     title: '安全审计报告发布',
-    description: 'Quantstamp 完成 API3 核心合约的安全审计，发现并修复了 2 个低风险问题，无重大漏洞。',
+    description:
+      'Quantstamp 完成 API3 核心合约的安全审计，发现并修复了 2 个低风险问题，无重大漏洞。',
     type: 'info',
   },
   {
     date: '2023-08-22T16:45:00',
     title: 'Airnode 部署里程碑',
-    description: '全球 Airnode 部署数量突破 150 个，覆盖 30+ 个区块链网络，数据提供商生态持续扩展。',
+    description:
+      '全球 Airnode 部署数量突破 150 个，覆盖 30+ 个区块链网络，数据提供商生态持续扩展。',
     type: 'success',
   },
   {
     date: '2023-06-12T11:30:00',
     title: 'dAPI 价格延迟事件',
-    description: '由于 Polygon 网络拥堵，部分 dAPI 价格更新延迟 3-5 分钟。团队迅速启用备用节点恢复服务。',
+    description:
+      '由于 Polygon 网络拥堵，部分 dAPI 价格更新延迟 3-5 分钟。团队迅速启用备用节点恢复服务。',
     type: 'warning',
   },
   {
@@ -122,7 +129,8 @@ const riskFactors = [
   {
     category: 'Smart Contract Risk',
     level: 'low',
-    description: 'Multiple audits by Quantstamp and other leading security firms. Core contracts have been battle-tested since 2021.',
+    description:
+      'Multiple audits by Quantstamp and other leading security firms. Core contracts have been battle-tested since 2021.',
     details: [
       'Quantstamp audit completed Q4 2023',
       'Continuous monitoring through Code4rena',
@@ -133,7 +141,8 @@ const riskFactors = [
   {
     category: 'Oracle Risk',
     level: 'low',
-    description: 'First-party oracle architecture with direct data provider relationships and cryptographic attestations.',
+    description:
+      'First-party oracle architecture with direct data provider relationships and cryptographic attestations.',
     details: [
       '150+ Airnodes operated by data providers',
       'Direct API provider relationships (no middlemen)',
@@ -155,7 +164,8 @@ const riskFactors = [
   {
     category: 'Regulatory Risk',
     level: 'medium',
-    description: 'Potential regulatory changes affecting first-party oracle models and data provider relationships.',
+    description:
+      'Potential regulatory changes affecting first-party oracle models and data provider relationships.',
     details: [
       'First-party model may face different regulatory treatment',
       'Data provider compliance requirements evolving',
@@ -166,7 +176,8 @@ const riskFactors = [
   {
     category: 'Adoption Risk',
     level: 'medium',
-    description: 'Relatively newer protocol compared to established competitors, with smaller integration footprint.',
+    description:
+      'Relatively newer protocol compared to established competitors, with smaller integration footprint.',
     details: [
       'Fewer total integrations than Chainlink',
       'Growing but smaller developer community',
@@ -236,7 +247,8 @@ export function API3RiskView({
               {t('api3.risk.metrics') || 'Risk Metrics'}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {t('api3.risk.metricsDesc') || 'Key performance indicators across decentralization, security, and reliability'}
+              {t('api3.risk.metricsDesc') ||
+                'Key performance indicators across decentralization, security, and reliability'}
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
@@ -263,7 +275,8 @@ export function API3RiskView({
                   className="h-1.5 rounded-full transition-all duration-500"
                   style={{
                     width: `${(metric.value / metric.max) * 100}%`,
-                    backgroundColor: metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
+                    backgroundColor:
+                      metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
                   }}
                 />
               </div>
@@ -283,7 +296,8 @@ export function API3RiskView({
             {t('api3.risk.benchmark') || 'Industry Benchmark Comparison'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.risk.benchmarkDesc') || 'Performance comparison against other leading oracle providers'}
+            {t('api3.risk.benchmarkDesc') ||
+              'Performance comparison against other leading oracle providers'}
           </p>
         </div>
 
@@ -295,7 +309,11 @@ export function API3RiskView({
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={benchmarkData}>
                   <PolarGrid stroke="#e5e7eb" />
                   <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                  <PolarRadiusAxis
+                    angle={90}
+                    domain={[0, 100]}
+                    tick={{ fontSize: 10, fill: '#9ca3af' }}
+                  />
                   <Radar
                     name="API3"
                     dataKey="api3"
@@ -328,7 +346,9 @@ export function API3RiskView({
 
           {/* 对比表格 */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700">{t('api3.risk.comparison') || 'Detailed Comparison'}</h3>
+            <h3 className="text-sm font-medium text-gray-700">
+              {t('api3.risk.comparison') || 'Detailed Comparison'}
+            </h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
                 <div key={item.metric} className="space-y-2">
@@ -369,7 +389,8 @@ export function API3RiskView({
             {t('api3.risk.timeline') || 'Historical Risk Events'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.risk.timelineDesc') || 'Security audits, incidents and upgrades over the past 24 months'}
+            {t('api3.risk.timelineDesc') ||
+              'Security audits, incidents and upgrades over the past 24 months'}
           </p>
         </div>
 
@@ -428,7 +449,9 @@ export function API3RiskView({
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">{t('api3.risk.clickEvent') || 'Click an event to view details'}</p>
+                <p className="text-sm text-gray-500">
+                  {t('api3.risk.clickEvent') || 'Click an event to view details'}
+                </p>
               </div>
             )}
           </div>
@@ -451,16 +474,15 @@ export function API3RiskView({
 
         <div className="space-y-2">
           {riskFactors.map((factor, index) => (
-            <div
-              key={index}
-              className="border-b border-gray-100 last:border-0"
-            >
+            <div key={index} className="border-b border-gray-100 last:border-0">
               <button
                 onClick={() => setExpandedFactor(expandedFactor === index ? null : index)}
                 className="w-full py-4 flex items-center justify-between hover:bg-gray-50 transition-colors px-2 -mx-2 rounded-md"
               >
                 <div className="flex items-center gap-4">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}
+                  >
                     {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
                   </span>
                   <span className="text-sm font-medium text-gray-900">{factor.category}</span>
@@ -481,7 +503,10 @@ export function API3RiskView({
                   <p className="text-sm text-gray-600 mb-3 leading-relaxed">{factor.description}</p>
                   <ul className="space-y-2">
                     {factor.details.map((detail, detailIndex) => (
-                      <li key={detailIndex} className="flex items-start gap-2 text-sm text-gray-500">
+                      <li
+                        key={detailIndex}
+                        className="flex items-start gap-2 text-sm text-gray-500"
+                      >
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
                         <span>{detail}</span>
                       </li>
@@ -501,9 +526,12 @@ export function API3RiskView({
       <section className="flex items-start gap-4 py-2">
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{t('api3.risk.disclaimer') || 'Risk Disclaimer'}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {t('api3.risk.disclaimer') || 'Risk Disclaimer'}
+          </h3>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-            {t('api3.risk.disclaimerText') || 'The risk assessment provided is for informational purposes only and should not be considered as investment advice. Cryptocurrency investments carry significant risks, including potential loss of capital. Please conduct your own research and consult with financial advisors before making investment decisions.'}
+            {t('api3.risk.disclaimerText') ||
+              'The risk assessment provided is for informational purposes only and should not be considered as investment advice. Cryptocurrency investments carry significant risks, including potential loss of capital. Please conduct your own research and consult with financial advisors before making investment decisions.'}
           </p>
         </div>
       </section>

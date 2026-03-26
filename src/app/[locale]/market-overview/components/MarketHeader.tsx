@@ -1,14 +1,17 @@
 'use client';
 
+import { BarChart3 } from 'lucide-react';
+
+import { LiveStatusBar } from '@/components/ui';
 import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import { BarChart3 } from 'lucide-react';
-import { LiveStatusBar } from '@/components/ui';
-import UnifiedExportSection from './UnifiedExportSection';
-import RefreshControl from './RefreshControl';
+
+import { type RefreshInterval } from '../constants';
+import { type OracleMarketData, type AssetData } from '../types';
+
 import RealtimeIndicator from './RealtimeIndicator';
-import { RefreshInterval } from '../constants';
-import { OracleMarketData, AssetData } from '../types';
+import RefreshControl from './RefreshControl';
+import UnifiedExportSection from './UnifiedExportSection';
 
 interface MarketHeaderProps {
   loading: boolean;
@@ -89,10 +92,7 @@ export default function MarketHeader({
       </div>
 
       {/* Live Status Bar */}
-      <LiveStatusBar
-        isConnected={wsStatus === 'connected'}
-        lastUpdate={lastUpdated ?? undefined}
-      />
+      <LiveStatusBar isConnected={wsStatus === 'connected'} lastUpdate={lastUpdated ?? undefined} />
     </div>
   );
 }

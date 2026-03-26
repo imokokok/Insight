@@ -1,9 +1,14 @@
 'use client';
 
-import { SnapshotManager } from '@/components/oracle/data-display/SnapshotManager';
 import { SnapshotComparison } from '@/components/oracle/data-display/SnapshotComparison';
-import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
-import { OracleSnapshot } from '@/types/oracle';
+import { SnapshotManager } from '@/components/oracle/data-display/SnapshotManager';
+import {
+  type OracleProvider,
+  type PriceData,
+  type SnapshotStats,
+  type OracleSnapshot,
+} from '@/types/oracle';
+
 import { oracleNames } from '../../constants';
 import { ExportHistoryButton } from '../ExportHistoryButton';
 
@@ -38,9 +43,7 @@ export function HistoryTab({
     <>
       {/* 导出历史数据功能入口 */}
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">
-          {t('crossOracle.historyTab.title')}
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('crossOracle.historyTab.title')}</h2>
         <ExportHistoryButton
           selectedSymbol={selectedSymbol}
           selectedOracles={selectedOracles}

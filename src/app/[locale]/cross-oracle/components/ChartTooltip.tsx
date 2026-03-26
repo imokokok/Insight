@@ -1,6 +1,7 @@
 'use client';
 
-import { OracleProvider } from '@/types/oracle';
+import { type OracleProvider } from '@/types/oracle';
+
 import { oracleNames } from '../constants';
 
 interface TooltipPayloadItem {
@@ -81,7 +82,9 @@ export function ChartTooltip({ active, payload, label, t }: ChartTooltipProps) {
                   })}
                 </span>
                 {deviation !== null && (
-                  <span className={`text-xs ${deviation >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                  <span
+                    className={`text-xs ${deviation >= 0 ? 'text-success-600' : 'text-danger-600'}`}
+                  >
                     ({deviation >= 0 ? '+' : ''}
                     {deviation.toFixed(3)}%)
                   </span>

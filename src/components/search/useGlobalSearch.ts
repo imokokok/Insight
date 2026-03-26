@@ -1,10 +1,18 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef } from 'react';
+
 import Fuse from 'fuse.js';
+
 import { useLocale } from '@/i18n';
-import { SearchResult, SearchGroup, UseGlobalSearchOptions, UseGlobalSearchReturn } from './types';
+
 import { getAllSearchResults, searchGroupLabels } from './data';
+import {
+  type SearchResult,
+  type SearchGroup,
+  type UseGlobalSearchOptions,
+  type UseGlobalSearchReturn,
+} from './types';
 
 const DEFAULT_OPTIONS: Required<UseGlobalSearchOptions> = {
   maxResults: 50,

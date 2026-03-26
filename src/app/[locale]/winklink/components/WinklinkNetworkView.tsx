@@ -1,13 +1,12 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { WinklinkNetworkViewProps } from '../types';
 import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
-export function WinklinkNetworkView({
-  config,
-  networkStats,
-}: WinklinkNetworkViewProps) {
+import { useTranslations } from '@/i18n';
+
+import { type WinklinkNetworkViewProps } from '../types';
+
+export function WinklinkNetworkView({ config, networkStats }: WinklinkNetworkViewProps) {
   const t = useTranslations();
 
   const networkData = networkStats || config.networkData;
@@ -64,11 +63,15 @@ export function WinklinkNetworkView({
                 <span className="text-sm">{metric.label}</span>
               </div>
               <div className="flex items-baseline gap-3">
-                <p className="text-3xl font-semibold text-gray-900 tracking-tight">{metric.value}</p>
+                <p className="text-3xl font-semibold text-gray-900 tracking-tight">
+                  {metric.value}
+                </p>
                 {metric.change && (
-                  <div className={`flex items-center gap-0.5 text-sm font-medium ${
-                    metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
-                  }`}>
+                  <div
+                    className={`flex items-center gap-0.5 text-sm font-medium ${
+                      metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
+                    }`}
+                  >
                     <TrendIcon className="w-3.5 h-3.5" />
                     <span>{metric.change}</span>
                   </div>

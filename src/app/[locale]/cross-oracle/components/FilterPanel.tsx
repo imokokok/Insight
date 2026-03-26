@@ -1,9 +1,10 @@
 'use client';
 
-import { OracleProvider } from '@/types/oracle';
-import { oracleNames, TimeRange, DeviationFilter, timeRanges } from '../constants';
-import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { DropdownSelect } from '@/components/ui';
+import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { type OracleProvider } from '@/types/oracle';
+
+import { oracleNames, type TimeRange, type DeviationFilter, timeRanges } from '../constants';
 
 interface FilterPanelProps {
   isOpen: boolean;

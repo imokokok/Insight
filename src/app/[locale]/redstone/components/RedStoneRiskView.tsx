@@ -1,21 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
-import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import {
-  TimelineChart,
-  TimelineEvent,
-} from '@/components/oracle/charts/TimelineChart';
-import { chartColors } from '@/lib/config/colors';
+
 import {
   Shield,
   AlertTriangle,
@@ -28,14 +14,29 @@ import {
   TrendingDown,
   Minus,
 } from 'lucide-react';
-import { RedStoneRiskViewProps } from '../types';
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+
+import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
+
+import { type RedStoneRiskViewProps } from '../types';
 
 // 历史风险事件
 const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2024-02-20T10:00:00',
     title: '安全审计完成',
-    description: 'RedStone 核心合约通过 Certora 形式化验证和 OpenZeppelin 安全审计，未发现重大漏洞。',
+    description:
+      'RedStone 核心合约通过 Certora 形式化验证和 OpenZeppelin 安全审计，未发现重大漏洞。',
     type: 'success',
   },
   {
@@ -53,7 +54,8 @@ const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2023-10-22T16:45:00',
     title: '价格偏差事件',
-    description: '由于极端市场波动，部分资产价格喂送出现短暂偏差。团队迅速响应并在 15 分钟内恢复正常。',
+    description:
+      '由于极端市场波动，部分资产价格喂送出现短暂偏差。团队迅速响应并在 15 分钟内恢复正常。',
     type: 'warning',
   },
   {
@@ -124,7 +126,8 @@ const riskFactors = [
   {
     category: 'Smart Contract Risk',
     level: 'low',
-    description: 'Multiple audits by leading security firms including Certora and OpenZeppelin. No critical vulnerabilities found.',
+    description:
+      'Multiple audits by leading security firms including Certora and OpenZeppelin. No critical vulnerabilities found.',
     details: [
       'Certora formal verification completed Q1 2024',
       'OpenZeppelin security audit passed',
@@ -134,7 +137,8 @@ const riskFactors = [
   {
     category: 'Oracle Risk',
     level: 'low',
-    description: 'Decentralized node network with reputation system and economic incentives through staking.',
+    description:
+      'Decentralized node network with reputation system and economic incentives through staking.',
     details: [
       '150+ node operators across 30+ countries',
       'Pull-based oracle model reduces attack surface',
@@ -144,7 +148,8 @@ const riskFactors = [
   {
     category: 'Market Risk',
     level: 'medium',
-    description: 'Newer protocol with shorter track record compared to established oracles. Token economics still evolving.',
+    description:
+      'Newer protocol with shorter track record compared to established oracles. Token economics still evolving.',
     details: [
       'Protocol launched in 2023, limited historical data',
       'RSG token price volatility affects staking',
@@ -154,7 +159,8 @@ const riskFactors = [
   {
     category: 'Regulatory Risk',
     level: 'medium',
-    description: 'Potential regulatory changes in DeFi sector and emerging oracle services classification.',
+    description:
+      'Potential regulatory changes in DeFi sector and emerging oracle services classification.',
     details: [
       'Ongoing regulatory clarity discussions',
       'Compliance framework in development',
@@ -237,7 +243,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
               {t('redstone.risk.metrics') || 'Risk Metrics'}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {t('redstone.risk.metricsDesc') || 'Key performance indicators across decentralization, security, and reliability'}
+              {t('redstone.risk.metricsDesc') ||
+                'Key performance indicators across decentralization, security, and reliability'}
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
@@ -264,7 +271,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
                   className="h-1.5 rounded-full transition-all duration-500"
                   style={{
                     width: `${(metric.value / metric.max) * 100}%`,
-                    backgroundColor: metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
+                    backgroundColor:
+                      metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
                   }}
                 />
               </div>
@@ -284,7 +292,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
             {t('redstone.risk.benchmark') || 'Industry Benchmark Comparison'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('redstone.risk.benchmarkDesc') || 'Performance comparison against other leading oracle providers'}
+            {t('redstone.risk.benchmarkDesc') ||
+              'Performance comparison against other leading oracle providers'}
           </p>
         </div>
 
@@ -296,7 +305,11 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={benchmarkData}>
                   <PolarGrid stroke="#e5e7eb" />
                   <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                  <PolarRadiusAxis
+                    angle={90}
+                    domain={[0, 100]}
+                    tick={{ fontSize: 10, fill: '#9ca3af' }}
+                  />
                   <Radar
                     name="RedStone"
                     dataKey="redstone"
@@ -329,7 +342,9 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
 
           {/* 对比表格 */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700">{t('redstone.risk.comparison') || 'Detailed Comparison'}</h3>
+            <h3 className="text-sm font-medium text-gray-700">
+              {t('redstone.risk.comparison') || 'Detailed Comparison'}
+            </h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
                 <div key={item.metric} className="space-y-2">
@@ -370,7 +385,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
             {t('redstone.risk.timeline') || 'Historical Risk Events'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('redstone.risk.timelineDesc') || 'Security audits, incidents and upgrades over the past 24 months'}
+            {t('redstone.risk.timelineDesc') ||
+              'Security audits, incidents and upgrades over the past 24 months'}
           </p>
         </div>
 
@@ -429,7 +445,9 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">{t('redstone.risk.clickEvent') || 'Click an event to view details'}</p>
+                <p className="text-sm text-gray-500">
+                  {t('redstone.risk.clickEvent') || 'Click an event to view details'}
+                </p>
               </div>
             )}
           </div>
@@ -452,16 +470,15 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
 
         <div className="space-y-2">
           {riskFactors.map((factor, index) => (
-            <div
-              key={index}
-              className="border-b border-gray-100 last:border-0"
-            >
+            <div key={index} className="border-b border-gray-100 last:border-0">
               <button
                 onClick={() => setExpandedFactor(expandedFactor === index ? null : index)}
                 className="w-full py-4 flex items-center justify-between hover:bg-gray-50 transition-colors px-2 -mx-2 rounded-md"
               >
                 <div className="flex items-center gap-4">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}
+                  >
                     {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
                   </span>
                   <span className="text-sm font-medium text-gray-900">{factor.category}</span>
@@ -482,7 +499,10 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
                   <p className="text-sm text-gray-600 mb-3 leading-relaxed">{factor.description}</p>
                   <ul className="space-y-2">
                     {factor.details.map((detail, detailIndex) => (
-                      <li key={detailIndex} className="flex items-start gap-2 text-sm text-gray-500">
+                      <li
+                        key={detailIndex}
+                        className="flex items-start gap-2 text-sm text-gray-500"
+                      >
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
                         <span>{detail}</span>
                       </li>
@@ -503,7 +523,9 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-semibold text-gray-900">{t('redstone.risk.disclaimer')}</h3>
-          <p className="text-sm text-gray-500 mt-1 leading-relaxed">{t('redstone.risk.disclaimerText')}</p>
+          <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+            {t('redstone.risk.disclaimerText')}
+          </p>
         </div>
       </section>
     </div>

@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
+
 import dynamic from 'next/dynamic';
+import { useRouter, usePathname } from 'next/navigation';
+
 import type { SettingsTab } from '@/components/settings';
 import { useLocale } from '@/i18n';
+import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
 
 // 动态导入设置组件
 const SettingsLayout = dynamic(

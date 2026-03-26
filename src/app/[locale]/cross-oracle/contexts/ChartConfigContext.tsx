@@ -1,20 +1,22 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode } from 'react';
-import { OracleProvider } from '@/types/oracle';
-import { TimeRange } from '../constants';
+import React, { createContext, useContext, type ReactNode } from 'react';
+
+import { type OracleProvider } from '@/types/oracle';
+
+import { type TimeRange } from '../constants';
 
 interface ChartConfigContextValue {
   // 选中的预言机
   selectedOracles: OracleProvider[];
   selectedSymbol: string;
-  
+
   // 图表配置
   timeRange: TimeRange;
   zoomLevel: number;
   oracleChartColors: Record<OracleProvider, string>;
   useAccessibleColors: boolean;
-  
+
   // 图表数据获取函数
   getChartData: () => {
     timestamp: string;
@@ -29,7 +31,7 @@ interface ChartConfigContextValue {
     oracleCount?: number;
     [key: string]: string | number | Date | undefined;
   }[];
-  
+
   // 图表数据
   heatmapData: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[];
   boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
@@ -38,7 +40,7 @@ interface ChartConfigContextValue {
   performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
   maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
   qualityTrendData: import('../types').QualityTrendData[];
-  
+
   // 操作方法
   setTimeRange: (range: TimeRange) => void;
   handleZoomIn: () => void;
@@ -58,11 +60,7 @@ interface ChartConfigProviderProps {
 }
 
 export function ChartConfigProvider({ children, value }: ChartConfigProviderProps) {
-  return (
-    <ChartConfigContext.Provider value={value}>
-      {children}
-    </ChartConfigContext.Provider>
-  );
+  return <ChartConfigContext.Provider value={value}>{children}</ChartConfigContext.Provider>;
 }
 
 export function useChartConfig() {

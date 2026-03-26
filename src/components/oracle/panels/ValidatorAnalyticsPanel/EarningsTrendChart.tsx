@@ -1,7 +1,8 @@
 'use client';
 
-import { EarningsTrend } from './config';
 import { formatNumber } from '@/lib/utils/format';
+
+import { type EarningsTrend } from './config';
 
 export function EarningsTrendChart({ data }: { data: EarningsTrend[] }) {
   const maxDaily = Math.max(...data.map((d) => d.daily));

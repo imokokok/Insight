@@ -1,7 +1,9 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
+
 import { useLocale as useNextIntlLocale } from 'next-intl';
+
 import { routing } from '@/i18n/routing';
 
 export type Locale = 'en' | 'zh-CN';

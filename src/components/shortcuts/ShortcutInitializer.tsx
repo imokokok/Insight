@@ -1,9 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { useKeyboardShortcuts, useGlobalKeyboardListener } from '@/hooks';
-import { useShortcutContext } from './ShortcutContext';
+import { useTranslations } from '@/i18n';
 import { useUIStore } from '@/stores/uiStore';
+
+import { useShortcutContext } from './ShortcutContext';
 
 /**
  * 快捷键初始化组件

@@ -1,12 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+
+import { Heart, Download, RefreshCw } from 'lucide-react';
+
 import { useTranslations, useLocale } from '@/i18n';
-import { QueryHistoryItem } from '@/utils/queryHistory';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import { Heart } from 'lucide-react';
-import { Download } from 'lucide-react';
-import { RefreshCw } from 'lucide-react';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
+import { type QueryHistoryItem } from '@/utils/queryHistory';
 
 interface PageHeaderProps {
   showHistory: boolean;

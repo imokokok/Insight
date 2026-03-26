@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useMemo } from 'react';
+
 import { motion, AnimatePresence } from 'framer-motion';
+import { X, Command, Keyboard } from 'lucide-react';
+
+import { getPlatformShortcut, type KeyboardShortcut } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { X } from 'lucide-react';
-import { Command } from 'lucide-react';
-import { Keyboard } from 'lucide-react';
+
 import { useShortcutContext } from './ShortcutContext';
-import { getPlatformShortcut, KeyboardShortcut } from '@/hooks';
 
 interface ShortcutItemProps {
   shortcut: KeyboardShortcut;

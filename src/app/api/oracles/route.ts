@@ -1,5 +1,6 @@
-import { NextRequest } from 'next/server';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { type NextRequest } from 'next/server';
+
+import { createApiHandler } from '@/lib/api/handler';
 import {
   validateRequiredParams,
   validateProvider,
@@ -7,10 +8,10 @@ import {
   handleGetPrice,
   handleGetHistoricalPrices,
   handleBatchPrices,
-  BatchPriceRequest,
+  type BatchPriceRequest,
 } from '@/lib/api/oracleHandlers';
-import { createApiHandler } from '@/lib/api/handler';
 import { ValidationError } from '@/lib/errors';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 export const GET = createApiHandler(
   async (request: NextRequest) => {

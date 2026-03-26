@@ -1,6 +1,11 @@
-import { Blockchain, OracleProvider, BLOCKCHAIN_VALUES, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 import { oracleConfigs } from '@/lib/config/oracles';
 import { CHAIN_CATEGORIES, getChainsByCategory, getChainCategory } from '@/lib/constants';
+import {
+  Blockchain,
+  type OracleProvider,
+  BLOCKCHAIN_VALUES,
+  ORACLE_PROVIDER_VALUES,
+} from '@/types/oracle';
 
 export { CHAIN_CATEGORIES, getChainsByCategory, getChainCategory };
 
@@ -112,10 +117,7 @@ export function getChainCoverageHeatmapData(): {
 /**
  * 检查链是否被支持
  */
-export function isChainSupportedByOracle(
-  chain: Blockchain,
-  provider: OracleProvider
-): boolean {
+export function isChainSupportedByOracle(chain: Blockchain, provider: OracleProvider): boolean {
   const config = oracleConfigs[provider];
   return config?.supportedChains.includes(chain) || false;
 }

@@ -1,10 +1,13 @@
 'use client';
 
-import { forwardRef, ReactNode } from 'react';
+import { forwardRef, type ReactNode } from 'react';
+
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+
 import { ChevronRight, Home } from 'lucide-react';
+
 import { baseColors } from '@/lib/config/colors';
+import { cn } from '@/lib/utils';
 
 export interface BreadcrumbItem {
   label: string;

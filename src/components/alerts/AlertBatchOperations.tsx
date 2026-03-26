@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { PriceAlert } from '@/lib/supabase/database.types';
+
 import { useTranslations } from '@/i18n';
+import { type PriceAlert } from '@/lib/supabase/database.types';
 
 interface AlertBatchOperationsProps {
   selectedAlerts: string[];

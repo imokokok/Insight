@@ -1,6 +1,12 @@
-import { supabase } from '../supabase/client';
-import { OracleSnapshot, SnapshotStats, OracleProvider, PriceData } from '@/types/oracle';
 import { createLogger } from '@/lib/utils/logger';
+import {
+  type OracleSnapshot,
+  type SnapshotStats,
+  type OracleProvider,
+  type PriceData,
+} from '@/types/oracle';
+
+import { supabase } from '../supabase/client';
 
 const logger = createLogger('snapshot-database');
 

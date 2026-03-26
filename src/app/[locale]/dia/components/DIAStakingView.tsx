@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
+import { Coins, TrendingUp, Users, Gift, Lock, Clock, RefreshCw } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -10,15 +10,10 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Coins } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Users } from 'lucide-react';
-import { Gift } from 'lucide-react';
-import { Lock } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { RefreshCw } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
 import { useDIAStaking, useDIAStakingDetails } from '@/hooks';
+import { useTranslations } from '@/i18n';
+import { cn } from '@/lib/utils';
 
 export function DIAStakingView() {
   const t = useTranslations();
@@ -64,7 +59,9 @@ export function DIAStakingView() {
         <div className="flex items-center gap-3">
           <Coins className="w-4 h-4 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('dia.staking.totalStaked')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('dia.staking.totalStaked')}
+            </p>
             <div className="flex items-baseline gap-2">
               <p className="text-xl font-semibold text-gray-900">
                 {isLoading ? '-' : `${((staking?.totalStaked ?? 0) / 1e6).toFixed(2)}M DIA`}
@@ -77,7 +74,9 @@ export function DIAStakingView() {
         <div className="flex items-center gap-3">
           <TrendingUp className="w-4 h-4 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('dia.staking.stakingApr')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('dia.staking.stakingApr')}
+            </p>
             <div className="flex items-baseline gap-2">
               <p className="text-xl font-semibold text-gray-900">
                 {isLoading ? '-' : `${(staking?.stakingApr ?? 0).toFixed(2)}%`}
@@ -90,7 +89,9 @@ export function DIAStakingView() {
         <div className="flex items-center gap-3">
           <Users className="w-4 h-4 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('dia.staking.stakerCount')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('dia.staking.stakerCount')}
+            </p>
             <div className="flex items-baseline gap-2">
               <p className="text-xl font-semibold text-gray-900">
                 {isLoading ? '-' : (staking?.stakerCount ?? 0).toLocaleString()}
@@ -103,7 +104,9 @@ export function DIAStakingView() {
         <div className="flex items-center gap-3">
           <Gift className="w-4 h-4 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('dia.staking.rewardsDistributed')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('dia.staking.rewardsDistributed')}
+            </p>
             <div className="flex items-baseline gap-2">
               <p className="text-xl font-semibold text-gray-900">
                 {isLoading ? '-' : `${((staking?.rewardPool ?? 0) / 1e6).toFixed(2)}M DIA`}
@@ -119,7 +122,9 @@ export function DIAStakingView() {
         {/* 左侧：基本信息 */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-900 mb-4">{t('dia.staking.details')}</h3>
+            <h3 className="text-base font-semibold text-gray-900 mb-4">
+              {t('dia.staking.details')}
+            </h3>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
@@ -129,7 +134,9 @@ export function DIAStakingView() {
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">
-                  {isLoading ? '-' : `${(stakingDetails?.minStakeAmount ?? 1000).toLocaleString()} DIA`}
+                  {isLoading
+                    ? '-'
+                    : `${(stakingDetails?.minStakeAmount ?? 1000).toLocaleString()} DIA`}
                 </p>
               </div>
             </div>
@@ -156,7 +163,9 @@ export function DIAStakingView() {
 
         {/* 右侧：锁定期 APR 进度条 */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('dia.staking.lockPeriods')}</h4>
+          <h4 className="text-sm font-semibold text-gray-900 mb-4">
+            {t('dia.staking.lockPeriods')}
+          </h4>
           <div className="space-y-3">
             {lockPeriods.map((period) => {
               const apr = aprByPeriod[period] ?? 0;
@@ -165,7 +174,9 @@ export function DIAStakingView() {
               return (
                 <div key={period} className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{period} {t('dia.staking.days')}</span>
+                    <span className="text-gray-600">
+                      {period} {t('dia.staking.days')}
+                    </span>
                     <span className="font-semibold text-indigo-600">{apr.toFixed(1)}%</span>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -184,7 +195,9 @@ export function DIAStakingView() {
       {/* 历史 APR 趋势 - 面积图 */}
       <div>
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-gray-900">{t('dia.staking.historicalApr')}</h3>
+          <h3 className="text-base font-semibold text-gray-900">
+            {t('dia.staking.historicalApr')}
+          </h3>
           <p className="text-sm text-gray-500 mt-0.5">APR trend over time</p>
         </div>
         <div className="h-56">
@@ -197,11 +210,7 @@ export function DIAStakingView() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis
-                dataKey="date"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11 }}
-              />
+              <XAxis dataKey="date" stroke="#9ca3af" tick={{ fontSize: 11 }} />
               <YAxis
                 stroke="#9ca3af"
                 tick={{ fontSize: 11 }}

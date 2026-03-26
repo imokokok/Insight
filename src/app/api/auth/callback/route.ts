@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
+
 import { createClient } from '@supabase/supabase-js';
+
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-callback');

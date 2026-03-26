@@ -3,8 +3,8 @@
  * 避免与 colors.ts 的循环依赖
  */
 
-import { OracleProvider } from '@/types/oracle';
 import { chartColors } from '@/lib/config/colors';
+import { OracleProvider } from '@/types/oracle';
 
 /**
  * 获取预言机颜色

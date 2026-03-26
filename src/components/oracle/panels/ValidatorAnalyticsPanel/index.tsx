@@ -1,26 +1,29 @@
 'use client';
 
-import { useState, useEffect, ReactNode, useCallback } from 'react';
+import { useState, useEffect, type ReactNode, useCallback } from 'react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { UMAClient, ValidatorData, ValidatorHistoryData } from '@/lib/oracles/uma';
-import { useTranslations } from '@/i18n';
-import { ValidatorPerformanceHeatmap } from '../../charts/ValidatorPerformanceHeatmap';
-import { ValidatorComparison } from '../../charts/ValidatorComparison';
 import { StakingCalculator } from '@/components/oracle/data-display/StakingCalculator';
-import { createLogger } from '@/lib/utils/logger';
+import { SegmentedControl } from '@/components/ui';
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
-import { ValidatorHistoryChart } from './ValidatorHistoryChart';
-import { EarningsTrendChart } from './EarningsTrendChart';
+import { UMAClient, type ValidatorData, type ValidatorHistoryData } from '@/lib/oracles/uma';
+import { formatNumber } from '@/lib/utils/format';
+import { createLogger } from '@/lib/utils/logger';
+
+import { ValidatorComparison } from '../../charts/ValidatorComparison';
+import { ValidatorPerformanceHeatmap } from '../../charts/ValidatorPerformanceHeatmap';
+
 import {
-  SortField,
-  SortDirection,
-  TimeRange,
-  EarningsTrend,
+  type SortField,
+  type SortDirection,
+  type TimeRange,
+  type EarningsTrend,
   VALIDATOR_TYPE_STYLES,
   VALIDATOR_TYPE_LABELS,
 } from './config';
-import { SegmentedControl } from '@/components/ui';
-import { formatNumber } from '@/lib/utils/format';
+import { EarningsTrendChart } from './EarningsTrendChart';
+import { ValidatorHistoryChart } from './ValidatorHistoryChart';
 
 const logger = createLogger('ValidatorAnalyticsPanel');
 

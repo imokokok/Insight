@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
+
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import {
   ComposedChart,
   Line,
@@ -12,14 +14,11 @@ import {
   ResponsiveContainer,
   Area,
 } from 'recharts';
-import { useTranslations } from '@/i18n';
+
 import { ChartSkeleton } from '@/components/ui';
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
-import { TrendingUp } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
-import { Minus } from 'lucide-react';
-
 
 const logger = createLogger('MobilePriceChart');
 

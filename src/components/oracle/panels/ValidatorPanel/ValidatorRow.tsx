@@ -1,11 +1,14 @@
 'use client';
 
 import { useRef } from 'react';
+
 import { useVirtualizer } from '@tanstack/react-virtual';
+
 import { useTranslations } from '@/i18n';
-import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
+import { type ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
-import { SortField, SortDirection, FilterStatus, statusConfig } from './config';
+
+import { type SortField, type SortDirection, type FilterStatus, statusConfig } from './config';
 
 export function SortButton({
   field,
@@ -70,7 +73,9 @@ export function FilterButton({
     >
       <span>{label}</span>
       {count !== undefined && (
-        <span className={`px-1.5 py-0.5  text-[10px] ${isActive ? 'bg-primary-500' : 'bg-gray-200'}`}>
+        <span
+          className={`px-1.5 py-0.5  text-[10px] ${isActive ? 'bg-primary-500' : 'bg-gray-200'}`}
+        >
           {count}
         </span>
       )}
@@ -100,7 +105,9 @@ export function ValidatorRow({
           <button
             onClick={onToggleSelect}
             className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${
-              isSelected ? 'bg-primary-600 border-primary-600' : 'border-gray-300 hover:border-primary-400'
+              isSelected
+                ? 'bg-primary-600 border-primary-600'
+                : 'border-gray-300 hover:border-primary-400'
             }`}
           >
             {isSelected && (
@@ -221,7 +228,9 @@ export function ValidatorCard({
           <button
             onClick={onToggleSelect}
             className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-all flex-shrink-0 ${
-              isSelected ? 'bg-primary-600 border-primary-600' : 'border-gray-300 hover:border-primary-400'
+              isSelected
+                ? 'bg-primary-600 border-primary-600'
+                : 'border-gray-300 hover:border-primary-400'
             }`}
           >
             {isSelected && (

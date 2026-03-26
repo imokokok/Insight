@@ -1,11 +1,16 @@
-import { container } from './Container';
-import { SERVICE_TOKENS } from './tokens';
 import { OracleClientFactory } from '@/lib/oracles/factory';
-import { DatabaseQueries, createQueries } from '@/lib/supabase/queries';
+import { type IOracleClientFactory } from '@/lib/oracles/interfaces';
 import { supabase } from '@/lib/supabase/client';
-import { IOracleClientFactory } from '@/lib/oracles/interfaces';
-import { IAlertService, IFavoriteService, ISnapshotService } from './serviceInterfaces';
+import { type DatabaseQueries, createQueries } from '@/lib/supabase/queries';
 import { createLogger } from '@/lib/utils/logger';
+
+import { container } from './Container';
+import {
+  type IAlertService,
+  type IFavoriteService,
+  type ISnapshotService,
+} from './serviceInterfaces';
+import { SERVICE_TOKENS } from './tokens';
 
 const logger = createLogger('registerServices');
 

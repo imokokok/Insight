@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { CoveragePoolEvent } from '@/lib/oracles/api3';
+
+import { type CoveragePoolEvent } from '@/lib/oracles/api3';
+
 import { DashboardCard } from './DashboardCard';
 
 interface CoveragePoolTimelineProps {

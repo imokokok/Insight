@@ -280,9 +280,7 @@ describe('riskUtils', () => {
     });
 
     it('should handle single asset portfolio', () => {
-      const assets = [
-        { weight: 1, volatility: 0.2, returns: [0.01, 0.02, -0.01] },
-      ];
+      const assets = [{ weight: 1, volatility: 0.2, returns: [0.01, 0.02, -0.01] }];
       const portfolioRisk = calculatePortfolioRisk(assets);
 
       expect(portfolioRisk.totalRisk).toBeGreaterThan(0);

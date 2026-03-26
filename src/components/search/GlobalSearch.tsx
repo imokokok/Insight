@@ -1,19 +1,18 @@
 'use client';
 
 import React, { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react';
+
 import { useRouter } from 'next/navigation';
-import { useTranslations, useLocale } from '@/i18n';
-import { Search } from 'lucide-react';
-import { X } from 'lucide-react';
-import { Command } from 'lucide-react';
-import { ArrowUp } from 'lucide-react';
-import { ArrowDown } from 'lucide-react';
-import { CornerDownLeft } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
+import { Search, X, Command, ArrowUp, ArrowDown, CornerDownLeft } from 'lucide-react';
+
+import { useKeyboardShortcuts, useDebounce } from '@/hooks';
+import { useTranslations, useLocale } from '@/i18n';
+
+import { type SearchResult, type SearchGroup } from './types';
 import { useGlobalSearch } from './useGlobalSearch';
 import { useSearchKeyboardNavigation } from './useSearchKeyboardNavigation';
-import { SearchResult, SearchGroup } from './types';
-import { useKeyboardShortcuts, useDebounce } from '@/hooks';
 
 export interface GlobalSearchProps {
   isOpen: boolean;
@@ -81,13 +80,7 @@ function ResultIcon({ result }: { result: SearchResult }) {
 }
 
 // Search result item component
-function SearchResultItem({
-  result,
-  isActive,
-  onSelect,
-  onHover,
-  itemRef,
-}: SearchResultItemProps) {
+function SearchResultItem({ result, isActive, onSelect, onHover, itemRef }: SearchResultItemProps) {
   const t = useTranslations();
 
   return (
@@ -129,7 +122,9 @@ function SearchResultItem({
           </div>
         )}
       </div>
-      {isActive && <CornerDownLeft className="w-4 h-4 text-primary-500 flex-shrink-0" aria-hidden="true" />}
+      {isActive && (
+        <CornerDownLeft className="w-4 h-4 text-primary-500 flex-shrink-0" aria-hidden="true" />
+      )}
     </div>
   );
 }
@@ -172,7 +167,7 @@ function EmptyState({ query }: { query: string }) {
   const t = useTranslations();
 
   return (
-    <div 
+    <div
       role="status"
       aria-live="polite"
       className="flex flex-col items-center justify-center py-12 px-4 text-center"
@@ -190,11 +185,18 @@ function EmptyState({ query }: { query: string }) {
 function InitialState() {
   const t = useTranslations();
 
-  const shortcuts = useMemo(() => [
-    { key: '↑↓', keyLabel: t('search.shortcuts.arrowKeys'), label: t('search.shortcuts.navigate') },
-    { key: '↵', keyLabel: t('search.shortcuts.enterKey'), label: t('search.shortcuts.select') },
-    { key: 'esc', keyLabel: t('search.shortcuts.escapeKey'), label: t('search.shortcuts.close') },
-  ], [t]);
+  const shortcuts = useMemo(
+    () => [
+      {
+        key: '↑↓',
+        keyLabel: t('search.shortcuts.arrowKeys'),
+        label: t('search.shortcuts.navigate'),
+      },
+      { key: '↵', keyLabel: t('search.shortcuts.enterKey'), label: t('search.shortcuts.select') },
+      { key: 'esc', keyLabel: t('search.shortcuts.escapeKey'), label: t('search.shortcuts.close') },
+    ],
+    [t]
+  );
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
@@ -206,7 +208,7 @@ function InitialState() {
       <div className="flex flex-wrap justify-center gap-3">
         {shortcuts.map((shortcut) => (
           <div key={shortcut.key} className="flex items-center gap-2 text-xs text-gray-500">
-            <kbd 
+            <kbd
               className="px-2 py-1 bg-gray-100 rounded-md text-gray-700 font-mono"
               aria-label={shortcut.keyLabel}
             >
@@ -229,7 +231,7 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const [query, setQuery] = useState('');
-  
+
   // Debounce search query
   const debouncedQuery = useDebounce(query, 300);
 
@@ -297,12 +299,9 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
   }, [debouncedQuery, search, reset]);
 
   // Handle search query change
-  const handleQueryChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setQuery(e.target.value);
-    },
-    []
-  );
+  const handleQueryChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+  }, []);
 
   // Handle result selection
   const handleSelect = useCallback(
@@ -425,7 +424,7 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
           />
 
           {/* Search Dialog */}
-          <div 
+          <div
             className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-[10vh] pointer-events-none"
             role="dialog"
             aria-modal="true"
@@ -450,7 +449,9 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
                   aria-label={t('search.inputLabel')}
                   aria-autocomplete="list"
                   aria-controls="search-results-listbox"
-                  aria-activedescendant={activeResult ? `search-item-${activeResult.item.id}` : undefined}
+                  aria-activedescendant={
+                    activeResult ? `search-item-${activeResult.item.id}` : undefined
+                  }
                   aria-describedby="search-shortcuts"
                   value={query}
                   onChange={handleQueryChange}
@@ -477,13 +478,15 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
 
               {/* ARIA Live Region for Screen Readers */}
               <div aria-live="polite" aria-atomic="true" className="sr-only">
-                {isSearching && totalResults > 0 && t('search.resultsCount', { count: totalResults })}
+                {isSearching &&
+                  totalResults > 0 &&
+                  t('search.resultsCount', { count: totalResults })}
                 {isSearching && totalResults === 0 && query && t('search.noResults')}
                 {error && t('search.error')}
               </div>
 
               {/* Search Results */}
-              <div 
+              <div
                 id="search-results-listbox"
                 role="listbox"
                 aria-label={t('search.resultsLabel')}

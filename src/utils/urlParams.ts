@@ -1,4 +1,9 @@
-import { OracleProvider, Blockchain, ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/types/oracle';
+import {
+  type OracleProvider,
+  type Blockchain,
+  ORACLE_PROVIDER_VALUES,
+  BLOCKCHAIN_VALUES,
+} from '@/types/oracle';
 
 export interface QueryConfig {
   oracles: OracleProvider[];

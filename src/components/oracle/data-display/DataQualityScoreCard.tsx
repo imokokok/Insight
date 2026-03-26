@@ -180,11 +180,17 @@ export function DataQualityScoreCard({
             <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">
               {t('dataQualityScoreCard.networkHealth')}
             </p>
-            <p className="text-base font-bold text-gray-900">{data.networkHealth.score.toFixed(1)}</p>
+            <p className="text-base font-bold text-gray-900">
+              {data.networkHealth.score.toFixed(1)}
+            </p>
             <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full ${
-                  data.networkHealth.score >= 90 ? 'bg-success-500' : data.networkHealth.score >= 70 ? 'bg-warning-500' : 'bg-danger-500'
+                  data.networkHealth.score >= 90
+                    ? 'bg-success-500'
+                    : data.networkHealth.score >= 70
+                      ? 'bg-warning-500'
+                      : 'bg-danger-500'
                 }`}
                 style={{ width: `${Math.min(100, data.networkHealth.score)}%` }}
               />
@@ -195,11 +201,17 @@ export function DataQualityScoreCard({
             <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">
               {t('dataQualityScoreCard.dataIntegrity')}
             </p>
-            <p className="text-base font-bold text-gray-900">{data.dataIntegrity.score.toFixed(1)}</p>
+            <p className="text-base font-bold text-gray-900">
+              {data.dataIntegrity.score.toFixed(1)}
+            </p>
             <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full ${
-                  data.dataIntegrity.score >= 90 ? 'bg-success-500' : data.dataIntegrity.score >= 70 ? 'bg-warning-500' : 'bg-danger-500'
+                  data.dataIntegrity.score >= 90
+                    ? 'bg-success-500'
+                    : data.dataIntegrity.score >= 70
+                      ? 'bg-warning-500'
+                      : 'bg-danger-500'
                 }`}
                 style={{ width: `${Math.min(100, data.dataIntegrity.score)}%` }}
               />
@@ -210,11 +222,17 @@ export function DataQualityScoreCard({
             <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">
               {t('dataQualityScoreCard.responseTime')}
             </p>
-            <p className="text-base font-bold text-gray-900">{data.responseTime.score.toFixed(1)}</p>
+            <p className="text-base font-bold text-gray-900">
+              {data.responseTime.score.toFixed(1)}
+            </p>
             <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full ${
-                  data.responseTime.score >= 90 ? 'bg-success-500' : data.responseTime.score >= 70 ? 'bg-warning-500' : 'bg-danger-500'
+                  data.responseTime.score >= 90
+                    ? 'bg-success-500'
+                    : data.responseTime.score >= 70
+                      ? 'bg-warning-500'
+                      : 'bg-danger-500'
                 }`}
                 style={{ width: `${Math.min(100, data.responseTime.score)}%` }}
               />
@@ -225,11 +243,17 @@ export function DataQualityScoreCard({
             <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">
               {t('dataQualityScoreCard.validatorActivity')}
             </p>
-            <p className="text-base font-bold text-gray-900">{data.validatorActivity.score.toFixed(1)}</p>
+            <p className="text-base font-bold text-gray-900">
+              {data.validatorActivity.score.toFixed(1)}
+            </p>
             <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full ${
-                  data.validatorActivity.score >= 90 ? 'bg-success-500' : data.validatorActivity.score >= 70 ? 'bg-warning-500' : 'bg-danger-500'
+                  data.validatorActivity.score >= 90
+                    ? 'bg-success-500'
+                    : data.validatorActivity.score >= 70
+                      ? 'bg-warning-500'
+                      : 'bg-danger-500'
                 }`}
                 style={{ width: `${Math.min(100, data.validatorActivity.score)}%` }}
               />

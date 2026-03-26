@@ -1,6 +1,8 @@
 import { getRequestConfig } from 'next-intl/server';
-import { getValidLocale } from './routing';
+
 import { messageFilesConfig } from './config';
+import { getValidLocale } from './routing';
+
 import type { Locale } from './config';
 
 async function loadMessageFile(

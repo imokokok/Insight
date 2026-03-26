@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   AreaChart,
   Area,
@@ -11,11 +12,11 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { TooltipProps } from '@/types/ui/recharts';
-import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
-import { useTranslations } from '@/i18n';
 
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { type TooltipProps } from '@/types/ui/recharts';
 
 interface TrendDataPoint {
   month: string;

@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
-import { ConnectionStatus } from '@/lib/supabase/realtime';
+
 import { useTranslations } from '@/i18n';
+import { type ConnectionStatus } from '@/lib/supabase/realtime';
+import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 
 interface ConnectionStatusIndicatorProps {
   showLabel?: boolean;

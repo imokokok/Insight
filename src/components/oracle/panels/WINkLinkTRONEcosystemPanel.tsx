@@ -1,17 +1,20 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { TRONEcosystem, TRONNetworkGrowth } from '@/lib/oracles/winklink';
+import {
+  Zap,
+  Users,
+  Activity,
+  Gamepad2,
+  Coins,
+  Image,
+  MessageSquare,
+  TrendingUp,
+  TrendingDown,
+} from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Zap } from 'lucide-react';
-import { Users } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Gamepad2 } from 'lucide-react';
-import { Coins } from 'lucide-react';
-import { Image } from 'lucide-react';
-import { MessageSquare } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type TRONEcosystem, type TRONNetworkGrowth } from '@/lib/oracles/winklink';
 
 interface WINkLinkTRONEcosystemPanelProps {
   data: TRONEcosystem & {
@@ -279,7 +282,9 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
               <p className="text-sm text-gray-600 mt-2">{t('winklink.tron.ofTRONDApps')}</p>
             </div>
             <div className="text-center py-4 bg-gray-50 rounded-lg">
-              <p className="text-3xl font-bold text-primary-600">{data.marketShare.integratedDapps}</p>
+              <p className="text-3xl font-bold text-primary-600">
+                {data.marketShare.integratedDapps}
+              </p>
               <p className="text-xs text-gray-500 mt-1">{t('winklink.tron.integratedDapps')}</p>
               <p className="text-sm text-gray-600 mt-2">
                 {t('winklink.tron.outOf')} {data.marketShare.totalDapps}

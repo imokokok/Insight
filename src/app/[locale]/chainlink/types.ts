@@ -1,5 +1,5 @@
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/types/oracle';
+import { type OracleConfig } from '@/lib/config/oracles';
+import { type PriceData } from '@/types/oracle';
 
 export type ChainlinkTabId =
   | 'market'
@@ -15,8 +15,11 @@ export interface NetworkStats {
   dataFeeds: number;
   nodeUptime: number;
   avgResponseTime: number;
-  latency: number;
+  latency?: number;
   hourlyActivity?: number[];
+  status?: string;
+  totalStaked?: number;
+  updateFrequency?: number;
 }
 
 export interface ChainlinkPageState {
@@ -46,8 +49,8 @@ export interface ChainlinkHeaderProps {
 }
 
 export interface ChainlinkSidebarProps {
-  activeTab: ChainlinkTabId;
-  onTabChange: (tab: ChainlinkTabId) => void;
+  activeTab: ChainlinkTabId | string;
+  onTabChange: (tab: ChainlinkTabId | string) => void;
 }
 
 export interface ChainlinkMarketViewProps {

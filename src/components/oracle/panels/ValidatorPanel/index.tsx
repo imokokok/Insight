@@ -1,14 +1,23 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
-import { ValidatorData } from '@/lib/oracles/uma';
-import { formatNumber } from '@/lib/utils/format';
+
 import { useTranslations } from '@/i18n';
+import { type BandProtocolClient, type ValidatorInfo } from '@/lib/oracles/bandProtocol';
+import { type ValidatorData } from '@/lib/oracles/uma';
+import { formatNumber } from '@/lib/utils/format';
+
+import { MultiValidatorComparison } from '../../charts/MultiValidatorComparison';
 import { StakingDistributionChart } from '../../charts/StakingDistributionChart';
 import { ValidatorComparison } from '../../charts/ValidatorComparison';
-import { MultiValidatorComparison } from '../../charts/MultiValidatorComparison';
-import { SortField, SortDirection, FilterStatus, QuickFilter, ValidatorPanelProps } from './config';
+
+import {
+  type SortField,
+  type SortDirection,
+  type FilterStatus,
+  type QuickFilter,
+  type ValidatorPanelProps,
+} from './config';
 import { ValidatorDetailModal } from './ValidatorDetailModal';
 import {
   SortButton,

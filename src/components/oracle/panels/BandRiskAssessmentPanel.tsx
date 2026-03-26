@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import {
   LineChart,
   Line,
@@ -12,10 +13,14 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
-import { useTranslations } from '@/i18n';
+
+import { DataFreshnessIndicator } from '@/components/oracle/alerts';
+import { SecurityTimeline, MitigationMeasuresGrid } from '@/components/oracle/data-display';
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
+import { type BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import {
   getScoreColor,
   getScoreBg,
@@ -28,14 +33,7 @@ import {
   getMeasureStatusColor,
   formatLatency,
 } from '@/lib/utils/riskUtils';
-import { DataFreshnessIndicator } from '@/components/oracle/alerts';
-import {
-  SecurityTimeline,
-  MitigationMeasuresGrid,
-} from '@/components/oracle/data-display';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { chartColors } from '@/lib/config/colors';
-
+import { type RiskMetric, type RiskEvent, type MitigationMeasure } from '@/types/risk';
 
 interface BandRiskAssessmentPanelProps {
   client?: BandProtocolClient;

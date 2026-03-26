@@ -1,7 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useMemo, useCallback } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+
 import { TellorClient } from '@/lib/oracles/tellor';
 import type {
   PriceStreamPoint,
@@ -15,8 +17,7 @@ import type {
   StakingCalculation,
   TellorNetworkHealth,
 } from '@/lib/oracles/tellor';
-import { Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 const tellorClient = new TellorClient();
 

@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { ExportConfig as ExportConfigType } from '../types';
-import { useTranslations } from '@/i18n';
+
 import { Download, FileSpreadsheet, FileJson, FileCode, Check } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
+
+import { type ExportConfig as ExportConfigType } from '../types';
 
 interface ExportConfigProps {
   config: ExportConfigType;

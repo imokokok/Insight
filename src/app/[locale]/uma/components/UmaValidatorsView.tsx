@@ -1,49 +1,55 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { UmaValidatorsViewProps } from '../types';
+import {
+  Users,
+  Clock,
+  Shield,
+  Award,
+  TrendingUp,
+  Building2,
+  UserCircle2,
+  UsersRound,
+} from 'lucide-react';
+
 import { ValidatorAnalyticsPanel } from '@/components/oracle';
-import { Users } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { Shield } from 'lucide-react';
-import { Award } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Building2 } from 'lucide-react';
-import { UserCircle2 } from 'lucide-react';
-import { UsersRound } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+
+import { type UmaValidatorsViewProps } from '../types';
 
 export function UmaValidatorsView({ validators, networkStats, isLoading }: UmaValidatorsViewProps) {
   const t = useTranslations();
 
   const totalStaked = validators.reduce((sum, v) => sum + v.staked, 0);
   const totalEarnings = validators.reduce((sum, v) => sum + v.earnings, 0);
-  const avgSuccessRate = validators.length > 0
-    ? validators.reduce((sum, v) => sum + v.successRate, 0) / validators.length
-    : 0;
-  const avgResponseTime = validators.length > 0
-    ? validators.reduce((sum, v) => sum + v.responseTime, 0) / validators.length
-    : 0;
+  const avgSuccessRate =
+    validators.length > 0
+      ? validators.reduce((sum, v) => sum + v.successRate, 0) / validators.length
+      : 0;
+  const avgResponseTime =
+    validators.length > 0
+      ? validators.reduce((sum, v) => sum + v.responseTime, 0) / validators.length
+      : 0;
 
   // 验证者类型分布统计
   const typeStats = [
     {
       type: 'institution',
       label: t('uma.validators.types.institution'),
-      count: validators.filter(v => v.type === 'institution').length,
+      count: validators.filter((v) => v.type === 'institution').length,
       icon: Building2,
       color: 'bg-blue-500',
     },
     {
       type: 'community',
       label: t('uma.validators.types.community'),
-      count: validators.filter(v => v.type === 'community').length,
+      count: validators.filter((v) => v.type === 'community').length,
       icon: UsersRound,
       color: 'bg-purple-500',
     },
     {
       type: 'independent',
       label: t('uma.validators.types.independent'),
-      count: validators.filter(v => v.type === 'independent').length,
+      count: validators.filter((v) => v.type === 'independent').length,
       icon: UserCircle2,
       color: 'bg-gray-400',
     },
@@ -64,19 +70,25 @@ export function UmaValidatorsView({ validators, networkStats, isLoading }: UmaVa
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{t('uma.validators.avgResponseTime')}</span>
-          <span className="text-lg font-semibold text-gray-900">{Math.round(avgResponseTime)}ms</span>
+          <span className="text-lg font-semibold text-gray-900">
+            {Math.round(avgResponseTime)}ms
+          </span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{t('uma.validators.avgSuccessRate')}</span>
-          <span className="text-lg font-semibold text-emerald-600">{avgSuccessRate.toFixed(1)}%</span>
+          <span className="text-lg font-semibold text-emerald-600">
+            {avgSuccessRate.toFixed(1)}%
+          </span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{t('uma.validators.totalStaked')}</span>
-          <span className="text-lg font-semibold text-gray-900">${(totalStaked / 1e6).toFixed(2)}M</span>
+          <span className="text-lg font-semibold text-gray-900">
+            ${(totalStaked / 1e6).toFixed(2)}M
+          </span>
         </div>
       </div>
 
@@ -126,14 +138,20 @@ export function UmaValidatorsView({ validators, networkStats, isLoading }: UmaVa
                       </div>
                     </td>
                     <td className="py-3 px-3">
-                      <span className={`inline-flex items-center gap-1 text-sm ${
-                        validator.type === 'institution' ? 'text-blue-600' :
-                        validator.type === 'community' ? 'text-purple-600' :
-                        'text-gray-600'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center gap-1 text-sm ${
+                          validator.type === 'institution'
+                            ? 'text-blue-600'
+                            : validator.type === 'community'
+                              ? 'text-purple-600'
+                              : 'text-gray-600'
+                        }`}
+                      >
                         {validator.type === 'institution' && <Building2 className="w-3.5 h-3.5" />}
                         {validator.type === 'community' && <UsersRound className="w-3.5 h-3.5" />}
-                        {validator.type === 'independent' && <UserCircle2 className="w-3.5 h-3.5" />}
+                        {validator.type === 'independent' && (
+                          <UserCircle2 className="w-3.5 h-3.5" />
+                        )}
                         {validator.type}
                       </span>
                     </td>
@@ -178,7 +196,8 @@ export function UmaValidatorsView({ validators, networkStats, isLoading }: UmaVa
                         <span className="text-gray-600">{stat.label}</span>
                       </div>
                       <span className="font-medium text-gray-900">
-                        {stat.count} <span className="text-gray-400">({percentage.toFixed(1)}%)</span>
+                        {stat.count}{' '}
+                        <span className="text-gray-400">({percentage.toFixed(1)}%)</span>
                       </span>
                     </div>
                     <div className="w-full bg-gray-100 h-1.5">
@@ -197,9 +216,7 @@ export function UmaValidatorsView({ validators, networkStats, isLoading }: UmaVa
           <section className="space-y-4 border-t border-gray-200 pt-6">
             <div className="flex items-center gap-2">
               <Award className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">
-                {t('uma.validators.overview')}
-              </h3>
+              <h3 className="text-sm font-medium text-gray-900">{t('uma.validators.overview')}</h3>
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">

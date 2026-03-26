@@ -1,8 +1,10 @@
 'use client';
 
-import { forwardRef, HTMLAttributes, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+
 import { AlertCircle } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 
 export interface FormErrorProps extends HTMLAttributes<HTMLParagraphElement> {
   children: ReactNode;
@@ -11,16 +13,7 @@ export interface FormErrorProps extends HTMLAttributes<HTMLParagraphElement> {
 }
 
 export const FormError = forwardRef<HTMLParagraphElement, FormErrorProps>(
-  (
-    {
-      children,
-      className,
-      showIcon = true,
-      size = 'sm',
-      ...props
-    },
-    ref
-  ) => {
+  ({ children, className, showIcon = true, size = 'sm', ...props }, ref) => {
     const sizeStyles = {
       sm: 'text-xs',
       md: 'text-sm',
@@ -29,11 +22,7 @@ export const FormError = forwardRef<HTMLParagraphElement, FormErrorProps>(
     return (
       <p
         ref={ref}
-        className={cn(
-          'flex items-center gap-1.5 text-danger-600',
-          sizeStyles[size],
-          className
-        )}
+        className={cn('flex items-center gap-1.5 text-danger-600', sizeStyles[size], className)}
         role="alert"
         {...props}
       >

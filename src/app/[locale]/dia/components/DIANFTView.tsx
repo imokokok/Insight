@@ -1,14 +1,12 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { useDIANFTData } from '@/hooks';
-import { Blockchain } from '@/types/oracle';
-import { LoadingState } from '@/components/oracle/shared/LoadingState';
+import { Layers, TrendingUp, DollarSign, Link2 } from 'lucide-react';
+
 import { ErrorFallback } from '@/components/oracle/shared/ErrorFallback';
-import { Layers } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { DollarSign } from 'lucide-react';
-import { Link2 } from 'lucide-react';
+import { LoadingState } from '@/components/oracle/shared/LoadingState';
+import { useDIANFTData } from '@/hooks';
+import { useTranslations } from '@/i18n';
+import { Blockchain } from '@/types/oracle';
 
 export function DIANFTView() {
   const t = useTranslations('dia');
@@ -34,9 +32,10 @@ export function DIANFTView() {
 
   // Calculate statistics
   const chainDistribution = Object.entries(byChain || {}).filter(([_, count]) => count > 0);
-  const avgFloorPrice = collections.length > 0
-    ? collections.reduce((acc, c) => acc + c.floorPrice, 0) / collections.length
-    : 0;
+  const avgFloorPrice =
+    collections.length > 0
+      ? collections.reduce((acc, c) => acc + c.floorPrice, 0) / collections.length
+      : 0;
 
   const getChainBadgeColor = (chain: Blockchain) => {
     switch (chain) {
@@ -108,7 +107,9 @@ export function DIANFTView() {
         <div className="flex items-center gap-3">
           <Layers className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('nft.totalCollections')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('nft.totalCollections')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">{totalCollections}</p>
           </div>
         </div>
@@ -116,7 +117,9 @@ export function DIANFTView() {
         <div className="flex items-center gap-3">
           <TrendingUp className="w-5 h-5 text-emerald-500" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('nft.trendingCount')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('nft.trendingCount')}
+            </p>
             <p className="text-xl font-semibold text-emerald-600">{trending?.length || 0}</p>
           </div>
         </div>
@@ -124,7 +127,9 @@ export function DIANFTView() {
         <div className="flex items-center gap-3">
           <DollarSign className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('nft.avgFloorPrice')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('nft.avgFloorPrice')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">{avgFloorPrice.toFixed(2)} ETH</p>
           </div>
         </div>
@@ -132,7 +137,9 @@ export function DIANFTView() {
         <div className="flex items-center gap-3">
           <Link2 className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('nft.chainsSupported')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('nft.chainsSupported')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">{chainDistribution.length}</p>
           </div>
         </div>

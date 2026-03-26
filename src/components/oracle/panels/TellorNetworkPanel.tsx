@@ -1,9 +1,9 @@
 'use client';
 
-import { TellorNetworkHealth } from '@/lib/oracles/tellor';
-import { useTranslations } from '@/i18n';
 import { DashboardCard } from '@/components/oracle';
-import { Blockchain } from '@/types/oracle';
+import { useTranslations } from '@/i18n';
+import { type TellorNetworkHealth } from '@/lib/oracles/tellor';
+import { type Blockchain } from '@/types/oracle';
 
 interface TellorNetworkPanelProps {
   data: TellorNetworkHealth;

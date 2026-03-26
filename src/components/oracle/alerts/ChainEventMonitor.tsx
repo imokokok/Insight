@@ -1,9 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
-import { ChainEvent, EventType, BandProtocolClient, EVENT_TYPE_VALUES } from '@/lib/oracles/bandProtocol';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
+import {
+  type ChainEvent,
+  EventType,
+  type BandProtocolClient,
+  EVENT_TYPE_VALUES,
+} from '@/lib/oracles/bandProtocol';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('ChainEventMonitor');

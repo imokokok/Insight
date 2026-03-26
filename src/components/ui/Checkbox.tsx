@@ -1,8 +1,10 @@
 'use client';
 
-import { forwardRef, InputHTMLAttributes, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+
 import { Check, Minus } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 
 export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: ReactNode;
@@ -13,20 +15,11 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   (
-    {
-      className,
-      label,
-      helperText,
-      error,
-      indeterminate = false,
-      disabled,
-      checked,
-      id,
-      ...props
-    },
+    { className, label, helperText, error, indeterminate = false, disabled, checked, id, ...props },
     ref
   ) => {
-    const checkboxId = id || (typeof label === 'string' ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    const checkboxId =
+      id || (typeof label === 'string' ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
     return (
       <div className={cn('flex items-start gap-3', className)}>
@@ -56,9 +49,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             {checked && !indeterminate && (
               <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
             )}
-            {indeterminate && (
-              <Minus className="w-3.5 h-3.5 text-white" strokeWidth={3} />
-            )}
+            {indeterminate && <Minus className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
           </label>
         </div>
         {(label || helperText || error) && (
@@ -76,12 +67,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
               </label>
             )}
             {(helperText || error) && (
-              <p
-                className={cn(
-                  'text-sm',
-                  error ? 'text-danger-600' : 'text-gray-500'
-                )}
-              >
+              <p className={cn('text-sm', error ? 'text-danger-600' : 'text-gray-500')}>
                 {error || helperText}
               </p>
             )}

@@ -1,8 +1,9 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { DifferenceSeverity, DifferenceHighlight } from './types';
 import { semanticColors } from '@/lib/config/colors';
+
+import { type DifferenceSeverity, DifferenceHighlight } from './types';
 
 interface DifferenceBadgeProps {
   value: number;

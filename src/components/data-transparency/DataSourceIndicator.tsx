@@ -1,14 +1,13 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import { Shield } from 'lucide-react';
-import { ShieldCheck } from 'lucide-react';
-import { ShieldAlert } from 'lucide-react';
-import { ShieldX } from 'lucide-react';
-import { Info } from 'lucide-react';
-import Image from 'next/image';
 import { useState } from 'react';
+
+import Image from 'next/image';
+
+import { Shield, ShieldCheck, ShieldAlert, ShieldX, Info } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
+import { OracleProvider, type Blockchain } from '@/types/oracle';
 
 export type CredibilityLevel = 'high' | 'medium' | 'low' | 'unverified';
 

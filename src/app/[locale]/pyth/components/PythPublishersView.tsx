@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
-import { PythPublishersViewProps } from '../types';
+
 import { Search, ArrowUpDown, Activity, Award, TrendingUp, Shield } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
+
+import { type PythPublishersViewProps } from '../types';
 
 type SortField = 'stake' | 'accuracy' | 'name';
 type SortOrder = 'asc' | 'desc';
@@ -16,14 +19,12 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
 
   const filteredPublishers = useMemo(() => {
     return publishers
-      .filter((publisher) =>
-        publisher.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      .filter((publisher) => publisher.name.toLowerCase().includes(searchQuery.toLowerCase()))
       .sort((a, b) => {
         let comparison = 0;
         switch (sortField) {
           case 'stake':
-            comparison = a.stake - b.stake;
+            comparison = (a.stake ?? 0) - (b.stake ?? 0);
             break;
           case 'accuracy':
             comparison = a.accuracy - b.accuracy;
@@ -36,11 +37,11 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
       });
   }, [publishers, sortField, sortOrder, searchQuery]);
 
-  const totalStake = publishers.reduce((sum, p) => sum + p.stake, 0);
+  const totalStake = publishers.reduce((sum, p) => sum + (p.stake ?? 0), 0);
   const avgAccuracy = publishers.length
     ? (publishers.reduce((sum, p) => sum + p.accuracy, 0) / publishers.length).toFixed(1)
     : 0;
-  const topPublisher = publishers.sort((a, b) => b.stake - a.stake)[0];
+  const topPublisher = publishers.sort((a, b) => (b.stake ?? 0) - (a.stake ?? 0))[0];
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -57,25 +58,35 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
       <div className="flex flex-wrap items-center gap-6 py-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-500">{t('pyth.publishers.total') || 'Total Publishers'}</span>
+          <span className="text-sm text-gray-500">
+            {t('pyth.publishers.total') || 'Total Publishers'}
+          </span>
           <span className="text-lg font-semibold text-gray-900">{publishers.length}</span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-500">{t('pyth.publishers.totalStaked') || 'Total Staked'}</span>
-          <span className="text-lg font-semibold text-gray-900">{(totalStake / 1e9).toFixed(2)}B PYTH</span>
+          <span className="text-sm text-gray-500">
+            {t('pyth.publishers.totalStaked') || 'Total Staked'}
+          </span>
+          <span className="text-lg font-semibold text-gray-900">
+            {(totalStake / 1e9).toFixed(2)}B PYTH
+          </span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-500">{t('pyth.publishers.avgAccuracy') || 'Avg Accuracy'}</span>
+          <span className="text-sm text-gray-500">
+            {t('pyth.publishers.avgAccuracy') || 'Avg Accuracy'}
+          </span>
           <span className="text-lg font-semibold text-emerald-600">{avgAccuracy}%</span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-500">{t('pyth.publishers.topPublisher') || 'Top Publisher'}</span>
+          <span className="text-sm text-gray-500">
+            {t('pyth.publishers.topPublisher') || 'Top Publisher'}
+          </span>
           <span className="text-lg font-semibold text-gray-900">{topPublisher?.name || '-'}</span>
         </div>
       </div>
@@ -165,19 +176,21 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
                 <td className="py-3 px-4 font-medium text-gray-900">{publisher.name}</td>
                 <td className="py-3 px-4">
                   <div className="space-y-1">
-                    <span className="text-sm text-gray-900">{(publisher.stake / 1e6).toFixed(1)}M PYTH</span>
+                    <span className="text-sm text-gray-900">
+                      {((publisher.stake ?? 0) / 1e6).toFixed(1)}M PYTH
+                    </span>
                     <div className="w-32 bg-gray-100 rounded-full h-1.5">
                       <div
                         className="bg-violet-500 h-1.5 rounded-full"
                         style={{
-                          width: `${Math.min((publisher.stake / (topPublisher?.stake || 1)) * 100, 100)}%`,
+                          width: `${Math.min(((publisher.stake ?? 0) / (topPublisher?.stake || 1)) * 100, 100)}%`,
                         }}
                       />
                     </div>
                   </div>
                 </td>
                 <td className="py-3 px-4 text-sm text-gray-600">
-                  {((publisher.stake / (totalStake || 1)) * 100).toFixed(2)}%
+                  {(((publisher.stake ?? 0) / (totalStake || 1)) * 100).toFixed(2)}%
                 </td>
                 <td className="py-3 px-4 text-right">
                   <span
@@ -197,7 +210,9 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
       {/* 空状态 */}
       {filteredPublishers.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-sm text-gray-500">{t('pyth.publishers.noResults') || 'No publishers found'}</p>
+          <p className="text-sm text-gray-500">
+            {t('pyth.publishers.noResults') || 'No publishers found'}
+          </p>
         </div>
       )}
     </div>

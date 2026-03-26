@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   ResponsiveContainer,
   ScatterChart,
@@ -12,10 +13,10 @@ import {
   Cell,
   ZAxis,
 } from 'recharts';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
-
 
 interface BoxPlotStats {
   min: number;

@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from '@/i18n';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { DashboardCard, MetricCard } from '@/components/oracle/data-display/DashboardCard';
+
 import { Layers, Link2, Wallet, BarChart3, Zap, Globe, Database, Shield } from 'lucide-react';
 
+import { DashboardCard, MetricCard } from '@/components/oracle/data-display/DashboardCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { useTranslations } from '@/i18n';
 import { chartColors, getChartColor } from '@/lib/chartColors';
+import { type BandProtocolClient } from '@/lib/oracles/bandProtocol';
 
 interface CosmosEcosystemPanelProps {
   client: BandProtocolClient;

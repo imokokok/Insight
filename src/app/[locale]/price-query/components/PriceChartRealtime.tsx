@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
+import { format } from 'date-fns';
 import {
   ComposedChart,
   Line,
@@ -14,15 +15,19 @@ import {
   ResponsiveContainer,
   Brush,
 } from 'recharts';
-import { Icons } from './Icons';
-import { CustomTooltip } from './CustomTooltip';
-import { CustomLegend } from './CustomLegend';
-import { QueryResult, oracleColors, oracleI18nKeys } from '../constants';
-import { createLogger } from '@/lib/utils/logger';
+
 import { useAPI3PriceRealtime } from '@/hooks';
-import { API3PriceData } from '@/lib/services/api3WebSocket';
-import { format } from 'date-fns';
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { type API3PriceData } from '@/lib/services/api3WebSocket';
+import { createLogger } from '@/lib/utils/logger';
+
+import { type QueryResult, oracleColors, oracleI18nKeys } from '../constants';
+
+import { CustomLegend } from './CustomLegend';
+import { CustomTooltip } from './CustomTooltip';
+import { Icons } from './Icons';
+
 
 const logger = createLogger('price-query-PriceChartRealtime');
 

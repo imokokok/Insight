@@ -1,8 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { Link, Zap, Trophy, Activity, Server } from 'lucide-react';
-import { RedStoneCrossChainViewProps, ChainInfo } from '../types';
+
+import { useTranslations } from '@/i18n';
+
+import { type RedStoneCrossChainViewProps, type ChainInfo } from '../types';
 
 const SUPPORTED_CHAINS: ChainInfo[] = [
   { chain: 'Ethereum', latency: 80, updateFreq: 60, status: 'active' },
@@ -73,9 +75,7 @@ export function RedStoneCrossChainView({ isLoading }: RedStoneCrossChainViewProp
               <div>
                 <p className="text-xs text-gray-500">{stat.title}</p>
                 <div className="flex items-center gap-2">
-                  <p className="text-lg font-bold text-gray-900">
-                    {isLoading ? '-' : stat.value}
-                  </p>
+                  <p className="text-lg font-bold text-gray-900">{isLoading ? '-' : stat.value}</p>
                   <span
                     className={`text-xs font-medium ${
                       stat.changeType === 'positive' ? 'text-emerald-600' : 'text-gray-500'

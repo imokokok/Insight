@@ -1,29 +1,31 @@
 'use client';
 
 import { useEffect, useMemo, useCallback, useRef, memo } from 'react';
-import { useTranslations } from '@/i18n';
-import { BaseOracleClient } from '@/lib/oracles/base';
-import { Blockchain } from '@/types/oracle';
-import { ChartExportData } from '@/utils/chartExport';
-import { AdaptiveDownsampleConfig } from '@/utils/downsampling';
+
 import { ChartSkeleton } from '@/components/ui';
-import { createLogger } from '@/lib/utils/logger';
-import { baseColors } from '@/lib/config/colors';
 import { useBrushZoom } from '@/hooks';
-import { ConfidenceLevel } from './priceChartConfig';
-import { useChartSettings, useScreenSize } from './usePriceChartSettings';
-import { calculatePredictionIntervals } from './priceChartUtils';
-import { ChartToolbar } from './ChartToolbar';
-import { calculateChartHeights } from './chartUtils';
+import { useTranslations } from '@/i18n';
+import { baseColors } from '@/lib/config/colors';
+import { type BaseOracleClient } from '@/lib/oracles/base';
+import { createLogger } from '@/lib/utils/logger';
 import {
   useSelectedTimeRange,
   useTimeRangeCallback,
   useSyncEnabled,
-  SelectedTimeRange,
+  type SelectedTimeRange,
 } from '@/stores/uiStore';
+import { type Blockchain } from '@/types/oracle';
+import { type ChartExportData } from '@/utils/chartExport';
+import { type AdaptiveDownsampleConfig } from '@/utils/downsampling';
+
 import { ChartCanvas } from './ChartCanvas';
 import { ChartLegend } from './ChartLegend';
+import { ChartToolbar } from './ChartToolbar';
+import { calculateChartHeights } from './chartUtils';
+import { type ConfidenceLevel } from './priceChartConfig';
+import { calculatePredictionIntervals } from './priceChartUtils';
 import { usePriceChartData } from './usePriceChartData';
+import { useChartSettings, useScreenSize } from './usePriceChartSettings';
 
 const logger = createLogger('PriceChart');
 

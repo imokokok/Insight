@@ -1,16 +1,18 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useTranslations } from '@/i18n';
-import { PerformanceGaugeGroup } from '@/components/oracle/data-display/PerformanceGauge';
+
 import { DataQualityScoreCard } from '@/components/oracle/data-display/DataQualityScoreCard';
-import { NetworkStatusIndicator } from './NetworkStatusIndicator';
-import { MetricCard } from './MetricCard';
+import { PerformanceGaugeGroup } from '@/components/oracle/data-display/PerformanceGauge';
+import { useTranslations } from '@/i18n';
+
 import { ActivityHeatmap } from './ActivityHeatmap';
 import { BandProtocolMetricsCard } from './BandProtocolMetricsCard';
-import { SolanaNetworkStatusCard } from './SolanaNetworkStatusCard';
 import { DataFreshnessIndicator } from './DataFreshnessIndicator';
-import { NetworkDataConfig, NetworkMetric } from './types';
+import { MetricCard } from './MetricCard';
+import { NetworkStatusIndicator } from './NetworkStatusIndicator';
+import { SolanaNetworkStatusCard } from './SolanaNetworkStatusCard';
+import { type NetworkDataConfig, type NetworkMetric } from './types';
 
 interface NetworkHealthPanelProps {
   config: NetworkDataConfig;

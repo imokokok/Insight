@@ -1,21 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
-import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import {
-  TimelineChart,
-  TimelineEvent,
-} from '@/components/oracle/charts/TimelineChart';
-import { chartColors } from '@/lib/config/colors';
+
 import {
   Shield,
   AlertTriangle,
@@ -28,13 +14,27 @@ import {
   TrendingDown,
   Minus,
 } from 'lucide-react';
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+
+import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
 
 // 历史风险事件
 const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2024-01-15T10:30:00',
     title: '安全审计完成',
-    description: 'Chainlink 核心合约通过 Trail of Bits 和 OpenZeppelin 的联合安全审计，未发现重大漏洞。',
+    description:
+      'Chainlink 核心合约通过 Trail of Bits 和 OpenZeppelin 的联合安全审计，未发现重大漏洞。',
     type: 'success',
   },
   {
@@ -46,7 +46,8 @@ const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2023-09-22T09:15:00',
     title: '潜在漏洞披露',
-    description: '白帽黑客通过 Bug Bounty 计划报告了一个中等严重程度的漏洞。团队已在 48 小时内修复并部署补丁。',
+    description:
+      '白帽黑客通过 Bug Bounty 计划报告了一个中等严重程度的漏洞。团队已在 48 小时内修复并部署补丁。',
     type: 'warning',
   },
   {
@@ -123,7 +124,8 @@ const riskFactors = [
   {
     category: 'Smart Contract Risk',
     level: 'low',
-    description: 'Multiple audits by leading security firms including Trail of Bits, OpenZeppelin, and CertiK. No critical vulnerabilities found in recent audits.',
+    description:
+      'Multiple audits by leading security firms including Trail of Bits, OpenZeppelin, and CertiK. No critical vulnerabilities found in recent audits.',
     details: [
       'Trail of Bits audit completed Q1 2024',
       'OpenZeppelin continuous monitoring active',
@@ -143,7 +145,8 @@ const riskFactors = [
   {
     category: 'Market Risk',
     level: 'medium',
-    description: 'LINK token price volatility affects staking economics and network security budget.',
+    description:
+      'LINK token price volatility affects staking economics and network security budget.',
     details: [
       'LINK price correlation with market sentiment',
       'Staking rewards denominated in LINK',
@@ -217,7 +220,8 @@ export function ChainlinkRiskView() {
               {t('chainlink.risk.metrics') || 'Risk Metrics'}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {t('chainlink.risk.metricsDesc') || 'Key performance indicators across decentralization, security, and reliability'}
+              {t('chainlink.risk.metricsDesc') ||
+                'Key performance indicators across decentralization, security, and reliability'}
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
@@ -244,7 +248,8 @@ export function ChainlinkRiskView() {
                   className="h-1.5 rounded-full transition-all duration-500"
                   style={{
                     width: `${(metric.value / metric.max) * 100}%`,
-                    backgroundColor: metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
+                    backgroundColor:
+                      metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
                   }}
                 />
               </div>
@@ -264,7 +269,8 @@ export function ChainlinkRiskView() {
             {t('chainlink.risk.benchmark') || 'Industry Benchmark Comparison'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('chainlink.risk.benchmarkDesc') || 'Performance comparison against other leading oracle providers'}
+            {t('chainlink.risk.benchmarkDesc') ||
+              'Performance comparison against other leading oracle providers'}
           </p>
         </div>
 
@@ -276,7 +282,11 @@ export function ChainlinkRiskView() {
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={benchmarkData}>
                   <PolarGrid stroke="#e5e7eb" />
                   <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                  <PolarRadiusAxis
+                    angle={90}
+                    domain={[0, 100]}
+                    tick={{ fontSize: 10, fill: '#9ca3af' }}
+                  />
                   <Radar
                     name="Chainlink"
                     dataKey="chainlink"
@@ -309,7 +319,9 @@ export function ChainlinkRiskView() {
 
           {/* 对比表格 */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700">{t('chainlink.risk.comparison') || 'Detailed Comparison'}</h3>
+            <h3 className="text-sm font-medium text-gray-700">
+              {t('chainlink.risk.comparison') || 'Detailed Comparison'}
+            </h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
                 <div key={item.metric} className="space-y-2">
@@ -350,7 +362,8 @@ export function ChainlinkRiskView() {
             {t('chainlink.risk.timeline') || 'Historical Risk Events'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('chainlink.risk.timelineDesc') || 'Security audits, incidents and upgrades over the past 24 months'}
+            {t('chainlink.risk.timelineDesc') ||
+              'Security audits, incidents and upgrades over the past 24 months'}
           </p>
         </div>
 
@@ -409,7 +422,9 @@ export function ChainlinkRiskView() {
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">{t('chainlink.risk.clickEvent') || 'Click an event to view details'}</p>
+                <p className="text-sm text-gray-500">
+                  {t('chainlink.risk.clickEvent') || 'Click an event to view details'}
+                </p>
               </div>
             )}
           </div>
@@ -432,16 +447,15 @@ export function ChainlinkRiskView() {
 
         <div className="space-y-2">
           {riskFactors.map((factor, index) => (
-            <div
-              key={index}
-              className="border-b border-gray-100 last:border-0"
-            >
+            <div key={index} className="border-b border-gray-100 last:border-0">
               <button
                 onClick={() => setExpandedFactor(expandedFactor === index ? null : index)}
                 className="w-full py-4 flex items-center justify-between hover:bg-gray-50 transition-colors px-2 -mx-2 rounded-md"
               >
                 <div className="flex items-center gap-4">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}
+                  >
                     {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
                   </span>
                   <span className="text-sm font-medium text-gray-900">{factor.category}</span>
@@ -462,7 +476,10 @@ export function ChainlinkRiskView() {
                   <p className="text-sm text-gray-600 mb-3 leading-relaxed">{factor.description}</p>
                   <ul className="space-y-2">
                     {factor.details.map((detail, detailIndex) => (
-                      <li key={detailIndex} className="flex items-start gap-2 text-sm text-gray-500">
+                      <li
+                        key={detailIndex}
+                        className="flex items-start gap-2 text-sm text-gray-500"
+                      >
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
                         <span>{detail}</span>
                       </li>
@@ -483,7 +500,9 @@ export function ChainlinkRiskView() {
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-semibold text-gray-900">{t('chainlink.risk.disclaimer')}</h3>
-          <p className="text-sm text-gray-500 mt-1 leading-relaxed">{t('chainlink.risk.disclaimerText')}</p>
+          <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+            {t('chainlink.risk.disclaimerText')}
+          </p>
         </div>
       </section>
     </div>

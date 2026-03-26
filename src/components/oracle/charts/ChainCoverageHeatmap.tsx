@@ -1,11 +1,16 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Blockchain, OracleProvider, BLOCKCHAIN_VALUES, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
+
 import { oracleConfigs } from '@/lib/config/oracles';
-import { chainNames, chainColors, getChainCategory } from '@/lib/constants';
-import { providerNames } from '@/lib/constants';
+import { chainNames, chainColors, getChainCategory, providerNames } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import {
+  type Blockchain,
+  type OracleProvider,
+  BLOCKCHAIN_VALUES,
+  ORACLE_PROVIDER_VALUES,
+} from '@/types/oracle';
 
 interface ChainCoverageHeatmapProps {
   className?: string;
@@ -37,7 +42,10 @@ export function ChainCoverageHeatmap({
 
   // 计算覆盖数据
   const coverageData = useMemo(() => {
-    const data: Record<OracleProvider, Record<Blockchain, boolean>> = {} as Record<OracleProvider, Record<Blockchain, boolean>>;
+    const data: Record<OracleProvider, Record<Blockchain, boolean>> = {} as Record<
+      OracleProvider,
+      Record<Blockchain, boolean>
+    >;
 
     providers.forEach((provider) => {
       const config = oracleConfigs[provider];
@@ -159,7 +167,12 @@ export function ChainCoverageHeatmap({
                         title={`${providerNames[provider]} - ${chainNames[chain]}: ${isSupported ? '支持' : '不支持'}`}
                       >
                         {isSupported && (
-                          <span className={cn('text-xs font-bold', getTextColor(isSupported, chainCoverage))}>
+                          <span
+                            className={cn(
+                              'text-xs font-bold',
+                              getTextColor(isSupported, chainCoverage)
+                            )}
+                          >
                             ✓
                           </span>
                         )}

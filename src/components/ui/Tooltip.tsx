@@ -1,6 +1,7 @@
 'use client';
 
-import { forwardRef, ReactNode, useState } from 'react';
+import { forwardRef, type ReactNode, useState } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
@@ -54,9 +55,11 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
 
     const arrowStyles = {
       top: 'top-full left-1/2 -translate-x-1/2 -mt-1 border-l-transparent border-r-transparent border-b-transparent',
-      bottom: 'bottom-full left-1/2 -translate-x-1/2 -mb-1 border-l-transparent border-r-transparent border-t-transparent',
+      bottom:
+        'bottom-full left-1/2 -translate-x-1/2 -mb-1 border-l-transparent border-r-transparent border-t-transparent',
       left: 'left-full top-1/2 -translate-y-1/2 -ml-1 border-t-transparent border-b-transparent border-r-transparent',
-      right: 'right-full top-1/2 -translate-y-1/2 -mr-1 border-t-transparent border-b-transparent border-l-transparent',
+      right:
+        'right-full top-1/2 -translate-y-1/2 -mr-1 border-t-transparent border-b-transparent border-l-transparent',
     };
 
     return (

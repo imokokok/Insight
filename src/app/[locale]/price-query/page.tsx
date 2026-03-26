@@ -6,12 +6,14 @@
  */
 
 import { useRef, useCallback } from 'react';
-import { useTranslations } from '@/i18n';
+
+import { LiveStatusBar } from '@/components/ui';
 import { useCommonShortcuts } from '@/hooks';
+import { useTranslations } from '@/i18n';
+
 import { QueryHeader, QueryForm, QueryResults, ExportConfig } from './components';
 import { usePriceQuery } from './hooks/usePriceQuery';
 import { exportToCSV, exportToJSON, exportToPDF } from './utils/exportUtils';
-import { LiveStatusBar } from '@/components/ui';
 
 export default function PriceQueryPage() {
   const t = useTranslations();

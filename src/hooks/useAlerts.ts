@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase, queries, PriceAlert, AlertEvent } from '@/lib/supabase/client';
+
+import { supabase, queries, type PriceAlert, type AlertEvent } from '@/lib/supabase/client';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
-import type { OracleProvider, Blockchain } from '@/types/oracle';
 import { useUser } from '@/stores/authStore';
+import type { OracleProvider, Blockchain } from '@/types/oracle';
 
 export interface CreateAlertInput {
   name: string;

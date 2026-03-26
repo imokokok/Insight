@@ -1,4 +1,4 @@
-import { OracleProvider, Blockchain } from './enums';
+import { type OracleProvider, type Blockchain } from './enums';
 
 export interface OracleClient {
   getPrice(symbol: string, chain?: Blockchain): Promise<import('./price').PriceData>;

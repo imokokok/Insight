@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+
 import Image from 'next/image';
-import { X } from 'lucide-react';
-import { ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+
+import { X, ChevronDown } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import { NavStructure, NavGroup } from './types';
+
 import { oracleColors } from './config';
+import { type NavStructure, type NavGroup } from './types';
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -71,11 +74,13 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                 return (
                   <div key={group.id} className="mb-2">
                     <button
-                  onClick={() => toggleGroup(group.id)}
-                  className={`w-full flex items-center justify-between px-4 py-3 mx-2 rounded-lg transition-colors ${
-                    isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
+                      onClick={() => toggleGroup(group.id)}
+                      className={`w-full flex items-center justify-between px-4 py-3 mx-2 rounded-lg transition-colors ${
+                        isActive
+                          ? 'bg-primary-50 text-primary-600'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
                       <div className="flex items-center gap-3">
                         {GroupIcon && <GroupIcon className="w-5 h-5" />}
                         <span className="font-medium">{t(group.label)}</span>
@@ -97,36 +102,38 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
 
                           return (
                             <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={onClose}
-                            className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
-                              isItemActive
-                                ? 'bg-primary-50 text-primary-600'
-                                : 'text-gray-600 hover:bg-gray-50'
-                            }`}
-                          >
-                            {ItemIcon && (
-                              <div
-                                className={`p-1.5 rounded-md ${
-                                  isItemActive ? 'bg-primary-100' : 'bg-gray-100'
-                                }`}
-                                style={
-                                  accentColor && !isItemActive
-                                    ? { backgroundColor: `${accentColor}15` }
-                                    : {}
-                                }
-                              >
-                                <ItemIcon
-                                  className="w-4 h-4"
+                              key={item.href}
+                              href={item.href}
+                              onClick={onClose}
+                              className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
+                                isItemActive
+                                  ? 'bg-primary-50 text-primary-600'
+                                  : 'text-gray-600 hover:bg-gray-50'
+                              }`}
+                            >
+                              {ItemIcon && (
+                                <div
+                                  className={`p-1.5 rounded-md ${
+                                    isItemActive ? 'bg-primary-100' : 'bg-gray-100'
+                                  }`}
                                   style={
-                                    accentColor && !isItemActive ? { color: accentColor } : {}
+                                    accentColor && !isItemActive
+                                      ? { backgroundColor: `${accentColor}15` }
+                                      : {}
                                   }
-                                />
-                              </div>
-                            )}
+                                >
+                                  <ItemIcon
+                                    className="w-4 h-4"
+                                    style={
+                                      accentColor && !isItemActive ? { color: accentColor } : {}
+                                    }
+                                  />
+                                </div>
+                              )}
                               <span className="text-sm">{t(item.label)}</span>
-                              {isItemActive && <div className="ml-auto w-1.5 h-1.5 bg-primary-600 " />}
+                              {isItemActive && (
+                                <div className="ml-auto w-1.5 h-1.5 bg-primary-600 " />
+                              )}
                             </Link>
                           );
                         })}
@@ -143,13 +150,15 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
 
               return (
                 <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
-                  isItemActive ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
+                  key={item.href}
+                  href={item.href}
+                  onClick={onClose}
+                  className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
+                    isItemActive
+                      ? 'bg-primary-50 text-primary-600'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
                   {ItemIcon && <ItemIcon className="w-5 h-5" />}
                   <span className="font-medium">{t(item.label)}</span>
                   {isItemActive && <div className="ml-auto w-1.5 h-1.5 bg-primary-600 " />}

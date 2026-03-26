@@ -1,14 +1,12 @@
 'use client';
 
-import { useQuery, useQueries } from '@tanstack/react-query';
-import { ChronicleClient } from '@/lib/oracles';
-import { Blockchain } from '@/types/oracle';
-import type {
-  ScuttlebuttData,
-  MakerDAOIntegration,
-  ValidatorNetwork,
-} from '@/lib/oracles';
 import { useMemo } from 'react';
+
+import { useQuery, useQueries } from '@tanstack/react-query';
+
+import { ChronicleClient } from '@/lib/oracles';
+import type { ScuttlebuttData, MakerDAOIntegration, ValidatorNetwork } from '@/lib/oracles';
+import { type Blockchain } from '@/types/oracle';
 
 const client = new ChronicleClient();
 
@@ -134,9 +132,7 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
 
   // Get the most recent data update timestamp
   const lastUpdated = useMemo(() => {
-    const timestamps = results
-      .map((r) => r.dataUpdatedAt)
-      .filter((t): t is number => t > 0);
+    const timestamps = results.map((r) => r.dataUpdatedAt).filter((t): t is number => t > 0);
     return timestamps.length > 0 ? new Date(Math.max(...timestamps)) : null;
   }, [results]);
 

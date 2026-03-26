@@ -1,12 +1,10 @@
 'use client';
 
-import { MultiChainAggregation, MultiChainPrice } from '@/lib/oracles/tellor';
-import { useTranslations } from '@/i18n';
+import { Globe, Link2, Clock, TrendingUp } from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Globe } from 'lucide-react';
-import { Link2 } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type MultiChainAggregation, MultiChainPrice } from '@/lib/oracles/tellor';
 
 interface TellorMultiChainAggregationPanelProps {
   data: MultiChainAggregation;

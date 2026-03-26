@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useCallback, useMemo, ComponentType, ReactNode } from 'react';
-import { useTranslations } from '@/i18n';
-import { OracleConfig, getOracleConfig } from '@/lib/config/oracles';
-import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
+import { useState, useCallback, useMemo, type ComponentType, type ReactNode } from 'react';
+
 import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { useTranslations } from '@/i18n';
+import { type OracleConfig, getOracleConfig } from '@/lib/config/oracles';
+import { type PriceData, type OracleProvider, Blockchain } from '@/types/oracle';
 
 export interface OraclePageData {
   price?: PriceData;
@@ -30,8 +31,8 @@ export interface NetworkStats {
 export interface PublisherData {
   id: string;
   name: string;
-  status: string;
-  contribution: number;
+  status?: string;
+  contribution?: number;
   accuracy: number;
   stake?: number;
 }
@@ -39,8 +40,8 @@ export interface PublisherData {
 export interface ValidatorData {
   id: string;
   name: string;
-  stake: number;
-  performance: number;
+  stake?: number;
+  performance?: number;
   status: string;
   uptime?: number;
   rewards?: number;
@@ -120,12 +121,12 @@ export function OraclePageTemplate({
 }: OraclePageTemplateProps) {
   const t = useTranslations();
   const config = useMemo(() => getOracleConfig(provider), [provider]);
-  
+
   const [activeTab, setActiveTab] = useState(() => {
-    const defaultView = views.find(v => v.default) || views[0];
+    const defaultView = views.find((v) => v.default) || views[0];
     return defaultView?.id || views[0]?.id || '';
   });
-  
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleTabChange = useCallback((tab: string) => {
@@ -134,7 +135,7 @@ export function OraclePageTemplate({
   }, []);
 
   const activeView = useMemo(() => {
-    return views.find(view => view.id === activeTab);
+    return views.find((view) => view.id === activeTab);
   }, [views, activeTab]);
 
   if (state.isLoading && !data.price && !customLoadingComponent) {
@@ -150,11 +151,7 @@ export function OraclePageTemplate({
       return <>{customErrorComponent}</>;
     }
     return (
-      <ErrorFallback
-        error={state.error}
-        onRetry={actions.refresh}
-        themeColor={config.themeColor}
-      />
+      <ErrorFallback error={state.error} onRetry={actions.refresh} themeColor={config.themeColor} />
     );
   }
 
@@ -166,7 +163,7 @@ export function OraclePageTemplate({
       <Hero
         config={config}
         price={data.price ?? null}
-        historicalData={data.historicalData}
+        historicalData={data.historicalData ?? []}
         networkStats={data.networkStats ?? null}
         publishers={data.publishers}
         validators={data.validators}
@@ -185,7 +182,7 @@ export function OraclePageTemplate({
               <Sidebar
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
-                tabs={views.map(v => ({ id: v.id, labelKey: v.labelKey }))}
+                tabs={views.map((v) => ({ id: v.id, labelKey: v.labelKey }))}
                 themeColor={config.themeColor}
               />
             </div>
@@ -197,19 +194,24 @@ export function OraclePageTemplate({
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
               {t('oracle.menu.title')}
             </button>
           </div>
 
           {isMobileMenuOpen && (
-            <div 
-              className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" 
+            <div
+              className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <div 
-                className="absolute left-0 top-0 h-full w-64 bg-white" 
+              <div
+                className="absolute left-0 top-0 h-full w-64 bg-white"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="p-4 border-b border-gray-200 flex items-center justify-between">
@@ -217,15 +219,25 @@ export function OraclePageTemplate({
                     {t('oracle.navigation.title')}
                   </h2>
                   <button onClick={() => setIsMobileMenuOpen(false)}>
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-5 h-5 text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
                 <Sidebar
                   activeTab={activeTab}
                   onTabChange={handleTabChange}
-                  tabs={views.map(v => ({ id: v.id, labelKey: v.labelKey }))}
+                  tabs={views.map((v) => ({ id: v.id, labelKey: v.labelKey }))}
                   themeColor={config.themeColor}
                 />
               </div>
@@ -234,11 +246,7 @@ export function OraclePageTemplate({
 
           <div className="flex-1 min-w-0">
             {activeView && (
-              <activeView.component
-                config={config}
-                data={data}
-                isLoading={state.isLoading}
-              />
+              <activeView.component config={config} data={data} isLoading={state.isLoading} />
             )}
           </div>
         </div>

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useWebSocket, WebSocketMessage } from '@/lib/realtime/websocket';
-import { DisputeData, DisputeType } from '@/lib/oracles/uma';
+
+import { type DisputeData, type DisputeType } from '@/lib/oracles/uma';
+import { useWebSocket, type WebSocketMessage } from '@/lib/realtime/websocket';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('useUMARealtime');

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { Calculator, TrendingUp, Clock, Calendar, AlertCircle, Info } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 
 type ScenarioType = 'conservative' | 'moderate' | 'optimistic';
 
@@ -81,9 +83,7 @@ export function StakingRewardsCalculator() {
       {/* Header */}
       <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
         <Calculator className="w-4 h-4 text-gray-500" />
-        <h3 className="text-sm font-medium text-gray-900">
-          {t('winklink.staking.calculator')}
-        </h3>
+        <h3 className="text-sm font-medium text-gray-900">{t('winklink.staking.calculator')}</h3>
       </div>
 
       {/* Input Section */}
@@ -164,9 +164,7 @@ export function StakingRewardsCalculator() {
           <span className="text-xs font-medium text-gray-500">
             {t('winklink.staking.expectedRewards')}
           </span>
-          <span className="text-xs font-medium text-gray-700">
-            {scenario.apy}% APY
-          </span>
+          <span className="text-xs font-medium text-gray-700">{scenario.apy}% APY</span>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
@@ -175,7 +173,9 @@ export function StakingRewardsCalculator() {
               <Clock className="w-3 h-3 text-gray-400" />
               <span className="text-xs text-gray-400">{t('winklink.staking.daily')}</span>
             </div>
-            <div className="text-sm font-semibold text-gray-900">{formatCurrency(rewards.daily)}</div>
+            <div className="text-sm font-semibold text-gray-900">
+              {formatCurrency(rewards.daily)}
+            </div>
             <div className="text-xs text-gray-400">WIN</div>
           </div>
 
@@ -184,7 +184,9 @@ export function StakingRewardsCalculator() {
               <Calendar className="w-3 h-3 text-gray-400" />
               <span className="text-xs text-gray-400">{t('winklink.staking.monthly')}</span>
             </div>
-            <div className="text-sm font-semibold text-gray-900">{formatCurrency(rewards.monthly)}</div>
+            <div className="text-sm font-semibold text-gray-900">
+              {formatCurrency(rewards.monthly)}
+            </div>
             <div className="text-xs text-gray-400">WIN</div>
           </div>
 
@@ -193,7 +195,9 @@ export function StakingRewardsCalculator() {
               <TrendingUp className="w-3 h-3 text-gray-400" />
               <span className="text-xs text-gray-400">{t('winklink.staking.yearly')}</span>
             </div>
-            <div className="text-sm font-semibold text-gray-900">{formatCurrency(rewards.yearly)}</div>
+            <div className="text-sm font-semibold text-gray-900">
+              {formatCurrency(rewards.yearly)}
+            </div>
             <div className="text-xs text-gray-400">WIN</div>
           </div>
         </div>

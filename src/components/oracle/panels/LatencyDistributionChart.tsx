@@ -10,10 +10,11 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
+
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
-import { LatencyDistributionData, LatencyMetrics } from './qualityUtils';
 
+import { type LatencyDistributionData, type LatencyMetrics } from './qualityUtils';
 
 interface LatencyDistributionChartProps {
   data: LatencyDistributionData[];

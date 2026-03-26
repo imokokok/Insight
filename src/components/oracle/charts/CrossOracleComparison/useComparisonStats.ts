@@ -1,12 +1,14 @@
 import { useMemo, useCallback } from 'react';
+
 import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/types/oracle';
+
 import {
-  PriceComparisonData,
-  PriceHistoryPoint,
-  DeviationData,
-  PriceDeviationDetail,
-  OraclePerformance,
+  type PriceComparisonData,
+  type PriceHistoryPoint,
+  type DeviationData,
+  type PriceDeviationDetail,
+  type OraclePerformance,
   oracleNames,
   oracleColors,
   defaultPerformanceData,

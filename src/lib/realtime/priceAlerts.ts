@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceDataForAlert } from '@/types/oracle';
 

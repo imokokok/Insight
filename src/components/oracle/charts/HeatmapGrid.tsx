@@ -39,7 +39,13 @@ export function HeatmapGrid({
   formatValue = (v) => v.toFixed(2),
 }: HeatmapGridProps) {
   const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null);
-  const [tooltip, setTooltip] = useState<{ x: number; y: number; value: number; row: number; col: number } | null>(null);
+  const [tooltip, setTooltip] = useState<{
+    x: number;
+    y: number;
+    value: number;
+    row: number;
+    col: number;
+  } | null>(null);
 
   const { minValue, maxValue } = useMemo(() => {
     const allValues = data.flat();
@@ -140,8 +146,7 @@ export function HeatmapGrid({
 
               {/* Cells */}
               {row.map((value, colIndex) => {
-                const isHovered =
-                  hoveredCell?.row === rowIndex && hoveredCell?.col === colIndex;
+                const isHovered = hoveredCell?.row === rowIndex && hoveredCell?.col === colIndex;
 
                 return (
                   <div
@@ -196,11 +201,7 @@ export function HeatmapGrid({
         <span className="text-xs text-gray-500">{formatValue(minValue)}</span>
         <div className="flex rounded overflow-hidden">
           {colorScale.map((color, index) => (
-            <div
-              key={`legend-${index}`}
-              className="w-4 h-3"
-              style={{ backgroundColor: color }}
-            />
+            <div key={`legend-${index}`} className="w-4 h-3" style={{ backgroundColor: color }} />
           ))}
         </div>
         <span className="text-xs text-gray-500">{formatValue(maxValue)}</span>

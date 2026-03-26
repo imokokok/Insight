@@ -1,6 +1,7 @@
 'use client';
 
-import { forwardRef, InputHTMLAttributes, ReactNode } from 'react';
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -33,10 +34,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700 mb-1.5"
-          >
+          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1.5">
             {label}
           </label>
         )}
@@ -75,12 +73,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {(error || helperText) && (
-          <p
-            className={cn(
-              'mt-1.5 text-sm',
-              error ? 'text-danger-600' : 'text-gray-500'
-            )}
-          >
+          <p className={cn('mt-1.5 text-sm', error ? 'text-danger-600' : 'text-gray-500')}>
             {error || helperText}
           </p>
         )}

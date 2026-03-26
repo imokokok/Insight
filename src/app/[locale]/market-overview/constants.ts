@@ -1,7 +1,14 @@
-import { OracleMarketData, AssetData, TVSTrendData, ChainSupportData } from './types';
 import { chartColors } from '@/lib/config/colors';
 import { oracleColors } from '@/lib/constants';
+import { type RefreshInterval } from '@/lib/constants';
 import { OracleProvider } from '@/lib/oracles';
+
+import {
+  type OracleMarketData,
+  type AssetData,
+  type TVSTrendData,
+  type ChainSupportData,
+} from './types';
 
 export const ORACLE_COLORS = {
   chainlink: oracleColors[OracleProvider.CHAINLINK],
@@ -415,8 +422,6 @@ export const MOCK_ASSETS: AssetData[] = [
     priceSources: [],
   },
 ];
-
-import { type RefreshInterval } from '@/lib/constants';
 
 export { type RefreshInterval };
 

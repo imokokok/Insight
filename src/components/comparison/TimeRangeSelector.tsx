@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useTranslations, useLocale } from '@/i18n';
+
 import {
   startOfHour,
   startOfDay,
@@ -15,8 +15,11 @@ import {
   parseISO,
 } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
-import { TimeRange, TimePeriod, TimeComparisonConfig } from './types';
+
+import { useTranslations, useLocale } from '@/i18n';
 import { semanticColors, baseColors } from '@/lib/config/colors';
+
+import { type TimeRange, type TimePeriod, type TimeComparisonConfig } from './types';
 
 interface TimeRangeSelectorProps {
   value: TimeComparisonConfig;

@@ -1,8 +1,9 @@
 'use client';
 
+import { UnifiedExport, type ExportField } from '@/components/export';
 import { useTranslations } from '@/i18n';
-import { UnifiedExport, ExportField } from '@/components/export';
-import { CrossOracleData } from '../types';
+
+import { type CrossOracleData } from '../types';
 
 interface UnifiedExportSectionProps {
   loading: boolean;

@@ -1,13 +1,12 @@
 'use client';
 
-import { PriceStreamPoint } from '@/lib/oracles/tellor';
-import { useTranslations } from '@/i18n';
 import { useEffect, useRef } from 'react';
+
+import { TrendingUp, TrendingDown, Activity, Clock } from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { TrendingUp } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Clock } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type PriceStreamPoint } from '@/lib/oracles/tellor';
 
 interface TellorPriceStreamPanelProps {
   data: PriceStreamPoint[];

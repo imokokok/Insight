@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { cn } from '@/lib/utils';
+
 import { semanticColors } from '@/lib/config/colors';
+import { cn } from '@/lib/utils';
 
 interface PriceChangeProps {
   currentPrice: number;
@@ -113,11 +114,7 @@ export function PriceChange({
       }}
     >
       <span className="flex items-center">
-        {!isNeutral && (
-          <span className="mr-0.5 text-xs">
-            {isPositive ? '↑' : '↓'}
-          </span>
-        )}
+        {!isNeutral && <span className="mr-0.5 text-xs">{isPositive ? '↑' : '↓'}</span>}
         <span>
           {sign}
           {formatValue(displayValue)}%

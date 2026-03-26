@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { ReporterStats, Reporter } from '@/lib/oracles/tellor';
-import { useTranslations } from '@/i18n';
+
+import { Users, Trophy, TrendingUp, Activity } from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Users } from 'lucide-react';
-import { Trophy } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Activity } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type ReporterStats, type Reporter } from '@/lib/oracles/tellor';
 
 interface TellorReportersPanelProps {
   data: ReporterStats;

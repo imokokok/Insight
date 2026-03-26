@@ -1,15 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  ChainlinkClient,
-  BandProtocolClient,
-  UMAClient,
-  PythClient,
-} from '@/lib/oracles';
+
+import { ChainlinkClient, BandProtocolClient, UMAClient, PythClient } from '@/lib/oracles';
+import { createLogger } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
-import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('useOraclePrices');
 

@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useUser } from '@/stores/authStore';
-import { queries } from '@/lib/supabase/client';
+
 import { AuthenticationError } from '@/lib/errors';
+import { queries } from '@/lib/supabase/client';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import type { UserFavorite } from '@/lib/supabase/queries';
+import { useUser } from '@/stores/authStore';
 
 export interface FavoriteConfig {
   selectedOracles?: string[];

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
@@ -210,7 +211,11 @@ export default function DataQualityIndicator({
               <div className="h-2 bg-gray-100  overflow-hidden">
                 <div
                   className={`h-full  transition-all duration-500 ${
-                    latency < 100 ? 'bg-success-500' : latency < 500 ? 'bg-warning-500' : 'bg-danger-500'
+                    latency < 100
+                      ? 'bg-success-500'
+                      : latency < 500
+                        ? 'bg-warning-500'
+                        : 'bg-danger-500'
                   }`}
                   style={{ width: `${Math.max(0, 100 - (latency / 1000) * 100)}%` }}
                 />

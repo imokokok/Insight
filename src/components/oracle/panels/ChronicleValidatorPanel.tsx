@@ -1,15 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { ValidatorNetwork, ChronicleValidator } from '@/lib/oracles/chronicle';
+import { Users, Activity, Award, Coins, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Users } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Award } from 'lucide-react';
-import { Coins } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { XCircle } from 'lucide-react';
-import { AlertCircle } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type ValidatorNetwork, ChronicleValidator } from '@/lib/oracles/chronicle';
 
 interface ChronicleValidatorPanelProps {
   data: ValidatorNetwork;

@@ -10,6 +10,12 @@
 /**
  * Tab 配置类型
  */
+// ============================================================================
+// 类型重新导出（解决循环依赖和简化导入）
+// ============================================================================
+
+import type { OracleProvider } from '../oracle';
+
 export interface TabConfig {
   id: string;
   label: string;
@@ -83,12 +89,6 @@ export * from './theme';
 
 // 图表类型（包含 recharts 扩展）
 export * from './charts';
-
-// ============================================================================
-// 类型重新导出（解决循环依赖和简化导入）
-// ============================================================================
-
-import type { OracleProvider } from '../oracle';
 
 /**
  * 带预言机信息的图表数据点
@@ -176,7 +176,14 @@ export type ComponentSize = 'sm' | 'md' | 'lg' | 'xl';
 /**
  * 组件变体类型
  */
-export type ComponentVariant = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info';
+export type ComponentVariant =
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info';
 
 /**
  * 响应式值类型

@@ -1,6 +1,5 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import {
   BarChart,
   Bar,
@@ -21,16 +20,19 @@ import {
   ReferenceLine,
   ComposedChart,
 } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
+
+import { useTranslations } from '@/i18n';
 import { baseColors, chartColors } from '@/lib/config/colors';
+import { OracleProvider } from '@/types/oracle';
+
+import { PriceDeviationHistoryChart } from '../PriceDeviationHistoryChart';
+
 import {
   oracleNames,
   oracleColors,
-  PriceHistoryPoint,
+  type PriceHistoryPoint,
   defaultPerformanceData,
 } from './crossOracleConfig';
-import { PriceDeviationHistoryChart } from '../PriceDeviationHistoryChart';
-
 
 interface PriceStats {
   avg: number;

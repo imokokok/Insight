@@ -1,10 +1,14 @@
 'use client';
 
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+
 import { createLogger } from '@/lib/utils/logger';
+
+// ==================== Hook 工厂函数 ====================
 
 const logger = createLogger('WebSocketManager');
 
-function calculateBackoffDelay(attempt: number, baseDelay: number): number {
+export function calculateBackoffDelay(attempt: number, baseDelay: number): number {
   const maxDelay = 30000;
   const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
   return delay + Math.random() * 1000;
@@ -630,10 +634,6 @@ export class MockWebSocketManager extends WebSocketManager {
     }
   }
 }
-
-// ==================== Hook 工厂函数 ====================
-
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 
 export interface UseWebSocketOptions {
   url?: string;

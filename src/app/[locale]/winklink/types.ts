@@ -1,23 +1,17 @@
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/types/oracle';
+import { type OracleConfig } from '@/lib/config/oracles';
 import {
-  TRONEcosystem,
-  NodeStakingData,
-  WINkLinkNode,
-  WINkLinkGamingData,
-  WINkLinkRiskMetrics,
-  WINkLinkNetworkStats,
+  type TRONEcosystem,
+  type NodeStakingData,
+  type WINkLinkNode,
+  type WINkLinkGamingData,
+  type WINkLinkRiskMetrics,
+  type WINkLinkNetworkStats,
 } from '@/lib/oracles/winklink';
+import { type PriceData } from '@/types/oracle';
 
 export type StakingNode = WINkLinkNode;
 
-export type WinklinkTabId =
-  | 'market'
-  | 'network'
-  | 'tron'
-  | 'staking'
-  | 'gaming'
-  | 'risk';
+export type WinklinkTabId = 'market' | 'network' | 'tron' | 'staking' | 'gaming' | 'risk';
 
 export interface WinklinkPageState {
   activeTab: WinklinkTabId;

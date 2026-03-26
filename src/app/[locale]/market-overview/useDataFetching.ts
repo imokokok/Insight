@@ -1,27 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  OracleMarketData,
-  AssetData,
-  TVSTrendData,
-  ChainBreakdown,
-  ProtocolDetail,
-  AssetCategory,
-  ComparisonData,
-  BenchmarkData,
-  CorrelationData,
-  RiskMetrics,
-  AnomalyData,
-  TIME_RANGES,
-  RefreshStatus,
-} from './types';
-import {
-  MOCK_ORACLE_DATA,
-  MOCK_ASSETS,
-  generateTVSTrendData as generateMockTVSTrendData,
-  RefreshInterval,
-} from './constants';
+
 import {
   fetchOraclesData,
   fetchAssetsData,
@@ -36,6 +16,28 @@ import {
   detectAnomalies,
 } from '@/lib/services/marketData';
 import { createLogger } from '@/lib/utils/logger';
+
+import {
+  MOCK_ORACLE_DATA,
+  MOCK_ASSETS,
+  generateTVSTrendData as generateMockTVSTrendData,
+  type RefreshInterval,
+} from './constants';
+import {
+  type OracleMarketData,
+  type AssetData,
+  type TVSTrendData,
+  type ChainBreakdown,
+  type ProtocolDetail,
+  type AssetCategory,
+  type ComparisonData,
+  type BenchmarkData,
+  type CorrelationData,
+  type RiskMetrics,
+  type AnomalyData,
+  TIME_RANGES,
+  type RefreshStatus,
+} from './types';
 
 const logger = createLogger('useDataFetching');
 

@@ -25,6 +25,9 @@
       "riskAssessment": "Risk Assessment",
       "crossOracleComparison": "Cross-Oracle Comparison"
     },
+    "navigation": {
+      "title": "API3"
+    },
     "firstPartyOracle": {
       "title": "First-Party Oracle Infrastructure",
       "subtitle": "Direct API provider integration eliminating intermediary layers",

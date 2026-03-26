@@ -50,12 +50,5 @@ export { VirtualList, VirtualGrid } from './VirtualList';
 export type { VirtualListProps, VirtualGridProps } from './VirtualList';
 
 // Code Splitting Utilities
-export {
-  withCodeSplitting,
-  withPreload,
-  createDynamicComponent,
-} from './codeSplitting';
-export type {
-  CodeSplittingOptions,
-  DynamicComponentOptions,
-} from './codeSplitting';
+export { withCodeSplitting, withPreload, createDynamicComponent } from './codeSplitting';
+export type { CodeSplittingOptions, DynamicComponentOptions } from './codeSplitting';

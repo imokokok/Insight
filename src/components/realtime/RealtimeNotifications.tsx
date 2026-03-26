@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useConnectionStatus } from '@/stores/realtimeStore';
+
 import { useRealtimeAlerts } from '@/hooks';
+import { useConnectionStatus } from '@/stores/realtimeStore';
 
 export interface NotificationData {
   id: string;

@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { ChronicleSidebarProps, ChronicleTabId } from '../types';
+
+import { type ChronicleSidebarProps, type ChronicleTabId } from '../types';
 
 interface NavItem {
   id: ChronicleTabId;

@@ -3,7 +3,7 @@
  * @description 集中定义所有 UI 组件的 Props 类型，便于复用和维护
  */
 
-import { ReactNode, ButtonHTMLAttributes, HTMLAttributes } from 'react';
+import { type ReactNode, type ButtonHTMLAttributes, type HTMLAttributes } from 'react';
 
 // ============================================================================
 // 基础组件类型
@@ -108,7 +108,14 @@ export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
 /**
  * 徽章变体类型
  */
-export type BadgeVariant = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info';
+export type BadgeVariant =
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info';
 
 /**
  * 徽章尺寸类型
@@ -285,7 +292,10 @@ export interface SelectOption<T = string> {
 /**
  * 下拉选择器 Props
  */
-export interface DropdownSelectProps<T = string> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
+export interface DropdownSelectProps<T = string> extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'onChange'
+> {
   options: SelectOption<T>[];
   value: T;
   onChange: (value: T) => void;
@@ -300,7 +310,10 @@ export interface DropdownSelectProps<T = string> extends Omit<HTMLAttributes<HTM
 /**
  * 分段控制器 Props
  */
-export interface SegmentedControlProps<T = string> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
+export interface SegmentedControlProps<T = string> extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'onChange'
+> {
   options: SelectOption<T>[];
   value: T;
   onChange: (value: T) => void;
@@ -310,7 +323,10 @@ export interface SegmentedControlProps<T = string> extends Omit<HTMLAttributes<H
 /**
  * 多选 Props
  */
-export interface MultiSelectProps<T = string> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
+export interface MultiSelectProps<T = string> extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'onChange'
+> {
   options: SelectOption<T>[];
   value: T[];
   onChange: (value: T[]) => void;
@@ -498,8 +514,6 @@ export interface RadioProps extends Omit<HTMLAttributes<HTMLInputElement>, 'onCh
 // 导航组件类型
 // ============================================================================
 
-
-
 // ============================================================================
 // 数据表格组件类型
 // ============================================================================
@@ -519,7 +533,9 @@ export interface DataTableColumn<T = Record<string, unknown>> {
 /**
  * 数据表格 Props
  */
-export interface DataTableProps<T = Record<string, unknown>> extends HTMLAttributes<HTMLDivElement> {
+export interface DataTableProps<
+  T = Record<string, unknown>,
+> extends HTMLAttributes<HTMLDivElement> {
   columns: DataTableColumn<T>[];
   data: T[];
   loading?: boolean;
@@ -587,8 +603,6 @@ export interface AvatarUploaderProps extends HTMLAttributes<HTMLDivElement> {
 // ============================================================================
 // 图表工具栏组件类型
 // ============================================================================
-
-
 
 // ============================================================================
 // 紧凑统计卡片类型

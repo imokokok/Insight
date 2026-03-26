@@ -1,21 +1,23 @@
-import { ReactNode } from 'react';
-import { PanelConfig, PanelRenderContext } from './types';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
+import { type ReactNode } from 'react';
+
 import {
   ValidatorGeographicMap,
   ValidatorPanel,
   ChainEventMonitor,
   BandCrossChainPriceConsistency,
   DashboardCard,
+  BandCrossChainPanel,
+  CosmosEcosystemPanel,
+  BandRiskAssessmentPanel,
 } from '@/components/oracle';
 import {
   BandValidatorsPanel,
   BandDataFeedsPanel,
   BandStakingPanel,
 } from '@/components/oracle/panels';
-import { BandCrossChainPanel } from '@/components/oracle';
-import { CosmosEcosystemPanel } from '@/components/oracle';
-import { BandRiskAssessmentPanel } from '@/components/oracle';
+import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
+
+import { type PanelConfig, type PanelRenderContext } from './types';
 
 const renderNetworkTab = (context: PanelRenderContext): ReactNode => {
   const { config } = context;

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+
 import { ChevronDown, Search, Check } from 'lucide-react';
-import { DropdownSelectProps, SelectorOption } from './types';
+
+import { type DropdownSelectProps, type SelectorOption } from './types';
 
 export function DropdownSelect<T = string>({
   options,

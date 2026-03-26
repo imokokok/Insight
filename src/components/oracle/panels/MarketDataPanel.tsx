@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { BaseOracleClient } from '@/lib/oracles/base';
-import { Blockchain, OracleProvider, ConfidenceInterval } from '@/types/oracle';
-import { MetricCard } from '@/components/oracle/data-display/DashboardCard';
-import { formatCurrency, formatNumber } from '@/lib/utils/format';
+
 import { ConfidenceIntervalDisplay } from '@/components/oracle/data-display/ConfidenceIntervalDisplay';
+import { MetricCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
+import { type BaseOracleClient } from '@/lib/oracles/base';
+import { formatCurrency, formatNumber } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
+import { type Blockchain, OracleProvider, type ConfidenceInterval } from '@/types/oracle';
 
 const logger = createLogger('MarketDataPanel');
 

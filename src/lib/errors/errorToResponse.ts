@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
-import { AppError } from './AppError';
+
 import { createLogger } from '@/lib/utils/logger';
+
+import { AppError } from './AppError';
 
 const logger = createLogger('error-handler');
 

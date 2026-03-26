@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useUser } from '@/stores/authStore';
-import { useToggleFavorite, useIsFavorited, FavoriteConfig } from '@/hooks';
+
+import { useToggleFavorite, useIsFavorited, type FavoriteConfig } from '@/hooks';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import { createLogger } from '@/lib/utils/logger';
+import { useUser } from '@/stores/authStore';
 
 const logger = createLogger('FavoriteButton');
 

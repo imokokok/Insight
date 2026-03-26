@@ -1,19 +1,20 @@
 'use client';
 
+import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
+import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
+import { MovingAverageChart } from '@/components/oracle/charts/MovingAverageChart';
+import { PriceCorrelationMatrix } from '@/components/oracle/charts/PriceCorrelationMatrix';
 import { PriceDeviationHeatmap } from '@/components/oracle/charts/PriceDeviationHeatmap';
 import { PriceDistributionBoxPlot } from '@/components/oracle/charts/PriceDistributionBoxPlot';
 import { PriceVolatilityChart } from '@/components/oracle/charts/PriceVolatilityChart';
-import { PriceCorrelationMatrix } from '@/components/oracle/charts/PriceCorrelationMatrix';
-import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
 import { OraclePerformanceRanking } from '@/components/oracle/data-display/OraclePerformanceRanking';
-import { MovingAverageChart } from '@/components/oracle/charts/MovingAverageChart';
-import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
 import { DropdownSelect } from '@/components/ui';
-import { OracleProvider, PriceData } from '@/types/oracle';
+import { type OracleProvider, type PriceData } from '@/types/oracle';
+
 import { oracleNames } from '../../constants';
-import { QualityTrendData } from '../../types';
-import { OracleComparisonSection } from '../OracleComparisonSection';
+import { type QualityTrendData } from '../../types';
 import { BenchmarkComparisonSection } from '../BenchmarkComparisonSection';
+import { OracleComparisonSection } from '../OracleComparisonSection';
 
 interface AnalysisTabProps {
   priceData: PriceData[];
@@ -173,9 +174,7 @@ export function AnalysisTab({
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-600 flex-shrink-0">
                     <div className="text-center">
-                      <p className="text-gray-400">
-                        {t('crossOracle.analysisTab.responseTime')}
-                      </p>
+                      <p className="text-gray-400">{t('crossOracle.analysisTab.responseTime')}</p>
                       <p className="font-semibold text-gray-900 truncate">{data.responseTime}ms</p>
                     </div>
                     <div className="text-center">

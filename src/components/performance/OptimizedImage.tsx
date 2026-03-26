@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useCallback, useEffect, forwardRef } from 'react';
+
 import Image from 'next/image';
+
 import { cn } from '@/lib/utils';
 
 // ============================================================================
@@ -46,10 +48,7 @@ interface ImagePlaceholderProps {
 function ImagePlaceholder({ width, height, className, aspectRatio }: ImagePlaceholderProps) {
   return (
     <div
-      className={cn(
-        'animate-pulse bg-gray-200 rounded-md',
-        className
-      )}
+      className={cn('animate-pulse bg-gray-200 rounded-md', className)}
       style={{
         width: width ? `${width}px` : '100%',
         height: height ? `${height}px` : '100%',
@@ -125,12 +124,12 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
     const handleError = useCallback(() => {
       setHasError(true);
       setIsLoading(false);
-      
+
       // Try fallback if available and not already using it
       if (fallbackSrc && currentSrc !== fallbackSrc) {
         setCurrentSrc(fallbackSrc);
       }
-      
+
       onError?.();
     }, [fallbackSrc, currentSrc, onError]);
 
@@ -139,7 +138,7 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
       if (format === 'auto' || currentSrc.startsWith('data:')) {
         return currentSrc;
       }
-      
+
       // Add format query parameter for image optimization services
       const separator = currentSrc.includes('?') ? '&' : '?';
       return `${currentSrc}${separator}format=${format}`;
@@ -149,11 +148,7 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
 
     return (
       <div
-        className={cn(
-          'relative overflow-hidden',
-          fill && 'absolute inset-0',
-          containerClassName
-        )}
+        className={cn('relative overflow-hidden', fill && 'absolute inset-0', containerClassName)}
         style={{
           aspectRatio: !fill ? aspectRatio : undefined,
         }}
@@ -224,30 +219,33 @@ export function LazyImage({
   ...props
 }: LazyImageProps) {
   const [isInView, setIsInView] = useState(false);
-  const containerRef = useCallback((node: HTMLDivElement | null) => {
-    if (!node) return;
+  const containerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          if (triggerOnce) {
-            observer.disconnect();
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsInView(true);
+            if (triggerOnce) {
+              observer.disconnect();
+            }
+          } else if (!triggerOnce) {
+            setIsInView(false);
           }
-        } else if (!triggerOnce) {
-          setIsInView(false);
+        },
+        {
+          threshold,
+          rootMargin,
         }
-      },
-      {
-        threshold,
-        rootMargin,
-      }
-    );
+      );
 
-    observer.observe(node);
+      observer.observe(node);
 
-    return () => observer.disconnect();
-  }, [threshold, rootMargin, triggerOnce]);
+      return () => observer.disconnect();
+    },
+    [threshold, rootMargin, triggerOnce]
+  );
 
   return (
     <div ref={containerRef} className="w-full h-full">
@@ -287,9 +285,7 @@ export function ResponsiveImage({
   className,
   ...props
 }: ResponsiveImageProps) {
-  const sizes = breakpoints
-    .map((bp) => `(max-width: ${bp.width}px) ${bp.size}`)
-    .join(', ');
+  const sizes = breakpoints.map((bp) => `(max-width: ${bp.width}px) ${bp.size}`).join(', ');
 
   return (
     <div
@@ -299,12 +295,7 @@ export function ResponsiveImage({
         aspectRatio,
       }}
     >
-      <OptimizedImage
-        {...props}
-        fill
-        sizes={sizes}
-        className="object-cover"
-      />
+      <OptimizedImage {...props} fill sizes={sizes} className="object-cover" />
     </div>
   );
 }
@@ -326,22 +317,14 @@ const avatarSizes = {
   xl: 64,
 };
 
-export function AvatarImage({
-  size = 'md',
-  fallback,
-  className,
-  ...props
-}: AvatarImageProps) {
+export function AvatarImage({ size = 'md', fallback, className, ...props }: AvatarImageProps) {
   const [hasError, setHasError] = useState(false);
   const pixelSize = avatarSizes[size];
 
   if (hasError) {
     return (
       <div
-        className={cn(
-          'flex items-center justify-center bg-gray-200 rounded-full',
-          className
-        )}
+        className={cn('flex items-center justify-center bg-gray-200 rounded-full', className)}
         style={{ width: pixelSize, height: pixelSize }}
       >
         {fallback || (
@@ -426,9 +409,7 @@ export function BackgroundImage({
           sizes="100vw"
         />
       </div>
-      {overlayClassName && (
-        <div className={cn('absolute inset-0', overlayClassName)} />
-      )}
+      {overlayClassName && <div className={cn('absolute inset-0', overlayClassName)} />}
       <div className="relative z-10">{children}</div>
     </div>
   );
@@ -438,4 +419,10 @@ export function BackgroundImage({
 // Export Types
 // ============================================================================
 
-export type { OptimizedImageProps, LazyImageProps, ResponsiveImageProps, AvatarImageProps, BackgroundImageProps };
+export type {
+  OptimizedImageProps,
+  LazyImageProps,
+  ResponsiveImageProps,
+  AvatarImageProps,
+  BackgroundImageProps,
+};

@@ -1,25 +1,32 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useTranslations, useLocale } from '@/i18n';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations, useLocale } from '@/i18n';
 import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
   PythClient,
   API3Client,
-  PriceData,
+  type PriceData,
   Blockchain,
 } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
-import { AnomalyEvent, AnomalyStats, AnomalyDetectionConfig, AnomalyFilter } from './types';
-import { PROVIDER_NAMES, formatTime, formatDuration, generateAnomalyId } from './anomalyUtils';
-import { AlertItem } from './AlertItem';
-import { AlertFilters } from './AlertFilters';
-import { AlertStats } from './AlertStats';
+
 import { AlertConfig } from './AlertConfig';
+import { AlertFilters } from './AlertFilters';
 import { AlertHistory } from './AlertHistory';
+import { AlertItem } from './AlertItem';
+import { AlertStats } from './AlertStats';
+import { PROVIDER_NAMES, formatTime, formatDuration, generateAnomalyId } from './anomalyUtils';
+import {
+  type AnomalyEvent,
+  type AnomalyStats,
+  type AnomalyDetectionConfig,
+  type AnomalyFilter,
+} from './types';
 
 const logger = createLogger('AnomalyAlert');
 

@@ -1,7 +1,9 @@
 'use client';
 
+import { type ReactNode, useState } from 'react';
+
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
-import { ReactNode, useState } from 'react';
+
 import { isAppError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 

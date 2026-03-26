@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { WinklinkSidebarProps, WinklinkTabId } from '../types';
+
+import { type WinklinkSidebarProps, type WinklinkTabId } from '../types';
 
 interface NavItem {
   id: WinklinkTabId;
@@ -124,9 +125,7 @@ export function WinklinkSidebar({ activeTab, onTabChange }: WinklinkSidebarProps
                 }
               `}
             >
-              <span className={`${isActive ? 'text-pink-600' : 'text-gray-400'}`}>
-                {item.icon}
-              </span>
+              <span className={`${isActive ? 'text-pink-600' : 'text-gray-400'}`}>{item.icon}</span>
               <span>{t(item.labelKey)}</span>
             </button>
           );

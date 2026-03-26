@@ -1,15 +1,22 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { PriceChart } from '@/components/oracle';
-import { UmaMarketViewProps } from '../types';
-import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield, Scale } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Zap,
+  Server,
+  Clock,
+  Shield,
+  Scale,
+} from 'lucide-react';
 
-export function UmaMarketView({
-  config,
-  price,
-  networkStats,
-}: UmaMarketViewProps) {
+import { PriceChart } from '@/components/oracle';
+import { useTranslations } from '@/i18n';
+
+import { type UmaMarketViewProps } from '../types';
+
+export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProps) {
   const t = useTranslations();
 
   const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
@@ -40,29 +47,29 @@ export function UmaMarketView({
   ];
 
   const networkStatus = [
-    { 
-      label: t('uma.stats.activeValidators'), 
-      value: `${networkStats?.activeValidators ?? 850}+`, 
+    {
+      label: t('uma.stats.activeValidators'),
+      value: `${networkStats?.activeValidators ?? 850}+`,
       status: 'healthy' as const,
-      icon: Server 
+      icon: Server,
     },
-    { 
-      label: t('uma.stats.totalDisputes'), 
-      value: `${networkStats?.totalDisputes ?? 1250}+`, 
+    {
+      label: t('uma.stats.totalDisputes'),
+      value: `${networkStats?.totalDisputes ?? 1250}+`,
       status: 'healthy' as const,
-      icon: Scale 
+      icon: Scale,
     },
-    { 
-      label: t('uma.stats.disputeSuccessRate'), 
-      value: `${networkStats?.disputeSuccessRate ?? 78}%`, 
+    {
+      label: t('uma.stats.disputeSuccessRate'),
+      value: `${networkStats?.disputeSuccessRate ?? 78}%`,
       status: 'healthy' as const,
-      icon: Shield 
+      icon: Shield,
     },
-    { 
-      label: t('uma.stats.avgResolutionTime'), 
-      value: `${networkStats?.avgResolutionTime ?? 4.2}h`, 
+    {
+      label: t('uma.stats.avgResolutionTime'),
+      value: `${networkStats?.avgResolutionTime ?? 4.2}h`,
       status: 'healthy' as const,
-      icon: Clock 
+      icon: Clock,
     },
   ];
 
@@ -73,9 +80,7 @@ export function UmaMarketView({
         {/* 左侧价格趋势图表 - 占2列 */}
         <div className="lg:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium text-gray-900">
-              {t('uma.priceTrend')}
-            </h3>
+            <h3 className="text-base font-medium text-gray-900">{t('uma.priceTrend')}</h3>
           </div>
           <div className="flex-1">
             <PriceChart
@@ -93,9 +98,7 @@ export function UmaMarketView({
         <div className="flex flex-col gap-8">
           {/* 快速统计 */}
           <div className="flex-1 flex flex-col">
-            <h3 className="text-base font-medium text-gray-900 mb-4">
-              {t('uma.quickStats')}
-            </h3>
+            <h3 className="text-base font-medium text-gray-900 mb-4">{t('uma.quickStats')}</h3>
             <div className="flex-1 flex flex-col">
               {stats.map((stat, index) => (
                 <div
@@ -112,11 +115,11 @@ export function UmaMarketView({
                       {stat.value}
                     </span>
                     {stat.change && (
-                      <span className={`text-xs ml-2 ${
-                        stat.change.startsWith('+') 
-                          ? 'text-emerald-600' 
-                          : 'text-red-600'
-                      }`}>
+                      <span
+                        className={`text-xs ml-2 ${
+                          stat.change.startsWith('+') ? 'text-emerald-600' : 'text-red-600'
+                        }`}
+                      >
                         {stat.change}
                       </span>
                     )}
@@ -128,9 +131,7 @@ export function UmaMarketView({
 
           {/* 网络状态 - 内联布局 */}
           <div className="flex-1 flex flex-col">
-            <h3 className="text-base font-medium text-gray-900 mb-4">
-              {t('uma.networkStatus')}
-            </h3>
+            <h3 className="text-base font-medium text-gray-900 mb-4">{t('uma.networkStatus')}</h3>
             <div className="flex-1 flex flex-col gap-3">
               {networkStatus.map((item, index) => {
                 const Icon = item.icon;
@@ -156,9 +157,7 @@ export function UmaMarketView({
 
           {/* 数据来源 */}
           <div className="flex-1 flex flex-col">
-            <h3 className="text-base font-medium text-gray-900 mb-4">
-              {t('uma.dataSource')}
-            </h3>
+            <h3 className="text-base font-medium text-gray-900 mb-4">{t('uma.dataSource')}</h3>
             <div className="flex-1 flex flex-col">
               {[
                 { name: 'UMA Market', status: 'active', latency: '150ms' },
@@ -201,14 +200,19 @@ export function UmaMarketView({
               ) : (
                 <TrendingDown className="w-3.5 h-3.5 text-red-600" />
               )}
-              <span className={`text-sm ${priceChange24h >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                {priceChange24h >= 0 ? '+' : ''}{priceChange24h.toFixed(2)}%
+              <span
+                className={`text-sm ${priceChange24h >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+              >
+                {priceChange24h >= 0 ? '+' : ''}
+                {priceChange24h.toFixed(2)}%
               </span>
             </div>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('uma.volume24h')}</p>
-            <p className="text-2xl font-semibold text-gray-900">${(config.marketData.volume24h / 1e6).toFixed(1)}M</p>
+            <p className="text-2xl font-semibold text-gray-900">
+              ${(config.marketData.volume24h / 1e6).toFixed(1)}M
+            </p>
             <p className="text-sm text-emerald-600 mt-1">+8.2%</p>
           </div>
           <div>

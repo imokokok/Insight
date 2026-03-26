@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { useTranslations } from '@/i18n';
+
 import {
   BarChart,
   Bar,
@@ -18,11 +18,12 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
-import type { ChainDataRequest } from '@/lib/oracles/bandProtocol';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { chainColors, chartColors, animationColors } from '@/lib/config/colors';
-import { formatNumber as formatNumberCompact } from '@/lib/utils/format';
 
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
+import { chainColors, chartColors, animationColors } from '@/lib/config/colors';
+import type { ChainDataRequest } from '@/lib/oracles/bandProtocol';
+import { formatNumber as formatNumberCompact } from '@/lib/utils/format';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 

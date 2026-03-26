@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Publisher, PublisherStats } from '@/types/oracle';
+
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { PublisherList } from '@/components/oracle/data-display/PublisherList';
 import { PublisherReliabilityScore } from '@/components/oracle/data-display/PublisherReliabilityScore';
-import { PublisherContributionPanel } from './PublisherContributionPanel';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
+import { type Publisher, type PublisherStats } from '@/types/oracle';
+
+import { PublisherContributionPanel } from './PublisherContributionPanel';
 
 interface AnomalyInfo {
   isPriceDeviationAnomaly: boolean;

@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { useTranslations, useLocale } from '@/i18n';
+
 import { motion } from 'framer-motion';
 import {
   X,
@@ -21,7 +21,10 @@ import {
   XCircle,
   Clock,
 } from 'lucide-react';
-import { ExportFormat } from './types';
+
+import { useTranslations, useLocale } from '@/i18n';
+
+import { type ExportFormat } from './types';
 import { useExportHistory } from './useExportHistory';
 
 interface ExportHistoryPanelProps {
@@ -98,7 +101,10 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
             {filteredHistory.length}
           </span>
         </div>
-        <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors">
+        <button
+          onClick={onClose}
+          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+        >
           <X className="w-5 h-5" />
         </button>
       </div>

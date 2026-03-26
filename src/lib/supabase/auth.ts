@@ -1,4 +1,5 @@
 import { supabase } from './client';
+
 import type { User, Session, AuthError, Provider } from '@supabase/supabase-js';
 
 export interface AuthResponse {

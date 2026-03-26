@@ -1,6 +1,7 @@
 'use client';
 
-import { forwardRef, InputHTMLAttributes, ReactNode } from 'react';
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -10,20 +11,9 @@ export interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
 }
 
 export const Radio = forwardRef<HTMLInputElement, RadioProps>(
-  (
-    {
-      className,
-      label,
-      helperText,
-      error,
-      disabled,
-      checked,
-      id,
-      ...props
-    },
-    ref
-  ) => {
-    const radioId = id || (typeof label === 'string' ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+  ({ className, label, helperText, error, disabled, checked, id, ...props }, ref) => {
+    const radioId =
+      id || (typeof label === 'string' ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
     return (
       <div className={cn('flex items-start gap-3', className)}>
@@ -44,9 +34,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
               'flex items-center justify-center',
               'peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500 peer-focus-visible:ring-offset-2',
               'peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
-              checked
-                ? 'border-primary-600'
-                : 'bg-white border-gray-300 hover:border-gray-400',
+              checked ? 'border-primary-600' : 'bg-white border-gray-300 hover:border-gray-400',
               error && 'border-danger-500'
             )}
           >
@@ -73,12 +61,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
               </label>
             )}
             {(helperText || error) && (
-              <p
-                className={cn(
-                  'text-sm',
-                  error ? 'text-danger-600' : 'text-gray-500'
-                )}
-              >
+              <p className={cn('text-sm', error ? 'text-danger-600' : 'text-gray-500')}>
                 {error || helperText}
               </p>
             )}
@@ -109,10 +92,7 @@ export interface RadioGroupProps {
 }
 
 export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
-  (
-    { name, options, value, onChange, className, direction = 'vertical', error },
-    ref
-  ) => {
+  ({ name, options, value, onChange, className, direction = 'vertical', error }, ref) => {
     return (
       <div
         ref={ref}

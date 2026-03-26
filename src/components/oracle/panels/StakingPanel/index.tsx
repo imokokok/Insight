@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from '@/i18n';
-import { UMAClient } from '@/lib/oracles/uma';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { StakingCalculator } from '@/components/oracle/data-display/StakingCalculator';
-import { createLogger } from '@/lib/utils/logger';
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { UMAClient } from '@/lib/oracles/uma';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('StakingPanel');
 const umaClient = new UMAClient();
@@ -53,7 +54,9 @@ function StatCard({
             </p>
           )}
         </div>
-        <div className="p-2.5 bg-primary-50 border border-primary-100 rounded-lg text-primary-600">{icon}</div>
+        <div className="p-2.5 bg-primary-50 border border-primary-100 rounded-lg text-primary-600">
+          {icon}
+        </div>
       </div>
     </div>
   );

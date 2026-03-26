@@ -1,6 +1,6 @@
 'use client';
 
-import { DAPIPriceDeviation } from '@/lib/oracles/api3';
+import { type DAPIPriceDeviation } from '@/lib/oracles/api3';
 
 interface DapiPriceDeviationMonitorProps {
   data: DAPIPriceDeviation[];

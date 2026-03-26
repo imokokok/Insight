@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+
 import Link from 'next/link';
+
 import { ChevronDown } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import { NavGroup } from './types';
+
 import { oracleColors } from './config';
+import { type NavGroup } from './types';
 
 interface DropdownMenuProps {
   group: NavGroup;

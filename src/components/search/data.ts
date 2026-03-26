@@ -1,28 +1,38 @@
-import { Shield } from 'lucide-react';
-import { Zap } from 'lucide-react';
-import { Layers } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Flame } from 'lucide-react';
-import { Database } from 'lucide-react';
-import { Globe } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Landmark } from 'lucide-react';
-import { Gamepad2 } from 'lucide-react';
-import { LayoutDashboard } from 'lucide-react';
-import { BarChart3 } from 'lucide-react';
-import { Search } from 'lucide-react';
-import { GitCompare } from 'lucide-react';
-import { Link2 } from 'lucide-react';
-import { Heart } from 'lucide-react';
-import { Bell } from 'lucide-react';
-import { Settings } from 'lucide-react';
-import { FileText } from 'lucide-react';
-import { BookOpen } from 'lucide-react';
-import { HelpCircle } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-import { SearchResult, SearchResultType } from './types';
-import { OracleProvider, Blockchain, ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/lib/oracles';
+import {
+  Shield,
+  Zap,
+  Layers,
+  Activity,
+  Flame,
+  Database,
+  Globe,
+  TrendingUp,
+  Landmark,
+  Gamepad2,
+  LayoutDashboard,
+  BarChart3,
+  Search,
+  GitCompare,
+  Link2,
+  Heart,
+  Bell,
+  Settings,
+  FileText,
+  BookOpen,
+  HelpCircle,
+} from 'lucide-react';
+
 import { providerNames, chainNames, symbols } from '@/lib/constants';
+import {
+  OracleProvider,
+  Blockchain,
+  ORACLE_PROVIDER_VALUES,
+  BLOCKCHAIN_VALUES,
+} from '@/lib/oracles';
+
+import { type SearchResult, type SearchResultType } from './types';
+
+import type { LucideIcon } from 'lucide-react';
 
 // Oracle icons mapping
 const oracleIcons: Record<OracleProvider, LucideIcon> = {

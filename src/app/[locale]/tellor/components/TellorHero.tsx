@@ -1,10 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/types/oracle';
-import { LiveStatusBar } from '@/components/ui';
+
 import {
   TrendingUp,
   TrendingDown,
@@ -22,6 +19,11 @@ import {
   ExternalLink,
   Plus,
 } from 'lucide-react';
+
+import { LiveStatusBar } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { type OracleConfig } from '@/lib/config/oracles';
+import { type PriceData } from '@/types/oracle';
 
 export interface TellorHeroProps {
   config: OracleConfig;
@@ -58,11 +60,13 @@ function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
   const max = Math.max(...data);
   const range = max - min || 1;
 
-  const points = data.map((value, index) => {
-    const x = (index / (data.length - 1)) * 60;
-    const y = 20 - ((value - min) / range) * 20;
-    return `${x},${y}`;
-  }).join(' ');
+  const points = data
+    .map((value, index) => {
+      const x = (index / (data.length - 1)) * 60;
+      const y = 20 - ((value - min) / range) * 20;
+      return `${x},${y}`;
+    })
+    .join(' ');
 
   return (
     <svg width="60" height="24" className="ml-auto">
@@ -77,7 +81,15 @@ function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
 }
 
 // 统计卡片组件
-function StatCard({ title, value, change, changeType, icon, subtitle, sparklineData }: StatCardProps) {
+function StatCard({
+  title,
+  value,
+  change,
+  changeType,
+  icon,
+  subtitle,
+  sparklineData,
+}: StatCardProps) {
   const isPositive = changeType === 'positive';
   const isNegative = changeType === 'negative';
 
@@ -85,22 +97,20 @@ function StatCard({ title, value, change, changeType, icon, subtitle, sparklineD
     <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-cyan-50 text-cyan-600 rounded-md">
-            {icon}
-          </div>
+          <div className="p-1.5 bg-cyan-50 text-cyan-600 rounded-md">{icon}</div>
           <span className="text-xs text-gray-500">{title}</span>
         </div>
-        {sparklineData && (
-          <Sparkline data={sparklineData} positive={isPositive} />
-        )}
+        {sparklineData && <Sparkline data={sparklineData} positive={isPositive} />}
       </div>
       <div className="mt-2">
         <div className="text-xl font-bold text-gray-900">{value}</div>
         <div className="flex items-center gap-2 mt-1">
           {change && (
-            <span className={`text-xs font-medium flex items-center gap-0.5 ${
-              isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
-            }`}>
+            <span
+              className={`text-xs font-medium flex items-center gap-0.5 ${
+                isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
+              }`}
+            >
               {isPositive && <TrendingUp className="w-3 h-3" />}
               {isNegative && <TrendingDown className="w-3 h-3" />}
               {change}
@@ -173,7 +183,9 @@ function OnChainMetrics({ config }: { config: OracleConfig }) {
         {/* Gas 费水平 */}
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-500">Gas 费水平</span>
-          <span className={`text-xs font-medium px-2 py-0.5 rounded ${gasLevel.bg} ${gasLevel.color}`}>
+          <span
+            className={`text-xs font-medium px-2 py-0.5 rounded ${gasLevel.bg} ${gasLevel.color}`}
+          >
             {gasLevel.label}
           </span>
         </div>
@@ -275,11 +287,17 @@ function LatestUpdates() {
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {updates.map((update, index) => (
               <div key={index} className="flex items-center gap-2 text-xs">
-                <span className={`w-1.5 h-1.5 rounded-full ${
-                  update.type === 'price' ? 'bg-cyan-500' :
-                  update.type === 'reporter' ? 'bg-emerald-500' :
-                  update.type === 'feed' ? 'bg-purple-500' : 'bg-gray-500'
-                }`} />
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    update.type === 'price'
+                      ? 'bg-cyan-500'
+                      : update.type === 'reporter'
+                        ? 'bg-emerald-500'
+                        : update.type === 'feed'
+                          ? 'bg-purple-500'
+                          : 'bg-gray-500'
+                  }`}
+                />
                 <span className="text-gray-700">{update.text}</span>
                 <span className="text-gray-400">{update.time}</span>
               </div>
@@ -312,7 +330,7 @@ export function TellorHero({
   // 生成价格走势数据
   const priceSparkline = useMemo(() => {
     if (historicalData.length > 0) {
-      return historicalData.slice(-24).map(d => d.price);
+      return historicalData.slice(-24).map((d) => d.price);
     }
     // 模拟数据
     return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + (Math.random() - 0.5) * 0.1));
@@ -417,15 +435,11 @@ export function TellorHero({
         {/* 头部信息 */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
-            <div 
+            <div
               className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
               style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
             >
-              <img
-                src="/logos/oracles/tellor.svg"
-                alt="Tellor"
-                className="w-8 h-8"
-              />
+              <img src="/logos/oracles/tellor.svg" alt="Tellor" className="w-8 h-8" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Tellor</h1>

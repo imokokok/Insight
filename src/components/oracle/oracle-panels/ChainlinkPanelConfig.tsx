@@ -1,11 +1,16 @@
-import { ReactNode } from 'react';
-import { PanelConfig, PanelRenderContext } from './types';
-import { OracleProvider } from '@/types/oracle';
-import { RSIIndicator } from '@/components/oracle/indicators/RSIIndicator';
-import { MACDIndicator } from '@/components/oracle/indicators/MACDIndicator';
+import { type ReactNode } from 'react';
+
+import {
+  LatencyDistributionHistogram,
+  RiskAssessmentPanel,
+  DataQualityPanel,
+} from '@/components/oracle';
 import { GasFeeTrendChart } from '@/components/oracle/charts/GasFeeTrendChart';
-import { LatencyDistributionHistogram } from '@/components/oracle';
-import { RiskAssessmentPanel, DataQualityPanel } from '@/components/oracle';
+import { MACDIndicator } from '@/components/oracle/indicators/MACDIndicator';
+import { RSIIndicator } from '@/components/oracle/indicators/RSIIndicator';
+import { OracleProvider } from '@/types/oracle';
+
+import { type PanelConfig, type PanelRenderContext } from './types';
 
 const getStats = (context: PanelRenderContext) => {
   const { config, t } = context;

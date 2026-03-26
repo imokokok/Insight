@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
+import { TrendingUp, Layers, Globe, Zap, Shield, Clock, Users, Building2 } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -14,18 +15,11 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import {
-  TrendingUp,
-  Layers,
-  Globe,
-  Zap,
-  Shield,
-  Clock,
-  Users,
-  Building2,
-} from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
-import { UmaEcosystemViewProps } from '../types';
+
+import { type UmaEcosystemViewProps } from '../types';
 
 // TVL Trend Data (12 months) - UMA ecosystem
 const tvlTrendData = [
@@ -75,9 +69,7 @@ function TimeRangeButton({
       onClick={onClick}
       className={cn(
         'px-3 py-1 text-xs font-medium transition-colors',
-        active
-          ? 'text-gray-900 border-b-2 border-gray-900'
-          : 'text-gray-500 hover:text-gray-700'
+        active ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'
       )}
     >
       {children}
@@ -87,7 +79,11 @@ function TimeRangeButton({
 
 export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
   const t = useTranslations();
-  const [selectedChains, setSelectedChains] = useState<string[]>(['ethereum', 'arbitrum', 'polygon']);
+  const [selectedChains, setSelectedChains] = useState<string[]>([
+    'ethereum',
+    'arbitrum',
+    'polygon',
+  ]);
   const [timeRange, setTimeRange] = useState<'1M' | '3M' | '6M' | '1Y'>('1Y');
 
   const integrations = [
@@ -152,8 +148,14 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
             <p className="text-xs text-gray-500 uppercase tracking-wide">Total TVL</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-bold text-gray-900">${tvlStats.current}M</p>
-              <span className={cn('text-sm font-medium', tvlStats.change >= 0 ? 'text-emerald-600' : 'text-red-600')}>
-                {tvlStats.change >= 0 ? '+' : ''}{tvlStats.change.toFixed(1)}%
+              <span
+                className={cn(
+                  'text-sm font-medium',
+                  tvlStats.change >= 0 ? 'text-emerald-600' : 'text-red-600'
+                )}
+              >
+                {tvlStats.change >= 0 ? '+' : ''}
+                {tvlStats.change.toFixed(1)}%
               </span>
             </div>
           </div>
@@ -162,7 +164,9 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
             <p className="text-xs text-gray-500 uppercase tracking-wide">Ethereum</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">${tvlStats.breakdown[0].value}M</p>
-              <span className="text-xs text-gray-500">{((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)}%</span>
+              <span className="text-xs text-gray-500">
+                {((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)}%
+              </span>
             </div>
           </div>
           <div>
@@ -172,16 +176,18 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
                 ${(tvlStats.breakdown[1].value + tvlStats.breakdown[3].value).toFixed(0)}M
               </p>
               <span className="text-xs text-gray-500">
-                {(((tvlStats.breakdown[1].value + tvlStats.breakdown[3].value) / tvlStats.current) * 100).toFixed(1)}%
+                {(
+                  ((tvlStats.breakdown[1].value + tvlStats.breakdown[3].value) / tvlStats.current) *
+                  100
+                ).toFixed(1)}
+                %
               </span>
             </div>
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Sidechains</p>
             <div className="flex items-baseline gap-2 mt-1">
-              <p className="text-xl font-semibold text-gray-900">
-                ${tvlStats.breakdown[2].value}M
-              </p>
+              <p className="text-xl font-semibold text-gray-900">${tvlStats.breakdown[2].value}M</p>
               <span className="text-xs text-gray-500">
                 {((tvlStats.breakdown[2].value / tvlStats.current) * 100).toFixed(1)}%
               </span>
@@ -211,7 +217,11 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
             >
               <span
                 className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: selectedChains.includes(item.chain.toLowerCase()) ? 'white' : item.color }}
+                style={{
+                  backgroundColor: selectedChains.includes(item.chain.toLowerCase())
+                    ? 'white'
+                    : item.color,
+                }}
               />
               {item.chain}
             </button>
@@ -315,7 +325,9 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
         <section>
           <div className="mb-4">
             <h3 className="text-base font-semibold text-gray-900">Projects by Chain</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Distribution of projects across supported networks</p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Distribution of projects across supported networks
+            </p>
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -346,7 +358,9 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
             </ResponsiveContainer>
           </div>
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 text-sm">
-            <span className="text-gray-500">Total Projects: <span className="font-medium text-gray-900">58</span></span>
+            <span className="text-gray-500">
+              Total Projects: <span className="font-medium text-gray-900">58</span>
+            </span>
             <span className="text-emerald-600 font-medium">+12 this month</span>
           </div>
         </section>
@@ -387,7 +401,9 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
                 <span className="text-sm text-gray-600">Supported Chains</span>
               </div>
               <div className="text-right">
-                <p className="text-lg font-semibold text-gray-900">{config.supportedChains.length}</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {config.supportedChains.length}
+                </p>
                 <p className="text-xs text-emerald-600">+2 new</p>
               </div>
             </div>
@@ -411,7 +427,9 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
       {/* Supported Chains */}
       <section>
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-gray-900">{t('uma.ecosystem.supportedChains')}</h3>
+          <h3 className="text-base font-semibold text-gray-900">
+            {t('uma.ecosystem.supportedChains')}
+          </h3>
           <p className="text-sm text-gray-500 mt-0.5">Active blockchain networks</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -433,7 +451,9 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
       {/* Integrations - Table format */}
       <section>
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-gray-900">{t('uma.ecosystem.integrations')}</h3>
+          <h3 className="text-base font-semibold text-gray-900">
+            {t('uma.ecosystem.integrations')}
+          </h3>
           <p className="text-sm text-gray-500 mt-0.5">Projects integrated with UMA</p>
         </div>
         <div className="overflow-hidden border border-gray-200">
@@ -454,7 +474,9 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
                       {integration.category}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-right font-medium text-gray-900">{integration.tvl}</td>
+                  <td className="py-3 px-4 text-right font-medium text-gray-900">
+                    {integration.tvl}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -506,9 +528,7 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
               <h4 className="text-sm font-medium text-gray-900">
                 {t('uma.ecosystem.fastFinality')}
               </h4>
-              <p className="text-xs text-gray-500 mt-1">
-                {t('uma.ecosystem.fastFinalityDesc')}
-              </p>
+              <p className="text-xs text-gray-500 mt-1">{t('uma.ecosystem.fastFinalityDesc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">

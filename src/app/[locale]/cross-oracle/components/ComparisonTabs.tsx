@@ -1,10 +1,16 @@
 'use client';
 
-import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
-import { OracleSnapshot } from '@/types/oracle';
-import { TimeRange, QualityTrendData, DeviationFilter } from '../types';
-import { TabId, TabNavigation } from './TabNavigation';
+import {
+  type OracleProvider,
+  type PriceData,
+  type SnapshotStats,
+  type OracleSnapshot,
+} from '@/types/oracle';
+
+import { type TimeRange, type QualityTrendData, type DeviationFilter } from '../types';
+
 import { ControlPanel } from './ControlPanel';
+import { type TabId, TabNavigation } from './TabNavigation';
 import { OverviewTab, AnalysisTab, ChainsTab, HistoryTab } from './tabs';
 
 interface ComparisonTabsProps {

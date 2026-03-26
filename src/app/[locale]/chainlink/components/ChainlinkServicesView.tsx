@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
+import { Activity, Zap, Clock, TrendingUp, BarChart3, CheckCircle2 } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -11,22 +11,37 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import {
-  Activity,
-  Zap,
-  Clock,
-  TrendingUp,
-  BarChart3,
-  CheckCircle2,
-} from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 
 // 核心服务数据
 const services = [
-  { id: 'data-feeds', name: 'Data Feeds', color: '#3b82f6', icon: Activity, requests: '12.4M', uptime: 99.97 },
+  {
+    id: 'data-feeds',
+    name: 'Data Feeds',
+    color: '#3b82f6',
+    icon: Activity,
+    requests: '12.4M',
+    uptime: 99.97,
+  },
   { id: 'vrf', name: 'VRF', color: '#8b5cf6', icon: Zap, requests: '4.5M', uptime: 99.95 },
-  { id: 'automation', name: 'Automation', color: '#10b981', icon: Clock, requests: '3.9M', uptime: 99.92 },
+  {
+    id: 'automation',
+    name: 'Automation',
+    color: '#10b981',
+    icon: Clock,
+    requests: '3.9M',
+    uptime: 99.92,
+  },
   { id: 'ccip', name: 'CCIP', color: '#f59e0b', icon: TrendingUp, requests: '1.8M', uptime: 99.89 },
-  { id: 'functions', name: 'Functions', color: '#ef4444', icon: BarChart3, requests: '980K', uptime: 99.85 },
+  {
+    id: 'functions',
+    name: 'Functions',
+    color: '#ef4444',
+    icon: BarChart3,
+    requests: '980K',
+    uptime: 99.85,
+  },
 ];
 
 const serviceUsageData = [
@@ -79,7 +94,9 @@ export function ChainlinkServicesView() {
                 <div className="col-span-3 text-right">
                   <div className="flex items-center justify-end gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-sm font-semibold text-emerald-600">{service.uptime}%</span>
+                    <span className="text-sm font-semibold text-emerald-600">
+                      {service.uptime}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -97,16 +114,14 @@ export function ChainlinkServicesView() {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={serviceUsageData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis
-                dataKey="name"
-                tick={{ fontSize: 12 }}
-                stroke="#9ca3af"
-              />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#9ca3af" />
               <YAxis
                 tick={{ fontSize: 12 }}
                 stroke="#9ca3af"
                 tickFormatter={(value) =>
-                  value >= 1000000 ? `${(value / 1000000).toFixed(0)}M` : `${(value / 1000).toFixed(0)}K`
+                  value >= 1000000
+                    ? `${(value / 1000000).toFixed(0)}M`
+                    : `${(value / 1000).toFixed(0)}K`
                 }
               />
               <Tooltip
@@ -145,7 +160,8 @@ export function ChainlinkServicesView() {
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">Data Feeds</span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.dataFeedsDesc') || 'Decentralized price oracles for DeFi applications, providing high-quality financial market data.'}
+                {t('services.dataFeedsDesc') ||
+                  'Decentralized price oracles for DeFi applications, providing high-quality financial market data.'}
               </p>
             </div>
           </div>
@@ -154,7 +170,8 @@ export function ChainlinkServicesView() {
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">VRF</span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.vrfDesc') || 'Verifiable Random Function for provably fair randomness in gaming and NFT applications.'}
+                {t('services.vrfDesc') ||
+                  'Verifiable Random Function for provably fair randomness in gaming and NFT applications.'}
               </p>
             </div>
           </div>
@@ -163,7 +180,8 @@ export function ChainlinkServicesView() {
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">Automation</span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.automationDesc') || 'Decentralized automation for smart contracts, enabling conditional execution of on-chain functions.'}
+                {t('services.automationDesc') ||
+                  'Decentralized automation for smart contracts, enabling conditional execution of on-chain functions.'}
               </p>
             </div>
           </div>
@@ -172,7 +190,8 @@ export function ChainlinkServicesView() {
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">CCIP</span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.ccipDesc') || 'Cross-Chain Interoperability Protocol for secure cross-chain messaging and token transfers.'}
+                {t('services.ccipDesc') ||
+                  'Cross-Chain Interoperability Protocol for secure cross-chain messaging and token transfers.'}
               </p>
             </div>
           </div>
@@ -181,7 +200,8 @@ export function ChainlinkServicesView() {
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">Functions</span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.functionsDesc') || 'Serverless compute for smart contracts, allowing custom off-chain computations and API integrations.'}
+                {t('services.functionsDesc') ||
+                  'Serverless compute for smart contracts, allowing custom off-chain computations and API integrations.'}
               </p>
             </div>
           </div>

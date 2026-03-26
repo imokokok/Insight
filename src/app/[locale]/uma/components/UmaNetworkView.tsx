@@ -1,9 +1,5 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { UmaNetworkViewProps } from '../types';
-import { NetworkHealthPanel } from '@/components/oracle';
-import { UMANetworkStats } from '@/lib/oracles/uma/types';
 import {
   Users,
   Clock,
@@ -16,6 +12,12 @@ import {
   AlertCircle,
   RefreshCw,
 } from 'lucide-react';
+
+import { NetworkHealthPanel } from '@/components/oracle';
+import { useTranslations } from '@/i18n';
+import { type UMANetworkStats } from '@/lib/oracles/uma/types';
+
+import { type UmaNetworkViewProps } from '../types';
 
 // 类型守卫函数
 function isUMANetworkStats(data: unknown): data is UMANetworkStats {
@@ -69,8 +71,7 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
 
   // 每小时活动数据（模拟）
   const hourlyActivity = [
-    45, 52, 48, 61, 55, 72, 68, 85, 92, 88, 76, 82,
-    95, 89, 78, 85, 91, 87, 73, 69, 58, 52, 48, 44,
+    45, 52, 48, 61, 55, 72, 68, 85, 92, 88, 76, 82, 95, 89, 78, 85, 91, 87, 73, 69, 58, 52, 48, 44,
   ];
 
   // 数据来源
@@ -85,8 +86,14 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
 
   // 概览统计
   const overviewStats = [
-    { label: t('uma.network.dataSources') || 'Data Sources', value: (umaStats?.dataSources || 320).toString() },
-    { label: t('uma.network.activeDisputes') || 'Active Disputes', value: (umaStats?.activeDisputes || 23).toString() },
+    {
+      label: t('uma.network.dataSources') || 'Data Sources',
+      value: (umaStats?.dataSources || 320).toString(),
+    },
+    {
+      label: t('uma.network.activeDisputes') || 'Active Disputes',
+      value: (umaStats?.activeDisputes || 23).toString(),
+    },
     { label: t('uma.network.requests24h') || 'Requests (24h)', value: '1.2M' },
     { label: t('uma.network.avgGas') || 'Avg Gas Used', value: '125K' },
   ];
@@ -180,26 +187,18 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
                 </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div
-                  className="bg-amber-500 h-1.5 rounded-full"
-                  style={{ width: '60%' }}
-                />
+                <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '60%' }} />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">
-                  {t('uma.network.disputeResolutionTime')}
-                </span>
+                <span className="text-gray-600">{t('uma.network.disputeResolutionTime')}</span>
                 <span className="font-medium text-gray-900">
                   {umaStats?.avgResolutionTime || 4.2}h
                 </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div
-                  className="bg-emerald-500 h-1.5 rounded-full"
-                  style={{ width: '75%' }}
-                />
+                <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '75%' }} />
               </div>
             </div>
             <div>
@@ -208,10 +207,7 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
                 <span className="font-medium text-gray-900">98.5%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div
-                  className="bg-blue-500 h-1.5 rounded-full"
-                  style={{ width: '98.5%' }}
-                />
+                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '98.5%' }} />
               </div>
             </div>
           </div>
@@ -223,9 +219,7 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
 
       {/* 数据来源 - 内联列表展示 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('uma.network.dataSources')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('uma.network.dataSources')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {dataSources.map((source, index) => (
             <div

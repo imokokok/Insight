@@ -1,24 +1,23 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
+
 import Image from 'next/image';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu } from 'lucide-react';
-import { User } from 'lucide-react';
-import { LogOut } from 'lucide-react';
-import { Heart } from 'lucide-react';
-import { Bell } from 'lucide-react';
-import { Settings } from 'lucide-react';
+
+import { Menu, User, LogOut, Heart, Bell, Settings } from 'lucide-react';
+
+import { Button } from '@/components/ui';
+import { useKeyboardShortcuts } from '@/hooks';
 import { useTranslations, useLocale } from '@/i18n';
 import { routing } from '@/i18n/routing';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
+
 import LanguageSwitcher from './LanguageSwitcher';
 import { DropdownMenu, MobileDrawer, navigationConfig } from './navigation';
-import { NavGroup } from './navigation/types';
+import { type NavGroup } from './navigation/types';
 import { GlobalSearch, SearchButton } from './search';
-import { useKeyboardShortcuts } from '@/hooks';
-import { Button } from '@/components/ui';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -219,10 +218,14 @@ export default function Navbar() {
               ) : !loading ? (
                 <div className="hidden lg:flex items-center gap-1">
                   <Link href={`/${locale}/login`}>
-                    <Button variant="ghost" size="sm">{t('navbar.login')}</Button>
+                    <Button variant="ghost" size="sm">
+                      {t('navbar.login')}
+                    </Button>
                   </Link>
                   <Link href={`/${locale}/register`}>
-                    <Button variant="primary" size="sm">{t('navbar.register')}</Button>
+                    <Button variant="primary" size="sm">
+                      {t('navbar.register')}
+                    </Button>
                   </Link>
                 </div>
               ) : null}

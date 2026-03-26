@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import { useTranslations } from '@/i18n';
-import { PriceData } from '@/types/oracle';
+import { type PriceData } from '@/types/oracle';
 
 interface BenchmarkComparisonSectionProps {
   priceData: PriceData[];
@@ -25,9 +26,7 @@ interface ExtendedBenchmarkData {
   metrics: BenchmarkMetric[];
 }
 
-export function BenchmarkComparisonSection({
-  priceData,
-}: BenchmarkComparisonSectionProps) {
+export function BenchmarkComparisonSection({ priceData }: BenchmarkComparisonSectionProps) {
   const t = useTranslations();
 
   // Convert price data to benchmark data format
@@ -138,7 +137,9 @@ export function BenchmarkComparisonSection({
                     <td className="px-3 py-2 font-medium text-gray-900">{metric.name}</td>
                     <td className="px-3 py-2 text-right font-mono">${metric.value.toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">
-                      <span className={metric.diffFromAvg > 0 ? 'text-success-600' : 'text-danger-600'}>
+                      <span
+                        className={metric.diffFromAvg > 0 ? 'text-success-600' : 'text-danger-600'}
+                      >
                         {metric.diffFromAvg > 0 ? '+' : ''}
                         {metric.diffFromAvg.toFixed(2)}%
                       </span>

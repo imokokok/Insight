@@ -1,6 +1,5 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import {
   BarChart,
   Bar,
@@ -11,10 +10,12 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
-import { baseColors, chartColors } from '@/lib/config/colors';
-import { oracleNames, oracleColors, PriceComparisonData } from './crossOracleConfig';
 
+import { useTranslations } from '@/i18n';
+import { baseColors, chartColors } from '@/lib/config/colors';
+import { type OracleProvider } from '@/types/oracle';
+
+import { oracleNames, oracleColors, type PriceComparisonData } from './crossOracleConfig';
 
 interface PriceStats {
   avg: number;

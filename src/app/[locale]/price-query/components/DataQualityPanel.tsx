@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+
 import {
   BarChart,
   Bar,
@@ -13,10 +14,12 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { useTranslations } from '@/i18n';
-import { QueryResult } from '../constants';
-import { chartColors, semanticColors } from '@/lib/config/colors';
+
 import { DropdownSelect } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { chartColors, semanticColors } from '@/lib/config/colors';
+
+import { type QueryResult } from '../constants';
 
 interface DataQualityMetrics {
   oracle: string;

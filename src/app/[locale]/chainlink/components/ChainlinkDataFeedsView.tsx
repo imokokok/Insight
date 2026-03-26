@@ -1,37 +1,126 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
-import { ChainlinkDataTable } from './ChainlinkDataTable';
-import { DataFeed } from '../types';
+
 import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 
+import { useTranslations } from '@/i18n';
+
+import { type DataFeed } from '../types';
+
+import { ChainlinkDataTable } from './ChainlinkDataTable';
+
 const mockDataFeeds: DataFeed[] = [
-  { id: '1', name: 'ETH/USD', category: 'crypto', updateFrequency: '60s', deviationThreshold: '0.5%', status: 'active', totalRequests: 12500000, reliability: 99.99 },
-  { id: '2', name: 'BTC/USD', category: 'crypto', updateFrequency: '60s', deviationThreshold: '0.5%', status: 'active', totalRequests: 15200000, reliability: 99.99 },
-  { id: '3', name: 'LINK/USD', category: 'crypto', updateFrequency: '60s', deviationThreshold: '1%', status: 'active', totalRequests: 8900000, reliability: 99.98 },
-  { id: '4', name: 'EUR/USD', category: 'forex', updateFrequency: '300s', deviationThreshold: '0.1%', status: 'active', totalRequests: 5600000, reliability: 99.97 },
-  { id: '5', name: 'GBP/USD', category: 'forex', updateFrequency: '300s', deviationThreshold: '0.1%', status: 'active', totalRequests: 3200000, reliability: 99.96 },
-  { id: '6', name: 'XAU/USD', category: 'commodities', updateFrequency: '600s', deviationThreshold: '0.2%', status: 'active', totalRequests: 2100000, reliability: 99.95 },
-  { id: '7', name: 'Aave V2', category: 'defi', updateFrequency: '120s', deviationThreshold: '0.5%', status: 'active', totalRequests: 7800000, reliability: 99.98 },
-  { id: '8', name: 'Uniswap V3', category: 'defi', updateFrequency: '120s', deviationThreshold: '0.5%', status: 'active', totalRequests: 9200000, reliability: 99.98 },
+  {
+    id: '1',
+    name: 'ETH/USD',
+    category: 'crypto',
+    updateFrequency: '60s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 12500000,
+    reliability: 99.99,
+  },
+  {
+    id: '2',
+    name: 'BTC/USD',
+    category: 'crypto',
+    updateFrequency: '60s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 15200000,
+    reliability: 99.99,
+  },
+  {
+    id: '3',
+    name: 'LINK/USD',
+    category: 'crypto',
+    updateFrequency: '60s',
+    deviationThreshold: '1%',
+    status: 'active',
+    totalRequests: 8900000,
+    reliability: 99.98,
+  },
+  {
+    id: '4',
+    name: 'EUR/USD',
+    category: 'forex',
+    updateFrequency: '300s',
+    deviationThreshold: '0.1%',
+    status: 'active',
+    totalRequests: 5600000,
+    reliability: 99.97,
+  },
+  {
+    id: '5',
+    name: 'GBP/USD',
+    category: 'forex',
+    updateFrequency: '300s',
+    deviationThreshold: '0.1%',
+    status: 'active',
+    totalRequests: 3200000,
+    reliability: 99.96,
+  },
+  {
+    id: '6',
+    name: 'XAU/USD',
+    category: 'commodities',
+    updateFrequency: '600s',
+    deviationThreshold: '0.2%',
+    status: 'active',
+    totalRequests: 2100000,
+    reliability: 99.95,
+  },
+  {
+    id: '7',
+    name: 'Aave V2',
+    category: 'defi',
+    updateFrequency: '120s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 7800000,
+    reliability: 99.98,
+  },
+  {
+    id: '8',
+    name: 'Uniswap V3',
+    category: 'defi',
+    updateFrequency: '120s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 9200000,
+    reliability: 99.98,
+  },
 ];
 
 const categories = [
   { id: 'all', label: 'All', count: mockDataFeeds.length },
-  { id: 'crypto', label: 'Crypto', count: mockDataFeeds.filter(f => f.category === 'crypto').length },
-  { id: 'forex', label: 'Forex', count: mockDataFeeds.filter(f => f.category === 'forex').length },
-  { id: 'commodities', label: 'Commodities', count: mockDataFeeds.filter(f => f.category === 'commodities').length },
-  { id: 'defi', label: 'DeFi', count: mockDataFeeds.filter(f => f.category === 'defi').length },
+  {
+    id: 'crypto',
+    label: 'Crypto',
+    count: mockDataFeeds.filter((f) => f.category === 'crypto').length,
+  },
+  {
+    id: 'forex',
+    label: 'Forex',
+    count: mockDataFeeds.filter((f) => f.category === 'forex').length,
+  },
+  {
+    id: 'commodities',
+    label: 'Commodities',
+    count: mockDataFeeds.filter((f) => f.category === 'commodities').length,
+  },
+  { id: 'defi', label: 'DeFi', count: mockDataFeeds.filter((f) => f.category === 'defi').length },
 ];
 
 export function ChainlinkDataFeedsView() {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const filteredFeeds = selectedCategory === 'all'
-    ? mockDataFeeds
-    : mockDataFeeds.filter(feed => feed.category === selectedCategory);
+  const filteredFeeds =
+    selectedCategory === 'all'
+      ? mockDataFeeds
+      : mockDataFeeds.filter((feed) => feed.category === selectedCategory);
 
   const columns = [
     { key: 'name', header: t('chainlink.dataFeeds.name'), sortable: true },
@@ -52,14 +141,24 @@ export function ChainlinkDataFeedsView() {
       header: t('chainlink.dataFeeds.status'),
       sortable: true,
       render: (item: DataFeed) => (
-        <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${
-          item.status === 'active' ? 'text-emerald-600' :
-          item.status === 'paused' ? 'text-amber-600' : 'text-red-600'
-        }`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${
-            item.status === 'active' ? 'bg-emerald-500' :
-            item.status === 'paused' ? 'bg-amber-500' : 'bg-red-500'
-          }`} />
+        <span
+          className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+            item.status === 'active'
+              ? 'text-emerald-600'
+              : item.status === 'paused'
+                ? 'text-amber-600'
+                : 'text-red-600'
+          }`}
+        >
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              item.status === 'active'
+                ? 'bg-emerald-500'
+                : item.status === 'paused'
+                  ? 'bg-amber-500'
+                  : 'bg-red-500'
+            }`}
+          />
           {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
         </span>
       ),
@@ -85,7 +184,9 @@ export function ChainlinkDataFeedsView() {
         <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('chainlink.dataFeeds.total')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('chainlink.dataFeeds.total')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">{mockDataFeeds.length}</p>
           </div>
         </div>
@@ -93,9 +194,11 @@ export function ChainlinkDataFeedsView() {
         <div className="flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('chainlink.dataFeeds.active')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('chainlink.dataFeeds.active')}
+            </p>
             <p className="text-xl font-semibold text-emerald-600">
-              {mockDataFeeds.filter(f => f.status === 'active').length}
+              {mockDataFeeds.filter((f) => f.status === 'active').length}
             </p>
           </div>
         </div>
@@ -103,7 +206,9 @@ export function ChainlinkDataFeedsView() {
         <div className="flex items-center gap-3">
           <TrendingUp className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('chainlink.dataFeeds.totalRequests')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('chainlink.dataFeeds.totalRequests')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">
               {(mockDataFeeds.reduce((acc, f) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
             </p>
@@ -113,9 +218,14 @@ export function ChainlinkDataFeedsView() {
         <div className="flex items-center gap-3">
           <Clock className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('chainlink.dataFeeds.avgReliability')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('chainlink.dataFeeds.avgReliability')}
+            </p>
             <p className="text-xl font-semibold text-gray-900">
-              {(mockDataFeeds.reduce((acc, f) => acc + f.reliability, 0) / mockDataFeeds.length).toFixed(2)}%
+              {(
+                mockDataFeeds.reduce((acc, f) => acc + f.reliability, 0) / mockDataFeeds.length
+              ).toFixed(2)}
+              %
             </p>
           </div>
         </div>
@@ -134,9 +244,11 @@ export function ChainlinkDataFeedsView() {
             }`}
           >
             {category.label}
-            <span className={`text-xs ${
-              selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
-            }`}>
+            <span
+              className={`text-xs ${
+                selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
+              }`}
+            >
               {category.count}
             </span>
           </button>
@@ -148,9 +260,17 @@ export function ChainlinkDataFeedsView() {
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('chainlink.dataFeeds.title') || 'Data Feeds'}
         </h3>
-        <ChainlinkDataTable 
-          data={filteredFeeds as unknown as Record<string, unknown>[]} 
-          columns={columns as unknown as Array<{key: string; header: string; width?: string; sortable?: boolean; render?: (item: Record<string, unknown>) => React.ReactNode}>} 
+        <ChainlinkDataTable
+          data={filteredFeeds as unknown as Record<string, unknown>[]}
+          columns={
+            columns as unknown as Array<{
+              key: string;
+              header: string;
+              width?: string;
+              sortable?: boolean;
+              render?: (item: Record<string, unknown>) => React.ReactNode;
+            }>
+          }
         />
       </div>
 
@@ -162,22 +282,34 @@ export function ChainlinkDataFeedsView() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">{t('chainlink.dataFeeds.updateFrequency') || 'Update Frequency'}:</span>
-              {' '}{t('chainlink.dataFeeds.frequencyDesc') || 'Data feeds are updated based on deviation thresholds and heartbeat intervals to ensure price accuracy.'}
+              <span className="font-medium text-gray-900">
+                {t('chainlink.dataFeeds.updateFrequency') || 'Update Frequency'}:
+              </span>{' '}
+              {t('chainlink.dataFeeds.frequencyDesc') ||
+                'Data feeds are updated based on deviation thresholds and heartbeat intervals to ensure price accuracy.'}
             </p>
             <p>
-              <span className="font-medium text-gray-900">{t('chainlink.dataFeeds.deviationThreshold') || 'Deviation Threshold'}:</span>
-              {' '}{t('chainlink.dataFeeds.thresholdDesc') || 'Minimum price change required to trigger a new on-chain update.'}
+              <span className="font-medium text-gray-900">
+                {t('chainlink.dataFeeds.deviationThreshold') || 'Deviation Threshold'}:
+              </span>{' '}
+              {t('chainlink.dataFeeds.thresholdDesc') ||
+                'Minimum price change required to trigger a new on-chain update.'}
             </p>
           </div>
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">{t('chainlink.dataFeeds.reliability') || 'Reliability'}:</span>
-              {' '}{t('chainlink.dataFeeds.reliabilityDesc') || 'Percentage of successful updates over the last 30 days, excluding planned maintenance.'}
+              <span className="font-medium text-gray-900">
+                {t('chainlink.dataFeeds.reliability') || 'Reliability'}:
+              </span>{' '}
+              {t('chainlink.dataFeeds.reliabilityDesc') ||
+                'Percentage of successful updates over the last 30 days, excluding planned maintenance.'}
             </p>
             <p>
-              <span className="font-medium text-gray-900">{t('chainlink.dataFeeds.decentralization') || 'Decentralization'}:</span>
-              {' '}{t('chainlink.dataFeeds.decentralizationDesc') || 'Each data feed is secured by multiple independent node operators.'}
+              <span className="font-medium text-gray-900">
+                {t('chainlink.dataFeeds.decentralization') || 'Decentralization'}:
+              </span>{' '}
+              {t('chainlink.dataFeeds.decentralizationDesc') ||
+                'Each data feed is secured by multiple independent node operators.'}
             </p>
           </div>
         </div>

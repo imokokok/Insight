@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
+
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { useMemo } from 'react';
-import type { User, Session, AuthError, Provider, Subscription } from '@supabase/supabase-js';
+
 import {
   signUp as authSignUp,
   signIn as authSignIn,
@@ -14,6 +15,8 @@ import {
   getUserProfile,
 } from '@/lib/supabase/auth';
 import type { UserProfile } from '@/lib/supabase/auth';
+
+import type { User, Session, AuthError, Provider, Subscription } from '@supabase/supabase-js';
 
 interface AuthState {
   user: User | null;

@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useUser } from '@/stores/authStore';
-import { useFavorites, FavoriteConfig, mapConfigTypeFromDB } from '@/hooks';
-import { FavoriteCard } from './FavoriteCard';
+
+import { useFavorites, type FavoriteConfig, mapConfigTypeFromDB } from '@/hooks';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import type { UserFavorite } from '@/lib/supabase/queries';
+import { useUser } from '@/stores/authStore';
+
+import { FavoriteCard } from './FavoriteCard';
 
 interface FavoritesManagerProps {
   onApply?: (config: FavoriteConfig, configType: ConfigType) => void;

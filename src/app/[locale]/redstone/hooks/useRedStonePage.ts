@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+
+import { useRefresh, useExport, useRedStoneAllData } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { RedStoneClient } from '@/lib/oracles/redstone';
-import { useRefresh, useExport } from '@/hooks';
-import { useRedStoneAllData } from '@/hooks';
-import { RedStoneTabId } from '../types';
+
+import { type RedStoneTabId } from '../types';
 
 export function useRedStonePage() {
   const t = useTranslations();

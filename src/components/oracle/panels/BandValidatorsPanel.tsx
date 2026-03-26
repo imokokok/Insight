@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from '@/i18n';
-import { logger } from '@/lib/utils/logger';
-import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { SegmentedControl } from '@/components/ui';
-import { DashboardCard, MetricCard } from '@/components/oracle/data-display/DashboardCard';
+
 import { Globe, Percent, Clock, MapPin, Shield, Users, Award } from 'lucide-react';
+
+import { DashboardCard, MetricCard } from '@/components/oracle/data-display/DashboardCard';
+import { Card, CardContent, CardHeader, CardTitle, SegmentedControl } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { type BandProtocolClient, type ValidatorInfo } from '@/lib/oracles/bandProtocol';
+import { logger } from '@/lib/utils/logger';
 
 interface BandValidatorsPanelProps {
   client: BandProtocolClient;

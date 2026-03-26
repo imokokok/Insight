@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
+
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Publisher, PublisherStatus } from '@/types/oracle';
-import { useTranslations } from '@/i18n';
+
 import { DropdownSelect } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { type Publisher, type PublisherStatus } from '@/types/oracle';
 
 interface AnomalyInfo {
   isPriceDeviationAnomaly: boolean;

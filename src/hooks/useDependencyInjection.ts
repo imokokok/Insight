@@ -1,11 +1,16 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
+
 import { container, registerServices, isServicesRegistered } from '@/lib/di';
+import {
+  type IAlertService,
+  type IFavoriteService,
+  type ISnapshotService,
+} from '@/lib/di/serviceInterfaces';
 import { SERVICE_TOKENS } from '@/lib/di/tokens';
-import { OracleProvider } from '@/types/oracle';
-import { IOracleClient, IOracleClientFactory } from '@/lib/oracles/interfaces';
-import { IAlertService, IFavoriteService, ISnapshotService } from '@/lib/di/serviceInterfaces';
+import { type IOracleClient, type IOracleClientFactory } from '@/lib/oracles/interfaces';
+import { type OracleProvider } from '@/types/oracle';
 
 export function useService<T>(token: string): T {
   return useMemo(() => {

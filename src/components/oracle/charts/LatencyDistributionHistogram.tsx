@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
+
 import {
   BarChart,
   Bar,
@@ -12,12 +13,14 @@ import {
   ReferenceLine,
   Cell,
 } from 'recharts';
+
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
+
 import { CDFChart } from './CDFChart';
 import { LatencyTrendMiniChart } from './LatencyTrendMiniChart';
-import type { LatencyDataPoint } from './LatencyTrendMiniChart';
 
+import type { LatencyDataPoint } from './LatencyTrendMiniChart';
 
 type ViewMode = 'histogram' | 'cdf' | 'trend';
 type TimeRange = '1h' | '6h' | '24h' | '7d';

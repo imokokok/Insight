@@ -1,5 +1,6 @@
-import { useCrossChainStore } from './crossChainStore';
 import type { Blockchain } from '@/lib/oracles';
+
+import { useCrossChainStore } from './crossChainStore';
 
 type CrossChainState = ReturnType<typeof useCrossChainStore.getState>;
 

@@ -1,14 +1,16 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+
 import {
   HeroSkeleton,
   LivePriceTickerSkeleton,
   BentoGridSkeleton,
   CTASkeleton,
 } from '@/components/ui';
-import OracleMarketOverviewSkeleton from './home-components/OracleMarketOverviewSkeleton';
+
 import ArbitrageHeatmapSkeleton from './home-components/ArbitrageHeatmapSkeleton';
+import OracleMarketOverviewSkeleton from './home-components/OracleMarketOverviewSkeleton';
 
 const ProfessionalHero = dynamic(() => import('./home-components/ProfessionalHero'), {
   loading: () => <HeroSkeleton />,

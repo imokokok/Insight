@@ -1,9 +1,9 @@
 'use client';
 
-import { NFTData } from '@/lib/oracles/dia';
-import { useTranslations } from '@/i18n';
-import { Blockchain } from '@/types/oracle';
 import { DashboardCard } from '@/components/oracle';
+import { useTranslations } from '@/i18n';
+import { type NFTData } from '@/lib/oracles/dia';
+import { Blockchain } from '@/types/oracle';
 
 interface DIANFTDataPanelProps {
   nftData: NFTData | undefined;

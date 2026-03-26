@@ -1,10 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
-import { OracleProvider } from '@/types/oracle';
-import { DashboardCard } from './DashboardCard';
+
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
+import { OracleProvider } from '@/types/oracle';
+
+import { DashboardCard } from './DashboardCard';
 
 export interface OraclePerformanceData {
   provider: OracleProvider;

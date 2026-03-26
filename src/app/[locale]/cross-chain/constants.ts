@@ -1,4 +1,3 @@
-import { Blockchain, OracleProvider } from '@/lib/oracles';
 import {
   TIME_RANGES,
   DEVIATION_THRESHOLD,
@@ -8,6 +7,7 @@ import {
   chainColors,
   type RefreshInterval,
 } from '@/lib/constants';
+import { type Blockchain, type OracleProvider } from '@/lib/oracles';
 
 export {
   TIME_RANGES,

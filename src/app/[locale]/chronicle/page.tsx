@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useChroniclePage } from './hooks/useChroniclePage';
+
+import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { MobileSidebar } from '@/components/ui/MobileSidebar';
+
 import {
   ChronicleSidebar,
   ChronicleMarketView,
@@ -12,8 +15,7 @@ import {
   ChronicleRiskView,
   ChronicleHero,
 } from './components';
-import { LoadingState, ErrorFallback } from '@/components/oracle';
-import { MobileSidebar } from '@/components/ui/MobileSidebar';
+import { useChroniclePage } from './hooks/useChroniclePage';
 
 export default function ChroniclePage() {
   const {
@@ -70,32 +72,14 @@ export default function ChroniclePage() {
         );
       case 'validators':
         return (
-          <ChronicleValidatorsView
-            validatorMetrics={validatorMetrics}
-            isLoading={isLoading}
-          />
+          <ChronicleValidatorsView validatorMetrics={validatorMetrics} isLoading={isLoading} />
         );
       case 'makerdao':
-        return (
-          <ChronicleMakerDAOView
-            makerDAO={makerDAO}
-            isLoading={isLoading}
-          />
-        );
+        return <ChronicleMakerDAOView makerDAO={makerDAO} isLoading={isLoading} />;
       case 'scuttlebutt':
-        return (
-          <ChronicleScuttlebuttView
-            scuttlebutt={scuttlebutt}
-            isLoading={isLoading}
-          />
-        );
+        return <ChronicleScuttlebuttView scuttlebutt={scuttlebutt} isLoading={isLoading} />;
       case 'risk':
-        return (
-          <ChronicleRiskView
-            scuttlebutt={scuttlebutt}
-            isLoading={isLoading}
-          />
-        );
+        return <ChronicleRiskView scuttlebutt={scuttlebutt} isLoading={isLoading} />;
       default:
         return null;
     }
@@ -134,7 +118,12 @@ export default function ChroniclePage() {
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
               {t('chronicle.menu.title')}
             </button>
@@ -156,9 +145,7 @@ export default function ChroniclePage() {
           </MobileSidebar>
 
           {/* Content Area */}
-          <div className="flex-1 min-w-0">
-            {renderContent()}
-          </div>
+          <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>
     </div>

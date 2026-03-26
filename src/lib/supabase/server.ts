@@ -1,5 +1,6 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { DatabaseQueries, createQueries } from './queries';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+
+import { type DatabaseQueries, createQueries } from './queries';
 
 let serverClient: SupabaseClient | null = null;
 let serverQueries: DatabaseQueries | null = null;

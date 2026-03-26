@@ -1,15 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
-import { updateUserProfile } from '@/lib/supabase/auth';
-import { User } from 'lucide-react';
-import { Mail } from 'lucide-react';
-import { Save } from 'lucide-react';
-import { Key } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
+
+import { User, Mail, Save, Key, Loader2, CheckCircle } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
+import { updateUserProfile } from '@/lib/supabase/auth';
+import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 // AvatarUploader component placeholder
 const AvatarUploader = ({
   currentAvatarUrl,

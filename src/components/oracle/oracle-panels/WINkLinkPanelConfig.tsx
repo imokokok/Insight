@@ -1,11 +1,13 @@
-import { ReactNode } from 'react';
-import { PanelConfig, PanelRenderContext } from './types';
+import { type ReactNode } from 'react';
+
 import {
   WINkLinkGamingDataPanel,
   WINkLinkTRONEcosystemPanel,
   WINkLinkStakingPanel,
   WINkLinkRiskPanel,
 } from '@/components/oracle/panels';
+
+import { type PanelConfig, type PanelRenderContext } from './types';
 
 const renderGamingTab = (context: PanelRenderContext): ReactNode => {
   return (

@@ -1,13 +1,12 @@
 'use client';
 
+import { Shield, CheckCircle, Clock, AlertTriangle, Info } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import { ChronicleScuttlebuttViewProps } from '../types';
+
+import { type ChronicleScuttlebuttViewProps } from '../types';
+
 import { ChronicleDataTable } from './ChronicleDataTable';
-import { Shield } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { Info } from 'lucide-react';
 
 interface HistoricalEvent {
   id: string;
@@ -104,7 +103,9 @@ export function ChronicleScuttlebuttView({
       header: t('chronicle.scuttlebutt.severity'),
       sortable: true,
       render: (item: HistoricalEvent) => (
-        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border ${getSeverityColor(item.severity)}`}>
+        <span
+          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border ${getSeverityColor(item.severity)}`}
+        >
           {getSeverityIcon(item.severity)}
           <span className="capitalize">{item.severity}</span>
         </span>
@@ -117,9 +118,7 @@ export function ChronicleScuttlebuttView({
       render: (item: HistoricalEvent) => (
         <div>
           <p className="font-medium text-gray-900">{item.event}</p>
-          {item.resolution && (
-            <p className="text-xs text-emerald-600 mt-0.5">{item.resolution}</p>
-          )}
+          {item.resolution && <p className="text-xs text-emerald-600 mt-0.5">{item.resolution}</p>}
         </div>
       ),
     },
@@ -140,8 +139,12 @@ export function ChronicleScuttlebuttView({
       {/* 安全概览 - 3列简洁布局 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
-            <Shield className={`w-6 h-6 ${securityLevel === 'high' ? 'text-emerald-600' : 'text-amber-600'}`} />
+          <div
+            className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-emerald-100' : 'bg-amber-100'}`}
+          >
+            <Shield
+              className={`w-6 h-6 ${securityLevel === 'high' ? 'text-emerald-600' : 'text-amber-600'}`}
+            />
           </div>
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.securityLevel')}</p>
@@ -161,8 +164,12 @@ export function ChronicleScuttlebuttView({
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
-            <Clock className={`w-6 h-6 ${verificationStatus === 'verified' ? 'text-emerald-600' : 'text-amber-600'}`} />
+          <div
+            className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-emerald-100' : 'bg-amber-100'}`}
+          >
+            <Clock
+              className={`w-6 h-6 ${verificationStatus === 'verified' ? 'text-emerald-600' : 'text-amber-600'}`}
+            />
           </div>
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.verificationStatus')}</p>
@@ -199,7 +206,15 @@ export function ChronicleScuttlebuttView({
         </h3>
         <ChronicleDataTable
           data={mockEvents as unknown as Record<string, unknown>[]}
-          columns={columns as unknown as Array<{key: string; header: string; width?: string; sortable?: boolean; render?: (item: Record<string, unknown>) => React.ReactNode}>}
+          columns={
+            columns as unknown as Array<{
+              key: string;
+              header: string;
+              width?: string;
+              sortable?: boolean;
+              render?: (item: Record<string, unknown>) => React.ReactNode;
+            }>
+          }
         />
       </div>
     </div>

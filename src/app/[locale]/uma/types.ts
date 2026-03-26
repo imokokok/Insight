@@ -1,13 +1,13 @@
-import { PriceData } from '@/types/oracle';
-import { OracleConfig } from '@/lib/config/oracles';
+import { type OracleConfig } from '@/lib/config/oracles';
 import {
-  ValidatorData,
-  DisputeData,
-  UMANetworkStats,
+  type ValidatorData,
+  type DisputeData,
+  type UMANetworkStats,
   ValidatorPerformanceHeatmapData,
   DisputeEfficiencyStats,
   DisputeAmountDistributionStats,
 } from '@/lib/oracles/uma/types';
+import { type PriceData } from '@/types/oracle';
 
 export type UmaTabId =
   | 'market'

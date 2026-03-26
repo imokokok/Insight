@@ -1,12 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/types/oracle';
-import { NetworkStats } from '../types';
-import { LiveStatusBar } from '@/components/ui';
-import { StatCard } from '@/components/ui';
+
 import {
   TrendingUp,
   TrendingDown,
@@ -26,6 +21,13 @@ import {
   Lock,
   Award,
 } from 'lucide-react';
+
+import { LiveStatusBar, StatCard } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { type OracleConfig } from '@/lib/config/oracles';
+import { type PriceData } from '@/types/oracle';
+
+import { NetworkStats } from '../types';
 
 export interface ChronicleHeroProps {
   config: OracleConfig;
@@ -61,7 +63,9 @@ function OnChainMetrics({ config }: { config: OracleConfig }) {
         {/* Gas 费水平 */}
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-500">Gas 费水平</span>
-          <span className={`text-xs font-medium px-2 py-0.5 rounded ${gasLevel.bg} ${gasLevel.color}`}>
+          <span
+            className={`text-xs font-medium px-2 py-0.5 rounded ${gasLevel.bg} ${gasLevel.color}`}
+          >
             {gasLevel.label}
           </span>
         </div>
@@ -207,11 +211,17 @@ function LatestUpdates() {
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {updates.map((update, index) => (
               <div key={index} className="flex items-center gap-2 text-xs">
-                <span className={`w-1.5 h-1.5 rounded-full ${
-                  update.type === 'price' ? 'bg-amber-500' :
-                  update.type === 'validator' ? 'bg-emerald-500' :
-                  update.type === 'feed' ? 'bg-purple-500' : 'bg-blue-500'
-                }`} />
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    update.type === 'price'
+                      ? 'bg-amber-500'
+                      : update.type === 'validator'
+                        ? 'bg-emerald-500'
+                        : update.type === 'feed'
+                          ? 'bg-purple-500'
+                          : 'bg-blue-500'
+                  }`}
+                />
                 <span className="text-gray-700">{update.text}</span>
                 <span className="text-gray-400">{update.time}</span>
               </div>
@@ -244,7 +254,7 @@ export function ChronicleHero({
   // 生成价格走势数据
   const priceSparkline = useMemo(() => {
     if (historicalData.length > 0) {
-      return historicalData.slice(-24).map(d => d.price);
+      return historicalData.slice(-24).map((d) => d.price);
     }
     return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + (Math.random() - 0.5) * 0.1));
   }, [historicalData, currentPrice]);
@@ -394,15 +404,11 @@ export function ChronicleHero({
         {/* 头部信息 */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
-            <div 
+            <div
               className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
               style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)` }}
             >
-              <img
-                src="/logos/oracles/chronicle.svg"
-                alt="Chronicle"
-                className="w-8 h-8"
-              />
+              <img src="/logos/oracles/chronicle.svg" alt="Chronicle" className="w-8 h-8" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Chronicle</h1>
@@ -433,9 +439,9 @@ export function ChronicleHero({
         {/* 统计卡片网格 - 8个指标 */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
           {stats.map((stat, index) => (
-            <StatCard 
-              key={index} 
-              {...stat} 
+            <StatCard
+              key={index}
+              {...stat}
               isLoading={isLoading}
               className="hover:border-amber-200"
             />

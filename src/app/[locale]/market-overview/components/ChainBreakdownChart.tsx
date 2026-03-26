@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ChainBreakdown } from '../types';
+
+import { Globe } from 'lucide-react';
 import {
   PieChart,
   Pie,
@@ -14,12 +15,13 @@ import {
   YAxis,
   CartesianGrid,
 } from 'recharts';
-import { TooltipProps } from '@/types/ui/recharts';
+
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import { Globe } from 'lucide-react';
 import { chartColors } from '@/lib/config/colors';
+import { type TooltipProps } from '@/types/ui/recharts';
 
+import { type ChainBreakdown } from '../types';
 
 interface ChainBreakdownChartProps {
   data: ChainBreakdown[];

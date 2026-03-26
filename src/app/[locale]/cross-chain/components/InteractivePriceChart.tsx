@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+
 import {
   ComposedChart,
   Line,
@@ -13,13 +14,14 @@ import {
   ReferenceLine,
   Scatter,
 } from 'recharts';
-import { Blockchain } from '@/lib/oracles';
-import { chainNames, chainColors } from '../utils';
-import { ChartDataPoint } from '../constants';
+
+import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
-import { ChartToolbar, TimeRange } from '@/components/charts/ChartToolbar';
+import { type Blockchain } from '@/lib/oracles';
 
+import { type ChartDataPoint } from '../constants';
+import { chainNames, chainColors } from '../utils';
 
 interface ReferenceLineConfig {
   id: string;
@@ -77,7 +79,10 @@ function CustomTooltip({ active, payload, label, filteredChains }: CustomTooltip
         {label}
       </p>
       {priceData.map((entry, _index: number) => (
-        <div key={String(entry.dataKey)} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
+        <div
+          key={String(entry.dataKey)}
+          className="mb-2 pb-2 border-b border-gray-100 last:border-0"
+        >
           <div className="flex items-center gap-2 mb-1">
             <span className="w-3 h-3" style={{ backgroundColor: entry.color }} />
             <span className="text-sm font-medium text-gray-900">
@@ -646,7 +651,12 @@ export function InteractivePriceChart({
             <RechartsTooltip content={renderTooltip} />
             <Legend
               onClick={(data: unknown) => {
-                const legendData = data as { dataKey: string; color: string; type: string; value: string };
+                const legendData = data as {
+                  dataKey: string;
+                  color: string;
+                  type: string;
+                  value: string;
+                };
                 onLegendClick(legendData);
               }}
             />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
+
 import {
   Line,
   XAxis,
@@ -14,17 +15,21 @@ import {
   Area,
   ComposedChart,
 } from 'recharts';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { TooltipProps, CustomDotProps } from '@/types/ui/recharts';
+import { useTranslations } from '@/i18n';
+import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
+import { NotImplementedError } from '@/lib/errors';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
-import { NotImplementedError } from '@/lib/errors';
-import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
-import { useTranslations } from '@/i18n';
+import { type TooltipProps, type CustomDotProps } from '@/types/ui/recharts';
+
+import { LatencyHistogram } from './LatencyHistogram';
+import { LatencyPrediction } from './LatencyPrediction';
 import {
-  LatencyDataPoint,
-  ThresholdHistoryEntry,
-  DynamicThreshold,
+  type LatencyDataPoint,
+  type ThresholdHistoryEntry,
+  type DynamicThreshold,
   PredictionAccuracy,
   generatePredictions,
   calculatePredictionAccuracy,
@@ -34,9 +39,6 @@ import {
   calculateSMA,
 } from './latencyUtils';
 import { useLatencyStats } from './useLatencyStats';
-import { LatencyHistogram } from './LatencyHistogram';
-import { LatencyPrediction } from './LatencyPrediction';
-
 
 const logger = createLogger('LatencyTrendChart');
 
@@ -250,7 +252,8 @@ function LatencyTrendChartBase({
     const TooltipComponent = ({ active, payload, label }: TooltipProps<LatencyDataPoint>) => {
       if (!active || !payload || payload.length === 0) return null;
 
-      const dataPoint = payload[0].payload;
+      const dataPoint = payload[0]?.payload;
+      if (!dataPoint) return null;
       const isDynamicAnomaly = dataPoint.latency > dynamicThreshold.threshold;
 
       return (

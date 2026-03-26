@@ -1,5 +1,4 @@
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/types/oracle';
+import { type OracleConfig } from '@/lib/config/oracles';
 import type {
   AirnodeNetworkStats,
   DAPICoverage,
@@ -8,14 +7,9 @@ import type {
   DAPIPriceDeviation,
   DataSourceInfo,
 } from '@/lib/oracles/api3';
+import { type PriceData } from '@/types/oracle';
 
-export type API3TabId =
-  | 'market'
-  | 'network'
-  | 'airnode'
-  | 'dapi'
-  | 'ecosystem'
-  | 'risk';
+export type API3TabId = 'market' | 'network' | 'airnode' | 'dapi' | 'ecosystem' | 'risk';
 
 export interface NetworkStats {
   activeNodes: number;

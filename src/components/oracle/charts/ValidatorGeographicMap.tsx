@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
-import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
-import { formatNumber } from '@/lib/utils/format';
+
 import { Globe, MapPin, Users, Coins } from 'lucide-react';
+import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
+
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+import { type ValidatorInfo } from '@/lib/oracles/bandProtocol';
+import { formatNumber } from '@/lib/utils/format';
 
 export interface ValidatorGeographicMapProps {
   validators: ValidatorInfo[];

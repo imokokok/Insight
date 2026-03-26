@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerQueries } from '@/lib/supabase/server';
-import { AlertConditionType } from '@/lib/supabase/database.types';
-import { createLogger } from '@/lib/utils/logger';
+import { type NextRequest, NextResponse } from 'next/server';
+
 import { getUserId } from '@/lib/api/utils';
+import { type AlertConditionType } from '@/lib/supabase/database.types';
+import { getServerQueries } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-alerts');
 

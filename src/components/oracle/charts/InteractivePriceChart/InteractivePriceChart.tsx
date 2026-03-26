@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
 import {
   ComposedChart,
   Line,
@@ -15,13 +15,15 @@ import {
   Legend,
   Area,
 } from 'recharts';
-import { ChartGuide, useChartGuide } from '../ChartGuide';
-import { EnhancedChartToolbar, ToolbarGroup } from '../ChartToolbar';
-import { EnhancedTooltip, MultiSeriesTooltip } from '../EnhancedTooltip';
-import { ChartExportData } from '@/utils/chartExport';
+
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
+import { type ChartExportData } from '@/utils/chartExport';
 
+import { ChartGuide, useChartGuide } from '../ChartGuide';
+import { EnhancedChartToolbar, type ToolbarGroup } from '../ChartToolbar';
+import { EnhancedTooltip, MultiSeriesTooltip } from '../EnhancedTooltip';
 
 const logger = createLogger('InteractivePriceChart');
 

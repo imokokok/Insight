@@ -1,8 +1,11 @@
 'use client';
 
-import { forwardRef, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { forwardRef, type ReactNode } from 'react';
+
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+
 import { Button } from './Button';
 
 export interface ErrorStateProps {
@@ -51,34 +54,17 @@ export const ErrorState = forwardRef<HTMLDivElement, ErrorStateProps>(
           )}
         >
           {icon || (
-            <AlertTriangle
-              className={cn(
-                'text-danger-500',
-                compact ? 'w-6 h-6' : 'w-8 h-8'
-              )}
-            />
+            <AlertTriangle className={cn('text-danger-500', compact ? 'w-6 h-6' : 'w-8 h-8')} />
           )}
         </div>
-        <h3
-          className={cn(
-            'font-semibold text-gray-900 mb-1',
-            compact ? 'text-base' : 'text-lg'
-          )}
-        >
+        <h3 className={cn('font-semibold text-gray-900 mb-1', compact ? 'text-base' : 'text-lg')}>
           {title}
         </h3>
-        <p
-          className={cn(
-            'text-gray-500 max-w-sm',
-            compact ? 'text-sm' : 'text-base'
-          )}
-        >
+        <p className={cn('text-gray-500 max-w-sm', compact ? 'text-sm' : 'text-base')}>
           {description}
         </p>
         {errorMessage && (
-          <p className="mt-2 text-sm text-danger-600 max-w-sm break-words">
-            {errorMessage}
-          </p>
+          <p className="mt-2 text-sm text-danger-600 max-w-sm break-words">{errorMessage}</p>
         )}
         <div className={cn('flex items-center gap-3', compact ? 'mt-4' : 'mt-6')}>
           {onRetry && (

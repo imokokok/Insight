@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
+
 import { providerNames } from '@/lib/constants';
-import { AnomalyType } from './types';
+
+import { type AnomalyType } from './types';
 
 export const PROVIDER_NAMES = providerNames;
 

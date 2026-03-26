@@ -1,8 +1,12 @@
 'use client';
 
 import { useEffect, useCallback, useMemo, useState, useRef } from 'react';
-import { OracleProvider, Blockchain, PriceData } from '@/lib/oracles';
+
+import { useFavorites, type FavoriteConfig } from '@/hooks';
 import {
+  OracleProvider,
+  type Blockchain,
+  type PriceData,
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
@@ -13,15 +17,19 @@ import {
   TellorClient,
   ChronicleClient,
   WINkLinkClient,
-  BaseOracleClient,
+  type BaseOracleClient,
 } from '@/lib/oracles';
+import { createLogger } from '@/lib/utils/logger';
+import { useUser } from '@/stores/authStore';
+import { useCrossChainStore } from '@/stores/crossChainStore';
+
 import {
-  HeatmapData,
-  PriceDifference,
-  BoxPlotData,
-  ChartDataPoint,
-  IqrOutliers,
-  RefreshInterval,
+  type HeatmapData,
+  type PriceDifference,
+  type BoxPlotData,
+  type ChartDataPoint,
+  type IqrOutliers,
+  type RefreshInterval,
 } from './constants';
 import {
   chainNames,
@@ -35,10 +43,6 @@ import {
   calculateDynamicThreshold,
   type CorrelationResult,
 } from './utils';
-import { useCrossChainStore } from '@/stores/crossChainStore';
-import { createLogger } from '@/lib/utils/logger';
-import { useFavorites, FavoriteConfig } from '@/hooks';
-import { useUser } from '@/stores/authStore';
 
 const logger = createLogger('useCrossChainData');
 

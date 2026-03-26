@@ -1,13 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { MakerDAOIntegration, MakerDAOAsset } from '@/lib/oracles/chronicle';
+import { Landmark, DollarSign, TrendingUp, Shield, Database } from 'lucide-react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { Landmark } from 'lucide-react';
-import { DollarSign } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Shield } from 'lucide-react';
-import { Database } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+import { type MakerDAOIntegration, MakerDAOAsset } from '@/lib/oracles/chronicle';
 
 interface ChronicleMakerDAOIntegrationPanelProps {
   data: MakerDAOIntegration;
@@ -71,7 +68,9 @@ export function ChronicleMakerDAOIntegrationPanel({
               <TrendingUp className="w-4 h-4 text-primary-600" />
               <p className="text-xs text-gray-500">{t('chronicle.makerdao.systemSurplus')}</p>
             </div>
-            <p className="text-xl font-bold text-success-600">{formatCurrency(data.systemSurplus)}</p>
+            <p className="text-xl font-bold text-success-600">
+              {formatCurrency(data.systemSurplus)}
+            </p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">

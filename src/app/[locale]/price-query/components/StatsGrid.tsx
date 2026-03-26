@@ -6,11 +6,14 @@
  */
 
 import { useMemo, useState, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { ChevronUp } from 'lucide-react';
+
+import { ChevronDown, ChevronUp } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import { StatItem } from './StatItem';
+
 import { calculateCurrentVolatility } from '../utils/technicalIndicators';
+
+import { StatItem } from './StatItem';
 
 interface StatsGridProps {
   avgPrice: number;

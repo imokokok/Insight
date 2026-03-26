@@ -1,12 +1,12 @@
 'use client';
 
-import { useMarketPage } from './useMarketPage';
-import MarketHeader from './components/MarketHeader';
-import MarketStats from './components/MarketStats';
-import ChartContainer from './components/ChartContainer';
-import MarketSidebar from './components/MarketSidebar';
-import AssetsTable from './components/AssetsTable';
 import AnomalyModal from './components/AnomalyModal';
+import AssetsTable from './components/AssetsTable';
+import ChartContainer from './components/ChartContainer';
+import MarketHeader from './components/MarketHeader';
+import MarketSidebar from './components/MarketSidebar';
+import MarketStats from './components/MarketStats';
+import { useMarketPage } from './useMarketPage';
 
 export default function MarketOverviewPage() {
   const {

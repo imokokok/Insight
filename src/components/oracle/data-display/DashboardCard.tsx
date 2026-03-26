@@ -1,6 +1,7 @@
 'use client';
 
-import { memo, ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
+
 import { cn } from '@/lib/utils';
 
 interface DashboardCardProps {
@@ -110,13 +111,7 @@ export function StatCard({
             <span>{change}</span>
           </div>
         </div>
-        <div
-          className={cn(
-            'p-2.5 border rounded-lg flex-shrink-0',
-            finalBgColor,
-            finalIconColor
-          )}
-        >
+        <div className={cn('p-2.5 border rounded-lg flex-shrink-0', finalBgColor, finalIconColor)}>
           {icon}
         </div>
       </div>

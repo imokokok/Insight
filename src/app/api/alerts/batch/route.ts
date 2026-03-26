@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
+
+import { getUserId } from '@/lib/api/utils';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
-import { getUserId } from '@/lib/api/utils';
 
 const logger = createLogger('api-alerts-batch');
 

@@ -2,8 +2,12 @@
  * @fileoverview Tests for /api/alerts route
  */
 
-import { GET, POST } from './route';
 import { NextRequest } from 'next/server';
+
+import { getUserId } from '@/lib/api/utils';
+import { getServerQueries } from '@/lib/supabase/server';
+
+import { GET, POST } from './route';
 
 // Mock dependencies
 jest.mock('@/lib/supabase/server', () => ({
@@ -19,9 +23,6 @@ jest.mock('@/lib/utils/logger', () => ({
     error: jest.fn(),
   })),
 }));
-
-import { getServerQueries } from '@/lib/supabase/server';
-import { getUserId } from '@/lib/api/utils';
 
 describe('/api/alerts', () => {
   const mockQueries = {

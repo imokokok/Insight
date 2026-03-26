@@ -9,19 +9,23 @@ import React, {
   type ReactNode,
   type CSSProperties,
 } from 'react';
-import { useTranslations } from '@/i18n';
-import { ArrowUpDown } from 'lucide-react';
-import { ArrowUp } from 'lucide-react';
-import { ArrowDown } from 'lucide-react';
-import { GripVertical } from 'lucide-react';
-import { Settings2 } from 'lucide-react';
-import { Check } from 'lucide-react';
-import { AlignJustify } from 'lucide-react';
-import { Rows3 } from 'lucide-react';
-import { LayoutList } from 'lucide-react';
+
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { cn } from '@/lib/utils';
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  GripVertical,
+  Settings2,
+  Check,
+  AlignJustify,
+  Rows3,
+  LayoutList,
+} from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 import { semanticColors } from '@/lib/config/colors';
+import { cn } from '@/lib/utils';
 
 // ============================================
 // Type Definitions
@@ -121,9 +125,7 @@ function evaluateCondition(
   }
 }
 
-function getConditionalStyle(
-  style: ConditionalFormattingRule['style']
-): string {
+function getConditionalStyle(style: ConditionalFormattingRule['style']): string {
   switch (style) {
     case 'success':
       return 'font-medium';
@@ -138,9 +140,7 @@ function getConditionalStyle(
   }
 }
 
-function getConditionalStyleCSS(
-  style: ConditionalFormattingRule['style']
-): CSSProperties {
+function getConditionalStyleCSS(style: ConditionalFormattingRule['style']): CSSProperties {
   switch (style) {
     case 'success':
       return {
@@ -270,9 +270,7 @@ function ColumnVisibilityDropdown<T>({
       >
         <Settings2 className="w-3.5 h-3.5" />
         <span className="hidden sm:inline">列</span>
-        {someVisible && (
-          <span className="ml-0.5 w-1.5 h-1.5 rounded-full bg-blue-500" />
-        )}
+        {someVisible && <span className="ml-0.5 w-1.5 h-1.5 rounded-full bg-blue-500" />}
       </button>
 
       {isOpen && (
@@ -289,13 +287,11 @@ function ColumnVisibilityDropdown<T>({
                   allVisible
                     ? 'bg-blue-600 border-blue-600'
                     : someVisible
-                    ? 'bg-blue-600 border-blue-600'
-                    : 'border-gray-300'
+                      ? 'bg-blue-600 border-blue-600'
+                      : 'border-gray-300'
                 )}
               >
-                {(allVisible || someVisible) && (
-                  <Check className="w-3 h-3 text-white" />
-                )}
+                {(allVisible || someVisible) && <Check className="w-3 h-3 text-white" />}
               </div>
               <span>{allVisible ? '取消全选' : '全选'}</span>
             </button>
@@ -314,17 +310,13 @@ function ColumnVisibilityDropdown<T>({
                   disabled={isFixed}
                   className={cn(
                     'w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors',
-                    isFixed
-                      ? 'text-gray-400 cursor-not-allowed'
-                      : 'text-gray-700 hover:bg-gray-50'
+                    isFixed ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'
                   )}
                 >
                   <div
                     className={cn(
                       'w-4 h-4 rounded border flex items-center justify-center transition-colors',
-                      isVisible
-                        ? 'bg-blue-600 border-blue-600'
-                        : 'border-gray-300'
+                      isVisible ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
                     )}
                   >
                     {isVisible && <Check className="w-3 h-3 text-white" />}
@@ -332,9 +324,7 @@ function ColumnVisibilityDropdown<T>({
                   <span className="flex-1 text-left truncate">
                     {typeof column.header === 'string' ? column.header : column.key}
                   </span>
-                  {isFixed && (
-                    <span className="text-[10px] text-gray-400">固定</span>
-                  )}
+                  {isFixed && <span className="text-[10px] text-gray-400">固定</span>}
                 </button>
               );
             })}
@@ -387,10 +377,13 @@ export function DataTablePro<T extends Record<string, unknown>>({
     setDensity(initialDensity);
   }, [initialDensity]);
 
-  const handleDensityChange = useCallback((newDensity: 'compact' | 'normal' | 'comfortable') => {
-    setDensity(newDensity);
-    onDensityChange?.(newDensity);
-  }, [onDensityChange]);
+  const handleDensityChange = useCallback(
+    (newDensity: 'compact' | 'normal' | 'comfortable') => {
+      setDensity(newDensity);
+      onDensityChange?.(newDensity);
+    },
+    [onDensityChange]
+  );
 
   // ============================================
   // Filtered Columns
@@ -531,9 +524,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
       e.stopPropagation();
 
       const currentWidth =
-        columnWidths[columnKey] ||
-        columns.find((c) => c.key === columnKey)?.width ||
-        150;
+        columnWidths[columnKey] || columns.find((c) => c.key === columnKey)?.width || 150;
 
       setResizingColumn(columnKey);
       setStartX(e.clientX);
@@ -745,9 +736,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
             />
           </svg>
         </div>
-        <p className="text-gray-500 text-sm">
-          {emptyText || t('noData')}
-        </p>
+        <p className="text-gray-500 text-sm">{emptyText || t('noData')}</p>
       </div>
     );
   }
@@ -771,14 +760,13 @@ export function DataTablePro<T extends Record<string, unknown>>({
             共 {data.length} 条数据
             {sortConfig.length > 0 && (
               <span className="ml-2 text-blue-600">
-                已排序: {sortConfig.map((s) => `${s.key}(${s.direction === 'asc' ? '↑' : '↓'})`).join(', ')}
+                已排序:{' '}
+                {sortConfig.map((s) => `${s.key}(${s.direction === 'asc' ? '↑' : '↓'})`).join(', ')}
               </span>
             )}
           </div>
           <div className="flex items-center gap-2">
-            {densityToggle && (
-              <DensityToggle density={density} onChange={handleDensityChange} />
-            )}
+            {densityToggle && <DensityToggle density={density} onChange={handleDensityChange} />}
             {columnVisibility && (
               <ColumnVisibilityDropdown
                 columns={columns}
@@ -831,13 +819,9 @@ export function DataTablePro<T extends Record<string, unknown>>({
                     onClick={() => column.sortable && handleSort(column.key)}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="flex-1 truncate">
-                        {column.header}
-                      </span>
+                      <span className="flex-1 truncate">{column.header}</span>
                       {column.sortable && (
-                        <span className="flex-shrink-0">
-                          {renderSortIcon(column.key)}
-                        </span>
+                        <span className="flex-shrink-0">{renderSortIcon(column.key)}</span>
                       )}
                       {resizable && (
                         <div
@@ -990,9 +974,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
       </div>
 
       {/* Resizing Overlay */}
-      {resizingColumn && (
-        <div className="fixed inset-0 z-50 cursor-col-resize" />
-      )}
+      {resizingColumn && <div className="fixed inset-0 z-50 cursor-col-resize" />}
 
       {/* Loading Overlay */}
       {loading && (

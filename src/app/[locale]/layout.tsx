@@ -1,18 +1,21 @@
 import type { Metadata } from 'next';
+
 import { Geist, Geist_Mono } from 'next/font/google';
+
 import '../globals.css';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { ErrorBoundary } from '@/components/ErrorBoundaries';
-import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
-import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
-import { ToastProvider } from '@/components/ui';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { AppInitializer } from '@/components/AppInitializer';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
+
+import { AppInitializer } from '@/components/AppInitializer';
+import { ErrorBoundary } from '@/components/ErrorBoundaries';
+import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
+import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
+import { ToastProvider } from '@/components/ui';
 import { routing } from '@/i18n/routing';
+import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

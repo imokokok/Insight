@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { FileQuestion, Home, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
+import { FileQuestion, Home, ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   const router = useRouter();

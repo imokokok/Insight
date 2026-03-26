@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useTranslations, useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
-import { ResponsiveContainer } from 'recharts';
+
 import {
   PieChart as PieChartIcon,
   TrendingUp,
@@ -21,9 +19,27 @@ import {
   X,
   AlertTriangle,
 } from 'lucide-react';
-import { TIME_RANGES, ChartType, ViewType, TVSTrendData, OracleMarketData, ChainBreakdown, ProtocolDetail, AssetCategory, ComparisonData, BenchmarkData, CorrelationData } from '../types';
-import ChartRenderer from './ChartRenderer';
+import { ResponsiveContainer } from 'recharts';
+
+import { useTranslations, useLocale } from '@/i18n';
+import { isChineseLocale } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
+
+import {
+  TIME_RANGES,
+  type ChartType,
+  type ViewType,
+  type TVSTrendData,
+  type OracleMarketData,
+  type ChainBreakdown,
+  type ProtocolDetail,
+  type AssetCategory,
+  type ComparisonData,
+  type BenchmarkData,
+  type CorrelationData,
+} from '../types';
+
+import ChartRenderer from './ChartRenderer';
 
 interface ChartContainerProps {
   chartContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -95,7 +111,14 @@ const chartTypes = [
 const CHARTS_WITH_TYPE_SUPPORT: ChartType[] = ['trend', 'comparison', 'benchmark'];
 
 // 需要 ResponsiveContainer 的图表
-const CHARTS_WITH_RESPONSIVE_CONTAINER: ChartType[] = ['pie', 'trend', 'bar', 'comparison', 'benchmark', 'correlation'];
+const CHARTS_WITH_RESPONSIVE_CONTAINER: ChartType[] = [
+  'pie',
+  'trend',
+  'bar',
+  'comparison',
+  'benchmark',
+  'correlation',
+];
 
 export default function ChartContainer({
   chartContainerRef,
@@ -152,9 +175,12 @@ export default function ChartContainer({
   }, []);
 
   // 处理时间范围切换
-  const handleTimeRangeChange = useCallback((range: string) => {
-    setSelectedTimeRange(range);
-  }, [setSelectedTimeRange]);
+  const handleTimeRangeChange = useCallback(
+    (range: string) => {
+      setSelectedTimeRange(range);
+    },
+    [setSelectedTimeRange]
+  );
 
   // 处理重置缩放
   const handleResetZoom = useCallback(() => {
@@ -246,9 +272,7 @@ export default function ChartContainer({
     <div className="h-[360px] flex items-center justify-center">
       <div className="flex flex-col items-center gap-2">
         <div className="w-6 h-6 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-        <span className="text-gray-500 text-xs">
-          {isZh ? '加载中...' : 'Loading...'}
-        </span>
+        <span className="text-gray-500 text-xs">{isZh ? '加载中...' : 'Loading...'}</span>
       </div>
     </div>
   );
@@ -522,8 +546,14 @@ export default function ChartContainer({
                   )}
                   title={type === 'line' ? t('chartTypes.line') : t('chartTypes.area')}
                 >
-                  {type === 'line' ? <TrendingUp className="w-3.5 h-3.5" /> : <ActivitySquare className="w-3.5 h-3.5" />}
-                  <span className="hidden sm:inline">{type === 'line' ? t('chartTypes.line') : t('chartTypes.area')}</span>
+                  {type === 'line' ? (
+                    <TrendingUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ActivitySquare className="w-3.5 h-3.5" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {type === 'line' ? t('chartTypes.line') : t('chartTypes.area')}
+                  </span>
                 </button>
               ))}
             </div>
@@ -578,17 +608,23 @@ export default function ChartContainer({
                 trendComparisonData.length > 0 && (
                   <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary-50 border border-primary-200 rounded-md">
                     <span className="text-xs text-primary-700">
-                      {comparisonMode === 'yoy'
-                        ? isZh ? '同比' : 'YoY'
-                        : isZh ? '环比' : 'MoM'}
+                      {comparisonMode === 'yoy' ? (isZh ? '同比' : 'YoY') : isZh ? '环比' : 'MoM'}
                     </span>
                     {(() => {
                       const latestData = prepareComparisonData(trendData, trendComparisonData)[
                         trendData.length - 1
                       ];
                       const oracleKeys = [
-                        'chainlink', 'pyth', 'band', 'api3', 'uma',
-                        'redstone', 'dia', 'tellor', 'chronicle', 'winklink',
+                        'chainlink',
+                        'pyth',
+                        'band',
+                        'api3',
+                        'uma',
+                        'redstone',
+                        'dia',
+                        'tellor',
+                        'chronicle',
+                        'winklink',
                       ];
                       const avgDiff =
                         oracleKeys.reduce((sum, key) => {
@@ -649,7 +685,9 @@ export default function ChartContainer({
               {viewType === 'chart' && !['chain', 'protocol', 'asset'].includes(activeChart) && (
                 <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
                   <Info className="w-3.5 h-3.5" />
-                  <span>{isZh ? '悬停查看详情，点击选中项目' : 'Hover for details, click to select'}</span>
+                  <span>
+                    {isZh ? '悬停查看详情，点击选中项目' : 'Hover for details, click to select'}
+                  </span>
                 </div>
               )}
             </>

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { CustomFeed, DataSourceTransparency } from '@/lib/oracles/dia';
-import { useTranslations } from '@/i18n';
-import { Blockchain } from '@/types/oracle/enums';
+
 import { DashboardCard } from '@/components/oracle';
+import { useTranslations } from '@/i18n';
+import { type CustomFeed, type DataSourceTransparency } from '@/lib/oracles/dia';
+import { type Blockchain } from '@/types/oracle/enums';
 
 interface DIADataFeedsPanelProps {
   feeds: CustomFeed[];

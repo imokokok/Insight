@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+
 import {
   LineChart,
   Line,
@@ -12,12 +13,12 @@ import {
   ReferenceLine,
   Dot,
 } from 'recharts';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+import { NotImplementedError } from '@/lib/errors';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
-import { NotImplementedError } from '@/lib/errors';
-import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
-
 
 const logger = createLogger('ConfidenceIntervalChart');
 
@@ -166,7 +167,9 @@ function CustomTooltip({ active, payload, label, threshold }: CustomTooltipProps
           <span className="text-xs text-gray-500">状态</span>
           <span
             className={`text-xs font-medium px-2 py-0.5 rounded ${
-              dataPoint.isAboveThreshold ? 'bg-danger-100 text-danger-700' : 'bg-success-100 text-success-700'
+              dataPoint.isAboveThreshold
+                ? 'bg-danger-100 text-danger-700'
+                : 'bg-success-100 text-success-700'
             }`}
           >
             {dataPoint.isAboveThreshold ? '超出阈值' : '正常'}

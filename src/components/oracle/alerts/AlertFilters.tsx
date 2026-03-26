@@ -1,8 +1,9 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { DropdownSelect } from '@/components/ui';
-import { AnomalyType, AnomalySeverity, AnomalyFilter } from './types';
+import { useTranslations } from '@/i18n';
+
+import { type AnomalyType, type AnomalySeverity, type AnomalyFilter } from './types';
 
 interface AlertFiltersProps {
   filter: AnomalyFilter;

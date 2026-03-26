@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+
 import { useTranslations } from '@/i18n';
 import { createLogger } from '@/lib/utils/logger';
 

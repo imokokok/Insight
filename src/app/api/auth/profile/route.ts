@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerQueries } from '@/lib/supabase/server';
-import { UserProfileUpdate } from '@/lib/supabase/queries';
-import { createLogger } from '@/lib/utils/logger';
+import { type NextRequest, NextResponse } from 'next/server';
+
 import { getUserId } from '@/lib/api/utils';
+import { type UserProfileUpdate } from '@/lib/supabase/queries';
+import { getServerQueries } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-profile');
 

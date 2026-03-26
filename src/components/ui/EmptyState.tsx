@@ -1,8 +1,10 @@
 'use client';
 
-import { forwardRef, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { forwardRef, type ReactNode } from 'react';
+
 import { Inbox } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 
 export interface EmptyStateProps {
   title?: string;
@@ -42,29 +44,12 @@ export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
             compact ? 'w-12 h-12' : 'w-16 h-16'
           )}
         >
-          {icon || (
-            <Inbox
-              className={cn(
-                'text-gray-400',
-                compact ? 'w-6 h-6' : 'w-8 h-8'
-              )}
-            />
-          )}
+          {icon || <Inbox className={cn('text-gray-400', compact ? 'w-6 h-6' : 'w-8 h-8')} />}
         </div>
-        <h3
-          className={cn(
-            'font-semibold text-gray-900 mb-1',
-            compact ? 'text-base' : 'text-lg'
-          )}
-        >
+        <h3 className={cn('font-semibold text-gray-900 mb-1', compact ? 'text-base' : 'text-lg')}>
           {title}
         </h3>
-        <p
-          className={cn(
-            'text-gray-500 max-w-sm',
-            compact ? 'text-sm' : 'text-base'
-          )}
-        >
+        <p className={cn('text-gray-500 max-w-sm', compact ? 'text-sm' : 'text-base')}>
           {description}
         </p>
         {(action || secondaryAction) && (

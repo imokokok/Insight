@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   LineChart,
   Line,
@@ -13,10 +14,10 @@ import {
   ReferenceDot,
   Area,
 } from 'recharts';
-import { useTranslations } from '@/i18n';
-import { calculateCDF, CDFResult } from '@/lib/utils/statistics';
-import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
+import { useTranslations } from '@/i18n';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { calculateCDF, type CDFResult } from '@/lib/utils/statistics';
 
 interface CDFChartProps {
   data: number[];
@@ -206,7 +207,10 @@ export function CDFChart({
       {/* Statistics Grid */}
       <div className="grid grid-cols-5 gap-3">
         {stats.map((item) => (
-          <div key={item.label} className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+          <div
+            key={item.label}
+            className="bg-white border border-gray-200 rounded-lg p-3 text-center"
+          >
             <span className="text-xl mb-1 block">{item.icon}</span>
             <p className="text-xs text-gray-500 mb-1">{item.label}</p>
             <p className="text-sm font-semibold text-gray-900">{item.value}</p>

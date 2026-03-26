@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useTranslations } from '@/i18n';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-import { getOracleConfig } from '@/lib/config/oracles';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+
 import { useRefresh, useExport } from '@/hooks';
-import { BandProtocolTabId } from '../types';
-import type { PriceData } from '@/types/oracle';
+import { useTranslations } from '@/i18n';
+import { getOracleConfig } from '@/lib/config/oracles';
+import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import type { BandNetworkStats, ValidatorInfo, CrossChainStats } from '@/lib/oracles/bandProtocol';
+import { OracleProvider, Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
+
+import { type BandProtocolTabId } from '../types';
 
 export function useBandProtocolPage() {
   const t = useTranslations();

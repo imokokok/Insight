@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
-import { semanticColors, baseColors, chartColors } from '@/lib/config/colors';
 import { useTranslations } from '@/i18n';
+import { semanticColors, baseColors, chartColors } from '@/lib/config/colors';
+import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
 
 export interface ChainPriceData {
   chain: string;

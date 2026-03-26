@@ -1,6 +1,7 @@
 'use client';
 
-import { forwardRef, ReactNode, CSSProperties, useState, useEffect } from 'react';
+import { forwardRef, type ReactNode, type CSSProperties, useState, useEffect } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface SlideUpProps {
@@ -143,7 +144,7 @@ export const SlideIn = forwardRef<HTMLDivElement, SlideInProps>(
 
     const getTransform = () => {
       if (isVisible) return 'translate(0, 0)';
-      
+
       switch (direction) {
         case 'left':
           return `translateX(-${distance}px)`;

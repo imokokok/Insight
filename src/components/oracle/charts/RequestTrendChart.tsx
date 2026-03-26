@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+
 import {
   LineChart,
   Line,
@@ -11,13 +12,13 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
-import { useTranslations } from '@/i18n';
-import { createLogger } from '@/lib/utils/logger';
-import { chartColors } from '@/lib/config/colors';
 
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
+import { type BandProtocolClient } from '@/lib/oracles/bandProtocol';
+import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('RequestTrendChart');
 
@@ -191,7 +192,9 @@ export function RequestTrendChart({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">{t('requestTrend.successRate')}</span>
-              <span className="text-xs font-semibold text-success-600">{dataPoint.successRate}%</span>
+              <span className="text-xs font-semibold text-success-600">
+                {dataPoint.successRate}%
+              </span>
             </div>
           </div>
         </div>
@@ -259,7 +262,9 @@ export function RequestTrendChart({
             <p className="text-xl font-bold text-orange-700">
               {formatCompactNumberWithDecimals(stats.totalRequests)}
             </p>
-            <p className="text-xs text-warning-600 mt-0.5">{t('requestTrend.cumulativeRequests')}</p>
+            <p className="text-xs text-warning-600 mt-0.5">
+              {t('requestTrend.cumulativeRequests')}
+            </p>
           </div>
         </div>
 

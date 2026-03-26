@@ -1,16 +1,18 @@
 'use client';
 
 import { useMemo } from 'react';
-import {
-  OracleSnapshot,
-  SnapshotStats,
-  SnapshotComparisonResult,
-  compareSnapshots,
-} from '@/types/oracle';
-import { formatTimestamp } from '@/types/common/timestamps';
-import { PriceData, OracleProvider } from '@/types/oracle';
-import { formatPrice } from '@/lib/utils/chartSharedUtils';
+
 import { providerNames } from '@/lib/constants';
+import { formatPrice } from '@/lib/utils/chartSharedUtils';
+import { formatTimestamp } from '@/types/common/timestamps';
+import {
+  type OracleSnapshot,
+  type SnapshotStats,
+  type SnapshotComparisonResult,
+  compareSnapshots,
+  type PriceData,
+  OracleProvider,
+} from '@/types/oracle';
 
 const formatPriceValue = (value: number): string => formatPrice(value).replace('$', '');
 

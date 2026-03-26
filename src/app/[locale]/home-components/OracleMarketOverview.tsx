@@ -1,9 +1,19 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
-import OraclePrefetchCard from './OraclePrefetchCard';
+
+import {
+  PieChart as PieChartIcon,
+  TrendingUp,
+  BarChart3,
+  Table as TableIcon,
+  Activity,
+  DollarSign,
+  Layers,
+  Globe,
+  ChevronRight,
+  Info,
+} from 'lucide-react';
 import {
   PieChart,
   Pie,
@@ -19,20 +29,14 @@ import {
   Bar,
   ReferenceLine,
 } from 'recharts';
-import { TooltipProps, CustomLabelProps } from '@/types/ui/recharts';
-import { PieChart as PieChartIcon } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { BarChart3 } from 'lucide-react';
-import { Table as TableIcon } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { DollarSign } from 'lucide-react';
-import { Layers } from 'lucide-react';
-import { Globe } from 'lucide-react';
-import { ChevronRight } from 'lucide-react';
-import { Info } from 'lucide-react';
-import { ChartSkeleton } from '@/components/ui';
-import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
+import { ChartSkeleton } from '@/components/ui';
+import { useLocale } from '@/i18n';
+import { isChineseLocale } from '@/i18n/routing';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { type TooltipProps, type CustomLabelProps } from '@/types/ui/recharts';
+
+import OraclePrefetchCard from './OraclePrefetchCard';
 
 const COLORS = {
   chainlink: chartColors.oracle.chainlink,
@@ -909,7 +913,10 @@ function OracleMarketOverviewBase() {
               </div>
             </div>
 
-            <div className="bg-white border rounded-lg" style={{ borderColor: baseColors.gray[200] }}>
+            <div
+              className="bg-white border rounded-lg"
+              style={{ borderColor: baseColors.gray[200] }}
+            >
               <div
                 className="px-4 py-3 border-b flex items-center justify-between"
                 style={{ borderColor: baseColors.gray[200], backgroundColor: baseColors.gray[50] }}

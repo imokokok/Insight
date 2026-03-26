@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
-import { useTranslations } from '@/i18n';
+
 import {
   Mail,
   Lock,
@@ -16,6 +16,9 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
+import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -276,7 +279,10 @@ export default function RegisterPage() {
                   {t('auth.register.terms')}
                 </Link>
                 <span>{t('auth.register.termsAgreementMiddle')}</span>
-                <Link href="/privacy" className="text-primary-600 hover:text-primary-700 font-medium">
+                <Link
+                  href="/privacy"
+                  className="text-primary-600 hover:text-primary-700 font-medium"
+                >
                   {t('auth.register.privacy')}
                 </Link>
               </label>

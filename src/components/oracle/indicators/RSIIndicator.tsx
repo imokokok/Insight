@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   LineChart,
   Line,
@@ -12,10 +13,10 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from 'recharts';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
 import { calculateRSIFromData } from '@/lib/indicators';
-
 
 export interface RSIDataPoint {
   time: string;
@@ -117,7 +118,11 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
                     <p className="text-xs text-gray-500 mb-1">{label}</p>
                     <p
                       className={`text-sm font-bold ${
-                        rsi > 70 ? 'text-danger-600' : rsi < 30 ? 'text-success-600' : 'text-primary-600'
+                        rsi > 70
+                          ? 'text-danger-600'
+                          : rsi < 30
+                            ? 'text-success-600'
+                            : 'text-primary-600'
                       }`}
                     >
                       RSI: {rsi.toFixed(2)}

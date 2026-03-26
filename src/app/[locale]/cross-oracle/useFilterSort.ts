@@ -1,15 +1,17 @@
 import { useMemo, useCallback } from 'react';
-import { OracleProvider, PriceData } from '@/types/oracle';
+
+import { type OracleProvider, type PriceData } from '@/types/oracle';
+
 import {
-  SortColumn,
-  SortDirection,
-  DeviationFilter,
+  type SortColumn,
+  type SortDirection,
+  type DeviationFilter,
   oracleNames,
-  TimeRange,
+  type TimeRange,
   calculateZScore,
   isOutlier,
 } from './constants';
-import { FilterSortResult } from './types';
+import { type FilterSortResult } from './types';
 
 interface UseFilterSortParams {
   priceData: PriceData[];

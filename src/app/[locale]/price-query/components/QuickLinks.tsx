@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
+
 import { Icons } from './Icons';
 
 export function QuickLinks() {

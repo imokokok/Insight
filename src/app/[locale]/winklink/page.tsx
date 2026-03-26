@@ -1,8 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+
+import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
-import { useWinklinkPage } from './hooks/useWinklinkPage';
+
 import {
   WinklinkSidebar,
   WinklinkMarketView,
@@ -13,8 +16,7 @@ import {
   WinklinkRiskView,
   WinklinkHero,
 } from './components';
-import { LoadingState, ErrorFallback } from '@/components/oracle';
-import { MobileSidebar } from '@/components/ui/MobileSidebar';
+import { useWinklinkPage } from './hooks/useWinklinkPage';
 
 export default function WinklinkPage() {
   const {
@@ -62,40 +64,16 @@ export default function WinklinkPage() {
         );
       case 'network':
         return (
-          <WinklinkNetworkView
-            config={config}
-            networkStats={networkStats}
-            isLoading={isLoading}
-          />
+          <WinklinkNetworkView config={config} networkStats={networkStats} isLoading={isLoading} />
         );
       case 'tron':
-        return (
-          <WinklinkTRONView
-            tronIntegration={tronIntegration}
-            isLoading={isLoading}
-          />
-        );
+        return <WinklinkTRONView tronIntegration={tronIntegration} isLoading={isLoading} />;
       case 'staking':
-        return (
-          <WinklinkStakingView
-            staking={staking}
-            isLoading={isLoading}
-          />
-        );
+        return <WinklinkStakingView staking={staking} isLoading={isLoading} />;
       case 'gaming':
-        return (
-          <WinklinkGamingView
-            gaming={gaming}
-            isLoading={isLoading}
-          />
-        );
+        return <WinklinkGamingView gaming={gaming} isLoading={isLoading} />;
       case 'risk':
-        return (
-          <WinklinkRiskView
-            riskMetrics={riskMetrics}
-            isLoading={isLoading}
-          />
-        );
+        return <WinklinkRiskView riskMetrics={riskMetrics} isLoading={isLoading} />;
       default:
         return null;
     }
@@ -108,11 +86,15 @@ export default function WinklinkPage() {
         config={config}
         price={price ?? null}
         historicalData={historicalData}
-        networkStats={networkStats ? {
-          avgResponseTime: networkStats.avgResponseTime,
-          nodeUptime: networkStats.nodeUptime,
-          dataFeeds: networkStats.dataFeeds,
-        } : undefined}
+        networkStats={
+          networkStats
+            ? {
+                avgResponseTime: networkStats.avgResponseTime,
+                nodeUptime: networkStats.nodeUptime,
+                dataFeeds: networkStats.dataFeeds,
+              }
+            : undefined
+        }
         isLoading={isLoading}
         isError={isError}
         isRefreshing={isRefreshing}
@@ -138,7 +120,12 @@ export default function WinklinkPage() {
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
               {t('winklink.menu.title')}
             </button>
@@ -160,9 +147,7 @@ export default function WinklinkPage() {
           </MobileSidebar>
 
           {/* Content Area */}
-          <div className="flex-1 min-w-0">
-            {renderContent()}
-          </div>
+          <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>
     </div>

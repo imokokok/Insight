@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { useTranslations } from '@/i18n';
-import { useCrossChainData } from '../useCrossChainData';
+
 import {
   LineChart,
   Line,
@@ -14,11 +13,14 @@ import {
   ReferenceLine,
   Legend,
 } from 'recharts';
-import { chainNames, chainColors, calculateRollingCorrelation } from '../utils';
-import { Blockchain } from '@/types/oracle';
-import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
-import { ChartToolbar, TimeRange } from '@/components/charts/ChartToolbar';
 
+import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
+import { useTranslations } from '@/i18n';
+import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+import { type Blockchain } from '@/types/oracle';
+
+import { type useCrossChainData } from '../useCrossChainData';
+import { chainNames, chainColors, calculateRollingCorrelation } from '../utils';
 
 interface RollingCorrelationChartProps {
   data: ReturnType<typeof useCrossChainData>;

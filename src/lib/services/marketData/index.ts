@@ -1,5 +1,11 @@
+import {
+  type OracleMarketData,
+  type AssetData,
+  type TVSTrendData,
+} from '@/app/[locale]/market-overview/types';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleMarketData, AssetData, TVSTrendData } from '@/app/[locale]/market-overview/types';
+
+import { detectAnomalies } from './anomalyCalculations';
 import {
   fetchOraclesData,
   fetchAssetsData,
@@ -17,10 +23,9 @@ import {
   generateTVSTrendData,
   exportWithConfig,
   downloadExport,
-  ExportDataOptions,
+  type ExportDataOptions,
 } from './priceCalculations';
 import { fetchRiskMetrics, fetchHHI, fetchDiversificationScore } from './riskCalculations';
-import { detectAnomalies } from './anomalyCalculations';
 
 const logger = createLogger('marketData');
 

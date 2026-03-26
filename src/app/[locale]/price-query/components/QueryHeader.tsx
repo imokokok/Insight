@@ -5,19 +5,18 @@
  * @description 包含页面标题、收藏夹、历史记录和导出功能
  */
 
-import { useTranslations } from '@/i18n';
 import { useState } from 'react';
-import { History } from 'lucide-react';
-import { Download } from 'lucide-react';
-import { FileSpreadsheet } from 'lucide-react';
-import { FileJson } from 'lucide-react';
-import { Settings2 } from 'lucide-react';
-import { QueryHistoryItem } from '@/utils/queryHistory';
-import { OracleProvider, Blockchain } from '@/lib/oracles';
-import { FavoriteButton } from '@/components/favorites';
-import { FavoriteConfig } from '@/hooks';
-import { useUser } from '@/stores/authStore';
+
 import { useRouter } from 'next/navigation';
+
+import { History, Download, FileSpreadsheet, FileJson, Settings2 } from 'lucide-react';
+
+import { FavoriteButton } from '@/components/favorites';
+import { type FavoriteConfig } from '@/hooks';
+import { useTranslations } from '@/i18n';
+import { type OracleProvider, type Blockchain } from '@/lib/oracles';
+import { useUser } from '@/stores/authStore';
+import { type QueryHistoryItem } from '@/utils/queryHistory';
 
 interface QueryHeaderProps {
   showHistory: boolean;

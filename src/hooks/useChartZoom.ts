@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('useChartZoom');

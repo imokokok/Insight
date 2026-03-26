@@ -1,6 +1,8 @@
-import createMiddleware from 'next-intl/middleware';
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+
+import { createServerClient } from '@supabase/ssr';
+import createMiddleware from 'next-intl/middleware';
+
 import { routing, getValidLocale } from '@/i18n/routing';
 
 const protectedRoutes = ['/dashboard', '/settings', '/profile'];

@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useMemo, useState, useCallback, useEffect, memo } from 'react';
+
 import { DataTablePro, type ColumnDef, type SortConfig } from '@/components/ui';
-import { OracleProvider, PriceData } from '@/types/oracle';
+import { type OracleProvider, type PriceData } from '@/types/oracle';
+
 import {
   oracleNames,
   getDeviationColorClass,
@@ -148,25 +150,29 @@ function PriceTableComponent({
   }, [filteredPriceData, validPrices, avgPrice, standardDeviation, maxPrice, minPrice]);
 
   // Handle row click for expand
-  const handleRowClick = useCallback((row: PriceTableRow, index: number) => {
-    const isExpanded = expandedRowIndex === index;
-    setExpandedRowIndex(isExpanded ? null : index);
-    onExpandRow(isExpanded ? null : index);
-  }, [expandedRowIndex, onExpandRow]);
-
-
+  const handleRowClick = useCallback(
+    (row: PriceTableRow, index: number) => {
+      const isExpanded = expandedRowIndex === index;
+      setExpandedRowIndex(isExpanded ? null : index);
+      onExpandRow(isExpanded ? null : index);
+    },
+    [expandedRowIndex, onExpandRow]
+  );
 
   // Handle sort
-  const handleSort = useCallback((sortConfig: SortConfig[]) => {
-    if (sortConfig.length === 0) {
-      onSort(null);
-    } else {
-      const firstSort = sortConfig[0];
-      if (firstSort.key === 'price' || firstSort.key === 'timestamp') {
-        onSort(firstSort.key);
+  const handleSort = useCallback(
+    (sortConfig: SortConfig[]) => {
+      if (sortConfig.length === 0) {
+        onSort(null);
+      } else {
+        const firstSort = sortConfig[0];
+        if (firstSort.key === 'price' || firstSort.key === 'timestamp') {
+          onSort(firstSort.key);
+        }
       }
-    }
-  }, [onSort]);
+    },
+    [onSort]
+  );
 
   // Define columns
   const columns: ColumnDef<PriceTableRow>[] = useMemo(() => {
@@ -197,9 +203,7 @@ function PriceTableComponent({
                 className="w-2 h-2 flex-shrink-0 rounded-full"
                 style={{ backgroundColor: chartColors[provider] }}
               />
-              <span className="font-medium text-gray-900">
-                {oracleNames[provider]}
-              </span>
+              <span className="font-medium text-gray-900">{oracleNames[provider]}</span>
               {row.isOutlier && (
                 <span className="text-amber-600 text-xs font-medium bg-amber-100 px-1 py-0.5 rounded">
                   {t('crossOracle.outlier')}
@@ -221,7 +225,7 @@ function PriceTableComponent({
           const price = value as number;
           const deviation = row.deviation;
           const barWidth = deviation !== null ? Math.min(Math.abs(deviation) * 10, 100) : 0;
-          
+
           return (
             <div className="relative">
               <div
@@ -242,7 +246,8 @@ function PriceTableComponent({
               <span
                 className={`relative font-mono ${row.isOutlier ? 'text-amber-700' : 'text-gray-900'}`}
               >
-                ${price.toLocaleString(undefined, {
+                $
+                {price.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
@@ -271,9 +276,7 @@ function PriceTableComponent({
             <span
               className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${getDeviationColorClass(deviation)}`}
             >
-              <span
-                className={`w-1.5 h-1.5 mr-1 rounded-full ${getDeviationBgClass(deviation)}`}
-              />
+              <span className={`w-1.5 h-1.5 mr-1 rounded-full ${getDeviationBgClass(deviation)}`} />
               {deviation >= 0 ? '+' : ''}
               {deviation.toFixed(3)}%
             </span>
@@ -350,9 +353,12 @@ function PriceTableComponent({
   }, [t, chartColors, validPrices.length, avgPrice]);
 
   // Fixed columns configuration
-  const fixedColumns = useMemo(() => ({
-    left: ['provider', 'price'],
-  }), []);
+  const fixedColumns = useMemo(
+    () => ({
+      left: ['provider', 'price'],
+    }),
+    []
+  );
 
   // Render expanded row details
   const renderExpandedRow = (row: PriceTableRow) => {
@@ -363,19 +369,14 @@ function PriceTableComponent({
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm py-2">
         <div>
-          <span className="text-gray-500 block text-xs">
-            {t('crossOracle.oracle')}
-          </span>
-          <span className="font-medium text-gray-900">
-            {oracleNames[row.provider]}
-          </span>
+          <span className="text-gray-500 block text-xs">{t('crossOracle.oracle')}</span>
+          <span className="font-medium text-gray-900">{oracleNames[row.provider]}</span>
         </div>
         <div>
-          <span className="text-gray-500 block text-xs">
-            {t('crossOracle.price')}
-          </span>
+          <span className="text-gray-500 block text-xs">{t('crossOracle.price')}</span>
           <span className="font-mono text-gray-900">
-            ${row.price.toLocaleString(undefined, {
+            $
+            {row.price.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -385,35 +386,25 @@ function PriceTableComponent({
           <span className="text-gray-500 block text-xs">
             {t('crossOracle.priceTable.deviationRate')}
           </span>
-          <span
-            className={`font-medium ${getDeviationColorClass(deviation).split(' ')[0]}`}
-          >
-            {deviation !== null
-              ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(4)}%`
-              : '-'}
+          <span className={`font-medium ${getDeviationColorClass(deviation).split(' ')[0]}`}>
+            {deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(4)}%` : '-'}
           </span>
         </div>
         <div>
-          <span className="text-gray-500 block text-xs">
-            {t('crossOracle.confidence')}
-          </span>
+          <span className="text-gray-500 block text-xs">{t('crossOracle.confidence')}</span>
           <span className="text-gray-900">
             {row.confidence ? `${(row.confidence * 100).toFixed(1)}%` : '-'}
           </span>
         </div>
         <div>
-          <span className="text-gray-500 block text-xs">
-            {t('crossOracle.source')}
-          </span>
+          <span className="text-gray-500 block text-xs">{t('crossOracle.source')}</span>
           <span className="text-gray-900">{row.source}</span>
         </div>
         <div>
           <span className="text-gray-500 block text-xs">
             {t('crossOracle.priceTable.updateTime')}
           </span>
-          <span className="text-gray-900">
-            {new Date(row.timestamp).toLocaleString()}
-          </span>
+          <span className="text-gray-900">{new Date(row.timestamp).toLocaleString()}</span>
         </div>
         <div>
           <span className="text-gray-500 block text-xs">Z-Score</span>
@@ -424,15 +415,11 @@ function PriceTableComponent({
           </span>
         </div>
         <div>
-          <span className="text-gray-500 block text-xs">
-            {t('crossOracle.priceTable.status')}
-          </span>
+          <span className="text-gray-500 block text-xs">{t('crossOracle.priceTable.status')}</span>
           <span
             className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}
           >
-            {outlier
-              ? t('crossOracle.priceTable.outlier')
-              : t('crossOracle.priceTable.normal')}
+            {outlier ? t('crossOracle.priceTable.outlier') : t('crossOracle.priceTable.normal')}
           </span>
         </div>
       </div>
@@ -454,7 +441,8 @@ function PriceTableComponent({
           <div className="flex justify-between">
             <span className="text-gray-500">{t('crossOracle.price')}</span>
             <span className="font-mono text-gray-900">
-              ${row.price.toLocaleString(undefined, {
+              $
+              {row.price.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
@@ -465,9 +453,7 @@ function PriceTableComponent({
             <span
               className={`font-medium ${deviation !== null && deviation >= 0 ? 'text-danger-600' : 'text-success-600'}`}
             >
-              {deviation !== null
-                ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(4)}%`
-                : '-'}
+              {deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(4)}%` : '-'}
             </span>
           </div>
           <div className="flex justify-between">
@@ -485,15 +471,11 @@ function PriceTableComponent({
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">
-              {t('crossOracle.priceTable.status')}
-            </span>
+            <span className="text-gray-500">{t('crossOracle.priceTable.status')}</span>
             <span
               className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}
             >
-              {outlier
-                ? t('crossOracle.priceTable.outlier')
-                : t('crossOracle.priceTable.normal')}
+              {outlier ? t('crossOracle.priceTable.outlier') : t('crossOracle.priceTable.normal')}
             </span>
           </div>
         </div>
@@ -514,7 +496,7 @@ function PriceTableComponent({
         emptyText={t('crossOracle.noData')}
         className="rounded-lg"
       />
-      
+
       {/* Custom row hover tooltip */}
       {hoveredRow !== null && hoveredRow !== selectedRowIndex && tableData[hoveredRow] && (
         <div className="absolute right-0 top-0 z-50 transform -translate-x-4 translate-y-2">

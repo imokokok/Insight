@@ -1,3 +1,5 @@
+import { type OracleMarketData } from '@/app/[locale]/market-overview/types';
+
 import {
   calculateHHI,
   calculateHHIFromOracles,
@@ -8,7 +10,6 @@ import {
   getRiskLevelColor,
   getRiskLevelText,
 } from '../riskMetrics';
-import { OracleMarketData } from '@/app/[locale]/market-overview/types';
 
 describe('riskMetrics', () => {
   describe('calculateHHI', () => {

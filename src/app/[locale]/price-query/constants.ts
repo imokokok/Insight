@@ -1,4 +1,3 @@
-import { OracleProvider, Blockchain, PriceData } from '@/lib/oracles';
 import {
   providerNames,
   chainNames,
@@ -9,6 +8,7 @@ import {
   DEVIATION_THRESHOLD,
   oracleI18nKeys,
 } from '@/lib/constants';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 
 export type { PriceData };
 

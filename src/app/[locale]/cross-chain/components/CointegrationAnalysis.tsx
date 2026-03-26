@@ -1,11 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from '@/i18n';
-import { useCrossChainData } from '../useCrossChainData';
-import { chainNames, chainColors } from '../utils';
-import { analyzeCointegrationPairs, CointegrationPair } from '../cointegration';
-import { ResidualDiagnostics } from './ResidualDiagnostics';
+
 import {
   LineChart,
   Line,
@@ -16,8 +12,15 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
+
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
+import { analyzeCointegrationPairs, type CointegrationPair } from '../cointegration';
+import { type useCrossChainData } from '../useCrossChainData';
+import { chainNames, chainColors } from '../utils';
+
+import { ResidualDiagnostics } from './ResidualDiagnostics';
 
 interface CointegrationAnalysisProps {
   data: ReturnType<typeof useCrossChainData>;

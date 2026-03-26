@@ -1,8 +1,10 @@
 'use client';
 
-import { ReactNode, useEffect, useCallback } from 'react';
-import { cn } from '@/lib/utils';
+import { type ReactNode, useEffect, useCallback } from 'react';
+
 import { X } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 
 export interface MobileSidebarProps {
   isOpen: boolean;
@@ -12,13 +14,7 @@ export interface MobileSidebarProps {
   className?: string;
 }
 
-export function MobileSidebar({
-  isOpen,
-  onClose,
-  title,
-  children,
-  className,
-}: MobileSidebarProps) {
+export function MobileSidebar({ isOpen, onClose, title, children, className }: MobileSidebarProps) {
   const handleOverlayClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (e.target === e.currentTarget) {
@@ -80,10 +76,7 @@ export function MobileSidebar({
         aria-labelledby="mobile-sidebar-title"
       >
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-          <h2
-            id="mobile-sidebar-title"
-            className="text-lg font-semibold text-gray-900"
-          >
+          <h2 id="mobile-sidebar-title" className="text-lg font-semibold text-gray-900">
             {title}
           </h2>
           <button
@@ -99,9 +92,7 @@ export function MobileSidebar({
           </button>
         </div>
 
-        <div className="overflow-y-auto h-[calc(100%-65px)]">
-          {children}
-        </div>
+        <div className="overflow-y-auto h-[calc(100%-65px)]">{children}</div>
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { EcosystemIntegration } from '@/lib/oracles/dia';
-import { useTranslations } from '@/i18n';
-import { Blockchain } from '@/types/oracle';
+
 import { DashboardCard } from '@/components/oracle';
+import { useTranslations } from '@/i18n';
+import { type EcosystemIntegration } from '@/lib/oracles/dia';
+import { Blockchain } from '@/types/oracle';
 
 type Category = 'all' | 'dex' | 'lending' | 'derivatives' | 'yield' | 'insurance';
 

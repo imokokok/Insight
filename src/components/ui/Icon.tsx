@@ -1,11 +1,22 @@
 'use client';
 
-import { forwardRef, SVGAttributes } from 'react';
-import { cn } from '@/lib/utils';
+import { forwardRef, type SVGAttributes, ReactNode } from 'react';
+
 import * as LucideIcons from 'lucide-react';
 
+import { cn } from '@/lib/utils';
+
 export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-export type IconColor = 'inherit' | 'current' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'gray';
+export type IconColor =
+  | 'inherit'
+  | 'current'
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info'
+  | 'gray';
 
 export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, 'size' | 'color'> {
   name: keyof typeof LucideIcons;
@@ -15,16 +26,7 @@ export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, 'size' | '
 }
 
 export const Icon = forwardRef<HTMLSpanElement, IconProps>(
-  (
-    {
-      name,
-      size = 'md',
-      color = 'current',
-      className,
-      ...props
-    },
-    ref
-  ) => {
+  ({ name, size = 'md', color = 'current', className, ...props }, ref) => {
     const LucideIcon = LucideIcons[name] as React.ComponentType<SVGAttributes<SVGSVGElement>>;
 
     if (!LucideIcon) {
@@ -70,11 +72,7 @@ export const Icon = forwardRef<HTMLSpanElement, IconProps>(
     return (
       <span ref={ref} className="inline-flex">
         <LucideIcon
-          className={cn(
-            getSizeClass(),
-            colorStyles[color],
-            className
-          )}
+          className={cn(getSizeClass(), colorStyles[color], className)}
           style={getSize()}
           {...props}
         />
@@ -92,17 +90,8 @@ export interface IconWrapperProps {
   className?: string;
 }
 
-import { ReactNode } from 'react';
-
 export const IconWrapper = forwardRef<HTMLSpanElement, IconWrapperProps>(
-  (
-    {
-      children,
-      size = 'md',
-      className,
-    },
-    ref
-  ) => {
+  ({ children, size = 'md', className }, ref) => {
     const sizeStyles: Record<IconSize, string> = {
       xs: 'w-4 h-4',
       sm: 'w-5 h-5',
@@ -115,11 +104,7 @@ export const IconWrapper = forwardRef<HTMLSpanElement, IconWrapperProps>(
     return (
       <span
         ref={ref}
-        className={cn(
-          'inline-flex items-center justify-center',
-          sizeStyles[size],
-          className
-        )}
+        className={cn('inline-flex items-center justify-center', sizeStyles[size], className)}
       >
         {children}
       </span>

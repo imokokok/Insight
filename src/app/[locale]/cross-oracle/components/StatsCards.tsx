@@ -1,7 +1,8 @@
 'use client';
 
 import { SparklineChart } from '@/components/ui';
-import { getTrendIcon, getHealthColor, HistoryMinMax } from '../constants';
+
+import { getTrendIcon, getHealthColor, type HistoryMinMax } from '../constants';
 
 interface SparklineData {
   avgPrice?: number[];
@@ -71,9 +72,7 @@ export function StatsCards({
       {/* 平均价格 */}
       <div className="bg-white rounded-lg border border-gray-100 p-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-sm font-medium text-gray-500">
-            {t('crossOracle.averagePrice')}
-          </span>
+          <span className="text-sm font-medium text-gray-500">{t('crossOracle.averagePrice')}</span>
           {getTrendIcon(calculateChangePercent(avgPrice, lastStats?.avgPrice || 0))}
         </div>
         <p className="text-lg font-bold text-gray-900">
@@ -89,13 +88,7 @@ export function StatsCards({
         </p>
         {sparklineData?.avgPrice && sparklineData.avgPrice.length > 0 && (
           <div className="mt-2">
-            <SparklineChart
-              data={sparklineData.avgPrice}
-              width={100}
-              height={30}
-              fill
-              animate
-            />
+            <SparklineChart data={sparklineData.avgPrice} width={100} height={30} fill animate />
           </div>
         )}
         {historyMinMax.avgPrice.max > -Infinity && (
@@ -110,9 +103,7 @@ export function StatsCards({
       {/* 最高价格 */}
       <div className="bg-white rounded-lg border border-gray-100 p-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-sm font-medium text-gray-500">
-            {t('crossOracle.highestPrice')}
-          </span>
+          <span className="text-sm font-medium text-gray-500">{t('crossOracle.highestPrice')}</span>
           {getTrendIcon(calculateChangePercent(maxPrice, lastStats?.maxPrice || 0))}
         </div>
         <p className="text-lg font-bold text-gray-900">
@@ -128,13 +119,7 @@ export function StatsCards({
         </p>
         {sparklineData?.maxPrice && sparklineData.maxPrice.length > 0 && (
           <div className="mt-2">
-            <SparklineChart
-              data={sparklineData.maxPrice}
-              width={100}
-              height={30}
-              fill
-              animate
-            />
+            <SparklineChart data={sparklineData.maxPrice} width={100} height={30} fill animate />
           </div>
         )}
         {historyMinMax.maxPrice.max > -Infinity && (
@@ -164,13 +149,7 @@ export function StatsCards({
         </p>
         {sparklineData?.priceRange && sparklineData.priceRange.length > 0 && (
           <div className="mt-2">
-            <SparklineChart
-              data={sparklineData.priceRange}
-              width={100}
-              height={30}
-              fill
-              animate
-            />
+            <SparklineChart data={sparklineData.priceRange} width={100} height={30} fill animate />
           </div>
         )}
         {historyMinMax.priceRange.max > -Infinity && (
@@ -225,13 +204,7 @@ export function StatsCards({
         <p className="text-xs text-gray-400 mt-0.5">V[x]</p>
         {sparklineData?.variance && sparklineData.variance.length > 0 && (
           <div className="mt-2">
-            <SparklineChart
-              data={sparklineData.variance}
-              width={100}
-              height={30}
-              fill
-              animate
-            />
+            <SparklineChart data={sparklineData.variance} width={100} height={30} fill animate />
           </div>
         )}
         {historyMinMax.variance.max > -Infinity && (
@@ -255,13 +228,7 @@ export function StatsCards({
         <p className="text-xs text-gray-400 mt-2">{t('crossOracle.basedOnStdDev')}</p>
         {sparklineData?.avgPrice && sparklineData.avgPrice.length > 0 && (
           <div className="mt-2">
-            <SparklineChart
-              data={sparklineData.avgPrice}
-              width={100}
-              height={30}
-              fill
-              animate
-            />
+            <SparklineChart data={sparklineData.avgPrice} width={100} height={30} fill animate />
           </div>
         )}
       </div>
@@ -339,9 +306,9 @@ export function MobileStatsCards({
       subValue: 'V[x]',
       sparkline: sparklineData?.variance,
     },
-    { 
-      label: t('crossOracle.consistencyRating'), 
-      value: consistencyRating, 
+    {
+      label: t('crossOracle.consistencyRating'),
+      value: consistencyRating,
       isBadge: true,
       sparkline: sparklineData?.avgPrice,
     },
@@ -350,10 +317,11 @@ export function MobileStatsCards({
   return (
     <div className="md:hidden flex overflow-x-auto gap-4 pb-4 -mx-4 px-4">
       {stats.map((stat, index) => (
-        <div key={index} className="flex-shrink-0 w-40 bg-white rounded-lg border border-gray-100 p-4">
-          <div className="text-sm font-medium text-gray-500 mb-1">
-            {stat.label}
-          </div>
+        <div
+          key={index}
+          className="flex-shrink-0 w-40 bg-white rounded-lg border border-gray-100 p-4"
+        >
+          <div className="text-sm font-medium text-gray-500 mb-1">{stat.label}</div>
           {stat.isBadge ? (
             <ConsistencyBadge rating={stat.value as string} t={t} />
           ) : (
@@ -375,13 +343,7 @@ export function MobileStatsCards({
           )}
           {stat.sparkline && stat.sparkline.length > 0 && (
             <div className="mt-2">
-              <SparklineChart
-                data={stat.sparkline}
-                width={120}
-                height={32}
-                fill
-                animate
-              />
+              <SparklineChart data={stat.sparkline} width={120} height={32} fill animate />
             </div>
           )}
         </div>

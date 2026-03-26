@@ -1,4 +1,4 @@
-import { TimeRange } from '@/components/oracle/shared/TabNavigation';
+import { type TimeRange } from '@/components/oracle/shared/TabNavigation';
 
 export type { TimeRange };
 

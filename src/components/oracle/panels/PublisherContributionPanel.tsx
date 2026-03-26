@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   PieChart,
   Pie,
@@ -14,11 +15,11 @@ import {
   YAxis,
   CartesianGrid,
 } from 'recharts';
-import { Publisher } from '@/types/oracle';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
-
+import { type Publisher } from '@/types/oracle';
 
 interface PublisherContributionPanelProps {
   publishers: Publisher[];

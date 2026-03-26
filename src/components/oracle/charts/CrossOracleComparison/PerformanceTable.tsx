@@ -1,6 +1,7 @@
 import { useTranslations } from '@/i18n';
-import { OracleProvider } from '@/types/oracle';
-import { OraclePerformance, oracleNames, oracleColors } from './crossOracleConfig';
+import { type OracleProvider } from '@/types/oracle';
+
+import { type OraclePerformance, oracleNames, oracleColors } from './crossOracleConfig';
 
 interface PerformanceTableProps {
   performanceData: OraclePerformance[];

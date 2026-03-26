@@ -1,14 +1,16 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-import type { PieSectorDataItem } from 'recharts';
-import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
-import { formatNumber } from '@/lib/utils/format';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
+import { type ValidatorInfo } from '@/lib/oracles/bandProtocol';
+import { formatNumber } from '@/lib/utils/format';
 
+import type { PieSectorDataItem } from 'recharts';
 
 interface StakingDistributionChartProps {
   validators: ValidatorInfo[];

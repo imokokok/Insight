@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 export interface StatItem {
@@ -80,15 +81,11 @@ export function StatComparisonCard({
               `}
             >
               <div className="flex items-center gap-2 mb-1">
-                {stat.icon && (
-                  <span className="text-gray-400">{stat.icon}</span>
-                )}
+                {stat.icon && <span className="text-gray-400">{stat.icon}</span>}
                 <span className="text-xs text-gray-500">{stat.label}</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-lg font-semibold text-gray-900">
-                  {stat.value}
-                </span>
+                <span className="text-lg font-semibold text-gray-900">{stat.value}</span>
                 {stat.change !== undefined && (
                   <span
                     className={`
@@ -123,9 +120,7 @@ export function StatComparisonCard({
                 <span className="text-sm text-gray-600">{stat.label}</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-base font-semibold text-gray-900">
-                  {stat.value}
-                </span>
+                <span className="text-base font-semibold text-gray-900">{stat.value}</span>
                 {stat.change !== undefined && (
                   <span
                     className={`

@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+
+import { RefreshCw, Clock, Check } from 'lucide-react';
+
+import { DropdownSelect } from '@/components/ui';
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import { RefreshCw } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { Check } from 'lucide-react';
-import { DropdownSelect } from '@/components/ui';
 
 interface RefreshControlProps {
   lastUpdated?: Date;
@@ -122,7 +122,9 @@ export default function RefreshControl({
         {showSuccess ? (
           <>
             <Check className="w-3.5 h-3.5 text-success-500" />
-            <span className="text-success-600">{isChineseLocale(locale) ? '已更新' : 'Updated'}</span>
+            <span className="text-success-600">
+              {isChineseLocale(locale) ? '已更新' : 'Updated'}
+            </span>
           </>
         ) : (
           <>

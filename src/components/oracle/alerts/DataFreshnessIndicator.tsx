@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
 import { isDataStale, formatRelativeTime } from '@/lib/utils/riskUtils';
 
 export interface DataFreshnessIndicatorProps {

@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
-import { useUser } from '@/stores/authStore';
+
 import type { AlertEventPayload } from '@/lib/supabase/realtime';
+import { useUser } from '@/stores/authStore';
+import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 
 export interface RealtimeAlertNotification {
   id: string;

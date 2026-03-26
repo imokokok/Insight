@@ -1,10 +1,6 @@
-import { NextResponse } from 'next/server';
-import { ChainlinkClient, BandProtocolClient, UMAClient, API3Client } from '@/lib/oracles';
-import { OracleProvider, Blockchain, PriceData, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
+import { type NextResponse } from 'next/server';
+
 import { createCachedJsonResponse, CacheConfig } from '@/lib/api/utils';
-import { getServerQueries } from '@/lib/supabase/server';
-import { normalizeTimestamp } from '@/lib/utils/timestamp';
-import { PriceRecord } from '@/lib/supabase/queries';
 import {
   ValidationError,
   NotFoundError,
@@ -13,6 +9,16 @@ import {
   errorToResponse,
   isAppError,
 } from '@/lib/errors';
+import { ChainlinkClient, BandProtocolClient, UMAClient, API3Client } from '@/lib/oracles';
+import { type PriceRecord } from '@/lib/supabase/queries';
+import { getServerQueries } from '@/lib/supabase/server';
+import { normalizeTimestamp } from '@/lib/utils/timestamp';
+import {
+  OracleProvider,
+  type Blockchain,
+  type PriceData,
+  ORACLE_PROVIDER_VALUES,
+} from '@/types/oracle';
 
 export const PRICE_CACHE_TTL = 30 * 1000;
 export const HISTORY_STALE_THRESHOLD = 5 * 60 * 1000;

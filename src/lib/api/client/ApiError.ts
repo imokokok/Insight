@@ -1,4 +1,4 @@
-import { ApiErrorBody } from './types';
+import { type ApiErrorBody } from './types';
 
 export class ApiError extends Error {
   public readonly code: string;

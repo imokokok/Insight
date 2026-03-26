@@ -1,9 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from '@/i18n';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { cn } from '@/lib/utils';
+
 import {
   Database,
   Server,
@@ -14,7 +12,11 @@ import {
   CheckCircle,
   Activity,
 } from 'lucide-react';
+
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { cn } from '@/lib/utils';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
 
 interface LayerData {
@@ -39,9 +41,7 @@ interface NetworkTopologyOverviewProps {
   className?: string;
 }
 
-export function NetworkTopologyOverview({
-  className,
-}: NetworkTopologyOverviewProps) {
+export function NetworkTopologyOverview({ className }: NetworkTopologyOverviewProps) {
   const t = useTranslations();
 
   const layers = useMemo<LayerData[]>(() => {
@@ -206,12 +206,7 @@ export function NetworkTopologyOverview({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {layers.map((layer, index) => (
               <div key={layer.id} className="relative">
-                <div
-                  className={cn(
-                    'p-4 border rounded-lg h-full',
-                    layer.bgColor
-                  )}
-                >
+                <div className={cn('p-4 border rounded-lg h-full', layer.bgColor)}>
                   <div className="flex items-center gap-3 mb-4">
                     <div
                       className={cn(
@@ -223,9 +218,7 @@ export function NetworkTopologyOverview({
                       {layer.icon}
                     </div>
                     <div>
-                      <h4 className={cn('font-semibold', layer.color)}>
-                        {layer.name}
-                      </h4>
+                      <h4 className={cn('font-semibold', layer.color)}>{layer.name}</h4>
                       <p className="text-xs text-gray-500">
                         {t('chainlink.network.layer')} {index + 1}
                       </p>
@@ -236,13 +229,9 @@ export function NetworkTopologyOverview({
                     {layer.metrics.map((metric, idx) => (
                       <div key={idx}>
                         <p className="text-xs text-gray-500">{metric.label}</p>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {metric.value}
-                        </p>
+                        <p className="text-lg font-semibold text-gray-900">{metric.value}</p>
                         {metric.subValue && (
-                          <p className="text-xs text-emerald-600">
-                            {metric.subValue}
-                          </p>
+                          <p className="text-xs text-emerald-600">{metric.subValue}</p>
                         )}
                       </div>
                     ))}
@@ -254,16 +243,10 @@ export function NetworkTopologyOverview({
                     </p>
                     <div className="space-y-1.5">
                       {layer.nodes.map((node, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between text-sm"
-                        >
+                        <div key={idx} className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-2">
                             <div
-                              className={cn(
-                                'w-2 h-2 rounded-full',
-                                getStatusColor(node.status)
-                              )}
+                              className={cn('w-2 h-2 rounded-full', getStatusColor(node.status))}
                             />
                             <span className="text-gray-700">{node.name}</span>
                           </div>

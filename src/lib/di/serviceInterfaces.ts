@@ -1,11 +1,11 @@
 import {
-  PriceAlert,
-  PriceAlertInsert,
-  AlertEvent,
-  UserFavorite,
-  UserFavoriteInsert,
-  UserSnapshot,
-  UserSnapshotInsert,
+  type PriceAlert,
+  type PriceAlertInsert,
+  type AlertEvent,
+  type UserFavorite,
+  type UserFavoriteInsert,
+  type UserSnapshot,
+  type UserSnapshotInsert,
 } from '@/lib/supabase/queries';
 
 export interface IAlertService {

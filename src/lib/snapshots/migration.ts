@@ -1,6 +1,7 @@
-import { OracleSnapshot } from '@/types/oracle';
-import { saveSnapshotToDatabase } from './database';
 import { createLogger } from '@/lib/utils/logger';
+import { type OracleSnapshot } from '@/types/oracle';
+
+import { saveSnapshotToDatabase } from './database';
 
 const logger = createLogger('snapshot-migration');
 

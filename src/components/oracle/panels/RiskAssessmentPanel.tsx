@@ -1,12 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { PriceDeviationRisk } from '../charts/PriceDeviationRisk';
+import { useTranslations } from '@/i18n';
+import { OracleProvider } from '@/types/oracle';
+
 import { ConcentrationRisk } from '../charts/ConcentrationRisk';
 import { CrossChainRisk } from '../charts/CrossChainRisk';
-import { OracleProvider } from '@/types/oracle';
-import { useTranslations } from '@/i18n';
+import { PriceDeviationRisk } from '../charts/PriceDeviationRisk';
 
 interface RiskScore {
   overall: number;

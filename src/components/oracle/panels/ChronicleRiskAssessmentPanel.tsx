@@ -1,23 +1,27 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useTranslations } from '@/i18n';
+
+import {
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  TrendingDown,
+  Activity,
+  Lock,
+  FileCheck,
+  Clock,
+} from 'lucide-react';
+
 import { DataFreshnessIndicator } from '@/components/oracle/alerts';
 import {
   DashboardCard,
   RiskScoreCard,
   MitigationMeasuresGrid,
 } from '@/components/oracle/data-display';
-import { ScuttlebuttData } from '@/lib/oracles/chronicle';
+import { useTranslations } from '@/i18n';
+import { type ScuttlebuttData } from '@/lib/oracles/chronicle';
 import type { MitigationMeasure } from '@/types/risk';
-import { Shield } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
-import { Activity } from 'lucide-react';
-import { Lock } from 'lucide-react';
-import { FileCheck } from 'lucide-react';
-import { Clock } from 'lucide-react';
 
 interface ChronicleRiskData {
   overallRiskScore: number;

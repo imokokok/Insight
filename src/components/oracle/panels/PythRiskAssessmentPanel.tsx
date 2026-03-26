@@ -1,13 +1,10 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useTranslations } from '@/i18n';
-import {
-  DashboardCard,
-  DataSourceCredibility,
-} from '@/components/oracle/data-display';
+
 import { DataFreshnessIndicator } from '@/components/oracle/alerts';
-import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
+import { DashboardCard, DataSourceCredibility } from '@/components/oracle/data-display';
+import { useTranslations } from '@/i18n';
 import {
   getScoreColor,
   getScoreBg,
@@ -20,6 +17,7 @@ import {
   getMeasureStatusColor,
   formatLatency,
 } from '@/lib/utils/riskUtils';
+import { type RiskMetric, type RiskEvent, type MitigationMeasure } from '@/types/risk';
 
 // 模拟第一方数据源
 const generateFirstPartySources = () => [

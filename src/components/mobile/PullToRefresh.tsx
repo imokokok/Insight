@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect, ReactNode } from 'react';
-import { useTranslations } from '@/i18n';
+import { useState, useCallback, useRef, useEffect, type ReactNode } from 'react';
+
 import { Loader2 } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 
 interface PullToRefreshProps {
   children: ReactNode;

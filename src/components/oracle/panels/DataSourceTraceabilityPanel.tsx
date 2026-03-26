@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { DataSourceInfo } from '@/lib/oracles/api3';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
+import { type DataSourceInfo } from '@/lib/oracles/api3';
 
 interface DataSourceTraceabilityPanelProps {
   data: DataSourceInfo[];

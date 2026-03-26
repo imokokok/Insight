@@ -1,6 +1,7 @@
-import { onCLS, onINP, onLCP, onFCP, onTTFB, type Metric, type CLSMetric } from 'web-vitals';
 import * as Sentry from '@sentry/nextjs';
 import { track } from '@vercel/analytics';
+import { onCLS, onINP, onLCP, onFCP, onTTFB, type Metric, type CLSMetric } from 'web-vitals';
+
 import { env } from '@/lib/config/env';
 
 export interface WebVitalMetric {

@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
-import { PriceData, SnapshotStats } from '@/types/oracle';
+
+import { type PriceData, type SnapshotStats } from '@/types/oracle';
+
 import {
   calculateWeightedAverage,
   calculateVariance,
   calculateStandardDeviation,
 } from './constants';
-import { PriceStatsResult } from './types';
+import { type PriceStatsResult } from './types';
 
 export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
   const validPrices = useMemo(

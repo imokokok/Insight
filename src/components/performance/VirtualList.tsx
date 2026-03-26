@@ -1,7 +1,9 @@
 'use client';
 
 import { useRef, useCallback, useState, useEffect, forwardRef } from 'react';
-import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
+
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+
 import { cn } from '@/lib/utils';
 
 // ============================================================================
@@ -80,9 +82,7 @@ export function VirtualList<T>({
       [estimateSize]
     ),
     overscan,
-    getItemKey: getItemKey
-      ? (index: number) => getItemKey(index, items[index])
-      : undefined,
+    getItemKey: getItemKey ? (index: number) => getItemKey(index, items[index]) : undefined,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
@@ -144,7 +144,7 @@ export function VirtualList<T>({
       style={{ height: containerHeight }}
     >
       {header}
-      
+
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,
@@ -167,12 +167,13 @@ export function VirtualList<T>({
         ))}
       </div>
 
-      {loading && (loadingComponent || (
-        <div className="flex items-center justify-center py-4">
-          <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-        </div>
-      ))}
-      
+      {loading &&
+        (loadingComponent || (
+          <div className="flex items-center justify-center py-4">
+            <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+          </div>
+        ))}
+
       {footer}
     </div>
   );
@@ -311,11 +312,12 @@ export function VirtualGrid<T>({
         })}
       </div>
 
-      {loading && (loadingComponent || (
-        <div className="flex items-center justify-center py-4">
-          <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-        </div>
-      ))}
+      {loading &&
+        (loadingComponent || (
+          <div className="flex items-center justify-center py-4">
+            <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+          </div>
+        ))}
     </div>
   );
 }
@@ -342,12 +344,13 @@ export function AutoSizeVirtualList<T>({
     const updateHeight = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        const maxHeightPx = typeof maxHeight === 'string' && maxHeight.endsWith('vh')
-          ? (parseInt(maxHeight) / 100) * window.innerHeight
-          : typeof maxHeight === 'number'
-          ? maxHeight
-          : rect.height;
-        
+        const maxHeightPx =
+          typeof maxHeight === 'string' && maxHeight.endsWith('vh')
+            ? (parseInt(maxHeight) / 100) * window.innerHeight
+            : typeof maxHeight === 'number'
+              ? maxHeight
+              : rect.height;
+
         const minHeightPx = typeof minHeight === 'number' ? minHeight : 200;
         setContainerHeight(Math.max(Math.min(rect.height, maxHeightPx), minHeightPx));
       }
@@ -413,8 +416,13 @@ export function WindowVirtualList<T>({
   }, [items.length]);
 
   // Calculate visible range
-  const startIndex = Math.max(0, Math.floor(scrollTop / (typeof estimateSize === 'number' ? estimateSize : 50)) - overscan);
-  const visibleCount = Math.ceil(window.innerHeight / (typeof estimateSize === 'number' ? estimateSize : 50)) + overscan * 2;
+  const startIndex = Math.max(
+    0,
+    Math.floor(scrollTop / (typeof estimateSize === 'number' ? estimateSize : 50)) - overscan
+  );
+  const visibleCount =
+    Math.ceil(window.innerHeight / (typeof estimateSize === 'number' ? estimateSize : 50)) +
+    overscan * 2;
   const endIndex = Math.min(items.length, startIndex + visibleCount);
   const visibleItems = items.slice(startIndex, endIndex);
 
@@ -436,7 +444,7 @@ export function WindowVirtualList<T>({
   return (
     <div className={className}>
       {header}
-      
+
       <div style={{ height: totalHeight, position: 'relative' }}>
         <div
           style={{
@@ -458,12 +466,13 @@ export function WindowVirtualList<T>({
         </div>
       </div>
 
-      {loading && (loadingComponent || (
-        <div className="flex items-center justify-center py-4">
-          <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-        </div>
-      ))}
-      
+      {loading &&
+        (loadingComponent || (
+          <div className="flex items-center justify-center py-4">
+            <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+          </div>
+        ))}
+
       {footer}
     </div>
   );

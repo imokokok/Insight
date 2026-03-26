@@ -1,5 +1,6 @@
 import { useTranslations } from '@/i18n';
-import { NetworkStatus } from './types';
+
+import { type NetworkStatus } from './types';
 
 const getStatusConfig = (t: (key: string) => string) => ({
   online: {

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
+import { TrendingUp, Layers, Globe, Zap } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -14,29 +15,134 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import {
-  TrendingUp,
-  Layers,
-  Globe,
-  Zap,
-} from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
-import { RedStoneEcosystemViewProps, EcosystemIntegration } from '../types';
+
+import { type RedStoneEcosystemViewProps, type EcosystemIntegration } from '../types';
 
 // TVL Trend Data (12 months) - RedStone specific data
 const tvlTrendData = [
-  { month: '2024-01', ethereum: 0.8, arbitrum: 0.3, polygon: 0.2, optimism: 0.15, avalanche: 0.1, base: 0.05, total: 1.6 },
-  { month: '2024-02', ethereum: 1.0, arbitrum: 0.4, polygon: 0.25, optimism: 0.2, avalanche: 0.12, base: 0.08, total: 2.05 },
-  { month: '2024-03', ethereum: 1.3, arbitrum: 0.55, polygon: 0.35, optimism: 0.28, avalanche: 0.15, base: 0.12, total: 2.75 },
-  { month: '2024-04', ethereum: 1.5, arbitrum: 0.7, polygon: 0.4, optimism: 0.35, avalanche: 0.18, base: 0.15, total: 3.28 },
-  { month: '2024-05', ethereum: 1.8, arbitrum: 0.85, polygon: 0.5, optimism: 0.42, avalanche: 0.22, base: 0.2, total: 3.99 },
-  { month: '2024-06', ethereum: 2.1, arbitrum: 1.0, polygon: 0.6, optimism: 0.5, avalanche: 0.28, base: 0.25, total: 4.73 },
-  { month: '2024-07', ethereum: 2.4, arbitrum: 1.2, polygon: 0.7, optimism: 0.6, avalanche: 0.32, base: 0.32, total: 5.54 },
-  { month: '2024-08', ethereum: 2.8, arbitrum: 1.4, polygon: 0.85, optimism: 0.72, avalanche: 0.38, base: 0.4, total: 6.55 },
-  { month: '2024-09', ethereum: 3.2, arbitrum: 1.6, polygon: 1.0, optimism: 0.85, avalanche: 0.45, base: 0.5, total: 7.6 },
-  { month: '2024-10', ethereum: 3.6, arbitrum: 1.85, polygon: 1.15, optimism: 1.0, avalanche: 0.52, base: 0.62, total: 8.74 },
-  { month: '2024-11', ethereum: 4.1, arbitrum: 2.1, polygon: 1.35, optimism: 1.15, avalanche: 0.6, base: 0.75, total: 10.05 },
-  { month: '2024-12', ethereum: 4.6, arbitrum: 2.4, polygon: 1.55, optimism: 1.32, avalanche: 0.7, base: 0.9, total: 11.47 },
+  {
+    month: '2024-01',
+    ethereum: 0.8,
+    arbitrum: 0.3,
+    polygon: 0.2,
+    optimism: 0.15,
+    avalanche: 0.1,
+    base: 0.05,
+    total: 1.6,
+  },
+  {
+    month: '2024-02',
+    ethereum: 1.0,
+    arbitrum: 0.4,
+    polygon: 0.25,
+    optimism: 0.2,
+    avalanche: 0.12,
+    base: 0.08,
+    total: 2.05,
+  },
+  {
+    month: '2024-03',
+    ethereum: 1.3,
+    arbitrum: 0.55,
+    polygon: 0.35,
+    optimism: 0.28,
+    avalanche: 0.15,
+    base: 0.12,
+    total: 2.75,
+  },
+  {
+    month: '2024-04',
+    ethereum: 1.5,
+    arbitrum: 0.7,
+    polygon: 0.4,
+    optimism: 0.35,
+    avalanche: 0.18,
+    base: 0.15,
+    total: 3.28,
+  },
+  {
+    month: '2024-05',
+    ethereum: 1.8,
+    arbitrum: 0.85,
+    polygon: 0.5,
+    optimism: 0.42,
+    avalanche: 0.22,
+    base: 0.2,
+    total: 3.99,
+  },
+  {
+    month: '2024-06',
+    ethereum: 2.1,
+    arbitrum: 1.0,
+    polygon: 0.6,
+    optimism: 0.5,
+    avalanche: 0.28,
+    base: 0.25,
+    total: 4.73,
+  },
+  {
+    month: '2024-07',
+    ethereum: 2.4,
+    arbitrum: 1.2,
+    polygon: 0.7,
+    optimism: 0.6,
+    avalanche: 0.32,
+    base: 0.32,
+    total: 5.54,
+  },
+  {
+    month: '2024-08',
+    ethereum: 2.8,
+    arbitrum: 1.4,
+    polygon: 0.85,
+    optimism: 0.72,
+    avalanche: 0.38,
+    base: 0.4,
+    total: 6.55,
+  },
+  {
+    month: '2024-09',
+    ethereum: 3.2,
+    arbitrum: 1.6,
+    polygon: 1.0,
+    optimism: 0.85,
+    avalanche: 0.45,
+    base: 0.5,
+    total: 7.6,
+  },
+  {
+    month: '2024-10',
+    ethereum: 3.6,
+    arbitrum: 1.85,
+    polygon: 1.15,
+    optimism: 1.0,
+    avalanche: 0.52,
+    base: 0.62,
+    total: 8.74,
+  },
+  {
+    month: '2024-11',
+    ethereum: 4.1,
+    arbitrum: 2.1,
+    polygon: 1.35,
+    optimism: 1.15,
+    avalanche: 0.6,
+    base: 0.75,
+    total: 10.05,
+  },
+  {
+    month: '2024-12',
+    ethereum: 4.6,
+    arbitrum: 2.4,
+    polygon: 1.55,
+    optimism: 1.32,
+    avalanche: 0.7,
+    base: 0.9,
+    total: 11.47,
+  },
 ];
 
 // Projects by Chain Data - RedStone specific
@@ -88,9 +194,7 @@ function TimeRangeButton({
       onClick={onClick}
       className={cn(
         'px-3 py-1 text-xs font-medium transition-colors',
-        active
-          ? 'text-gray-900 border-b-2 border-gray-900'
-          : 'text-gray-500 hover:text-gray-700'
+        active ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'
       )}
     >
       {children}
@@ -100,7 +204,11 @@ function TimeRangeButton({
 
 export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps) {
   const t = useTranslations();
-  const [selectedChains, setSelectedChains] = useState<string[]>(['ethereum', 'arbitrum', 'polygon']);
+  const [selectedChains, setSelectedChains] = useState<string[]>([
+    'ethereum',
+    'arbitrum',
+    'polygon',
+  ]);
   const [timeRange, setTimeRange] = useState<'1M' | '3M' | '6M' | '1Y'>('1Y');
 
   // Filter TVL data based on time range
@@ -146,7 +254,9 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-base font-semibold text-gray-900">TVL Analysis</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Total Value Locked across RedStone ecosystem</p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Total Value Locked across RedStone ecosystem
+            </p>
           </div>
           <div className="flex items-center border-b border-gray-200">
             {(['1M', '3M', '6M', '1Y'] as const).map((range) => (
@@ -167,8 +277,14 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
             <p className="text-xs text-gray-500 uppercase tracking-wide">Total TVL</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-bold text-gray-900">${tvlStats.current.toFixed(2)}B</p>
-              <span className={cn('text-sm font-medium', tvlStats.change >= 0 ? 'text-emerald-600' : 'text-red-600')}>
-                {tvlStats.change >= 0 ? '+' : ''}{tvlStats.change.toFixed(1)}%
+              <span
+                className={cn(
+                  'text-sm font-medium',
+                  tvlStats.change >= 0 ? 'text-emerald-600' : 'text-red-600'
+                )}
+              >
+                {tvlStats.change >= 0 ? '+' : ''}
+                {tvlStats.change.toFixed(1)}%
               </span>
             </div>
           </div>
@@ -176,18 +292,35 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Ethereum</p>
             <div className="flex items-baseline gap-2 mt-1">
-              <p className="text-xl font-semibold text-gray-900">${tvlStats.breakdown[0].value.toFixed(2)}B</p>
-              <span className="text-xs text-gray-500">{((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)}%</span>
+              <p className="text-xl font-semibold text-gray-900">
+                ${tvlStats.breakdown[0].value.toFixed(2)}B
+              </p>
+              <span className="text-xs text-gray-500">
+                {((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)}%
+              </span>
             </div>
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">L2 Networks</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
-                ${(tvlStats.breakdown[1].value + tvlStats.breakdown[3].value + tvlStats.breakdown[5].value).toFixed(2)}B
+                $
+                {(
+                  tvlStats.breakdown[1].value +
+                  tvlStats.breakdown[3].value +
+                  tvlStats.breakdown[5].value
+                ).toFixed(2)}
+                B
               </p>
               <span className="text-xs text-gray-500">
-                {(((tvlStats.breakdown[1].value + tvlStats.breakdown[3].value + tvlStats.breakdown[5].value) / tvlStats.current) * 100).toFixed(1)}%
+                {(
+                  ((tvlStats.breakdown[1].value +
+                    tvlStats.breakdown[3].value +
+                    tvlStats.breakdown[5].value) /
+                    tvlStats.current) *
+                  100
+                ).toFixed(1)}
+                %
               </span>
             </div>
           </div>
@@ -198,7 +331,11 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
                 ${(tvlStats.breakdown[2].value + tvlStats.breakdown[4].value).toFixed(2)}B
               </p>
               <span className="text-xs text-gray-500">
-                {(((tvlStats.breakdown[2].value + tvlStats.breakdown[4].value) / tvlStats.current) * 100).toFixed(1)}%
+                {(
+                  ((tvlStats.breakdown[2].value + tvlStats.breakdown[4].value) / tvlStats.current) *
+                  100
+                ).toFixed(1)}
+                %
               </span>
             </div>
           </div>
@@ -226,7 +363,11 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
             >
               <span
                 className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: selectedChains.includes(item.chain.toLowerCase()) ? 'white' : item.color }}
+                style={{
+                  backgroundColor: selectedChains.includes(item.chain.toLowerCase())
+                    ? 'white'
+                    : item.color,
+                }}
               />
               {item.chain}
             </button>
@@ -316,7 +457,9 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
         <section>
           <div className="mb-4">
             <h3 className="text-base font-semibold text-gray-900">Projects by Chain</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Distribution of projects across supported networks</p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Distribution of projects across supported networks
+            </p>
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -347,7 +490,9 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
             </ResponsiveContainer>
           </div>
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 text-sm">
-            <span className="text-gray-500">Total Projects: <span className="font-medium text-gray-900">410+</span></span>
+            <span className="text-gray-500">
+              Total Projects: <span className="font-medium text-gray-900">410+</span>
+            </span>
             <span className="text-emerald-600 font-medium">+42 this month</span>
           </div>
         </section>
@@ -413,14 +558,14 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
       <section>
         <div className="mb-4">
           <h3 className="text-base font-semibold text-gray-900">Ecosystem Integrations</h3>
-          <p className="text-sm text-gray-500 mt-0.5">Projects and protocols integrated with RedStone</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Projects and protocols integrated with RedStone
+          </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(ecosystemByCategory).map(([category, items]) => (
             <div key={category} className="bg-white border border-gray-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-gray-900 mb-3 capitalize">
-                {category}
-              </h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3 capitalize">{category}</h4>
               <div className="space-y-2">
                 {items.map((integration, index) => (
                   <div

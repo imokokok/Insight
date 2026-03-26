@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+
+import { TrendingUp, TrendingDown, Minus, Activity, DollarSign, Fuel } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -11,13 +13,12 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
-import { chartColors, semanticColors, chainColors, shadowColors } from '@/lib/config/colors';
-import { createLogger } from '@/lib/utils/logger';
-import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
-import { TrendingUp, TrendingDown, Minus, Activity, DollarSign, Fuel } from 'lucide-react';
 
+import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Icon } from '@/components/ui';
+import { chartColors, semanticColors, chainColors, shadowColors } from '@/lib/config/colors';
+import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('CrossChainTrendChart');
 

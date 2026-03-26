@@ -1,19 +1,12 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { DIANetworkViewProps } from '../types';
-import { Activity } from 'lucide-react';
-import { Server } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
+import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
-export function DIANetworkView({
-  config,
-  networkStats,
-  isLoading,
-}: DIANetworkViewProps) {
+import { useTranslations } from '@/i18n';
+
+import { type DIANetworkViewProps } from '../types';
+
+export function DIANetworkView({ config, networkStats, isLoading }: DIANetworkViewProps) {
   const t = useTranslations();
 
   const networkData = networkStats || config.networkData;
@@ -70,11 +63,15 @@ export function DIANetworkView({
                 <span className="text-sm">{metric.label}</span>
               </div>
               <div className="flex items-baseline gap-3">
-                <p className="text-3xl font-semibold text-gray-900 tracking-tight">{metric.value}</p>
+                <p className="text-3xl font-semibold text-gray-900 tracking-tight">
+                  {metric.value}
+                </p>
                 {metric.change && (
-                  <div className={`flex items-center gap-0.5 text-sm font-medium ${
-                    metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
-                  }`}>
+                  <div
+                    className={`flex items-center gap-0.5 text-sm font-medium ${
+                      metric.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
+                    }`}
+                  >
                     <TrendIcon className="w-3.5 h-3.5" />
                     <span>{metric.change}</span>
                   </div>

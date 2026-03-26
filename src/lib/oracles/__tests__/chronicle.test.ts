@@ -1,6 +1,7 @@
-import { ChronicleClient } from '../chronicle';
-import { Blockchain } from '@/types/oracle';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { Blockchain } from '@/types/oracle';
+
+import { ChronicleClient } from '../chronicle';
 
 jest.mock('next/server', () => ({
   NextResponse: {

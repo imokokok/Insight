@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
 import {
   LineChart,
   Line,
@@ -15,10 +16,10 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
+
 import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { chartColors, semanticColors } from '@/lib/config/colors';
-
 
 type ConfidenceLevel = 'excellent' | 'good' | 'fair' | 'poor';
 

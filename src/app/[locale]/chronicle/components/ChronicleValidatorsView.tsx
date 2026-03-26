@@ -1,15 +1,12 @@
 'use client';
 
+import { Activity, Shield, Award, Server, Globe, TrendingUp, Clock } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import { ChronicleValidatorsViewProps } from '../types';
+
+import { type ChronicleValidatorsViewProps } from '../types';
+
 import { ChronicleDataTable } from './ChronicleDataTable';
-import { Activity } from 'lucide-react';
-import { Shield } from 'lucide-react';
-import { Award } from 'lucide-react';
-import { Server } from 'lucide-react';
-import { Globe } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { Clock } from 'lucide-react';
 
 interface ValidatorData {
   id: string;
@@ -105,8 +102,12 @@ export function ChronicleValidatorsView({
   const t = useTranslations();
 
   const totalStaked = mockValidators.reduce((acc, n) => acc + n.stakedAmount, 0);
-  const avgSuccessRate = (mockValidators.reduce((acc, n) => acc + n.successRate, 0) / mockValidators.length).toFixed(1);
-  const avgResponseTime = Math.round(mockValidators.reduce((acc, n) => acc + n.responseTime, 0) / mockValidators.length);
+  const avgSuccessRate = (
+    mockValidators.reduce((acc, n) => acc + n.successRate, 0) / mockValidators.length
+  ).toFixed(1);
+  const avgResponseTime = Math.round(
+    mockValidators.reduce((acc, n) => acc + n.responseTime, 0) / mockValidators.length
+  );
 
   const columns = [
     { key: 'name', header: t('chronicle.validators.name'), sortable: true },
@@ -146,14 +147,24 @@ export function ChronicleValidatorsView({
       header: t('chronicle.validators.status'),
       sortable: true,
       render: (item: ValidatorData) => (
-        <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${
-          item.status === 'active' ? 'text-emerald-600' :
-          item.status === 'inactive' ? 'text-gray-500' : 'text-red-600'
-        }`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${
-            item.status === 'active' ? 'bg-emerald-500' :
-            item.status === 'inactive' ? 'bg-gray-400' : 'bg-red-500'
-          }`} />
+        <span
+          className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+            item.status === 'active'
+              ? 'text-emerald-600'
+              : item.status === 'inactive'
+                ? 'text-gray-500'
+                : 'text-red-600'
+          }`}
+        >
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              item.status === 'active'
+                ? 'bg-emerald-500'
+                : item.status === 'inactive'
+                  ? 'bg-gray-400'
+                  : 'bg-red-500'
+            }`}
+          />
           {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
         </span>
       ),
@@ -185,7 +196,9 @@ export function ChronicleValidatorsView({
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{t('chronicle.validators.totalStaked')}</span>
-          <span className="text-lg font-semibold text-gray-900">{(totalStaked / 1e6).toFixed(1)}M MKR</span>
+          <span className="text-lg font-semibold text-gray-900">
+            {(totalStaked / 1e6).toFixed(1)}M MKR
+          </span>
         </div>
       </div>
 
@@ -201,7 +214,15 @@ export function ChronicleValidatorsView({
           </div>
           <ChronicleDataTable
             data={mockValidators as unknown as Record<string, unknown>[]}
-            columns={columns as unknown as Array<{key: string; header: string; width?: string; sortable?: boolean; render?: (item: Record<string, unknown>) => React.ReactNode}>}
+            columns={
+              columns as unknown as Array<{
+                key: string;
+                header: string;
+                width?: string;
+                sortable?: boolean;
+                render?: (item: Record<string, unknown>) => React.ReactNode;
+              }>
+            }
           />
         </div>
 
@@ -220,7 +241,9 @@ export function ChronicleValidatorsView({
                 <div key={index}>
                   <div className="flex items-center justify-between text-sm mb-1.5">
                     <span className="text-gray-600">{stat.region}</span>
-                    <span className="font-medium text-gray-900">{stat.count} <span className="text-gray-400">({stat.percentage}%)</span></span>
+                    <span className="font-medium text-gray-900">
+                      {stat.count} <span className="text-gray-400">({stat.percentage}%)</span>
+                    </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
                     <div
@@ -245,7 +268,9 @@ export function ChronicleValidatorsView({
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('chronicle.validators.avgReputation')}</span>
                 <span className="font-medium text-gray-900">
-                  {(mockValidators.reduce((acc, n) => acc + n.reputation, 0) / mockValidators.length).toFixed(1)}
+                  {(
+                    mockValidators.reduce((acc, n) => acc + n.reputation, 0) / mockValidators.length
+                  ).toFixed(1)}
                 </span>
               </div>
               <div className="flex justify-between">

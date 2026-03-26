@@ -1,8 +1,10 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
-import { TellorDisputesViewProps } from '../types';
 import { AlertTriangle, CheckCircle2, Clock, TrendingDown, TrendingUp, Scale } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
+
+import { type TellorDisputesViewProps } from '../types';
 
 export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
   const t = useTranslations();
@@ -35,12 +37,54 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
   ];
 
   const recentDisputes = [
-    { id: '#0156', reporter: '0x7a2...3f9b', reason: 'Invalid price data', status: 'resolved', result: 'reporter won', timestamp: '2h ago' },
-    { id: '#0155', reporter: '0x9c4...8a2d', reason: 'Delayed submission', status: 'resolved', result: 'disputer won', timestamp: '5h ago' },
-    { id: '#0154', reporter: '0x3f8...1c5e', reason: 'Price deviation', status: 'pending', result: '-', timestamp: '1d ago' },
-    { id: '#0153', reporter: '0x5a1...9b3c', reason: 'Invalid timestamp', status: 'resolved', result: 'reporter won', timestamp: '2d ago' },
-    { id: '#0152', reporter: '0x2d7...4e8a', reason: 'Data manipulation', status: 'resolved', result: 'disputer won', timestamp: '3d ago' },
-    { id: '#0151', reporter: '0x8f3...2a1d', reason: 'Network delay', status: 'resolved', result: 'reporter won', timestamp: '4d ago' },
+    {
+      id: '#0156',
+      reporter: '0x7a2...3f9b',
+      reason: 'Invalid price data',
+      status: 'resolved',
+      result: 'reporter won',
+      timestamp: '2h ago',
+    },
+    {
+      id: '#0155',
+      reporter: '0x9c4...8a2d',
+      reason: 'Delayed submission',
+      status: 'resolved',
+      result: 'disputer won',
+      timestamp: '5h ago',
+    },
+    {
+      id: '#0154',
+      reporter: '0x3f8...1c5e',
+      reason: 'Price deviation',
+      status: 'pending',
+      result: '-',
+      timestamp: '1d ago',
+    },
+    {
+      id: '#0153',
+      reporter: '0x5a1...9b3c',
+      reason: 'Invalid timestamp',
+      status: 'resolved',
+      result: 'reporter won',
+      timestamp: '2d ago',
+    },
+    {
+      id: '#0152',
+      reporter: '0x2d7...4e8a',
+      reason: 'Data manipulation',
+      status: 'resolved',
+      result: 'disputer won',
+      timestamp: '3d ago',
+    },
+    {
+      id: '#0151',
+      reporter: '0x8f3...2a1d',
+      reason: 'Network delay',
+      status: 'resolved',
+      result: 'reporter won',
+      timestamp: '4d ago',
+    },
   ];
 
   return (
@@ -54,9 +98,11 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
               <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
               <div className="flex items-baseline gap-3">
                 <p className="text-3xl font-semibold text-gray-900 tracking-tight">{stat.value}</p>
-                <div className={`flex items-center gap-0.5 text-sm font-medium ${
-                  stat.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
-                }`}>
+                <div
+                  className={`flex items-center gap-0.5 text-sm font-medium ${
+                    stat.trend === 'up' ? 'text-emerald-600' : 'text-blue-600'
+                  }`}
+                >
                   <TrendIcon className="w-3.5 h-3.5" />
                   <span>{stat.change}</span>
                 </div>
@@ -95,21 +141,13 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
                 index !== recentDisputes.length - 1 ? 'border-b border-gray-100' : ''
               }`}
             >
-              <div className="col-span-1 text-sm font-medium text-gray-900">
-                {dispute.id}
-              </div>
-              <div className="col-span-3 text-sm text-gray-900 font-mono">
-                {dispute.reporter}
-              </div>
-              <div className="col-span-3 text-sm text-gray-600">
-                {dispute.reason}
-              </div>
+              <div className="col-span-1 text-sm font-medium text-gray-900">{dispute.id}</div>
+              <div className="col-span-3 text-sm text-gray-900 font-mono">{dispute.reporter}</div>
+              <div className="col-span-3 text-sm text-gray-600">{dispute.reason}</div>
               <div className="col-span-2 text-center">
                 <span
                   className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-                    dispute.status === 'resolved'
-                      ? 'text-emerald-600'
-                      : 'text-amber-600'
+                    dispute.status === 'resolved' ? 'text-emerald-600' : 'text-amber-600'
                   }`}
                 >
                   {dispute.status === 'resolved' ? (
@@ -124,9 +162,7 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
                 {dispute.result !== '-' ? (
                   <span
                     className={`text-sm font-medium ${
-                      dispute.result.includes('reporter')
-                        ? 'text-emerald-600'
-                        : 'text-red-600'
+                      dispute.result.includes('reporter') ? 'text-emerald-600' : 'text-red-600'
                     }`}
                   >
                     {dispute.result}
@@ -135,9 +171,7 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
                   <span className="text-sm text-gray-400">-</span>
                 )}
               </div>
-              <div className="col-span-1 text-sm text-gray-500 text-right">
-                {dispute.timestamp}
-              </div>
+              <div className="col-span-1 text-sm text-gray-500 text-right">{dispute.timestamp}</div>
             </div>
           ))}
         </div>
@@ -150,9 +184,7 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
       <div>
         <div className="flex items-center gap-2 mb-6">
           <AlertTriangle className="w-4 h-4 text-gray-500" />
-          <h3 className="text-base font-medium text-gray-900">
-            {t('tellor.disputes.howItWorks')}
-          </h3>
+          <h3 className="text-base font-medium text-gray-900">{t('tellor.disputes.howItWorks')}</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="flex gap-4">

@@ -1,6 +1,7 @@
-import { WINkLinkClient } from '../winklink';
-import { Blockchain } from '@/types/oracle';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { Blockchain } from '@/types/oracle';
+
+import { WINkLinkClient } from '../winklink';
 
 jest.mock('next/server', () => ({
   NextResponse: {

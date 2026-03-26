@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import {
   LineChart,
   Line,
@@ -15,14 +16,17 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { useTranslations } from '@/i18n';
-import { DashboardCard, RiskScoreCard } from '@/components/oracle/data-display';
+
 import { DataFreshnessIndicator } from '@/components/oracle/alerts';
 import {
+  DashboardCard,
+  RiskScoreCard,
   SecurityTimeline,
   MitigationMeasuresGrid,
 } from '@/components/oracle/data-display';
-import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
 import {
   getScoreColor,
   getScoreBg,
@@ -32,9 +36,7 @@ import {
   calculateOverallScore,
   formatLatency,
 } from '@/lib/utils/riskUtils';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { chartColors } from '@/lib/config/colors';
-
+import { type RiskMetric, type RiskEvent, type MitigationMeasure } from '@/types/risk';
 
 interface DIARiskAssessmentPanelProps {
   className?: string;

@@ -356,7 +356,9 @@ function ValidationMechanism() {
           <h3 className="text-sm font-semibold text-gray-900">数据验证机制</h3>
           <p className="text-xs text-gray-500 mt-0.5">共识验证与节点状态</p>
         </div>
-        <div className="px-3 py-1 bg-success-100 text-success-700 text-xs font-medium ">共识已达成</div>
+        <div className="px-3 py-1 bg-success-100 text-success-700 text-xs font-medium ">
+          共识已达成
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-5">

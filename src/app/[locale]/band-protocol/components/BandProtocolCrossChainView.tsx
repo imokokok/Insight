@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { BandProtocolCrossChainViewProps } from '../types';
+
+import { type BandProtocolCrossChainViewProps } from '../types';
 
 export function BandProtocolCrossChainView({
   crossChainStats,
@@ -238,7 +239,8 @@ export function BandProtocolCrossChainView({
           {chains
             .sort((a, b) => b.requestCount24h - a.requestCount24h)
             .map((chain) => {
-              const percentage = totalRequests > 0 ? (chain.requestCount24h / totalRequests) * 100 : 0;
+              const percentage =
+                totalRequests > 0 ? (chain.requestCount24h / totalRequests) * 100 : 0;
               return (
                 <div key={chain.chainId} className="flex items-center gap-4">
                   <div className="flex items-center gap-2 w-32 shrink-0">

@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { BenchmarkData } from '../types';
+
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Target,
+  BarChart3,
+  Info,
+  ChevronDown,
+} from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -13,20 +22,13 @@ import {
   ReferenceLine,
   Cell,
 } from 'recharts';
-import { TooltipProps } from '@/types/ui/recharts';
+
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Target,
-  BarChart3,
-  Info,
-  ChevronDown,
-} from 'lucide-react';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { type TooltipProps } from '@/types/ui/recharts';
 
+import { type BenchmarkData } from '../types';
 
 interface BenchmarkComparisonProps {
   data: BenchmarkData[];

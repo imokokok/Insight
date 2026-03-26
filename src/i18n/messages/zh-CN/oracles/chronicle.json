@@ -19,7 +19,14 @@
     "normal": "正常",
     "warning": "警告",
     "dataSource": "数据源",
+    "successRate": "成功率",
     "networkStatus": "网络状态",
+    "volume24h": "24小时交易量",
+    "liquidity": "流动性",
+    "marketDepth": "市场深度",
+    "networkHealth": {
+      "responseTime": "响应时间"
+    },
     "tabs": {
       "market": "市场数据",
       "makerdao": "MakerDAO",
@@ -31,6 +38,7 @@
     },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
+    "tradingPair": "主要交易对",
     "stats": {
       "activeValidators": "活跃验证者",
       "makerDAOSupport": "MakerDAO 支持",
@@ -48,7 +56,8 @@
       "securityFeatures": "活跃安全特性",
       "verificationStatus": "验证状态",
       "lastAudit": "上次审计",
-      "historicalEvents": "历史安全事件"
+      "historicalEvents": "历史安全事件",
+      "date": "日期"
     },
     "makerdao": {
       "title": "MakerDAO 集成",
@@ -62,7 +71,8 @@
       "type": "类型",
       "price": "价格",
       "collateralRatio": "抵押率",
-      "stabilityFee": "稳定费"
+      "stabilityFee": "稳定费",
+      "integrationInfo": "集成信息"
     },
     "assetType": {
       "stablecoin": "稳定币",
@@ -112,7 +122,11 @@
       "secure": "安全设计",
       "secureDesc": "多层安全，加密验证",
       "monitoring": "24/7 监控",
-      "monitoringDesc": "持续网络监控和自动警报"
+      "monitoringDesc": "持续网络监控和自动警报",
+      "totalRequests": "总请求数 (24h)",
+      "avgGas": "平均 Gas 消耗",
+      "activeChains": "活跃链",
+      "validatorOperators": "验证者运营者"
     },
     "securityLevel": {
       "high": "高",
@@ -134,6 +148,7 @@
       "total": "总验证者",
       "active": "活跃验证者",
       "avgReputation": "平均声誉",
+      "avgSuccess": "平均成功率",
       "totalStaked": "总质押",
       "networkHealth": "网络健康",
       "list": "验证者列表",
@@ -142,6 +157,7 @@
       "reputation": "声誉",
       "uptime": "在线率",
       "responseTime": "响应时间",
+      "avgResponse": "平均响应",
       "successRate": "成功率",
       "staked": "质押",
       "status": "状态"

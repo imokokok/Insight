@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, memo } from 'react';
-import { Blockchain, OracleProvider, BLOCKCHAIN_VALUES } from '@/types/oracle';
-import { chainNames, chainColors, getChainsByCategory, getChainCategory } from '@/lib/constants';
-import { oracleConfigs } from '@/lib/config/oracles';
+
 import { Search, ChevronDown, X } from 'lucide-react';
+
+import { oracleConfigs } from '@/lib/config/oracles';
+import { chainNames, chainColors, getChainsByCategory, getChainCategory } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { type Blockchain, OracleProvider, BLOCKCHAIN_VALUES } from '@/types/oracle';
 
 export interface ChainSelectorProps {
   selectedChains: Blockchain[];
@@ -82,8 +84,7 @@ function ChainSelectorComponent({
       const query = searchQuery.toLowerCase();
       chains = chains.filter(
         (chain) =>
-          chainNames[chain].toLowerCase().includes(query) ||
-          chain.toLowerCase().includes(query)
+          chainNames[chain].toLowerCase().includes(query) || chain.toLowerCase().includes(query)
       );
     }
     return chains;
@@ -91,30 +92,35 @@ function ChainSelectorComponent({
 
   // 计算每条链支持的预言机数量
   const getOracleCountForChain = (chain: Blockchain): number => {
-    return Object.values(oracleConfigs).filter((config) =>
-      config.supportedChains.includes(chain)
-    ).length;
+    return Object.values(oracleConfigs).filter((config) => config.supportedChains.includes(chain))
+      .length;
   };
 
   // 处理链选择
-  const handleChainSelect = useCallback((chain: Blockchain) => {
-    if (allowMultiSelect) {
-      if (selectedChains.includes(chain)) {
-        onChainsChange(selectedChains.filter((c) => c !== chain));
+  const handleChainSelect = useCallback(
+    (chain: Blockchain) => {
+      if (allowMultiSelect) {
+        if (selectedChains.includes(chain)) {
+          onChainsChange(selectedChains.filter((c) => c !== chain));
+        } else {
+          onChainsChange([...selectedChains, chain]);
+        }
       } else {
-        onChainsChange([...selectedChains, chain]);
+        onChainsChange([chain]);
+        setIsOpen(false);
       }
-    } else {
-      onChainsChange([chain]);
-      setIsOpen(false);
-    }
-  }, [allowMultiSelect, selectedChains, onChainsChange]);
+    },
+    [allowMultiSelect, selectedChains, onChainsChange]
+  );
 
   // 清除选择
-  const handleClear = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChainsChange([]);
-  }, [onChainsChange]);
+  const handleClear = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onChainsChange([]);
+    },
+    [onChainsChange]
+  );
 
   // 获取选中链的显示文本
   const getSelectedLabel = (): string => {
@@ -235,7 +241,11 @@ function ChainSelectorComponent({
                       )}
                       {isSelected && allowMultiSelect && (
                         <div className="w-4 h-4 bg-blue-500 rounded flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
                             <path
                               fillRule="evenodd"
                               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

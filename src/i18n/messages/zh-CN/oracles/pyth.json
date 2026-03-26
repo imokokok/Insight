@@ -148,6 +148,7 @@
     },
     "publishers": {
       "title": "数据发布方",
+      "name": "名称",
       "stake": "质押",
       "accuracy": "准确率",
       "searchPlaceholder": "搜索数据发布方...",
@@ -178,6 +179,7 @@
       "deviationThreshold": "偏差阈值",
       "status": "状态",
       "reliability": "可靠性",
+      "reliabilityDesc": "过去30天内成功更新的百分比，由发布者共识维护。",
       "about": "关于价格馈送",
       "frequencyDesc": "Pyth 价格馈送基于亚秒级间隔更新，提供来自第一方来源的准实时价格数据。",
       "thresholdDesc": "触发链上新更新所需的最小价格变化。",

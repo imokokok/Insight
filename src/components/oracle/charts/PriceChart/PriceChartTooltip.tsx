@@ -1,10 +1,12 @@
 'use client';
 
 import { memo } from 'react';
+
+import { type IndicatorDataPoint } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { IndicatorDataPoint } from '@/hooks';
-import { ChartType } from './priceChartConfig';
 import { semanticColors } from '@/lib/config/colors';
+
+import { type ChartType } from './priceChartConfig';
 
 interface MainChartTooltipProps {
   active?: boolean;

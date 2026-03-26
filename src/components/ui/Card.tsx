@@ -1,6 +1,7 @@
 'use client';
 
-import { ReactNode, forwardRef } from 'react';
+import { type ReactNode, forwardRef } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface CardProps {
@@ -74,11 +75,7 @@ export interface CardTitleProps {
 export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
   ({ children, className, ...props }, ref) => {
     return (
-      <h3
-        ref={ref}
-        className={cn('text-base font-semibold text-gray-900', className)}
-        {...props}
-      >
+      <h3 ref={ref} className={cn('text-base font-semibold text-gray-900', className)} {...props}>
         {children}
       </h3>
     );
@@ -131,7 +128,10 @@ export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
     return (
       <div
         ref={ref}
-        className={cn('flex items-center justify-between pt-4 mt-4 border-t border-gray-100 bg-gray-50/50 -mx-5 -mb-5 px-5 pb-4 rounded-b-lg', className)}
+        className={cn(
+          'flex items-center justify-between pt-4 mt-4 border-t border-gray-100 bg-gray-50/50 -mx-5 -mb-5 px-5 pb-4 rounded-b-lg',
+          className
+        )}
         {...props}
       >
         {children}
@@ -166,27 +166,25 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
     };
 
     return (
-      <Card
-        ref={ref}
-        variant="elevated"
-        className={cn('flex flex-col', className)}
-        {...props}
-      >
+      <Card ref={ref} variant="elevated" className={cn('flex flex-col', className)} {...props}>
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{title}</p>
             <p className="text-2xl font-bold text-gray-900 mt-1 font-tabular">{value}</p>
             {change && (
-              <div className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-2', changeColors[changeType])}>
+              <div
+                className={cn(
+                  'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-2',
+                  changeColors[changeType]
+                )}
+              >
                 <span>{changeIcons[changeType]}</span>
                 <span>{change}</span>
               </div>
             )}
           </div>
           {icon && (
-            <div className="p-2.5 bg-gray-100 rounded-lg text-gray-600 flex-shrink-0">
-              {icon}
-            </div>
+            <div className="p-2.5 bg-gray-100 rounded-lg text-gray-600 flex-shrink-0">{icon}</div>
           )}
         </div>
       </Card>

@@ -1,38 +1,37 @@
-import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/types/oracle';
+import { type OracleConfig } from '@/lib/config/oracles';
+import { type PriceData } from '@/types/oracle';
 
-export type PythTabId =
-  | 'market'
-  | 'network'
-  | 'publishers'
-  | 'validators'
-  | 'price-feeds'
-  | 'risk';
+export type PythTabId = 'market' | 'network' | 'publishers' | 'validators' | 'price-feeds' | 'risk';
 
 export interface NetworkStats {
   activeNodes: number;
   dataFeeds: number;
   nodeUptime: number;
   avgResponseTime: number;
-  updateFrequency: number;
+  updateFrequency?: number;
   latency?: number;
   hourlyActivity?: number[];
+  status?: string;
+  totalStaked?: number;
 }
 
 export interface PublisherData {
   id: string;
   name: string;
-  stake: number;
+  stake?: number;
   accuracy: number;
+  status?: string;
+  contribution?: number;
 }
 
 export interface ValidatorData {
   id: string;
   name: string;
-  stake: number;
-  uptime: number;
-  rewards: number;
-  status: 'active' | 'inactive' | 'jailed';
+  stake?: number;
+  uptime?: number;
+  rewards?: number;
+  performance?: number;
+  status: string;
 }
 
 export interface PythPageState {
@@ -54,8 +53,8 @@ export interface PythPageActions {
 }
 
 export interface PythSidebarProps {
-  activeTab: PythTabId;
-  onTabChange: (tab: PythTabId) => void;
+  activeTab: PythTabId | string;
+  onTabChange: (tab: PythTabId | string) => void;
 }
 
 export interface PythMarketViewProps {

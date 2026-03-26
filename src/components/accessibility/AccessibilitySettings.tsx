@@ -1,22 +1,18 @@
 'use client';
 
 import React from 'react';
+
+import { motion } from 'framer-motion';
+import { Contrast, Type, Palette, Monitor, Focus, RotateCcw, Check, Eye } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import { Contrast } from 'lucide-react';
-import { Type } from 'lucide-react';
-import { Palette } from 'lucide-react';
-import { Monitor } from 'lucide-react';
-import { Focus } from 'lucide-react';
-import { RotateCcw } from 'lucide-react';
-import { Check } from 'lucide-react';
-import { Eye } from 'lucide-react';
+
 import {
   useTheme,
   type ThemeMode,
   type ColorScheme,
   type AccessibilitySettings,
 } from './ThemeContext';
-import { motion } from 'framer-motion';
 
 interface SettingSectionProps {
   title: string;
@@ -59,7 +55,9 @@ function OptionButton({ label, isSelected, onClick, description }: OptionButtonP
     >
       <div className="flex items-center justify-between">
         <div>
-          <span className={`text-sm font-medium ${isSelected ? 'text-primary-900' : 'text-gray-900'}`}>
+          <span
+            className={`text-sm font-medium ${isSelected ? 'text-primary-900' : 'text-gray-900'}`}
+          >
             {label}
           </span>
           {description && (

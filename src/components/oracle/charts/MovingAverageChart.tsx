@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+
 import {
   ComposedChart,
   Line,
@@ -12,9 +13,9 @@ import {
   ResponsiveContainer,
   Area,
 } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
-import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { DropdownSelect } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import {
@@ -23,8 +24,8 @@ import {
   calculateBollingerBands,
   calculateRollingStdDev,
 } from '@/lib/indicators';
-import { DropdownSelect } from '@/components/ui';
-
+import { OracleProvider } from '@/types/oracle';
+import type { PriceDataForTechnicalAnalysis } from '@/types/oracle/price';
 
 export interface OraclePriceHistory {
   oracle: OracleProvider;
@@ -198,9 +199,7 @@ export function MovingAverageChart({
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-      <div
-        className="bg-white p-4 border border-gray-200 rounded-lg min-w-[220px]"
-      >
+      <div className="bg-white p-4 border border-gray-200 rounded-lg min-w-[220px]">
         <p className="text-sm font-semibold mb-2" style={{ color: baseColors.gray[900] }}>
           {label}
         </p>

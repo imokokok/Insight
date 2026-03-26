@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { PythSidebarProps, PythTabId } from '../types';
+
+import { type PythSidebarProps, type PythTabId } from '../types';
 
 interface NavItem {
   id: PythTabId;

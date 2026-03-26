@@ -1,11 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
+import { Wallet, TrendingUp, PieChart, BarChart3 } from 'lucide-react';
+
 import { SparklineChart } from '@/components/oracle/charts/SparklineChart';
 import { StatComparisonCard } from '@/components/oracle/charts/StatComparisonCard';
-import { NodeData } from '../types';
-import { Wallet, TrendingUp, PieChart, BarChart3 } from 'lucide-react';
+import { useTranslations } from '@/i18n';
+
+import { type NodeData } from '../types';
 
 interface NodeEarningsPanelProps {
   nodes: NodeData[];

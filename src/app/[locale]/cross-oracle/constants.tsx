@@ -1,6 +1,25 @@
 'use client';
 
 import React from 'react';
+
+import { semanticColors, baseColors, chainColors } from '@/lib/config/colors';
+import { providerNames, type RefreshInterval } from '@/lib/constants';
+import {
+  ChainlinkClient,
+  BandProtocolClient,
+  UMAClient,
+  PythClient,
+  API3Client,
+  RedStoneClient,
+  DIAClient,
+  TellorClient,
+  ChronicleClient,
+  WINkLinkClient,
+} from '@/lib/oracles';
+import {
+  getDeviationColor,
+  calculateStandardDeviation as calcStdDev,
+} from '@/lib/utils/chartSharedUtils';
 import { OracleProvider } from '@/types/oracle';
 
 export interface SymbolConfig {
@@ -48,24 +67,6 @@ export const tradingPairs: SymbolConfig[] = [
 ];
 
 export const symbols = tradingPairs.map((pair) => pair.symbol);
-import {
-  ChainlinkClient,
-  BandProtocolClient,
-  UMAClient,
-  PythClient,
-  API3Client,
-  RedStoneClient,
-  DIAClient,
-  TellorClient,
-  ChronicleClient,
-  WINkLinkClient,
-} from '@/lib/oracles';
-import { providerNames, type RefreshInterval } from '@/lib/constants';
-import {
-  getDeviationColor,
-  calculateStandardDeviation as calcStdDev,
-} from '@/lib/utils/chartSharedUtils';
-import { semanticColors, baseColors, chainColors } from '@/lib/config/colors';
 
 export { type RefreshInterval };
 

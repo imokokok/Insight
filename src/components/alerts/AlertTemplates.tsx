@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import type { AlertConditionType } from '@/lib/supabase/database.types';
-import { useTranslations } from '@/i18n';
+
 import { DropdownSelect } from '@/components/ui';
+import { useTranslations } from '@/i18n';
+import type { AlertConditionType } from '@/lib/supabase/database.types';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 export interface AlertTemplate {
   id: string;

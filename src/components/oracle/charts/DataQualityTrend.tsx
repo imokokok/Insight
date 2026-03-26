@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
+
 import {
   ComposedChart,
   Line,
@@ -21,20 +22,21 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
-import type { TooltipContentProps, DotItemDotProps } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
+
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { SegmentedControl } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
+import { createLogger } from '@/lib/utils/logger';
 import {
   useSelectedTimeRange,
   useTimeRangeCallback,
   useSyncEnabled,
-  SelectedTimeRange,
+  type SelectedTimeRange,
 } from '@/stores/uiStore';
-import { createLogger } from '@/lib/utils/logger';
-import { SegmentedControl } from '@/components/ui';
+import { OracleProvider } from '@/types/oracle';
 
+import type { TooltipContentProps, DotItemDotProps } from 'recharts';
 
 const logger = createLogger('DataQualityTrend');
 

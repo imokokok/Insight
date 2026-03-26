@@ -1,10 +1,14 @@
 'use client';
 
-import { ReactNode, forwardRef } from 'react';
+import { type ReactNode, forwardRef } from 'react';
+
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
-import { SparklineChart } from './SparklineChart';
+
 import { Skeleton } from './Skeleton';
+import { SparklineChart } from './SparklineChart';
+import { Tooltip } from './Tooltip';
 
 export interface StatCardProps {
   /** 标题 */
@@ -147,7 +151,9 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             {/* 标题 */}
-            <p className="text-sm font-medium text-gray-500 truncate">{title}</p>
+            <Tooltip content={title} placement="top" delay={300} className="w-full">
+              <p className="text-sm font-medium text-gray-500 truncate cursor-default">{title}</p>
+            </Tooltip>
 
             {/* 数值 */}
             <p className="text-2xl font-bold text-gray-900 mt-2 tabular-nums tracking-tight">
@@ -168,14 +174,18 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
                   <span>{change}</span>
                 </span>
                 {subtitle && (
-                  <span className="text-xs text-gray-400">{subtitle}</span>
+                  <Tooltip content={subtitle} placement="bottom" delay={300} className="flex-1 min-w-0">
+                    <span className="text-xs text-gray-400 truncate cursor-default block">{subtitle}</span>
+                  </Tooltip>
                 )}
               </div>
             )}
 
             {/* 仅副标题（无变化率时） */}
             {!change && subtitle && (
-              <p className="text-xs text-gray-400 mt-2">{subtitle}</p>
+              <Tooltip content={subtitle} placement="bottom" delay={300} className="w-full">
+                <p className="text-xs text-gray-400 mt-2 truncate cursor-default">{subtitle}</p>
+              </Tooltip>
             )}
           </div>
 

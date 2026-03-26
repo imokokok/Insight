@@ -1,19 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
-import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
-import { useTranslations, useLocale } from '@/i18n';
-import { Mail } from 'lucide-react';
-import { Lock } from 'lucide-react';
-import { Eye } from 'lucide-react';
-import { EyeOff } from 'lucide-react';
-import { LogIn } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
-import { AlertCircle } from 'lucide-react';
-import { MailWarning } from 'lucide-react';
+
+import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle, MailWarning } from 'lucide-react';
+
 import { Button } from '@/components/ui';
+import { useTranslations, useLocale } from '@/i18n';
+import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
 
 interface ErrorInfo {
   message: string;
@@ -188,10 +184,10 @@ export default function LoginPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
-                id="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
+                  id="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
                 <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600">
                   {t('auth.login.rememberMe')}
                 </label>

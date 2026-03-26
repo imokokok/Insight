@@ -1,7 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from '@/i18n';
+
+import {
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  Info,
+  ChevronDown,
+  ChevronUp,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from 'lucide-react';
 import {
   RadarChart,
   PolarGrid,
@@ -11,20 +22,10 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import {
-  TimelineChart,
-  TimelineEvent,
-} from '@/components/oracle/charts/TimelineChart';
+
+import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
+import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
-import { Shield } from 'lucide-react';
-import { AlertTriangle } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { Info } from 'lucide-react';
-import { ChevronDown } from 'lucide-react';
-import { ChevronUp } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
-import { TrendingDown } from 'lucide-react';
-import { Minus } from 'lucide-react';
 
 // 历史风险事件
 const historicalRiskEvents: TimelineEvent[] = [
@@ -49,7 +50,8 @@ const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2023-08-22T16:45:00',
     title: '价格延迟事件',
-    description: '由于网络拥堵，部分价格喂送出现 3-5 分钟延迟。团队优化了数据聚合算法以提升响应速度。',
+    description:
+      '由于网络拥堵，部分价格喂送出现 3-5 分钟延迟。团队优化了数据聚合算法以提升响应速度。',
     type: 'warning',
   },
   {
@@ -120,7 +122,8 @@ const riskFactors = [
   {
     category: 'Smart Contract Risk',
     level: 'medium',
-    description: 'Audited by CertiK and PeckShield with no critical vulnerabilities found. Continuous monitoring active.',
+    description:
+      'Audited by CertiK and PeckShield with no critical vulnerabilities found. Continuous monitoring active.',
     details: [
       'CertiK audit completed Q1 2024',
       'PeckShield security review passed',
@@ -131,7 +134,8 @@ const riskFactors = [
   {
     category: 'Oracle Risk',
     level: 'medium',
-    description: 'Decentralized validator network with economic incentives and slashing mechanisms.',
+    description:
+      'Decentralized validator network with economic incentives and slashing mechanisms.',
     details: [
       '72 validators across 25+ countries',
       'BFT consensus with 2/3+ threshold',
@@ -142,7 +146,8 @@ const riskFactors = [
   {
     category: 'Market Risk',
     level: 'medium',
-    description: 'BAND token price volatility affects staking economics and network security budget.',
+    description:
+      'BAND token price volatility affects staking economics and network security budget.',
     details: [
       'BAND price correlation with market sentiment',
       'Staking rewards denominated in BAND',
@@ -153,7 +158,8 @@ const riskFactors = [
   {
     category: 'Centralization Risk',
     level: 'medium',
-    description: 'Validator set is permissioned, with top validators holding significant stake concentration.',
+    description:
+      'Validator set is permissioned, with top validators holding significant stake concentration.',
     details: [
       'Permissioned validator set (72 active)',
       'Top 10 validators control ~45% stake',
@@ -229,7 +235,8 @@ export function BandProtocolRiskView() {
               {t('bandProtocol.risk.metrics') || 'Risk Metrics'}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {t('bandProtocol.risk.metricsDesc') || 'Key performance indicators across decentralization, security, and reliability'}
+              {t('bandProtocol.risk.metricsDesc') ||
+                'Key performance indicators across decentralization, security, and reliability'}
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
@@ -256,7 +263,8 @@ export function BandProtocolRiskView() {
                   className="h-1.5 rounded-full transition-all duration-500"
                   style={{
                     width: `${(metric.value / metric.max) * 100}%`,
-                    backgroundColor: metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
+                    backgroundColor:
+                      metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
                   }}
                 />
               </div>
@@ -276,7 +284,8 @@ export function BandProtocolRiskView() {
             {t('bandProtocol.risk.benchmark') || 'Industry Benchmark Comparison'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('bandProtocol.risk.benchmarkDesc') || 'Performance comparison against other leading oracle providers'}
+            {t('bandProtocol.risk.benchmarkDesc') ||
+              'Performance comparison against other leading oracle providers'}
           </p>
         </div>
 
@@ -288,7 +297,11 @@ export function BandProtocolRiskView() {
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={benchmarkData}>
                   <PolarGrid stroke="#e5e7eb" />
                   <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                  <PolarRadiusAxis
+                    angle={90}
+                    domain={[0, 100]}
+                    tick={{ fontSize: 10, fill: '#9ca3af' }}
+                  />
                   <Radar
                     name="Band Protocol"
                     dataKey="band"
@@ -321,7 +334,9 @@ export function BandProtocolRiskView() {
 
           {/* 对比表格 */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700">{t('bandProtocol.risk.comparison') || 'Detailed Comparison'}</h3>
+            <h3 className="text-sm font-medium text-gray-700">
+              {t('bandProtocol.risk.comparison') || 'Detailed Comparison'}
+            </h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
                 <div key={item.metric} className="space-y-2">
@@ -362,7 +377,8 @@ export function BandProtocolRiskView() {
             {t('bandProtocol.risk.timeline') || 'Historical Risk Events'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('bandProtocol.risk.timelineDesc') || 'Security audits, incidents and upgrades over the past 24 months'}
+            {t('bandProtocol.risk.timelineDesc') ||
+              'Security audits, incidents and upgrades over the past 24 months'}
           </p>
         </div>
 
@@ -421,7 +437,9 @@ export function BandProtocolRiskView() {
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">{t('bandProtocol.risk.clickEvent') || 'Click an event to view details'}</p>
+                <p className="text-sm text-gray-500">
+                  {t('bandProtocol.risk.clickEvent') || 'Click an event to view details'}
+                </p>
               </div>
             )}
           </div>
@@ -438,22 +456,22 @@ export function BandProtocolRiskView() {
             {t('bandProtocol.risk.factors') || 'Risk Factor Analysis'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('bandProtocol.risk.factorsDesc') || 'Detailed breakdown of identified risk categories'}
+            {t('bandProtocol.risk.factorsDesc') ||
+              'Detailed breakdown of identified risk categories'}
           </p>
         </div>
 
         <div className="space-y-2">
           {riskFactors.map((factor, index) => (
-            <div
-              key={index}
-              className="border-b border-gray-100 last:border-0"
-            >
+            <div key={index} className="border-b border-gray-100 last:border-0">
               <button
                 onClick={() => setExpandedFactor(expandedFactor === index ? null : index)}
                 className="w-full py-4 flex items-center justify-between hover:bg-gray-50 transition-colors px-2 -mx-2 rounded-md"
               >
                 <div className="flex items-center gap-4">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}
+                  >
                     {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
                   </span>
                   <span className="text-sm font-medium text-gray-900">{factor.category}</span>
@@ -474,7 +492,10 @@ export function BandProtocolRiskView() {
                   <p className="text-sm text-gray-600 mb-3 leading-relaxed">{factor.description}</p>
                   <ul className="space-y-2">
                     {factor.details.map((detail, detailIndex) => (
-                      <li key={detailIndex} className="flex items-start gap-2 text-sm text-gray-500">
+                      <li
+                        key={detailIndex}
+                        className="flex items-start gap-2 text-sm text-gray-500"
+                      >
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
                         <span>{detail}</span>
                       </li>
@@ -494,9 +515,12 @@ export function BandProtocolRiskView() {
       <section className="flex items-start gap-4 py-2">
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{t('bandProtocol.risk.disclaimer') || 'Risk Disclaimer'}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {t('bandProtocol.risk.disclaimer') || 'Risk Disclaimer'}
+          </h3>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-            {t('bandProtocol.risk.disclaimerText') || 'The risk assessments provided are for informational purposes only and should not be considered as financial advice. Cryptocurrency investments carry significant risks including potential loss of capital. Past performance does not guarantee future results. Please conduct your own research and consult with qualified financial advisors before making investment decisions.'}
+            {t('bandProtocol.risk.disclaimerText') ||
+              'The risk assessments provided are for informational purposes only and should not be considered as financial advice. Cryptocurrency investments carry significant risks including potential loss of capital. Past performance does not guarantee future results. Please conduct your own research and consult with qualified financial advisors before making investment decisions.'}
           </p>
         </div>
       </section>

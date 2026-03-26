@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import { useRouter } from 'next/navigation';
-import { useUser, useAuthLoading } from '@/stores/authStore';
+
 import { FavoritesManager } from '@/components/favorites';
-import { FavoriteConfig } from '@/hooks';
-import type { ConfigType } from '@/lib/supabase/database.types';
+import { type FavoriteConfig } from '@/hooks';
 import { useTranslations } from '@/i18n';
+import type { ConfigType } from '@/lib/supabase/database.types';
+import { useUser, useAuthLoading } from '@/stores/authStore';
 
 export default function FavoritesPage() {
   const t = useTranslations();

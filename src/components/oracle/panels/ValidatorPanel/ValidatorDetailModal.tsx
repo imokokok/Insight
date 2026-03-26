@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
-import { formatNumber } from '@/lib/utils/format';
-import { ValidatorHistoryChart } from '../../charts/ValidatorHistoryChart';
+
 import { StakingCalculator } from '@/components/oracle/data-display/StakingCalculator';
-import { TabType } from './config';
+import { type BandProtocolClient, type ValidatorInfo } from '@/lib/oracles/bandProtocol';
+import { formatNumber } from '@/lib/utils/format';
+
+import { ValidatorHistoryChart } from '../../charts/ValidatorHistoryChart';
+
+import { type TabType } from './config';
 
 function useValidatorDetailModal(validator: ValidatorInfo | null, isOpen: boolean) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -115,7 +118,9 @@ function ValidatorDetailModalContent({
                 </div>
                 <div className="bg-gray-50 p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">在线率</p>
-                  <p className="text-xl font-bold text-success-600">{validator.uptime.toFixed(2)}%</p>
+                  <p className="text-xl font-bold text-success-600">
+                    {validator.uptime.toFixed(2)}%
+                  </p>
                   <div className="mt-2 h-2 bg-gray-200 overflow-hidden">
                     <div
                       className="h-full bg-success-500 transition-all duration-500"

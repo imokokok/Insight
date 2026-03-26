@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useTranslations } from '@/i18n';
-import { usePriceHistory } from '@/hooks';
-import { PriceAccuracyStats } from '@/components/oracle/data-display/PriceAccuracyStats';
+
 import { ExtremeMarketAnalysis } from '@/components/oracle/data-display/ExtremeMarketAnalysis';
+import { PriceAccuracyStats } from '@/components/oracle/data-display/PriceAccuracyStats';
+import { usePriceHistory } from '@/hooks';
+import { useTranslations } from '@/i18n';
+
 import { AccuracyTrendChart } from '../charts/AccuracyTrendChart';
 
 type ViewMode = 'stats' | 'extreme' | 'trend';

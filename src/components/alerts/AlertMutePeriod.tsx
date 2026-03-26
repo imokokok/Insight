@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useTranslations } from '@/i18n';
+
 import { DropdownSelect } from '@/components/ui';
+import { useTranslations } from '@/i18n';
 
 export interface MutePeriodConfig {
   enabled: boolean;

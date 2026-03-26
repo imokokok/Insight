@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+
 import {
   BarChart,
   Bar,
@@ -13,9 +14,10 @@ import {
   Line,
   ReferenceLine,
 } from 'recharts';
-import { PriceData } from '@/types/oracle';
-import { OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
+
 import { getOracleColor } from '@/lib/oracles/colors';
+import { type PriceData, type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
+
 import { calculateZScore, isOutlier } from '../constants';
 
 interface PriceDeviationAnalysisProps {
@@ -141,7 +143,9 @@ export function PriceDeviationAnalysis({
   // 检测异常值
   const outliers = useMemo<OutlierData[]>(() => {
     return deviations
-      .filter((d): d is DeviationItem & { zScore: number } => d.zScore !== null && isOutlier(d.zScore))
+      .filter(
+        (d): d is DeviationItem & { zScore: number } => d.zScore !== null && isOutlier(d.zScore)
+      )
       .sort((a, b) => Math.abs(b.zScore) - Math.abs(a.zScore));
   }, [deviations]);
 
@@ -173,7 +177,13 @@ export function PriceDeviationAnalysis({
   }, [deviations, outliers]);
 
   // 直方图 Tooltip
-  const HistogramTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: HistogramBin }> }) => {
+  const HistogramTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: Array<{ payload: HistogramBin }>;
+  }) => {
     if (!active || !payload || payload.length === 0) return null;
     const data = payload[0].payload;
     return (
@@ -223,25 +233,33 @@ export function PriceDeviationAnalysis({
       {/* 统计摘要 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white border border-gray-200 p-4">
-          <div className="text-xs text-gray-500 mb-1">{t('crossOracle.deviationAnalysis.maxPositive')}</div>
+          <div className="text-xs text-gray-500 mb-1">
+            {t('crossOracle.deviationAnalysis.maxPositive')}
+          </div>
           <div className="text-lg font-semibold text-success-600">
             +{stats.maxPositiveDeviation.toFixed(3)}%
           </div>
         </div>
         <div className="bg-white border border-gray-200 p-4">
-          <div className="text-xs text-gray-500 mb-1">{t('crossOracle.deviationAnalysis.maxNegative')}</div>
+          <div className="text-xs text-gray-500 mb-1">
+            {t('crossOracle.deviationAnalysis.maxNegative')}
+          </div>
           <div className="text-lg font-semibold text-danger-600">
             {stats.maxNegativeDeviation.toFixed(3)}%
           </div>
         </div>
         <div className="bg-white border border-gray-200 p-4">
-          <div className="text-xs text-gray-500 mb-1">{t('crossOracle.deviationAnalysis.meanAbsolute')}</div>
+          <div className="text-xs text-gray-500 mb-1">
+            {t('crossOracle.deviationAnalysis.meanAbsolute')}
+          </div>
           <div className="text-lg font-semibold text-gray-900">
             {stats.meanAbsoluteDeviation.toFixed(3)}%
           </div>
         </div>
         <div className="bg-white border border-gray-200 p-4">
-          <div className="text-xs text-gray-500 mb-1">{t('crossOracle.deviationAnalysis.outliers')}</div>
+          <div className="text-xs text-gray-500 mb-1">
+            {t('crossOracle.deviationAnalysis.outliers')}
+          </div>
           <div className="text-lg font-semibold text-warning-600">
             {stats.outlierCount} ({stats.outlierPercentage.toFixed(1)}%)
           </div>
@@ -298,10 +316,7 @@ export function PriceDeviationAnalysis({
             <span>
               {t('crossOracle.deviationAnalysis.stdDev')}:{' '}
               <span className="font-medium text-gray-900">
-                {standardDeviation > 0
-                  ? ((standardDeviation / avgPrice) * 100).toFixed(3)
-                  : 0}
-                %
+                {standardDeviation > 0 ? ((standardDeviation / avgPrice) * 100).toFixed(3) : 0}%
               </span>
             </span>
           </div>
@@ -323,7 +338,11 @@ export function PriceDeviationAnalysis({
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={timeSeriesData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="timeLabel" tick={{ fontSize: 10, fill: '#6b7280' }} interval="preserveStartEnd" />
+                <XAxis
+                  dataKey="timeLabel"
+                  tick={{ fontSize: 10, fill: '#6b7280' }}
+                  interval="preserveStartEnd"
+                />
                 <YAxis
                   tick={{ fontSize: 10, fill: '#6b7280' }}
                   tickFormatter={(value) => `${value.toFixed(1)}%`}
@@ -495,7 +514,9 @@ export function PriceDeviationAnalysis({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">{t('crossOracle.deviationAnalysis.deviation')}</span>
+                <span className="text-gray-500">
+                  {t('crossOracle.deviationAnalysis.deviation')}
+                </span>
                 <span
                   className={`font-mono ${
                     selectedOutlier.deviationPercent >= 0 ? 'text-success-600' : 'text-danger-600'
@@ -517,7 +538,9 @@ export function PriceDeviationAnalysis({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">{t('crossOracle.deviationAnalysis.timestamp')}</span>
+                <span className="text-gray-500">
+                  {t('crossOracle.deviationAnalysis.timestamp')}
+                </span>
                 <span className="text-gray-900">
                   {new Date(selectedOutlier.timestamp).toLocaleString()}
                 </span>

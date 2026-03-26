@@ -1,13 +1,16 @@
 'use client';
 
-import { RefObject } from 'react';
+import { type RefObject } from 'react';
+
 import html2canvas from 'html2canvas';
 import { Download, ChevronDown, Table, FileJson, Image as ImageIcon } from 'lucide-react';
-import { ChartType } from '../types';
-import { createLogger } from '@/lib/utils/logger';
+
 import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { exportColors } from '@/lib/config/colors';
+import { createLogger } from '@/lib/utils/logger';
+
+import { type ChartType } from '../types';
 
 const logger = createLogger('ExportSection');
 

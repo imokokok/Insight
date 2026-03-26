@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AnomalyData } from '../types';
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+
 import {
   AlertTriangle,
   Bell,
@@ -15,6 +13,11 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+
+import { useLocale } from '@/i18n';
+import { isChineseLocale } from '@/i18n/routing';
+
+import { type AnomalyData } from '../types';
 
 interface AnomalyAlertProps {
   data: AnomalyData[];

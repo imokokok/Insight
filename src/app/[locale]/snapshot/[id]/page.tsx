@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
+
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
-import Link from 'next/link';
-import { getPublicSnapshot } from '@/lib/snapshots';
-import { OracleSnapshot } from '@/types/oracle';
-import { formatTimestamp } from '@/types/common/timestamps';
-import { OracleProvider } from '@/types/oracle';
-import { providerNames } from '@/lib/constants';
-import { createLogger } from '@/lib/utils/logger';
 import { baseColors, semanticColors } from '@/lib/config/colors';
+import { providerNames } from '@/lib/constants';
+import { getPublicSnapshot } from '@/lib/snapshots';
+import { createLogger } from '@/lib/utils/logger';
+import { formatTimestamp } from '@/types/common/timestamps';
+import { type OracleSnapshot, type OracleProvider } from '@/types/oracle';
 
 const logger = createLogger('snapshot-page');
 

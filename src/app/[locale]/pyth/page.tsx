@@ -1,8 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+
+import { LoadingState, ErrorFallback } from '@/components/oracle';
+import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
-import { usePythPage } from './hooks/usePythPage';
+
+import { type PythTabId } from './types';
+
 import {
   PythSidebar,
   PythMarketView,
@@ -13,8 +18,7 @@ import {
   PythRiskView,
   PythHero,
 } from './components';
-import { LoadingState, ErrorFallback } from '@/components/oracle';
-import { MobileSidebar } from '@/components/ui/MobileSidebar';
+import { usePythPage } from './hooks/usePythPage';
 
 export default function PythPage() {
   const {
@@ -60,38 +64,16 @@ export default function PythPage() {
         );
       case 'network':
         return (
-          <PythNetworkView
-            config={config}
-            networkStats={networkStats}
-            isLoading={isLoading}
-          />
+          <PythNetworkView config={config} networkStats={networkStats} isLoading={isLoading} />
         );
       case 'publishers':
-        return (
-          <PythPublishersView
-            publishers={publishers}
-            isLoading={isLoading}
-          />
-        );
+        return <PythPublishersView publishers={publishers} isLoading={isLoading} />;
       case 'validators':
-        return (
-          <PythValidatorsView
-            validators={validators}
-            isLoading={isLoading}
-          />
-        );
+        return <PythValidatorsView validators={validators} isLoading={isLoading} />;
       case 'price-feeds':
-        return (
-          <PythPriceFeedsView
-            isLoading={isLoading}
-          />
-        );
+        return <PythPriceFeedsView isLoading={isLoading} />;
       case 'risk':
-        return (
-          <PythRiskView
-            isLoading={isLoading}
-          />
-        );
+        return <PythRiskView isLoading={isLoading} />;
       default:
         return null;
     }
@@ -121,7 +103,7 @@ export default function PythPage() {
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
-              <PythSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+              <PythSidebar activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as PythTabId)} />
             </div>
           </div>
 
@@ -132,7 +114,12 @@ export default function PythPage() {
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-gray-700"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
               {t('pyth.menu.title')}
             </button>
@@ -147,16 +134,14 @@ export default function PythPage() {
             <PythSidebar
               activeTab={activeTab}
               onTabChange={(tab) => {
-                setActiveTab(tab);
+                setActiveTab(tab as PythTabId);
                 setIsMobileMenuOpen(false);
               }}
             />
           </MobileSidebar>
 
           {/* Content Area */}
-          <div className="flex-1 min-w-0">
-            {renderContent()}
-          </div>
+          <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>
     </div>
