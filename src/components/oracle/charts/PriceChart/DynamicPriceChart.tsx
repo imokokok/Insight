@@ -6,7 +6,7 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import { Blockchain } from '@/types/oracle';
 import { AdaptiveDownsampleConfig } from '@/utils/downsampling';
 
-interface DynamicPriceChartProps {
+export interface DynamicPriceChartProps {
   client: BaseOracleClient;
   symbol: string;
   chain?: Blockchain;
