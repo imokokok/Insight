@@ -2,7 +2,6 @@ import {
   type OracleProvider,
   type Blockchain,
   type PriceData,
-  type OracleError,
 } from '@/types/oracle';
 
 export interface IOracleClient {
@@ -17,38 +16,4 @@ export interface IOracleClientFactory {
   getAllClients(): Record<OracleProvider, IOracleClient>;
   hasClient(provider: OracleProvider): boolean;
   clearInstances(): void;
-}
-
-export interface IOracleClientConfig {
-  useDatabase?: boolean;
-  fallbackToMock?: boolean;
-}
-
-export interface IMockOracleClient extends IOracleClient {
-  setMockPrice(symbol: string, price: PriceData): void;
-  setMockHistoricalPrices(symbol: string, prices: PriceData[]): void;
-  setMockError(symbol: string, error: OracleError): void;
-  clearMocks(): void;
-  getCallHistory(): MockCallHistory[];
-}
-
-export interface MockCallHistory {
-  method: 'getPrice' | 'getHistoricalPrices';
-  symbol: string;
-  chain?: Blockchain;
-  period?: number;
-  timestamp: number;
-}
-
-export interface IOracleClientBuilder {
-  withConfig(config: IOracleClientConfig): IOracleClientBuilder;
-  withMockData(data: MockDataConfig): IOracleClientBuilder;
-  build(): IOracleClient;
-}
-
-export interface MockDataConfig {
-  prices?: Record<string, PriceData>;
-  historicalPrices?: Record<string, PriceData[]>;
-  errors?: Record<string, OracleError>;
-  latency?: number;
 }

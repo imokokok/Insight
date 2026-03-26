@@ -3,15 +3,6 @@
     "title": "DIA",
     "subtitle": "去中心化信息资产跨链数据预言机",
     "menu": {
-      "marketData": "市场数据",
-      "networkHealth": "网络健康",
-      "dataFeeds": "数据馈送",
-      "nftData": "NFT 数据",
-      "staking": "质押",
-      "ecosystem": "生态系统",
-      "riskAssessment": "风险评估"
-    },
-    "menu": {
       "title": "菜单",
       "marketData": "市场数据",
       "networkHealth": "网络健康",
@@ -36,6 +27,12 @@
       "crossOracle": "跨预言机分析"
     },
     "priceTrend": "价格趋势",
+    "networkStatus": "网络状态",
+    "dataSources": "数据源",
+    "volume24h": "24小时交易量",
+    "liquidity": "流动性",
+    "marketDepth": "市场深度",
+    "depthScore": "深度评分",
     "tradingPair": "主要交易对",
     "quickStats": "快速统计",
     "stats": {
@@ -105,7 +102,7 @@
       "method": "验证方法",
       "validators": "验证节点数"
     },
-    "dataSources": {
+    "dataSourcesManagement": {
       "title": "数据源管理"
     },
     "dataFeeds": {
@@ -213,6 +210,9 @@
       "title": "生态系统",
       "totalProtocols": "总协议数",
       "totalTVL": "总锁仓价值",
+      "stats": {
+        "totalProtocols": "总协议数"
+      },
       "visitWebsite": "访问官网",
       "category": {
         "all": "全部",
@@ -310,6 +310,22 @@
         "pending": "待验证",
         "failed": "验证失败"
       }
+    },
+    "network": {
+      "activeDataSources": "活跃数据源",
+      "dataFeeds": "数据馈送",
+      "responseTime": "响应时间",
+      "nodeUptime": "节点在线率",
+      "totalRequests": "总请求数 (24h)",
+      "avgGas": "平均 Gas 消耗",
+      "activeChains": "活跃链数",
+      "dataProviders": "数据提供者",
+      "hourlyActivity": "每小时活动",
+      "performance": "性能",
+      "successRate": "成功率",
+      "availability": "可用性",
+      "latency": "延迟",
+      "overview": "网络概览"
     }
   }
 }

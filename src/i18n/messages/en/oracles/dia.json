@@ -27,6 +27,12 @@
       "crossOracle": "Cross-Oracle Analysis"
     },
     "priceTrend": "Price Trend",
+    "networkStatus": "Network Status",
+    "dataSources": "Data Sources",
+    "volume24h": "24h Volume",
+    "liquidity": "Liquidity",
+    "marketDepth": "Market Depth",
+    "depthScore": "Depth Score",
     "tradingPair": "Trading Pair",
     "quickStats": "Quick Stats",
     "stats": {
@@ -96,7 +102,7 @@
       "method": "Method",
       "validators": "Validators"
     },
-    "dataSources": {
+    "dataSourcesManagement": {
       "title": "Data Sources Management"
     },
     "dataFeeds": {
@@ -203,6 +209,9 @@
     "ecosystem": {
       "title": "Ecosystem",
       "totalProtocols": "Total Protocols",
+      "stats": {
+        "totalProtocols": "Total Protocols"
+      },
       "visitWebsite": "Visit Website",
       "category": {
         "all": "All",
@@ -300,6 +309,22 @@
         "pending": "Pending",
         "failed": "Failed"
       }
+    },
+    "network": {
+      "activeDataSources": "Active Data Sources",
+      "dataFeeds": "Data Feeds",
+      "responseTime": "Response Time",
+      "nodeUptime": "Node Uptime",
+      "totalRequests": "Total Requests (24h)",
+      "avgGas": "Avg Gas Used",
+      "activeChains": "Active Chains",
+      "dataProviders": "Data Providers",
+      "hourlyActivity": "Hourly Activity",
+      "performance": "Performance",
+      "successRate": "Success Rate",
+      "availability": "Availability",
+      "latency": "Latency",
+      "overview": "Network Overview"
     }
   }
 }

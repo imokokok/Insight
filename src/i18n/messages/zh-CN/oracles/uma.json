@@ -26,8 +26,18 @@
       "marketCap": "市值",
       "volume24h": "24小时交易量",
       "circulatingSupply": "流通供应量",
-      "stakingApr": "质押年化收益率"
+      "stakingApr": "质押年化收益率",
+      "avgResolutionTime": "平均解决时间"
     },
+    "networkStatus": "网络状态",
+    "priceTrend": "价格趋势",
+    "quickStats": "快速统计",
+    "dataSource": "数据源",
+    "tradingPair": "交易对",
+    "volume24h": "24小时交易量",
+    "liquidity": "流动性",
+    "marketDepth": "市场深度",
+    "depthScore": "深度评分",
     "networkHealth": {
       "responseTime": "响应时间",
       "online": "在线",
@@ -87,7 +97,27 @@
       "other": "其他争议"
     },
     "validators": {
-      "type": "类型"
+      "type": "类型",
+      "types": {
+        "institution": "机构验证者",
+        "independent": "独立验证者",
+        "community": "社区验证者"
+      },
+      "totalValidators": "验证者总数",
+      "avgResponseTime": "平均响应时间",
+      "avgSuccessRate": "平均成功率",
+      "totalStaked": "总质押量",
+      "validatorList": "验证者列表",
+      "name": "名称",
+      "staked": "质押量",
+      "successRate": "成功率",
+      "responseTime": "响应时间",
+      "earnings": "收益",
+      "typeDistribution": "类型分布",
+      "overview": "概览",
+      "totalEarnings": "总收益",
+      "avgStaked": "平均质押",
+      "avgEarnings": "平均收益"
     },
     "validatorAnalytics": {
       "totalActiveValidators": "总活跃验证者",
@@ -218,12 +248,22 @@
     "ecosystem": {
       "ooTitle": "Optimistic Oracle",
       "ooDescription": "UMA的Optimistic Oracle (OO) 是一种去中心化的事实验证机制，允许任何人为任何数据提供答案，并通过经济激励确保答案的正确性。",
+      "features": "功能特性",
+      "optimisticOracle": "乐观预言机",
+      "optimisticOracleDesc": "去中心化的事实验证机制",
+      "disputeResolution": "争议解决",
+      "disputeResolutionDesc": "安全高效的争议解决机制",
+      "fastFinality": "快速最终性",
+      "fastFinalityDesc": "快速交易确认和结算",
+      "decentralizedValidators": "去中心化验证者",
+      "decentralizedValidatorsDesc": "分布式验证者网络确保安全",
       "stats": {
         "requests": "累计请求数",
         "protocols": "集成协议",
         "secured": "保障价值"
       },
       "requestDistribution": "请求类型分布",
+      "integrations": "集成项目",
       "useCasesTitle": "Optimistic Oracle 用例",
       "protocolsTitle": "使用UMA的协议",
       "supportedChains": "支持的链",
@@ -377,10 +417,35 @@
       "assessmentSummary": "风险评估摘要",
       "networkHealth": "网络健康度",
       "networkHealthDesc": "网络运行正常，验证者参与度高",
-      "economicSecurityDesc": "通过充足的质押维持经济安全"
+      "economicSecurityDesc": "通过充足的质押维持经济安全",
+      "disputeSuccessRate": "争议成功率",
+      "validatorUptime": "验证者在线率",
+      "activeDisputes": "活跃争议",
+      "decentralization": "去中心化",
+      "decentralizationDesc": "网络验证者分布良好，无单一实体控制过多质押",
+      "disputeResolution": "争议解决",
+      "disputeResolutionRiskDesc": "争议解决机制运行良好，平均解决时间较短",
+      "smartContract": "智能合约",
+      "smartContractDesc": "智能合约经过审计，安全机制完善",
+      "multiLayerValidation": "多层验证",
+      "economicIncentives": "经济激励",
+      "timelyResolution": "及时解决",
+      "transparentProcess": "透明流程",
+      "lowRisk": "低风险",
+      "mediumRisk": "中风险",
+      "highRisk": "高风险",
+      "overallScore": "总体评分",
+      "scoreDescription": "基于多维度指标的综合风险评估",
+      "overview": "风险概览",
+      "factors": "风险因素",
+      "statusLow": "低",
+      "statusMedium": "中",
+      "statusHigh": "高",
+      "mitigation": "风险缓解措施"
     },
     "loading": "加载中...",
     "disputes": {
+      "activeDisputes": "活跃争议",
       "resolvedDisputes": "已解决争议",
       "successRate": "成功率",
       "totalValue": "总价值",
@@ -394,7 +459,11 @@
       "total": "总计",
       "active": "活跃",
       "resolved": "已解决",
-      "resolutionPanel": "争议解决"
+      "resolutionPanel": "争议解决",
+      "resolutionStats": "解决统计",
+      "avgResolutionTime": "平均解决时间",
+      "rejected": "已拒绝",
+      "avgStake": "平均质押金额"
     },
     "pageTitles": {
       "market": "市场数据",

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 import type { AlertEventPayload } from '@/lib/supabase/realtime';
 import { useUser } from '@/stores/authStore';
@@ -30,7 +30,6 @@ export interface UseRealtimeAlertsReturn {
   clearAlerts: () => void;
 }
 
-// Alert notification keys for i18n
 export const alertNotificationKeys = {
   priceAlertTriggered: 'hooks.alerts.priceAlertTriggered',
   priceReached: 'hooks.alerts.priceReached',
@@ -43,6 +42,7 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}): UseRe
   const user = useUser();
   const [alerts, setAlerts] = useState<RealtimeAlertNotification[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const isRequestingPermissionRef = useRef(false);
 
   const handleAlertEvent = useCallback(
     (payload: AlertEventPayload) => {
@@ -70,15 +70,21 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}): UseRe
             body: `${alertNotificationKeys.priceReached} ${notification.price}`,
             icon: '/favicon.ico',
           });
-        } else if (Notification.permission !== 'denied') {
-          Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-              new Notification(alertNotificationKeys.priceAlertTriggered, {
-                body: `${alertNotificationKeys.priceReached} ${notification.price}`,
-                icon: '/favicon.ico',
-              });
-            }
-          });
+        } else if (Notification.permission !== 'denied' && !isRequestingPermissionRef.current) {
+          isRequestingPermissionRef.current = true;
+          Notification.requestPermission()
+            .then((permission) => {
+              isRequestingPermissionRef.current = false;
+              if (permission === 'granted') {
+                new Notification(alertNotificationKeys.priceAlertTriggered, {
+                  body: `${alertNotificationKeys.priceReached} ${notification.price}`,
+                  icon: '/favicon.ico',
+                });
+              }
+            })
+            .catch(() => {
+              isRequestingPermissionRef.current = false;
+            });
         }
       }
 
@@ -122,13 +128,21 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}): UseRe
   };
 }
 
-export function useAlertNotifications(): {
+export function useAlertNotifications(alerts?: RealtimeAlertNotification[]): {
   hasUnreadAlerts: boolean;
   unreadCount: number;
   requestPermission: () => Promise<boolean>;
 } {
-  const [hasUnreadAlerts, _setHasUnreadAlerts] = useState(false);
-  const [unreadCount, _setUnreadCount] = useState(0);
+  const [hasUnreadAlerts, setHasUnreadAlerts] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (alerts) {
+      const unread = alerts.filter((alert) => !alert.acknowledged);
+      setUnreadCount(unread.length);
+      setHasUnreadAlerts(unread.length > 0);
+    }
+  }, [alerts]);
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (typeof window === 'undefined' || !('Notification' in window)) {

@@ -55,11 +55,6 @@ export type { OracleClientConfig, OracleStorageConfig } from './base';
 export type {
   IOracleClient,
   IOracleClientFactory,
-  IMockOracleClient,
-  IOracleClientConfig,
-  MockCallHistory,
-  IOracleClientBuilder,
-  MockDataConfig,
 } from './interfaces';
 export {
   savePriceToDatabase,
