@@ -83,6 +83,7 @@
     "title": "Pyth Network",
     "subtitle": "High-frequency financial data oracle",
     "menu": {
+      "title": "Menu",
       "marketData": "Market Data",
       "publishers": "Publishers",
       "validators": "Validators",
@@ -91,6 +92,9 @@
       "crossChain": "Cross-Chain",
       "crossOracleComparison": "Cross-Oracle Analysis",
       "riskAssessment": "Risk Assessment"
+    },
+    "navigation": {
+      "title": "Navigation"
     },
     "tabs": {
       "stats": "Statistics",
@@ -104,7 +108,12 @@
       "networkUptime": "Network Uptime",
       "volume24h": "24h Volume",
       "marketCap": "Market Cap",
-      "circulatingSupply": "Circulating Supply"
+      "circulatingSupply": "Circulating Supply",
+      "pythPrice": "PYTH Price",
+      "change24h": "24h Change",
+      "dataFeeds": "Data Feeds",
+      "avgResponseTime": "Avg Response Time",
+      "validatorCount": "Validators"
     },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",

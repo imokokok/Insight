@@ -16,6 +16,13 @@
       "risk": "风险"
     },
     "menu": {
+      "title": "API3",
+      "marketData": "市场数据",
+      "networkHealth": "网络健康度",
+      "airnode": "Airnode",
+      "dapi": "dAPI",
+      "ecosystem": "生态系统",
+      "riskAssessment": "风险评估",
       "crossOracleComparison": "跨预言机分析"
     },
     "firstPartyOracle": {

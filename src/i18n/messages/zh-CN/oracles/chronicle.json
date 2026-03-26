@@ -38,7 +38,8 @@
       "networkUptime": "网络可用率",
       "volume24h": "24h 交易量",
       "marketCap": "市值",
-      "circulatingSupply": "流通供应量"
+      "circulatingSupply": "流通供应量",
+      "dataFeeds": "数据喂价"
     },
     "scuttlebutt": {
       "title": "Scuttlebutt 安全协议",
@@ -137,9 +138,11 @@
       "networkHealth": "网络健康",
       "list": "验证者列表",
       "name": "名称",
+      "region": "地区",
       "reputation": "声誉",
       "uptime": "在线率",
       "responseTime": "响应时间",
+      "successRate": "成功率",
       "staked": "质押",
       "status": "状态"
     },

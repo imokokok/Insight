@@ -3,6 +3,7 @@
     "subtitle": "去中心化金融合约的乐观预言机，通过经济担保机制确保数据可靠性",
     "analytics": "UMA 数据分析",
     "menu": {
+      "title": "菜单",
       "marketData": "市场数据",
       "networkHealth": "网络健康度",
       "disputeResolution": "争议解决",
@@ -77,6 +78,9 @@
       "state": "状态争议",
       "liquidation": "清算争议",
       "other": "其他争议"
+    },
+    "validators": {
+      "type": "类型"
     },
     "validatorAnalytics": {
       "totalActiveValidators": "总活跃验证者",
@@ -194,7 +198,15 @@
       "cumulativeEarnings": "累计收益",
       "primaryDataSource": "主要数据源",
       "updateFrequency": "更新频率",
-      "supportedChains": "支持的链"
+      "supportedChains": "支持的链",
+      "requests24h": "24小时请求数",
+      "avgGas": "平均 Gas 消耗",
+      "hourlyActivity": "每小时活动",
+      "performance": "性能",
+      "disputeResolutionTime": "争议解决时间",
+      "validatorEfficiency": "验证者效率",
+      "reliability": "可靠性",
+      "overview": "网络概览"
     },
     "ecosystem": {
       "ooTitle": "Optimistic Oracle",
@@ -277,6 +289,26 @@
       "historyTitle": "质押历史趋势",
       "totalStaked": "总质押量",
       "rewards": "奖励分发",
+      "calculator": "质押计算器",
+      "stakeAmount": "质押数量",
+      "validatorType": "验证者类型",
+      "institution": "机构验证者",
+      "independent": "独立验证者",
+      "community": "社区验证者",
+      "disputeFrequency": "争议频率",
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "dailyReward": "日奖励",
+      "monthlyReward": "月奖励",
+      "yearlyReward": "年奖励",
+      "estimatedApr": "预估 APR",
+      "aprComparison": "APR 对比",
+      "aprNote": "APR 基于历史数据估算，实际收益可能有所不同",
+      "networkStats": "网络统计",
+      "activeValidators": "活跃验证者",
+      "avgStakePerValidator": "平均每验证者质押",
+      "networkApr": "网络 APR",
       "step1Title": "获取UMA代币",
       "step1Desc": "从交易所购买UMA代币并转入您的钱包",
       "step2Title": "选择验证者",
@@ -341,6 +373,12 @@
       "economicSecurityDesc": "通过充足的质押维持经济安全"
     },
     "loading": "加载中...",
+    "disputes": {
+      "resolvedDisputes": "已解决争议",
+      "successRate": "成功率",
+      "totalValue": "总价值",
+      "trend": "争议趋势（7天）"
+    },
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",

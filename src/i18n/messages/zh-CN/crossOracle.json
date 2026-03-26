@@ -263,6 +263,25 @@
     "highFrequency": "高频",
     "standardFrequency": "标准频率"
   },
+  "controlPanel": {
+    "title": "查询配置",
+    "collapse": "收起",
+    "expand": "展开",
+    "symbol": "交易对",
+    "selectSymbol": "选择交易对...",
+    "searchSymbol": "搜索交易对...",
+    "oracles": "预言机",
+    "selectAll": "全选",
+    "deselectAll": "取消全选",
+    "timeRange": "时间范围",
+    "deviationFilter": "偏差筛选",
+    "selectDeviation": "选择偏差范围...",
+    "advancedOptions": "高级选项",
+    "accessibleColors": "色盲友好模式",
+    "loading": "加载中...",
+    "query": "查询",
+    "selectOracleHint": "请至少选择一个预言机"
+  },
   "crossOracleComparison": {
     "title": "多预言机比较分析",
     "subtitle": "全面的多源价格聚合与趋同分析",

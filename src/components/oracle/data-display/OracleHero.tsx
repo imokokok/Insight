@@ -359,19 +359,19 @@ export function OracleHero({
         {/* 头部信息 */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
-            <div 
+            <div
               className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
               style={{ backgroundColor: themeColor }}
             >
               <img
-                src={`/logos/oracles/${config.provider}.svg`}
+                src={`/logos/oracles/${config.provider === 'band-protocol' ? 'band' : config.provider}.svg`}
                 alt={config.name}
                 className="w-8 h-8"
               />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{config.name}</h1>
-              <p className="text-sm text-gray-500">{t(`${config.provider}.subtitle`)}</p>
+              <p className="text-sm text-gray-500">{t(`${config.provider === 'band-protocol' ? 'bandProtocol' : config.provider}.subtitle`)}</p>
             </div>
           </div>
 

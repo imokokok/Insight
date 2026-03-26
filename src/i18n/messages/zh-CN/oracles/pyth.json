@@ -83,6 +83,7 @@
     "title": "Pyth Network",
     "subtitle": "高频金融数据预言机",
     "menu": {
+      "title": "菜单",
       "marketData": "市场数据",
       "publishers": "数据发布方",
       "validators": "验证节点",
@@ -91,6 +92,9 @@
       "crossChain": "跨链",
       "crossOracleComparison": "跨预言机分析",
       "riskAssessment": "风险评估"
+    },
+    "navigation": {
+      "title": "导航"
     },
     "tabs": {
       "stats": "统计",
@@ -104,7 +108,12 @@
       "networkUptime": "网络正常运行时间",
       "volume24h": "24h 成交额",
       "marketCap": "市值",
-      "circulatingSupply": "流通供应量"
+      "circulatingSupply": "流通供应量",
+      "pythPrice": "PYTH 价格",
+      "change24h": "24小时变化",
+      "dataFeeds": "数据馈送",
+      "avgResponseTime": "平均响应时间",
+      "validatorCount": "验证节点数量"
     },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
@@ -156,7 +165,8 @@
       "rewards": "奖励",
       "statusActive": "活跃",
       "statusInactive": "离线",
-      "statusJailed": "监禁"
+      "statusJailed": "监禁",
+      "sortByUptime": "按在线率排序"
     },
     "crossChain": {
       "title": "跨链支持",

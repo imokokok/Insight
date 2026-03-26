@@ -1,4 +1,8 @@
 {
+  "band-protocol": {
+    "title": "Band Protocol",
+    "subtitle": "Cross-chain data oracle platform"
+  },
   "bandProtocol": {
     "title": "Band Protocol Network Metrics",
     "analytics": "Analytics",

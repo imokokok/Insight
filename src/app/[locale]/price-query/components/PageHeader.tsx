@@ -96,7 +96,7 @@ export function PageHeader({
             className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 transition-colors font-medium"
           >
             <Download className="w-4 h-4" />
-            {t('export')}
+            {t('export.export')}
           </button>
         )}
 

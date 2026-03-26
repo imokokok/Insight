@@ -5,6 +5,9 @@
     "analytics": "WINkLink 数据分析",
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
+    "menu": {
+      "title": "菜单"
+    },
     "tabs": {
       "market": "市场数据",
       "network": "网络",

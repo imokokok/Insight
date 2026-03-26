@@ -1,6 +1,19 @@
 {
   "tellor": {
     "title": "Tellor",
+    "menu": {
+      "title": "Menu",
+      "marketData": "Market Data",
+      "networkHealth": "Network Health",
+      "reporters": "Reporters",
+      "disputes": "Disputes",
+      "staking": "Staking",
+      "ecosystem": "Ecosystem",
+      "riskAssessment": "Risk Assessment"
+    },
+    "navigation": {
+      "title": "Navigation"
+    },
     "subtitle": "Decentralized crypto-native oracle for transparency and decentralization",
     "tabs": {
       "market": "Market",
@@ -25,8 +38,18 @@
       "networkUptime": "Network Availability",
       "volume24h": "24h Trading Volume",
       "marketCap": "Market Capitalization",
-      "circulatingSupply": "Circulating Supply"
+      "circulatingSupply": "Circulating Supply",
+      "activeReporters": "Active Reporters",
+      "dataFeeds": "Data Feeds",
+      "responseTime": "Response Time"
     },
+    "successRate": "Success Rate",
+    "networkStatus": "Network Status",
+    "dataSource": "Data Source",
+    "tradingPair": "Trading Pair",
+    "liquidity": "Liquidity",
+    "marketDepth": "Market Depth",
+    "depthScore": "Depth Score",
     "priceStream": {
       "title": "Real-Time Price Stream",
       "currentPrice": "Current Price",
@@ -104,7 +127,15 @@
       "revenueAttribution": "Revenue Attribution",
       "reportingRevenue": "Reporting Revenue",
       "disputeRevenue": "Dispute Revenue",
-      "totalRevenue": "Total Revenue"
+      "totalRevenue": "Total Revenue",
+      "howToBecome": "How to Become a Reporter",
+      "step1": "Stake at least 100 TRB tokens as collateral",
+      "step2": "Run Tellor reporter node software",
+      "step3": "Start submitting data and earn rewards",
+      "rewards": "Reward Structure",
+      "baseReward": "Base Reward",
+      "accuracyBonus": "Accuracy Bonus",
+      "stakeBonus": "Stake Bonus"
     },
     "risk": {
       "overallLevel": "Composite Risk Assessment",
@@ -154,6 +185,7 @@
         "transparencyReports": "Transparency Reporting"
       }
     },
+    "networkStatus": "Network Status",
     "network": {
       "overallHealth": "Overall Network Health",
       "basedOnMetrics": "Based on network performance metrics",
@@ -186,9 +218,25 @@
       "derivatives": "Derivatives",
       "yield": "Yield",
       "insurance": "Insurance",
-      "other": "Other"
+      "other": "Other",
+      "tvlAnalysis": {
+        "title": "TVL Analysis",
+        "totalTvl": "Total TVL",
+        "ethereum": "Ethereum",
+        "l2Networks": "L2 Networks",
+        "filterByChain": "Filter by chain"
+      },
+      "projectAnalysis": {
+        "projectsByChain": "Projects by Chain",
+        "totalProjects": "Total Projects",
+        "thisMonth": "this month"
+      }
     },
     "staking": {
+      "totalStaked": "Total Staked",
+      "stakingApr": "Staking APR",
+      "totalStakers": "Total Stakers",
+      "rewardPool": "Reward Pool",
       "calculator": {
         "title": "Staking Calculator",
         "stakeAmount": "Stake Amount",
@@ -249,7 +297,20 @@
       "votes": "Votes",
       "reward": "Reward",
       "reporterWon": "Reporter Won",
-      "disputerWon": "Disputer Won"
+      "disputerWon": "Disputer Won",
+      "id": "ID",
+      "reason": "Reason",
+      "result": "Result",
+      "time": "Time",
+      "resolvedDisputes": "Resolved Disputes",
+      "pendingDisputes": "Pending Disputes",
+      "howItWorks": "How It Works",
+      "step1Title": "Submit Data",
+      "step1Desc": "Reporter submits price data to the network",
+      "step2Title": "Challenge",
+      "step2Desc": "Any participant can challenge the data",
+      "step3Title": "Vote to Resolve",
+      "step3Desc": "Community votes to determine the outcome"
     }
   }
 }

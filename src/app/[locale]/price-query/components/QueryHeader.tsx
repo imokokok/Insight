@@ -304,7 +304,7 @@ export function QueryHeader({
             aria-haspopup="listbox"
           >
             <Download className="w-4 h-4" aria-hidden="true" />
-            {t('export')}
+            {t('export.export')}
           </button>
 
           {showExportMenu && (

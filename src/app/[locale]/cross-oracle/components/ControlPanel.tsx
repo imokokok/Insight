@@ -129,7 +129,7 @@ export function ControlPanel({
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
           <Filter className="w-4 h-4 text-gray-500" aria-hidden="true" />
-          {t('crossOracle.controlPanel.title') || 'Query Configuration'}
+          {t('controlPanel.title') || 'Query Configuration'}
         </h2>
 
         {/* 移动端展开/收起按钮 */}
@@ -141,12 +141,12 @@ export function ControlPanel({
           {isMobileExpanded ? (
             <>
               <ChevronUp className="w-4 h-4" />
-              {t('crossOracle.controlPanel.collapse') || 'Collapse'}
+              {t('controlPanel.collapse') || 'Collapse'}
             </>
           ) : (
             <>
               <ChevronDown className="w-4 h-4" />
-              {t('crossOracle.controlPanel.expand') || 'Expand'}
+              {t('controlPanel.expand') || 'Expand'}
             </>
           )}
         </button>
@@ -175,15 +175,15 @@ export function ControlPanel({
         {/* 资产选择 */}
         <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
           <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">
-            {t('crossOracle.controlPanel.symbol') || 'Trading Pair'}
+            {t('controlPanel.symbol') || 'Trading Pair'}
           </label>
           <DropdownSelect
             options={symbolOptions}
             value={selectedSymbol}
             onChange={(value) => onSymbolChange(value as string)}
-            placeholder={t('crossOracle.controlPanel.selectSymbol') || 'Select symbol...'}
+            placeholder={t('controlPanel.selectSymbol') || 'Select symbol...'}
             searchable
-            searchPlaceholder={t('crossOracle.controlPanel.searchSymbol') || 'Search symbol...'}
+            searchPlaceholder={t('controlPanel.searchSymbol') || 'Search symbol...'}
             className="w-full"
           />
         </section>
@@ -194,10 +194,10 @@ export function ControlPanel({
             options={oracleOptions}
             value={selectedOracles}
             onChange={(values) => handleOracleChange(values as OracleProvider[])}
-            label={t('crossOracle.controlPanel.oracles') || 'Oracles'}
+            label={t('controlPanel.oracles') || 'Oracles'}
             showSelectAll
-            selectAllLabel={t('crossOracle.controlPanel.selectAll') || 'Select All'}
-            deselectAllLabel={t('crossOracle.controlPanel.deselectAll') || 'Deselect All'}
+            selectAllLabel={t('controlPanel.selectAll') || 'Select All'}
+            deselectAllLabel={t('controlPanel.deselectAll') || 'Deselect All'}
           />
         </section>
 
@@ -207,7 +207,7 @@ export function ControlPanel({
             options={timeRangeOptions}
             value={timeRange}
             onChange={(value) => onTimeRangeChange(value as TimeRange)}
-            label={t('crossOracle.controlPanel.timeRange') || 'Time Range'}
+            label={t('controlPanel.timeRange') || 'Time Range'}
             size="sm"
           />
         </section>
@@ -215,13 +215,13 @@ export function ControlPanel({
         {/* 偏差筛选 */}
         <section className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
           <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">
-            {t('crossOracle.controlPanel.deviationFilter') || 'Deviation Filter'}
+            {t('controlPanel.deviationFilter') || 'Deviation Filter'}
           </label>
           <DropdownSelect
             options={deviationFilterOptions}
             value={deviationFilter}
             onChange={(value) => onDeviationFilterChange(value as DeviationFilter)}
-            placeholder={t('crossOracle.controlPanel.selectDeviation') || 'Select deviation range...'}
+            placeholder={t('controlPanel.selectDeviation') || 'Select deviation range...'}
             className="w-full"
           />
         </section>
@@ -234,7 +234,7 @@ export function ControlPanel({
             aria-expanded={showAdvanced}
           >
             <span className="text-[11px] font-semibold uppercase tracking-wider">
-              {t('crossOracle.controlPanel.advancedOptions') || 'Advanced Options'}
+              {t('controlPanel.advancedOptions') || 'Advanced Options'}
             </span>
             {showAdvanced ? (
               <ChevronUp className="w-4 h-4" aria-hidden="true" />
@@ -256,7 +256,7 @@ export function ControlPanel({
                 <div className="flex items-center gap-2">
                   <Eye className="w-4 h-4 text-gray-500" />
                   <span className="text-xs font-medium text-gray-700">
-                    {t('crossOracle.controlPanel.accessibleColors') || 'Color Blind Friendly Mode'}
+                    {t('controlPanel.accessibleColors') || 'Color Blind Friendly Mode'}
                   </span>
                 </div>
               </label>
@@ -277,19 +277,19 @@ export function ControlPanel({
                   className="w-4 h-4 border-2 border-white border-t-transparent animate-spin"
                   aria-hidden="true"
                 />
-                {t('crossOracle.controlPanel.loading') || 'Loading...'}
+                {t('controlPanel.loading') || 'Loading...'}
               </>
             ) : (
               <>
                 <Search className="w-4 h-4" aria-hidden="true" />
-                {t('crossOracle.controlPanel.query') || 'Query'}
+                {t('controlPanel.query') || 'Query'}
               </>
             )}
           </button>
 
           {selectedOracles.length === 0 && (
             <p className="mt-2 text-xs text-center text-gray-500">
-              {t('crossOracle.controlPanel.selectOracleHint') || 'Please select at least one oracle'}
+              {t('controlPanel.selectOracleHint') || 'Please select at least one oracle'}
             </p>
           )}
         </div>

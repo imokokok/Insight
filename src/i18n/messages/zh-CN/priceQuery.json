@@ -1,4 +1,7 @@
 {
+  "filter": "筛选",
+  "clear": "清除",
+  "clearFilter": "清除筛选",
   "priceQuery": {
     "title": "价格查询",
     "description": "查询多个预言机和区块链的实时价格数据",
@@ -249,6 +252,14 @@
       "title": "价格查询结果",
       "count": "{count} 条结果",
       "empty": "请选择预言机和区块链进行查询",
+      "filterPlaceholder": "筛选结果...",
+      "oracle": "预言机",
+      "blockchain": "区块链",
+      "price": "价格",
+      "deviation": "偏离度",
+      "timestamp": "时间戳",
+      "noMatchingData": "没有匹配的数据",
+      "showing": "显示 {filtered} / {total} 条结果",
       "table": {
         "oracle": "预言机",
         "blockchain": "区块链",

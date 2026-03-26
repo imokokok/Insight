@@ -1,5 +1,19 @@
 {
   "marketOverview": {
+    "asset": "资产",
+    "price": "价格",
+    "change24h": "24小时涨跌",
+    "change7d": "7天涨跌",
+    "volume24h": "24小时交易量",
+    "primaryOracle": "主要预言机",
+    "topAssets": "热门资产",
+    "assetsCount": "个资产",
+    "timeRange": "时间范围",
+    "updatedAt": "更新于",
+    "dataUpdated": "数据已更新",
+    "oracleMarketShare": "预言机市场份额",
+    "totalMarketShare": "总市场份额",
+    "coveringOracles": "覆盖 {count} 个主要预言机",
     "stats": {
       "totalTVS": "总 TVS",
       "totalChains": "支持链数",

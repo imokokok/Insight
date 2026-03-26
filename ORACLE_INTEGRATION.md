@@ -661,6 +661,11 @@ enum OracleProvider {
   UMA = 'uma',
   PYTH = 'pyth',
   API3 = 'api3',
+  REDSTONE = 'redstone',
+  DIA = 'dia',
+  TELLOR = 'tellor',
+  CHRONICLE = 'chronicle',
+  WINKLINK = 'winklink',
 }
 ```
 
@@ -1215,12 +1220,17 @@ src/lib/oracles/
 ├── colors.ts             # Oracle color configurations
 └── utils.ts              # Utility functions
 
-src/lib/types/
-├── oracle.ts             # Core oracle types
-└── oracleTypes.ts        # Extended oracle types
+src/types/oracle/           # Oracle types
+├── index.ts                # Core oracle types
+├── enums.ts                # Oracle enums
+├── price.ts                # Price types
+├── config.ts               # Configuration types
+└── ...
 
-src/lib/config/
-└── oracles.tsx           # Oracle configurations
+src/lib/config/             # Configuration
+├── colors.ts               # Color configurations
+├── env.ts                  # Environment variables
+└── basePrices.ts           # Base price configurations
 ```
 
 ---
