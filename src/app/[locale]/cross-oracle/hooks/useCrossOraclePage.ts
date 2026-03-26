@@ -13,7 +13,7 @@ import { useUser } from '@/stores/authStore';
 import type { PriceData, SnapshotStats } from '@/types/oracle';
 import { OracleProvider, saveSnapshot } from '@/types/oracle';
 
-import { type TimeRange, type DeviationFilter } from '../constants';
+import { type TimeRange, type DeviationFilter, symbols } from '../constants';
 
 import { useChartConfig } from './useChartConfig';
 import { useExport } from './useExport';
@@ -431,6 +431,14 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     getLineStrokeDasharray,
     getOracleLatencyData,
     fetchPriceData,
+
+    // 兼容属性
+    symbols,
+    scrollToOutlier: () => {},
+    onQuery: fetchPriceData,
+    onSymbolChange: setSelectedSymbol,
+    onDeviationFilterChange: filterSort.setDeviationFilter,
+    onAccessibleColorsChange: setUseAccessibleColors,
   };
 }
 

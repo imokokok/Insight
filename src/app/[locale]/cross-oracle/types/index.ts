@@ -17,7 +17,7 @@ import type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../c
 export type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../constants';
 
 // TabId 类型定义（避免循环依赖）
-export type TabId = 'overview' | 'charts' | 'advanced' | 'snapshots' | 'performance';
+export type TabId = 'overview' | 'analysis' | 'chains' | 'history';
 
 // ============================================================================
 // 基础类型定义

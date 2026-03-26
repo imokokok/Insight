@@ -13,8 +13,7 @@ import {
   FullscreenChart,
   StatsSection,
 } from './components';
-import { useTabNavigation } from './hooks/useTabNavigation';
-import { useCrossOraclePage } from './useCrossOraclePage';
+import { useTabNavigation, useCrossOraclePage } from './hooks';
 
 import type { TabId } from './components/TabNavigation';
 
