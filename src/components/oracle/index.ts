@@ -3,7 +3,6 @@ export * from './panels';
 export * from './forms';
 export * from './indicators';
 
-// Data display components
 export {
   DashboardCard,
   StatCard,
@@ -11,21 +10,15 @@ export {
   StatGrid,
   StatGridItem,
   PageHeader,
-  OracleHero,
-  type OracleHeroProps,
-  type OracleHeroStatItem as HeroStatItem,
   ConfidenceScore,
   ConfidenceIntervalDisplay,
   DataQualityIndicator,
   DataQualityScoreCard,
   UMADataQualityScoreCard,
   UMAScoreExplanationModal,
-  CoveragePoolTimeline,
-  FirstPartyOracleAdvantages,
   IntegratedProtocols,
   DataSourceCoverage,
   DataSourceCredibility,
-  DataSourceTraceability,
   PublisherList,
   PublisherReliabilityScore,
   OraclePerformanceRanking,
@@ -34,7 +27,6 @@ export {
   PriceAccuracyStats,
   ExtremeMarketAnalysis,
   StakingCalculator,
-  GasFeeComparison,
   DisputeAmountDistribution,
   DisputeEfficiencyAnalysis,
   RequestTypeDistribution,
@@ -44,7 +36,6 @@ export {
   SnapshotComparison,
 } from './data-display';
 
-// Alert components
 export {
   AnomalyAlert,
   AnomalyMarker,
@@ -57,7 +48,6 @@ export {
   BandCrossChainPriceConsistency,
 } from './alerts';
 
-// Shared components
 export {
   OraclePageTemplate,
   TabNavigation,
@@ -69,7 +59,6 @@ export {
   ErrorFallback,
 } from './shared';
 
-// Unified Sidebar components
 export {
   UnifiedSidebar,
   MobileMenuButton,
@@ -78,5 +67,4 @@ export {
   type MobileMenuButtonProps,
 } from './UnifiedSidebar';
 
-// Oracle panels
 export * from './oracle-panels';

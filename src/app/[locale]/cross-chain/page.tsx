@@ -19,7 +19,6 @@ import {
 import { FavoriteButton } from '@/components/favorites';
 import {
   EmptyStateEnhanced,
-  ErrorDisplay,
   ProgressBar as LoadingProgressBar,
   DataLoadingProgress,
   LiveStatusBar,
