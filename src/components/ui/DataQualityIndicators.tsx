@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 
 import { Clock, CheckCircle, Shield, AlertTriangle, Info } from 'lucide-react';
 
+import { useTranslations } from '@/i18n';
 import { semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 
@@ -172,16 +173,16 @@ function calculateReliabilityScore(
 }
 
 /**
- * 格式化时间差
+ * 格式化时间差 - 使用翻译函数
  */
-function formatTimeAgo(date: Date): string {
+function formatTimeAgo(date: Date, t: (key: string, params?: Record<string, string | number>) => string): string {
   const now = new Date();
   const diffSeconds = Math.max(0, Math.floor((now.getTime() - new Date(date).getTime()) / 1000));
 
-  if (diffSeconds < 60) return `${diffSeconds}秒前`;
-  if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)}分钟前`;
-  if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)}小时前`;
-  return `${Math.floor(diffSeconds / 86400)}天前`;
+  if (diffSeconds < 60) return t('dataQuality.secondsAgo', { seconds: diffSeconds });
+  if (diffSeconds < 3600) return t('dataQuality.minutesAgo', { minutes: Math.floor(diffSeconds / 60) });
+  if (diffSeconds < 86400) return t('dataQuality.hoursAgo', { hours: Math.floor(diffSeconds / 3600) });
+  return t('dataQuality.daysAgo', { days: Math.floor(diffSeconds / 86400) });
 }
 
 // ============================================
@@ -205,7 +206,8 @@ function CircularProgress({
   strokeWidth = 6,
   className,
   showValue = true,
-}: CircularProgressProps) {
+  t,
+}: CircularProgressProps & { t: (key: string, params?: Record<string, string | number>) => string }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(100, Math.max(0, value));
@@ -248,7 +250,7 @@ function CircularProgress({
       {showValue && (
         <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
           <span className={cn('font-bold', fontSize, colors.text)}>{value}</span>
-          {valueStr.length < 3 && <span className="text-[8px] text-gray-400 mt-0.5">分</span>}
+          {valueStr.length < 3 && <span className="text-[8px] text-gray-400 mt-0.5">{t('dataQuality.score')}</span>}
         </div>
       )}
     </div>
@@ -379,7 +381,7 @@ interface ScoreCardProps {
   compact?: boolean;
 }
 
-function ScoreCard({ title, score, icon, description, details, compact }: ScoreCardProps) {
+function ScoreCard({ title, score, icon, description, details, compact, t }: ScoreCardProps & { t: (key: string, params?: Record<string, string | number>) => string }) {
   const level = getQualityLevel(score);
   const colors = getQualityColorConfig(level);
 
@@ -453,7 +455,7 @@ function ScoreCard({ title, score, icon, description, details, compact }: ScoreC
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-              <p className={cn('text-2xl font-bold mt-0.5', colors.text)}>{score}分</p>
+              <p className={cn('text-2xl font-bold mt-0.5', colors.text)}>{score}{t('dataQuality.score')}</p>
             </div>
           </div>
           <div
@@ -464,7 +466,7 @@ function ScoreCard({ title, score, icon, description, details, compact }: ScoreC
               colors.text
             )}
           >
-            {level === 'excellent' ? '优秀' : level === 'good' ? '良好' : '需改进'}
+            {level === 'excellent' ? t('dataQuality.excellent') : level === 'good' ? t('dataQuality.good') : t('dataQuality.critical')}
           </div>
         </div>
       </div>
@@ -480,7 +482,7 @@ interface QualityDashboardProps {
   compact?: boolean;
 }
 
-function QualityDashboard({ scores, compact }: QualityDashboardProps) {
+function QualityDashboard({ scores, compact, t }: QualityDashboardProps & { t: (key: string, params?: Record<string, string | number>) => string }) {
   const level = getQualityLevel(scores.overall);
   const colors = getQualityColorConfig(level);
 
@@ -489,11 +491,11 @@ function QualityDashboard({ scores, compact }: QualityDashboardProps) {
       <Tooltip
         content={
           <div className="space-y-2">
-            <p className="font-medium">综合质量评分</p>
+            <p className="font-medium">{t('dataQuality.overallScore')}</p>
             <div className="space-y-1 text-sm text-gray-300">
-              <p>新鲜度: {scores.freshness}分</p>
-              <p>完整度: {scores.completeness}分</p>
-              <p>可靠性: {scores.reliability}分</p>
+              <p>{t('dataQuality.freshness')}: {scores.freshness}{t('dataQuality.score')}</p>
+              <p>{t('dataQuality.completeness')}: {scores.completeness}{t('dataQuality.score')}</p>
+              <p>{t('dataQuality.reliability')}: {scores.reliability}{t('dataQuality.score')}</p>
             </div>
           </div>
         }
@@ -508,15 +510,15 @@ function QualityDashboard({ scores, compact }: QualityDashboardProps) {
             'hover:shadow-md cursor-pointer transition-all duration-200'
           )}
         >
-          <CircularProgress value={scores.overall} size={44} strokeWidth={4} showValue={true} />
+          <CircularProgress value={scores.overall} size={44} strokeWidth={4} showValue={true} t={t} />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-gray-600 dark:text-gray-300">综合评分</p>
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-300">{t('dataQuality.overallScore')}</p>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className={cn('text-sm font-bold', colors.text)}>
-                {level === 'excellent' ? '优秀' : level === 'good' ? '良好' : '需改进'}
+                {level === 'excellent' ? t('dataQuality.excellent') : level === 'good' ? t('dataQuality.good') : t('dataQuality.critical')}
               </span>
               <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                {scores.overall}分
+                {scores.overall}{t('dataQuality.score')}
               </span>
             </div>
             {/* 迷你三维度进度条 */}
@@ -583,7 +585,7 @@ function QualityDashboard({ scores, compact }: QualityDashboardProps) {
 
       <div className="relative flex items-center gap-6">
         <div className="relative">
-          <CircularProgress value={scores.overall} size={100} strokeWidth={8} />
+          <CircularProgress value={scores.overall} size={100} strokeWidth={8} t={t} />
           <div
             className={cn(
               'absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center',
@@ -602,20 +604,20 @@ function QualityDashboard({ scores, compact }: QualityDashboardProps) {
         </div>
 
         <div className="flex-1">
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">数据质量评估</h4>
-          <p className={cn('text-3xl font-bold mt-1', colors.text)}>{scores.overall}分</p>
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('dataQuality.qualityAssessment')}</h4>
+          <p className={cn('text-3xl font-bold mt-1', colors.text)}>{scores.overall}{t('dataQuality.score')}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {level === 'excellent'
-              ? '数据质量优秀，可以放心使用'
+              ? t('dataQuality.qualityExcellent')
               : level === 'good'
-                ? '数据质量良好，建议关注细节'
-                : '数据质量需要改进，请检查数据源'}
+                ? t('dataQuality.qualityGood')
+                : t('dataQuality.qualityPoor')}
           </p>
 
           {/* 各维度进度条 */}
           <div className="mt-4 space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 w-12">新鲜度</span>
+              <span className="text-xs text-gray-500 w-12">{t('dataQuality.freshness')}</span>
               <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className={cn('h-full rounded-full transition-all duration-500', colors.bg)}
@@ -625,7 +627,7 @@ function QualityDashboard({ scores, compact }: QualityDashboardProps) {
               <span className="text-xs font-medium text-gray-600 w-8">{scores.freshness}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 w-12">完整度</span>
+              <span className="text-xs text-gray-500 w-12">{t('dataQuality.completeness')}</span>
               <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className={cn('h-full rounded-full transition-all duration-500', colors.bg)}
@@ -635,7 +637,7 @@ function QualityDashboard({ scores, compact }: QualityDashboardProps) {
               <span className="text-xs font-medium text-gray-600 w-8">{scores.completeness}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 w-12">可靠性</span>
+              <span className="text-xs text-gray-500 w-12">{t('dataQuality.reliability')}</span>
               <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className={cn('h-full rounded-full transition-all duration-500', colors.bg)}
@@ -662,6 +664,8 @@ export function DataQualityIndicators({
   compact = false,
   className,
 }: DataQualityIndicatorsProps) {
+  const t = useTranslations();
+
   // 计算各维度评分
   const scores: QualityScore = useMemo(() => {
     const freshnessScore = freshness.score ?? calculateFreshnessScore(freshness.lastUpdated);
@@ -691,60 +695,60 @@ export function DataQualityIndicators({
     return (
       <div className={cn('grid grid-cols-2 lg:grid-cols-4 gap-2', className)}>
         <CompactScoreCard
-          title="新鲜度"
+          title={t('dataQuality.freshness')}
           score={scores.freshness}
           icon={<Clock className="w-4 h-4" />}
-          description="基于数据最后更新时间计算，反映数据的实时性"
+          description={t('dataQuality.freshnessTrendDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>最后更新: {formatTimeAgo(freshness.lastUpdated)}</p>
-              <p>更新时间: {new Date(freshness.lastUpdated).toLocaleString('zh-CN')}</p>
-              <p className="text-gray-400 mt-1">评分: {scores.freshness}分</p>
+              <p>{t('dataQuality.lastUpdated')}: {formatTimeAgo(freshness.lastUpdated, t)}</p>
+              <p>{t('dataQuality.updatedAt')}: {new Date(freshness.lastUpdated).toLocaleString()}</p>
+              <p className="text-gray-400 mt-1">{t('dataQuality.score')}: {scores.freshness}{t('dataQuality.score')}</p>
             </div>
           }
-          primaryMetric={{ label: '', value: formatTimeAgo(freshness.lastUpdated) }}
-          secondaryMetric={{ label: '更新于', value: '' }}
+          primaryMetric={{ label: '', value: formatTimeAgo(freshness.lastUpdated, t) }}
+          secondaryMetric={{ label: t('dataQuality.updatedAt'), value: '' }}
           trend="stable"
         />
         <CompactScoreCard
-          title="完整度"
+          title={t('dataQuality.completeness')}
           score={scores.completeness}
           icon={<CheckCircle className="w-4 h-4" />}
-          description="基于数据请求成功率计算，反映数据的完整性"
+          description={t('dataQuality.completenessDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>成功请求: {completeness.successCount.toLocaleString()}</p>
-              <p>总请求数: {completeness.totalCount.toLocaleString()}</p>
-              <p>成功率: {completenessRate}%</p>
+              <p>{t('dataQuality.success')}: {completeness.successCount.toLocaleString()}</p>
+              <p>{t('dataQuality.total')}: {completeness.totalCount.toLocaleString()}</p>
+              <p>{t('dataQuality.successRate')}: {completenessRate}%</p>
             </div>
           }
           primaryMetric={{ label: '', value: `${completenessRate}%` }}
           secondaryMetric={{
-            label: '成功',
+            label: t('dataQuality.success'),
             value: `${completeness.successCount}/${completeness.totalCount}`,
           }}
           trend={scores.completeness >= 95 ? 'up' : scores.completeness >= 80 ? 'stable' : 'down'}
         />
         <CompactScoreCard
-          title="可靠性"
+          title={t('dataQuality.reliability')}
           score={scores.reliability}
           icon={<Shield className="w-4 h-4" />}
-          description="基于历史准确率和响应成功率综合计算"
+          description={t('dataQuality.reliabilityDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>历史准确率: {reliability.historicalAccuracy.toFixed(1)}%</p>
-              <p>响应成功率: {reliability.responseSuccessRate.toFixed(1)}%</p>
-              <p className="text-gray-400 mt-1">权重: 历史60% + 响应40%</p>
+              <p>{t('dataQuality.historicalAccuracy')}: {reliability.historicalAccuracy.toFixed(1)}%</p>
+              <p>{t('dataQuality.responseSuccessRate')}: {reliability.responseSuccessRate.toFixed(1)}%</p>
+              <p className="text-gray-400 mt-1">{t('dataQuality.weight')}: {t('dataQuality.weightDescription')}</p>
             </div>
           }
           primaryMetric={{ label: '', value: `${reliability.historicalAccuracy.toFixed(1)}%` }}
           secondaryMetric={{
-            label: '响应',
+            label: t('dataQuality.responseSuccessRate'),
             value: `${reliability.responseSuccessRate.toFixed(0)}%`,
           }}
           trend={scores.reliability >= 90 ? 'up' : scores.reliability >= 70 ? 'stable' : 'down'}
         />
-        <QualityDashboard scores={scores} compact />
+        <QualityDashboard scores={scores} compact t={t} />
       </div>
     );
   }
@@ -752,36 +756,37 @@ export function DataQualityIndicators({
   return (
     <div className={cn('space-y-4', className)}>
       {/* 综合仪表盘 */}
-      <QualityDashboard scores={scores} />
+      <QualityDashboard scores={scores} t={t} />
 
       {/* 各维度评分卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <ScoreCard
-          title="新鲜度"
+          title={t('dataQuality.freshness')}
           score={scores.freshness}
           icon={<Clock className="w-5 h-5" />}
-          description="基于数据最后更新时间计算，反映数据的实时性"
+          description={t('dataQuality.freshnessTrendDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>最后更新: {formatTimeAgo(freshness.lastUpdated)}</p>
-              <p>更新时间: {new Date(freshness.lastUpdated).toLocaleString('zh-CN')}</p>
+              <p>{t('dataQuality.lastUpdated')}: {formatTimeAgo(freshness.lastUpdated, t)}</p>
+              <p>{t('dataQuality.updatedAt')}: {new Date(freshness.lastUpdated).toLocaleString()}</p>
               <p className="text-gray-400 mt-2">
-                评分规则: 1分钟内100分，5分钟内70-100分，10分钟内50-70分
+                {t('dataQuality.scoringRules')}
               </p>
             </div>
           }
+          t={t}
         />
         <ScoreCard
-          title="完整度"
+          title={t('dataQuality.completeness')}
           score={scores.completeness}
           icon={<CheckCircle className="w-5 h-5" />}
-          description="基于数据请求成功率计算，反映数据的完整性"
+          description={t('dataQuality.completenessDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>成功请求: {completeness.successCount.toLocaleString()}</p>
-              <p>总请求数: {completeness.totalCount.toLocaleString()}</p>
+              <p>{t('dataQuality.success')}: {completeness.successCount.toLocaleString()}</p>
+              <p>{t('dataQuality.total')}: {completeness.totalCount.toLocaleString()}</p>
               <p>
-                成功率:{' '}
+                {t('dataQuality.successRate')}:{' '}
                 {completeness.totalCount > 0
                   ? ((completeness.successCount / completeness.totalCount) * 100).toFixed(2)
                   : 0}
@@ -789,19 +794,21 @@ export function DataQualityIndicators({
               </p>
             </div>
           }
+          t={t}
         />
         <ScoreCard
-          title="可靠性"
+          title={t('dataQuality.reliability')}
           score={scores.reliability}
           icon={<Shield className="w-5 h-5" />}
-          description="基于历史准确率和响应成功率综合计算"
+          description={t('dataQuality.reliabilityDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>历史准确率: {reliability.historicalAccuracy.toFixed(1)}%</p>
-              <p>响应成功率: {reliability.responseSuccessRate.toFixed(1)}%</p>
-              <p className="text-gray-400 mt-2">权重: 历史准确率60% + 响应成功率40%</p>
+              <p>{t('dataQuality.historicalAccuracy')}: {reliability.historicalAccuracy.toFixed(1)}%</p>
+              <p>{t('dataQuality.responseSuccessRate')}: {reliability.responseSuccessRate.toFixed(1)}%</p>
+              <p className="text-gray-400 mt-2">{t('dataQuality.weight')}: {t('dataQuality.weightDescription')}</p>
             </div>
           }
+          t={t}
         />
       </div>
     </div>

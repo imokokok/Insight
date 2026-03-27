@@ -179,6 +179,30 @@ function saveSettings(settings: IndicatorSettings): void {
   }
 }
 
+function getInitialSettings(isMobile: boolean, persistSettings: boolean): IndicatorSettings {
+  const defaultSettings = isMobile ? MOBILE_DEFAULT_SETTINGS : DEFAULT_SETTINGS;
+  if (!persistSettings) return defaultSettings;
+
+  const saved = loadSettings();
+  if (!saved) return defaultSettings;
+
+  if (isMobile) {
+    return {
+      ...MOBILE_DEFAULT_SETTINGS,
+      ...saved,
+      showMA14: false,
+      showMA30: false,
+      showMA60: false,
+      showMA20: false,
+      showBollingerBands: false,
+      showRSI: false,
+      showMACD: false,
+      showVolume: false,
+    };
+  }
+  return { ...defaultSettings, ...saved };
+}
+
 export interface UseTechnicalIndicatorsOptions {
   isMobile?: boolean;
   persistSettings?: boolean;
@@ -219,56 +243,23 @@ export function useTechnicalIndicators(
 ): UseTechnicalIndicatorsReturn {
   const { isMobile = false, persistSettings = true, onSettingsChange } = options;
 
-  const [settings, setSettings] = useState<IndicatorSettings>(
-    isMobile ? MOBILE_DEFAULT_SETTINGS : DEFAULT_SETTINGS
+  const [settings, setSettings] = useState<IndicatorSettings>(() =>
+    getInitialSettings(isMobile, persistSettings)
   );
   const [isLoaded, setIsLoaded] = useState(false);
   const prevMobileRef = useRef(isMobile);
 
   useEffect(() => {
-    if (persistSettings) {
-      const saved = loadSettings();
-      if (saved) {
-        if (isMobile) {
-          setSettings({
-            ...MOBILE_DEFAULT_SETTINGS,
-            ...saved,
-            showMA14: false,
-            showMA30: false,
-            showMA60: false,
-            showMA20: false,
-            showBollingerBands: false,
-            showRSI: false,
-            showMACD: false,
-            showVolume: false,
-          });
-        } else {
-          setSettings((prev) => ({ ...prev, ...saved }));
-        }
-      }
-    }
     setIsLoaded(true);
-  }, [persistSettings, isMobile]);
+  }, []);
 
   useEffect(() => {
     if (prevMobileRef.current !== isMobile) {
       prevMobileRef.current = isMobile;
-      if (isMobile) {
-        setSettings((prev) => ({
-          ...prev,
-          showMA7: true,
-          showMA14: false,
-          showMA30: false,
-          showMA60: false,
-          showMA20: false,
-          showBollingerBands: false,
-          showRSI: false,
-          showMACD: false,
-          showVolume: false,
-        }));
-      }
+      const newSettings = getInitialSettings(isMobile, persistSettings);
+      setSettings(newSettings);
     }
-  }, [isMobile]);
+  }, [isMobile, persistSettings]);
 
   const updateSettings = useCallback(
     (updates: Partial<IndicatorSettings>) => {

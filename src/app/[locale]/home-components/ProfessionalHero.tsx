@@ -224,10 +224,10 @@ export default function ProfessionalHero() {
   const getTypeLabel = (dropdownItem: (typeof dropdownItems)[0]) => {
     const searchableItem = 'score' in dropdownItem.item ? dropdownItem.item.item : null;
 
-    if (dropdownItem.type === 'popular') return '热门';
-    if (searchableItem?.type === 'token') return '代币';
-    if (searchableItem?.type === 'oracle') return '预言机';
-    if (searchableItem?.type === 'chain') return '区块链';
+    if (dropdownItem.type === 'popular') return t('home.hero.popular');
+    if (searchableItem?.type === 'token') return t('home.hero.token');
+    if (searchableItem?.type === 'oracle') return t('home.hero.oracle');
+    if (searchableItem?.type === 'chain') return t('home.hero.blockchain');
     return null;
   };
 
@@ -348,14 +348,14 @@ export default function ProfessionalHero() {
                     <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <Clock className="w-3 h-3" />
-                        <span>最近搜索</span>
+                        <span>{t('home.hero.recentSearch')}</span>
                       </div>
                       <button
                         type="button"
                         onClick={handleClearHistory}
                         className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
                       >
-                        清除
+                        {t('home.hero.clear')}
                       </button>
                     </div>
                   )}
@@ -422,7 +422,7 @@ export default function ProfessionalHero() {
                                   }
                                 }}
                                 className="p-1 text-gray-300 hover:text-red-500 transition-colors"
-                                title="删除此记录"
+                                title={t('home.hero.deleteRecord')}
                               >
                                 <X className="w-3.5 h-3.5" />
                               </button>
@@ -435,8 +435,8 @@ export default function ProfessionalHero() {
                   </div>
 
                   <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
-                    <span>使用 ↑↓ 选择，↵ 确认</span>
-                    <span>ESC 关闭</span>
+                    <span>{t('home.hero.keyboardHint')}</span>
+                    <span>{t('home.hero.escClose')}</span>
                   </div>
                 </div>
               )}
@@ -446,7 +446,7 @@ export default function ProfessionalHero() {
           {/* Popular Tokens - Horizontal Scroll */}
           <div className="max-w-xl mx-auto">
             <div className="flex items-center justify-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              <span className="text-xs text-gray-400 flex-shrink-0">热门:</span>
+              <span className="text-xs text-gray-400 flex-shrink-0">{t('home.hero.popular')}:</span>
               {POPULAR_TOKENS.map((token) => (
                 <button
                   key={token}

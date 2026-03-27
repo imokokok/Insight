@@ -31,8 +31,7 @@ import {
 } from 'recharts';
 
 import { ChartSkeleton } from '@/components/ui';
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { type TooltipProps, type CustomLabelProps } from '@/types/ui/recharts';
 
@@ -52,6 +51,19 @@ const COLORS = {
   others: chartColors.oracle.redstone,
 };
 
+const oracleLineConfig = [
+  { dataKey: 'chainlink', name: 'Chainlink', stroke: COLORS.chainlink },
+  { dataKey: 'pyth', name: 'Pyth Network', stroke: COLORS.pyth },
+  { dataKey: 'band', name: 'Band Protocol', stroke: COLORS.band },
+  { dataKey: 'api3', name: 'API3', stroke: COLORS.api3 },
+  { dataKey: 'uma', name: 'UMA', stroke: COLORS.uma },
+  { dataKey: 'redstone', name: 'RedStone', stroke: COLORS.redstone },
+  { dataKey: 'dia', name: 'DIA', stroke: COLORS.dia },
+  { dataKey: 'tellor', name: 'Tellor', stroke: COLORS.tellor },
+  { dataKey: 'chronicle', name: 'Chronicle', stroke: COLORS.chronicle },
+  { dataKey: 'winklink', name: 'WINkLink', stroke: COLORS.winklink },
+];
+
 const marketShareData = [
   { name: 'Chainlink', value: 62.5, color: COLORS.chainlink, tvs: '$42.1B', chains: 15 },
   { name: 'Pyth Network', value: 18.3, color: COLORS.pyth, tvs: '$15.2B', chains: 20 },
@@ -65,99 +77,479 @@ const marketShareData = [
   { name: 'WINkLink', value: 1.2, color: COLORS.winklink, tvs: '$0.7B', chains: 3 },
 ];
 
-const tvsTrendData = [
-  {
-    month: 'Jan',
-    chainlink: 28,
-    pyth: 5,
-    band: 3,
-    api3: 2,
-    uma: 1.5,
-    redstone: 1.2,
-    dia: 0.9,
-    tellor: 0.7,
-    chronicle: 0.5,
-    winklink: 0.4,
-  },
-  {
-    month: 'Feb',
-    chainlink: 30,
-    pyth: 6,
-    band: 3.2,
-    api3: 2.2,
-    uma: 1.6,
-    redstone: 1.3,
-    dia: 1.0,
-    tellor: 0.75,
-    chronicle: 0.55,
-    winklink: 0.42,
-  },
-  {
-    month: 'Mar',
-    chainlink: 32,
-    pyth: 7,
-    band: 3.3,
-    api3: 2.5,
-    uma: 1.8,
-    redstone: 1.4,
-    dia: 1.1,
-    tellor: 0.8,
-    chronicle: 0.6,
-    winklink: 0.45,
-  },
-  {
-    month: 'Apr',
-    chainlink: 35,
-    pyth: 8,
-    band: 3.5,
-    api3: 2.8,
-    uma: 2,
-    redstone: 1.6,
-    dia: 1.2,
-    tellor: 0.85,
-    chronicle: 0.65,
-    winklink: 0.47,
-  },
-  {
-    month: 'May',
-    chainlink: 38,
-    pyth: 10,
-    band: 3.6,
-    api3: 3,
-    uma: 2.1,
-    redstone: 1.8,
-    dia: 1.3,
-    tellor: 0.9,
-    chronicle: 0.7,
-    winklink: 0.48,
-  },
-  {
-    month: 'Jun',
-    chainlink: 40,
-    pyth: 12,
-    band: 3.8,
-    api3: 3.2,
-    uma: 2.2,
-    redstone: 2.0,
-    dia: 1.4,
-    tellor: 1.0,
-    chronicle: 0.8,
-    winklink: 0.6,
-  },
-  {
-    month: 'Jul',
-    chainlink: 42.1,
-    pyth: 15,
-    band: 4,
-    api3: 3.5,
-    uma: 2.5,
-    redstone: 2.1,
-    dia: 1.6,
-    tellor: 1.3,
-    chronicle: 1.0,
-    winklink: 0.7,
-  },
-];
+const tvsTrendDataByRange: Record<
+  string,
+  Array<{
+    time: string;
+    chainlink: number;
+    pyth: number;
+    band: number;
+    api3: number;
+    uma: number;
+    redstone: number;
+    dia: number;
+    tellor: number;
+    chronicle: number;
+    winklink: number;
+  }>
+> = {
+  '1H': [
+    {
+      time: '00:00',
+      chainlink: 41.8,
+      pyth: 14.9,
+      band: 3.95,
+      api3: 3.45,
+      uma: 2.48,
+      redstone: 2.08,
+      dia: 1.58,
+      tellor: 1.28,
+      chronicle: 0.98,
+      winklink: 0.68,
+    },
+    {
+      time: '00:10',
+      chainlink: 41.9,
+      pyth: 14.95,
+      band: 3.97,
+      api3: 3.47,
+      uma: 2.49,
+      redstone: 2.09,
+      dia: 1.59,
+      tellor: 1.29,
+      chronicle: 0.99,
+      winklink: 0.69,
+    },
+    {
+      time: '00:20',
+      chainlink: 42.0,
+      pyth: 14.98,
+      band: 3.98,
+      api3: 3.48,
+      uma: 2.49,
+      redstone: 2.09,
+      dia: 1.59,
+      tellor: 1.29,
+      chronicle: 0.99,
+      winklink: 0.69,
+    },
+    {
+      time: '00:30',
+      chainlink: 42.1,
+      pyth: 15.0,
+      band: 4.0,
+      api3: 3.5,
+      uma: 2.5,
+      redstone: 2.1,
+      dia: 1.6,
+      tellor: 1.3,
+      chronicle: 1.0,
+      winklink: 0.7,
+    },
+    {
+      time: '00:40',
+      chainlink: 42.2,
+      pyth: 15.02,
+      band: 4.01,
+      api3: 3.51,
+      uma: 2.51,
+      redstone: 2.11,
+      dia: 1.61,
+      tellor: 1.31,
+      chronicle: 1.01,
+      winklink: 0.71,
+    },
+    {
+      time: '00:50',
+      chainlink: 42.15,
+      pyth: 15.01,
+      band: 4.0,
+      api3: 3.5,
+      uma: 2.5,
+      redstone: 2.1,
+      dia: 1.6,
+      tellor: 1.3,
+      chronicle: 1.0,
+      winklink: 0.7,
+    },
+  ],
+  '24H': [
+    {
+      time: '00:00',
+      chainlink: 41.5,
+      pyth: 14.8,
+      band: 3.9,
+      api3: 3.4,
+      uma: 2.45,
+      redstone: 2.05,
+      dia: 1.55,
+      tellor: 1.25,
+      chronicle: 0.95,
+      winklink: 0.65,
+    },
+    {
+      time: '04:00',
+      chainlink: 41.6,
+      pyth: 14.85,
+      band: 3.92,
+      api3: 3.42,
+      uma: 2.46,
+      redstone: 2.06,
+      dia: 1.56,
+      tellor: 1.26,
+      chronicle: 0.96,
+      winklink: 0.66,
+    },
+    {
+      time: '08:00',
+      chainlink: 41.7,
+      pyth: 14.9,
+      band: 3.95,
+      api3: 3.45,
+      uma: 2.47,
+      redstone: 2.07,
+      dia: 1.57,
+      tellor: 1.27,
+      chronicle: 0.97,
+      winklink: 0.67,
+    },
+    {
+      time: '12:00',
+      chainlink: 41.9,
+      pyth: 14.95,
+      band: 3.98,
+      api3: 3.48,
+      uma: 2.49,
+      redstone: 2.09,
+      dia: 1.59,
+      tellor: 1.29,
+      chronicle: 0.99,
+      winklink: 0.69,
+    },
+    {
+      time: '16:00',
+      chainlink: 42.0,
+      pyth: 14.98,
+      band: 3.99,
+      api3: 3.49,
+      uma: 2.5,
+      redstone: 2.1,
+      dia: 1.6,
+      tellor: 1.3,
+      chronicle: 1.0,
+      winklink: 0.7,
+    },
+    {
+      time: '20:00',
+      chainlink: 42.1,
+      pyth: 15.0,
+      band: 4.0,
+      api3: 3.5,
+      uma: 2.5,
+      redstone: 2.1,
+      dia: 1.6,
+      tellor: 1.3,
+      chronicle: 1.0,
+      winklink: 0.7,
+    },
+  ],
+  '7D': [
+    {
+      time: 'Mon',
+      chainlink: 41.0,
+      pyth: 14.5,
+      band: 3.8,
+      api3: 3.3,
+      uma: 2.4,
+      redstone: 2.0,
+      dia: 1.5,
+      tellor: 1.2,
+      chronicle: 0.9,
+      winklink: 0.6,
+    },
+    {
+      time: 'Tue',
+      chainlink: 41.3,
+      pyth: 14.7,
+      band: 3.85,
+      api3: 3.35,
+      uma: 2.42,
+      redstone: 2.03,
+      dia: 1.53,
+      tellor: 1.23,
+      chronicle: 0.93,
+      winklink: 0.63,
+    },
+    {
+      time: 'Wed',
+      chainlink: 41.5,
+      pyth: 14.8,
+      band: 3.9,
+      api3: 3.4,
+      uma: 2.45,
+      redstone: 2.05,
+      dia: 1.55,
+      tellor: 1.25,
+      chronicle: 0.95,
+      winklink: 0.65,
+    },
+    {
+      time: 'Thu',
+      chainlink: 41.7,
+      pyth: 14.9,
+      band: 3.95,
+      api3: 3.45,
+      uma: 2.47,
+      redstone: 2.07,
+      dia: 1.57,
+      tellor: 1.27,
+      chronicle: 0.97,
+      winklink: 0.67,
+    },
+    {
+      time: 'Fri',
+      chainlink: 41.9,
+      pyth: 14.95,
+      band: 3.98,
+      api3: 3.48,
+      uma: 2.49,
+      redstone: 2.09,
+      dia: 1.59,
+      tellor: 1.29,
+      chronicle: 0.99,
+      winklink: 0.69,
+    },
+    {
+      time: 'Sat',
+      chainlink: 42.0,
+      pyth: 14.98,
+      band: 3.99,
+      api3: 3.49,
+      uma: 2.5,
+      redstone: 2.1,
+      dia: 1.6,
+      tellor: 1.3,
+      chronicle: 1.0,
+      winklink: 0.7,
+    },
+    {
+      time: 'Sun',
+      chainlink: 42.1,
+      pyth: 15.0,
+      band: 4.0,
+      api3: 3.5,
+      uma: 2.5,
+      redstone: 2.1,
+      dia: 1.6,
+      tellor: 1.3,
+      chronicle: 1.0,
+      winklink: 0.7,
+    },
+  ],
+  '30D': [
+    {
+      time: 'Week 1',
+      chainlink: 40.0,
+      pyth: 14.0,
+      band: 3.7,
+      api3: 3.2,
+      uma: 2.3,
+      redstone: 1.9,
+      dia: 1.4,
+      tellor: 1.1,
+      chronicle: 0.85,
+      winklink: 0.55,
+    },
+    {
+      time: 'Week 2',
+      chainlink: 40.5,
+      pyth: 14.3,
+      band: 3.8,
+      api3: 3.3,
+      uma: 2.35,
+      redstone: 1.95,
+      dia: 1.45,
+      tellor: 1.15,
+      chronicle: 0.9,
+      winklink: 0.6,
+    },
+    {
+      time: 'Week 3',
+      chainlink: 41.0,
+      pyth: 14.6,
+      band: 3.9,
+      api3: 3.4,
+      uma: 2.4,
+      redstone: 2.0,
+      dia: 1.5,
+      tellor: 1.2,
+      chronicle: 0.95,
+      winklink: 0.65,
+    },
+    {
+      time: 'Week 4',
+      chainlink: 42.1,
+      pyth: 15.0,
+      band: 4.0,
+      api3: 3.5,
+      uma: 2.5,
+      redstone: 2.1,
+      dia: 1.6,
+      tellor: 1.3,
+      chronicle: 1.0,
+      winklink: 0.7,
+    },
+  ],
+  '90D': [
+    {
+      time: 'Month 1',
+      chainlink: 38.0,
+      pyth: 13.0,
+      band: 3.5,
+      api3: 3.0,
+      uma: 2.1,
+      redstone: 1.7,
+      dia: 1.3,
+      tellor: 1.0,
+      chronicle: 0.75,
+      winklink: 0.5,
+    },
+    {
+      time: 'Month 2',
+      chainlink: 40.0,
+      pyth: 14.0,
+      band: 3.7,
+      api3: 3.2,
+      uma: 2.3,
+      redstone: 1.9,
+      dia: 1.4,
+      tellor: 1.1,
+      chronicle: 0.85,
+      winklink: 0.55,
+    },
+    {
+      time: 'Month 3',
+      chainlink: 42.1,
+      pyth: 15.0,
+      band: 4.0,
+      api3: 3.5,
+      uma: 2.5,
+      redstone: 2.1,
+      dia: 1.6,
+      tellor: 1.3,
+      chronicle: 1.0,
+      winklink: 0.7,
+    },
+  ],
+  '1Y': [
+    {
+      time: 'Q1',
+      chainlink: 32.0,
+      pyth: 7.0,
+      band: 3.3,
+      api3: 2.5,
+      uma: 1.8,
+      redstone: 1.4,
+      dia: 1.1,
+      tellor: 0.8,
+      chronicle: 0.6,
+      winklink: 0.45,
+    },
+    {
+      time: 'Q2',
+      chainlink: 35.0,
+      pyth: 8.0,
+      band: 3.5,
+      api3: 2.8,
+      uma: 2.0,
+      redstone: 1.6,
+      dia: 1.2,
+      tellor: 0.85,
+      chronicle: 0.65,
+      winklink: 0.47,
+    },
+    {
+      time: 'Q3',
+      chainlink: 38.0,
+      pyth: 10.0,
+      band: 3.6,
+      api3: 3.0,
+      uma: 2.1,
+      redstone: 1.8,
+      dia: 1.3,
+      tellor: 0.9,
+      chronicle: 0.7,
+      winklink: 0.48,
+    },
+    {
+      time: 'Q4',
+      chainlink: 42.1,
+      pyth: 15.0,
+      band: 4.0,
+      api3: 3.5,
+      uma: 2.5,
+      redstone: 2.1,
+      dia: 1.6,
+      tellor: 1.3,
+      chronicle: 1.0,
+      winklink: 0.7,
+    },
+  ],
+  ALL: [
+    {
+      time: '2021',
+      chainlink: 20.0,
+      pyth: 2.0,
+      band: 2.5,
+      api3: 1.5,
+      uma: 1.0,
+      redstone: 0.5,
+      dia: 0.5,
+      tellor: 0.4,
+      chronicle: 0.3,
+      winklink: 0.2,
+    },
+    {
+      time: '2022',
+      chainlink: 25.0,
+      pyth: 4.0,
+      band: 2.8,
+      api3: 2.0,
+      uma: 1.3,
+      redstone: 0.8,
+      dia: 0.7,
+      tellor: 0.5,
+      chronicle: 0.4,
+      winklink: 0.3,
+    },
+    {
+      time: '2023',
+      chainlink: 32.0,
+      pyth: 7.0,
+      band: 3.3,
+      api3: 2.5,
+      uma: 1.8,
+      redstone: 1.4,
+      dia: 1.1,
+      tellor: 0.8,
+      chronicle: 0.6,
+      winklink: 0.45,
+    },
+    {
+      time: '2024',
+      chainlink: 42.1,
+      pyth: 15.0,
+      band: 4.0,
+      api3: 3.5,
+      uma: 2.5,
+      redstone: 2.1,
+      dia: 1.6,
+      tellor: 1.3,
+      chronicle: 1.0,
+      winklink: 0.7,
+    },
+  ],
+};
 
 const chainSupportData = [
   { name: 'Chainlink', chains: 15, color: COLORS.chainlink, protocols: 450 },
@@ -185,23 +577,41 @@ const timeRanges = [
 type ChartType = 'pie' | 'trend' | 'bar';
 type ViewType = 'chart' | 'table';
 
-interface MarketShareDataItem {
+interface BaseDataItem {
   name: string;
-  value: number;
   color: string;
+}
+
+interface MarketShareDataItem extends BaseDataItem {
+  value: number;
   tvs: string;
   chains: number;
-  protocols?: number;
+}
+
+interface ChainSupportDataItem extends BaseDataItem {
+  chains: number;
+  protocols: number;
+}
+
+type TableDataItem = MarketShareDataItem | ChainSupportDataItem;
+
+function isMarketShareDataItem(item: TableDataItem): item is MarketShareDataItem {
+  return 'value' in item && 'tvs' in item;
+}
+
+function isChainSupportDataItem(item: TableDataItem): item is ChainSupportDataItem {
+  return 'protocols' in item;
 }
 
 function OracleMarketOverviewBase() {
-  const locale = useLocale();
+  const t = useTranslations('ui.marketOverview');
   const [selectedRange, setSelectedRange] = useState('30D');
   const [activeChart, setActiveChart] = useState<ChartType>('pie');
   const [viewType, setViewType] = useState<ViewType>('chart');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRangeChanging, setIsRangeChanging] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -209,6 +619,24 @@ function OracleMarketOverviewBase() {
     }, 800);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (isRangeChanging) {
+      const timer = setTimeout(() => {
+        setIsRangeChanging(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isRangeChanging]);
+
+  const handleRangeChange = useCallback((range: string) => {
+    setSelectedRange(range);
+    setIsRangeChanging(true);
+  }, []);
+
+  const currentTrendData = useMemo(() => {
+    return tvsTrendDataByRange[selectedRange] || tvsTrendDataByRange['30D'];
+  }, [selectedRange]);
 
   const stats = useMemo(() => {
     const totalTVS = marketShareData.reduce((acc, item) => {
@@ -283,7 +711,65 @@ function OracleMarketOverviewBase() {
   }, [activeChart]);
 
   const renderTable = useCallback(() => {
-    const data =
+    if (activeChart === 'trend') {
+      return (
+        <div className="h-full overflow-auto">
+          <table className="w-full">
+            <thead className="sticky top-0" style={{ backgroundColor: baseColors.gray[50] }}>
+              <tr>
+                <th
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: baseColors.gray[600] }}
+                >
+                  {t('time')}
+                </th>
+                {oracleLineConfig.map((config) => (
+                  <th
+                    key={config.dataKey}
+                    className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                    style={{ color: baseColors.gray[600] }}
+                  >
+                    <div className="flex items-center justify-end gap-2">
+                      <div className="w-2 h-2" style={{ backgroundColor: config.stroke }} />
+                      {config.name}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody style={{ borderColor: baseColors.gray[100] }} className="divide-y">
+              {currentTrendData.map((item, index: number) => (
+                <tr
+                  key={`${item.time}-${index}`}
+                  className="transition-colors hover:bg-gray-50"
+                  style={{
+                    backgroundColor:
+                      hoveredItem === item.time ? baseColors.gray[50] : 'transparent',
+                  }}
+                  onMouseEnter={() => setHoveredItem(item.time)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <td className="px-4 py-3">
+                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>
+                      {item.time}
+                    </span>
+                  </td>
+                  {oracleLineConfig.map((config) => (
+                    <td key={config.dataKey} className="px-4 py-3 text-right">
+                      <span style={{ color: baseColors.gray[600] }}>
+                        ${item[config.dataKey as keyof typeof item]}B
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    const data: TableDataItem[] =
       activeChart === 'pie'
         ? marketShareData
         : activeChart === 'bar'
@@ -299,30 +785,24 @@ function OracleMarketOverviewBase() {
                 className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                 style={{ color: baseColors.gray[600] }}
               >
-                {isChineseLocale(locale) ? '预言机' : 'Oracle'}
+                {t('oracle')}
               </th>
               <th
                 className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
                 style={{ color: baseColors.gray[600] }}
               >
                 {activeChart === 'pie'
-                  ? isChineseLocale(locale)
-                    ? '市场份额'
-                    : 'Market Share'
+                  ? t('marketShare')
                   : activeChart === 'bar'
-                    ? isChineseLocale(locale)
-                      ? '支持链数'
-                      : 'Chains'
-                    : isChineseLocale(locale)
-                      ? 'TVS'
-                      : 'TVS'}
+                    ? t('chains')
+                    : 'TVS'}
               </th>
               {activeChart === 'bar' && (
                 <th
                   className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
                   style={{ color: baseColors.gray[600] }}
                 >
-                  {isChineseLocale(locale) ? '协议数' : 'Protocols'}
+                  {t('protocols')}
                 </th>
               )}
               {activeChart === 'pie' && (
@@ -330,7 +810,7 @@ function OracleMarketOverviewBase() {
                   className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
                   style={{ color: baseColors.gray[600] }}
                 >
-                  {isChineseLocale(locale) ? 'TVS' : 'TVS'}
+                  TVS
                 </th>
               )}
             </tr>
@@ -359,20 +839,20 @@ function OracleMarketOverviewBase() {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="font-semibold" style={{ color: baseColors.gray[900] }}>
-                    {activeChart === 'pie' ? `${'value' in item ? item.value : 0}%` : item.chains}
+                    {isMarketShareDataItem(item) ? `${item.value}%` : item.chains}
                   </span>
                 </td>
                 {activeChart === 'bar' && (
                   <td className="px-4 py-3 text-right">
                     <span style={{ color: baseColors.gray[600] }}>
-                      {'protocols' in item ? item.protocols : 0}
+                      {isChainSupportDataItem(item) ? item.protocols : 0}
                     </span>
                   </td>
                 )}
                 {activeChart === 'pie' && (
                   <td className="px-4 py-3 text-right">
                     <span style={{ color: baseColors.gray[600] }}>
-                      {'tvs' in item ? item.tvs : ''}
+                      {isMarketShareDataItem(item) ? item.tvs : ''}
                     </span>
                   </td>
                 )}
@@ -382,7 +862,7 @@ function OracleMarketOverviewBase() {
         </table>
       </div>
     );
-  }, [activeChart, locale, selectedItem]);
+  }, [activeChart, selectedItem, currentTrendData, hoveredItem, t]);
 
   const renderChart = useCallback(() => {
     if (viewType === 'table') {
@@ -434,142 +914,28 @@ function OracleMarketOverviewBase() {
         );
       case 'trend':
         return (
-          <LineChart data={tvsTrendData}>
+          <LineChart data={currentTrendData}>
             <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
-            <XAxis dataKey="month" stroke={chartColors.recharts.axis} fontSize={12} />
+            <XAxis dataKey="time" stroke={chartColors.recharts.axis} fontSize={12} />
             <YAxis stroke={chartColors.recharts.axis} fontSize={12} />
             <RechartsTooltip content={<CustomTooltip />} />
             <ReferenceLine y={0} stroke={chartColors.recharts.grid} />
-            <Line
-              type="monotone"
-              dataKey="chainlink"
-              name="Chainlink"
-              stroke={COLORS.chainlink}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: COLORS.chainlink }}
-              opacity={hoveredItem && hoveredItem !== 'Chainlink' ? 0.4 : 1}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredItem('Chainlink')}
-              onMouseLeave={() => setHoveredItem(null)}
-            />
-            <Line
-              type="monotone"
-              dataKey="pyth"
-              name="Pyth Network"
-              stroke={COLORS.pyth}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: COLORS.pyth }}
-              opacity={hoveredItem && hoveredItem !== 'Pyth Network' ? 0.4 : 1}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredItem('Pyth Network')}
-              onMouseLeave={() => setHoveredItem(null)}
-            />
-            <Line
-              type="monotone"
-              dataKey="band"
-              name="Band Protocol"
-              stroke={COLORS.band}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: COLORS.band }}
-              opacity={hoveredItem && hoveredItem !== 'Band Protocol' ? 0.4 : 1}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredItem('Band Protocol')}
-              onMouseLeave={() => setHoveredItem(null)}
-            />
-            <Line
-              type="monotone"
-              dataKey="api3"
-              name="API3"
-              stroke={COLORS.api3}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: COLORS.api3 }}
-              opacity={hoveredItem && hoveredItem !== 'API3' ? 0.4 : 1}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredItem('API3')}
-              onMouseLeave={() => setHoveredItem(null)}
-            />
-            <Line
-              type="monotone"
-              dataKey="uma"
-              name="UMA"
-              stroke={COLORS.uma}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: COLORS.uma }}
-              opacity={hoveredItem && hoveredItem !== 'UMA' ? 0.4 : 1}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredItem('UMA')}
-              onMouseLeave={() => setHoveredItem(null)}
-            />
-            <Line
-              type="monotone"
-              dataKey="redstone"
-              name="RedStone"
-              stroke={COLORS.redstone}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: COLORS.redstone }}
-              opacity={hoveredItem && hoveredItem !== 'RedStone' ? 0.4 : 1}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredItem('RedStone')}
-              onMouseLeave={() => setHoveredItem(null)}
-            />
-            <Line
-              type="monotone"
-              dataKey="dia"
-              name="DIA"
-              stroke={COLORS.dia}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: COLORS.dia }}
-              opacity={hoveredItem && hoveredItem !== 'DIA' ? 0.4 : 1}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredItem('DIA')}
-              onMouseLeave={() => setHoveredItem(null)}
-            />
-            <Line
-              type="monotone"
-              dataKey="tellor"
-              name="Tellor"
-              stroke={COLORS.tellor}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: COLORS.tellor }}
-              opacity={hoveredItem && hoveredItem !== 'Tellor' ? 0.4 : 1}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredItem('Tellor')}
-              onMouseLeave={() => setHoveredItem(null)}
-            />
-            <Line
-              type="monotone"
-              dataKey="chronicle"
-              name="Chronicle"
-              stroke={COLORS.chronicle}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: COLORS.chronicle }}
-              opacity={hoveredItem && hoveredItem !== 'Chronicle' ? 0.4 : 1}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredItem('Chronicle')}
-              onMouseLeave={() => setHoveredItem(null)}
-            />
-            <Line
-              type="monotone"
-              dataKey="winklink"
-              name="WINkLink"
-              stroke={COLORS.winklink}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: COLORS.winklink }}
-              opacity={hoveredItem && hoveredItem !== 'WINkLink' ? 0.4 : 1}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredItem('WINkLink')}
-              onMouseLeave={() => setHoveredItem(null)}
-            />
+            {oracleLineConfig.map((config) => (
+              <Line
+                key={config.dataKey}
+                type="monotone"
+                dataKey={config.dataKey}
+                name={config.name}
+                stroke={config.stroke}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 6, fill: config.stroke }}
+                opacity={hoveredItem && hoveredItem !== config.name ? 0.4 : 1}
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={() => setHoveredItem(config.name)}
+                onMouseLeave={() => setHoveredItem(null)}
+              />
+            ))}
           </LineChart>
         );
       case 'bar':
@@ -626,20 +992,21 @@ function OracleMarketOverviewBase() {
     renderCustomizedLabel,
     CustomTooltip,
     renderTable,
+    currentTrendData,
   ]);
 
   const getChartTitle = useCallback(() => {
     switch (activeChart) {
       case 'pie':
-        return isChineseLocale(locale) ? '市场份额分布' : 'Market Share Distribution';
+        return t('marketShareDistribution');
       case 'trend':
-        return isChineseLocale(locale) ? 'TVS 趋势分析' : 'TVS Trend Analysis';
+        return t('tvsTrendAnalysis');
       case 'bar':
-        return isChineseLocale(locale) ? '链支持情况' : 'Chain Support Overview';
+        return t('chainSupportOverview');
       default:
         return '';
     }
-  }, [activeChart, locale]);
+  }, [activeChart, t]);
 
   return (
     <section className="py-20 bg-white">
@@ -655,19 +1022,17 @@ function OracleMarketOverviewBase() {
             >
               <PieChartIcon className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               <span className="text-sm font-medium" style={{ color: baseColors.gray[600] }}>
-                {isChineseLocale(locale) ? '市场概览' : 'Market Overview'}
+                {t('title')}
               </span>
             </div>
             <h2
               className="text-3xl md:text-4xl font-bold mb-4"
               style={{ color: baseColors.gray[900] }}
             >
-              {isChineseLocale(locale) ? '预言机市场分析' : 'Oracle Market Analysis'}
+              {t('oracleMarketAnalysis')}
             </h2>
             <p className="text-lg max-w-2xl" style={{ color: baseColors.gray[600] }}>
-              {isChineseLocale(locale)
-                ? '全面分析预言机市场份额、TVS趋势和链支持情况'
-                : 'Comprehensive analysis of oracle market share, TVS trends and chain support'}
+              {t('analysisDescription')}
             </p>
           </div>
 
@@ -678,7 +1043,7 @@ function OracleMarketOverviewBase() {
             {timeRanges.map((range) => (
               <button
                 key={range.key}
-                onClick={() => setSelectedRange(range.key)}
+                onClick={() => handleRangeChange(range.key)}
                 className={`px-3 py-2 text-sm font-medium transition-all whitespace-nowrap border rounded-md ${
                   selectedRange === range.key
                     ? 'bg-white border-gray-300 shadow-sm'
@@ -704,7 +1069,7 @@ function OracleMarketOverviewBase() {
                 <DollarSign className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
-                {isChineseLocale(locale) ? '总 TVS' : 'Total TVS'}
+                {t('totalTVS')}
               </span>
             </div>
             <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
@@ -728,14 +1093,14 @@ function OracleMarketOverviewBase() {
                 <Globe className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
-                {isChineseLocale(locale) ? '支持链数' : 'Total Chains'}
+                {t('totalChains')}
               </span>
             </div>
             <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
               {stats.totalChains}
             </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-              {isChineseLocale(locale) ? '跨链覆盖' : 'Cross-chain'}
+              {t('crossChain')}
             </div>
           </div>
 
@@ -748,14 +1113,14 @@ function OracleMarketOverviewBase() {
                 <Layers className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
-                {isChineseLocale(locale) ? '协议数量' : 'Protocols'}
+                {t('protocols')}
               </span>
             </div>
             <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
               {stats.totalProtocols}+
             </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-              {isChineseLocale(locale) ? '集成项目' : 'Integrations'}
+              {t('integrations')}
             </div>
           </div>
 
@@ -768,14 +1133,14 @@ function OracleMarketOverviewBase() {
                 <Activity className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
-                {isChineseLocale(locale) ? '市场主导' : 'Dominance'}
+                {t('dominance')}
               </span>
             </div>
             <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
               {stats.avgDominance}
             </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-              {isChineseLocale(locale) ? 'Chainlink 份额' : 'Chainlink Share'}
+              {t('chainlinkShare')}
             </div>
           </div>
         </div>
@@ -795,7 +1160,7 @@ function OracleMarketOverviewBase() {
               }}
             >
               <PieChartIcon className="w-4 h-4" />
-              {isChineseLocale(locale) ? '市场份额' : 'Market Share'}
+              {t('marketShare')}
             </button>
             <button
               onClick={() => setActiveChart('trend')}
@@ -810,7 +1175,7 @@ function OracleMarketOverviewBase() {
               }}
             >
               <TrendingUp className="w-4 h-4" />
-              {isChineseLocale(locale) ? 'TVS趋势' : 'TVS Trend'}
+              {t('tvsTrend')}
             </button>
             <button
               onClick={() => setActiveChart('bar')}
@@ -825,7 +1190,7 @@ function OracleMarketOverviewBase() {
               }}
             >
               <BarChart3 className="w-4 h-4" />
-              {isChineseLocale(locale) ? '链支持' : 'Chain Support'}
+              {t('chainSupport')}
             </button>
           </div>
 
@@ -844,7 +1209,7 @@ function OracleMarketOverviewBase() {
               }}
             >
               <PieChartIcon className="w-4 h-4" />
-              {isChineseLocale(locale) ? '图表' : 'Chart'}
+              {t('chart')}
             </button>
             <button
               onClick={() => setViewType('table')}
@@ -857,7 +1222,7 @@ function OracleMarketOverviewBase() {
               }}
             >
               <TableIcon className="w-4 h-4" />
-              {isChineseLocale(locale) ? '表格' : 'Table'}
+              {t('table')}
             </button>
           </div>
         </div>
@@ -874,13 +1239,13 @@ function OracleMarketOverviewBase() {
                   className="text-sm flex items-center gap-1 hover:opacity-80"
                   style={{ color: baseColors.gray[600] }}
                 >
-                  {isChineseLocale(locale) ? '清除选择' : 'Clear Selection'}
+                  {t('clearSelection')}
                   <ChevronRight className="w-4 h-4 rotate-90" />
                 </button>
               )}
             </div>
             <div className={`${viewType === 'table' ? 'h-[360px]' : 'h-[400px]'}`}>
-              {isLoading ? (
+              {isLoading || isRangeChanging ? (
                 <ChartSkeleton
                   height={viewType === 'table' ? 360 : 400}
                   variant={activeChart === 'pie' ? 'area' : activeChart === 'bar' ? 'bar' : 'price'}
@@ -898,9 +1263,7 @@ function OracleMarketOverviewBase() {
                 style={{ color: baseColors.gray[500] }}
               >
                 <Info className="w-4 h-4" />
-                {isChineseLocale(locale)
-                  ? '悬停查看详情，点击选中项目'
-                  : 'Hover for details, click to select'}
+                {t('hoverForDetails')}
               </div>
             )}
           </div>
@@ -911,11 +1274,11 @@ function OracleMarketOverviewBase() {
               style={{ backgroundColor: baseColors.gray[900], color: baseColors.gray[50] }}
             >
               <div className="text-sm mb-1" style={{ color: baseColors.gray[300] }}>
-                {isChineseLocale(locale) ? '选中时间范围' : 'Selected Time Range'}
+                {t('selectedTimeRange')}
               </div>
               <div className="text-2xl font-bold">{selectedRange}</div>
               <div className="text-xs mt-1" style={{ color: baseColors.gray[400] }}>
-                {isChineseLocale(locale) ? '数据已更新' : 'Data updated'}
+                {t('dataUpdated')}
               </div>
             </div>
 
@@ -928,10 +1291,10 @@ function OracleMarketOverviewBase() {
                 style={{ borderColor: baseColors.gray[200], backgroundColor: baseColors.gray[50] }}
               >
                 <span className="text-sm font-medium" style={{ color: baseColors.gray[700] }}>
-                  {isChineseLocale(locale) ? '预言机排名' : 'Oracle Rankings'}
+                  {t('oracleRankings')}
                 </span>
                 <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-                  {isChineseLocale(locale) ? 'TVS / 份额' : 'TVS / Share'}
+                  {t('tvsShare')}
                 </span>
               </div>
               <div className="max-h-[320px] overflow-y-auto divide-y divide-gray-100">
@@ -960,7 +1323,7 @@ function OracleMarketOverviewBase() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs mb-0.5" style={{ color: baseColors.gray[500] }}>
-                    {isChineseLocale(locale) ? '总市场份额' : 'Total Market Share'}
+                    {t('totalMarketShare')}
                   </div>
                   <div className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
                     100%
@@ -968,7 +1331,7 @@ function OracleMarketOverviewBase() {
                 </div>
                 <div className="text-right">
                   <div className="text-xs mb-0.5" style={{ color: baseColors.gray[500] }}>
-                    {isChineseLocale(locale) ? '覆盖预言机' : 'Oracles Covered'}
+                    {t('oraclesCovered')}
                   </div>
                   <div className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
                     {stats.oracleCount}

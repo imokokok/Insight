@@ -53,7 +53,7 @@ export function createApiHandler<T = unknown>(
   options: CreateApiHandlerOptions = {}
 ): (
   request: NextRequest,
-  context?: { params: Promise<Record<string, string>> }
+  context: { params: Promise<Record<string, string>> }
 ) => Promise<NextResponse> {
   const { middlewares = {}, onError } = options;
 
@@ -81,7 +81,7 @@ export function createApiHandler<T = unknown>(
 
   return async (
     request: NextRequest,
-    context?: { params: Promise<Record<string, string>> }
+    context: { params: Promise<Record<string, string>> }
   ): Promise<NextResponse> => {
     const startTime = Date.now();
     const apiContext: ApiHandlerContext = {
@@ -114,7 +114,7 @@ export function createApiHandler<T = unknown>(
       }
 
       if (validationMiddleware) {
-        const resolvedParams = context?.params ? await context.params : undefined;
+        const resolvedParams = context.params ? await context.params : undefined;
         const validationResult = await validationMiddleware(request, resolvedParams);
         if (!validationResult.success) {
           logResponse(apiContext.requestId, 400, startTime);

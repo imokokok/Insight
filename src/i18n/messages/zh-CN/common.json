@@ -86,7 +86,8 @@
     "zoomIn": "放大",
     "zoomOut": "缩小",
     "viewFullscreen": "全屏查看",
-    "search": "搜索"
+    "search": "搜索",
+    "more": "更多"
   },
   "forms": {
     "exportData": "导出数据",

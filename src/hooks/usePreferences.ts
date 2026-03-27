@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 
 import { useUser, useProfile } from '@/stores/authStore';
 
@@ -39,36 +39,38 @@ interface DbUserPreferences {
   };
 }
 
+function getLocalPreferences(): Partial<UserPreferences> {
+  if (typeof window === 'undefined') return {};
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return {};
+  try {
+    const parsed = JSON.parse(saved);
+    return {
+      defaultOracle: parsed.defaultOracle,
+      defaultSymbol: parsed.defaultSymbol,
+      defaultTimeRange: parsed.defaultTimeRange,
+      language: parsed.language,
+      defaultCurrency: parsed.defaultCurrency,
+      autoRefreshInterval: parsed.autoRefreshInterval
+        ? parseInt(parsed.autoRefreshInterval, 10)
+        : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 export function usePreferences() {
   const user = useUser();
   const profile = useProfile();
-  const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadPreferences = useCallback(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    let localPrefs: Partial<UserPreferences> = {};
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        localPrefs = {
-          defaultOracle: parsed.defaultOracle,
-          defaultSymbol: parsed.defaultSymbol,
-          defaultTimeRange: parsed.defaultTimeRange,
-          language: parsed.language,
-          defaultCurrency: parsed.defaultCurrency,
-          autoRefreshInterval: parsed.autoRefreshInterval
-            ? parseInt(parsed.autoRefreshInterval, 10)
-            : undefined,
-        };
-      } catch {
-        localPrefs = {};
-      }
-    }
+  const preferences = useMemo(() => {
+    const localPrefs = getLocalPreferences();
 
     if (user && profile?.preferences) {
       const dbPrefs = profile.preferences as DbUserPreferences;
-      const merged: UserPreferences = {
+      return {
         defaultOracle:
           dbPrefs.default_oracle || localPrefs.defaultOracle || defaultPreferences.defaultOracle,
         defaultSymbol:
@@ -87,16 +89,13 @@ export function usePreferences() {
             ? dbPrefs.auto_refresh_interval
             : localPrefs.autoRefreshInterval || defaultPreferences.autoRefreshInterval,
       };
-      setPreferences(merged);
-    } else {
-      setPreferences({ ...defaultPreferences, ...localPrefs });
     }
-    setIsLoading(false);
+    return { ...defaultPreferences, ...localPrefs };
   }, [user, profile]);
 
   useEffect(() => {
-    loadPreferences();
-  }, [loadPreferences]);
+    setIsLoading(false);
+  }, []);
 
   const savePreferencesToLocal = useCallback((prefs: UserPreferences) => {
     localStorage.setItem(
@@ -110,13 +109,11 @@ export function usePreferences() {
         autoRefreshInterval: String(prefs.autoRefreshInterval),
       })
     );
-    setPreferences(prefs);
   }, []);
 
   return {
     preferences,
     isLoading,
-    refreshPreferences: loadPreferences,
     savePreferencesToLocal,
     defaultPreferences,
   };

@@ -16,6 +16,7 @@ import {
   CandlestickChart,
 } from 'lucide-react';
 
+import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
@@ -53,10 +54,10 @@ const timeRanges: { value: TimeRange; label: string }[] = [
   { value: 'ALL', label: 'ALL' },
 ];
 
-const chartTypes: { value: ChartType; label: string; icon: typeof LineChart }[] = [
-  { value: 'line', label: 'Line', icon: LineChart },
-  { value: 'area', label: 'Area', icon: AreaChart },
-  { value: 'candle', label: 'Candle', icon: CandlestickChart },
+const chartTypes: { value: ChartType; labelKey: string; icon: typeof LineChart }[] = [
+  { value: 'line', labelKey: 'line', icon: LineChart },
+  { value: 'area', labelKey: 'area', icon: AreaChart },
+  { value: 'candle', labelKey: 'candle', icon: CandlestickChart },
 ];
 
 export function ChartToolbar({
@@ -80,6 +81,7 @@ export function ChartToolbar({
   showSync = true,
   className,
 }: ChartToolbarProps) {
+  const t = useTranslations('ui.chart');
   const handleTimeRangeChange = useCallback(
     (range: TimeRange) => {
       onTimeRangeChange(range);
@@ -141,10 +143,10 @@ export function ChartToolbar({
                       ? 'bg-white text-blue-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   )}
-                  title={type.label}
+                  title={t(type.labelKey)}
                 >
                   <Icon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{type.label}</span>
+                  <span className="hidden sm:inline">{t(type.labelKey)}</span>
                 </button>
               );
             })}
@@ -158,7 +160,7 @@ export function ChartToolbar({
               <button
                 onClick={onZoomOut}
                 className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded-md transition-all duration-200"
-                title="Zoom Out"
+                title={t('zoomOut')}
               >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
@@ -170,7 +172,7 @@ export function ChartToolbar({
               <button
                 onClick={onZoomIn}
                 className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded-md transition-all duration-200"
-                title="Zoom In"
+                title={t('zoomIn')}
               >
                 <ZoomIn className="w-3.5 h-3.5" />
               </button>
@@ -179,7 +181,7 @@ export function ChartToolbar({
               <button
                 onClick={onResetZoom}
                 className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded-md transition-all duration-200"
-                title="Reset Zoom"
+                title={t('reset')}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -192,10 +194,10 @@ export function ChartToolbar({
           <button
             onClick={onExport}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-all duration-200"
-            title="Export Data"
+            title={t('export')}
           >
             <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">{t('export')}</span>
           </button>
         )}
 
@@ -209,17 +211,17 @@ export function ChartToolbar({
                 ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             )}
-            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            title={isFullscreen ? t('exitFullscreen') : t('enterFullscreen')}
           >
             {isFullscreen ? (
               <>
                 <Minimize className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Exit</span>
+                <span className="hidden sm:inline">{t('exit')}</span>
               </>
             ) : (
               <>
                 <Maximize className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Fullscreen</span>
+                <span className="hidden sm:inline">{t('fullscreen')}</span>
               </>
             )}
           </button>
@@ -235,17 +237,17 @@ export function ChartToolbar({
                 ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             )}
-            title={syncEnabled ? 'Disable Sync' : 'Enable Sync'}
+            title={syncEnabled ? t('disableSync') : t('enableSync')}
           >
             {syncEnabled ? (
               <>
                 <Link2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sync On</span>
+                <span className="hidden sm:inline">{t('syncOn')}</span>
               </>
             ) : (
               <>
                 <Link2Off className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sync Off</span>
+                <span className="hidden sm:inline">{t('syncOff')}</span>
               </>
             )}
           </button>

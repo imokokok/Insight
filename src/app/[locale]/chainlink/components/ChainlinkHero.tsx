@@ -19,6 +19,7 @@ import {
   TrendingUp as TrendingUpIcon,
 } from 'lucide-react';
 
+import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
@@ -167,6 +168,8 @@ function MiniPriceChart({
   currentPrice: PriceData | null;
   themeColor: string;
 }) {
+  const t = useTranslations('ui');
+  
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
@@ -193,7 +196,7 @@ function MiniPriceChart({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
+          <span>{t('metrics.trend24h')}</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
@@ -204,8 +207,8 @@ function MiniPriceChart({
         <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>{t('metrics.before24h')}</span>
+        <span>{t('metrics.now')}</span>
       </div>
     </div>
   );
@@ -307,6 +310,8 @@ function UnifiedInfoSection({
   chains: string[];
   themeColor: string;
 }) {
+  const t = useTranslations('ui');
+
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
     if (healthScore >= 70) return 'text-yellow-600';
@@ -321,14 +326,14 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return { label: t('health.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return { label: t('health.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return { label: t('health.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: t('health.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
   // 只显示前3个链
   const displayChains = chains.slice(0, 3);
@@ -340,7 +345,7 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('health.healthScore')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -363,7 +368,7 @@ function UnifiedInfoSection({
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('metrics.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -379,7 +384,7 @@ function UnifiedInfoSection({
           {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('metrics.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
@@ -388,7 +393,7 @@ function UnifiedInfoSection({
           {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('metrics.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
@@ -401,12 +406,12 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('metrics.support')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {chains.length}+ {t('metrics.chains')}
           </span>
           {/* 前3个链图标 */}
           <div className="flex -space-x-1">
@@ -459,19 +464,21 @@ export function ChainlinkHero({
     });
   }, [historicalData, currentPrice]);
 
+  const tMetrics = useTranslations('ui.oracleMetrics');
+
   // 核心统计指标 - 增加到5个
   const primaryStats: StatItem[] = [
     {
-      title: 'LINK 价格',
+      title: tMetrics('linkPrice'),
       value: `$${currentPrice.toFixed(2)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
       icon: <Activity className="w-4 h-4" />,
-      subtitle: '24h',
+      subtitle: tMetrics('subtitle24h'),
       sparklineData: priceSparkline,
     },
     {
-      title: 'TVS 总担保价值',
+      title: tMetrics('tvs'),
       value: `$${(config.marketData.marketCap / 1e9).toFixed(1)}B`,
       change: '+12.5%',
       changeType: 'positive',
@@ -479,7 +486,7 @@ export function ChainlinkHero({
       subtitle: '30天',
     },
     {
-      title: '活跃节点数',
+      title: tMetrics('activeValidators'),
       value: `${config.networkData.activeNodes.toLocaleString()}`,
       change: '+5.2%',
       changeType: 'positive',
@@ -487,7 +494,7 @@ export function ChainlinkHero({
       subtitle: '本月',
     },
     {
-      title: '数据喂价',
+      title: tMetrics('dataFeeds'),
       value: `${config.networkData.dataFeeds.toLocaleString()}`,
       change: '+8.3%',
       changeType: 'positive',
@@ -495,7 +502,7 @@ export function ChainlinkHero({
       subtitle: '本月',
     },
     {
-      title: '质押量',
+      title: tMetrics('stakingAmount'),
       value: `${(config.marketData.circulatingSupply / 1e6).toFixed(1)}M`,
       change: '+3.7%',
       changeType: 'positive',
@@ -507,28 +514,28 @@ export function ChainlinkHero({
   // 次要统计指标 - 整合为1行
   const secondaryStats: StatItem[] = [
     {
-      title: '平均响应',
+      title: tMetrics('avgResponse'),
       value: `${config.networkData.avgResponseTime}ms`,
       change: '-15%',
       changeType: 'positive',
       icon: <Clock className="w-3.5 h-3.5" />,
     },
     {
-      title: '成功率',
+      title: tMetrics('successRate'),
       value: `${config.networkData.nodeUptime}%`,
       change: '+0.1%',
       changeType: 'positive',
       icon: <TrendingUp className="w-3.5 h-3.5" />,
     },
     {
-      title: '数据更新',
+      title: tMetrics('dataUpdate'),
       value: '24.5K',
       change: '+18%',
       changeType: 'positive',
       icon: <BarChart3 className="w-3.5 h-3.5" />,
     },
     {
-      title: '网络延迟',
+      title: tMetrics('networkLatency'),
       value: '45ms',
       change: '-8%',
       changeType: 'positive',
@@ -565,7 +572,14 @@ export function ChainlinkHero({
             className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
             style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
           >
-            <img src="/logos/oracles/chainlink.svg" alt="Chainlink" className="w-7 h-7" />
+            <OptimizedImage
+              src="/logos/oracles/chainlink.svg"
+              alt="Chainlink"
+              width={28}
+              height={28}
+              priority
+              className="w-7 h-7"
+            />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">Chainlink</h1>

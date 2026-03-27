@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 
+import { useTranslations } from '@/i18n';
 import { oracleConfigs } from '@/lib/config/oracles';
 import { chainNames, chainColors, getChainCategory, providerNames } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,8 @@ export function ChainCoverageHeatmap({
   showLabels = true,
   onCellClick,
 }: ChainCoverageHeatmapProps) {
+  const t = useTranslations('oracle');
+
   // 获取所有预言机和链
   const providers = useMemo(() => [...ORACLE_PROVIDER_VALUES], []);
 
@@ -94,8 +97,8 @@ export function ChainCoverageHeatmap({
     <div className={cn('bg-white rounded-lg border border-gray-200 overflow-hidden', className)}>
       {/* 标题 */}
       <div className="px-4 py-3 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-900">预言机链覆盖热力图</h3>
-        <p className="text-xs text-gray-500 mt-0.5">展示各预言机对不同区块链的支持情况</p>
+        <h3 className="text-sm font-semibold text-gray-900">{t('chainCoverageHeatmap.title')}</h3>
+        <p className="text-xs text-gray-500 mt-0.5">{t('chainCoverageHeatmap.description')}</p>
       </div>
 
       {/* 热力图 */}
@@ -127,7 +130,7 @@ export function ChainCoverageHeatmap({
             </div>
             {/* 覆盖率列 */}
             <div className="w-16 flex-shrink-0 flex items-center justify-center ml-2">
-              <span className="text-xs font-medium text-gray-500">覆盖率</span>
+              <span className="text-xs font-medium text-gray-500">{t('chainCoverageHeatmap.coverage')}</span>
             </div>
           </div>
 
@@ -164,7 +167,7 @@ export function ChainCoverageHeatmap({
                           getCellColor(isSupported, chainCoverage),
                           onCellClick && isSupported && 'cursor-pointer hover:shadow-md'
                         )}
-                        title={`${providerNames[provider]} - ${chainNames[chain]}: ${isSupported ? '支持' : '不支持'}`}
+                        title={`${providerNames[provider]} - ${chainNames[chain]}: ${isSupported ? t('chainCoverageHeatmap.supported') : t('chainCoverageHeatmap.notSupported')}`}
                       >
                         {isSupported && (
                           <span
@@ -202,7 +205,7 @@ export function ChainCoverageHeatmap({
           {/* 链覆盖率行 */}
           <div className="flex items-center">
             <div className="w-32 flex-shrink-0 pr-2">
-              <span className="text-xs font-medium text-gray-500">链覆盖率</span>
+              <span className="text-xs font-medium text-gray-500">{t('chainCoverageHeatmap.chainCoverage')}</span>
             </div>
             <div className="flex">
               {chains.map((chain: Blockchain) => {
@@ -233,7 +236,7 @@ export function ChainCoverageHeatmap({
       <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
         <div className="flex items-center gap-6 text-xs">
           <div className="flex items-center gap-2">
-            <span className="text-gray-500">覆盖率:</span>
+            <span className="text-gray-500">{t('chainCoverageHeatmap.coverage')}:</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="w-3 h-3 bg-emerald-100 rounded-sm" />

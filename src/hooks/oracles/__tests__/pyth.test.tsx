@@ -1,14 +1,13 @@
 'use client';
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { type ReactNode } from 'react';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
-import {
-  usePythPrice,
-  usePythHistorical,
-  usePythAllData,
-} from '../pyth';
+import { renderHook, waitFor } from '@testing-library/react';
+
 import * as storage from '@/lib/oracles/storage';
+
+import { usePythPrice, usePythHistorical, usePythAllData } from '../pyth';
 
 jest.mock('@/lib/oracles/storage', () => ({
   shouldUseDatabase: jest.fn(),
@@ -26,9 +25,7 @@ jest.mock('@/lib/supabase/server', () => ({
 
 const createWrapper = (queryClient: QueryClient) => {
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 };
 
@@ -53,10 +50,9 @@ describe('usePythPrice', () => {
   });
 
   it('should fetch price data successfully', async () => {
-    const { result } = renderHook(
-      () => usePythPrice({ symbol: 'BTC' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythPrice({ symbol: 'BTC' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     expect(result.current.isLoading).toBe(true);
 
@@ -71,10 +67,9 @@ describe('usePythPrice', () => {
   });
 
   it('should handle different symbols', async () => {
-    const { result } = renderHook(
-      () => usePythPrice({ symbol: 'ETH' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythPrice({ symbol: 'ETH' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -84,10 +79,9 @@ describe('usePythPrice', () => {
   });
 
   it('should handle chain parameter', async () => {
-    const { result } = renderHook(
-      () => usePythPrice({ symbol: 'BTC', chain: 'ethereum' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythPrice({ symbol: 'BTC', chain: 'ethereum' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -97,20 +91,18 @@ describe('usePythPrice', () => {
   });
 
   it('should respect enabled option', async () => {
-    const { result } = renderHook(
-      () => usePythPrice({ symbol: 'BTC', enabled: false }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythPrice({ symbol: 'BTC', enabled: false }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.price).toBeUndefined();
   });
 
   it('should support refetch', async () => {
-    const { result } = renderHook(
-      () => usePythPrice({ symbol: 'BTC' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythPrice({ symbol: 'BTC' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -147,10 +139,9 @@ describe('usePythHistorical', () => {
   });
 
   it('should fetch historical data successfully', async () => {
-    const { result } = renderHook(
-      () => usePythHistorical({ symbol: 'BTC', period: 30 }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythHistorical({ symbol: 'BTC', period: 30 }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     expect(result.current.isLoading).toBe(true);
 
@@ -164,10 +155,9 @@ describe('usePythHistorical', () => {
   });
 
   it('should use default period of 30', async () => {
-    const { result } = renderHook(
-      () => usePythHistorical({ symbol: 'BTC' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythHistorical({ symbol: 'BTC' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -177,10 +167,9 @@ describe('usePythHistorical', () => {
   });
 
   it('should return prices in chronological order', async () => {
-    const { result } = renderHook(
-      () => usePythHistorical({ symbol: 'BTC', period: 24 }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythHistorical({ symbol: 'BTC', period: 24 }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -214,10 +203,9 @@ describe('usePythAllData', () => {
   });
 
   it('should fetch all data successfully', async () => {
-    const { result } = renderHook(
-      () => usePythAllData({ symbol: 'BTC' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythAllData({ symbol: 'BTC' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     expect(result.current.isLoading).toBe(true);
 
@@ -234,10 +222,9 @@ describe('usePythAllData', () => {
   });
 
   it('should return publisher data', async () => {
-    const { result } = renderHook(
-      () => usePythAllData({ symbol: 'BTC' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythAllData({ symbol: 'BTC' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -251,10 +238,9 @@ describe('usePythAllData', () => {
   });
 
   it('should return validator data', async () => {
-    const { result } = renderHook(
-      () => usePythAllData({ symbol: 'BTC' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythAllData({ symbol: 'BTC' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -268,10 +254,9 @@ describe('usePythAllData', () => {
   });
 
   it('should combine loading states', async () => {
-    const { result } = renderHook(
-      () => usePythAllData({ symbol: 'BTC' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythAllData({ symbol: 'BTC' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     expect(result.current.isLoading).toBe(true);
 
@@ -287,10 +272,9 @@ describe('usePythAllData', () => {
   });
 
   it('should collect errors from all queries', async () => {
-    const { result } = renderHook(
-      () => usePythAllData({ symbol: 'BTC' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythAllData({ symbol: 'BTC' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -300,10 +284,9 @@ describe('usePythAllData', () => {
   });
 
   it('should support refetchAll', async () => {
-    const { result } = renderHook(
-      () => usePythAllData({ symbol: 'BTC' }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythAllData({ symbol: 'BTC' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -319,10 +302,9 @@ describe('usePythAllData', () => {
   });
 
   it('should handle disabled state', async () => {
-    const { result } = renderHook(
-      () => usePythAllData({ symbol: 'BTC', enabled: false }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => usePythAllData({ symbol: 'BTC', enabled: false }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.price).toBeUndefined();

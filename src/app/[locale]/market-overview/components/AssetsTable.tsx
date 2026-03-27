@@ -195,17 +195,17 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
         const route = getOracleRoute(oracleName);
 
         return (
-          <Tooltip content={`查看 ${oracleName} 详情`} placement="top">
-            <button
-              onClick={() => router.push(route)}
-              className="inline-flex items-center gap-2 cursor-pointer group"
-            >
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
-              <span className="text-xs font-medium text-primary-600 group-hover:underline">
-                {oracleName}
-              </span>
-            </button>
-          </Tooltip>
+          <Tooltip content={t('viewOracleDetails', { oracle: oracleName })} placement="top">
+          <button
+            onClick={() => router.push(route)}
+            className="inline-flex items-center gap-2 cursor-pointer group"
+          >
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
+            <span className="text-xs font-medium text-primary-600 group-hover:underline">
+              {oracleName}
+            </span>
+          </button>
+        </Tooltip>
         );
       },
     },

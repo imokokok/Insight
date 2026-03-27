@@ -1,4 +1,4 @@
-import { AppError, AppErrorOptions } from '../AppError';
+import { AppError } from '../AppError';
 import {
   ValidationError,
   NotFoundError,

@@ -2,8 +2,6 @@
 
 import { useMemo, useCallback } from 'react';
 
-import Image from 'next/image';
-
 import {
   TrendingUp,
   TrendingDown,
@@ -20,6 +18,7 @@ import {
   TrendingUp as TrendingUpIcon,
 } from 'lucide-react';
 
+import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import type { OracleConfig } from '@/lib/config/oracles';
@@ -599,11 +598,12 @@ export function API3Hero({
               className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
             >
-              <Image
+              <OptimizedImage
                 src="/logos/oracles/api3.svg"
                 alt="API3"
                 width={28}
                 height={28}
+                priority
                 className="w-7 h-7"
               />
             </div>

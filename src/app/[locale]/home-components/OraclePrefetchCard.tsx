@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 
 import Link from 'next/link';
 
@@ -51,6 +51,19 @@ const oracleProviderMap: Record<string, string> = {
   WINkLink: 'winklink',
 };
 
+const oracleSymbolMap: Record<string, string> = {
+  Chainlink: 'LINK',
+  'Pyth Network': 'PYTH',
+  'Band Protocol': 'BAND',
+  API3: 'API3',
+  UMA: 'UMA',
+  RedStone: 'REDSTONE',
+  DIA: 'DIA',
+  Tellor: 'TRB',
+  Chronicle: 'CHRONICLE',
+  WINkLink: 'WINKLINK',
+};
+
 function OraclePrefetchCardBase({
   name,
   value,
@@ -65,18 +78,28 @@ function OraclePrefetchCardBase({
   const provider = oracleProviderMap[name];
   const route = oracleRouteMap[name];
 
-  const prefetchConfig = provider
-    ? {
-        queryKey: ['oracles', 'detail', provider],
-        queryFn: async () => {
-          const response = await fetch(`/api/oracles/${provider}`);
-          if (!response.ok) throw new Error(`Failed to fetch ${provider} data`);
-          return response.json();
-        },
-        staleTime: STALE_TIME_CONFIG.network,
-        gcTime: GC_TIME_CONFIG.network,
-      }
-    : null;
+  const prefetchConfig = useMemo(() => {
+    if (!provider) return null;
+    return {
+      queryKey: ['oracles', 'detail', provider],
+      queryFn: async () => {
+        const symbol = oracleSymbolMap[name];
+        if (!symbol) {
+          throw new Error(`No symbol mapping found for ${name}`);
+        }
+        const response = await fetch(`/api/oracles/${provider}?symbol=${symbol}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.message || `Failed to fetch ${provider} data: ${response.status}`
+          );
+        }
+        return response.json();
+      },
+      staleTime: STALE_TIME_CONFIG.network,
+      gcTime: GC_TIME_CONFIG.network,
+    };
+  }, [provider, name]);
 
   const { prefetch, cancelPrefetch } = useHoverPrefetch({
     delay: 200,
@@ -105,7 +128,11 @@ function OraclePrefetchCardBase({
     onSelect(name);
   }, [onSelect, name]);
 
-  const cardContent = (
+  const handleNavClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
+
+  return (
     <div
       className={`px-4 py-2.5 border-b transition-colors cursor-pointer flex items-center justify-between ${
         isSelected ? '' : 'hover:bg-gray-50'
@@ -140,25 +167,26 @@ function OraclePrefetchCardBase({
         <span className="text-sm font-semibold w-12" style={{ color }}>
           {value}%
         </span>
-        {route && isHovered && (
-          <ChevronRight className="w-4 h-4" style={{ color: 'var(--gray-400, #9ca3af)' }} />
+        {route && (
+          <Link
+            href={route}
+            onClick={handleNavClick}
+            className="p-1 rounded hover:bg-gray-100 transition-colors flex-shrink-0"
+            title={`查看 ${name} 详情`}
+          >
+            <ChevronRight
+              className={`w-4 h-4 transition-colors ${
+                isHovered ? 'text-gray-600' : 'text-gray-400'
+              }`}
+            />
+          </Link>
         )}
       </div>
     </div>
   );
-
-  if (route) {
-    return (
-      <Link href={route} className="block">
-        {cardContent}
-      </Link>
-    );
-  }
-
-  return cardContent;
 }
 
 const OraclePrefetchCard = memo(OraclePrefetchCardBase);
 
 export default OraclePrefetchCard;
-export { oracleRouteMap, oracleProviderMap };
+export { oracleRouteMap, oracleProviderMap, oracleSymbolMap };

@@ -1,4 +1,4 @@
-import { type OracleProvider, type Blockchain } from './enums';
+import { type OracleProvider } from './enums';
 
 export interface OracleError {
   message: string;

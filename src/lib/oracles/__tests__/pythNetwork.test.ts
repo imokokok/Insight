@@ -3,6 +3,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle/enums';
 import { type ConfidenceInterval } from '@/types/oracle/price';
 
 import { PythClient } from '../pythNetwork';
+import * as storage from '../storage';
 
 jest.mock('../storage', () => ({
   shouldUseDatabase: jest.fn().mockReturnValue(false),
@@ -406,8 +407,9 @@ describe('PythClient', () => {
     });
 
     it('应该处理数据库错误并返回 mock 数据', async () => {
-      const { getPriceFromDatabase } = require('../storage');
-      getPriceFromDatabase.mockRejectedValueOnce(new Error('Database error'));
+      (storage.getPriceFromDatabase as jest.Mock).mockRejectedValueOnce(
+        new Error('Database error')
+      );
 
       const priceData = await client.getPrice('BTC');
 
@@ -416,8 +418,9 @@ describe('PythClient', () => {
     });
 
     it('应该处理历史价格数据库错误', async () => {
-      const { getHistoricalPricesFromDatabase } = require('../storage');
-      getHistoricalPricesFromDatabase.mockRejectedValueOnce(new Error('Database error'));
+      (storage.getHistoricalPricesFromDatabase as jest.Mock).mockRejectedValueOnce(
+        new Error('Database error')
+      );
 
       const prices = await client.getHistoricalPrices('ETH');
 

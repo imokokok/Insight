@@ -24,6 +24,7 @@ import {
   TrendingUp as TrendingUpIcon,
 } from 'lucide-react';
 
+import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
@@ -552,76 +553,78 @@ export function BandProtocolHero({
   const totalValidators = validators?.totalValidators ?? bandMetrics?.totalValidators ?? 100;
   const stakingRate = bandMetrics?.stakingRate ?? 51.5;
 
+  const tMetrics = useTranslations('ui.oracleMetrics');
+
   // 主要统计指标 (Primary stats) - 增加到5个核心指标
   const primaryStats: StatItem[] = [
     {
-      title: 'BAND 价格',
+      title: tMetrics('bandPrice'),
       value: `$${currentPrice.toFixed(2)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
       icon: <Activity className="w-4 h-4" />,
-      subtitle: '24h',
+      subtitle: tMetrics('subtitle24h'),
       sparklineData: priceSparkline,
     },
     {
-      title: '市值',
+      title: tMetrics('marketCap'),
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
       icon: <Coins className="w-4 h-4" />,
-      subtitle: 'FDV',
+      subtitle: tMetrics('subtitleFDV'),
     },
     {
-      title: '活跃验证者',
+      title: tMetrics('activeValidators'),
       value: `${activeValidators}`,
       change: '+2%',
       changeType: 'positive',
       icon: <Shield className="w-4 h-4" />,
-      subtitle: `共 ${totalValidators}`,
+      subtitle: tMetrics('totalValidators', { count: totalValidators }),
     },
     {
-      title: '数据喂价',
+      title: tMetrics('dataFeeds'),
       value: `${config.networkData.dataFeeds.toLocaleString()}+`,
       change: '+8%',
       changeType: 'positive',
       icon: <Zap className="w-4 h-4" />,
-      subtitle: '24h',
+      subtitle: tMetrics('subtitle24h'),
     },
     {
-      title: '质押率',
+      title: tMetrics('stakingRatio'),
       value: `${stakingRate.toFixed(1)}%`,
       change: '+1.2%',
       changeType: 'positive',
       icon: <Wallet className="w-4 h-4" />,
-      subtitle: '年化收益',
+      subtitle: tMetrics('stakingAPY'),
     },
   ];
 
   // 次要统计指标 (Secondary stats) - 整合为1行展示
   const secondaryStats: StatItem[] = [
     {
-      title: '支持链数',
+      title: tMetrics('supportedChains'),
       value: `${config.supportedChains.length}+`,
-      change: 'Multi-chain',
+      change: tMetrics('multiChain'),
       changeType: 'neutral',
       icon: <Globe className="w-4 h-4" />,
     },
     {
-      title: '平均出块时间',
+      title: tMetrics('avgBlockTime'),
       value: `${bandMetrics?.blockTime ?? 2.8}s`,
       change: '-5%',
       changeType: 'positive',
       icon: <Clock className="w-4 h-4" />,
     },
     {
-      title: '跨链桥接',
+      title: tMetrics('crossChainBridge'),
       value: `${crossChainStats?.activeBridges ?? 8}+`,
       change: '+12%',
       changeType: 'positive',
       icon: <Database className="w-4 h-4" />,
     },
     {
-      title: 'API调用',
+      title: tMetrics('apiCalls'),
       value: `${(config.networkData.updateFrequency / 1000).toFixed(1)}K`,
       change: '+15%',
       changeType: 'positive',
@@ -661,7 +664,14 @@ export function BandProtocolHero({
               className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
             >
-              <img src="/logos/oracles/band.svg" alt="Band Protocol" className="w-7 h-7" />
+              <OptimizedImage
+                src="/logos/oracles/band.svg"
+                alt="Band Protocol"
+                width={28}
+                height={28}
+                priority
+                className="w-7 h-7"
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Band Protocol</h1>

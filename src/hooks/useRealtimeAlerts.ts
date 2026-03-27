@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
 import type { AlertEventPayload } from '@/lib/supabase/realtime';
 import { useUser } from '@/stores/authStore';
@@ -133,16 +133,12 @@ export function useAlertNotifications(alerts?: RealtimeAlertNotification[]): {
   unreadCount: number;
   requestPermission: () => Promise<boolean>;
 } {
-  const [hasUnreadAlerts, setHasUnreadAlerts] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    if (alerts) {
-      const unread = alerts.filter((alert) => !alert.acknowledged);
-      setUnreadCount(unread.length);
-      setHasUnreadAlerts(unread.length > 0);
-    }
+  const unreadCount = useMemo(() => {
+    if (!alerts) return 0;
+    return alerts.filter((alert) => !alert.acknowledged).length;
   }, [alerts]);
+
+  const hasUnreadAlerts = unreadCount > 0;
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (typeof window === 'undefined' || !('Notification' in window)) {

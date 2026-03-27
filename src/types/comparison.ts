@@ -3,7 +3,7 @@
  * @description 包含预言机对比、跨链对比等功能的统一类型定义
  */
 
-import type { OracleProvider, PriceData, SnapshotStats } from './oracle';
+import type { OracleProvider, SnapshotStats } from './oracle';
 
 // ============================================================================
 // 基础类型定义

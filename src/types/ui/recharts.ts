@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 export interface TooltipProps<T = unknown> {
   active?: boolean;
   payload?: Array<{

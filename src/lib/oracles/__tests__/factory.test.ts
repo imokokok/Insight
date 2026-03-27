@@ -1,9 +1,8 @@
 import { container, SERVICE_TOKENS } from '@/lib/di';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 
 import { API3Client } from '../api3';
 import { BandProtocolClient } from '../bandProtocol';
-import { BaseOracleClient } from '../base';
 import { ChainlinkClient } from '../chainlink';
 import { ChronicleClient } from '../chronicle';
 import { DIAClient } from '../dia';
