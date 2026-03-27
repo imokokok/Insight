@@ -20,9 +20,11 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('marketData:priceCalculations');
 
+const CONFIDENCE_INTERVAL = 0.05;
+
 export function generateTVSTrendData(
   hours: number,
-  oracleData: OracleMarketData[]
+  oracleData?: OracleMarketData[]
 ): TVSTrendData[] {
   const data: TVSTrendData[] = [];
   const now = Date.now();
@@ -30,10 +32,12 @@ export function generateTVSTrendData(
   const points = hours === 0 ? 365 : Math.min(hours, 365);
 
   const baseValues: Record<string, number> = {};
-  oracleData.forEach((oracle) => {
-    const key = oracle.name.toLowerCase().replace(' network', '').replace(' protocol', '');
-    baseValues[key] = oracle.tvsValue;
-  });
+  if (oracleData && oracleData.length > 0) {
+    oracleData.forEach((oracle) => {
+      const key = oracle.name.toLowerCase().replace(' network', '').replace(' protocol', '');
+      baseValues[key] = oracle.tvsValue;
+    });
+  }
 
   const defaults: Record<string, number> = {
     chainlink: 42.1,
@@ -78,35 +82,35 @@ export function generateTVSTrendData(
       timestamp,
       date: dateStr,
       chainlink: Number(chainlink.toFixed(2)),
-      chainlinkUpper: Number((chainlink * 1.02).toFixed(2)),
-      chainlinkLower: Number((chainlink * 0.98).toFixed(2)),
+      chainlinkUpper: Number((chainlink * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      chainlinkLower: Number((chainlink * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       pyth: Number(pyth.toFixed(2)),
-      pythUpper: Number((pyth * 1.02).toFixed(2)),
-      pythLower: Number((pyth * 0.98).toFixed(2)),
+      pythUpper: Number((pyth * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      pythLower: Number((pyth * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       band: Number(band.toFixed(2)),
-      bandUpper: Number((band * 1.02).toFixed(2)),
-      bandLower: Number((band * 0.98).toFixed(2)),
+      bandUpper: Number((band * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      bandLower: Number((band * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       api3: Number(api3.toFixed(2)),
-      api3Upper: Number((api3 * 1.02).toFixed(2)),
-      api3Lower: Number((api3 * 0.98).toFixed(2)),
+      api3Upper: Number((api3 * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      api3Lower: Number((api3 * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       uma: Number(uma.toFixed(2)),
-      umaUpper: Number((uma * 1.02).toFixed(2)),
-      umaLower: Number((uma * 0.98).toFixed(2)),
+      umaUpper: Number((uma * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      umaLower: Number((uma * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       redstone: Number(redstone.toFixed(2)),
-      redstoneUpper: Number((redstone * 1.02).toFixed(2)),
-      redstoneLower: Number((redstone * 0.98).toFixed(2)),
+      redstoneUpper: Number((redstone * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      redstoneLower: Number((redstone * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       dia: Number(dia.toFixed(2)),
-      diaUpper: Number((dia * 1.02).toFixed(2)),
-      diaLower: Number((dia * 0.98).toFixed(2)),
+      diaUpper: Number((dia * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      diaLower: Number((dia * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       tellor: Number(tellor.toFixed(2)),
-      tellorUpper: Number((tellor * 1.02).toFixed(2)),
-      tellorLower: Number((tellor * 0.98).toFixed(2)),
+      tellorUpper: Number((tellor * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      tellorLower: Number((tellor * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       chronicle: Number(chronicle.toFixed(2)),
-      chronicleUpper: Number((chronicle * 1.02).toFixed(2)),
-      chronicleLower: Number((chronicle * 0.98).toFixed(2)),
+      chronicleUpper: Number((chronicle * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      chronicleLower: Number((chronicle * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       winklink: Number(winklink.toFixed(2)),
-      winklinkUpper: Number((winklink * 1.02).toFixed(2)),
-      winklinkLower: Number((winklink * 0.98).toFixed(2)),
+      winklinkUpper: Number((winklink * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      winklinkLower: Number((winklink * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       total: Number(
         (
           chainlink +

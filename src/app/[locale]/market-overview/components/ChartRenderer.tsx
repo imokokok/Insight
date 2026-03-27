@@ -36,6 +36,7 @@ import {
   type CorrelationData,
   type ChainSupportData,
 } from '../types';
+import { prepareComparisonData, ORACLE_KEYS } from '../comparisonUtils';
 
 import AssetCategoryChart from './AssetCategoryChart';
 import BenchmarkComparison from './BenchmarkComparison';
@@ -169,36 +170,6 @@ export default function ChartRenderer({
       .filter((item): item is NonNullable<typeof item> => item !== null);
   };
 
-  const prepareComparisonData = (currentData: TVSTrendData[], compareData: TVSTrendData[]) => {
-    return currentData.map((item, index) => {
-      const compareItem = compareData[index];
-      const result: TVSTrendData & Record<string, string | number> = { ...item };
-
-      [
-        'chainlink',
-        'pyth',
-        'band',
-        'api3',
-        'uma',
-        'redstone',
-        'dia',
-        'tellor',
-        'chronicle',
-        'winklink',
-      ].forEach((key) => {
-        const currentValue = item[key as keyof TVSTrendData] as number;
-        const compareValue = compareItem?.[key as keyof TVSTrendData] as number;
-        result[`${key}Compare`] = compareValue || 0;
-        result[`${key}Diff`] = currentValue - (compareValue || 0);
-        result[`${key}DiffPercent`] = compareValue
-          ? ((currentValue - compareValue) / compareValue) * 100
-          : 0;
-      });
-
-      return result;
-    });
-  };
-
   const isCellHighlighted = (name: string) => {
     if (!linkedOracle) return true;
     return name === linkedOracle.primary || name === linkedOracle.secondary;
@@ -210,11 +181,7 @@ export default function ChartRenderer({
   };
 
   const renderPieChart = () => {
-    // 计算总 TVS
-    const totalTVS = sortedOracleData.reduce(
-      (sum, item) => sum + (typeof item.tvs === 'number' ? item.tvs : 0),
-      0
-    );
+    const totalTVS = sortedOracleData.reduce((sum, item) => sum + item.tvsValue, 0);
 
     // 获取悬停或选中的预言机数据
     const activeItem = hoveredItem
@@ -305,7 +272,7 @@ export default function ChartRenderer({
                     <p className="text-xs text-gray-500 mb-1">{activeItem.name}</p>
                     <p className="text-2xl font-bold text-gray-900">{activeItem.share}%</p>
                     <p className="text-xs text-gray-500 mt-1">
-                      ${(typeof activeItem.tvs === 'number' ? activeItem.tvs : 0).toFixed(1)}B
+                      ${activeItem.tvsValue.toFixed(1)}B
                     </p>
                     <p
                       className={`text-xs mt-1 ${(activeItem.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}
@@ -404,18 +371,6 @@ export default function ChartRenderer({
   };
 
   const renderTrendChart = () => {
-    const oracleKeys = [
-      'chainlink',
-      'pyth',
-      'band',
-      'api3',
-      'uma',
-      'redstone',
-      'dia',
-      'tellor',
-      'chronicle',
-      'winklink',
-    ];
     const oracleColors: Record<string, string> = {
       chainlink: chartColors.marketOverview.chainlink,
       pyth: chartColors.marketOverview.pyth,
@@ -454,7 +409,7 @@ export default function ChartRenderer({
             <p className="font-medium text-gray-900 mb-2">{label}</p>
             {comparisonMode !== 'none' ? (
               <div className="space-y-2">
-                {oracleKeys.map((key) => {
+                {ORACLE_KEYS.map((key) => {
                   const currentValue = data[key] as number;
                   const compareValue = data[`${key}Compare`] as number;
                   const diffPercent = data[`${key}DiffPercent`] as number;
@@ -527,7 +482,7 @@ export default function ChartRenderer({
         <YAxis stroke={chartColors.lineChart.axis} fontSize={12} tickFormatter={(v) => `$${v}B`} />
         <RechartsTooltip content={<ComparisonTooltip />} />
         <Legend />
-        {oracleKeys.map((key) => {
+        {ORACLE_KEYS.map((key) => {
           const isHighlighted = isLineHighlighted(oracleNames[key]);
           return (
             <Line
@@ -546,7 +501,7 @@ export default function ChartRenderer({
         })}
         {showConfidenceInterval &&
           comparisonMode === 'none' &&
-          oracleKeys.map((key) => (
+          ORACLE_KEYS.map((key) => (
             <Area
               key={`${key}-confidence`}
               type="monotone"
@@ -559,7 +514,7 @@ export default function ChartRenderer({
           ))}
         {showConfidenceInterval &&
           comparisonMode === 'none' &&
-          oracleKeys.map((key) => (
+          ORACLE_KEYS.map((key) => (
             <Area
               key={`${key}-confidence-lower`}
               type="monotone"
@@ -572,7 +527,7 @@ export default function ChartRenderer({
           ))}
         {comparisonMode !== 'none' &&
           trendComparisonData.length > 0 &&
-          oracleKeys.map((key) => (
+          ORACLE_KEYS.map((key) => (
             <Line
               key={`${key}-compare`}
               type="monotone"
@@ -585,7 +540,7 @@ export default function ChartRenderer({
               opacity={0.7}
             />
           ))}
-        {oracleKeys.map((key) =>
+        {ORACLE_KEYS.map((key) =>
           detectAnomalies(trendData, key, anomalyThreshold).map((anomaly, idx) => (
             <ReferenceDot
               key={`${key}-anomaly-${idx}`}

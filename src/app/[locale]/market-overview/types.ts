@@ -40,6 +40,11 @@ export interface MarketStats {
   marketDominance: number;
   oracleCount: number;
   change24h: number;
+  chainsChange24h: number;
+  protocolsChange24h: number;
+  dominanceChange24h: number;
+  latencyChange24h: number;
+  oracleCountChange24h: number;
 }
 
 export interface TVSTrendData {

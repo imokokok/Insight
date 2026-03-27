@@ -20,7 +20,6 @@ import { createLogger } from '@/lib/utils/logger';
 import {
   MOCK_ORACLE_DATA,
   MOCK_ASSETS,
-  generateTVSTrendData as generateMockTVSTrendData,
   type RefreshInterval,
 } from './constants';
 import {
@@ -83,7 +82,7 @@ export interface UseDataFetchingReturn {
 export function useDataFetching(): UseDataFetchingReturn {
   const [oracleData, setOracleData] = useState<OracleMarketData[]>(MOCK_ORACLE_DATA);
   const [assets, setAssets] = useState<AssetData[]>(MOCK_ASSETS);
-  const [trendData, setTrendData] = useState<TVSTrendData[]>(() => generateMockTVSTrendData(720));
+  const [trendData, setTrendData] = useState<TVSTrendData[]>(() => generateTVSTrendData(720));
   const [chainBreakdown, setChainBreakdown] = useState<ChainBreakdown[]>([]);
   const [protocolDetails, setProtocolDetails] = useState<ProtocolDetail[]>([]);
   const [assetCategories, setAssetCategories] = useState<AssetCategory[]>([]);
@@ -117,6 +116,7 @@ export function useDataFetching(): UseDataFetchingReturn {
 
   const oracleDataRef = useRef(oracleData);
   const assetsRef = useRef(assets);
+  const selectedTimeRangeRef = useRef(selectedTimeRange);
 
   useEffect(() => {
     oracleDataRef.current = oracleData;
@@ -125,6 +125,10 @@ export function useDataFetching(): UseDataFetchingReturn {
   useEffect(() => {
     assetsRef.current = assets;
   }, [assets]);
+
+  useEffect(() => {
+    selectedTimeRangeRef.current = selectedTimeRange;
+  }, [selectedTimeRange]);
 
   const getTimeRangeHours = useCallback((rangeKey: string): number => {
     const range = TIME_RANGES.find((r) => r.key === rangeKey);
@@ -137,7 +141,7 @@ export function useDataFetching(): UseDataFetchingReturn {
     setError(null);
 
     try {
-      const hours = getTimeRangeHours(selectedTimeRange);
+      const hours = getTimeRangeHours(selectedTimeRangeRef.current);
 
       const [oracleResult, assetsResult] = await Promise.allSettled([
         fetchOraclesData(),
@@ -196,7 +200,7 @@ export function useDataFetching(): UseDataFetchingReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedTimeRange, getTimeRangeHours]);
+  }, [getTimeRangeHours]);
 
   const fetchMockData = useCallback(async () => {
     setRefreshStatus('refreshing');
@@ -206,8 +210,8 @@ export function useDataFetching(): UseDataFetchingReturn {
     try {
       await new Promise((resolve) => setTimeout(resolve, 800));
 
-      const hours = getTimeRangeHours(selectedTimeRange);
-      const newTrendData = generateMockTVSTrendData(hours);
+      const hours = getTimeRangeHours(selectedTimeRangeRef.current);
+      const newTrendData = generateTVSTrendData(hours);
 
       const updatedOracleData = oracleDataRef.current.map((oracle) => ({
         ...oracle,
@@ -239,7 +243,7 @@ export function useDataFetching(): UseDataFetchingReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedTimeRange, getTimeRangeHours]);
+  }, [getTimeRangeHours]);
 
   const fetchData = useCallback(async () => {
     if (USE_REAL_API) {

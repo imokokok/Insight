@@ -178,124 +178,6 @@ export const MOCK_ORACLE_DATA: OracleMarketData[] = [
   },
 ];
 
-// 生成TVS趋势数据
-export function generateTVSTrendData(hours: number): TVSTrendData[] {
-  const data: TVSTrendData[] = [];
-  const now = Date.now();
-  const interval = hours <= 24 ? 3600000 : 86400000; // 1小时或1天
-  const points = hours === 0 ? 365 : Math.min(hours, 365);
-
-  let chainlinkBase = 35;
-  let pythBase = 8;
-  let bandBase = 3.5;
-  let api3Base = 2.5;
-  let umaBase = 2;
-  let redstoneBase = 1.5;
-  let diaBase = 1.2;
-  let tellorBase = 0.9;
-  let chronicleBase = 0.7;
-  let winklinkBase = 0.5;
-
-  // 置信区间系数 (95% 置信区间约为 ±5%)
-  const confidenceInterval = 0.05;
-
-  for (let i = points; i >= 0; i--) {
-    const timestamp = now - i * interval;
-    const date = new Date(timestamp);
-    const dateStr =
-      hours <= 24
-        ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-        : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-    // 添加随机波动
-    const volatility = 0.02;
-    chainlinkBase *= 1 + (Math.random() - 0.48) * volatility;
-    pythBase *= 1 + (Math.random() - 0.45) * volatility;
-    bandBase *= 1 + (Math.random() - 0.5) * volatility;
-    api3Base *= 1 + (Math.random() - 0.5) * volatility;
-    umaBase *= 1 + (Math.random() - 0.5) * volatility;
-    redstoneBase *= 1 + (Math.random() - 0.5) * volatility;
-    diaBase *= 1 + (Math.random() - 0.5) * volatility;
-    tellorBase *= 1 + (Math.random() - 0.5) * volatility;
-    chronicleBase *= 1 + (Math.random() - 0.5) * volatility;
-    winklinkBase *= 1 + (Math.random() - 0.5) * volatility;
-
-    // 计算置信区间上下界
-    const chainlinkUpper = chainlinkBase * (1 + confidenceInterval);
-    const chainlinkLower = chainlinkBase * (1 - confidenceInterval);
-    const pythUpper = pythBase * (1 + confidenceInterval);
-    const pythLower = pythBase * (1 - confidenceInterval);
-    const bandUpper = bandBase * (1 + confidenceInterval);
-    const bandLower = bandBase * (1 - confidenceInterval);
-    const api3Upper = api3Base * (1 + confidenceInterval);
-    const api3Lower = api3Base * (1 - confidenceInterval);
-    const umaUpper = umaBase * (1 + confidenceInterval);
-    const umaLower = umaBase * (1 - confidenceInterval);
-    const redstoneUpper = redstoneBase * (1 + confidenceInterval);
-    const redstoneLower = redstoneBase * (1 - confidenceInterval);
-    const diaUpper = diaBase * (1 + confidenceInterval);
-    const diaLower = diaBase * (1 - confidenceInterval);
-    const tellorUpper = tellorBase * (1 + confidenceInterval);
-    const tellorLower = tellorBase * (1 - confidenceInterval);
-    const chronicleUpper = chronicleBase * (1 + confidenceInterval);
-    const chronicleLower = chronicleBase * (1 - confidenceInterval);
-    const winklinkUpper = winklinkBase * (1 + confidenceInterval);
-    const winklinkLower = winklinkBase * (1 - confidenceInterval);
-
-    data.push({
-      timestamp,
-      date: dateStr,
-      chainlink: Number(chainlinkBase.toFixed(2)),
-      chainlinkUpper: Number(chainlinkUpper.toFixed(2)),
-      chainlinkLower: Number(chainlinkLower.toFixed(2)),
-      pyth: Number(pythBase.toFixed(2)),
-      pythUpper: Number(pythUpper.toFixed(2)),
-      pythLower: Number(pythLower.toFixed(2)),
-      band: Number(bandBase.toFixed(2)),
-      bandUpper: Number(bandUpper.toFixed(2)),
-      bandLower: Number(bandLower.toFixed(2)),
-      api3: Number(api3Base.toFixed(2)),
-      api3Upper: Number(api3Upper.toFixed(2)),
-      api3Lower: Number(api3Lower.toFixed(2)),
-      uma: Number(umaBase.toFixed(2)),
-      umaUpper: Number(umaUpper.toFixed(2)),
-      umaLower: Number(umaLower.toFixed(2)),
-      redstone: Number(redstoneBase.toFixed(2)),
-      redstoneUpper: Number(redstoneUpper.toFixed(2)),
-      redstoneLower: Number(redstoneLower.toFixed(2)),
-      dia: Number(diaBase.toFixed(2)),
-      diaUpper: Number(diaUpper.toFixed(2)),
-      diaLower: Number(diaLower.toFixed(2)),
-      tellor: Number(tellorBase.toFixed(2)),
-      tellorUpper: Number(tellorUpper.toFixed(2)),
-      tellorLower: Number(tellorLower.toFixed(2)),
-      chronicle: Number(chronicleBase.toFixed(2)),
-      chronicleUpper: Number(chronicleUpper.toFixed(2)),
-      chronicleLower: Number(chronicleLower.toFixed(2)),
-      winklink: Number(winklinkBase.toFixed(2)),
-      winklinkUpper: Number(winklinkUpper.toFixed(2)),
-      winklinkLower: Number(winklinkLower.toFixed(2)),
-      total: Number(
-        (
-          chainlinkBase +
-          pythBase +
-          bandBase +
-          api3Base +
-          umaBase +
-          redstoneBase +
-          diaBase +
-          tellorBase +
-          chronicleBase +
-          winklinkBase
-        ).toFixed(2)
-      ),
-    });
-  }
-
-  return data;
-}
-
-// 链支持数据
 export const CHAIN_SUPPORT_DATA: ChainSupportData[] = [
   { name: 'Chainlink', chains: 15, protocols: 450, color: ORACLE_COLORS.chainlink },
   { name: 'Pyth Network', chains: 20, protocols: 280, color: ORACLE_COLORS.pyth },
@@ -309,7 +191,6 @@ export const CHAIN_SUPPORT_DATA: ChainSupportData[] = [
   { name: 'WINkLink', chains: 3, protocols: 12, color: ORACLE_COLORS.winklink },
 ];
 
-// 模拟资产数据
 export const MOCK_ASSETS: AssetData[] = [
   {
     symbol: 'BTC',

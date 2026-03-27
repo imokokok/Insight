@@ -39,6 +39,7 @@ import {
   type BenchmarkData,
   type CorrelationData,
 } from '../types';
+import { prepareComparisonData, ORACLE_KEYS } from '../comparisonUtils';
 
 import ChartRenderer from './ChartRenderer';
 
@@ -306,39 +307,6 @@ export default function ChartContainer({
     }
   };
 
-  const prepareComparisonData = (currentData: TVSTrendData[], compareData: TVSTrendData[]) => {
-    return currentData.map((item, index) => {
-      const compareItem = compareData[index];
-      const result: TVSTrendData & Record<string, string | number> = { ...item };
-
-      const oracleKeys = [
-        'chainlink',
-        'pyth',
-        'band',
-        'api3',
-        'uma',
-        'redstone',
-        'dia',
-        'tellor',
-        'chronicle',
-        'winklink',
-      ] as const;
-
-      oracleKeys.forEach((key) => {
-        const currentValue = item[key] as number;
-        const compareValue = compareItem?.[key] as number;
-        result[`${key}Compare`] = compareValue || 0;
-        result[`${key}Diff`] = currentValue - (compareValue || 0);
-        result[`${key}DiffPercent`] = compareValue
-          ? ((currentValue - compareValue) / compareValue) * 100
-          : 0;
-      });
-
-      return result;
-    });
-  };
-
-  // 获取当前选中的次要图表类型信息
   const getCurrentSecondaryChart = () => {
     return secondaryChartTypes.find((t) => t.key === activeChart);
   };
@@ -441,23 +409,11 @@ export default function ChartContainer({
                   const latestData = prepareComparisonData(trendData, trendComparisonData)[
                     trendData.length - 1
                   ];
-                  const oracleKeys = [
-                    'chainlink',
-                    'pyth',
-                    'band',
-                    'api3',
-                    'uma',
-                    'redstone',
-                    'dia',
-                    'tellor',
-                    'chronicle',
-                    'winklink',
-                  ];
                   const avgDiff =
-                    oracleKeys.reduce((sum, key) => {
+                    ORACLE_KEYS.reduce((sum, key) => {
                       const diffPercent = latestData[`${key}DiffPercent`];
                       return sum + (typeof diffPercent === 'number' ? diffPercent : 0);
-                    }, 0) / oracleKeys.length;
+                    }, 0) / ORACLE_KEYS.length;
                   return (
                     <span
                       className={cn(

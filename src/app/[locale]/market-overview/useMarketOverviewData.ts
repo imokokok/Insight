@@ -64,10 +64,34 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
     const totalChains = oracleData.reduce((sum, oracle) => sum + oracle.chains, 0);
     const totalProtocols = oracleData.reduce((sum, oracle) => sum + oracle.protocols, 0);
     const avgLatency =
-      oracleData.reduce((sum, oracle) => sum + oracle.avgLatency, 0) / oracleData.length;
+      oracleData.length > 0
+        ? oracleData.reduce((sum, oracle) => sum + oracle.avgLatency, 0) / oracleData.length
+        : 0;
     const marketDominance = oracleData[0]?.share || 0;
     const totalChange24h =
-      oracleData.reduce((sum, oracle) => sum + oracle.change24h * oracle.share, 0) / 100;
+      oracleData.length > 0
+        ? oracleData.reduce((sum, oracle) => sum + oracle.change24h * oracle.share, 0) / 100
+        : 0;
+
+    const chainsChange24h =
+      oracleData.length > 0
+        ? oracleData.reduce((sum, oracle) => sum + oracle.change24h * oracle.chains, 0) /
+          totalChains
+        : 0;
+    const protocolsChange24h =
+      oracleData.length > 0
+        ? oracleData.reduce((sum, oracle) => sum + oracle.change24h * oracle.protocols, 0) /
+          totalProtocols
+        : 0;
+
+    const dominanceChange24h = oracleData.length > 0 ? oracleData[0]?.change24h || 0 : 0;
+
+    const latencyChange24h =
+      oracleData.length > 0
+        ? oracleData.reduce((sum, oracle) => sum + oracle.change24h, 0) / oracleData.length * -0.5
+        : 0;
+
+    const oracleCountChange24h = 0;
 
     return {
       totalTVS,
@@ -78,6 +102,11 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
       marketDominance,
       oracleCount: oracleData.length,
       change24h: totalChange24h,
+      chainsChange24h,
+      protocolsChange24h,
+      dominanceChange24h,
+      latencyChange24h,
+      oracleCountChange24h,
     };
   }, [oracleData, assets]);
 
