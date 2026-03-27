@@ -1,12 +1,43 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 
-export default function HeroBackground() {
+// Dynamic import for particle network to avoid SSR issues
+const ParticleNetwork = dynamic(() => import('./ParticleNetwork'), {
+  ssr: false,
+});
+
+// Dynamic import for data flow lines
+const DataFlowLines = dynamic(() => import('./DataFlowLines'), {
+  ssr: false,
+});
+
+interface HeroBackgroundProps {
+  enableParticles?: boolean;
+  enableDataFlow?: boolean;
+}
+
+export default function HeroBackground({
+  enableParticles = true,
+  enableDataFlow = true,
+}: HeroBackgroundProps) {
   const [mounted, setMounted] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    
+    // Check for reduced motion preference
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   if (!mounted) {
@@ -66,9 +97,27 @@ export default function HeroBackground() {
         />
       </div>
 
+      {/* Particle Network Layer - Middle */}
+      {enableParticles && !prefersReducedMotion && (
+        <div className="absolute inset-0 z-[1]">
+          <ParticleNetwork
+            particleCount={60}
+            connectionDistance={150}
+            themeColor="#3b82f6"
+          />
+        </div>
+      )}
+
+      {/* Data Flow Lines Layer - Top */}
+      {enableDataFlow && !prefersReducedMotion && (
+        <div className="absolute inset-0 z-[2]">
+          <DataFlowLines />
+        </div>
+      )}
+
       {/* Bottom fade for smooth transition */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-[3]"
         style={{
           background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 1))',
         }}
