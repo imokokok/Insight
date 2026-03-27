@@ -230,9 +230,12 @@
   },
   "common": {
     "loading": "Loading...",
+    "noData": "No data available",
     "home": "Home",
     "refresh": "Refresh",
     "export": "Export",
+    "expand": "Expand",
+    "collapse": "Collapse",
     "breadcrumb": {
       "home": "Home"
     },

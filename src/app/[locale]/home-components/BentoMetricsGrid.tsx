@@ -211,7 +211,7 @@ function LiveIndicator() {
 
   return (
     <div
-      className="absolute top-4 right-4 flex items-center gap-1 px-2 py-0.5"
+      className="flex items-center gap-1 px-2 py-0.5 rounded"
       style={{
         backgroundColor: semanticColors.success.light,
         border: `1px solid ${semanticColors.success.light}`,
@@ -428,13 +428,13 @@ export default function BentoMetricsGrid() {
             <AreaChart data={card.chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id={`gradient-${card.id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={chartColors.chart.blue} stopOpacity={0.1} />
+                  <stop offset="0%" stopColor={chartColors.chart.blue} stopOpacity={0.05} />
                   <stop offset="100%" stopColor={chartColors.chart.blue} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <RechartsTooltip
                 content={<ChartTooltip />}
-                cursor={{ stroke: chartColors.chart.blue, strokeWidth: 1, strokeDasharray: '3 3' }}
+                cursor={{ stroke: baseColors.gray[100], strokeWidth: 1, strokeDasharray: '3 3' }}
               />
               <Area
                 type="monotone"
@@ -457,7 +457,7 @@ export default function BentoMetricsGrid() {
           <LineChart data={card.chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <RechartsTooltip
               content={<ChartTooltip />}
-              cursor={{ stroke: chartColors.chart.blue, strokeWidth: 1, strokeDasharray: '3 3' }}
+              cursor={{ stroke: baseColors.gray[100], strokeWidth: 1, strokeDasharray: '3 3' }}
             />
             <Line
               type="monotone"
@@ -475,11 +475,11 @@ export default function BentoMetricsGrid() {
   };
 
   return (
-    <section className="py-16 bg-slate-50 border-y border-slate-200">
+    <section className="py-20 bg-slate-50 border-y border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-20">
         <div className="text-center mb-12">
           <div
-            className="inline-flex items-center gap-2 px-3 py-1.5 mb-4"
+            className="inline-flex items-center gap-2 px-3 py-1.5 mb-4 rounded-lg"
             style={{
               backgroundColor: baseColors.gray[100],
               border: `1px solid ${baseColors.gray[200]}`,
@@ -503,7 +503,7 @@ export default function BentoMetricsGrid() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
           {metrics.map((card) => {
             const Icon = card.icon;
             const isHovered = hoveredCard === card.id;
@@ -513,7 +513,7 @@ export default function BentoMetricsGrid() {
               <div
                 key={card.id}
                 className={`
-                  relative bg-white border transition-colors duration-200 cursor-pointer
+                  relative bg-white border rounded-lg transition-colors duration-200 cursor-pointer
                   ${card.size === 'large' ? 'sm:col-span-2 sm:row-span-2' : ''}
                   ${card.size === 'medium' ? 'sm:col-span-1' : ''}
                   ${card.size === 'small' ? 'sm:col-span-1' : ''}
@@ -528,39 +528,40 @@ export default function BentoMetricsGrid() {
                 onMouseEnter={() => setHoveredCard(card.id)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                {card.hasLiveIndicator && <LiveIndicator />}
-
-                <div className="p-5 h-full flex flex-col">
+                <div className="p-6 h-full flex flex-col">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
+                    <div className="p-2 rounded" style={{ backgroundColor: baseColors.gray[100] }}>
                       <Icon
                         className="w-4 h-4 sm:w-5 sm:h-5"
                         style={{ color: baseColors.gray[600] }}
                       />
                     </div>
-                    {card.change && (
-                      <div
-                        className="flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-semibold border rounded"
-                        style={{
-                          backgroundColor: card.isPositive
-                            ? semanticColors.success.light
-                            : semanticColors.danger.light,
-                          color: card.isPositive
-                            ? semanticColors.success.text
-                            : semanticColors.danger.text,
-                          borderColor: card.isPositive
-                            ? semanticColors.success.light
-                            : semanticColors.danger.light,
-                        }}
-                      >
-                        {card.isPositive ? (
-                          <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        ) : (
-                          <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        )}
-                        {card.change}
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {card.hasLiveIndicator && <LiveIndicator />}
+                      {card.change && (
+                        <div
+                          className="flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-semibold border rounded"
+                          style={{
+                            backgroundColor: card.isPositive
+                              ? semanticColors.success.light
+                              : semanticColors.danger.light,
+                            color: card.isPositive
+                              ? semanticColors.success.text
+                              : semanticColors.danger.text,
+                            borderColor: card.isPositive
+                              ? semanticColors.success.light
+                              : semanticColors.danger.light,
+                          }}
+                        >
+                          {card.isPositive ? (
+                            <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                          ) : (
+                            <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                          )}
+                          {card.change}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex-1 min-w-0">

@@ -244,7 +244,7 @@ function OracleMarketOverviewBase() {
           fill={baseColors.gray[50]}
           textAnchor={x > cx ? 'start' : 'end'}
           dominantBaseline="central"
-          className="text-xs font-medium"
+          className="text-xs font-normal"
         >
           {`${(percent * 100).toFixed(0)}%`}
         </text>
@@ -419,9 +419,13 @@ function OracleMarketOverviewBase() {
                   key={`cell-${index}`}
                   fill={entry.color}
                   stroke={selectedItem === entry.name ? baseColors.gray[50] : 'none'}
-                  strokeWidth={selectedItem === entry.name ? 3 : 0}
+                  strokeWidth={selectedItem === entry.name ? 2 : 0}
                   opacity={hoveredItem && hoveredItem !== entry.name ? 0.6 : 1}
-                  style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                  style={{
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    filter: selectedItem === entry.name ? 'brightness(1.1)' : 'none',
+                  }}
                 />
               ))}
             </Pie>
@@ -441,9 +445,9 @@ function OracleMarketOverviewBase() {
               dataKey="chainlink"
               name="Chainlink"
               stroke={COLORS.chainlink}
-              strokeWidth={hoveredItem === 'Chainlink' || !hoveredItem ? 3 : 2}
-              dot={{ r: hoveredItem === 'Chainlink' ? 6 : 4, fill: COLORS.chainlink }}
-              activeDot={{ r: 8 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6, fill: COLORS.chainlink }}
               opacity={hoveredItem && hoveredItem !== 'Chainlink' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('Chainlink')}
@@ -454,9 +458,9 @@ function OracleMarketOverviewBase() {
               dataKey="pyth"
               name="Pyth Network"
               stroke={COLORS.pyth}
-              strokeWidth={hoveredItem === 'Pyth Network' || !hoveredItem ? 3 : 2}
-              dot={{ r: hoveredItem === 'Pyth Network' ? 6 : 4, fill: COLORS.pyth }}
-              activeDot={{ r: 8 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6, fill: COLORS.pyth }}
               opacity={hoveredItem && hoveredItem !== 'Pyth Network' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('Pyth Network')}
@@ -467,9 +471,9 @@ function OracleMarketOverviewBase() {
               dataKey="band"
               name="Band Protocol"
               stroke={COLORS.band}
-              strokeWidth={hoveredItem === 'Band Protocol' || !hoveredItem ? 2 : 1.5}
-              dot={{ r: hoveredItem === 'Band Protocol' ? 5 : 3, fill: COLORS.band }}
-              activeDot={{ r: 7 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6, fill: COLORS.band }}
               opacity={hoveredItem && hoveredItem !== 'Band Protocol' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('Band Protocol')}
@@ -480,9 +484,9 @@ function OracleMarketOverviewBase() {
               dataKey="api3"
               name="API3"
               stroke={COLORS.api3}
-              strokeWidth={hoveredItem === 'API3' || !hoveredItem ? 2 : 1.5}
-              dot={{ r: hoveredItem === 'API3' ? 5 : 3, fill: COLORS.api3 }}
-              activeDot={{ r: 7 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6, fill: COLORS.api3 }}
               opacity={hoveredItem && hoveredItem !== 'API3' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('API3')}
@@ -493,9 +497,9 @@ function OracleMarketOverviewBase() {
               dataKey="uma"
               name="UMA"
               stroke={COLORS.uma}
-              strokeWidth={hoveredItem === 'UMA' || !hoveredItem ? 2 : 1.5}
-              dot={{ r: hoveredItem === 'UMA' ? 5 : 3, fill: COLORS.uma }}
-              activeDot={{ r: 7 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6, fill: COLORS.uma }}
               opacity={hoveredItem && hoveredItem !== 'UMA' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('UMA')}
@@ -506,9 +510,9 @@ function OracleMarketOverviewBase() {
               dataKey="redstone"
               name="RedStone"
               stroke={COLORS.redstone}
-              strokeWidth={hoveredItem === 'RedStone' || !hoveredItem ? 2 : 1.5}
-              dot={{ r: hoveredItem === 'RedStone' ? 5 : 3, fill: COLORS.redstone }}
-              activeDot={{ r: 7 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6, fill: COLORS.redstone }}
               opacity={hoveredItem && hoveredItem !== 'RedStone' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('RedStone')}
@@ -519,9 +523,9 @@ function OracleMarketOverviewBase() {
               dataKey="dia"
               name="DIA"
               stroke={COLORS.dia}
-              strokeWidth={hoveredItem === 'DIA' || !hoveredItem ? 2 : 1.5}
-              dot={{ r: hoveredItem === 'DIA' ? 5 : 3, fill: COLORS.dia }}
-              activeDot={{ r: 7 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6, fill: COLORS.dia }}
               opacity={hoveredItem && hoveredItem !== 'DIA' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('DIA')}
@@ -532,9 +536,9 @@ function OracleMarketOverviewBase() {
               dataKey="tellor"
               name="Tellor"
               stroke={COLORS.tellor}
-              strokeWidth={hoveredItem === 'Tellor' || !hoveredItem ? 2 : 1.5}
-              dot={{ r: hoveredItem === 'Tellor' ? 5 : 3, fill: COLORS.tellor }}
-              activeDot={{ r: 7 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6, fill: COLORS.tellor }}
               opacity={hoveredItem && hoveredItem !== 'Tellor' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('Tellor')}
@@ -545,9 +549,9 @@ function OracleMarketOverviewBase() {
               dataKey="chronicle"
               name="Chronicle"
               stroke={COLORS.chronicle}
-              strokeWidth={hoveredItem === 'Chronicle' || !hoveredItem ? 2 : 1.5}
-              dot={{ r: hoveredItem === 'Chronicle' ? 5 : 3, fill: COLORS.chronicle }}
-              activeDot={{ r: 7 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6, fill: COLORS.chronicle }}
               opacity={hoveredItem && hoveredItem !== 'Chronicle' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('Chronicle')}
@@ -558,9 +562,9 @@ function OracleMarketOverviewBase() {
               dataKey="winklink"
               name="WINkLink"
               stroke={COLORS.winklink}
-              strokeWidth={hoveredItem === 'WINkLink' || !hoveredItem ? 2 : 1.5}
-              dot={{ r: hoveredItem === 'WINkLink' ? 5 : 3, fill: COLORS.winklink }}
-              activeDot={{ r: 7 }}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6, fill: COLORS.winklink }}
               opacity={hoveredItem && hoveredItem !== 'WINkLink' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('WINkLink')}
@@ -638,9 +642,9 @@ function OracleMarketOverviewBase() {
   }, [activeChart, locale]);
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-12 xl:px-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
             <div
               className="inline-flex items-center gap-2 px-3 py-1.5 mb-4"
@@ -668,15 +672,17 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="flex items-center gap-1 p-1 overflow-x-auto max-w-full"
+            className="flex items-center gap-1 p-1 overflow-x-auto max-w-full rounded-md"
             style={{ backgroundColor: baseColors.gray[100] }}
           >
             {timeRanges.map((range) => (
               <button
                 key={range.key}
                 onClick={() => setSelectedRange(range.key)}
-                className={`px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap border rounded-md ${
-                  selectedRange === range.key ? 'bg-white border-gray-300' : 'border-transparent'
+                className={`px-3 py-2 text-sm font-medium transition-all whitespace-nowrap border rounded-md ${
+                  selectedRange === range.key
+                    ? 'bg-white border-gray-300 shadow-sm'
+                    : 'border-transparent hover:bg-gray-200/50'
                 }`}
                 style={{
                   color: selectedRange === range.key ? baseColors.gray[900] : baseColors.gray[600],
@@ -690,11 +696,11 @@ function OracleMarketOverviewBase() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
+              <div className="p-2 bg-gray-100 rounded">
                 <DollarSign className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
@@ -714,11 +720,11 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
+              <div className="p-2 bg-gray-100 rounded">
                 <Globe className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
@@ -734,11 +740,11 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
+              <div className="p-2 bg-gray-100 rounded">
                 <Layers className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
@@ -754,11 +760,11 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
+              <div className="p-2 bg-gray-100 rounded">
                 <Activity className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
