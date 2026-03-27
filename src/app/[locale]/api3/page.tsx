@@ -44,13 +44,25 @@ export default function API3Page() {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  if (isLoading && !price) {
+  const isInitialLoading = isLoading && !price && !historicalData.length;
+  const hasCriticalError = isError && !price && error;
+
+  if (isInitialLoading) {
     return <LoadingState themeColor={config.themeColor} />;
   }
 
-  if (isError && error) {
+  if (hasCriticalError) {
     return <ErrorFallback error={error} onRetry={refresh} themeColor={config.themeColor} />;
   }
+
+  const networkStats = {
+    activeNodes: airnodeStats?.activeAirnodes ?? 0,
+    dataFeeds: dapiCoverage?.totalDapis ?? 0,
+    nodeUptime: airnodeStats?.nodeUptime ?? 0,
+    avgResponseTime: airnodeStats?.avgResponseTime ?? 0,
+    latency: 100,
+    hourlyActivity: config.networkData.hourlyActivity,
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -66,18 +78,7 @@ export default function API3Page() {
         );
       case 'network':
         return (
-          <API3NetworkView
-            config={config}
-            networkStats={{
-              activeNodes: airnodeStats?.activeAirnodes ?? 50,
-              dataFeeds: dapiCoverage?.totalDapis ?? 150,
-              nodeUptime: airnodeStats?.nodeUptime ?? 99.8,
-              avgResponseTime: airnodeStats?.avgResponseTime ?? 200,
-              latency: 100,
-              hourlyActivity: config.networkData.hourlyActivity,
-            }}
-            isLoading={isLoading}
-          />
+          <API3NetworkView config={config} networkStats={networkStats} isLoading={isLoading} />
         );
       case 'airnode':
         return (
@@ -114,7 +115,6 @@ export default function API3Page() {
 
   return (
     <div className="min-h-screen bg-insight">
-      {/* Hero Section */}
       <API3Hero
         config={config}
         price={price ?? null}
@@ -130,17 +130,14 @@ export default function API3Page() {
         onExport={exportData}
       />
 
-      {/* Main Content Area */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
               <API3Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="lg:hidden">
             <MobileMenuButton
               isOpen={isMobileMenuOpen}
@@ -150,7 +147,6 @@ export default function API3Page() {
             />
           </div>
 
-          {/* Mobile Sidebar */}
           <MobileSidebar
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
@@ -165,7 +161,6 @@ export default function API3Page() {
             />
           </MobileSidebar>
 
-          {/* Content Area */}
           <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>

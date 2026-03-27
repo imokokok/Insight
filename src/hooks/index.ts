@@ -258,7 +258,34 @@ export {
 export { usePythAllData } from './oracles/pyth';
 
 // RedStone Hooks
-export { useRedStoneAllData } from './oracles/redstone';
+export {
+  useRedStoneAllData,
+  useRedStoneProviders,
+  useRedStoneMetrics,
+} from './oracles/redstone';
+
+// UMA Hooks
+export {
+  useUMAAllData,
+  useUMAPrice,
+  useUMAHistorical,
+  useUMANetworkStats,
+  useUMAValidators,
+  useUMADisputes,
+} from './oracles/uma';
+
+// Band Protocol Hooks
+export {
+  useBandProtocolAllData,
+  useBandPrice,
+  useBandHistorical,
+  useBandNetworkStats,
+  useBandValidators,
+  useBandCrossChainStats,
+} from './oracles/band';
+
+// Shared Oracle Hooks
+export { useLastUpdated } from './oracles/useLastUpdated';
 
 // WINkLink Hooks
 export { useWINkLinkAllData } from './oracles/winklink';

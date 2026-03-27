@@ -5,7 +5,6 @@ import { useState, useCallback, useMemo } from 'react';
 import { useRefresh, useExport, usePythAllData } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { PythClient } from '@/lib/oracles/pythNetwork';
 import { OracleProvider } from '@/types/oracle';
 
 import { type PythTabId } from '../types';
@@ -15,7 +14,6 @@ export function usePythPage() {
   const [activeTab, setActiveTab] = useState<PythTabId>('market');
 
   const config = useMemo(() => getOracleConfig(OracleProvider.PYTH), []);
-  const client = useMemo(() => new PythClient(), []);
 
   const {
     price,
@@ -32,6 +30,13 @@ export function usePythPage() {
     chain: config.defaultChain,
     enabled: true,
   });
+
+  const lastUpdated = useMemo(() => {
+    if (price?.timestamp) {
+      return new Date(price.timestamp);
+    }
+    return new Date();
+  }, [price?.timestamp]);
 
   const { exportData } = useExport({
     data: {
@@ -52,23 +57,13 @@ export function usePythPage() {
     minLoadingTime: 500,
   });
 
-  // Calculate last updated time from price data
-  const lastUpdated = useMemo(() => {
-    if (price?.timestamp) {
-      return new Date(price.timestamp);
-    }
-    return null;
-  }, [price]);
-
   const handleTabChange = useCallback((tab: PythTabId) => {
     setActiveTab(tab);
   }, []);
 
   return {
-    // State
     activeTab,
     config,
-    client,
     price,
     historicalData,
     networkStats,
@@ -79,8 +74,6 @@ export function usePythPage() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
-
-    // Actions
     setActiveTab: handleTabChange,
     refresh,
     exportData,

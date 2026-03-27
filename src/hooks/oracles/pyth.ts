@@ -227,12 +227,14 @@ export function usePythAllData(options: UsePythAllDataOptions) {
     validatorsQuery.error,
   ].filter(Boolean) as Error[];
 
-  const refetchAll = useCallback(() => {
-    priceQuery.refetch();
-    historicalQuery.refetch();
-    networkQuery.refetch();
-    publishersQuery.refetch();
-    validatorsQuery.refetch();
+  const refetchAll = useCallback(async () => {
+    await Promise.all([
+      priceQuery.refetch(),
+      historicalQuery.refetch(),
+      networkQuery.refetch(),
+      publishersQuery.refetch(),
+      validatorsQuery.refetch(),
+    ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

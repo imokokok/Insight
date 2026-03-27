@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import { useRefresh, useExport, useChainlinkAllData } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { ChainlinkClient } from '@/lib/oracles/chainlink';
 import { OracleProvider } from '@/types/oracle';
 
 import { type ChainlinkTabId } from '../types';
@@ -15,7 +14,6 @@ export function useChainlinkPage() {
   const [activeTab, setActiveTab] = useState<ChainlinkTabId>('market');
 
   const config = useMemo(() => getOracleConfig(OracleProvider.CHAINLINK), []);
-  const client = useMemo(() => new ChainlinkClient(), []);
 
   const {
     price,
@@ -54,10 +52,8 @@ export function useChainlinkPage() {
   }, []);
 
   return {
-    // State
     activeTab,
     config,
-    client,
     price,
     historicalData,
     networkStats,
@@ -66,8 +62,6 @@ export function useChainlinkPage() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
-
-    // Actions
     setActiveTab: handleTabChange,
     refresh,
     exportData,

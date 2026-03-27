@@ -42,11 +42,14 @@ export default function UmaPage() {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  if (isLoading && !price) {
+  const isInitialLoading = isLoading && !price && !historicalData.length && !networkStats;
+  const hasCriticalError = isError && !price && error;
+
+  if (isInitialLoading) {
     return <LoadingState themeColor={config.themeColor} />;
   }
 
-  if (isError && error) {
+  if (hasCriticalError) {
     return <ErrorFallback error={error} onRetry={refresh} themeColor={config.themeColor} />;
   }
 
@@ -58,21 +61,21 @@ export default function UmaPage() {
             config={config}
             price={price}
             historicalData={historicalData}
-            networkStats={networkStats}
+            networkStats={networkStats ?? null}
             isLoading={isLoading}
           />
         );
       case 'network':
-        return <UmaNetworkView config={config} networkStats={networkStats} isLoading={isLoading} />;
+        return <UmaNetworkView config={config} networkStats={networkStats ?? null} isLoading={isLoading} />;
       case 'disputes':
         return (
-          <UmaDisputesView disputes={disputes} networkStats={networkStats} isLoading={isLoading} />
+          <UmaDisputesView disputes={disputes} networkStats={networkStats ?? null} isLoading={isLoading} />
         );
       case 'validators':
         return (
           <UmaValidatorsView
             validators={validators}
-            networkStats={networkStats}
+            networkStats={networkStats ?? null}
             isLoading={isLoading}
           />
         );
@@ -80,7 +83,7 @@ export default function UmaPage() {
         return (
           <UmaStakingView
             validators={validators}
-            networkStats={networkStats}
+            networkStats={networkStats ?? null}
             isLoading={isLoading}
           />
         );
@@ -88,7 +91,7 @@ export default function UmaPage() {
         return <UmaEcosystemView config={config} />;
       case 'risk':
         return (
-          <UmaRiskView networkStats={networkStats} disputes={disputes} isLoading={isLoading} />
+          <UmaRiskView networkStats={networkStats ?? null} disputes={disputes} isLoading={isLoading} />
         );
       default:
         return null;
@@ -97,7 +100,6 @@ export default function UmaPage() {
 
   return (
     <div className="min-h-screen bg-insight">
-      {/* Hero Section */}
       <UMAHero
         config={config}
         price={price ?? null}
@@ -119,10 +121,8 @@ export default function UmaPage() {
         onExport={exportData}
       />
 
-      {/* Main Content Area */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
               <UmaSidebar
@@ -133,7 +133,6 @@ export default function UmaPage() {
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="lg:hidden">
             <MobileMenuButton
               isOpen={isMobileMenuOpen}
@@ -143,7 +142,6 @@ export default function UmaPage() {
             />
           </div>
 
-          {/* Mobile Sidebar */}
           <MobileSidebar
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
@@ -159,7 +157,6 @@ export default function UmaPage() {
             />
           </MobileSidebar>
 
-          {/* Content Area */}
           <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>

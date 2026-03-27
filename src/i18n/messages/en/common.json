@@ -362,16 +362,42 @@
   "priceCorrelation": {
     "title": "Price Correlation",
     "legend": {
+      "title": "Correlation Legend",
       "perfectNegative": "Perfect Negative",
       "negative": "Negative",
       "none": "None",
       "positive": "Positive",
-      "perfectPositive": "Perfect Positive"
+      "perfectPositive": "Perfect Positive",
+      "lowCorrelation": "Low Correlation",
+      "highCorrelation": "High Correlation"
     },
     "oracleCount": "Oracle Count",
     "highCorrelationPairs": "High Correlation Pairs",
     "avgCorrelation": "Avg Correlation",
-    "maxCorrelation": "Max Correlation"
+    "maxCorrelation": "Max Correlation",
+    "minCorrelation": "Min Correlation",
+    "highCorrelationCount": "High Correlation Count",
+    "correlationCoefficient": "Correlation Coefficient",
+    "correlationLevel": "Correlation Level",
+    "correlationDirection": "Correlation Direction",
+    "positiveCorrelation": "Positive Correlation",
+    "negativeCorrelation": "Negative Correlation",
+    "noCorrelation": "No Correlation",
+    "distribution": {
+      "title": "Correlation Distribution",
+      "topPairs": "Top Correlation Pairs"
+    },
+    "explanation": {
+      "title": "Explanation",
+      "description": "Price correlation measures the linear relationship between different oracle price data, ranging from -1 to 1."
+    },
+    "level": {
+      "veryStrong": "Very Strong",
+      "strong": "Strong",
+      "moderate": "Moderate",
+      "weak": "Weak",
+      "veryWeak": "Very Weak"
+    }
   },
   "crossChainRisk": {
     "title": "Cross-Chain Risk"

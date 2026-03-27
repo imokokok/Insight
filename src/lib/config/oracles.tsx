@@ -15,7 +15,7 @@ import {
   ChronicleClient,
   WINkLinkClient,
 } from '@/lib/oracles';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
 
 export interface OracleTab {
   id: string;
@@ -30,6 +30,13 @@ export interface OracleViewConfig {
   default?: boolean;
 }
 
+interface OracleClientInterface {
+  getPrice(symbol: string, chain?: Blockchain): Promise<PriceData>;
+  getHistoricalPrices(symbol: string, chain?: Blockchain, period?: number): Promise<PriceData[]>;
+  name: OracleProvider;
+  supportedChains: Blockchain[];
+}
+
 export interface OracleConfig {
   provider: OracleProvider;
   name: string;
@@ -37,7 +44,7 @@ export interface OracleConfig {
   symbol: string;
   defaultChain: Blockchain;
   supportedChains: Blockchain[];
-  client: InstanceType<typeof ChainlinkClient>;
+  client: OracleClientInterface;
   icon: ReactNode;
   iconBgColor: string;
   themeColor: string;

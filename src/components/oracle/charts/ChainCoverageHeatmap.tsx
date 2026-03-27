@@ -24,7 +24,7 @@ export function ChainCoverageHeatmap({
   showLabels = true,
   onCellClick,
 }: ChainCoverageHeatmapProps) {
-  const t = useTranslations('oracle');
+  const t = useTranslations('ui');
 
   // 获取所有预言机和链
   const providers = useMemo(() => [...ORACLE_PROVIDER_VALUES], []);

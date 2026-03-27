@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useRedStoneAllData } from '@/hooks';
+import { useRefresh, useExport, useRedStoneAllData, useRedStoneProviders, useRedStoneMetrics } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { RedStoneClient } from '@/lib/oracles/redstone';
+import { getOracleConfig } from '@/lib/config/oracles';
+import { OracleProvider } from '@/types/oracle';
 
 import { type RedStoneTabId } from '../types';
 
@@ -12,21 +13,26 @@ export function useRedStonePage() {
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState<RedStoneTabId>('market');
 
-  const client = useMemo(() => new RedStoneClient(), []);
+  const config = useMemo(() => getOracleConfig(OracleProvider.REDSTONE), []);
 
   const {
     price,
     historicalData,
     networkStats,
-    isLoading,
+    isLoading: allDataLoading,
     isError,
     errors,
     refetchAll,
     lastUpdated,
   } = useRedStoneAllData({
-    symbol: 'REDSTONE',
+    symbol: config.symbol,
     enabled: true,
   });
+
+  const { providers, isLoading: providersLoading } = useRedStoneProviders(true);
+  const { metrics, isLoading: metricsLoading } = useRedStoneMetrics(true);
+
+  const isLoading = allDataLoading || providersLoading || metricsLoading;
 
   const { exportData } = useExport({
     data: {
@@ -34,6 +40,8 @@ export function useRedStonePage() {
       price,
       historical: historicalData,
       network: networkStats,
+      providers,
+      metrics,
     },
     filename: 'redstone-data',
   });
@@ -51,10 +59,12 @@ export function useRedStonePage() {
 
   return {
     activeTab,
-    client,
+    config,
     price,
     historicalData,
     networkStats,
+    providers,
+    metrics,
     isLoading,
     isError,
     error: errors[0] || null,

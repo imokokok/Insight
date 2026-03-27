@@ -94,7 +94,47 @@
     "oraclePerformanceRanking": {
       "accuracyFactor": "准确度因子",
       "accuracyFactorDesc": "价格准确度评分",
-      "rank": "排名"
+      "rank": "排名",
+      "title": "预言机性能排名",
+      "subtitle": "基于多维度指标的综合性能评估",
+      "weightInfo": "权重: 响应时间 30% | 准确性 30% | 稳定性 20% | 数据源 10% | 支持链 10%",
+      "unchanged": "无变化",
+      "overallScore": "综合得分",
+      "dimensionLabels": {
+        "responseTime": "响应时间",
+        "accuracy": "准确性",
+        "stability": "稳定性",
+        "dataSources": "数据源",
+        "supportedChains": "支持链"
+      },
+      "dimensionDescriptions": {
+        "title": "维度说明",
+        "responseTime": {
+          "title": "响应时间",
+          "weight": "权重: 30%",
+          "description": "数据更新的平均延迟时间，越短越好"
+        },
+        "accuracy": {
+          "title": "准确性",
+          "weight": "权重: 30%",
+          "description": "价格数据与基准价格的偏差程度"
+        },
+        "stability": {
+          "title": "稳定性",
+          "weight": "权重: 20%",
+          "description": "价格波动的稳定程度"
+        },
+        "dataSources": {
+          "title": "数据源",
+          "weight": "权重: 10%",
+          "description": "数据源的数量和多样性"
+        },
+        "supportedChains": {
+          "title": "支持链",
+          "weight": "权重: 10%",
+          "description": "支持的区块链网络数量"
+        }
+      }
     },
     "tabOverview": "数据概览",
     "tabAnalysis": "分析",
@@ -183,6 +223,12 @@
     "snapshotsTab": {
       "selectSnapshot": "选择一个快照进行对比",
       "selectHint": "从左侧快照列表中选择一个历史快照"
+    },
+    "historyTab": {
+      "title": "历史数据",
+      "selectSnapshot": "选择快照",
+      "selectHint": "从历史快照列表中选择一个进行查看",
+      "exportHistory": "导出历史"
     },
     "advancedTab": {
       "movingAverage": "移动平均线分析",
@@ -319,6 +365,51 @@
       "timestamp": "时间戳",
       "severeOutlier": "严重异常值 - 价格偏差显著",
       "moderateOutlier": "中度异常值 - 需要关注"
+    }
+  },
+  "oraclePerformanceRanking": {
+    "accuracyFactor": "准确度因子",
+    "accuracyFactorDesc": "价格准确度评分",
+    "rank": "排名",
+    "title": "预言机性能排名",
+    "subtitle": "基于多维度指标的综合性能评估",
+    "weightInfo": "权重: 响应时间 30% | 准确性 30% | 稳定性 20% | 数据源 10% | 支持链 10%",
+    "unchanged": "无变化",
+    "overallScore": "综合得分",
+    "dimensionLabels": {
+      "responseTime": "响应时间",
+      "accuracy": "准确性",
+      "stability": "稳定性",
+      "dataSources": "数据源",
+      "supportedChains": "支持链"
+    },
+    "dimensionDescriptions": {
+      "title": "维度说明",
+      "responseTime": {
+        "title": "响应时间",
+        "weight": "权重: 30%",
+        "description": "数据更新的平均延迟时间，越短越好"
+      },
+      "accuracy": {
+        "title": "准确性",
+        "weight": "权重: 30%",
+        "description": "价格数据与基准价格的偏差程度"
+      },
+      "stability": {
+        "title": "稳定性",
+        "weight": "权重: 20%",
+        "description": "价格波动的稳定程度"
+      },
+      "dataSources": {
+        "title": "数据源",
+        "weight": "权重: 10%",
+        "description": "数据源的数量和多样性"
+      },
+      "supportedChains": {
+        "title": "支持链",
+        "weight": "权重: 10%",
+        "description": "支持的区块链网络数量"
+      }
     }
   },
   "controlPanel": {

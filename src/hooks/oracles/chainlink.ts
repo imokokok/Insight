@@ -1,11 +1,13 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useMemo } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueries } from '@tanstack/react-query';
 
 import { ChainlinkClient } from '@/lib/oracles/chainlink';
 import { type Blockchain, type PriceData } from '@/types/oracle';
+
+import { useLastUpdated } from './useLastUpdated';
 
 const chainlinkClient = new ChainlinkClient();
 
@@ -19,14 +21,6 @@ const getChainlinkKey = (type: ChainlinkDataType, params?: Record<string, unknow
     .join('&');
   return [...baseKey, paramStr];
 };
-
-interface NetworkStats {
-  activeNodes: number;
-  dataFeeds: number;
-  nodeUptime: number;
-  avgResponseTime: number;
-  latency: number;
-}
 
 interface UseChainlinkPriceOptions {
   symbol: string;
@@ -94,54 +88,77 @@ interface UseChainlinkAllDataOptions {
 
 export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
   const { symbol, chain, enabled = true } = options;
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const { lastUpdated, updateLastUpdated } = useLastUpdated();
 
-  const priceQuery = useChainlinkPrice({ symbol, chain, enabled });
-  const historicalQuery = useChainlinkHistorical({ symbol, chain, enabled });
-
-  const networkQuery = useQuery<NetworkStats, Error>({
-    queryKey: getChainlinkKey('network', { symbol, chain }),
-    queryFn: async () => {
-      return {
-        activeNodes: 1847,
-        dataFeeds: 1243,
-        nodeUptime: 99.9,
-        avgResponseTime: 245,
-        latency: 120,
-      };
-    },
-    enabled,
-    staleTime: 300000,
-    gcTime: 600000,
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: getChainlinkKey('price', { symbol, chain }),
+        queryFn: async () => {
+          const result = await chainlinkClient.getPrice(symbol, chain);
+          updateLastUpdated();
+          return result;
+        },
+        enabled,
+        staleTime: 30000,
+        gcTime: 60000,
+        refetchInterval: 30000,
+        refetchOnWindowFocus: false,
+        retry: 3,
+      },
+      {
+        queryKey: getChainlinkKey('historical', { symbol, chain, period: 30 }),
+        queryFn: () => chainlinkClient.getHistoricalPrices(symbol, chain, 30),
+        enabled,
+        staleTime: 300000,
+        gcTime: 600000,
+        refetchOnWindowFocus: false,
+        retry: 3,
+      },
+      {
+        queryKey: getChainlinkKey('network', { symbol, chain }),
+        queryFn: () => chainlinkClient.getNetworkStats(),
+        enabled,
+        staleTime: 300000,
+        gcTime: 600000,
+        refetchOnWindowFocus: false,
+        retry: 3,
+      },
+    ],
   });
 
-  useEffect(() => {
-    if (priceQuery.price && !priceQuery.isLoading) {
-      setLastUpdated(new Date());
-    }
-  }, [priceQuery.price, priceQuery.isLoading]);
+  const [priceResult, historicalResult, networkResult] = results;
 
-  const isLoading = priceQuery.isLoading || historicalQuery.isLoading || networkQuery.isLoading;
-  const isError = Boolean(priceQuery.error || historicalQuery.error || networkQuery.error);
-  const errors = [priceQuery.error, historicalQuery.error, networkQuery.error].filter(
-    Boolean
-  ) as Error[];
+  const isLoading = results.some((r) => r.isLoading);
+  const isError = results.some((r) => r.isError);
+  const errors = results.map((r) => r.error).filter(Boolean) as Error[];
 
-  const refetchAll = useCallback(() => {
-    priceQuery.refetch();
-    historicalQuery.refetch();
-    networkQuery.refetch();
+  const refetchAll = useCallback(async () => {
+    await Promise.all(results.map((r) => r.refetch()));
+    updateLastUpdated();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return {
-    price: priceQuery.price,
-    historicalData: historicalQuery.historicalData,
-    networkStats: networkQuery.data,
-    isLoading,
-    isError,
-    errors,
-    refetchAll,
-    lastUpdated,
-  };
+  return useMemo(
+    () => ({
+      price: priceResult.data,
+      historicalData: historicalResult.data ?? [],
+      networkStats: networkResult.data,
+      isLoading,
+      isError,
+      errors,
+      refetchAll,
+      lastUpdated,
+    }),
+    [
+      priceResult.data,
+      historicalResult.data,
+      networkResult.data,
+      isLoading,
+      isError,
+      errors,
+      refetchAll,
+      lastUpdated,
+    ]
+  );
 }
