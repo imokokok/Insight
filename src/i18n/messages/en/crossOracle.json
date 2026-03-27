@@ -226,6 +226,7 @@
       "1m": "1m",
       "5m": "5m"
     },
+    "noData": "No data available",
     "dataSources": {
       "title": "Comparison Data Sources"
     },
@@ -265,6 +266,7 @@
   },
   "controlPanel": {
     "title": "Query Configuration",
+    "titleShort": "Filters",
     "collapse": "Collapse",
     "expand": "Expand",
     "symbol": "Trading Pair",

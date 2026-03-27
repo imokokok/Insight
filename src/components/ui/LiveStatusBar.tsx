@@ -124,8 +124,10 @@ export function LiveStatusBar({
   freshnessThreshold = 30000,
 }: LiveStatusBarProps) {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     setCurrentTime(new Date());
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -151,12 +153,31 @@ export function LiveStatusBar({
   const freshness = freshnessConfig[freshnessLevel];
   const StatusIcon = status.icon;
 
-  // Tooltip 内容
-  const tooltipContent = (
+  // Tooltip 内容 - 只在客户端挂载后显示动态内容
+  const tooltipContent = isMounted ? (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
         <Clock className="w-3 h-3 text-gray-400" />
         <span className="font-mono">{formatUTCTime(displayTime)}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Zap className="w-3 h-3 text-gray-400" />
+        <span>延迟: {formatLatency(latency)}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <StatusIcon className="w-3 h-3" style={{ color: status.color }} />
+        <span style={{ color: status.color }}>{status.label}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Activity className="w-3 h-3" style={{ color: freshness.color }} />
+        <span style={{ color: freshness.color }}>{freshness.label}</span>
+      </div>
+    </div>
+  ) : (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <Clock className="w-3 h-3 text-gray-400" />
+        <span className="font-mono">--:--:-- UTC</span>
       </div>
       <div className="flex items-center gap-2">
         <Zap className="w-3 h-3 text-gray-400" />
@@ -212,7 +233,9 @@ export function LiveStatusBar({
         {/* 最后更新时间 */}
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Clock className="w-3 h-3" />
-          <span className="whitespace-nowrap">{formatLastUpdate(lastUpdate)}</span>
+          <span className="whitespace-nowrap">
+            {isMounted ? formatLastUpdate(lastUpdate) : '--'}
+          </span>
         </div>
 
         {/* 分隔线 - 小屏幕隐藏 */}

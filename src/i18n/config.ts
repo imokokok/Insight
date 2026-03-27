@@ -32,7 +32,7 @@ export const messageFilesConfig: MessageFileConfig[] = [
   { name: 'chainlink', directory: 'oracles', namespace: 'chainlink' },
   { name: 'pyth', directory: 'oracles' },
   { name: 'api3', directory: 'oracles' },
-  { name: 'band', directory: 'oracles' },
+  { name: 'band', directory: 'oracles', namespace: 'band' },
   { name: 'tellor', directory: 'oracles' },
   { name: 'uma', directory: 'oracles' },
   { name: 'dia', directory: 'oracles' },

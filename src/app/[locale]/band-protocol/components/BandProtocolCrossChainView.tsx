@@ -13,31 +13,31 @@ export function BandProtocolCrossChainView({
   const stats = crossChainStats
     ? [
         {
-          label: t('bandProtocol.crossChain.totalRequests24h'),
+          label: t('band.bandProtocol.crossChain.totalRequests24h'),
           value: crossChainStats.totalRequests24h.toLocaleString(),
           change: '+12%',
         },
         {
-          label: t('bandProtocol.crossChain.totalRequests7d'),
+          label: t('band.bandProtocol.crossChain.totalRequests7d'),
           value: crossChainStats.totalRequests7d.toLocaleString(),
           change: '+8%',
         },
         {
-          label: t('bandProtocol.crossChain.totalRequests30d'),
+          label: t('band.bandProtocol.crossChain.totalRequests30d'),
           value: crossChainStats.totalRequests30d.toLocaleString(),
           change: '+15%',
         },
         {
-          label: t('bandProtocol.crossChain.supportedChains'),
+          label: t('band.bandProtocol.crossChain.supportedChains'),
           value: crossChainStats.chains.length.toString(),
           change: null,
         },
       ]
     : [
-        { label: t('bandProtocol.crossChain.totalRequests24h'), value: '12,500', change: '+12%' },
-        { label: t('bandProtocol.crossChain.totalRequests7d'), value: '87,500', change: '+8%' },
-        { label: t('bandProtocol.crossChain.totalRequests30d'), value: '375,000', change: '+15%' },
-        { label: t('bandProtocol.crossChain.supportedChains'), value: '8', change: null },
+        { label: t('band.bandProtocol.crossChain.totalRequests24h'), value: '12,500', change: '+12%' },
+        { label: t('band.bandProtocol.crossChain.totalRequests7d'), value: '87,500', change: '+8%' },
+        { label: t('band.bandProtocol.crossChain.totalRequests30d'), value: '375,000', change: '+15%' },
+        { label: t('band.bandProtocol.crossChain.supportedChains'), value: '8', change: null },
       ];
 
   const chains = crossChainStats?.chains || [
@@ -156,29 +156,29 @@ export function BandProtocolCrossChainView({
       {/* Chain List Section */}
       <div className="border-t border-gray-200 pt-8">
         <h3 className="text-base font-semibold text-gray-900 mb-4">
-          {t('bandProtocol.crossChain.supportedChains')}
+          {t('band.bandProtocol.crossChain.supportedChains')}
         </h3>
         <div className="overflow-x-auto rounded-lg border border-gray-200">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50/50">
                 <th className="px-4 py-2.5 text-left font-medium text-gray-600">
-                  {t('bandProtocol.crossChain.chain')}
+                  {t('band.bandProtocol.crossChain.chain')}
                 </th>
                 <th className="px-4 py-2.5 text-left font-medium text-gray-600">
-                  {t('bandProtocol.crossChain.chainId')}
+                  {t('band.bandProtocol.crossChain.chainId')}
                 </th>
                 <th className="px-4 py-2.5 text-right font-medium text-gray-600">
-                  {t('bandProtocol.crossChain.requests24h')}
+                  {t('band.bandProtocol.crossChain.requests24h')}
                 </th>
                 <th className="px-4 py-2.5 text-right font-medium text-gray-600">
-                  {t('bandProtocol.crossChain.requests7d')}
+                  {t('band.bandProtocol.crossChain.requests7d')}
                 </th>
                 <th className="px-4 py-2.5 text-right font-medium text-gray-600">
-                  {t('bandProtocol.crossChain.avgGasCost')}
+                  {t('band.bandProtocol.crossChain.avgGasCost')}
                 </th>
                 <th className="px-4 py-2.5 text-left font-medium text-gray-600">
-                  {t('bandProtocol.crossChain.supportedAssets')}
+                  {t('band.bandProtocol.crossChain.supportedAssets')}
                 </th>
               </tr>
             </thead>
@@ -233,7 +233,7 @@ export function BandProtocolCrossChainView({
       {/* Request Distribution - Progress Bars */}
       <div className="border-t border-gray-200 pt-8">
         <h3 className="text-base font-semibold text-gray-900 mb-4">
-          {t('bandProtocol.crossChain.requestDistribution')}
+          {t('band.bandProtocol.crossChain.requestDistribution')}
         </h3>
         <div className="space-y-3">
           {chains

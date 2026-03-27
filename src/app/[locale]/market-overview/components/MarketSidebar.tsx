@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useMemo } from 'react';
 
 import {
   Clock,
@@ -54,20 +55,24 @@ function MiniSparkline({ data, color }: { data: number[]; color: string }) {
     );
   }
 
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const range = max - min || 1;
-  const width = 48;
-  const height = 24;
-  const padding = 2;
+  const { points, width, height } = useMemo(() => {
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min || 1;
+    const width = 48;
+    const height = 24;
+    const padding = 2;
 
-  const points = data
-    .map((value, index) => {
-      const x = (index / (data.length - 1)) * width;
-      const y = height - padding - ((value - min) / range) * (height - 2 * padding);
-      return `${x},${y}`;
-    })
-    .join(' ');
+    const points = data
+      .map((value, index) => {
+        const x = (index / (data.length - 1)) * width;
+        const y = height - padding - ((value - min) / range) * (height - 2 * padding);
+        return `${x.toFixed(2)},${y.toFixed(2)}`;
+      })
+      .join(' ');
+
+    return { points, width, height };
+  }, [data]);
 
   return (
     <svg width={width} height={height} className="flex-shrink-0">

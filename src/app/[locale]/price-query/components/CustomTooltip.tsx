@@ -157,7 +157,7 @@ export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
               {deviationPercent !== null && (
                 <div className="flex items-center justify-between pl-4.5">
                   <span className="text-xs text-gray-400">
-                    {t('priceQuery.tooltip.deviationFromAvg')}
+                    {t('priceQuery.chart.tooltip.deviationFromAvg')}
                   </span>
                   <span
                     className={`text-xs ${
