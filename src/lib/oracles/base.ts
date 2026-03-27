@@ -36,10 +36,20 @@ export abstract class BaseOracleClient {
     period?: number
   ): Promise<PriceData[]>;
 
+  defaultUpdateIntervalMinutes: number = 1;
+  chainUpdateIntervals: Partial<Record<Blockchain, number>> = {};
+
   protected config: OracleClientConfig;
 
   constructor(config?: OracleClientConfig) {
     this.config = { ...DEFAULT_CLIENT_CONFIG, ...config };
+  }
+
+  getUpdateInterval(chain?: Blockchain): number {
+    if (chain && this.chainUpdateIntervals[chain] !== undefined) {
+      return this.chainUpdateIntervals[chain]!;
+    }
+    return this.defaultUpdateIntervalMinutes;
   }
 
   protected createError(message: string, code?: string): OracleError {

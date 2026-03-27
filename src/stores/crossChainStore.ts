@@ -48,6 +48,7 @@ interface ConfigState {
   refreshInterval: RefreshInterval;
   thresholdConfig: ThresholdConfig;
   colorblindMode: boolean;
+  updateIntervals: Partial<Record<Blockchain, number>>;
 }
 
 interface CrossChainStore extends SelectorState, UIState, DataState, ConfigState {
@@ -83,6 +84,7 @@ interface CrossChainStore extends SelectorState, UIState, DataState, ConfigState
   setRefreshInterval: (interval: RefreshInterval) => void;
   setThresholdConfig: (config: ThresholdConfig) => void;
   setColorblindMode: (enabled: boolean) => void;
+  setUpdateIntervals: (intervals: Partial<Record<Blockchain, number>>) => void;
 
   toggleChain: (chain: Blockchain) => void;
   handleSort: (column: string) => void;
@@ -119,6 +121,7 @@ const initialState: SelectorState & UIState & DataState & ConfigState = {
   refreshInterval: 0,
   thresholdConfig: defaultThresholdConfig,
   colorblindMode: false,
+  updateIntervals: {},
 };
 
 export const useCrossChainStore = create<CrossChainStore>()(
@@ -157,6 +160,7 @@ export const useCrossChainStore = create<CrossChainStore>()(
         setRefreshInterval: (interval) => set({ refreshInterval: interval }),
         setThresholdConfig: (config) => set({ thresholdConfig: config }),
         setColorblindMode: (enabled) => set({ colorblindMode: enabled }),
+        setUpdateIntervals: (intervals) => set({ updateIntervals: intervals }),
 
         toggleChain: (chain) => {
           const { visibleChains } = get();

@@ -233,6 +233,8 @@ export class TellorClient extends BaseOracleClient {
     Blockchain.AVALANCHE,
   ];
 
+  defaultUpdateIntervalMinutes = 15;
+
   constructor(config?: OracleClientConfig) {
     super(config);
   }

@@ -20,8 +20,10 @@ import {
   type BaseOracleClient,
 } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
+import { isBlockchain, safeBlockchainCast } from '@/lib/utils/chainUtils';
 import { useUser } from '@/stores/authStore';
 import { useCrossChainStore } from '@/stores/crossChainStore';
+import { useToastMethods } from '@/components/ui/Toast';
 
 import {
   type HeatmapData,
@@ -39,9 +41,16 @@ import {
   calculatePercentile,
   calculatePearsonCorrelation,
   calculatePearsonCorrelationWithSignificance,
+  calculatePearsonCorrelationByTimestamp,
+  calculatePearsonCorrelationWithSignificanceByTimestamp,
   calculateSMA,
   calculateDynamicThreshold,
+  detectPriceJumps,
+  defaultThresholdConfig,
+  detectOutliersIQR,
+  detectOutliersZScore,
   type CorrelationResult,
+  type TimestampedPrice,
 } from './utils';
 
 const logger = createLogger('useCrossChainData');
@@ -148,6 +157,7 @@ export interface UseCrossChainDataReturn {
   chainVolatility: Partial<Record<Blockchain, number>>;
   updateDelays: Partial<Record<Blockchain, { avgDelay: number; maxDelay: number }>>;
   dataIntegrity: Partial<Record<Blockchain, number>>;
+  actualUpdateIntervals: Partial<Record<Blockchain, number>>;
   priceJumpFrequency: Partial<Record<Blockchain, number>>;
   priceChangePercent: Partial<Record<Blockchain, number>>;
   meanBinIndex: number;
@@ -167,8 +177,8 @@ export interface UseCrossChainDataReturn {
   setSortDirection: (direction: 'asc' | 'desc') => void;
   toggleChain: (chain: Blockchain) => void;
   handleSort: (column: string) => void;
-  exportToCSV: () => void;
-  exportToJSON: () => void;
+  exportToCSV: () => boolean;
+  exportToJSON: () => boolean;
   // Favorites
   user: ReturnType<typeof useUser>;
   chainFavorites: ReturnType<typeof useFavorites>['favorites'];
@@ -181,6 +191,7 @@ export interface UseCrossChainDataReturn {
 
 export function useCrossChainData(): UseCrossChainDataReturn {
   const user = useUser();
+  const toast = useToastMethods();
   const { favorites: chainFavorites } = useFavorites({ configType: 'chain_config' });
   const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
@@ -412,7 +423,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     const basePrice = basePriceData.price;
     return filteredPrices.map((priceData) => {
       const diff = priceData.price - basePrice;
-      const diffPercent = (diff / basePrice) * 100;
+      const diffPercent = basePrice > 0 && priceData.price > 0 ? (diff / basePrice) * 100 : 0;
       return {
         chain: priceData.chain!,
         price: priceData.price,
@@ -604,20 +615,22 @@ export function useCrossChainData(): UseCrossChainDataReturn {
   }, [chartData, filteredChains]);
 
   const iqrOutliers = useMemo(() => {
+    const thresholdConfig = useCrossChainStore.getState().thresholdConfig;
+    
     if (validPrices.length < 4) {
       return { outliers: [], q1: 0, q3: 0, iqr: 0, lowerBound: 0, upperBound: 0 };
     }
 
-    const sorted = [...validPrices].sort((a, b) => a - b);
-    const n = sorted.length;
+    const multiplier = thresholdConfig.outlierDetectionMethod === 'iqr' 
+      ? thresholdConfig.outlierThreshold 
+      : 1.5;
 
-    const q1Index = Math.floor(n * 0.25);
-    const q3Index = Math.floor(n * 0.75);
-    const q1 = sorted[q1Index];
-    const q3 = sorted[q3Index];
+    const sorted = [...validPrices].sort((a, b) => a - b);
+    const q1 = calculatePercentile(sorted, 25);
+    const q3 = calculatePercentile(sorted, 75);
     const iqr = q3 - q1;
-    const lowerBound = q1 - 1.5 * iqr;
-    const upperBound = q3 + 1.5 * iqr;
+    const lowerBound = q1 - multiplier * iqr;
+    const upperBound = q3 + multiplier * iqr;
 
     const outliers: {
       chain: Blockchain;
@@ -648,6 +661,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
   }, [validPrices, currentPrices, filteredChains]);
 
   const stdDevHistoricalOutliers = useMemo(() => {
+    const thresholdConfig = useCrossChainStore.getState().thresholdConfig;
     const result: { timestamp: number; chain: Blockchain; price: number; deviation: number }[] = [];
 
     filteredChains.forEach((chain) => {
@@ -655,27 +669,36 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       if (prices.length < 2) return;
 
       const priceValues = prices.map((p) => p.price);
-      const mean = priceValues.reduce((a, b) => a + b, 0) / priceValues.length;
-      const variance =
-        priceValues.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / priceValues.length;
-      const stdDev = Math.sqrt(variance);
 
-      if (stdDev === 0) return;
-
-      const lowerBound = mean - 2 * stdDev;
-      const upperBound = mean + 2 * stdDev;
-
-      prices.forEach((priceData) => {
-        if (priceData.price < lowerBound || priceData.price > upperBound) {
-          const deviation = Math.abs(priceData.price - mean) / stdDev;
-          result.push({
-            timestamp: priceData.timestamp,
-            chain,
-            price: priceData.price,
-            deviation,
-          });
-        }
-      });
+      if (thresholdConfig.outlierDetectionMethod === 'iqr') {
+        const iqrResult = detectOutliersIQR(priceValues, thresholdConfig.outlierThreshold);
+        
+        prices.forEach((priceData) => {
+          if (priceData.price < iqrResult.lowerBound || priceData.price > iqrResult.upperBound) {
+            const deviation = Math.abs(priceData.price - iqrResult.q3) / iqrResult.iqr;
+            result.push({
+              timestamp: priceData.timestamp,
+              chain,
+              price: priceData.price,
+              deviation,
+            });
+          }
+        });
+      } else {
+        const zscoreResult = detectOutliersZScore(priceValues, thresholdConfig.outlierThreshold);
+        
+        prices.forEach((priceData) => {
+          const zScore = (priceData.price - zscoreResult.mean) / zscoreResult.stdDev;
+          if (Math.abs(zScore) > thresholdConfig.outlierThreshold) {
+            result.push({
+              timestamp: priceData.timestamp,
+              chain,
+              price: priceData.price,
+              deviation: Math.abs(zScore),
+            });
+          }
+        });
+      }
     });
 
     return result;
@@ -702,13 +725,15 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     filteredChains.forEach((chainX) => {
       matrix[chainX] = {};
       filteredChains.forEach((chainY) => {
-        const pricesX = historicalPrices[chainX]?.map((p) => p.price) || [];
-        const pricesY = historicalPrices[chainY]?.map((p) => p.price) || [];
+        const dataX: TimestampedPrice[] =
+          historicalPrices[chainX]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
+        const dataY: TimestampedPrice[] =
+          historicalPrices[chainY]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
 
         if (chainX === chainY) {
           matrix[chainX]![chainY] = 1;
         } else {
-          const correlation = calculatePearsonCorrelation(pricesX, pricesY);
+          const correlation = calculatePearsonCorrelationByTimestamp(dataX, dataY);
           matrix[chainX]![chainY] = isNaN(correlation) ? 0 : correlation;
         }
       });
@@ -723,19 +748,21 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     filteredChains.forEach((chainX) => {
       matrix[chainX] = {};
       filteredChains.forEach((chainY) => {
-        const pricesX = historicalPrices[chainX]?.map((p) => p.price) || [];
-        const pricesY = historicalPrices[chainY]?.map((p) => p.price) || [];
+        const dataX: TimestampedPrice[] =
+          historicalPrices[chainX]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
+        const dataY: TimestampedPrice[] =
+          historicalPrices[chainY]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
 
         if (chainX === chainY) {
           matrix[chainX]![chainY] = {
             correlation: 1,
             pValue: 0,
-            sampleSize: pricesX.length,
+            sampleSize: dataX.length,
             isSignificant: true,
             significanceLevel: '***',
           };
         } else {
-          const result = calculatePearsonCorrelationWithSignificance(pricesX, pricesY);
+          const result = calculatePearsonCorrelationWithSignificanceByTimestamp(dataX, dataY);
           matrix[chainX]![chainY] = result;
         }
       });
@@ -810,18 +837,72 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
   const dataIntegrity = useMemo(() => {
     const integrity: Partial<Record<Blockchain, number>> = {};
-    const updateIntervalMinutes = 1;
-    const expectedPointsPerHour = 60 / updateIntervalMinutes;
-    const expectedPoints = expectedPointsPerHour * selectedTimeRange;
+    const defaultUpdateIntervalMinutes = currentClient.defaultUpdateIntervalMinutes;
+
+    const calculateActualUpdateInterval = (prices: PriceData[]): number => {
+      if (prices.length < 2) return defaultUpdateIntervalMinutes;
+      const intervals: number[] = [];
+      for (let i = 1; i < prices.length; i++) {
+        const diffMs = prices[i].timestamp - prices[i - 1].timestamp;
+        const diffMinutes = diffMs / (1000 * 60);
+        if (diffMinutes > 0) {
+          intervals.push(diffMinutes);
+        }
+      }
+      if (intervals.length === 0) return defaultUpdateIntervalMinutes;
+      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      return avgInterval;
+    };
 
     filteredChains.forEach((chain) => {
-      const actualPoints = historicalPrices[chain]?.length || 0;
+      const prices = historicalPrices[chain] || [];
+      const actualPoints = prices.length;
+
+      const configuredInterval = currentClient.chainUpdateIntervals[chain];
+      const actualInterval = calculateActualUpdateInterval(prices);
+      const updateIntervalMinutes = configuredInterval ?? actualInterval;
+
+      const expectedPointsPerHour = 60 / updateIntervalMinutes;
+      const expectedPoints = expectedPointsPerHour * selectedTimeRange;
+
       const score = expectedPoints > 0 ? (actualPoints / expectedPoints) * 100 : 0;
       integrity[chain] = Math.min(score, 100);
     });
 
     return integrity;
-  }, [historicalPrices, filteredChains, selectedTimeRange]);
+  }, [historicalPrices, filteredChains, selectedTimeRange, currentClient]);
+
+  const actualUpdateIntervals = useMemo(() => {
+    const intervals: Partial<Record<Blockchain, number>> = {};
+    const defaultInterval = currentClient.defaultUpdateIntervalMinutes;
+
+    filteredChains.forEach((chain) => {
+      const prices = historicalPrices[chain] || [];
+      if (prices.length < 2) {
+        intervals[chain] = currentClient.chainUpdateIntervals[chain] ?? defaultInterval;
+        return;
+      }
+
+      const intervalDiffs: number[] = [];
+      for (let i = 1; i < prices.length; i++) {
+        const diffMs = prices[i].timestamp - prices[i - 1].timestamp;
+        const diffMinutes = diffMs / (1000 * 60);
+        if (diffMinutes > 0) {
+          intervalDiffs.push(diffMinutes);
+        }
+      }
+
+      if (intervalDiffs.length === 0) {
+        intervals[chain] = currentClient.chainUpdateIntervals[chain] ?? defaultInterval;
+        return;
+      }
+
+      const avgInterval = intervalDiffs.reduce((a, b) => a + b, 0) / intervalDiffs.length;
+      intervals[chain] = Math.round(avgInterval * 100) / 100;
+    });
+
+    return intervals;
+  }, [historicalPrices, filteredChains, currentClient]);
 
   const priceJumpFrequency = useMemo(() => {
     const frequency: Partial<Record<Blockchain, number>> = {};
@@ -848,9 +929,11 @@ export function useCrossChainData(): UseCrossChainDataReturn {
         return;
       }
 
-      const avgChange = changes.reduce((a, b) => a + b, 0) / changes.length;
-      const threshold = avgChange * 2;
-      const jumpCount = changes.filter((change) => change > threshold).length;
+      const jumpCount = detectPriceJumps(
+        changes,
+        defaultThresholdConfig.priceJumpMethod,
+        defaultThresholdConfig.priceJumpThreshold,
+      );
       frequency[chain] = jumpCount;
     });
 
@@ -867,7 +950,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
         const xPrice = filteredPrices.find((p) => p.chain === xChain)?.price || 0;
         const yPrice = filteredPrices.find((p) => p.chain === yChain)?.price || 0;
         const diff = Math.abs(xPrice - yPrice);
-        const percent = xPrice > 0 ? (diff / xPrice) * 100 : 0;
+        const percent = xPrice > 0 && yPrice > 0 ? (diff / xPrice) * 100 : 0;
 
         data.push({
           x: chainNames[xChain],
@@ -1031,67 +1114,82 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     return priceDifferences.filter((item) => Math.abs(item.diffPercent) > dynamicThreshold);
   }, [priceDifferences, historicalPrices, filteredChains]);
 
-  const exportToCSV = useCallback(() => {
-    const csvLines: string[] = [];
+  const exportToCSV = useCallback((): boolean => {
+    if (priceDifferences.length === 0 && Object.keys(historicalPrices).length === 0) {
+      toast.warning('No Data', 'No data available to export');
+      return false;
+    }
 
-    csvLines.push('=== Current Prices ===');
-    csvLines.push(['Blockchain', 'Price', 'Difference', 'PercentDifference'].join(','));
+    try {
+      const csvLines: string[] = [];
 
-    priceDifferences.forEach((item) => {
-      const row = [
-        chainNames[item.chain],
-        item.price.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 4,
-        }),
-        item.diff.toFixed(4),
-        item.diffPercent.toFixed(4) + '%',
-      ];
-      csvLines.push(row.join(','));
-    });
+      csvLines.push('=== Current Prices ===');
+      csvLines.push(['Blockchain', 'Price', 'Difference', 'PercentDifference'].join(','));
 
-    csvLines.push('');
-    csvLines.push('=== Historical Prices ===');
-
-    const allTimestamps = new Set<number>();
-    filteredChains.forEach((chain) => {
-      historicalPrices[chain]?.forEach((price) => allTimestamps.add(price.timestamp));
-    });
-    const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
-
-    const historicalHeaders = ['timestamp', ...filteredChains.map((chain) => chainNames[chain])];
-    csvLines.push(historicalHeaders.join(','));
-
-    sortedTimestamps.forEach((timestamp) => {
-      const row: string[] = [new Date(timestamp).toLocaleString()];
-      filteredChains.forEach((chain) => {
-        const price = historicalPrices[chain]?.find((p) => p.timestamp === timestamp);
-        row.push(
-          price
-            ? price.price.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 4,
-              })
-            : ''
-        );
+      priceDifferences.forEach((item) => {
+        const row = [
+          chainNames[item.chain],
+          item.price.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4,
+          }),
+          item.diff.toFixed(4),
+          item.diffPercent.toFixed(4) + '%',
+        ];
+        csvLines.push(row.join(','));
       });
-      csvLines.push(row.join(','));
-    });
 
-    const csvContent = csvLines.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute(
-      'download',
-      `cross-chain-${selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
-    );
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, [priceDifferences, historicalPrices, filteredChains, selectedSymbol]);
+      csvLines.push('');
+      csvLines.push('=== Historical Prices ===');
+
+      const allTimestamps = new Set<number>();
+      filteredChains.forEach((chain) => {
+        historicalPrices[chain]?.forEach((price) => allTimestamps.add(price.timestamp));
+      });
+      const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
+
+      const historicalHeaders = ['timestamp', ...filteredChains.map((chain) => chainNames[chain])];
+      csvLines.push(historicalHeaders.join(','));
+
+      sortedTimestamps.forEach((timestamp) => {
+        const row: string[] = [new Date(timestamp).toLocaleString()];
+        filteredChains.forEach((chain) => {
+          const price = historicalPrices[chain]?.find((p) => p.timestamp === timestamp);
+          row.push(
+            price
+              ? price.price.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 4,
+                })
+              : ''
+          );
+        });
+        csvLines.push(row.join(','));
+      });
+
+      const csvContent = csvLines.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `cross-chain-${selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+      );
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Export Successful', 'CSV file has been downloaded');
+      return true;
+    } catch (error) {
+      logger.error('Failed to export CSV:', error as Error);
+      toast.error('Export Failed', 'Failed to export CSV file. Please try again.');
+      return false;
+    }
+  }, [priceDifferences, historicalPrices, filteredChains, selectedSymbol, toast]);
 
   const currentFavoriteConfig: FavoriteConfig = useMemo(
     () => ({
@@ -1110,78 +1208,94 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       setSelectedSymbol(config.symbol);
     }
     if (config.chains) {
-      setVisibleChains(config.chains as Blockchain[]);
+      const validChains = config.chains.filter(isBlockchain);
+      setVisibleChains(validChains);
     }
     setShowFavoritesDropdown(false);
   }, []);
 
-  const exportToJSON = useCallback(() => {
-    const providerNames: Record<OracleProvider, string> = {
-      [OracleProvider.CHAINLINK]: 'Chainlink',
-      [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
-      [OracleProvider.UMA]: 'UMA',
-      [OracleProvider.PYTH]: 'Pyth Network',
-      [OracleProvider.API3]: 'API3',
-      [OracleProvider.REDSTONE]: 'RedStone',
-      [OracleProvider.DIA]: 'DIA',
-      [OracleProvider.TELLOR]: 'Tellor',
-      [OracleProvider.CHRONICLE]: 'Chronicle',
-      [OracleProvider.WINKLINK]: 'WINkLink',
-    };
+  const exportToJSON = useCallback((): boolean => {
+    if (priceDifferences.length === 0 && Object.keys(historicalPrices).length === 0) {
+      toast.warning('No Data', 'No data available to export');
+      return false;
+    }
 
-    const getConsistencyRating = (stdDevPercent: number): string => {
-      if (stdDevPercent < 0.1) return 'excellent';
-      if (stdDevPercent < 0.3) return 'good';
-      if (stdDevPercent < 0.5) return 'fair';
-      return 'poor';
-    };
+    try {
+      const providerNames: Record<OracleProvider, string> = {
+        [OracleProvider.CHAINLINK]: 'Chainlink',
+        [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
+        [OracleProvider.UMA]: 'UMA',
+        [OracleProvider.PYTH]: 'Pyth Network',
+        [OracleProvider.API3]: 'API3',
+        [OracleProvider.REDSTONE]: 'RedStone',
+        [OracleProvider.DIA]: 'DIA',
+        [OracleProvider.TELLOR]: 'Tellor',
+        [OracleProvider.CHRONICLE]: 'Chronicle',
+        [OracleProvider.WINKLINK]: 'WINkLink',
+      };
 
-    const exportData = {
-      metadata: {
-        symbol: selectedSymbol,
-        oracleProvider: providerNames[selectedProvider],
-        exportTimestamp: new Date().toISOString(),
-        baseChain: selectedBaseChain ? chainNames[selectedBaseChain] : null,
-      },
-      currentPrices: priceDifferences.map((item) => ({
-        blockchain: chainNames[item.chain],
-        price: item.price,
-        difference: item.diff,
-        percentDifference: item.diffPercent,
-      })),
-      historicalPrices: filteredChains.map((chain) => ({
-        blockchain: chainNames[chain],
-        prices:
-          historicalPrices[chain]?.map((price) => ({
-            price: price.price,
-            timestamp: new Date(price.timestamp).toISOString(),
-            source: price.source,
-          })) || [],
-      })),
-      summary: {
-        averagePrice: avgPrice,
-        highestPrice: maxPrice,
-        lowestPrice: minPrice,
-        priceRange: priceRange,
-        standardDeviationPercent: standardDeviationPercent,
-        consistencyRating: getConsistencyRating(standardDeviationPercent),
-        dataPoints: totalDataPoints,
-      },
-    };
+      const getConsistencyRating = (stdDevPercent: number): string => {
+        if (stdDevPercent < 0.1) return 'excellent';
+        if (stdDevPercent < 0.3) return 'good';
+        if (stdDevPercent < 0.5) return 'fair';
+        return 'poor';
+      };
 
-    const jsonContent = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute(
-      'download',
-      `cross-chain-${selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
-    );
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const exportData = {
+        metadata: {
+          symbol: selectedSymbol,
+          oracleProvider: providerNames[selectedProvider],
+          exportTimestamp: new Date().toISOString(),
+          baseChain: selectedBaseChain ? chainNames[selectedBaseChain] : null,
+        },
+        currentPrices: priceDifferences.map((item) => ({
+          blockchain: chainNames[item.chain],
+          price: item.price,
+          difference: item.diff,
+          percentDifference: item.diffPercent,
+        })),
+        historicalPrices: filteredChains.map((chain) => ({
+          blockchain: chainNames[chain],
+          prices:
+            historicalPrices[chain]?.map((price) => ({
+              price: price.price,
+              timestamp: new Date(price.timestamp).toISOString(),
+              source: price.source,
+            })) || [],
+        })),
+        summary: {
+          averagePrice: avgPrice,
+          highestPrice: maxPrice,
+          lowestPrice: minPrice,
+          priceRange: priceRange,
+          standardDeviationPercent: standardDeviationPercent,
+          consistencyRating: getConsistencyRating(standardDeviationPercent),
+          dataPoints: totalDataPoints,
+        },
+      };
+
+      const jsonContent = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonContent], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `cross-chain-${selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+      );
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Export Successful', 'JSON file has been downloaded');
+      return true;
+    } catch (error) {
+      logger.error('Failed to export JSON:', error as Error);
+      toast.error('Export Failed', 'Failed to export JSON file. Please try again.');
+      return false;
+    }
   }, [
     selectedProvider,
     selectedSymbol,
@@ -1195,6 +1309,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     priceRange,
     standardDeviationPercent,
     totalDataPoints,
+    toast,
   ]);
 
   return {
@@ -1270,6 +1385,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     chainVolatility,
     updateDelays,
     dataIntegrity,
+    actualUpdateIntervals,
     priceJumpFrequency,
     priceChangePercent,
     meanBinIndex,

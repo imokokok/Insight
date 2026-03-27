@@ -19,6 +19,7 @@ import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { type Blockchain } from '@/lib/oracles';
+import { isBlockchain } from '@/lib/utils/chainUtils';
 
 import { type ChartDataPoint } from '../constants';
 import { chainNames, chainColors } from '../utils';
@@ -70,7 +71,8 @@ function CustomTooltip({ active, payload, label, filteredChains }: CustomTooltip
     (p) =>
       p.dataKey &&
       !String(p.dataKey).includes('_MA') &&
-      filteredChains.includes(p.dataKey as Blockchain)
+      isBlockchain(p.dataKey) &&
+      filteredChains.includes(p.dataKey)
   );
 
   return (
@@ -78,22 +80,26 @@ function CustomTooltip({ active, payload, label, filteredChains }: CustomTooltip
       <p className="text-gray-600 text-xs mb-2 font-medium border-b border-gray-100 pb-2">
         {label}
       </p>
-      {priceData.map((entry) => (
-        <div
-          key={String(entry.dataKey)}
-          className="mb-1.5 pb-1.5 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0"
-        >
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-            <span className="text-sm font-medium text-gray-900">
-              {chainNames[entry.dataKey as Blockchain]}
-            </span>
+      {priceData.map((entry) => {
+        const dataKey = entry.dataKey;
+        const chainName = isBlockchain(dataKey) ? chainNames[dataKey] : String(dataKey);
+        return (
+          <div
+            key={String(entry.dataKey)}
+            className="mb-1.5 pb-1.5 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0"
+          >
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+              <span className="text-sm font-medium text-gray-900">
+                {chainName}
+              </span>
+            </div>
+            <div className="text-sm text-gray-700 pl-4.5 font-mono">
+              ${Number(entry.value).toFixed(4)}
+            </div>
           </div>
-          <div className="text-sm text-gray-700 pl-4.5 font-mono">
-            ${Number(entry.value).toFixed(4)}
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -121,17 +127,36 @@ export function InteractivePriceChart({
   const [showSelectionBox, setShowSelectionBox] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24H');
 
-  // Handle time range change
   const handleTimeRangeChange = useCallback((range: string) => {
     setSelectedTimeRange(range as TimeRange);
   }, []);
 
-  // Handle export
   const handleExport = useCallback(() => {
     console.log('Exporting chart data...');
   }, []);
 
-  // Update view state when data changes
+  const getTimeRangeInMs = useCallback((range: TimeRange): number => {
+    const now = Date.now();
+    switch (range) {
+      case '1H':
+        return now - 60 * 60 * 1000;
+      case '24H':
+        return now - 24 * 60 * 60 * 1000;
+      case '7D':
+        return now - 7 * 24 * 60 * 60 * 1000;
+      case '30D':
+        return now - 30 * 24 * 60 * 60 * 1000;
+      default:
+        return now - 24 * 60 * 60 * 1000;
+    }
+  }, []);
+
+  const timeFilteredData = useMemo(() => {
+    if (chartDataWithMA.length === 0) return [];
+    const cutoffTime = getTimeRangeInMs(selectedTimeRange);
+    return chartDataWithMA.filter((point) => point.timestamp >= cutoffTime);
+  }, [chartDataWithMA, selectedTimeRange, getTimeRangeInMs]);
+
   const prevDataLengthRef = useRef(chartData.length);
   useEffect(() => {
     if (chartData.length !== prevDataLengthRef.current) {
@@ -147,11 +172,21 @@ export function InteractivePriceChart({
     }
   }, [chartData.length]);
 
-  // Get visible data based on view state
+  useEffect(() => {
+    if (timeFilteredData.length > 0) {
+      queueMicrotask(() => {
+        setViewState({
+          startIndex: 0,
+          endIndex: timeFilteredData.length - 1,
+        });
+      });
+    }
+  }, [selectedTimeRange, timeFilteredData.length]);
+
   const visibleData = useMemo(() => {
-    if (chartDataWithMA.length === 0) return [];
-    return chartDataWithMA.slice(viewState.startIndex, viewState.endIndex + 1);
-  }, [chartDataWithMA, viewState]);
+    if (timeFilteredData.length === 0) return [];
+    return timeFilteredData.slice(viewState.startIndex, viewState.endIndex + 1);
+  }, [timeFilteredData, viewState]);
 
   // Calculate price domain for Y axis
   const priceDomain = useMemo(() => {

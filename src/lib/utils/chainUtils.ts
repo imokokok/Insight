@@ -9,6 +9,29 @@ import {
 
 export { CHAIN_CATEGORIES, getChainsByCategory, getChainCategory };
 
+export function isBlockchain(value: unknown): value is Blockchain {
+  return (
+    typeof value === 'string' &&
+    (BLOCKCHAIN_VALUES as readonly string[]).includes(value)
+  );
+}
+
+export function assertBlockchain(value: unknown, context?: string): Blockchain {
+  if (!isBlockchain(value)) {
+    throw new Error(
+      `Invalid Blockchain value: ${JSON.stringify(value)}${context ? ` in ${context}` : ''}`
+    );
+  }
+  return value;
+}
+
+export function safeBlockchainCast(value: unknown, fallback?: Blockchain): Blockchain | undefined {
+  if (isBlockchain(value)) {
+    return value;
+  }
+  return fallback;
+}
+
 /**
  * 获取预言机支持的所有链
  */

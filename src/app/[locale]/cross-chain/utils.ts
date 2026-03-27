@@ -107,9 +107,182 @@ export const calculateZScore = (price: number, mean: number, stdDev: number): nu
   return (price - mean) / stdDev;
 };
 
-export const isOutlier = (zScore: number | null): boolean => {
+/**
+ * 使用 Z-score 方法检测异常值
+ * 
+ * @param zScore - Z-score 值
+ * @param threshold - 阈值,默认为 2。常用值:
+ *   - 1.5: 较宽松,检测更多异常值
+ *   - 2.0: 标准阈值,约 95% 置信区间
+ *   - 3.0: 较严格,只检测极端异常值
+ * @returns 是否为异常值
+ * 
+ * @example
+ * // 使用默认阈值 2.0
+ * isOutlier(2.5); // true
+ * 
+ * // 使用自定义阈值
+ * isOutlier(2.5, 3.0); // false
+ */
+export const isOutlier = (zScore: number | null, threshold: number = 2): boolean => {
   if (zScore === null) return false;
-  return Math.abs(zScore) > 2;
+  return Math.abs(zScore) > threshold;
+};
+
+/**
+ * 使用 IQR (四分位距) 方法检测异常值
+ * 
+ * IQR 方法对于非正态分布的数据更稳健,不受极端值的影响。
+ * 适用于:
+ * - 价格数据分布不对称
+ * - 存在极端价格波动
+ * - 数据不满足正态分布假设
+ * 
+ * @param value - 要检测的值
+ * @param q1 - 第一四分位数 (25th percentile)
+ * @param q3 - 第三四分位数 (75th percentile)
+ * @param multiplier - IQR 乘数,默认为 1.5。常用值:
+ *   - 1.5: 标准阈值,检测温和异常值
+ *   - 3.0: 严格阈值,只检测极端异常值
+ * @returns 是否为异常值
+ * 
+ * @example
+ * const prices = [100, 102, 101, 103, 150, 105, 104];
+ * const sorted = [...prices].sort((a, b) => a - b);
+ * const q1 = calculatePercentile(sorted, 25);
+ * const q3 = calculatePercentile(sorted, 75);
+ * 
+ * // 检测 150 是否为异常值
+ * isOutlierIQR(150, q1, q3); // true
+ */
+export const isOutlierIQR = (
+  value: number,
+  q1: number,
+  q3: number,
+  multiplier: number = 1.5
+): boolean => {
+  const iqr = q3 - q1;
+  const lowerBound = q1 - multiplier * iqr;
+  const upperBound = q3 + multiplier * iqr;
+  return value < lowerBound || value > upperBound;
+};
+
+/**
+ * 批量使用 IQR 方法检测异常值
+ * 
+ * @param prices - 价格数组
+ * @param multiplier - IQR 乘数,默认为 1.5
+ * @returns 异常值检测结果,包含异常值列表和边界信息
+ * 
+ * @example
+ * const prices = [100, 102, 101, 103, 150, 105, 104];
+ * const result = detectOutliersIQR(prices);
+ * console.log(result.outliers); // [150]
+ * console.log(result.bounds); // { lower: 96.5, upper: 109.5 }
+ */
+export const detectOutliersIQR = (
+  prices: number[],
+  multiplier: number = 1.5
+): {
+  outliers: number[];
+  q1: number;
+  q3: number;
+  iqr: number;
+  lowerBound: number;
+  upperBound: number;
+} => {
+  if (prices.length < 4) {
+    return {
+      outliers: [],
+      q1: 0,
+      q3: 0,
+      iqr: 0,
+      lowerBound: 0,
+      upperBound: 0,
+    };
+  }
+
+  const sorted = [...prices].sort((a, b) => a - b);
+  const q1 = calculatePercentile(sorted, 25);
+  const q3 = calculatePercentile(sorted, 75);
+  const iqr = q3 - q1;
+  const lowerBound = q1 - multiplier * iqr;
+  const upperBound = q3 + multiplier * iqr;
+
+  const outliers = prices.filter((price) => price < lowerBound || price > upperBound);
+
+  return {
+    outliers,
+    q1,
+    q3,
+    iqr,
+    lowerBound,
+    upperBound,
+  };
+};
+
+/**
+ * 使用 Z-score 方法批量检测异常值
+ * 
+ * @param prices - 价格数组
+ * @param threshold - Z-score 阈值,默认为 2
+ * @returns 异常值检测结果,包含异常值列表和统计信息
+ * 
+ * @example
+ * const prices = [100, 102, 101, 103, 150, 105, 104];
+ * const result = detectOutliersZScore(prices, 2);
+ * console.log(result.outliers); // [150]
+ */
+export const detectOutliersZScore = (
+  prices: number[],
+  threshold: number = 2
+): {
+  outliers: number[];
+  mean: number;
+  stdDev: number;
+  lowerBound: number;
+  upperBound: number;
+} => {
+  if (prices.length < 2) {
+    return {
+      outliers: [],
+      mean: 0,
+      stdDev: 0,
+      lowerBound: 0,
+      upperBound: 0,
+    };
+  }
+
+  const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
+  const variance =
+    prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
+  const stdDev = Math.sqrt(variance);
+
+  if (stdDev === 0) {
+    return {
+      outliers: [],
+      mean,
+      stdDev: 0,
+      lowerBound: mean,
+      upperBound: mean,
+    };
+  }
+
+  const lowerBound = mean - threshold * stdDev;
+  const upperBound = mean + threshold * stdDev;
+
+  const outliers = prices.filter((price) => {
+    const zScore = calculateZScore(price, mean, stdDev);
+    return zScore !== null && Math.abs(zScore) > threshold;
+  });
+
+  return {
+    outliers,
+    mean,
+    stdDev,
+    lowerBound,
+    upperBound,
+  };
 };
 
 export const calculateChangePercent = (current: number, previous: number): number | null => {
@@ -175,6 +348,52 @@ export const calculatePearsonCorrelation = (x: number[], y: number[]): number =>
   return numerator / denominator;
 };
 
+export interface TimestampedPrice {
+  timestamp: number;
+  price: number;
+}
+
+export const calculatePearsonCorrelationByTimestamp = (
+  dataX: TimestampedPrice[],
+  dataY: TimestampedPrice[]
+): number => {
+  if (dataX.length < 2 || dataY.length < 2) return 0;
+
+  const mapY = new Map<number, number>();
+  dataY.forEach((item) => mapY.set(item.timestamp, item.price));
+
+  const matchedPairs: { x: number; y: number }[] = [];
+  dataX.forEach((itemX) => {
+    const priceY = mapY.get(itemX.timestamp);
+    if (priceY !== undefined) {
+      matchedPairs.push({ x: itemX.price, y: priceY });
+    }
+  });
+
+  if (matchedPairs.length < 2) return 0;
+
+  const n = matchedPairs.length;
+  const xMean = matchedPairs.reduce((sum, pair) => sum + pair.x, 0) / n;
+  const yMean = matchedPairs.reduce((sum, pair) => sum + pair.y, 0) / n;
+
+  let numerator = 0;
+  let xDenominator = 0;
+  let yDenominator = 0;
+
+  for (let i = 0; i < n; i++) {
+    const xDiff = matchedPairs[i].x - xMean;
+    const yDiff = matchedPairs[i].y - yMean;
+    numerator += xDiff * yDiff;
+    xDenominator += xDiff * xDiff;
+    yDenominator += yDiff * yDiff;
+  }
+
+  const denominator = Math.sqrt(xDenominator * yDenominator);
+  if (denominator === 0) return 0;
+
+  return numerator / denominator;
+};
+
 export interface CorrelationResult {
   correlation: number;
   pValue: number;
@@ -229,15 +448,98 @@ export const calculatePearsonCorrelationWithSignificance = (
 
   const correlation = numerator / denominator;
 
-  // Calculate t-statistic: t = r * sqrt((n-2)/(1-r^2))
   const tStatistic = correlation * Math.sqrt((n - 2) / (1 - correlation * correlation));
 
-  // Approximate p-value using t-distribution with n-2 degrees of freedom
-  // Using a simplified approximation for the t-distribution CDF
   const df = n - 2;
   const pValue = approximatePValue(Math.abs(tStatistic), df);
 
-  // Determine significance level
+  let significanceLevel: '***' | '**' | '*' | '' = '';
+  if (pValue < 0.001) {
+    significanceLevel = '***';
+  } else if (pValue < 0.01) {
+    significanceLevel = '**';
+  } else if (pValue < 0.05) {
+    significanceLevel = '*';
+  }
+
+  return {
+    correlation,
+    pValue,
+    sampleSize: n,
+    isSignificant: pValue < 0.05,
+    significanceLevel,
+  };
+};
+
+export const calculatePearsonCorrelationWithSignificanceByTimestamp = (
+  dataX: TimestampedPrice[],
+  dataY: TimestampedPrice[]
+): CorrelationResult => {
+  if (dataX.length < 3 || dataY.length < 3) {
+    return {
+      correlation: 0,
+      pValue: 1,
+      sampleSize: 0,
+      isSignificant: false,
+      significanceLevel: '',
+    };
+  }
+
+  const mapY = new Map<number, number>();
+  dataY.forEach((item) => mapY.set(item.timestamp, item.price));
+
+  const matchedPairs: { x: number; y: number }[] = [];
+  dataX.forEach((itemX) => {
+    const priceY = mapY.get(itemX.timestamp);
+    if (priceY !== undefined) {
+      matchedPairs.push({ x: itemX.price, y: priceY });
+    }
+  });
+
+  const n = matchedPairs.length;
+  if (n < 3) {
+    return {
+      correlation: 0,
+      pValue: 1,
+      sampleSize: n,
+      isSignificant: false,
+      significanceLevel: '',
+    };
+  }
+
+  const xMean = matchedPairs.reduce((sum, pair) => sum + pair.x, 0) / n;
+  const yMean = matchedPairs.reduce((sum, pair) => sum + pair.y, 0) / n;
+
+  let numerator = 0;
+  let xDenominator = 0;
+  let yDenominator = 0;
+
+  for (let i = 0; i < n; i++) {
+    const xDiff = matchedPairs[i].x - xMean;
+    const yDiff = matchedPairs[i].y - yMean;
+    numerator += xDiff * yDiff;
+    xDenominator += xDiff * xDiff;
+    yDenominator += yDiff * yDiff;
+  }
+
+  const denominator = Math.sqrt(xDenominator * yDenominator);
+  if (denominator === 0) {
+    return {
+      correlation: 0,
+      pValue: 1,
+      sampleSize: n,
+      isSignificant: false,
+      significanceLevel: '',
+    };
+  }
+
+  const correlation = numerator / denominator;
+
+  const tStatistic = correlation * Math.sqrt((n - 2) / (1 - correlation * correlation));
+
+  const df = n - 2;
+  const pValue = approximatePValue(Math.abs(tStatistic), df);
+
   let significanceLevel: '***' | '**' | '*' | '' = '';
   if (pValue < 0.001) {
     significanceLevel = '***';
@@ -370,11 +672,18 @@ export interface VolatilityConePoint {
 export const calculateRollingCorrelation = (
   pricesX: number[],
   pricesY: number[],
-  windowSize: number
+  windowSize: number,
+  timestamps?: number[]
 ): RollingCorrelationPoint[] => {
   const n = Math.min(pricesX.length, pricesY.length);
   if (n < windowSize || windowSize < 2) {
     return [];
+  }
+
+  if (!timestamps && process.env.NODE_ENV === 'development') {
+    console.warn(
+      'calculateRollingCorrelation: timestamps parameter is recommended for accurate chart X-axis values'
+    );
   }
 
   const result: RollingCorrelationPoint[] = [];
@@ -402,7 +711,7 @@ export const calculateRollingCorrelation = (
     const correlation = denominator === 0 ? 0 : numerator / denominator;
 
     result.push({
-      timestamp: i,
+      timestamp: timestamps ? timestamps[i] : i,
       correlation: isNaN(correlation) ? 0 : correlation,
     });
   }
@@ -414,14 +723,22 @@ export const calculateRollingCorrelation = (
  * 计算滚动波动率
  * @param prices 价格数组
  * @param windowSize 窗口大小
+ * @param timestamps 可选的时间戳数组
  * @returns 滚动波动率时序数据
  */
 export const calculateRollingVolatility = (
   prices: number[],
-  windowSize: number
+  windowSize: number,
+  timestamps?: number[]
 ): RollingVolatilityPoint[] => {
   if (prices.length < windowSize || windowSize < 2) {
     return [];
+  }
+
+  if (!timestamps && process.env.NODE_ENV === 'development') {
+    console.warn(
+      'calculateRollingVolatility: timestamps parameter is recommended for accurate chart X-axis values'
+    );
   }
 
   const result: RollingVolatilityPoint[] = [];
@@ -440,7 +757,7 @@ export const calculateRollingVolatility = (
 
     if (returns.length < 2) {
       result.push({
-        timestamp: i,
+        timestamp: timestamps ? timestamps[i] : i,
         volatility: 0,
       });
       continue;
@@ -455,7 +772,7 @@ export const calculateRollingVolatility = (
     const annualizedVolatility = volatility * Math.sqrt(365 * 24) * 100;
 
     result.push({
-      timestamp: i,
+      timestamp: timestamps ? timestamps[i] : i,
       volatility: isNaN(annualizedVolatility) ? 0 : annualizedVolatility,
     });
   }
@@ -528,11 +845,22 @@ export const calculateVolatilityCone = (
 // Dynamic Threshold Types
 export type ThresholdType = 'fixed' | 'dynamic' | 'atr';
 
+/**
+ * 异常值检测方法类型
+ * - zscore: Z-score 方法,适用于正态分布数据
+ * - iqr: IQR (四分位距) 方法,适用于非正态分布数据
+ */
+export type OutlierDetectionMethod = 'zscore' | 'iqr';
+
 export interface ThresholdConfig {
   type: ThresholdType;
   fixedThreshold: number;
   atrMultiplier: number;
   volatilityWindow: number;
+  priceJumpMethod: 'std' | 'zscore' | 'simple';
+  priceJumpThreshold: number;
+  outlierDetectionMethod: OutlierDetectionMethod;
+  outlierThreshold: number;
 }
 
 // Calculate Average True Range (ATR) for dynamic threshold
@@ -610,10 +938,133 @@ export const calculateDynamicThreshold = (prices: number[], config: ThresholdCon
   }
 };
 
+export const calculatePriceJumpStats = (changes: number[]) => {
+  if (changes.length === 0) {
+    return { mean: 0, stdDev: 0 };
+  }
+
+  const mean = changes.reduce((a, b) => a + b, 0) / changes.length;
+  
+  if (changes.length === 1) {
+    return { mean, stdDev: 0 };
+  }
+
+  const variance =
+    changes.reduce((sum, change) => sum + Math.pow(change - mean, 2), 0) / changes.length;
+  const stdDev = Math.sqrt(variance);
+
+  return { mean, stdDev };
+};
+
+export const detectPriceJumps = (
+  changes: number[],
+  method: 'std' | 'zscore' | 'simple',
+  threshold: number,
+): number => {
+  if (changes.length === 0) {
+    return 0;
+  }
+
+  const { mean, stdDev } = calculatePriceJumpStats(changes);
+
+  if (method === 'simple') {
+    const simpleThreshold = mean * threshold;
+    return changes.filter((change) => change > simpleThreshold).length;
+  }
+
+  if (method === 'std') {
+    const stdThreshold = mean + stdDev * threshold;
+    return changes.filter((change) => change > stdThreshold).length;
+  }
+
+  if (method === 'zscore') {
+    if (stdDev === 0) {
+      return 0;
+    }
+    return changes.filter((change) => {
+      const zScore = calculateZScore(change, mean, stdDev);
+      return zScore !== null && Math.abs(zScore) > threshold;
+    }).length;
+  }
+
+  return 0;
+};
+
 // Default threshold configuration
 export const defaultThresholdConfig: ThresholdConfig = {
   type: 'fixed',
-  fixedThreshold: 0.5, // 0.5%
+  fixedThreshold: 0.5,
   atrMultiplier: 2.0,
   volatilityWindow: 14,
+  priceJumpMethod: 'zscore',
+  priceJumpThreshold: 2.0,
+  outlierDetectionMethod: 'zscore',
+  outlierThreshold: 2.0,
 };
+
+/**
+ * 异常值检测方法选择指南
+ * 
+ * ## Z-score 方法 (outlierDetectionMethod: 'zscore')
+ * 
+ * **适用场景:**
+ * - 数据近似正态分布
+ * - 价格波动相对稳定
+ * - 需要基于统计显著性检测异常
+ * 
+ * **优点:**
+ * - 统计学基础扎实
+ * - 易于理解和解释
+ * - 计算效率高
+ * 
+ * **缺点:**
+ * - 对极端值敏感 (均值和标准差会被极端值影响)
+ * - 不适合偏态分布
+ * 
+ * **推荐阈值:**
+ * - 1.5: 检测约 87% 置信区间外的值
+ * - 2.0: 检测约 95% 置信区间外的值 (默认)
+ * - 3.0: 检测约 99.7% 置信区间外的值
+ * 
+ * ## IQR 方法 (outlierDetectionMethod: 'iqr')
+ * 
+ * **适用场景:**
+ * - 数据分布不对称 (偏态)
+ * - 存在极端价格波动
+ * - 加密货币等高波动性资产
+ * 
+ * **优点:**
+ * - 对极端值稳健 (不受异常值影响)
+ * - 适合非正态分布
+ * - 不依赖均值和标准差
+ * 
+ * **缺点:**
+ * - 可能遗漏一些有意义的异常值
+ * - 对小样本不够敏感
+ * 
+ * **推荐阈值:**
+ * - 1.5: 标准阈值,检测温和异常值 (默认)
+ * - 3.0: 严格阈值,只检测极端异常值
+ * 
+ * ## 使用建议
+ * 
+ * 1. **稳定币价格分析**: 推荐使用 Z-score 方法,阈值 2.0
+ * 2. **高波动性代币**: 推荐使用 IQR 方法,阈值 1.5
+ * 3. **跨链价格比较**: 推荐使用 IQR 方法,因为不同链的价格分布可能不同
+ * 4. **历史异常检测**: 根据数据分布选择,可先用直方图或 Q-Q 图评估分布
+ * 
+ * @example
+ * // 使用 Z-score 方法检测异常值
+ * const config = {
+ *   ...defaultThresholdConfig,
+ *   outlierDetectionMethod: 'zscore',
+ *   outlierThreshold: 2.0
+ * };
+ * 
+ * // 使用 IQR 方法检测异常值
+ * const config = {
+ *   ...defaultThresholdConfig,
+ *   outlierDetectionMethod: 'iqr',
+ *   outlierThreshold: 1.5
+ * };
+ */

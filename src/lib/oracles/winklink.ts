@@ -160,6 +160,8 @@ export class WINkLinkClient extends BaseOracleClient {
   name = OracleProvider.WINKLINK;
   supportedChains = [Blockchain.TRON, Blockchain.BNB_CHAIN];
 
+  defaultUpdateIntervalMinutes = 60;
+
   constructor(config?: OracleClientConfig) {
     super(config);
   }

@@ -136,6 +136,8 @@ export class DIAClient extends BaseOracleClient {
     Blockchain.BASE,
   ];
 
+  defaultUpdateIntervalMinutes = 5;
+
   constructor(config?: OracleClientConfig) {
     super(config);
   }
