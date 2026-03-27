@@ -10,32 +10,32 @@ import { type BandProtocolSidebarProps, type BandProtocolTabId } from '../types'
 const getNavItems = (t: (key: string) => string): SidebarItem[] => [
   {
     id: 'market' as BandProtocolTabId,
-    labelKey: 'bandProtocol.menu.marketData',
+    labelKey: 'band.bandProtocol.menu.marketData',
     icon: <BarChart3 className="w-5 h-5" />,
   },
   {
     id: 'network' as BandProtocolTabId,
-    labelKey: 'bandProtocol.menu.networkHealth',
+    labelKey: 'band.bandProtocol.menu.networkHealth',
     icon: <Globe className="w-5 h-5" />,
   },
   {
     id: 'validators' as BandProtocolTabId,
-    labelKey: 'bandProtocol.menu.validators',
+    labelKey: 'band.bandProtocol.menu.validators',
     icon: <Shield className="w-5 h-5" />,
   },
   {
     id: 'cross-chain' as BandProtocolTabId,
-    labelKey: 'bandProtocol.menu.crossChain',
+    labelKey: 'band.bandProtocol.menu.crossChain',
     icon: <ArrowLeftRight className="w-5 h-5" />,
   },
   {
     id: 'data-feeds' as BandProtocolTabId,
-    labelKey: 'bandProtocol.menu.dataFeeds',
+    labelKey: 'band.bandProtocol.menu.dataFeeds',
     icon: <Database className="w-5 h-5" />,
   },
   {
     id: 'risk' as BandProtocolTabId,
-    labelKey: 'bandProtocol.menu.riskAssessment',
+    labelKey: 'band.bandProtocol.menu.riskAssessment',
     icon: <ShieldAlert className="w-5 h-5" />,
   },
 ];
