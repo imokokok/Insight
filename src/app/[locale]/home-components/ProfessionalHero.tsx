@@ -255,7 +255,7 @@ export default function ProfessionalHero() {
 
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden">
-      <HeroBackground enableParticles={false} enableDataFlow={false} />
+      <HeroBackground enableParticles={true} enableDataFlow={false} />
       
       {/* Main Content - Centered Layout */}
       <div className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-12 py-8 sm:py-12">

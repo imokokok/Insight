@@ -58,8 +58,8 @@ export default function HeroBackground({
         className="absolute inset-0 opacity-100"
         style={{
           backgroundImage: `
-            linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px)
+            linear-gradient(to right, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(148, 163, 184, 0.12) 1px, transparent 1px)
           `,
           backgroundSize: '40px 40px',
         }}
@@ -67,23 +67,33 @@ export default function HeroBackground({
 
       {/* Static gradient orbs */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Top right orb */}
+        {/* Top right orb - blue */}
         <div
           className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full"
           style={{
             background:
-              'radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.05) 40%, transparent 70%)',
+              'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.04) 40%, transparent 70%)',
             filter: 'blur(60px)',
           }}
         />
 
-        {/* Bottom left orb */}
+        {/* Bottom left orb - purple */}
         <div
           className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full"
           style={{
             background:
-              'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.04) 40%, transparent 70%)',
+              'radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, rgba(139, 92, 246, 0.03) 40%, transparent 70%)',
             filter: 'blur(50px)',
+          }}
+        />
+
+        {/* Top left orb - cyan accent */}
+        <div
+          className="absolute -top-20 -left-20 w-[400px] h-[400px] rounded-full"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(6, 182, 212, 0.05) 0%, rgba(6, 182, 212, 0.02) 40%, transparent 70%)',
+            filter: 'blur(40px)',
           }}
         />
 
@@ -91,7 +101,7 @@ export default function HeroBackground({
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px]"
           style={{
-            background: 'radial-gradient(ellipse, rgba(59, 130, 246, 0.06) 0%, transparent 60%)',
+            background: 'radial-gradient(ellipse, rgba(59, 130, 246, 0.04) 0%, transparent 60%)',
             filter: 'blur(40px)',
           }}
         />
@@ -101,8 +111,8 @@ export default function HeroBackground({
       {enableParticles && !prefersReducedMotion && (
         <div className="absolute inset-0 z-[1]">
           <ParticleNetwork
-            particleCount={60}
-            connectionDistance={150}
+            particleCount={25}
+            connectionDistance={120}
             themeColor="#3b82f6"
           />
         </div>

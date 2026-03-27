@@ -84,7 +84,7 @@ export default function ParticleNetwork({
           ctx.beginPath();
           ctx.moveTo(particles[i].x, particles[i].y);
           ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `rgba(59, 130, 246, ${opacity * 0.5})`;
+          ctx.strokeStyle = `rgba(59, 130, 246, ${opacity * 0.15})`;
           ctx.lineWidth = 1;
           ctx.stroke();
         }
