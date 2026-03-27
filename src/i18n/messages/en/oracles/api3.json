@@ -173,7 +173,21 @@
         "stabilityDesc": "Network uptime and operational consistency",
         "dataQuality": "Data Quality",
         "dataQualityDesc": "Accuracy and reliability of price feeds"
-      }
+      },
+      "metrics": "Risk Metrics",
+      "metricsDesc": "Key risk indicators for API3 network",
+      "overallScore": "Overall Score",
+      "benchmark": "Industry Benchmark Comparison",
+      "benchmarkDesc": "Comparison analysis against industry standards",
+      "comparison": "Detailed Comparison",
+      "timeline": "Historical Risk Events",
+      "timelineDesc": "Record of historical risk events in API3 network",
+      "eventDetails": "Event Details",
+      "clickEvent": "Click an event to view details",
+      "factors": "Risk Factor Analysis",
+      "factorsDesc": "Detailed breakdown of identified risk categories",
+      "disclaimer": "Risk Disclaimer",
+      "disclaimerText": "This risk analysis is for reference only and does not constitute investment advice. Please assess risks independently before investing."
     },
     "crossOracle": {
       "overview": {
@@ -239,13 +253,57 @@
       "latency": "Latency",
       "overview": "Network Overview"
     },
+    "ecosystem": {
+      "tvlAnalysis": {
+        "title": "TVL Analysis",
+        "totalTvl": "Total TVL",
+        "ethereum": "Ethereum",
+        "l2Networks": "L2 Networks",
+        "altL1": "Alt L1",
+        "filterByChain": "Filter by chain"
+      },
+      "projectAnalysis": {
+        "projectsByChain": "Projects by Chain",
+        "totalProjects": "Total Projects",
+        "thisMonth": "this month"
+      },
+      "growth": {
+        "title": "Ecosystem Growth",
+        "newProjects": "New Projects",
+        "integrations": "Integrations",
+        "communityGrowth": "Community",
+        "protocolRevenue": "Revenue"
+      }
+    },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
     "tradingPair": "Trading Pair",
     "volume24h": "24h Volume",
     "liquidity": "Liquidity",
     "marketDepth": "Market Depth",
-    "depthScore": "Depth Score"
+    "depthScore": "Depth Score",
+    "dapi": {
+      "name": "Name",
+      "category": "Category",
+      "frequency": "Update Frequency",
+      "threshold": "Deviation Threshold",
+      "status": "Status",
+      "requests": "Requests",
+      "reliability": "Reliability",
+      "total": "Total dAPIs",
+      "active": "Active",
+      "totalRequests": "Total Requests",
+      "avgReliability": "Avg Reliability",
+      "dataFeeds": "Data Feeds",
+      "about": "About Data Feeds",
+      "updateFrequency": "Update Frequency",
+      "frequencyDesc": "Data feeds update automatically based on market conditions",
+      "deviationThreshold": "Deviation Threshold",
+      "thresholdDesc": "Updates triggered when price change exceeds threshold",
+      "reliabilityDesc": "Reliability score based on historical performance",
+      "decentralization": "Decentralization",
+      "decentralizationDesc": "Degree of distribution of data sources"
+    }
   },
   "dapiCoverage": {
     "totalDapis": "Total dAPIs",

@@ -166,7 +166,21 @@
         "stabilityDesc": "网络可用率和运营一致性",
         "dataQuality": "数据质量",
         "dataQualityDesc": "价格喂价的准确性和可靠性"
-      }
+      },
+      "metrics": "风险指标",
+      "metricsDesc": "API3 网络的关键风险指标",
+      "overallScore": "总体评分",
+      "benchmark": "行业基准对比",
+      "benchmarkDesc": "与行业标准的对比分析",
+      "comparison": "详细对比",
+      "timeline": "历史风险事件",
+      "timelineDesc": "API3 网络历史上的风险事件记录",
+      "eventDetails": "事件详情",
+      "clickEvent": "点击事件查看详情",
+      "factors": "风险因素分析",
+      "factorsDesc": "已识别风险类别的详细分解",
+      "disclaimer": "风险提示",
+      "disclaimerText": "本风险分析仅供参考，不构成投资建议。投资前请自行评估风险。"
     },
     "crossOracle": {
       "overview": {
@@ -232,6 +246,28 @@
       "latency": "延迟",
       "overview": "网络概览"
     },
+    "ecosystem": {
+      "tvlAnalysis": {
+        "title": "TVL 分析",
+        "totalTvl": "总锁仓价值",
+        "ethereum": "以太坊",
+        "l2Networks": "L2 网络",
+        "altL1": "其他 L1",
+        "filterByChain": "按链筛选"
+      },
+      "projectAnalysis": {
+        "projectsByChain": "各链项目数",
+        "totalProjects": "总项目数",
+        "thisMonth": "本月新增"
+      },
+      "growth": {
+        "title": "生态增长",
+        "newProjects": "新项目",
+        "integrations": "集成数",
+        "communityGrowth": "社区增长",
+        "protocolRevenue": "协议收入"
+      }
+    },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
     "tradingPair": "交易对",
@@ -248,6 +284,28 @@
       "risk": "风险评估",
       "crossChain": "跨链",
       "crossOracle": "跨预言机分析"
+    },
+    "dapi": {
+      "name": "名称",
+      "category": "类别",
+      "frequency": "更新频率",
+      "threshold": "偏差阈值",
+      "status": "状态",
+      "requests": "请求数",
+      "reliability": "可靠性",
+      "total": "dAPI 总数",
+      "active": "活跃",
+      "totalRequests": "总请求数",
+      "avgReliability": "平均可靠性",
+      "dataFeeds": "数据源",
+      "about": "关于数据源",
+      "updateFrequency": "更新频率",
+      "frequencyDesc": "数据源根据市场情况自动更新",
+      "deviationThreshold": "偏差阈值",
+      "thresholdDesc": "价格变化超过阈值时触发更新",
+      "reliabilityDesc": "基于历史表现的可靠性评分",
+      "decentralization": "去中心化",
+      "decentralizationDesc": "数据源的分布式程度"
     }
   },
   "dapiCoverage": {

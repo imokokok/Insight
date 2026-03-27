@@ -70,6 +70,7 @@
       "activeSources": "活跃数据源",
       "avgCredibility": "平均可信度",
       "sourceName": "数据源名称",
+      "source": "数据源",
       "type": "类型",
       "credibility": "可信度",
       "status": "状态",
@@ -107,6 +108,24 @@
     },
     "dataFeeds": {
       "title": "数据馈送",
+      "total": "总数据馈送",
+      "active": "活跃",
+      "avgConfidence": "平均置信度",
+      "dataSources": "数据源",
+      "name": "名称",
+      "type": "类型",
+      "chain": "链",
+      "status": "状态",
+      "confidence": "置信度",
+      "updateTime": "更新时间",
+      "about": "关于数据馈送",
+      "confidenceDesc": "基于数据源质量和一致性的置信度评分",
+      "multiChain": "多链支持",
+      "multiChainDesc": "支持多个区块链网络的数据馈送",
+      "transparency": "数据透明",
+      "transparencyDesc": "所有数据源完全透明可验证",
+      "customFeeds": "自定义馈送",
+      "customFeedsDesc": "支持自定义数据馈送需求",
       "totalFeeds": "总馈送数",
       "activeFeeds": "活跃馈送",
       "assetType": {
@@ -121,17 +140,11 @@
       "nft": "NFT",
       "commodity": "商品",
       "updateFrequency": "更新频率",
-      "status": {
-        "active": "活跃",
-        "paused": "服务暂停",
-        "deprecated": "已下线"
-      },
       "description": "描述",
       "createdAt": "创建时间",
       "filterByAssetType": "按资产类型筛选",
       "filterByChain": "按链筛选",
       "allChains": "全部链",
-      "dataSources": "数据源",
       "supportedChains": "支持的链",
       "noFeeds": "暂无数据馈送",
       "showingCount": "显示 {count} 个，共 {total} 个数据源"
@@ -154,15 +167,45 @@
       "updateFrequency": "更新频率",
       "noData": "暂无 NFT 数据"
     },
+    "nft": {
+      "loading": "加载中...",
+      "noData": "暂无 NFT 数据",
+      "totalCollections": "总集合数",
+      "trendingCount": "热门趋势",
+      "avgFloorPrice": "平均地板价",
+      "chainsSupported": "支持的链",
+      "collections": "NFT 集合",
+      "name": "名称",
+      "floorPrice": "地板价",
+      "change24h": "24小时变化",
+      "volume24h": "24h 成交额",
+      "chain": "链",
+      "noCollections": "暂无集合数据",
+      "byChain": "按链分布",
+      "noChainData": "暂无链数据"
+    },
+    "assetTypes": {
+      "crypto": "加密货币",
+      "fiat": "法币",
+      "commodity": "商品",
+      "nft": "NFT",
+      "custom": "自定义"
+    },
     "staking": {
       "totalStaked": "总质押量",
-      "currentApr": "当前 APR",
+      "stakingApr": "质押 APR",
       "stakerCount": "质押者数量",
-      "rewardPool": "奖励池",
       "rewardsDistributed": "已分发奖励",
+      "details": "质押详情",
       "minStakeAmount": "最小质押量",
+      "unbondingPeriod": "解绑期",
+      "days": "天",
+      "compounding": "复利",
+      "auto": "自动",
       "lockPeriods": "锁定期限",
       "historicalApr": "历史 APR 趋势",
+      "currentApr": "当前 APR",
+      "rewardPool": "奖励池",
       "calculator": "收益计算器",
       "stakeAmount": "质押数量",
       "lockPeriod": "锁定周期",
@@ -211,7 +254,10 @@
       "totalProtocols": "总协议数",
       "totalTVL": "总锁仓价值",
       "stats": {
-        "totalProtocols": "总协议数"
+        "totalProtocols": "总协议数",
+        "totalTVL": "总 TVL",
+        "dexIntegrations": "DEX 集成",
+        "lendingIntegrations": "借贷集成"
       },
       "visitWebsite": "访问官网",
       "category": {
@@ -220,7 +266,8 @@
         "lending": "借贷",
         "derivatives": "衍生品",
         "yield": "收益",
-        "insurance": "保险"
+        "insurance": "保险",
+        "other": "其他"
       },
       "depth": {
         "full": "完整",
@@ -229,6 +276,34 @@
         "unknown": "未知"
       },
       "dataFeeds": "数据馈送",
+      "tvl": "TVL",
+      "ofTotal": "占总比",
+      "partners": "合作伙伴",
+      "integrations": "集成",
+      "error": {
+        "title": "错误",
+        "message": "加载数据时出错"
+      },
+      "tvlAnalysis": {
+        "title": "TVL 分析",
+        "totalTvl": "总 TVL",
+        "ethereum": "以太坊",
+        "l2Networks": "L2 网络",
+        "altL1": "其他 L1",
+        "filterByChain": "按链筛选"
+      },
+      "projectAnalysis": {
+        "projectsByChain": "各链项目数",
+        "totalProjects": "总项目数",
+        "thisMonth": "本月新增"
+      },
+      "growth": {
+        "title": "生态增长",
+        "newProjects": "新项目",
+        "integrations": "集成数",
+        "communityGrowth": "社区增长",
+        "protocolRevenue": "协议收入"
+      },
       "noProtocols": "暂无协议数据"
     },
     "riskAssessment": {

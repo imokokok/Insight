@@ -320,28 +320,23 @@ export default function ProfessionalHero() {
       <div className="relative z-10 flex-1 flex items-center px-6 lg:px-12 xl:px-20 py-12">
         <div className="w-full max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50/80 rounded-full mb-8">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 [animation-duration:2s]"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <Activity className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="text-sm font-semibold text-emerald-700">
+              <span className="text-sm font-medium text-emerald-700">
                 {t('home.hero.liveData')}
-              </span>
-              <span className="w-1 h-1 bg-emerald-400"></span>
-              <span className="text-xs text-emerald-600">
-                {t('home.hero.badge') || '专业预言机数据平台'}
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-snug mb-6">
               {t('home.hero.title.part1')}
               <br />
               <span className="text-gray-700">{t('home.hero.title.part2')}</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-gray-700 mb-10 leading-relaxed max-w-2xl mx-auto">
               {t('home.hero.description') ||
                 '全面分析和比较主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。'}
             </p>
@@ -350,10 +345,10 @@ export default function ProfessionalHero() {
             <div className="relative max-w-2xl mx-auto mb-4 z-[100]" ref={dropdownRef}>
               <form
                 onSubmit={handleSubmit}
-                className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-2xl shadow-md border transition-all duration-300 ease-out overflow-visible ${
+                className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-xl shadow-md border transition-all duration-300 ease-out overflow-visible ${
                   isSearchFocused
-                    ? 'shadow-lg shadow-emerald-500/10 border-emerald-300/50 scale-[1.02]'
-                    : 'border-gray-200/80 hover:border-gray-300 hover:shadow-lg'
+                    ? 'border-emerald-300/50'
+                    : 'border-gray-200/80 hover:border-gray-300'
                 }`}
               >
                 <div className="pl-5">
@@ -579,20 +574,20 @@ export default function ProfessionalHero() {
                 return (
                   <div
                     key={metric.label}
-                    className="group bg-white border border-gray-200 p-5 hover:border-gray-400 transition-colors duration-200"
+                    className="group bg-white border border-gray-200 rounded-lg p-5 hover:border-gray-400 transition-colors duration-200"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-gray-100">
+                        <div className="p-2.5 bg-gray-100 rounded-lg">
                           <Icon className="w-5 h-5 text-gray-600" />
                         </div>
                         <span className="text-sm font-medium text-gray-500">{metric.subLabel}</span>
                       </div>
                       <div
-                        className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 border ${
+                        className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded ${
                           isPositive
-                            ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
-                            : 'text-danger-600 bg-danger-50 border-danger-200'
+                            ? 'text-emerald-600 bg-emerald-50'
+                            : 'text-danger-600 bg-danger-50'
                         }`}
                       >
                         <TrendingUp className={`w-3 h-3 ${!isPositive && 'rotate-180'}`} />
@@ -605,7 +600,7 @@ export default function ProfessionalHero() {
                     <div className="text-3xl font-extrabold tracking-tight text-gray-900 mb-3">
                       {metric.value}
                     </div>
-                    <div className="h-14 w-full">
+                    <div className="h-16 w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={metric.trend}>
                           <defs>
@@ -616,7 +611,7 @@ export default function ProfessionalHero() {
                               x2="0"
                               y2="1"
                             >
-                              <stop offset="5%" stopColor={metric.color} stopOpacity={0.2} />
+                              <stop offset="5%" stopColor={metric.color} stopOpacity={0.1} />
                               <stop offset="95%" stopColor={metric.color} stopOpacity={0.02} />
                             </linearGradient>
                           </defs>
@@ -627,7 +622,7 @@ export default function ProfessionalHero() {
                             strokeWidth={2}
                             fill={`url(#gradient-${metric.label})`}
                             dot={false}
-                            animationDuration={1500}
+                            isAnimationActive={false}
                           />
                         </AreaChart>
                       </ResponsiveContainer>

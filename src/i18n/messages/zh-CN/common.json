@@ -230,6 +230,7 @@
   },
   "common": {
     "loading": "加载中...",
+    "noData": "暂无数据",
     "home": "首页",
     "refresh": "刷新",
     "export": "导出",

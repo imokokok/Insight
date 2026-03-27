@@ -70,6 +70,7 @@
       "activeSources": "Active Sources",
       "avgCredibility": "Avg Credibility",
       "sourceName": "Source Name",
+      "source": "Source",
       "type": "Type",
       "credibility": "Credibility",
       "status": "Status",
@@ -107,6 +108,24 @@
     },
     "dataFeeds": {
       "title": "Data Feeds",
+      "total": "Total Data Feeds",
+      "active": "Active",
+      "avgConfidence": "Avg Confidence",
+      "dataSources": "Data Sources",
+      "name": "Name",
+      "type": "Type",
+      "chain": "Chain",
+      "status": "Status",
+      "confidence": "Confidence",
+      "updateTime": "Update Time",
+      "about": "About Data Feeds",
+      "confidenceDesc": "Confidence score based on data source quality and consistency",
+      "multiChain": "Multi-Chain Support",
+      "multiChainDesc": "Data feeds supporting multiple blockchain networks",
+      "transparency": "Data Transparency",
+      "transparencyDesc": "All data sources are fully transparent and verifiable",
+      "customFeeds": "Custom Feeds",
+      "customFeedsDesc": "Support for custom data feed requirements",
       "totalFeeds": "Total Feeds",
       "activeFeeds": "Active Feeds",
       "assetType": {
@@ -121,17 +140,11 @@
       "nft": "NFT",
       "commodity": "Commodity",
       "updateFrequency": "Update Frequency",
-      "status": {
-        "active": "Active",
-        "paused": "Paused",
-        "deprecated": "Deprecated"
-      },
       "description": "Description",
       "createdAt": "Created At",
       "filterByAssetType": "Filter by Asset Type",
       "filterByChain": "Filter by Chain",
       "allChains": "All Chains",
-      "dataSources": "Data Sources",
       "supportedChains": "Supported Chains",
       "noFeeds": "No data feeds available",
       "showingCount": "Showing {count} of {total} feeds"
@@ -154,15 +167,45 @@
       "updateFrequency": "Update Frequency",
       "noData": "No NFT data available"
     },
+    "nft": {
+      "loading": "Loading...",
+      "noData": "No NFT data available",
+      "totalCollections": "Total Collections",
+      "trendingCount": "Trending",
+      "avgFloorPrice": "Avg Floor Price",
+      "chainsSupported": "Chains Supported",
+      "collections": "NFT Collections",
+      "name": "Name",
+      "floorPrice": "Floor Price",
+      "change24h": "24h Change",
+      "volume24h": "24h Volume",
+      "chain": "Chain",
+      "noCollections": "No collections available",
+      "byChain": "By Chain",
+      "noChainData": "No chain data available"
+    },
+    "assetTypes": {
+      "crypto": "Crypto",
+      "fiat": "Fiat",
+      "commodity": "Commodity",
+      "nft": "NFT",
+      "custom": "Custom"
+    },
     "staking": {
       "totalStaked": "Total Staked",
-      "currentApr": "Current APR",
+      "stakingApr": "Staking APR",
       "stakerCount": "Staker Count",
-      "rewardPool": "Reward Pool",
       "rewardsDistributed": "Rewards Distributed",
+      "details": "Staking Details",
       "minStakeAmount": "Min Stake Amount",
+      "unbondingPeriod": "Unbonding Period",
+      "days": "days",
+      "compounding": "Compounding",
+      "auto": "Auto",
       "lockPeriods": "Lock Periods",
       "historicalApr": "Historical APR Trend",
+      "currentApr": "Current APR",
+      "rewardPool": "Reward Pool",
       "calculator": "Reward Calculator",
       "stakeAmount": "Stake Amount",
       "lockPeriod": "Lock Period",
@@ -210,7 +253,10 @@
       "title": "Ecosystem",
       "totalProtocols": "Total Protocols",
       "stats": {
-        "totalProtocols": "Total Protocols"
+        "totalProtocols": "Total Protocols",
+        "totalTVL": "Total TVL",
+        "dexIntegrations": "DEX Integrations",
+        "lendingIntegrations": "Lending Integrations"
       },
       "visitWebsite": "Visit Website",
       "category": {
@@ -219,7 +265,8 @@
         "lending": "Lending",
         "derivatives": "Derivatives",
         "yield": "Yield",
-        "insurance": "Insurance"
+        "insurance": "Insurance",
+        "other": "Other"
       },
       "depth": {
         "full": "Full",
@@ -228,6 +275,34 @@
         "unknown": "Unknown"
       },
       "dataFeeds": "Data Feeds",
+      "tvl": "TVL",
+      "ofTotal": "of total",
+      "partners": "Partners",
+      "integrations": "Integrations",
+      "error": {
+        "title": "Error",
+        "message": "Error loading data"
+      },
+      "tvlAnalysis": {
+        "title": "TVL Analysis",
+        "totalTvl": "Total TVL",
+        "ethereum": "Ethereum",
+        "l2Networks": "L2 Networks",
+        "altL1": "Alt L1",
+        "filterByChain": "Filter by chain"
+      },
+      "projectAnalysis": {
+        "projectsByChain": "Projects by Chain",
+        "totalProjects": "Total Projects",
+        "thisMonth": "this month"
+      },
+      "growth": {
+        "title": "Ecosystem Growth",
+        "newProjects": "New Projects",
+        "integrations": "Integrations",
+        "communityGrowth": "Community",
+        "protocolRevenue": "Revenue"
+      },
       "noProtocols": "No protocols available"
     },
     "riskAssessment": {
