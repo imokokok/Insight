@@ -65,7 +65,7 @@ export default function MarketOverviewPage() {
   return (
     <div className="min-h-screen bg-insight">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
+        <div className="space-y-6">
           <MarketHeader
             loading={isLoading}
             oracleData={oracleData}
@@ -82,7 +82,7 @@ export default function MarketOverviewPage() {
             wsReconnect={wsReconnect}
           />
 
-          <div className="p-3">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
             <MarketStats
               marketStats={marketStats}
               totalTVS={totalTVS}
@@ -91,10 +91,10 @@ export default function MarketOverviewPage() {
             />
           </div>
 
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
               <div className="lg:col-span-2">
-                <div className="p-3">
+                <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6 h-full">
                   <ChartContainer
                     chartContainerRef={chartContainerRef}
                     activeChart={activeChart}
@@ -137,7 +137,7 @@ export default function MarketOverviewPage() {
                 </div>
               </div>
 
-              <div className="p-3">
+              <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
                 <MarketSidebar
                   selectedTimeRange={selectedTimeRange}
                   lastUpdated={lastUpdated}
@@ -152,7 +152,7 @@ export default function MarketOverviewPage() {
               </div>
             </div>
 
-            <div className="p-3">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
               <AssetsTable assets={assets} />
             </div>
           </div>
