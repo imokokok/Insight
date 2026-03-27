@@ -47,8 +47,8 @@ export type { FadeInProps, StaggerContainerProps, StaggerItemProps } from './Fad
 export { SlideUp, SlideIn } from './SlideUp';
 export type { SlideUpProps, SlideInProps } from './SlideUp';
 
-export { Skeleton, SkeletonText, SkeletonCard } from './Skeleton';
-export type { SkeletonProps, SkeletonTextProps, SkeletonCardProps } from './Skeleton';
+export { Skeleton } from './Skeleton';
+export type { SkeletonProps } from './Skeleton';
 
 export { Spinner, LoadingOverlay } from './Spinner';
 export type { SpinnerProps, SpinnerSize, SpinnerVariant, LoadingOverlayProps } from './Spinner';
@@ -80,15 +80,7 @@ export type {
   SortConfig,
 } from './DataTablePro';
 
-export {
-  ChartSkeleton,
-  MiniChartSkeleton,
-  MetricCardSkeleton,
-  HeroSkeleton,
-  LivePriceTickerSkeleton,
-  BentoGridSkeleton,
-  CTASkeleton,
-} from './ChartSkeleton';
+export { ChartSkeleton, MiniChartSkeleton, MetricCardSkeleton, HeroSkeleton } from './ChartSkeleton';
 
 export { EmptyStateEnhanced } from './EmptyStateEnhanced';
 
@@ -103,11 +95,8 @@ export type { EnhancedStatCardProps } from './EnhancedStatCard';
 export { StatCard } from './StatCard';
 export type { StatCardProps } from './StatCard';
 
-export { ErrorDisplay } from './ErrorDisplay';
-
 export { ToastProvider } from './Toast';
 
-// Re-export selectors from subfolder
 export { SegmentedControl, DropdownSelect, MultiSelect } from './selectors';
 export type {
   SelectorOption,

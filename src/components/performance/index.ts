@@ -45,10 +45,6 @@ export type {
 export { PerformanceMonitor } from './PerformanceMonitor';
 export type { PerformanceMonitorProps } from './PerformanceMonitor';
 
-// Virtual List for Large Data Sets
-export { VirtualList, VirtualGrid } from './VirtualList';
-export type { VirtualListProps, VirtualGridProps } from './VirtualList';
-
 // Code Splitting Utilities
 export { withCodeSplitting, withPreload, createDynamicComponent } from './codeSplitting';
 export type { CodeSplittingOptions, DynamicComponentOptions } from './codeSplitting';
