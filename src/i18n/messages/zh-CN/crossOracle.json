@@ -242,6 +242,7 @@
       "1m": "1分钟",
       "5m": "5分钟"
     },
+    "noData": "暂无数据",
     "dataSources": {
       "title": "对比数据来源"
     },
@@ -281,6 +282,7 @@
   },
   "controlPanel": {
     "title": "查询配置",
+    "titleShort": "筛选",
     "collapse": "收起",
     "expand": "展开",
     "symbol": "交易对",

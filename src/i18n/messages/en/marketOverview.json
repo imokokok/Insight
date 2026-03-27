@@ -71,6 +71,10 @@
       "includeMetadata": "Include metadata",
       "includeCharts": "Include charts",
       "exportData": "Export Data"
+    },
+    "chartTypes": {
+      "line": "Line",
+      "area": "Area"
     }
   }
 }

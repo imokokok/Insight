@@ -16,28 +16,28 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
 
   const metrics = [
     {
-      label: t('bandProtocol.network.activeValidators'),
+      label: t('band.bandProtocol.network.activeValidators'),
       value: data?.activeValidators?.toLocaleString() || '70',
       change: '+2%',
       trend: 'up' as const,
       icon: Server,
     },
     {
-      label: t('bandProtocol.network.stakingRatio'),
+      label: t('band.bandProtocol.network.stakingRatio'),
       value: `${data?.stakingRatio?.toFixed(1) || '51.5'}%`,
       change: '+1.2%',
       trend: 'up' as const,
       icon: Activity,
     },
     {
-      label: t('bandProtocol.network.blockTime'),
+      label: t('band.bandProtocol.network.blockTime'),
       value: `${data?.blockTime?.toFixed(1) || '2.8'}s`,
       change: '-5%',
       trend: 'down' as const,
       icon: Clock,
     },
     {
-      label: t('bandProtocol.network.inflationRate'),
+      label: t('band.bandProtocol.network.inflationRate'),
       value: `${data?.inflationRate?.toFixed(1) || '8.5'}%`,
       change: null,
       trend: null,
@@ -52,19 +52,19 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
 
   const overviewStats = [
     {
-      label: t('bandProtocol.network.blockHeight') || 'Block Height',
+      label: t('band.bandProtocol.network.blockHeight') || 'Block Height',
       value: data?.latestBlockHeight?.toLocaleString() || '15,500,000',
     },
     {
-      label: t('bandProtocol.network.totalValidators') || 'Total Validators',
+      label: t('band.bandProtocol.network.totalValidators') || 'Total Validators',
       value: data?.totalValidators?.toLocaleString() || '80',
     },
     {
-      label: t('bandProtocol.network.bondedTokens') || 'Bonded Tokens',
+      label: t('band.bandProtocol.network.bondedTokens') || 'Bonded Tokens',
       value: `${((data?.bondedTokens || 85000000) / 1e6).toFixed(1)}M BAND`,
     },
     {
-      label: t('bandProtocol.network.communityPool') || 'Community Pool',
+      label: t('band.bandProtocol.network.communityPool') || 'Community Pool',
       value: `${((data?.communityPool || 550000) / 1e3).toFixed(1)}K BAND`,
     },
   ];
@@ -174,7 +174,7 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">
-                  {t('bandProtocol.network.stakingParticipation')}
+                  {t('band.bandProtocol.network.stakingParticipation')}
                 </span>
                 <span className="font-medium text-gray-900">51.5%</span>
               </div>
@@ -192,7 +192,7 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
       {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('bandProtocol.network.cosmosMetrics') || 'Network Overview'}
+          {t('band.bandProtocol.network.cosmosMetrics') || 'Network Overview'}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (

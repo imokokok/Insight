@@ -202,6 +202,16 @@
       "dataPoints": "数据点数",
       "timeRange": "时间范围"
     },
+    "charts": {
+      "priceHistory": "价格历史",
+      "current": "当前",
+      "comparison": "对比",
+      "show": "显示",
+      "hide": "隐藏",
+      "avgPrice": "平均价格",
+      "dataPoints": "数据点数",
+      "timeRange": "时间范围"
+    },
     "consistency": {
       "excellent": "最优",
       "good": "正常",

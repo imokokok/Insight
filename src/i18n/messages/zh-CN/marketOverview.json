@@ -71,6 +71,10 @@
       "includeMetadata": "包含元数据",
       "includeCharts": "包含图表",
       "exportData": "导出数据"
+    },
+    "chartTypes": {
+      "line": "折线图",
+      "area": "面积图"
     }
   }
 }

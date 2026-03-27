@@ -146,7 +146,7 @@ export default function BandProtocolPage() {
               isOpen={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               themeColor={config.themeColor}
-              label={t('bandProtocol.menu.title')}
+              label={t('band.bandProtocol.menu.title')}
             />
           </div>
 
@@ -154,7 +154,7 @@ export default function BandProtocolPage() {
           <MobileSidebar
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
-            title={t('bandProtocol.navigation.title')}
+            title={t('band.bandProtocol.navigation.title')}
           >
             <BandProtocolSidebar
               activeTab={activeTab}
