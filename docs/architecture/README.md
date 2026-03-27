@@ -54,18 +54,18 @@ graph TB
 
 ## 技术栈
 
-| 类别 | 技术 | 版本 | 用途 |
-|------|------|------|------|
-| 框架 | Next.js | 16.1.6 | React 全栈框架 |
-| UI 库 | React | 19.2.3 | 用户界面 |
-| 语言 | TypeScript | 5.x | 类型安全 |
-| 样式 | Tailwind CSS | 4.x | 原子化 CSS |
-| 图表 | Recharts | 3.8.0 | 数据可视化 |
-| 状态管理 | React Query | 5.90.21 | 服务端状态 |
-| 客户端状态 | Zustand | 5.0.11 | UI 状态 |
-| 数据库 | Supabase | 2.98.0 | PostgreSQL + Auth |
-| 国际化 | next-intl | 4.8.3 | 多语言支持 |
-| 动画 | Framer Motion | 12.36.0 | 交互动画 |
+| 类别       | 技术          | 版本    | 用途              |
+| ---------- | ------------- | ------- | ----------------- |
+| 框架       | Next.js       | 16.1.6  | React 全栈框架    |
+| UI 库      | React         | 19.2.3  | 用户界面          |
+| 语言       | TypeScript    | 5.x     | 类型安全          |
+| 样式       | Tailwind CSS  | 4.x     | 原子化 CSS        |
+| 图表       | Recharts      | 3.8.0   | 数据可视化        |
+| 状态管理   | React Query   | 5.90.21 | 服务端状态        |
+| 客户端状态 | Zustand       | 5.0.11  | UI 状态           |
+| 数据库     | Supabase      | 2.98.0  | PostgreSQL + Auth |
+| 国际化     | next-intl     | 4.8.3   | 多语言支持        |
+| 动画       | Framer Motion | 12.36.0 | 交互动画          |
 
 ## 设计原则
 

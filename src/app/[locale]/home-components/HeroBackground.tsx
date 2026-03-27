@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import dynamic from 'next/dynamic';
 
 // Dynamic import for particle network to avoid SSR issues
@@ -27,15 +28,15 @@ export default function HeroBackground({
 
   useEffect(() => {
     setMounted(true);
-    
+
     // Check for reduced motion preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPrefersReducedMotion(mediaQuery.matches);
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       setPrefersReducedMotion(e.matches);
     };
-    
+
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
@@ -110,11 +111,7 @@ export default function HeroBackground({
       {/* Particle Network Layer - Middle */}
       {enableParticles && !prefersReducedMotion && (
         <div className="absolute inset-0 z-[1]">
-          <ParticleNetwork
-            particleCount={25}
-            connectionDistance={120}
-            themeColor="#3b82f6"
-          />
+          <ParticleNetwork particleCount={25} connectionDistance={120} themeColor="#3b82f6" />
         </div>
       )}
 

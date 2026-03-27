@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -23,32 +23,41 @@ function VerifyEmailContent() {
   const errorCode = searchParams.get('error_code');
   const emailParam = searchParams.get('email');
 
+  // 将函数定义移到 useEffect 之前
+  const getErrorMessage = useCallback(
+    (error: string, _code: string | null): string => {
+      switch (error) {
+        case 'access_denied':
+          return t('auth.verifyEmail.error.accessDenied');
+        case 'expired_token':
+          return t('auth.verifyEmail.error.expiredToken');
+        case 'invalid_token':
+          return t('auth.verifyEmail.error.invalidToken');
+        default:
+          return t('auth.verifyEmail.error.default');
+      }
+    },
+    [t]
+  );
+
   useEffect(() => {
     if (user) {
       router.push('/');
       return;
     }
 
-    if (errorParam) {
-      setStatus('error');
-      setErrorMessage(getErrorMessage(errorParam, errorCode));
-    } else {
-      setStatus('success');
-    }
-  }, [errorParam, errorCode, emailParam, user, router]);
+    // 使用 requestAnimationFrame 避免同步 setState
+    const timer = requestAnimationFrame(() => {
+      if (errorParam) {
+        setStatus('error');
+        setErrorMessage(getErrorMessage(errorParam, errorCode));
+      } else {
+        setStatus('success');
+      }
+    });
 
-  const getErrorMessage = (error: string, _code: string | null): string => {
-    switch (error) {
-      case 'access_denied':
-        return t('auth.verifyEmail.error.accessDenied');
-      case 'expired_token':
-        return t('auth.verifyEmail.error.expiredToken');
-      case 'invalid_token':
-        return t('auth.verifyEmail.error.invalidToken');
-      default:
-        return t('auth.verifyEmail.error.default');
-    }
-  };
+    return () => cancelAnimationFrame(timer);
+  }, [errorParam, errorCode, emailParam, user, router, getErrorMessage]);
 
   if (status === 'loading') {
     return (

@@ -380,7 +380,9 @@ body {
 
 .focus-ring {
   outline: none;
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary-500);
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--primary-500);
 }
 
 /* ============================================
@@ -730,7 +732,8 @@ body {
 }
 
 @keyframes pulse-dot {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -743,12 +746,7 @@ body {
    ============================================ */
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--gray-200) 25%,
-    var(--gray-300) 50%,
-    var(--gray-200) 75%
-  );
+  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-300) 50%, var(--gray-200) 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s infinite;
   border-radius: var(--radius-md);
@@ -805,7 +803,9 @@ body {
 
 /* Hover Effects */
 .hover-lift {
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .hover-lift:hover {
@@ -822,7 +822,9 @@ body {
 }
 
 .hover-glow {
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .hover-glow:hover {
@@ -919,7 +921,8 @@ body {
 }
 
 @keyframes pulse-finance {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -932,7 +935,8 @@ body {
 }
 
 @keyframes pulse-live {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -1066,7 +1070,9 @@ body {
 }
 
 .touch-feedback {
-  transition: transform 0.1s ease, opacity 0.1s ease;
+  transition:
+    transform 0.1s ease,
+    opacity 0.1s ease;
 }
 
 .touch-feedback:active {

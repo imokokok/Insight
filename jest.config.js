@@ -9,8 +9,13 @@ const customJestConfig = {
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    // Mock next-intl modules
+    '^next-intl$': '<rootDir>/src/__mocks__/next-intl.ts',
+    '^next-intl/server$': '<rootDir>/src/__mocks__/next-intl-server.ts',
+    '^next-intl/routing$': '<rootDir>/src/__mocks__/next-intl-routing.ts',
+    '^use-intl$': '<rootDir>/src/__mocks__/use-intl.ts',
   },
-  testMatch: ['<rootDir>/src/**/*.test.{ts,tsx}'],
+  testMatch: ['<rootDir>/src/**/*.test.{ts,tsx}', '<rootDir>/src/**/*.spec.{ts,tsx}'],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
@@ -29,11 +34,21 @@ const customJestConfig = {
   coverageReporters: ['text', 'text-summary', 'lcov'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\.mjs$|@vercel/analytics|@vercel/speed-insights|next-intl|use-intl))',
+    'node_modules/(?!(.*\.mjs$|@vercel/analytics|@vercel/speed-insights|next-intl|use-intl|@pythnetwork|@tanstack/react-query))',
   ],
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'mjs'],
   transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
-    '^.+\\.mjs$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
+    '^.+\\.(ts|tsx|js|jsx|mjs)$': ['ts-jest', {
+      tsconfig: '<rootDir>/tsconfig.json',
+      useESM: true,
+    }],
+  },
+  globals: {
+    'ts-jest': {
+      tsconfig: '<rootDir>/tsconfig.json',
+      useESM: true,
+    },
   },
 };
 

@@ -61,11 +61,11 @@ The platform features an intuitive navigation system:
 
 #### Main Navigation Menu
 
-| Menu               | Description                                                                                  |
-| ------------------ | -------------------------------------------------------------------------------------------- |
-| **Home**           | Dashboard with platform overview and key metrics                                             |
-| **Market**         | Market Overview and Price Query tools                                                        |
-| **Data Analysis**  | Cross-Oracle and Cross-Chain analysis tools                                                  |
+| Menu               | Description                                                                                                     |
+| ------------------ | --------------------------------------------------------------------------------------------------------------- |
+| **Home**           | Dashboard with platform overview and key metrics                                                                |
+| **Market**         | Market Overview and Price Query tools                                                                           |
+| **Data Analysis**  | Cross-Oracle and Cross-Chain analysis tools                                                                     |
 | **Oracle Details** | Individual oracle pages (Chainlink, Band Protocol, Pyth, API3, UMA, RedStone, DIA, Tellor, Chronicle, WINkLink) |
 
 #### User Menu (Logged In)

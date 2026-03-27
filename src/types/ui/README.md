@@ -18,12 +18,7 @@ src/types/ui/
 ### 导入组件类型
 
 ```typescript
-import type {
-  CardProps,
-  ButtonProps,
-  StatCardProps,
-  DashboardCardProps,
-} from '@/types/ui';
+import type { CardProps, ButtonProps, StatCardProps, DashboardCardProps } from '@/types/ui';
 
 // 使用示例
 interface MyCardProps extends CardProps {
@@ -34,12 +29,7 @@ interface MyCardProps extends CardProps {
 ### 导入布局类型
 
 ```typescript
-import type {
-  PageHeaderProps,
-  HeroProps,
-  TabNavigationProps,
-  UITimeRange,
-} from '@/types/ui';
+import type { PageHeaderProps, HeroProps, TabNavigationProps, UITimeRange } from '@/types/ui';
 
 // 使用示例
 const timeRange: UITimeRange = '24H';
@@ -48,12 +38,7 @@ const timeRange: UITimeRange = '24H';
 ### 导入主题类型
 
 ```typescript
-import type {
-  ThemeColor,
-  CardVariant,
-  ChangeType,
-  RadiusSize,
-} from '@/types/ui';
+import type { ThemeColor, CardVariant, ChangeType, RadiusSize } from '@/types/ui';
 
 // 使用示例
 const variant: CardVariant = 'elevated';
@@ -63,12 +48,7 @@ const changeType: ChangeType = 'positive';
 ### 导入图表类型
 
 ```typescript
-import type {
-  ChartDataPoint,
-  PriceChartProps,
-  LineChartProps,
-  TooltipPayload,
-} from '@/types/ui';
+import type { ChartDataPoint, PriceChartProps, LineChartProps, TooltipPayload } from '@/types/ui';
 
 // 使用示例
 const data: ChartDataPoint[] = [

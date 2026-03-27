@@ -26,11 +26,11 @@
 
 ### 测试分层
 
-| 层级 | 比例 | 工具 | 关注点 |
-|------|------|------|--------|
-| 单元测试 | 70% | Jest + React Testing Library | 函数、组件、Hooks |
-| 集成测试 | 20% | Jest + MSW | API、数据流 |
-| E2E 测试 | 10% | Playwright | 用户流程 |
+| 层级     | 比例 | 工具                         | 关注点            |
+| -------- | ---- | ---------------------------- | ----------------- |
+| 单元测试 | 70%  | Jest + React Testing Library | 函数、组件、Hooks |
+| 集成测试 | 20%  | Jest + MSW                   | API、数据流       |
+| E2E 测试 | 10%  | Playwright                   | 用户流程          |
 
 ### 测试目录结构
 
@@ -71,15 +71,8 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testMatch: [
-    '**/__tests__/**/*.test.ts',
-    '**/__tests__/**/*.test.tsx',
-  ],
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/*.stories.{ts,tsx}',
-  ],
+  testMatch: ['**/__tests__/**/*.test.ts', '**/__tests__/**/*.test.tsx'],
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts', '!src/**/*.stories.{ts,tsx}'],
   coverageThreshold: {
     global: {
       branches: 80,
@@ -200,11 +193,7 @@ describe('ChainlinkClient', () => {
 
   describe('getHistoricalPrices', () => {
     it('should fetch historical prices', async () => {
-      const prices = await client.getHistoricalPrices(
-        'BTC',
-        Blockchain.ETHEREUM,
-        24
-      );
+      const prices = await client.getHistoricalPrices('BTC', Blockchain.ETHEREUM, 24);
 
       expect(prices).toHaveLength(96); // 24 hours * 4 data points
       expect(prices[0].symbol).toBe('BTC');
@@ -732,6 +721,7 @@ open coverage/lcov-report/index.html
 ```
 
 覆盖率目标：
+
 - 语句覆盖率：≥ 80%
 - 分支覆盖率：≥ 80%
 - 函数覆盖率：≥ 80%

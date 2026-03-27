@@ -84,10 +84,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 // GET /api/oracles/[provider]?symbol=BTC&chain=ethereum
 export const GET = withErrorHandler(
   withRateLimit(
-    async (
-      request: NextRequest,
-      { params }: { params: { provider: string } }
-    ) => {
+    async (request: NextRequest, { params }: { params: { provider: string } }) => {
       // 1. 验证 provider
       const validationError = validateProvider(params.provider);
       if (validationError) {
@@ -101,17 +98,11 @@ export const GET = withErrorHandler(
 
       // 3. 验证必需参数
       if (!symbol) {
-        return createErrorResponse(
-          'MISSING_PARAMS',
-          'Symbol is required',
-          400
-        );
+        return createErrorResponse('MISSING_PARAMS', 'Symbol is required', 400);
       }
 
       // 4. 获取数据
-      const client = OracleClientFactory.getClient(
-        params.provider as OracleProvider
-      );
+      const client = OracleClientFactory.getClient(params.provider as OracleProvider);
       const price = await client.getPrice(symbol, chain);
 
       // 5. 返回缓存响应
@@ -161,11 +152,7 @@ export const POST = withErrorHandler(
     // 2. 验证输入
     const validation = validateAlertConfig(body);
     if (!validation.valid) {
-      return createErrorResponse(
-        'VALIDATION_ERROR',
-        validation.errors.join(', '),
-        400
-      );
+      return createErrorResponse('VALIDATION_ERROR', validation.errors.join(', '), 400);
     }
 
     // 3. 创建警报
@@ -214,20 +201,11 @@ export function withErrorHandler<T>(
       console.error('API Error:', error);
 
       if (error instanceof AppError) {
-        return createErrorResponse(
-          error.code,
-          error.message,
-          error.statusCode,
-          error.details
-        );
+        return createErrorResponse(error.code, error.message, error.statusCode, error.details);
       }
 
       // 未知错误
-      return createErrorResponse(
-        'INTERNAL_ERROR',
-        'An unexpected error occurred',
-        500
-      );
+      return createErrorResponse('INTERNAL_ERROR', 'An unexpected error occurred', 500);
     }
   };
 }
@@ -247,22 +225,14 @@ export function withAuth<T>(
     const authHeader = req.headers.get('authorization');
 
     if (!authHeader?.startsWith('Bearer ')) {
-      return createErrorResponse(
-        'UNAUTHORIZED',
-        'Missing or invalid authorization header',
-        401
-      );
+      return createErrorResponse('UNAUTHORIZED', 'Missing or invalid authorization header', 401);
     }
 
     const token = authHeader.substring(7);
     const user = await verifyToken(token);
 
     if (!user) {
-      return createErrorResponse(
-        'UNAUTHORIZED',
-        'Invalid or expired token',
-        401
-      );
+      return createErrorResponse('UNAUTHORIZED', 'Invalid or expired token', 401);
     }
 
     return handler(req, { ...context, user });
@@ -271,8 +241,8 @@ export function withAuth<T>(
 
 // 速率限制中间件
 interface RateLimitConfig {
-  limit: number;      // 请求次数限制
-  window: number;     // 时间窗口（秒）
+  limit: number; // 请求次数限制
+  window: number; // 时间窗口（秒）
 }
 
 export function withRateLimit<T>(
@@ -319,18 +289,13 @@ export function withLogging<T>(
       const response = await handler(req, context);
       const duration = Date.now() - start;
 
-      console.log(
-        `[${requestId}] ${req.method} ${req.url} - ${response.status} (${duration}ms)`
-      );
+      console.log(`[${requestId}] ${req.method} ${req.url} - ${response.status} (${duration}ms)`);
 
       response.headers.set('X-Request-Id', requestId);
       return response;
     } catch (error) {
       const duration = Date.now() - start;
-      console.error(
-        `[${requestId}] ${req.method} ${req.url} - Error (${duration}ms)`,
-        error
-      );
+      console.error(`[${requestId}] ${req.method} ${req.url} - Error (${duration}ms)`, error);
       throw error;
     }
   };
@@ -511,9 +476,7 @@ export function handleApiError(error: unknown): NextResponse {
       error: {
         code: 'INTERNAL_ERROR',
         message:
-          process.env.NODE_ENV === 'development'
-            ? String(error)
-            : 'An unexpected error occurred',
+          process.env.NODE_ENV === 'development' ? String(error) : 'An unexpected error occurred',
       },
     },
     { status: 500 }
@@ -671,7 +634,7 @@ interface ApiResponse<T = unknown> {
 }
 
 interface CacheConfig {
-  maxAge: number;              // 秒
+  maxAge: number; // 秒
   staleWhileRevalidate?: number; // 秒
   private?: boolean;
 }
@@ -916,10 +879,7 @@ export class ApiClient {
     for (let attempt = 0; attempt < (mergedConfig.retries || 1); attempt++) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(
-          () => controller.abort(),
-          mergedConfig.timeout
-        );
+        const timeoutId = setTimeout(() => controller.abort(), mergedConfig.timeout);
 
         const response = await fetch(url, {
           method,
@@ -966,13 +926,8 @@ export class ApiClient {
 export const apiClient = new ApiClient();
 
 // 使用示例
-export async function fetchOraclePrice(
-  provider: string,
-  symbol: string
-): Promise<PriceData> {
-  return apiClient.get<PriceData>(
-    `/oracles/${provider}?symbol=${encodeURIComponent(symbol)}`
-  );
+export async function fetchOraclePrice(provider: string, symbol: string): Promise<PriceData> {
+  return apiClient.get<PriceData>(`/oracles/${provider}?symbol=${encodeURIComponent(symbol)}`);
 }
 ```
 
@@ -1023,19 +978,19 @@ DELETE /api/resource/:id  # 删除资源
 ```typescript
 // 静态数据 - 长时间缓存
 return createCachedJsonResponse(data, {
-  maxAge: 3600,              // 1 小时
+  maxAge: 3600, // 1 小时
   staleWhileRevalidate: 86400, // 24 小时
 });
 
 // 动态数据 - 短时间缓存
 return createCachedJsonResponse(data, {
-  maxAge: 30,                // 30 秒
-  staleWhileRevalidate: 60,  // 1 分钟
+  maxAge: 30, // 30 秒
+  staleWhileRevalidate: 60, // 1 分钟
 });
 
 // 用户数据 - 私有缓存
 return createCachedJsonResponse(data, {
-  maxAge: 300,               // 5 分钟
+  maxAge: 300, // 5 分钟
   private: true,
 });
 ```
@@ -1053,12 +1008,12 @@ if (!validation.valid) {
 const { data, error } = await supabase
   .from('prices')
   .select('*')
-  .eq('symbol', symbol)  // 参数化
+  .eq('symbol', symbol) // 参数化
   .single();
 
 // 限制返回字段
 const { data } = await supabase
   .from('users')
-  .select('id, email, name')  // 只选择需要的字段
+  .select('id, email, name') // 只选择需要的字段
   .eq('id', userId);
 ```

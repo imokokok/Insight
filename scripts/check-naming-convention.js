@@ -243,7 +243,9 @@ function main() {
   traverseDirectory(fullPath, (filePath) => {
     const result = checkFileName(filePath);
     if (result) {
-      results[result.type === 'passed' ? 'passed' : result.type === 'warning' ? 'warnings' : 'errors'].push(result);
+      results[
+        result.type === 'passed' ? 'passed' : result.type === 'warning' ? 'warnings' : 'errors'
+      ].push(result);
     }
   });
 

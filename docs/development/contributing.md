@@ -118,21 +118,22 @@ insight/
 
 ### 提交类型
 
-| 类型 | 说明 | 示例 |
-|------|------|------|
-| `feat` | 新功能 | `feat(oracles): add Pyth Network support` |
-| `fix` | 修复 bug | `fix(charts): resolve tooltip positioning issue` |
-| `docs` | 文档更新 | `docs(readme): update installation guide` |
-| `style` | 代码格式 | `style(components): format with prettier` |
-| `refactor` | 重构 | `refactor(hooks): simplify usePriceData logic` |
-| `perf` | 性能优化 | `perf(queries): add caching for price data` |
-| `test` | 测试相关 | `test(api): add unit tests for oracle handlers` |
-| `chore` | 构建/工具 | `chore(deps): update dependencies` |
-| `ci` | CI/CD | `ci(github): add automated testing workflow` |
+| 类型       | 说明      | 示例                                             |
+| ---------- | --------- | ------------------------------------------------ |
+| `feat`     | 新功能    | `feat(oracles): add Pyth Network support`        |
+| `fix`      | 修复 bug  | `fix(charts): resolve tooltip positioning issue` |
+| `docs`     | 文档更新  | `docs(readme): update installation guide`        |
+| `style`    | 代码格式  | `style(components): format with prettier`        |
+| `refactor` | 重构      | `refactor(hooks): simplify usePriceData logic`   |
+| `perf`     | 性能优化  | `perf(queries): add caching for price data`      |
+| `test`     | 测试相关  | `test(api): add unit tests for oracle handlers`  |
+| `chore`    | 构建/工具 | `chore(deps): update dependencies`               |
+| `ci`       | CI/CD     | `ci(github): add automated testing workflow`     |
 
 ### 提交范围
 
 常用范围：
+
 - `oracles` - 预言机相关
 - `components` - 组件
 - `hooks` - Hooks
@@ -229,9 +230,11 @@ git push origin feat/oracle-pyth-support
 
 ```markdown
 ## 描述
+
 简要描述这个 PR 做了什么
 
 ## 变更类型
+
 - [ ] 新功能
 - [ ] Bug 修复
 - [ ] 重构
@@ -239,17 +242,20 @@ git push origin feat/oracle-pyth-support
 - [ ] 性能优化
 
 ## 测试
+
 - [ ] 单元测试通过
 - [ ] 集成测试通过
 - [ ] 手动测试通过
 
 ## 检查清单
+
 - [ ] 代码遵循项目规范
 - [ ] 添加了必要的测试
 - [ ] 更新了相关文档
 - [ ] 没有引入新的警告
 
 ## 相关 Issue
+
 Closes #123
 ```
 
@@ -335,13 +341,13 @@ Closes #123
 
 ### 文件命名
 
-| 类型 | 命名方式 | 示例 |
-|------|----------|------|
-| 组件 | PascalCase | `PriceCard.tsx` |
-| Hooks | camelCase + use | `usePriceData.ts` |
-| 工具函数 | camelCase | `formatPrice.ts` |
-| 类型定义 | PascalCase | `OracleTypes.ts` |
-| 常量 | SCREAMING_SNAKE_CASE | `ORACLE_PROVIDERS.ts` |
+| 类型     | 命名方式             | 示例                  |
+| -------- | -------------------- | --------------------- |
+| 组件     | PascalCase           | `PriceCard.tsx`       |
+| Hooks    | camelCase + use      | `usePriceData.ts`     |
+| 工具函数 | camelCase            | `formatPrice.ts`      |
+| 类型定义 | PascalCase           | `OracleTypes.ts`      |
+| 常量     | SCREAMING_SNAKE_CASE | `ORACLE_PROVIDERS.ts` |
 
 ### 导入顺序
 

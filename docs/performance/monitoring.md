@@ -38,14 +38,14 @@ import { useWebVitalsMonitor } from '@/hooks';
 
 function App() {
   const { metrics, score } = useWebVitalsMonitor();
-  
+
   useEffect(() => {
     // 自动上报到分析服务
     if (score < 90) {
       reportToAnalytics('performance-degraded', { score, metrics });
     }
   }, [score, metrics]);
-  
+
   return <MainContent />;
 }
 ```
@@ -57,20 +57,20 @@ import { useWebVitalsOptimizer } from '@/hooks';
 
 function Dashboard() {
   const { metrics, getRating } = useWebVitalsOptimizer();
-  
+
   return (
     <div>
       <h2>Web Vitals</h2>
       <div>
         <span>FCP: {metrics.fcp?.toFixed(0)}ms</span>
-        <Badge 
-          rating={getRating('FCP', metrics.fcp || 0)} 
+        <Badge
+          rating={getRating('FCP', metrics.fcp || 0)}
         />
       </div>
       <div>
         <span>LCP: {metrics.lcp?.toFixed(0)}ms</span>
-        <Badge 
-          rating={getRating('LCP', metrics.lcp || 0)} 
+        <Badge
+          rating={getRating('LCP', metrics.lcp || 0)}
         />
       </div>
     </div>
@@ -80,14 +80,14 @@ function Dashboard() {
 
 ### 3. 指标阈值
 
-| 指标 | 良好 | 需改进 | 差 |
-|------|------|--------|-----|
-| FCP | ≤ 1.8s | ≤ 3.0s | > 3.0s |
-| LCP | ≤ 2.5s | ≤ 4.0s | > 4.0s |
-| FID | ≤ 100ms | ≤ 300ms | > 300ms |
-| CLS | ≤ 0.1 | ≤ 0.25 | > 0.25 |
-| TTFB | ≤ 800ms | ≤ 1.8s | > 1.8s |
-| TBT | ≤ 200ms | ≤ 600ms | > 600ms |
+| 指标 | 良好    | 需改进  | 差      |
+| ---- | ------- | ------- | ------- |
+| FCP  | ≤ 1.8s  | ≤ 3.0s  | > 3.0s  |
+| LCP  | ≤ 2.5s  | ≤ 4.0s  | > 4.0s  |
+| FID  | ≤ 100ms | ≤ 300ms | > 300ms |
+| CLS  | ≤ 0.1   | ≤ 0.25  | > 0.25  |
+| TTFB | ≤ 800ms | ≤ 1.8s  | > 1.8s  |
+| TBT  | ≤ 200ms | ≤ 600ms | > 600ms |
 
 ---
 
@@ -102,7 +102,7 @@ import { usePerformanceTracker } from '@/hooks';
 
 function PriceFetcher() {
   const tracker = usePerformanceTracker('fetch-price-history');
-  
+
   const fetchData = async () => {
     // 方式 1: 手动追踪
     tracker.start();
@@ -112,14 +112,14 @@ function PriceFetcher() {
     } finally {
       tracker.end({ symbol, chain });
     }
-    
+
     // 方式 2: 使用 measureAsync
     return tracker.measureAsync(
       () => fetchPriceHistory(symbol),
       { symbol, chain }
     );
   };
-  
+
   return <button onClick={fetchData}>Fetch</button>;
 }
 ```
@@ -133,18 +133,18 @@ import { useComponentPerformance } from '@/hooks';
 
 function HeavyChart({ data }) {
   const { metrics, markUpdate } = useComponentPerformance('HeavyChart');
-  
+
   useEffect(() => {
     if (metrics?.renderCount > 10) {
       console.warn('HeavyChart rendered too many times');
     }
   }, [metrics]);
-  
+
   const handleDataUpdate = () => {
     markUpdate(); // 标记数据更新
     updateChartData();
   };
-  
+
   return <Chart data={data} onUpdate={handleDataUpdate} />;
 }
 ```
@@ -158,13 +158,13 @@ import { useResourceOptimizer } from '@/hooks';
 
 function ResourceMonitor() {
   const { resources, slowResources, totalSize } = useResourceOptimizer();
-  
+
   return (
     <div>
       <div>Total Resources: {resources.length}</div>
       <div>Slow Resources: {slowResources.length}</div>
       <div>Total Size: {(totalSize / 1024 / 1024).toFixed(2)} MB</div>
-      
+
       {slowResources.length > 0 && (
         <Alert>
           Found {slowResources.length} slow resources
@@ -184,7 +184,7 @@ import { useMemoryOptimizer } from '@/hooks';
 
 function MemoryMonitor() {
   const { memory, isHighUsage, isCritical, formatSize } = useMemoryOptimizer();
-  
+
   useEffect(() => {
     if (isCritical) {
       // 清理缓存
@@ -193,9 +193,9 @@ function MemoryMonitor() {
       showWarning('Memory usage is critical');
     }
   }, [isCritical]);
-  
+
   if (!memory) return null;
-  
+
   return (
     <div>
       <div>Used: {formatSize(memory.used)}</div>
@@ -216,9 +216,9 @@ import { useNavigationOptimizer } from '@/hooks';
 
 function NavigationMonitor() {
   const { timing, bottleneck, isSlow } = useNavigationOptimizer();
-  
+
   if (!timing) return null;
-  
+
   return (
     <div>
       <div>DNS: {timing.dnsLookup}ms</div>
@@ -227,7 +227,7 @@ function NavigationMonitor() {
       <div>DOM: {timing.domProcessing}ms</div>
       <div>Resources: {timing.resourceLoading}ms</div>
       <div>Total: {timing.total}ms</div>
-      
+
       {bottleneck && (
         <Alert type="warning">
           Bottleneck: {bottleneck.name} ({bottleneck.duration}ms)
@@ -316,24 +316,24 @@ import { usePerformanceOptimizer } from '@/hooks';
 
 function RealTimePerformancePanel() {
   const { webVitals, resources, memory, health, getReport } = usePerformanceOptimizer();
-  
+
   const [history, setHistory] = useState([]);
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       const report = getReport();
       setHistory(prev => [...prev.slice(-50), report]);
     }, 5000);
-    
+
     return () => clearInterval(interval);
   }, [getReport]);
-  
+
   return (
     <div className="performance-panel">
       <div className="health-indicator">
         Health: <span className={health}>{health}</span>
       </div>
-      
+
       <div className="metrics-grid">
         <MetricCard
           title="FCP"
@@ -351,7 +351,7 @@ function RealTimePerformancePanel() {
           unit="%"
         />
       </div>
-      
+
       <PerformanceChart data={history} />
     </div>
   );
@@ -365,14 +365,14 @@ import { useLongTaskMonitor } from '@/hooks';
 
 function LongTaskWatcher() {
   const longTasks = useLongTaskMonitor(50); // 50ms 阈值
-  
+
   useEffect(() => {
     if (longTasks.length > 0) {
       const lastTask = longTasks[longTasks.length - 1];
       console.warn('Long task detected:', lastTask.duration, 'ms');
     }
   }, [longTasks]);
-  
+
   return (
     <div>
       <div>Long Tasks: {longTasks.length}</div>
@@ -397,10 +397,10 @@ import { usePerformanceReport } from '@/hooks';
 
 function ReportGenerator() {
   const { report, generateReport, reportOperation } = usePerformanceReport();
-  
+
   const handleExport = () => {
     const newReport = generateReport();
-    
+
     // 下载报告
     const blob = new Blob([JSON.stringify(newReport, null, 2)], {
       type: 'application/json'
@@ -411,7 +411,7 @@ function ReportGenerator() {
     a.download = `performance-report-${Date.now()}.json`;
     a.click();
   };
-  
+
   return (
     <div>
       <button onClick={handleExport}>Export Report</button>
@@ -480,34 +480,34 @@ import { usePerformanceOptimizer } from '@/hooks';
 function PerformanceAlerts() {
   const { webVitals, memory } = usePerformanceOptimizer();
   const [alerts, setAlerts] = useState([]);
-  
+
   useEffect(() => {
     const newAlerts = [];
-    
+
     if (webVitals.metrics.fcp && webVitals.metrics.fcp > 1800) {
       newAlerts.push({
         type: 'warning',
         message: `FCP is slow: ${webVitals.metrics.fcp.toFixed(0)}ms`,
       });
     }
-    
+
     if (webVitals.metrics.lcp && webVitals.metrics.lcp > 2500) {
       newAlerts.push({
         type: 'error',
         message: `LCP is slow: ${webVitals.metrics.lcp.toFixed(0)}ms`,
       });
     }
-    
+
     if (memory.isCritical) {
       newAlerts.push({
         type: 'critical',
         message: `Memory usage critical: ${memory.memory?.percentage.toFixed(1)}%`,
       });
     }
-    
+
     setAlerts(newAlerts);
   }, [webVitals, memory]);
-  
+
   return (
     <div className="alerts-container">
       {alerts.map((alert, i) => (
@@ -528,7 +528,7 @@ import * as Sentry from '@sentry/nextjs';
 
 function SentryIntegration() {
   const { webVitals, getReport } = usePerformanceOptimizer();
-  
+
   useEffect(() => {
     // 上报性能指标到 Sentry
     if (webVitals.metrics.lcp && webVitals.metrics.lcp > 4000) {
@@ -541,7 +541,7 @@ function SentryIntegration() {
       });
     }
   }, [webVitals, getReport]);
-  
+
   return null;
 }
 ```
@@ -553,11 +553,11 @@ import { usePerformanceOptimizer } from '@/hooks';
 
 function CustomMonitoring() {
   const performance = usePerformanceOptimizer();
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       const report = performance.getReport();
-      
+
       // 发送到自定义监控服务
       fetch('/api/monitoring/performance', {
         method: 'POST',
@@ -565,10 +565,10 @@ function CustomMonitoring() {
         body: JSON.stringify(report),
       });
     }, 30000); // 每 30 秒上报一次
-    
+
     return () => clearInterval(interval);
   }, [performance]);
-  
+
   return null;
 }
 ```
@@ -612,7 +612,7 @@ const PERFORMANCE_BUDGET = {
 
 function checkBudget(metrics) {
   const violations = [];
-  
+
   for (const [metric, budget] of Object.entries(PERFORMANCE_BUDGET)) {
     if (metrics[metric] > budget) {
       violations.push({
@@ -622,7 +622,7 @@ function checkBudget(metrics) {
       });
     }
   }
-  
+
   return violations;
 }
 ```
@@ -634,16 +634,16 @@ function checkBudget(metrics) {
 function UserFacingPerformanceAlert() {
   const { webVitals } = usePerformanceOptimizer();
   const [showAlert, setShowAlert] = useState(false);
-  
+
   useEffect(() => {
     // 只在 LCP > 4s 时显示用户警告
     if (webVitals.metrics.lcp && webVitals.metrics.lcp > 4000) {
       setShowAlert(true);
     }
   }, [webVitals]);
-  
+
   if (!showAlert) return null;
-  
+
   return (
     <Alert closable onClose={() => setShowAlert(false)}>
       This page is loading slowly. Please check your connection.

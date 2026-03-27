@@ -44,7 +44,7 @@ type ExportFormat = 'csv' | 'json' | 'excel';
 type LoadingState = 'idle' | 'loading' | 'success' | 'error';
 
 // ❌ 避免使用 any
-function processData(data: any): any { }
+function processData(data: any): any {}
 
 // ✅ 使用 unknown + 类型守卫
 function processData(data: unknown): number {
@@ -198,13 +198,13 @@ function Button({
 
 ### 文件命名
 
-| 类型 | 命名方式 | 示例 |
-|------|----------|------|
-| 组件 | PascalCase | `PriceCard.tsx` |
-| Hooks | camelCase + use | `usePriceData.ts` |
-| 工具函数 | camelCase | `formatPrice.ts` |
-| 类型定义 | PascalCase | `OracleTypes.ts` |
-| 常量 | SCREAMING_SNAKE_CASE | `ORACLE_PROVIDERS.ts` |
+| 类型     | 命名方式             | 示例                  |
+| -------- | -------------------- | --------------------- |
+| 组件     | PascalCase           | `PriceCard.tsx`       |
+| Hooks    | camelCase + use      | `usePriceData.ts`     |
+| 工具函数 | camelCase            | `formatPrice.ts`      |
+| 类型定义 | PascalCase           | `OracleTypes.ts`      |
+| 常量     | SCREAMING_SNAKE_CASE | `ORACLE_PROVIDERS.ts` |
 
 ### 变量命名
 
@@ -216,3 +216,4 @@ const shouldRefresh = true;
 
 // ✅ 数组使用复数形式
 const
+```

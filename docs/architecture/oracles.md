@@ -16,18 +16,18 @@ Insight 平台支持多种区块链预言机提供商，采用统一的抽象层
 
 ### 支持的预言机
 
-| 预言机 | 标识符 | 主要链 | 特点 |
-|--------|--------|--------|------|
-| Chainlink | `chainlink` | Ethereum, Arbitrum, Polygon | 市场领导者 |
-| Pyth Network | `pyth` | Solana, Ethereum | 低延迟金融数据 |
-| Band Protocol | `band_protocol` | Cosmos, Ethereum | 跨链数据 |
-| API3 | `api3` | Ethereum, Polygon | 第一方预言机 |
-| UMA | `uma` | Ethereum | 乐观预言机 |
-| RedStone | `redstone` | Arbitrum, Ethereum | 高效数据推送 |
-| DIA | `dia` | 多链 | 透明数据源 |
-| Tellor | `tellor` | Ethereum | 去中心化报告 |
-| Chronicle | `chronicle` | Ethereum | MakerDAO 生态 |
-| WINkLink | `winklink` | Tron | 波场生态 |
+| 预言机        | 标识符          | 主要链                      | 特点           |
+| ------------- | --------------- | --------------------------- | -------------- |
+| Chainlink     | `chainlink`     | Ethereum, Arbitrum, Polygon | 市场领导者     |
+| Pyth Network  | `pyth`          | Solana, Ethereum            | 低延迟金融数据 |
+| Band Protocol | `band_protocol` | Cosmos, Ethereum            | 跨链数据       |
+| API3          | `api3`          | Ethereum, Polygon           | 第一方预言机   |
+| UMA           | `uma`           | Ethereum                    | 乐观预言机     |
+| RedStone      | `redstone`      | Arbitrum, Ethereum          | 高效数据推送   |
+| DIA           | `dia`           | 多链                        | 透明数据源     |
+| Tellor        | `tellor`        | Ethereum                    | 去中心化报告   |
+| Chronicle     | `chronicle`     | Ethereum                    | MakerDAO 生态  |
+| WINkLink      | `winklink`      | Tron                        | 波场生态       |
 
 ## 架构图
 
@@ -223,9 +223,7 @@ export class OracleClientFactory {
   static getClient(provider: OracleProvider): BaseOracleClient {
     // 支持依赖注入
     if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
-      const factory = container.resolve<IOracleClientFactory>(
-        SERVICE_TOKENS.ORACLE_CLIENT_FACTORY
-      );
+      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
       const client = factory.getClient(provider);
       if (client instanceof BaseOracleClient) {
         return client;
@@ -292,11 +290,7 @@ export interface IOracleClient {
   readonly name: OracleProvider;
   readonly supportedChains: Blockchain[];
   getPrice(symbol: string, chain?: Blockchain): Promise<PriceData>;
-  getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period?: number
-  ): Promise<PriceData[]>;
+  getHistoricalPrices(symbol: string, chain?: Blockchain, period?: number): Promise<PriceData[]>;
 }
 
 export interface IOracleClientFactory {
@@ -331,18 +325,11 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.BASE,
   ];
 
-  async getPrice(
-    symbol: string,
-    chain: Blockchain = Blockchain.ETHEREUM
-  ): Promise<PriceData> {
-    return this.fetchPriceWithDatabase(
-      symbol,
-      chain,
-      () => {
-        const basePrice = this.getBasePrice(symbol);
-        return this.generateMockPrice(symbol, basePrice, chain);
-      }
-    );
+  async getPrice(symbol: string, chain: Blockchain = Blockchain.ETHEREUM): Promise<PriceData> {
+    return this.fetchPriceWithDatabase(symbol, chain, () => {
+      const basePrice = this.getBasePrice(symbol);
+      return this.generateMockPrice(symbol, basePrice, chain);
+    });
   }
 
   async getHistoricalPrices(
@@ -350,15 +337,10 @@ export class ChainlinkClient extends BaseOracleClient {
     chain: Blockchain = Blockchain.ETHEREUM,
     period: number = 24
   ): Promise<PriceData[]> {
-    return this.fetchHistoricalPricesWithDatabase(
-      symbol,
-      chain,
-      period,
-      () => {
-        const basePrice = this.getBasePrice(symbol);
-        return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
-      }
-    );
+    return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () => {
+      const basePrice = this.getBasePrice(symbol);
+      return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
+    });
   }
 
   private getBasePrice(symbol: string): number {
@@ -465,20 +447,13 @@ export class NewOracleClient extends BaseOracleClient {
     // 添加支持的链
   ];
 
-  async getPrice(
-    symbol: string,
-    chain?: Blockchain
-  ): Promise<PriceData> {
-    return this.fetchPriceWithDatabase(
-      symbol,
-      chain,
-      () => {
-        // 实现实际的价格获取逻辑
-        // 或调用 generateMockPrice 生成模拟数据
-        const basePrice = this.getBasePrice(symbol);
-        return this.generateMockPrice(symbol, basePrice, chain);
-      }
-    );
+  async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+    return this.fetchPriceWithDatabase(symbol, chain, () => {
+      // 实现实际的价格获取逻辑
+      // 或调用 generateMockPrice 生成模拟数据
+      const basePrice = this.getBasePrice(symbol);
+      return this.generateMockPrice(symbol, basePrice, chain);
+    });
   }
 
   async getHistoricalPrices(
@@ -486,15 +461,10 @@ export class NewOracleClient extends BaseOracleClient {
     chain?: Blockchain,
     period: number = 24
   ): Promise<PriceData[]> {
-    return this.fetchHistoricalPricesWithDatabase(
-      symbol,
-      chain,
-      period,
-      () => {
-        const basePrice = this.getBasePrice(symbol);
-        return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
-      }
-    );
+    return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () => {
+      const basePrice = this.getBasePrice(symbol);
+      return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
+    });
   }
 
   private getBasePrice(symbol: string): number {

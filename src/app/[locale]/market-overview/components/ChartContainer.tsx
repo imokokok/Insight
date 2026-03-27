@@ -98,19 +98,82 @@ interface ChartContainerProps {
 
 // 主要图表类型（4个）
 const mainChartTypes = [
-  { key: 'pie', label: 'Market Share', labelZh: '份额', shortLabel: 'Share', shortLabelZh: '份额', icon: PieChartIcon },
-  { key: 'trend', label: 'TVS Trend', labelZh: '趋势', shortLabel: 'Trend', shortLabelZh: '趋势', icon: TrendingUp },
-  { key: 'bar', label: 'Chain Support', labelZh: '链支持', shortLabel: 'Chains', shortLabelZh: '链支持', icon: BarChart3 },
-  { key: 'chain', label: 'Chain Breakdown', labelZh: '链分布', shortLabel: 'Breakdown', shortLabelZh: '链分布', icon: Network },
+  {
+    key: 'pie',
+    label: 'Market Share',
+    labelZh: '份额',
+    shortLabel: 'Share',
+    shortLabelZh: '份额',
+    icon: PieChartIcon,
+  },
+  {
+    key: 'trend',
+    label: 'TVS Trend',
+    labelZh: '趋势',
+    shortLabel: 'Trend',
+    shortLabelZh: '趋势',
+    icon: TrendingUp,
+  },
+  {
+    key: 'bar',
+    label: 'Chain Support',
+    labelZh: '链支持',
+    shortLabel: 'Chains',
+    shortLabelZh: '链支持',
+    icon: BarChart3,
+  },
+  {
+    key: 'chain',
+    label: 'Chain Breakdown',
+    labelZh: '链分布',
+    shortLabel: 'Breakdown',
+    shortLabelZh: '链分布',
+    icon: Network,
+  },
 ] as const;
 
 // 次要图表类型（5个）
 const secondaryChartTypes = [
-  { key: 'protocol', label: 'Protocols', labelZh: '协议', shortLabel: 'Protocols', shortLabelZh: '协议', icon: Building2 },
-  { key: 'asset', label: 'Asset Categories', labelZh: '资产', shortLabel: 'Assets', shortLabelZh: '资产', icon: PieChartIcon2 },
-  { key: 'comparison', label: 'Oracle Comparison', labelZh: '对比', shortLabel: 'Compare', shortLabelZh: '对比', icon: GitCompare },
-  { key: 'benchmark', label: 'Benchmark', labelZh: '基准', shortLabel: 'Benchmark', shortLabelZh: '基准', icon: Target },
-  { key: 'correlation', label: 'Correlation', labelZh: '相关性', shortLabel: 'Correlation', shortLabelZh: '相关性', icon: ActivitySquare },
+  {
+    key: 'protocol',
+    label: 'Protocols',
+    labelZh: '协议',
+    shortLabel: 'Protocols',
+    shortLabelZh: '协议',
+    icon: Building2,
+  },
+  {
+    key: 'asset',
+    label: 'Asset Categories',
+    labelZh: '资产',
+    shortLabel: 'Assets',
+    shortLabelZh: '资产',
+    icon: PieChartIcon2,
+  },
+  {
+    key: 'comparison',
+    label: 'Oracle Comparison',
+    labelZh: '对比',
+    shortLabel: 'Compare',
+    shortLabelZh: '对比',
+    icon: GitCompare,
+  },
+  {
+    key: 'benchmark',
+    label: 'Benchmark',
+    labelZh: '基准',
+    shortLabel: 'Benchmark',
+    shortLabelZh: '基准',
+    icon: Target,
+  },
+  {
+    key: 'correlation',
+    label: 'Correlation',
+    labelZh: '相关性',
+    shortLabel: 'Correlation',
+    shortLabelZh: '相关性',
+    icon: ActivitySquare,
+  },
 ] as const;
 
 // 合并所有图表类型用于查找
@@ -186,7 +249,7 @@ export default function ChartContainer({
     const savedChartType = localStorage.getItem(CHART_TYPE_STORAGE_KEY) as ChartType | null;
     if (savedChartType) {
       // 验证保存的图表类型是否有效
-      const isValidType = allChartTypes.some(t => t.key === savedChartType);
+      const isValidType = allChartTypes.some((t) => t.key === savedChartType);
       if (isValidType && savedChartType !== activeChart) {
         setActiveChart(savedChartType);
       }
@@ -194,11 +257,14 @@ export default function ChartContainer({
   }, []);
 
   // 处理图表类型切换并保存到 localStorage
-  const handleChartTypeSwitch = useCallback((type: ChartType) => {
-    setActiveChart(type);
-    localStorage.setItem(CHART_TYPE_STORAGE_KEY, type);
-    setIsSecondaryMenuOpen(false);
-  }, [setActiveChart]);
+  const handleChartTypeSwitch = useCallback(
+    (type: ChartType) => {
+      setActiveChart(type);
+      localStorage.setItem(CHART_TYPE_STORAGE_KEY, type);
+      setIsSecondaryMenuOpen(false);
+    },
+    [setActiveChart]
+  );
 
   // 处理图表类型切换
   const handleChartTypeChange = useCallback((type: string) => {
@@ -274,11 +340,11 @@ export default function ChartContainer({
 
   // 获取当前选中的次要图表类型信息
   const getCurrentSecondaryChart = () => {
-    return secondaryChartTypes.find(t => t.key === activeChart);
+    return secondaryChartTypes.find((t) => t.key === activeChart);
   };
 
   // 检查当前选中的是否是次要图表
-  const isSecondaryChartActive = secondaryChartTypes.some(t => t.key === activeChart);
+  const isSecondaryChartActive = secondaryChartTypes.some((t) => t.key === activeChart);
 
   // 是否显示 ChartToolbar
   const showChartToolbar = CHARTS_WITH_TYPE_SUPPORT.includes(activeChart);
@@ -473,7 +539,9 @@ export default function ChartContainer({
                     return (
                       <>
                         <Icon className="w-4 h-4 flex-shrink-0" />
-                        <span>{isZh ? currentSecondary.shortLabelZh : currentSecondary.shortLabel}</span>
+                        <span>
+                          {isZh ? currentSecondary.shortLabelZh : currentSecondary.shortLabel}
+                        </span>
                       </>
                     );
                   }
@@ -484,10 +552,12 @@ export default function ChartContainer({
                     </>
                   );
                 })()}
-                <ChevronDown className={cn(
-                  'w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200',
-                  isSecondaryMenuOpen && 'rotate-180'
-                )} />
+                <ChevronDown
+                  className={cn(
+                    'w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200',
+                    isSecondaryMenuOpen && 'rotate-180'
+                  )}
+                />
               </button>
 
               {/* 下拉菜单 */}
@@ -644,7 +714,7 @@ export default function ChartContainer({
                         showConfidenceInterval ? 'text-purple-700' : 'text-purple-500/70'
                       )}
                     >
-                      {showConfidenceInterval ? (isZh ? '95% CI' : '95% CI') : (isZh ? 'CI' : 'CI')}
+                      {showConfidenceInterval ? (isZh ? '95% CI' : '95% CI') : isZh ? 'CI' : 'CI'}
                     </span>
                   </div>
                 )}

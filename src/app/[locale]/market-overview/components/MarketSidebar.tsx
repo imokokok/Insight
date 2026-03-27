@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo } from 'react';
+
+import Link from 'next/link';
 
 import {
   Clock,
@@ -220,9 +221,7 @@ export default function MarketSidebar({
                 <Link
                   href={`/${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                   className={`flex items-center py-2 pl-3 transition-all duration-200 cursor-pointer border-l-2 ${
-                    isSelected
-                      ? 'border-primary-500'
-                      : 'border-transparent'
+                    isSelected ? 'border-primary-500' : 'border-transparent'
                   } ${!isLast ? 'border-b border-gray-100' : ''} ${
                     hasHover && !isHovered ? 'opacity-50' : 'opacity-100'
                   } hover:text-primary-600`}
@@ -243,7 +242,9 @@ export default function MarketSidebar({
                       className="w-2 h-2 rounded-full flex-shrink-0"
                       style={{ backgroundColor: item.color, boxShadow: `0 0 4px ${item.color}60` }}
                     />
-                    <span className={`font-semibold text-sm truncate ${isSelected ? 'text-primary-600' : 'text-gray-900'}`}>
+                    <span
+                      className={`font-semibold text-sm truncate ${isSelected ? 'text-primary-600' : 'text-gray-900'}`}
+                    >
                       {item.name}
                     </span>
                   </div>

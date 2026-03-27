@@ -1,20 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  Shield,
-  Zap,
-  TrendingUp,
-  TrendingDown,
-  Activity,
-  BarChart3,
-  Clock,
-} from 'lucide-react';
-import {
-  AreaChart,
-  Area,
-  ResponsiveContainer,
-} from 'recharts';
+
+import { Shield, Zap, TrendingUp, TrendingDown, Activity, BarChart3, Clock } from 'lucide-react';
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
@@ -104,17 +93,17 @@ const metricsConfig: Omit<MetricData, 'value' | 'change'>[] = [
   },
 ];
 
-function MiniAreaChart({ 
-  data, 
-  color, 
-  isPositive 
-}: { 
-  data: ChartPoint[]; 
+function MiniAreaChart({
+  data,
+  color,
+  isPositive,
+}: {
+  data: ChartPoint[];
   color: string;
   isPositive: boolean;
 }) {
   const chartColor = isPositive ? semanticColors.success.DEFAULT : semanticColors.danger.DEFAULT;
-  
+
   return (
     <div className="h-10 w-20">
       <ResponsiveContainer width="100%" height="100%">
@@ -156,29 +145,29 @@ function PulseDot() {
 
 export default function LiveMetricsPanel() {
   const locale = useLocale();
-  const [metrics, setMetrics] = useState<MetricData[]>(() => 
-    metricsConfig.map(m => ({
+  const [metrics, setMetrics] = useState<MetricData[]>(() =>
+    metricsConfig.map((m) => ({
       ...m,
       value: m.formatValue(m.baseValue),
       change: (Math.random() - 0.3) * 5, // -1.5% to +3.5%
     }))
   );
-  
+
   const [trendData, setTrendData] = useState<Record<string, ChartPoint[]>>(() => {
     const initial: Record<string, ChartPoint[]> = {};
-    metricsConfig.forEach(m => {
+    metricsConfig.forEach((m) => {
       initial[m.id] = generateInitialTrendData(m.baseValue, m.baseValue * 0.02);
     });
     return initial;
   });
 
   const updateMetrics = useCallback(() => {
-    setMetrics(prevMetrics => 
-      prevMetrics.map(metric => {
+    setMetrics((prevMetrics) =>
+      prevMetrics.map((metric) => {
         const variance = metric.baseValue * 0.005; // 0.5% variance
         const newBaseValue = metric.baseValue + (Math.random() - 0.5) * variance;
         const newChange = metric.change + (Math.random() - 0.5) * 0.5;
-        
+
         return {
           ...metric,
           baseValue: newBaseValue,
@@ -188,11 +177,11 @@ export default function LiveMetricsPanel() {
       })
     );
 
-    setTrendData(prev => {
+    setTrendData((prev) => {
       const updated: Record<string, ChartPoint[]> = {};
-      Object.keys(prev).forEach(key => {
+      Object.keys(prev).forEach((key) => {
         const currentData = prev[key];
-        const metric = metricsConfig.find(m => m.id === key);
+        const metric = metricsConfig.find((m) => m.id === key);
         if (metric) {
           const newValue = metric.baseValue + (Math.random() - 0.5) * metric.baseValue * 0.02;
           const newData = [...currentData.slice(1), { index: Date.now(), value: newValue }];
@@ -231,7 +220,7 @@ export default function LiveMetricsPanel() {
           const Icon = metric.icon;
           const isPositive = metric.change >= 0;
           const trendDataForMetric = trendData[metric.id] || [];
-          
+
           return (
             <div
               key={metric.id}
@@ -249,47 +238,35 @@ export default function LiveMetricsPanel() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <div 
-                    className="p-1.5 rounded"
-                    style={{ backgroundColor: `${metric.color}15` }}
-                  >
-                    <Icon 
-                      className="w-4 h-4" 
-                      style={{ color: metric.color }}
-                    />
+                  <div className="p-1.5 rounded" style={{ backgroundColor: `${metric.color}15` }}>
+                    <Icon className="w-4 h-4" style={{ color: metric.color }} />
                   </div>
                 </div>
-                
+
                 {/* Mini Chart */}
-                <MiniAreaChart 
-                  data={trendDataForMetric} 
+                <MiniAreaChart
+                  data={trendDataForMetric}
                   color={metric.color}
                   isPositive={isPositive}
                 />
               </div>
 
               <div className="mt-3">
-                <div 
-                  className="text-xs font-medium mb-1"
-                  style={{ color: baseColors.gray[500] }}
-                >
+                <div className="text-xs font-medium mb-1" style={{ color: baseColors.gray[500] }}>
                   {isZh ? metric.label.zh : metric.label.en}
                 </div>
-                
+
                 <div className="flex items-baseline gap-2">
-                  <span 
-                    className="text-xl font-bold"
-                    style={{ color: baseColors.gray[900] }}
-                  >
+                  <span className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
                     {metric.value}
                   </span>
-                  
-                  <div 
+
+                  <div
                     className="flex items-center gap-0.5 text-xs font-medium"
-                    style={{ 
-                      color: isPositive 
-                        ? semanticColors.success.DEFAULT 
-                        : semanticColors.danger.DEFAULT 
+                    style={{
+                      color: isPositive
+                        ? semanticColors.success.DEFAULT
+                        : semanticColors.danger.DEFAULT,
                     }}
                   >
                     {isPositive ? (

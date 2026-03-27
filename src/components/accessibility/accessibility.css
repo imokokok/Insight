@@ -6,12 +6,12 @@
   /* Background Colors */
   --background: #ffffff;
   --foreground: #000000;
-  
+
   /* High Contrast Brand Colors */
   --finance-primary: #0000ff;
   --finance-secondary: #0000cc;
   --finance-accent: #000099;
-  
+
   /* High Contrast Status Colors */
   --finance-success: #008000;
   --finance-success-light: #e6f3e6;
@@ -21,10 +21,10 @@
   --finance-danger-light: #ffe6e6;
   --finance-neutral: #000000;
   --finance-neutral-light: #f0f0f0;
-  
+
   /* Borders */
   --border-insight-separator: #000000;
-  
+
   /* Focus */
   --focus-color: #0000ff;
   --focus-width: 4px;
@@ -315,8 +315,8 @@
    ARIA Live Regions
    ============================================ */
 
-[aria-live="polite"],
-[aria-live="assertive"] {
+[aria-live='polite'],
+[aria-live='assertive'] {
   position: relative;
 }
 

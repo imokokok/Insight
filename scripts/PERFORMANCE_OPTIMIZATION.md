@@ -1,12 +1,14 @@
-/**
- * 首屏性能优化总结报告
- * 
- * 本文档记录了首屏加载优化的所有修改和改进
- */
+/\*\*
+
+- 首屏性能优化总结报告
+-
+- 本文档记录了首屏加载优化的所有修改和改进
+  \*/
 
 ## 优化概述
 
 本次优化主要针对以下几个方面：
+
 1. 骨架屏组件优化
 2. 关键资源预加载
 3. 首页组件加载顺序优化
@@ -17,6 +19,7 @@
 ## 1. 骨架屏组件优化
 
 ### 修改文件：
+
 - `src/components/ui/ChartSkeleton.tsx`
 - `src/app/[locale]/home-components/ArbitrageHeatmapSkeleton.tsx`
 - `src/app/[locale]/home-components/OracleMarketOverviewSkeleton.tsx`
@@ -25,17 +28,20 @@
 ### 优化内容：
 
 #### 1.1 动画效果优化
+
 - 将 `animate-pulse` 替换为自定义的 `skeleton-shimmer` 动画
 - 新增 shimmer 动画效果，提供更流畅的加载体验
 - 支持 `prefers-reduced-motion` 媒体查询，为需要减少动画的用户提供静态效果
 
 #### 1.2 新增骨架屏变体
+
 - `HeroSkeleton`: Hero 区域骨架屏
 - `LivePriceTickerSkeleton`: 实时价格滚动条骨架屏
 - `BentoGridSkeleton`: Bento 布局网格骨架屏
 - `CTASkeleton`: CTA 区域骨架屏
 
 #### 1.3 布局一致性
+
 - 所有骨架屏组件与实际组件布局保持一致
 - 使用相同的间距、尺寸和样式
 - 确保内容加载时无布局偏移（CLS）
@@ -45,32 +51,36 @@
 ## 2. 关键资源预加载
 
 ### 修改文件：
+
 - `src/app/[locale]/layout.tsx`
 - `src/app/globals.css`
 
 ### 优化内容：
 
 #### 2.1 字体优化
+
 ```typescript
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
-  display: 'swap',      // 新增：字体加载策略
-  preload: true,        // 新增：预加载字体
+  display: 'swap', // 新增：字体加载策略
+  preload: true, // 新增：预加载字体
 });
 ```
 
 #### 2.2 预连接和 DNS 预解析
+
 ```html
 <head>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
   <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
   <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
 </head>
 ```
 
 #### 2.3 CSS 优化
+
 - 新增 `skeleton-shimmer` 动画类
 - 新增 `critical-content` 和 `non-critical-content` 类用于内容可见性优化
 - 使用 `content-visibility: auto` 优化渲染性能
@@ -80,11 +90,13 @@ const geistSans = Geist({
 ## 3. 首页组件加载顺序优化
 
 ### 修改文件：
+
 - `src/app/[locale]/page.tsx`
 
 ### 优化内容：
 
 #### 3.1 组件动态导入
+
 所有首页组件现在都使用 `dynamic` 导入，实现代码分割和按需加载：
 
 ```typescript
@@ -102,6 +114,7 @@ const LivePriceTicker = dynamic(() => import('./home-components/LivePriceTicker'
 ```
 
 #### 3.2 加载优先级
+
 1. **ProfessionalHero** (SSR): 首屏关键内容，服务端渲染
 2. **LivePriceTicker**: 实时价格滚动，客户端渲染
 3. **BentoMetricsGrid**: 指标网格，客户端渲染
@@ -110,6 +123,7 @@ const LivePriceTicker = dynamic(() => import('./home-components/LivePriceTicker'
 6. **ProfessionalCTA**: CTA 区域，客户端渲染
 
 #### 3.3 内容可见性优化
+
 使用 `non-critical-content` 类包装非关键内容：
 
 ```typescript
@@ -123,6 +137,7 @@ const LivePriceTicker = dynamic(() => import('./home-components/LivePriceTicker'
 ## 4. 性能测试脚本
 
 ### 新增文件：
+
 - `scripts/performance-test.ts`: 完整的性能测试脚本（使用 Playwright）
 - `scripts/quick-perf.mjs`: 快速性能测试脚本（使用 Lighthouse）
 - `scripts/PERFORMANCE_OPTIMIZATION.md`: 优化文档
@@ -130,16 +145,19 @@ const LivePriceTicker = dynamic(() => import('./home-components/LivePriceTicker'
 ### 使用方法：
 
 #### 快速测试（推荐）
+
 ```bash
 npm run perf:quick
 ```
 
 #### 完整测试
+
 ```bash
 npm run perf:test
 ```
 
 ### 测试指标：
+
 - **FCP** (First Contentful Paint): 目标 < 1.8s
 - **LCP** (Largest Contentful Paint): 目标 < 2.5s
 - **TTFB** (Time to First Byte): 目标 < 800ms
@@ -174,16 +192,19 @@ npm run perf:test
 ## 6. 注意事项
 
 ### 6.1 不要过度预加载
+
 - 仅预加载关键资源
 - 字体使用 `display: swap` 避免阻塞渲染
 - 避免预加载大量非关键资源
 
 ### 6.2 保持代码可维护性
+
 - 骨架屏组件与实际组件保持布局一致
 - 使用统一的命名规范
 - 添加必要的注释
 
 ### 6.3 移动端体验
+
 - 所有骨架屏支持响应式设计
 - 使用相对单位确保在不同屏幕尺寸下正常显示
 - 测试不同网络条件下的加载体验
@@ -217,12 +238,14 @@ npm run perf:test
 ## 8. 测试结果
 
 ### 优化前（预估）
+
 - FCP: ~2.5s
 - LCP: ~4.0s
 - CLS: ~0.15
 - TTI: ~5.0s
 
 ### 优化后（预期）
+
 - FCP: < 1.8s ✅
 - LCP: < 2.5s ✅
 - CLS: < 0.1 ✅

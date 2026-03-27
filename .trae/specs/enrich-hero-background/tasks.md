@@ -13,5 +13,6 @@
   - [x] SubTask 3.2: 验证 prefers-reduced-motion 设置正常工作
 
 # Task Dependencies
+
 - Task 2 可以并行于 Task 1
 - Task 3 依赖于 Task 1 和 Task 2
