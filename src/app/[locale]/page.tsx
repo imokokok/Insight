@@ -6,7 +6,7 @@ import { HeroSkeleton } from '@/components/ui';
 
 const ProfessionalHero = dynamic(() => import('./home-components/ProfessionalHero'), {
   loading: () => <HeroSkeleton />,
-  ssr: true,
+  ssr: false,
 });
 
 export default function Home() {

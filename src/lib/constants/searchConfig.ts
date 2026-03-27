@@ -300,7 +300,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'LINK',
     aliases: ['chainlink', 'link', '预言机之王', 'chain link'],
     category: 'oracle',
-    path: '/oracle/chainlink',
+    path: '/chainlink',
   },
   {
     id: 'oracle-pyth',
@@ -309,7 +309,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'PYTH',
     aliases: ['pyth', 'pyth network', '派斯'],
     category: 'oracle',
-    path: '/oracle/pyth',
+    path: '/pyth',
   },
   {
     id: 'oracle-band',
@@ -318,7 +318,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'BAND',
     aliases: ['band', 'band protocol', '波段协议'],
     category: 'oracle',
-    path: '/oracle/band-protocol',
+    path: '/band-protocol',
   },
   {
     id: 'oracle-uma',
@@ -327,7 +327,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'UMA',
     aliases: ['uma', 'universal market access'],
     category: 'oracle',
-    path: '/oracle/uma',
+    path: '/uma',
   },
   {
     id: 'oracle-api3',
@@ -336,7 +336,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'API3',
     aliases: ['api3', 'api 3'],
     category: 'oracle',
-    path: '/oracle/api3',
+    path: '/api3',
   },
   {
     id: 'oracle-redstone',
@@ -345,7 +345,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'RED',
     aliases: ['redstone', 'red stone', '红石'],
     category: 'oracle',
-    path: '/oracle/redstone',
+    path: '/redstone',
   },
   {
     id: 'oracle-dia',
@@ -354,7 +354,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'DIA',
     aliases: ['dia', 'decentralized information asset'],
     category: 'oracle',
-    path: '/oracle/dia',
+    path: '/dia',
   },
   {
     id: 'oracle-tellor',
@@ -363,7 +363,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'TRB',
     aliases: ['tellor', 'trb'],
     category: 'oracle',
-    path: '/oracle/tellor',
+    path: '/tellor',
   },
   {
     id: 'oracle-chronicle',
@@ -372,7 +372,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'CHR',
     aliases: ['chronicle', '编年史'],
     category: 'oracle',
-    path: '/oracle/chronicle',
+    path: '/chronicle',
   },
   {
     id: 'oracle-winklink',
@@ -381,7 +381,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'WIN',
     aliases: ['winklink', 'win klink', '波场预言机'],
     category: 'oracle',
-    path: '/oracle/winklink',
+    path: '/winklink',
   },
 
   // Blockchains
