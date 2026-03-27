@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { usePerformanceOptimizer } from '@/hooks/usePerformanceOptimizer';
+import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 // ============================================================================
@@ -60,6 +61,7 @@ export function PerformanceMonitor({
   className,
   onPerformanceIssue,
 }: PerformanceMonitorProps) {
+  const t = useTranslations('performance');
   const [isExpanded, setIsExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const performance = usePerformanceOptimizer();
@@ -126,9 +128,9 @@ export function PerformanceMonitor({
                 health === 'poor' && 'bg-red-500'
               )}
             />
-            <span className="text-sm font-medium capitalize">{health}</span>
+            <span className="text-sm font-medium capitalize">{t(`health.${health}`)}</span>
           </div>
-          <span className="text-xs opacity-60">Click for details</span>
+          <span className="text-xs opacity-60">{t('clickForDetails')}</span>
         </button>
       )}
 
@@ -137,7 +139,7 @@ export function PerformanceMonitor({
         <Card className="w-80 shadow-xl">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Performance Monitor</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('title')}</CardTitle>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setIsExpanded(false)}
@@ -171,7 +173,7 @@ export function PerformanceMonitor({
           <CardContent className="space-y-4">
             {/* Web Vitals */}
             <div>
-              <h4 className="text-xs font-medium text-gray-500 mb-2">Web Vitals</h4>
+              <h4 className="text-xs font-medium text-gray-500 mb-2">{t('webVitals')}</h4>
               <div className="grid grid-cols-2 gap-2">
                 <MetricCard
                   label="FCP"
@@ -202,12 +204,14 @@ export function PerformanceMonitor({
             {/* Memory */}
             {memory.memory && (
               <div>
-                <h4 className="text-xs font-medium text-gray-500 mb-2">Memory</h4>
+                <h4 className="text-xs font-medium text-gray-500 mb-2">{t('memory')}</h4>
                 <MetricCard
-                  label="Heap Usage"
+                  label={t('heapUsage')}
                   value={memory.formatSize(memory.memory.used)}
                   status={memory.isCritical ? 'critical' : memory.isHighUsage ? 'warning' : 'good'}
-                  description={`${memory.memory.percentage.toFixed(1)}% of limit`}
+                  description={t('percentageOfLimit', {
+                    percentage: memory.memory.percentage.toFixed(1),
+                  })}
                 />
               </div>
             )}
@@ -215,20 +219,20 @@ export function PerformanceMonitor({
             {/* Resources */}
             {showDetails && resources.resources.length > 0 && (
               <div>
-                <h4 className="text-xs font-medium text-gray-500 mb-2">Resources</h4>
+                <h4 className="text-xs font-medium text-gray-500 mb-2">{t('resources')}</h4>
                 <div className="text-xs space-y-1">
                   <div className="flex justify-between">
-                    <span>Total Resources:</span>
+                    <span>{t('totalResources')}:</span>
                     <span>{resources.resources.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Slow Resources:</span>
+                    <span>{t('slowResources')}:</span>
                     <span className={resources.slowResources.length > 0 ? 'text-red-600' : ''}>
                       {resources.slowResources.length}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Total Size:</span>
+                    <span>{t('totalSize')}:</span>
                     <span>{(resources.totalSize / 1024 / 1024).toFixed(2)} MB</span>
                   </div>
                 </div>
@@ -238,15 +242,15 @@ export function PerformanceMonitor({
             {/* Navigation */}
             {showDetails && navigation.timing && (
               <div>
-                <h4 className="text-xs font-medium text-gray-500 mb-2">Navigation</h4>
+                <h4 className="text-xs font-medium text-gray-500 mb-2">{t('navigation')}</h4>
                 <div className="text-xs space-y-1">
                   <div className="flex justify-between">
-                    <span>Total Time:</span>
+                    <span>{t('totalTime')}:</span>
                     <span>{Math.round(navigation.timing.total)}ms</span>
                   </div>
                   {navigation.bottleneck && (
                     <div className="flex justify-between text-yellow-600">
-                      <span>Bottleneck:</span>
+                      <span>{t('bottleneck')}:</span>
                       <span>{navigation.bottleneck.name}</span>
                     </div>
                   )}
@@ -257,7 +261,7 @@ export function PerformanceMonitor({
             {/* Suggestions */}
             {webVitals.suggestions.length > 0 && (
               <div>
-                <h4 className="text-xs font-medium text-gray-500 mb-2">Suggestions</h4>
+                <h4 className="text-xs font-medium text-gray-500 mb-2">{t('suggestions')}</h4>
                 <div className="space-y-2">
                   {webVitals.suggestions.slice(0, 2).map((suggestion) => (
                     <div

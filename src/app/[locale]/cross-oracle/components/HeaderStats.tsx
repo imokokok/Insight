@@ -72,7 +72,7 @@ export function HeaderStats({
           </span>
         </div>
         <span className="text-xs text-gray-500 dark:text-gray-400">
-          {t('crossOracle.subtitle') || '跨预言机价格对比'}
+          {t('crossOracle.subtitle')}
         </span>
       </div>
 
@@ -85,7 +85,7 @@ export function HeaderStats({
               {selectedSymbol}
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              {t('crossOracle.realtimeComparison') || '实时多源数据对比'}
+              {t('crossOracle.realtimeComparison')}
             </p>
           </div>
 
@@ -133,7 +133,7 @@ export function HeaderStats({
               {oracleCount}
             </span>
             <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              {t('crossOracle.oracles') || 'Oracles'}
+              {t('crossOracle.oracles')}
             </span>
           </div>
 
@@ -143,7 +143,7 @@ export function HeaderStats({
               {qualityScore}%
             </span>
             <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              {t('crossOracle.quality') || 'Quality'}
+              {t('crossOracle.quality')}
             </span>
           </div>
 

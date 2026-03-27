@@ -189,10 +189,11 @@ interface DensityToggleProps {
 }
 
 function DensityToggle({ density, onChange }: DensityToggleProps) {
+  const t = useTranslations('ui.dataTable');
   const options = [
-    { key: 'compact', icon: AlignJustify, label: '紧凑' },
-    { key: 'normal', icon: Rows3, label: '标准' },
-    { key: 'comfortable', icon: LayoutList, label: '舒适' },
+    { key: 'compact', icon: AlignJustify, label: t('density.compact') },
+    { key: 'normal', icon: Rows3, label: t('density.normal') },
+    { key: 'comfortable', icon: LayoutList, label: t('density.comfortable') },
   ] as const;
 
   return (
@@ -239,6 +240,7 @@ function ColumnVisibilityDropdown<T>({
   onToggleColumn,
   onToggleAll,
 }: ColumnVisibilityDropdownProps<T>) {
+  const t = useTranslations('ui.dataTable');
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -266,10 +268,10 @@ function ColumnVisibilityDropdown<T>({
           'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
           someVisible && 'text-blue-600 border-blue-200 bg-blue-50'
         )}
-        title="列设置"
+        title={t('columnSettings')}
       >
         <Settings2 className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">列</span>
+        <span className="hidden sm:inline">{t('columnSettings')}</span>
         {someVisible && <span className="ml-0.5 w-1.5 h-1.5 rounded-full bg-blue-500" />}
       </button>
 
@@ -293,7 +295,7 @@ function ColumnVisibilityDropdown<T>({
               >
                 {(allVisible || someVisible) && <Check className="w-3 h-3 text-white" />}
               </div>
-              <span>{allVisible ? '取消全选' : '全选'}</span>
+              <span>{allVisible ? t('deselectAll') : t('selectAll')}</span>
             </button>
           </div>
 
@@ -324,7 +326,7 @@ function ColumnVisibilityDropdown<T>({
                   <span className="flex-1 text-left truncate">
                     {typeof column.header === 'string' ? column.header : column.key}
                   </span>
-                  {isFixed && <span className="text-[10px] text-gray-400">固定</span>}
+                  {isFixed && <span className="text-[10px] text-gray-400">{t('fixed')}</span>}
                 </button>
               );
             })}
@@ -359,7 +361,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
   onDensityChange,
   className,
 }: DataTableProProps<T>) {
-  const t = useTranslations('dataTable');
+  const t = useTranslations('ui.dataTable');
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig[]>([]);
@@ -751,10 +753,10 @@ export function DataTablePro<T extends Record<string, unknown>>({
       {(columnVisibility || densityToggle) && (
         <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50/50">
           <div className="text-xs text-gray-500">
-            共 {data.length} 条数据
+            {t('totalRecords', { count: data.length })}
             {sortConfig.length > 0 && (
               <span className="ml-2 text-blue-600">
-                已排序:{' '}
+                {t('sorted')}:{' '}
                 {sortConfig.map((s) => `${s.key}(${s.direction === 'asc' ? '↑' : '↓'})`).join(', ')}
               </span>
             )}

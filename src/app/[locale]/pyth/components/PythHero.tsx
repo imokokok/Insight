@@ -19,6 +19,7 @@ import {
   TrendingUp as TrendingUpIcon,
 } from 'lucide-react';
 
+import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
@@ -171,6 +172,7 @@ function MiniPriceChart({
   currentPrice: PriceData | null;
   themeColor: string;
 }) {
+  const t = useTranslations('ui');
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
@@ -194,7 +196,7 @@ function MiniPriceChart({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
+          <span>{t('metrics.trend24h')}</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
@@ -205,8 +207,8 @@ function MiniPriceChart({
         <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>{t('metrics.before24h')}</span>
+        <span>{t('metrics.now')}</span>
       </div>
     </div>
   );
@@ -225,6 +227,7 @@ function ActionButtons({
   themeColor: string;
 }) {
   const t = useTranslations();
+  const tUI = useTranslations('ui');
 
   return (
     <div className="flex items-center gap-2">
@@ -264,6 +267,8 @@ function UnifiedInfoSection({
   chains: string[];
   themeColor: string;
 }) {
+  const t = useTranslations('ui');
+
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
     if (healthScore >= 70) return 'text-yellow-600';
@@ -278,14 +283,14 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return { label: t('health.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return { label: t('health.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return { label: t('health.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: t('health.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
   // 只显示前3个链
   const displayChains = chains.slice(0, 3);
@@ -297,7 +302,7 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('health.healthScore')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -320,7 +325,7 @@ function UnifiedInfoSection({
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('metrics.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -336,7 +341,7 @@ function UnifiedInfoSection({
           {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('metrics.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
@@ -345,7 +350,7 @@ function UnifiedInfoSection({
           {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('metrics.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
@@ -358,12 +363,12 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('metrics.support')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {chains.length}+ {t('metrics.chains')}
           </span>
           {/* 前3个链图标 */}
           <div className="flex -space-x-1">
@@ -416,27 +421,29 @@ export function PythHero({
     return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + (Math.random() - 0.5) * 0.1));
   }, [historicalData, currentPrice]);
 
+  const tMetrics = useTranslations('ui.oracleMetrics');
+
   // 核心统计指标 - 5个
   const primaryStats: StatItem[] = [
     {
-      title: 'PYTH 价格',
+      title: tMetrics('pythPrice'),
       value: `$${currentPrice.toFixed(4)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
       icon: <Activity className="w-4 h-4" />,
-      subtitle: '24h',
+      subtitle: tMetrics('subtitle24h'),
       sparklineData: priceSparkline,
     },
     {
-      title: 'TVS',
+      title: tMetrics('tvs'),
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
       change: '+8.5%',
       changeType: 'positive',
       icon: <Wallet className="w-4 h-4" />,
-      subtitle: '24h',
+      subtitle: tMetrics('subtitle24h'),
     },
     {
-      title: '活跃发布者',
+      title: tMetrics('activeValidators'),
       value: `${publishers?.length ?? 95}`,
       change: '+12',
       changeType: 'positive',
@@ -444,15 +451,15 @@ export function PythHero({
       subtitle: '本月',
     },
     {
-      title: '数据喂价',
+      title: tMetrics('dataFeeds'),
       value: `${networkStats?.dataFeeds ?? 450}+`,
       change: '+15%',
       changeType: 'positive',
       icon: <Database className="w-4 h-4" />,
-      subtitle: '24h',
+      subtitle: tMetrics('subtitle24h'),
     },
     {
-      title: '验证者数',
+      title: tMetrics('nodeCount'),
       value: `${validators?.length ?? 85}`,
       change: '+5',
       changeType: 'positive',
@@ -492,7 +499,14 @@ export function PythHero({
               className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
             >
-              <img src="/logos/oracles/pyth.svg" alt="Pyth" className="w-7 h-7" />
+              <OptimizedImage
+                src="/logos/oracles/pyth.svg"
+                alt="Pyth"
+                width={28}
+                height={28}
+                priority
+                className="w-7 h-7"
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Pyth Network</h1>

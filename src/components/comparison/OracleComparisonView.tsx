@@ -330,7 +330,7 @@ export function OracleComparisonView({
                   role="group"
                   aria-label={t('anomalyIndicatorsLabel', { defaultValue: '异常数据指示器' })}
                 >
-                  <span className="text-xs text-gray-500">异常:</span>
+                  <span className="text-xs text-gray-500">{t('comparison.anomaly')}:</span>
                   {anomalyPoints.map((point, idx) => (
                     <DeviationIndicator
                       key={idx}

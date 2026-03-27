@@ -258,7 +258,7 @@ function MobileComparisonTableComponent({
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
           <AlertTriangle className="w-3 h-3" />
-          {t('crossOracle.outlier') || 'Outlier'}
+          {t('crossOracle.outlier')}
         </span>
       );
     }
@@ -266,7 +266,7 @@ function MobileComparisonTableComponent({
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-700">
           <TrendingUp className="w-3 h-3" />
-          {t('crossOracle.priceTable.highest') || 'Highest'}
+          {t('crossOracle.highest')}
         </span>
       );
     }
@@ -274,14 +274,14 @@ function MobileComparisonTableComponent({
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
           <TrendingDown className="w-3 h-3" />
-          {t('crossOracle.priceTable.lowest') || 'Lowest'}
+          {t('crossOracle.lowest')}
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
         <CheckCircle2 className="w-3 h-3" />
-        {t('crossOracle.priceTable.normal') || 'Normal'}
+        {t('crossOracle.normal')}
       </span>
     );
   };
@@ -313,10 +313,10 @@ function MobileComparisonTableComponent({
             <Filter className="w-8 h-8 text-gray-400" />
           </div>
           <p className="text-gray-500 font-medium">
-            {t('crossOracle.noData') || 'No data available'}
+            {t('crossOracle.noData')}
           </p>
           <p className="text-sm text-gray-400 mt-1">
-            {t('crossOracle.tryAdjustingFilters') || 'Try adjusting your filters'}
+            {t('crossOracle.tryAdjustingFilters')}
           </p>
         </div>
       </div>
@@ -329,12 +329,12 @@ function MobileComparisonTableComponent({
       <div className="flex items-center justify-between bg-white rounded-lg border border-gray-200 p-2">
         <div className="flex items-center gap-1">
           <span className="text-xs text-gray-500 mr-2">
-            {t('crossOracle.sortBy') || 'Sort by'}:
+            {t('crossOracle.sortBy')}:
           </span>
           {[
-            { key: 'price', label: t('crossOracle.price') || 'Price' },
-            { key: 'deviation', label: t('crossOracle.deviation') || 'Dev' },
-            { key: 'freshness', label: t('crossOracle.freshness') || 'Fresh' },
+            { key: 'price', label: t('crossOracle.price') },
+            { key: 'deviation', label: t('crossOracle.deviation') },
+            { key: 'freshness', label: t('crossOracle.freshness') },
           ].map((option) => (
             <button
               key={option.key}
@@ -358,9 +358,7 @@ function MobileComparisonTableComponent({
             filterOutliers ? 'bg-amber-100 text-amber-700' : 'text-gray-600 hover:bg-gray-100'
           }`}
         >
-          {filterOutliers
-            ? t('crossOracle.showAll') || 'Show All'
-            : t('crossOracle.hideOutliers') || 'Hide Outliers'}
+          {filterOutliers ? t('crossOracle.showAll') : t('crossOracle.hideOutliers')}
         </button>
       </div>
 
@@ -404,7 +402,7 @@ function MobileComparisonTableComponent({
                       {renderStatus(card)}
                     </div>
                     <div className="text-xs text-gray-500 mt-0.5">
-                      {t('crossOracle.source') || 'Source'}: {card.source}
+                      {t('crossOracle.source')}: {card.source}
                     </div>
                   </div>
                 </div>
@@ -429,19 +427,19 @@ function MobileComparisonTableComponent({
               <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
                 <div className="flex-1">
                   <div className="text-xs text-gray-500 mb-1">
-                    {t('crossOracle.deviation') || 'Deviation'}
+                    {t('crossOracle.deviation')}
                   </div>
                   {renderDeviation(card.deviation)}
                 </div>
                 <div className="flex-1">
                   <div className="text-xs text-gray-500 mb-1">
-                    {t('crossOracle.confidence') || 'Confidence'}
+                    {t('crossOracle.confidence')}
                   </div>
                   {renderConfidence(card.confidence)}
                 </div>
                 <div className="flex-1">
                   <div className="text-xs text-gray-500 mb-1">
-                    {t('crossOracle.freshness') || 'Freshness'}
+                    {t('crossOracle.freshness')}
                   </div>
                   {renderFreshness(card.freshness, card.freshnessSeconds)}
                 </div>
@@ -469,8 +467,8 @@ function MobileComparisonTableComponent({
                     </div>
                     <div className="text-xs text-gray-400 mt-0.5">
                       {card.zScore !== null && Math.abs(card.zScore) > 2
-                        ? t('crossOracle.significantDeviation') || 'Significant deviation'
-                        : t('crossOracle.withinNormalRange') || 'Within normal range'}
+                        ? t('crossOracle.significantDeviation')
+                        : t('crossOracle.withinNormalRange')}
                     </div>
                   </div>
 
@@ -478,7 +476,7 @@ function MobileComparisonTableComponent({
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
                       <Clock className="w-3.5 h-3.5" />
-                      {t('crossOracle.lastUpdated') || 'Last Updated'}
+                      {t('crossOracle.lastUpdated')}
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
                       {new Date(card.timestamp).toLocaleTimeString()}
@@ -492,7 +490,7 @@ function MobileComparisonTableComponent({
                   {card.deviation !== null && (
                     <div className="bg-gray-50 rounded-lg p-3">
                       <div className="text-xs text-gray-500 mb-1">
-                        {t('crossOracle.diffFromAvg') || 'Diff from Avg'}
+                        {t('crossOracle.diffFromAvg')}
                       </div>
                       <div
                         className={`text-sm font-semibold ${
@@ -508,7 +506,7 @@ function MobileComparisonTableComponent({
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}{' '}
-                        {t('crossOracle.avg') || 'avg'}
+                        {t('crossOracle.avg')}
                       </div>
                     </div>
                   )}
@@ -516,7 +514,7 @@ function MobileComparisonTableComponent({
                   {/* 价格位置 */}
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="text-xs text-gray-500 mb-1">
-                      {t('crossOracle.pricePosition') || 'Price Position'}
+                      {t('crossOracle.pricePosition')}
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
                       {validPrices.length > 1
@@ -526,7 +524,7 @@ function MobileComparisonTableComponent({
                         : '-'}
                     </div>
                     <div className="text-xs text-gray-400 mt-0.5">
-                      {t('crossOracle.rankAmongOracles') || 'Rank among oracles'}
+                      {t('crossOracle.rankAmongOracles')}
                     </div>
                   </div>
                 </div>
@@ -538,7 +536,7 @@ function MobileComparisonTableComponent({
                 >
                   <span className="flex items-center justify-center gap-1">
                     <X className="w-3.5 h-3.5" />
-                    {t('crossOracle.closeDetails') || 'Close Details'}
+                    {t('crossOracle.closeDetails')}
                   </span>
                 </button>
               </div>
@@ -549,7 +547,7 @@ function MobileComparisonTableComponent({
 
       {/* 底部提示 */}
       <div className="text-center text-xs text-gray-400 py-2">
-        {t('crossOracle.swipeToExpand') || 'Swipe up on card to expand details'}
+        {t('crossOracle.swipeToExpand')}
       </div>
     </div>
   );

@@ -3,12 +3,13 @@
  * Provides common testing helpers and mock data generators
  */
 
+import { type ReactNode } from 'react';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import { render, type RenderOptions } from '@testing-library/react';
+
 import { BaseOracleClient } from '@/lib/oracles/base';
-import { PriceData, Blockchain, OracleProvider } from '@/types/oracle';
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { type PriceData, Blockchain, type OracleProvider } from '@/types/oracle';
 
 /**
  * Create a test QueryClient with default options
@@ -30,11 +31,7 @@ export function createTestQueryClient(): QueryClient {
  */
 export function createWrapper(queryClient: QueryClient) {
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 

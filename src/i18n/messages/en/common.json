@@ -86,7 +86,8 @@
     "zoomIn": "Zoom In",
     "zoomOut": "Zoom Out",
     "viewFullscreen": "Fullscreen",
-    "search": "Search"
+    "search": "Search",
+    "more": "More"
   },
   "forms": {
     "exportData": "Export Data",

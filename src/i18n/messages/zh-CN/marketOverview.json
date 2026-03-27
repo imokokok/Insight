@@ -14,6 +14,10 @@
     "oracleMarketShare": "预言机市场份额",
     "totalMarketShare": "总市场份额",
     "coveringOracles": "覆盖 {count} 个主要预言机",
+    "oraclesCovered": "覆盖预言机",
+    "oracle": "预言机",
+    "chains": "链",
+    "viewOracleDetails": "查看 {oracle} 详情",
     "stats": {
       "totalTVS": "总 TVS",
       "totalChains": "支持链数",
@@ -75,6 +79,7 @@
     "chartTypes": {
       "line": "折线图",
       "area": "面积图"
-    }
+    },
+    "chartHint": "悬停查看详情，点击选中项目"
   }
 }

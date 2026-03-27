@@ -357,7 +357,7 @@ export default function ChartContainer({
     <div className="h-[360px] flex items-center justify-center">
       <div className="flex flex-col items-center gap-2">
         <div className="w-6 h-6 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-        <span className="text-gray-500 text-xs">{isZh ? '加载中...' : 'Loading...'}</span>
+        <span className="text-gray-500 text-xs">{t('common.loading')}</span>
       </div>
     </div>
   );
@@ -422,7 +422,7 @@ export default function ChartContainer({
               <button
                 onClick={() => setLinkedOracle(null)}
                 className="ml-1 p-0.5 hover:bg-purple-200 rounded transition-colors"
-                title={isZh ? '清除联动' : 'Clear Link'}
+                title={t('ui.chart.clearLink')}
               >
                 <X className="w-3 h-3 text-purple-600" />
               </button>
@@ -433,7 +433,9 @@ export default function ChartContainer({
             trendComparisonData.length > 0 && (
               <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary-50 border border-primary-200 rounded-md">
                 <span className="text-xs text-primary-700">
-                  {comparisonMode === 'yoy' ? (isZh ? '同比' : 'YoY') : isZh ? '环比' : 'MoM'}
+                  {comparisonMode === 'yoy'
+                    ? t('ui.chart.yoyComparison')
+                    : t('ui.chart.momComparison')}
                 </span>
                 {(() => {
                   const latestData = prepareComparisonData(trendData, trendComparisonData)[
@@ -478,7 +480,7 @@ export default function ChartContainer({
               className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1 px-2 py-1 hover:bg-primary-50 rounded-md transition-colors"
             >
               <RefreshCw className="w-3 h-3" />
-              {isZh ? '重置' : 'Reset'}
+              {t('ui.chart.reset')}
             </button>
           )}
           {selectedItem && (
@@ -486,7 +488,7 @@ export default function ChartContainer({
               onClick={() => setSelectedItem(null)}
               className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-md transition-colors"
             >
-              {isZh ? '清除' : 'Clear'}
+              {t('common.actions.clear')}
               <X className="w-3 h-3" />
             </button>
           )}
@@ -512,10 +514,16 @@ export default function ChartContainer({
                         ? 'text-primary-600 border-primary-500'
                         : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
                     )}
-                    title={isZh ? type.labelZh : type.label}
+                    title={t(
+                      `ui.chart.${type.key === 'pie' ? 'marketShare' : type.key === 'trend' ? 'tvsTrend' : type.key === 'bar' ? 'chainSupport' : 'chainBreakdown'}`
+                    )}
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" />
-                    <span>{isZh ? type.shortLabelZh : type.shortLabel}</span>
+                    <span>
+                      {t(
+                        `ui.chart.${type.key === 'pie' ? 'marketShare' : type.key === 'trend' ? 'tvsTrend' : type.key === 'bar' ? 'chainSupport' : 'chainBreakdown'}`
+                      )}
+                    </span>
                   </button>
                 );
               })}
@@ -540,7 +548,9 @@ export default function ChartContainer({
                       <>
                         <Icon className="w-4 h-4 flex-shrink-0" />
                         <span>
-                          {isZh ? currentSecondary.shortLabelZh : currentSecondary.shortLabel}
+                          {t(
+                            `ui.chart.${currentSecondary.key === 'protocol' ? 'protocols' : currentSecondary.key === 'asset' ? 'assetCategories' : currentSecondary.key === 'comparison' ? 'oracleComparison' : currentSecondary.key === 'benchmark' ? 'benchmark' : 'correlation'}`
+                          )}
                         </span>
                       </>
                     );
@@ -548,7 +558,7 @@ export default function ChartContainer({
                   return (
                     <>
                       <ActivitySquare className="w-4 h-4 flex-shrink-0" />
-                      <span>{isZh ? '更多' : 'More'}</span>
+                      <span>{t('common.actions.more')}</span>
                     </>
                   );
                 })()}
@@ -584,7 +594,11 @@ export default function ChartContainer({
                           )}
                         >
                           <Icon className="w-4 h-4 flex-shrink-0" />
-                          <span>{isZh ? type.labelZh : type.label}</span>
+                          <span>
+                            {t(
+                              `ui.chart.${type.key === 'protocol' ? 'protocols' : type.key === 'asset' ? 'assetCategories' : type.key === 'comparison' ? 'oracleComparison' : type.key === 'benchmark' ? 'benchmark' : 'correlation'}`
+                            )}
+                          </span>
                         </button>
                       );
                     })}
@@ -627,9 +641,9 @@ export default function ChartContainer({
                         ? 'text-primary-600 font-medium'
                         : 'text-gray-500 hover:text-gray-700'
                     )}
-                    title={isZh ? '同比对比' : 'Year-over-Year'}
+                    title={t('ui.chart.yoyComparison')}
                   >
-                    {isZh ? '同比' : 'YoY'}
+                    {t('ui.chart.yoyComparison')}
                   </button>
                   <button
                     onClick={() => toggleComparisonMode('mom')}
@@ -639,9 +653,9 @@ export default function ChartContainer({
                         ? 'text-primary-600 font-medium'
                         : 'text-gray-500 hover:text-gray-700'
                     )}
-                    title={isZh ? '环比对比' : 'Month-over-Month'}
+                    title={t('ui.chart.momComparison')}
                   >
-                    {isZh ? '环比' : 'MoM'}
+                    {t('ui.chart.momComparison')}
                   </button>
                 </div>
 
@@ -679,7 +693,9 @@ export default function ChartContainer({
                               ? `font-medium ${getThresholdColor(threshold)}`
                               : `text-gray-400 hover:text-gray-600 ${getThresholdColor(threshold)}`
                           )}
-                          title={`${threshold}% threshold`}
+                          title={t('common.confidenceInterval.threshold', {
+                            threshold: `${threshold}%`,
+                          })}
                         >
                           {threshold}%
                         </button>
@@ -699,7 +715,7 @@ export default function ChartContainer({
                           ? 'bg-purple-500 shadow-sm'
                           : 'bg-gray-300 hover:bg-gray-350'
                       )}
-                      title={isZh ? '切换置信区间' : 'Toggle Confidence Interval'}
+                      title={t('ui.chart.toggleConfidence')}
                     >
                       <span
                         className={cn(
@@ -714,7 +730,7 @@ export default function ChartContainer({
                         showConfidenceInterval ? 'text-purple-700' : 'text-purple-500/70'
                       )}
                     >
-                      {showConfidenceInterval ? (isZh ? '95% CI' : '95% CI') : isZh ? 'CI' : 'CI'}
+                      {showConfidenceInterval ? '95% CI' : 'CI'}
                     </span>
                   </div>
                 )}
@@ -736,7 +752,7 @@ export default function ChartContainer({
                   )}
                 >
                   <PieChartIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{isZh ? '图表' : 'Chart'}</span>
+                  <span className="hidden sm:inline">{t('ui.chart.chart')}</span>
                 </button>
                 <button
                   onClick={() => setViewType('table')}
@@ -748,7 +764,7 @@ export default function ChartContainer({
                   )}
                 >
                   <TableIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{isZh ? '表格' : 'Table'}</span>
+                  <span className="hidden sm:inline">{t('ui.chart.table')}</span>
                 </button>
               </div>
             )}
@@ -792,7 +808,7 @@ export default function ChartContainer({
               className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-all duration-200"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Reset</span>
+              <span className="hidden sm:inline">{t('ui.chart.reset')}</span>
             </button>
           )}
 
@@ -802,7 +818,7 @@ export default function ChartContainer({
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-all duration-200"
           >
             <TrendingUp className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">{t('ui.chart.export')}</span>
           </button>
         </div>
       )}
@@ -827,9 +843,7 @@ export default function ChartContainer({
               {viewType === 'chart' && !['chain', 'protocol', 'asset'].includes(activeChart) && (
                 <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
                   <Info className="w-3.5 h-3.5" />
-                  <span>
-                    {isZh ? '悬停查看详情，点击选中项目' : 'Hover for details, click to select'}
-                  </span>
+                  <span>{t('marketOverview.chartHint')}</span>
                 </div>
               )}
             </>

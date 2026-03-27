@@ -19,6 +19,7 @@ import {
   TrendingUp as TrendingUpIcon,
 } from 'lucide-react';
 
+import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
@@ -590,7 +591,14 @@ export function ChronicleHero({
               className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
             >
-              <img src="/logos/oracles/chronicle.svg" alt="Chronicle" className="w-7 h-7" />
+              <OptimizedImage
+                src="/logos/oracles/chronicle.svg"
+                alt="Chronicle"
+                width={28}
+                height={28}
+                priority
+                className="w-7 h-7"
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Chronicle</h1>

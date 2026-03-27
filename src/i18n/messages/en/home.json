@@ -15,7 +15,13 @@
         "supportedPairs": "Supported Pairs"
       },
       "liveData": "Live Data",
-      "searchPlaceholder": "Search trading pairs, oracles, or blockchains..."
+      "searchPlaceholder": "Search trading pairs, oracles, or blockchains...",
+      "recentSearch": "Recent Search",
+      "clear": "Clear",
+      "popular": "Popular",
+      "keyboardHint": "Use ↑↓ to select, ↵ to confirm",
+      "escClose": "ESC to close",
+      "deleteRecord": "Delete this record"
     },
     "features": {
       "sectionBadge": "Core Features",

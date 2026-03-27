@@ -3,9 +3,14 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
+const LOW_END_DEVICE_FLAGS = [
+  '--cpu-throttling=4',
+  '--disable-gpu',
+  '--disable-software-rasterizer',
+];
+
 const PAGES_TO_TEST = [
-  { name: 'Home', url: 'http://localhost:3000/en' },
-  { name: 'Market Overview', url: 'http://localhost:3000/en/market-overview' },
+  { name: 'Home (Low-End)', url: 'http://localhost:3000/en' },
 ];
 
 const PERFORMANCE_BUDGETS = {
@@ -26,10 +31,11 @@ async function checkServerStatus() {
   }
 }
 
-async function measureWithLighthouse(url) {
+async function measureWithLighthouse(url, flags = []) {
   try {
+    const chromeFlags = `--headless ${flags.join(' ')}`;
     const { stdout } = await execAsync(
-      `npx lighthouse ${url} --output=json --quiet --chrome-flags="--headless" --only-categories=performance`,
+      `npx lighthouse ${url} --output=json --quiet --chrome-flags="${chromeFlags}" --only-categories=performance`,
       { maxBuffer: 1024 * 1024 * 10 }
     );
 
@@ -70,8 +76,9 @@ function checkBudget(name, value, budget) {
 }
 
 async function main() {
-  console.log('🚀 Quick Performance Test\n');
+  console.log('🐌 Low-End Device Performance Test\n');
   console.log('='.repeat(80));
+  console.log('Testing with CPU throttling (4x slowdown) and GPU disabled\n');
 
   const serverRunning = await checkServerStatus();
 
@@ -89,7 +96,7 @@ async function main() {
     console.log(`\n📊 Testing: ${page.name} (${page.url})`);
     console.log('-'.repeat(80));
 
-    const metrics = await measureWithLighthouse(page.url);
+    const metrics = await measureWithLighthouse(page.url, LOW_END_DEVICE_FLAGS);
 
     if (metrics) {
       results.push({ name: page.name, url: page.url, metrics });
@@ -105,23 +112,23 @@ async function main() {
   }
 
   console.log('\n' + '='.repeat(80));
-  console.log('📈 SUMMARY');
+  console.log('📈 DEGRADATION ANALYSIS');
   console.log('='.repeat(80));
 
   if (results.length > 0) {
-    const avgScore =
-      results.reduce((acc, r) => acc + r.metrics.performanceScore, 0) / results.length;
-    const avgFCP = results.reduce((acc, r) => acc + r.metrics.FCP, 0) / results.length;
-    const avgLCP = results.reduce((acc, r) => acc + r.metrics.LCP, 0) / results.length;
-    const avgCLS = results.reduce((acc, r) => acc + r.metrics.CLS, 0) / results.length;
-
-    console.log(`\nAverage Performance Score: ${avgScore.toFixed(0)}/100`);
-    console.log(`Average FCP: ${formatMetric(avgFCP)}`);
-    console.log(`Average LCP: ${formatMetric(avgLCP)}`);
-    console.log(`Average CLS: ${avgCLS.toFixed(3)}`);
+    console.log('\nExpected Degradation Behavior:');
+    console.log('  • ParticleNetwork should detect low FPS and reduce particle count');
+    console.log('  • Device memory check should trigger if memory < 4GB');
+    console.log('  • prefers-reduced-motion should be respected if set');
+    console.log('  • DataFlowLines should respect prefers-reduced-motion');
+    console.log('\nActual Performance:');
+    console.log(`  • Performance Score: ${results[0].metrics.performanceScore.toFixed(0)}/100`);
+    console.log(`  • FCP: ${formatMetric(results[0].metrics.FCP)}`);
+    console.log(`  • LCP: ${formatMetric(results[0].metrics.LCP)}`);
+    console.log(`  • TBT: ${results[0].metrics.TBT.toFixed(0)}ms (blocking time indicates JS execution)`);
   }
 
-  console.log('\n✅ Performance test completed!\n');
+  console.log('\n✅ Low-end device test completed!\n');
 }
 
 main().catch(console.error);

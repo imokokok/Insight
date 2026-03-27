@@ -12,8 +12,8 @@ async function loadMessageFile(
 ): Promise<Record<string, unknown> | null> {
   const path = directory ? `${directory}/${fileName}` : fileName;
   try {
-    const module = await import(`./messages/${locale}/${path}.json`);
-    return module.default;
+    const loadedModule = await import(`./messages/${locale}/${path}.json`);
+    return loadedModule.default;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.warn(`[i18n] Failed to load messages: ${locale}/${path}.json`, error);

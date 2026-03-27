@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
-import { useLocale } from '@/i18n';
+import { useLocale, useTranslations } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { chartColors, getChartColor } from '@/lib/chartColors';
 import { semanticColors } from '@/lib/config/colors';
@@ -126,6 +126,7 @@ function TickerItem({ pair, priceData }: TickerItemProps) {
 }
 
 export default function LivePriceTicker() {
+  const t = useTranslations();
   const locale = useLocale();
   const isZh = isChineseLocale(locale);
   const [isPaused, setIsPaused] = useState(false);
@@ -177,7 +178,7 @@ export default function LivePriceTicker() {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-success-500"></span>
           </div>
           <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-            {isZh ? '实时价格' : 'Live Prices'}
+            {t('livePrice.title')}
           </span>
         </div>
       </div>

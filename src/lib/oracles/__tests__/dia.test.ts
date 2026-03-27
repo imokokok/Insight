@@ -1,5 +1,4 @@
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
-import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { DIAClient } from '../dia';
 import * as storage from '../storage';

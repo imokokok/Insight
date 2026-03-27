@@ -107,6 +107,7 @@ export function useComponentPerformance(componentName: string, enabled = true) {
   const mountTimeRef = useRef<number>(0);
   const updateCountRef = useRef(0);
   const [metrics, setMetrics] = useState<ComponentRenderMetric | null>(null);
+  const [renderCount, setRenderCount] = useState(0);
 
   useEffect(() => {
     if (!enabled) return;
@@ -138,21 +139,23 @@ export function useComponentPerformance(componentName: string, enabled = true) {
 
     renderCountRef.current++;
     const renderTime = performance.now();
+    const currentRenderCount = renderCountRef.current;
 
+    setRenderCount(currentRenderCount);
     setMetrics((prev) => ({
       componentName,
       renderTime,
-      renderCount: renderCountRef.current,
+      renderCount: currentRenderCount,
       mountTime: prev?.mountTime,
       updateCount: updateCountRef.current,
     }));
-  });
+  }, [componentName, enabled]);
 
   const markUpdate = useCallback(() => {
     updateCountRef.current++;
   }, []);
 
-  return { metrics, markUpdate, renderCount: renderCountRef.current };
+  return { metrics, markUpdate, renderCount };
 }
 
 export function useWebVitalsMonitor() {

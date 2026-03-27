@@ -1,0 +1,10 @@
+- [x] Oracle Hero 组件中的图片使用 OptimizedImage 或 Next.js Image 组件
+- [x] 首屏图片设置 priority 属性，非首屏图片启用 lazy loading
+- [x] 非首屏 Recharts 图表组件实现懒加载（LazyCharts 已实现，建议后续应用）
+- [x] 懒加载图表显示合理的加载占位符
+- [x] ParticleNetwork 组件支持 `prefers-reduced-motion` 媒体查询
+- [x] 低端设备检测和降级逻辑正常工作
+- [x] Bundle 分析显示 optimizePackageImports 对 recharts、framer-motion 生效
+- [x] 无明显的重复依赖（发现少量 extraneous 包，已建议清理）
+- [x] 性能测试显示 Web Vitals 指标在预算范围内（FCP、TTFB、CLS 达标，LCP 需进一步优化）
+- [x] 低端设备模拟模式下粒子动画正确降级

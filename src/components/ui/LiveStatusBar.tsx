@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 
 import { Wifi, WifiOff, Clock, Zap, RefreshCw, Activity } from 'lucide-react';
 
+import { useTranslations } from '@/i18n';
 import { semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 
@@ -36,47 +37,55 @@ interface FreshnessConfig {
   pulse: boolean;
 }
 
-const statusConfig: Record<ConnectionStatus, StatusConfig> = {
-  connected: {
-    label: '已连接',
-    icon: Wifi,
-    color: semanticColors.success.DEFAULT,
-  },
-  disconnected: {
-    label: '已断开',
-    icon: WifiOff,
-    color: semanticColors.danger.DEFAULT,
-  },
-  reconnecting: {
-    label: '重连中',
-    icon: RefreshCw,
-    color: semanticColors.warning.DEFAULT,
-  },
-};
+function getStatusConfig(
+  t: ReturnType<typeof useTranslations>
+): Record<ConnectionStatus, StatusConfig> {
+  return {
+    connected: {
+      label: t('ui.liveStatus.connected'),
+      icon: Wifi,
+      color: semanticColors.success.DEFAULT,
+    },
+    disconnected: {
+      label: t('ui.liveStatus.disconnected'),
+      icon: WifiOff,
+      color: semanticColors.danger.DEFAULT,
+    },
+    reconnecting: {
+      label: t('ui.liveStatus.reconnecting'),
+      icon: RefreshCw,
+      color: semanticColors.warning.DEFAULT,
+    },
+  };
+}
 
-const freshnessConfig: Record<DataFreshnessLevel, FreshnessConfig> = {
-  fresh: {
-    label: '数据新鲜',
-    shortLabel: '新鲜',
-    color: semanticColors.success.DEFAULT,
-    bgColor: 'bg-emerald-50',
-    pulse: false,
-  },
-  stale: {
-    label: '数据稍旧',
-    shortLabel: '稍旧',
-    color: semanticColors.warning.DEFAULT,
-    bgColor: 'bg-amber-50',
-    pulse: true,
-  },
-  expired: {
-    label: '数据过期',
-    shortLabel: '过期',
-    color: semanticColors.danger.DEFAULT,
-    bgColor: 'bg-red-50',
-    pulse: true,
-  },
-};
+function getFreshnessConfig(
+  t: ReturnType<typeof useTranslations>
+): Record<DataFreshnessLevel, FreshnessConfig> {
+  return {
+    fresh: {
+      label: t('ui.liveStatus.dataFresh'),
+      shortLabel: t('ui.liveStatus.dataFresh'),
+      color: semanticColors.success.DEFAULT,
+      bgColor: 'bg-emerald-50',
+      pulse: false,
+    },
+    stale: {
+      label: t('ui.liveStatus.dataStale'),
+      shortLabel: t('ui.liveStatus.dataStale'),
+      color: semanticColors.warning.DEFAULT,
+      bgColor: 'bg-amber-50',
+      pulse: true,
+    },
+    expired: {
+      label: t('ui.liveStatus.dataExpired'),
+      shortLabel: t('ui.liveStatus.dataExpired'),
+      color: semanticColors.danger.DEFAULT,
+      bgColor: 'bg-red-50',
+      pulse: true,
+    },
+  };
+}
 
 function formatUTCTime(date: Date): string {
   const hours = date.getUTCHours().toString().padStart(2, '0');
@@ -90,7 +99,7 @@ function formatLatency(ms?: number): string {
   return `${Math.round(ms)}ms`;
 }
 
-function formatLastUpdate(date?: Date): string {
+function formatLastUpdate(date?: Date, t?: ReturnType<typeof useTranslations>): string {
   if (!date) return '--';
   const now = new Date();
   const diff = now.getTime() - date.getTime();
@@ -98,9 +107,11 @@ function formatLastUpdate(date?: Date): string {
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
 
-  if (seconds < 60) return `${seconds}秒前`;
-  if (minutes < 60) return `${minutes}分钟前`;
-  if (hours < 24) return `${hours}小时前`;
+  if (!t) return date.toLocaleDateString();
+
+  if (seconds < 60) return t('common.time.secondsAgo', { seconds });
+  if (minutes < 60) return t('common.time.minutesAgo', { minutes });
+  if (hours < 24) return t('common.time.hoursAgo', { hours });
   return date.toLocaleDateString();
 }
 
@@ -123,6 +134,7 @@ export function LiveStatusBar({
   className,
   freshnessThreshold = 30000,
 }: LiveStatusBarProps) {
+  const t = useTranslations('ui');
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -149,6 +161,8 @@ export function LiveStatusBar({
 
   const displayTime = currentTime ?? new Date();
 
+  const statusConfig = getStatusConfig(t);
+  const freshnessConfig = getFreshnessConfig(t);
   const status = statusConfig[connectionStatus];
   const freshness = freshnessConfig[freshnessLevel];
   const StatusIcon = status.icon;
@@ -162,7 +176,9 @@ export function LiveStatusBar({
       </div>
       <div className="flex items-center gap-2">
         <Zap className="w-3 h-3 text-gray-400" />
-        <span>延迟: {formatLatency(latency)}</span>
+        <span>
+          {t('networkHealth.avgResponseTime')}: {formatLatency(latency)}
+        </span>
       </div>
       <div className="flex items-center gap-2">
         <StatusIcon className="w-3 h-3" style={{ color: status.color }} />
@@ -234,7 +250,7 @@ export function LiveStatusBar({
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Clock className="w-3 h-3" />
           <span className="whitespace-nowrap">
-            {isMounted ? formatLastUpdate(lastUpdate) : '--'}
+            {isMounted ? formatLastUpdate(lastUpdate, t) : '--'}
           </span>
         </div>
 

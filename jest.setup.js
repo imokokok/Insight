@@ -106,12 +106,13 @@ jest.mock('next-intl/server', () => ({
   getMessages: () => Promise.resolve({}),
   getTimeZone: () => Promise.resolve('UTC'),
   getNow: () => Promise.resolve(new Date()),
-  getFormatter: () => Promise.resolve({
-    dateTime: () => '',
-    number: () => '',
-    relativeTime: () => '',
-    list: () => '',
-  }),
+  getFormatter: () =>
+    Promise.resolve({
+      dateTime: () => '',
+      number: () => '',
+      relativeTime: () => '',
+      list: () => '',
+    }),
 }));
 
 // Mock use-intl

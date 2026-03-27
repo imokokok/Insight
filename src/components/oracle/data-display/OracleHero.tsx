@@ -179,6 +179,7 @@ function MiniPriceChart({
   currentPrice: PriceData | null;
   themeColor: string;
 }) {
+  const t = useTranslations('ui');
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
@@ -202,7 +203,7 @@ function MiniPriceChart({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
+          <span>{t('metrics.trend24h')}</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
@@ -213,8 +214,8 @@ function MiniPriceChart({
         <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>{t('metrics.before24h')}</span>
+        <span>{t('metrics.now')}</span>
       </div>
     </div>
   );
@@ -316,6 +317,8 @@ function UnifiedInfoSection({
   chains: string[];
   themeColor: string;
 }) {
+  const t = useTranslations('ui');
+
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
     if (healthScore >= 70) return 'text-yellow-600';
@@ -330,14 +333,29 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('health.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('health.low'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return {
+        label: t('health.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
+    return { label: t('health.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
   // 只显示前3个链
   const displayChains = chains.slice(0, 3);
@@ -349,7 +367,7 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('health.healthScore')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -372,7 +390,7 @@ function UnifiedInfoSection({
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('metrics.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -388,7 +406,7 @@ function UnifiedInfoSection({
           {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('metrics.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
@@ -397,7 +415,7 @@ function UnifiedInfoSection({
           {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('metrics.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
@@ -410,12 +428,12 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('metrics.support')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {chains.length}+ {t('metrics.chains')}
           </span>
           {/* 前3个链图标 */}
           <div className="flex -space-x-1">
@@ -446,11 +464,28 @@ function QuickActions({
   actions?: { icon: React.ReactNode; label: string; onClick?: () => void }[];
   themeColor: string;
 }) {
+  const t = useTranslations('ui');
   const defaultActions: { icon: React.ReactNode; label: string; onClick?: () => void }[] = [
-    { icon: <Bell className="w-3.5 h-3.5" />, label: '价格提醒', onClick: undefined },
-    { icon: <Plus className="w-3.5 h-3.5" />, label: '添加监控', onClick: undefined },
-    { icon: <FileText className="w-3.5 h-3.5" />, label: 'API文档', onClick: undefined },
-    { icon: <Layers className="w-3.5 h-3.5" />, label: '切换网络', onClick: undefined },
+    {
+      icon: <Bell className="w-3.5 h-3.5" />,
+      label: t('quickActions.priceAlert'),
+      onClick: undefined,
+    },
+    {
+      icon: <Plus className="w-3.5 h-3.5" />,
+      label: t('quickActions.addMonitor'),
+      onClick: undefined,
+    },
+    {
+      icon: <FileText className="w-3.5 h-3.5" />,
+      label: t('quickActions.apiDocs'),
+      onClick: undefined,
+    },
+    {
+      icon: <Layers className="w-3.5 h-3.5" />,
+      label: t('quickActions.switchNetwork'),
+      onClick: undefined,
+    },
   ];
 
   const displayActions = actions || defaultActions;
@@ -479,11 +514,28 @@ function LatestUpdates({
   updates?: { type: 'price' | 'node' | 'feed' | 'system'; text: string; time: string }[];
   themeColor: string;
 }) {
+  const t = useTranslations('ui');
   const defaultUpdates = [
-    { type: 'price' as const, text: '价格更新: $14.52 (+2.3%)', time: '2分钟前' },
-    { type: 'node' as const, text: '新节点加入: 0x7a8b...3c4d', time: '5分钟前' },
-    { type: 'feed' as const, text: '数据喂价更新', time: '8分钟前' },
-    { type: 'system' as const, text: '系统维护完成', time: '15分钟前' },
+    {
+      type: 'price' as const,
+      text: t('activity.priceUpdate') + ': $14.52 (+2.3%)',
+      time: t('time.minutesAgo', { count: 2 }),
+    },
+    {
+      type: 'node' as const,
+      text: t('activity.newNode') + ': 0x7a8b...3c4d',
+      time: t('time.minutesAgo', { count: 5 }),
+    },
+    {
+      type: 'feed' as const,
+      text: t('activity.dataFeed'),
+      time: t('time.minutesAgo', { count: 8 }),
+    },
+    {
+      type: 'system' as const,
+      text: t('activity.system'),
+      time: t('time.minutesAgo', { count: 15 }),
+    },
   ];
 
   const displayUpdates = updates || defaultUpdates;
@@ -491,7 +543,9 @@ function LatestUpdates({
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">最新动态:</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">
+          {t('activity.latest')}:
+        </span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {displayUpdates.map((update, index) => (

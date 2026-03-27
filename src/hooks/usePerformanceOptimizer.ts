@@ -232,6 +232,14 @@ export function useResourceOptimizer() {
   const [resources, setResources] = useState<ResourceMetric[]>([]);
   const [slowResources, setSlowResources] = useState<ResourceMetric[]>([]);
 
+  const getResourceType = useCallback((url: string): ResourceMetric['type'] => {
+    if (url.endsWith('.js')) return 'script';
+    if (url.endsWith('.css')) return 'stylesheet';
+    if (/\.(png|jpg|jpeg|gif|webp|svg|ico)$/i.test(url)) return 'image';
+    if (/\.(woff|woff2|ttf|otf|eot)$/i.test(url)) return 'font';
+    return 'other';
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -259,15 +267,7 @@ export function useResourceOptimizer() {
       window.addEventListener('load', analyzeResources);
       return () => window.removeEventListener('load', analyzeResources);
     }
-  }, []);
-
-  const getResourceType = (url: string): ResourceMetric['type'] => {
-    if (url.endsWith('.js')) return 'script';
-    if (url.endsWith('.css')) return 'stylesheet';
-    if (/\.(png|jpg|jpeg|gif|webp|svg|ico)$/i.test(url)) return 'image';
-    if (/\.(woff|woff2|ttf|otf|eot)$/i.test(url)) return 'font';
-    return 'other';
-  };
+  }, [getResourceType]);
 
   const getTotalSize = useCallback(() => {
     return resources.reduce((sum, r) => sum + r.size, 0);

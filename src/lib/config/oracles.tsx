@@ -1,4 +1,4 @@
-import { type ReactNode, ComponentType } from 'react';
+import { type ReactNode } from 'react';
 
 import { type MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
 import { type NetworkDataConfig } from '@/components/oracle/panels/NetworkHealthPanel';

@@ -14,6 +14,10 @@
     "oracleMarketShare": "Oracle Market Share",
     "totalMarketShare": "Total Market Share",
     "coveringOracles": "Covering {count} major oracles",
+    "oraclesCovered": "Oracles Covered",
+    "oracle": "Oracle",
+    "chains": "Chains",
+    "viewOracleDetails": "View {oracle} details",
     "stats": {
       "totalTVS": "Total TVS",
       "totalChains": "Total Chains",
@@ -75,6 +79,7 @@
     "chartTypes": {
       "line": "Line",
       "area": "Area"
-    }
+    },
+    "chartHint": "Hover for details, click to select"
   }
 }

@@ -15,7 +15,13 @@
         "supportedPairs": "支持交易对数量"
       },
       "liveData": "实时数据",
-      "searchPlaceholder": "搜索交易对、预言机或区块链..."
+      "searchPlaceholder": "搜索交易对、预言机或区块链...",
+      "recentSearch": "最近搜索",
+      "clear": "清除",
+      "popular": "热门",
+      "keyboardHint": "使用 ↑↓ 选择，↵ 确认",
+      "escClose": "ESC 关闭",
+      "deleteRecord": "删除此记录"
     },
     "features": {
       "sectionBadge": "核心功能",
