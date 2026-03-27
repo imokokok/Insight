@@ -28,7 +28,6 @@ export default function ChroniclePage() {
     validatorMetrics,
     makerDAO,
     scuttlebutt,
-    staking,
     isLoading,
     isError,
     error,
@@ -42,11 +41,14 @@ export default function ChroniclePage() {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  if (isLoading && !price) {
+  const isInitialLoading = isLoading && !price && !historicalData?.length && !networkStats;
+  const hasCriticalError = isError && !price && error;
+
+  if (isInitialLoading) {
     return <LoadingState themeColor={config.themeColor} />;
   }
 
-  if (isError && error) {
+  if (hasCriticalError) {
     return <ErrorFallback error={error} onRetry={refresh} themeColor={config.themeColor} />;
   }
 
@@ -88,7 +90,6 @@ export default function ChroniclePage() {
 
   return (
     <div className="min-h-screen bg-insight">
-      {/* Hero Section */}
       <ChronicleHero
         config={config}
         price={price}
@@ -102,10 +103,8 @@ export default function ChroniclePage() {
         onExport={exportData}
       />
 
-      {/* Main Content Area */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-6">
               <ChronicleSidebar
@@ -115,7 +114,6 @@ export default function ChroniclePage() {
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="lg:hidden">
             <MobileMenuButton
               isOpen={isMobileMenuOpen}
@@ -125,7 +123,6 @@ export default function ChroniclePage() {
             />
           </div>
 
-          {/* Mobile Sidebar */}
           <MobileSidebar
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
@@ -140,7 +137,6 @@ export default function ChroniclePage() {
             />
           </MobileSidebar>
 
-          {/* Content Area */}
           <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>

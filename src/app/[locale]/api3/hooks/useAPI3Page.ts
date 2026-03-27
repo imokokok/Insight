@@ -5,7 +5,6 @@ import { useState, useCallback, useMemo } from 'react';
 import { useRefresh, useExport, useAPI3AllData } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { API3Client } from '@/lib/oracles/api3';
 import { OracleProvider } from '@/types/oracle';
 
 import { type API3TabId } from '../types';
@@ -15,7 +14,6 @@ export function useAPI3Page() {
   const [activeTab, setActiveTab] = useState<API3TabId>('market');
 
   const config = useMemo(() => getOracleConfig(OracleProvider.API3), []);
-  const client = useMemo(() => new API3Client(), []);
 
   const {
     price,
@@ -41,6 +39,13 @@ export function useAPI3Page() {
     enabled: true,
   });
 
+  const lastUpdated = useMemo(() => {
+    if (price?.timestamp) {
+      return new Date(price.timestamp);
+    }
+    return new Date();
+  }, [price?.timestamp]);
+
   const { exportData } = useExport({
     data: {
       timestamp: new Date().toISOString(),
@@ -64,19 +69,9 @@ export function useAPI3Page() {
     setActiveTab(tab);
   }, []);
 
-  // Calculate last updated time from price data
-  const lastUpdated = useMemo(() => {
-    if (price?.timestamp) {
-      return new Date(price.timestamp);
-    }
-    return null;
-  }, [price]);
-
   return {
-    // State
     activeTab,
     config,
-    client,
     price,
     historicalData,
     airnodeStats,
@@ -95,8 +90,6 @@ export function useAPI3Page() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
-
-    // Actions
     setActiveTab: handleTabChange,
     refresh,
     exportData,

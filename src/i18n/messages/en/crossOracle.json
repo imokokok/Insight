@@ -92,7 +92,47 @@
       }
     },
     "oraclePerformanceRanking": {
-      "rank": "Rank"
+      "rank": "Rank",
+      "title": "Oracle Performance Ranking",
+      "subtitle": "Comprehensive performance evaluation based on multi-dimensional metrics",
+      "weightInfo": "Weights: Response Time 30% | Accuracy 30% | Stability 20% | Data Sources 10% | Supported Chains 10%",
+      "unchanged": "Unchanged",
+      "overallScore": "Overall Score",
+      "dimensionLabels": {
+        "responseTime": "Response Time",
+        "accuracy": "Accuracy",
+        "stability": "Stability",
+        "dataSources": "Data Sources",
+        "supportedChains": "Supported Chains"
+      },
+      "dimensionDescriptions": {
+        "title": "Dimension Descriptions",
+        "responseTime": {
+          "title": "Response Time",
+          "weight": "Weight: 30%",
+          "description": "Average latency of data updates, shorter is better"
+        },
+        "accuracy": {
+          "title": "Accuracy",
+          "weight": "Weight: 30%",
+          "description": "Deviation of price data from benchmark price"
+        },
+        "stability": {
+          "title": "Stability",
+          "weight": "Weight: 20%",
+          "description": "Stability of price fluctuations"
+        },
+        "dataSources": {
+          "title": "Data Sources",
+          "weight": "Weight: 10%",
+          "description": "Number and diversity of data sources"
+        },
+        "supportedChains": {
+          "title": "Supported Chains",
+          "weight": "Weight: 10%",
+          "description": "Number of supported blockchain networks"
+        }
+      }
     },
     "tabOverview": "Data Overview",
     "tabAnalysis": "Analysis",
@@ -181,6 +221,12 @@
     "snapshotsTab": {
       "selectSnapshot": "Select a snapshot to compare",
       "selectHint": "Select a historical snapshot from the left panel"
+    },
+    "historyTab": {
+      "title": "History Data",
+      "selectSnapshot": "Select Snapshot",
+      "selectHint": "Select a snapshot from the history list to view",
+      "exportHistory": "Export History"
     },
     "advancedTab": {
       "movingAverage": "Moving Average Analysis",
@@ -303,6 +349,49 @@
       "timestamp": "Timestamp",
       "severeOutlier": "Severe outlier - significant price deviation",
       "moderateOutlier": "Moderate outlier - needs attention"
+    }
+  },
+  "oraclePerformanceRanking": {
+    "rank": "Rank",
+    "title": "Oracle Performance Ranking",
+    "subtitle": "Comprehensive performance evaluation based on multi-dimensional metrics",
+    "weightInfo": "Weights: Response Time 30% | Accuracy 30% | Stability 20% | Data Sources 10% | Supported Chains 10%",
+    "unchanged": "Unchanged",
+    "overallScore": "Overall Score",
+    "dimensionLabels": {
+      "responseTime": "Response Time",
+      "accuracy": "Accuracy",
+      "stability": "Stability",
+      "dataSources": "Data Sources",
+      "supportedChains": "Supported Chains"
+    },
+    "dimensionDescriptions": {
+      "title": "Dimension Descriptions",
+      "responseTime": {
+        "title": "Response Time",
+        "weight": "Weight: 30%",
+        "description": "Average latency of data updates, shorter is better"
+      },
+      "accuracy": {
+        "title": "Accuracy",
+        "weight": "Weight: 30%",
+        "description": "Deviation of price data from benchmark price"
+      },
+      "stability": {
+        "title": "Stability",
+        "weight": "Weight: 20%",
+        "description": "Stability of price fluctuations"
+      },
+      "dataSources": {
+        "title": "Data Sources",
+        "weight": "Weight: 10%",
+        "description": "Number and diversity of data sources"
+      },
+      "supportedChains": {
+        "title": "Supported Chains",
+        "weight": "Weight: 10%",
+        "description": "Number of supported blockchain networks"
+      }
     }
   },
   "controlPanel": {

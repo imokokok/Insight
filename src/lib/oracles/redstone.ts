@@ -29,6 +29,28 @@ export interface RedStoneMetrics {
   avgProviderReputation: number;
 }
 
+export interface RedStoneNetworkStats {
+  activeNodes: number;
+  dataFeeds: number;
+  nodeUptime: number;
+  avgResponseTime: number;
+  latency: number;
+}
+
+export interface RedStoneEcosystemData {
+  integrations: Array<{
+    name: string;
+    description: string;
+  }>;
+}
+
+export interface RedStoneRiskMetrics {
+  centralizationRisk: number;
+  liquidityRisk: number;
+  technicalRisk: number;
+  overallRisk: number;
+}
+
 export class RedStoneClient extends BaseOracleClient {
   name = OracleProvider.REDSTONE;
   supportedChains = [
@@ -156,5 +178,34 @@ export class RedStoneClient extends BaseOracleClient {
       },
     ];
     return providers;
+  }
+
+  async getNetworkStats(): Promise<RedStoneNetworkStats> {
+    return {
+      activeNodes: 50 + Math.floor(Math.random() * 20),
+      dataFeeds: 200 + Math.floor(Math.random() * 50),
+      nodeUptime: 99.5 + Math.random() * 0.4,
+      avgResponseTime: 150 + Math.floor(Math.random() * 100),
+      latency: 50 + Math.floor(Math.random() * 50),
+    };
+  }
+
+  async getEcosystemData(): Promise<RedStoneEcosystemData> {
+    return {
+      integrations: [
+        { name: 'Ethereum DeFi', description: 'Major DeFi protocols on Ethereum' },
+        { name: 'Arbitrum Ecosystem', description: 'Growing L2 ecosystem' },
+        { name: 'Polygon Gaming', description: 'Web3 gaming applications' },
+      ],
+    };
+  }
+
+  async getRiskMetrics(): Promise<RedStoneRiskMetrics> {
+    return {
+      centralizationRisk: 0.2 + Math.random() * 0.1,
+      liquidityRisk: 0.15 + Math.random() * 0.1,
+      technicalRisk: 0.1 + Math.random() * 0.05,
+      overallRisk: 0.15 + Math.random() * 0.1,
+    };
   }
 }

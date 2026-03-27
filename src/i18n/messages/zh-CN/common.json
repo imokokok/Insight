@@ -362,18 +362,42 @@
   "priceCorrelation": {
     "title": "价格相关性",
     "legend": {
+      "title": "相关性图例",
       "perfectNegative": "完全负相关",
       "negative": "负相关",
       "none": "无相关",
       "positive": "正相关",
-      "perfectPositive": "完全正相关"
+      "perfectPositive": "完全正相关",
+      "lowCorrelation": "低相关",
+      "highCorrelation": "高相关"
     },
     "oracleCount": "预言机数量",
     "highCorrelationPairs": "高相关性对",
     "avgCorrelation": "平均相关性",
     "maxCorrelation": "最大相关性",
     "minCorrelation": "最小相关性",
-    "highCorrelationCount": "高相关性数量"
+    "highCorrelationCount": "高相关性数量",
+    "correlationCoefficient": "相关系数",
+    "correlationLevel": "相关程度",
+    "correlationDirection": "相关方向",
+    "positiveCorrelation": "正相关",
+    "negativeCorrelation": "负相关",
+    "noCorrelation": "无相关",
+    "distribution": {
+      "title": "相关性分布",
+      "topPairs": "高相关性交易对"
+    },
+    "explanation": {
+      "title": "相关性说明",
+      "description": "价格相关性衡量不同预言机价格数据之间的线性关系，取值范围从-1到1。"
+    },
+    "level": {
+      "veryStrong": "极强",
+      "strong": "强",
+      "moderate": "中等",
+      "weak": "弱",
+      "veryWeak": "极弱"
+    }
   },
   "crossChainRisk": {
     "title": "跨链风险"

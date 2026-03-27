@@ -1,3 +1,6 @@
+// Shared utilities
+export { useLastUpdated } from './useLastUpdated';
+
 // Chainlink
 export { useChainlinkPrice, useChainlinkHistorical, useChainlinkAllData } from './chainlink';
 
@@ -5,7 +8,20 @@ export { useChainlinkPrice, useChainlinkHistorical, useChainlinkAllData } from '
 export { usePythPrice, usePythHistorical, usePythAllData } from './pyth';
 
 // RedStone
-export { useRedStonePrice, useRedStoneHistorical, useRedStoneAllData } from './redstone';
+export {
+  useRedStonePrice,
+  useRedStoneHistorical,
+  useRedStoneProviders,
+  useRedStoneMetrics,
+  useRedStoneAllData,
+} from './redstone';
+export type {
+  RedStoneProviderInfo,
+  RedStoneMetrics,
+  RedStoneNetworkStats,
+  RedStoneEcosystemData,
+  RedStoneRiskMetrics,
+} from './redstone';
 
 // DIA
 export {
@@ -84,6 +100,26 @@ export {
   useAPI3CrossOracle,
   useAPI3AllData,
 } from './api3';
+
+// UMA
+export {
+  useUMAPrice,
+  useUMAHistorical,
+  useUMANetworkStats,
+  useUMAValidators,
+  useUMADisputes,
+  useUMAAllData,
+} from './uma';
+
+// Band Protocol
+export {
+  useBandPrice,
+  useBandHistorical,
+  useBandNetworkStats,
+  useBandValidators,
+  useBandCrossChainStats,
+  useBandProtocolAllData,
+} from './band';
 
 // Unified Oracle Page Hook
 export {

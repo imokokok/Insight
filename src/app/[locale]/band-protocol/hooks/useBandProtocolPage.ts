@@ -1,65 +1,38 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport } from '@/hooks';
+import { useRefresh, useExport, useBandProtocolAllData } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-import type { BandNetworkStats, ValidatorInfo, CrossChainStats } from '@/lib/oracles/bandProtocol';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 
 import { type BandProtocolTabId } from '../types';
 
 export function useBandProtocolPage() {
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState<BandProtocolTabId>('market');
-  const [price, setPrice] = useState<PriceData | null>(null);
-  const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
-  const [networkStats, setNetworkStats] = useState<BandNetworkStats | null>(null);
-  const [validators, setValidators] = useState<ValidatorInfo[]>([]);
-  const [crossChainStats, setCrossChainStats] = useState<CrossChainStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const config = useMemo(() => getOracleConfig(OracleProvider.BAND_PROTOCOL), []);
   const client = useMemo(() => new BandProtocolClient(), []);
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    setIsError(false);
-    setError(null);
-
-    try {
-      const promises: Promise<unknown>[] = [
-        client.getPrice(config.symbol, config.defaultChain),
-        client.getHistoricalPrices(config.symbol, config.defaultChain, 7),
-        client.getNetworkStats(),
-        client.getValidators(20),
-        client.getCrossChainStats(),
-      ];
-
-      const results = await Promise.all(promises);
-      setPrice(results[0] as PriceData);
-      setHistoricalData(results[1] as PriceData[]);
-      setNetworkStats(results[2] as BandNetworkStats);
-      setValidators(results[3] as ValidatorInfo[]);
-      setCrossChainStats(results[4] as CrossChainStats);
-      setLastUpdated(new Date());
-    } catch (err) {
-      setIsError(true);
-      setError(err instanceof Error ? err : new Error('Failed to fetch data'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [client, config.symbol, config.defaultChain]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const {
+    price,
+    historicalData,
+    networkStats,
+    validators,
+    crossChainStats,
+    isLoading,
+    isError,
+    errors,
+    refetchAll,
+    lastUpdated,
+  } = useBandProtocolAllData({
+    symbol: config.symbol,
+    chain: config.defaultChain,
+    enabled: true,
+  });
 
   const { exportData } = useExport({
     data: {
@@ -74,7 +47,9 @@ export function useBandProtocolPage() {
   });
 
   const { isRefreshing, refresh } = useRefresh({
-    onRefresh: fetchData,
+    onRefresh: async () => {
+      await refetchAll();
+    },
     minLoadingTime: 500,
   });
 
@@ -93,7 +68,7 @@ export function useBandProtocolPage() {
     crossChainStats,
     isLoading,
     isError,
-    error,
+    error: errors[0] || null,
     lastUpdated,
     isRefreshing,
     setActiveTab: handleTabChange,
