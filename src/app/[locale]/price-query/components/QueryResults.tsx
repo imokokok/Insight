@@ -7,7 +7,7 @@
 
 import { TrendingUp } from 'lucide-react';
 
-import { type TimeComparisonConfig as ExternalTimeComparisonConfig } from '@/components/comparison/types';
+import { type TimeComparisonConfig, type TimePeriod } from '@/components/comparison/types';
 import { ChartSkeleton, EmptyStateEnhanced, ProgressBar, SegmentedControl } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { type OracleProvider, type Blockchain } from '@/lib/oracles';
@@ -29,20 +29,6 @@ interface ChartDataPoint {
   timestamp: number;
   time: string;
   [key: string]: number | string;
-}
-
-interface TimePeriod {
-  id: string;
-  label: string;
-  startDate: Date;
-  endDate: Date;
-  range: '1h' | '24h' | '7d' | '30d' | '90d' | '1y' | 'custom';
-}
-
-interface TimeComparisonConfig {
-  primaryPeriod: TimePeriod;
-  comparisonPeriod: TimePeriod;
-  comparisonType: 'previous' | 'custom' | 'year_over_year';
 }
 
 interface QueryResultsProps {
@@ -303,10 +289,8 @@ export function QueryResults({
           compareChartData={compareChartData}
           queryResults={queryResults}
           compareQueryResults={compareQueryResults}
-          timeConfig={timeComparisonConfig as unknown as ExternalTimeComparisonConfig}
-          onTimeConfigChange={(config) => {
-            onTimeConfigChange(config as unknown as TimeComparisonConfig);
-          }}
+          timeConfig={timeComparisonConfig}
+          onTimeConfigChange={onTimeConfigChange}
           hiddenSeries={hiddenSeries}
         />
       )}

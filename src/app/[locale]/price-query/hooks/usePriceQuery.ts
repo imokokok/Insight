@@ -34,6 +34,12 @@ import { type QueryResult, providerNames, chainNames, oracleI18nKeys } from '../
 
 const logger = createLogger('price-query-hook');
 
+export interface QueryError {
+  provider: OracleProvider;
+  chain: Blockchain;
+  error: string;
+}
+
 const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
   [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
@@ -87,6 +93,8 @@ export interface UsePriceQueryReturn {
   queryDuration: number | null;
   queryProgress: { completed: number; total: number };
   currentQueryTarget: { oracle: OracleProvider | null; chain: Blockchain | null };
+  queryErrors: QueryError[];
+  clearErrors: () => void;
   showHistory: boolean;
   setShowHistory: (show: boolean) => void;
   historyItems: QueryHistoryItem[];
@@ -106,6 +114,8 @@ export interface UsePriceQueryReturn {
   timeComparisonConfig: TimeComparisonConfig;
   setTimeComparisonConfig: (config: TimeComparisonConfig) => void;
   urlParamsParsed: boolean;
+  primaryDataFetchTime: Date | null;
+  compareDataFetchTime: Date | null;
   // Favorites
   user: ReturnType<typeof useUser>;
   symbolFavorites: ReturnType<typeof useFavorites>['favorites'];
@@ -185,6 +195,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
     oracle: OracleProvider | null;
     chain: Blockchain | null;
   }>({ oracle: null, chain: null });
+  const [queryErrors, setQueryErrors] = useState<QueryError[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [historyItems, setHistoryItems] = useState<QueryHistoryItem[]>([]);
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
@@ -197,6 +208,8 @@ export function usePriceQuery(): UsePriceQueryReturn {
   const [showBaseline, setShowBaseline] = useState<boolean>(false);
   const [showExportConfig, setShowExportConfig] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [primaryDataFetchTime, setPrimaryDataFetchTime] = useState<Date | null>(null);
+  const [compareDataFetchTime, setCompareDataFetchTime] = useState<Date | null>(null);
 
   const [timeComparisonConfig, setTimeComparisonConfig] = useState<TimeComparisonConfig>(() => {
     const now = new Date();
@@ -223,6 +236,15 @@ export function usePriceQuery(): UsePriceQueryReturn {
   const [urlParamsParsed, setUrlParamsParsed] = useState(false);
   const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
+  const isMounted = useRef(true);
+  const prevParamsRef = useRef<string>('');
+  const selectedOraclesRef = useRef<OracleProvider[]>(selectedOracles);
+  const selectedChainsRef = useRef<Blockchain[]>(selectedChains);
+  const selectedSymbolRef = useRef<string>(selectedSymbol);
+  const selectedTimeRangeRef = useRef<number>(selectedTimeRange);
+  const isCompareModeRef = useRef<boolean>(isCompareMode);
+  const compareTimeRangeRef = useRef<number>(compareTimeRange);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const applyPreferences = useCallback(() => {
     if (isPrefsLoading) return;
@@ -279,6 +301,15 @@ export function usePriceQuery(): UsePriceQueryReturn {
     }
     setUrlParamsParsed(true);
   }, [applyPreferences]);
+
+  useEffect(() => {
+    selectedOraclesRef.current = selectedOracles;
+    selectedChainsRef.current = selectedChains;
+    selectedSymbolRef.current = selectedSymbol;
+    selectedTimeRangeRef.current = selectedTimeRange;
+    isCompareModeRef.current = isCompareMode;
+    compareTimeRangeRef.current = compareTimeRange;
+  }, [selectedOracles, selectedChains, selectedSymbol, selectedTimeRange, isCompareMode, compareTimeRange]);
 
   useEffect(() => {
     if (!urlParamsParsed) return;
@@ -382,6 +413,20 @@ export function usePriceQuery(): UsePriceQueryReturn {
   }, [queryResults, selectedSymbol, selectedOracles, selectedChains, generateFilename]);
 
   const fetchQueryData = useCallback(async () => {
+    const currentSelectedOracles = selectedOraclesRef.current;
+    const currentSelectedChains = selectedChainsRef.current;
+    const currentSelectedSymbol = selectedSymbolRef.current;
+    const currentSelectedTimeRange = selectedTimeRangeRef.current;
+    const currentIsCompareMode = isCompareModeRef.current;
+    const currentCompareTimeRange = compareTimeRangeRef.current;
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     setIsLoading(true);
     const startTime = Date.now();
     setQueryStartTime(startTime);
@@ -389,20 +434,18 @@ export function usePriceQuery(): UsePriceQueryReturn {
     setQueryProgress({ completed: 0, total: 0 });
     setCurrentQueryTarget({ oracle: null, chain: null });
 
-    const isMounted = true;
-
     let totalQueries = 0;
-    for (const provider of selectedOracles) {
+    for (const provider of currentSelectedOracles) {
       const client = oracleClients[provider];
       const supportedChains = client.supportedChains;
-      for (const chain of selectedChains) {
+      for (const chain of currentSelectedChains) {
         if (supportedChains.includes(chain)) {
           totalQueries++;
         }
       }
     }
 
-    const actualTotalQueries = isCompareMode ? totalQueries * 2 : totalQueries;
+    const actualTotalQueries = currentIsCompareMode ? totalQueries * 2 : totalQueries;
     setQueryProgress({ completed: 0, total: actualTotalQueries });
 
     try {
@@ -410,16 +453,16 @@ export function usePriceQuery(): UsePriceQueryReturn {
       const histories: Partial<Record<string, PriceData[]>> = {};
       let completedQueries = 0;
 
-      for (const provider of selectedOracles) {
+      for (const provider of currentSelectedOracles) {
         const client = oracleClients[provider];
         const supportedChains = client.supportedChains;
 
-        for (const chain of selectedChains) {
+        for (const chain of currentSelectedChains) {
           if (supportedChains.includes(chain)) {
-            if (!isMounted) return;
+            if (!isMounted.current) return;
             setCurrentQueryTarget({ oracle: provider, chain: chain });
             try {
-              const price = await client.getPrice(selectedSymbol, chain);
+              const price = await client.getPrice(currentSelectedSymbol, chain);
               results.push({
                 provider,
                 chain,
@@ -427,44 +470,54 @@ export function usePriceQuery(): UsePriceQueryReturn {
               });
 
               const history = await client.getHistoricalPrices(
-                selectedSymbol,
+                currentSelectedSymbol,
                 chain,
-                selectedTimeRange
+                currentSelectedTimeRange
               );
               const key = `${provider}-${chain}`;
               histories[key] = history;
             } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              setQueryErrors((prev) => [
+                ...prev,
+                {
+                  provider,
+                  chain,
+                  error: errorMessage,
+                },
+              ]);
               logger.error(
                 `Error fetching ${provider} on ${chain}`,
                 error instanceof Error ? error : new Error(String(error))
               );
             }
             completedQueries++;
-            if (isMounted) {
+            if (isMounted.current) {
               setQueryProgress({ completed: completedQueries, total: actualTotalQueries });
             }
           }
         }
       }
 
-      if (!isMounted) return;
+      if (!isMounted.current) return;
       setQueryResults(results);
       setHistoricalData(histories);
+      setPrimaryDataFetchTime(new Date());
 
-      if (isCompareMode) {
+      if (currentIsCompareMode) {
         const compareResults: QueryResult[] = [];
         const compareHistories: Partial<Record<string, PriceData[]>> = {};
 
-        for (const provider of selectedOracles) {
+        for (const provider of currentSelectedOracles) {
           const client = oracleClients[provider];
           const supportedChains = client.supportedChains;
 
-          for (const chain of selectedChains) {
+          for (const chain of currentSelectedChains) {
             if (supportedChains.includes(chain)) {
-              if (!isMounted) return;
+              if (!isMounted.current) return;
               setCurrentQueryTarget({ oracle: provider, chain: chain });
               try {
-                const price = await client.getPrice(selectedSymbol, chain);
+                const price = await client.getPrice(currentSelectedSymbol, chain);
                 compareResults.push({
                   provider,
                   chain,
@@ -472,9 +525,9 @@ export function usePriceQuery(): UsePriceQueryReturn {
                 });
 
                 const history = await client.getHistoricalPrices(
-                  selectedSymbol,
+                  currentSelectedSymbol,
                   chain,
-                  compareTimeRange
+                  currentCompareTimeRange
                 );
                 const key = `${provider}-${chain}`;
                 compareHistories[key] = history;
@@ -485,16 +538,17 @@ export function usePriceQuery(): UsePriceQueryReturn {
                 );
               }
               completedQueries++;
-              if (isMounted) {
+              if (isMounted.current) {
                 setQueryProgress({ completed: completedQueries, total: actualTotalQueries });
               }
             }
           }
         }
 
-        if (!isMounted) return;
+        if (!isMounted.current) return;
         setCompareQueryResults(compareResults);
         setCompareHistoricalData(compareHistories);
+        setCompareDataFetchTime(new Date());
       } else {
         setCompareQueryResults([]);
         setCompareHistoricalData({});
@@ -502,10 +556,10 @@ export function usePriceQuery(): UsePriceQueryReturn {
 
       if (results.length > 0) {
         saveQueryHistory({
-          oracles: selectedOracles,
-          chains: selectedChains,
-          symbol: selectedSymbol,
-          timeRange: selectedTimeRange,
+          oracles: currentSelectedOracles,
+          chains: currentSelectedChains,
+          symbol: currentSelectedSymbol,
+          timeRange: currentSelectedTimeRange,
         });
         setHistoryItems(getQueryHistory());
       }
@@ -515,28 +569,41 @@ export function usePriceQuery(): UsePriceQueryReturn {
         error instanceof Error ? error : new Error(String(error))
       );
     } finally {
-      if (isMounted) {
+      if (isMounted.current) {
         setIsLoading(false);
         setQueryDuration(Date.now() - startTime);
         setCurrentQueryTarget({ oracle: null, chain: null });
       }
     }
-  }, [
-    selectedOracles,
-    selectedChains,
-    selectedSymbol,
-    selectedTimeRange,
-    isCompareMode,
-    compareTimeRange,
-  ]);
+  }, []);
 
   useEffect(() => {
     if (!urlParamsParsed) return;
-    fetchQueryData();
-  }, [urlParamsParsed, fetchQueryData]);
+
+    const paramsSignature = JSON.stringify({
+      oracles: selectedOracles,
+      chains: selectedChains,
+      symbol: selectedSymbol,
+      timeRange: selectedTimeRange,
+    });
+
+    if (prevParamsRef.current !== paramsSignature) {
+      prevParamsRef.current = paramsSignature;
+      fetchQueryData();
+    }
+  }, [urlParamsParsed, selectedOracles, selectedChains, selectedSymbol, selectedTimeRange, fetchQueryData]);
 
   useEffect(() => {
     setHistoryItems(getQueryHistory());
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   const chartData = useMemo((): ChartDataPoint[] => {
@@ -558,6 +625,8 @@ export function usePriceQuery(): UsePriceQueryReturn {
       }
     };
 
+    const lastValidValues: Record<string, number> = {};
+
     return sortedTimestamps.map((timestamp) => {
       const dataPoint: ChartDataPoint = {
         timestamp,
@@ -568,9 +637,13 @@ export function usePriceQuery(): UsePriceQueryReturn {
         const key = `${provider}-${chain}`;
         const history = historicalData[key];
         const price = history?.find((p) => p.timestamp === timestamp);
+        const label = `${providerNames[provider]} (${chainNames[chain]})`;
+
         if (price) {
-          const label = `${providerNames[provider]} (${chainNames[chain]})`;
+          lastValidValues[label] = price.price;
           dataPoint[label] = price.price;
+        } else if (lastValidValues[label] !== undefined) {
+          dataPoint[label] = lastValidValues[label];
         }
       });
 
@@ -883,5 +956,9 @@ export function usePriceQuery(): UsePriceQueryReturn {
     setShowFavoritesDropdown,
     favoritesDropdownRef,
     handleApplyFavorite,
+    queryErrors,
+    clearErrors: () => setQueryErrors([]),
+    primaryDataFetchTime,
+    compareDataFetchTime,
   };
 }
