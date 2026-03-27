@@ -117,7 +117,6 @@ export default function MarketStats({
 }: MarketStatsProps) {
   const t = useTranslations('marketOverview.stats');
 
-  // 核心指标数据
   const coreStats = [
     {
       label: t('totalTVS'),
@@ -127,31 +126,30 @@ export default function MarketStats({
     {
       label: t('totalChains'),
       value: totalChains,
-      change: 12.5,
+      change: marketStats.chainsChange24h,
     },
     {
       label: t('totalProtocols'),
       value: `${totalProtocols}+`,
-      change: 8.3,
+      change: marketStats.protocolsChange24h,
     },
   ];
 
-  // 次要指标数据
   const secondaryStats = [
     {
       label: t('marketDominance'),
       value: `${marketStats.marketDominance}%`,
-      change: -0.5,
+      change: marketStats.dominanceChange24h,
     },
     {
       label: t('avgLatency'),
       value: `${marketStats.avgUpdateLatency}ms`,
-      change: -5.2,
+      change: marketStats.latencyChange24h,
     },
     {
       label: t('oracleCount'),
       value: marketStats.oracleCount,
-      change: 2,
+      change: marketStats.oracleCountChange24h,
     },
   ];
 
