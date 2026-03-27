@@ -28,6 +28,8 @@ export class PythClient extends BaseOracleClient {
     Blockchain.SUI,
   ];
 
+  defaultUpdateIntervalMinutes = 1;
+
   constructor(config?: OracleClientConfig) {
     super(config);
   }

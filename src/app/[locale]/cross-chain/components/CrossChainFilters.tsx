@@ -9,6 +9,7 @@ import { useTranslations } from '@/i18n';
 import { baseColors, chainColors as configChainColors } from '@/lib/config/colors';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { type OracleProvider, Blockchain } from '@/lib/oracles';
+import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useCrossChainStore } from '@/stores/crossChainStore';
 
 import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
@@ -219,8 +220,14 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                       ? `${option.label} (${t('crossChain.recommended')})`
                       : option.label,
                 }))}
-                value={selectedBaseChain || ''}
-                onChange={(value) => setSelectedBaseChain(value as Blockchain)}
+                value={selectedBaseChain ?? ''}
+                onChange={(value) => {
+                  if (isBlockchain(value)) {
+                    setSelectedBaseChain(value);
+                  } else if (value === '') {
+                    setSelectedBaseChain(null);
+                  }
+                }}
                 className="w-full"
               />
             </div>

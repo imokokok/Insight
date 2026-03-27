@@ -46,6 +46,8 @@ export class RedStoneClient extends BaseOracleClient {
     Blockchain.ZKSYNC,
   ];
 
+  defaultUpdateIntervalMinutes = 10;
+
   constructor(config?: OracleClientConfig) {
     super(config);
   }

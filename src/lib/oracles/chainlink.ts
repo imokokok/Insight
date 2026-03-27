@@ -19,6 +19,8 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.SOLANA,
   ];
 
+  defaultUpdateIntervalMinutes = 60;
+
   constructor(config?: OracleClientConfig) {
     super(config);
   }

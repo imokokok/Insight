@@ -124,6 +124,8 @@ export class API3Client extends BaseOracleClient {
     Blockchain.BASE,
   ];
 
+  defaultUpdateIntervalMinutes = 1;
+
   constructor(config?: OracleClientConfig) {
     super(config);
   }

@@ -4,6 +4,7 @@ import {
   ORACLE_PROVIDER_VALUES,
   BLOCKCHAIN_VALUES,
 } from '@/types/oracle';
+import { isBlockchain } from '@/lib/utils/chainUtils';
 
 export interface QueryConfig {
   oracles: OracleProvider[];
@@ -36,9 +37,9 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
     const chainValues = chainsParam
       .split(',')
       .map((v) => v.trim().toLowerCase())
-      .filter((v) => VALID_CHAINS.includes(v as Blockchain));
+      .filter(isBlockchain);
     if (chainValues.length > 0) {
-      result.chains = chainValues as Blockchain[];
+      result.chains = chainValues;
     }
   }
 

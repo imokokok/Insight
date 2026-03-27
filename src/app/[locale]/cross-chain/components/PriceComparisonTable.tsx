@@ -3,6 +3,7 @@
 import { DataTablePro, type ColumnDef, type ConditionalFormattingRule } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { type Blockchain } from '@/lib/oracles';
+import { isBlockchain } from '@/lib/utils/chainUtils';
 
 import { type useCrossChainData } from '../useCrossChainData';
 import { chainNames, chainColors, getDiffTextColor, calculateZScore, isOutlier } from '../utils';
@@ -36,8 +37,10 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
   // Transform data for DataTablePro
   const tableData: TableRow[] = sortedPriceDifferences.map((item) => {
     const zScore = calculateZScore(item.price, avgPrice, standardDeviation);
-    const chainHistoricalPrices = historicalPrices[item.chain as Blockchain];
-    const priceHistory = chainHistoricalPrices?.map((p) => p.price) || [];
+    const chainHistoricalPrices = isBlockchain(item.chain)
+      ? historicalPrices[item.chain]
+      : undefined;
+    const priceHistory = chainHistoricalPrices?.map((p) => p.price) ?? [];
 
     return {
       chain: item.chain,

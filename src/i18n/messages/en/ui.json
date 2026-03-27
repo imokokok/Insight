@@ -155,6 +155,7 @@
   },
   "time": {
     "justNow": "Just now",
+    "secondsAgo": "{count} seconds ago",
     "minutesAgo": "{count} minutes ago",
     "hoursAgo": "{count} hours ago",
     "daysAgo": "{count} days ago"

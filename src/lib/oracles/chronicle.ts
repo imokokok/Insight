@@ -89,6 +89,8 @@ export class ChronicleClient extends BaseOracleClient {
     Blockchain.AVALANCHE,
   ];
 
+  defaultUpdateIntervalMinutes = 5;
+
   constructor(config?: OracleClientConfig) {
     super(config);
   }

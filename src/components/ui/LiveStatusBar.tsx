@@ -42,17 +42,17 @@ function getStatusConfig(
 ): Record<ConnectionStatus, StatusConfig> {
   return {
     connected: {
-      label: t('ui.liveStatus.connected'),
+      label: t('liveStatus.connected'),
       icon: Wifi,
       color: semanticColors.success.DEFAULT,
     },
     disconnected: {
-      label: t('ui.liveStatus.disconnected'),
+      label: t('liveStatus.disconnected'),
       icon: WifiOff,
       color: semanticColors.danger.DEFAULT,
     },
     reconnecting: {
-      label: t('ui.liveStatus.reconnecting'),
+      label: t('liveStatus.reconnecting'),
       icon: RefreshCw,
       color: semanticColors.warning.DEFAULT,
     },
@@ -64,22 +64,22 @@ function getFreshnessConfig(
 ): Record<DataFreshnessLevel, FreshnessConfig> {
   return {
     fresh: {
-      label: t('ui.liveStatus.dataFresh'),
-      shortLabel: t('ui.liveStatus.dataFresh'),
+      label: t('liveStatus.dataFresh'),
+      shortLabel: t('liveStatus.dataFresh'),
       color: semanticColors.success.DEFAULT,
       bgColor: 'bg-emerald-50',
       pulse: false,
     },
     stale: {
-      label: t('ui.liveStatus.dataStale'),
-      shortLabel: t('ui.liveStatus.dataStale'),
+      label: t('liveStatus.dataStale'),
+      shortLabel: t('liveStatus.dataStale'),
       color: semanticColors.warning.DEFAULT,
       bgColor: 'bg-amber-50',
       pulse: true,
     },
     expired: {
-      label: t('ui.liveStatus.dataExpired'),
-      shortLabel: t('ui.liveStatus.dataExpired'),
+      label: t('liveStatus.dataExpired'),
+      shortLabel: t('liveStatus.dataExpired'),
       color: semanticColors.danger.DEFAULT,
       bgColor: 'bg-red-50',
       pulse: true,
@@ -109,9 +109,9 @@ function formatLastUpdate(date?: Date, t?: ReturnType<typeof useTranslations>): 
 
   if (!t) return date.toLocaleDateString();
 
-  if (seconds < 60) return t('common.time.secondsAgo', { seconds });
-  if (minutes < 60) return t('common.time.minutesAgo', { minutes });
-  if (hours < 24) return t('common.time.hoursAgo', { hours });
+  if (seconds < 60) return t('time.secondsAgo', { count: seconds });
+  if (minutes < 60) return t('time.minutesAgo', { count: minutes });
+  if (hours < 24) return t('time.hoursAgo', { count: hours });
   return date.toLocaleDateString();
 }
 
@@ -177,7 +177,7 @@ export function LiveStatusBar({
       <div className="flex items-center gap-2">
         <Zap className="w-3 h-3 text-gray-400" />
         <span>
-          {t('networkHealth.avgResponseTime')}: {formatLatency(latency)}
+          {t('metrics.responseTime')}: {formatLatency(latency)}
         </span>
       </div>
       <div className="flex items-center gap-2">

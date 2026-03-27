@@ -16,9 +16,11 @@ import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
 import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 import { type Blockchain, type PriceData } from '@/lib/oracles';
+import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useColorblindMode } from '@/stores/crossChainStore';
 
 import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
+import { type HeatmapData } from '../constants';
 import { type useCrossChainData } from '../useCrossChainData';
 import { chainNames, chainColors, getHeatmapColor } from '../utils';
 
@@ -74,8 +76,8 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
   const colorblindMode = useColorblindMode();
   const {
     filteredChains,
-    heatmapData,
-    maxHeatmapValue,
+    heatmapData: originalHeatmapData,
+    maxHeatmapValue: originalMaxHeatmapValue,
     hoveredCell,
     setHoveredCell,
     selectedCell,
@@ -87,15 +89,79 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
   } = data;
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24H');
 
-  // Handle time range change
   const handleTimeRangeChange = useCallback((range: string) => {
     setSelectedTimeRange(range as TimeRange);
   }, []);
 
-  // Handle export
   const handleExport = useCallback(() => {
     console.log('Exporting heatmap data...');
   }, []);
+
+  const getTimeRangeInMs = useCallback((range: TimeRange): number => {
+    const now = Date.now();
+    switch (range) {
+      case '1H':
+        return now - 60 * 60 * 1000;
+      case '24H':
+        return now - 24 * 60 * 60 * 1000;
+      case '7D':
+        return now - 7 * 24 * 60 * 60 * 1000;
+      case '30D':
+        return now - 30 * 24 * 60 * 60 * 1000;
+      default:
+        return now - 24 * 60 * 60 * 1000;
+    }
+  }, []);
+
+  const filteredHistoricalPrices = useMemo(() => {
+    const cutoffTime = getTimeRangeInMs(selectedTimeRange);
+    const filtered: Partial<Record<Blockchain, PriceData[]>> = {};
+
+    Object.keys(historicalPrices).forEach((chain) => {
+      if (isBlockchain(chain)) {
+        const prices = historicalPrices[chain];
+        if (prices) {
+          filtered[chain] = prices.filter((p) => p.timestamp >= cutoffTime);
+        }
+      }
+    });
+
+    return filtered;
+  }, [historicalPrices, selectedTimeRange, getTimeRangeInMs]);
+
+  const { heatmapData, maxHeatmapValue } = useMemo(() => {
+    const filteredPrices = currentPrices.filter((p) => p.chain && filteredChains.includes(p.chain));
+    if (filteredPrices.length < 2) {
+      return { heatmapData: originalHeatmapData, maxHeatmapValue: originalMaxHeatmapValue };
+    }
+
+    const data: HeatmapData[] = [];
+    let maxValue = 0;
+
+    filteredChains.forEach((xChain) => {
+      filteredChains.forEach((yChain) => {
+        const xPrice = filteredPrices.find((p) => p.chain === xChain)?.price || 0;
+        const yPrice = filteredPrices.find((p) => p.chain === yChain)?.price || 0;
+        const diff = Math.abs(xPrice - yPrice);
+        const percent = xPrice > 0 && yPrice > 0 ? (diff / xPrice) * 100 : 0;
+
+        data.push({
+          x: chainNames[xChain],
+          y: chainNames[yChain],
+          value: diff,
+          percent,
+          xChain,
+          yChain,
+        });
+
+        if (percent > maxValue) {
+          maxValue = percent;
+        }
+      });
+    });
+
+    return { heatmapData: data, maxHeatmapValue: maxValue };
+  }, [currentPrices, filteredChains, originalHeatmapData, originalMaxHeatmapValue]);
 
   // 根据色盲模式获取热力图颜色
   const getHeatmapColorFn = colorblindMode ? getColorblindHeatmapColor : getHeatmapColor;
@@ -292,7 +358,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
           cell={selectedCell || hoveredCell}
           heatmapData={heatmapData}
           currentPrices={currentPrices}
-          historicalPrices={historicalPrices}
+          historicalPrices={filteredHistoricalPrices}
           tooltipPosition={tooltipPosition}
           isPinned={!!selectedCell}
           onClose={() => setSelectedCell(null)}
@@ -326,14 +392,15 @@ function HeatmapTooltip({
 }: HeatmapTooltipProps) {
   const t = useTranslations();
 
-  if (!cell) return null;
+  const cellData = cell
+    ? heatmapData.find((d) => d.xChain === cell.xChain && d.yChain === cell.yChain)
+    : null;
+  const xPrice = cell ? currentPrices.find((p) => p.chain === cell.xChain)?.price : undefined;
+  const yPrice = cell ? currentPrices.find((p) => p.chain === cell.yChain)?.price : undefined;
 
-  const cellData = heatmapData.find((d) => d.xChain === cell.xChain && d.yChain === cell.yChain);
-  const xPrice = currentPrices.find((p) => p.chain === cell.xChain)?.price;
-  const yPrice = currentPrices.find((p) => p.chain === cell.yChain)?.price;
-
-  // Calculate historical percentile
   const historicalPercentile = useMemo(() => {
+    if (!cell) return null;
+
     const xHistorical = historicalPrices[cell.xChain] || [];
     const yHistorical = historicalPrices[cell.yChain] || [];
 
@@ -348,7 +415,12 @@ function HeatmapTooltip({
     timestamps.forEach((timestamp) => {
       const xHistPrice = xHistorical.find((p) => p.timestamp === timestamp)?.price;
       const yHistPrice = yHistorical.find((p) => p.timestamp === timestamp)?.price;
-      if (xHistPrice && yHistPrice && xHistPrice > 0) {
+      if (
+        xHistPrice !== undefined &&
+        yHistPrice !== undefined &&
+        xHistPrice > 0 &&
+        yHistPrice > 0
+      ) {
         const diffPercent = (Math.abs(xHistPrice - yHistPrice) / xHistPrice) * 100;
         historicalDiffs.push(diffPercent);
       }
@@ -366,6 +438,8 @@ function HeatmapTooltip({
 
     return (count / sortedDiffs.length) * 100;
   }, [cell, cellData, historicalPrices]);
+
+  if (!cell) return null;
 
   const getPercentileColor = (percentile: number): string => {
     if (percentile >= 80) return 'text-red-600';

@@ -33,6 +33,8 @@ export class UMAClient extends BaseOracleClient {
     Blockchain.BASE,
   ];
 
+  defaultUpdateIntervalMinutes = 120;
+
   constructor(config?: OracleClientConfig) {
     super(config);
   }

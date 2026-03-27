@@ -20,6 +20,7 @@ import { DropdownSelect } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { type Blockchain } from '@/types/oracle';
+import { isBlockchain } from '@/lib/utils/chainUtils';
 
 import { type useCrossChainData } from '../useCrossChainData';
 import {
@@ -193,7 +194,10 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
 
     const validPayload = payload.filter(
       (p) =>
-        p.value !== undefined && !isNaN(p.value) && filteredChains.includes(p.dataKey as Blockchain)
+        p.value !== undefined &&
+        !isNaN(p.value) &&
+        isBlockchain(p.dataKey) &&
+        filteredChains.includes(p.dataKey)
     );
     if (validPayload.length === 0) return null;
 
@@ -208,7 +212,8 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
             : t('crossChain.dataPointLabel', { index: label ?? 0 })}
         </p>
         {sortedPayload.map((entry, index: number) => {
-          const chain = entry.dataKey as Blockchain;
+          const chain = entry.dataKey;
+          if (!isBlockchain(chain)) return null;
           const volatility = entry.value || 0;
           const level =
             volatility < 30
@@ -500,13 +505,17 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">{t('crossChain.selectChain')}:</span>
-            <DropdownSelect<Blockchain>
+            <DropdownSelect<Blockchain | ''>
               options={filteredChains.map((chain) => ({
                 value: chain,
                 label: chainNames[chain],
               }))}
-              value={selectedConeChain || filteredChains[0] || ('' as Blockchain)}
-              onChange={(value) => setSelectedConeChain(value)}
+              value={selectedConeChain ?? filteredChains[0] ?? ''}
+              onChange={(value) => {
+                if (isBlockchain(value)) {
+                  setSelectedConeChain(value);
+                }
+              }}
               className="w-40"
             />
           </div>

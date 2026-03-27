@@ -218,6 +218,8 @@ export class BandProtocolClient extends BaseOracleClient {
     Blockchain.JUNO,
   ];
 
+  defaultUpdateIntervalMinutes = 30;
+
   constructor(config?: OracleClientConfig) {
     super(config);
   }
