@@ -29,7 +29,24 @@ import {
 
 import HeroBackground from './HeroBackground';
 
-// 热门币种（使用价格查询页面的前七个币种）
+interface HistoryDropdownItem {
+  type: 'history';
+  item: { symbol: string };
+}
+
+interface PopularDropdownItem {
+  type: 'popular';
+  item: { symbol: string };
+}
+
+interface SearchDropdownItem {
+  type: 'search';
+  item: SearchResult;
+  resultType: 'token' | 'oracle' | 'chain' | 'protocol';
+}
+
+type DropdownItem = HistoryDropdownItem | PopularDropdownItem | SearchDropdownItem;
+
 const POPULAR_TOKENS = ['BTC', 'ETH', 'SOL', 'AVAX', 'NEAR', 'MATIC', 'ARB'];
 
 export default function ProfessionalHero() {
@@ -56,12 +73,8 @@ export default function ProfessionalHero() {
 
   const searchResults = searchQuery.trim() ? searchAll(searchQuery) : [];
 
-  const dropdownItems = (() => {
-    const items: {
-      type: 'history' | 'popular' | 'search';
-      item: SearchResult | { symbol: string };
-      resultType?: 'token' | 'oracle' | 'chain' | 'protocol';
-    }[] = [];
+  const dropdownItems: DropdownItem[] = (() => {
+    const items: DropdownItem[] = [];
 
     if (!searchQuery.trim() && searchHistory.length > 0) {
       searchHistory.slice(0, 3).forEach((historyItem) => {
@@ -117,14 +130,12 @@ export default function ProfessionalHero() {
     [locale, router]
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isComposing) return;
+  const handleSelectItem = useCallback(() => {
     if (highlightedIndex >= 0 && highlightedIndex < dropdownItems.length) {
       const selectedItem = dropdownItems[highlightedIndex];
-      if (selectedItem.type === 'search' && 'score' in selectedItem.item) {
-        handleSearch(selectedItem.item as SearchResult);
-      } else if ('symbol' in selectedItem.item) {
+      if (selectedItem.type === 'search') {
+        handleSearch(selectedItem.item);
+      } else {
         handleSearch(selectedItem.item.symbol);
       }
     } else if (searchQuery.trim()) {
@@ -135,6 +146,12 @@ export default function ProfessionalHero() {
         handleSearch(searchQuery);
       }
     }
+  }, [highlightedIndex, dropdownItems, searchQuery, handleSearch]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isComposing) return;
+    handleSelectItem();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -160,21 +177,7 @@ export default function ProfessionalHero() {
         break;
       case 'Enter':
         e.preventDefault();
-        if (highlightedIndex >= 0 && highlightedIndex < dropdownItems.length) {
-          const selectedItem = dropdownItems[highlightedIndex];
-          if (selectedItem.type === 'search' && 'score' in selectedItem.item) {
-            handleSearch(selectedItem.item as SearchResult);
-          } else if ('symbol' in selectedItem.item) {
-            handleSearch(selectedItem.item.symbol);
-          }
-        } else if (searchQuery.trim()) {
-          const tokenSymbol = getTokenSymbol(searchQuery);
-          if (tokenSymbol) {
-            handleSearch(tokenSymbol);
-          } else {
-            handleSearch(searchQuery);
-          }
-        }
+        handleSelectItem();
         break;
       case 'Escape':
         setIsDropdownOpen(false);
@@ -210,34 +213,37 @@ export default function ProfessionalHero() {
     setSearchHistory(getSearchHistory());
   };
 
-  const getTypeIcon = (dropdownItem: (typeof dropdownItems)[0]) => {
-    const searchableItem = 'score' in dropdownItem.item ? dropdownItem.item.item : null;
-
+  const getTypeIcon = (dropdownItem: DropdownItem) => {
     if (dropdownItem.type === 'history') return <Clock className="w-4 h-4 text-gray-400" />;
     if (dropdownItem.type === 'popular') return <TrendingUp className="w-4 h-4 text-emerald-500" />;
-    if (searchableItem?.type === 'token') return <Coins className="w-4 h-4 text-amber-500" />;
-    if (searchableItem?.type === 'oracle') return <Database className="w-4 h-4 text-blue-500" />;
-    if (searchableItem?.type === 'chain') return <Link2 className="w-4 h-4 text-purple-500" />;
+    if (dropdownItem.type === 'search') {
+      const itemType = dropdownItem.item.item.type;
+      if (itemType === 'token') return <Coins className="w-4 h-4 text-amber-500" />;
+      if (itemType === 'oracle') return <Database className="w-4 h-4 text-blue-500" />;
+      if (itemType === 'chain') return <Link2 className="w-4 h-4 text-purple-500" />;
+    }
     return <Search className="w-4 h-4 text-gray-400" />;
   };
 
-  const getTypeLabel = (dropdownItem: (typeof dropdownItems)[0]) => {
-    const searchableItem = 'score' in dropdownItem.item ? dropdownItem.item.item : null;
-
+  const getTypeLabel = (dropdownItem: DropdownItem) => {
     if (dropdownItem.type === 'popular') return t('home.hero.popular');
-    if (searchableItem?.type === 'token') return t('home.hero.token');
-    if (searchableItem?.type === 'oracle') return t('home.hero.oracle');
-    if (searchableItem?.type === 'chain') return t('home.hero.blockchain');
+    if (dropdownItem.type === 'search') {
+      const itemType = dropdownItem.item.item.type;
+      if (itemType === 'token') return t('home.hero.token');
+      if (itemType === 'oracle') return t('home.hero.oracle');
+      if (itemType === 'chain') return t('home.hero.blockchain');
+    }
     return null;
   };
 
-  const getTypeColor = (dropdownItem: (typeof dropdownItems)[0]) => {
-    const searchableItem = 'score' in dropdownItem.item ? dropdownItem.item.item : null;
-
+  const getTypeColor = (dropdownItem: DropdownItem) => {
     if (dropdownItem.type === 'popular') return 'text-emerald-600 bg-emerald-50';
-    if (searchableItem?.type === 'token') return 'text-amber-600 bg-amber-50';
-    if (searchableItem?.type === 'oracle') return 'text-blue-600 bg-blue-50';
-    if (searchableItem?.type === 'chain') return 'text-purple-600 bg-purple-50';
+    if (dropdownItem.type === 'search') {
+      const itemType = dropdownItem.item.item.type;
+      if (itemType === 'token') return 'text-amber-600 bg-amber-50';
+      if (itemType === 'oracle') return 'text-blue-600 bg-blue-50';
+      if (itemType === 'chain') return 'text-purple-600 bg-purple-50';
+    }
     return 'text-gray-600 bg-gray-50';
   };
 
@@ -362,17 +368,12 @@ export default function ProfessionalHero() {
 
                   <div className="max-h-80 overflow-y-auto">
                     {dropdownItems.map((dropdownItem, index) => {
-                      const isSearchResult =
-                        dropdownItem.type === 'search' && 'score' in dropdownItem.item;
-                      const searchResult = isSearchResult
-                        ? (dropdownItem.item as SearchResult)
-                        : null;
-                      const searchableItem = searchResult?.item;
+                      const isSearchResult = dropdownItem.type === 'search';
                       const symbol =
-                        'symbol' in dropdownItem.item
-                          ? dropdownItem.item.symbol
-                          : searchableItem?.symbol || '';
-                      const name = searchableItem?.name || symbol;
+                        dropdownItem.type === 'search'
+                          ? dropdownItem.item.item.symbol || ''
+                          : dropdownItem.item.symbol;
+                      const name = dropdownItem.type === 'search' ? dropdownItem.item.item.name : symbol;
 
                       return (
                         <div
@@ -385,10 +386,10 @@ export default function ProfessionalHero() {
                           <button
                             type="button"
                             onClick={() => {
-                              if (isSearchResult && searchResult) {
-                                handleSearch(searchResult);
-                              } else if (symbol) {
-                                handleSearch(symbol);
+                              if (dropdownItem.type === 'search') {
+                                handleSearch(dropdownItem.item);
+                              } else {
+                                handleSearch(dropdownItem.item.symbol);
                               }
                             }}
                             className="flex-1 flex items-center gap-3 text-left"
@@ -397,7 +398,7 @@ export default function ProfessionalHero() {
                             <div className="flex flex-col">
                               <span className="font-medium text-gray-900">
                                 {symbol}
-                                {searchableItem && symbol !== name && (
+                                {isSearchResult && symbol !== name && (
                                   <span className="ml-2 text-sm text-gray-500 font-normal">
                                     {name}
                                   </span>
@@ -416,11 +417,7 @@ export default function ProfessionalHero() {
                             {dropdownItem.type === 'history' && (
                               <button
                                 type="button"
-                                onClick={(e) => {
-                                  if ('symbol' in dropdownItem.item) {
-                                    handleRemoveHistoryItem(dropdownItem.item.symbol, e);
-                                  }
-                                }}
+                                onClick={(e) => handleRemoveHistoryItem(dropdownItem.item.symbol, e)}
                                 className="p-1 text-gray-300 hover:text-red-500 transition-colors"
                                 title={t('home.hero.deleteRecord')}
                               >
