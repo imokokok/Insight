@@ -59,11 +59,11 @@ GET /oracles/{provider}?symbol={symbol}&chain={chain}
 
 **参数：**
 
-| 参数 | 类型 | 必需 | 描述 |
-|------|------|------|------|
-| provider | string | 是 | 预言机提供商 |
-| symbol | string | 是 | 资产符号 |
-| chain | string | 否 | 区块链网络 |
+| 参数     | 类型   | 必需 | 描述         |
+| -------- | ------ | ---- | ------------ |
+| provider | string | 是   | 预言机提供商 |
+| symbol   | string | 是   | 资产符号     |
+| chain    | string | 否   | 区块链网络   |
 
 **响应：**
 
@@ -73,10 +73,10 @@ GET /oracles/{provider}?symbol={symbol}&chain={chain}
     "provider": "chainlink",
     "symbol": "BTC",
     "chain": "ethereum",
-    "price": 45000.50,
+    "price": 45000.5,
     "timestamp": 1704067200000,
     "confidence": 0.98,
-    "change24h": 1200.50,
+    "change24h": 1200.5,
     "change24hPercent": 2.74
   },
   "meta": {
@@ -93,11 +93,11 @@ GET /oracles/{provider}/history?symbol={symbol}&period={period}
 
 **参数：**
 
-| 参数 | 类型 | 必需 | 描述 |
-|------|------|------|------|
-| provider | string | 是 | 预言机提供商 |
-| symbol | string | 是 | 资产符号 |
-| period | number | 否 | 时间周期（小时） |
+| 参数     | 类型   | 必需 | 描述             |
+| -------- | ------ | ---- | ---------------- |
+| provider | string | 是   | 预言机提供商     |
+| symbol   | string | 是   | 资产符号         |
+| period   | number | 否   | 时间周期（小时） |
 
 **响应：**
 
@@ -107,7 +107,7 @@ GET /oracles/{provider}/history?symbol={symbol}&period={period}
     {
       "provider": "chainlink",
       "symbol": "BTC",
-      "price": 45000.50,
+      "price": 45000.5,
       "timestamp": 1704067200000
     }
   ],
@@ -182,17 +182,17 @@ POST /alerts
 
 ## 错误码
 
-| 错误码 | 描述 | HTTP 状态码 |
-|--------|------|-------------|
-| VALIDATION_ERROR | 请求参数错误 | 400 |
-| INVALID_PROVIDER | 无效的预言机提供商 | 400 |
-| MISSING_PARAMS | 缺少必需参数 | 400 |
-| UNAUTHORIZED | 未授权 | 401 |
-| FORBIDDEN | 禁止访问 | 403 |
-| NOT_FOUND | 资源不存在 | 404 |
-| RATE_LIMIT_EXCEEDED | 请求过于频繁 | 429 |
-| INTERNAL_ERROR | 服务器内部错误 | 500 |
-| PRICE_FETCH_ERROR | 价格获取失败 | 502 |
+| 错误码              | 描述               | HTTP 状态码 |
+| ------------------- | ------------------ | ----------- |
+| VALIDATION_ERROR    | 请求参数错误       | 400         |
+| INVALID_PROVIDER    | 无效的预言机提供商 | 400         |
+| MISSING_PARAMS      | 缺少必需参数       | 400         |
+| UNAUTHORIZED        | 未授权             | 401         |
+| FORBIDDEN           | 禁止访问           | 403         |
+| NOT_FOUND           | 资源不存在         | 404         |
+| RATE_LIMIT_EXCEEDED | 请求过于频繁       | 429         |
+| INTERNAL_ERROR      | 服务器内部错误     | 500         |
+| PRICE_FETCH_ERROR   | 价格获取失败       | 502         |
 
 ## 速率限制
 
@@ -219,7 +219,7 @@ npm install @insight/api-sdk
 import { InsightClient } from '@insight/api-sdk';
 
 const client = new InsightClient({
-  apiKey: 'your-api-key'
+  apiKey: 'your-api-key',
 });
 
 // 获取价格

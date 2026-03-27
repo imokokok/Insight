@@ -246,26 +246,10 @@
         "other": "Other"
       },
       "examples": {
-        "insurance": [
-          "Smart Contract Insurance",
-          "Parametric Insurance",
-          "Crop Insurance"
-        ],
-        "prediction": [
-          "Political Events",
-          "Sports Events",
-          "Crypto Market Predictions"
-        ],
-        "bridge": [
-          "Fast Cross-Chain Transfers",
-          "Liquidity Bridging",
-          "Message Passing"
-        ],
-        "treasury": [
-          "KPI Options",
-          "Structured Products",
-          "Treasury Diversification"
-        ]
+        "insurance": ["Smart Contract Insurance", "Parametric Insurance", "Crop Insurance"],
+        "prediction": ["Political Events", "Sports Events", "Crypto Market Predictions"],
+        "bridge": ["Fast Cross-Chain Transfers", "Liquidity Bridging", "Message Passing"],
+        "treasury": ["KPI Options", "Structured Products", "Treasury Diversification"]
       }
     },
     "dashboard": {

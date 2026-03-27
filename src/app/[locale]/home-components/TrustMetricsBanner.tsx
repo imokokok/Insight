@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { Globe, Users, Activity, Clock } from 'lucide-react';
+
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { baseColors, semanticColors } from '@/lib/config/colors';
@@ -121,17 +123,13 @@ export default function TrustMetricsBanner() {
                   <div
                     className="p-2 rounded-lg transition-all duration-300"
                     style={{
-                      backgroundColor: isHovered
-                        ? 'rgba(59, 130, 246, 0.1)'
-                        : baseColors.gray[100],
+                      backgroundColor: isHovered ? 'rgba(59, 130, 246, 0.1)' : baseColors.gray[100],
                     }}
                   >
                     <Icon
                       className="w-5 h-5 transition-colors duration-300"
                       style={{
-                        color: isHovered
-                          ? baseColors.primary[600]
-                          : baseColors.gray[500],
+                        color: isHovered ? baseColors.primary[600] : baseColors.gray[500],
                       }}
                     />
                   </div>
@@ -141,18 +139,13 @@ export default function TrustMetricsBanner() {
                     <span
                       className="text-2xl sm:text-3xl font-bold tracking-tight transition-colors duration-300"
                       style={{
-                        color: isHovered
-                          ? baseColors.primary[700]
-                          : baseColors.gray[900],
+                        color: isHovered ? baseColors.primary[700] : baseColors.gray[900],
                       }}
                     >
                       {metric.value}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span
-                        className="text-xs font-medium"
-                        style={{ color: baseColors.gray[600] }}
-                      >
+                      <span className="text-xs font-medium" style={{ color: baseColors.gray[600] }}>
                         {isChinese ? metric.label.zh : metric.label.en}
                       </span>
                       {metric.subLabel && (

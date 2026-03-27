@@ -84,3 +84,43 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
   useParams: () => ({}),
 }));
+
+// Mock next-intl
+jest.mock('next-intl', () => ({
+  useTranslations: () => (key) => key,
+  useLocale: () => 'en',
+  useMessages: () => ({}),
+  useTimeZone: () => 'UTC',
+  useNow: () => new Date(),
+  useFormatter: () => ({
+    dateTime: () => '',
+    number: () => '',
+    relativeTime: () => '',
+    list: () => '',
+  }),
+}));
+
+jest.mock('next-intl/server', () => ({
+  getTranslations: () => Promise.resolve((key) => key),
+  getLocale: () => Promise.resolve('en'),
+  getMessages: () => Promise.resolve({}),
+  getTimeZone: () => Promise.resolve('UTC'),
+  getNow: () => Promise.resolve(new Date()),
+  getFormatter: () => Promise.resolve({
+    dateTime: () => '',
+    number: () => '',
+    relativeTime: () => '',
+    list: () => '',
+  }),
+}));
+
+// Mock use-intl
+jest.mock('use-intl', () => ({
+  useIntl: () => ({
+    formatMessage: ({ id }) => id,
+    formatDate: () => '',
+    formatNumber: () => '',
+    formatTime: () => '',
+    formatRelativeTime: () => '',
+  }),
+}));

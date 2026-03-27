@@ -6,18 +6,18 @@ The Insight Oracle Data Analytics Platform integrates with multiple leading bloc
 
 ### Supported Providers
 
-| Provider      | Symbol | Default Chain | Description                               |
-| ------------- | ------ | ------------- | ----------------------------------------- |
-| Chainlink     | LINK   | Ethereum      | Decentralized oracle network              |
-| Band Protocol | BAND   | Cosmos        | Cross-chain data oracle platform          |
-| UMA           | UMA    | Ethereum      | Optimistic oracle and dispute arbitration |
-| Pyth          | PYTH   | Solana        | Low-latency high-frequency price oracle   |
-| API3          | API3   | Ethereum      | First-party oracle infrastructure         |
-| RedStone      | REDSTONE | Ethereum    | Modular oracle design                     |
-| DIA           | DIA    | Ethereum      | Open-source cross-chain oracle            |
-| Tellor        | TRB    | Ethereum      | Stake-based reporting oracle              |
-| Chronicle     | CHRONICLE | Ethereum   | MakerDAO native oracle                    |
-| WINkLink      | WINKLINK | BNB Chain   | TRON ecosystem oracle                     |
+| Provider      | Symbol    | Default Chain | Description                               |
+| ------------- | --------- | ------------- | ----------------------------------------- |
+| Chainlink     | LINK      | Ethereum      | Decentralized oracle network              |
+| Band Protocol | BAND      | Cosmos        | Cross-chain data oracle platform          |
+| UMA           | UMA       | Ethereum      | Optimistic oracle and dispute arbitration |
+| Pyth          | PYTH      | Solana        | Low-latency high-frequency price oracle   |
+| API3          | API3      | Ethereum      | First-party oracle infrastructure         |
+| RedStone      | REDSTONE  | Ethereum      | Modular oracle design                     |
+| DIA           | DIA       | Ethereum      | Open-source cross-chain oracle            |
+| Tellor        | TRB       | Ethereum      | Stake-based reporting oracle              |
+| Chronicle     | CHRONICLE | Ethereum      | MakerDAO native oracle                    |
+| WINkLink      | WINKLINK  | BNB Chain     | TRON ecosystem oracle                     |
 
 ### Architecture
 
@@ -253,17 +253,17 @@ interface BandNetworkStats {
 
 ### Supported Chains
 
-| Chain    | Chain ID | Status |
-| -------- | -------- | ------ |
-| Ethereum | 1        | Active |
-| Arbitrum | 42161    | Active |
-| Optimism | 10       | Active |
-| Polygon  | 137      | Active |
-| Base     | 8453     | Active |
-| BNB Chain| 56       | Active |
-| Avalanche| 43114    | Active |
-| Fantom   | 250      | Active |
-| Gnosis   | -        | Active |
+| Chain     | Chain ID | Status |
+| --------- | -------- | ------ |
+| Ethereum  | 1        | Active |
+| Arbitrum  | 42161    | Active |
+| Optimism  | 10       | Active |
+| Polygon   | 137      | Active |
+| Base      | 8453     | Active |
+| BNB Chain | 56       | Active |
+| Avalanche | 43114    | Active |
+| Fantom    | 250      | Active |
+| Gnosis    | -        | Active |
 
 ### Features
 
@@ -818,13 +818,13 @@ interface ModularStats {
 
 ### Network Metrics
 
-| Metric            | Value       |
-| ----------------- | ----------- |
-| Active Streams    | 285         |
-| Data Points/Day   | 2.5M        |
-| Avg Delivery Time | 120ms       |
-| Cost Efficiency   | 85%         |
-| Supported Assets  | 150+        |
+| Metric            | Value |
+| ----------------- | ----- |
+| Active Streams    | 285   |
+| Data Points/Day   | 2.5M  |
+| Avg Delivery Time | 120ms |
+| Cost Efficiency   | 85%   |
+| Supported Assets  | 150+  |
 
 ---
 
@@ -891,13 +891,13 @@ interface DIAMethodology {
 
 ### Network Metrics
 
-| Metric              | Value    |
-| ------------------- | -------- |
-| Data Feeds          | 2,000+   |
-| NFT Collections     | 150+     |
-| Update Frequency    | 60s      |
-| Transparency Score  | 98%      |
-| Open Source Repos   | 25+      |
+| Metric             | Value  |
+| ------------------ | ------ |
+| Data Feeds         | 2,000+ |
+| NFT Collections    | 150+   |
+| Update Frequency   | 60s    |
+| Transparency Score | 98%    |
+| Open Source Repos  | 25+    |
 
 ---
 
@@ -962,13 +962,13 @@ interface DisputeInfo {
 
 ### Network Metrics
 
-| Metric            | Value       |
-| ----------------- | ----------- |
-| Total Staked TRB  | 2.5M        |
-| Active Reporters  | 180         |
-| Dispute Success   | 92%         |
-| Avg Reward        | 2.5 TRB     |
-| Block Reward      | 2.5 TRB     |
+| Metric           | Value   |
+| ---------------- | ------- |
+| Total Staked TRB | 2.5M    |
+| Active Reporters | 180     |
+| Dispute Success  | 92%     |
+| Avg Reward       | 2.5 TRB |
+| Block Reward     | 2.5 TRB |
 
 ---
 
@@ -980,17 +980,17 @@ interface DisputeInfo {
 
 ### Supported Chains
 
-| Chain    | Chain ID | Status |
-| -------- | -------- | ------ |
-| Ethereum | 1        | Active |
-| Arbitrum | 42161    | Active |
-| Optimism | 10       | Active |
-| Polygon  | 137      | Active |
-| Base     | 8453     | Active |
-| BNB Chain| 56       | Active |
-| Avalanche| 43114    | Active |
-| Fantom   | 250      | Active |
-| Gnosis   | -        | Active |
+| Chain     | Chain ID | Status |
+| --------- | -------- | ------ |
+| Ethereum  | 1        | Active |
+| Arbitrum  | 42161    | Active |
+| Optimism  | 10       | Active |
+| Polygon   | 137      | Active |
+| Base      | 8453     | Active |
+| BNB Chain | 56       | Active |
+| Avalanche | 43114    | Active |
+| Fantom    | 250      | Active |
+| Gnosis    | -        | Active |
 
 ### Features
 
@@ -1031,13 +1031,13 @@ interface MakerDAOIntegration {
 
 ### Network Metrics
 
-| Metric            | Value       |
-| ----------------- | ----------- |
-| MakerDAO Vaults   | 15,000+     |
-| Total DAI Secured | $5.2B       |
-| Scuttlebutt Nodes | 45          |
-| Avg Sync Time     | 200ms       |
-| Uptime            | 99.99%      |
+| Metric            | Value   |
+| ----------------- | ------- |
+| MakerDAO Vaults   | 15,000+ |
+| Total DAI Secured | $5.2B   |
+| Scuttlebutt Nodes | 45      |
+| Avg Sync Time     | 200ms   |
+| Uptime            | 99.99%  |
 
 ---
 
@@ -1095,37 +1095,37 @@ interface TRONEcosystemStats {
 
 ### Network Metrics
 
-| Metric            | Value       |
-| ----------------- | ----------- |
-| TRON Addresses    | 2.5M+       |
-| Gaming Platforms  | 50+         |
-| Daily Transactions| 1M+         |
-| TVL               | $800M       |
-| Data Feeds        | 80+         |
+| Metric             | Value |
+| ------------------ | ----- |
+| TRON Addresses     | 2.5M+ |
+| Gaming Platforms   | 50+   |
+| Daily Transactions | 1M+   |
+| TVL                | $800M |
+| Data Feeds         | 80+   |
 
 ---
 
 ## Oracle Comparison Table
 
-| Feature                  | Chainlink | Band Protocol | UMA   | Pyth  | API3  | RedStone | DIA   | Tellor | Chronicle | WINkLink |
-| ------------------------ | --------- | ------------- | ----- | ----- | ----- | -------- | ----- | ------ | --------- | -------- |
-| **Update Frequency**     | 60s       | 30s           | 120s  | 1s    | 10s   | 5s       | 60s   | 300s   | 60s       | 30s      |
-| **Avg Response Time**    | 245ms     | 150ms         | 300ms | 100ms | 180ms | 120ms    | 200ms | 400ms  | 200ms     | 250ms    |
-| **Node Uptime**          | 99.9%     | 99.85%        | 99.7% | 99.9% | 99.7% | 99.8%    | 99.5% | 99.6%  | 99.99%    | 99.7%    |
-| **Supported Chains**     | 13        | 11            | 9     | 12    | 13    | 16       | 11    | 10     | 9         | 3        |
-| **Data Feeds**           | 1,243     | 180           | 50    | 500   | 168   | 285      | 2,000+| 100    | 45        | 80       |
-| **Node Analytics**       | ✅        | ❌            | ❌    | ❌    | ❌    | ❌       | ❌    | ❌     | ❌        | ❌       |
-| **Validator Analytics**  | ❌        | ✅            | ✅    | ❌    | ❌    | ❌       | ❌    | ❌     | ❌        | ❌       |
-| **Publisher Analytics**  | ❌        | ❌            | ❌    | ✅    | ❌    | ❌       | ❌    | ❌     | ❌        | ❌       |
-| **Dispute Resolution**   | ❌        | ❌            | ✅    | ❌    | ❌    | ❌       | ❌    | ✅     | ❌        | ❌       |
-| **First-Party Oracle**   | ❌        | ❌            | ❌    | ❌    | ✅    | ❌       | ❌    | ❌     | ❌        | ❌       |
-| **Confidence Intervals** | ❌        | ❌            | ❌    | ✅    | ❌    | ❌       | ❌    | ❌     | ❌        | ❌       |
-| **Cross-Chain Stats**    | ❌        | ✅            | ❌    | ❌    | ❌    | ✅       | ✅    | ❌     | ❌        | ❌       |
-| **Coverage Pools**       | ❌        | ❌            | ❌    | ❌    | ✅    | ❌       | ❌    | ❌     | ❌        | ❌       |
-| **Modular Design**       | ❌        | ❌            | ❌    | ❌    | ❌    | ✅       | ❌    | ❌     | ❌        | ❌       |
-| **NFT Data**             | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ✅    | ❌     | ❌        | ❌       |
-| **Gaming Data**          | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ❌    | ❌     | ❌        | ✅       |
-| **Open Source**          | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ✅    | ✅     | ❌        | ❌       |
+| Feature                  | Chainlink | Band Protocol | UMA   | Pyth  | API3  | RedStone | DIA    | Tellor | Chronicle | WINkLink |
+| ------------------------ | --------- | ------------- | ----- | ----- | ----- | -------- | ------ | ------ | --------- | -------- |
+| **Update Frequency**     | 60s       | 30s           | 120s  | 1s    | 10s   | 5s       | 60s    | 300s   | 60s       | 30s      |
+| **Avg Response Time**    | 245ms     | 150ms         | 300ms | 100ms | 180ms | 120ms    | 200ms  | 400ms  | 200ms     | 250ms    |
+| **Node Uptime**          | 99.9%     | 99.85%        | 99.7% | 99.9% | 99.7% | 99.8%    | 99.5%  | 99.6%  | 99.99%    | 99.7%    |
+| **Supported Chains**     | 13        | 11            | 9     | 12    | 13    | 16       | 11     | 10     | 9         | 3        |
+| **Data Feeds**           | 1,243     | 180           | 50    | 500   | 168   | 285      | 2,000+ | 100    | 45        | 80       |
+| **Node Analytics**       | ✅        | ❌            | ❌    | ❌    | ❌    | ❌       | ❌     | ❌     | ❌        | ❌       |
+| **Validator Analytics**  | ❌        | ✅            | ✅    | ❌    | ❌    | ❌       | ❌     | ❌     | ❌        | ❌       |
+| **Publisher Analytics**  | ❌        | ❌            | ❌    | ✅    | ❌    | ❌       | ❌     | ❌     | ❌        | ❌       |
+| **Dispute Resolution**   | ❌        | ❌            | ✅    | ❌    | ❌    | ❌       | ❌     | ✅     | ❌        | ❌       |
+| **First-Party Oracle**   | ❌        | ❌            | ❌    | ❌    | ✅    | ❌       | ❌     | ❌     | ❌        | ❌       |
+| **Confidence Intervals** | ❌        | ❌            | ❌    | ✅    | ❌    | ❌       | ❌     | ❌     | ❌        | ❌       |
+| **Cross-Chain Stats**    | ❌        | ✅            | ❌    | ❌    | ❌    | ✅       | ✅     | ❌     | ❌        | ❌       |
+| **Coverage Pools**       | ❌        | ❌            | ❌    | ❌    | ✅    | ❌       | ❌     | ❌     | ❌        | ❌       |
+| **Modular Design**       | ❌        | ❌            | ❌    | ❌    | ❌    | ✅       | ❌     | ❌     | ❌        | ❌       |
+| **NFT Data**             | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ✅     | ❌     | ❌        | ❌       |
+| **Gaming Data**          | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ❌     | ❌     | ❌        | ✅       |
+| **Open Source**          | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ✅     | ✅     | ❌        | ❌       |
 
 ---
 

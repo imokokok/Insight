@@ -1,6 +1,7 @@
 'use client';
 
 import React, { memo, useMemo } from 'react';
+
 import { useRouter } from 'next/navigation';
 
 import { TrendingUp, TrendingDown } from 'lucide-react';
@@ -8,9 +9,9 @@ import { TrendingUp, TrendingDown } from 'lucide-react';
 import { DataTablePro, type ColumnDef, type ConditionalFormattingConfig } from '@/components/ui';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { formatCompactNumber } from '@/lib/utils/format';
-import { chartColors } from '@/lib/config/colors';
 
 import { type AssetData } from '../types';
 
@@ -199,10 +200,7 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
               onClick={() => router.push(route)}
               className="inline-flex items-center gap-2 cursor-pointer group"
             >
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: brandColor }}
-              />
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
               <span className="text-xs font-medium text-primary-600 group-hover:underline">
                 {oracleName}
               </span>

@@ -6,10 +6,7 @@
 
 module.exports = {
   // TypeScript/JavaScript 文件: 先 ESLint 修复，再 Prettier 格式化
-  '*.{ts,tsx,js,jsx,mjs}': [
-    'eslint --fix',
-    'prettier --write',
-  ],
+  '*.{ts,tsx,js,jsx,mjs}': ['eslint --fix', 'prettier --write'],
 
   // JSON 文件: Prettier 格式化
   '*.{json,jsonc}': ['prettier --write'],
@@ -24,7 +21,5 @@ module.exports = {
   '*.{yml,yaml}': ['prettier --write'],
 
   // 图片文件: 检查大小
-  '*.{png,jpg,jpeg,gif,svg,webp}': [
-    () => 'echo "检查图片文件大小..."',
-  ],
+  '*.{png,jpg,jpeg,gif,svg,webp}': [() => 'echo "检查图片文件大小..."'],
 };

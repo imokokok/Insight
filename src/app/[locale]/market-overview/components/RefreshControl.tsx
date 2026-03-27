@@ -79,10 +79,18 @@ export default function RefreshControl({
   const getTooltipText = () => {
     const parts: string[] = [];
     if (lastUpdated) {
-      parts.push(isChineseLocale(locale) ? `最后更新: ${formatTime(lastUpdated)}` : `Last updated: ${formatTime(lastUpdated)}`);
+      parts.push(
+        isChineseLocale(locale)
+          ? `最后更新: ${formatTime(lastUpdated)}`
+          : `Last updated: ${formatTime(lastUpdated)}`
+      );
     }
     if (autoRefreshInterval > 0 && countdown > 0) {
-      parts.push(isChineseLocale(locale) ? `下次刷新: ${formatCountdown(countdown)}` : `Next refresh: ${formatCountdown(countdown)}`);
+      parts.push(
+        isChineseLocale(locale)
+          ? `下次刷新: ${formatCountdown(countdown)}`
+          : `Next refresh: ${formatCountdown(countdown)}`
+      );
     }
     return parts.join('\n') || (isChineseLocale(locale) ? '点击刷新数据' : 'Click to refresh data');
   };

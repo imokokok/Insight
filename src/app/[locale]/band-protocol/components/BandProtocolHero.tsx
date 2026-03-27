@@ -67,7 +67,17 @@ export interface StatItem {
 }
 
 // 迷你走势图组件
-function Sparkline({ data, positive, width = 60, height = 24 }: { data: number[]; positive: boolean; width?: number; height?: number }) {
+function Sparkline({
+  data,
+  positive,
+  width = 60,
+  height = 24,
+}: {
+  data: number[];
+  positive: boolean;
+  width?: number;
+  height?: number;
+}) {
   if (!data || data.length < 2) return null;
 
   const min = Math.min(...data);
@@ -123,17 +133,19 @@ function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColo
             className="relative p-3 rounded-xl bg-gray-50/50 border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all group"
           >
             <div className="flex items-start justify-between mb-2">
-              <div
-                className="p-2 rounded-lg"
-                style={{ backgroundColor: `${themeColor}15` }}
-              >
+              <div className="p-2 rounded-lg" style={{ backgroundColor: `${themeColor}15` }}>
                 <div style={{ color: themeColor }} className="w-4 h-4">
                   {stat.icon}
                 </div>
               </div>
               {stat.sparklineData && (
                 <div className="opacity-60 group-hover:opacity-100 transition-opacity">
-                  <Sparkline data={stat.sparklineData} positive={isPositive} width={50} height={20} />
+                  <Sparkline
+                    data={stat.sparklineData}
+                    positive={isPositive}
+                    width={50}
+                    height={20}
+                  />
                 </div>
               )}
             </div>
@@ -143,18 +155,16 @@ function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColo
               <div className="flex items-center gap-1 mt-1">
                 <span
                   className={`text-xs font-medium flex items-center gap-0.5 ${
-                    isPositive
-                      ? 'text-emerald-600'
-                      : isNegative
-                        ? 'text-red-600'
-                        : 'text-gray-500'
+                    isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
                   }`}
                 >
                   {isPositive && <TrendingUp className="w-3 h-3" />}
                   {isNegative && <TrendingDown className="w-3 h-3" />}
                   {stat.change}
                 </span>
-                {stat.subtitle && <span className="text-[10px] text-gray-400">{stat.subtitle}</span>}
+                {stat.subtitle && (
+                  <span className="text-[10px] text-gray-400">{stat.subtitle}</span>
+                )}
               </div>
             )}
           </div>
@@ -178,9 +188,13 @@ function MiniPriceChart({
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
     }
-    // 生成模拟数据
+    // 生成模拟数据 - 使用伪随机确保稳定性
     const basePrice = currentPrice?.price || 100;
-    return Array.from({ length: 20 }, (_, i) => basePrice * (1 + (Math.random() - 0.5) * 0.1));
+    return Array.from({ length: 20 }, (_, i) => {
+      const seed = (i * 9301 + 49297) % 233280;
+      const random = seed / 233280;
+      return basePrice * (1 + (random - 0.5) * 0.1);
+    });
   }, [historicalData, currentPrice]);
 
   const priceChange = useMemo(() => {
@@ -200,7 +214,8 @@ function MiniPriceChart({
           <span>24H 走势</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
-          {isPositive ? '+' : ''}{priceChange.toFixed(2)}%
+          {isPositive ? '+' : ''}
+          {priceChange.toFixed(2)}%
         </span>
       </div>
       <div className="flex-1 min-h-[80px] flex items-end">
@@ -423,7 +438,9 @@ function UnifiedInfoSection({
               </div>
             ))}
           </div>
-          {remainingCount > 0 && <span className="text-[10px] text-gray-400">+{remainingCount}</span>}
+          {remainingCount > 0 && (
+            <span className="text-[10px] text-gray-400">+{remainingCount}</span>
+          )}
         </div>
       </div>
     </div>
@@ -521,8 +538,12 @@ export function BandProtocolHero({
     if (historicalData.length > 0) {
       return historicalData.slice(-24).map((d) => d.price);
     }
-    // 模拟数据
-    return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + (Math.random() - 0.5) * 0.1));
+    // 模拟数据 - 使用伪随机确保稳定性
+    return Array.from({ length: 24 }, (_, i) => {
+      const seed = (i * 9301 + 49297) % 233280;
+      const random = seed / 233280;
+      return currentPrice * (1 + (random - 0.5) * 0.1);
+    });
   }, [historicalData, currentPrice]);
 
   // 获取 Band Protocol 特定指标
@@ -640,11 +661,7 @@ export function BandProtocolHero({
               className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
             >
-              <img
-                src="/logos/oracles/band.svg"
-                alt="Band Protocol"
-                className="w-7 h-7"
-              />
+              <img src="/logos/oracles/band.svg" alt="Band Protocol" className="w-7 h-7" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Band Protocol</h1>
@@ -668,10 +685,10 @@ export function BandProtocolHero({
           {/* 左侧区域（70%）- 核心指标 */}
           <div className="flex-1 lg:w-[70%] lg:flex-none">
             <EnhancedCoreStats stats={primaryStats} themeColor={themeColor} />
-            
+
             {/* 次要指标行 */}
             <CompactMetricsRow stats={secondaryStats} />
-            
+
             {/* 整合信息区 */}
             <UnifiedInfoSection
               networkStats={networkStats}
@@ -695,7 +712,7 @@ export function BandProtocolHero({
                 themeColor={themeColor}
               />
             </div>
-            
+
             {/* 迷你价格图表 */}
             <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex-1">
               <MiniPriceChart

@@ -31,66 +31,72 @@ export default function ParticleNetwork({
   const animationRef = useRef<number | null>(null);
   const particlesRef = useRef<Particle[]>([]);
 
-  const initParticles = useCallback((width: number, height: number) => {
-    const particles: Particle[] = [];
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: (Math.random() - 0.5) * 1.5,
-        radius: Math.random() * 2 + 2,
+  const initParticles = useCallback(
+    (width: number, height: number) => {
+      const particles: Particle[] = [];
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: (Math.random() - 0.5) * 1.5,
+          radius: Math.random() * 2 + 2,
+        });
+      }
+      particlesRef.current = particles;
+    },
+    [particleCount]
+  );
+
+  const drawParticles = useCallback(
+    (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+      const particles = particlesRef.current;
+      const accentColor = '#8b5cf6';
+
+      // 更新和绘制粒子
+      particles.forEach((particle, i) => {
+        // 更新位置
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+
+        // 边缘碰撞检测
+        if (particle.x <= particle.radius || particle.x >= width - particle.radius) {
+          particle.vx = -particle.vx;
+          particle.x = Math.max(particle.radius, Math.min(width - particle.radius, particle.x));
+        }
+        if (particle.y <= particle.radius || particle.y >= height - particle.radius) {
+          particle.vy = -particle.vy;
+          particle.y = Math.max(particle.radius, Math.min(height - particle.radius, particle.y));
+        }
+
+        // 绘制粒子
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        ctx.fillStyle = i % 3 === 0 ? accentColor : themeColor;
+        ctx.fill();
       });
-    }
-    particlesRef.current = particles;
-  }, [particleCount]);
 
-  const drawParticles = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    const particles = particlesRef.current;
-    const accentColor = '#8b5cf6';
+      // 绘制连线
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // 更新和绘制粒子
-    particles.forEach((particle, i) => {
-      // 更新位置
-      particle.x += particle.vx;
-      particle.y += particle.vy;
-
-      // 边缘碰撞检测
-      if (particle.x <= particle.radius || particle.x >= width - particle.radius) {
-        particle.vx = -particle.vx;
-        particle.x = Math.max(particle.radius, Math.min(width - particle.radius, particle.x));
-      }
-      if (particle.y <= particle.radius || particle.y >= height - particle.radius) {
-        particle.vy = -particle.vy;
-        particle.y = Math.max(particle.radius, Math.min(height - particle.radius, particle.y));
-      }
-
-      // 绘制粒子
-      ctx.beginPath();
-      ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-      ctx.fillStyle = i % 3 === 0 ? accentColor : themeColor;
-      ctx.fill();
-    });
-
-    // 绘制连线
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance < connectionDistance) {
-          const opacity = 1 - (distance / connectionDistance);
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `rgba(59, 130, 246, ${opacity * 0.15})`;
-          ctx.lineWidth = 1;
-          ctx.stroke();
+          if (distance < connectionDistance) {
+            const opacity = 1 - distance / connectionDistance;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(59, 130, 246, ${opacity * 0.15})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
         }
       }
-    }
-  }, [connectionDistance, themeColor]);
+    },
+    [connectionDistance, themeColor]
+  );
 
   const animate = useCallback(() => {
     const canvas = canvasRef.current;

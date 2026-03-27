@@ -50,12 +50,12 @@ graph TB
 
 ### 分层策略
 
-| 层级 | 工具 | 用途 | 持久化 |
-|------|------|------|--------|
-| 服务端状态 | React Query | API 数据、缓存、同步 | 自动缓存 |
-| 全局客户端状态 | Zustand | 用户偏好、主题、全局设置 | localStorage |
-| 局部客户端状态 | Zustand | 页面级状态、临时数据 | 内存 |
-| 组件状态 | useState | 表单、UI 交互 | 无 |
+| 层级           | 工具        | 用途                     | 持久化       |
+| -------------- | ----------- | ------------------------ | ------------ |
+| 服务端状态     | React Query | API 数据、缓存、同步     | 自动缓存     |
+| 全局客户端状态 | Zustand     | 用户偏好、主题、全局设置 | localStorage |
+| 局部客户端状态 | Zustand     | 页面级状态、临时数据     | 内存         |
+| 组件状态       | useState    | 表单、UI 交互            | 无           |
 
 ### 状态流
 
@@ -97,8 +97,7 @@ export const queryKeys = {
       ['oracles', provider, 'price', symbol, chain] as const,
     history: (provider: OracleProvider, symbol: string, period: number) =>
       ['oracles', provider, 'history', symbol, period] as const,
-    comparison: (symbols: string[]) =>
-      ['oracles', 'comparison', ...symbols] as const,
+    comparison: (symbols: string[]) => ['oracles', 'comparison', ...symbols] as const,
   },
   alerts: {
     all: ['alerts'] as const,
@@ -128,11 +127,7 @@ import { OracleClientFactory } from '@/lib/oracles/factory';
 import type { PriceData } from '@/types/oracle';
 
 // 获取单个价格
-export function useOraclePrice(
-  provider: OracleProvider,
-  symbol: string,
-  chain?: Blockchain
-) {
+export function useOraclePrice(provider: OracleProvider, symbol: string, chain?: Blockchain) {
   return useQuery({
     queryKey: queryKeys.oracles.price(provider, symbol, chain),
     queryFn: async () => {
@@ -166,11 +161,7 @@ export function usePriceHistory(
 }
 
 // 获取多个价格（并行查询）
-export function useMultiplePrices(
-  provider: OracleProvider,
-  symbols: string[],
-  chain?: Blockchain
-) {
+export function useMultiplePrices(provider: OracleProvider, symbols: string[], chain?: Blockchain) {
   return useQueries({
     queries: symbols.map((symbol) => ({
       queryKey: queryKeys.oracles.price(provider, symbol, chain),
@@ -203,11 +194,7 @@ export function useRefreshPrice() {
     onSuccess: (_, variables) => {
       // 精确失效缓存
       queryClient.invalidateQueries({
-        queryKey: queryKeys.oracles.price(
-          variables.provider,
-          variables.symbol,
-          variables.chain
-        ),
+        queryKey: queryKeys.oracles.price(variables.provider, variables.symbol, variables.chain),
       });
     },
   });
@@ -223,13 +210,7 @@ export function useToggleFavorite() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({
-      symbol,
-      action,
-    }: {
-      symbol: string;
-      action: 'add' | 'remove';
-    }) => {
+    mutationFn: async ({ symbol, action }: { symbol: string; action: 'add' | 'remove' }) => {
       const response = await fetch('/api/favorites', {
         method: action === 'add' ? 'POST' : 'DELETE',
         body: JSON.stringify({ symbol }),
@@ -244,21 +225,16 @@ export function useToggleFavorite() {
       });
 
       // 保存当前状态
-      const previousFavorites = queryClient.getQueryData<string[]>(
-        queryKeys.user.favorites
-      );
+      const previousFavorites = queryClient.getQueryData<string[]>(queryKeys.user.favorites);
 
       // 乐观更新缓存
-      queryClient.setQueryData<string[]>(
-        queryKeys.user.favorites,
-        (old = []) => {
-          if (action === 'add') {
-            return [...old, symbol];
-          } else {
-            return old.filter((s) => s !== symbol);
-          }
+      queryClient.setQueryData<string[]>(queryKeys.user.favorites, (old = []) => {
+        if (action === 'add') {
+          return [...old, symbol];
+        } else {
+          return old.filter((s) => s !== symbol);
         }
-      );
+      });
 
       // 返回上下文用于回滚
       return { previousFavorites };
@@ -266,10 +242,7 @@ export function useToggleFavorite() {
     // 错误时回滚
     onError: (err, variables, context) => {
       if (context?.previousFavorites) {
-        queryClient.setQueryData(
-          queryKeys.user.favorites,
-          context.previousFavorites
-        );
+        queryClient.setQueryData(queryKeys.user.favorites, context.previousFavorites);
       }
     },
     // 完成后重新获取确保同步
@@ -404,14 +377,22 @@ export const useCrossChainStore = create<CrossChainState>()(
 
         // Actions
         setSelectedProvider: (provider) =>
-          set((state) => {
-            state.selectedProvider = provider;
-          }, false, 'setSelectedProvider'),
+          set(
+            (state) => {
+              state.selectedProvider = provider;
+            },
+            false,
+            'setSelectedProvider'
+          ),
 
         setSelectedSymbol: (symbol) =>
-          set((state) => {
-            state.selectedSymbol = symbol;
-          }, false, 'setSelectedSymbol'),
+          set(
+            (state) => {
+              state.selectedSymbol = symbol;
+            },
+            false,
+            'setSelectedSymbol'
+          ),
 
         toggleChain: (chain) =>
           set(
@@ -428,22 +409,33 @@ export const useCrossChainStore = create<CrossChainState>()(
           ),
 
         setTimeRange: (range) =>
-          set((state) => {
-            state.timeRange = range;
-          }, false, 'setTimeRange'),
+          set(
+            (state) => {
+              state.timeRange = range;
+            },
+            false,
+            'setTimeRange'
+          ),
 
         setLoading: (loading) =>
-          set((state) => {
-            state.loading = loading;
-          }, false, 'setLoading'),
+          set(
+            (state) => {
+              state.loading = loading;
+            },
+            false,
+            'setLoading'
+          ),
 
         setError: (error) =>
-          set((state) => {
-            state.error = error;
-          }, false, 'setError'),
+          set(
+            (state) => {
+              state.error = error;
+            },
+            false,
+            'setError'
+          ),
 
-        reset: () =>
-          set(initialState, false, 'reset'),
+        reset: () => set(initialState, false, 'reset'),
       })),
       {
         name: 'cross-chain-store',
@@ -512,50 +504,78 @@ export const useUIStore = create<UIState>()(
       theme: 'system',
 
       toggleSidebar: () =>
-        set((state) => {
-          state.sidebarOpen = !state.sidebarOpen;
-        }, false, 'toggleSidebar'),
+        set(
+          (state) => {
+            state.sidebarOpen = !state.sidebarOpen;
+          },
+          false,
+          'toggleSidebar'
+        ),
 
       setSidebarCollapsed: (collapsed) =>
-        set((state) => {
-          state.sidebarCollapsed = collapsed;
-        }, false, 'setSidebarCollapsed'),
+        set(
+          (state) => {
+            state.sidebarCollapsed = collapsed;
+          },
+          false,
+          'setSidebarCollapsed'
+        ),
 
       openModal: (modalId, data) =>
-        set((state) => {
-          state.activeModal = modalId;
-          state.modalData = data || null;
-        }, false, 'openModal'),
+        set(
+          (state) => {
+            state.activeModal = modalId;
+            state.modalData = data || null;
+          },
+          false,
+          'openModal'
+        ),
 
       closeModal: () =>
-        set((state) => {
-          state.activeModal = null;
-          state.modalData = null;
-        }, false, 'closeModal'),
+        set(
+          (state) => {
+            state.activeModal = null;
+            state.modalData = null;
+          },
+          false,
+          'closeModal'
+        ),
 
       addToast: (toast) =>
-        set((state) => {
-          const id = Math.random().toString(36).substring(7);
-          state.toasts.push({ ...toast, id });
+        set(
+          (state) => {
+            const id = Math.random().toString(36).substring(7);
+            state.toasts.push({ ...toast, id });
 
-          // 自动移除
-          setTimeout(() => {
-            get().removeToast(id);
-          }, toast.duration || 5000);
-        }, false, 'addToast'),
+            // 自动移除
+            setTimeout(() => {
+              get().removeToast(id);
+            }, toast.duration || 5000);
+          },
+          false,
+          'addToast'
+        ),
 
       removeToast: (id) =>
-        set((state) => {
-          const index = state.toasts.findIndex((t) => t.id === id);
-          if (index > -1) {
-            state.toasts.splice(index, 1);
-          }
-        }, false, 'removeToast'),
+        set(
+          (state) => {
+            const index = state.toasts.findIndex((t) => t.id === id);
+            if (index > -1) {
+              state.toasts.splice(index, 1);
+            }
+          },
+          false,
+          'removeToast'
+        ),
 
       setTheme: (theme) =>
-        set((state) => {
-          state.theme = theme;
-        }, false, 'setTheme'),
+        set(
+          (state) => {
+            state.theme = theme;
+          },
+          false,
+          'setTheme'
+        ),
     })),
     { name: 'UIStore' }
   )
@@ -674,9 +694,7 @@ const useFilteredPrices = () => {
   const filter = useCrossChainStore((state) => state.filter);
 
   return useMemo(() => {
-    return prices.filter((price) =>
-      price.symbol.toLowerCase().includes(filter.toLowerCase())
-    );
+    return prices.filter((price) => price.symbol.toLowerCase().includes(filter.toLowerCase()));
   }, [prices, filter]);
 };
 ```
@@ -750,10 +768,7 @@ const useUpdatePreference = () => {
     },
     onError: (err, newPreference, context) => {
       // 回滚
-      queryClient.setQueryData(
-        ['preferences'],
-        context?.previousPreference
-      );
+      queryClient.setQueryData(['preferences'], context?.previousPreference);
     },
     onSettled: () => {
       // 重新获取确保同步

@@ -63,12 +63,12 @@ components/
 
 ### 组件分类
 
-| 层级 | 用途 | 示例 | 依赖 |
-|------|------|------|------|
-| Page | 页面级组件 | `ChainlinkPage`, `CrossOraclePage` | 可使用所有下层组件 |
-| Feature | 功能组件 | `PriceChart`, `AlertConfig` | 使用 UI 和 Shared 组件 |
-| UI | 基础 UI | `Button`, `Card`, `Input` | 仅使用 Shared 组件 |
-| Shared | 共享工具 | `LoadingState`, `ErrorFallback` | 无依赖 |
+| 层级    | 用途       | 示例                               | 依赖                   |
+| ------- | ---------- | ---------------------------------- | ---------------------- |
+| Page    | 页面级组件 | `ChainlinkPage`, `CrossOraclePage` | 可使用所有下层组件     |
+| Feature | 功能组件   | `PriceChart`, `AlertConfig`        | 使用 UI 和 Shared 组件 |
+| UI      | 基础 UI    | `Button`, `Card`, `Input`          | 仅使用 Shared 组件     |
+| Shared  | 共享工具   | `LoadingState`, `ErrorFallback`    | 无依赖                 |
 
 ### Server Components
 

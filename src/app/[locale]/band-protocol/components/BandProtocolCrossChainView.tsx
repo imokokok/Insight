@@ -34,9 +34,21 @@ export function BandProtocolCrossChainView({
         },
       ]
     : [
-        { label: t('band.bandProtocol.crossChain.totalRequests24h'), value: '12,500', change: '+12%' },
-        { label: t('band.bandProtocol.crossChain.totalRequests7d'), value: '87,500', change: '+8%' },
-        { label: t('band.bandProtocol.crossChain.totalRequests30d'), value: '375,000', change: '+15%' },
+        {
+          label: t('band.bandProtocol.crossChain.totalRequests24h'),
+          value: '12,500',
+          change: '+12%',
+        },
+        {
+          label: t('band.bandProtocol.crossChain.totalRequests7d'),
+          value: '87,500',
+          change: '+8%',
+        },
+        {
+          label: t('band.bandProtocol.crossChain.totalRequests30d'),
+          value: '375,000',
+          change: '+15%',
+        },
         { label: t('band.bandProtocol.crossChain.supportedChains'), value: '8', change: null },
       ];
 

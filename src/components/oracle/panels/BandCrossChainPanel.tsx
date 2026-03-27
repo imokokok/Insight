@@ -46,7 +46,9 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
   if (!stats) {
     return (
       <DashboardCard>
-        <p className="text-gray-500 text-center">{t('band.bandProtocol.crossChain.failedToLoad')}</p>
+        <p className="text-gray-500 text-center">
+          {t('band.bandProtocol.crossChain.failedToLoad')}
+        </p>
       </DashboardCard>
     );
   }

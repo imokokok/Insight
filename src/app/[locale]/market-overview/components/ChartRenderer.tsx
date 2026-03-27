@@ -211,20 +211,27 @@ export default function ChartRenderer({
 
   const renderPieChart = () => {
     // 计算总 TVS
-    const totalTVS = sortedOracleData.reduce((sum, item) => sum + (typeof item.tvs === 'number' ? item.tvs : 0), 0);
-    
+    const totalTVS = sortedOracleData.reduce(
+      (sum, item) => sum + (typeof item.tvs === 'number' ? item.tvs : 0),
+      0
+    );
+
     // 获取悬停或选中的预言机数据
-    const activeItem = hoveredItem 
-      ? sortedOracleData.find(d => d.name === hoveredItem)
+    const activeItem = hoveredItem
+      ? sortedOracleData.find((d) => d.name === hoveredItem)
       : selectedItem
-        ? sortedOracleData.find(d => d.name === selectedItem)
+        ? sortedOracleData.find((d) => d.name === selectedItem)
         : null;
-    
+
     // 计算洞察数据
-    const fastestGrowing = [...sortedOracleData].sort((a, b) => (b.change24h || 0) - (a.change24h || 0))[0];
-    const largestChange = [...sortedOracleData].sort((a, b) => Math.abs(b.change24h || 0) - Math.abs(a.change24h || 0))[0];
+    const fastestGrowing = [...sortedOracleData].sort(
+      (a, b) => (b.change24h || 0) - (a.change24h || 0)
+    )[0];
+    const largestChange = [...sortedOracleData].sort(
+      (a, b) => Math.abs(b.change24h || 0) - Math.abs(a.change24h || 0)
+    )[0];
     const cr4 = sortedOracleData.slice(0, 4).reduce((sum, item) => sum + (item.share || 0), 0);
-    
+
     return (
       <div className="flex flex-col h-full">
         {/* 主图表区域 - 左右布局 */}
@@ -277,11 +284,11 @@ export default function ChartRenderer({
                             ? 1
                             : 0.2
                       }
-                      style={{ 
-                        cursor: 'pointer', 
+                      style={{
+                        cursor: 'pointer',
                         transition: 'all 0.3s ease',
                         transform: isActive ? 'scale(1.05)' : 'scale(1)',
-                        transformOrigin: 'center'
+                        transformOrigin: 'center',
                       }}
                     />
                   );
@@ -289,7 +296,7 @@ export default function ChartRenderer({
               </Pie>
               <RechartsTooltip content={<CustomTooltip />} />
             </PieChart>
-            
+
             {/* 中心信息 */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center mt-[-20px]">
@@ -297,9 +304,14 @@ export default function ChartRenderer({
                   <>
                     <p className="text-xs text-gray-500 mb-1">{activeItem.name}</p>
                     <p className="text-2xl font-bold text-gray-900">{activeItem.share}%</p>
-                    <p className="text-xs text-gray-500 mt-1">${(typeof activeItem.tvs === 'number' ? activeItem.tvs : 0).toFixed(1)}B</p>
-                    <p className={`text-xs mt-1 ${(activeItem.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
-                      {(activeItem.change24h || 0) >= 0 ? '+' : ''}{(activeItem.change24h || 0).toFixed(1)}%
+                    <p className="text-xs text-gray-500 mt-1">
+                      ${(typeof activeItem.tvs === 'number' ? activeItem.tvs : 0).toFixed(1)}B
+                    </p>
+                    <p
+                      className={`text-xs mt-1 ${(activeItem.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}
+                    >
+                      {(activeItem.change24h || 0) >= 0 ? '+' : ''}
+                      {(activeItem.change24h || 0).toFixed(1)}%
                     </p>
                   </>
                 ) : (
@@ -312,15 +324,15 @@ export default function ChartRenderer({
               </div>
             </div>
           </div>
-          
+
           {/* 右侧：预言机列表 */}
           <div className="w-48 flex flex-col justify-center space-y-2 pr-4">
             {sortedOracleData.slice(0, 6).map((item) => (
-              <div 
+              <div
                 key={item.name}
                 className={`flex items-center justify-between py-1.5 px-2 rounded cursor-pointer transition-all ${
-                  hoveredItem === item.name || selectedItem === item.name 
-                    ? 'bg-gray-100' 
+                  hoveredItem === item.name || selectedItem === item.name
+                    ? 'bg-gray-100'
                     : 'hover:bg-gray-50'
                 }`}
                 onMouseEnter={() => setHoveredItem(item.name)}
@@ -328,16 +340,19 @@ export default function ChartRenderer({
                 onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
               >
                 <div className="flex items-center gap-2">
-                  <div 
-                    className="w-2.5 h-2.5 rounded-full" 
+                  <div
+                    className="w-2.5 h-2.5 rounded-full"
                     style={{ backgroundColor: item.color }}
                   />
                   <span className="text-xs text-gray-700 truncate max-w-[80px]">{item.name}</span>
                 </div>
                 <div className="text-right">
                   <span className="text-xs font-medium text-gray-900">{item.share}%</span>
-                  <span className={`text-xs ml-1.5 ${(item.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
-                    {(item.change24h || 0) >= 0 ? '+' : ''}{(item.change24h || 0).toFixed(1)}%
+                  <span
+                    className={`text-xs ml-1.5 ${(item.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}
+                  >
+                    {(item.change24h || 0) >= 0 ? '+' : ''}
+                    {(item.change24h || 0).toFixed(1)}%
                   </span>
                 </div>
               </div>
@@ -349,7 +364,7 @@ export default function ChartRenderer({
             )}
           </div>
         </div>
-        
+
         {/* 底部：洞察行 */}
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="flex justify-between items-start">
@@ -357,7 +372,9 @@ export default function ChartRenderer({
             <div className="flex-1 px-2">
               <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">增长最快</p>
               <p className="text-sm font-medium text-gray-900 truncate">{fastestGrowing?.name}</p>
-              <p className="text-xs text-success-600">+{(fastestGrowing?.change24h || 0).toFixed(1)}%</p>
+              <p className="text-xs text-success-600">
+                +{(fastestGrowing?.change24h || 0).toFixed(1)}%
+              </p>
             </div>
             {/* 分隔线 */}
             <div className="w-px h-12 bg-gray-200 mx-2"></div>
@@ -365,8 +382,11 @@ export default function ChartRenderer({
             <div className="flex-1 px-2">
               <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">份额变化</p>
               <p className="text-sm font-medium text-gray-900 truncate">{largestChange?.name}</p>
-              <p className={`text-xs ${(largestChange?.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
-                {(largestChange?.change24h || 0) >= 0 ? '+' : ''}{(largestChange?.change24h || 0).toFixed(1)}%
+              <p
+                className={`text-xs ${(largestChange?.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}
+              >
+                {(largestChange?.change24h || 0) >= 0 ? '+' : ''}
+                {(largestChange?.change24h || 0).toFixed(1)}%
               </p>
             </div>
             {/* 分隔线 */}

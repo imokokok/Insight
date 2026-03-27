@@ -11,6 +11,7 @@
 位置：`src/components/oracle/shared/OraclePageTemplateNew.tsx`
 
 这是一个可配置的页面模板，支持以下功能：
+
 - 可配置的 Hero 组件
 - 可配置的 Sidebar 组件
 - 动态视图切换
@@ -22,6 +23,7 @@
 位置：`src/hooks/oracles/useOraclePage.ts`
 
 统一的页面数据管理 Hook，提供：
+
 - 统一的数据获取逻辑
 - 状态管理（loading, error, refreshing）
 - 自动刷新功能

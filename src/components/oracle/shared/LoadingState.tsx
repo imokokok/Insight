@@ -32,17 +32,21 @@ export function LoadingState({ themeColor = 'blue', message }: LoadingStateProps
   const hexColor = isHexColor(themeColor) ? themeColor : null;
 
   // 获取边框类名（如果不是十六进制颜色）
-  const borderClasses = hexColor ? '' : (tailwindColorStyles[themeColor] || tailwindColorStyles.blue);
+  const borderClasses = hexColor ? '' : tailwindColorStyles[themeColor] || tailwindColorStyles.blue;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div
           className={`w-12 h-12 border-4 rounded-full animate-spin ${borderClasses}`}
-          style={hexColor ? {
-            borderColor: `${hexColor}33`, // 20% 透明度
-            borderTopColor: hexColor,
-          } : undefined}
+          style={
+            hexColor
+              ? {
+                  borderColor: `${hexColor}33`, // 20% 透明度
+                  borderTopColor: hexColor,
+                }
+              : undefined
+          }
         />
         <p className="text-gray-500">{message || t('status.loading')}</p>
       </div>

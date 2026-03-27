@@ -91,7 +91,7 @@ const eslintConfig = defineConfig([
       'no-unused-expressions': 'error',
       'no-var': 'error',
       'prefer-const': 'error',
-      'eqeqeq': ['error', 'always', { null: 'ignore' }],
+      eqeqeq: ['error', 'always', { null: 'ignore' }],
     },
   },
   // Override default ignores of eslint-config-next.

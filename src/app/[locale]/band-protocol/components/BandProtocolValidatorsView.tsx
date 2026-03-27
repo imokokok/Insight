@@ -148,10 +148,16 @@ export function BandProtocolValidatorsView({
                   <SortHeader label={t('band.bandProtocol.validators.rank')} sortKey="rank" />
                 </th>
                 <th className="px-3 py-2 text-left whitespace-nowrap">
-                  <SortHeader label={t('band.bandProtocol.validators.validator')} sortKey="moniker" />
+                  <SortHeader
+                    label={t('band.bandProtocol.validators.validator')}
+                    sortKey="moniker"
+                  />
                 </th>
                 <th className="px-3 py-2 text-right whitespace-nowrap">
-                  <SortHeader label={t('band.bandProtocol.validators.votingPower')} sortKey="tokens" />
+                  <SortHeader
+                    label={t('band.bandProtocol.validators.votingPower')}
+                    sortKey="tokens"
+                  />
                 </th>
                 <th className="px-3 py-2 text-right whitespace-nowrap">
                   <SortHeader

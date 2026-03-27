@@ -746,13 +746,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
   // ============================================
 
   return (
-    <div
-      ref={containerRef}
-      className={cn(
-        'relative overflow-hidden',
-        className
-      )}
-    >
+    <div ref={containerRef} className={cn('relative overflow-hidden', className)}>
       {/* Toolbar */}
       {(columnVisibility || densityToggle) && (
         <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50/50">
@@ -857,14 +851,14 @@ export function DataTablePro<T extends Record<string, unknown>>({
 
                   return (
                     <tr
-                    key={virtualItem.key}
-                    data-index={virtualItem.index}
-                    ref={virtualizer.measureElement}
-                    className={cn(
-                      'transition-colors duration-150 hover:bg-gray-50',
-                      onRowClick && 'cursor-pointer',
-                      'border-b border-gray-100 last:border-b-0'
-                    )}
+                      key={virtualItem.key}
+                      data-index={virtualItem.index}
+                      ref={virtualizer.measureElement}
+                      className={cn(
+                        'transition-colors duration-150 hover:bg-gray-50',
+                        onRowClick && 'cursor-pointer',
+                        'border-b border-gray-100 last:border-b-0'
+                      )}
                       style={{
                         position: 'absolute',
                         top: 0,

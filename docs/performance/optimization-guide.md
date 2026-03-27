@@ -92,10 +92,7 @@ import { preloadWhenIdle } from '@/components/performance';
 
 // 在应用初始化时
 useEffect(() => {
-  preloadWhenIdle([
-    DynamicCrossOraclePage,
-    DynamicMarketOverviewPage,
-  ]);
+  preloadWhenIdle([DynamicCrossOraclePage, DynamicMarketOverviewPage]);
 }, []);
 ```
 
@@ -487,22 +484,22 @@ useEffect(() => {
 
 ### 推荐指标
 
-| 指标 | 目标 | 警告阈值 |
-|------|------|----------|
-| FCP | < 1.8s | 3.0s |
-| LCP | < 2.5s | 4.0s |
-| FID | < 100ms | 300ms |
-| CLS | < 0.1 | 0.25 |
-| TTFB | < 800ms | 1.8s |
-| TBT | < 200ms | 600ms |
+| 指标 | 目标    | 警告阈值 |
+| ---- | ------- | -------- |
+| FCP  | < 1.8s  | 3.0s     |
+| LCP  | < 2.5s  | 4.0s     |
+| FID  | < 100ms | 300ms    |
+| CLS  | < 0.1   | 0.25     |
+| TTFB | < 800ms | 1.8s     |
+| TBT  | < 200ms | 600ms    |
 
 ### JavaScript 包大小
 
-| 类型 | 目标 | 警告阈值 |
-|------|------|----------|
-| 首屏 JS | < 300KB | 500KB |
-| CSS | < 100KB | 150KB |
-| 图片 | < 500KB | 1MB |
+| 类型    | 目标    | 警告阈值 |
+| ------- | ------- | -------- |
+| 首屏 JS | < 300KB | 500KB    |
+| CSS     | < 100KB | 150KB    |
+| 图片    | < 500KB | 1MB      |
 
 ---
 

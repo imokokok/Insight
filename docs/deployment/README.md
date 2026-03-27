@@ -73,7 +73,7 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
@@ -85,15 +85,15 @@ services:
 
 ### 必需变量
 
-| 变量名 | 描述 | 示例 |
-|--------|------|------|
-| NEXT_PUBLIC_SUPABASE_URL | Supabase 项目 URL | https://xxx.supabase.co |
-| NEXT_PUBLIC_SUPABASE_ANON_KEY | Supabase 匿名密钥 | eyJhbG... |
-| SUPABASE_SERVICE_ROLE_KEY | Supabase 服务角色密钥 | eyJhbG... |
+| 变量名                        | 描述                  | 示例                    |
+| ----------------------------- | --------------------- | ----------------------- |
+| NEXT_PUBLIC_SUPABASE_URL      | Supabase 项目 URL     | https://xxx.supabase.co |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY | Supabase 匿名密钥     | eyJhbG...               |
+| SUPABASE_SERVICE_ROLE_KEY     | Supabase 服务角色密钥 | eyJhbG...               |
 
 ### 可选变量
 
-| 变量名 | 描述 | 默认值 |
-|--------|------|--------|
-| NEXTAUTH_SECRET | NextAuth 密钥 | - |
-| NEXTAUTH_URL | NextAuth URL | http
+| 变量名          | 描述          | 默认值 |
+| --------------- | ------------- | ------ |
+| NEXTAUTH_SECRET | NextAuth 密钥 | -      |
+| NEXTAUTH_URL    | NextAuth URL  | http   |

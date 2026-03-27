@@ -18,11 +18,7 @@ import {
 } from 'lucide-react';
 
 import { useTranslations, useLocale } from '@/i18n';
-import {
-  searchAll,
-  getTokenSymbol,
-  type SearchResult,
-} from '@/lib/constants/searchConfig';
+import { searchAll, getTokenSymbol, type SearchResult } from '@/lib/constants/searchConfig';
 import {
   getSearchHistory,
   saveSearchHistory,
@@ -214,25 +210,20 @@ export default function ProfessionalHero() {
     setSearchHistory(getSearchHistory());
   };
 
-  const getTypeIcon = (dropdownItem: typeof dropdownItems[0]) => {
+  const getTypeIcon = (dropdownItem: (typeof dropdownItems)[0]) => {
     const searchableItem = 'score' in dropdownItem.item ? dropdownItem.item.item : null;
-    
-    if (dropdownItem.type === 'history')
-      return <Clock className="w-4 h-4 text-gray-400" />;
-    if (dropdownItem.type === 'popular')
-      return <TrendingUp className="w-4 h-4 text-emerald-500" />;
-    if (searchableItem?.type === 'token')
-      return <Coins className="w-4 h-4 text-amber-500" />;
-    if (searchableItem?.type === 'oracle')
-      return <Database className="w-4 h-4 text-blue-500" />;
-    if (searchableItem?.type === 'chain')
-      return <Link2 className="w-4 h-4 text-purple-500" />;
+
+    if (dropdownItem.type === 'history') return <Clock className="w-4 h-4 text-gray-400" />;
+    if (dropdownItem.type === 'popular') return <TrendingUp className="w-4 h-4 text-emerald-500" />;
+    if (searchableItem?.type === 'token') return <Coins className="w-4 h-4 text-amber-500" />;
+    if (searchableItem?.type === 'oracle') return <Database className="w-4 h-4 text-blue-500" />;
+    if (searchableItem?.type === 'chain') return <Link2 className="w-4 h-4 text-purple-500" />;
     return <Search className="w-4 h-4 text-gray-400" />;
   };
 
-  const getTypeLabel = (dropdownItem: typeof dropdownItems[0]) => {
+  const getTypeLabel = (dropdownItem: (typeof dropdownItems)[0]) => {
     const searchableItem = 'score' in dropdownItem.item ? dropdownItem.item.item : null;
-    
+
     if (dropdownItem.type === 'popular') return '热门';
     if (searchableItem?.type === 'token') return '代币';
     if (searchableItem?.type === 'oracle') return '预言机';
@@ -240,26 +231,23 @@ export default function ProfessionalHero() {
     return null;
   };
 
-  const getTypeColor = (dropdownItem: typeof dropdownItems[0]) => {
+  const getTypeColor = (dropdownItem: (typeof dropdownItems)[0]) => {
     const searchableItem = 'score' in dropdownItem.item ? dropdownItem.item.item : null;
-    
-    if (dropdownItem.type === 'popular')
-      return 'text-emerald-600 bg-emerald-50';
+
+    if (dropdownItem.type === 'popular') return 'text-emerald-600 bg-emerald-50';
     if (searchableItem?.type === 'token') return 'text-amber-600 bg-amber-50';
-    if (searchableItem?.type === 'oracle')
-      return 'text-blue-600 bg-blue-50';
-    if (searchableItem?.type === 'chain')
-      return 'text-purple-600 bg-purple-50';
+    if (searchableItem?.type === 'oracle') return 'text-blue-600 bg-blue-50';
+    if (searchableItem?.type === 'chain') return 'text-purple-600 bg-purple-50';
     return 'text-gray-600 bg-gray-50';
   };
 
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden">
       <HeroBackground enableParticles={true} enableDataFlow={false} />
-      
+
       {/* Main Content - Centered Layout */}
       <div className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-12 py-8 sm:py-12">
-        <div 
+        <div
           className="w-full max-w-2xl mx-auto text-center space-y-6 sm:space-y-8"
           style={{
             opacity: isVisible ? 1 : 0,
@@ -273,9 +261,7 @@ export default function ProfessionalHero() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 [animation-duration:2s]"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="text-sm font-medium text-emerald-700">
-              {t('home.hero.liveData')}
-            </span>
+            <span className="text-sm font-medium text-emerald-700">{t('home.hero.liveData')}</span>
           </div>
 
           {/* Title */}
@@ -304,8 +290,8 @@ export default function ProfessionalHero() {
                   : 'border-gray-200/80 hover:border-gray-300'
               }`}
               style={{
-                boxShadow: isSearchFocused 
-                  ? `0 0 0 4px rgba(59, 130, 246, 0.1), 0 10px 40px -10px rgba(59, 130, 246, 0.2)` 
+                boxShadow: isSearchFocused
+                  ? `0 0 0 4px rgba(59, 130, 246, 0.1), 0 10px 40px -10px rgba(59, 130, 246, 0.2)`
                   : undefined,
               }}
             >
@@ -419,7 +405,9 @@ export default function ProfessionalHero() {
                               </span>
                             </div>
                             {getTypeLabel(dropdownItem) && (
-                              <span className={`text-xs px-2 py-0.5 rounded ${getTypeColor(dropdownItem)}`}>
+                              <span
+                                className={`text-xs px-2 py-0.5 rounded ${getTypeColor(dropdownItem)}`}
+                              >
                                 {getTypeLabel(dropdownItem)}
                               </span>
                             )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
@@ -51,14 +52,10 @@ function StatItem({
     <div className="flex items-center">
       <div className="flex flex-col">
         {/* 标签 */}
-        <span className="text-xs text-gray-500 uppercase tracking-wider">
-          {label}
-        </span>
+        <span className="text-xs text-gray-500 uppercase tracking-wider">{label}</span>
         {/* 数值和变化 */}
         <div className="flex items-baseline gap-2 mt-0.5">
-          <span className="text-xl font-semibold text-gray-900 tabular-nums">
-            {value}
-          </span>
+          <span className="text-xl font-semibold text-gray-900 tabular-nums">{value}</span>
           <div className={cn('flex items-center gap-0.5', trendColorClass)}>
             <TrendIcon className="w-3 h-3 flex-shrink-0" />
             <span className="text-xs font-medium tabular-nums">
@@ -68,9 +65,7 @@ function StatItem({
         </div>
       </div>
       {/* 分隔线 */}
-      {showDivider && (
-        <span className="text-gray-300 mx-4 sm:mx-6 hidden sm:block">|</span>
-      )}
+      {showDivider && <span className="text-gray-300 mx-4 sm:mx-6 hidden sm:block">|</span>}
     </div>
   );
 }
@@ -100,13 +95,9 @@ function MobileStatItem({
 
   return (
     <div className="flex flex-col flex-shrink-0">
-      <span className="text-xs text-gray-500 uppercase tracking-wider">
-        {label}
-      </span>
+      <span className="text-xs text-gray-500 uppercase tracking-wider">{label}</span>
       <div className="flex items-baseline gap-1.5 mt-0.5">
-        <span className="text-lg font-semibold text-gray-900 tabular-nums">
-          {value}
-        </span>
+        <span className="text-lg font-semibold text-gray-900 tabular-nums">{value}</span>
         <div className={cn('flex items-center gap-0.5', trendColorClass)}>
           <TrendIcon className="w-3 h-3 flex-shrink-0" />
           <span className="text-xs font-medium tabular-nums">
