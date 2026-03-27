@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -9,9 +9,6 @@ import {
   ArrowRight,
   Search,
   TrendingUp,
-  Shield,
-  Zap,
-  Activity,
   Clock,
   X,
   ChevronRight,
@@ -19,16 +16,12 @@ import {
   Database,
   Link2,
 } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 
-import { Icon } from '@/components/ui';
 import { useTranslations, useLocale } from '@/i18n';
-import { chartColors } from '@/lib/config/colors';
-import { symbols } from '@/lib/constants';
+import { baseColors } from '@/lib/config/colors';
 import {
   searchAll,
   getTokenSymbol,
-  type SearchableItem,
   type SearchResult,
 } from '@/lib/constants/searchConfig';
 import {
@@ -40,54 +33,8 @@ import {
 } from '@/lib/utils/searchHistory';
 
 import HeroBackground from './HeroBackground';
-
-interface TrendData {
-  value: number;
-}
-
-interface Metric {
-  label: string;
-  value: string;
-  subLabel: string;
-  icon: typeof Shield;
-  trend: TrendData[];
-  color: string;
-}
-
-const generateTrendData = (baseValue: number, points: number = 20): TrendData[] => {
-  const data: TrendData[] = [];
-  let currentValue = baseValue;
-  for (let i = 0; i < points; i++) {
-    const change = (Math.random() - 0.48) * 0.05;
-    currentValue = currentValue * (1 + change);
-    data.push({ value: currentValue });
-  }
-  return data;
-};
-
-const getStaticMetrics = (t: (key: string) => string): Omit<Metric, 'trend'>[] => [
-  {
-    label: 'tvs',
-    value: '$42.1B',
-    subLabel: t('home.hero.metrics.totalValueSecured'),
-    icon: Shield,
-    color: chartColors.chart.blue,
-  },
-  {
-    label: 'oracles',
-    value: '5',
-    subLabel: t('home.hero.metrics.activeOracles'),
-    icon: Zap,
-    color: chartColors.chart.emerald,
-  },
-  {
-    label: 'pairs',
-    value: '1200+',
-    subLabel: t('home.hero.metrics.supportedPairs'),
-    icon: TrendingUp,
-    color: chartColors.chart.violet,
-  },
-];
+import LiveMetricsPanel from './LiveMetricsPanel';
+import TrustMetricsBanner from './TrustMetricsBanner';
 
 // 热门币种（使用价格查询页面的前七个币种）
 const POPULAR_TOKENS = ['BTC', 'ETH', 'SOL', 'AVAX', 'NEAR', 'MATIC', 'ARB'];
@@ -102,30 +49,21 @@ export default function ProfessionalHero() {
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [isComposing, setIsComposing] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const mountedRef = useRef(false);
-  const [mountedState, setMountedState] = useState(false);
 
-  // 加载搜索历史和 mounted 状态
+  // 加载搜索历史和入场动画
   useEffect(() => {
-    const initializeData = () => {
-      setSearchHistory(getSearchHistory());
-    };
-    initializeData();
-    mountedRef.current = true;
-    // 使用 requestAnimationFrame 避免同步 setState 警告
-    requestAnimationFrame(() => {
-      setMountedState(true);
-    });
+    setSearchHistory(getSearchHistory());
+    // Trigger entrance animation
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
   }, []);
 
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    return searchAll(searchQuery);
-  }, [searchQuery]);
+  const searchResults = searchQuery.trim() ? searchAll(searchQuery) : [];
 
-  const dropdownItems = useMemo(() => {
+  const dropdownItems = (() => {
     const items: {
       type: 'history' | 'popular' | 'search';
       item: SearchResult | { symbol: string };
@@ -155,7 +93,7 @@ export default function ProfessionalHero() {
     });
 
     return items.slice(0, 10);
-  }, [searchHistory, searchResults, searchQuery]);
+  })();
 
   const handleSearch = useCallback(
     (searchItem: string | SearchResult) => {
@@ -279,361 +217,304 @@ export default function ProfessionalHero() {
     setSearchHistory(getSearchHistory());
   };
 
-  // 高亮匹配文字
-  const highlightMatch = (text: string, query: string) => {
-    if (!query.trim()) return text;
-    const regex = new RegExp(`(${query.trim()})`, 'gi');
-    const parts = text.split(regex);
-    return parts.map((part, i) =>
-      regex.test(part) ? (
-        <span key={i} className="text-emerald-600 font-semibold">
-          {part}
-        </span>
-      ) : (
-        part
-      )
-    );
+  const getTypeIcon = (dropdownItem: typeof dropdownItems[0]) => {
+    const searchableItem = 'score' in dropdownItem.item ? dropdownItem.item.item : null;
+    
+    if (dropdownItem.type === 'history')
+      return <Clock className="w-4 h-4 text-gray-400" />;
+    if (dropdownItem.type === 'popular')
+      return <TrendingUp className="w-4 h-4 text-emerald-500" />;
+    if (searchableItem?.type === 'token')
+      return <Coins className="w-4 h-4 text-amber-500" />;
+    if (searchableItem?.type === 'oracle')
+      return <Database className="w-4 h-4 text-blue-500" />;
+    if (searchableItem?.type === 'chain')
+      return <Link2 className="w-4 h-4 text-purple-500" />;
+    return <Search className="w-4 h-4 text-gray-400" />;
   };
 
-  const metrics = useMemo(() => {
-    const staticMetrics = getStaticMetrics(t);
-    if (!mountedState) {
-      return staticMetrics.map((m) => ({
-        ...m,
-        trend: [{ value: 0 }],
-      }));
-    }
-    return staticMetrics.map((m) => ({
-      ...m,
-      trend:
-        m.label === 'tvs'
-          ? generateTrendData(40)
-          : m.label === 'oracles'
-            ? generateTrendData(5, 15)
-            : generateTrendData(1100, 25),
-    }));
-  }, [t, mountedState]);
+  const getTypeLabel = (dropdownItem: typeof dropdownItems[0]) => {
+    const searchableItem = 'score' in dropdownItem.item ? dropdownItem.item.item : null;
+    
+    if (dropdownItem.type === 'popular') return '热门';
+    if (searchableItem?.type === 'token') return '代币';
+    if (searchableItem?.type === 'oracle') return '预言机';
+    if (searchableItem?.type === 'chain') return '区块链';
+    return null;
+  };
+
+  const getTypeColor = (dropdownItem: typeof dropdownItems[0]) => {
+    const searchableItem = 'score' in dropdownItem.item ? dropdownItem.item.item : null;
+    
+    if (dropdownItem.type === 'popular')
+      return 'text-emerald-600 bg-emerald-50';
+    if (searchableItem?.type === 'token') return 'text-amber-600 bg-amber-50';
+    if (searchableItem?.type === 'oracle')
+      return 'text-blue-600 bg-blue-50';
+    if (searchableItem?.type === 'chain')
+      return 'text-purple-600 bg-purple-50';
+    return 'text-gray-600 bg-gray-50';
+  };
 
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden">
       <HeroBackground />
-      <div className="relative z-10 flex-1 flex items-center px-6 lg:px-12 xl:px-20 py-12">
+      
+      {/* Main Content */}
+      <div className="relative z-10 flex-1 flex items-center px-4 sm:px-6 lg:px-12 xl:px-20 py-8 sm:py-12">
         <div className="w-full max-w-7xl mx-auto">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50/80 rounded-full mb-8">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 [animation-duration:2s]"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span className="text-sm font-medium text-emerald-700">
-                {t('home.hero.liveData')}
-              </span>
-            </div>
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
+            
+            {/* Left Column - Content (60%) */}
+            <div 
+              className="lg:col-span-3 space-y-6 sm:space-y-8"
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+                transition: 'all 0.6s ease-out',
+              }}
+            >
+              {/* Live Badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50/80 rounded-full">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 [animation-duration:2s]"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-sm font-medium text-emerald-700">
+                  {t('home.hero.liveData')}
+                </span>
+              </div>
 
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-snug mb-6">
-              {t('home.hero.title.part1')}
-              <br />
-              <span className="text-gray-700">{t('home.hero.title.part2')}</span>
-            </h1>
+              {/* Title */}
+              <div className="space-y-3">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                  {t('home.hero.title.part1')}
+                </h1>
+                <p className="text-xl sm:text-2xl lg:text-3xl text-gray-600 font-medium">
+                  {t('home.hero.title.part2')}
+                </p>
+              </div>
 
-            <p className="text-lg md:text-xl text-gray-700 mb-10 leading-relaxed max-w-2xl mx-auto">
-              {t('home.hero.description') ||
-                '全面分析和比较主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。'}
-            </p>
+              {/* Description */}
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed max-w-xl">
+                {t('home.hero.description') ||
+                  '全面分析和比较主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。'}
+              </p>
 
-            {/* 搜索框区域 */}
-            <div className="relative max-w-2xl mx-auto mb-4 z-[100]" ref={dropdownRef}>
-              <form
-                onSubmit={handleSubmit}
-                className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-xl shadow-md border transition-all duration-300 ease-out overflow-visible ${
-                  isSearchFocused
-                    ? 'border-emerald-300/50'
-                    : 'border-gray-200/80 hover:border-gray-300'
-                }`}
-              >
-                <div className="pl-5">
-                  <Search
-                    className={`w-5 h-5 transition-all duration-300 ${
-                      isSearchFocused ? 'text-emerald-600 scale-110' : 'text-gray-400'
-                    }`}
-                  />
-                </div>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setIsDropdownOpen(true);
-                    setHighlightedIndex(-1);
+              {/* Search Box */}
+              <div className="relative max-w-xl z-[100]" ref={dropdownRef}>
+                <form
+                  onSubmit={handleSubmit}
+                  className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border-2 transition-all duration-300 ease-out overflow-visible ${
+                    isSearchFocused
+                      ? 'border-blue-400 shadow-blue-200/50 shadow-xl'
+                      : 'border-gray-200/80 hover:border-gray-300'
+                  }`}
+                  style={{
+                    boxShadow: isSearchFocused 
+                      ? `0 0 0 4px rgba(59, 130, 246, 0.1), 0 10px 40px -10px rgba(59, 130, 246, 0.2)` 
+                      : undefined,
                   }}
-                  onFocus={() => {
-                    setIsSearchFocused(true);
-                    setIsDropdownOpen(true);
-                  }}
-                  onBlur={() => setIsSearchFocused(false)}
-                  onKeyDown={handleKeyDown}
-                  onCompositionStart={() => setIsComposing(true)}
-                  onCompositionEnd={() => setIsComposing(false)}
-                  placeholder={t('home.hero.searchPlaceholder')}
-                  className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-0 min-w-0 !outline-none"
-                  style={{ outline: 'none', boxShadow: 'none' }}
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery('');
-                      inputRef.current?.focus();
-                    }}
-                    className="p-1 mr-2 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  className="mr-2 px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white font-semibold rounded-xl hover:from-gray-800 hover:to-gray-700 hover:shadow-lg hover:shadow-gray-900/25 active:scale-95 transition-all duration-200 text-sm sm:text-base whitespace-nowrap"
                 >
-                  {t('actions.search')}
-                </button>
-
-                {isDropdownOpen && dropdownItems.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {!searchQuery.trim() && searchHistory.length > 0 && (
-                      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <Clock className="w-3 h-3" />
-                          <span>最近搜索</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleClearHistory}
-                          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                          清除
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="max-h-80 overflow-y-auto">
-                      {dropdownItems.map((dropdownItem, index) => {
-                        const isSearchResult =
-                          dropdownItem.type === 'search' && 'score' in dropdownItem.item;
-                        const searchResult = isSearchResult
-                          ? (dropdownItem.item as SearchResult)
-                          : null;
-                        const searchableItem = searchResult?.item;
-                        const symbol =
-                          'symbol' in dropdownItem.item
-                            ? dropdownItem.item.symbol
-                            : searchableItem?.symbol || '';
-                        const name = searchableItem?.name || symbol;
-
-                        const getTypeIcon = () => {
-                          if (dropdownItem.type === 'history')
-                            return <Clock className="w-4 h-4 text-gray-400" />;
-                          if (dropdownItem.type === 'popular')
-                            return <TrendingUp className="w-4 h-4 text-emerald-500" />;
-                          if (searchableItem?.type === 'token')
-                            return <Coins className="w-4 h-4 text-amber-500" />;
-                          if (searchableItem?.type === 'oracle')
-                            return <Database className="w-4 h-4 text-primary-500" />;
-                          if (searchableItem?.type === 'chain')
-                            return <Link2 className="w-4 h-4 text-purple-500" />;
-                          return <Search className="w-4 h-4 text-gray-400" />;
-                        };
-
-                        const getTypeLabel = () => {
-                          if (dropdownItem.type === 'popular') return '热门';
-                          if (searchableItem?.type === 'token') return '代币';
-                          if (searchableItem?.type === 'oracle') return '预言机';
-                          if (searchableItem?.type === 'chain') return '区块链';
-                          return null;
-                        };
-
-                        const getTypeColor = () => {
-                          if (dropdownItem.type === 'popular')
-                            return 'text-emerald-600 bg-emerald-50';
-                          if (searchableItem?.type === 'token') return 'text-amber-600 bg-amber-50';
-                          if (searchableItem?.type === 'oracle')
-                            return 'text-primary-600 bg-primary-50';
-                          if (searchableItem?.type === 'chain')
-                            return 'text-purple-600 bg-purple-50';
-                          return 'text-gray-600 bg-gray-50';
-                        };
-
-                        return (
-                          <div
-                            key={`${dropdownItem.type}-${symbol}-${index}`}
-                            onMouseEnter={() => setHighlightedIndex(index)}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
-                              index === highlightedIndex ? 'bg-emerald-50' : 'hover:bg-gray-50'
-                            }`}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (isSearchResult && searchResult) {
-                                  handleSearch(searchResult);
-                                } else if (symbol) {
-                                  handleSearch(symbol);
-                                }
-                              }}
-                              className="flex-1 flex items-center gap-3 text-left"
-                            >
-                              {getTypeIcon()}
-                              <div className="flex flex-col">
-                                <span className="font-medium text-gray-900">
-                                  {symbol}
-                                  {searchableItem && symbol !== name && (
-                                    <span className="ml-2 text-sm text-gray-500 font-normal">
-                                      {name}
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              {getTypeLabel() && (
-                                <span className={`text-xs px-2 py-0.5 rounded ${getTypeColor()}`}>
-                                  {getTypeLabel()}
-                                </span>
-                              )}
-                            </button>
-                            <div className="flex items-center gap-2">
-                              {dropdownItem.type === 'history' && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    if ('symbol' in dropdownItem.item) {
-                                      handleRemoveHistoryItem(dropdownItem.item.symbol, e);
-                                    }
-                                  }}
-                                  className="p-1 text-gray-300 hover:text-danger-500 transition-colors"
-                                  title="删除此记录"
-                                >
-                                  <X className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                              <ChevronRight className="w-4 h-4 text-gray-300" />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
-                      <span>使用 ↑↓ 选择，↵ 确认</span>
-                      <span>ESC 关闭</span>
-                    </div>
+                  <div className="pl-5">
+                    <Search
+                      className={`w-5 h-5 transition-all duration-300 ${
+                        isSearchFocused ? 'text-blue-500 scale-110' : 'text-gray-400'
+                      }`}
+                    />
                   </div>
-                )}
-              </form>
-            </div>
-
-            {/* 热门币种快捷标签 */}
-            <div className="max-w-2xl mx-auto mb-10">
-              <div className="flex items-center justify-center gap-2 flex-wrap">
-                <span className="text-xs text-gray-400">热门:</span>
-                {POPULAR_TOKENS.map((token) => (
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setIsDropdownOpen(true);
+                      setHighlightedIndex(-1);
+                    }}
+                    onFocus={() => {
+                      setIsSearchFocused(true);
+                      setIsDropdownOpen(true);
+                    }}
+                    onBlur={() => setIsSearchFocused(false)}
+                    onKeyDown={handleKeyDown}
+                    onCompositionStart={() => setIsComposing(true)}
+                    onCompositionEnd={() => setIsComposing(false)}
+                    placeholder={t('home.hero.searchPlaceholder')}
+                    className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 min-w-0"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        inputRef.current?.focus();
+                      }}
+                      className="p-1 mr-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                   <button
-                    key={token}
-                    onClick={() => handleSearch(token)}
-                    className="px-3 py-1 text-xs font-medium text-gray-600 bg-white/80 hover:bg-white border border-gray-200 hover:border-emerald-300 rounded-full transition-all duration-200 hover:shadow-sm hover:text-emerald-600"
+                    type="submit"
+                    className="mr-2 px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 hover:shadow-lg hover:shadow-blue-500/25 active:scale-95 transition-all duration-200 text-sm sm:text-base whitespace-nowrap"
                   >
-                    {token}
+                    {t('actions.search')}
                   </button>
-                ))}
+
+                  {/* Dropdown */}
+                  {isDropdownOpen && dropdownItems.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      {!searchQuery.trim() && searchHistory.length > 0 && (
+                        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <Clock className="w-3 h-3" />
+                            <span>最近搜索</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleClearHistory}
+                            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            清除
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="max-h-80 overflow-y-auto">
+                        {dropdownItems.map((dropdownItem, index) => {
+                          const isSearchResult =
+                            dropdownItem.type === 'search' && 'score' in dropdownItem.item;
+                          const searchResult = isSearchResult
+                            ? (dropdownItem.item as SearchResult)
+                            : null;
+                          const searchableItem = searchResult?.item;
+                          const symbol =
+                            'symbol' in dropdownItem.item
+                              ? dropdownItem.item.symbol
+                              : searchableItem?.symbol || '';
+                          const name = searchableItem?.name || symbol;
+
+                          return (
+                            <div
+                              key={`${dropdownItem.type}-${symbol}-${index}`}
+                              onMouseEnter={() => setHighlightedIndex(index)}
+                              className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
+                                index === highlightedIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
+                              }`}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isSearchResult && searchResult) {
+                                    handleSearch(searchResult);
+                                  } else if (symbol) {
+                                    handleSearch(symbol);
+                                  }
+                                }}
+                                className="flex-1 flex items-center gap-3 text-left"
+                              >
+                                {getTypeIcon(dropdownItem)}
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-gray-900">
+                                    {symbol}
+                                    {searchableItem && symbol !== name && (
+                                      <span className="ml-2 text-sm text-gray-500 font-normal">
+                                        {name}
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                                {getTypeLabel(dropdownItem) && (
+                                  <span className={`text-xs px-2 py-0.5 rounded ${getTypeColor(dropdownItem)}`}>
+                                    {getTypeLabel(dropdownItem)}
+                                  </span>
+                                )}
+                              </button>
+                              <div className="flex items-center gap-2">
+                                {dropdownItem.type === 'history' && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      if ('symbol' in dropdownItem.item) {
+                                        handleRemoveHistoryItem(dropdownItem.item.symbol, e);
+                                      }
+                                    }}
+                                    className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                                    title="删除此记录"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                <ChevronRight className="w-4 h-4 text-gray-300" />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
+                        <span>使用 ↑↓ 选择，↵ 确认</span>
+                        <span>ESC 关闭</span>
+                      </div>
+                    </div>
+                  )}
+                </form>
+              </div>
+
+              {/* Popular Tokens - Horizontal Scroll */}
+              <div className="max-w-xl">
+                <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                  <span className="text-xs text-gray-400 flex-shrink-0">热门:</span>
+                  {POPULAR_TOKENS.map((token) => (
+                    <button
+                      key={token}
+                      onClick={() => handleSearch(token)}
+                      className="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white/80 hover:bg-white border border-gray-200 hover:border-blue-300 rounded-full transition-all duration-200 hover:shadow-sm hover:text-blue-600"
+                    >
+                      {token}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                <Link
+                  href="/market-overview"
+                  className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors duration-200 group rounded-lg"
+                >
+                  {t('home.hero.ctaPrimary') || '查看市场概览'}
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+                </Link>
+                <Link
+                  href="/price-query"
+                  className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-700 font-semibold border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors duration-200 group rounded-lg"
+                >
+                  <Search className="w-5 h-5 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
+                  {t('home.hero.ctaSecondary') || '查询价格'}
+                </Link>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12">
-              <Link
-                href="/market-overview"
-                className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors duration-200 group w-full sm:w-auto justify-center"
-              >
-                {t('home.hero.ctaPrimary') || '查看市场概览'}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
-              </Link>
-              <Link
-                href="/price-query"
-                className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-700 font-semibold border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors duration-200 group w-full sm:w-auto justify-center"
-              >
-                <Search className="w-5 h-5 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
-                {t('home.hero.ctaSecondary') || '查询价格'}
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-              {metrics.map((metric) => {
-                const Icon = metric.icon;
-                const isPositive =
-                  metric.trend[metric.trend.length - 1].value >= metric.trend[0].value;
-                const percentChange =
-                  (metric.trend[metric.trend.length - 1].value / metric.trend[0].value - 1) * 100;
-
-                return (
-                  <div
-                    key={metric.label}
-                    className="group bg-white border border-gray-200 rounded-lg p-5 hover:border-gray-400 transition-colors duration-200"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-gray-100 rounded-lg">
-                          <Icon className="w-5 h-5 text-gray-600" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-500">{metric.subLabel}</span>
-                      </div>
-                      <div
-                        className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded ${
-                          isPositive
-                            ? 'text-emerald-600 bg-emerald-50'
-                            : 'text-danger-600 bg-danger-50'
-                        }`}
-                      >
-                        <TrendingUp className={`w-3 h-3 ${!isPositive && 'rotate-180'}`} />
-                        <span>
-                          {isPositive ? '+' : ''}
-                          {percentChange.toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-extrabold tracking-tight text-gray-900 mb-3">
-                      {metric.value}
-                    </div>
-                    <div className="h-16 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={metric.trend}>
-                          <defs>
-                            <linearGradient
-                              id={`gradient-${metric.label}`}
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop offset="5%" stopColor={metric.color} stopOpacity={0.1} />
-                              <stop offset="95%" stopColor={metric.color} stopOpacity={0.02} />
-                            </linearGradient>
-                          </defs>
-                          <Area
-                            type="monotone"
-                            dataKey="value"
-                            stroke={metric.color}
-                            strokeWidth={2}
-                            fill={`url(#gradient-${metric.label})`}
-                            dot={false}
-                            isAnimationActive={false}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Right Column - Live Metrics (40%) */}
+            <div 
+              className="lg:col-span-2"
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+                transition: 'all 0.6s ease-out 0.2s',
+              }}
+            >
+              <LiveMetricsPanel />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Trust Metrics Banner at Bottom */}
+      <TrustMetricsBanner />
     </section>
   );
 }
