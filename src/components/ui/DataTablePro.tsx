@@ -84,6 +84,7 @@ export interface DataTableProProps<T extends Record<string, unknown>> {
   maxHeight?: number;
   loading?: boolean;
   emptyText?: string;
+  scrollPositionKey?: string;
   onRowClick?: (row: T, index: number) => void;
   onSort?: (sortConfig: SortConfig[]) => void;
   onDensityChange?: (density: 'compact' | 'normal' | 'comfortable') => void;
@@ -356,6 +357,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
   maxHeight = 600,
   loading = false,
   emptyText,
+  scrollPositionKey,
   onRowClick,
   onSort,
   onDensityChange,
@@ -612,15 +614,53 @@ export function DataTablePro<T extends Record<string, unknown>>({
 
   const currentRowHeight = rowHeight || densityConfig.rowHeight;
 
+  const getSavedScrollPosition = useCallback((): number => {
+    if (!scrollPositionKey || typeof window === 'undefined') return 0;
+    try {
+      const saved = sessionStorage.getItem(`datatable-scroll-${scrollPositionKey}`);
+      return saved ? parseInt(saved, 10) : 0;
+    } catch {
+      return 0;
+    }
+  }, [scrollPositionKey]);
+
+  const saveScrollPosition = useCallback(
+    (offset: number) => {
+      if (!scrollPositionKey || typeof window === 'undefined') return;
+      try {
+        sessionStorage.setItem(`datatable-scroll-${scrollPositionKey}`, String(offset));
+      } catch {
+        // Ignore sessionStorage errors
+      }
+    },
+    [scrollPositionKey]
+  );
+
   const virtualizer = useVirtualizer({
     count: virtualScroll ? sortedData.length : 0,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => currentRowHeight,
-    overscan: 5,
+    overscan: 10,
     enabled: virtualScroll,
+    initialOffset: getSavedScrollPosition(),
   });
 
   const virtualItems = virtualizer.getVirtualItems();
+
+  useEffect(() => {
+    if (!virtualScroll || !scrollPositionKey) return;
+
+    const scrollElement = scrollRef.current;
+    if (!scrollElement) return;
+
+    const handleScroll = () => {
+      const offset = scrollElement.scrollTop;
+      saveScrollPosition(offset);
+    };
+
+    scrollElement.addEventListener('scroll', handleScroll);
+    return () => scrollElement.removeEventListener('scroll', handleScroll);
+  }, [virtualScroll, scrollPositionKey, saveScrollPosition]);
 
   // ============================================
   // Fixed Columns Logic

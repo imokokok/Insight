@@ -93,6 +93,69 @@
       "line": "Line",
       "area": "Area"
     },
-    "chartHint": "Hover for details, click to select"
+    "chartHint": "Hover for details, click to select",
+    "error": {
+      "title": "Component Error",
+      "chartRenderError": "Chart rendering failed",
+      "networkError": "Network connection failed",
+      "dataError": "Data loading failed",
+      "memoryError": "Insufficient memory",
+      "viewDetails": "View Details",
+      "errorInfo": "Error Info",
+      "errorStack": "Error Stack",
+      "componentStack": "Component Stack",
+      "errorBoundaryTip": "This error has been caught by the error boundary and will not affect other parts of the page. You can try again or refresh the page."
+    },
+    "emptyState": {
+      "chartTitle": "No Chart Data",
+      "tableTitle": "No Table Data",
+      "statsTitle": "No Statistics",
+      "noChartData": "No data available to display the chart. Please try refreshing or check back later.",
+      "noTableData": "No data available to display in the table. Please try refreshing or check back later.",
+      "noStatsData": "No statistics data available at the moment. Please try refreshing.",
+      "refresh": "Refresh Data"
+    },
+    "filter": {
+      "title": "Filter",
+      "clear": "Clear Filters",
+      "activeFilters": "active filters",
+      "marketShare": "Market Share",
+      "change24h": "24h Change",
+      "chains": "Chain Count",
+      "all": "All",
+      "positive": "Positive",
+      "negative": "Negative",
+      "searchPlaceholder": "Search asset name or oracle...",
+      "allOracles": "All Oracles",
+      "allChanges": "All Changes",
+      "highChange": "High Volatility (≥10%)",
+      "mediumChange": "Medium Volatility (5-10%)",
+      "lowChange": "Low Volatility (<5%)",
+      "search": "Search",
+      "change": "Change",
+      "filteredFrom": "filtered from",
+      "more": "More"
+    },
+    "ui": {
+      "chart": {
+        "marketShare": "Market Share",
+        "tvsTrend": "TVS Trend",
+        "chainSupport": "Chain Support",
+        "chainBreakdown": "Chain Breakdown",
+        "protocols": "Protocols",
+        "assetCategories": "Asset Categories",
+        "oracleComparison": "Oracle Comparison",
+        "benchmark": "Benchmark",
+        "correlation": "Correlation",
+        "clearLink": "Clear Link",
+        "reset": "Reset Zoom",
+        "export": "Export",
+        "chart": "Chart",
+        "table": "Table",
+        "yoyComparison": "YoY",
+        "momComparison": "MoM",
+        "toggleConfidence": "Toggle Confidence Interval"
+      }
+    }
   }
 }

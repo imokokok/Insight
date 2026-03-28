@@ -1051,6 +1051,66 @@ body {
 }
 
 /* ============================================
+   Chart Transition Animations
+   ============================================ */
+
+.chart-transition-enter {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+.chart-transition-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 250ms ease-in-out,
+    transform 250ms ease-in-out;
+}
+
+.chart-transition-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.chart-transition-exit-active {
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity 250ms ease-in-out,
+    transform 250ms ease-in-out;
+}
+
+.chart-fade-scale {
+  animation: chart-fade-scale 250ms ease-in-out;
+}
+
+@keyframes chart-fade-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chart-fade-slide {
+  animation: chart-fade-slide 250ms ease-in-out;
+}
+
+@keyframes chart-fade-slide {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
    Mobile Optimizations
    ============================================ */
 

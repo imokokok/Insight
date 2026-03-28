@@ -93,6 +93,69 @@
       "line": "折线图",
       "area": "面积图"
     },
-    "chartHint": "悬停查看详情，点击选中项目"
+    "chartHint": "悬停查看详情，点击选中项目",
+    "error": {
+      "title": "组件错误",
+      "chartRenderError": "图表渲染失败",
+      "networkError": "网络连接失败",
+      "dataError": "数据加载失败",
+      "memoryError": "内存不足",
+      "viewDetails": "查看详情",
+      "errorInfo": "错误信息",
+      "errorStack": "错误堆栈",
+      "componentStack": "组件堆栈",
+      "errorBoundaryTip": "此错误已被错误边界捕获，不会影响页面的其他部分。您可以尝试重试或刷新页面。"
+    },
+    "emptyState": {
+      "chartTitle": "暂无图表数据",
+      "tableTitle": "暂无表格数据",
+      "statsTitle": "暂无统计数据",
+      "noChartData": "暂无数据可显示图表，请尝试刷新或稍后再试。",
+      "noTableData": "暂无数据可显示表格，请尝试刷新或稍后再试。",
+      "noStatsData": "暂无统计数据，请尝试刷新。",
+      "refresh": "刷新数据"
+    },
+    "filter": {
+      "title": "筛选",
+      "clear": "清除筛选",
+      "activeFilters": "个筛选条件",
+      "marketShare": "市场份额",
+      "change24h": "24小时涨跌",
+      "chains": "链数量",
+      "all": "全部",
+      "positive": "正增长",
+      "negative": "负增长",
+      "searchPlaceholder": "搜索资产名称或预言机...",
+      "allOracles": "全部预言机",
+      "allChanges": "全部变化",
+      "highChange": "高波动 (≥10%)",
+      "mediumChange": "中波动 (5-10%)",
+      "lowChange": "低波动 (<5%)",
+      "search": "搜索",
+      "change": "变化幅度",
+      "filteredFrom": "筛选自",
+      "more": "更多"
+    },
+    "ui": {
+      "chart": {
+        "marketShare": "市场份额",
+        "tvsTrend": "TVS 趋势",
+        "chainSupport": "链支持",
+        "chainBreakdown": "链分布",
+        "protocols": "协议",
+        "assetCategories": "资产类别",
+        "oracleComparison": "预言机对比",
+        "benchmark": "基准",
+        "correlation": "相关性",
+        "clearLink": "清除关联",
+        "reset": "重置缩放",
+        "export": "导出",
+        "chart": "图表",
+        "table": "表格",
+        "yoyComparison": "同比",
+        "momComparison": "环比",
+        "toggleConfidence": "切换置信区间"
+      }
+    }
   }
 }

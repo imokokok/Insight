@@ -87,6 +87,10 @@ export default function PriceQueryPage() {
     setShowFavoritesDropdown,
     favoritesDropdownRef,
     handleApplyFavorite,
+    queryErrors,
+    clearErrors,
+    retryDataSource,
+    retryAllErrors,
   } = usePriceQuery();
 
   // Debounced search focus handler
@@ -261,6 +265,10 @@ export default function PriceQueryPage() {
             timeComparisonConfig={timeComparisonConfig}
             onTimeConfigChange={setTimeComparisonConfig}
             filterInputRef={filterInputRef}
+            queryErrors={queryErrors}
+            onRetryDataSource={retryDataSource}
+            onRetryAllErrors={retryAllErrors}
+            onClearErrors={clearErrors}
           />
         </main>
       </div>

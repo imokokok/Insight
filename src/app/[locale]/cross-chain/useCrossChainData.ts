@@ -90,15 +90,11 @@ function validatePriceData(price: number, timestamp: number, chain: Blockchain):
   const oneHourInMs = 60 * 60 * 1000;
 
   if (timestamp < BITCOIN_GENESIS_TIMESTAMP) {
-    errors.push(
-      `[${chain}] 时间戳早于比特币创世时间: ${new Date(timestamp).toISOString()}`
-    );
+    errors.push(`[${chain}] 时间戳早于比特币创世时间: ${new Date(timestamp).toISOString()}`);
   }
 
   if (timestamp > now + oneHourInMs) {
-    errors.push(
-      `[${chain}] 时间戳晚于当前时间+1小时: ${new Date(timestamp).toISOString()}`
-    );
+    errors.push(`[${chain}] 时间戳晚于当前时间+1小时: ${new Date(timestamp).toISOString()}`);
   }
 
   return {
@@ -415,11 +411,11 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       const cacheKey = getCacheKey(selectedProvider, selectedSymbol, selectedTimeRange);
       const cachedEntry = dataCache.get(cacheKey);
       const now = Date.now();
-      
+
       if (cachedEntry && now - cachedEntry.timestamp < CACHE_EXPIRATION_MS) {
         setCurrentPrices(cachedEntry.currentPrices);
         setHistoricalPrices(cachedEntry.historicalPrices);
-        
+
         const validPrices = cachedEntry.currentPrices.map((d) => d.price).filter((p) => p > 0);
         const newAvgPrice =
           validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
@@ -825,10 +821,10 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     }
     const n = validPrices.length;
     const standardError = standardDeviation / Math.sqrt(n);
-    
+
     let criticalValue: number;
     let distributionType: 't' | 'z';
-    
+
     if (n < 30) {
       const df = n - 1;
       criticalValue = getTCriticalValue(df, 0.95);
@@ -837,7 +833,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       criticalValue = 1.96;
       distributionType = 'z';
     }
-    
+
     const marginOfError = criticalValue * standardError;
     return {
       lower: avgPrice - marginOfError,
@@ -881,14 +877,13 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
   const iqrOutliers = useMemo(() => {
     const thresholdConfig = useCrossChainStore.getState().thresholdConfig;
-    
+
     if (validPrices.length < 4) {
       return { outliers: [], q1: 0, q3: 0, iqr: 0, lowerBound: 0, upperBound: 0 };
     }
 
-    const multiplier = thresholdConfig.outlierDetectionMethod === 'iqr' 
-      ? thresholdConfig.outlierThreshold 
-      : 1.5;
+    const multiplier =
+      thresholdConfig.outlierDetectionMethod === 'iqr' ? thresholdConfig.outlierThreshold : 1.5;
 
     const sorted = [...validPrices].sort((a, b) => a - b);
     const q1 = calculatePercentile(sorted, 25);
@@ -937,7 +932,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
       if (thresholdConfig.outlierDetectionMethod === 'iqr') {
         const iqrResult = detectOutliersIQR(priceValues, thresholdConfig.outlierThreshold);
-        
+
         prices.forEach((priceData) => {
           if (priceData.price < iqrResult.lowerBound || priceData.price > iqrResult.upperBound) {
             const deviation = Math.abs(priceData.price - iqrResult.q3) / iqrResult.iqr;
@@ -951,7 +946,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
         });
       } else {
         const zscoreResult = detectOutliersZScore(priceValues, thresholdConfig.outlierThreshold);
-        
+
         prices.forEach((priceData) => {
           const zScore = (priceData.price - zscoreResult.mean) / zscoreResult.stdDev;
           if (Math.abs(zScore) > thresholdConfig.outlierThreshold) {
@@ -1197,7 +1192,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       const jumpCount = detectPriceJumps(
         changes,
         defaultThresholdConfig.priceJumpMethod,
-        defaultThresholdConfig.priceJumpThreshold,
+        defaultThresholdConfig.priceJumpThreshold
       );
       frequency[chain] = jumpCount;
     });

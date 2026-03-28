@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useTellorAllData } from '@/hooks';
+import { useRefresh, useExport, useTellorAllData, useDataFreshness } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { TellorClient } from '@/lib/oracles/tellor';
@@ -62,6 +62,8 @@ export function useTellorPage() {
     return price?.timestamp ? new Date(price.timestamp) : null;
   }, [price]);
 
+  const dataFreshnessStatus = useDataFreshness(lastUpdated || new Date());
+
   return {
     // State
     activeTab,
@@ -81,6 +83,8 @@ export function useTellorPage() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
+    shouldRefreshData: dataFreshnessStatus.status === 'expired',
 
     // Actions
     setActiveTab: handleTabChange,

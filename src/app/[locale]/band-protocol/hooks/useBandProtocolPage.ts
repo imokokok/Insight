@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useBandProtocolAllData } from '@/hooks';
+import { useRefresh, useExport, useBandProtocolAllData, useDataFreshness } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
@@ -53,6 +53,8 @@ export function useBandProtocolPage() {
     minLoadingTime: 500,
   });
 
+  const dataFreshnessStatus = useDataFreshness(lastUpdated);
+
   const handleTabChange = useCallback((tab: BandProtocolTabId) => {
     setActiveTab(tab);
   }, []);
@@ -71,6 +73,8 @@ export function useBandProtocolPage() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
+    shouldRefreshData: dataFreshnessStatus.status === 'expired',
     setActiveTab: handleTabChange,
     refresh,
     exportData,

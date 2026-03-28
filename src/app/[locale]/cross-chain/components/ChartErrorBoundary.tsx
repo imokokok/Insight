@@ -25,10 +25,7 @@ interface ChartErrorBoundaryState {
   errorInfo: ErrorInfo | null;
 }
 
-class ChartErrorBoundaryClass extends Component<
-  ChartErrorBoundaryProps,
-  ChartErrorBoundaryState
-> {
+class ChartErrorBoundaryClass extends Component<ChartErrorBoundaryProps, ChartErrorBoundaryState> {
   constructor(props: ChartErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -112,7 +109,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
     if (!err) return t('crossChain.chartRenderError') || '图表渲染失败';
 
     const message = err.message.toLowerCase();
-    
+
     if (message.includes('network') || message.includes('fetch')) {
       return t('crossChain.networkError') || '网络连接失败';
     }
@@ -122,7 +119,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
     if (message.includes('memory') || message.includes('heap')) {
       return t('crossChain.memoryError') || '内存不足';
     }
-    
+
     return t('crossChain.chartRenderError') || '图表渲染失败';
   };
 
@@ -160,21 +157,14 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
               )}
             </div>
 
-            <p className="text-sm text-gray-600 mb-4">
-              {getSimpleErrorMessage(error)}
-            </p>
+            <p className="text-sm text-gray-600 mb-4">{getSimpleErrorMessage(error)}</p>
 
             <div className="flex items-center gap-3 mb-4">
               <button
                 onClick={onReset}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -251,7 +241,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
 
         <div className="mt-4 pt-4 border-t border-red-200">
           <p className="text-xs text-gray-500">
-            {t('crossChain.errorBoundaryTip') || 
+            {t('crossChain.errorBoundaryTip') ||
               '此错误已被错误边界捕获，不会影响页面的其他部分。您可以尝试重新加载图表或刷新页面。'}
           </p>
         </div>

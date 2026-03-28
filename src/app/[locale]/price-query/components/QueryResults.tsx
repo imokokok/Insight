@@ -13,6 +13,7 @@ import { useTranslations } from '@/i18n';
 import { type OracleProvider, type Blockchain } from '@/lib/oracles';
 
 import { type QueryResult, type PriceData } from '../constants';
+import { type QueryError } from '../hooks/usePriceQuery';
 
 import {
   StatsGrid,
@@ -23,6 +24,7 @@ import {
   DataSourceSection,
   UnifiedExportSection,
   TimeComparisonSection,
+  ErrorBanner,
 } from './index';
 
 interface ChartDataPoint {
@@ -76,6 +78,10 @@ interface QueryResultsProps {
   timeComparisonConfig: TimeComparisonConfig;
   onTimeConfigChange: (config: TimeComparisonConfig) => void;
   filterInputRef?: React.RefObject<HTMLInputElement | null>;
+  queryErrors: QueryError[];
+  onRetryDataSource: (provider: OracleProvider, chain: Blockchain) => void;
+  onRetryAllErrors: () => void;
+  onClearErrors: () => void;
 }
 
 /**
@@ -129,6 +135,10 @@ export function QueryResults({
   timeComparisonConfig,
   onTimeConfigChange,
   filterInputRef,
+  queryErrors,
+  onRetryDataSource,
+  onRetryAllErrors,
+  onClearErrors,
 }: QueryResultsProps) {
   const t = useTranslations();
 
@@ -194,6 +204,16 @@ export function QueryResults({
 
   return (
     <div className="space-y-6">
+      {/* 错误提示横幅 */}
+      {queryErrors.length > 0 && (
+        <ErrorBanner
+          errors={queryErrors}
+          onRetry={onRetryDataSource}
+          onRetryAll={onRetryAllErrors}
+          onDismiss={onClearErrors}
+        />
+      )}
+
       {/* 统计网格 */}
       <StatsGrid
         avgPrice={avgPrice}

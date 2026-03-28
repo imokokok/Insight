@@ -5,11 +5,7 @@ import { useMemo, useCallback } from 'react';
 import { useQuery, useQueries } from '@tanstack/react-query';
 
 import { UMAClient } from '@/lib/oracles/uma';
-import type {
-  UMANetworkStats,
-  ValidatorData,
-  DisputeData,
-} from '@/lib/oracles/uma/types';
+import type { UMANetworkStats, ValidatorData, DisputeData } from '@/lib/oracles/uma/types';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useLastUpdated } from './useLastUpdated';
@@ -220,8 +216,7 @@ export function useUMAAllData({ symbol, chain, enabled = true }: UseUMAAllDataOp
     ],
   });
 
-  const [priceResult, historicalResult, networkResult, validatorsResult, disputesResult] =
-    results;
+  const [priceResult, historicalResult, networkResult, validatorsResult, disputesResult] = results;
 
   const isLoading = results.some((r) => r.isLoading);
   const isError = results.some((r) => r.isError);

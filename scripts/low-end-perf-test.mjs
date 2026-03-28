@@ -9,9 +9,7 @@ const LOW_END_DEVICE_FLAGS = [
   '--disable-software-rasterizer',
 ];
 
-const PAGES_TO_TEST = [
-  { name: 'Home (Low-End)', url: 'http://localhost:3000/en' },
-];
+const PAGES_TO_TEST = [{ name: 'Home (Low-End)', url: 'http://localhost:3000/en' }];
 
 const PERFORMANCE_BUDGETS = {
   FCP: { target: 1800, warning: 3000 },
@@ -125,7 +123,9 @@ async function main() {
     console.log(`  • Performance Score: ${results[0].metrics.performanceScore.toFixed(0)}/100`);
     console.log(`  • FCP: ${formatMetric(results[0].metrics.FCP)}`);
     console.log(`  • LCP: ${formatMetric(results[0].metrics.LCP)}`);
-    console.log(`  • TBT: ${results[0].metrics.TBT.toFixed(0)}ms (blocking time indicates JS execution)`);
+    console.log(
+      `  • TBT: ${results[0].metrics.TBT.toFixed(0)}ms (blocking time indicates JS execution)`
+    );
   }
 
   console.log('\n✅ Low-end device test completed!\n');

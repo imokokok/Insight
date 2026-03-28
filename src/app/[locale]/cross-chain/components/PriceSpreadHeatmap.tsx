@@ -200,7 +200,13 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
     });
 
     return { heatmapData: data, maxHeatmapValue: maxValue };
-  }, [filteredHistoricalPrices, filteredChains, currentPrices, originalHeatmapData, originalMaxHeatmapValue]);
+  }, [
+    filteredHistoricalPrices,
+    filteredChains,
+    currentPrices,
+    originalHeatmapData,
+    originalMaxHeatmapValue,
+  ]);
 
   // handleExport must be defined after heatmapData is computed
   const handleExport = useCallback(() => {
@@ -227,7 +233,9 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
       csvLines.push('Chain X,Chain Y,Price Difference,Percent Difference (%)');
 
       heatmapData.forEach((cell) => {
-        csvLines.push(`${chainNames[cell.xChain]},${chainNames[cell.yChain]},${cell.value.toFixed(6)},${cell.percent.toFixed(4)}`);
+        csvLines.push(
+          `${chainNames[cell.xChain]},${chainNames[cell.yChain]},${cell.value.toFixed(6)},${cell.percent.toFixed(4)}`
+        );
       });
 
       const csvContent = csvLines.join('\n');

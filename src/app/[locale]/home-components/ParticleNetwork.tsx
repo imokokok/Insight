@@ -38,7 +38,7 @@ function usePerformanceDegradation(): PerformanceDegradation {
   useEffect(() => {
     const checkPerformance = () => {
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      
+
       const deviceMemory = (navigator as any).deviceMemory;
       const isLowMemory = deviceMemory && deviceMemory < 4;
 
@@ -55,9 +55,9 @@ function usePerformanceDegradation(): PerformanceDegradation {
         if (elapsed >= 1000) {
           fps = Math.round((frameCount * 1000) / elapsed);
           fpsCheckComplete = true;
-          
+
           const isLowFPS = fps < 30;
-          
+
           if (prefersReducedMotion) {
             console.log('[ParticleNetwork] 性能降级: 用户偏好减少动画 (prefers-reduced-motion)');
             setDegradation({
@@ -66,7 +66,9 @@ function usePerformanceDegradation(): PerformanceDegradation {
               reducedParticleCount: 0,
             });
           } else if (isLowMemory) {
-            console.log(`[ParticleNetwork] 性能降级: 低内存设备 (${deviceMemory}GB < 4GB)，减少粒子数量`);
+            console.log(
+              `[ParticleNetwork] 性能降级: 低内存设备 (${deviceMemory}GB < 4GB)，减少粒子数量`
+            );
             setDegradation({
               shouldDegrade: true,
               reason: 'low-memory',
@@ -80,7 +82,9 @@ function usePerformanceDegradation(): PerformanceDegradation {
               reducedParticleCount: Math.floor(defaultProps.particleCount * 0.3),
             });
           } else {
-            console.log(`[ParticleNetwork] 性能检测: 设备性能良好 (内存: ${deviceMemory || '未知'}GB, FPS: ${fps})`);
+            console.log(
+              `[ParticleNetwork] 性能检测: 设备性能良好 (内存: ${deviceMemory || '未知'}GB, FPS: ${fps})`
+            );
             setDegradation({
               shouldDegrade: false,
               reason: '',
@@ -212,7 +216,7 @@ export default function ParticleNetwork({
     };
 
     handleResize();
-    
+
     if (degradation.reason !== 'prefers-reduced-motion') {
       animate();
     }
@@ -238,7 +242,8 @@ export default function ParticleNetwork({
           height: '100%',
           pointerEvents: 'none',
           zIndex: 0,
-          background: 'radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 70%)',
+          background:
+            'radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 70%)',
         }}
       />
     );

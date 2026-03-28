@@ -18,7 +18,14 @@ import { useLastUpdated } from './useLastUpdated';
 
 const redstoneClient = new RedStoneClient();
 
-type RedStoneDataType = 'price' | 'historical' | 'network' | 'ecosystem' | 'risk' | 'providers' | 'metrics';
+type RedStoneDataType =
+  | 'price'
+  | 'historical'
+  | 'network'
+  | 'ecosystem'
+  | 'risk'
+  | 'providers'
+  | 'metrics';
 
 const getRedStoneKey = (type: RedStoneDataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['redstone', type];
@@ -234,4 +241,10 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
   );
 }
 
-export type { RedStoneProviderInfo, RedStoneMetrics, RedStoneNetworkStats, RedStoneEcosystemData, RedStoneRiskMetrics };
+export type {
+  RedStoneProviderInfo,
+  RedStoneMetrics,
+  RedStoneNetworkStats,
+  RedStoneEcosystemData,
+  RedStoneRiskMetrics,
+};

@@ -26,9 +26,11 @@ import {
 
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
+import { DataFreshnessIndicator } from '@/components/oracle/shared/DataFreshnessIndicator';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
+import type { DataFreshnessStatus } from '@/hooks/useDataFreshness';
 
 export interface BandProtocolHeroProps {
   config: OracleConfig;
@@ -53,6 +55,7 @@ export interface BandProtocolHeroProps {
   isError: boolean;
   isRefreshing: boolean;
   lastUpdated: Date | null;
+  dataFreshnessStatus?: DataFreshnessStatus;
   onRefresh: () => void;
   onExport: () => void;
 }
@@ -522,6 +525,7 @@ export function BandProtocolHero({
   isError,
   isRefreshing,
   lastUpdated,
+  dataFreshnessStatus,
   onRefresh,
   onExport,
 }: BandProtocolHeroProps) {
@@ -650,7 +654,16 @@ export function BandProtocolHero({
             latency={networkStats?.avgResponseTime ?? 180}
             lastUpdate={lastUpdated || undefined}
           />
-          <QuickActions themeColor={themeColor} />
+          <div className="flex items-center gap-2">
+            {dataFreshnessStatus && (
+              <DataFreshnessIndicator
+                status={dataFreshnessStatus.status}
+                onRefresh={onRefresh}
+                className="mt-1 sm:mt-0"
+              />
+            )}
+            <QuickActions themeColor={themeColor} />
+          </div>
         </div>
       </div>
 

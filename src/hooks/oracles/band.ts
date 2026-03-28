@@ -5,23 +5,14 @@ import { useMemo, useCallback } from 'react';
 import { useQuery, useQueries } from '@tanstack/react-query';
 
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-import type {
-  BandNetworkStats,
-  ValidatorInfo,
-  CrossChainStats,
-} from '@/lib/oracles/bandProtocol';
+import type { BandNetworkStats, ValidatorInfo, CrossChainStats } from '@/lib/oracles/bandProtocol';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useLastUpdated } from './useLastUpdated';
 
 const bandClient = new BandProtocolClient();
 
-type BandDataType =
-  | 'price'
-  | 'historical'
-  | 'network'
-  | 'validators'
-  | 'crossChain';
+type BandDataType = 'price' | 'historical' | 'network' | 'validators' | 'crossChain';
 
 const getBandKey = (type: BandDataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['band', type];

@@ -4,7 +4,16 @@ import { memo, useCallback, useMemo } from 'react';
 
 import Link from 'next/link';
 
-import { ChevronRight, Clock, Link2, Database, Activity, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
+import {
+  ChevronRight,
+  Clock,
+  Link2,
+  Database,
+  Activity,
+  CheckCircle,
+  AlertCircle,
+  AlertTriangle,
+} from 'lucide-react';
 
 import { useHoverPrefetch } from '@/hooks';
 import { createLogger } from '@/lib/utils/logger';
@@ -78,7 +87,13 @@ const oracleSymbolMap: Record<string, string> = {
   WINkLink: 'WINKLINK',
 };
 
-type UpdateFrequencyKey = 'heartbeat1h' | 'realtime' | 'heartbeat5m' | 'heartbeat24h' | 'onDemand' | 'heartbeat1hSimple';
+type UpdateFrequencyKey =
+  | 'heartbeat1h'
+  | 'realtime'
+  | 'heartbeat5m'
+  | 'heartbeat24h'
+  | 'onDemand'
+  | 'heartbeat1hSimple';
 type LastUpdatedKey = 'justNow' | '1minAgo' | '2minAgo' | '3minAgo' | '5minAgo' | '10minAgo';
 
 interface OracleMetadataConfig {
@@ -188,7 +203,7 @@ function HealthIndicator({ status }: { status: HealthStatus }) {
   const { icon: Icon, color, bgColor, label } = config[status];
 
   return (
-    <div 
+    <div
       className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${bgColor}`}
       role="status"
       aria-label={t('crossOracle.oracleCard.ariaLabel.healthStatus', { status: label })}
@@ -252,9 +267,12 @@ function OraclePrefetchCardBase({
     return tvsValue;
   }, []);
 
-  const formatMarketShare = useCallback((percentValue: number) => {
-    return percentFormatter.format(percentValue / 100);
-  }, [percentFormatter]);
+  const formatMarketShare = useCallback(
+    (percentValue: number) => {
+      return percentFormatter.format(percentValue / 100);
+    },
+    [percentFormatter]
+  );
 
   const prefetchConfig = useMemo(() => {
     if (!provider) return null;
@@ -306,12 +324,15 @@ function OraclePrefetchCardBase({
     onSelect(name);
   }, [onSelect, name]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onSelect(name);
-    }
-  }, [onSelect, name]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onSelect(name);
+      }
+    },
+    [onSelect, name]
+  );
 
   const handleNavClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -332,12 +353,14 @@ function OraclePrefetchCardBase({
           <span className="font-semibold text-gray-900">{name}</span>
           <HealthIndicator status={oracleMetadata.healthStatus} />
         </div>
-        
+
         <div className="space-y-2.5">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="text-xs text-gray-500">{t('crossOracle.oracleCard.updateFrequency')}</span>
+              <span className="text-xs text-gray-500">
+                {t('crossOracle.oracleCard.updateFrequency')}
+              </span>
               <p className="text-sm text-gray-900 truncate">{oracleMetadata.updateFrequency}</p>
             </div>
           </div>
@@ -345,31 +368,47 @@ function OraclePrefetchCardBase({
           <div className="flex items-center gap-2">
             <Link2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="text-xs text-gray-500">{t('crossOracle.oracleCard.supportedChains')}</span>
-              <p className="text-sm text-gray-900">{numberFormatter.format(oracleMetadata.supportedChains)} {t('crossOracle.oracleCard.chains')}</p>
+              <span className="text-xs text-gray-500">
+                {t('crossOracle.oracleCard.supportedChains')}
+              </span>
+              <p className="text-sm text-gray-900">
+                {numberFormatter.format(oracleMetadata.supportedChains)}{' '}
+                {t('crossOracle.oracleCard.chains')}
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <Database className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="text-xs text-gray-500">{t('crossOracle.oracleCard.dataSources')}</span>
-              <p className="text-sm text-gray-900">{numberFormatter.format(oracleMetadata.dataSources)} {t('crossOracle.oracleCard.dataSourcesUnit')}</p>
+              <span className="text-xs text-gray-500">
+                {t('crossOracle.oracleCard.dataSources')}
+              </span>
+              <p className="text-sm text-gray-900">
+                {numberFormatter.format(oracleMetadata.dataSources)}{' '}
+                {t('crossOracle.oracleCard.dataSourcesUnit')}
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="text-xs text-gray-500">{t('crossOracle.oracleCard.lastUpdated')}</span>
+              <span className="text-xs text-gray-500">
+                {t('crossOracle.oracleCard.lastUpdated')}
+              </span>
               <p className="text-sm text-gray-900">{oracleMetadata.lastUpdated}</p>
             </div>
           </div>
         </div>
 
         <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-          <span>{t('crossOracle.oracleCard.tvs')}: {formatTvs(tvs)}</span>
-          <span>{t('crossOracle.oracleCard.marketShare')}: {formatMarketShare(value)}</span>
+          <span>
+            {t('crossOracle.oracleCard.tvs')}: {formatTvs(tvs)}
+          </span>
+          <span>
+            {t('crossOracle.oracleCard.marketShare')}: {formatMarketShare(value)}
+          </span>
         </div>
       </div>
     );
@@ -397,11 +436,11 @@ function OraclePrefetchCardBase({
         tabIndex={0}
         role="listitem"
         aria-selected={isSelected}
-        aria-label={t('crossOracle.oracleCard.ariaLabel.oracleInfo', { 
-          name, 
-          rank: index + 1, 
+        aria-label={t('crossOracle.oracleCard.ariaLabel.oracleInfo', {
+          name,
+          rank: index + 1,
           share: formatMarketShare(value),
-          tvs: formatTvs(tvs)
+          tvs: formatTvs(tvs),
         })}
       >
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
@@ -412,8 +451,8 @@ function OraclePrefetchCardBase({
           >
             {index + 1}
           </span>
-          <div 
-            className="w-2.5 h-2.5 flex-shrink-0" 
+          <div
+            className="w-2.5 h-2.5 flex-shrink-0"
             style={{ backgroundColor: color }}
             aria-hidden="true"
           />
@@ -428,8 +467,8 @@ function OraclePrefetchCardBase({
           <span className="text-xs" style={{ color: 'var(--gray-500, #6b7280)' }}>
             {formatTvs(tvs)}
           </span>
-          <span 
-            className="text-sm font-semibold w-12" 
+          <span
+            className="text-sm font-semibold w-12"
             style={{ color }}
             aria-label={formatMarketShare(value)}
           >

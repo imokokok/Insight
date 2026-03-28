@@ -21,6 +21,7 @@ import {
 
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
+import { DataFreshnessIndicator } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
@@ -40,6 +41,8 @@ export interface PythHeroProps {
   isError: boolean;
   isRefreshing: boolean;
   lastUpdated: Date | null;
+  dataFreshnessStatus?: 'fresh' | 'stale' | 'expired';
+  shouldRefreshData?: boolean;
   onRefresh: () => void;
   onExport: () => void;
 }
@@ -283,12 +286,27 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: t('health.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('health.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: t('health.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('health.low'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: t('health.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('health.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     return { label: t('health.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
   }, [networkStats, t]);
 
@@ -398,9 +416,12 @@ export function PythHero({
   networkStats,
   publishers,
   validators,
+  isLoading,
   isError,
   isRefreshing,
   lastUpdated,
+  dataFreshnessStatus = 'fresh',
+  shouldRefreshData = false,
   onRefresh,
   onExport,
 }: PythHeroProps) {
@@ -491,7 +512,7 @@ export function PythHero({
 
       {/* 主要内容区 - 桌面端左右分栏布局 */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* 头部信息 - Logo、标题、操作按钮 */}
+        {/* 头部信息 - Logo、标题、操作按钮、数据新鲜度 */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
           {/* 左侧：Logo + 标题 */}
           <div className="flex items-center gap-3">
@@ -514,14 +535,24 @@ export function PythHero({
             </div>
           </div>
 
-          {/* 右侧：操作按钮（桌面端显示在标题右侧） */}
-          <div className="hidden lg:block">
-            <ActionButtons
-              onRefresh={onRefresh}
-              onExport={onExport}
-              isRefreshing={isRefreshing}
-              themeColor={themeColor}
-            />
+          {/* 右侧：数据新鲜度 + 操作按钮（桌面端显示在标题右侧） */}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+            {dataFreshnessStatus && (
+              <DataFreshnessIndicator
+                status={dataFreshnessStatus.status}
+                lastUpdated={lastUpdated}
+                onRefresh={onRefresh}
+                themeColor={themeColor}
+              />
+            )}
+            <div className="hidden lg:block">
+              <ActionButtons
+                onRefresh={onRefresh}
+                onExport={onExport}
+                isRefreshing={isRefreshing}
+                themeColor={themeColor}
+              />
+            </div>
           </div>
         </div>
 

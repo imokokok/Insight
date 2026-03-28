@@ -6,10 +6,7 @@ import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/types/oracle';
 
 import { ChartsTab } from './ChartsTab';
-import {
-  type OracleGroup,
-  ORACLE_GROUPS,
-} from './crossOracleConfig';
+import { type OracleGroup, ORACLE_GROUPS } from './crossOracleConfig';
 import { CrossOracleSubTabs, type SubTab } from './CrossOracleSubTabs';
 import { DataTab } from './DataTab';
 import { OverviewTab } from './OverviewTab';
@@ -36,20 +33,13 @@ export function CrossOracleComparison() {
   const [deviationThreshold, setDeviationThreshold] = useState<number>(1);
   const [selectedGroup, setSelectedGroup] = useState<OracleGroup>('ALL');
 
-  const {
-    priceData,
-    isLoading,
-    isError,
-    errors,
-    lastUpdated,
-    refetchAll,
-    priceHistory,
-  } = useCrossOraclePrices({
-    selectedSymbol,
-    selectedOracles,
-    enabled: true,
-    refetchInterval: autoRefresh ? refreshInterval : false,
-  });
+  const { priceData, isLoading, isError, errors, lastUpdated, refetchAll, priceHistory } =
+    useCrossOraclePrices({
+      selectedSymbol,
+      selectedOracles,
+      enabled: true,
+      refetchInterval: autoRefresh ? refreshInterval : false,
+    });
 
   useEffect(() => {
     if (isError && errors.length > 0) {

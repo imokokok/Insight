@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, usePythAllData } from '@/hooks';
+import { useRefresh, useExport, usePythAllData, useDataFreshness } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
@@ -57,6 +57,8 @@ export function usePythPage() {
     minLoadingTime: 500,
   });
 
+  const dataFreshnessStatus = useDataFreshness(lastUpdated);
+
   const handleTabChange = useCallback((tab: PythTabId) => {
     setActiveTab(tab);
   }, []);
@@ -74,6 +76,8 @@ export function usePythPage() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
+    shouldRefreshData: dataFreshnessStatus.status === 'expired',
     setActiveTab: handleTabChange,
     refresh,
     exportData,

@@ -109,18 +109,18 @@ export const calculateZScore = (price: number, mean: number, stdDev: number): nu
 
 /**
  * 使用 Z-score 方法检测异常值
- * 
+ *
  * @param zScore - Z-score 值
  * @param threshold - 阈值,默认为 2。常用值:
  *   - 1.5: 较宽松,检测更多异常值
  *   - 2.0: 标准阈值,约 95% 置信区间
  *   - 3.0: 较严格,只检测极端异常值
  * @returns 是否为异常值
- * 
+ *
  * @example
  * // 使用默认阈值 2.0
  * isOutlier(2.5); // true
- * 
+ *
  * // 使用自定义阈值
  * isOutlier(2.5, 3.0); // false
  */
@@ -131,13 +131,13 @@ export const isOutlier = (zScore: number | null, threshold: number = 2): boolean
 
 /**
  * 使用 IQR (四分位距) 方法检测异常值
- * 
+ *
  * IQR 方法对于非正态分布的数据更稳健,不受极端值的影响。
  * 适用于:
  * - 价格数据分布不对称
  * - 存在极端价格波动
  * - 数据不满足正态分布假设
- * 
+ *
  * @param value - 要检测的值
  * @param q1 - 第一四分位数 (25th percentile)
  * @param q3 - 第三四分位数 (75th percentile)
@@ -145,13 +145,13 @@ export const isOutlier = (zScore: number | null, threshold: number = 2): boolean
  *   - 1.5: 标准阈值,检测温和异常值
  *   - 3.0: 严格阈值,只检测极端异常值
  * @returns 是否为异常值
- * 
+ *
  * @example
  * const prices = [100, 102, 101, 103, 150, 105, 104];
  * const sorted = [...prices].sort((a, b) => a - b);
  * const q1 = calculatePercentile(sorted, 25);
  * const q3 = calculatePercentile(sorted, 75);
- * 
+ *
  * // 检测 150 是否为异常值
  * isOutlierIQR(150, q1, q3); // true
  */
@@ -169,11 +169,11 @@ export const isOutlierIQR = (
 
 /**
  * 批量使用 IQR 方法检测异常值
- * 
+ *
  * @param prices - 价格数组
  * @param multiplier - IQR 乘数,默认为 1.5
  * @returns 异常值检测结果,包含异常值列表和边界信息
- * 
+ *
  * @example
  * const prices = [100, 102, 101, 103, 150, 105, 104];
  * const result = detectOutliersIQR(prices);
@@ -223,11 +223,11 @@ export const detectOutliersIQR = (
 
 /**
  * 使用 Z-score 方法批量检测异常值
- * 
+ *
  * @param prices - 价格数组
  * @param threshold - Z-score 阈值,默认为 2
  * @returns 异常值检测结果,包含异常值列表和统计信息
- * 
+ *
  * @example
  * const prices = [100, 102, 101, 103, 150, 105, 104];
  * const result = detectOutliersZScore(prices, 2);
@@ -297,7 +297,7 @@ export const calculateStandardDeviation = (variance: number): number => {
 /**
  * t 分布临界值查找表（95% 置信水平，双侧检验）
  * 用于小样本（n < 30）的置信区间计算
- * 
+ *
  * 表格来源：标准 t 分布临界值表
  * 自由度 df = n - 1，其中 n 为样本量
  */
@@ -314,19 +314,19 @@ const T_CRITICAL_TABLE_95: Record<number, number> = {
   10: 2.228,
   11: 2.201,
   12: 2.179,
-  13: 2.160,
+  13: 2.16,
   14: 2.145,
   15: 2.131,
-  16: 2.120,
-  17: 2.110,
+  16: 2.12,
+  17: 2.11,
   18: 2.101,
   19: 2.093,
   20: 2.086,
-  21: 2.080,
+  21: 2.08,
   22: 2.074,
   23: 2.069,
   24: 2.064,
-  25: 2.060,
+  25: 2.06,
   26: 2.056,
   27: 2.052,
   28: 2.048,
@@ -336,18 +336,18 @@ const T_CRITICAL_TABLE_95: Record<number, number> = {
 
 /**
  * 获取 t 分布临界值
- * 
+ *
  * 对于小样本（n < 30），应使用 t 分布而非正态分布来计算置信区间。
  * t 分布比正态分布有更厚的尾部，能更好地反映小样本的不确定性。
- * 
+ *
  * @param df - 自由度，通常为 n - 1（n 为样本量）
  * @param confidenceLevel - 置信水平，默认 0.95（95% 置信区间）
  * @returns t 分布临界值
- * 
+ *
  * @example
  * // 样本量 n = 5，自由度 df = 4
  * const tValue = getTCriticalValue(4); // 返回 2.776
- * 
+ *
  * // 样本量 n = 10，自由度 df = 9
  * const tValue = getTCriticalValue(9); // 返回 2.262
  */
@@ -357,9 +357,7 @@ export const getTCriticalValue = (df: number, confidenceLevel: number = 0.95): n
   }
 
   if (confidenceLevel !== 0.95) {
-    console.warn(
-      'getTCriticalValue: 当前仅支持 95% 置信水平，其他置信水平将使用正态近似'
-    );
+    console.warn('getTCriticalValue: 当前仅支持 95% 置信水平，其他置信水平将使用正态近似');
     return 1.96;
   }
 
@@ -376,7 +374,7 @@ export const getTCriticalValue = (df: number, confidenceLevel: number = 0.95): n
   const upperDf = lowerDf + 1;
   const lowerValue = T_CRITICAL_TABLE_95[lowerDf] ?? 2.042;
   const upperValue = T_CRITICAL_TABLE_95[upperDf] ?? 1.96;
-  
+
   const weight = df - lowerDf;
   return lowerValue + (upperValue - lowerValue) * weight;
 };
@@ -859,7 +857,8 @@ export const calculateRollingVolatility = (
 
     // 年化波动率 (根据数据间隔动态计算年化因子)
     // 年化因子 = sqrt(一年的数据点数) = sqrt(365 * 24 * 60 / dataIntervalMinutes)
-    const annualizedVolatility = volatility * Math.sqrt((365 * 24 * 60) / dataIntervalMinutes) * 100;
+    const annualizedVolatility =
+      volatility * Math.sqrt((365 * 24 * 60) / dataIntervalMinutes) * 100;
 
     result.push({
       timestamp: timestamps ? timestamps[i] : i,
@@ -1034,7 +1033,7 @@ export const calculatePriceJumpStats = (changes: number[]) => {
   }
 
   const mean = changes.reduce((a, b) => a + b, 0) / changes.length;
-  
+
   if (changes.length === 1) {
     return { mean, stdDev: 0 };
   }
@@ -1049,7 +1048,7 @@ export const calculatePriceJumpStats = (changes: number[]) => {
 export const detectPriceJumps = (
   changes: number[],
   method: 'std' | 'zscore' | 'simple',
-  threshold: number,
+  threshold: number
 ): number => {
   if (changes.length === 0) {
     return 0;
@@ -1094,55 +1093,55 @@ export const defaultThresholdConfig: ThresholdConfig = {
 
 /**
  * 异常值检测方法选择指南
- * 
+ *
  * ## Z-score 方法 (outlierDetectionMethod: 'zscore')
- * 
+ *
  * **适用场景:**
  * - 数据近似正态分布
  * - 价格波动相对稳定
  * - 需要基于统计显著性检测异常
- * 
+ *
  * **优点:**
  * - 统计学基础扎实
  * - 易于理解和解释
  * - 计算效率高
- * 
+ *
  * **缺点:**
  * - 对极端值敏感 (均值和标准差会被极端值影响)
  * - 不适合偏态分布
- * 
+ *
  * **推荐阈值:**
  * - 1.5: 检测约 87% 置信区间外的值
  * - 2.0: 检测约 95% 置信区间外的值 (默认)
  * - 3.0: 检测约 99.7% 置信区间外的值
- * 
+ *
  * ## IQR 方法 (outlierDetectionMethod: 'iqr')
- * 
+ *
  * **适用场景:**
  * - 数据分布不对称 (偏态)
  * - 存在极端价格波动
  * - 加密货币等高波动性资产
- * 
+ *
  * **优点:**
  * - 对极端值稳健 (不受异常值影响)
  * - 适合非正态分布
  * - 不依赖均值和标准差
- * 
+ *
  * **缺点:**
  * - 可能遗漏一些有意义的异常值
  * - 对小样本不够敏感
- * 
+ *
  * **推荐阈值:**
  * - 1.5: 标准阈值,检测温和异常值 (默认)
  * - 3.0: 严格阈值,只检测极端异常值
- * 
+ *
  * ## 使用建议
- * 
+ *
  * 1. **稳定币价格分析**: 推荐使用 Z-score 方法,阈值 2.0
  * 2. **高波动性代币**: 推荐使用 IQR 方法,阈值 1.5
  * 3. **跨链价格比较**: 推荐使用 IQR 方法,因为不同链的价格分布可能不同
  * 4. **历史异常检测**: 根据数据分布选择,可先用直方图或 Q-Q 图评估分布
- * 
+ *
  * @example
  * // 使用 Z-score 方法检测异常值
  * const config = {
@@ -1150,7 +1149,7 @@ export const defaultThresholdConfig: ThresholdConfig = {
  *   outlierDetectionMethod: 'zscore',
  *   outlierThreshold: 2.0
  * };
- * 
+ *
  * // 使用 IQR 方法检测异常值
  * const config = {
  *   ...defaultThresholdConfig,

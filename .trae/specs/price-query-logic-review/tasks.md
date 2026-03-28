@@ -39,6 +39,7 @@
   - [x] SubTask 7.3: 添加数据完整性指示器 (前值填充确保连续性)
 
 # Task Dependencies
+
 - [Task 2] depends on [Task 1] (请求取消需要先修复 isMounted) ✅
 - [Task 3] depends on [Task 1] (错误处理需要正确的组件状态管理) ✅
 - [Task 4] depends on [Task 1] (优化请求需要正确的组件生命周期) ✅

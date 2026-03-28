@@ -37,7 +37,13 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
           chainCount: filteredChains.length,
           chains: filteredChains.map((chain) => chainNames[chain]),
         },
-        correlationMatrix: {} as Record<string, Record<string, { correlation: number; pValue: number; sampleSize: number; significanceLevel: string }>>,
+        correlationMatrix: {} as Record<
+          string,
+          Record<
+            string,
+            { correlation: number; pValue: number; sampleSize: number; significanceLevel: string }
+          >
+        >,
       };
 
       filteredChains.forEach((chainX) => {

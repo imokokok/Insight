@@ -1,10 +1,10 @@
 'use client';
 
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Search, X, ChevronDown } from 'lucide-react';
 
 import { DataTablePro, type ColumnDef, type ConditionalFormattingConfig } from '@/components/ui';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -13,10 +13,22 @@ import { chartColors } from '@/lib/config/colors';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { formatCompactNumber } from '@/lib/utils/format';
 
+import { type MarketFilterState } from '../hooks/useMarketFilter';
 import { type AssetData } from '../types';
+
+import EmptyState from './EmptyState';
+import { AssetsTableSkeleton } from './skeletons';
 
 interface AssetsTableProps {
   assets: AssetData[];
+  filters?: MarketFilterState;
+  onSearchChange?: (value: string) => void;
+  onOracleFilterChange?: (value: string | null) => void;
+  onChangeMagnitudeChange?: (value: 'all' | 'high' | 'medium' | 'low') => void;
+  onClearFilters?: () => void;
+  hasActiveFilters?: boolean;
+  totalAssetsCount?: number;
+  loading?: boolean;
 }
 
 // 预言机品牌色映射
@@ -71,6 +83,8 @@ function getRankBadgeStyle(rank: number): { bg: string; text: string } {
 
 // Custom comparison function for AssetsTable props
 function arePropsEqual(prevProps: AssetsTableProps, nextProps: AssetsTableProps): boolean {
+  if (prevProps.loading !== nextProps.loading) return false;
+
   // Compare arrays by length
   if (prevProps.assets.length !== nextProps.assets.length) return false;
 
@@ -84,15 +98,35 @@ function arePropsEqual(prevProps: AssetsTableProps, nextProps: AssetsTableProps)
   return true;
 }
 
-function AssetsTableComponent({ assets }: AssetsTableProps) {
+function AssetsTableComponent({
+  assets,
+  filters,
+  onSearchChange,
+  onOracleFilterChange,
+  onChangeMagnitudeChange,
+  onClearFilters,
+  hasActiveFilters = false,
+  totalAssetsCount,
+  loading = false,
+}: AssetsTableProps) {
   const t = useTranslations('marketOverview');
   const router = useRouter();
+  const [showOracleDropdown, setShowOracleDropdown] = useState(false);
 
-  // Convert AssetData to Record<string, unknown> compatible format
-  const tableData = useMemo(
-    () => assets.map((asset) => ({ ...asset }) as Record<string, unknown>),
-    [assets]
-  );
+  const uniqueOracles = useMemo(() => {
+    const oracles = new Set(assets.map((a) => a.primaryOracle));
+    return Array.from(oracles).sort();
+  }, [assets]);
+
+  if (loading) {
+    return <AssetsTableSkeleton rows={8} />;
+  }
+
+  if (!assets || assets.length === 0) {
+    return <EmptyState type="table" compact />;
+  }
+
+  const tableData = assets.map((asset) => ({ ...asset }) as Record<string, unknown>);
 
   const columns: ColumnDef<Record<string, unknown>>[] = [
     {
@@ -196,16 +230,16 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
 
         return (
           <Tooltip content={t('viewOracleDetails', { oracle: oracleName })} placement="top">
-          <button
-            onClick={() => router.push(route)}
-            className="inline-flex items-center gap-2 cursor-pointer group"
-          >
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
-            <span className="text-xs font-medium text-primary-600 group-hover:underline">
-              {oracleName}
-            </span>
-          </button>
-        </Tooltip>
+            <button
+              onClick={() => router.push(route)}
+              className="inline-flex items-center gap-2 cursor-pointer group"
+            >
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
+              <span className="text-xs font-medium text-primary-600 group-hover:underline">
+                {oracleName}
+              </span>
+            </button>
+          </Tooltip>
         );
       },
     },
@@ -253,8 +287,136 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
         </div>
         <span className="text-xs text-gray-400">
           {assets.length} {t('assetsCount')}
+          {totalAssetsCount && totalAssetsCount !== assets.length && (
+            <span className="text-gray-500 ml-1">
+              ({t('filter.filteredFrom')} {totalAssetsCount})
+            </span>
+          )}
         </span>
       </div>
+
+      {onSearchChange && (
+        <div className="py-3 border-b border-gray-100 space-y-2">
+          <div className="flex gap-2 items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={filters?.searchQuery || ''}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder={t('filter.searchPlaceholder')}
+                className="w-full pl-8 pr-8 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400"
+              />
+              {filters?.searchQuery && (
+                <button
+                  onClick={() => onSearchChange('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {onOracleFilterChange && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowOracleDropdown(!showOracleDropdown)}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 text-xs border rounded transition-colors ${
+                    filters?.oracleFilter
+                      ? 'bg-primary-50 border-primary-300 text-primary-700'
+                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                  }`}
+                >
+                  <span>{filters?.oracleFilter || t('filter.allOracles')}</span>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+                {showOracleDropdown && (
+                  <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[120px] max-h-48 overflow-y-auto">
+                    <button
+                      onClick={() => {
+                        onOracleFilterChange(null);
+                        setShowOracleDropdown(false);
+                      }}
+                      className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 ${
+                        !filters?.oracleFilter ? 'bg-primary-50 text-primary-700' : 'text-gray-700'
+                      }`}
+                    >
+                      {t('filter.all')}
+                    </button>
+                    {uniqueOracles.map((oracle) => (
+                      <button
+                        key={oracle}
+                        onClick={() => {
+                          onOracleFilterChange(oracle);
+                          setShowOracleDropdown(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 ${
+                          filters?.oracleFilter === oracle
+                            ? 'bg-primary-50 text-primary-700'
+                            : 'text-gray-700'
+                        }`}
+                      >
+                        {oracle}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {onChangeMagnitudeChange && (
+              <select
+                value={filters?.changeMagnitude || 'all'}
+                onChange={(e) =>
+                  onChangeMagnitudeChange(e.target.value as 'all' | 'high' | 'medium' | 'low')
+                }
+                className={`px-2.5 py-1.5 text-xs border rounded focus:outline-none focus:border-primary-400 ${
+                  filters?.changeMagnitude && filters.changeMagnitude !== 'all'
+                    ? 'bg-primary-50 border-primary-300 text-primary-700'
+                    : 'bg-white border-gray-200 text-gray-600'
+                }`}
+              >
+                <option value="all">{t('filter.allChanges')}</option>
+                <option value="high">{t('filter.highChange')}</option>
+                <option value="medium">{t('filter.mediumChange')}</option>
+                <option value="low">{t('filter.lowChange')}</option>
+              </select>
+            )}
+
+            {hasActiveFilters && onClearFilters && (
+              <button
+                onClick={onClearFilters}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 border border-red-200 rounded transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+                {t('filter.clear')}
+              </button>
+            )}
+          </div>
+
+          {hasActiveFilters && (
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span className="font-medium">{t('filter.activeFilters')}:</span>
+              {filters?.searchQuery && (
+                <span className="px-2 py-0.5 bg-gray-100 rounded text-gray-700">
+                  {t('filter.search')}: "{filters.searchQuery}"
+                </span>
+              )}
+              {filters?.oracleFilter && (
+                <span className="px-2 py-0.5 bg-gray-100 rounded text-gray-700">
+                  {t('oracle')}: {filters.oracleFilter}
+                </span>
+              )}
+              {filters?.changeMagnitude && filters.changeMagnitude !== 'all' && (
+                <span className="px-2 py-0.5 bg-gray-100 rounded text-gray-700">
+                  {t('filter.change')}: {t(`filter.${filters.changeMagnitude}Change`)}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       <DataTablePro<Record<string, unknown>>
         data={tableData}
         columns={columns}
@@ -262,6 +424,10 @@ function AssetsTableComponent({ assets }: AssetsTableProps) {
         conditionalFormatting={conditionalFormatting}
         multiSort
         density="compact"
+        virtualScroll
+        rowHeight={44}
+        maxHeight={600}
+        scrollPositionKey="market-overview-assets-table"
         className="mt-3"
       />
     </div>

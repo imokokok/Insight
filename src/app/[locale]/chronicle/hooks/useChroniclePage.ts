@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useChronicleAllData } from '@/hooks';
+import { useRefresh, useExport, useChronicleAllData, useDataFreshness } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { ChronicleClient } from '@/lib/oracles';
@@ -56,6 +56,8 @@ export function useChroniclePage() {
     minLoadingTime: 500,
   });
 
+  const dataFreshnessStatus = useDataFreshness(lastUpdated);
+
   const handleTabChange = useCallback((tab: ChronicleTabId) => {
     setActiveTab(tab);
   }, []);
@@ -77,6 +79,8 @@ export function useChroniclePage() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
+    shouldRefreshData: dataFreshnessStatus.status === 'expired',
 
     // Actions
     setActiveTab: handleTabChange,

@@ -80,7 +80,12 @@ export type {
   SortConfig,
 } from './DataTablePro';
 
-export { ChartSkeleton, MiniChartSkeleton, MetricCardSkeleton, HeroSkeleton } from './ChartSkeleton';
+export {
+  ChartSkeleton,
+  MiniChartSkeleton,
+  MetricCardSkeleton,
+  HeroSkeleton,
+} from './ChartSkeleton';
 
 export { EmptyStateEnhanced } from './EmptyStateEnhanced';
 

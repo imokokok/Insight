@@ -244,11 +244,7 @@ export {
 export { usePythAllData } from './oracles/pyth';
 
 // RedStone Hooks
-export {
-  useRedStoneAllData,
-  useRedStoneProviders,
-  useRedStoneMetrics,
-} from './oracles/redstone';
+export { useRedStoneAllData, useRedStoneProviders, useRedStoneMetrics } from './oracles/redstone';
 
 // UMA Hooks
 export {
@@ -272,6 +268,8 @@ export {
 
 // Shared Oracle Hooks
 export { useLastUpdated } from './oracles/useLastUpdated';
+export { useDataFreshness } from './useDataFreshness';
+export type { DataFreshnessStatus, UseDataFreshnessReturn } from './useDataFreshness';
 
 // WINkLink Hooks
 export { useWINkLinkAllData } from './oracles/winklink';

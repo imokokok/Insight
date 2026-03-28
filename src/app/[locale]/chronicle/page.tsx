@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback, MobileMenuButton } from '@/components/oracle';
+import { LoadingState, ErrorFallback, MobileMenuButton, OracleErrorBoundary } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
+import { useTranslations } from '@/i18n';
 
 import {
   ChronicleSidebar,
@@ -33,6 +34,7 @@ export default function ChroniclePage() {
     error,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
     setActiveTab,
     refresh,
     exportData,
@@ -89,57 +91,60 @@ export default function ChroniclePage() {
   };
 
   return (
-    <div className="min-h-screen bg-insight">
-      <ChronicleHero
-        config={config}
-        price={price}
-        historicalData={historicalData || []}
-        networkStats={networkStats}
-        isLoading={isLoading}
-        isError={isError}
-        isRefreshing={isRefreshing}
-        lastUpdated={lastUpdated}
-        onRefresh={refresh}
-        onExport={exportData}
-      />
+    <OracleErrorBoundary themeColor={config.themeColor} onReset={refresh}>
+      <div className="min-h-screen bg-insight">
+        <ChronicleHero
+          config={config}
+          price={price}
+          historicalData={historicalData || []}
+          networkStats={networkStats}
+          isLoading={isLoading}
+          isError={isError}
+          isRefreshing={isRefreshing}
+          lastUpdated={lastUpdated}
+          dataFreshnessStatus={dataFreshnessStatus}
+          onRefresh={refresh}
+          onExport={exportData}
+        />
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-6">
-              <ChronicleSidebar
-                activeTab={activeTab}
-                onTabChange={(tab) => setActiveTab(tab as ChronicleTabId)}
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="hidden lg:block w-64 flex-shrink-0">
+              <div className="sticky top-6">
+                <ChronicleSidebar
+                  activeTab={activeTab}
+                  onTabChange={(tab) => setActiveTab(tab as ChronicleTabId)}
+                />
+              </div>
+            </div>
+
+            <div className="lg:hidden">
+              <MobileMenuButton
+                isOpen={isMobileMenuOpen}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                themeColor={config.themeColor}
+                label={t('chronicle.menu.title')}
               />
             </div>
-          </div>
 
-          <div className="lg:hidden">
-            <MobileMenuButton
+            <MobileSidebar
               isOpen={isMobileMenuOpen}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              themeColor={config.themeColor}
-              label={t('chronicle.menu.title')}
-            />
+              onClose={() => setIsMobileMenuOpen(false)}
+              title={t('chronicle.navigation.title')}
+            >
+              <ChronicleSidebar
+                activeTab={activeTab}
+                onTabChange={(tab) => {
+                  setActiveTab(tab);
+                  setIsMobileMenuOpen(false);
+                }}
+              />
+            </MobileSidebar>
+
+            <div className="flex-1 min-w-0">{renderContent()}</div>
           </div>
-
-          <MobileSidebar
-            isOpen={isMobileMenuOpen}
-            onClose={() => setIsMobileMenuOpen(false)}
-            title={t('chronicle.navigation.title')}
-          >
-            <ChronicleSidebar
-              activeTab={activeTab}
-              onTabChange={(tab) => {
-                setActiveTab(tab);
-                setIsMobileMenuOpen(false);
-              }}
-            />
-          </MobileSidebar>
-
-          <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>
-    </div>
+    </OracleErrorBoundary>
   );
 }

@@ -24,8 +24,20 @@ export default function UnifiedExportSection({
 
   // 定义导出字段
   const exportFields: ExportField[] = [
-    { key: 'asset', label: _t('export.asset'), labelZh: _t('export.asset'), dataType: 'string', selected: true },
-    { key: 'oracle', label: _t('export.oracle'), labelZh: _t('export.oracle'), dataType: 'string', selected: true },
+    {
+      key: 'asset',
+      label: _t('export.asset'),
+      labelZh: _t('export.asset'),
+      dataType: 'string',
+      selected: true,
+    },
+    {
+      key: 'oracle',
+      label: _t('export.oracle'),
+      labelZh: _t('export.oracle'),
+      dataType: 'string',
+      selected: true,
+    },
     {
       key: 'price',
       label: _t('export.price'),
@@ -34,7 +46,13 @@ export default function UnifiedExportSection({
       format: '0.0000',
       selected: true,
     },
-    { key: 'timestamp', label: _t('export.timestamp'), labelZh: _t('export.timestamp'), dataType: 'date', selected: true },
+    {
+      key: 'timestamp',
+      label: _t('export.timestamp'),
+      labelZh: _t('export.timestamp'),
+      dataType: 'date',
+      selected: true,
+    },
     {
       key: 'deviation',
       label: _t('export.deviation'),

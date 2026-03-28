@@ -39,10 +39,13 @@ const customJestConfig = {
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'mjs'],
   transform: {
-    '^.+\\.(ts|tsx|js|jsx|mjs)$': ['ts-jest', {
-      tsconfig: '<rootDir>/tsconfig.json',
-      useESM: true,
-    }],
+    '^.+\\.(ts|tsx|js|jsx|mjs)$': [
+      'ts-jest',
+      {
+        tsconfig: '<rootDir>/tsconfig.json',
+        useESM: true,
+      },
+    ],
   },
   globals: {
     'ts-jest': {

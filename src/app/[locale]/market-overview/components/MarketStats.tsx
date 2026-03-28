@@ -7,11 +7,15 @@ import { cn } from '@/lib/utils';
 
 import { type MarketStats as MarketStatsType } from '../types';
 
+import EmptyState from './EmptyState';
+import { MarketStatsSkeleton } from './skeletons';
+
 interface MarketStatsProps {
   marketStats: MarketStatsType;
   totalTVS: string;
   totalChains: number;
   totalProtocols: number;
+  loading?: boolean;
 }
 
 /**
@@ -114,8 +118,23 @@ export default function MarketStats({
   totalTVS,
   totalChains,
   totalProtocols,
+  loading = false,
 }: MarketStatsProps) {
   const t = useTranslations('marketOverview.stats');
+
+  if (loading) {
+    return <MarketStatsSkeleton />;
+  }
+
+  const isValidStats =
+    marketStats &&
+    typeof marketStats.change24h === 'number' &&
+    typeof marketStats.chainsChange24h === 'number' &&
+    typeof marketStats.protocolsChange24h === 'number';
+
+  if (!isValidStats) {
+    return <EmptyState type="stats" compact />;
+  }
 
   const coreStats = [
     {
