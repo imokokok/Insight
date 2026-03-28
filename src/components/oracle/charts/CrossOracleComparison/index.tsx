@@ -1,17 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { useTranslations } from '@/i18n';
-import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 
 import { ChartsTab } from './ChartsTab';
 import {
-  oracleClients,
-  oracleNames,
-  type PriceComparisonData,
-  type PriceHistoryPoint,
   type OracleGroup,
   ORACLE_GROUPS,
 } from './crossOracleConfig';
@@ -20,16 +15,14 @@ import { DataTab } from './DataTab';
 import { OverviewTab } from './OverviewTab';
 import { SettingsTab } from './SettingsTab';
 import { useComparisonStats } from './useComparisonStats';
+import { useCrossOraclePrices } from './useCrossOraclePrices';
 import { useSorting } from './useSorting';
-
-const logger = createLogger('CrossOracleComparison');
 
 export function CrossOracleComparison() {
   const t = useTranslations();
   const chartRef = useRef<HTMLDivElement>(null);
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('overview');
 
-  // 默认只选择 4 个预言机
   const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC');
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,
@@ -38,90 +31,31 @@ export function CrossOracleComparison() {
     OracleProvider.API3,
   ]);
 
-  const [priceData, setPriceData] = useState<PriceComparisonData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(30000);
-  const [priceHistory, setPriceHistory] = useState<Record<OracleProvider, PriceHistoryPoint[]>>(
-    {} as Record<OracleProvider, PriceHistoryPoint[]>
-  );
   const [deviationThreshold, setDeviationThreshold] = useState<number>(1);
   const [selectedGroup, setSelectedGroup] = useState<OracleGroup>('ALL');
 
-  const fetchPrices = useCallback(async () => {
-    setIsLoading(true);
+  const {
+    priceData,
+    isLoading,
+    isError,
+    errors,
+    lastUpdated,
+    refetchAll,
+    priceHistory,
+  } = useCrossOraclePrices({
+    selectedSymbol,
+    selectedOracles,
+    enabled: true,
+    refetchInterval: autoRefresh ? refreshInterval : false,
+  });
 
-    try {
-      const promises = selectedOracles.map(async (provider) => {
-        const client = oracleClients[provider];
-        const requestStart = Date.now();
-        try {
-          const price = await client.getPrice(selectedSymbol, Blockchain.ETHEREUM);
-          const responseTime = Date.now() - requestStart;
-
-          return {
-            provider,
-            price: price.price,
-            timestamp: price.timestamp,
-            confidence: price.confidence,
-            responseTime,
-          };
-        } catch (error) {
-          logger.error(
-            `Error fetching price from ${provider}`,
-            error instanceof Error ? error : new Error(String(error))
-          );
-          return null;
-        }
-      });
-
-      const results = await Promise.all(promises);
-      const validResults = results.filter((r) => r !== null) as PriceComparisonData[];
-
-      setPriceData((prevData) => {
-        const prevDataMap = new Map(prevData.map((d) => [d.provider, d.price]));
-        const resultsWithPrevious = validResults.map((result) => ({
-          ...result,
-          previousPrice: prevDataMap.get(result.provider),
-        }));
-        return resultsWithPrevious;
-      });
-      setLastUpdated(new Date());
-
-      setPriceHistory((prev) => {
-        const newHistory = { ...prev };
-        validResults.forEach((result) => {
-          if (!newHistory[result.provider]) {
-            newHistory[result.provider] = [];
-          }
-          newHistory[result.provider] = [
-            ...newHistory[result.provider].slice(-99),
-            { timestamp: result.timestamp, price: result.price },
-          ];
-        });
-        return newHistory;
-      });
-    } catch (error) {
-      logger.error(
-        'Error fetching prices',
-        error instanceof Error ? error : new Error(String(error))
-      );
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    if (isError && errors.length > 0) {
+      console.error('CrossOracleComparison errors:', errors);
     }
-  }, [selectedSymbol, selectedOracles]);
-
-  useEffect(() => {
-    fetchPrices();
-  }, [fetchPrices]);
-
-  useEffect(() => {
-    if (!autoRefresh) return;
-
-    const interval = setInterval(fetchPrices, refreshInterval);
-    return () => clearInterval(interval);
-  }, [autoRefresh, refreshInterval, fetchPrices]);
+  }, [isError, errors]);
 
   const {
     performanceData,
@@ -254,7 +188,7 @@ export function CrossOracleComparison() {
               onRefreshIntervalChange={setRefreshInterval}
               onQuickCompare={handleQuickCompare}
               onGroupChange={handleGroupChange}
-              onManualRefresh={fetchPrices}
+              onManualRefresh={refetchAll}
               isLoading={isLoading}
             />
           )}

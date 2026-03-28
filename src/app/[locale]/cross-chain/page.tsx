@@ -33,6 +33,7 @@ import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStor
 import { Blockchain } from '@/types/oracle';
 
 import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';
+import { ChartErrorBoundary } from './components/ChartErrorBoundary';
 import { CointegrationAnalysis } from './components/CointegrationAnalysis';
 import { CollapsibleSection } from './components/CollapsibleSection';
 import { CompactStatsGrid } from './components/CompactStatsGrid';
@@ -392,9 +393,13 @@ export default function CrossChainPage() {
   const renderCorrelationTab = () => (
     <>
       <div id="correlation">
-        <CorrelationMatrix data={data} />
+        <ChartErrorBoundary chartName="Correlation Matrix">
+          <CorrelationMatrix data={data} />
+        </ChartErrorBoundary>
       </div>
-      <RollingCorrelationChart data={data} />
+      <ChartErrorBoundary chartName="Rolling Correlation">
+        <RollingCorrelationChart data={data} />
+      </ChartErrorBoundary>
     </>
   );
 
@@ -408,7 +413,9 @@ export default function CrossChainPage() {
         storageKey="cointegrationExpanded"
       >
         <div className="p-4">
-          <CointegrationAnalysis data={data} />
+          <ChartErrorBoundary chartName="Cointegration Analysis">
+            <CointegrationAnalysis data={data} />
+          </ChartErrorBoundary>
         </div>
       </CollapsibleSection>
 
@@ -523,17 +530,19 @@ export default function CrossChainPage() {
       </div>
 
       <div id="chart">
-        <InteractivePriceChart
-          chartData={chartData}
-          chartDataWithMA={chartDataWithMA}
-          filteredChains={filteredChains}
-          hiddenLines={hiddenLines}
-          scatterData={scatterData}
-          avgPrice={avgPrice}
-          medianPrice={medianPrice}
-          onLegendClick={handleLegendClick}
-          onLegendDoubleClick={handleLegendDoubleClick}
-        />
+        <ChartErrorBoundary chartName="Interactive Price Chart">
+          <InteractivePriceChart
+            chartData={chartData}
+            chartDataWithMA={chartDataWithMA}
+            filteredChains={filteredChains}
+            hiddenLines={hiddenLines}
+            scatterData={scatterData}
+            avgPrice={avgPrice}
+            medianPrice={medianPrice}
+            onLegendClick={handleLegendClick}
+            onLegendDoubleClick={handleLegendDoubleClick}
+          />
+        </ChartErrorBoundary>
       </div>
     </>
   );
@@ -747,7 +756,9 @@ export default function CrossChainPage() {
               <CrossChainFilters data={data} />
 
               {/* Price Spread Heatmap */}
-              <PriceSpreadHeatmap data={data} />
+              <ChartErrorBoundary chartName="Price Spread Heatmap">
+                <PriceSpreadHeatmap data={data} />
+              </ChartErrorBoundary>
 
               {/* Auto Refresh Setting */}
               <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">

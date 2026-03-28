@@ -29,7 +29,7 @@ interface SettingsTabProps {
   autoRefresh: boolean;
   refreshInterval: number;
   selectedGroup: OracleGroup;
-  lastUpdated: Date;
+  lastUpdated: Date | null;
   exportData: {
     symbol: string;
     timestamp: string;
@@ -229,7 +229,7 @@ export function SettingsTab({
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">
-              {t('time.lastUpdated')}: {lastUpdated.toLocaleTimeString()}
+              {t('time.lastUpdated')}: {lastUpdated ? lastUpdated.toLocaleTimeString() : '-'}
             </span>
             <button
               onClick={onManualRefresh}
@@ -242,7 +242,7 @@ export function SettingsTab({
           <ComparisonReportExporter
             data={exportData}
             chartRef={chartRef}
-            fileName={`cross-oracle-comparison-${selectedSymbol}-${lastUpdated.toISOString().split('T')[0]}`}
+            fileName={`cross-oracle-comparison-${selectedSymbol}-${lastUpdated ? lastUpdated.toISOString().split('T')[0] : 'unknown'}`}
           />
         </div>
       </div>

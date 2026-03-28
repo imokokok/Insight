@@ -24,11 +24,55 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
   const colorblindMode = useColorblindMode();
   const { filteredChains, correlationMatrixWithSignificance } = data;
 
-  // Handle export
   const handleExport = useCallback(() => {
-    console.log('Exporting correlation matrix data...');
-    // TODO: Implement export functionality
-  }, []);
+    if (filteredChains.length === 0) {
+      return;
+    }
+
+    try {
+      const exportData = {
+        metadata: {
+          exportTimestamp: new Date().toISOString(),
+          chartType: 'Correlation Matrix',
+          chainCount: filteredChains.length,
+          chains: filteredChains.map((chain) => chainNames[chain]),
+        },
+        correlationMatrix: {} as Record<string, Record<string, { correlation: number; pValue: number; sampleSize: number; significanceLevel: string }>>,
+      };
+
+      filteredChains.forEach((chainX) => {
+        exportData.correlationMatrix[chainNames[chainX]] = {};
+        filteredChains.forEach((chainY) => {
+          const result = correlationMatrixWithSignificance[chainX]?.[chainY];
+          if (result) {
+            exportData.correlationMatrix[chainNames[chainX]][chainNames[chainY]] = {
+              correlation: result.correlation,
+              pValue: result.pValue,
+              sampleSize: result.sampleSize,
+              significanceLevel: result.significanceLevel || '',
+            };
+          }
+        });
+      });
+
+      const jsonContent = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonContent], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `correlation-matrix-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+      );
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export correlation matrix:', error);
+    }
+  }, [filteredChains, correlationMatrixWithSignificance]);
 
   // 根据色盲模式选择颜色函数
   const getCorrelationColorFn = colorblindMode
@@ -45,13 +89,21 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
       }
     });
   });
-  const avgSampleSize =
-    sampleSizes.length > 0
-      ? Math.round(sampleSizes.reduce((a, b) => a + b, 0) / sampleSizes.length)
-      : 0;
+  const minSampleSize = sampleSizes.length > 0 ? Math.min(...sampleSizes) : 0;
+  const maxSampleSize = sampleSizes.length > 0 ? Math.max(...sampleSizes) : 0;
+  const hasLowSampleSize = minSampleSize > 0 && minSampleSize < 10;
 
   return (
-    <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
+    <div
+      className="mb-8 pb-8 border-b"
+      style={{ borderColor: baseColors.gray[200] }}
+      role="img"
+      aria-label={t('crossChain.correlationMatrix')}
+      tabIndex={0}
+    >
+      <div className="sr-only">
+        {t('crossChain.correlationMatrix')} - {t('crossChain.correlationMatrixDesc')}
+      </div>
       {/* Chart Toolbar - Export only for correlation matrix */}
       <ChartToolbar
         timeRanges={[]}
@@ -68,11 +120,24 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
         >
           {t('crossChain.chainCorrelationAnalysis')}
         </h3>
-        {avgSampleSize > 0 && (
-          <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-            {t('crossChain.sampleSize')} n = {avgSampleSize}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {minSampleSize > 0 && (
+            <span className="text-xs" style={{ color: baseColors.gray[500] }}>
+              {t('crossChain.sampleSizeRange')}: n = {minSampleSize} - {maxSampleSize}
+            </span>
+          )}
+          {hasLowSampleSize && (
+            <span
+              className="text-xs px-2 py-0.5 rounded"
+              style={{
+                backgroundColor: semanticColors.warning.light,
+                color: semanticColors.warning.dark,
+              }}
+            >
+              ⚠️ {t('crossChain.lowSampleSizeWarning')}
+            </span>
+          )}
+        </div>
       </div>
       <p className="text-xs mb-4" style={{ color: baseColors.gray[500] }}>
         {t('crossChain.pearsonCorrelationDesc')} {t('crossChain.significanceMarkers')}
@@ -115,6 +180,8 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                     }
                   : {};
 
+                const isLowSampleSize = sampleSize > 0 && sampleSize < 10;
+
                 return (
                   <div
                     key={`${chainX}-${chainY}`}
@@ -136,6 +203,29 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                         }}
                       >
                         {significanceLevel}
+                      </span>
+                    )}
+                    {sampleSize > 0 && (
+                      <span
+                        className="absolute bottom-0.5 left-0.5 text-[7px]"
+                        style={{
+                          color:
+                            Math.abs(correlation) > 0.5
+                              ? baseColors.gray[50] + '99'
+                              : baseColors.gray[400],
+                        }}
+                      >
+                        n={sampleSize}
+                      </span>
+                    )}
+                    {isLowSampleSize && (
+                      <span
+                        className="absolute top-0.5 left-0.5 text-[7px]"
+                        style={{
+                          color: semanticColors.warning.dark,
+                        }}
+                      >
+                        ⚠
                       </span>
                     )}
                     {/* 色盲模式下添加形状指示器 */}

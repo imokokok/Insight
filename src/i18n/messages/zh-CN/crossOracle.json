@@ -1,5 +1,41 @@
 {
   "crossOracle": {
+    "oracleCard": {
+      "viewDetails": "查看 {name} 详情",
+      "updateFrequency": "更新频率",
+      "supportedChains": "支持链数量",
+      "chains": "条链",
+      "dataSources": "数据源数量",
+      "dataSourcesUnit": "个数据源",
+      "lastUpdated": "最近更新",
+      "tvs": "TVS",
+      "marketShare": "市场份额",
+      "healthStatus": {
+        "healthy": "健康",
+        "warning": "警告",
+        "critical": "异常"
+      },
+      "updateFrequencies": {
+        "heartbeat1h": "心跳 1 小时，偏差 0.5%",
+        "realtime": "实时推送",
+        "heartbeat5m": "心跳 5 分钟",
+        "heartbeat24h": "心跳 24 小时，偏差 0.1%",
+        "onDemand": "按需更新",
+        "heartbeat1hSimple": "心跳 1 小时"
+      },
+      "lastUpdatedTimes": {
+        "justNow": "刚刚",
+        "1minAgo": "1 分钟前",
+        "2minAgo": "2 分钟前",
+        "3minAgo": "3 分钟前",
+        "5minAgo": "5 分钟前",
+        "10minAgo": "10 分钟前"
+      },
+      "ariaLabel": {
+        "oracleInfo": "{name}, 排名第 {rank}, 市场份额 {share}, TVS {tvs}",
+        "healthStatus": "健康状态: {status}"
+      }
+    },
     "title": "多预言机比较分析",
     "subtitle": "全面的多源价格聚合与趋同分析",
     "realtimeComparison": "实时多源数据对比",

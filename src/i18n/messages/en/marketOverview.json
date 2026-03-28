@@ -35,6 +35,19 @@
       "exportTime": "Exported",
       "exportFailed": "Failed to export image, please try again"
     },
+    "exportColumns": {
+      "oracle": "Oracle",
+      "marketShare": "Market Share (%)",
+      "tvs": "TVS",
+      "chains": "Chains",
+      "protocols": "Protocols",
+      "time": "Time"
+    },
+    "exportSections": {
+      "marketShareData": "Market Share Data",
+      "chainSupportData": "Chain Support Data",
+      "tvsTrendData": "TVS Trend Data"
+    },
     "scheduledExport": {
       "title": "Scheduled Exports",
       "add": "Add",

@@ -1,5 +1,41 @@
 {
   "crossOracle": {
+    "oracleCard": {
+      "viewDetails": "View {name} details",
+      "updateFrequency": "Update Frequency",
+      "supportedChains": "Supported Chains",
+      "chains": "chains",
+      "dataSources": "Data Sources",
+      "dataSourcesUnit": "data sources",
+      "lastUpdated": "Last Updated",
+      "tvs": "TVS",
+      "marketShare": "Market Share",
+      "healthStatus": {
+        "healthy": "Healthy",
+        "warning": "Warning",
+        "critical": "Critical"
+      },
+      "updateFrequencies": {
+        "heartbeat1h": "Heartbeat 1h, deviation 0.5%",
+        "realtime": "Real-time push",
+        "heartbeat5m": "Heartbeat 5m",
+        "heartbeat24h": "Heartbeat 24h, deviation 0.1%",
+        "onDemand": "On-demand update",
+        "heartbeat1hSimple": "Heartbeat 1h"
+      },
+      "lastUpdatedTimes": {
+        "justNow": "Just now",
+        "1minAgo": "1 min ago",
+        "2minAgo": "2 min ago",
+        "3minAgo": "3 min ago",
+        "5minAgo": "5 min ago",
+        "10minAgo": "10 min ago"
+      },
+      "ariaLabel": {
+        "oracleInfo": "{name}, ranked {rank}, market share {share}, TVS {tvs}",
+        "healthStatus": "Health status: {status}"
+      }
+    },
     "title": "Multi-Oracle Comparative Analytics",
     "subtitle": "Comprehensive Multi-Source Price Aggregation & Convergence Analysis",
     "realtimeComparison": "Real-time Multi-Source Data Comparison",
