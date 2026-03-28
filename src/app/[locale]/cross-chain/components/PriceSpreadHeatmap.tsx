@@ -93,10 +93,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
     setSelectedTimeRange(range as TimeRange);
   }, []);
 
-  const handleExport = useCallback(() => {
-    console.log('Exporting heatmap data...');
-  }, []);
-
+  // Get time range in milliseconds - must be defined before handleExport
   const getTimeRangeInMs = useCallback((range: TimeRange): number => {
     const now = Date.now();
     switch (range) {
@@ -130,8 +127,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
   }, [historicalPrices, selectedTimeRange, getTimeRangeInMs]);
 
   const { heatmapData, maxHeatmapValue } = useMemo(() => {
-    const filteredPrices = currentPrices.filter((p) => p.chain && filteredChains.includes(p.chain));
-    if (filteredPrices.length < 2) {
+    if (filteredChains.length < 2) {
       return { heatmapData: originalHeatmapData, maxHeatmapValue: originalMaxHeatmapValue };
     }
 
@@ -140,28 +136,118 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
 
     filteredChains.forEach((xChain) => {
       filteredChains.forEach((yChain) => {
-        const xPrice = filteredPrices.find((p) => p.chain === xChain)?.price || 0;
-        const yPrice = filteredPrices.find((p) => p.chain === yChain)?.price || 0;
-        const diff = Math.abs(xPrice - yPrice);
-        const percent = xPrice > 0 && yPrice > 0 ? (diff / xPrice) * 100 : 0;
+        const xHistorical = filteredHistoricalPrices[xChain] || [];
+        const yHistorical = filteredHistoricalPrices[yChain] || [];
+
+        let avgPercent = 0;
+        let avgDiff = 0;
+        let dataPointCount = 0;
+
+        const timestampMap = new Map<number, { xPrice: number; yPrice: number }>();
+
+        xHistorical.forEach((p) => {
+          if (!timestampMap.has(p.timestamp)) {
+            timestampMap.set(p.timestamp, { xPrice: p.price, yPrice: 0 });
+          } else {
+            timestampMap.get(p.timestamp)!.xPrice = p.price;
+          }
+        });
+
+        yHistorical.forEach((p) => {
+          if (timestampMap.has(p.timestamp)) {
+            timestampMap.get(p.timestamp)!.yPrice = p.price;
+          }
+        });
+
+        timestampMap.forEach(({ xPrice, yPrice }) => {
+          if (xPrice > 0 && yPrice > 0) {
+            const diff = Math.abs(xPrice - yPrice);
+            const percent = (diff / xPrice) * 100;
+            avgPercent += percent;
+            avgDiff += diff;
+            dataPointCount++;
+          }
+        });
+
+        let finalPercent = 0;
+        let finalDiff = 0;
+
+        if (dataPointCount > 0) {
+          finalPercent = avgPercent / dataPointCount;
+          finalDiff = avgDiff / dataPointCount;
+        } else {
+          const xCurrent = currentPrices.find((p) => p.chain === xChain)?.price || 0;
+          const yCurrent = currentPrices.find((p) => p.chain === yChain)?.price || 0;
+          if (xCurrent > 0 && yCurrent > 0) {
+            finalDiff = Math.abs(xCurrent - yCurrent);
+            finalPercent = (finalDiff / xCurrent) * 100;
+          }
+        }
 
         data.push({
           x: chainNames[xChain],
           y: chainNames[yChain],
-          value: diff,
-          percent,
+          value: finalDiff,
+          percent: finalPercent,
           xChain,
           yChain,
         });
 
-        if (percent > maxValue) {
-          maxValue = percent;
+        if (finalPercent > maxValue) {
+          maxValue = finalPercent;
         }
       });
     });
 
     return { heatmapData: data, maxHeatmapValue: maxValue };
-  }, [currentPrices, filteredChains, originalHeatmapData, originalMaxHeatmapValue]);
+  }, [filteredHistoricalPrices, filteredChains, currentPrices, originalHeatmapData, originalMaxHeatmapValue]);
+
+  // handleExport must be defined after heatmapData is computed
+  const handleExport = useCallback(() => {
+    if (filteredChains.length === 0 || heatmapData.length === 0) {
+      return;
+    }
+
+    try {
+      const cutoffTime = getTimeRangeInMs(selectedTimeRange);
+      const startTime = new Date(cutoffTime).toISOString();
+      const endTime = new Date().toISOString();
+
+      const csvLines: string[] = [];
+
+      csvLines.push('=== Price Spread Heatmap Data ===');
+      csvLines.push(`Export Timestamp,${new Date().toISOString()}`);
+      csvLines.push(`Time Range,${selectedTimeRange}`);
+      csvLines.push(`Data Start Time,${startTime}`);
+      csvLines.push(`Data End Time,${endTime}`);
+      csvLines.push(`Chain Count,${filteredChains.length}`);
+      csvLines.push(`Max Heatmap Value,${maxHeatmapValue.toFixed(4)}%`);
+      csvLines.push('');
+
+      csvLines.push('Chain X,Chain Y,Price Difference,Percent Difference (%)');
+
+      heatmapData.forEach((cell) => {
+        csvLines.push(`${chainNames[cell.xChain]},${chainNames[cell.yChain]},${cell.value.toFixed(6)},${cell.percent.toFixed(4)}`);
+      });
+
+      const csvContent = csvLines.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `price-spread-heatmap-${selectedTimeRange}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+      );
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export heatmap data:', error);
+    }
+  }, [filteredChains, heatmapData, maxHeatmapValue, selectedTimeRange, getTimeRangeInMs]);
 
   // 根据色盲模式获取热力图颜色
   const getHeatmapColorFn = colorblindMode ? getColorblindHeatmapColor : getHeatmapColor;
@@ -171,7 +257,15 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
   const HEADER_SIZE = 80;
 
   return (
-    <div className="mb-6 pb-6 border-b border-gray-200">
+    <div
+      className="mb-6 pb-6 border-b border-gray-200"
+      role="img"
+      aria-label={t('crossChain.priceSpreadHeatmap')}
+      tabIndex={0}
+    >
+      <div className="sr-only">
+        {t('crossChain.priceSpreadHeatmap')} - {t('crossChain.heatmapDesc')}
+      </div>
       {/* Chart Toolbar */}
       <ChartToolbar
         timeRanges={['1H', '24H', '7D', '30D']}

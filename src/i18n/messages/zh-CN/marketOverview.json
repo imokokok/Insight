@@ -35,6 +35,19 @@
       "exportTime": "导出时间",
       "exportFailed": "导出图片失败，请重试"
     },
+    "exportColumns": {
+      "oracle": "预言机",
+      "marketShare": "市场份额 (%)",
+      "tvs": "TVS",
+      "chains": "链数",
+      "protocols": "协议数",
+      "time": "时间"
+    },
+    "exportSections": {
+      "marketShareData": "市场份额数据",
+      "chainSupportData": "链支持数据",
+      "tvsTrendData": "TVS 趋势数据"
+    },
     "scheduledExport": {
       "title": "定时导出",
       "add": "添加",

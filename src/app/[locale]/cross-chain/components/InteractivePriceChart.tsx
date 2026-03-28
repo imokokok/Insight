@@ -131,10 +131,6 @@ export function InteractivePriceChart({
     setSelectedTimeRange(range as TimeRange);
   }, []);
 
-  const handleExport = useCallback(() => {
-    console.log('Exporting chart data...');
-  }, []);
-
   const getTimeRangeInMs = useCallback((range: TimeRange): number => {
     const now = Date.now();
     switch (range) {
@@ -187,6 +183,62 @@ export function InteractivePriceChart({
     if (timeFilteredData.length === 0) return [];
     return timeFilteredData.slice(viewState.startIndex, viewState.endIndex + 1);
   }, [timeFilteredData, viewState]);
+
+  // Export price chart data to CSV
+  const handleExport = useCallback(() => {
+    if (visibleData.length === 0 || filteredChains.length === 0) {
+      return;
+    }
+
+    try {
+      const cutoffTime = getTimeRangeInMs(selectedTimeRange);
+      const startTime = new Date(cutoffTime).toISOString();
+      const endTime = new Date().toISOString();
+
+      const csvLines: string[] = [];
+
+      csvLines.push('=== Price Chart Data ===');
+      csvLines.push(`Export Timestamp,${new Date().toISOString()}`);
+      csvLines.push(`Time Range,${selectedTimeRange}`);
+      csvLines.push(`Data Start Time,${startTime}`);
+      csvLines.push(`Data End Time,${endTime}`);
+      csvLines.push(`Visible Data Points,${visibleData.length}`);
+      csvLines.push(`View Range,${viewState.startIndex + 1}-${viewState.endIndex + 1} of ${chartData.length}`);
+      csvLines.push('');
+
+      const headers = ['Timestamp', 'Time', ...filteredChains.map((chain) => chainNames[chain])];
+      csvLines.push(headers.join(','));
+
+      visibleData.forEach((point) => {
+        const row: string[] = [
+          String(point.timestamp || ''),
+          String(point.time || ''),
+        ];
+        filteredChains.forEach((chain) => {
+          const price = point[chain] as number | undefined;
+          row.push(price !== undefined && !isNaN(price) ? price.toFixed(6) : '');
+        });
+        csvLines.push(row.join(','));
+      });
+
+      const csvContent = csvLines.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `price-chart-${selectedTimeRange}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+      );
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export price chart data:', error);
+    }
+  }, [visibleData, filteredChains, selectedTimeRange, viewState, chartData.length, getTimeRangeInMs]);
 
   // Calculate price domain for Y axis
   const priceDomain = useMemo(() => {
@@ -651,7 +703,26 @@ export function InteractivePriceChart({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        role="img"
+        aria-label={t('crossChain.priceChart')}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft') {
+            handlePanLeft();
+          } else if (e.key === 'ArrowRight') {
+            handlePanRight();
+          } else if (e.key === '+' || e.key === '=') {
+            handleZoomIn();
+          } else if (e.key === '-') {
+            handleZoomOut();
+          } else if (e.key === 'Home') {
+            handleResetZoom();
+          }
+        }}
       >
+        <div className="sr-only">
+          {t('crossChain.priceChart')} - {t('crossChain.shortcuts')}: Arrow keys to pan, +/- to zoom, Home to reset
+        </div>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={visibleData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />

@@ -30,6 +30,21 @@
       "liveData": "实时数据",
       "learnMore": "了解更多 →"
     },
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "oracleCard": {
+      "updateFrequency": "更新频率",
+      "supportedChains": "支持链数量",
+      "dataSources": "数据源数量",
+      "lastUpdated": "最近更新",
+      "healthStatus": {
+        "healthy": "健康",
+        "warning": "警告",
+        "critical": "异常"
+      },
+      "chains": "条链",
+      "sources": "个数据源",
+      "marketShare": "市场份额",
+      "tvs": "TVS"
+    }
   }
 }

@@ -49,11 +49,130 @@ import {
   defaultThresholdConfig,
   detectOutliersIQR,
   detectOutliersZScore,
+  getTCriticalValue,
   type CorrelationResult,
   type TimestampedPrice,
 } from './utils';
 
 const logger = createLogger('useCrossChainData');
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+interface AnomalousPricePoint {
+  chain: Blockchain;
+  price: number;
+  timestamp: number;
+  reason: 'iqr_outlier' | 'std_dev_outlier';
+  deviation: number;
+}
+
+const BITCOIN_GENESIS_TIMESTAMP = new Date('2009-01-03').getTime();
+
+function validatePriceData(price: number, timestamp: number, chain: Blockchain): ValidationResult {
+  const errors: string[] = [];
+
+  if (typeof price !== 'number' || isNaN(price)) {
+    errors.push(`[${chain}] 价格不是有效数字: ${price}`);
+  }
+
+  if (price === Infinity || price === -Infinity) {
+    errors.push(`[${chain}] 价格为 Infinity`);
+  }
+
+  if (price < 0) {
+    errors.push(`[${chain}] 价格为负数: ${price}`);
+  }
+
+  const now = Date.now();
+  const oneHourInMs = 60 * 60 * 1000;
+
+  if (timestamp < BITCOIN_GENESIS_TIMESTAMP) {
+    errors.push(
+      `[${chain}] 时间戳早于比特币创世时间: ${new Date(timestamp).toISOString()}`
+    );
+  }
+
+  if (timestamp > now + oneHourInMs) {
+    errors.push(
+      `[${chain}] 时间戳晚于当前时间+1小时: ${new Date(timestamp).toISOString()}`
+    );
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}
+
+function detectAnomalousPrices(
+  prices: PriceData[],
+  filteredChains: Blockchain[]
+): AnomalousPricePoint[] {
+  const anomalies: AnomalousPricePoint[] = [];
+  const validPrices = prices
+    .filter((p) => p.chain && filteredChains.includes(p.chain))
+    .map((p) => p.price)
+    .filter((p) => p > 0 && !isNaN(p) && isFinite(p));
+
+  if (validPrices.length < 4) return anomalies;
+
+  const sorted = [...validPrices].sort((a, b) => a - b);
+  const n = sorted.length;
+
+  const q1Index = Math.floor(n * 0.25);
+  const q3Index = Math.floor(n * 0.75);
+  const q1 = sorted[q1Index];
+  const q3 = sorted[q3Index];
+  const iqr = q3 - q1;
+
+  const lowerBound = q1 - 1.5 * iqr;
+  const upperBound = q3 + 1.5 * iqr;
+
+  const mean = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
+  const variance =
+    validPrices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / validPrices.length;
+  const stdDev = Math.sqrt(variance);
+
+  prices.forEach((priceData) => {
+    if (!priceData.chain || !filteredChains.includes(priceData.chain)) return;
+
+    const { price, timestamp, chain } = priceData;
+
+    if (price < lowerBound || price > upperBound) {
+      const deviation = Math.abs(price - (price < lowerBound ? q1 : q3)) / iqr;
+      anomalies.push({
+        chain,
+        price,
+        timestamp,
+        reason: 'iqr_outlier',
+        deviation,
+      });
+    }
+
+    if (stdDev > 0) {
+      const zScore = Math.abs((price - mean) / stdDev);
+      if (zScore > 3) {
+        const existingAnomaly = anomalies.find(
+          (a) => a.chain === chain && a.timestamp === timestamp
+        );
+        if (!existingAnomaly) {
+          anomalies.push({
+            chain,
+            price,
+            timestamp,
+            reason: 'std_dev_outlier',
+            deviation: zScore,
+          });
+        }
+      }
+    }
+  });
+
+  return anomalies;
+}
 
 const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -66,6 +185,34 @@ const oracleClients = {
   [OracleProvider.TELLOR]: new TellorClient(),
   [OracleProvider.CHRONICLE]: new ChronicleClient(),
   [OracleProvider.WINKLINK]: new WINkLinkClient(),
+};
+
+const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
+
+interface CacheEntry {
+  currentPrices: PriceData[];
+  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
+  timestamp: number;
+}
+
+const dataCache = new Map<string, CacheEntry>();
+
+const getCacheKey = (provider: OracleProvider, symbol: string, timeRange: number): string => {
+  return `${provider}-${symbol}-${timeRange}`;
+};
+
+const clearCache = () => {
+  dataCache.clear();
+};
+
+const clearCacheForProvider = (provider: OracleProvider) => {
+  const keysToDelete: string[] = [];
+  dataCache.forEach((_, key) => {
+    if (key.startsWith(`${provider}-`)) {
+      keysToDelete.push(key);
+    }
+  });
+  keysToDelete.forEach((key) => dataCache.delete(key));
 };
 
 export interface UseCrossChainDataReturn {
@@ -134,7 +281,12 @@ export interface UseCrossChainDataReturn {
   iqrValue: number;
   skewness: number;
   kurtosis: number;
-  confidenceInterval95: { lower: number; upper: number };
+  confidenceInterval95: {
+    lower: number;
+    upper: number;
+    distributionType: 't' | 'z';
+    criticalValue: number;
+  };
   iqrOutliers: IqrOutliers;
   stdDevHistoricalOutliers: {
     timestamp: number;
@@ -187,6 +339,8 @@ export interface UseCrossChainDataReturn {
   setShowFavoritesDropdown: (show: boolean) => void;
   favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
   handleApplyFavorite: (config: FavoriteConfig) => void;
+  clearCache: () => void;
+  clearCacheForProvider: (provider: OracleProvider) => void;
 }
 
 export function useCrossChainData(): UseCrossChainDataReturn {
@@ -258,23 +412,114 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     setRefreshStatus('refreshing');
     setLoading(true);
     try {
+      const cacheKey = getCacheKey(selectedProvider, selectedSymbol, selectedTimeRange);
+      const cachedEntry = dataCache.get(cacheKey);
+      const now = Date.now();
+      
+      if (cachedEntry && now - cachedEntry.timestamp < CACHE_EXPIRATION_MS) {
+        setCurrentPrices(cachedEntry.currentPrices);
+        setHistoricalPrices(cachedEntry.historicalPrices);
+        
+        const validPrices = cachedEntry.currentPrices.map((d) => d.price).filter((p) => p > 0);
+        const newAvgPrice =
+          validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
+        const newMaxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
+        const newMinPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+        const newPriceRange = newMaxPrice - newMinPrice;
+        const variance =
+          validPrices.length > 1
+            ? validPrices.reduce((sum, price) => sum + Math.pow(price - newAvgPrice, 2), 0) /
+              validPrices.length
+            : 0;
+        const stdDev = Math.sqrt(variance);
+        const newStdDevPercent = newAvgPrice > 0 ? (stdDev / newAvgPrice) * 100 : 0;
+
+        setPrevStats({
+          avgPrice: newAvgPrice,
+          maxPrice: newMaxPrice,
+          minPrice: newMinPrice,
+          priceRange: newPriceRange,
+          standardDeviationPercent: newStdDevPercent,
+        });
+
+        if (supportedChains.length > 0) {
+          const chainWithMostData = supportedChains.reduce((best, chain) => {
+            const bestLen = cachedEntry.historicalPrices[best]?.length || 0;
+            const chainLen = cachedEntry.historicalPrices[chain]?.length || 0;
+            return chainLen > bestLen ? chain : best;
+          }, supportedChains[0]);
+          setRecommendedBaseChain(chainWithMostData);
+        }
+
+        setLastUpdated(new Date());
+        setRefreshStatus('success');
+        setShowRefreshSuccess(true);
+        setTimeout(() => setShowRefreshSuccess(false), 2000);
+        setLoading(false);
+        return;
+      }
+
       const currentPromises = supportedChains.map((chain) =>
         currentClient.getPrice(selectedSymbol, chain)
       );
       const currentResults = await Promise.all(currentPromises);
-      setCurrentPrices(currentResults);
+
+      const validatedCurrentResults = currentResults.filter((priceData) => {
+        if (!priceData.chain) return false;
+        const validation = validatePriceData(priceData.price, priceData.timestamp, priceData.chain);
+        if (!validation.isValid) {
+          validation.errors.forEach((error) =>
+            logger.warn('价格数据验证失败', { error, chain: priceData.chain })
+          );
+          return false;
+        }
+        return true;
+      });
+
+      setCurrentPrices(validatedCurrentResults);
 
       const historicalPromises = supportedChains.map((chain) =>
         currentClient.getHistoricalPrices(selectedSymbol, chain, selectedTimeRange)
       );
       const historicalResults = await Promise.all(historicalPromises);
       const historicalMap: Partial<Record<Blockchain, PriceData[]>> = {};
+
       supportedChains.forEach((chain, index) => {
-        historicalMap[chain] = historicalResults[index];
+        const rawPrices = historicalResults[index] || [];
+        const validatedPrices = rawPrices.filter((priceData) => {
+          const validation = validatePriceData(priceData.price, priceData.timestamp, chain);
+          if (!validation.isValid) {
+            validation.errors.forEach((error) =>
+              logger.warn('历史价格数据验证失败', { error, chain })
+            );
+            return false;
+          }
+          return true;
+        });
+        historicalMap[chain] = validatedPrices;
       });
+
       setHistoricalPrices(historicalMap);
 
-      const validPrices = currentResults.map((d) => d.price).filter((p) => p > 0);
+      const anomalies = detectAnomalousPrices(validatedCurrentResults, supportedChains);
+      if (anomalies.length > 0) {
+        logger.info(`检测到 ${anomalies.length} 个异常价格点`, {
+          anomalies: anomalies.map((a) => ({
+            chain: a.chain,
+            price: a.price,
+            reason: a.reason,
+            deviation: a.deviation.toFixed(2),
+          })),
+        });
+      }
+
+      dataCache.set(cacheKey, {
+        currentPrices: validatedCurrentResults,
+        historicalPrices: historicalMap,
+        timestamp: now,
+      });
+
+      const validPrices = validatedCurrentResults.map((d) => d.price).filter((p) => p > 0);
       const newAvgPrice =
         validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
       const newMaxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
@@ -318,7 +563,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     } finally {
       setLoading(false);
     }
-  }, [currentClient, supportedChains, selectedSymbol, selectedTimeRange]);
+  }, [currentClient, supportedChains, selectedSymbol, selectedTimeRange, selectedProvider]);
 
   useEffect(() => {
     fetchData();
@@ -571,14 +816,34 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
   const confidenceInterval95 = useMemo(() => {
     if (validPrices.length < 2 || standardDeviation === 0) {
-      return { lower: avgPrice, upper: avgPrice };
+      return {
+        lower: avgPrice,
+        upper: avgPrice,
+        distributionType: 'z' as const,
+        criticalValue: 1.96,
+      };
     }
     const n = validPrices.length;
     const standardError = standardDeviation / Math.sqrt(n);
-    const marginOfError = 1.96 * standardError;
+    
+    let criticalValue: number;
+    let distributionType: 't' | 'z';
+    
+    if (n < 30) {
+      const df = n - 1;
+      criticalValue = getTCriticalValue(df, 0.95);
+      distributionType = 't';
+    } else {
+      criticalValue = 1.96;
+      distributionType = 'z';
+    }
+    
+    const marginOfError = criticalValue * standardError;
     return {
       lower: avgPrice - marginOfError,
       upper: avgPrice + marginOfError,
+      distributionType,
+      criticalValue,
     };
   }, [validPrices, avgPrice, standardDeviation]);
 
@@ -1408,5 +1673,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     setShowFavoritesDropdown,
     favoritesDropdownRef,
     handleApplyFavorite,
+    clearCache,
+    clearCacheForProvider,
   };
 }

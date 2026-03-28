@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback, memo } from 'react';
+import { useState, useMemo, useEffect, useCallback, memo, useRef } from 'react';
 
 import {
   PieChart as PieChartIcon,
@@ -13,6 +13,9 @@ import {
   Globe,
   ChevronRight,
   Info,
+  AlertTriangle,
+  Database,
+  Download,
 } from 'lucide-react';
 import {
   PieChart,
@@ -34,8 +37,72 @@ import { ChartSkeleton } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { type TooltipProps, type CustomLabelProps } from '@/types/ui/recharts';
+import { DataExportButton, type ExportDataRow, type ExportColumn } from '@/components/oracle/forms/DataExportButton';
 
 import OraclePrefetchCard from './OraclePrefetchCard';
+
+function useResponsiveChart() {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  return {
+    isMobile,
+    isTablet,
+    isDesktop: !isMobile && !isTablet,
+    chartFontSize: isMobile ? 10 : 12,
+    pieOuterRadius: isMobile ? 100 : isTablet ? 120 : 140,
+    pieInnerRadius: isMobile ? 55 : isTablet ? 70 : 80,
+    yAxisWidth: isMobile ? 70 : 100,
+  };
+}
+
+function MobileTimeRangeSelect({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ key: string; label: string }>;
+}) {
+  return (
+    <div className="md:hidden">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label="选择时间范围"
+        className="w-full px-4 py-2.5 text-sm font-medium border rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        style={{
+          backgroundColor: baseColors.gray[50],
+          borderColor: baseColors.gray[200],
+          color: baseColors.gray[900],
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='${encodeURIComponent(baseColors.gray[500])}'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'right 0.75rem center',
+          backgroundSize: '1.25rem',
+          paddingRight: '2.5rem',
+        }}
+      >
+        {options.map((option) => (
+          <option key={option.key} value={option.key}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 const COLORS = {
   chainlink: chartColors.oracle.chainlink,
@@ -613,6 +680,8 @@ function OracleMarketOverviewBase() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRangeChanging, setIsRangeChanging] = useState(false);
 
+  const responsive = useResponsiveChart();
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -656,6 +725,130 @@ function OracleMarketOverviewBase() {
       oracleCount: marketShareData.length,
     };
   }, []);
+
+  const exportColumns: ExportColumn[] = useMemo(() => {
+    if (activeChart === 'pie') {
+      return [
+        { key: 'name', label: t('exportColumns.oracle') },
+        { key: 'value', label: t('exportColumns.marketShare') },
+        { key: 'tvs', label: t('exportColumns.tvs') },
+        { key: 'chains', label: t('exportColumns.chains') },
+      ];
+    } else if (activeChart === 'bar') {
+      return [
+        { key: 'name', label: t('exportColumns.oracle') },
+        { key: 'chains', label: t('exportColumns.chains') },
+        { key: 'protocols', label: t('exportColumns.protocols') },
+      ];
+    } else {
+      return [
+        { key: 'time', label: t('exportColumns.time') },
+        ...oracleLineConfig.map((config) => ({
+          key: config.dataKey,
+          label: config.name,
+        })),
+      ];
+    }
+  }, [activeChart, t]);
+
+  const exportData: ExportDataRow[] = useMemo(() => {
+    if (activeChart === 'pie') {
+      return marketShareData.map((item) => ({
+        name: item.name,
+        value: `${item.value}%`,
+        tvs: item.tvs,
+        chains: item.chains,
+      }));
+    } else if (activeChart === 'bar') {
+      return chainSupportData.map((item) => ({
+        name: item.name,
+        chains: item.chains,
+        protocols: item.protocols,
+      }));
+    } else {
+      return currentTrendData.map((item) => ({
+        time: item.time,
+        chainlink: `$${item.chainlink}B`,
+        pyth: `$${item.pyth}B`,
+        band: `$${item.band}B`,
+        api3: `$${item.api3}B`,
+        uma: `$${item.uma}B`,
+        redstone: `$${item.redstone}B`,
+        dia: `$${item.dia}B`,
+        tellor: `$${item.tellor}B`,
+        chronicle: `$${item.chronicle}B`,
+        winklink: `$${item.winklink}B`,
+      }));
+    }
+  }, [activeChart, currentTrendData]);
+
+  const fullExportData: ExportDataRow[] = useMemo(() => {
+    const timestamp = new Date().toISOString();
+    const baseData = {
+      exportTime: timestamp,
+      timeRange: selectedRange,
+      chartType: activeChart,
+    };
+
+    const statsData = {
+      totalTVS: stats.totalTVS,
+      totalChains: stats.totalChains,
+      totalProtocols: stats.totalProtocols,
+      avgDominance: stats.avgDominance,
+      oracleCount: stats.oracleCount,
+    };
+
+    if (activeChart === 'pie') {
+      return [
+        { ...baseData, ...statsData, type: 'marketShare' },
+        {},
+        { section: t('exportSections.marketShareData') },
+        ...marketShareData.map((item) => ({
+          name: item.name,
+          marketShare: `${item.value}%`,
+          tvs: item.tvs,
+          chains: item.chains,
+        })),
+        {},
+        { section: t('exportSections.chainSupportData') },
+        ...chainSupportData.map((item) => ({
+          name: item.name,
+          chains: item.chains,
+          protocols: item.protocols,
+        })),
+      ];
+    } else if (activeChart === 'bar') {
+      return [
+        { ...baseData, ...statsData, type: 'chainSupport' },
+        {},
+        { section: t('exportSections.chainSupportData') },
+        ...chainSupportData.map((item) => ({
+          name: item.name,
+          chains: item.chains,
+          protocols: item.protocols,
+        })),
+      ];
+    } else {
+      return [
+        { ...baseData, ...statsData, type: 'tvsTrend' },
+        {},
+        { section: t('exportSections.tvsTrendData') },
+        ...currentTrendData.map((item) => ({
+          time: item.time,
+          chainlink: item.chainlink,
+          pyth: item.pyth,
+          band: item.band,
+          api3: item.api3,
+          uma: item.uma,
+          redstone: item.redstone,
+          dia: item.dia,
+          tellor: item.tellor,
+          chronicle: item.chronicle,
+          winklink: item.winklink,
+        })),
+      ];
+    }
+  }, [activeChart, currentTrendData, selectedRange, stats, t]);
 
   const renderCustomizedLabel = useCallback(
     ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: CustomLabelProps) => {
@@ -714,57 +907,60 @@ function OracleMarketOverviewBase() {
     if (activeChart === 'trend') {
       return (
         <div className="h-full overflow-auto">
-          <table className="w-full">
-            <thead className="sticky top-0" style={{ backgroundColor: baseColors.gray[50] }}>
-              <tr>
-                <th
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: baseColors.gray[600] }}
-                >
-                  {t('time')}
-                </th>
-                {oracleLineConfig.map((config) => (
+          <div className="min-w-[800px]">
+            <table className="w-full">
+              <thead className="sticky top-0" style={{ backgroundColor: baseColors.gray[50] }}>
+                <tr>
                   <th
-                    key={config.dataKey}
-                    className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                    className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold uppercase tracking-wider"
                     style={{ color: baseColors.gray[600] }}
                   >
-                    <div className="flex items-center justify-end gap-2">
-                      <div className="w-2 h-2" style={{ backgroundColor: config.stroke }} />
-                      {config.name}
-                    </div>
+                    {t('time')}
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody style={{ borderColor: baseColors.gray[100] }} className="divide-y">
-              {currentTrendData.map((item, index: number) => (
-                <tr
-                  key={`${item.time}-${index}`}
-                  className="transition-colors hover:bg-gray-50"
-                  style={{
-                    backgroundColor:
-                      hoveredItem === item.time ? baseColors.gray[50] : 'transparent',
-                  }}
-                  onMouseEnter={() => setHoveredItem(item.time)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                >
-                  <td className="px-4 py-3">
-                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>
-                      {item.time}
-                    </span>
-                  </td>
                   {oracleLineConfig.map((config) => (
-                    <td key={config.dataKey} className="px-4 py-3 text-right">
-                      <span style={{ color: baseColors.gray[600] }}>
-                        ${item[config.dataKey as keyof typeof item]}B
-                      </span>
-                    </td>
+                    <th
+                      key={config.dataKey}
+                      className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: baseColors.gray[600] }}
+                    >
+                      <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+                        <div className="w-2 h-2" style={{ backgroundColor: config.stroke }} />
+                        <span className="hidden sm:inline">{config.name}</span>
+                        <span className="sm:hidden">{config.dataKey.slice(0, 3).toUpperCase()}</span>
+                      </div>
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody style={{ borderColor: baseColors.gray[100] }} className="divide-y">
+                {currentTrendData.map((item, index: number) => (
+                  <tr
+                    key={`${item.time}-${index}`}
+                    className="transition-colors hover:bg-gray-50"
+                    style={{
+                      backgroundColor:
+                        hoveredItem === item.time ? baseColors.gray[50] : 'transparent',
+                    }}
+                    onMouseEnter={() => setHoveredItem(item.time)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                  >
+                    <td className="px-3 sm:px-4 py-2 sm:py-3">
+                      <span className="font-medium text-sm" style={{ color: baseColors.gray[900] }}>
+                        {item.time}
+                      </span>
+                    </td>
+                    {oracleLineConfig.map((config) => (
+                      <td key={config.dataKey} className="px-3 sm:px-4 py-2 sm:py-3 text-right">
+                        <span className="text-sm" style={{ color: baseColors.gray[600] }}>
+                          ${item[config.dataKey as keyof typeof item]}B
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       );
     }
@@ -778,88 +974,90 @@ function OracleMarketOverviewBase() {
 
     return (
       <div className="h-full overflow-auto">
-        <table className="w-full">
-          <thead className="sticky top-0" style={{ backgroundColor: baseColors.gray[50] }}>
-            <tr>
-              <th
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                style={{ color: baseColors.gray[600] }}
-              >
-                {t('oracle')}
-              </th>
-              <th
-                className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
-                style={{ color: baseColors.gray[600] }}
-              >
-                {activeChart === 'pie'
-                  ? t('marketShare')
-                  : activeChart === 'bar'
-                    ? t('chains')
-                    : 'TVS'}
-              </th>
-              {activeChart === 'bar' && (
+        <div className="min-w-[500px]">
+          <table className="w-full">
+            <thead className="sticky top-0" style={{ backgroundColor: baseColors.gray[50] }}>
+              <tr>
                 <th
-                  className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                  className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold uppercase tracking-wider"
                   style={{ color: baseColors.gray[600] }}
                 >
-                  {t('protocols')}
+                  {t('oracle')}
                 </th>
-              )}
-              {activeChart === 'pie' && (
                 <th
-                  className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                  className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-semibold uppercase tracking-wider"
                   style={{ color: baseColors.gray[600] }}
                 >
-                  TVS
+                  {activeChart === 'pie'
+                    ? t('marketShare')
+                    : activeChart === 'bar'
+                      ? t('chains')
+                      : 'TVS'}
                 </th>
-              )}
-            </tr>
-          </thead>
-          <tbody style={{ borderColor: baseColors.gray[100] }} className="divide-y">
-            {data.map((item, _index: number) => (
-              <tr
-                key={item.name}
-                className={`transition-colors cursor-pointer ${
-                  selectedItem === item.name ? '' : ''
-                }`}
-                style={{
-                  backgroundColor: selectedItem === item.name ? baseColors.gray[50] : 'transparent',
-                }}
-                onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
-                onMouseEnter={() => setHoveredItem(item.name)}
-                onMouseLeave={() => setHoveredItem(null)}
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
-                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>
-                      {item.name}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="font-semibold" style={{ color: baseColors.gray[900] }}>
-                    {isMarketShareDataItem(item) ? `${item.value}%` : item.chains}
-                  </span>
-                </td>
                 {activeChart === 'bar' && (
-                  <td className="px-4 py-3 text-right">
-                    <span style={{ color: baseColors.gray[600] }}>
-                      {isChainSupportDataItem(item) ? item.protocols : 0}
-                    </span>
-                  </td>
+                  <th
+                    className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                    style={{ color: baseColors.gray[600] }}
+                  >
+                    {t('protocols')}
+                  </th>
                 )}
                 {activeChart === 'pie' && (
-                  <td className="px-4 py-3 text-right">
-                    <span style={{ color: baseColors.gray[600] }}>
-                      {isMarketShareDataItem(item) ? item.tvs : ''}
-                    </span>
-                  </td>
+                  <th
+                    className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                    style={{ color: baseColors.gray[600] }}
+                  >
+                    TVS
+                  </th>
                 )}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody style={{ borderColor: baseColors.gray[100] }} className="divide-y">
+              {data.map((item, _index: number) => (
+                <tr
+                  key={item.name}
+                  className={`transition-colors cursor-pointer ${
+                    selectedItem === item.name ? '' : ''
+                  }`}
+                  style={{
+                    backgroundColor: selectedItem === item.name ? baseColors.gray[50] : 'transparent',
+                  }}
+                  onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
+                  onMouseEnter={() => setHoveredItem(item.name)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <td className="px-3 sm:px-4 py-2 sm:py-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3" style={{ backgroundColor: item.color }} />
+                      <span className="font-medium text-sm" style={{ color: baseColors.gray[900] }}>
+                        {item.name}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-right">
+                    <span className="font-semibold text-sm" style={{ color: baseColors.gray[900] }}>
+                      {isMarketShareDataItem(item) ? `${item.value}%` : item.chains}
+                    </span>
+                  </td>
+                  {activeChart === 'bar' && (
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-right">
+                      <span className="text-sm" style={{ color: baseColors.gray[600] }}>
+                        {isChainSupportDataItem(item) ? item.protocols : 0}
+                      </span>
+                    </td>
+                  )}
+                  {activeChart === 'pie' && (
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-right">
+                      <span className="text-sm" style={{ color: baseColors.gray[600] }}>
+                        {isMarketShareDataItem(item) ? item.tvs : ''}
+                      </span>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }, [activeChart, selectedItem, currentTrendData, hoveredItem, t]);
@@ -879,8 +1077,8 @@ function OracleMarketOverviewBase() {
               cy="50%"
               labelLine={false}
               label={renderCustomizedLabel}
-              outerRadius={140}
-              innerRadius={80}
+              outerRadius={responsive.pieOuterRadius}
+              innerRadius={responsive.pieInnerRadius}
               fill={chartColors.recharts.primary}
               dataKey="value"
               paddingAngle={2}
@@ -916,8 +1114,8 @@ function OracleMarketOverviewBase() {
         return (
           <LineChart data={currentTrendData}>
             <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
-            <XAxis dataKey="time" stroke={chartColors.recharts.axis} fontSize={12} />
-            <YAxis stroke={chartColors.recharts.axis} fontSize={12} />
+            <XAxis dataKey="time" stroke={chartColors.recharts.axis} fontSize={responsive.chartFontSize} />
+            <YAxis stroke={chartColors.recharts.axis} fontSize={responsive.chartFontSize} />
             <RechartsTooltip content={<CustomTooltip />} />
             <ReferenceLine y={0} stroke={chartColors.recharts.grid} />
             {oracleLineConfig.map((config) => (
@@ -927,9 +1125,9 @@ function OracleMarketOverviewBase() {
                 dataKey={config.dataKey}
                 name={config.name}
                 stroke={config.stroke}
-                strokeWidth={2}
+                strokeWidth={responsive.isMobile ? 1.5 : 2}
                 dot={false}
-                activeDot={{ r: 6, fill: config.stroke }}
+                activeDot={{ r: responsive.isMobile ? 4 : 6, fill: config.stroke }}
                 opacity={hoveredItem && hoveredItem !== config.name ? 0.4 : 1}
                 style={{ cursor: 'pointer' }}
                 onMouseEnter={() => setHoveredItem(config.name)}
@@ -946,13 +1144,14 @@ function OracleMarketOverviewBase() {
               stroke={chartColors.recharts.grid}
               horizontal={false}
             />
-            <XAxis type="number" stroke={chartColors.recharts.axis} fontSize={12} />
+            <XAxis type="number" stroke={chartColors.recharts.axis} fontSize={responsive.chartFontSize} />
             <YAxis
               dataKey="name"
               type="category"
               stroke={chartColors.recharts.axis}
-              fontSize={12}
-              width={100}
+              fontSize={responsive.chartFontSize}
+              width={responsive.yAxisWidth}
+              tick={{ fontSize: responsive.chartFontSize }}
             />
             <RechartsTooltip content={<CustomTooltip />} />
             <Bar
@@ -993,6 +1192,7 @@ function OracleMarketOverviewBase() {
     CustomTooltip,
     renderTable,
     currentTrendData,
+    responsive,
   ]);
 
   const getChartTitle = useCallback(() => {
@@ -1008,43 +1208,85 @@ function OracleMarketOverviewBase() {
     }
   }, [activeChart, t]);
 
+  const generateChartAriaLabel = useCallback(() => {
+    const chartType = activeChart === 'pie' ? '饼图' : activeChart === 'trend' ? '趋势图' : '柱状图';
+    const timeRange = selectedRange;
+    
+    if (activeChart === 'pie') {
+      const topOracle = marketShareData[0];
+      return `${chartType}，显示预言机市场份额分布。${topOracle.name} 占据最大份额 ${topOracle.value}%，总 TVS ${topOracle.tvs}。时间范围：${timeRange}`;
+    } else if (activeChart === 'trend') {
+      return `${chartType}，显示各预言机 TVS 趋势变化。时间范围：${timeRange}。包含 Chainlink、Pyth、Band Protocol 等主要预言机的数据。`;
+    } else {
+      const topChain = chainSupportData[0];
+      return `${chartType}，显示预言机链支持情况。${topChain.name} 支持最多 ${topChain.chains} 条链和 ${topChain.protocols} 个协议。`;
+    }
+  }, [activeChart, selectedRange]);
+
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 xl:px-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+    <section 
+      className="py-10 sm:py-16 lg:py-20 bg-white"
+      aria-labelledby="oracle-market-title"
+      role="region"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-20">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4 sm:gap-6">
           <div>
             <div
-              className="inline-flex items-center gap-2 px-3 py-1.5 mb-4"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 mb-3 sm:mb-4"
               style={{
                 backgroundColor: baseColors.gray[100],
                 border: `1px solid ${baseColors.gray[200]}`,
               }}
             >
-              <PieChartIcon className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
-              <span className="text-sm font-medium" style={{ color: baseColors.gray[600] }}>
+              <PieChartIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: baseColors.gray[600] }} />
+              <span className="text-xs sm:text-sm font-medium" style={{ color: baseColors.gray[600] }}>
                 {t('title')}
               </span>
             </div>
             <h2
-              className="text-3xl md:text-4xl font-bold mb-4"
+              id="oracle-market-title"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4"
               style={{ color: baseColors.gray[900] }}
             >
               {t('oracleMarketAnalysis')}
+              <span
+                className="ml-2 sm:ml-3 inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-semibold rounded-full"
+                style={{
+                  backgroundColor: semanticColors.warning.light,
+                  color: semanticColors.warning.dark,
+                }}
+                aria-label="模拟数据标识"
+              >
+                <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5" aria-hidden="true" />
+                <span className="hidden sm:inline">{t('simulatedBadge')}</span>
+              </span>
             </h2>
-            <p className="text-lg max-w-2xl" style={{ color: baseColors.gray[600] }}>
+            <p className="text-sm sm:text-base lg:text-lg max-w-2xl" style={{ color: baseColors.gray[600] }}>
               {t('analysisDescription')}
             </p>
           </div>
 
+          <MobileTimeRangeSelect
+            value={selectedRange}
+            onChange={handleRangeChange}
+            options={timeRanges}
+          />
+
           <div
-            className="flex items-center gap-1 p-1 overflow-x-auto max-w-full rounded-md"
+            className="hidden md:flex items-center gap-1 p-1 overflow-x-auto max-w-full rounded-md"
             style={{ backgroundColor: baseColors.gray[100] }}
+            role="tablist"
+            aria-label="时间范围选择"
           >
             {timeRanges.map((range) => (
               <button
                 key={range.key}
                 onClick={() => handleRangeChange(range.key)}
-                className={`px-3 py-2 text-sm font-medium transition-all whitespace-nowrap border rounded-md ${
+                role="tab"
+                aria-selected={selectedRange === range.key}
+                aria-controls="chart-panel"
+                className={`px-3 py-2 text-sm font-medium transition-all whitespace-nowrap border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   selectedRange === range.key
                     ? 'bg-white border-gray-300 shadow-sm'
                     : 'border-transparent hover:bg-gray-200/50'
@@ -1059,44 +1301,49 @@ function OracleMarketOverviewBase() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8" role="region" aria-label="市场统计概览">
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
+            className="bg-white border p-3 sm:p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
             style={{ borderColor: baseColors.gray[200] }}
+            role="article"
+            aria-label={`总 TVS: ${stats.totalTVS}, 增长 12.5%`}
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-gray-100 rounded">
-                <DollarSign className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
+            <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+              <div className="p-1.5 sm:p-2 bg-gray-100 rounded">
+                <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: baseColors.gray[600] }} aria-hidden="true" />
               </div>
-              <span className="text-sm" style={{ color: baseColors.gray[500] }}>
+              <span className="text-xs sm:text-sm" style={{ color: baseColors.gray[500] }}>
                 {t('totalTVS')}
               </span>
             </div>
-            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
               {stats.totalTVS}
             </div>
             <div
               className="text-xs mt-1 flex items-center gap-1"
-              style={{ color: semanticColors.success.main }}
+              style={{ color: semanticColors.success.dark }}
+              aria-label="增长 12.5%"
             >
-              <TrendingUp className="w-3 h-3" />
+              <TrendingUp className="w-3 h-3" aria-hidden="true" />
               +12.5%
             </div>
           </div>
 
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
+            className="bg-white border p-3 sm:p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
             style={{ borderColor: baseColors.gray[200] }}
+            role="article"
+            aria-label={`支持链数量: ${stats.totalChains}`}
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-gray-100 rounded">
-                <Globe className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
+            <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+              <div className="p-1.5 sm:p-2 bg-gray-100 rounded">
+                <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: baseColors.gray[600] }} aria-hidden="true" />
               </div>
-              <span className="text-sm" style={{ color: baseColors.gray[500] }}>
+              <span className="text-xs sm:text-sm" style={{ color: baseColors.gray[500] }}>
                 {t('totalChains')}
               </span>
             </div>
-            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
               {stats.totalChains}
             </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
@@ -1105,18 +1352,20 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
+            className="bg-white border p-3 sm:p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
             style={{ borderColor: baseColors.gray[200] }}
+            role="article"
+            aria-label={`协议数量: ${stats.totalProtocols}+`}
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-gray-100 rounded">
-                <Layers className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
+            <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+              <div className="p-1.5 sm:p-2 bg-gray-100 rounded">
+                <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: baseColors.gray[600] }} aria-hidden="true" />
               </div>
-              <span className="text-sm" style={{ color: baseColors.gray[500] }}>
+              <span className="text-xs sm:text-sm" style={{ color: baseColors.gray[500] }}>
                 {t('protocols')}
               </span>
             </div>
-            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
               {stats.totalProtocols}+
             </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
@@ -1125,18 +1374,20 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
+            className="bg-white border p-3 sm:p-4 h-full flex flex-col justify-center transition-colors rounded-lg shadow-sm"
             style={{ borderColor: baseColors.gray[200] }}
+            role="article"
+            aria-label={`Chainlink 市场份额: ${stats.avgDominance}`}
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-gray-100 rounded">
-                <Activity className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
+            <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+              <div className="p-1.5 sm:p-2 bg-gray-100 rounded">
+                <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: baseColors.gray[600] }} aria-hidden="true" />
               </div>
-              <span className="text-sm" style={{ color: baseColors.gray[500] }}>
+              <span className="text-xs sm:text-sm" style={{ color: baseColors.gray[500] }}>
                 {t('dominance')}
               </span>
             </div>
-            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
               {stats.avgDominance}
             </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
@@ -1145,11 +1396,14 @@ function OracleMarketOverviewBase() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap w-full sm:w-auto" role="tablist" aria-label="图表类型选择">
             <button
               onClick={() => setActiveChart('pie')}
-              className={`flex items-center gap-2 px-4 py-2 transition-colors border rounded-md ${
+              role="tab"
+              aria-selected={activeChart === 'pie'}
+              aria-controls="chart-panel"
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-sm transition-colors border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                 activeChart === 'pie'
                   ? 'bg-gray-900 text-white border-gray-900'
                   : 'bg-white hover:border-gray-400'
@@ -1159,12 +1413,15 @@ function OracleMarketOverviewBase() {
                 borderColor: activeChart === 'pie' ? baseColors.gray[900] : baseColors.gray[200],
               }}
             >
-              <PieChartIcon className="w-4 h-4" />
-              {t('marketShare')}
+              <PieChartIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
+              <span className="text-xs sm:text-sm">{t('marketShare')}</span>
             </button>
             <button
               onClick={() => setActiveChart('trend')}
-              className={`flex items-center gap-2 px-4 py-2 transition-colors border rounded-md ${
+              role="tab"
+              aria-selected={activeChart === 'trend'}
+              aria-controls="chart-panel"
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-sm transition-colors border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                 activeChart === 'trend'
                   ? 'bg-gray-900 text-white border-gray-900'
                   : 'bg-white hover:border-gray-400'
@@ -1174,12 +1431,15 @@ function OracleMarketOverviewBase() {
                 borderColor: activeChart === 'trend' ? baseColors.gray[900] : baseColors.gray[200],
               }}
             >
-              <TrendingUp className="w-4 h-4" />
-              {t('tvsTrend')}
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
+              <span className="text-xs sm:text-sm">{t('tvsTrend')}</span>
             </button>
             <button
               onClick={() => setActiveChart('bar')}
-              className={`flex items-center gap-2 px-4 py-2 transition-colors border rounded-md ${
+              role="tab"
+              aria-selected={activeChart === 'bar'}
+              aria-controls="chart-panel"
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-sm transition-colors border rounded-md ${
                 activeChart === 'bar'
                   ? 'bg-gray-900 text-white border-gray-900'
                   : 'bg-white hover:border-gray-400'
@@ -1189,18 +1449,21 @@ function OracleMarketOverviewBase() {
                 borderColor: activeChart === 'bar' ? baseColors.gray[900] : baseColors.gray[200],
               }}
             >
-              <BarChart3 className="w-4 h-4" />
-              {t('chainSupport')}
+              <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
+              <span className="text-xs sm:text-sm">{t('chainSupport')}</span>
             </button>
           </div>
 
           <div
             className="flex items-center gap-1 p-1"
             style={{ backgroundColor: baseColors.gray[100] }}
+            role="group"
+            aria-label="视图切换"
           >
             <button
               onClick={() => setViewType('chart')}
-              className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors ${
+              aria-pressed={viewType === 'chart'}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                 viewType === 'chart' ? 'bg-white border' : ''
               }`}
               style={{
@@ -1208,12 +1471,13 @@ function OracleMarketOverviewBase() {
                 borderColor: viewType === 'chart' ? baseColors.gray[200] : 'transparent',
               }}
             >
-              <PieChartIcon className="w-4 h-4" />
-              {t('chart')}
+              <PieChartIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{t('chart')}</span>
             </button>
             <button
               onClick={() => setViewType('table')}
-              className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors ${
+              aria-pressed={viewType === 'table'}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                 viewType === 'table' ? 'bg-white border' : ''
               }`}
               style={{
@@ -1221,33 +1485,46 @@ function OracleMarketOverviewBase() {
                 borderColor: viewType === 'table' ? baseColors.gray[200] : 'transparent',
               }}
             >
-              <TableIcon className="w-4 h-4" />
-              {t('table')}
+              <TableIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{t('table')}</span>
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold" style={{ color: baseColors.gray[900] }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div 
+            className="lg:col-span-2 bg-white p-4 sm:p-6 shadow-sm rounded-lg border" 
+            style={{ borderColor: baseColors.gray[100] }}
+            role="tabpanel"
+            id="chart-panel"
+            aria-label={getChartTitle()}
+          >
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold" style={{ color: baseColors.gray[900] }}>
                 {getChartTitle()}
               </h3>
-              {selectedItem && !isLoading && (
-                <button
-                  onClick={() => setSelectedItem(null)}
-                  className="text-sm flex items-center gap-1 hover:opacity-80"
-                  style={{ color: baseColors.gray[600] }}
-                >
-                  {t('clearSelection')}
-                  <ChevronRight className="w-4 h-4 rotate-90" />
-                </button>
-              )}
+              <div className="flex items-center gap-2 sm:gap-3">
+                {selectedItem && !isLoading && (
+                  <button
+                    onClick={() => setSelectedItem(null)}
+                    aria-label="清除选择"
+                    className="text-xs sm:text-sm flex items-center gap-1 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                    style={{ color: baseColors.gray[600] }}
+                  >
+                    {t('clearSelection')}
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 rotate-90" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
             </div>
-            <div className={`${viewType === 'table' ? 'h-[360px]' : 'h-[400px]'}`}>
+            <div 
+              className={`${viewType === 'table' ? 'h-[300px] sm:h-[360px]' : 'h-[320px] sm:h-[400px]'}`}
+              role="img"
+              aria-label={generateChartAriaLabel()}
+            >
               {isLoading || isRangeChanging ? (
                 <ChartSkeleton
-                  height={viewType === 'table' ? 360 : 400}
+                  height={viewType === 'table' ? (responsive.isMobile ? 300 : 360) : (responsive.isMobile ? 320 : 400)}
                   variant={activeChart === 'pie' ? 'area' : activeChart === 'bar' ? 'bar' : 'price'}
                   showToolbar={false}
                 />
@@ -1259,24 +1536,44 @@ function OracleMarketOverviewBase() {
             </div>
             {!isLoading && viewType === 'chart' && (
               <div
-                className="mt-4 flex items-center gap-2 text-xs"
+                className="mt-3 sm:mt-4 flex items-center gap-1.5 sm:gap-2 text-xs"
                 style={{ color: baseColors.gray[500] }}
+                aria-hidden="true"
               >
-                <Info className="w-4 h-4" />
+                <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 {t('hoverForDetails')}
               </div>
             )}
+            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t" style={{ borderColor: baseColors.gray[100] }}>
+              <div
+                className="flex items-start gap-1.5 sm:gap-2 text-xs mb-1.5 sm:mb-2"
+                style={{ color: semanticColors.warning.dark }}
+                role="alert"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <span>{t('disclaimer')}</span>
+              </div>
+              <div
+                className="flex items-center gap-1.5 sm:gap-2 text-xs"
+                style={{ color: baseColors.gray[500] }}
+              >
+                <Database className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
+                <span>{t('dataSource')}</span>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-3">
             <div
-              className="p-4"
+              className="p-3 sm:p-4 rounded-lg"
               style={{ backgroundColor: baseColors.gray[900], color: baseColors.gray[50] }}
+              role="status"
+              aria-label={`当前时间范围: ${selectedRange}`}
             >
-              <div className="text-sm mb-1" style={{ color: baseColors.gray[300] }}>
+              <div className="text-xs sm:text-sm mb-1" style={{ color: baseColors.gray[300] }}>
                 {t('selectedTimeRange')}
               </div>
-              <div className="text-2xl font-bold">{selectedRange}</div>
+              <div className="text-xl sm:text-2xl font-bold" aria-live="polite">{selectedRange}</div>
               <div className="text-xs mt-1" style={{ color: baseColors.gray[400] }}>
                 {t('dataUpdated')}
               </div>
@@ -1285,19 +1582,25 @@ function OracleMarketOverviewBase() {
             <div
               className="bg-white border rounded-lg"
               style={{ borderColor: baseColors.gray[200] }}
+              role="region"
+              aria-label="预言机排名列表"
             >
               <div
-                className="px-4 py-3 border-b flex items-center justify-between"
+                className="px-3 sm:px-4 py-2.5 sm:py-3 border-b flex items-center justify-between"
                 style={{ borderColor: baseColors.gray[200], backgroundColor: baseColors.gray[50] }}
               >
-                <span className="text-sm font-medium" style={{ color: baseColors.gray[700] }}>
+                <span className="text-xs sm:text-sm font-medium" style={{ color: baseColors.gray[700] }}>
                   {t('oracleRankings')}
                 </span>
                 <span className="text-xs" style={{ color: baseColors.gray[500] }}>
                   {t('tvsShare')}
                 </span>
               </div>
-              <div className="max-h-[320px] overflow-y-auto divide-y divide-gray-100">
+              <div 
+                className="max-h-[280px] sm:max-h-[320px] overflow-y-auto divide-y divide-gray-100"
+                role="list"
+                aria-label="预言机列表"
+              >
                 {marketShareData.map((item, index) => (
                   <OraclePrefetchCard
                     key={item.name}
@@ -1325,7 +1628,7 @@ function OracleMarketOverviewBase() {
                   <div className="text-xs mb-0.5" style={{ color: baseColors.gray[500] }}>
                     {t('totalMarketShare')}
                   </div>
-                  <div className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
+                  <div className="text-lg sm:text-xl font-bold" style={{ color: baseColors.gray[900] }}>
                     100%
                   </div>
                 </div>
@@ -1333,7 +1636,7 @@ function OracleMarketOverviewBase() {
                   <div className="text-xs mb-0.5" style={{ color: baseColors.gray[500] }}>
                     {t('oraclesCovered')}
                   </div>
-                  <div className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
+                  <div className="text-lg sm:text-xl font-bold" style={{ color: baseColors.gray[900] }}>
                     {stats.oracleCount}
                   </div>
                 </div>

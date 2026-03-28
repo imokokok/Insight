@@ -1865,9 +1865,15 @@ export type IntlMessages = {
       shortSpread: string;
       neutral: string;
       tradingAdvice: string;
+      analysisReference: string;
       longSpreadAdvice: string;
       shortSpreadAdvice: string;
       neutralAdvice: string;
+      riskWarning: string;
+      riskNotInvestmentAdvice: string;
+      riskForReferenceOnly: string;
+      riskOwnResponsibility: string;
+      riskMarketWarning: string;
       colorblindFriendly: string;
       lowDiff: string;
       highDiff: string;
@@ -8699,6 +8705,12 @@ export type TranslationKey =
   | 'crossChain.tooltip.skewness'
   | 'crossChain.tooltip.standardDeviation'
   | 'crossChain.tradingAdvice'
+  | 'crossChain.analysisReference'
+  | 'crossChain.riskWarning'
+  | 'crossChain.riskNotInvestmentAdvice'
+  | 'crossChain.riskForReferenceOnly'
+  | 'crossChain.riskOwnResponsibility'
+  | 'crossChain.riskMarketWarning'
   | 'crossChain.trend'
   | 'crossChain.viewAll'
   | 'crossChain.volatilityAnalysis'

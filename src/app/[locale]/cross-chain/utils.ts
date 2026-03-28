@@ -294,6 +294,93 @@ export const calculateStandardDeviation = (variance: number): number => {
   return Math.sqrt(variance);
 };
 
+/**
+ * t 分布临界值查找表（95% 置信水平，双侧检验）
+ * 用于小样本（n < 30）的置信区间计算
+ * 
+ * 表格来源：标准 t 分布临界值表
+ * 自由度 df = n - 1，其中 n 为样本量
+ */
+const T_CRITICAL_TABLE_95: Record<number, number> = {
+  1: 12.706,
+  2: 4.303,
+  3: 3.182,
+  4: 2.776,
+  5: 2.571,
+  6: 2.447,
+  7: 2.365,
+  8: 2.306,
+  9: 2.262,
+  10: 2.228,
+  11: 2.201,
+  12: 2.179,
+  13: 2.160,
+  14: 2.145,
+  15: 2.131,
+  16: 2.120,
+  17: 2.110,
+  18: 2.101,
+  19: 2.093,
+  20: 2.086,
+  21: 2.080,
+  22: 2.074,
+  23: 2.069,
+  24: 2.064,
+  25: 2.060,
+  26: 2.056,
+  27: 2.052,
+  28: 2.048,
+  29: 2.045,
+  30: 2.042,
+};
+
+/**
+ * 获取 t 分布临界值
+ * 
+ * 对于小样本（n < 30），应使用 t 分布而非正态分布来计算置信区间。
+ * t 分布比正态分布有更厚的尾部，能更好地反映小样本的不确定性。
+ * 
+ * @param df - 自由度，通常为 n - 1（n 为样本量）
+ * @param confidenceLevel - 置信水平，默认 0.95（95% 置信区间）
+ * @returns t 分布临界值
+ * 
+ * @example
+ * // 样本量 n = 5，自由度 df = 4
+ * const tValue = getTCriticalValue(4); // 返回 2.776
+ * 
+ * // 样本量 n = 10，自由度 df = 9
+ * const tValue = getTCriticalValue(9); // 返回 2.262
+ */
+export const getTCriticalValue = (df: number, confidenceLevel: number = 0.95): number => {
+  if (df <= 0) {
+    return 1.96;
+  }
+
+  if (confidenceLevel !== 0.95) {
+    console.warn(
+      'getTCriticalValue: 当前仅支持 95% 置信水平，其他置信水平将使用正态近似'
+    );
+    return 1.96;
+  }
+
+  if (df >= 30) {
+    return 1.96;
+  }
+
+  const exactValue = T_CRITICAL_TABLE_95[Math.floor(df)];
+  if (exactValue !== undefined) {
+    return exactValue;
+  }
+
+  const lowerDf = Math.floor(df);
+  const upperDf = lowerDf + 1;
+  const lowerValue = T_CRITICAL_TABLE_95[lowerDf] ?? 2.042;
+  const upperValue = T_CRITICAL_TABLE_95[upperDf] ?? 1.96;
+  
+  const weight = df - lowerDf;
+  return lowerValue + (upperValue - lowerValue) * weight;
+};
+
 export const calculateStandardDeviationFromValues = (prices: number[]): number => {
   return calculateStdDev(prices);
 };
@@ -724,12 +811,14 @@ export const calculateRollingCorrelation = (
  * @param prices 价格数组
  * @param windowSize 窗口大小
  * @param timestamps 可选的时间戳数组
+ * @param dataIntervalMinutes 数据间隔（分钟），默认60（小时级）
  * @returns 滚动波动率时序数据
  */
 export const calculateRollingVolatility = (
   prices: number[],
   windowSize: number,
-  timestamps?: number[]
+  timestamps?: number[],
+  dataIntervalMinutes: number = 60
 ): RollingVolatilityPoint[] => {
   if (prices.length < windowSize || windowSize < 2) {
     return [];
@@ -768,8 +857,9 @@ export const calculateRollingVolatility = (
     const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
     const volatility = Math.sqrt(variance);
 
-    // 年化波动率 (假设数据是小时级的，年化因子为 sqrt(365 * 24))
-    const annualizedVolatility = volatility * Math.sqrt(365 * 24) * 100;
+    // 年化波动率 (根据数据间隔动态计算年化因子)
+    // 年化因子 = sqrt(一年的数据点数) = sqrt(365 * 24 * 60 / dataIntervalMinutes)
+    const annualizedVolatility = volatility * Math.sqrt((365 * 24 * 60) / dataIntervalMinutes) * 100;
 
     result.push({
       timestamp: timestamps ? timestamps[i] : i,

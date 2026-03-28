@@ -44,18 +44,34 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
   const [hiddenLines, setHiddenLines] = useState<Set<string>>(new Set());
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24H');
 
+  // Convert TimeRange to timestamp
+  const getTimeRangeInMs = useCallback((range: TimeRange): number => {
+    const now = Date.now();
+    switch (range) {
+      case '1H':
+        return now - 60 * 60 * 1000;
+      case '24H':
+        return now - 24 * 60 * 60 * 1000;
+      case '7D':
+        return now - 7 * 24 * 60 * 60 * 1000;
+      case '30D':
+        return now - 30 * 24 * 60 * 60 * 1000;
+      default:
+        return now - 24 * 60 * 60 * 1000;
+    }
+  }, []);
+
   // Handle time range change
   const handleTimeRangeChange = useCallback((range: string) => {
     setSelectedTimeRange(range as TimeRange);
-    // TODO: Implement time range filtering logic
-    console.log('Time range changed to:', range);
   }, []);
 
-  // Handle export
-  const handleExport = useCallback(() => {
-    console.log('Exporting rolling correlation data...');
-    // TODO: Implement export functionality
-  }, []);
+  // Filter chart data by selected time range
+  const timeFilteredData = useMemo(() => {
+    if (chartData.length === 0) return [];
+    const cutoffTime = getTimeRangeInMs(selectedTimeRange);
+    return chartData.filter((point) => point.timestamp >= cutoffTime);
+  }, [chartData, selectedTimeRange, getTimeRangeInMs]);
 
   // Generate unique chain pairs for rolling correlation
   const chainPairs = useMemo(() => {
@@ -76,12 +92,12 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
 
   // Calculate rolling correlation data
   const rollingCorrelationData = useMemo(() => {
-    if (chainPairs.length === 0 || chartData.length === 0) return [];
+    if (chainPairs.length === 0 || timeFilteredData.length === 0) return [];
 
     // Get aligned price arrays for each chain
     const chainPrices: Partial<Record<Blockchain, number[]>> = {};
     filteredChains.forEach((chain) => {
-      chainPrices[chain] = chartData
+      chainPrices[chain] = timeFilteredData
         .map((point) => point[chain] as number | undefined)
         .filter((p): p is number => p !== undefined && !isNaN(p));
     });
@@ -113,7 +129,60 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
     }
 
     return dataPoints;
-  }, [chainPairs, chartData, filteredChains, windowSize]);
+  }, [chainPairs, timeFilteredData, filteredChains, windowSize]);
+
+  // Export rolling correlation data to CSV
+  const handleExport = useCallback(() => {
+    if (rollingCorrelationData.length === 0 || chainPairs.length === 0) {
+      return;
+    }
+
+    try {
+      const cutoffTime = getTimeRangeInMs(selectedTimeRange);
+      const startTime = new Date(cutoffTime).toISOString();
+      const endTime = new Date().toISOString();
+
+      const csvLines: string[] = [];
+
+      csvLines.push('=== Rolling Correlation Data ===');
+      csvLines.push(`Export Timestamp,${new Date().toISOString()}`);
+      csvLines.push(`Time Range,${selectedTimeRange}`);
+      csvLines.push(`Window Size,${windowSize}`);
+      csvLines.push(`Data Start Time,${startTime}`);
+      csvLines.push(`Data End Time,${endTime}`);
+      csvLines.push(`Data Points,${rollingCorrelationData.length}`);
+      csvLines.push('');
+
+      const headers = ['Index', ...chainPairs.map((pair) => `${chainNames[pair.chainX]}-${chainNames[pair.chainY]}`)];
+      csvLines.push(headers.join(','));
+
+      rollingCorrelationData.forEach((point) => {
+        const row: string[] = [String(point.index)];
+        chainPairs.forEach(({ key }) => {
+          const value = point[key];
+          row.push(value !== undefined && !isNaN(value as number) ? (value as number).toFixed(6) : '');
+        });
+        csvLines.push(row.join(','));
+      });
+
+      const csvContent = csvLines.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `rolling-correlation-${selectedTimeRange}-window${windowSize}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+      );
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export rolling correlation data:', error);
+    }
+  }, [rollingCorrelationData, chainPairs, selectedTimeRange, windowSize, getTimeRangeInMs]);
 
   // Get color for a chain pair
   const getPairColor = (chainX: Blockchain, chainY: Blockchain): string => {
@@ -220,7 +289,17 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
   }
 
   return (
-    <div id="rolling" className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
+    <div
+      id="rolling"
+      className="mb-8 pb-8 border-b"
+      style={{ borderColor: baseColors.gray[200] }}
+      role="img"
+      aria-label={t('crossChain.rollingCorrelationChart')}
+      tabIndex={0}
+    >
+      <div className="sr-only">
+        {t('crossChain.rollingCorrelationChart')} - {t('crossChain.rollingCorrelationDesc')}
+      </div>
       {/* Chart Toolbar */}
       <ChartToolbar
         timeRanges={['1H', '24H', '7D', '30D']}

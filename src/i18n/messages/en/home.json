@@ -30,6 +30,21 @@
       "liveData": "Live Data",
       "learnMore": "Learn more →"
     },
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "oracleCard": {
+      "updateFrequency": "Update Frequency",
+      "supportedChains": "Supported Chains",
+      "dataSources": "Data Sources",
+      "lastUpdated": "Last Updated",
+      "healthStatus": {
+        "healthy": "Healthy",
+        "warning": "Warning",
+        "critical": "Critical"
+      },
+      "chains": "chains",
+      "sources": "sources",
+      "marketShare": "Market Share",
+      "tvs": "TVS"
+    }
   }
 }
