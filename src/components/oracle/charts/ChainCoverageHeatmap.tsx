@@ -130,7 +130,9 @@ export function ChainCoverageHeatmap({
             </div>
             {/* 覆盖率列 */}
             <div className="w-16 flex-shrink-0 flex items-center justify-center ml-2">
-              <span className="text-xs font-medium text-gray-500">{t('chainCoverageHeatmap.coverage')}</span>
+              <span className="text-xs font-medium text-gray-500">
+                {t('chainCoverageHeatmap.coverage')}
+              </span>
             </div>
           </div>
 
@@ -205,7 +207,9 @@ export function ChainCoverageHeatmap({
           {/* 链覆盖率行 */}
           <div className="flex items-center">
             <div className="w-32 flex-shrink-0 pr-2">
-              <span className="text-xs font-medium text-gray-500">{t('chainCoverageHeatmap.chainCoverage')}</span>
+              <span className="text-xs font-medium text-gray-500">
+                {t('chainCoverageHeatmap.chainCoverage')}
+              </span>
             </div>
             <div className="flex">
               {chains.map((chain: Blockchain) => {

@@ -21,7 +21,16 @@
       "popular": "热门",
       "keyboardHint": "使用 ↑↓ 选择，↵ 确认",
       "escClose": "ESC 关闭",
-      "deleteRecord": "删除此记录"
+      "deleteRecord": "删除此记录",
+      "noResults": "未找到匹配结果，请尝试其他关键词",
+      "token": "代币",
+      "oracle": "预言机",
+      "blockchain": "区块链",
+      "stats": {
+        "oracles": "10+ 预言机",
+        "dataSources": "100+ 数据源",
+        "realtime": "实时更新"
+      }
     },
     "features": {
       "sectionBadge": "核心功能",

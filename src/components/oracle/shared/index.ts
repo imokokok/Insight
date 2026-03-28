@@ -5,4 +5,13 @@ export { MoreOptionsDropdown } from './MoreOptionsDropdown';
 export { RealtimeUpdateControl } from './RealtimeUpdateControl';
 export { LoadingState } from './LoadingState';
 export { ErrorFallback } from './ErrorFallback';
-export { OracleErrorBoundary, type OracleErrorBoundaryProps, type ErrorInfo } from './OracleErrorBoundary';
+export {
+  OracleErrorBoundary,
+  type OracleErrorBoundaryProps,
+  type ErrorInfo,
+} from './OracleErrorBoundary';
+export {
+  OracleErrorBoundary,
+  type OracleErrorBoundaryProps,
+  type ErrorInfo,
+} from './OracleErrorBoundary';

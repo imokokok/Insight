@@ -90,9 +90,7 @@ function CustomTooltip({ active, payload, label, filteredChains }: CustomTooltip
           >
             <div className="flex items-center gap-2 mb-0.5">
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-sm font-medium text-gray-900">
-                {chainName}
-              </span>
+              <span className="text-sm font-medium text-gray-900">{chainName}</span>
             </div>
             <div className="text-sm text-gray-700 pl-4.5 font-mono">
               ${Number(entry.value).toFixed(4)}
@@ -203,17 +201,16 @@ export function InteractivePriceChart({
       csvLines.push(`Data Start Time,${startTime}`);
       csvLines.push(`Data End Time,${endTime}`);
       csvLines.push(`Visible Data Points,${visibleData.length}`);
-      csvLines.push(`View Range,${viewState.startIndex + 1}-${viewState.endIndex + 1} of ${chartData.length}`);
+      csvLines.push(
+        `View Range,${viewState.startIndex + 1}-${viewState.endIndex + 1} of ${chartData.length}`
+      );
       csvLines.push('');
 
       const headers = ['Timestamp', 'Time', ...filteredChains.map((chain) => chainNames[chain])];
       csvLines.push(headers.join(','));
 
       visibleData.forEach((point) => {
-        const row: string[] = [
-          String(point.timestamp || ''),
-          String(point.time || ''),
-        ];
+        const row: string[] = [String(point.timestamp || ''), String(point.time || '')];
         filteredChains.forEach((chain) => {
           const price = point[chain] as number | undefined;
           row.push(price !== undefined && !isNaN(price) ? price.toFixed(6) : '');
@@ -238,7 +235,14 @@ export function InteractivePriceChart({
     } catch (error) {
       console.error('Failed to export price chart data:', error);
     }
-  }, [visibleData, filteredChains, selectedTimeRange, viewState, chartData.length, getTimeRangeInMs]);
+  }, [
+    visibleData,
+    filteredChains,
+    selectedTimeRange,
+    viewState,
+    chartData.length,
+    getTimeRangeInMs,
+  ]);
 
   // Calculate price domain for Y axis
   const priceDomain = useMemo(() => {
@@ -721,7 +725,8 @@ export function InteractivePriceChart({
         }}
       >
         <div className="sr-only">
-          {t('crossChain.priceChart')} - {t('crossChain.shortcuts')}: Arrow keys to pan, +/- to zoom, Home to reset
+          {t('crossChain.priceChart')} - {t('crossChain.shortcuts')}: Arrow keys to pan, +/- to
+          zoom, Home to reset
         </div>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={visibleData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>

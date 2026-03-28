@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useWINkLinkAllData } from '@/hooks';
+import { useRefresh, useExport, useWINkLinkAllData, useDataFreshness } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { WINkLinkClient } from '@/lib/oracles/winklink';
@@ -57,6 +57,8 @@ export function useWinklinkPage() {
     minLoadingTime: 500,
   });
 
+  const dataFreshnessStatus = useDataFreshness(lastUpdated);
+
   const handleTabChange = useCallback((tab: WinklinkTabId) => {
     setActiveTab(tab);
   }, []);
@@ -78,6 +80,8 @@ export function useWinklinkPage() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
+    shouldRefreshData: dataFreshnessStatus.status === 'expired',
 
     // Actions
     setActiveTab: handleTabChange,

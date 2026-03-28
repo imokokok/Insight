@@ -286,6 +286,15 @@ export default function ProfessionalHero() {
               '全面分析和比较主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。'}
           </p>
 
+          {/* Platform Stats */}
+          <div className="flex items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-500">
+            <span>{t('home.hero.stats.oracles')}</span>
+            <span className="w-1 h-1 bg-gray-300 rounded-full" />
+            <span>{t('home.hero.stats.dataSources')}</span>
+            <span className="w-1 h-1 bg-gray-300 rounded-full" />
+            <span>{t('home.hero.stats.realtime')}</span>
+          </div>
+
           {/* Search Box */}
           <div className="relative max-w-xl mx-auto z-[100]" ref={dropdownRef}>
             <form
@@ -348,101 +357,112 @@ export default function ProfessionalHero() {
               </button>
 
               {/* Dropdown */}
-              {isDropdownOpen && dropdownItems.length > 0 && (
+              {isDropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 text-left">
-                  {!searchQuery.trim() && searchHistory.length > 0 && (
-                    <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Clock className="w-3 h-3" />
-                        <span>{t('home.hero.recentSearch')}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleClearHistory}
-                        className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                      >
-                        {t('home.hero.clear')}
-                      </button>
+                  {searchQuery.trim() && dropdownItems.length === 0 ? (
+                    <div className="px-4 py-6 text-center text-gray-500 text-sm">
+                      {t('home.hero.noResults')}
                     </div>
-                  )}
-
-                  <div className="max-h-80 overflow-y-auto">
-                    {dropdownItems.map((dropdownItem, index) => {
-                      const isSearchResult = dropdownItem.type === 'search';
-                      const symbol =
-                        dropdownItem.type === 'search'
-                          ? dropdownItem.item.item.symbol || ''
-                          : dropdownItem.item.symbol;
-                      const name = dropdownItem.type === 'search' ? dropdownItem.item.item.name : symbol;
-
-                      return (
-                        <div
-                          key={`${dropdownItem.type}-${symbol}-${index}`}
-                          onMouseEnter={() => setHighlightedIndex(index)}
-                          className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
-                            index === highlightedIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
-                          }`}
-                        >
+                  ) : (
+                    <>
+                      {!searchQuery.trim() && searchHistory.length > 0 && (
+                        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <Clock className="w-3 h-3" />
+                            <span>{t('home.hero.recentSearch')}</span>
+                          </div>
                           <button
                             type="button"
-                            onClick={() => {
-                              if (dropdownItem.type === 'search') {
-                                handleSearch(dropdownItem.item);
-                              } else {
-                                handleSearch(dropdownItem.item.symbol);
-                              }
-                            }}
-                            className="flex-1 flex items-center gap-3 text-left"
+                            onClick={handleClearHistory}
+                            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
                           >
-                            {getTypeIcon(dropdownItem)}
-                            <div className="flex flex-col">
-                              <span className="font-medium text-gray-900">
-                                {symbol}
-                                {isSearchResult && symbol !== name && (
-                                  <span className="ml-2 text-sm text-gray-500 font-normal">
-                                    {name}
-                                  </span>
-                                )}
-                              </span>
-                            </div>
-                            {getTypeLabel(dropdownItem) && (
-                              <span
-                                className={`text-xs px-2 py-0.5 rounded ${getTypeColor(dropdownItem)}`}
-                              >
-                                {getTypeLabel(dropdownItem)}
-                              </span>
-                            )}
+                            {t('home.hero.clear')}
                           </button>
-                          <div className="flex items-center gap-2">
-                            {dropdownItem.type === 'history' && (
+                        </div>
+                      )}
+
+                      <div className="max-h-80 overflow-y-auto">
+                        {dropdownItems.map((dropdownItem, index) => {
+                          const isSearchResult = dropdownItem.type === 'search';
+                          const symbol =
+                            dropdownItem.type === 'search'
+                              ? dropdownItem.item.item.symbol || ''
+                              : dropdownItem.item.symbol;
+                          const name =
+                            dropdownItem.type === 'search' ? dropdownItem.item.item.name : symbol;
+
+                          return (
+                            <div
+                              key={`${dropdownItem.type}-${symbol}-${index}`}
+                              onMouseEnter={() => setHighlightedIndex(index)}
+                              className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
+                                index === highlightedIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
+                              }`}
+                            >
                               <button
                                 type="button"
-                                onClick={(e) => handleRemoveHistoryItem(dropdownItem.item.symbol, e)}
-                                className="p-1 text-gray-300 hover:text-red-500 transition-colors"
-                                title={t('home.hero.deleteRecord')}
+                                onClick={() => {
+                                  if (dropdownItem.type === 'search') {
+                                    handleSearch(dropdownItem.item);
+                                  } else {
+                                    handleSearch(dropdownItem.item.symbol);
+                                  }
+                                }}
+                                className="flex-1 flex items-center gap-3 text-left"
                               >
-                                <X className="w-3.5 h-3.5" />
+                                {getTypeIcon(dropdownItem)}
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-gray-900">
+                                    {symbol}
+                                    {isSearchResult && symbol !== name && (
+                                      <span className="ml-2 text-sm text-gray-500 font-normal">
+                                        {name}
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                                {getTypeLabel(dropdownItem) && (
+                                  <span
+                                    className={`text-xs px-2 py-0.5 rounded ${getTypeColor(dropdownItem)}`}
+                                  >
+                                    {getTypeLabel(dropdownItem)}
+                                  </span>
+                                )}
                               </button>
-                            )}
-                            <ChevronRight className="w-4 h-4 text-gray-300" />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                              <div className="flex items-center gap-2">
+                                {dropdownItem.type === 'history' && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) =>
+                                      handleRemoveHistoryItem(dropdownItem.item.symbol, e)
+                                    }
+                                    className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                                    title={t('home.hero.deleteRecord')}
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                <ChevronRight className="w-4 h-4 text-gray-300" />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                  <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
-                    <span>{t('home.hero.keyboardHint')}</span>
-                    <span>{t('home.hero.escClose')}</span>
-                  </div>
+                      <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
+                        <span>{t('home.hero.keyboardHint')}</span>
+                        <span>{t('home.hero.escClose')}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </form>
           </div>
 
           {/* Popular Tokens - Horizontal Scroll */}
-          <div className="max-w-xl mx-auto">
-            <div className="flex items-center justify-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="max-w-xl mx-auto relative">
+            <div className="flex items-center justify-center gap-3 overflow-x-auto pb-2 scrollbar-hide px-4">
               <span className="text-xs text-gray-400 flex-shrink-0">{t('home.hero.popular')}:</span>
               {POPULAR_TOKENS.map((token) => (
                 <button
@@ -454,6 +474,7 @@ export default function ProfessionalHero() {
                 </button>
               ))}
             </div>
+            <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none sm:hidden" />
           </div>
 
           {/* CTA Buttons */}

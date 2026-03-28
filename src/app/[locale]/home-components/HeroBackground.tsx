@@ -25,11 +25,11 @@ export default function HeroBackground({
 }: HeroBackgroundProps) {
   const [mounted, setMounted] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [particleCount, setParticleCount] = useState(25);
 
   useEffect(() => {
     setMounted(true);
 
-    // Check for reduced motion preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPrefersReducedMotion(mediaQuery.matches);
 
@@ -38,6 +38,18 @@ export default function HeroBackground({
     };
 
     mediaQuery.addEventListener('change', handleChange);
+
+    const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+    const isLowEnd = navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4;
+
+    if (isLowEnd) {
+      setParticleCount(10);
+    } else if (isMobile) {
+      setParticleCount(15);
+    } else {
+      setParticleCount(25);
+    }
+
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
@@ -111,7 +123,11 @@ export default function HeroBackground({
       {/* Particle Network Layer - Middle */}
       {enableParticles && !prefersReducedMotion && (
         <div className="absolute inset-0 z-[1]">
-          <ParticleNetwork particleCount={25} connectionDistance={120} themeColor="#3b82f6" />
+          <ParticleNetwork
+            particleCount={particleCount}
+            connectionDistance={120}
+            themeColor="#3b82f6"
+          />
         </div>
       )}
 

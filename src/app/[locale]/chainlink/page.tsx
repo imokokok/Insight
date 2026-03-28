@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback, MobileMenuButton } from '@/components/oracle';
+import { LoadingState, ErrorFallback, MobileMenuButton, OracleErrorBoundary, DataFreshnessIndicator } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -32,6 +32,8 @@ export default function ChainlinkPage() {
     error,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
+    shouldRefreshData,
     setActiveTab,
     refresh,
     exportData,
@@ -82,57 +84,61 @@ export default function ChainlinkPage() {
   };
 
   return (
-    <div className="min-h-screen bg-insight">
-      <ChainlinkHero
-        config={config}
-        price={price ?? null}
-        historicalData={historicalData}
-        networkStats={networkStats ?? null}
-        isLoading={isLoading}
-        isError={isError}
-        isRefreshing={isRefreshing}
-        lastUpdated={lastUpdated}
-        onRefresh={refresh}
-        onExport={exportData}
-      />
+    <OracleErrorBoundary themeColor={config.themeColor} onReset={refresh}>
+      <div className="min-h-screen bg-insight">
+        <ChainlinkHero
+          config={config}
+          price={price ?? null}
+          historicalData={historicalData}
+          networkStats={networkStats ?? null}
+          isLoading={isLoading}
+          isError={isError}
+          isRefreshing={isRefreshing}
+          lastUpdated={lastUpdated}
+          dataFreshnessStatus={dataFreshnessStatus}
+          shouldRefreshData={shouldRefreshData}
+          onRefresh={refresh}
+          onExport={exportData}
+        />
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-6">
-              <ChainlinkSidebar
-                activeTab={activeTab}
-                onTabChange={(tab) => setActiveTab(tab as ChainlinkTabId)}
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="hidden lg:block w-64 flex-shrink-0">
+              <div className="sticky top-6">
+                <ChainlinkSidebar
+                  activeTab={activeTab}
+                  onTabChange={(tab) => setActiveTab(tab as ChainlinkTabId)}
+                />
+              </div>
+            </div>
+
+            <div className="lg:hidden">
+              <MobileMenuButton
+                isOpen={isMobileMenuOpen}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                themeColor={config.themeColor}
+                label={t('chainlink.menu.title')}
               />
             </div>
-          </div>
 
-          <div className="lg:hidden">
-            <MobileMenuButton
+            <MobileSidebar
               isOpen={isMobileMenuOpen}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              themeColor={config.themeColor}
-              label={t('chainlink.menu.title')}
-            />
+              onClose={() => setIsMobileMenuOpen(false)}
+              title={t('chainlink.navigation.title')}
+            >
+              <ChainlinkSidebar
+                activeTab={activeTab}
+                onTabChange={(tab) => {
+                  setActiveTab(tab as ChainlinkTabId);
+                  setIsMobileMenuOpen(false);
+                }}
+              />
+            </MobileSidebar>
+
+            <div className="flex-1 min-w-0">{renderContent()}</div>
           </div>
-
-          <MobileSidebar
-            isOpen={isMobileMenuOpen}
-            onClose={() => setIsMobileMenuOpen(false)}
-            title={t('chainlink.navigation.title')}
-          >
-            <ChainlinkSidebar
-              activeTab={activeTab}
-              onTabChange={(tab) => {
-                setActiveTab(tab as ChainlinkTabId);
-                setIsMobileMenuOpen(false);
-              }}
-            />
-          </MobileSidebar>
-
-          <div className="flex-1 min-w-0">{renderContent()}</div>
         </div>
       </div>
-    </div>
+    </OracleErrorBoundary>
   );
 }

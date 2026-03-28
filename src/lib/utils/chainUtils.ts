@@ -10,10 +10,7 @@ import {
 export { CHAIN_CATEGORIES, getChainsByCategory, getChainCategory };
 
 export function isBlockchain(value: unknown): value is Blockchain {
-  return (
-    typeof value === 'string' &&
-    (BLOCKCHAIN_VALUES as readonly string[]).includes(value)
-  );
+  return typeof value === 'string' && (BLOCKCHAIN_VALUES as readonly string[]).includes(value);
 }
 
 export function assertBlockchain(value: unknown, context?: string): Blockchain {

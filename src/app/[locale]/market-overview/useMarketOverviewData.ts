@@ -88,7 +88,7 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
 
     const latencyChange24h =
       oracleData.length > 0
-        ? oracleData.reduce((sum, oracle) => sum + oracle.change24h, 0) / oracleData.length * -0.5
+        ? (oracleData.reduce((sum, oracle) => sum + oracle.change24h, 0) / oracleData.length) * -0.5
         : 0;
 
     const oracleCountChange24h = 0;

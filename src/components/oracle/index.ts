@@ -57,6 +57,9 @@ export {
   RealtimeUpdateControl,
   LoadingState,
   ErrorFallback,
+  OracleErrorBoundary,
+  type OracleErrorBoundaryProps,
+  type ErrorInfo,
 } from './shared';
 
 export {

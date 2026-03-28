@@ -4,18 +4,20 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 import { useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
+import { useSetIsMobile } from '@/stores/uiStore';
 
+import { useMarketFilter } from './hooks/useMarketFilter';
 import { ChartType, ViewType, type TVSTrendData } from './types';
 import { useMarketOverviewData } from './useMarketOverviewData';
 
 export function useMarketPage() {
   const locale = useLocale();
   const data = useMarketOverviewData();
+  const setIsMobile = useSetIsMobile();
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const isMobileRef = useRef(false);
 
-  // Chart state
   const [zoomRange, setZoomRange] = useState<{ startIndex?: number; endIndex?: number } | null>(
     null
   );
@@ -36,7 +38,6 @@ export function useMarketPage() {
   const [trendComparisonData, setTrendComparisonData] = useState<TVSTrendData[]>([]);
   const [showConfidenceInterval, setShowConfidenceInterval] = useState(false);
 
-  // Destructure data from useMarketOverviewData
   const {
     oracleData,
     assets,
@@ -74,25 +75,26 @@ export function useMarketPage() {
     wsReconnect,
   } = data;
 
-  // Mobile detection
+  const filter = useMarketFilter(oracleData, assets);
+
   useEffect(() => {
     const checkMobile = () => {
-      isMobileRef.current = window.innerWidth < 768;
+      const mobile = window.innerWidth < 768;
+      isMobileRef.current = mobile;
+      setIsMobile(mobile);
     };
 
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [setIsMobile]);
 
-  // Sync viewType with activeChart
   useEffect(() => {
     if (['pie', 'trend', 'bar'].includes(activeChart) && viewType === 'table') {
       setViewType('chart');
     }
   }, [activeChart, viewType]);
 
-  // Get chart title based on active chart
   const getChartTitle = useCallback(() => {
     switch (activeChart) {
       case 'pie':
@@ -119,10 +121,8 @@ export function useMarketPage() {
   }, [activeChart, locale]);
 
   return {
-    // Refs
     chartContainerRef,
 
-    // State
     zoomRange,
     setZoomRange,
     anomalyThreshold,
@@ -138,7 +138,6 @@ export function useMarketPage() {
     showConfidenceInterval,
     setShowConfidenceInterval,
 
-    // Data from useMarketOverviewData
     oracleData,
     assets,
     trendData,
@@ -167,14 +166,16 @@ export function useMarketPage() {
     setRefreshInterval,
     refreshStatus,
     fetchData,
-    sortedOracleData,
+    sortedOracleData: filter.filteredOracleData,
     totalTVS,
     totalChains,
     totalProtocols,
     wsStatus,
     wsReconnect,
 
-    // Computed
+    filter,
+    filteredAssets: filter.filteredAssets,
+
     getChartTitle,
     locale,
   };

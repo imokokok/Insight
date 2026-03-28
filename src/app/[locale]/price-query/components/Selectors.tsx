@@ -1,10 +1,5 @@
 'use client';
 
-/**
- * @fileoverview 查询选择器组件
- * @description 包含资产、预言机、区块链和时间范围选择器
- */
-
 import { useState } from 'react';
 
 import { ChevronDown, ChevronUp, Search, RefreshCw } from 'lucide-react';
@@ -104,8 +99,7 @@ export function Selectors({
   }));
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      {/* 面板头部 */}
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" role="region" aria-label={t('priceQuery.selectors.panelLabel')}>
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
           <Search className="w-4 h-4 text-gray-500" aria-hidden="true" />
@@ -114,7 +108,9 @@ export function Selectors({
         <button
           onClick={onQuery}
           disabled={isLoading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md shadow-sm"
+          aria-busy={isLoading}
+          aria-label={isLoading ? t('priceQuery.loading') : t('priceQuery.query')}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         >
           {isLoading ? (
             <RefreshCw className="w-3 h-3 animate-spin" aria-hidden="true" />
@@ -125,38 +121,37 @@ export function Selectors({
         </button>
       </div>
 
-      {/* 选择器内容 */}
       <div className="p-4">
-        {/* 资产选择 */}
-        <section className="py-3 first:pt-0">
+        <section className="py-3 first:pt-0" aria-labelledby="symbol-label">
           <SegmentedControl
             options={symbolOptions}
             value={selectedSymbol}
             onChange={(value) => setSelectedSymbol(value as string)}
             label={t('priceQuery.selectors.symbol')}
+            aria-label={t('priceQuery.selectors.symbolLabel')}
           />
         </section>
 
-        {/* 预言机选择 */}
-        <section className="py-3 border-t border-gray-100">
+        <section className="py-3 border-t border-gray-100" aria-labelledby="oracle-label">
           <MultiSelect
             options={oracleOptions}
             value={selectedOracles}
             onChange={(values) => setSelectedOracles(values as OracleProvider[])}
             label={t('priceQuery.selectors.oracle')}
+            aria-label={t('priceQuery.selectors.oracleLabel')}
             showSelectAll
             selectAllLabel={t('priceQuery.selectors.selectAll')}
             deselectAllLabel={t('priceQuery.selectors.deselectAll')}
           />
         </section>
 
-        {/* 区块链选择 */}
-        <section className="py-3 border-t border-gray-100">
+        <section className="py-3 border-t border-gray-100" aria-labelledby="blockchain-label">
           <MultiSelect
             options={chainOptions}
             value={selectedChains}
             onChange={(values) => setSelectedChains(values as Blockchain[])}
             label={t('priceQuery.selectors.blockchain')}
+            aria-label={t('priceQuery.selectors.blockchainLabel')}
             showSelectAll
             selectAllLabel={t('priceQuery.selectors.selectAll')}
             deselectAllLabel={t('priceQuery.selectors.deselectAll')}
@@ -164,22 +159,23 @@ export function Selectors({
           />
         </section>
 
-        {/* 时间范围选择 */}
-        <section className="py-3 border-t border-gray-100">
+        <section className="py-3 border-t border-gray-100" aria-labelledby="timerange-label">
           <SegmentedControl
             options={timeRangeOptions}
             value={selectedTimeRange}
             onChange={(value) => setSelectedTimeRange(value as number)}
             label={t('priceQuery.selectors.timeRange')}
+            aria-label={t('priceQuery.selectors.timeRangeLabel')}
           />
         </section>
 
-        {/* 高级选项 */}
         <div className="border-t border-gray-100 pt-3">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors py-2 px-3 rounded-md hover:bg-gray-50/80"
+            className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors py-2 px-3 rounded-md hover:bg-gray-50/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             aria-expanded={showAdvanced}
+            aria-controls="advanced-options-panel"
+            id="advanced-options-toggle"
           >
             <span className="text-[11px] font-semibold uppercase tracking-wider">
               {t('priceQuery.selectors.advancedOptions')}
@@ -192,36 +188,44 @@ export function Selectors({
           </button>
 
           <div
+            id="advanced-options-panel"
+            role="region"
+            aria-labelledby="advanced-options-toggle"
             className={`overflow-hidden transition-all duration-300 ease-in-out ${showAdvanced ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}
           >
             <div className="space-y-2 p-3 bg-gray-50/50 rounded-lg border border-gray-100">
-              {/* 对比模式 */}
               <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
                 <input
                   type="checkbox"
                   checked={isCompareMode}
                   onChange={(e) => setIsCompareMode?.(e.target.checked)}
+                  aria-describedby="compare-mode-desc"
                   className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-4 h-4"
                 />
                 <span className="text-xs font-medium text-gray-700">
                   {t('priceQuery.selectors.compareMode')}
                 </span>
               </label>
+              <span id="compare-mode-desc" className="sr-only">
+                {t('priceQuery.selectors.compareModeDesc')}
+              </span>
 
-              {/* 显示基准线 */}
               <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
                 <input
                   type="checkbox"
                   checked={showBaseline}
                   onChange={(e) => setShowBaseline?.(e.target.checked)}
+                  aria-describedby="baseline-desc"
                   className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4"
                 />
                 <span className="text-xs font-medium text-gray-700">
                   {t('priceQuery.selectors.showBaseline')}
                 </span>
               </label>
+              <span id="baseline-desc" className="sr-only">
+                {t('priceQuery.selectors.baselineDesc')}
+              </span>
 
-              {/* 对比时间范围 */}
               {isCompareMode && (
                 <div className="pt-2 border-t border-gray-200 mt-2">
                   <SegmentedControl
@@ -229,6 +233,7 @@ export function Selectors({
                     value={compareTimeRange}
                     onChange={(value) => setCompareTimeRange?.(value as number)}
                     label={t('priceQuery.selectors.compareTime')}
+                    aria-label={t('priceQuery.selectors.compareTimeLabel')}
                     size="sm"
                   />
                 </div>

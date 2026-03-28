@@ -17,6 +17,7 @@
   - [x] SubTask 4.2: 测试首页加载是否正常
 
 # Task Dependencies
+
 - [Task 2] 可以独立于其他任务进行
 - [Task 3] 可以独立于其他任务进行
 - [Task 4] 应该在 [Task 1] 完成后进行验证

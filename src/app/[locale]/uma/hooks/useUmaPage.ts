@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useUMAAllData } from '@/hooks';
+import { useRefresh, useExport, useUMAAllData, useDataFreshness } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { UMAClient } from '@/lib/oracles/uma';
@@ -53,6 +53,8 @@ export function useUmaPage() {
     minLoadingTime: 500,
   });
 
+  const dataFreshnessStatus = useDataFreshness(lastUpdated);
+
   const handleTabChange = useCallback((tab: UmaTabId) => {
     setActiveTab(tab);
   }, []);
@@ -71,6 +73,8 @@ export function useUmaPage() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
+    shouldRefreshData: dataFreshnessStatus.status === 'expired',
     setActiveTab: handleTabChange,
     refresh,
     exportData,

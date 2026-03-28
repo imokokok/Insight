@@ -36,6 +36,7 @@
   - [x] SubTask 7.3: 确保所有数据访问都是类型安全的
 
 # Task Dependencies
+
 - [Task 2] 和 [Task 3] 可以并行处理
 - [Task 4] 依赖 [Task 1] 的完成
 - [Task 5] 可以独立处理

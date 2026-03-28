@@ -2,9 +2,17 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useRedStoneAllData, useRedStoneProviders, useRedStoneMetrics } from '@/hooks';
+import {
+  useRefresh,
+  useExport,
+  useRedStoneAllData,
+  useRedStoneProviders,
+  useRedStoneMetrics,
+  useDataFreshness,
+} from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
+import { RedStoneClient } from '@/lib/oracles/redstone';
 import { OracleProvider } from '@/types/oracle';
 
 import { type RedStoneTabId } from '../types';
@@ -14,6 +22,7 @@ export function useRedStonePage() {
   const [activeTab, setActiveTab] = useState<RedStoneTabId>('market');
 
   const config = useMemo(() => getOracleConfig(OracleProvider.REDSTONE), []);
+  const redstoneClient = useMemo(() => new RedStoneClient(), []);
 
   const {
     price,
@@ -53,6 +62,8 @@ export function useRedStonePage() {
     minLoadingTime: 500,
   });
 
+  const dataFreshnessStatus = useDataFreshness(lastUpdated);
+
   const handleTabChange = useCallback((tab: RedStoneTabId) => {
     setActiveTab(tab);
   }, []);
@@ -65,11 +76,14 @@ export function useRedStonePage() {
     networkStats,
     providers,
     metrics,
+    redstoneClient,
     isLoading,
     isError,
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
+    shouldRefreshData: dataFreshnessStatus.status === 'expired',
     setActiveTab: handleTabChange,
     refresh,
     exportData,

@@ -396,5 +396,17 @@
     "networkLatency": "网络延迟",
     "subtitle30d": "30天",
     "subtitleThisMonth": "本月"
+  },
+  "keyboardShortcuts": {
+    "title": "键盘快捷键",
+    "press": "按",
+    "forHelp": "查看快捷键帮助",
+    "1": "市场份额图",
+    "2": "TVS 趋势图",
+    "3": "链支持图",
+    "t": "切换表格/图表",
+    "r": "刷新数据",
+    "e": "导出数据",
+    "question": "显示帮助"
   }
 }

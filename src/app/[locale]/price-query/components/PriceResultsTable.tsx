@@ -1,10 +1,5 @@
 'use client';
 
-/**
- * @fileoverview 价格结果表格组件
- * @description 展示价格查询结果的表格，支持排序、筛选和选中
- */
-
 import { useMemo, useState } from 'react';
 
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, Filter, X } from 'lucide-react';
@@ -51,8 +46,8 @@ export function PriceResultsTable({
 }: PriceResultsTableProps) {
   const t = useTranslations();
   const [showFilters, setShowFilters] = useState(false);
+  const [sortAnnouncement, setSortAnnouncement] = useState<string>('');
 
-  // 获取排序图标
   const getSortIcon = (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => {
     if (sortField !== field) {
       return <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />;
@@ -62,6 +57,19 @@ export function PriceResultsTable({
     ) : (
       <ArrowDown className="w-3.5 h-3.5 text-primary-600" aria-hidden="true" />
     );
+  };
+
+  const getAriaSort = (field: 'oracle' | 'blockchain' | 'price' | 'timestamp'): 'ascending' | 'descending' | 'none' => {
+    if (sortField !== field) return 'none';
+    return sortDirection === 'asc' ? 'ascending' : 'descending';
+  };
+
+  const handleSort = (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => {
+    onSort(field);
+    const fieldName = t(`priceQuery.results.${field}`);
+    const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
+    const directionText = newDirection === 'asc' ? t('priceQuery.results.sortAscending') : t('priceQuery.results.sortDescending');
+    setSortAnnouncement(`${fieldName} ${directionText}`);
   };
 
   // 计算价格偏差
@@ -133,11 +141,13 @@ export function PriceResultsTable({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      {/* 表格头部 */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {sortAnnouncement}
+      </div>
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-gray-900">{t('priceQuery.results.title')}</h3>
-          <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded-full">
+          <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded-full" aria-label={`${filteredResults.length} ${t('priceQuery.results.resultsCount')}`}>
             {filteredResults.length}
           </span>
         </div>
@@ -150,6 +160,8 @@ export function PriceResultsTable({
                 : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
             }`}
             aria-expanded={showFilters}
+            aria-controls="filter-panel"
+            aria-label={showFilters ? t('priceQuery.results.hideFilters') : t('priceQuery.results.showFilters')}
           >
             <Filter className="w-3.5 h-3.5" aria-hidden="true" />
             {t('filter')}
@@ -157,9 +169,8 @@ export function PriceResultsTable({
         </div>
       </div>
 
-      {/* 筛选区域 */}
       {showFilters && (
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+        <div id="filter-panel" className="px-4 py-3 bg-gray-50 border-b border-gray-200">
           <div className="relative">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -171,6 +182,7 @@ export function PriceResultsTable({
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
               placeholder={t('priceQuery.results.filterPlaceholder')}
+              aria-label={t('priceQuery.results.filterLabel')}
               className="w-full pl-9 pr-9 py-2 text-sm bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
             {filterText && (
@@ -186,14 +198,22 @@ export function PriceResultsTable({
         </div>
       )}
 
-      {/* 表格 */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" role="grid" aria-label={t('priceQuery.results.tableLabel')}>
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th
+                scope="col"
+                aria-sort={getAriaSort('oracle')}
                 className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                onClick={() => onSort('oracle')}
+                onClick={() => handleSort('oracle')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleSort('oracle');
+                  }
+                }}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center gap-1">
                   {t('priceQuery.results.oracle')}
@@ -201,8 +221,17 @@ export function PriceResultsTable({
                 </div>
               </th>
               <th
+                scope="col"
+                aria-sort={getAriaSort('blockchain')}
                 className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                onClick={() => onSort('blockchain')}
+                onClick={() => handleSort('blockchain')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleSort('blockchain');
+                  }
+                }}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center gap-1">
                   {t('priceQuery.results.blockchain')}
@@ -210,20 +239,42 @@ export function PriceResultsTable({
                 </div>
               </th>
               <th
+                scope="col"
+                aria-sort={getAriaSort('price')}
                 className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                onClick={() => onSort('price')}
+                onClick={() => handleSort('price')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleSort('price');
+                  }
+                }}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center justify-end gap-1">
                   {t('priceQuery.results.price')}
                   {getSortIcon('price')}
                 </div>
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                role="columnheader"
+              >
                 {t('priceQuery.results.deviation')}
               </th>
               <th
+                scope="col"
+                aria-sort={getAriaSort('timestamp')}
                 className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                onClick={() => onSort('timestamp')}
+                onClick={() => handleSort('timestamp')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleSort('timestamp');
+                  }
+                }}
+                tabIndex={0}
+                role="columnheader"
               >
                 <div className="flex items-center justify-end gap-1">
                   {t('priceQuery.results.timestamp')}
@@ -252,16 +303,17 @@ export function PriceResultsTable({
                     className={`cursor-pointer transition-colors ${
                       isSelected ? 'bg-primary-50 hover:bg-primary-100' : 'hover:bg-gray-50'
                     }`}
-                    role="button"
+                    role="row"
                     tabIndex={0}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
                         handleRowClick(result);
                       }
                     }}
-                    aria-pressed={isSelected}
+                    aria-selected={isSelected}
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" role="gridcell">
                       <div className="flex items-center gap-2">
                         <span
                           className={`w-2 h-2 rounded-full ${
@@ -285,18 +337,19 @@ export function PriceResultsTable({
                                               ? 'bg-indigo-500'
                                               : 'bg-gray-500'
                           }`}
+                          aria-hidden="true"
                         />
                         <span className="font-medium text-gray-900">
                           {t(`navbar.${oracleI18nKeys[result.provider]}`)}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" role="gridcell">
                       <span className="text-gray-700">
                         {t(`blockchain.${result.chain.toLowerCase()}`)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right" role="gridcell">
                       <span className="font-medium font-tabular text-gray-900">
                         $
                         {result.priceData.price.toLocaleString(undefined, {
@@ -309,12 +362,13 @@ export function PriceResultsTable({
                       className={`px-4 py-3 text-right relative border-l-[3px] ${deviation.indicatorColor} ${
                         !isSelected && deviation.bgColor ? deviation.bgColor : ''
                       }`}
+                      role="gridcell"
                     >
                       <span className={`text-xs font-medium ${deviation.textColor}`}>
                         {deviation.value}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right" role="gridcell">
                       <span className="text-xs text-gray-500">
                         {formatTimestamp(result.priceData.timestamp)}
                       </span>
@@ -327,9 +381,8 @@ export function PriceResultsTable({
         </table>
       </div>
 
-      {/* 表格底部信息 */}
       <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between">
-        <span>
+        <span aria-live="polite">
           {t('priceQuery.results.showing', {
             filtered: filteredResults.length,
             total: results.length,

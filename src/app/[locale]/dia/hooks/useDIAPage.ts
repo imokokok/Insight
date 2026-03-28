@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 
-import { useRefresh, useExport, useDIAAllData } from '@/hooks';
+import { useRefresh, useExport, useDIAAllData, useDataFreshness } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { DIAClient } from '@/lib/oracles/dia';
@@ -49,6 +49,8 @@ export function useDIAPage() {
     minLoadingTime: 500,
   });
 
+  const dataFreshnessStatus = useDataFreshness(lastUpdated);
+
   const handleTabChange = useCallback((tab: DIATabId) => {
     setActiveTab(tab);
   }, []);
@@ -66,6 +68,8 @@ export function useDIAPage() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
+    shouldRefreshData: dataFreshnessStatus.status === 'expired',
 
     // Actions
     setActiveTab: handleTabChange,

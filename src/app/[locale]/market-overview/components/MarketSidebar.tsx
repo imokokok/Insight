@@ -16,7 +16,10 @@ import {
 import { useTranslations } from '@/i18n';
 import { semanticColors } from '@/lib/config/colors';
 
+import { type MarketFilterState } from '../hooks/useMarketFilter';
 import { type OracleMarketData, type TVSTrendData } from '../types';
+
+import { FilterPanel } from './FilterPanel';
 
 interface MarketSidebarProps {
   selectedTimeRange: string;
@@ -30,6 +33,13 @@ interface MarketSidebarProps {
     oracleCount: number;
   };
   trendData: TVSTrendData[];
+  filters?: MarketFilterState;
+  onMarketShareChange?: (value: number | null) => void;
+  onChange24hFilter?: (value: 'all' | 'positive' | 'negative') => void;
+  onChainsChange?: (value: number | null) => void;
+  onClearFilters?: () => void;
+  hasActiveFilters?: boolean;
+  activeFilterCount?: number;
 }
 
 // 预言机名称到 trendData 字段的映射
@@ -142,17 +152,22 @@ export default function MarketSidebar({
   setHoveredItem,
   marketStats,
   trendData,
+  filters,
+  onMarketShareChange,
+  onChange24hFilter,
+  onChainsChange,
+  onClearFilters,
+  hasActiveFilters = false,
+  activeFilterCount = 0,
 }: MarketSidebarProps) {
   const t = useTranslations('marketOverview');
 
-  // 从 trendData 提取真实历史数据生成 sparkline
   const getSparklineData = (oracleName: string): number[] => {
     const fieldName = ORACLE_FIELD_MAP[oracleName];
     if (!fieldName || !trendData || trendData.length === 0) {
       return [];
     }
 
-    // 提取该预言机的历史数据（最多取最近20个点）
     const data = trendData
       .slice(-20)
       .map((item) => (item as unknown as Record<string, number>)[fieldName])
@@ -163,7 +178,6 @@ export default function MarketSidebar({
 
   return (
     <div className="space-y-3">
-      {/* 时间范围卡片 - 简化：移除 bg-white border */}
       <div className="py-2">
         <div className="flex items-center justify-between">
           <div>
@@ -185,9 +199,21 @@ export default function MarketSidebar({
         </div>
       </div>
 
-      {/* 预言机列表 - 简化：移除外层卡片样式 */}
+      {filters && onMarketShareChange && onChange24hFilter && onChainsChange && onClearFilters && (
+        <div className="border-b border-gray-100 pb-3">
+          <FilterPanel
+            filters={filters}
+            onMarketShareChange={onMarketShareChange}
+            onChange24hFilter={onChange24hFilter}
+            onChainsChange={onChainsChange}
+            onClearFilters={onClearFilters}
+            hasActiveFilters={hasActiveFilters}
+            activeFilterCount={activeFilterCount}
+          />
+        </div>
+      )}
+
       <div className="overflow-hidden">
-        {/* 标题简化：使用 text-xs text-gray-500 uppercase tracking-wider */}
         <div className="py-2 border-b border-gray-100">
           <h4 className="text-xs text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
             <PieChartIcon className="w-3 h-3" />
@@ -236,7 +262,6 @@ export default function MarketSidebar({
                     }
                   }}
                 >
-                  {/* 左侧：名称 + 颜色点 */}
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div
                       className="w-2 h-2 rounded-full flex-shrink-0"
@@ -249,12 +274,10 @@ export default function MarketSidebar({
                     </span>
                   </div>
 
-                  {/* 中间：迷你图 */}
                   <div className="flex-shrink-0 mx-2">
                     <MiniSparkline data={sparklineData} color={item.color} />
                   </div>
 
-                  {/* 右侧：份额 + 变化 */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="text-sm font-bold text-gray-900 w-10 text-right">
                       {item.share}%
@@ -268,7 +291,6 @@ export default function MarketSidebar({
         </div>
       </div>
 
-      {/* 底部统计 - 简化版 */}
       <div className="py-2 text-xs text-gray-400 flex items-center justify-between">
         <span>
           {t('coveringOracles', { count: marketStats.oracleCount }) ||

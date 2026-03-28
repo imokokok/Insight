@@ -153,14 +153,19 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
       csvLines.push(`Data Points,${rollingCorrelationData.length}`);
       csvLines.push('');
 
-      const headers = ['Index', ...chainPairs.map((pair) => `${chainNames[pair.chainX]}-${chainNames[pair.chainY]}`)];
+      const headers = [
+        'Index',
+        ...chainPairs.map((pair) => `${chainNames[pair.chainX]}-${chainNames[pair.chainY]}`),
+      ];
       csvLines.push(headers.join(','));
 
       rollingCorrelationData.forEach((point) => {
         const row: string[] = [String(point.index)];
         chainPairs.forEach(({ key }) => {
           const value = point[key];
-          row.push(value !== undefined && !isNaN(value as number) ? (value as number).toFixed(6) : '');
+          row.push(
+            value !== undefined && !isNaN(value as number) ? (value as number).toFixed(6) : ''
+          );
         });
         csvLines.push(row.join(','));
       });

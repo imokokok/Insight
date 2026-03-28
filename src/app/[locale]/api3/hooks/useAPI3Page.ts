@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useAPI3AllData } from '@/hooks';
+import { useRefresh, useExport, useAPI3AllData, useDataFreshness } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
@@ -45,6 +45,8 @@ export function useAPI3Page() {
     }
     return new Date();
   }, [price?.timestamp]);
+
+  const dataFreshnessStatus = useDataFreshness(lastUpdated);
 
   const { exportData } = useExport({
     data: {
@@ -90,6 +92,8 @@ export function useAPI3Page() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
+    dataFreshnessStatus,
+    shouldRefreshData: dataFreshnessStatus.status === 'expired',
     setActiveTab: handleTabChange,
     refresh,
     exportData,

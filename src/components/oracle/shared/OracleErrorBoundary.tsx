@@ -77,7 +77,9 @@ class OracleErrorBoundaryClass extends Component<
         return fallback;
       }
 
-      return <DefaultErrorFallback error={error} onReset={this.handleReset} themeColor={themeColor} />;
+      return (
+        <DefaultErrorFallback error={error} onReset={this.handleReset} themeColor={themeColor} />
+      );
     }
 
     return children;
@@ -94,15 +96,55 @@ function DefaultErrorFallback({ error, onReset, themeColor }: DefaultErrorFallba
   const t = useTranslations();
 
   const themeStyles: Record<string, { bg: string; text: string; button: string; hover: string }> = {
-    blue: { bg: 'bg-blue-50', text: 'text-blue-600', button: 'bg-blue-600', hover: 'hover:bg-blue-700' },
-    green: { bg: 'bg-green-50', text: 'text-green-600', button: 'bg-green-600', hover: 'hover:bg-green-700' },
-    purple: { bg: 'bg-purple-50', text: 'text-purple-600', button: 'bg-purple-600', hover: 'hover:bg-purple-700' },
+    blue: {
+      bg: 'bg-blue-50',
+      text: 'text-blue-600',
+      button: 'bg-blue-600',
+      hover: 'hover:bg-blue-700',
+    },
+    green: {
+      bg: 'bg-green-50',
+      text: 'text-green-600',
+      button: 'bg-green-600',
+      hover: 'hover:bg-green-700',
+    },
+    purple: {
+      bg: 'bg-purple-50',
+      text: 'text-purple-600',
+      button: 'bg-purple-600',
+      hover: 'hover:bg-purple-700',
+    },
     red: { bg: 'bg-red-50', text: 'text-red-600', button: 'bg-red-600', hover: 'hover:bg-red-700' },
-    orange: { bg: 'bg-orange-50', text: 'text-orange-600', button: 'bg-orange-600', hover: 'hover:bg-orange-700' },
-    indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', button: 'bg-indigo-600', hover: 'hover:bg-indigo-700' },
-    pink: { bg: 'bg-pink-50', text: 'text-pink-600', button: 'bg-pink-600', hover: 'hover:bg-pink-700' },
-    cyan: { bg: 'bg-cyan-50', text: 'text-cyan-600', button: 'bg-cyan-600', hover: 'hover:bg-cyan-700' },
-    yellow: { bg: 'bg-yellow-50', text: 'text-yellow-600', button: 'bg-yellow-600', hover: 'hover:bg-yellow-700' },
+    orange: {
+      bg: 'bg-orange-50',
+      text: 'text-orange-600',
+      button: 'bg-orange-600',
+      hover: 'hover:bg-orange-700',
+    },
+    indigo: {
+      bg: 'bg-indigo-50',
+      text: 'text-indigo-600',
+      button: 'bg-indigo-600',
+      hover: 'hover:bg-indigo-700',
+    },
+    pink: {
+      bg: 'bg-pink-50',
+      text: 'text-pink-600',
+      button: 'bg-pink-600',
+      hover: 'hover:bg-pink-700',
+    },
+    cyan: {
+      bg: 'bg-cyan-50',
+      text: 'text-cyan-600',
+      button: 'bg-cyan-600',
+      hover: 'hover:bg-cyan-700',
+    },
+    yellow: {
+      bg: 'bg-yellow-50',
+      text: 'text-yellow-600',
+      button: 'bg-yellow-600',
+      hover: 'hover:bg-yellow-700',
+    },
   };
 
   const style = themeStyles[themeColor] || themeStyles.blue;

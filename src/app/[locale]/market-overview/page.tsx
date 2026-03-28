@@ -3,6 +3,7 @@
 import AnomalyModal from './components/AnomalyModal';
 import AssetsTable from './components/AssetsTable';
 import ChartContainer from './components/ChartContainer';
+import { ChartErrorBoundary } from './components/ChartErrorBoundary';
 import MarketHeader from './components/MarketHeader';
 import MarketSidebar from './components/MarketSidebar';
 import MarketStats from './components/MarketStats';
@@ -60,6 +61,8 @@ export default function MarketOverviewPage() {
     wsStatus,
     wsReconnect,
     getChartTitle,
+    filter,
+    filteredAssets,
   } = useMarketPage();
 
   return (
@@ -83,57 +86,61 @@ export default function MarketOverviewPage() {
           />
 
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
-            <MarketStats
-              marketStats={marketStats}
-              totalTVS={totalTVS}
-              totalChains={totalChains}
-              totalProtocols={totalProtocols}
-            />
+            <ChartErrorBoundary componentName="MarketStats">
+              <MarketStats
+                marketStats={marketStats}
+                totalTVS={totalTVS}
+                totalChains={totalChains}
+                totalProtocols={totalProtocols}
+              />
+            </ChartErrorBoundary>
           </div>
 
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
               <div className="lg:col-span-2">
                 <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6 h-full">
-                  <ChartContainer
-                    chartContainerRef={chartContainerRef}
-                    activeChart={activeChart}
-                    setActiveChart={setActiveChart}
-                    viewType={viewType}
-                    setViewType={setViewType}
-                    selectedTimeRange={selectedTimeRange}
-                    setSelectedTimeRange={setSelectedTimeRange}
-                    selectedItem={selectedItem}
-                    setSelectedItem={setSelectedItem}
-                    hoveredItem={hoveredItem}
-                    setHoveredItem={setHoveredItem}
-                    linkedOracle={linkedOracle}
-                    setLinkedOracle={setLinkedOracle}
-                    zoomRange={zoomRange}
-                    setZoomRange={setZoomRange}
-                    anomalyThreshold={anomalyThreshold}
-                    setAnomalyThreshold={setAnomalyThreshold}
-                    selectedAnomaly={selectedAnomaly}
-                    setSelectedAnomaly={setSelectedAnomaly}
-                    comparisonMode={comparisonMode}
-                    setComparisonMode={setComparisonMode}
-                    trendComparisonData={trendComparisonData}
-                    setTrendComparisonData={setTrendComparisonData}
-                    showConfidenceInterval={showConfidenceInterval}
-                    setShowConfidenceInterval={setShowConfidenceInterval}
-                    getChartTitle={getChartTitle}
-                    loading={isLoading}
-                    loadingEnhanced={isLoadingEnhanced}
-                    loadingComparison={isLoadingComparison}
-                    sortedOracleData={sortedOracleData}
-                    trendData={trendData}
-                    chainBreakdown={chainBreakdown}
-                    protocolDetails={protocolDetails}
-                    assetCategories={assetCategories}
-                    comparisonData={comparisonData}
-                    benchmarkData={benchmarkData}
-                    correlationData={correlationData}
-                  />
+                  <ChartErrorBoundary componentName="ChartContainer">
+                    <ChartContainer
+                      chartContainerRef={chartContainerRef}
+                      activeChart={activeChart}
+                      setActiveChart={setActiveChart}
+                      viewType={viewType}
+                      setViewType={setViewType}
+                      selectedTimeRange={selectedTimeRange}
+                      setSelectedTimeRange={setSelectedTimeRange}
+                      selectedItem={selectedItem}
+                      setSelectedItem={setSelectedItem}
+                      hoveredItem={hoveredItem}
+                      setHoveredItem={setHoveredItem}
+                      linkedOracle={linkedOracle}
+                      setLinkedOracle={setLinkedOracle}
+                      zoomRange={zoomRange}
+                      setZoomRange={setZoomRange}
+                      anomalyThreshold={anomalyThreshold}
+                      setAnomalyThreshold={setAnomalyThreshold}
+                      selectedAnomaly={selectedAnomaly}
+                      setSelectedAnomaly={setSelectedAnomaly}
+                      comparisonMode={comparisonMode}
+                      setComparisonMode={setComparisonMode}
+                      trendComparisonData={trendComparisonData}
+                      setTrendComparisonData={setTrendComparisonData}
+                      showConfidenceInterval={showConfidenceInterval}
+                      setShowConfidenceInterval={setShowConfidenceInterval}
+                      getChartTitle={getChartTitle}
+                      loading={isLoading}
+                      loadingEnhanced={isLoadingEnhanced}
+                      loadingComparison={isLoadingComparison}
+                      sortedOracleData={sortedOracleData}
+                      trendData={trendData}
+                      chainBreakdown={chainBreakdown}
+                      protocolDetails={protocolDetails}
+                      assetCategories={assetCategories}
+                      comparisonData={comparisonData}
+                      benchmarkData={benchmarkData}
+                      correlationData={correlationData}
+                    />
+                  </ChartErrorBoundary>
                 </div>
               </div>
 
@@ -148,12 +155,30 @@ export default function MarketOverviewPage() {
                   setHoveredItem={setHoveredItem}
                   marketStats={marketStats}
                   trendData={trendData}
+                  filters={filter.filters}
+                  onMarketShareChange={filter.setMarketShareMin}
+                  onChange24hFilter={filter.setChange24hFilter}
+                  onChainsChange={filter.setChainsMin}
+                  onClearFilters={filter.clearFilters}
+                  hasActiveFilters={filter.hasActiveFilters}
+                  activeFilterCount={filter.activeFilterCount}
                 />
               </div>
             </div>
 
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
-              <AssetsTable assets={assets} />
+              <ChartErrorBoundary componentName="AssetsTable">
+                <AssetsTable
+                  assets={filteredAssets}
+                  filters={filter.filters}
+                  onSearchChange={filter.setSearchQuery}
+                  onOracleFilterChange={filter.setOracleFilter}
+                  onChangeMagnitudeChange={filter.setChangeMagnitude}
+                  onClearFilters={filter.clearFilters}
+                  hasActiveFilters={filter.hasActiveFilters}
+                  totalAssetsCount={assets.length}
+                />
+              </ChartErrorBoundary>
             </div>
           </div>
         </div>

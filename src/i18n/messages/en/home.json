@@ -21,7 +21,16 @@
       "popular": "Popular",
       "keyboardHint": "Use ↑↓ to select, ↵ to confirm",
       "escClose": "ESC to close",
-      "deleteRecord": "Delete this record"
+      "deleteRecord": "Delete this record",
+      "noResults": "No results found. Please try a different keyword.",
+      "token": "Token",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "stats": {
+        "oracles": "10+ Oracles",
+        "dataSources": "100+ Data Sources",
+        "realtime": "Real-time Updates"
+      }
     },
     "features": {
       "sectionBadge": "Core Features",

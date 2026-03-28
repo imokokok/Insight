@@ -21,6 +21,7 @@ import {
 
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
+import { DataFreshnessIndicator } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
@@ -36,6 +37,8 @@ interface ChainlinkHeroProps {
   isError: boolean;
   isRefreshing: boolean;
   lastUpdated: Date | null;
+  dataFreshnessStatus?: 'fresh' | 'stale' | 'expired';
+  shouldRefreshData?: boolean;
   onRefresh: () => void;
   onExport: () => void;
 }
@@ -169,7 +172,7 @@ function MiniPriceChart({
   themeColor: string;
 }) {
   const t = useTranslations('ui');
-  
+
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
@@ -326,12 +329,27 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: t('health.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('health.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: t('health.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('health.low'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: t('health.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('health.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     return { label: t('health.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
   }, [networkStats, t]);
 
@@ -443,6 +461,8 @@ export function ChainlinkHero({
   isError,
   isRefreshing,
   lastUpdated,
+  dataFreshnessStatus = 'fresh',
+  shouldRefreshData = false,
   onRefresh,
   onExport,
 }: ChainlinkHeroProps) {
@@ -566,25 +586,35 @@ export function ChainlinkHero({
 
       {/* 主要内容区 - 桌面端左右分栏布局 */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* 头部信息 - Logo、标题 */}
-        <div className="flex items-center gap-3 mb-4">
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
-            style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
-          >
-            <OptimizedImage
-              src="/logos/oracles/chainlink.svg"
-              alt="Chainlink"
-              width={28}
-              height={28}
-              priority
-              className="w-7 h-7"
+        {/* 头部信息 - Logo、标题、数据新鲜度 */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
+              style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}
+            >
+              <OptimizedImage
+                src="/logos/oracles/chainlink.svg"
+                alt="Chainlink"
+                width={28}
+                height={28}
+                priority
+                className="w-7 h-7"
+              />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Chainlink</h1>
+              <p className="text-xs text-gray-500">{t('chainlink.subtitle')}</p>
+            </div>
+          </div>
+          {dataFreshnessStatus && (
+            <DataFreshnessIndicator
+              status={dataFreshnessStatus.status}
+              lastUpdated={lastUpdated}
+              onRefresh={onRefresh}
+              themeColor={themeColor}
             />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Chainlink</h1>
-            <p className="text-xs text-gray-500">{t('chainlink.subtitle')}</p>
-          </div>
+          )}
         </div>
 
         {/* 桌面端左右分栏布局 */}

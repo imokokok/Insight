@@ -17,11 +17,7 @@ import {
 } from '@/lib/services/marketData';
 import { createLogger } from '@/lib/utils/logger';
 
-import {
-  MOCK_ORACLE_DATA,
-  MOCK_ASSETS,
-  type RefreshInterval,
-} from './constants';
+import { MOCK_ORACLE_DATA, MOCK_ASSETS, type RefreshInterval } from './constants';
 import {
   type OracleMarketData,
   type AssetData,
@@ -37,6 +33,32 @@ import {
   TIME_RANGES,
   type RefreshStatus,
 } from './types';
+import {
+  dataCache,
+  getCachedOracleData,
+  setCachedOracleData,
+  getCachedAssets,
+  setCachedAssets,
+  getCachedTrendData,
+  setCachedTrendData,
+  getCachedChainBreakdown,
+  setCachedChainBreakdown,
+  getCachedProtocolDetails,
+  setCachedProtocolDetails,
+  getCachedAssetCategories,
+  setCachedAssetCategories,
+  getCachedComparisonData,
+  setCachedComparisonData,
+  getCachedBenchmarkData,
+  setCachedBenchmarkData,
+  getCachedCorrelationData,
+  setCachedCorrelationData,
+  getCachedRiskMetrics,
+  setCachedRiskMetrics,
+  getCachedAnomalies,
+  setCachedAnomalies,
+  type CacheStats,
+} from './utils/dataCache';
 
 const logger = createLogger('useDataFetching');
 
@@ -68,8 +90,8 @@ export interface UseDataFetchingReturn {
   setSelectedTimeRange: (range: string) => void;
   refreshInterval: RefreshInterval;
   setRefreshInterval: (interval: RefreshInterval) => void;
-  fetchData: () => Promise<void>;
-  fetchEnhancedData: () => Promise<void>;
+  fetchData: (forceRefresh?: boolean) => Promise<void>;
+  fetchEnhancedData: (forceRefresh?: boolean) => Promise<void>;
   acknowledgeAnomaly: (id: string) => void;
   oracleDataRef: React.MutableRefObject<OracleMarketData[]>;
   assetsRef: React.MutableRefObject<AssetData[]>;
@@ -77,6 +99,9 @@ export interface UseDataFetchingReturn {
   setAssets: React.Dispatch<React.SetStateAction<AssetData[]>>;
   setTrendData: React.Dispatch<React.SetStateAction<TVSTrendData[]>>;
   setLastUpdated: React.Dispatch<React.SetStateAction<Date | null>>;
+  cacheStats: CacheStats;
+  clearCache: () => void;
+  clearExpiredCache: () => number;
 }
 
 export function useDataFetching(): UseDataFetchingReturn {
@@ -135,125 +160,196 @@ export function useDataFetching(): UseDataFetchingReturn {
     return range?.hours || 720;
   }, []);
 
-  const fetchDataFromApi = useCallback(async () => {
-    setRefreshStatus('refreshing');
-    setIsLoading(true);
-    setError(null);
+  const fetchDataFromApi = useCallback(
+    async (forceRefresh: boolean = false) => {
+      const timeRange = selectedTimeRangeRef.current;
 
-    try {
-      const hours = getTimeRangeHours(selectedTimeRangeRef.current);
+      if (!forceRefresh) {
+        const cachedOracleData = getCachedOracleData(timeRange);
+        const cachedAssets = getCachedAssets(timeRange);
+        const cachedTrendData = getCachedTrendData(timeRange);
 
-      const [oracleResult, assetsResult] = await Promise.allSettled([
-        fetchOraclesData(),
-        fetchAssetsData(),
-      ]);
+        if (cachedOracleData && cachedAssets && cachedTrendData) {
+          logger.debug(`Using cached data for timeRange: ${timeRange}`);
+          setOracleData(cachedOracleData);
+          setAssets(cachedAssets);
+          setTrendData(cachedTrendData);
+          setLastUpdated(new Date());
+          setRefreshStatus('success');
+          setIsLoading(false);
+          return;
+        }
+      }
 
-      let newOracleData: OracleMarketData[] = [];
-      let newAssets: AssetData[] = [];
-      let hasError = false;
+      setRefreshStatus('refreshing');
+      setIsLoading(true);
+      setError(null);
 
-      if (oracleResult.status === 'fulfilled' && oracleResult.value.length > 0) {
-        newOracleData = oracleResult.value;
-        setIsUsingMockData(false);
-      } else {
-        logger.warn('Failed to fetch oracle data from API, using mock data');
-        newOracleData = MOCK_ORACLE_DATA;
+      try {
+        const hours = getTimeRangeHours(timeRange);
+
+        const [oracleResult, assetsResult] = await Promise.allSettled([
+          fetchOraclesData(),
+          fetchAssetsData(),
+        ]);
+
+        let newOracleData: OracleMarketData[] = [];
+        let newAssets: AssetData[] = [];
+        let hasError = false;
+
+        if (oracleResult.status === 'fulfilled' && oracleResult.value.length > 0) {
+          newOracleData = oracleResult.value;
+          setIsUsingMockData(false);
+        } else {
+          logger.warn('Failed to fetch oracle data from API, using mock data');
+          newOracleData = MOCK_ORACLE_DATA;
+          setIsUsingMockData(true);
+          hasError = true;
+        }
+
+        if (assetsResult.status === 'fulfilled' && assetsResult.value.length > 0) {
+          newAssets = assetsResult.value;
+        } else {
+          logger.warn('Failed to fetch asset data from API, using mock data');
+          newAssets = MOCK_ASSETS;
+          hasError = true;
+        }
+
+        const newTrendData = generateTVSTrendData(hours, newOracleData);
+
+        setCachedOracleData(timeRange, newOracleData);
+        setCachedAssets(timeRange, newAssets);
+        setCachedTrendData(timeRange, newTrendData);
+
+        setOracleData(newOracleData);
+        setAssets(newAssets);
+        setTrendData(newTrendData);
+        setLastUpdated(new Date());
+        setRefreshStatus(hasError ? 'error' : 'success');
+        setShowRefreshSuccess(!hasError);
+        setTimeout(() => setShowRefreshSuccess(false), 2000);
+
+        if (hasError) {
+          setError('部分数据获取失败，已使用本地数据');
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        logger.error(
+          'Error fetching market data from API',
+          err instanceof Error ? err : new Error(errorMessage)
+        );
+
+        const hours = getTimeRangeHours(timeRange);
+        setOracleData(MOCK_ORACLE_DATA);
+        setAssets(MOCK_ASSETS);
+        setTrendData(generateTVSTrendData(hours, MOCK_ORACLE_DATA));
         setIsUsingMockData(true);
-        hasError = true;
+        setError(`数据获取失败: ${errorMessage}`);
+        setRefreshStatus('error');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [getTimeRangeHours]
+  );
+
+  const fetchMockData = useCallback(
+    async (forceRefresh: boolean = false) => {
+      const timeRange = selectedTimeRangeRef.current;
+
+      if (!forceRefresh) {
+        const cachedOracleData = getCachedOracleData(timeRange);
+        const cachedAssets = getCachedAssets(timeRange);
+        const cachedTrendData = getCachedTrendData(timeRange);
+
+        if (cachedOracleData && cachedAssets && cachedTrendData) {
+          logger.debug(`Using cached mock data for timeRange: ${timeRange}`);
+          setOracleData(cachedOracleData);
+          setAssets(cachedAssets);
+          setTrendData(cachedTrendData);
+          setLastUpdated(new Date());
+          setRefreshStatus('success');
+          setIsLoading(false);
+          return;
+        }
       }
 
-      if (assetsResult.status === 'fulfilled' && assetsResult.value.length > 0) {
-        newAssets = assetsResult.value;
+      setRefreshStatus('refreshing');
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
+        const hours = getTimeRangeHours(timeRange);
+        const newTrendData = generateTVSTrendData(hours);
+
+        const updatedOracleData = oracleDataRef.current.map((oracle) => ({
+          ...oracle,
+          change24h: oracle.change24h + (Math.random() - 0.5) * 0.5,
+          tvsValue: oracle.tvsValue * (1 + (Math.random() - 0.5) * 0.01),
+        }));
+
+        const updatedAssets = assetsRef.current.map((asset) => ({
+          ...asset,
+          price: asset.price * (1 + (Math.random() - 0.5) * 0.005),
+          change24h: asset.change24h + (Math.random() - 0.5) * 0.3,
+        }));
+
+        setCachedOracleData(timeRange, updatedOracleData);
+        setCachedAssets(timeRange, updatedAssets);
+        setCachedTrendData(timeRange, newTrendData);
+
+        setTrendData(newTrendData);
+        setOracleData(updatedOracleData);
+        setAssets(updatedAssets);
+        setLastUpdated(new Date());
+        setRefreshStatus('success');
+        setShowRefreshSuccess(true);
+        setTimeout(() => setShowRefreshSuccess(false), 2000);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        logger.error(
+          'Error fetching mock data',
+          err instanceof Error ? err : new Error(errorMessage)
+        );
+        setError(`数据获取失败: ${errorMessage}`);
+        setRefreshStatus('error');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [getTimeRangeHours]
+  );
+
+  const fetchData = useCallback(
+    async (forceRefresh: boolean = false) => {
+      if (USE_REAL_API) {
+        await fetchDataFromApi(forceRefresh);
       } else {
-        logger.warn('Failed to fetch asset data from API, using mock data');
-        newAssets = MOCK_ASSETS;
-        hasError = true;
+        await fetchMockData(forceRefresh);
       }
+    },
+    [fetchDataFromApi, fetchMockData]
+  );
 
-      const newTrendData = generateTVSTrendData(hours, newOracleData);
+  const fetchEnhancedData = useCallback(async (forceRefresh: boolean = false) => {
+    const timeRange = selectedTimeRangeRef.current;
 
-      setOracleData(newOracleData);
-      setAssets(newAssets);
-      setTrendData(newTrendData);
-      setLastUpdated(new Date());
-      setRefreshStatus(hasError ? 'error' : 'success');
-      setShowRefreshSuccess(!hasError);
-      setTimeout(() => setShowRefreshSuccess(false), 2000);
+    if (!forceRefresh) {
+      const cachedChainBreakdown = getCachedChainBreakdown(timeRange);
+      const cachedProtocolDetails = getCachedProtocolDetails(timeRange);
+      const cachedAssetCategories = getCachedAssetCategories(timeRange);
 
-      if (hasError) {
-        setError('部分数据获取失败，已使用本地数据');
+      if (cachedChainBreakdown && cachedProtocolDetails && cachedAssetCategories) {
+        logger.debug(`Using cached enhanced data for timeRange: ${timeRange}`);
+        setChainBreakdown(cachedChainBreakdown);
+        setProtocolDetails(cachedProtocolDetails);
+        setAssetCategories(cachedAssetCategories);
+        return;
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      logger.error(
-        'Error fetching market data from API',
-        err instanceof Error ? err : new Error(errorMessage)
-      );
-
-      const hours = getTimeRangeHours(selectedTimeRange);
-      setOracleData(MOCK_ORACLE_DATA);
-      setAssets(MOCK_ASSETS);
-      setTrendData(generateTVSTrendData(hours, MOCK_ORACLE_DATA));
-      setIsUsingMockData(true);
-      setError(`数据获取失败: ${errorMessage}`);
-      setRefreshStatus('error');
-    } finally {
-      setIsLoading(false);
     }
-  }, [getTimeRangeHours]);
 
-  const fetchMockData = useCallback(async () => {
-    setRefreshStatus('refreshing');
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      const hours = getTimeRangeHours(selectedTimeRangeRef.current);
-      const newTrendData = generateTVSTrendData(hours);
-
-      const updatedOracleData = oracleDataRef.current.map((oracle) => ({
-        ...oracle,
-        change24h: oracle.change24h + (Math.random() - 0.5) * 0.5,
-        tvsValue: oracle.tvsValue * (1 + (Math.random() - 0.5) * 0.01),
-      }));
-
-      const updatedAssets = assetsRef.current.map((asset) => ({
-        ...asset,
-        price: asset.price * (1 + (Math.random() - 0.5) * 0.005),
-        change24h: asset.change24h + (Math.random() - 0.5) * 0.3,
-      }));
-
-      setTrendData(newTrendData);
-      setOracleData(updatedOracleData);
-      setAssets(updatedAssets);
-      setLastUpdated(new Date());
-      setRefreshStatus('success');
-      setShowRefreshSuccess(true);
-      setTimeout(() => setShowRefreshSuccess(false), 2000);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      logger.error(
-        'Error fetching mock data',
-        err instanceof Error ? err : new Error(errorMessage)
-      );
-      setError(`数据获取失败: ${errorMessage}`);
-      setRefreshStatus('error');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [getTimeRangeHours]);
-
-  const fetchData = useCallback(async () => {
-    if (USE_REAL_API) {
-      await fetchDataFromApi();
-    } else {
-      await fetchMockData();
-    }
-  }, [fetchDataFromApi, fetchMockData]);
-
-  const fetchEnhancedData = useCallback(async () => {
     setIsLoadingEnhanced(true);
     try {
       const [chains, protocols, categories] = await Promise.all([
@@ -261,6 +357,11 @@ export function useDataFetching(): UseDataFetchingReturn {
         fetchProtocolDetails(),
         fetchAssetCategories(),
       ]);
+
+      setCachedChainBreakdown(timeRange, chains);
+      setCachedProtocolDetails(timeRange, protocols);
+      setCachedAssetCategories(timeRange, categories);
+
       setChainBreakdown(chains);
       setProtocolDetails(protocols);
       setAssetCategories(categories);
@@ -274,14 +375,35 @@ export function useDataFetching(): UseDataFetchingReturn {
     }
   }, []);
 
-  const fetchComparisonDataCallback = useCallback(async () => {
+  const fetchComparisonDataCallback = useCallback(async (forceRefresh: boolean = false) => {
+    const timeRange = selectedTimeRangeRef.current;
+
+    if (!forceRefresh) {
+      const cachedComparisonData = getCachedComparisonData(timeRange);
+      const cachedBenchmarkData = getCachedBenchmarkData(timeRange);
+      const cachedCorrelationData = getCachedCorrelationData(timeRange);
+
+      if (cachedComparisonData && cachedBenchmarkData && cachedCorrelationData) {
+        logger.debug(`Using cached comparison data for timeRange: ${timeRange}`);
+        setComparisonData(cachedComparisonData);
+        setBenchmarkData(cachedBenchmarkData);
+        setCorrelationData(cachedCorrelationData);
+        return;
+      }
+    }
+
     setIsLoadingComparison(true);
     try {
       const [comparison, benchmark, correlation] = await Promise.all([
         fetchComparisonData(),
         fetchBenchmarkData(),
-        calculateCorrelation(selectedTimeRange),
+        calculateCorrelation(timeRange),
       ]);
+
+      setCachedComparisonData(timeRange, comparison);
+      setCachedBenchmarkData(timeRange, benchmark);
+      setCachedCorrelationData(timeRange, correlation);
+
       setComparisonData(comparison);
       setBenchmarkData(benchmark);
       setCorrelationData(correlation);
@@ -293,14 +415,26 @@ export function useDataFetching(): UseDataFetchingReturn {
     } finally {
       setIsLoadingComparison(false);
     }
-  }, [selectedTimeRange]);
+  }, []);
 
-  const fetchRiskMetricsCallback = useCallback(async () => {
+  const fetchRiskMetricsCallback = useCallback(async (forceRefresh: boolean = false) => {
+    const timeRange = selectedTimeRangeRef.current;
+
+    if (!forceRefresh) {
+      const cachedRiskMetrics = getCachedRiskMetrics(timeRange);
+      if (cachedRiskMetrics !== undefined) {
+        logger.debug(`Using cached risk metrics for timeRange: ${timeRange}`);
+        setRiskMetrics(cachedRiskMetrics);
+        return;
+      }
+    }
+
     setIsLoadingRiskMetrics(true);
     try {
       const currentOracleData = oracleDataRef.current;
       if (currentOracleData.length > 0) {
         const metrics = await fetchRiskMetrics(currentOracleData);
+        setCachedRiskMetrics(timeRange, metrics);
         setRiskMetrics(metrics);
       }
     } catch (err) {
@@ -313,13 +447,25 @@ export function useDataFetching(): UseDataFetchingReturn {
     }
   }, []);
 
-  const detectAnomaliesCallback = useCallback(async () => {
+  const detectAnomaliesCallback = useCallback(async (forceRefresh: boolean = false) => {
+    const timeRange = selectedTimeRangeRef.current;
+
+    if (!forceRefresh) {
+      const cachedAnomalies = getCachedAnomalies(timeRange);
+      if (cachedAnomalies) {
+        logger.debug(`Using cached anomalies for timeRange: ${timeRange}`);
+        setAnomalies(cachedAnomalies);
+        return;
+      }
+    }
+
     setIsLoadingAnomalies(true);
     try {
       const currentOracleData = oracleDataRef.current;
       const currentAssets = assetsRef.current;
       if (currentOracleData.length > 0 && currentAssets.length > 0) {
         const detectedAnomalies = await detectAnomalies(currentOracleData, currentAssets);
+        setCachedAnomalies(timeRange, detectedAnomalies);
         setAnomalies(detectedAnomalies);
       }
     } catch (err) {
@@ -336,27 +482,48 @@ export function useDataFetching(): UseDataFetchingReturn {
     setAnomalies((prev) => prev.map((a) => (a.id === id ? { ...a, acknowledged: true } : a)));
   }, []);
 
+  const clearCache = useCallback(() => {
+    dataCache.clearAll();
+    logger.info('Cache cleared by user');
+  }, []);
+
+  const clearExpiredCache = useCallback(() => {
+    const count = dataCache.clearExpired();
+    logger.info(`Cleared ${count} expired cache entries`);
+    return count;
+  }, []);
+
   useEffect(() => {
     fetchData();
     fetchEnhancedData();
     fetchComparisonDataCallback();
     fetchRiskMetricsCallback();
     detectAnomaliesCallback();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (lastUpdated !== null) {
       fetchData();
     }
-  }, [selectedTimeRange, fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTimeRange]);
 
   useEffect(() => {
     if (refreshInterval === 0) return;
     const intervalId = setInterval(() => {
-      fetchData();
+      fetchData(true);
     }, refreshInterval);
     return () => clearInterval(intervalId);
   }, [refreshInterval, fetchData]);
+
+  const [cacheStats, setCacheStats] = useState<CacheStats>(() => dataCache.getStats());
+
+  useEffect(() => {
+    const updateStats = () => setCacheStats(dataCache.getStats());
+    const intervalId = setInterval(updateStats, 5000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   return {
     oracleData,
@@ -393,5 +560,8 @@ export function useDataFetching(): UseDataFetchingReturn {
     setAssets,
     setTrendData,
     setLastUpdated,
+    cacheStats,
+    clearCache,
+    clearExpiredCache,
   };
 }

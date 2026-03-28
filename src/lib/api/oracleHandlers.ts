@@ -143,9 +143,7 @@ export async function fetchPriceFromOracle(params: OracleQueryParams): Promise<P
   return client.getPrice(params.symbol, params.chain);
 }
 
-export async function fetchHistoricalFromOracle(
-  params: OracleQueryParams
-): Promise<PriceData[]> {
+export async function fetchHistoricalFromOracle(params: OracleQueryParams): Promise<PriceData[]> {
   const client = getOracleClient(params.provider);
   if (!client) {
     throw new NotFoundError(`Oracle provider not found: ${params.provider}`);

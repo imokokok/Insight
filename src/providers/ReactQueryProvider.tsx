@@ -17,14 +17,14 @@ export const STALE_TIME_CONFIG = {
   price: 30 * 1000,
   history: 5 * 60 * 1000,
   network: 60 * 1000,
-  default: 5 * 60 * 1000,
+  default: 30 * 1000,
 } as const;
 
 export const GC_TIME_CONFIG = {
-  price: 60 * 1000,
-  history: 10 * 60 * 1000,
-  network: 2 * 60 * 1000,
-  default: 10 * 60 * 1000,
+  price: 5 * 60 * 1000,
+  history: 5 * 60 * 1000,
+  network: 5 * 60 * 1000,
+  default: 5 * 60 * 1000,
 } as const;
 
 export const REFETCH_INTERVAL_CONFIG = {
@@ -49,7 +49,7 @@ export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
               if (isAppError(error) && !error.isOperational) {
                 return false;
               }
-              if (failureCount >= 3) {
+              if (failureCount >= 2) {
                 return false;
               }
               return true;

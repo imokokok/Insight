@@ -175,13 +175,18 @@ function calculateReliabilityScore(
 /**
  * 格式化时间差 - 使用翻译函数
  */
-function formatTimeAgo(date: Date, t: (key: string, params?: Record<string, string | number>) => string): string {
+function formatTimeAgo(
+  date: Date,
+  t: (key: string, params?: Record<string, string | number>) => string
+): string {
   const now = new Date();
   const diffSeconds = Math.max(0, Math.floor((now.getTime() - new Date(date).getTime()) / 1000));
 
   if (diffSeconds < 60) return t('dataQuality.secondsAgo', { seconds: diffSeconds });
-  if (diffSeconds < 3600) return t('dataQuality.minutesAgo', { minutes: Math.floor(diffSeconds / 60) });
-  if (diffSeconds < 86400) return t('dataQuality.hoursAgo', { hours: Math.floor(diffSeconds / 3600) });
+  if (diffSeconds < 3600)
+    return t('dataQuality.minutesAgo', { minutes: Math.floor(diffSeconds / 60) });
+  if (diffSeconds < 86400)
+    return t('dataQuality.hoursAgo', { hours: Math.floor(diffSeconds / 3600) });
   return t('dataQuality.daysAgo', { days: Math.floor(diffSeconds / 86400) });
 }
 
@@ -207,7 +212,9 @@ function CircularProgress({
   className,
   showValue = true,
   t,
-}: CircularProgressProps & { t: (key: string, params?: Record<string, string | number>) => string }) {
+}: CircularProgressProps & {
+  t: (key: string, params?: Record<string, string | number>) => string;
+}) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(100, Math.max(0, value));
@@ -250,7 +257,9 @@ function CircularProgress({
       {showValue && (
         <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
           <span className={cn('font-bold', fontSize, colors.text)}>{value}</span>
-          {valueStr.length < 3 && <span className="text-[8px] text-gray-400 mt-0.5">{t('dataQuality.score')}</span>}
+          {valueStr.length < 3 && (
+            <span className="text-[8px] text-gray-400 mt-0.5">{t('dataQuality.score')}</span>
+          )}
         </div>
       )}
     </div>
@@ -381,7 +390,15 @@ interface ScoreCardProps {
   compact?: boolean;
 }
 
-function ScoreCard({ title, score, icon, description, details, compact, t }: ScoreCardProps & { t: (key: string, params?: Record<string, string | number>) => string }) {
+function ScoreCard({
+  title,
+  score,
+  icon,
+  description,
+  details,
+  compact,
+  t,
+}: ScoreCardProps & { t: (key: string, params?: Record<string, string | number>) => string }) {
   const level = getQualityLevel(score);
   const colors = getQualityColorConfig(level);
 
@@ -455,7 +472,10 @@ function ScoreCard({ title, score, icon, description, details, compact, t }: Sco
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-              <p className={cn('text-2xl font-bold mt-0.5', colors.text)}>{score}{t('dataQuality.score')}</p>
+              <p className={cn('text-2xl font-bold mt-0.5', colors.text)}>
+                {score}
+                {t('dataQuality.score')}
+              </p>
             </div>
           </div>
           <div
@@ -466,7 +486,11 @@ function ScoreCard({ title, score, icon, description, details, compact, t }: Sco
               colors.text
             )}
           >
-            {level === 'excellent' ? t('dataQuality.excellent') : level === 'good' ? t('dataQuality.good') : t('dataQuality.critical')}
+            {level === 'excellent'
+              ? t('dataQuality.excellent')
+              : level === 'good'
+                ? t('dataQuality.good')
+                : t('dataQuality.critical')}
           </div>
         </div>
       </div>
@@ -482,7 +506,13 @@ interface QualityDashboardProps {
   compact?: boolean;
 }
 
-function QualityDashboard({ scores, compact, t }: QualityDashboardProps & { t: (key: string, params?: Record<string, string | number>) => string }) {
+function QualityDashboard({
+  scores,
+  compact,
+  t,
+}: QualityDashboardProps & {
+  t: (key: string, params?: Record<string, string | number>) => string;
+}) {
   const level = getQualityLevel(scores.overall);
   const colors = getQualityColorConfig(level);
 
@@ -493,9 +523,18 @@ function QualityDashboard({ scores, compact, t }: QualityDashboardProps & { t: (
           <div className="space-y-2">
             <p className="font-medium">{t('dataQuality.overallScore')}</p>
             <div className="space-y-1 text-sm text-gray-300">
-              <p>{t('dataQuality.freshness')}: {scores.freshness}{t('dataQuality.score')}</p>
-              <p>{t('dataQuality.completeness')}: {scores.completeness}{t('dataQuality.score')}</p>
-              <p>{t('dataQuality.reliability')}: {scores.reliability}{t('dataQuality.score')}</p>
+              <p>
+                {t('dataQuality.freshness')}: {scores.freshness}
+                {t('dataQuality.score')}
+              </p>
+              <p>
+                {t('dataQuality.completeness')}: {scores.completeness}
+                {t('dataQuality.score')}
+              </p>
+              <p>
+                {t('dataQuality.reliability')}: {scores.reliability}
+                {t('dataQuality.score')}
+              </p>
             </div>
           </div>
         }
@@ -510,15 +549,28 @@ function QualityDashboard({ scores, compact, t }: QualityDashboardProps & { t: (
             'hover:shadow-md cursor-pointer transition-all duration-200'
           )}
         >
-          <CircularProgress value={scores.overall} size={44} strokeWidth={4} showValue={true} t={t} />
+          <CircularProgress
+            value={scores.overall}
+            size={44}
+            strokeWidth={4}
+            showValue={true}
+            t={t}
+          />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-gray-600 dark:text-gray-300">{t('dataQuality.overallScore')}</p>
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-300">
+              {t('dataQuality.overallScore')}
+            </p>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className={cn('text-sm font-bold', colors.text)}>
-                {level === 'excellent' ? t('dataQuality.excellent') : level === 'good' ? t('dataQuality.good') : t('dataQuality.critical')}
+                {level === 'excellent'
+                  ? t('dataQuality.excellent')
+                  : level === 'good'
+                    ? t('dataQuality.good')
+                    : t('dataQuality.critical')}
               </span>
               <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                {scores.overall}{t('dataQuality.score')}
+                {scores.overall}
+                {t('dataQuality.score')}
               </span>
             </div>
             {/* 迷你三维度进度条 */}
@@ -604,8 +656,13 @@ function QualityDashboard({ scores, compact, t }: QualityDashboardProps & { t: (
         </div>
 
         <div className="flex-1">
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('dataQuality.qualityAssessment')}</h4>
-          <p className={cn('text-3xl font-bold mt-1', colors.text)}>{scores.overall}{t('dataQuality.score')}</p>
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {t('dataQuality.qualityAssessment')}
+          </h4>
+          <p className={cn('text-3xl font-bold mt-1', colors.text)}>
+            {scores.overall}
+            {t('dataQuality.score')}
+          </p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {level === 'excellent'
               ? t('dataQuality.qualityExcellent')
@@ -701,9 +758,16 @@ export function DataQualityIndicators({
           description={t('dataQuality.freshnessTrendDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>{t('dataQuality.lastUpdated')}: {formatTimeAgo(freshness.lastUpdated, t)}</p>
-              <p>{t('dataQuality.updatedAt')}: {new Date(freshness.lastUpdated).toLocaleString()}</p>
-              <p className="text-gray-400 mt-1">{t('dataQuality.score')}: {scores.freshness}{t('dataQuality.score')}</p>
+              <p>
+                {t('dataQuality.lastUpdated')}: {formatTimeAgo(freshness.lastUpdated, t)}
+              </p>
+              <p>
+                {t('dataQuality.updatedAt')}: {new Date(freshness.lastUpdated).toLocaleString()}
+              </p>
+              <p className="text-gray-400 mt-1">
+                {t('dataQuality.score')}: {scores.freshness}
+                {t('dataQuality.score')}
+              </p>
             </div>
           }
           primaryMetric={{ label: '', value: formatTimeAgo(freshness.lastUpdated, t) }}
@@ -717,9 +781,15 @@ export function DataQualityIndicators({
           description={t('dataQuality.completenessDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>{t('dataQuality.success')}: {completeness.successCount.toLocaleString()}</p>
-              <p>{t('dataQuality.total')}: {completeness.totalCount.toLocaleString()}</p>
-              <p>{t('dataQuality.successRate')}: {completenessRate}%</p>
+              <p>
+                {t('dataQuality.success')}: {completeness.successCount.toLocaleString()}
+              </p>
+              <p>
+                {t('dataQuality.total')}: {completeness.totalCount.toLocaleString()}
+              </p>
+              <p>
+                {t('dataQuality.successRate')}: {completenessRate}%
+              </p>
             </div>
           }
           primaryMetric={{ label: '', value: `${completenessRate}%` }}
@@ -736,9 +806,16 @@ export function DataQualityIndicators({
           description={t('dataQuality.reliabilityDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>{t('dataQuality.historicalAccuracy')}: {reliability.historicalAccuracy.toFixed(1)}%</p>
-              <p>{t('dataQuality.responseSuccessRate')}: {reliability.responseSuccessRate.toFixed(1)}%</p>
-              <p className="text-gray-400 mt-1">{t('dataQuality.weight')}: {t('dataQuality.weightDescription')}</p>
+              <p>
+                {t('dataQuality.historicalAccuracy')}: {reliability.historicalAccuracy.toFixed(1)}%
+              </p>
+              <p>
+                {t('dataQuality.responseSuccessRate')}: {reliability.responseSuccessRate.toFixed(1)}
+                %
+              </p>
+              <p className="text-gray-400 mt-1">
+                {t('dataQuality.weight')}: {t('dataQuality.weightDescription')}
+              </p>
             </div>
           }
           primaryMetric={{ label: '', value: `${reliability.historicalAccuracy.toFixed(1)}%` }}
@@ -767,11 +844,13 @@ export function DataQualityIndicators({
           description={t('dataQuality.freshnessTrendDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>{t('dataQuality.lastUpdated')}: {formatTimeAgo(freshness.lastUpdated, t)}</p>
-              <p>{t('dataQuality.updatedAt')}: {new Date(freshness.lastUpdated).toLocaleString()}</p>
-              <p className="text-gray-400 mt-2">
-                {t('dataQuality.scoringRules')}
+              <p>
+                {t('dataQuality.lastUpdated')}: {formatTimeAgo(freshness.lastUpdated, t)}
               </p>
+              <p>
+                {t('dataQuality.updatedAt')}: {new Date(freshness.lastUpdated).toLocaleString()}
+              </p>
+              <p className="text-gray-400 mt-2">{t('dataQuality.scoringRules')}</p>
             </div>
           }
           t={t}
@@ -783,8 +862,12 @@ export function DataQualityIndicators({
           description={t('dataQuality.completenessDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>{t('dataQuality.success')}: {completeness.successCount.toLocaleString()}</p>
-              <p>{t('dataQuality.total')}: {completeness.totalCount.toLocaleString()}</p>
+              <p>
+                {t('dataQuality.success')}: {completeness.successCount.toLocaleString()}
+              </p>
+              <p>
+                {t('dataQuality.total')}: {completeness.totalCount.toLocaleString()}
+              </p>
               <p>
                 {t('dataQuality.successRate')}:{' '}
                 {completeness.totalCount > 0
@@ -803,9 +886,16 @@ export function DataQualityIndicators({
           description={t('dataQuality.reliabilityDesc')}
           details={
             <div className="space-y-1 text-sm">
-              <p>{t('dataQuality.historicalAccuracy')}: {reliability.historicalAccuracy.toFixed(1)}%</p>
-              <p>{t('dataQuality.responseSuccessRate')}: {reliability.responseSuccessRate.toFixed(1)}%</p>
-              <p className="text-gray-400 mt-2">{t('dataQuality.weight')}: {t('dataQuality.weightDescription')}</p>
+              <p>
+                {t('dataQuality.historicalAccuracy')}: {reliability.historicalAccuracy.toFixed(1)}%
+              </p>
+              <p>
+                {t('dataQuality.responseSuccessRate')}: {reliability.responseSuccessRate.toFixed(1)}
+                %
+              </p>
+              <p className="text-gray-400 mt-2">
+                {t('dataQuality.weight')}: {t('dataQuality.weightDescription')}
+              </p>
             </div>
           }
           t={t}

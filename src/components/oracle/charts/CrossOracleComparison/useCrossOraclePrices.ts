@@ -184,19 +184,22 @@ export function useCrossOraclePrices({
 export function useCrossOracleHistory() {
   const queryClient = useQueryClient();
 
-  const clearHistory = useCallback((provider?: OracleProvider) => {
-    if (provider) {
-      queryClient.removeQueries({
-        queryKey: [CROSS_ORACLE_QUERY_KEY, 'price', provider],
-        exact: false,
-      });
-    } else {
-      queryClient.removeQueries({
-        queryKey: [CROSS_ORACLE_QUERY_KEY],
-        exact: false,
-      });
-    }
-  }, [queryClient]);
+  const clearHistory = useCallback(
+    (provider?: OracleProvider) => {
+      if (provider) {
+        queryClient.removeQueries({
+          queryKey: [CROSS_ORACLE_QUERY_KEY, 'price', provider],
+          exact: false,
+        });
+      } else {
+        queryClient.removeQueries({
+          queryKey: [CROSS_ORACLE_QUERY_KEY],
+          exact: false,
+        });
+      }
+    },
+    [queryClient]
+  );
 
   const prefetchOraclePrices = useCallback(
     async (symbol: string, providers: OracleProvider[]) => {
