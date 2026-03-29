@@ -318,8 +318,8 @@ function MessageStatusBadge({ status, t }: { status: CrossChainMessage['status']
   const config = {
     pending: { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', label: t('uma.crossChain.pending') },
     validating: { icon: RefreshCw, color: 'text-blue-600', bg: 'bg-blue-50', label: t('uma.crossChain.processing') },
-    confirmed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Confirmed' },
-    failed: { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50', label: 'Failed' },
+    confirmed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: t('uma.crossChain.confirmed') },
+    failed: { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50', label: t('uma.crossChain.failed') },
   };
 
   const { icon: Icon, color, bg, label } = config[status];
@@ -375,7 +375,7 @@ function SeverityBadge({ severity, t }: { severity: RiskPoint['severity']; t: Re
     low: { color: 'text-blue-600', bg: 'bg-blue-50', label: t('uma.risk.statusLow') },
     medium: { color: 'text-amber-600', bg: 'bg-amber-50', label: t('uma.risk.statusMedium') },
     high: { color: 'text-orange-600', bg: 'bg-orange-50', label: t('uma.risk.statusHigh') },
-    critical: { color: 'text-red-600', bg: 'bg-red-50', label: 'Critical' },
+    critical: { color: 'text-red-600', bg: 'bg-red-50', label: t('uma.risk.statusCritical') },
   };
 
   const { color, bg, label } = config[severity];
@@ -470,10 +470,10 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
   const formatTime = (timestamp: number) => {
     const diff = Date.now() - timestamp;
     const minutes = Math.floor(diff / 60000);
-    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 60) return t('common.timeAgo.minutes', { count: minutes });
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
+    if (hours < 24) return t('common.timeAgo.hours', { count: hours });
+    return t('common.timeAgo.days', { count: Math.floor(hours / 24) });
   };
 
   const getSecurityStatusText = (score: number) => {
@@ -632,7 +632,7 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
                             : 'bg-red-50 text-red-600'
                       )}
                     >
-                      {validator.syncStatus}
+                      {t(`uma.syncStatus.${validator.syncStatus}`)}
                     </span>
                   </div>
                   <div className="space-y-2 text-sm">
@@ -699,7 +699,7 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
                           {health.status === 'healthy' && <CheckCircle className="w-3 h-3" />}
                           {health.status === 'degraded' && <AlertTriangle className="w-3 h-3" />}
                           {health.status === 'down' && <AlertCircle className="w-3 h-3" />}
-                          {health.status}
+                          {t(`uma.bridgeStatus.${health.status}`)}
                         </span>
                       </td>
                       <td className="py-2 px-3 text-gray-600">{health.latency}ms</td>
@@ -828,7 +828,7 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
                             : 'bg-red-50 text-red-600'
                       )}
                     >
-                      {component.status}
+                      {t(`uma.componentStatus.${component.status}`)}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">

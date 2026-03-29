@@ -43,7 +43,7 @@ export function DIAStakingView() {
 
   // 格式化历史数据用于图表
   const chartData = historicalApr.map((point) => ({
-    date: new Date(point.timestamp).toLocaleDateString('zh-CN', {
+    date: new Date(point.timestamp).toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
     }),
@@ -198,7 +198,7 @@ export function DIAStakingView() {
           <h3 className="text-base font-semibold text-gray-900">
             {t('dia.staking.historicalApr')}
           </h3>
-          <p className="text-sm text-gray-500 mt-0.5">APR trend over time</p>
+          <p className="text-sm text-gray-500 mt-0.5">{t('dia.staking.aprTrendDesc')}</p>
         </div>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">

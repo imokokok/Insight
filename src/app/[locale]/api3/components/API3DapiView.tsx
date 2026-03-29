@@ -133,12 +133,12 @@ export function API3DapiView(props: API3DapiViewProps) {
   }, [props.dataSources, props.useRealData, sourceTraceQuery.sourceTrace]);
 
   const categories = useMemo(() => [
-    { id: 'all', label: 'All', count: dapiFeeds.length },
-    { id: 'crypto', label: 'Crypto', count: dapiFeeds.filter((f: DapiFeed) => f.category === 'crypto').length },
-    { id: 'forex', label: 'Forex', count: dapiFeeds.filter((f: DapiFeed) => f.category === 'forex').length },
-    { id: 'commodities', label: 'Commodities', count: dapiFeeds.filter((f: DapiFeed) => f.category === 'commodities').length },
-    { id: 'stocks', label: 'Stocks', count: dapiFeeds.filter((f: DapiFeed) => f.category === 'stocks').length },
-  ], [dapiFeeds]);
+    { id: 'all', label: t('api3.dapi.categoryLabels.all'), count: dapiFeeds.length },
+    { id: 'crypto', label: t('api3.dapi.categoryLabels.crypto'), count: dapiFeeds.filter((f: DapiFeed) => f.category === 'crypto').length },
+    { id: 'forex', label: t('api3.dapi.categoryLabels.forex'), count: dapiFeeds.filter((f: DapiFeed) => f.category === 'forex').length },
+    { id: 'commodities', label: t('api3.dapi.categoryLabels.commodities'), count: dapiFeeds.filter((f: DapiFeed) => f.category === 'commodities').length },
+    { id: 'stocks', label: t('api3.dapi.categoryLabels.stocks'), count: dapiFeeds.filter((f: DapiFeed) => f.category === 'stocks').length },
+  ], [dapiFeeds, t]);
 
   const historicalSeries = useMemo((): DataSeries[] => {
     if (props.useRealData && historicalQuery.historicalData) {
@@ -215,10 +215,10 @@ export function API3DapiView(props: API3DapiViewProps) {
     [selectedCategory, dapiFeeds]);
 
   const columns = [
-    { key: 'name', header: t('api3.dapi.name') || 'Name', sortable: true },
+    { key: 'name', header: t('api3.dapi.name'), sortable: true },
     {
       key: 'category',
-      header: t('api3.dapi.category') || 'Category',
+      header: t('api3.dapi.category'),
       sortable: true,
       render: (item: DapiFeed) => (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 capitalize">
@@ -228,17 +228,17 @@ export function API3DapiView(props: API3DapiViewProps) {
     },
     {
       key: 'updateFrequency',
-      header: t('api3.dapi.frequency') || 'Update Frequency',
+      header: t('api3.dapi.frequency'),
       sortable: true,
     },
     {
       key: 'deviationThreshold',
-      header: t('api3.dapi.threshold') || 'Deviation Threshold',
+      header: t('api3.dapi.threshold'),
       sortable: true,
     },
     {
       key: 'status',
-      header: t('api3.dapi.status') || 'Status',
+      header: t('api3.dapi.status'),
       sortable: true,
       render: (item: DapiFeed) => (
         <span
@@ -265,13 +265,13 @@ export function API3DapiView(props: API3DapiViewProps) {
     },
     {
       key: 'totalRequests',
-      header: t('api3.dapi.requests') || 'Requests',
+      header: t('api3.dapi.requests'),
       sortable: true,
       render: (item: DapiFeed) => `${(item.totalRequests / 1e6).toFixed(1)}M`,
     },
     {
       key: 'reliability',
-      header: t('api3.dapi.reliability') || 'Reliability',
+      header: t('api3.dapi.reliability'),
       sortable: true,
       render: (item: DapiFeed) => `${item.reliability}%`,
     },
@@ -288,7 +288,7 @@ export function API3DapiView(props: API3DapiViewProps) {
         <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300">
           <AlertTriangle className="w-4 h-4" />
           <span>
-            {t('api3.dapi.mockDataWarning') || '部分数据为模拟数据，仅供参考'}
+            {t('api3.dapi.mockDataWarning')}
           </span>
         </div>
       )}
@@ -297,7 +297,7 @@ export function API3DapiView(props: API3DapiViewProps) {
         <div className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
           <AlertTriangle className="w-4 h-4" />
           <span>
-            {t('api3.dapi.dataError') || '数据加载失败，显示备用数据'}
+            {t('api3.dapi.dataError')}
           </span>
         </div>
       )}
@@ -318,7 +318,7 @@ export function API3DapiView(props: API3DapiViewProps) {
             <Activity className="w-5 h-5 text-gray-400" />
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                {t('api3.dapi.total') || 'Total dAPIs'}
+                {t('api3.dapi.total')}
               </p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">{dapiFeeds.length}</p>
             </div>
@@ -328,7 +328,7 @@ export function API3DapiView(props: API3DapiViewProps) {
             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                {t('api3.dapi.active') || 'Active'}
+                {t('api3.dapi.active')}
               </p>
               <p className="text-xl font-semibold text-emerald-600 dark:text-emerald-400">
                 {dapiFeeds.filter((f: DapiFeed) => f.status === 'active').length}
@@ -340,7 +340,7 @@ export function API3DapiView(props: API3DapiViewProps) {
             <TrendingUp className="w-5 h-5 text-gray-400" />
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                {t('api3.dapi.totalRequests') || 'Total Requests'}
+                {t('api3.dapi.totalRequests')}
               </p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">
                 {(dapiFeeds.reduce((acc: number, f: DapiFeed) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
@@ -352,7 +352,7 @@ export function API3DapiView(props: API3DapiViewProps) {
             <Clock className="w-5 h-5 text-gray-400" />
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                {t('api3.dapi.avgReliability') || 'Avg Reliability'}
+                {t('api3.dapi.avgReliability')}
               </p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">
                 {(
@@ -402,7 +402,7 @@ export function API3DapiView(props: API3DapiViewProps) {
 
       <div>
         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-          {t('api3.dapi.dataFeeds') || 'Data Feeds'}
+          {t('api3.dapi.dataFeeds')}
         </h3>
         <ChainlinkDataTable
           data={filteredFeeds as unknown as Record<string, unknown>[]}
@@ -420,39 +420,35 @@ export function API3DapiView(props: API3DapiViewProps) {
 
       <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-          {t('api3.dapi.about') || 'About Data Feeds'}
+          {t('api3.dapi.about')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600 dark:text-gray-400">
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900 dark:text-white">
-                {t('api3.dapi.updateFrequency') || 'Update Frequency'}:
+                {t('api3.dapi.updateFrequency')}:
               </span>{' '}
-              {t('api3.dapi.frequencyDesc') ||
-                'dAPIs are updated based on deviation thresholds and heartbeat intervals to ensure price accuracy.'}
+              {t('api3.dapi.frequencyDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900 dark:text-white">
-                {t('api3.dapi.deviationThreshold') || 'Deviation Threshold'}:
+                {t('api3.dapi.deviationThreshold')}:
               </span>{' '}
-              {t('api3.dapi.thresholdDesc') ||
-                'Minimum price change required to trigger a new on-chain update.'}
+              {t('api3.dapi.thresholdDesc')}
             </p>
           </div>
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900 dark:text-white">
-                {t('api3.dapi.reliability') || 'Reliability'}:
+                {t('api3.dapi.reliability')}:
               </span>{' '}
-              {t('api3.dapi.reliabilityDesc') ||
-                'Percentage of successful updates over the last 30 days, excluding planned maintenance.'}
+              {t('api3.dapi.reliabilityDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900 dark:text-white">
-                {t('api3.dapi.decentralization') || 'Decentralization'}:
+                {t('api3.dapi.decentralization')}:
               </span>{' '}
-              {t('api3.dapi.decentralizationDesc') ||
-                'Each dAPI is secured by multiple independent first-party oracles.'}
+              {t('api3.dapi.decentralizationDesc')}
             </p>
           </div>
         </div>

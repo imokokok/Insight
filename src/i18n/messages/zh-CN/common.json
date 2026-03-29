@@ -237,6 +237,10 @@
     "export": "导出",
     "expand": "展开",
     "collapse": "收起",
+    "retry": "重试",
+    "copy": "复制",
+    "copied": "已复制",
+    "copyFailed": "复制失败",
     "breadcrumb": {
       "home": "首页"
     },
@@ -246,6 +250,16 @@
     "warning": {
       "partialData": "部分数据加载失败",
       "partialDataDescription": "以下数据源不可用: {items}。正在显示可用数据。"
+    },
+    "timeRange": {
+      "24h": "24小时"
+    },
+    "time": {
+      "00:00": "00:00",
+      "06:00": "06:00",
+      "12:00": "12:00",
+      "18:00": "18:00",
+      "23:59": "23:59"
     }
   },
   "comparison": {

@@ -159,7 +159,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
     switch (status) {
       case 'active':
         return {
-          label: t('chronicle.validators.statusActive') || '活跃',
+          label: t('chronicle.validators.statusActive'),
           color: 'text-emerald-600',
           bgColor: 'bg-emerald-50',
           borderColor: 'border-emerald-200',
@@ -167,7 +167,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
         };
       case 'inactive':
         return {
-          label: t('chronicle.validators.statusInactive') || '不活跃',
+          label: t('chronicle.validators.statusInactive'),
           color: 'text-gray-600',
           bgColor: 'bg-gray-50',
           borderColor: 'border-gray-200',
@@ -175,7 +175,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
         };
       case 'jailed':
         return {
-          label: t('chronicle.validators.statusJailed') || '被监禁',
+          label: t('chronicle.validators.statusJailed'),
           color: 'text-red-600',
           bgColor: 'bg-red-50',
           borderColor: 'border-red-200',
@@ -196,21 +196,21 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
     switch (vote) {
       case 'approve':
         return {
-          label: t('chronicle.validators.voteApprove') || '赞成',
+          label: t('chronicle.validators.voteApprove'),
           color: 'text-emerald-600',
           bgColor: 'bg-emerald-50',
           icon: <CheckCircle className="w-3 h-3" />,
         };
       case 'reject':
         return {
-          label: t('chronicle.validators.voteReject') || '反对',
+          label: t('chronicle.validators.voteReject'),
           color: 'text-red-600',
           bgColor: 'bg-red-50',
           icon: <XCircle className="w-3 h-3" />,
         };
       case 'abstain':
         return {
-          label: t('chronicle.validators.voteAbstain') || '弃权',
+          label: t('chronicle.validators.voteAbstain'),
           color: 'text-gray-600',
           bgColor: 'bg-gray-50',
           icon: <AlertCircle className="w-3 h-3" />,
@@ -247,7 +247,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">{validator.name}</h2>
                 <p className="text-sm text-gray-500">
-                  {t('chronicle.validators.validatorId') || '验证者 ID'}: {validator.id}
+                  {t('chronicle.validators.validatorId')}: {validator.id}
                 </p>
               </div>
             </div>
@@ -277,14 +277,14 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
           <section>
             <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <User className="w-5 h-5 text-gray-500" />
-              {t('chronicle.validators.basicInfo') || '基本信息'}
+              {t('chronicle.validators.basicInfo')}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Server className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-500">
-                    {t('chronicle.validators.address') || '地址'}
+                    {t('chronicle.validators.address')}
                   </span>
                 </div>
                 <p className="text-sm font-medium text-gray-900 font-mono">{validator.address}</p>
@@ -293,7 +293,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                 <div className="flex items-center gap-2 mb-2">
                   <User className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-500">
-                    {t('chronicle.validators.operator') || '运营者'}
+                    {t('chronicle.validators.operator')}
                   </span>
                 </div>
                 <p className="text-sm font-medium text-gray-900">{validator.operator}</p>
@@ -303,7 +303,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-500">
-                    {t('chronicle.validators.joinedAt') || '加入时间'}
+                    {t('chronicle.validators.joinedAt')}
                   </span>
                 </div>
                 <p className="text-sm font-medium text-gray-900">{formatDate(validator.joinedAt)}</p>
@@ -312,7 +312,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                 <div className="flex items-center gap-2 mb-2">
                   <MapPin className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-500">
-                    {t('chronicle.validators.location') || '地理位置'}
+                    {t('chronicle.validators.location')}
                   </span>
                 </div>
                 <p className="text-sm font-medium text-gray-900">{validator.location}</p>
@@ -326,7 +326,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
           <section>
             <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Activity className="w-5 h-5 text-gray-500" />
-              {t('chronicle.validators.performanceAnalysis') || '性能分析'}
+              {t('chronicle.validators.performanceAnalysis')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -334,14 +334,14 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                   <div className="flex items-center gap-2">
                     <Zap className="w-4 h-4 text-blue-500" />
                     <span className="text-sm text-gray-500">
-                      {t('chronicle.validators.responseTimeTrend') || '响应时间趋势'}
+                      {t('chronicle.validators.responseTimeTrend')}
                     </span>
                   </div>
                   <span className="text-sm font-medium text-gray-900">{validator.responseTime}ms</span>
                 </div>
                 <MiniChart data={validator.responseTimeHistory} color="#3b82f6" height={50} />
                 <p className="text-xs text-gray-400 mt-2">
-                  {t('chronicle.validators.avgResponse') || '平均'}: {stats?.avgResponseTime}ms
+                  {t('chronicle.validators.avgResponse')}: {stats?.avgResponseTime}ms
                 </p>
               </div>
 
@@ -350,14 +350,14 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-emerald-500" />
                     <span className="text-sm text-gray-500">
-                      {t('chronicle.validators.successRateTrend') || '准确率统计'}
+                      {t('chronicle.validators.successRateTrend')}
                     </span>
                   </div>
                   <span className="text-sm font-medium text-emerald-600">{validator.successRate}%</span>
                 </div>
                 <MiniChart data={validator.successRateHistory} color="#10b981" height={50} />
                 <p className="text-xs text-gray-400 mt-2">
-                  {t('chronicle.validators.avgSuccess') || '平均'}: {stats?.avgSuccessRate}%
+                  {t('chronicle.validators.avgSuccess')}: {stats?.avgSuccessRate}%
                 </p>
               </div>
 
@@ -366,7 +366,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                   <div className="flex items-center gap-2">
                     <Award className="w-4 h-4 text-amber-500" />
                     <span className="text-sm text-gray-500">
-                      {t('chronicle.validators.reputationTrend') || '声誉变化曲线'}
+                      {t('chronicle.validators.reputationTrend')}
                     </span>
                   </div>
                   <span className="text-sm font-medium text-amber-600">{validator.reputation}</span>
@@ -374,7 +374,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                 <MiniChart data={validator.reputationHistory} color={themeColor} height={50} />
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-gray-400">
-                    {t('chronicle.validators.last30Days') || '近30天'}
+                    {t('chronicle.validators.last30Days')}
                   </span>
                   <span
                     className={cn(
@@ -399,7 +399,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
           <section>
             <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Coins className="w-5 h-5 text-gray-500" />
-              {t('chronicle.validators.stakingDetails') || '质押详情'}
+              {t('chronicle.validators.stakingDetails')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
@@ -410,7 +410,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                     </div>
                     <div>
                       <p className="text-sm text-amber-700">
-                        {t('chronicle.validators.currentStake') || '当前质押量'}
+                        {t('chronicle.validators.currentStake')}
                       </p>
                       <p className="text-2xl font-bold text-amber-900">
                         {(validator.stakedAmount / 1e6).toFixed(2)}M
@@ -430,7 +430,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-emerald-500" />
                       <span className="text-sm text-gray-500">
-                        {t('chronicle.validators.totalEarnings') || '总收益'}
+                        {t('chronicle.validators.totalEarnings')}
                       </span>
                     </div>
                     <span className="text-lg font-semibold text-emerald-600">
@@ -453,7 +453,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                   <div className="flex items-center gap-2 mb-3">
                     <Unlock className="w-4 h-4 text-blue-500" />
                     <span className="text-sm font-medium text-gray-900">
-                      {t('chronicle.validators.unlockSchedule') || '解锁计划'}
+                      {t('chronicle.validators.unlockSchedule')}
                     </span>
                   </div>
                   <div className="space-y-2">
@@ -490,7 +490,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                     ))}
                   </div>
                   <p className="text-xs text-gray-400 mt-3">
-                    {t('chronicle.validators.pendingUnlocks') || '待解锁总量'}: {(stats?.pendingUnlocks ?? 0).toLocaleString()} MKR
+                    {t('chronicle.validators.pendingUnlocks')}: {(stats?.pendingUnlocks ?? 0).toLocaleString()} MKR
                   </p>
                 </div>
 
@@ -498,19 +498,19 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                   <div className="flex items-center gap-2 mb-3">
                     <Users className="w-4 h-4 text-purple-500" />
                     <span className="text-sm font-medium text-gray-900">
-                      {t('chronicle.validators.delegationInfo') || '委托信息'}
+                      {t('chronicle.validators.delegationInfo')}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-500">
-                        {t('chronicle.validators.delegators') || '委托人数'}
+                        {t('chronicle.validators.delegators')}
                       </p>
                       <p className="text-xl font-semibold text-gray-900">{validator.delegators}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">
-                        {t('chronicle.validators.delegatedAmount') || '委托总量'}
+                        {t('chronicle.validators.delegatedAmount')}
                       </p>
                       <p className="text-xl font-semibold text-gray-900">
                         {(validator.delegatedAmount / 1e6).toFixed(2)}M
@@ -527,14 +527,14 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
           <section>
             <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Vote className="w-5 h-5 text-gray-500" />
-              {t('chronicle.validators.votingRecords') || '投票记录'}
+              {t('chronicle.validators.votingRecords')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Activity className="w-4 h-4 text-blue-500" />
                   <span className="text-sm text-gray-500">
-                    {t('chronicle.validators.participationRate') || '参与率'}
+                    {t('chronicle.validators.participationRate')}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1">
@@ -552,7 +552,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                 <div className="flex items-center gap-2 mb-2">
                   <Globe className="w-4 h-4 text-purple-500" />
                   <span className="text-sm text-gray-500">
-                    {t('chronicle.validators.consensusContribution') || '共识贡献'}
+                    {t('chronicle.validators.consensusContribution')}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1">
@@ -570,7 +570,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                 <div className="flex items-center gap-2 mb-2">
                   <Vote className="w-4 h-4 text-amber-500" />
                   <span className="text-sm text-gray-500">
-                    {t('chronicle.validators.voteStats') || '投票统计'}
+                    {t('chronicle.validators.voteStats')}
                   </span>
                 </div>
                 <div className="flex items-center gap-4 mt-2">
@@ -591,16 +591,16 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('chronicle.validators.proposal') || '提案'}
+                      {t('chronicle.validators.proposal')}
                     </th>
                     <th className="text-center py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('chronicle.validators.vote') || '投票'}
+                      {t('chronicle.validators.vote')}
                     </th>
                     <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('chronicle.validators.weight') || '权重'}
+                      {t('chronicle.validators.weight')}
                     </th>
                     <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('chronicle.validators.time') || '时间'}
+                      {t('chronicle.validators.time')}
                     </th>
                   </tr>
                 </thead>
@@ -638,7 +638,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                 <Shield className="w-5 h-5 text-amber-600 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-semibold text-amber-900">
-                    {t('chronicle.validators.validatorInfo') || '验证者信息'}
+                    {t('chronicle.validators.validatorInfo')}
                   </h4>
                   <p className="text-sm text-amber-700 mt-1">
                     {t('chronicle.validators.validatorInfoDesc') ||
@@ -656,7 +656,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
               onClick={onClose}
               className="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 transition-colors rounded-md"
             >
-              {t('chronicle.validators.close') || '关闭'}
+              {t('chronicle.validators.close')}
             </button>
           </div>
         </div>

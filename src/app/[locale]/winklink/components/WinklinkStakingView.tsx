@@ -348,7 +348,7 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
           <section className="space-y-4 border-t border-gray-100 pt-6">
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">Node Geographic Distribution</h3>
+              <h3 className="text-sm font-medium text-gray-900">{t('winklink.staking.nodeDistribution')}</h3>
             </div>
             <div className="space-y-3">
               {geographicData.map((region) => (
@@ -389,7 +389,7 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
           <section className="space-y-4 border-t border-gray-100 pt-6">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">Decentralization Score</h3>
+              <h3 className="text-sm font-medium text-gray-900">{t('winklink.staking.decentralizationScore')}</h3>
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -410,11 +410,11 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
               </div>
               <div className="text-xs text-gray-500 space-y-1">
                 <p>
-                  <span className="font-medium text-gray-700">Region Coverage:</span>{' '}
-                  {(geographicData.filter((r) => r.nodeCount > 0).length / 5) * 100}% (40 points)
+                  <span className="font-medium text-gray-700">{t('winklink.staking.regionCoverage')}:</span>{' '}
+                  {(geographicData.filter((r) => r.nodeCount > 0).length / 5) * 100}% (40 {t('winklink.staking.points')})
                 </p>
                 <p>
-                  <span className="font-medium text-gray-700">Distribution Balance:</span>{' '}
+                  <span className="font-medium text-gray-700">{t('winklink.staking.distributionBalance')}:</span>{' '}
                   {decentralizationScore > 0 ? '~' : 0}
                   {Math.max(
                     0,
@@ -428,10 +428,10 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
                         100) *
                         20)
                   ).toFixed(0)}
-                  % (40 points)
+                  % (40 {t('winklink.staking.points')})
                 </p>
                 <p>
-                  <span className="font-medium text-gray-700">Network Health:</span>{' '}
+                  <span className="font-medium text-gray-700">{t('winklink.staking.networkHealth')}:</span>{' '}
                   {(
                     (geographicData.filter((r) => r.nodeCount > 0).reduce(
                       (acc, r) => acc + r.avgUptime,
@@ -441,7 +441,7 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
                       100) *
                     100
                   ).toFixed(0)}
-                  % (20 points)
+                  % (20 {t('winklink.staking.points')})
                 </p>
               </div>
             </div>
@@ -450,7 +450,7 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
           <section className="space-y-4 border-t border-gray-100 pt-6">
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">Regional Performance</h3>
+              <h3 className="text-sm font-medium text-gray-900">{t('winklink.staking.regionalPerformance')}</h3>
             </div>
             <div className="space-y-2">
               {geographicData
@@ -470,15 +470,15 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div>
-                        <p className="text-gray-500">Uptime</p>
+                        <p className="text-gray-500">{t('winklink.staking.uptime')}</p>
                         <p className="font-medium text-gray-900">{region.avgUptime.toFixed(1)}%</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Response</p>
+                        <p className="text-gray-500">{t('winklink.staking.response')}</p>
                         <p className="font-medium text-gray-900">{region.avgResponseTime.toFixed(0)}ms</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Staked</p>
+                        <p className="text-gray-500">{t('winklink.staking.staked')}</p>
                         <p className="font-medium text-gray-900">
                           {region.totalStaked >= 1e6
                             ? `${(region.totalStaked / 1e6).toFixed(1)}M`
@@ -500,19 +500,19 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Active Rate</span>
+                <span className="text-gray-500">{t('winklink.staking.activeRate')}</span>
                 <span className="font-medium text-gray-900">
                   {((stakingData.activeNodes / stakingData.totalNodes) * 100).toFixed(1)}%
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Top Tier Nodes</span>
+                <span className="text-gray-500">{t('winklink.staking.topTierNodes')}</span>
                 <span className="font-medium text-gray-900">
                   {stakingData.stakingTiers.find((t) => t.tier === 'platinum')?.nodeCount || 0}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Tier Levels</span>
+                <span className="text-gray-500">{t('winklink.staking.tierLevels')}</span>
                 <span className="font-medium text-gray-900">{stakingData.stakingTiers.length}</span>
               </div>
             </div>

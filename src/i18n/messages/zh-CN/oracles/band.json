@@ -505,6 +505,73 @@
       "quorum": "法定人数",
       "threshold": "通过阈值",
       "vetoThreshold": "否决阈值"
+    },
+    "market": {
+      "priceTrend": "价格走势",
+      "quickStats": "快速统计",
+      "dataSource": "数据来源",
+      "tradingPair": "交易对",
+      "liquidity": "流动性",
+      "depth": "市场深度",
+      "depthScore": "深度评分"
+    },
+    "stats": {
+      "marketCap": "市值",
+      "volume24h": "24小时交易量",
+      "circulatingSupply": "流通供应量",
+      "stakingApr": "质押年化收益率",
+      "activeNodes": "活跃节点",
+      "dataFeeds": "数据馈送",
+      "responseTime": "响应时间",
+      "successRate": "成功率"
+    },
+    "categories": {
+      "crypto": "加密货币",
+      "stablecoin": "稳定币",
+      "forex": "外汇",
+      "commodities": "大宗商品",
+      "equities": "股票",
+      "sports": "体育",
+      "random": "随机数",
+      "price": "价格",
+      "custom": "自定义"
+    },
+    "status": {
+      "active": "活跃",
+      "syncing": "同步中",
+      "inactive": "非活跃",
+      "jailed": "被监禁"
+    },
+    "dataSource": {
+      "bandProtocolMarket": "Band Protocol 市场",
+      "cosmosHub": "Cosmos Hub",
+      "secondaryFeed": "次要数据源",
+      "backupNode": "备用节点"
+    },
+    "chains": {
+      "cosmosHub": "Cosmos Hub",
+      "osmosis": "Osmosis",
+      "ethereum": "Ethereum",
+      "polygon": "Polygon",
+      "avalanche": "Avalanche",
+      "fantom": "Fantom",
+      "cronos": "Cronos",
+      "juno": "Juno"
+    },
+    "errors": {
+      "loadError": "加载数据失败",
+      "failedToLoad": "无法获取数据，请重试。",
+      "retry": "重试",
+      "refresh": "刷新"
+    },
+    "common": {
+      "cancel": "取消",
+      "close": "关闭",
+      "view": "查看",
+      "details": "详情",
+      "loading": "加载中...",
+      "noData": "暂无数据",
+      "na": "无数据"
     }
   }
 }

@@ -43,10 +43,10 @@ export function DIANetworkView({ config, networkStats, isLoading }: DIANetworkVi
   ];
 
   const overviewStats = [
-    { label: t('dia.network.totalRequests') || 'Total Requests (24h)', value: '1.8M' },
-    { label: t('dia.network.avgGas') || 'Avg Gas Used', value: '42,150' },
-    { label: t('dia.network.activeChains') || 'Active Chains', value: '25+' },
-    { label: t('dia.network.dataProviders') || 'Data Providers', value: '45+' },
+    { label: t('dia.network.totalRequests'), value: '1.8M' },
+    { label: t('dia.network.avgGas'), value: '42,150' },
+    { label: t('dia.network.activeChains'), value: '25+' },
+    { label: t('dia.network.dataProviders'), value: '45+' },
   ];
 
   return (
@@ -93,7 +93,7 @@ export function DIANetworkView({ config, networkStats, isLoading }: DIANetworkVi
             <h3 className="text-base font-medium text-gray-900">
               {t('dia.network.hourlyActivity')}
             </h3>
-            <span className="text-sm text-gray-500">24h</span>
+            <span className="text-sm text-gray-500">{t('dia.network.24h')}</span>
           </div>
           <div className="h-40 flex items-end gap-0.5">
             {config.networkData.hourlyActivity?.map((value, index) => {
@@ -110,11 +110,11 @@ export function DIANetworkView({ config, networkStats, isLoading }: DIANetworkVi
             })}
           </div>
           <div className="flex justify-between text-xs text-gray-400 mt-2">
-            <span>00:00</span>
-            <span>06:00</span>
-            <span>12:00</span>
-            <span>18:00</span>
-            <span>23:59</span>
+            <span>{t('dia.time.00:00')}</span>
+            <span>{t('dia.time.06:00')}</span>
+            <span>{t('dia.time.12:00')}</span>
+            <span>{t('dia.time.18:00')}</span>
+            <span>{t('dia.time.23:59')}</span>
           </div>
         </div>
 
@@ -161,7 +161,7 @@ export function DIANetworkView({ config, networkStats, isLoading }: DIANetworkVi
       {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('dia.network.overview') || 'Network Overview'}
+          {t('dia.network.overview')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (

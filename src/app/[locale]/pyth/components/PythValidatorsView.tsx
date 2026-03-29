@@ -90,21 +90,21 @@ export function PythValidatorsView({ validators, isLoading }: PythValidatorsView
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">
-            {t('pyth.validators.total') || 'Total Validators'}
+            {t('pyth.validators.total')}
           </span>
           <span className="text-lg font-semibold text-gray-900">{totalValidators}</span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-emerald-500" />
-          <span className="text-sm text-gray-500">{t('pyth.validators.active') || 'Active'}</span>
+          <span className="text-sm text-gray-500">{t('pyth.validators.active')}</span>
           <span className="text-lg font-semibold text-emerald-600">{activeValidators}</span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">
-            {t('pyth.validators.totalStaked') || 'Total Staked'}
+            {t('pyth.validators.totalStaked')}
           </span>
           <span className="text-lg font-semibold text-gray-900">
             {(totalStake / 1e9).toFixed(2)}B PYTH
@@ -114,7 +114,7 @@ export function PythValidatorsView({ validators, isLoading }: PythValidatorsView
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">
-            {t('pyth.validators.avgUptime') || 'Avg Uptime'}
+            {t('pyth.validators.avgUptime')}
           </span>
           <span className="text-lg font-semibold text-gray-900">{avgUptime}%</span>
         </div>
@@ -130,7 +130,7 @@ export function PythValidatorsView({ validators, isLoading }: PythValidatorsView
               : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
           }`}
         >
-          {t('pyth.validators.sortByName') || 'Name'}
+          {t('pyth.validators.sortByName')}
           <ArrowUpDown className="w-3.5 h-3.5" />
         </button>
         <button
@@ -141,7 +141,7 @@ export function PythValidatorsView({ validators, isLoading }: PythValidatorsView
               : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
           }`}
         >
-          {t('pyth.validators.sortByStake') || 'Stake'}
+          {t('pyth.validators.sortByStake')}
           <ArrowUpDown className="w-3.5 h-3.5" />
         </button>
         <button
@@ -152,7 +152,7 @@ export function PythValidatorsView({ validators, isLoading }: PythValidatorsView
               : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
           }`}
         >
-          {t('pyth.validators.sortByUptime') || 'Uptime'}
+          {t('pyth.validators.sortByUptime')}
           <ArrowUpDown className="w-3.5 h-3.5" />
         </button>
         <button
@@ -163,7 +163,7 @@ export function PythValidatorsView({ validators, isLoading }: PythValidatorsView
               : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
           }`}
         >
-          {t('pyth.validators.sortByRewards') || 'Rewards'}
+          {t('pyth.validators.sortByRewards')}
           <ArrowUpDown className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -174,19 +174,19 @@ export function PythValidatorsView({ validators, isLoading }: PythValidatorsView
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
               <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                {t('pyth.validators.name') || 'Name'}
+                {t('pyth.validators.name')}
               </th>
               <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                {t('pyth.validators.status') || 'Status'}
+                {t('pyth.validators.status')}
               </th>
               <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
-                {t('pyth.validators.stake') || 'Stake'}
+                {t('pyth.validators.stake')}
               </th>
               <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
-                {t('pyth.validators.uptime') || 'Uptime'}
+                {t('pyth.validators.uptime')}
               </th>
               <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
-                {t('pyth.validators.rewards') || 'Rewards'}
+                {t('pyth.validators.rewards')}
               </th>
             </tr>
           </thead>
@@ -204,10 +204,10 @@ export function PythValidatorsView({ validators, isLoading }: PythValidatorsView
                     )}`}
                   >
                     {validator.status === 'active'
-                      ? t('pyth.validators.statusActive') || 'Active'
-                      : validator.status === 'inactive'
-                        ? t('pyth.validators.statusInactive') || 'Inactive'
-                        : t('pyth.validators.statusJailed') || 'Jailed'}
+                    ? t('pyth.validators.statusActive')
+                    : validator.status === 'inactive'
+                      ? t('pyth.validators.statusInactive')
+                      : t('pyth.validators.statusJailed')}
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right text-sm">
@@ -231,7 +231,7 @@ export function PythValidatorsView({ validators, isLoading }: PythValidatorsView
       {sortedValidators.length === 0 && (
         <div className="text-center py-12">
           <p className="text-sm text-gray-500">
-            {t('pyth.validators.noResults') || 'No validators found'}
+            {t('pyth.validators.noResults')}
           </p>
         </div>
       )}

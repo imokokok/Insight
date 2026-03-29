@@ -519,7 +519,7 @@ export function API3Hero({
       change: '+5.2%',
       changeType: 'positive',
       icon: <Wallet className="w-4 h-4" />,
-      subtitle: '7天',
+      subtitle: t('api3.hero.subtitle7d'),
     },
     {
       title: t('api3.hero.airnodeCount'),
@@ -527,7 +527,7 @@ export function API3Hero({
       change: '+3%',
       changeType: 'positive',
       icon: <Server className="w-4 h-4" />,
-      subtitle: '本月',
+      subtitle: t('api3.hero.subtitleThisMonth'),
     },
     {
       title: t('api3.hero.dapiCoverage'),
@@ -535,7 +535,7 @@ export function API3Hero({
       change: '+8%',
       changeType: 'positive',
       icon: <Database className="w-4 h-4" />,
-      subtitle: '本月',
+      subtitle: t('api3.hero.subtitleThisMonth'),
     },
     {
       title: t('api3.hero.stakingApr'),
@@ -543,7 +543,7 @@ export function API3Hero({
       change: '+2.1%',
       changeType: 'positive',
       icon: <TrendingUp className="w-4 h-4" />,
-      subtitle: '年化',
+      subtitle: t('api3.hero.subtitleAnnual'),
     },
   ];
 
@@ -650,8 +650,8 @@ export function API3Hero({
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">API3</h1>
-              <p className="text-xs text-gray-500">第一方预言机网络，实现去中心化 API 连接</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('api3.hero.title')}</h1>
+              <p className="text-xs text-gray-500">{t('api3.hero.subtitle')}</p>
             </div>
           </div>
 

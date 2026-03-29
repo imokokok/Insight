@@ -300,10 +300,10 @@ export function ChronicleCrossChainView({
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-medium text-gray-900">
-            {t('chronicle.crossChain.priceComparison') || 'Cross-Chain Price Comparison'}
+            {t('chronicle.crossChain.priceComparison')}
           </h3>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <span>{t('chronicle.crossChain.medianPrice') || 'Median'}:</span>
+            <span>{t('chronicle.crossChain.medianPrice')}:</span>
             <span className="font-medium text-gray-900">${data.medianPrice.toLocaleString()}</span>
           </div>
         </div>
@@ -312,14 +312,14 @@ export function ChronicleCrossChainView({
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('chronicle.crossChain.chain') || 'Chain'}
+                  {t('chronicle.crossChain.chain')}
                 </th>
                 <th
                   className="text-right py-3 px-4 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
                   onClick={() => handleSort('price')}
                 >
                   <div className="flex items-center justify-end gap-1">
-                    <span>{t('chronicle.crossChain.price') || 'Price'}</span>
+                    <span>{t('chronicle.crossChain.price')}</span>
                     <SortIcon columnKey="price" />
                   </div>
                 </th>
@@ -328,7 +328,7 @@ export function ChronicleCrossChainView({
                   onClick={() => handleSort('deviation')}
                 >
                   <div className="flex items-center justify-end gap-1">
-                    <span>{t('chronicle.crossChain.deviation') || 'Deviation'}</span>
+                    <span>{t('chronicle.crossChain.deviation')}</span>
                     <SortIcon columnKey="deviation" />
                   </div>
                 </th>
@@ -337,12 +337,12 @@ export function ChronicleCrossChainView({
                   onClick={() => handleSort('lastUpdate')}
                 >
                   <div className="flex items-center justify-end gap-1">
-                    <span>{t('chronicle.crossChain.lastUpdate') || 'Last Update'}</span>
+                    <span>{t('chronicle.crossChain.lastUpdate')}</span>
                     <SortIcon columnKey="lastUpdate" />
                   </div>
                 </th>
                 <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('chronicle.crossChain.status') || 'Status'}
+                  {t('chronicle.crossChain.status')}
                 </th>
               </tr>
             </thead>
@@ -377,13 +377,15 @@ export function ChronicleCrossChainView({
                   <td className="py-3 px-4 text-center">
                     <div className="flex items-center justify-center gap-1">
                       {item.status === 'active' ? (
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                      ) : item.status === 'warning' ? (
-                        <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                      ) : (
-                        <XCircle className="w-4 h-4 text-red-500" />
-                      )}
-                      <span className="text-sm text-gray-600 capitalize">{item.status}</span>
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  ) : item.status === 'warning' ? (
+                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                  ) : (
+                    <XCircle className="w-4 h-4 text-red-500" />
+                  )}
+                  <span className="text-sm text-gray-600 capitalize">
+                    {item.status === 'active' ? t('chronicle.status.active') : item.status === 'warning' ? t('chronicle.warning') : t('chronicle.status.inactive')}
+                  </span>
                     </div>
                   </td>
                 </tr>
@@ -399,7 +401,7 @@ export function ChronicleCrossChainView({
       {/* 价格偏差热力图 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chronicle.crossChain.deviationHeatmap') || 'Price Deviation Heatmap'}
+          {t('chronicle.crossChain.deviationHeatmap')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {data.prices.map((item) => (
@@ -474,7 +476,7 @@ export function ChronicleCrossChainView({
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-5 h-5 text-gray-500" />
             <h3 className="text-base font-medium text-gray-900">
-              {t('chronicle.crossChain.latencyAnalysis') || 'On-Chain Latency Analysis'}
+              {t('chronicle.crossChain.latencyAnalysis')}
             </h3>
           </div>
           <div className="space-y-4">
@@ -490,13 +492,13 @@ export function ChronicleCrossChainView({
                 <div className="flex items-center gap-6 text-sm">
                   <div className="text-right">
                     <p className="text-gray-500">
-                      {t('chronicle.crossChain.blockTime') || 'Block Time'}
+                      {t('chronicle.crossChain.blockTime')}
                     </p>
                     <p className="font-medium text-gray-900">{item.avgBlockTime}s</p>
                   </div>
                   <div className="text-right">
                     <p className="text-gray-500">
-                      {t('chronicle.crossChain.finality') || 'Finality'}
+                      {t('chronicle.crossChain.finality')}
                     </p>
                     <p className="font-medium text-gray-900">{item.finalityTime}s</p>
                   </div>
@@ -511,7 +513,7 @@ export function ChronicleCrossChainView({
           <div className="flex items-center gap-2 mb-4">
             <Fuel className="w-5 h-5 text-gray-500" />
             <h3 className="text-base font-medium text-gray-900">
-              {t('chronicle.crossChain.gasComparison') || 'Gas Fee Comparison'}
+              {t('chronicle.crossChain.gasComparison')}
             </h3>
           </div>
           <div className="space-y-4">
@@ -550,7 +552,7 @@ export function ChronicleCrossChainView({
         <div className="flex items-center gap-2 mb-4">
           <Link2 className="w-5 h-5 text-gray-500" />
           <h3 className="text-base font-medium text-gray-900">
-            {t('chronicle.crossChain.bridgeStatus') || 'Cross-Chain Bridge Status'}
+            {t('chronicle.crossChain.bridgeStatus')}
           </h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -576,7 +578,7 @@ export function ChronicleCrossChainView({
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-500">
-                    {t('chronicle.crossChain.totalTxns') || 'Total Txns'}
+                    {t('chronicle.crossChain.totalTxns')}
                   </p>
                   <p className="font-medium text-gray-900">
                     {bridge.totalTransactions.toLocaleString()}
@@ -584,7 +586,7 @@ export function ChronicleCrossChainView({
                 </div>
                 <div>
                   <p className="text-gray-500">
-                    {t('chronicle.crossChain.avgDelay') || 'Avg Delay'}
+                    {t('chronicle.crossChain.avgDelay')}
                   </p>
                   <p className="font-medium text-gray-900">{bridge.avgDelay}s</p>
                 </div>
@@ -605,7 +607,7 @@ export function ChronicleCrossChainView({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-4 bg-gray-50 rounded-lg">
         <div>
           <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.crossChain.activeChains') || 'Active Chains'}
+            {t('chronicle.crossChain.activeChains')}
           </p>
           <p className="text-2xl font-semibold text-gray-900">
             {data.prices.filter((p) => p.status === 'active').length}
@@ -613,7 +615,7 @@ export function ChronicleCrossChainView({
         </div>
         <div>
           <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.crossChain.maxDeviation') || 'Max Deviation'}
+            {t('chronicle.crossChain.maxDeviation')}
           </p>
           <p className="text-2xl font-semibold text-gray-900">
             {Math.max(...data.prices.map((p) => Math.abs(p.deviation))).toFixed(3)}%
@@ -621,7 +623,7 @@ export function ChronicleCrossChainView({
         </div>
         <div>
           <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.crossChain.activeBridges') || 'Active Bridges'}
+            {t('chronicle.crossChain.activeBridges')}
           </p>
           <p className="text-2xl font-semibold text-gray-900">
             {data.bridges.filter((b) => b.status === 'healthy').length}
@@ -629,7 +631,7 @@ export function ChronicleCrossChainView({
         </div>
         <div>
           <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.crossChain.totalBridgeTxns') || 'Total Bridge Txns'}
+            {t('chronicle.crossChain.totalBridgeTxns')}
           </p>
           <p className="text-2xl font-semibold text-gray-900">
             {data.bridges.reduce((sum, b) => sum + b.totalTransactions, 0).toLocaleString()}

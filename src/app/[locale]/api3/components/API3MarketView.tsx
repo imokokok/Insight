@@ -136,10 +136,10 @@ export function API3MarketView({
             <h3 className="text-base font-medium text-gray-900 mb-4">{t('api3.dataSource')}</h3>
             <div className="flex-1 flex flex-col">
               {[
-                { name: 'API3 Market', status: 'active', latency: '120ms' },
-                { name: 'Ethereum Mainnet', status: 'active', latency: '200ms' },
-                { name: 'Secondary Feed', status: 'active', latency: '180ms' },
-                { name: 'Backup Node', status: 'syncing', latency: '320ms' },
+                { name: t('api3.dataSources.api3Market'), status: 'active', latency: '120ms' },
+                { name: t('api3.dataSources.ethereumMainnet'), status: 'active', latency: '200ms' },
+                { name: t('api3.dataSources.secondaryFeed'), status: 'active', latency: '180ms' },
+                { name: t('api3.dataSources.backupNode'), status: 'syncing', latency: '320ms' },
               ].map((source, index) => (
                 <div
                   key={index}
@@ -164,11 +164,11 @@ export function API3MarketView({
       {/* 核心交易对信息 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('api3.tradingPair') || '主要交易对'}
+          {t('api3.tradingPair')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
-            <p className="text-xs text-gray-400 mb-1">API3/USDC</p>
+            <p className="text-xs text-gray-400 mb-1">{t('api3.tradingPairName')}</p>
             <p className="text-2xl font-semibold text-gray-900">
               ${price?.price?.toFixed(2) || '2.85'}
             </p>

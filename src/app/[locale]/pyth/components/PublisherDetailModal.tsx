@@ -56,7 +56,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
           <p key={index} className="text-sm">
             <span className="text-gray-500">{entry.name}:</span>
             <span className="ml-2 font-medium" style={{ color: entry.color }}>
-              {entry.name.includes('质押') ? `${entry.value.toFixed(1)}M` : `${entry.value.toFixed(2)}%`}
+              {entry.value.toFixed(2)}
             </span>
           </p>
         ))}
@@ -78,21 +78,21 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
     switch (status) {
       case 'active':
         return {
-          label: t('pyth.publisher.statusActive') || '活跃',
+          label: t('pyth.publisher.statusActive'),
           color: 'text-emerald-600',
           bgColor: 'bg-emerald-50',
           icon: <CheckCircle className="w-4 h-4" />,
         };
       case 'inactive':
         return {
-          label: t('pyth.publisher.statusInactive') || '不活跃',
+          label: t('pyth.publisher.statusInactive'),
           color: 'text-gray-600',
           bgColor: 'bg-gray-50',
           icon: <AlertCircle className="w-4 h-4" />,
         };
       default:
         return {
-          label: t('pyth.publisher.statusActive') || '活跃',
+          label: t('pyth.publisher.statusActive'),
           color: 'text-emerald-600',
           bgColor: 'bg-emerald-50',
           icon: <CheckCircle className="w-4 h-4" />,
@@ -122,7 +122,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">{publisher.name}</h2>
                 <p className="text-sm text-gray-500">
-                  {t('pyth.publisher.id') || 'ID'}: {publisher.id}
+                  {t('pyth.publisher.id')}: {publisher.id}
                 </p>
               </div>
             </div>
@@ -141,7 +141,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
               <div className="flex items-center gap-2 mb-2">
                 <Activity className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-500">
-                  {t('pyth.publisher.stake') || '质押量'}
+                  {t('pyth.publisher.stake')}
                 </span>
               </div>
               <p className="text-2xl font-bold text-gray-900">
@@ -154,12 +154,12 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-500">
-                  {t('pyth.publisher.accuracy') || '准确率'}
+                  {t('pyth.publisher.accuracy')}
                 </span>
               </div>
               <p className="text-2xl font-bold text-emerald-600">{publisher.accuracy}%</p>
               <p className="text-xs text-gray-400 mt-1">
-                {t('pyth.publisher.last30Days') || '近30天'}
+                {t('pyth.publisher.last30Days')}
               </p>
             </div>
 
@@ -167,14 +167,14 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
               <div className="flex items-center gap-2 mb-2">
                 <Award className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-500">
-                  {t('pyth.publisher.contribution') || '贡献度'}
+                  {t('pyth.publisher.contribution')}
                 </span>
               </div>
               <p className="text-2xl font-bold text-violet-600">
                 {(publisher.contribution ?? 0).toFixed(2)}%
               </p>
               <p className="text-xs text-gray-400 mt-1">
-                {t('pyth.publisher.networkShare') || '网络占比'}
+                {t('pyth.publisher.networkShare')}
               </p>
             </div>
 
@@ -182,7 +182,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-500">
-                  {t('pyth.publisher.status') || '状态'}
+                  {t('pyth.publisher.status')}
                 </span>
               </div>
               <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md ${statusDisplay.bgColor}`}>
@@ -196,7 +196,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
 
           <div className="border-t border-gray-200 pt-8">
             <h3 className="text-base font-semibold text-gray-900 mb-4">
-              {t('pyth.publisher.stakeHistory') || '质押历史'}
+              {t('pyth.publisher.stakeHistory')}
             </h3>
             <div style={{ height: 250 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -224,7 +224,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
                   <Area
                     type="monotone"
                     dataKey="stake"
-                    name={t('pyth.publisher.stake') || '质押量'}
+                    name={t('pyth.publisher.stake')}
                     stroke={chartColors.recharts.primary}
                     strokeWidth={2}
                     fill="url(#stakeGradient)"
@@ -236,7 +236,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
 
           <div className="border-t border-gray-200 pt-8">
             <h3 className="text-base font-semibold text-gray-900 mb-4">
-              {t('pyth.publisher.accuracyTrend') || '准确率趋势'}
+              {t('pyth.publisher.accuracyTrend')}
             </h3>
             <div style={{ height: 250 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -259,7 +259,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
                   <Line
                     type="monotone"
                     dataKey="accuracy"
-                    name={t('pyth.publisher.accuracy') || '准确率'}
+                    name={t('pyth.publisher.accuracy')}
                     stroke={chartColors.recharts.success}
                     strokeWidth={2}
                     dot={false}
@@ -272,23 +272,23 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
 
           <div className="border-t border-gray-200 pt-8">
             <h3 className="text-base font-semibold text-gray-900 mb-4">
-              {t('pyth.publisher.priceSources') || '贡献的价格源'}
+              {t('pyth.publisher.priceSources')}
             </h3>
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('pyth.publisher.sourceName') || '名称'}
+                      {t('pyth.publisher.sourceName')}
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('pyth.publisher.category') || '类别'}
+                      {t('pyth.publisher.category')}
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('pyth.publisher.lastUpdate') || '最后更新'}
+                      {t('pyth.publisher.lastUpdate')}
                     </th>
                     <th className="text-center py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('pyth.publisher.sourceStatus') || '状态'}
+                      {t('pyth.publisher.sourceStatus')}
                     </th>
                   </tr>
                 </thead>
@@ -306,7 +306,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
                               : 'bg-gray-100 text-gray-600'
                           }`}
                         >
-                          {source.status === 'active' ? '活跃' : '不活跃'}
+                          {source.status === 'active' ? t('pyth.publisher.statusActive') : t('pyth.publisher.statusInactive')}
                         </span>
                       </td>
                     </tr>
@@ -315,13 +315,13 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
               </table>
             </div>
             <p className="text-sm text-gray-500 mt-3">
-              {t('pyth.publisher.totalSources') || '总计'} {priceSources.length} {t('pyth.publisher.sources') || '个价格源'}
+              {t('pyth.publisher.totalSources')} {priceSources.length} {t('pyth.publisher.sources')}
             </p>
           </div>
 
           <div className="border-t border-gray-200 pt-8">
             <h3 className="text-base font-semibold text-gray-900 mb-4">
-              {t('pyth.publisher.performanceMetrics') || '历史表现'}
+              {t('pyth.publisher.performanceMetrics')}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {performanceMetrics.map((metric, index) => (
@@ -353,11 +353,10 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
                 <Activity className="w-5 h-5 text-violet-600 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-semibold text-violet-900">
-                    {t('pyth.publisher.info') || '发布者信息'}
+                    {t('pyth.publisher.info')}
                   </h4>
                   <p className="text-sm text-violet-700 mt-1">
-                    {t('pyth.publisher.infoDesc') ||
-                      '该发布者是 Pyth 网络的受信任数据提供者，持续为多个价格源提供高质量的市场数据。'}
+                    {t('pyth.publisher.infoDesc')}
                   </p>
                 </div>
               </div>
@@ -371,7 +370,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
               onClick={onClose}
               className="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 transition-colors rounded-md"
             >
-              {t('pyth.publisher.close') || '关闭'}
+              {t('pyth.publisher.close')}
             </button>
           </div>
         </div>

@@ -129,7 +129,7 @@ function EnhancedCoreStats({
   };
 }) {
   const displayStats = stats.slice(0, 5);
-  const t = useTranslations();
+  const t = useTranslations('tellor');
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -174,7 +174,7 @@ function EnhancedCoreStats({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-cyan-600 hover:text-cyan-700 transition-colors"
-                  title={t('tellor.reporters.viewOnEtherscan')}
+                  title={t('reporters.viewOnEtherscan')}
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
@@ -221,6 +221,7 @@ function MiniPriceChart({
   currentPrice: PriceData | null;
   themeColor: string;
 }) {
+  const t = useTranslations('tellor');
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
@@ -244,7 +245,7 @@ function MiniPriceChart({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
+          <span>{t('hero.trend24h')}</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
@@ -255,8 +256,8 @@ function MiniPriceChart({
         <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>24h{t('hero.ago')}</span>
+        <span>{t('hero.now')}</span>
       </div>
     </div>
   );
@@ -358,6 +359,8 @@ function UnifiedInfoSection({
   chains: string[];
   themeColor: string;
 }) {
+  const t = useTranslations('tellor');
+
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
     if (healthScore >= 70) return 'text-yellow-600';
@@ -372,14 +375,14 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return { label: t('hero.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return { label: t('hero.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return { label: t('hero.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: t('hero.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
   // 只显示前3个链
   const displayChains = chains.slice(0, 3);
@@ -391,7 +394,7 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('hero.health')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -414,7 +417,7 @@ function UnifiedInfoSection({
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('hero.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -430,7 +433,7 @@ function UnifiedInfoSection({
           {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('hero.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
@@ -439,7 +442,7 @@ function UnifiedInfoSection({
           {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('hero.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
@@ -452,12 +455,12 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('hero.support')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {chains.length}+ {t('hero.chains')}
           </span>
           {/* 前3个链图标 */}
           <div className="flex -space-x-1">
@@ -488,11 +491,12 @@ function QuickActions({
   actions?: { icon: React.ReactNode; label: string; onClick?: () => void }[];
   themeColor: string;
 }) {
+  const t = useTranslations('tellor');
   const defaultActions: { icon: React.ReactNode; label: string; onClick?: () => void }[] = [
-    { icon: <Bell className="w-3.5 h-3.5" />, label: '价格提醒', onClick: undefined },
-    { icon: <Plus className="w-3.5 h-3.5" />, label: '添加监控', onClick: undefined },
-    { icon: <FileText className="w-3.5 h-3.5" />, label: 'API文档', onClick: undefined },
-    { icon: <Layers className="w-3.5 h-3.5" />, label: '切换网络', onClick: undefined },
+    { icon: <Bell className="w-3.5 h-3.5" />, label: t('hero.priceAlert'), onClick: undefined },
+    { icon: <Plus className="w-3.5 h-3.5" />, label: t('hero.addMonitor'), onClick: undefined },
+    { icon: <FileText className="w-3.5 h-3.5" />, label: t('hero.apiDocs'), onClick: undefined },
+    { icon: <Layers className="w-3.5 h-3.5" />, label: t('hero.switchNetwork'), onClick: undefined },
   ];
 
   const displayActions = actions || defaultActions;
@@ -521,11 +525,12 @@ function LatestUpdates({
   updates?: { type: 'price' | 'node' | 'feed' | 'system'; text: string; time: string }[];
   themeColor: string;
 }) {
+  const t = useTranslations('tellor');
   const defaultUpdates = [
-    { type: 'price' as const, text: 'TRB价格更新: $35.42 (+2.3%)', time: '2分钟前' },
-    { type: 'node' as const, text: '新报告者加入: 0x7a8b...3c4d', time: '5分钟前' },
-    { type: 'feed' as const, text: '数据喂价更新', time: '8分钟前' },
-    { type: 'system' as const, text: '系统维护完成', time: '15分钟前' },
+    { type: 'price' as const, text: 'TRB价格更新: $35.42 (+2.3%)', time: `2${t('hero.minutesAgo')}` },
+    { type: 'node' as const, text: '新报告者加入: 0x7a8b...3c4d', time: `5${t('hero.minutesAgo')}` },
+    { type: 'feed' as const, text: '数据喂价更新', time: `8${t('hero.minutesAgo')}` },
+    { type: 'system' as const, text: '系统维护完成', time: `15${t('hero.minutesAgo')}` },
   ];
 
   const displayUpdates = updates || defaultUpdates;
@@ -533,7 +538,7 @@ function LatestUpdates({
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">最新动态:</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">{t('hero.latestUpdates')}:</span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {displayUpdates.map((update, index) => (
@@ -573,7 +578,7 @@ export function TellorHero({
   onRefresh,
   onExport,
 }: TellorHeroProps) {
-  const t = useTranslations();
+  const t = useTranslations('tellor');
   const themeColor = '#06b6d4'; // Tellor 主题色 cyan-500
 
   const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
@@ -591,7 +596,7 @@ export function TellorHero({
   // 核心统计指标 (Primary Stats) - 增加到5个
   const primaryStats: StatItem[] = [
     {
-      title: 'TRB 价格',
+      title: t('hero.price'),
       value: `$${currentPrice.toFixed(2)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
@@ -600,7 +605,7 @@ export function TellorHero({
       sparklineData: priceSparkline,
     },
     {
-      title: '市值',
+      title: t('hero.marketCap'),
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
       change: '+8.5%',
       changeType: 'positive',
@@ -608,23 +613,23 @@ export function TellorHero({
       subtitle: '30d',
     },
     {
-      title: '活跃报告者',
+      title: t('hero.activeReporters'),
       value: '50+',
       change: '+5.2%',
       changeType: 'positive',
       icon: <Database className="w-4 h-4" />,
-      subtitle: '去中心化',
+      subtitle: t('hero.low'),
     },
     {
-      title: '数据喂价',
+      title: t('hero.dataFeeds'),
       value: `${config.networkData.dataFeeds}+`,
       change: '+12%',
       changeType: 'positive',
       icon: <Zap className="w-4 h-4" />,
-      subtitle: '实时',
+      subtitle: t('hero.now'),
     },
     {
-      title: '质押量',
+      title: t('hero.stakedAmount'),
       value: `${(config.marketData.circulatingSupply / 1e6).toFixed(1)}M`,
       change: '+4.2%',
       changeType: 'positive',
@@ -638,7 +643,7 @@ export function TellorHero({
   // 次要统计指标 (Secondary Stats) - 整合为1行
   const secondaryStats: StatItem[] = [
     {
-      title: '支持链数',
+      title: t('hero.supportedChains'),
       value: `${config.supportedChains.length}+`,
       change: '0%',
       changeType: 'neutral',
@@ -646,7 +651,7 @@ export function TellorHero({
       subtitle: '',
     },
     {
-      title: '正常运行',
+      title: t('hero.uptime'),
       value: `${config.networkData.nodeUptime}%`,
       change: '+0.05%',
       changeType: 'positive',
@@ -654,7 +659,7 @@ export function TellorHero({
       subtitle: '',
     },
     {
-      title: '平均响应',
+      title: t('hero.avgResponse'),
       value: `${config.networkData.avgResponseTime}ms`,
       change: '-5%',
       changeType: 'positive',
@@ -662,8 +667,8 @@ export function TellorHero({
       subtitle: '',
     },
     {
-      title: '数据更新',
-      value: '实时',
+      title: t('hero.dataUpdate'),
+      value: t('hero.now'),
       change: '',
       changeType: 'neutral',
       icon: <Server className="w-4 h-4" />,
@@ -714,7 +719,7 @@ export function TellorHero({
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Tellor</h1>
-              <p className="text-xs text-gray-500">{t('tellor.subtitle')}</p>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
 

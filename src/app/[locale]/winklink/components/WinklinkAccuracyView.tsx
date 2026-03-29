@@ -277,28 +277,28 @@ export function WinklinkAccuracyView({
 
   const statsItems = [
     {
-      label: t('winklink.accuracy.overallScore') || 'Overall Accuracy Score',
+      label: t('winklink.accuracy.overallScore'),
       value: `${metrics.overallScore.toFixed(1)}%`,
       icon: Target,
       color: 'text-pink-600',
       bgColor: 'bg-pink-50',
     },
     {
-      label: t('winklink.accuracy.avgDeviation') || 'Avg Price Deviation',
+      label: t('winklink.accuracy.avgDeviation'),
       value: `${metrics.avgPriceDeviation.toFixed(2)}%`,
       icon: TrendingUp,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
     },
     {
-      label: t('winklink.accuracy.dataFreshness') || 'Data Freshness',
+      label: t('winklink.accuracy.dataFreshness'),
       value: `${metrics.dataFreshness.toFixed(1)}%`,
       icon: Clock,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
-      label: t('winklink.accuracy.comparisonSources') || 'Comparison Sources',
+      label: t('winklink.accuracy.comparisonSources'),
       value: metrics.comparisonSources.toString(),
       icon: Database,
       color: 'text-purple-600',
@@ -308,25 +308,25 @@ export function WinklinkAccuracyView({
 
   const accuracyItems = [
     {
-      label: t('winklink.accuracy.priceAccuracy') || 'Price Accuracy',
+      label: t('winklink.accuracy.priceAccuracy'),
       score: accuracy.priceAccuracy,
       icon: Target,
       color: 'bg-emerald-500',
     },
     {
-      label: t('winklink.accuracy.updateTimeliness') || 'Update Timeliness',
+      label: t('winklink.accuracy.updateTimeliness'),
       score: accuracy.updateTimeliness,
       icon: Clock,
       color: 'bg-blue-500',
     },
     {
-      label: t('winklink.accuracy.sourceConsistency') || 'Source Consistency',
+      label: t('winklink.accuracy.sourceConsistency'),
       score: accuracy.sourceConsistency,
       icon: Activity,
       color: 'bg-purple-500',
     },
     {
-      label: t('winklink.accuracy.historicalReliability') || 'Historical Reliability',
+      label: t('winklink.accuracy.historicalReliability'),
       score: accuracy.historicalReliability,
       icon: Shield,
       color: 'bg-amber-500',
@@ -386,10 +386,10 @@ export function WinklinkAccuracyView({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-base font-medium text-gray-900">
-              {t('winklink.accuracy.deviationHistory') || 'Price Deviation History'}
+              {t('winklink.accuracy.deviationHistory')}
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              {t('winklink.accuracy.deviationHistoryDesc') || 'Last 30 days price deviation trend'}
+              {t('winklink.accuracy.deviationHistoryDesc')}
             </p>
           </div>
           <span className="text-sm text-gray-500">30 days</span>
@@ -488,10 +488,10 @@ export function WinklinkAccuracyView({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-base font-medium text-gray-900">
-              {t('winklink.accuracy.oracleComparison') || 'Oracle Comparison'}
+              {t('winklink.accuracy.oracleComparison')}
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              {t('winklink.accuracy.oracleComparisonDesc') || 'Cross-oracle price comparison'}
+              {t('winklink.accuracy.oracleComparisonDesc')}
             </p>
           </div>
         </div>
@@ -501,19 +501,19 @@ export function WinklinkAccuracyView({
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.oracle') || 'Oracle'}
+                  {t('winklink.accuracy.oracle')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.winPrice') || 'WIN Price'}
+                  {t('winklink.accuracy.winPrice')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.deviation') || 'Deviation'}
+                  {t('winklink.accuracy.deviation')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.lastUpdate') || 'Last Update'}
+                  {t('winklink.accuracy.lastUpdate')}
                 </th>
                 <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.status') || 'Status'}
+                  {t('winklink.accuracy.status')}
                 </th>
               </tr>
             </thead>
@@ -561,11 +561,10 @@ export function WinklinkAccuracyView({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-base font-medium text-gray-900">
-              {t('winklink.accuracy.dataAccuracyMetrics') || 'Data Accuracy Metrics'}
+              {t('winklink.accuracy.dataAccuracyMetrics')}
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              {t('winklink.accuracy.dataAccuracyDesc') ||
-                'Comprehensive accuracy assessment scores'}
+              {t('winklink.accuracy.dataAccuracyDesc')}
             </p>
           </div>
         </div>
@@ -603,10 +602,10 @@ export function WinklinkAccuracyView({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-base font-medium text-gray-900">
-              {t('winklink.accuracy.historicalRecords') || 'Historical Accuracy Records'}
+              {t('winklink.accuracy.historicalRecords')}
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              {t('winklink.accuracy.historicalRecordsDesc') || 'Recent price verification records'}
+              {t('winklink.accuracy.historicalRecordsDesc')}
             </p>
           </div>
           <span className="text-sm text-gray-500">Last 10 records</span>
@@ -617,22 +616,22 @@ export function WinklinkAccuracyView({
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.date') || 'Date'}
+                  {t('winklink.accuracy.date')}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.symbol') || 'Symbol'}
+                  {t('winklink.accuracy.symbol')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.winklinkPrice') || 'WINkLink Price'}
+                  {t('winklink.accuracy.winklinkPrice')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.referencePrice') || 'Reference Price'}
+                  {t('winklink.accuracy.referencePrice')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.deviation') || 'Deviation'}
+                  {t('winklink.accuracy.deviation')}
                 </th>
                 <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('winklink.accuracy.status') || 'Status'}
+                  {t('winklink.accuracy.status')}
                 </th>
               </tr>
             </thead>
@@ -679,20 +678,20 @@ export function WinklinkAccuracyView({
 
       <section className="flex items-center justify-between py-2">
         <p className="text-xs text-gray-500">
-          {t('winklink.accuracy.lastUpdated') || 'Last updated'}: {new Date().toLocaleString()}
+          {t('winklink.accuracy.lastUpdated')}: {new Date().toLocaleString()}
         </p>
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>{t('winklink.accuracy.accurate') || 'Accurate'} (&lt;0.1%)</span>
+            <span>{t('winklink.accuracy.accurate')} (&lt;0.1%)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>{t('winklink.accuracy.warning') || 'Warning'} (&lt;0.5%)</span>
+            <span>{t('winklink.accuracy.warning')} (&lt;0.5%)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-red-500" />
-            <span>{t('winklink.accuracy.error') || 'Error'} (&gt;0.5%)</span>
+            <span>{t('winklink.accuracy.error')} (&gt;0.5%)</span>
           </div>
         </div>
       </section>

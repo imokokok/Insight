@@ -694,7 +694,7 @@ export function BandProtocolHero({
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Band Protocol</h1>
+              <h1 className="text-xl font-bold text-gray-900">{t('band.band-protocol.title')}</h1>
               <p className="text-xs text-gray-500">{t('band.bandProtocol.subtitle')}</p>
             </div>
           </div>

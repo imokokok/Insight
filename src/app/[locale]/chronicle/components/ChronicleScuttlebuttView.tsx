@@ -16,38 +16,39 @@ interface HistoricalEvent {
   resolution?: string;
 }
 
+// Mock events will be translated in render
 const mockEvents: HistoricalEvent[] = [
   {
     id: '1',
     severity: 'info',
-    event: 'Routine security audit completed',
+    event: 'securityAuditCompleted',
     timestamp: Date.now() - 86400000 * 7,
-    resolution: 'All systems passed',
+    resolution: 'allSystemsPassed',
   },
   {
     id: '2',
     severity: 'warning',
-    event: 'Validator response time degradation detected',
+    event: 'validatorResponseTimeDegradation',
     timestamp: Date.now() - 86400000 * 15,
-    resolution: 'Auto-failover activated, resolved within 5 minutes',
+    resolution: 'autoFailoverActivated',
   },
   {
     id: '3',
     severity: 'info',
-    event: 'New validator node added to network',
+    event: 'newValidatorNodeAdded',
     timestamp: Date.now() - 86400000 * 30,
   },
   {
     id: '4',
     severity: 'critical',
-    event: 'Price feed deviation threshold exceeded',
+    event: 'priceFeedDeviationExceeded',
     timestamp: Date.now() - 86400000 * 45,
-    resolution: 'Manual review completed, no action required',
+    resolution: 'manualReviewCompleted',
   },
   {
     id: '5',
     severity: 'info',
-    event: 'Scuttlebutt protocol upgrade v2.1',
+    event: 'scuttlebuttProtocolUpgrade',
     timestamp: Date.now() - 86400000 * 60,
   },
 ];
@@ -89,12 +90,12 @@ export function ChronicleScuttlebuttView({
   };
 
   const securityFeatures = [
-    'Decentralized Consensus',
-    'Cryptographic Verification',
-    'Economic Security Model',
-    'Real-time Monitoring',
-    'Multi-sig Authorization',
-    'Automated Failover',
+    t('chronicle.scuttlebutt.feature1'),
+    t('chronicle.scuttlebutt.feature2'),
+    t('chronicle.scuttlebutt.feature3'),
+    t('chronicle.scuttlebutt.feature4'),
+    t('chronicle.scuttlebutt.feature5'),
+    t('chronicle.scuttlebutt.feature6'),
   ];
 
   const columns = [
@@ -107,7 +108,7 @@ export function ChronicleScuttlebuttView({
           className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border ${getSeverityColor(item.severity)}`}
         >
           {getSeverityIcon(item.severity)}
-          <span className="capitalize">{item.severity}</span>
+          <span className="capitalize">{item.severity === 'critical' ? t('chronicle.severity.critical') : item.severity === 'warning' ? t('chronicle.severity.warning') : t('chronicle.severity.info')}</span>
         </span>
       ),
     },
@@ -117,8 +118,8 @@ export function ChronicleScuttlebuttView({
       sortable: true,
       render: (item: HistoricalEvent) => (
         <div>
-          <p className="font-medium text-gray-900">{item.event}</p>
-          {item.resolution && <p className="text-xs text-emerald-600 mt-0.5">{item.resolution}</p>}
+          <p className="font-medium text-gray-900">{t(`chronicle.scuttlebutt.events.${item.event}`)}</p>
+          {item.resolution && <p className="text-xs text-emerald-600 mt-0.5">{t(`chronicle.scuttlebutt.resolutions.${item.resolution}`)}</p>}
         </div>
       ),
     },
@@ -148,7 +149,9 @@ export function ChronicleScuttlebuttView({
           </div>
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.securityLevel')}</p>
-            <p className="text-xl font-semibold text-gray-900 capitalize">{securityLevel}</p>
+            <p className="text-xl font-semibold text-gray-900 capitalize">
+              {securityLevel === 'high' ? t('chronicle.securityLevel.high') : securityLevel === 'medium' ? t('chronicle.securityLevel.medium') : t('chronicle.securityLevel.low')}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -173,7 +176,9 @@ export function ChronicleScuttlebuttView({
           </div>
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.verificationStatus')}</p>
-            <p className="text-xl font-semibold text-gray-900 capitalize">{verificationStatus}</p>
+            <p className="text-xl font-semibold text-gray-900 capitalize">
+              {verificationStatus === 'verified' ? t('chronicle.verificationStatus.verified') : verificationStatus === 'pending' ? t('chronicle.verificationStatus.pending') : t('chronicle.verificationStatus.failed')}
+            </p>
           </div>
         </div>
       </div>

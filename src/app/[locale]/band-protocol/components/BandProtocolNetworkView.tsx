@@ -53,22 +53,22 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
 
   const overviewStats = [
     {
-      label: t('band.bandProtocol.network.blockHeight') || 'Block Height',
+      label: t('band.bandProtocol.network.blockHeight'),
       value: data?.latestBlockHeight?.toLocaleString() || '15,500,000',
       isBlockHeight: true,
     },
     {
-      label: t('band.bandProtocol.network.totalValidators') || 'Total Validators',
+      label: t('band.bandProtocol.network.totalValidators'),
       value: data?.totalValidators?.toLocaleString() || '80',
       isBlockHeight: false,
     },
     {
-      label: t('band.bandProtocol.network.bondedTokens') || 'Bonded Tokens',
+      label: t('band.bandProtocol.network.bondedTokens'),
       value: `${((data?.bondedTokens || 85000000) / 1e6).toFixed(1)}M BAND`,
       isBlockHeight: false,
     },
     {
-      label: t('band.bandProtocol.network.communityPool') || 'Community Pool',
+      label: t('band.bandProtocol.network.communityPool'),
       value: `${((data?.communityPool || 550000) / 1e3).toFixed(1)}K BAND`,
       isBlockHeight: false,
     },
@@ -197,7 +197,7 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
       {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('band.bandProtocol.network.cosmosMetrics') || 'Network Overview'}
+          {t('band.bandProtocol.network.cosmosMetrics')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (

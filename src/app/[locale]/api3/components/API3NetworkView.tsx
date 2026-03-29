@@ -168,10 +168,10 @@ export function API3NetworkView({ config, networkStats }: API3NetworkViewProps) 
   ];
 
   const overviewStats = [
-    { label: t('api3.network.totalRequests') || 'Total Requests (24h)', value: '1.2M' },
-    { label: t('api3.network.avgGas') || 'Avg Gas Used', value: '62,340' },
-    { label: t('api3.network.activeChains') || 'Active Chains', value: '8' },
-    { label: t('api3.network.nodeOperators') || 'Node Operators', value: '85' },
+    { label: t('api3.network.totalRequests'), value: '1.2M' },
+    { label: t('api3.network.avgGas'), value: '62,340' },
+    { label: t('api3.network.activeChains'), value: '8' },
+    { label: t('api3.network.nodeOperators'), value: '85' },
   ];
 
   const handleAirnodeClick = (node: AirnodeNode) => {
@@ -214,7 +214,7 @@ export function API3NetworkView({ config, networkStats }: API3NetworkViewProps) 
 
       <div>
         <h3 className="text-base font-medium text-gray-900 dark:text-white mb-4">
-          {t('api3.airnode.regionDistribution') || 'Airnode Geographic Distribution'}
+          {t('api3.airnode.regionDistribution')}
         </h3>
         <AirnodeGeoMap nodes={mockAirnodes} onNodeClick={handleAirnodeClick} />
       </div>
@@ -223,7 +223,7 @@ export function API3NetworkView({ config, networkStats }: API3NetworkViewProps) 
 
       <div>
         <h3 className="text-base font-medium text-gray-900 dark:text-white mb-4">
-          {t('api3.network.topology') || 'Network Topology'}
+          {t('api3.network.topology')}
         </h3>
         <NetworkTopologyChart nodes={mockTopologyNodes} connections={mockTopologyConnections} />
       </div>
@@ -301,7 +301,7 @@ export function API3NetworkView({ config, networkStats }: API3NetworkViewProps) 
 
       <div>
         <h3 className="text-base font-medium text-gray-900 dark:text-white mb-4">
-          {t('api3.network.overview') || 'Network Overview'}
+          {t('api3.network.overview')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (

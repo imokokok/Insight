@@ -265,9 +265,9 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">TVL Analysis</h3>
+            <h3 className="text-base font-semibold text-gray-900">{t('redstone.ecosystem.tvlAnalysis')}</h3>
             <p className="text-sm text-gray-500 mt-0.5">
-              Total Value Locked across RedStone ecosystem
+              {t('redstone.ecosystem.tvlDesc')}
             </p>
           </div>
           <div className="flex items-center border-b border-gray-200">
@@ -285,7 +285,7 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
 
         <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4 mb-6">
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Total TVL</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('redstone.ecosystem.totalTvl')}</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-bold text-gray-900">
                 {showLoading ? '-' : `$${tvlStats.current.toFixed(2)}B`}
@@ -303,7 +303,7 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
           </div>
           <div className="h-8 w-px bg-gray-200 hidden sm:block" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Ethereum</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('redstone.ecosystem.ethereum')}</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
                 ${tvlStats.breakdown[0].value.toFixed(2)}B
@@ -314,7 +314,7 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">L2 Networks</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('redstone.ecosystem.l2Networks')}</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
                 $
@@ -338,7 +338,7 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Alt L1</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('redstone.ecosystem.altL1')}</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
                 ${(tvlStats.breakdown[2].value + tvlStats.breakdown[4].value).toFixed(2)}B
@@ -355,7 +355,7 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mb-6">
-          <span className="text-xs text-gray-400 mr-1">Filter by Chain:</span>
+          <span className="text-xs text-gray-400 mr-1">{t('redstone.ecosystem.filterByChain')}</span>
           {tvlStats.breakdown.map((item) => (
             <button
               key={item.chain}
@@ -464,9 +464,9 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <section>
           <div className="mb-4">
-            <h3 className="text-base font-semibold text-gray-900">Projects by Chain</h3>
+            <h3 className="text-base font-semibold text-gray-900">{t('redstone.ecosystem.projectsByChain')}</h3>
             <p className="text-sm text-gray-500 mt-0.5">
-              Distribution of projects across supported networks
+              {t('redstone.ecosystem.projectsDesc')}
             </p>
           </div>
           <div className="h-56">
@@ -499,9 +499,9 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
           </div>
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 text-sm">
             <span className="text-gray-500">
-              Total Projects: <span className="font-medium text-gray-900">410+</span>
+              {t('redstone.ecosystem.totalProjects')}: <span className="font-medium text-gray-900">410+</span>
             </span>
-            <span className="text-emerald-600 font-medium">+42 this month</span>
+            <span className="text-emerald-600 font-medium">+42 {t('redstone.ecosystem.thisMonth')}</span>
           </div>
         </section>
 
@@ -509,14 +509,14 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
 
         <section>
           <div className="mb-4">
-            <h3 className="text-base font-semibold text-gray-900">Ecosystem Growth</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Key performance indicators</p>
+            <h3 className="text-base font-semibold text-gray-900">{t('redstone.ecosystem.growth')}</h3>
+            <p className="text-sm text-gray-500 mt-0.5">{t('redstone.ecosystem.growthDesc')}</p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Layers className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">New Projects</span>
+                <span className="text-sm text-gray-600">{t('redstone.ecosystem.newProjects')}</span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">42</p>
@@ -526,7 +526,7 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Zap className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">Integrations</span>
+                <span className="text-sm text-gray-600">{t('redstone.ecosystem.integrations')}</span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">
@@ -538,7 +538,7 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Globe className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">Community</span>
+                <span className="text-sm text-gray-600">{t('redstone.ecosystem.community')}</span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">12.8K</p>
@@ -548,7 +548,7 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
             <div className="flex items-center justify-between py-3">
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">Revenue</span>
+                <span className="text-sm text-gray-600">{t('redstone.ecosystem.revenue')}</span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">$485K</p>
@@ -563,9 +563,9 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
 
       <section>
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-gray-900">Ecosystem Integrations</h3>
+          <h3 className="text-base font-semibold text-gray-900">{t('redstone.ecosystem.integrations')}</h3>
           <p className="text-sm text-gray-500 mt-0.5">
-            Projects and protocols integrated with RedStone
+            {t('redstone.ecosystem.integrationsDesc')}
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

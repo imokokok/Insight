@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { useTranslations } from '@/i18n';
+
 import { type SortConfig } from '../types';
 
 interface Column<T> {
@@ -27,6 +29,7 @@ export function ChainlinkDataTable<T>({
   onSort: externalOnSort,
   isLoading,
 }: ChainlinkDataTableProps<T>) {
+  const t = useTranslations();
   const [internalSortConfig, setInternalSortConfig] = useState<SortConfig | undefined>();
 
   const sortConfig = externalSortConfig ?? internalSortConfig;
@@ -88,7 +91,7 @@ export function ChainlinkDataTable<T>({
                   `}
                   onClick={() => column.sortable && handleSort(String(column.key))}
                   {...(column.sortable && {
-                    'aria-label': `${column.header}, ${isSorted ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '未排序'}`,
+                    'aria-label': `${column.header}, ${isSorted ? (sortDirection === 'asc' ? t('dataTable.sort.asc') : t('dataTable.sort.desc')) : t('dataTable.sort.unsorted')}`,
                     'aria-pressed': isSorted,
                     'aria-describedby': isSorted ? sortDescriptionId : undefined,
                     role: 'button',
@@ -109,7 +112,7 @@ export function ChainlinkDataTable<T>({
                           {sortConfig.direction === 'asc' ? '↑' : '↓'}
                         </span>
                         <span id={sortDescriptionId} className="sr-only">
-                          {sortDirection === 'asc' ? '升序排列' : '降序排列'}
+                          {sortDirection === 'asc' ? t('dataTable.sort.asc') : t('dataTable.sort.desc')}
                         </span>
                       </>
                     )}

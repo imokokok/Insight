@@ -188,24 +188,27 @@ const mockLiquidationHistory: LiquidationHistory[] = [
   },
 ];
 
-const vaultCategories = [
-  { id: 'all', label: 'All', count: mockVaultTypes.length },
-  { id: 'ETH-A', label: 'ETH-A', count: mockVaultTypes.filter((v) => v.type === 'ETH-A').length },
-  {
-    id: 'WBTC-A',
-    label: 'WBTC-A',
-    count: mockVaultTypes.filter((v) => v.type === 'WBTC-A').length,
-  },
-  {
-    id: 'USDC-A',
-    label: 'USDC-A',
-    count: mockVaultTypes.filter((v) => v.type === 'USDC-A').length,
-  },
-];
+// Categories will be created in component with translations
 
 export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewProps) {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  // Categories with translations
+  const vaultCategories = [
+    { id: 'all', label: t('chronicle.makerdao.allAssets'), count: mockVaultTypes.length },
+    { id: 'ETH-A', label: 'ETH-A', count: mockVaultTypes.filter((v) => v.type === 'ETH-A').length },
+    {
+      id: 'WBTC-A',
+      label: 'WBTC-A',
+      count: mockVaultTypes.filter((v) => v.type === 'WBTC-A').length,
+    },
+    {
+      id: 'USDC-A',
+      label: 'USDC-A',
+      count: mockVaultTypes.filter((v) => v.type === 'USDC-A').length,
+    },
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -233,22 +236,22 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
 
   const keyMetrics = [
     {
-      label: t('chronicle.vault.totalVaults') || 'Total Vaults',
+      label: t('chronicle.vault.totalVaults'),
       value: (vaultData?.totalVaults || 2666).toLocaleString(),
       icon: Landmark,
     },
     {
-      label: t('chronicle.vault.totalCollateral') || 'Total Collateral',
+      label: t('chronicle.vault.totalCollateral'),
       value: formatCompactCurrency(vaultData?.totalCollateralValue || 3635000000),
       icon: Shield,
     },
     {
-      label: t('chronicle.vault.totalDebt') || 'Total Debt',
+      label: t('chronicle.vault.totalDebt'),
       value: formatCompactCurrency(vaultData?.totalDebtValue || 2022000000),
       icon: Coins,
     },
     {
-      label: t('chronicle.vault.avgCollateralRatio') || 'Avg Collateral Ratio',
+      label: t('chronicle.vault.avgCollateralRatio'),
       value: `${vaultData?.averageCollateralRatio || 180}%`,
       icon: TrendingUp,
       highlight: true,
@@ -258,7 +261,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
   const vaultTypeColumns = [
     {
       key: 'type',
-      header: t('chronicle.vault.collateralType') || 'Collateral Type',
+      header: t('chronicle.vault.collateralType'),
       sortable: true,
       render: (item: VaultTypeData) => (
         <div>
@@ -269,25 +272,25 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
     },
     {
       key: 'totalVaults',
-      header: t('chronicle.vault.vaultCount') || 'Vaults',
+      header: t('chronicle.vault.vaultCount'),
       sortable: true,
       render: (item: VaultTypeData) => item.totalVaults.toLocaleString(),
     },
     {
       key: 'collateralValue',
-      header: t('chronicle.vault.collateralValue') || 'Collateral Value',
+      header: t('chronicle.vault.collateralValue'),
       sortable: true,
       render: (item: VaultTypeData) => formatCompactCurrency(item.collateralValue),
     },
     {
       key: 'debtValue',
-      header: t('chronicle.vault.debtValue') || 'Debt Value',
+      header: t('chronicle.vault.debtValue'),
       sortable: true,
       render: (item: VaultTypeData) => formatCompactCurrency(item.debtValue),
     },
     {
       key: 'collateralRatio',
-      header: t('chronicle.vault.collateralRatio') || 'Collateral Ratio',
+      header: t('chronicle.vault.collateralRatio'),
       sortable: true,
       render: (item: VaultTypeData) => (
         <span className={`font-medium ${getCollateralRatioColor(item.collateralRatio)}`}>
@@ -297,13 +300,13 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
     },
     {
       key: 'stabilityFee',
-      header: t('chronicle.vault.stabilityFee') || 'Stability Fee',
+      header: t('chronicle.vault.stabilityFee'),
       sortable: true,
       render: (item: VaultTypeData) => `${item.stabilityFee}%`,
     },
     {
       key: 'debtCeilingUsed',
-      header: t('chronicle.vault.debtCeilingUsed') || 'Ceiling Used',
+      header: t('chronicle.vault.debtCeilingUsed'),
       sortable: true,
       render: (item: VaultTypeData) => (
         <div className="flex items-center gap-2">
@@ -328,13 +331,13 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
   const auctionColumns = [
     {
       key: 'vaultId',
-      header: t('chronicle.vault.vaultId') || 'Vault ID',
+      header: t('chronicle.vault.vaultId'),
       sortable: true,
       render: (item: AuctionData) => <span className="font-mono text-sm">{item.vaultId}</span>,
     },
     {
       key: 'collateralType',
-      header: t('chronicle.vault.collateralType') || 'Type',
+      header: t('chronicle.vault.collateralType'),
       sortable: true,
       render: (item: AuctionData) => (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
@@ -344,31 +347,31 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
     },
     {
       key: 'collateralAmount',
-      header: t('chronicle.vault.collateralAmount') || 'Collateral',
+      header: t('chronicle.vault.collateralAmount'),
       sortable: true,
       render: (item: AuctionData) => item.collateralAmount.toLocaleString(),
     },
     {
       key: 'debtAmount',
-      header: t('chronicle.vault.debtAmount') || 'Debt',
+      header: t('chronicle.vault.debtAmount'),
       sortable: true,
       render: (item: AuctionData) => formatCompactCurrency(item.debtAmount),
     },
     {
       key: 'status',
-      header: t('chronicle.vault.status') || 'Status',
+      header: t('chronicle.vault.status'),
       sortable: true,
       render: (item: AuctionData) => (
         <span
           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}
         >
-          {item.status}
+          {item.status === 'active' ? t('chronicle.status.active') : item.status === 'completed' ? t('chronicle.vault.completed') : t('chronicle.vault.pending')}
         </span>
       ),
     },
     {
       key: 'startTime',
-      header: t('chronicle.vault.startTime') || 'Started',
+      header: t('chronicle.vault.startTime'),
       sortable: true,
       render: (item: AuctionData) => item.startTime,
     },
@@ -377,7 +380,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
   const liquidationColumns = [
     {
       key: 'vaultId',
-      header: t('chronicle.vault.vaultId') || 'Vault ID',
+      header: t('chronicle.vault.vaultId'),
       sortable: true,
       render: (item: LiquidationHistory) => (
         <span className="font-mono text-sm">{item.vaultId}</span>
@@ -385,7 +388,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
     },
     {
       key: 'collateralType',
-      header: t('chronicle.vault.collateralType') || 'Type',
+      header: t('chronicle.vault.collateralType'),
       sortable: true,
       render: (item: LiquidationHistory) => (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
@@ -395,25 +398,25 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
     },
     {
       key: 'liquidatedCollateral',
-      header: t('chronicle.vault.liquidatedCollateral') || 'Liquidated',
+      header: t('chronicle.vault.liquidatedCollateral'),
       sortable: true,
       render: (item: LiquidationHistory) => item.liquidatedCollateral.toLocaleString(),
     },
     {
       key: 'debtCovered',
-      header: t('chronicle.vault.debtCovered') || 'Debt Covered',
+      header: t('chronicle.vault.debtCovered'),
       sortable: true,
       render: (item: LiquidationHistory) => formatCompactCurrency(item.debtCovered),
     },
     {
       key: 'price',
-      header: t('chronicle.vault.liquidationPrice') || 'Price',
+      header: t('chronicle.vault.liquidationPrice'),
       sortable: true,
       render: (item: LiquidationHistory) => `$${item.price.toLocaleString()}`,
     },
     {
       key: 'liquidationDate',
-      header: t('chronicle.vault.date') || 'Date',
+      header: t('chronicle.vault.date'),
       sortable: true,
       render: (item: LiquidationHistory) => item.liquidationDate,
     },
@@ -482,7 +485,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-medium text-gray-900">
-            {t('chronicle.vault.vaultTypeDistribution') || 'Vault Type Distribution'}
+            {t('chronicle.vault.vaultTypeDistribution')}
           </h3>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -490,23 +493,23 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
             <div key={index} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-gray-900">{vault.type}</span>
-                <span className="text-sm text-gray-500">{vault.totalVaults} vaults</span>
+                <span className="text-sm text-gray-500">{vault.totalVaults} {t('chronicle.vault.vaultCount')}</span>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Collateral</span>
+                  <span className="text-gray-500">{t('chronicle.vault.collateral')}</span>
                   <span className="font-medium text-gray-900">
                     {formatCompactCurrency(vault.collateralValue)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Debt</span>
+                  <span className="text-gray-500">{t('chronicle.vault.debt')}</span>
                   <span className="font-medium text-gray-900">
                     {formatCompactCurrency(vault.debtValue)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Ratio</span>
+                  <span className="text-gray-500">{t('chronicle.vault.ratio')}</span>
                   <span className={`font-medium ${getCollateralRatioColor(vault.collateralRatio)}`}>
                     {vault.collateralRatio}%
                   </span>
@@ -551,12 +554,12 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-medium text-gray-900">
-              {t('chronicle.vault.activeAuctions') || 'Active Auctions'}
+              {t('chronicle.vault.activeAuctions')}
             </h3>
             <div className="flex items-center gap-1 text-amber-600">
               <AlertTriangle className="w-4 h-4" />
               <span className="text-sm font-medium">
-                {mockAuctions.filter((a) => a.status === 'active').length} active
+                {mockAuctions.filter((a) => a.status === 'active').length} {t('chronicle.status.active')}
               </span>
             </div>
           </div>
@@ -567,7 +570,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-medium text-gray-900">
-              {t('chronicle.vault.liquidationWarnings') || 'Liquidation Price Warnings'}
+              {t('chronicle.vault.liquidationWarnings')}
             </h3>
           </div>
           <div className="space-y-3">
@@ -606,21 +609,21 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
                         className={`text-xs px-2 py-0.5 rounded-full ${warningText} bg-white/50`}
                       >
                         {warningLevel === 'high'
-                          ? 'High Risk'
+                          ? t('chronicle.risk.highRisk')
                           : warningLevel === 'medium'
-                            ? 'Medium Risk'
-                            : 'Low Risk'}
+                            ? t('chronicle.risk.mediumRisk')
+                            : t('chronicle.risk.lowRisk')}
                       </span>
                     </div>
                     {warningCount > 0 && (
                       <span className={`text-sm font-medium ${warningText}`}>
-                        {warningCount} vaults at risk
+                        {warningCount} {t('chronicle.vault.vaultsAtRisk')}
                       </span>
                     )}
                   </div>
                   <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
                     <span>
-                      Current Ratio:{' '}
+                      {t('chronicle.vault.currentRatio')}:{' '}
                       <span
                         className={`font-medium ${getCollateralRatioColor(vault.collateralRatio)}`}
                       >
@@ -628,7 +631,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
                       </span>
                     </span>
                     <span>
-                      Min Required:{' '}
+                      {t('chronicle.vault.minRequired')}:{' '}
                       {vault.type === 'USDC-A' ? 101 : vault.type === 'LINK-A' ? 165 : 145}%
                     </span>
                   </div>
@@ -642,7 +645,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
       {/* 清算历史记录 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chronicle.vault.liquidationHistory') || 'Liquidation History'}
+          {t('chronicle.vault.liquidationHistory')}
         </h3>
         <ChronicleDataTable data={mockLiquidationHistory} columns={liquidationColumns} />
       </div>
@@ -652,7 +655,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
       {/* 风险参数展示 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chronicle.vault.riskParameters') || 'Risk Parameters'}
+          {t('chronicle.vault.riskParameters')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {riskParameters.map((param, index) => (
@@ -663,20 +666,20 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Min Collateral Ratio</span>
+                  <span className="text-gray-500">{t('chronicle.vault.minCollateralRatio')}</span>
                   <span className="font-medium text-gray-900">{param.minCollateralRatio}%</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Liquidation Penalty</span>
+                  <span className="text-gray-500">{t('chronicle.vault.liquidationPenalty')}</span>
                   <span className="font-medium text-gray-900">{param.liquidationPenalty}%</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Stability Fee</span>
+                  <span className="text-gray-500">{t('chronicle.vault.stabilityFee')}</span>
                   <span className="font-medium text-gray-900">{param.stabilityFee}%</span>
                 </div>
                 <div className="pt-2 border-t border-gray-200">
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-500">Debt Ceiling Used</span>
+                    <span className="text-gray-500">{t('chronicle.vault.debtCeilingUsed')}</span>
                     <span className="font-medium text-gray-900">{param.debtCeilingUsed}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -692,7 +695,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
                     />
                   </div>
                   <p className="text-xs text-gray-400 mt-1">
-                    Ceiling: {formatCompactCurrency(param.debtCeiling)}
+                    {t('chronicle.vault.ceiling')}: {formatCompactCurrency(param.debtCeiling)}
                   </p>
                 </div>
               </div>
@@ -706,25 +709,25 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
       {/* 系统健康状态 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chronicle.vault.systemHealth') || 'System Health'}
+          {t('chronicle.vault.systemHealth')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
-            <p className="text-sm text-gray-500 mb-1">Total Active Auctions</p>
+            <p className="text-sm text-gray-500 mb-1">{t('chronicle.vault.totalActiveAuctions')}</p>
             <p className="text-xl font-semibold text-gray-900">
               {mockAuctions.filter((a) => a.status === 'active').length}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 mb-1">Liquidations (30d)</p>
+            <p className="text-sm text-gray-500 mb-1">{t('chronicle.vault.liquidations30d')}</p>
             <p className="text-xl font-semibold text-gray-900">{mockLiquidationHistory.length}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 mb-1">Avg Liquidation Price</p>
+            <p className="text-sm text-gray-500 mb-1">{t('chronicle.vault.avgLiquidationPrice')}</p>
             <p className="text-xl font-semibold text-gray-900">$2,450</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 mb-1">System Surplus</p>
+            <p className="text-sm text-gray-500 mb-1">{t('chronicle.vault.systemSurplus')}</p>
             <p className="text-xl font-semibold text-emerald-600">$85.2M</p>
           </div>
         </div>

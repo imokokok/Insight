@@ -40,24 +40,24 @@ function ErrorBanner({
   const t = useTranslations();
 
   const sourceLabels: Record<string, string> = {
-    price: '价格数据',
-    historical: '历史数据',
-    tron: 'TRON 生态',
-    staking: '质押数据',
-    gaming: '游戏数据',
-    network: '网络状态',
-    risk: '风险指标',
+    price: t('winklink.error.sourcePrice'),
+    historical: t('winklink.error.sourceHistorical'),
+    tron: 'TRON',
+    staking: t('winklink.error.sourceStaking'),
+    gaming: t('winklink.error.sourceGaming'),
+    network: t('winklink.error.sourceNetwork'),
+    risk: t('winklink.error.sourceRisk'),
   };
 
   const formatLastUpdated = (date: Date | null) => {
-    if (!date) return '未知';
+    if (!date) return t('winklink.hero.unknown');
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return '刚刚';
-    if (diffMins < 60) return `${diffMins} 分钟前`;
+    if (diffMins < 1) return t('winklink.hero.justNow');
+    if (diffMins < 60) return t('winklink.hero.minutesAgo', { count: diffMins });
     const diffHours = Math.floor(diffMins / 60);
-    return `${diffHours} 小时前`;
+    return t('winklink.hero.hoursAgo', { count: diffHours });
   };
 
   return (
@@ -81,13 +81,13 @@ function ErrorBanner({
           </div>
           <div>
             <p className="text-sm font-medium text-amber-800">
-              部分数据加载失败
+              {t('winklink.error.partialDataLoadFailed')}
             </p>
             <p className="text-xs text-amber-600 mt-1">
-              失败的数据源: {failedSources.map((s) => sourceLabels[s] || s).join(', ')}
+              {t('winklink.error.failedSources')}: {failedSources.map((s) => sourceLabels[s] || s).join(', ')}
             </p>
             <p className="text-xs text-amber-500 mt-0.5">
-              最后成功更新:{' '}
+              {t('winklink.error.lastSuccessfulUpdate')}:{' '}
               {formatLastUpdated(
                 Object.entries(dataStates)
                   .filter(([key]) => !failedSources.includes(key))
@@ -104,14 +104,14 @@ function ErrorBanner({
               onClick={() => dataStates[source]?.refetch()}
               className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-100 rounded hover:bg-amber-200 transition-colors"
             >
-              重试 {sourceLabels[source] || source}
+              {t('winklink.error.retry')} {sourceLabels[source] || source}
             </button>
           ))}
           <button
             onClick={onRetry}
             className="px-3 py-1.5 text-xs font-medium text-white bg-amber-500 rounded hover:bg-amber-600 transition-colors"
           >
-            重试全部
+            {t('winklink.error.retryAll')}
           </button>
         </div>
       </div>
@@ -125,13 +125,13 @@ function LoadingIndicator({
   loadingSources: string[];
 }) {
   const sourceLabels: Record<string, string> = {
-    price: '价格',
-    historical: '历史',
+    price: t('winklink.hero.sourcePrice'),
+    historical: t('winklink.hero.sourceHistorical'),
     tron: 'TRON',
-    staking: '质押',
-    gaming: '游戏',
-    network: '网络',
-    risk: '风险',
+    staking: t('winklink.hero.sourceStaking'),
+    gaming: t('winklink.hero.sourceGaming'),
+    network: t('winklink.hero.sourceNetwork'),
+    risk: t('winklink.hero.sourceRisk'),
   };
 
   if (loadingSources.length === 0) return null;
@@ -157,7 +157,7 @@ function LoadingIndicator({
           </svg>
         </div>
         <span className="text-xs text-blue-700">
-          正在加载: {loadingSources.map((s) => sourceLabels[s] || s).join(', ')}
+          {t('winklink.error.loading')}: {loadingSources.map((s) => sourceLabels[s] || s).join(', ')}
         </span>
       </div>
     </div>

@@ -1,230 +1,237 @@
 'use client';
 
-import { TrendingUp, TrendingDown, Wallet, Users, PiggyBank, Award } from 'lucide-react';
+import { useState } from 'react';
 
-import { TellorStakingCalculator } from '@/components/oracle/panels/TellorStakingCalculator';
+import {
+  Wallet,
+  TrendingUp,
+  Users,
+  PiggyBank,
+  ChevronRight,
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Calculator,
+} from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
 
 import { type TellorStakingViewProps } from '../types';
 
-export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
-  const t = useTranslations();
+interface StakingTier {
+  name: string;
+  minStake: number;
+  apr: number;
+  benefits: string[];
+  color: string;
+}
 
-  const stakingStats = [
+const stakingTiers: StakingTier[] = [
+  {
+    name: 'Bronze',
+    minStake: 100,
+    apr: 8.5,
+    benefits: ['Basic rewards', 'Voting rights'],
+    color: 'bg-amber-600',
+  },
+  {
+    name: 'Silver',
+    minStake: 500,
+    apr: 12.0,
+    benefits: ['Enhanced rewards', 'Priority voting', 'Dispute participation'],
+    color: 'bg-gray-400',
+  },
+  {
+    name: 'Gold',
+    minStake: 2000,
+    apr: 15.5,
+    benefits: ['Premium rewards', 'Governance rights', 'Early access'],
+    color: 'bg-yellow-500',
+  },
+  {
+    name: 'Platinum',
+    minStake: 5000,
+    apr: 20.0,
+    benefits: ['Maximum rewards', 'Full governance', 'Exclusive features'],
+    color: 'bg-cyan-500',
+  },
+];
+
+export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
+  const t = useTranslations('tellor');
+  const [stakeAmount, setStakeAmount] = useState<number>(1000);
+  const [duration, setDuration] = useState<number>(12);
+
+  const stats = [
     {
-      label: t('tellor.staking.totalStaked'),
-      value: '20M TRB',
-      change: '+5%',
-      trend: 'up',
+      label: t('staking.totalStaked'),
+      value: '2.8M',
+      change: '+12%',
       icon: Wallet,
     },
     {
-      label: t('tellor.staking.stakingApr'),
-      value: '10.2%',
-      change: '+0.5%',
-      trend: 'up',
-      icon: PiggyBank,
+      label: t('staking.stakingApr'),
+      value: '15.5%',
+      change: '+2.3%',
+      icon: TrendingUp,
     },
     {
-      label: t('tellor.staking.totalStakers'),
-      value: '1,250+',
-      change: '+12',
-      trend: 'up',
+      label: t('staking.totalStakers'),
+      value: '1,247',
+      change: '+89',
       icon: Users,
     },
     {
-      label: t('tellor.staking.rewardPool'),
-      value: '500K TRB',
-      change: '+8%',
-      trend: 'up',
-      icon: Award,
+      label: t('staking.rewardPool'),
+      value: '450K',
+      change: '+35K',
+      icon: PiggyBank,
     },
   ];
 
-  const stakingTiers = [
-    {
-      tier: 'Bronze',
-      minStake: '100 TRB',
-      reward: 'Base',
-      features: ['Basic reporting', 'Standard rewards'],
-    },
-    {
-      tier: 'Silver',
-      minStake: '1,000 TRB',
-      reward: '+20%',
-      features: ['Priority reporting', 'Bonus rewards', 'Dispute voting'],
-    },
-    {
-      tier: 'Gold',
-      minStake: '5,000 TRB',
-      reward: '+50%',
-      features: ['Highest priority', 'Maximum rewards', 'Governance rights', 'Early access'],
-    },
-  ];
+  const estimatedReward = (stakeAmount * (15.5 / 100) * duration) / 12;
 
   return (
     <div className="space-y-8">
-      {/* 质押统计 - 简洁内联布局 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        {stakingStats.map((stat, index) => {
+      {/* 统计概览 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((stat, index) => {
           const Icon = stat.icon;
-          const TrendIcon = stat.trend === 'up' ? TrendingUp : TrendingDown;
           return (
-            <div key={index} className="py-2">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
-                <Icon className="w-4 h-4" />
-                <span className="text-sm">{stat.label}</span>
-              </div>
-              <div className="flex items-baseline gap-3">
-                <p className="text-3xl font-semibold text-gray-900 tracking-tight">{stat.value}</p>
-                <div
-                  className={`flex items-center gap-0.5 text-sm font-medium ${
-                    stat.trend === 'up' ? 'text-emerald-600' : 'text-red-600'
-                  }`}
-                >
-                  <TrendIcon className="w-3.5 h-3.5" />
-                  <span>{stat.change}</span>
+            <div
+              key={index}
+              className="p-4 rounded-xl bg-gray-50/50 border border-gray-100 hover:border-gray-200 transition-all"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-1.5 rounded-lg bg-cyan-50">
+                  <Icon className="w-4 h-4 text-cyan-600" />
                 </div>
+                <span className="text-xs text-gray-500">{stat.label}</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
+                <span className="text-xs text-emerald-600">{stat.change}</span>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* 分隔线 */}
-      <div className="border-t border-gray-200" />
-
-      {/* 主内容区域 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* 质押计算器 */}
-        <div className="lg:col-span-2">
-          <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('tellor.staking.calculator.title')}
-          </h3>
-          <TellorStakingCalculator />
-        </div>
-
+      {/* 质押等级和计算器 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 质押等级 */}
-        <div>
-          <h3 className="text-base font-medium text-gray-900 mb-4">{t('tellor.staking.tiers')}</h3>
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-base font-medium text-gray-900 mb-4">{t('staking.tiers')}</h3>
           <div className="space-y-4">
             {stakingTiers.map((tier, index) => (
               <div
                 key={index}
-                className={`p-4 rounded-lg border ${
-                  index === 1 ? 'border-cyan-500 bg-cyan-50/50' : 'border-gray-200'
-                }`}
+                className="p-4 rounded-lg border border-gray-100 hover:border-cyan-200 hover:bg-cyan-50/30 transition-all"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-semibold text-gray-900">{tier.tier}</h4>
-                  <span className="text-xs text-gray-500">{tier.minStake}</span>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${tier.color}`} />
+                    <span className="font-medium text-gray-900">{tier.name}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-cyan-600">{tier.apr}% APR</span>
                 </div>
-                <div className="mb-3">
-                  <span className="text-lg font-bold text-emerald-600">{tier.reward}</span>
-                </div>
-                <ul className="space-y-1">
-                  {tier.features.map((feature, fIndex) => (
-                    <li key={fIndex} className="text-xs text-gray-600 flex items-center gap-1.5">
-                      <svg
-                        className="w-3 h-3 text-emerald-500 flex-shrink-0"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {feature}
-                    </li>
+                <p className="text-xs text-gray-500 mb-2">
+                  Min: {tier.minStake.toLocaleString()} TRB
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {tier.benefits.map((benefit, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                    >
+                      {benefit}
+                    </span>
                   ))}
-                </ul>
+                </div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* 质押计算器 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-base font-medium text-gray-900 mb-4">{t('staking.calculator.title')}</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-600 mb-2">
+                {t('staking.calculator.stakeAmount')}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={stakeAmount}
+                  onChange={(e) => setStakeAmount(Number(e.target.value))}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+                <span className="text-sm text-gray-500">TRB</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-2">
+                {t('staking.calculator.duration')}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value))}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+                <span className="text-sm text-gray-500">{t('staking.calculator.months')}</span>
+              </div>
+            </div>
+            <div className="p-4 bg-cyan-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">{t('staking.calculator.estimatedReward')}</span>
+                <span className="text-lg font-semibold text-cyan-600">
+                  {estimatedReward.toFixed(2)} TRB
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">{t('staking.calculator.totalReward')}</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  {(stakeAmount + estimatedReward).toFixed(2)} TRB
+                </span>
+              </div>
+            </div>
+            <button className="w-full py-2.5 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors font-medium">
+              {t('staking.calculator.stakeNow')}
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* 分隔线 */}
-      <div className="border-t border-gray-200" />
-
-      {/* 质押说明 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-          <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('tellor.staking.howItWorks') || 'How Staking Works'}
-          </h3>
-          <ul className="space-y-3 text-sm text-gray-600">
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs font-medium flex-shrink-0">
-                1
-              </span>
-              <span>Stake TRB tokens to become a reporter and earn rewards</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs font-medium flex-shrink-0">
-                2
-              </span>
-              <span>Submit accurate data to the Tellor oracle network</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs font-medium flex-shrink-0">
-                3
-              </span>
-              <span>Earn rewards based on stake amount and reporting accuracy</span>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('tellor.staking.risks') || 'Staking Risks'}
-          </h3>
-          <ul className="space-y-3 text-sm text-gray-600">
-            <li className="flex items-start gap-3">
-              <svg
-                className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Slashing risk: Stake may be slashed for inaccurate data submissions</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <svg
-                className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Lock-up period: Staked tokens have a 7-day withdrawal delay</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <svg
-                className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Market risk: TRB price fluctuations affect staking value</span>
-            </li>
-          </ul>
+      {/* 风险提示 */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('staking.risks')}</h3>
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50">
+            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <div>
+              <h4 className="text-sm font-medium text-red-900">{t('staking.slashingRisk')}</h4>
+              <p className="text-xs text-red-700 mt-1">{t('staking.slashingRiskDesc')}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50">
+            <Clock className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+            <div>
+              <h4 className="text-sm font-medium text-yellow-900">{t('staking.lockupPeriod')}</h4>
+              <p className="text-xs text-yellow-700 mt-1">{t('staking.lockupPeriodDesc')}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50">
+            <TrendingUp className="w-5 h-5 text-blue-500 flex-shrink-0" />
+            <div>
+              <h4 className="text-sm font-medium text-blue-900">{t('staking.marketRisk')}</h4>
+              <p className="text-xs text-blue-700 mt-1">{t('staking.marketRiskDesc')}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -64,15 +64,15 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
   const principleSteps = [
     {
       id: 'push',
-      title: t('redstone.pullModel.pushModel') || 'Push Model',
-      desc: t('redstone.pullModel.pushModelDesc') || 'Oracle pushes data on-chain periodically',
+      title: t('redstone.pullModel.pushModel'),
+      desc: t('redstone.pullModel.pushModelDesc'),
       icon: Database,
       color: '#6b7280',
     },
     {
       id: 'pull',
-      title: t('redstone.pullModel.pullModel') || 'Pull Model',
-      desc: t('redstone.pullModel.pullModelDesc') || 'User pulls data on-demand with signature',
+      title: t('redstone.pullModel.pullModel'),
+      desc: t('redstone.pullModel.pullModelDesc'),
       icon: Zap,
       color: '#ef4444',
     },
@@ -81,26 +81,26 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
   const workflowSteps = [
     {
       step: 1,
-      title: t('redstone.pullModel.step1Title') || 'Data Request',
-      desc: t('redstone.pullModel.step1Desc') || 'User requests price data from RedStone',
+      title: t('redstone.pullModel.step1Title'),
+      desc: t('redstone.pullModel.step1Desc'),
       icon: Server,
     },
     {
       step: 2,
-      title: t('redstone.pullModel.step2Title') || 'Provider Sign',
-      desc: t('redstone.pullModel.step2Desc') || 'Multiple providers sign the data package',
+      title: t('redstone.pullModel.step2Title'),
+      desc: t('redstone.pullModel.step2Desc'),
       icon: FileSignature,
     },
     {
       step: 3,
-      title: t('redstone.pullModel.step3Title') || 'Data Injection',
-      desc: t('redstone.pullModel.step3Desc') || 'Signed data embedded into transaction',
+      title: t('redstone.pullModel.step3Title'),
+      desc: t('redstone.pullModel.step3Desc'),
       icon: Database,
     },
     {
       step: 4,
-      title: t('redstone.pullModel.step4Title') || 'On-chain Verify',
-      desc: t('redstone.pullModel.step4Desc') || 'Smart contract verifies signatures',
+      title: t('redstone.pullModel.step4Title'),
+      desc: t('redstone.pullModel.step4Desc'),
       icon: Shield,
     },
   ];
@@ -108,23 +108,23 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
   const advantages = [
     {
       icon: TrendingDown,
-      title: t('redstone.pullModel.gasSavings') || '70%+ Gas Savings',
-      desc: t('redstone.pullModel.gasSavingsDesc') || 'No unnecessary on-chain updates',
+      title: t('redstone.pullModel.gasSavings'),
+      desc: t('redstone.pullModel.gasSavingsDesc'),
     },
     {
       icon: Clock,
-      title: t('redstone.pullModel.realTimeData') || 'Real-time Data',
-      desc: t('redstone.pullModel.realTimeDataDesc') || 'Always fresh data when you need it',
+      title: t('redstone.pullModel.realTimeData'),
+      desc: t('redstone.pullModel.realTimeDataDesc'),
     },
     {
       icon: Shield,
-      title: t('redstone.pullModel.security') || 'Enhanced Security',
-      desc: t('redstone.pullModel.securityDesc') || 'Multi-signature verification',
+      title: t('redstone.pullModel.security'),
+      desc: t('redstone.pullModel.securityDesc'),
     },
     {
       icon: Zap,
-      title: t('redstone.pullModel.efficiency') || 'High Efficiency',
-      desc: t('redstone.pullModel.efficiencyDesc') || 'Data injected directly into transactions',
+      title: t('redstone.pullModel.efficiency'),
+      desc: t('redstone.pullModel.efficiencyDesc'),
     },
   ];
 
@@ -177,10 +177,10 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
             </div>
             <div className="text-left">
               <h3 className="text-sm font-semibold text-gray-900">
-                {t('redstone.pullModel.workingPrinciple') || 'Working Principle'}
+                {t('redstone.pullModel.workingPrinciple')}
               </h3>
               <p className="text-xs text-gray-500">
-                {t('redstone.pullModel.workingPrincipleDesc') || 'Push vs Pull Model comparison'}
+                {t('redstone.pullModel.workingPrincipleDesc')}
               </p>
             </div>
           </div>
@@ -220,17 +220,17 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <Database className="w-3.5 h-3.5" />
                           <span>
-                            {t('redstone.pullModel.periodicUpdates') || 'Periodic updates'}
+                            {t('redstone.pullModel.periodicUpdates')}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <DollarSign className="w-3.5 h-3.5" />
-                          <span>{t('redstone.pullModel.highGasCost') || 'High gas cost'}</span>
+                          <span>{t('redstone.pullModel.highGasCost')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <Clock className="w-3.5 h-3.5" />
                           <span>
-                            {t('redstone.pullModel.staleData') || 'Potentially stale data'}
+                            {t('redstone.pullModel.staleData')}
                           </span>
                         </div>
                       </>
@@ -238,15 +238,15 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
                       <>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <Zap className="w-3.5 h-3.5 text-red-500" />
-                          <span>{t('redstone.pullModel.onDemandFetch') || 'On-demand fetch'}</span>
+                          <span>{t('redstone.pullModel.onDemandFetch')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <TrendingDown className="w-3.5 h-3.5 text-red-500" />
-                          <span>{t('redstone.pullModel.lowGasCost') || '70%+ lower gas cost'}</span>
+                          <span>{t('redstone.pullModel.lowGasCost')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <RefreshCw className="w-3.5 h-3.5 text-red-500" />
-                          <span>{t('redstone.pullModel.alwaysFresh') || 'Always fresh data'}</span>
+                          <span>{t('redstone.pullModel.alwaysFresh')}</span>
                         </div>
                       </>
                     )}
@@ -257,7 +257,7 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
 
             <div className="mt-6">
               <h4 className="text-sm font-medium text-gray-900 mb-4">
-                {t('redstone.pullModel.workflow') || 'Pull Model Workflow'}
+                {t('redstone.pullModel.workflow')}
               </h4>
               <div className="flex items-center justify-between relative">
                 <div className="absolute top-5 left-10 right-10 h-0.5 bg-gray-200" />
@@ -284,11 +284,11 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
                 >
                   {isAnimating ? (
                     <>
-                      <span>{t('redstone.pullModel.pauseAnimation') || 'Pause'}</span>
+                      <span>{t('redstone.pullModel.pauseAnimation')}</span>
                     </>
                   ) : (
                     <>
-                      <span>{t('redstone.pullModel.playAnimation') || 'Play'}</span>
+                      <span>{t('redstone.pullModel.playAnimation')}</span>
                     </>
                   )}
                 </button>
@@ -311,10 +311,10 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
             </div>
             <div className="text-left">
               <h3 className="text-sm font-semibold text-gray-900">
-                {t('redstone.pullModel.dataFreshness') || 'Data Freshness Monitor'}
+                {t('redstone.pullModel.dataFreshness')}
               </h3>
               <p className="text-xs text-gray-500">
-                {t('redstone.pullModel.dataFreshnessDesc') || 'Real-time data timestamp tracking'}
+                {t('redstone.pullModel.dataFreshnessDesc')}
               </p>
             </div>
           </div>
@@ -332,7 +332,7 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
                 <div className="flex items-center gap-2 mb-2">
                   <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />
                   <span className="text-xs text-gray-500">
-                    {t('redstone.pullModel.lastUpdate') || 'Last Update'}
+                    {t('redstone.pullModel.lastUpdate')}
                   </span>
                 </div>
                 <p className="text-lg font-semibold text-gray-900">
@@ -345,12 +345,12 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />
                   <span className="text-xs text-gray-500">
-                    {t('redstone.pullModel.freshnessScore') || 'Freshness Score'}
+                    {t('redstone.pullModel.freshnessScore')}
                   </span>
                 </div>
                 <p className="text-lg font-semibold text-emerald-600">98.5/100</p>
                 <p className="text-xs text-emerald-500">
-                  {t('redstone.pullModel.excellent') || 'Excellent'}
+                  {t('redstone.pullModel.excellent')}
                 </p>
               </div>
 
@@ -358,19 +358,19 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-4 h-4 text-gray-500" />
                   <span className="text-xs text-gray-500">
-                    {t('redstone.pullModel.avgLatency') || 'Avg Latency'}
+                    {t('redstone.pullModel.avgLatency')}
                   </span>
                 </div>
                 <p className="text-lg font-semibold text-gray-900">45ms</p>
                 <p className="text-xs text-gray-500">
-                  {t('redstone.pullModel.lastHour') || 'Last hour'}
+                  {t('redstone.pullModel.lastHour')}
                 </p>
               </div>
             </div>
 
             <div className="mt-4">
               <h4 className="text-sm font-medium text-gray-900 mb-3">
-                {t('redstone.pullModel.recentUpdates') || 'Recent Data Updates'}
+                {t('redstone.pullModel.recentUpdates')}
               </h4>
               <div className="space-y-2">
                 {recentUpdates.map((update) => (

@@ -268,17 +268,16 @@ export function API3RiskView({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
-              {t('api3.risk.metrics') || 'Risk Metrics'}
+              {t('api3.risk.metrics')}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {t('api3.risk.metricsDesc') ||
-                'Key performance indicators across decentralization, security, and reliability'}
+              {t('api3.risk.metricsDesc')}
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
             <Shield className="w-5 h-5 text-emerald-600" />
             <span className="text-sm font-medium text-emerald-700">
-              {t('api3.risk.overallScore') || 'Overall'}: {overallScore.toFixed(1)}/100
+              {t('api3.risk.overallScore')}: {overallScore.toFixed(1)}/100
             </span>
           </div>
         </div>
@@ -317,11 +316,10 @@ export function API3RiskView({
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.risk.benchmark') || 'Industry Benchmark Comparison'}
+            {t('api3.risk.benchmark')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.risk.benchmarkDesc') ||
-              'Performance comparison against other leading oracle providers'}
+            {t('api3.risk.benchmarkDesc')}
           </p>
         </div>
 
@@ -371,7 +369,7 @@ export function API3RiskView({
           {/* 对比表格 */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-700">
-              {t('api3.risk.comparison') || 'Detailed Comparison'}
+              {t('api3.risk.comparison')}
             </h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
@@ -410,11 +408,10 @@ export function API3RiskView({
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.risk.timeline') || 'Historical Risk Events'}
+            {t('api3.risk.timeline')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.risk.timelineDesc') ||
-              'Security audits, incidents and upgrades over the past 24 months'}
+            {t('api3.risk.timelineDesc')}
           </p>
         </div>
 
@@ -432,7 +429,7 @@ export function API3RiskView({
           {/* 事件详情 */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-4">
-              {t('api3.risk.eventDetails') || 'Event Details'}
+              {t('api3.risk.eventDetails')}
             </h3>
             {selectedEvent ? (
               <div className="space-y-4 p-4 bg-gray-50 rounded-md">
@@ -474,7 +471,7 @@ export function API3RiskView({
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
                 <p className="text-sm text-gray-500">
-                  {t('api3.risk.clickEvent') || 'Click an event to view details'}
+                  {t('api3.risk.clickEvent')}
                 </p>
               </div>
             )}
@@ -489,10 +486,10 @@ export function API3RiskView({
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.risk.factors') || 'Risk Factor Analysis'}
+            {t('api3.risk.factors')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.risk.factorsDesc') || 'Detailed breakdown of identified risk categories'}
+            {t('api3.risk.factorsDesc')}
           </p>
         </div>
 
@@ -551,11 +548,10 @@ export function API3RiskView({
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('api3.risk.disclaimer') || 'Risk Disclaimer'}
+            {t('api3.risk.disclaimer')}
           </h3>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-            {t('api3.risk.disclaimerText') ||
-              'The risk assessment provided is for informational purposes only and should not be considered as investment advice. Cryptocurrency investments carry significant risks, including potential loss of capital. Please conduct your own research and consult with financial advisors before making investment decisions.'}
+            {t('api3.risk.disclaimerText')}
           </p>
         </div>
       </section>

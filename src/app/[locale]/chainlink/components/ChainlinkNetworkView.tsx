@@ -47,10 +47,10 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
   ];
 
   const overviewStats = [
-    { label: t('chainlink.network.totalRequests') || 'Total Requests (24h)', value: '4.2M' },
-    { label: t('chainlink.network.avgGas') || 'Avg Gas Used', value: '85,420' },
-    { label: t('chainlink.network.activeChains') || 'Active Chains', value: '15' },
-    { label: t('chainlink.network.nodeOperators') || 'Node Operators', value: '1,240' },
+    { label: t('chainlink.network.totalRequests'), value: '4.2M' },
+    { label: t('chainlink.network.avgGas'), value: '85,420' },
+    { label: t('chainlink.network.activeChains'), value: '15' },
+    { label: t('chainlink.network.nodeOperators'), value: '1,240' },
   ];
 
   return (
@@ -114,11 +114,11 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
             })}
           </div>
           <div className="flex justify-between text-xs text-gray-400 mt-2">
-            <span>00:00</span>
-            <span>06:00</span>
-            <span>12:00</span>
-            <span>18:00</span>
-            <span>23:59</span>
+            <span>{t('time.00:00')}</span>
+            <span>{t('time.06:00')}</span>
+            <span>{t('time.12:00')}</span>
+            <span>{t('time.18:00')}</span>
+            <span>{t('time.23:59')}</span>
           </div>
         </div>
 
@@ -131,28 +131,44 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.successRate')}</span>
-                <span className="font-medium text-gray-900">99.9%</span>
+                <span className="font-medium text-gray-900">{networkData.successRate || '99.97'}%</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">{t('chainlink.network.activeNodes')}</span>
+                <span className="font-medium">{networkData.activeNodes?.toLocaleString() || '1,240'}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">{t('chainlink.network.dataSources')}</span>
+                <span className="font-medium">{networkData.dataSources || '156'}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">{t('chainlink.network.dataFeeds')}</span>
+                <span className="font-medium">{networkData.dataFeeds || '2,847'}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">{t('chainlink.network.consumerContracts')}</span>
+                <span className="font-medium">{networkData.consumerContracts || '4,521'}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '99.9%' }} />
+                <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${networkData.successRate || 99.97}%` }} />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">{t('chainlink.network.availability')}</span>
-                <span className="font-medium text-gray-900">99.99%</span>
+                <span className="text-gray-600">{t('chainlink.network.avgResponse')}</span>
+                <span className="font-medium text-gray-900">{networkData.avgResponseTime || 245}ms</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '99.99%' }} />
+                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${Math.min((networkData.avgResponseTime || 245) / 350 * 100, 100)}%` }} />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">{t('chainlink.network.latency')}</span>
-                <span className="font-medium text-gray-900">245ms avg</span>
+                <span className="text-gray-600">{t('chainlink.network.dataFreshness')}</span>
+                <span className="font-medium text-gray-900">&lt; {networkData.dataFreshness || 1}min</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '75%' }} />
+                <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${Math.max(100 - (networkData.dataFreshness || 1) * 5, 0)}%` }} />
               </div>
             </div>
           </div>
@@ -165,7 +181,7 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
       {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chainlink.network.overview') || 'Network Overview'}
+          {t('chainlink.network.overview')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (

@@ -391,7 +391,7 @@ export function OptimisticOracleFlow() {
   const stages: FlowStage[] = [
     {
       id: 'request',
-      title: 'Data Request',
+      title: t('uma.optimisticOracle.dataRequest.title'),
       titleCn: t('uma.optimisticOracle.dataRequest.title'),
       description: t('uma.optimisticOracle.dataRequest.description'),
       detailedDescription: t('uma.optimisticOracle.dataRequest.description'),
@@ -401,7 +401,7 @@ export function OptimisticOracleFlow() {
     },
     {
       id: 'validation',
-      title: 'Validation Period',
+      title: t('uma.optimisticOracle.validation.title'),
       titleCn: t('uma.optimisticOracle.validation.title'),
       description: t('uma.optimisticOracle.validation.description'),
       detailedDescription: t('uma.optimisticOracle.validation.description'),
@@ -411,7 +411,7 @@ export function OptimisticOracleFlow() {
     },
     {
       id: 'dispute',
-      title: 'Dispute Window',
+      title: t('uma.optimisticOracle.dispute.title'),
       titleCn: t('uma.optimisticOracle.dispute.title'),
       description: t('uma.optimisticOracle.dispute.description'),
       detailedDescription: t('uma.optimisticOracle.dispute.description'),
@@ -421,7 +421,7 @@ export function OptimisticOracleFlow() {
     },
     {
       id: 'confirmation',
-      title: 'Final Confirmation',
+      title: t('uma.optimisticOracle.confirmation.title'),
       titleCn: t('uma.optimisticOracle.confirmation.title'),
       description: t('uma.optimisticOracle.confirmation.description'),
       detailedDescription: t('uma.optimisticOracle.confirmation.description'),

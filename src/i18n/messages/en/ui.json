@@ -119,7 +119,8 @@
     "loading": "Loading...",
     "sort": {
       "asc": "Ascending",
-      "desc": "Descending"
+      "desc": "Descending",
+      "unsorted": "Not sorted"
     },
     "density": {
       "compact": "Compact",

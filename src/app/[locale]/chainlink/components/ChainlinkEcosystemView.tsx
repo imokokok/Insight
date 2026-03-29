@@ -459,7 +459,7 @@ export function ChainlinkEcosystemView() {
         <section>
           <div className="mb-4">
             <h3 className="text-base font-semibold text-gray-900">
-              {t('ecosystem.projectAnalysis.projectsByChain') || 'Projects by Chain'}
+              {t('ecosystem.projectAnalysis.projectsByChain')}
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
               {t('common.distributionProjectsNetworks')}
@@ -511,7 +511,7 @@ export function ChainlinkEcosystemView() {
         <section>
           <div className="mb-4">
             <h3 className="text-base font-semibold text-gray-900">
-              {t('ecosystem.growth.title') || 'Ecosystem Growth'}
+              {t('ecosystem.growth.title')}
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">{t('common.keyPerformanceIndicators')}</p>
           </div>
@@ -520,7 +520,7 @@ export function ChainlinkEcosystemView() {
               <div className="flex items-center gap-3">
                 <Layers className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.newProjects') || 'New Projects'}
+                  {t('ecosystem.growth.newProjects')}
                 </span>
               </div>
               <div className="text-right">
@@ -532,7 +532,7 @@ export function ChainlinkEcosystemView() {
               <div className="flex items-center gap-3">
                 <Zap className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.integrations') || 'Integrations'}
+                  {t('ecosystem.growth.integrations')}
                 </span>
               </div>
               <div className="text-right">
@@ -544,7 +544,7 @@ export function ChainlinkEcosystemView() {
               <div className="flex items-center gap-3">
                 <Globe className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.communityGrowth') || 'Community'}
+                  {t('ecosystem.growth.communityGrowth')}
                 </span>
               </div>
               <div className="text-right">
@@ -556,7 +556,7 @@ export function ChainlinkEcosystemView() {
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.protocolRevenue') || 'Revenue'}
+                  {t('ecosystem.growth.protocolRevenue')}
                 </span>
               </div>
               <div className="text-right">

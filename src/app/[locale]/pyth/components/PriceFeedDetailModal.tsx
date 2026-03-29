@@ -28,8 +28,9 @@ import {
 } from 'recharts';
 
 import { ConfidenceIntervalChart } from '@/components/oracle/charts/ConfidenceIntervalChart';
-import { useTranslations } from '@/i18n';
+import { useTranslations, useLocale } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
+import { isChineseLocale } from '@/i18n/routing';
 import { PYTH_PRICE_FEED_IDS } from '@/lib/oracles/pythConstants';
 import {
   getPythDataService,
@@ -71,9 +72,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
           <p key={index} className="text-sm">
             <span className="text-gray-500">{entry.name}:</span>
             <span className="ml-2 font-medium" style={{ color: entry.color }}>
-              {entry.name === '价格'
-                ? `$${entry.value.toLocaleString()}`
-                : `$${entry.value.toFixed(4)}`}
+              ${entry.value.toLocaleString()}
             </span>
           </p>
         ))}
@@ -85,6 +84,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 
 export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDetailModalProps) {
   const t = useTranslations();
+  const locale = useLocale();
 
   const [realtimePrice, setRealtimePrice] = useState<PriceData | null>(null);
   const [realtimeState, setRealtimeState] = useState<RealtimeState>({
@@ -234,25 +234,27 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
         const pythService = getPythDataService();
         const publisherData = await pythService.getPublishers();
 
+        const dateLocale = isChineseLocale(locale) ? 'zh-CN' : 'en-US';
         const formattedPublishers: Publisher[] = publisherData.map((p: PublisherData) => ({
           id: p.id,
           name: p.name,
           stake: p.submissionCount ?? 0,
           accuracy: (p.reliabilityScore ?? 0.95) * 100,
-          lastUpdate: new Date(p.lastUpdate ?? Date.now()).toLocaleTimeString('zh-CN'),
+          lastUpdate: new Date(p.lastUpdate ?? Date.now()).toLocaleTimeString(dateLocale),
           status: p.status === 'active' ? 'active' : 'inactive',
         }));
 
         setPublishers(formattedPublishers);
       } catch (error) {
         console.error('Failed to fetch publishers:', error);
+        const dateLocale = isChineseLocale(locale) ? 'zh-CN' : 'en-US';
         const fallbackPublishers: Publisher[] = [
           {
             id: '1',
             name: 'Binance',
             stake: 50000000,
             accuracy: 99.2,
-            lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+            lastUpdate: new Date().toLocaleTimeString(dateLocale),
             status: 'active',
           },
           {
@@ -260,7 +262,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
             name: 'OKX',
             stake: 45000000,
             accuracy: 99.1,
-            lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+            lastUpdate: new Date().toLocaleTimeString(dateLocale),
             status: 'active',
           },
           {
@@ -268,7 +270,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
             name: 'Coinbase',
             stake: 40000000,
             accuracy: 99.0,
-            lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+            lastUpdate: new Date().toLocaleTimeString(dateLocale),
             status: 'active',
           },
           {
@@ -276,7 +278,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
             name: 'Kraken',
             stake: 35000000,
             accuracy: 98.9,
-            lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+            lastUpdate: new Date().toLocaleTimeString(dateLocale),
             status: 'active',
           },
           {
@@ -284,7 +286,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
             name: 'Bybit',
             stake: 30000000,
             accuracy: 98.8,
-            lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+            lastUpdate: new Date().toLocaleTimeString(dateLocale),
             status: 'active',
           },
         ];
@@ -295,27 +297,27 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
     };
 
     fetchPublishers();
-  }, [isOpen]);
+  }, [isOpen, locale]);
 
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case 'active':
         return {
-          label: t('pyth.priceFeeds.statusActive') || '活跃',
+          label: t('pyth.priceFeeds.statusActive'),
           color: 'text-emerald-600',
           bgColor: 'bg-emerald-50',
           icon: <CheckCircle className="w-4 h-4" />,
         };
       case 'paused':
         return {
-          label: t('pyth.priceFeeds.statusPaused') || '暂停',
+          label: t('pyth.priceFeeds.statusPaused'),
           color: 'text-amber-600',
           bgColor: 'bg-amber-50',
           icon: <AlertCircle className="w-4 h-4" />,
         };
       case 'deprecated':
         return {
-          label: t('pyth.priceFeeds.statusDeprecated') || '已弃用',
+          label: t('pyth.priceFeeds.statusDeprecated'),
           color: 'text-red-600',
           bgColor: 'bg-red-50',
           icon: <AlertCircle className="w-4 h-4" />,
@@ -332,10 +334,10 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
 
   const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
-      crypto: t('pyth.priceFeeds.categoryCrypto') || '加密货币',
-      forex: t('pyth.priceFeeds.categoryForex') || '外汇',
-      commodities: t('pyth.priceFeeds.categoryCommodities') || '大宗商品',
-      equities: t('pyth.priceFeeds.categoryEquities') || '股票',
+      crypto: t('pyth.priceFeeds.categories.crypto'),
+      forex: t('pyth.priceFeeds.categories.forex'),
+      commodities: t('pyth.priceFeeds.categories.commodities'),
+      equities: t('pyth.priceFeeds.categories.equities'),
     };
     return labels[category] || category;
   };
@@ -362,7 +364,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">{priceFeed.name}</h2>
                 <p className="text-sm text-gray-500">
-                  {t('pyth.priceFeeds.id') || 'ID'}: {priceFeed.id}
+                  {t('pyth.priceFeeds.id')}: {priceFeed.id}
                 </p>
               </div>
             </div>
@@ -372,7 +374,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                   <>
                     <Wifi className="w-4 h-4 text-emerald-600" />
                     <span className="text-xs font-medium text-emerald-600">
-                      {t('pyth.priceFeeds.realtimeConnected') || '实时连接'}
+                      {t('pyth.priceFeeds.realtimeConnected')}
                     </span>
                   </>
                 ) : (
@@ -380,8 +382,8 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                     <WifiOff className="w-4 h-4 text-gray-400" />
                     <span className="text-xs font-medium text-gray-500">
                       {realtimeState.connectionStatus === 'connecting'
-                        ? t('pyth.priceFeeds.connecting') || '连接中...'
-                        : t('pyth.priceFeeds.disconnected') || '未连接'}
+                        ? t('pyth.priceFeeds.connecting')
+                        : t('pyth.priceFeeds.disconnected')}
                     </span>
                   </>
                 )}
@@ -402,7 +404,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-500">
-                  {t('pyth.priceFeeds.currentPrice') || '当前价格'}
+                  {t('pyth.priceFeeds.currentPrice')}
                 </span>
               </div>
               <p
@@ -436,7 +438,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
               <div className="flex items-center gap-2 mb-2">
                 <Activity className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-500">
-                  {t('pyth.priceFeeds.confidenceInterval') || '置信区间'}
+                  {t('pyth.priceFeeds.confidenceInterval')}
                 </span>
               </div>
               <p className="text-lg font-bold text-gray-900">
@@ -452,12 +454,12 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-500">
-                  {t('pyth.priceFeeds.updateFrequency') || '更新频率'}
+                  {t('pyth.priceFeeds.updateFrequency')}
                 </span>
               </div>
               <p className="text-2xl font-bold text-gray-900">{priceFeed.updateFrequency}</p>
               <p className="text-xs text-gray-400 mt-1">
-                {t('pyth.priceFeeds.realTime') || '实时更新'}
+                {t('pyth.priceFeeds.realTime')}
               </p>
             </div>
 
@@ -465,12 +467,12 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-500">
-                  {t('pyth.priceFeeds.reliability') || '可靠性'}
+                  {t('pyth.priceFeeds.reliability')}
                 </span>
               </div>
               <p className="text-2xl font-bold text-emerald-600">{priceFeed.reliability}%</p>
               <p className="text-xs text-gray-400 mt-1">
-                {t('pyth.priceFeeds.last30Days') || '近30天'}
+                {t('pyth.priceFeeds.last30Days')}
               </p>
             </div>
           </div>
@@ -478,7 +480,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-violet-50 p-4 rounded-lg">
               <p className="text-sm text-violet-600 mb-1">
-                {t('pyth.priceFeeds.category') || '类别'}
+                {t('pyth.priceFeeds.category')}
               </p>
               <p className="text-base font-semibold text-violet-900">
                 {getCategoryLabel(priceFeed.category)}
@@ -486,7 +488,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
             </div>
             <div className="bg-blue-50 p-4 rounded-lg">
               <p className="text-sm text-blue-600 mb-1">
-                {t('pyth.priceFeeds.deviationThreshold') || '偏差阈值'}
+                {t('pyth.priceFeeds.deviationThreshold')}
               </p>
               <p className="text-base font-semibold text-blue-900">
                 {priceFeed.deviationThreshold}
@@ -494,7 +496,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
             </div>
             <div className="bg-emerald-50 p-4 rounded-lg">
               <p className="text-sm text-emerald-600 mb-1">
-                {t('pyth.priceFeeds.totalRequests') || '总请求数'}
+                {t('pyth.priceFeeds.totalRequests')}
               </p>
               <p className="text-base font-semibold text-emerald-900">
                 {(priceFeed.totalRequests / 1e6).toFixed(1)}M
@@ -502,7 +504,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
             </div>
             <div className={`p-4 rounded-lg ${statusDisplay.bgColor}`}>
               <p className={`text-sm mb-1 ${statusDisplay.color}`}>
-                {t('pyth.priceFeeds.status') || '状态'}
+                {t('pyth.priceFeeds.status')}
               </p>
               <div className="flex items-center gap-1.5">
                 {statusDisplay.icon}
@@ -515,7 +517,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
 
           <div className="border-t border-gray-200 pt-8">
             <h3 className="text-base font-semibold text-gray-900 mb-4">
-              {t('pyth.priceFeeds.confidenceVisualization') || '置信区间可视化'}
+              {t('pyth.priceFeeds.confidenceVisualization')}
             </h3>
             <ConfidenceIntervalChart
               price={currentPrice}
@@ -529,7 +531,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
 
           <div className="border-t border-gray-200 pt-8">
             <h3 className="text-base font-semibold text-gray-900 mb-4">
-              {t('pyth.priceFeeds.priceHistory') || '价格历史'}
+              {t('pyth.priceFeeds.priceHistory')}
             </h3>
             <div style={{ height: 280 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -562,7 +564,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                   <Area
                     type="monotone"
                     dataKey="price"
-                    name={t('pyth.priceFeeds.price') || '价格'}
+                    name={t('pyth.priceFeeds.price')}
                     stroke={chartColors.recharts.primary}
                     strokeWidth={2}
                     fill="url(#priceGradient)"
@@ -575,12 +577,12 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
           <div className="border-t border-gray-200 pt-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-semibold text-gray-900">
-                {t('pyth.priceFeeds.publishers') || '贡献发布者'}
+                {t('pyth.priceFeeds.publishers')}
               </h3>
               {isLoadingPublishers && (
                 <span className="text-xs text-gray-400 flex items-center gap-1">
                   <RefreshCw className="w-3 h-3 animate-spin" />
-                  {t('pyth.priceFeeds.loading') || '加载中...'}
+                  {t('pyth.priceFeeds.loading')}
                 </span>
               )}
             </div>
@@ -589,19 +591,19 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('pyth.priceFeeds.publisherName') || '名称'}
+                      {t('pyth.priceFeeds.publisherName')}
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('pyth.priceFeeds.publisherStake') || '提交数'}
+                      {t('pyth.priceFeeds.publisherStake')}
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('pyth.priceFeeds.publisherAccuracy') || '准确率'}
+                      {t('pyth.priceFeeds.publisherAccuracy')}
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('pyth.priceFeeds.lastUpdate') || '最后更新'}
+                      {t('pyth.priceFeeds.lastUpdate')}
                     </th>
                     <th className="text-center py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('pyth.priceFeeds.publisherStatus') || '状态'}
+                      {t('pyth.priceFeeds.publisherStatus')}
                     </th>
                   </tr>
                 </thead>
@@ -629,7 +631,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                               : 'bg-gray-100 text-gray-600'
                           }`}
                         >
-                          {publisher.status === 'active' ? '活跃' : '不活跃'}
+                          {publisher.status === 'active' ? t('pyth.priceFeeds.statusActive') : t('pyth.priceFeeds.statusInactive')}
                         </span>
                       </td>
                     </tr>
@@ -638,8 +640,8 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
               </table>
             </div>
             <p className="text-sm text-gray-500 mt-3">
-              {t('pyth.priceFeeds.totalPublishers') || '总计'} {publishers.length}{' '}
-              {t('pyth.priceFeeds.publishersCount') || '个发布者'}
+              {t('pyth.priceFeeds.totalPublishers')} {publishers.length}{' '}
+              {t('pyth.priceFeeds.publishersCount')}
             </p>
           </div>
 
@@ -649,11 +651,10 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                 <Zap className="w-5 h-5 text-violet-600 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-semibold text-violet-900">
-                    {t('pyth.priceFeeds.feedInfo') || '价格源信息'}
+                    {t('pyth.priceFeeds.feedInfo')}
                   </h4>
                   <p className="text-sm text-violet-700 mt-1">
-                    {t('pyth.priceFeeds.feedInfoDesc') ||
-                      '该价格源由多个受信任的发布者提供数据，采用置信区间机制确保价格准确性。数据更新基于偏差阈值和时间间隔双重触发。'}
+                    {t('pyth.priceFeeds.feedInfoDesc')}
                   </p>
                 </div>
               </div>
@@ -667,7 +668,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
               onClick={onClose}
               className="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 transition-colors rounded-md"
             >
-              {t('pyth.priceFeeds.close') || '关闭'}
+              {t('pyth.priceFeeds.close')}
             </button>
           </div>
         </div>

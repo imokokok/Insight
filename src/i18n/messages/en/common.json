@@ -237,6 +237,10 @@
     "export": "Export",
     "expand": "Expand",
     "collapse": "Collapse",
+    "retry": "Retry",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyFailed": "Copy failed",
     "breadcrumb": {
       "home": "Home"
     },
@@ -246,6 +250,16 @@
     "warning": {
       "partialData": "Some data failed to load",
       "partialDataDescription": "The following data sources are unavailable: {items}. Displaying available data."
+    },
+    "timeRange": {
+      "24h": "24h"
+    },
+    "time": {
+      "00:00": "00:00",
+      "06:00": "06:00",
+      "12:00": "12:00",
+      "18:00": "18:00",
+      "23:59": "23:59"
     }
   },
   "comparison": {

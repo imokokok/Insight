@@ -202,7 +202,7 @@ export function DelegationAnalysis() {
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString();
+    return new Date(timestamp).toLocaleDateString(undefined);
   };
 
   const formatDuration = (startDate: number) => {

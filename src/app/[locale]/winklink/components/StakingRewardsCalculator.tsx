@@ -93,9 +93,9 @@ export function StakingRewardsCalculator({ winPrice }: StakingRewardsCalculatorP
           <div className="text-xs text-gray-400 mt-1">
             ≈ {formatUsd(amount)}
             {isPriceLoading ? (
-              <span className="ml-1 text-amber-500">(预估价格)</span>
+              <span className="ml-1 text-amber-500">({t('winklink.staking.estimatedPrice')})</span>
             ) : (
-              <span className="ml-1 text-emerald-500">(实时价格)</span>
+              <span className="ml-1 text-emerald-500">({t('winklink.staking.livePrice')})</span>
             )}
           </div>
         </div>
@@ -217,8 +217,8 @@ export function StakingRewardsCalculator({ winPrice }: StakingRewardsCalculatorP
           <p className="flex items-center gap-1">
             <span className={`w-1.5 h-1.5 rounded-full ${isPriceLoading ? 'bg-amber-400' : 'bg-emerald-400'}`} />
             {isPriceLoading
-              ? '使用预估价格进行计算，实时价格加载中...'
-              : `实时价格来自 API: $${effectivePrice.toFixed(8)}`}
+              ? t('winklink.staking.priceLoadingMsg')
+              : t('winklink.staking.priceFromApi', { price: effectivePrice.toFixed(8) })}
           </p>
         </div>
       </div>

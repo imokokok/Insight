@@ -62,11 +62,13 @@ function Sparkline({
   positive,
   width = 60,
   height = 24,
+  t,
 }: {
   data: number[];
   positive: boolean;
   width?: number;
   height?: number;
+  t: (key: string) => string;
 }) {
   if (!data || data.length < 2) return null;
 
@@ -107,7 +109,7 @@ function Sparkline({
 }
 
 // 增强版核心统计组件 - 5个指标，响应式网格布局
-function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColor: string }) {
+function EnhancedCoreStats({ stats, themeColor, t }: { stats: StatItem[]; themeColor: string; t: (key: string) => string }) {
   const displayStats = stats.slice(0, 5);
 
   return (
@@ -134,6 +136,7 @@ function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColo
                     positive={isPositive}
                     width={50}
                     height={20}
+                    t={t}
                   />
                 </div>
               )}
@@ -168,10 +171,12 @@ function MiniPriceChart({
   historicalData,
   currentPrice,
   themeColor,
+  t,
 }: {
   historicalData: PriceData[];
   currentPrice: PriceData | null;
   themeColor: string;
+  t: (key: string) => string;
 }) {
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
@@ -195,7 +200,7 @@ function MiniPriceChart({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
+          <span>{t('chronicle.hero.trend24h')}</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
@@ -203,11 +208,11 @@ function MiniPriceChart({
         </span>
       </div>
       <div className="flex-1 min-h-[80px] flex items-end">
-        <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
+        <Sparkline data={chartData} positive={isPositive} width={180} height={70} t={t} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>{t('chronicle.hero.24hAgo')}</span>
+        <span>{t('chronicle.hero.now')}</span>
       </div>
     </div>
   );
@@ -250,7 +255,7 @@ function ActionButtons({
 }
 
 // 整合的次要指标行 - 4个指标在一行展示，纯文本+图标，无卡片背景，用分隔符区分
-function CompactMetricsRow({ stats }: { stats: StatItem[] }) {
+function CompactMetricsRow({ stats, t }: { stats: StatItem[]; t: (key: string) => string }) {
   const displayStats = stats.slice(0, 4);
 
   return (
@@ -298,6 +303,7 @@ function UnifiedInfoSection({
   healthScore,
   chains,
   themeColor,
+  t,
 }: {
   networkStats?: {
     avgResponseTime: number;
@@ -307,6 +313,7 @@ function UnifiedInfoSection({
   healthScore: number;
   chains: string[];
   themeColor: string;
+  t: (key: string) => string;
 }) {
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
@@ -322,14 +329,14 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return { label: t('chronicle.securityLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return { label: t('chronicle.securityLevel.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return { label: t('chronicle.securityLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: t('chronicle.securityLevel.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
   const displayChains = chains.slice(0, 3);
   const remainingCount = Math.max(0, chains.length - 3);
@@ -340,7 +347,7 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('chronicle.hero.health')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -363,7 +370,7 @@ function UnifiedInfoSection({
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('chronicle.hero.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -379,7 +386,7 @@ function UnifiedInfoSection({
           {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('chronicle.hero.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
@@ -388,7 +395,7 @@ function UnifiedInfoSection({
           {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('chronicle.hero.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
@@ -401,12 +408,12 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('chronicle.hero.support')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {chains.length}+ {t('chronicle.hero.supportedChains')}
           </span>
           {/* 前3个链图标 */}
           <div className="flex -space-x-1">
@@ -483,7 +490,7 @@ export function ChronicleHero({
   // 核心统计指标 (Primary stats) - 5个关键指标
   const primaryStats: StatItem[] = [
     {
-      title: 'CHRONICLE 价格',
+      title: t('chronicle.hero.price'),
       value: `$${currentPrice.toFixed(2)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
@@ -492,7 +499,7 @@ export function ChronicleHero({
       sparklineData: priceSparkline,
     },
     {
-      title: 'TVS',
+      title: t('chronicle.hero.tvs'),
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
       change: '+5.2%',
       changeType: 'positive',
@@ -501,25 +508,25 @@ export function ChronicleHero({
       sparklineData: marketCapSparkline,
     },
     {
-      title: '验证者数',
+      title: t('chronicle.hero.validators'),
       value: `${networkStats?.activeValidators ?? config.networkData.activeNodes}+`,
       change: '+3',
       changeType: 'positive',
       icon: <Shield className="w-4 h-4" />,
-      subtitle: '本月',
+      subtitle: t('chronicle.stats.thisMonth'),
       sparklineData: validatorSparkline,
     },
     {
-      title: '数据喂价',
+      title: t('chronicle.hero.dataFeeds'),
       value: `${networkStats?.dataFeeds ?? config.networkData.dataFeeds}`,
       change: '+12',
       changeType: 'positive',
       icon: <Database className="w-4 h-4" />,
-      subtitle: '本周',
+      subtitle: t('chronicle.stats.thisWeek'),
       sparklineData: dataFeedSparkline,
     },
     {
-      title: '质押量',
+      title: t('chronicle.hero.staking'),
       value: `${(config.marketData.circulatingSupply / 1e6).toFixed(1)}M`,
       change: '+3.7%',
       changeType: 'positive',
@@ -532,28 +539,28 @@ export function ChronicleHero({
   // 次要统计指标 (Secondary stats)
   const secondaryStats: StatItem[] = [
     {
-      title: '支持链数',
+      title: t('chronicle.hero.supportedChains'),
       value: `${config.supportedChains.length}+`,
       change: undefined,
       changeType: 'neutral',
       icon: <Globe className="w-3.5 h-3.5" />,
     },
     {
-      title: '平均响应',
+      title: t('chronicle.hero.avgResponse'),
       value: `${config.networkData.avgResponseTime}ms`,
       change: '-15%',
       changeType: 'positive',
       icon: <Clock className="w-3.5 h-3.5" />,
     },
     {
-      title: '在线率',
+      title: t('chronicle.hero.uptime'),
       value: `${networkStats?.nodeUptime ?? config.networkData.nodeUptime}%`,
       change: '+0.02%',
       changeType: 'positive',
       icon: <Award className="w-3.5 h-3.5" />,
     },
     {
-      title: '节点数',
+      title: t('chronicle.hero.nodes'),
       value: `${config.networkData.activeNodes}`,
       change: '+2',
       changeType: 'positive',
@@ -622,10 +629,10 @@ export function ChronicleHero({
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* 左侧区域（70%）- 核心指标 */}
           <div className="flex-1 lg:w-[70%] lg:flex-none">
-            <EnhancedCoreStats stats={primaryStats} themeColor={themeColor} />
+            <EnhancedCoreStats stats={primaryStats} themeColor={themeColor} t={t} />
 
             {/* 次要指标行 */}
-            <CompactMetricsRow stats={secondaryStats} />
+            <CompactMetricsRow stats={secondaryStats} t={t} />
 
             {/* 整合信息区 */}
             <UnifiedInfoSection
@@ -633,6 +640,7 @@ export function ChronicleHero({
               healthScore={healthScore}
               chains={config.supportedChains}
               themeColor={themeColor}
+              t={t}
             />
           </div>
 
@@ -657,6 +665,7 @@ export function ChronicleHero({
                 historicalData={historicalData}
                 currentPrice={price ?? null}
                 themeColor={themeColor}
+                t={t}
               />
             </div>
           </div>

@@ -149,10 +149,10 @@ export function ChronicleMarketView({
             </h3>
             <div className="flex-1 flex flex-col">
               {[
-                { name: 'Chronicle Oracle', status: 'active', latency: '120ms' },
-                { name: 'Ethereum Mainnet', status: 'active', latency: '245ms' },
-                { name: 'MakerDAO Feed', status: 'active', latency: '180ms' },
-                { name: 'Backup Node', status: 'syncing', latency: '320ms' },
+                { name: t('chronicle.dataSources.chronicleOracle'), status: 'active', latency: '120ms' },
+                { name: t('chronicle.dataSources.ethereumMainnet'), status: 'active', latency: '245ms' },
+                { name: t('chronicle.dataSources.makerdaoFeed'), status: 'active', latency: '180ms' },
+                { name: t('chronicle.dataSources.backupNode'), status: 'syncing', latency: '320ms' },
               ].map((source, index) => (
                 <div
                   key={index}
@@ -180,7 +180,7 @@ export function ChronicleMarketView({
       {/* 核心交易对信息 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chronicle.tradingPair') || '主要交易对'}
+          {t('chronicle.tradingPair')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>

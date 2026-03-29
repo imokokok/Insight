@@ -41,10 +41,10 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
   ];
 
   const overviewStats = [
-    { label: t('redstone.network.totalRequests') || 'Total Requests (24h)', value: '2.8M' },
-    { label: t('redstone.network.avgGas') || 'Avg Gas Used', value: '62,150' },
-    { label: t('redstone.network.activeChains') || 'Active Chains', value: '12' },
-    { label: t('redstone.network.nodeOperators') || 'Node Operators', value: '25' },
+    { label: t('redstone.network.totalRequests'), value: '2.8M' },
+    { label: t('redstone.network.avgGas'), value: '62,150' },
+    { label: t('redstone.network.activeChains'), value: '12' },
+    { label: t('redstone.network.nodeOperators'), value: '25' },
   ];
 
   const hourlyActivity = [
@@ -94,7 +94,7 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-medium text-gray-900">
-              {t('redstone.network.hourlyActivity') || 'Hourly Activity'}
+              {t('redstone.network.hourlyActivity')}
             </h3>
             <span className="text-sm text-gray-500">24h</span>
           </div>
@@ -107,7 +107,7 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
                   key={index}
                   className="flex-1 bg-red-500/20 hover:bg-red-500/30 transition-colors rounded-t"
                   style={{ height: `${Math.max(height, 8)}%` }}
-                  title={`${value.toLocaleString()} requests`}
+                  title={`${value.toLocaleString()} ${t('redstone.network.requests')}`}
                 />
               );
             })}
@@ -124,13 +124,13 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
         {/* 网络性能指标 - 简洁进度条 */}
         <div>
           <h3 className="text-base font-medium text-gray-900 mb-5">
-            {t('redstone.network.performance') || 'Network Performance'}
+            {t('redstone.network.performance')}
           </h3>
           <div className="space-y-5">
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">
-                  {t('redstone.network.successRate') || 'Success Rate'}
+                  {t('redstone.network.successRate')}
                 </span>
                 <span className="font-medium text-gray-900">99.9%</span>
               </div>
@@ -141,7 +141,7 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">
-                  {t('redstone.network.availability') || 'Availability'}
+                  {t('redstone.network.availability')}
                 </span>
                 <span className="font-medium text-gray-900">99.99%</span>
               </div>
@@ -151,8 +151,8 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">{t('redstone.network.latency') || 'Latency'}</span>
-                <span className="font-medium text-gray-900">200ms avg</span>
+                <span className="text-gray-600">{t('redstone.network.latency')}</span>
+                <span className="font-medium text-gray-900">200ms {t('redstone.network.avg')}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '80%' }} />
@@ -168,7 +168,7 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
       {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('redstone.network.overview') || 'Network Overview'}
+          {t('redstone.network.overview')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (

@@ -505,6 +505,73 @@
       "quorum": "Quorum",
       "threshold": "Threshold",
       "vetoThreshold": "Veto Threshold"
+    },
+    "market": {
+      "priceTrend": "Price Trend",
+      "quickStats": "Quick Stats",
+      "dataSource": "Data Source",
+      "tradingPair": "Trading Pairs",
+      "liquidity": "Liquidity",
+      "depth": "Market Depth",
+      "depthScore": "Depth Score"
+    },
+    "stats": {
+      "marketCap": "Market Cap",
+      "volume24h": "24h Volume",
+      "circulatingSupply": "Circulating Supply",
+      "stakingApr": "Staking APR",
+      "activeNodes": "Active Nodes",
+      "dataFeeds": "Data Feeds",
+      "responseTime": "Response Time",
+      "successRate": "Success Rate"
+    },
+    "categories": {
+      "crypto": "Crypto",
+      "stablecoin": "Stablecoin",
+      "forex": "Forex",
+      "commodities": "Commodities",
+      "equities": "Equities",
+      "sports": "Sports",
+      "random": "Random",
+      "price": "Price",
+      "custom": "Custom"
+    },
+    "status": {
+      "active": "Active",
+      "syncing": "Syncing",
+      "inactive": "Inactive",
+      "jailed": "Jailed"
+    },
+    "dataSource": {
+      "bandProtocolMarket": "Band Protocol Market",
+      "cosmosHub": "Cosmos Hub",
+      "secondaryFeed": "Secondary Feed",
+      "backupNode": "Backup Node"
+    },
+    "chains": {
+      "cosmosHub": "Cosmos Hub",
+      "osmosis": "Osmosis",
+      "ethereum": "Ethereum",
+      "polygon": "Polygon",
+      "avalanche": "Avalanche",
+      "fantom": "Fantom",
+      "cronos": "Cronos",
+      "juno": "Juno"
+    },
+    "errors": {
+      "loadError": "Failed to load data",
+      "failedToLoad": "Unable to fetch data. Please try again.",
+      "retry": "Retry",
+      "refresh": "Refresh"
+    },
+    "common": {
+      "cancel": "Cancel",
+      "close": "Close",
+      "view": "View",
+      "details": "Details",
+      "loading": "Loading...",
+      "noData": "No data available",
+      "na": "N/A"
     }
   }
 }

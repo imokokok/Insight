@@ -271,7 +271,7 @@ export function ChainlinkDataStreamsView() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">
-          {t('dataStreams.title') || 'Data Streams'}
+          {t('dataStreams.title')}
         </h2>
         <button
           onClick={() => setIsLive(!isLive)}
@@ -282,12 +282,12 @@ export function ChainlinkDataStreamsView() {
           {isLive ? (
             <>
               <Wifi className="w-4 h-4" />
-              {t('dataStreams.live') || 'Live'}
+              {t('dataStreams.live')}
             </>
           ) : (
             <>
               <WifiOff className="w-4 h-4" />
-              {t('dataStreams.paused') || 'Paused'}
+              {t('dataStreams.paused')}
             </>
           )}
         </button>
@@ -298,14 +298,14 @@ export function ChainlinkDataStreamsView() {
           <div className="flex items-center gap-2 mb-2">
             <Activity className="w-4 h-4 text-blue-600" />
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('dataStreams.activeStreams') || 'Active Streams'}
+              {t('dataStreams.activeStreams')}
             </span>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.activeStreams.toLocaleString()}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            {t('dataStreams.totalFeeds') || 'Total feeds'}
+            {t('dataStreams.totalFeeds')}
           </div>
         </div>
 
@@ -313,14 +313,14 @@ export function ChainlinkDataStreamsView() {
           <div className="flex items-center gap-2 mb-2">
             <Zap className="w-4 h-4 text-amber-600" />
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('dataStreams.updateFrequency') || 'Update Freq'}
+              {t('dataStreams.updateFrequency')}
             </span>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.updateFrequency.toLocaleString()}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            {t('dataStreams.updatesPerMin') || 'updates/min'}
+            {t('dataStreams.updatesPerMin')}
           </div>
         </div>
 
@@ -328,13 +328,13 @@ export function ChainlinkDataStreamsView() {
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-purple-600" />
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('dataStreams.avgLatency') || 'Avg Latency'}
+              {t('dataStreams.avgLatency')}
             </span>
           </div>
           <div className="text-2xl font-bold text-gray-900">{stats.avgLatency}ms</div>
           <div className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
             <ArrowDownRight className="w-3 h-3" />
-            -12% {t('dataStreams.fromLastHour') || 'from last hour'}
+            -12% {t('dataStreams.fromLastHour')}
           </div>
         </div>
 
@@ -342,14 +342,14 @@ export function ChainlinkDataStreamsView() {
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-4 h-4 text-emerald-600" />
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('dataStreams.throughput') || 'Throughput'}
+              {t('dataStreams.throughput')}
             </span>
           </div>
           <div className="text-2xl font-bold text-gray-900">
             {stats.throughput.toLocaleString()}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            {t('dataStreams.msgsPerSec') || 'msgs/sec'}
+            {t('dataStreams.msgsPerSec')}
           </div>
         </div>
       </div>
@@ -357,20 +357,20 @@ export function ChainlinkDataStreamsView() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('dataStreams.dataFeeds') || 'Data Feeds'}
+            {t('dataStreams.dataFeeds')}
           </h3>
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <div className="col-span-3">{t('dataStreams.pair') || 'Pair'}</div>
-              <div className="col-span-2 text-right">{t('dataStreams.price') || 'Price'}</div>
-              <div className="col-span-2 text-right">{t('dataStreams.latency') || 'Latency'}</div>
+              <div className="col-span-3">{t('dataStreams.pair')}</div>
+              <div className="col-span-2 text-right">{t('dataStreams.price')}</div>
+              <div className="col-span-2 text-right">{t('dataStreams.latency')}</div>
               <div className="col-span-2 text-right">
-                {t('dataStreams.threshold') || 'Threshold'}
+                {t('dataStreams.threshold')}
               </div>
               <div className="col-span-2 text-right">
-                {t('dataStreams.subscribers') || 'Subscribers'}
+                {t('dataStreams.subscribers')}
               </div>
-              <div className="col-span-1 text-center">{t('dataStreams.status') || 'Status'}</div>
+              <div className="col-span-1 text-center">{t('dataStreams.status')}</div>
             </div>
             {feeds.map((feed, index) => (
               <div
@@ -418,13 +418,13 @@ export function ChainlinkDataStreamsView() {
 
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('dataStreams.performanceMetrics') || 'Performance Metrics'}
+            {t('dataStreams.performanceMetrics')}
           </h3>
           <div className="space-y-4">
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-gray-500">
-                  {t('dataStreams.bandwidth') || 'Bandwidth'}
+                  {t('dataStreams.bandwidth')}
                 </span>
                 <span className="text-sm font-semibold text-gray-900">{stats.bandwidth} GB/s</span>
               </div>
@@ -436,7 +436,7 @@ export function ChainlinkDataStreamsView() {
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-gray-500">
-                  {t('dataStreams.packetLoss') || 'Packet Loss'}
+                  {t('dataStreams.packetLoss')}
                 </span>
                 <span className="text-sm font-semibold text-emerald-600">
                   {(stats.packetLoss * 100).toFixed(3)}%
@@ -450,7 +450,7 @@ export function ChainlinkDataStreamsView() {
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-gray-500">
-                  {t('dataStreams.reconnects') || 'Reconnects (24h)'}
+                  {t('dataStreams.reconnects')}
                 </span>
                 <span className="text-sm font-semibold text-gray-900">{stats.reconnectCount}</span>
               </div>
@@ -461,7 +461,7 @@ export function ChainlinkDataStreamsView() {
 
             <div className="pt-3 border-t border-gray-200">
               <h4 className="text-xs font-medium text-gray-500 mb-3">
-                {t('dataStreams.latencyPercentiles') || 'Latency Percentiles'}
+                {t('dataStreams.latencyPercentiles')}
               </h4>
               <div className="grid grid-cols-3 gap-2">
                 <div className="text-center p-2 bg-blue-50 rounded">
@@ -485,7 +485,7 @@ export function ChainlinkDataStreamsView() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('dataStreams.latencyTrend') || 'Latency Trend'}
+            {t('dataStreams.latencyTrend')}
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -527,7 +527,7 @@ export function ChainlinkDataStreamsView() {
 
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('dataStreams.latencyDistribution') || 'Latency Distribution'}
+            {t('dataStreams.latencyDistribution')}
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -554,21 +554,21 @@ export function ChainlinkDataStreamsView() {
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('dataStreams.pushEvents') || 'Push Events Log'}
+            {t('dataStreams.pushEvents')}
           </h3>
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <RefreshCw className="w-3.5 h-3.5" />
-            {t('dataStreams.realtime') || 'Real-time updates'}
+            {t('dataStreams.realtime')}
           </div>
         </div>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            <div className="col-span-2">{t('dataStreams.eventId') || 'Event ID'}</div>
-            <div className="col-span-2">{t('dataStreams.feed') || 'Feed'}</div>
-            <div className="col-span-2 text-right">{t('dataStreams.price') || 'Price'}</div>
-            <div className="col-span-2 text-right">{t('dataStreams.change') || 'Change'}</div>
-            <div className="col-span-2">{t('dataStreams.trigger') || 'Trigger'}</div>
-            <div className="col-span-2 text-right">{t('dataStreams.time') || 'Time'}</div>
+            <div className="col-span-2">{t('dataStreams.eventId')}</div>
+            <div className="col-span-2">{t('dataStreams.feed')}</div>
+            <div className="col-span-2 text-right">{t('dataStreams.price')}</div>
+            <div className="col-span-2 text-right">{t('dataStreams.change')}</div>
+            <div className="col-span-2">{t('dataStreams.trigger')}</div>
+            <div className="col-span-2 text-right">{t('dataStreams.time')}</div>
           </div>
           {events.map((event, index) => (
             <div
@@ -624,18 +624,17 @@ export function ChainlinkDataStreamsView() {
 
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('dataStreams.about') || 'About Data Streams'}
+          {t('dataStreams.about')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
           <div className="flex items-start gap-3">
             <Activity className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('dataStreams.realTimeDelivery') || 'Real-time Delivery'}
+                {t('dataStreams.realTimeDelivery')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('dataStreams.realTimeDeliveryDesc') ||
-                  'Push-based price updates delivered directly to your smart contracts with sub-second latency.'}
+                {t('dataStreams.realTimeDeliveryDesc')}
               </p>
             </div>
           </div>
@@ -643,7 +642,7 @@ export function ChainlinkDataStreamsView() {
             <Zap className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('dataStreams.lowLatency') || 'Low Latency'}
+                {t('dataStreams.lowLatency')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('dataStreams.lowLatencyDesc') ||
@@ -655,7 +654,7 @@ export function ChainlinkDataStreamsView() {
             <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('dataStreams.reliable') || 'Reliable Delivery'}
+                {t('dataStreams.reliable')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('dataStreams.reliableDesc') ||
@@ -667,7 +666,7 @@ export function ChainlinkDataStreamsView() {
             <TrendingUp className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('dataStreams.customThresholds') || 'Custom Thresholds'}
+                {t('dataStreams.customThresholds')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('dataStreams.customThresholdsDesc') ||
@@ -679,7 +678,7 @@ export function ChainlinkDataStreamsView() {
             <Clock className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('dataStreams.heartbeat') || 'Heartbeat Updates'}
+                {t('dataStreams.heartbeat')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('dataStreams.heartbeatDesc') ||
@@ -691,7 +690,7 @@ export function ChainlinkDataStreamsView() {
             <RefreshCw className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('dataStreams.autoFailover') || 'Auto Failover'}
+                {t('dataStreams.autoFailover')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('dataStreams.autoFailoverDesc') ||

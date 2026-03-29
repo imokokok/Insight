@@ -71,15 +71,15 @@ export function RedStoneProvidersView({
   }, [filteredProviders, sortConfig]);
 
   const filterOptions = [
-    { id: 'all', label: t('redstone.providers.all') || 'All', count: providers?.length || 4 },
+    { id: 'all', label: t('redstone.providers.all'), count: providers?.length || 4 },
     {
       id: 'highReputation',
-      label: t('redstone.providers.highReputation') || 'High Reputation',
+      label: t('redstone.providers.highReputation'),
       count: providers?.filter((p) => p.reputation >= 0.9).length || 0,
     },
     {
       id: 'mostData',
-      label: t('redstone.providers.mostData') || 'Most Data',
+      label: t('redstone.providers.mostData'),
       count: providers?.filter((p) => p.dataPoints >= 500000).length || 0,
     },
   ];
@@ -92,7 +92,7 @@ export function RedStoneProvidersView({
           <Database className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('redstone.providers.dataSources') || 'Data Sources'}
+              {t('redstone.providers.dataSources')}
             </p>
             <p className="text-xl font-semibold text-gray-900">{isLoading ? '-' : providerCount}</p>
           </div>
@@ -102,7 +102,7 @@ export function RedStoneProvidersView({
           <Clock className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('redstone.providers.updateFrequency') || 'Update Frequency'}
+              {t('redstone.providers.updateFrequency')}
             </p>
             <p className="text-xl font-semibold text-gray-900">~60s</p>
           </div>
@@ -112,7 +112,7 @@ export function RedStoneProvidersView({
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('redstone.providers.dataQuality') || 'Data Quality'}
+              {t('redstone.providers.dataQuality')}
             </p>
             <p className="text-xl font-semibold text-emerald-600">99.8%</p>
           </div>
@@ -122,7 +122,7 @@ export function RedStoneProvidersView({
           <Star className="w-5 h-5 text-amber-500" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('redstone.dataStreams.avgReputation') || 'Avg Reputation'}
+              {t('redstone.providers.avgReputation')}
             </p>
             <p className="text-xl font-semibold text-gray-900">
               {isLoading ? '-' : `${avgReputation}%`}
@@ -159,24 +159,24 @@ export function RedStoneProvidersView({
       {/* Providers Table */}
       <div>
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('redstone.providers.title') || 'Data Providers'}
+          {t('redstone.providers.title')}
         </h3>
         <div className="overflow-x-auto border border-gray-200 rounded-lg">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50/50">
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                  Rank
+                  {t('redstone.providers.rank')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Provider
+                  {t('redstone.providers.provider')}
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
                   onClick={() => handleSort('reputation')}
                 >
                   <div className="flex items-center gap-1">
-                    {t('redstone.providers.reputation') || 'Reputation'}
+                    {t('redstone.providers.reputation')}
                     <ArrowUpDown className="w-3.5 h-3.5" />
                     {sortConfig.key === 'reputation' && (
                       <span className="text-gray-400">
@@ -190,7 +190,7 @@ export function RedStoneProvidersView({
                   onClick={() => handleSort('dataPoints')}
                 >
                   <div className="flex items-center gap-1">
-                    {t('redstone.providers.dataPoints') || 'Data Points'}
+                    {t('redstone.providers.dataPoints')}
                     <ArrowUpDown className="w-3.5 h-3.5" />
                     {sortConfig.key === 'dataPoints' && (
                       <span className="text-gray-400">
@@ -204,7 +204,7 @@ export function RedStoneProvidersView({
                   onClick={() => handleSort('lastUpdate')}
                 >
                   <div className="flex items-center gap-1">
-                    {t('redstone.providers.lastUpdate') || 'Last Update'}
+                    {t('redstone.providers.lastUpdate')}
                     <ArrowUpDown className="w-3.5 h-3.5" />
                     {sortConfig.key === 'lastUpdate' && (
                       <span className="text-gray-400">
@@ -219,13 +219,13 @@ export function RedStoneProvidersView({
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                    {t('redstone.providers.loading') || 'Loading...'}
+                    {t('redstone.providers.loading')}
                   </td>
                 </tr>
               ) : tableData.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                    {t('redstone.providers.noData') || 'No providers found'}
+                    {t('redstone.providers.noData')}
                   </td>
                 </tr>
               ) : (

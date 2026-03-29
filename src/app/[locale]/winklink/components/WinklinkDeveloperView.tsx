@@ -126,10 +126,8 @@ export function WinklinkDeveloperView({ className }: WinklinkDeveloperViewProps)
 
   const codeExamples: CodeExample[] = [
     {
-      title: t('winklink.developer.priceFeedExample') || 'Price Feed Query',
-      description:
-        t('winklink.developer.priceFeedDesc') ||
-        'Query the latest price data from WINkLink oracle',
+      title: t('winklink.developer.priceFeedExample'),
+      description: t('winklink.developer.priceFeedDesc'),
       language: 'solidity',
       code: `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
@@ -166,10 +164,8 @@ contract PriceConsumer {
 }`,
     },
     {
-      title: t('winklink.developer.vrfExample') || 'VRF Request',
-      description:
-        t('winklink.developer.vrfDesc') ||
-        'Request verifiable random numbers for your smart contract',
+      title: t('winklink.developer.vrfExample'),
+      description: t('winklink.developer.vrfDesc'),
       language: 'solidity',
       code: `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
@@ -224,56 +220,50 @@ contract VRFConsumer is VRFConsumerBase {
   const quickStartSteps: QuickStartStep[] = [
     {
       step: 1,
-      title: t('winklink.developer.step1Title') || 'Add WINkLink Contract to Your Project',
-      description:
-        t('winklink.developer.step1Desc') ||
-        'Import the WINkLink contract interface into your Solidity project. You can find the interface files in our GitHub repository.',
+      title: t('winklink.developer.step1Title'),
+      description: t('winklink.developer.step1Desc'),
       code: 'import "@winklink/contracts/src/v0.8/interfaces/WinklinkPriceFeed.sol";',
     },
     {
       step: 2,
-      title: t('winklink.developer.step2Title') || 'Import the Interface',
-      description:
-        t('winklink.developer.step2Desc') ||
-        'Define the interface in your contract or import it from the WINkLink package. This allows your contract to interact with the oracle.',
+      title: t('winklink.developer.step2Title'),
+      description: t('winklink.developer.step2Desc'),
     },
     {
       step: 3,
-      title: t('winklink.developer.step3Title') || 'Call Price Feed or VRF Functions',
-      description:
-        t('winklink.developer.step3Desc') ||
-        'Use the imported interface to call price feed functions for getting the latest asset prices, or VRF functions for generating verifiable random numbers.',
+      title: t('winklink.developer.step3Title'),
+      description: t('winklink.developer.step3Desc'),
     },
   ];
 
   const externalLinks: ExternalLinkItem[] = [
     {
-      title: t('winklink.developer.docsTitle') || 'Official Documentation',
-      description: t('winklink.developer.docsDesc') || 'Complete guides and API references',
+      title: t('winklink.developer.docsTitle'),
+      description: t('winklink.developer.docsDesc'),
       url: 'https://docs.winklink.org',
       icon: <BookOpen className="w-5 h-5" />,
     },
     {
-      title: t('winklink.developer.githubTitle') || 'GitHub Repository',
-      description: t('winklink.developer.githubDesc') || 'Source code and contract interfaces',
+      title: t('winklink.developer.githubTitle'),
+      description: t('winklink.developer.githubDesc'),
       url: 'https://github.com/winklink-org',
       icon: <Github className="w-5 h-5" />,
     },
     {
-      title: t('winklink.developer.tronDevTitle') || 'TRON Developer Portal',
-      description: t('winklink.developer.tronDevDesc') || 'TRON blockchain development resources',
+      title: t('winklink.developer.tronDevTitle'),
+      description: t('winklink.developer.tronDevDesc'),
       url: 'https://developers.tron.network',
       icon: <FileText className="w-5 h-5" />,
     },
     {
-      title: t('winklink.developer.discordTitle') || 'Discord Community',
-      description: t('winklink.developer.discordDesc') || 'Join our developer community',
+      title: t('winklink.developer.discordTitle'),
+      description: t('winklink.developer.discordDesc'),
       url: 'https://discord.gg/winklink',
       icon: <MessageCircle className="w-5 h-5" />,
     },
     {
-      title: t('winklink.developer.telegramTitle') || 'Telegram Group',
-      description: t('winklink.developer.telegramDesc') || 'Get help and share ideas',
+      title: t('winklink.developer.telegramTitle'),
+      description: t('winklink.developer.telegramDesc'),
       url: 'https://t.me/winklink',
       icon: <MessageCircle className="w-5 h-5" />,
     },
@@ -283,11 +273,10 @@ contract VRFConsumer is VRFConsumerBase {
     <div className={`space-y-8 ${className || ''}`}>
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-2">
-          {t('winklink.developer.title') || 'Developer Resources'}
+          {t('winklink.developer.title')}
         </h2>
         <p className="text-sm text-gray-500">
-          {t('winklink.developer.subtitle') ||
-            'Integrate WINkLink oracle services into your smart contracts'}
+          {t('winklink.developer.subtitle')}
         </p>
       </section>
 
@@ -297,7 +286,7 @@ contract VRFConsumer is VRFConsumerBase {
         <div className="flex items-center gap-2 mb-4">
           <Wallet className="w-5 h-5 text-gray-600" />
           <h3 className="text-base font-medium text-gray-900">
-            {t('winklink.developer.contractAddresses') || 'Smart Contract Addresses'}
+            {t('winklink.developer.contractAddresses')}
           </h3>
         </div>
         <div className="space-y-3">
@@ -331,7 +320,7 @@ contract VRFConsumer is VRFConsumerBase {
         <div className="flex items-center gap-2 mb-4">
           <Code className="w-5 h-5 text-gray-600" />
           <h3 className="text-base font-medium text-gray-900">
-            {t('winklink.developer.integrationExamples') || 'Integration Examples'}
+            {t('winklink.developer.integrationExamples')}
           </h3>
         </div>
         <div className="space-y-6">
@@ -353,7 +342,7 @@ contract VRFConsumer is VRFConsumerBase {
         <div className="flex items-center gap-2 mb-4">
           <FileText className="w-5 h-5 text-gray-600" />
           <h3 className="text-base font-medium text-gray-900">
-            {t('winklink.developer.quickStart') || 'Quick Start Guide'}
+            {t('winklink.developer.quickStart')}
           </h3>
         </div>
         <div className="space-y-4">
@@ -385,7 +374,7 @@ contract VRFConsumer is VRFConsumerBase {
         <div className="flex items-center gap-2 mb-4">
           <ExternalLink className="w-5 h-5 text-gray-600" />
           <h3 className="text-base font-medium text-gray-900">
-            {t('winklink.developer.externalLinks') || 'External Resources'}
+            {t('winklink.developer.externalLinks')}
           </h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -219,7 +219,7 @@ export function NodeEarningsPanel({ nodes }: NodeEarningsPanelProps) {
                 {t('chainlink.nodes.earningsTrend')}
               </h3>
             </div>
-            <span className="text-xs text-gray-400">30D</span>
+            <span className="text-xs text-gray-400">{t('chainlink.common.30d')}</span>
           </div>
           <div className="space-y-3">
             {(Object.keys(TIER_CONFIG) as NodeTier[]).map((tier) => (

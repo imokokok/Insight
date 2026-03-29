@@ -132,28 +132,28 @@ export function WinklinkMarketView({
 
   const dataQualityMetrics: DataQualityMetric[] = [
     {
-      label: t('winklink.dataQuality.priceDeviation') || '价格偏离度',
+      label: t('winklink.dataQuality.priceDeviation'),
       value: '0.12%',
       status: 'excellent',
-      description: t('winklink.dataQuality.priceDeviationDesc') || '与中位价格的偏差',
+      description: t('winklink.dataQuality.priceDeviationDesc'),
     },
     {
-      label: t('winklink.dataQuality.updateFrequency') || '更新频率',
+      label: t('winklink.dataQuality.updateFrequency'),
       value: '3s',
       status: 'excellent',
-      description: t('winklink.dataQuality.updateFrequencyDesc') || '数据更新间隔',
+      description: t('winklink.dataQuality.updateFrequencyDesc'),
     },
     {
-      label: t('winklink.dataQuality.freshnessScore') || '数据新鲜度',
+      label: t('winklink.dataQuality.freshnessScore'),
       value: '98.5%',
       status: 'excellent',
-      description: t('winklink.dataQuality.freshnessScoreDesc') || '数据时效性评分',
+      description: t('winklink.dataQuality.freshnessScoreDesc'),
     },
     {
-      label: t('winklink.dataQuality.contributingSources') || '贡献源数量',
+      label: t('winklink.dataQuality.contributingSources'),
       value: 4,
       status: 'good',
-      description: t('winklink.dataQuality.contributingSourcesDesc') || '活跃数据源数量',
+      description: t('winklink.dataQuality.contributingSourcesDesc'),
     },
   ];
 
@@ -345,18 +345,18 @@ export function WinklinkMarketView({
           <div className="flex items-center gap-2 mb-5">
             <Database className="w-5 h-5 text-gray-600" />
             <h3 className="text-base font-medium text-gray-900">
-              {t('winklink.dataSourceDetails') || '数据源详情'}
+              {t('winklink.dataSourceDetails')}
             </h3>
           </div>
 
           <div className="space-y-5">
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Building2 className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">
-                  {t('winklink.dataProviders') || '数据提供商'}
-                </span>
-              </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Building2 className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700">
+                    {t('winklink.dataProviders')}
+                  </span>
+                </div>
               <div className="grid grid-cols-2 gap-2">
                 {dataSources.map((source, index) => (
                   <div
@@ -367,7 +367,7 @@ export function WinklinkMarketView({
                       <span className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(source.status)}`} />
                       <span className="text-sm text-gray-700">{source.name}</span>
                     </div>
-                    <span className="text-xs text-gray-400">{source.type === 'exchange' ? '交易所' : '聚合器'}</span>
+                    <span className="text-xs text-gray-400">{source.type === 'exchange' ? t('winklink.market.exchange') : t('winklink.market.aggregator')}</span>
                   </div>
                 ))}
               </div>
@@ -377,7 +377,7 @@ export function WinklinkMarketView({
               <div className="flex items-center gap-2 mb-3">
                 <Target className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-medium text-gray-700">
-                  {t('winklink.aggregationMethod') || '数据聚合方式'}
+                  {t('winklink.aggregationMethod')}
                 </span>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
@@ -385,17 +385,16 @@ export function WinklinkMarketView({
                   <BarChart3 className="w-5 h-5 text-blue-500 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-gray-700">
-                      {t('winklink.weightedAverage') || '加权平均算法'}
+                      {t('winklink.weightedAverage')}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {t('winklink.weightedAverageDesc') || 
-                        '基于各数据源的可靠性和交易量权重，计算加权平均价格。异常值会被自动过滤。'}
+                      {t('winklink.weightedAverageDesc')}
                     </p>
                   </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-gray-100">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500">{t('winklink.weightDistribution') || '权重分布'}</span>
+                    <span className="text-gray-500">{t('winklink.weightDistribution')}</span>
                     <div className="flex items-center gap-2">
                       {dataSources.map((source, index) => (
                         <span key={index} className="text-gray-600">
@@ -412,21 +411,21 @@ export function WinklinkMarketView({
               <div className="flex items-center gap-2 mb-3">
                 <Shield className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-medium text-gray-700">
-                  {t('winklink.verificationMechanism') || '数据验证机制'}
+                  {t('winklink.verificationMechanism')}
                 </span>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  <span className="text-gray-600">{t('winklink.multiSourceVerify') || '多源交叉验证'}</span>
+                  <span className="text-gray-600">{t('winklink.multiSourceVerify')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  <span className="text-gray-600">{t('winklink.outlierDetection') || '异常值自动检测与过滤'}</span>
+                  <span className="text-gray-600">{t('winklink.outlierDetection')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  <span className="text-gray-600">{t('winklink.timestampVerify') || '时间戳一致性校验'}</span>
+                  <span className="text-gray-600">{t('winklink.timestampVerify')}</span>
                 </div>
               </div>
             </div>
@@ -435,7 +434,7 @@ export function WinklinkMarketView({
               <div className="flex items-center gap-2 mb-3">
                 <Gauge className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-medium text-gray-700">
-                  {t('winklink.reliabilityScore') || '数据源可靠性评分'}
+                  {t('winklink.reliabilityScore')}
                 </span>
               </div>
               <div className="space-y-2">
@@ -468,7 +467,7 @@ export function WinklinkMarketView({
               <div className="flex items-center gap-2 mb-3">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-medium text-gray-700">
-                  {t('winklink.lastUpdate') || '最后更新时间'}
+                  {t('winklink.lastUpdate')}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -487,7 +486,7 @@ export function WinklinkMarketView({
           <div className="flex items-center gap-2 mb-5">
             <Activity className="w-5 h-5 text-gray-600" />
             <h3 className="text-base font-medium text-gray-900">
-              {t('winklink.dataQualityMetrics') || '数据质量指标'}
+              {t('winklink.dataQualityMetrics')}
             </h3>
           </div>
 
@@ -513,7 +512,6 @@ export function WinklinkMarketView({
                 <div className="text-right">
                   <span className={`text-lg font-semibold ${getStatusColor(metric.status)}`}>
                     {metric.value}
-                    {typeof metric.value === 'number' && metric.label.includes('数量') ? '' : ''}
                   </span>
                 </div>
               </div>
@@ -522,7 +520,7 @@ export function WinklinkMarketView({
 
           <div className="mt-6 pt-4 border-t border-gray-100">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">{t('winklink.overallQuality') || '综合质量评分'}</span>
+              <span className="text-sm text-gray-500">{t('winklink.overallQuality')}</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full bg-emerald-500 rounded-full" style={{ width: '96%' }} />
@@ -531,7 +529,7 @@ export function WinklinkMarketView({
               </div>
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              {t('winklink.qualityNote') || '数据质量基于价格一致性、更新频率和来源多样性综合评估'}
+              {t('winklink.qualityNote')}
             </p>
           </div>
         </div>
@@ -539,7 +537,7 @@ export function WinklinkMarketView({
 
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('winklink.tradingPair') || '主要交易对'}
+          {t('winklink.tradingPair')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>

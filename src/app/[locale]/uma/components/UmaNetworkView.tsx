@@ -267,40 +267,40 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
 
   const overviewStats = [
     {
-      label: t('uma.network.dataSources') || 'Data Sources',
+      label: t('uma.network.dataSources'),
       value: (umaStats?.dataSources || 320).toString(),
     },
     {
-      label: t('uma.network.activeDisputes') || 'Active Disputes',
+      label: t('uma.network.activeDisputes'),
       value: (umaStats?.activeDisputes || 23).toString(),
     },
-    { label: t('uma.network.requests24h') || 'Requests (24h)', value: '1.2M' },
-    { label: t('uma.network.avgGas') || 'Avg Gas Used', value: '125K' },
+    { label: t('uma.network.requests24h'), value: '1.2M' },
+    { label: t('uma.network.avgGas'), value: '125K' },
   ];
 
   const performanceMetrics = performance
     ? [
         {
-          label: t('uma.network.avgBlockTime') || 'Avg Block Time',
+          label: t('uma.network.avgBlockTime'),
           value: `${performance.avgBlockTime.toFixed(1)}s`,
           icon: Clock,
           color: 'text-blue-600',
         },
         {
-          label: t('uma.network.throughput') || 'Throughput',
+          label: t('uma.network.throughput'),
           value: `${performance.throughput.toFixed(0)} TPS`,
           icon: Activity,
           color: 'text-emerald-600',
         },
         {
-          label: t('uma.network.crossChainLatency') || 'Cross-chain Latency',
+          label: t('uma.network.crossChainLatency'),
           value: `${performance.crossChainLatency.toFixed(0)}ms`,
           icon: Globe,
           color: 'text-purple-600',
         },
         {
-          label: t('uma.network.congestion') || 'Network Congestion',
-          value: performance.congestionLevel.toUpperCase(),
+          label: t('uma.network.congestion'),
+          value: t(`uma.network.congestionLevel.${performance.congestionLevel}`),
           icon: AlertTriangle,
           color:
             performance.congestionLevel === 'low'
