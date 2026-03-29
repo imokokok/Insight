@@ -36,7 +36,7 @@ export default function API3Page() {
     error,
     lastUpdated,
     isRefreshing,
-    dataFreshnessStatus,
+
     setActiveTab,
     refresh,
     exportData,
@@ -128,7 +128,6 @@ export default function API3Page() {
           isError={isError}
           isRefreshing={isRefreshing}
           lastUpdated={lastUpdated}
-          dataFreshnessStatus={dataFreshnessStatus}
           onRefresh={refresh}
           onExport={exportData}
         />

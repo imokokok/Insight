@@ -21,11 +21,10 @@ import {
 
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
-import { DataFreshnessIndicator } from '@/components/oracle/shared/DataFreshnessIndicator';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
-import type { UseDataFreshnessReturn } from '@/hooks/useDataFreshness';
+
 
 import { type NetworkStats } from '../types';
 
@@ -43,7 +42,7 @@ export interface ChronicleHeroProps {
   isError: boolean;
   isRefreshing: boolean;
   lastUpdated: Date | null;
-  dataFreshnessStatus?: UseDataFreshnessReturn;
+
   onRefresh: () => void;
   onExport: () => void;
 }
@@ -440,7 +439,6 @@ export function ChronicleHero({
   isError,
   isRefreshing,
   lastUpdated,
-  dataFreshnessStatus,
   onRefresh,
   onExport,
 }: ChronicleHeroProps) {
@@ -582,13 +580,7 @@ export function ChronicleHero({
             latency={networkStats?.avgResponseTime ?? config.networkData.avgResponseTime}
             lastUpdate={lastUpdated || undefined}
           />
-          {dataFreshnessStatus && (
-            <DataFreshnessIndicator
-              status={dataFreshnessStatus.status}
-              onRefresh={onRefresh}
-              className="mt-1 sm:mt-0"
-            />
-          )}
+
         </div>
       </div>
 

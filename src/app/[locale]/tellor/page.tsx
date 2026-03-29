@@ -32,7 +32,7 @@ export default function TellorPage() {
     error,
     lastUpdated,
     isRefreshing,
-    dataFreshnessStatus,
+
     setActiveTab,
     refresh,
     exportData,
@@ -94,7 +94,6 @@ export default function TellorPage() {
           isError={isError}
           isRefreshing={isRefreshing}
           lastUpdated={lastUpdated}
-          dataFreshnessStatus={dataFreshnessStatus}
           onRefresh={refresh}
           onExport={exportData}
         />

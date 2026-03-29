@@ -33,7 +33,7 @@ export default function BandProtocolPage() {
     error,
     lastUpdated,
     isRefreshing,
-    dataFreshnessStatus,
+
     setActiveTab,
     refresh,
     exportData,
@@ -126,7 +126,6 @@ export default function BandProtocolPage() {
           isError={isError}
           isRefreshing={isRefreshing}
           lastUpdated={lastUpdated}
-          dataFreshnessStatus={dataFreshnessStatus}
           onRefresh={refresh}
           onExport={exportData}
         />

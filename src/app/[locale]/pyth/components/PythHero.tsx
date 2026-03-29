@@ -21,7 +21,6 @@ import {
 
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
-import { DataFreshnessIndicator } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
@@ -41,8 +40,7 @@ export interface PythHeroProps {
   isError: boolean;
   isRefreshing: boolean;
   lastUpdated: Date | null;
-  dataFreshnessStatus?: 'fresh' | 'stale' | 'expired';
-  shouldRefreshData?: boolean;
+
   onRefresh: () => void;
   onExport: () => void;
 }
@@ -420,8 +418,6 @@ export function PythHero({
   isError,
   isRefreshing,
   lastUpdated,
-  dataFreshnessStatus = 'fresh',
-  shouldRefreshData = false,
   onRefresh,
   onExport,
 }: PythHeroProps) {
@@ -535,24 +531,14 @@ export function PythHero({
             </div>
           </div>
 
-          {/* 右侧：数据新鲜度 + 操作按钮（桌面端显示在标题右侧） */}
-          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-            {dataFreshnessStatus && (
-              <DataFreshnessIndicator
-                status={dataFreshnessStatus.status}
-                lastUpdated={lastUpdated}
-                onRefresh={onRefresh}
-                themeColor={themeColor}
-              />
-            )}
-            <div className="hidden lg:block">
-              <ActionButtons
-                onRefresh={onRefresh}
-                onExport={onExport}
-                isRefreshing={isRefreshing}
-                themeColor={themeColor}
-              />
-            </div>
+          {/* 右侧：操作按钮（桌面端显示在标题右侧） */}
+          <div className="hidden lg:block">
+            <ActionButtons
+              onRefresh={onRefresh}
+              onExport={onExport}
+              isRefreshing={isRefreshing}
+              themeColor={themeColor}
+            />
           </div>
         </div>
 

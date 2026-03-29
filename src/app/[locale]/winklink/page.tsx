@@ -35,7 +35,7 @@ export default function WinklinkPage() {
     error,
     lastUpdated,
     isRefreshing,
-    dataFreshnessStatus,
+
     setActiveTab,
     refresh,
     exportData,
@@ -104,7 +104,6 @@ export default function WinklinkPage() {
           isError={isError}
           isRefreshing={isRefreshing}
           lastUpdated={lastUpdated}
-          dataFreshnessStatus={dataFreshnessStatus}
           onRefresh={refresh}
           onExport={exportData}
         />
