@@ -117,6 +117,12 @@
     "chainPriceBoxPlot": "各链价格箱线图",
     "boxPlot": {
       "outliers": "异常值",
+      "max": "最大值",
+      "q3": "第三四分位数",
+      "median": "中位数",
+      "q1": "第一四分位数",
+      "min": "最小值",
+      "iqr": "四分位距",
       "legend": {
         "box": "箱体",
         "median": "中位数",
@@ -177,6 +183,8 @@
     "mean": "均值",
     "p25": "25%分位",
     "p10": "10%分位",
+    "p75p25": "25%/75%",
+    "p90p10": "10%/90%",
     "anomalyDetectionConfig": "异常检测阈值配置",
     "thresholdType": "阈值类型",
     "fixedThreshold": "固定阈值",
@@ -213,6 +221,8 @@
     "criticalValue": "临界值",
     "currentZScore": "当前Z-Score",
     "stdDev": "标准差",
+    "plus2Sigma": "+2σ",
+    "minus2Sigma": "-2σ",
     "spreadSeries": "价差序列",
     "spread": "价差",
     "longSpread": "做多价差",
@@ -268,7 +278,14 @@
       "title": "数据来源"
     },
     "benchmark": {
-      "title": "行业基准对比"
+      "title": "行业基准对比",
+      "average": "平均值",
+      "median": "中位数",
+      "highestPrice": "最高价格",
+      "chain": "链",
+      "price": "价格",
+      "diffFromAvg": "与平均差值",
+      "rank": "排名"
     }
   },
   "crossChainPanel": {

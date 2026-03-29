@@ -467,9 +467,12 @@ export const exportToCSV = (
   }[],
   oracleNamesMap: Record<OracleProvider, string>,
   avgPrice: number,
-  validPrices: number[]
+  validPrices: number[],
+  t?: (key: string) => string | string[]
 ) => {
-  const headers = ['Oracle', 'Price', 'Deviation (%)', 'Confidence', 'Source', 'Timestamp'];
+  const headers = t
+    ? (t('crossOracle.export.csvHeaders') as string[])
+    : ['Oracle', 'Price', 'Deviation (%)', 'Confidence', 'Source', 'Timestamp'];
   const rows = priceData.map((data) => {
     let deviationPercent: number | null = null;
     if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {
@@ -493,9 +496,10 @@ export const exportToCSV = (
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
+  const filenamePrefix = t ? (t('crossOracle.export.filename') as string) : 'oracle-prices';
   link.setAttribute(
     'download',
-    `oracle-prices-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+    `${filenamePrefix}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
   );
   link.style.visibility = 'hidden';
   document.body.appendChild(link);
@@ -514,22 +518,26 @@ export const exportToJSON = (
   }[],
   oracleNamesMap: Record<OracleProvider, string>,
   avgPrice: number,
-  validPrices: number[]
+  validPrices: number[],
+  t?: (key: string) => string | Record<string, string>
 ) => {
+  const fieldNames = t
+    ? (t('crossOracle.export.jsonFields') as Record<string, string>)
+    : null;
   const exportData = priceData.map((data) => {
     let deviationPercent: number | null = null;
     if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {
       deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
     }
     return {
-      oracle: oracleNamesMap[data.provider],
-      provider: data.provider,
-      symbol: data.symbol,
-      price: data.price,
-      deviationPercent: deviationPercent,
-      confidence: data.confidence,
-      source: data.source,
-      timestamp: new Date(data.timestamp).toISOString(),
+      [fieldNames?.oracle || 'oracle']: oracleNamesMap[data.provider],
+      [fieldNames?.provider || 'provider']: data.provider,
+      [fieldNames?.symbol || 'symbol']: data.symbol,
+      [fieldNames?.price || 'price']: data.price,
+      [fieldNames?.deviationPercent || 'deviationPercent']: deviationPercent,
+      [fieldNames?.confidence || 'confidence']: data.confidence,
+      [fieldNames?.source || 'source']: data.source,
+      [fieldNames?.timestamp || 'timestamp']: new Date(data.timestamp).toISOString(),
     };
   });
 
@@ -538,9 +546,10 @@ export const exportToJSON = (
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
+  const filenamePrefix = t ? (t('crossOracle.export.filename') as string) : 'oracle-prices';
   link.setAttribute(
     'download',
-    `oracle-prices-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+    `${filenamePrefix}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
   );
   link.style.visibility = 'hidden';
   document.body.appendChild(link);

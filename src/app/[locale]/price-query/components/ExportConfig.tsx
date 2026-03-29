@@ -131,12 +131,12 @@ export function ExportConfig({
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Icons.download />
-            {t('exportConfig.title') || '数据导出配置'}
+            {t('priceQuery.exportConfig.title')}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="关闭"
+            aria-label={t('actions.close')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -152,7 +152,7 @@ export function ExportConfig({
         <div className="p-6 space-y-6">
           <div>
             <h3 className="text-sm font-semibold text-gray-700 mb-3">
-              {t('exportConfig.format') || '导出格式'}
+              {t('priceQuery.exportConfig.format')}
             </h3>
             <div className="flex gap-3">
               {(['csv', 'json', 'pdf'] as ExportFormat[]).map((f) => (
@@ -174,20 +174,20 @@ export function ExportConfig({
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-gray-700">
-                {t('exportConfig.fields') || '导出字段'}
+                {t('priceQuery.exportConfig.fields')}
               </h3>
               <div className="flex gap-2">
                 <button
                   onClick={handleSelectAllFields}
                   className="text-xs text-gray-600 hover:text-gray-900 underline"
                 >
-                  {t('exportConfig.selectAll') || '全选'}
+                  {t('priceQuery.exportConfig.selectAll')}
                 </button>
                 <button
                   onClick={handleDeselectAllFields}
                   className="text-xs text-gray-600 hover:text-gray-900 underline"
                 >
-                  {t('exportConfig.deselectAll') || '取消全选'}
+                  {t('priceQuery.exportConfig.deselectAll')}
                 </button>
               </div>
             </div>
@@ -210,12 +210,12 @@ export function ExportConfig({
 
           <div>
             <h3 className="text-sm font-semibold text-gray-700 mb-3">
-              {t('exportConfig.timeRange') || '时间范围（可选）'}
+              {t('priceQuery.exportConfig.timeRange')}
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">
-                  {t('exportConfig.startTime') || '开始时间'}
+                  {t('priceQuery.exportConfig.startTime')}
                 </label>
                 <input
                   type="datetime-local"
@@ -226,7 +226,7 @@ export function ExportConfig({
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">
-                  {t('exportConfig.endTime') || '结束时间'}
+                  {t('priceQuery.exportConfig.endTime')}
                 </label>
                 <input
                   type="datetime-local"
@@ -241,7 +241,7 @@ export function ExportConfig({
           {format === 'pdf' && (
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                {t('exportConfig.pdfOptions') || 'PDF 选项'}
+                {t('priceQuery.exportConfig.pdfOptions')}
               </h3>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -252,7 +252,7 @@ export function ExportConfig({
                     className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                   />
                   <span className="text-sm text-gray-700">
-                    {t('exportConfig.includeChart') || '包含价格图表'}
+                    {t('priceQuery.exportConfig.includeChart')}
                   </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -263,7 +263,7 @@ export function ExportConfig({
                     className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                   />
                   <span className="text-sm text-gray-700">
-                    {t('exportConfig.includeStats') || '包含统计摘要'}
+                    {t('priceQuery.exportConfig.includeStats')}
                   </span>
                 </label>
               </div>
@@ -272,39 +272,39 @@ export function ExportConfig({
 
           <div className="bg-gray-50 p-4 border border-gray-200">
             <h3 className="text-sm font-semibold text-gray-700 mb-2">
-              {t('exportConfig.preview') || '导出预览'}
+              {t('priceQuery.exportConfig.preview')}
             </h3>
             <div className="space-y-1 text-sm text-gray-600">
               <div className="flex justify-between">
-                <span>{t('exportConfig.symbol') || '查询币种:'}</span>
+                <span>{t('priceQuery.exportConfig.symbol')}</span>
                 <span className="font-medium">{selectedSymbol}</span>
               </div>
               <div className="flex justify-between">
-                <span>{t('exportConfig.oracleCount') || '预言机数量:'}</span>
+                <span>{t('priceQuery.exportConfig.oracleCount')}</span>
                 <span className="font-medium">{selectedOracles.length}</span>
               </div>
               <div className="flex justify-between">
-                <span>{t('exportConfig.chainCount') || '区块链数量:'}</span>
+                <span>{t('priceQuery.exportConfig.chainCount')}</span>
                 <span className="font-medium">{selectedChains.length}</span>
               </div>
               <div className="flex justify-between">
-                <span>{t('exportConfig.timeRangeLabel') || '时间范围:'}</span>
+                <span>{t('priceQuery.exportConfig.timeRangeLabel')}</span>
                 <span className="font-medium">{selectedTimeRange}h</span>
               </div>
               <div className="flex justify-between">
-                <span>{t('exportConfig.estimatedRecords') || '预计记录数:'}</span>
+                <span>{t('priceQuery.exportConfig.estimatedRecords')}</span>
                 <span className="font-medium">
-                  {estimatedRecords} {t('exportConfig.records') || '条'}
+                  {estimatedRecords} {t('priceQuery.exportConfig.records')}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>{t('exportConfig.fieldCount') || '导出字段数:'}</span>
+                <span>{t('priceQuery.exportConfig.fieldCount')}</span>
                 <span className="font-medium">
-                  {enabledFieldsCount} {t('exportConfig.fields') || '个'}
+                  {enabledFieldsCount} {t('priceQuery.exportConfig.fields')}
                 </span>
               </div>
               <div className="flex justify-between pt-2 border-t border-gray-200 mt-2">
-                <span>{t('exportConfig.estimatedSize') || '预计文件大小:'}</span>
+                <span>{t('priceQuery.exportConfig.estimatedSize')}</span>
                 <span className="font-medium text-gray-900">
                   {formatFileSize(estimatedFileSize)}
                 </span>
@@ -318,14 +318,14 @@ export function ExportConfig({
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
           >
-            {t('actions.cancel') || '取消'}
+            {t('actions.cancel')}
           </button>
           <button
             onClick={handleExport}
             disabled={enabledFieldsCount === 0}
             className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {t('exportConfig.export') || '导出'} {format.toUpperCase()}
+            {t('priceQuery.exportConfig.export')} {format.toUpperCase()}
           </button>
         </div>
       </div>

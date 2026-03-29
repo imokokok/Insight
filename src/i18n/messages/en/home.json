@@ -37,7 +37,27 @@
       "sectionTitle": "Features",
       "sectionDescription": "Explore core platform features for comprehensive oracle data analysis",
       "liveData": "Live Data",
-      "learnMore": "Learn more →"
+      "learnMore": "Learn more →",
+      "priceQuery": {
+        "title": "Price Query",
+        "description": "Query real-time prices from multiple oracle sources",
+        "stats": "Trading Pairs"
+      },
+      "crossOracle": {
+        "title": "Cross-Oracle Comparison",
+        "description": "Compare price data across different oracle networks",
+        "stats": "Oracle Networks"
+      },
+      "crossChain": {
+        "title": "Cross-Chain Analysis",
+        "description": "Analyze price consistency across multiple blockchains",
+        "stats": "Blockchains"
+      },
+      "history": {
+        "title": "Historical Data",
+        "description": "View historical price trends and performance metrics",
+        "stats": "Days of History"
+      }
     },
     "loading": "Loading...",
     "oracleCard": {
@@ -54,6 +74,116 @@
       "sources": "sources",
       "marketShare": "Market Share",
       "tvs": "TVS"
+    },
+    "liveMetrics": {
+      "title": "Live Metrics",
+      "updateInterval": "Updates every 5s",
+      "metrics": {
+        "tvs": "TVS",
+        "oracles": "Active Oracles",
+        "pairs": "Supported Pairs",
+        "api": "API Calls",
+        "accuracy": "Accuracy",
+        "response": "Response Time"
+      }
+    },
+    "trustMetrics": {
+      "metrics": {
+        "networks": {
+          "label": "Supported Networks",
+          "subLabel": "Multi-chain"
+        },
+        "partners": {
+          "label": "Partners",
+          "subLabel": "Global"
+        },
+        "apiCalls": {
+          "label": "API Calls/Day",
+          "subLabel": "High throughput"
+        },
+        "uptime": {
+          "label": "Uptime",
+          "subLabel": "Reliable"
+        }
+      }
+    },
+    "cta": {
+      "badge": "Professional Oracle Analytics",
+      "title": "Start Exploring Oracle Data",
+      "description": "Get comprehensive, accurate, and real-time oracle data analysis",
+      "button": "View Market Overview"
+    },
+    "bentoMetrics": {
+      "sectionBadge": "Platform Metrics",
+      "sectionTitle": "Key Metrics",
+      "sectionDescription": "Real-time monitoring of core platform metrics for comprehensive oracle ecosystem health",
+      "liveIndicator": "LIVE",
+      "livePriceMonitor": "Live Price Monitor",
+      "updatedAt": "Updated {time}",
+      "metrics": {
+        "tvs": {
+          "title": "Total Value Secured",
+          "description": "Total asset value secured by the platform, including DeFi protocols, stablecoins, and other on-chain assets",
+          "alert": ""
+        },
+        "oracles": {
+          "title": "Active Oracles",
+          "description": "Current active decentralized oracle network nodes",
+          "alert": "All oracles operating normally"
+        },
+        "sources": {
+          "title": "Data Sources",
+          "description": "Number of aggregated data providers and exchanges",
+          "alert": ""
+        },
+        "updates": {
+          "title": "Daily Updates",
+          "description": "Daily price updates and data push total count",
+          "alert": "Update frequency increased by 15%"
+        },
+        "latency": {
+          "title": "Avg Latency",
+          "description": "Average time from data generation to on-chain confirmation",
+          "alert": ""
+        },
+        "accuracy": {
+          "title": "Accuracy Rate",
+          "description": "Data accuracy and system availability percentage",
+          "alert": "Zero failures in the past 30 days"
+        }
+      },
+      "bottomStats": {
+        "networks": "Networks",
+        "partners": "Partners",
+        "apiCalls": "API Calls/Day",
+        "uptime": "Uptime"
+      }
+    },
+    "crossChainMonitor": {
+      "title": "Cross-Chain Price Monitor",
+      "description": "Real-time price deviation tracking across chains",
+      "tradingPair": "Trading Pair",
+      "categories": {
+        "all": "All",
+        "layer1": "Layer 1",
+        "defi": "DeFi",
+        "stablecoin": "Stablecoin"
+      },
+      "searchPlaceholder": "Search trading pairs...",
+      "noResults": "No matching trading pairs found",
+      "keyboardHint": "Use ↑↓ to navigate, Enter to select",
+      "totalCount": "Total {count}",
+      "stats": {
+        "averagePrice": "Average Price",
+        "maxDeviation": "Max Deviation",
+        "chainsMonitored": "Chains Monitored",
+        "consistencyRate": "Consistency Rate"
+      },
+      "legend": {
+        "highConsistency": "High Consistency (<0.1%)",
+        "mediumConsistency": "Medium Consistency (0.1-0.3%)",
+        "lowConsistency": "Low Consistency (>0.3%)"
+      }
     }
   }
 }

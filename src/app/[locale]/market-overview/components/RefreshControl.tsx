@@ -5,8 +5,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { RefreshCw, Clock } from 'lucide-react';
 
 import { DropdownSelect } from '@/components/ui';
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+import { useTranslations, useLocale } from '@/i18n';
 
 interface RefreshControlProps {
   lastUpdated?: Date;
@@ -23,18 +22,19 @@ export default function RefreshControl({
   autoRefreshInterval = 0,
   onAutoRefreshChange,
 }: RefreshControlProps) {
+  const t = useTranslations('marketOverview.refresh');
   const locale = useLocale();
   const [countdown, setCountdown] = useState<number>(0);
 
   const intervalOptions = useMemo(
     () => [
-      { value: 0, label: isChineseLocale(locale) ? '手动' : 'Manual' },
-      { value: 30, label: isChineseLocale(locale) ? '30秒' : '30s' },
-      { value: 60, label: isChineseLocale(locale) ? '1分钟' : '1m' },
-      { value: 300, label: isChineseLocale(locale) ? '5分钟' : '5m' },
-      { value: 900, label: isChineseLocale(locale) ? '15分钟' : '15m' },
+      { value: 0, label: t('manual') },
+      { value: 30, label: t('30s') },
+      { value: 60, label: t('1m') },
+      { value: 300, label: t('5m') },
+      { value: 900, label: t('15m') },
     ],
-    [locale]
+    [t]
   );
 
   useEffect(() => {
@@ -62,8 +62,8 @@ export default function RefreshControl({
   }, [onRefresh, autoRefreshInterval]);
 
   const formatTime = (date?: Date) => {
-    if (!date) return isChineseLocale(locale) ? '从未' : 'Never';
-    return date.toLocaleTimeString(isChineseLocale(locale) ? 'zh-CN' : 'en-US', {
+    if (!date) return t('never');
+    return date.toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -79,20 +79,12 @@ export default function RefreshControl({
   const getTooltipText = () => {
     const parts: string[] = [];
     if (lastUpdated) {
-      parts.push(
-        isChineseLocale(locale)
-          ? `最后更新: ${formatTime(lastUpdated)}`
-          : `Last updated: ${formatTime(lastUpdated)}`
-      );
+      parts.push(t('lastUpdated', { time: formatTime(lastUpdated) }));
     }
     if (autoRefreshInterval > 0 && countdown > 0) {
-      parts.push(
-        isChineseLocale(locale)
-          ? `下次刷新: ${formatCountdown(countdown)}`
-          : `Next refresh: ${formatCountdown(countdown)}`
-      );
+      parts.push(t('nextRefresh', { time: formatCountdown(countdown) }));
     }
-    return parts.join('\n') || (isChineseLocale(locale) ? '点击刷新数据' : 'Click to refresh data');
+    return parts.join('\n') || t('clickToRefresh');
   };
 
   return (
@@ -105,13 +97,7 @@ export default function RefreshControl({
       >
         <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
         <span className="hidden sm:inline">
-          {isRefreshing
-            ? isChineseLocale(locale)
-              ? '刷新中...'
-              : 'Refreshing...'
-            : isChineseLocale(locale)
-              ? '刷新'
-              : 'Refresh'}
+          {isRefreshing ? t('refreshing') : t('refresh')}
         </span>
       </button>
 

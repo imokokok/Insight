@@ -19,43 +19,13 @@ interface KeyboardShortcutsProps {
   compact?: boolean;
 }
 
-const defaultShortcuts: ShortcutItem[] = [
-  {
-    key: '1',
-    label: '市场份额图',
-    shortcut: { key: '1', handler: () => {} },
-  },
-  {
-    key: '2',
-    label: 'TVS 趋势图',
-    shortcut: { key: '2', handler: () => {} },
-  },
-  {
-    key: '3',
-    label: '链支持图',
-    shortcut: { key: '3', handler: () => {} },
-  },
-  {
-    key: 'T',
-    label: '切换表格/图表',
-    shortcut: { key: 't', handler: () => {} },
-  },
-  {
-    key: 'R',
-    label: '刷新数据',
-    shortcut: { key: 'r', handler: () => {} },
-  },
-  {
-    key: 'E',
-    label: '导出数据',
-    shortcut: { key: 'e', handler: () => {} },
-  },
-  {
-    key: '?',
-    label: '显示帮助',
-    shortcut: { key: '?', handler: () => {} },
-  },
-];
+const shortcutKeys = ['1', '2', '3', 'T', 'R', 'E', '?'];
+
+const defaultShortcuts: ShortcutItem[] = shortcutKeys.map((key) => ({
+  key,
+  label: '',
+  shortcut: { key: key.toLowerCase(), handler: () => {} },
+}));
 
 function ShortcutKey({ shortcut }: { shortcut: KeyboardShortcut }) {
   const displayShortcut = getPlatformShortcut(shortcut);
@@ -80,7 +50,7 @@ export function KeyboardShortcuts({
   const displayShortcuts = useMemo(() => {
     return shortcuts.map((item) => ({
       ...item,
-      displayLabel: t.has(item.key.toLowerCase()) ? t(item.key.toLowerCase()) : item.label,
+      displayLabel: t(item.key.toLowerCase()),
     }));
   }, [shortcuts, t]);
 

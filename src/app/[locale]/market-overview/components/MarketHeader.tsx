@@ -2,8 +2,7 @@
 
 import { BarChart3 } from 'lucide-react';
 
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+import { useTranslations } from '@/i18n';
 
 import { type RefreshInterval } from '../constants';
 import { type OracleMarketData, type AssetData } from '../types';
@@ -43,7 +42,7 @@ export default function MarketHeader({
   wsStatus,
   wsReconnect,
 }: MarketHeaderProps) {
-  const locale = useLocale();
+  const t = useTranslations('marketOverview');
 
   return (
     <div className="flex flex-col gap-3 mb-6 border-b border-gray-100 pb-4">
@@ -55,14 +54,8 @@ export default function MarketHeader({
             <BarChart3 className="w-5 h-5 text-primary-600" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
-              {isChineseLocale(locale) ? '市场概览' : 'Market Overview'}
-            </h1>
-            <p className="text-sm text-gray-500">
-              {isChineseLocale(locale)
-                ? '全面分析预言机市场份额、TVS趋势和链支持情况'
-                : 'Comprehensive analysis of oracle market share, TVS trends and chain support'}
-            </p>
+            <h1 className="text-xl font-bold text-gray-900">{t('pageTitle')}</h1>
+            <p className="text-sm text-gray-500">{t('pageDescription')}</p>
           </div>
         </div>
 

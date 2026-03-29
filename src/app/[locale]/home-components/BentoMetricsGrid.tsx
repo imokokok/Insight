@@ -25,7 +25,7 @@ import {
 } from 'recharts';
 
 import { Icon } from '@/components/ui';
-import { useLocale } from '@/i18n';
+import { useLocale, useTranslations } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { type TooltipProps } from '@/types/ui/recharts';
@@ -59,37 +59,9 @@ const liveTickerData = [
   { symbol: 'MATIC/USD', price: '$0.56', change: '-1.23%', isPositive: false, volume: '234M' },
 ];
 
-interface MetricCard {
-  id: string;
-  title: {
-    en: string;
-    zh: string;
-  };
-  value: string;
-  change?: string;
-  isPositive?: boolean;
-  icon: React.ElementType;
-  size: 'large' | 'medium' | 'small';
-  chart?: 'area' | 'line';
-  chartData?: ChartDataPoint[];
-  hasLiveIndicator?: boolean;
-  alert?: {
-    type: 'info' | 'warning' | 'success';
-    message: {
-      en: string;
-      zh: string;
-    };
-  };
-  description?: {
-    en: string;
-    zh: string;
-  };
-}
-
-const metrics: MetricCard[] = [
+const metricConfigs = [
   {
     id: 'tvs',
-    title: { en: 'Total Value Secured', zh: '保障总价值' },
     value: '$42.1B',
     change: '+12.5%',
     isPositive: true,
@@ -98,32 +70,19 @@ const metrics: MetricCard[] = [
     chart: 'area',
     chartData: tvsData,
     hasLiveIndicator: true,
-    description: {
-      en: 'Total asset value secured by the platform, including DeFi protocols, stablecoins, and other on-chain assets',
-      zh: '平台保障的总资产价值，包括DeFi协议、稳定币和其他链上资产',
-    },
   },
   {
     id: 'oracles',
-    title: { en: 'Active Oracles', zh: '活跃预言机' },
     value: '5',
     change: '+1',
     isPositive: true,
     icon: Activity,
     size: 'medium',
     hasLiveIndicator: true,
-    alert: {
-      type: 'success',
-      message: { en: 'All oracles operating normally', zh: '所有预言机运行正常' },
-    },
-    description: {
-      en: 'Current active decentralized oracle network nodes',
-      zh: '当前活跃的去中心化预言机网络节点数量',
-    },
+    alert: { type: 'success' as const },
   },
   {
     id: 'sources',
-    title: { en: 'Data Sources', zh: '数据源' },
     value: '1200+',
     change: '+8.2%',
     isPositive: true,
@@ -132,56 +91,31 @@ const metrics: MetricCard[] = [
     chart: 'line',
     chartData: sourcesData,
     hasLiveIndicator: true,
-    description: {
-      en: 'Number of aggregated data providers and exchanges',
-      zh: '聚合的数据提供商和交易所数量',
-    },
   },
   {
     id: 'updates',
-    title: { en: 'Daily Updates', zh: '日更新次数' },
     value: '2.4M',
     icon: Zap,
     size: 'small',
     hasLiveIndicator: true,
-    alert: {
-      type: 'info',
-      message: { en: 'Update frequency increased by 15%', zh: '更新频率提升 15%' },
-    },
-    description: {
-      en: 'Daily price updates and data push total count',
-      zh: '每日价格更新和数据推送总次数',
-    },
+    alert: { type: 'info' as const },
   },
   {
     id: 'latency',
-    title: { en: 'Avg Latency', zh: '平均延迟' },
     value: '245ms',
     change: '-15ms',
     isPositive: true,
     icon: Clock,
     size: 'small',
     hasLiveIndicator: true,
-    description: {
-      en: 'Average time from data generation to on-chain confirmation',
-      zh: '从数据生成到链上确认的平均时间',
-    },
   },
   {
     id: 'accuracy',
-    title: { en: 'Accuracy Rate', zh: '准确率' },
     value: '99.97%',
     icon: BarChart3,
     size: 'medium',
     hasLiveIndicator: true,
-    alert: {
-      type: 'success',
-      message: { en: 'Zero failures in the past 30 days', zh: '过去30天零故障' },
-    },
-    description: {
-      en: 'Data accuracy and system availability percentage',
-      zh: '数据准确性和系统可用性百分比',
-    },
+    alert: { type: 'success' as const },
   },
 ];
 
@@ -207,7 +141,7 @@ function PulseIndicator({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
 }
 
 function LiveIndicator() {
-  const locale = useLocale();
+  const t = useTranslations('home.bentoMetrics');
 
   return (
     <div
@@ -222,7 +156,7 @@ function LiveIndicator() {
         className="text-[10px] font-semibold uppercase tracking-wider"
         style={{ color: semanticColors.success.text }}
       >
-        {isChineseLocale(locale) ? '实时' : 'LIVE'}
+        {t('liveIndicator')}
       </span>
     </div>
   );
@@ -284,6 +218,7 @@ function ChartTooltip({ active, payload, label }: TooltipProps<ChartDataPoint>) 
 }
 
 function MiniLiveTicker() {
+  const t = useTranslations('home.bentoMetrics');
   const locale = useLocale();
   const [isPaused, setIsPaused] = useState(false);
   const [hoveredTicker, setHoveredTicker] = useState<string | null>(null);
@@ -301,7 +236,7 @@ function MiniLiveTicker() {
       >
         <PulseIndicator size="sm" />
         <span className="text-xs font-semibold" style={{ color: baseColors.gray[700] }}>
-          {isChineseLocale(locale) ? '实时价格监控' : 'Live Price Monitor'}
+          {t('livePriceMonitor')}
         </span>
       </div>
       <div className="relative py-2">
@@ -393,6 +328,7 @@ function InfoTooltip({ content }: { content: string }) {
 }
 
 export default function BentoMetricsGrid() {
+  const t = useTranslations('home.bentoMetrics');
   const locale = useLocale();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -407,7 +343,7 @@ export default function BentoMetricsGrid() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const randomCard = metrics[Math.floor(Math.random() * metrics.length)];
+      const randomCard = metricConfigs[Math.floor(Math.random() * metricConfigs.length)];
       setAnimatedValues((prev) => ({ ...prev, [randomCard.id]: true }));
       setTimeout(() => {
         setAnimatedValues((prev) => ({ ...prev, [randomCard.id]: false }));
@@ -418,7 +354,7 @@ export default function BentoMetricsGrid() {
 
   const langCode = isChineseLocale(locale) ? 'zh-CN' : 'en-US';
 
-  const renderChart = (card: MetricCard) => {
+  const renderChart = (card: typeof metricConfigs[0]) => {
     if (!card.chart || !card.chartData) return null;
 
     if (card.chart === 'area') {
@@ -487,24 +423,22 @@ export default function BentoMetricsGrid() {
           >
             <BarChart3 className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
             <span className="text-sm font-semibold" style={{ color: baseColors.gray[700] }}>
-              {isChineseLocale(locale) ? '平台指标' : 'Platform Metrics'}
+              {t('sectionBadge')}
             </span>
           </div>
           <h2
             className="text-3xl sm:text-4xl font-bold mb-3"
             style={{ color: baseColors.gray[900] }}
           >
-            {isChineseLocale(locale) ? '核心数据指标' : 'Key Metrics'}
+            {t('sectionTitle')}
           </h2>
           <p className="text-lg max-w-2xl mx-auto" style={{ color: baseColors.gray[600] }}>
-            {isChineseLocale(locale)
-              ? '实时监控平台核心指标，全面了解预言机生态健康状况'
-              : 'Real-time monitoring of core platform metrics for comprehensive oracle ecosystem health'}
+            {t('sectionDescription')}
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
-          {metrics.map((card) => {
+          {metricConfigs.map((card) => {
             const Icon = card.icon;
             const isHovered = hoveredCard === card.id;
             const isAnimating = animatedValues[card.id];
@@ -570,15 +504,11 @@ export default function BentoMetricsGrid() {
                         className="text-xs sm:text-sm font-medium truncate"
                         style={{ color: baseColors.gray[600] }}
                       >
-                        {isChineseLocale(locale) ? card.title.zh : card.title.en}
+                        {t(`metrics.${card.id}.title`)}
                       </div>
-                      {card.description && (
-                        <InfoTooltip
-                          content={
-                            isChineseLocale(locale) ? card.description.zh : card.description.en
-                          }
-                        />
-                      )}
+                      <InfoTooltip
+                        content={t(`metrics.${card.id}.description`)}
+                      />
                     </div>
                     <div
                       className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1"
@@ -592,9 +522,7 @@ export default function BentoMetricsGrid() {
                     {card.alert && (
                       <AlertBadge
                         type={card.alert.type}
-                        message={
-                          isChineseLocale(locale) ? card.alert.message.zh : card.alert.message.en
-                        }
+                        message={t(`metrics.${card.id}.alert`)}
                       />
                     )}
                   </div>
@@ -610,11 +538,12 @@ export default function BentoMetricsGrid() {
                     >
                       <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       <span>
-                        {isChineseLocale(locale) ? '更新于' : 'Updated'}{' '}
-                        {currentTime.toLocaleTimeString(langCode, {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
+                        {t('updatedAt', {
+                          time: currentTime.toLocaleTimeString(langCode, {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          }),
                         })}
                       </span>
                     </div>
@@ -641,13 +570,13 @@ export default function BentoMetricsGrid() {
 
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: isChineseLocale(locale) ? '支持网络' : 'Networks', value: '15+' },
-            { label: isChineseLocale(locale) ? '合作伙伴' : 'Partners', value: '200+' },
-            { label: isChineseLocale(locale) ? 'API 调用/天' : 'API Calls/Day', value: '50M+' },
-            { label: isChineseLocale(locale) ? '正常运行时间' : 'Uptime', value: '99.99%' },
+            { id: 'networks', value: '15+' },
+            { id: 'partners', value: '200+' },
+            { id: 'apiCalls', value: '50M+' },
+            { id: 'uptime', value: '99.99%' },
           ].map((stat) => (
             <div
-              key={stat.label}
+              key={stat.id}
               className="text-center p-4 border bg-white rounded-lg"
               style={{ borderColor: baseColors.gray[200] }}
             >
@@ -658,7 +587,7 @@ export default function BentoMetricsGrid() {
                 {stat.value}
               </div>
               <div className="text-xs mt-0.5" style={{ color: baseColors.gray[500] }}>
-                {stat.label}
+                {t(`bottomStats.${stat.id}`)}
               </div>
             </div>
           ))}

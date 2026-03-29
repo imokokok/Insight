@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Shield, Zap, TrendingUp, TrendingDown, Activity, BarChart3, Clock } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 
-import { useLocale } from '@/i18n';
+import { useLocale, useTranslations } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
@@ -48,7 +48,7 @@ const metricsConfig: Omit<MetricData, 'value' | 'change'>[] = [
   },
   {
     id: 'oracles',
-    label: { en: 'Active Oracles', zh: '活跃预言机' },
+    label: { en: 'Active Oracles', zh: 'Active Oracles' },
     baseValue: 5,
     unit: '',
     icon: Activity,
@@ -57,7 +57,7 @@ const metricsConfig: Omit<MetricData, 'value' | 'change'>[] = [
   },
   {
     id: 'pairs',
-    label: { en: 'Supported Pairs', zh: '支持交易对' },
+    label: { en: 'Supported Pairs', zh: 'Supported Pairs' },
     baseValue: 1200,
     unit: '+',
     icon: BarChart3,
@@ -66,7 +66,7 @@ const metricsConfig: Omit<MetricData, 'value' | 'change'>[] = [
   },
   {
     id: 'api',
-    label: { en: 'API Calls', zh: 'API 调用' },
+    label: { en: 'API Calls', zh: 'API Calls' },
     baseValue: 2.4,
     unit: 'M',
     icon: Zap,
@@ -75,7 +75,7 @@ const metricsConfig: Omit<MetricData, 'value' | 'change'>[] = [
   },
   {
     id: 'accuracy',
-    label: { en: 'Accuracy', zh: '准确率' },
+    label: { en: 'Accuracy', zh: 'Accuracy' },
     baseValue: 99.97,
     unit: '%',
     icon: TrendingUp,
@@ -84,7 +84,7 @@ const metricsConfig: Omit<MetricData, 'value' | 'change'>[] = [
   },
   {
     id: 'response',
-    label: { en: 'Response Time', zh: '响应时间' },
+    label: { en: 'Response Time', zh: 'Response Time' },
     baseValue: 245,
     unit: 'ms',
     icon: Clock,
@@ -144,6 +144,7 @@ function PulseDot() {
 }
 
 export default function LiveMetricsPanel() {
+  const t = useTranslations('home.liveMetrics');
   const locale = useLocale();
   const [metrics, setMetrics] = useState<MetricData[]>(() =>
     metricsConfig.map((m) => ({
@@ -206,11 +207,11 @@ export default function LiveMetricsPanel() {
         <div className="flex items-center gap-2">
           <PulseDot />
           <span className="text-sm font-medium" style={{ color: baseColors.gray[600] }}>
-            {isZh ? '实时指标' : 'Live Metrics'}
+            {t('title')}
           </span>
         </div>
         <span className="text-xs" style={{ color: baseColors.gray[400] }}>
-          {isZh ? '每 5 秒更新' : 'Updates every 5s'}
+          {t('updateInterval')}
         </span>
       </div>
 
@@ -253,8 +254,8 @@ export default function LiveMetricsPanel() {
 
               <div className="mt-3">
                 <div className="text-xs font-medium mb-1" style={{ color: baseColors.gray[500] }}>
-                  {isZh ? metric.label.zh : metric.label.en}
-                </div>
+                {t(`metrics.${metric.id}`)}
+              </div>
 
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>

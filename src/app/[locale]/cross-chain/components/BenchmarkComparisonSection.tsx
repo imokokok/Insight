@@ -74,19 +74,19 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">平均值</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('crossChain.benchmark.average')}</p>
             <p className="text-xl font-semibold text-gray-900">
               {benchmarkData.industryAverage.toFixed(2)}
             </p>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">中位数</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('crossChain.benchmark.median')}</p>
             <p className="text-xl font-semibold text-gray-900">
               {benchmarkData.industryMedian.toFixed(2)}
             </p>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">最高价格</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('crossChain.benchmark.highestPrice')}</p>
             <p className="text-xl font-semibold text-gray-900">
               {benchmarkData.industryBest.toFixed(2)}
             </p>
@@ -97,16 +97,16 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  链
+                  {t('crossChain.benchmark.chain')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  价格
+                  {t('crossChain.benchmark.price')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  与平均差值
+                  {t('crossChain.benchmark.diffFromAvg')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  排名
+                  {t('crossChain.benchmark.rank')}
                 </th>
               </tr>
             </thead>

@@ -20,7 +20,7 @@ import {
   Area,
 } from 'recharts';
 
-import { isChineseLocale } from '@/i18n/routing';
+import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { useIsMobile } from '@/stores/uiStore';
 import { type TooltipProps } from '@/types/ui/recharts';
@@ -126,6 +126,7 @@ export default function ChartRenderer({
   showConfidenceInterval,
   chartType: _chartType,
 }: ChartRendererProps) {
+  const t = useTranslations('marketOverview.chart');
   const isMobile = useIsMobile();
   const [showAllOracles, setShowAllOracles] = useState(false);
   const CustomTooltip = ({ active, payload, label }: TooltipProps<OracleMarketData>) => {
@@ -289,11 +290,11 @@ export default function ChartRenderer({
                   </>
                 ) : (
                   <>
-                    <p className="text-xs text-gray-500 mb-1">Total TVS</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('totalTVS')}</p>
                     <p className="text-xl md:text-2xl font-bold text-gray-900">
                       ${totalTVS.toFixed(1)}B
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">{sortedOracleData.length} Oracles</p>
+                    <p className="text-xs text-gray-500 mt-1">{sortedOracleData.length} {t('oracles')}</p>
                   </>
                 )}
               </div>
@@ -335,7 +336,7 @@ export default function ChartRenderer({
             ))}
             {sortedOracleData.length > 6 && (
               <div className="text-xs text-gray-400 text-center py-1">
-                +{sortedOracleData.length - 6} more
+                +{sortedOracleData.length - 6} {t('more')}
               </div>
             )}
           </div>
@@ -344,7 +345,7 @@ export default function ChartRenderer({
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className={`flex justify-between items-start ${isMobile ? 'gap-1' : ''}`}>
             <div className="flex-1 px-1 md:px-2">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">增长最快</p>
+              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">{t('fastestGrowing')}</p>
               <p className="text-xs md:text-sm font-medium text-gray-900 truncate">
                 {fastestGrowing?.name}
               </p>
@@ -356,7 +357,7 @@ export default function ChartRenderer({
               className={`bg-gray-200 ${isMobile ? 'h-10 w-px' : 'h-12 w-px'} mx-1 md:mx-2`}
             ></div>
             <div className="flex-1 px-1 md:px-2">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">份额变化</p>
+              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">{t('shareChange')}</p>
               <p className="text-xs md:text-sm font-medium text-gray-900 truncate">
                 {largestChange?.name}
               </p>
@@ -371,7 +372,7 @@ export default function ChartRenderer({
               className={`bg-gray-200 ${isMobile ? 'h-10 w-px' : 'h-12 w-px'} mx-1 md:mx-2`}
             ></div>
             <div className="flex-1 px-1 md:px-2">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">市场集中度</p>
+              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">{t('marketConcentration')}</p>
               <p className="text-xs md:text-sm font-medium text-gray-900">{cr4.toFixed(1)}%</p>
               <p className="text-xs text-gray-400">CR4</p>
             </div>
@@ -449,30 +450,19 @@ export default function ChartRenderer({
                       </div>
                       <div className="ml-5 mt-1 space-y-1">
                         <div className="flex justify-between">
-                          <span className="text-gray-500">
-                            {isChineseLocale(locale) ? '当期' : 'Current'}:
-                          </span>
+                          <span className="text-gray-500">{t('current')}:</span>
                           <span className="font-medium">${currentValue?.toFixed(2)}B</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">
-                            {comparisonMode === 'yoy'
-                              ? isChineseLocale(locale)
-                                ? '同比'
-                                : 'YoY'
-                              : isChineseLocale(locale)
-                                ? '环比'
-                                : 'MoM'}
-                            :
+                            {comparisonMode === 'yoy' ? t('yoy') : t('mom')}:
                           </span>
                           <span className="font-medium text-gray-600">
                             ${compareValue?.toFixed(2)}B
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">
-                            {isChineseLocale(locale) ? '变化' : 'Change'}:
-                          </span>
+                          <span className="text-gray-500">{t('change')}:</span>
                           <span
                             className={`font-medium ${diffPercent >= 0 ? 'text-success-600' : 'text-danger-600'}`}
                           >
@@ -575,7 +565,7 @@ export default function ChartRenderer({
                 key={`${key}-compare`}
                 type="monotone"
                 dataKey={`${key}Compare`}
-                name={`${oracleNames[key]} ${comparisonMode === 'yoy' ? (isChineseLocale(locale) ? '(同比)' : '(YoY)') : isChineseLocale(locale) ? '(环比)' : '(MoM)'}`}
+                name={`${oracleNames[key]} ${comparisonMode === 'yoy' ? `(${t('yoy')})` : `(${t('mom')})`}`}
                 stroke={oracleColors[key]}
                 strokeWidth={2}
                 strokeDasharray="5 5"
@@ -620,13 +610,7 @@ export default function ChartRenderer({
             onClick={() => setShowAllOracles(!showAllOracles)}
             className="absolute bottom-12 left-1/2 transform -translate-x-1/2 px-3 py-1.5 bg-white border border-gray-200 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50 shadow-sm z-10"
           >
-            {showAllOracles
-              ? isChineseLocale(locale)
-                ? '显示 Top 5'
-                : 'Show Top 5'
-              : isChineseLocale(locale)
-                ? '显示全部'
-                : 'Show All'}
+            {showAllOracles ? t('showTop5') : t('showAll')}
           </button>
         )}
       </div>
@@ -645,23 +629,17 @@ export default function ChartRenderer({
           </div>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? '支持链数' : 'Chains'}:
-              </span>
+              <span className="text-gray-500">{t('chains')}:</span>
               <span className="font-medium text-gray-900">{item.chains}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? '协议数量' : 'Protocols'}:
-              </span>
+              <span className="text-gray-500">{t('protocols')}:</span>
               <span className="font-medium text-gray-900">{item.protocols}</span>
             </div>
             {oracleData && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">
-                    {isChineseLocale(locale) ? '市场份额' : 'Share'}:
-                  </span>
+                  <span className="text-gray-500">{t('share')}:</span>
                   <span className="font-medium text-gray-900">{oracleData.share}%</span>
                 </div>
                 <div className="flex justify-between">
@@ -758,16 +736,16 @@ export default function ChartRenderer({
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr className="border-b border-gray-200">
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
-                  {isChineseLocale(locale) ? '预言机' : 'Oracle'}
+                  {t('oracle')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
-                  {isChineseLocale(locale) ? '支持链数' : 'Chains'}
+                  {t('chains')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
-                  {isChineseLocale(locale) ? '协议数' : 'Protocols'}
+                  {t('protocols')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
-                  {isChineseLocale(locale) ? '市场份额' : 'Share'}
+                  {t('share')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                   TVS
@@ -821,16 +799,10 @@ export default function ChartRenderer({
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr className="border-b border-gray-200">
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
-                {isChineseLocale(locale) ? '预言机' : 'Oracle'}
+                {t('oracle')}
               </th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
-                {activeChart === 'pie'
-                  ? isChineseLocale(locale)
-                    ? '市场份额'
-                    : 'Market Share'
-                  : isChineseLocale(locale)
-                    ? 'TVS'
-                    : 'TVS'}
+                {activeChart === 'pie' ? t('marketShare') : 'TVS'}
               </th>
               {activeChart === 'pie' && (
                 <>
@@ -838,10 +810,10 @@ export default function ChartRenderer({
                     TVS
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
-                    {isChineseLocale(locale) ? '支持链数' : 'Chains'}
+                    {t('chains')}
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
-                    {isChineseLocale(locale) ? '24h变化' : '24h Change'}
+                    {t('change24h')}
                   </th>
                 </>
               )}

@@ -47,6 +47,7 @@
     "price": "价格",
     "confidence": "置信度",
     "live": "实时",
+    "liveBadge": "Live",
     "crossOraclePriceComparison": "跨预言机价格比对",
     "oracleCount": "预言机数量",
     "oracles": "预言机",
@@ -58,6 +59,9 @@
     "deviation": "偏差百分比",
     "standardDeviation": "标准差",
     "variance": "方差",
+    "avg": "平均",
+    "range": "范围",
+    "stdDev": "标准差",
     "consistencyRating": "价格趋同性指数",
     "consistency": {
       "excellent": "最优",
@@ -74,6 +78,9 @@
     "trend": "趋势",
     "loading": "加载中...",
     "updated": "更新时间:",
+    "time": {
+      "lastUpdated": "最后更新"
+    },
     "selectOraclesTitle": "选择预言机",
     "source": "来源",
     "high": "高",
@@ -197,7 +204,8 @@
       "oracleFilter": "预言机筛选",
       "filtersApplied": "已应用 {count} 个筛选",
       "noFilters": "无筛选条件",
-      "confirm": "确定"
+      "confirm": "确定",
+      "filtersActive": "个筛选已启用"
     },
     "filterSummary": {
       "deviation": "偏差",
@@ -264,7 +272,8 @@
       "title": "历史数据",
       "selectSnapshot": "选择快照",
       "selectHint": "从历史快照列表中选择一个进行查看",
-      "exportHistory": "导出历史"
+      "exportHistory": "导出历史",
+      "exporting": "导出中..."
     },
     "advancedTab": {
       "movingAverage": "移动平均线分析",
@@ -328,6 +337,9 @@
       "5m": "5分钟"
     },
     "noData": "暂无数据",
+    "noDataAvailable": "暂无可用数据",
+    "noDataDescription": "所选时间范围内没有价格数据。",
+    "refresh": "刷新",
     "dataSources": {
       "title": "对比数据来源"
     },
@@ -372,7 +384,20 @@
       "deviation": "偏差 (%)",
       "latency": "延迟 (ms)",
       "confidence": "置信度",
-      "updateFrequency": "更新频率 (s)"
+      "updateFrequency": "更新频率 (s)",
+      "source": "来源",
+      "csvHeaders": ["预言机", "价格", "偏差 (%)", "置信度", "来源", "时间戳"],
+      "jsonFields": {
+        "oracle": "预言机",
+        "provider": "提供商",
+        "symbol": "交易对",
+        "price": "价格",
+        "deviationPercent": "偏差百分比",
+        "confidence": "置信度",
+        "source": "来源",
+        "timestamp": "时间戳"
+      },
+      "filename": "预言机价格"
     },
     "deviationAnalysis": {
       "count": "数量",

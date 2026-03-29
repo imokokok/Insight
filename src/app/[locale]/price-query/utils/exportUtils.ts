@@ -32,27 +32,54 @@ export function generateFilename(symbol: string, extension: string, format?: str
   return `price-query-${symbol}${formatSuffix}-${timestamp}.${extension}`;
 }
 
+export interface ExportTranslations {
+  csvTitle: string;
+  symbol: string;
+  exportTime: string;
+  oracle: string;
+  blockchain: string;
+  price: string;
+  timestamp: string;
+  change24h: string;
+  confidence: string;
+  source: string;
+}
+
 export function exportToCSV(
   queryResults: QueryResult[],
   config: ExportConfigData,
-  selectedSymbol: string
+  selectedSymbol: string,
+  t?: ExportTranslations
 ): void {
   const enabledFields = config.fields;
   const csvLines: string[] = [];
 
-  csvLines.push('=== 价格查询结果 ===');
-  csvLines.push(`币种: ${selectedSymbol}`);
-  csvLines.push(`导出时间: ${new Date().toLocaleString()}`);
+  const translations = t || {
+    csvTitle: 'Price Query Results',
+    symbol: 'Symbol',
+    exportTime: 'Export Time',
+    oracle: 'Oracle',
+    blockchain: 'Blockchain',
+    price: 'Price',
+    timestamp: 'Timestamp',
+    change24h: '24h Change',
+    confidence: 'Confidence',
+    source: 'Source',
+  };
+
+  csvLines.push(`=== ${translations.csvTitle} ===`);
+  csvLines.push(`${translations.symbol}: ${selectedSymbol}`);
+  csvLines.push(`${translations.exportTime}: ${new Date().toLocaleString()}`);
   csvLines.push('');
 
   const headers: string[] = [];
-  if (enabledFields.find((f) => f.key === 'oracle')) headers.push('预言机');
-  if (enabledFields.find((f) => f.key === 'blockchain')) headers.push('区块链');
-  if (enabledFields.find((f) => f.key === 'price')) headers.push('价格');
-  if (enabledFields.find((f) => f.key === 'timestamp')) headers.push('时间戳');
-  if (enabledFields.find((f) => f.key === 'change24h')) headers.push('24h变化');
-  if (enabledFields.find((f) => f.key === 'confidence')) headers.push('置信度');
-  if (enabledFields.find((f) => f.key === 'source')) headers.push('来源');
+  if (enabledFields.find((f) => f.key === 'oracle')) headers.push(translations.oracle);
+  if (enabledFields.find((f) => f.key === 'blockchain')) headers.push(translations.blockchain);
+  if (enabledFields.find((f) => f.key === 'price')) headers.push(translations.price);
+  if (enabledFields.find((f) => f.key === 'timestamp')) headers.push(translations.timestamp);
+  if (enabledFields.find((f) => f.key === 'change24h')) headers.push(translations.change24h);
+  if (enabledFields.find((f) => f.key === 'confidence')) headers.push(translations.confidence);
+  if (enabledFields.find((f) => f.key === 'source')) headers.push(translations.source);
 
   csvLines.push(headers.join(','));
 
@@ -162,6 +189,28 @@ export function exportToJSON(
   document.body.removeChild(link);
 }
 
+export interface PDFTranslations extends ExportTranslations {
+  reportTitle: string;
+  generatedAt: string;
+  queryParams: string;
+  oracles: string;
+  chains: string;
+  timeRange: string;
+  hours: string;
+  statsSummary: string;
+  avgPriceLabel: string;
+  maxPriceLabel: string;
+  minPriceLabel: string;
+  priceRangeLabel: string;
+  stdDevLabel: string;
+  dataPointsLabel: string;
+  change24hLabel: string;
+  indicator: string;
+  value: string;
+  priceChart: string;
+  priceData: string;
+}
+
 export async function exportToPDF(
   queryResults: QueryResult[],
   config: ExportConfigData,
@@ -170,44 +219,77 @@ export async function exportToPDF(
   selectedChains: Blockchain[],
   selectedTimeRange: number,
   stats: StatsData,
-  chartContainerRef?: React.RefObject<HTMLDivElement | null>
+  chartContainerRef?: React.RefObject<HTMLDivElement | null>,
+  t?: PDFTranslations
 ): Promise<void> {
   const doc = new jsPDF();
   const enabledFields = config.fields;
   const filteredResults = filterByTimeRange(queryResults, config.timeRange);
+
+  const translations = t || {
+    csvTitle: 'Price Query Results',
+    symbol: 'Symbol',
+    exportTime: 'Export Time',
+    oracle: 'Oracle',
+    blockchain: 'Blockchain',
+    price: 'Price',
+    timestamp: 'Timestamp',
+    change24h: '24h Change',
+    confidence: 'Confidence',
+    source: 'Source',
+    reportTitle: 'Price Query Report',
+    generatedAt: 'Generated at',
+    queryParams: 'Query Parameters',
+    oracles: 'Oracles',
+    chains: 'Chains',
+    timeRange: 'Time Range',
+    hours: 'hours',
+    statsSummary: 'Statistics Summary',
+    avgPriceLabel: 'Average Price',
+    maxPriceLabel: 'Max Price',
+    minPriceLabel: 'Min Price',
+    priceRangeLabel: 'Price Range',
+    stdDevLabel: 'Std Deviation',
+    dataPointsLabel: 'Data Points',
+    change24hLabel: '24h Change',
+    indicator: 'Indicator',
+    value: 'Value',
+    priceChart: 'Price Chart',
+    priceData: 'Price Data',
+  };
 
   const primaryColor = exportColors.text.primary;
   const secondaryColor = exportColors.text.secondary;
 
   doc.setFontSize(20);
   doc.setTextColor(primaryColor);
-  doc.text('价格查询报告', 14, 20);
+  doc.text(translations.reportTitle, 14, 20);
 
   doc.setFontSize(10);
   doc.setTextColor(secondaryColor);
-  doc.text(`生成时间: ${new Date().toLocaleString()}`, 14, 28);
+  doc.text(`${translations.generatedAt}: ${new Date().toLocaleString()}`, 14, 28);
 
   doc.setFontSize(12);
   doc.setTextColor(primaryColor);
-  doc.text('查询参数', 14, 40);
+  doc.text(translations.queryParams, 14, 40);
 
   doc.setFontSize(10);
   doc.setTextColor(secondaryColor);
   let yPos = 48;
-  doc.text(`币种: ${selectedSymbol}`, 14, yPos);
+  doc.text(`${translations.symbol}: ${selectedSymbol}`, 14, yPos);
   yPos += 6;
-  doc.text(`预言机: ${selectedOracles.map((o) => providerNames[o]).join(', ')}`, 14, yPos);
+  doc.text(`${translations.oracles}: ${selectedOracles.map((o) => providerNames[o]).join(', ')}`, 14, yPos);
   yPos += 6;
-  doc.text(`区块链: ${selectedChains.map((c) => chainNames[c]).join(', ')}`, 14, yPos);
+  doc.text(`${translations.chains}: ${selectedChains.map((c) => chainNames[c]).join(', ')}`, 14, yPos);
   yPos += 6;
-  doc.text(`时间范围: ${selectedTimeRange}小时`, 14, yPos);
+  doc.text(`${translations.timeRange}: ${selectedTimeRange}${translations.hours}`, 14, yPos);
 
   yPos += 12;
 
   if (config.includeStats) {
     doc.setFontSize(12);
     doc.setTextColor(primaryColor);
-    doc.text('统计摘要', 14, yPos);
+    doc.text(translations.statsSummary, 14, yPos);
 
     yPos += 8;
     doc.setFontSize(9);
@@ -215,35 +297,35 @@ export async function exportToPDF(
 
     const statsData = [
       [
-        '平均价格',
+        translations.avgPriceLabel,
         `$${stats.avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       ],
       [
-        '最高价格',
+        translations.maxPriceLabel,
         `$${stats.maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       ],
       [
-        '最低价格',
+        translations.minPriceLabel,
         `$${stats.minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       ],
       [
-        '价格区间',
+        translations.priceRangeLabel,
         `$${stats.priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       ],
-      ['标准差', `${stats.standardDeviationPercent.toFixed(4)}%`],
-      ['数据点', stats.dataPoints.toString()],
+      [translations.stdDevLabel, `${stats.standardDeviationPercent.toFixed(4)}%`],
+      [translations.dataPointsLabel, stats.dataPoints.toString()],
     ];
 
     if (stats.avgChange24hPercent !== undefined) {
       statsData.push([
-        '24h变化',
+        translations.change24hLabel,
         `${stats.avgChange24hPercent >= 0 ? '+' : ''}${stats.avgChange24hPercent.toFixed(2)}%`,
       ]);
     }
 
     autoTable(doc, {
       startY: yPos,
-      head: [['指标', '数值']],
+      head: [[translations.indicator, translations.value]],
       body: statsData,
       theme: 'striped',
       headStyles: { fillColor: [31, 41, 55], textColor: [255, 255, 255] },
@@ -273,7 +355,7 @@ export async function exportToPDF(
 
       doc.setFontSize(12);
       doc.setTextColor(primaryColor);
-      doc.text('价格图表', 14, yPos);
+      doc.text(translations.priceChart, 14, yPos);
 
       doc.addImage(imgData, 'PNG', 14, yPos + 5, imgWidth, imgHeight);
       yPos += imgHeight + 15;
@@ -292,16 +374,16 @@ export async function exportToPDF(
 
   doc.setFontSize(12);
   doc.setTextColor(primaryColor);
-  doc.text('价格数据', 14, yPos);
+  doc.text(translations.priceData, 14, yPos);
 
   const tableHeaders: string[] = [];
-  if (enabledFields.find((f) => f.key === 'oracle')) tableHeaders.push('预言机');
-  if (enabledFields.find((f) => f.key === 'blockchain')) tableHeaders.push('区块链');
-  if (enabledFields.find((f) => f.key === 'price')) tableHeaders.push('价格');
-  if (enabledFields.find((f) => f.key === 'timestamp')) tableHeaders.push('时间戳');
-  if (enabledFields.find((f) => f.key === 'change24h')) tableHeaders.push('24h变化');
-  if (enabledFields.find((f) => f.key === 'confidence')) tableHeaders.push('置信度');
-  if (enabledFields.find((f) => f.key === 'source')) tableHeaders.push('来源');
+  if (enabledFields.find((f) => f.key === 'oracle')) tableHeaders.push(translations.oracle);
+  if (enabledFields.find((f) => f.key === 'blockchain')) tableHeaders.push(translations.blockchain);
+  if (enabledFields.find((f) => f.key === 'price')) tableHeaders.push(translations.price);
+  if (enabledFields.find((f) => f.key === 'timestamp')) tableHeaders.push(translations.timestamp);
+  if (enabledFields.find((f) => f.key === 'change24h')) tableHeaders.push(translations.change24h);
+  if (enabledFields.find((f) => f.key === 'confidence')) tableHeaders.push(translations.confidence);
+  if (enabledFields.find((f) => f.key === 'source')) tableHeaders.push(translations.source);
 
   const tableBody = filteredResults.map((result) => {
     const row: string[] = [];

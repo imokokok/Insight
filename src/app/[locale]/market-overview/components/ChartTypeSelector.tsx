@@ -15,8 +15,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 
-import { useTranslations, useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/stores/uiStore';
 
@@ -26,10 +25,6 @@ import type { LucideIcon } from 'lucide-react';
 
 interface ChartTypeConfig {
   key: ChartType;
-  label: string;
-  labelZh: string;
-  shortLabel: string;
-  shortLabelZh: string;
   icon: LucideIcon;
   translationKey: string;
 }
@@ -37,37 +32,21 @@ interface ChartTypeConfig {
 const mainChartTypes: ChartTypeConfig[] = [
   {
     key: 'pie',
-    label: 'Market Share',
-    labelZh: '份额',
-    shortLabel: 'Share',
-    shortLabelZh: '份额',
     icon: PieChartIcon,
     translationKey: 'marketShare',
   },
   {
     key: 'trend',
-    label: 'TVS Trend',
-    labelZh: '趋势',
-    shortLabel: 'Trend',
-    shortLabelZh: '趋势',
     icon: TrendingUp,
     translationKey: 'tvsTrend',
   },
   {
     key: 'bar',
-    label: 'Chain Support',
-    labelZh: '链支持',
-    shortLabel: 'Chains',
-    shortLabelZh: '链支持',
     icon: BarChart3,
     translationKey: 'chainSupport',
   },
   {
     key: 'chain',
-    label: 'Chain Breakdown',
-    labelZh: '链分布',
-    shortLabel: 'Breakdown',
-    shortLabelZh: '链分布',
     icon: Network,
     translationKey: 'chainBreakdown',
   },
@@ -76,46 +55,26 @@ const mainChartTypes: ChartTypeConfig[] = [
 const secondaryChartTypes: ChartTypeConfig[] = [
   {
     key: 'protocol',
-    label: 'Protocols',
-    labelZh: '协议',
-    shortLabel: 'Protocols',
-    shortLabelZh: '协议',
     icon: Building2,
     translationKey: 'protocols',
   },
   {
     key: 'asset',
-    label: 'Asset Categories',
-    labelZh: '资产',
-    shortLabel: 'Assets',
-    shortLabelZh: '资产',
     icon: PieChartIcon2,
     translationKey: 'assetCategories',
   },
   {
     key: 'comparison',
-    label: 'Oracle Comparison',
-    labelZh: '对比',
-    shortLabel: 'Compare',
-    shortLabelZh: '对比',
     icon: GitCompare,
     translationKey: 'oracleComparison',
   },
   {
     key: 'benchmark',
-    label: 'Benchmark',
-    labelZh: '基准',
-    shortLabel: 'Benchmark',
-    shortLabelZh: '基准',
     icon: Target,
     translationKey: 'benchmark',
   },
   {
     key: 'correlation',
-    label: 'Correlation',
-    labelZh: '相关性',
-    shortLabel: 'Correlation',
-    shortLabelZh: '相关性',
     icon: ActivitySquare,
     translationKey: 'correlation',
   },
@@ -132,8 +91,6 @@ interface ChartTypeSelectorProps {
 
 export default function ChartTypeSelector({ activeChart, onChartChange }: ChartTypeSelectorProps) {
   const t = useTranslations('marketOverview');
-  const locale = useLocale();
-  const isZh = isChineseLocale(locale);
   const isMobile = useIsMobile();
 
   const [isSecondaryMenuOpen, setIsSecondaryMenuOpen] = useState(false);
@@ -185,9 +142,6 @@ export default function ChartTypeSelector({ activeChart, onChartChange }: ChartT
               <span className={isMobile ? 'hidden' : ''}>
                 {t(`ui.chart.${type.translationKey}`)}
               </span>
-              {isMobile && (
-                <span className="md:hidden">{isZh ? type.shortLabelZh : type.shortLabel}</span>
-              )}
             </button>
           );
         })}
@@ -213,18 +167,13 @@ export default function ChartTypeSelector({ activeChart, onChartChange }: ChartT
                   <span className={isMobile ? 'hidden' : ''}>
                     {t(`ui.chart.${currentSecondary.translationKey}`)}
                   </span>
-                  {isMobile && (
-                    <span className="md:hidden">
-                      {isZh ? currentSecondary.shortLabelZh : currentSecondary.shortLabel}
-                    </span>
-                  )}
                 </>
               );
             }
             return (
               <>
                 <ActivitySquare className="w-4 h-4 flex-shrink-0" />
-                <span>{t('filter.more')}</span>
+                <span>{t('ui.filter.more')}</span>
               </>
             );
           })()}

@@ -62,7 +62,7 @@ function detectErrorType(error: string): ErrorType {
   return 'unknown';
 }
 
-function getErrorTypeInfo(errorType: ErrorType): {
+function getErrorTypeInfo(errorType: ErrorType, t: ReturnType<typeof useTranslations>): {
   icon: React.ReactNode;
   label: string;
   color: string;
@@ -72,28 +72,28 @@ function getErrorTypeInfo(errorType: ErrorType): {
     case 'network':
       return {
         icon: <Wifi className="w-4 h-4" />,
-        label: 'networkError',
+        label: t('priceQuery.errors.networkError'),
         color: 'text-orange-600',
         bgColor: 'bg-orange-50',
       };
     case 'timeout':
       return {
         icon: <Clock className="w-4 h-4" />,
-        label: 'timeoutError',
+        label: t('priceQuery.errors.timeoutError'),
         color: 'text-amber-600',
         bgColor: 'bg-amber-50',
       };
     case 'data':
       return {
         icon: <Database className="w-4 h-4" />,
-        label: 'dataError',
+        label: t('priceQuery.errors.dataError'),
         color: 'text-red-600',
         bgColor: 'bg-red-50',
       };
     default:
       return {
         icon: <AlertCircle className="w-4 h-4" />,
-        label: 'unknownError',
+        label: t('priceQuery.errors.unknownError'),
         color: 'text-gray-600',
         bgColor: 'bg-gray-50',
       };
@@ -109,7 +109,7 @@ interface ErrorItemRowProps {
 function ErrorItemRow({ error, onRetry, isRetrying }: ErrorItemRowProps) {
   const t = useTranslations();
   const errorType = detectErrorType(error.error);
-  const errorInfo = getErrorTypeInfo(errorType);
+  const errorInfo = getErrorTypeInfo(errorType, t);
 
   return (
     <div className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
@@ -125,7 +125,7 @@ function ErrorItemRow({ error, onRetry, isRetrying }: ErrorItemRowProps) {
           </div>
           <div className="flex items-center gap-2 mt-1">
             <span className={`text-xs font-medium ${errorInfo.color}`}>
-              {t(`priceQuery.errors.${errorInfo.label}`)}
+              {errorInfo.label}
             </span>
             <span className="text-xs text-gray-400 truncate max-w-[200px]" title={error.error}>
               {error.error}
@@ -193,15 +193,15 @@ export function ErrorBanner({ errors, onRetry, onRetryAll, onDismiss }: ErrorBan
         </div>
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={handleRetryAll}>
-            <RefreshCw className="w-4 h-4" />
-            <span className="ml-1.5">{t('priceQuery.errors.retryAll')}</span>
-          </Button>
-          {onDismiss && (
-            <button
-              onClick={onDismiss}
-              className="p-1 hover:bg-red-200 rounded transition-colors"
-              aria-label={t('priceQuery.errors.dismiss')}
-            >
+          <RefreshCw className="w-4 h-4" />
+          <span className="ml-1.5">{t('priceQuery.errors.retryAll')}</span>
+        </Button>
+        {onDismiss && (
+          <button
+            onClick={onDismiss}
+            className="p-1 hover:bg-red-200 rounded transition-colors"
+            aria-label={t('priceQuery.errors.dismiss')}
+          >
               <X className="w-4 h-4 text-red-600" />
             </button>
           )}

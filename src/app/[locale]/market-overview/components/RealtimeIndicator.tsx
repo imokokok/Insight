@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { Wifi } from 'lucide-react';
 
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+import { useTranslations } from '@/i18n';
 
 interface RealtimeIndicatorProps {
   isConnected?: boolean;
@@ -18,7 +17,7 @@ export default function RealtimeIndicator({
   latency,
   onReconnect,
 }: RealtimeIndicatorProps) {
-  const locale = useLocale();
+  const t = useTranslations('marketOverview.realtime');
   const [pulse, setPulse] = useState(false);
 
   // 脉冲动画效果
@@ -38,9 +37,9 @@ export default function RealtimeIndicator({
   };
 
   const getStatusText = () => {
-    if (!isConnected) return isChineseLocale(locale) ? '已断开' : 'Disconnected';
-    if (latency && latency > 1000) return isChineseLocale(locale) ? '延迟高' : 'High Latency';
-    return isChineseLocale(locale) ? '实时' : 'Live';
+    if (!isConnected) return t('disconnected');
+    if (latency && latency > 1000) return t('highLatency');
+    return t('live');
   };
 
   return (
@@ -65,7 +64,7 @@ export default function RealtimeIndicator({
           className="flex items-center gap-1 px-2 py-0.5 text-xs text-primary-600 hover:bg-primary-50 transition-colors"
         >
           <Wifi className="w-3 h-3" />
-          {isChineseLocale(locale) ? '重连' : 'Reconnect'}
+          {t('reconnect')}
         </button>
       )}
     </div>
