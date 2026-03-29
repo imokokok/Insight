@@ -33,8 +33,7 @@ export default function PythPage() {
     error,
     lastUpdated,
     isRefreshing,
-    dataFreshnessStatus,
-    shouldRefreshData,
+
     setActiveTab,
     refresh,
     exportData,
@@ -97,8 +96,6 @@ export default function PythPage() {
           isError={isError}
           isRefreshing={isRefreshing}
           lastUpdated={lastUpdated}
-          dataFreshnessStatus={dataFreshnessStatus}
-          shouldRefreshData={shouldRefreshData}
           onRefresh={refresh}
           onExport={exportData}
         />

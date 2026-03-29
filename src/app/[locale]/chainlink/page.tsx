@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback, MobileMenuButton, OracleErrorBoundary, DataFreshnessIndicator } from '@/components/oracle';
+import { LoadingState, ErrorFallback, MobileMenuButton, OracleErrorBoundary } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -32,8 +32,7 @@ export default function ChainlinkPage() {
     error,
     lastUpdated,
     isRefreshing,
-    dataFreshnessStatus,
-    shouldRefreshData,
+
     setActiveTab,
     refresh,
     exportData,
@@ -95,8 +94,6 @@ export default function ChainlinkPage() {
           isError={isError}
           isRefreshing={isRefreshing}
           lastUpdated={lastUpdated}
-          dataFreshnessStatus={dataFreshnessStatus}
-          shouldRefreshData={shouldRefreshData}
           onRefresh={refresh}
           onExport={exportData}
         />

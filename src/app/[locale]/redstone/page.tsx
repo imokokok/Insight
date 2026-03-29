@@ -36,7 +36,7 @@ export default function RedStonePage() {
     error,
     lastUpdated,
     isRefreshing,
-    dataFreshnessStatus,
+
     setActiveTab,
     refresh,
     exportData,
@@ -103,7 +103,6 @@ export default function RedStonePage() {
           isError={isError}
           isRefreshing={isRefreshing}
           lastUpdated={lastUpdated}
-          dataFreshnessStatus={dataFreshnessStatus}
           onRefresh={refresh}
           onExport={exportData}
         />

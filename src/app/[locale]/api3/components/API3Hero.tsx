@@ -20,11 +20,10 @@ import {
 
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
-import { DataFreshnessIndicator } from '@/components/oracle/shared/DataFreshnessIndicator';
 import { useTranslations } from '@/i18n';
 import type { OracleConfig } from '@/lib/config/oracles';
 import type { PriceData } from '@/types/oracle';
-import type { UseDataFreshnessReturn } from '@/hooks/useDataFreshness';
+
 
 interface AirnodeStats {
   activeAirnodes: number;
@@ -51,7 +50,6 @@ export interface API3HeroProps {
   isError: boolean;
   isRefreshing: boolean;
   lastUpdated: Date | null;
-  dataFreshnessStatus?: UseDataFreshnessReturn;
   onRefresh: () => void;
   onExport: () => void;
 }
@@ -457,7 +455,6 @@ export function API3Hero({
   isError,
   isRefreshing,
   lastUpdated,
-  dataFreshnessStatus,
   onRefresh,
   onExport,
 }: API3HeroProps) {
@@ -589,13 +586,7 @@ export function API3Hero({
             latency={airnodeStats?.avgResponseTime ?? config.networkData.avgResponseTime}
             lastUpdate={lastUpdated || undefined}
           />
-          {dataFreshnessStatus && (
-            <DataFreshnessIndicator
-              status={dataFreshnessStatus.status}
-              onRefresh={onRefresh}
-              className="mt-1 sm:mt-0"
-            />
-          )}
+
         </div>
       </div>
 

@@ -26,11 +26,10 @@ import {
 
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
-import { DataFreshnessIndicator } from '@/components/oracle/shared/DataFreshnessIndicator';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
-import type { UseDataFreshnessReturn } from '@/hooks/useDataFreshness';
+
 
 export interface UMAHeroProps {
   config: OracleConfig;
@@ -45,7 +44,7 @@ export interface UMAHeroProps {
   isError: boolean;
   isRefreshing: boolean;
   lastUpdated: Date | null;
-  dataFreshnessStatus?: UseDataFreshnessReturn;
+
   onRefresh: () => void;
   onExport: () => void;
 }
@@ -509,7 +508,6 @@ export function UMAHero({
   isError,
   isRefreshing,
   lastUpdated,
-  dataFreshnessStatus,
   onRefresh,
   onExport,
 }: UMAHeroProps) {
@@ -632,16 +630,7 @@ export function UMAHero({
             latency={networkStats?.avgResponseTime || 245}
             lastUpdate={lastUpdated || undefined}
           />
-          <div className="flex items-center gap-2">
-            {dataFreshnessStatus && (
-              <DataFreshnessIndicator
-                status={dataFreshnessStatus.status}
-                onRefresh={onRefresh}
-                className="mt-1 sm:mt-0"
-              />
-            )}
-            <QuickActions themeColor={themeColor} />
-          </div>
+          <QuickActions themeColor={themeColor} />
         </div>
       </div>
 

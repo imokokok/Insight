@@ -21,7 +21,6 @@ import {
 
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
-import { DataFreshnessIndicator } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
@@ -37,8 +36,7 @@ interface ChainlinkHeroProps {
   isError: boolean;
   isRefreshing: boolean;
   lastUpdated: Date | null;
-  dataFreshnessStatus?: 'fresh' | 'stale' | 'expired';
-  shouldRefreshData?: boolean;
+
   onRefresh: () => void;
   onExport: () => void;
 }
@@ -461,8 +459,6 @@ export function ChainlinkHero({
   isError,
   isRefreshing,
   lastUpdated,
-  dataFreshnessStatus = 'fresh',
-  shouldRefreshData = false,
   onRefresh,
   onExport,
 }: ChainlinkHeroProps) {
@@ -607,14 +603,7 @@ export function ChainlinkHero({
               <p className="text-xs text-gray-500">{t('chainlink.subtitle')}</p>
             </div>
           </div>
-          {dataFreshnessStatus && (
-            <DataFreshnessIndicator
-              status={dataFreshnessStatus.status}
-              lastUpdated={lastUpdated}
-              onRefresh={onRefresh}
-              themeColor={themeColor}
-            />
-          )}
+
         </div>
 
         {/* 桌面端左右分栏布局 */}
