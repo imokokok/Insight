@@ -9,30 +9,30 @@ import { useTranslations } from '@/i18n';
 type ScenarioType = 'conservative' | 'moderate' | 'optimistic';
 
 interface ScenarioConfig {
-  label: string;
+  labelKey: string;
   apy: number;
   color: string;
-  description: string;
+  descKey: string;
 }
 
 const SCENARIOS: Record<ScenarioType, ScenarioConfig> = {
   conservative: {
-    label: 'Conservative',
+    labelKey: 'scenarios.conservative.label',
     apy: 4.5,
     color: '#60a5fa',
-    description: 'Lower risk, stable returns',
+    descKey: 'scenarios.conservative.description',
   },
   moderate: {
-    label: 'Moderate',
+    labelKey: 'scenarios.moderate.label',
     apy: 7.2,
     color: '#3b82f6',
-    description: 'Balanced risk and reward',
+    descKey: 'scenarios.moderate.description',
   },
   optimistic: {
-    label: 'Optimistic',
+    labelKey: 'scenarios.optimistic.label',
     apy: 10.8,
     color: '#1d4ed8',
-    description: 'Higher risk, potential for greater returns',
+    descKey: 'scenarios.optimistic.description',
   },
 };
 
@@ -149,14 +149,14 @@ export function StakingRewardsCalculator() {
                 }
               `}
             >
-              <div>{SCENARIOS[key].label}</div>
+              <div>{t(`chainlink.${SCENARIOS[key].labelKey}`)}</div>
               <div className="text-xs opacity-60">{SCENARIOS[key].apy}% APY</div>
             </button>
           ))}
         </div>
         <p className="text-xs text-gray-400 mt-2 flex items-start gap-1">
           <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
-          {scenario.description}
+          {t(`chainlink.${scenario.descKey}`)}
         </p>
       </div>
 

@@ -229,7 +229,7 @@ export function ChainlinkEcosystemView() {
               {t('ecosystem.tvlAnalysis.title')}
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
-              Total Value Locked across Chainlink ecosystem
+              {t('common.totalValueLockedEcosystem')}
             </p>
           </div>
           <div className="flex items-center border-b border-gray-200">
@@ -444,7 +444,7 @@ export function ChainlinkEcosystemView() {
               {t('ecosystem.projectAnalysis.projectsByChain') || 'Projects by Chain'}
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
-              Distribution of projects across supported networks
+              {t('common.distributionProjectsNetworks')}
             </p>
           </div>
           <div className="h-56">
@@ -495,7 +495,7 @@ export function ChainlinkEcosystemView() {
             <h3 className="text-base font-semibold text-gray-900">
               {t('ecosystem.growth.title') || 'Ecosystem Growth'}
             </h3>
-            <p className="text-sm text-gray-500 mt-0.5">Key performance indicators</p>
+            <p className="text-sm text-gray-500 mt-0.5">{t('common.keyPerformanceIndicators')}</p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between py-3 border-b border-gray-100">

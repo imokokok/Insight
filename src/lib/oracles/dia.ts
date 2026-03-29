@@ -3,6 +3,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 import { BaseOracleClient } from './base';
+import { getDIADataService } from './diaDataService';
 
 import type { OracleClientConfig } from './base';
 
@@ -144,6 +145,14 @@ export class DIAClient extends BaseOracleClient {
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
+      const diaService = getDIADataService();
+      
+      const livePrice = await diaService.getAssetPrice(symbol, chain);
+      
+      if (livePrice) {
+        return this.fetchPriceWithDatabase(symbol, chain, () => livePrice);
+      }
+      
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       return this.fetchPriceWithDatabase(symbol, chain, () =>
@@ -163,6 +172,14 @@ export class DIAClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
+      const diaService = getDIADataService();
+      
+      const liveHistoricalPrices = await diaService.getHistoricalPrices(symbol, chain, period);
+      
+      if (liveHistoricalPrices && liveHistoricalPrices.length > 0) {
+        return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () => liveHistoricalPrices);
+      }
+      
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>

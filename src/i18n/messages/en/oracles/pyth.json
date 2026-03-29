@@ -302,6 +302,151 @@
       "slashingConditions": "Slashing Conditions",
       "decentralizedGovernance": "Decentralized Governance",
       "realTimeMonitoring": "Real-Time Monitoring"
-    }
+    },
+    "hero": {
+      "thisMonth": "This Month"
+    },
+    "categories": {
+      "all": "All",
+      "crypto": "Crypto",
+      "forex": "Forex",
+      "commodities": "Commodities",
+      "equities": "Equities"
+    },
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "offline": "Offline"
+    },
+    "dataSources": {
+      "pythNetwork": "Pyth Network",
+      "solanaMainnet": "Solana Mainnet",
+      "ethereumMainnet": "Ethereum Mainnet",
+      "publisherConsensus": "Publisher Consensus"
+    },
+    "chains": {
+      "solana": "Solana",
+      "ethereum": "Ethereum",
+      "arbitrum": "Arbitrum",
+      "optimism": "Optimism",
+      "polygon": "Polygon",
+      "base": "Base",
+      "avalanche": "Avalanche",
+      "bsc": "BNB Chain"
+    },
+    "crossChain": {
+      "title": "Cross-Chain Support",
+      "supported": "Supported",
+      "updateFrequency": "Update Frequency",
+      "latency": "Latency",
+      "status": "Status",
+      "online": "Online",
+      "description": "Pyth supports multiple blockchains through Wormhole cross-chain protocol, enabling sub-second price updates.",
+      "avgDeviation": "Avg Price Deviation",
+      "maxDeviation": "Max Deviation Chain",
+      "successRate": "Update Success Rate",
+      "wormholeStatus": "Wormhole Status",
+      "priceComparison": "Multi-Chain Price Comparison",
+      "basePrice": "Base Price",
+      "chain": "Chain",
+      "price": "Price",
+      "deviation": "Deviation",
+      "lastUpdate": "Last Update",
+      "deviationHeatmap": "Price Deviation Heatmap",
+      "wormholeInfo": "Wormhole Cross-Chain Status",
+      "guardianNetwork": "Guardian Network",
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "critical": "Critical",
+      "activeGuardians": "Active Guardians",
+      "vaaLatency": "VAA Latency",
+      "crossChainFlow": "Cross-Chain Data Flow",
+      "avgTransferTime": "Avg Transfer Time",
+      "updateLatency": "On-Chain Update Latency Comparison",
+      "consistencyScore": "Price Consistency Score",
+      "overallScore": "Overall Score",
+      "excellent": "Excellent - High cross-chain price consistency",
+      "updateSync": "Update Sync Rate",
+      "chainsSynced": "All chains synced within 1 second",
+      "arbOpportunity": "Arbitrage Opportunity",
+      "lowArb": "Low arb space - High market efficiency",
+      "timeAgo": {
+        "seconds": "{seconds}s ago",
+        "minutes": "{minutes}m ago"
+      }
+    },
+    "riskEvents": {
+      "securityAuditComplete": {
+        "title": "Security Audit Complete",
+        "description": "Pyth Network core contracts passed joint security audit by OtterSec and Neodyme with no critical vulnerabilities found."
+      },
+      "mainnetUpgrade": {
+        "title": "Mainnet Upgrade Complete",
+        "description": "Completed Pythnet upgrade introducing new consensus mechanism and enhanced data validation capabilities."
+      },
+      "priceDelay": {
+        "title": "Price Delay Event",
+        "description": "Due to Solana network congestion, some price feeds experienced 5-10 second delays. Team has optimized data distribution paths."
+      },
+      "publisherMilestone": {
+        "title": "Publisher Milestone",
+        "description": "First-party data publishers exceeded 80, including top exchanges and market makers."
+      },
+      "crossChainExpansion": {
+        "title": "Cross-Chain Expansion",
+        "description": "Expanded support to 20+ blockchain networks through Wormhole."
+      }
+    },
+    "riskMetricNames": {
+      "decentralization": "Decentralization Score",
+      "security": "Security Rating",
+      "reliability": "Network Reliability",
+      "transparency": "Transparency Score"
+    },
+    "riskMetricDescriptions": {
+      "decentralization": "Based on publisher diversity and geographic distribution",
+      "security": "Based on audit history and incident response",
+      "reliability": "Uptime and successful response rate over the last 30 days",
+      "transparency": "Based on documentation quality and data availability"
+    },
+    "riskFactorCategories": {
+      "smartContract": "Smart Contract Risk",
+      "oracle": "Oracle Risk",
+      "network": "Network Risk",
+      "market": "Market Risk"
+    },
+    "riskFactorDescriptions": {
+      "smartContract": "Multiple audits by leading security firms including OtterSec and Neodyme. No critical vulnerabilities found.",
+      "oracle": "First-party data model with 80+ publishers. Relies on publisher reputation and staking.",
+      "network": "Built on Solana, subject to network congestion and downtime risks.",
+      "market": "PYTH token used for governance and staking. Price volatility affects staking economics."
+    },
+    "riskFactorDetails": {
+      "otterSecAudit": "OtterSec audit completed Q1 2024",
+      "neodymeMonitoring": "Neodyme continuous monitoring active",
+      "openSourceContracts": "Open source contracts for community review",
+      "firstPartyPublishers": "80+ first-party data publishers",
+      "publisherStaking": "Publisher staking mechanism",
+      "consensusAggregation": "Consensus-based price aggregation",
+      "solanaDependency": "Solana network dependency",
+      "wormholeBridge": "Wormhole bridge for cross-chain",
+      "backupPaths": "Backup data paths in development",
+      "pythGovernance": "PYTH token governance rights",
+      "stakingRewards": "Staking rewards in PYTH",
+      "treasuryDiversification": "Treasury diversification planned"
+    },
+    "benchmarkMetrics": {
+      "decentralization": "Decentralization",
+      "security": "Security",
+      "reliability": "Reliability",
+      "transparency": "Transparency",
+      "trackRecord": "Track Record"
+    },
+    "riskLevelLabels": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "confidenceIntervalTrend": "Confidence Interval Trend"
   }
 }

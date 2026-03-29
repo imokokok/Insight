@@ -657,50 +657,438 @@
           "burst": "Burst Limit",
           "price": "Price"
         },
-        "moreResources": "More Resources"
+        "moreResources": "More Resources",
+        "marketApi": {
+          "name": "Market API",
+          "description": "Get real-time market prices, volumes and other data"
+        },
+        "daoApi": {
+          "name": "DAO API",
+          "description": "Get DAO governance, staking and other data"
+        },
+        "dapiApi": {
+          "name": "dAPI API",
+          "description": "Get dAPI data source information"
+        },
+        "yes": "Yes",
+        "no": "No",
+        "officialDocs": "API3 Official API Documentation",
+        "devGuide": "Developer Guide"
       },
       "guide": {
         "quickStart": {
           "title": "Quick Start",
-          "description": "Complete API3 integration in minutes"
+          "description": "Complete API3 integration in minutes",
+          "step1": {
+            "title": "Get API Key",
+            "description": "Register for an API3 developer account and get your API Key"
+          },
+          "step2": {
+            "title": "Install SDK",
+            "description": "Install API3 JavaScript/TypeScript SDK"
+          },
+          "step3": {
+            "title": "Configure Contract Address",
+            "description": "Configure API3 ServerV1 contract address"
+          },
+          "step4": {
+            "title": "Read Data Feed",
+            "description": "Use contract to read dAPI data"
+          },
+          "getApiKey": "Get API Key"
         },
         "scenarios": {
-          "title": "Integration Scenarios"
+          "title": "Integration Scenarios",
+          "defiLending": {
+            "title": "DeFi Lending Protocol",
+            "description": "Use API3 dAPI as price oracle for decentralized lending"
+          },
+          "derivatives": {
+            "title": "Derivatives Trading",
+            "description": "Provide reliable price data for derivatives protocols"
+          },
+          "crossChain": {
+            "title": "Cross-chain Applications",
+            "description": "Use unified dAPI data sources across multiple chains"
+          }
         },
         "bestPractices": {
-          "title": "Best Practices"
+          "title": "Best Practices",
+          "useLatestData": {
+            "title": "Use Latest Data",
+            "description": "Always check data timestamps to ensure using latest price data"
+          },
+          "fallback": {
+            "title": "Implement Fallback Mechanism",
+            "description": "Prepare backup price sources or pause functionality when dAPI is unavailable"
+          },
+          "monitorDeviation": {
+            "title": "Monitor Price Deviation",
+            "description": "Set price deviation alerts to detect abnormal data promptly"
+          },
+          "gasSettings": {
+            "title": "Set Gas Appropriately",
+            "description": "Adjust gas parameters based on network conditions to ensure smooth transactions"
+          }
         },
         "troubleshooting": {
           "title": "Troubleshooting",
           "problem": "Problem",
-          "solution": "Solution"
+          "solution": "Solution",
+          "readFailed": {
+            "problem": "Data read failed",
+            "solution": "Check if contract address is correct, confirm dAPI is active on the chain"
+          },
+          "timestampExpired": {
+            "problem": "Data timestamp expired",
+            "solution": "dAPI may need update, check if Airnode is running normally"
+          },
+          "gasEstimationFailed": {
+            "problem": "Gas estimation failed",
+            "solution": "Ensure contract has enough ETH to pay gas fees"
+          },
+          "signatureFailed": {
+            "problem": "Signature verification failed",
+            "solution": "Check if signer is an authorized Airnode address"
+          }
         },
         "faq": {
-          "title": "FAQ"
+          "title": "FAQ",
+          "q1": {
+            "question": "What's the difference between API3 and other oracles?",
+            "answer": "API3 uses first-party oracle architecture, getting data directly from API providers, eliminating middleman risk and providing higher transparency and security."
+          },
+          "q2": {
+            "question": "How to choose the right dAPI?",
+            "answer": "Choose dAPI based on your application needs. Consider factors: asset type, update frequency, deviation threshold, supported chains, etc."
+          },
+          "q3": {
+            "question": "What's the dAPI update frequency?",
+            "answer": "dAPI supports heartbeat updates and deviation-triggered updates. Heartbeat interval is usually 24 hours, deviation threshold varies by asset type."
+          },
+          "q4": {
+            "question": "How to handle price anomalies?",
+            "answer": "It's recommended to implement price validation logic, compare multiple data sources, set reasonable deviation thresholds, and prepare fallback mechanisms."
+          }
         }
       },
       "sdk": {
         "title": "SDK Downloads",
         "description": "Choose the SDK that fits your tech stack for quick API3 integration",
+        "stable": "Stable",
+        "beta": "Beta",
+        "alpha": "Alpha",
+        "package": "Package",
+        "contracts": {
+          "name": "@api3/contracts",
+          "language": "JavaScript/TypeScript",
+          "description": "API3 smart contract SDK with all contract interfaces and utility functions",
+          "features": {
+            "typeDefinitions": "Complete contract type definitions",
+            "typescript": "TypeScript support",
+            "hardhat": "Hardhat plugin integration",
+            "deployScripts": "Contract deployment scripts"
+          }
+        },
+        "airnode": {
+          "name": "@api3/airnode-protocol",
+          "language": "JavaScript/TypeScript",
+          "description": "Airnode protocol SDK for deploying and managing Airnode",
+          "features": {
+            "deploy": "Airnode deployment tools",
+            "config": "Configuration management",
+            "ois": "OIS templates",
+            "monitoring": "Monitoring integration"
+          }
+        },
+        "python": {
+          "name": "api3-python",
+          "language": "Python",
+          "description": "Python SDK for interacting with API3 contracts",
+          "features": {
+            "web3": "Web3.py integration",
+            "async": "Async support",
+            "abi": "Contract ABI wrapper",
+            "typing": "Type hints"
+          }
+        },
+        "go": {
+          "name": "go-api3",
+          "language": "Go",
+          "description": "Go SDK for building high-performance applications",
+          "features": {
+            "native": "Native Go implementation",
+            "concurrent": "Concurrent safe",
+            "ethclient": "ethclient integration",
+            "abi": "ABI encoding/decoding"
+          }
+        },
+        "rust": {
+          "name": "api3-rs",
+          "language": "Rust",
+          "description": "Rust SDK for building secure and reliable applications",
+          "features": {
+            "zero": "Zero-cost abstraction",
+            "async": "Async runtime",
+            "safe": "Type safe",
+            "noStd": "no_std support"
+          }
+        },
         "additionalTools": {
-          "title": "Additional Tools"
+          "title": "Additional Tools",
+          "hardhatPlugin": {
+            "title": "Hardhat Plugin",
+            "description": "Hardhat plugin for deploying and testing API3 contracts"
+          },
+          "foundry": {
+            "title": "Foundry Component",
+            "description": "Contract component library for Foundry projects"
+          },
+          "examples": {
+            "title": "Example Repository",
+            "description": "Example code for various integration scenarios",
+            "viewExamples": "View Examples"
+          }
         },
         "support": {
           "title": "Need Help?",
-          "description": "If you encounter issues during integration, get support through these channels"
+          "description": "If you encounter issues during integration, get support through these channels",
+          "discord": "Discord Community",
+          "github": "GitHub Issues",
+          "docs": "Official Documentation"
         }
       },
       "testnet": {
         "title": "Network Switch",
         "description": "Switch between mainnet and testnet environments and get configuration info",
+        "mainnet": "Mainnet",
+        "mainnetDesc": "Production environment, real assets",
+        "testnet": "Testnet",
+        "testnetDesc": "Test environment, risk-free testing",
         "config": {
-          "title": "Network Configuration"
+          "title": "Network Configuration",
+          "networkName": "Network Name",
+          "chainId": "Chain ID",
+          "rpcUrl": "RPC URL",
+          "nativeToken": "Native Token",
+          "api3ServerAddress": "API3 Server Address",
+          "blockExplorer": "Block Explorer",
+          "getTestTokens": "Get Test Tokens"
         },
         "testTokens": {
-          "title": "Test Tokens"
+          "title": "Test Tokens",
+          "warning": "Test tokens are for testing purposes only and have no actual value. Do not send test tokens to mainnet addresses."
         },
         "resources": {
-          "title": "More Resources"
+          "title": "More Resources",
+          "readDapi": "How to read dAPI data",
+          "supportedChains": "Supported chains list",
+          "api3Market": "API3 Market"
+        }
+      }
+    },
+    "hero": {
+      "priceTrend24h": "24H Trend",
+      "hoursAgo": "hours ago",
+      "now": "now",
+      "healthScore": "Health Score",
+      "gas": "Gas",
+      "gasLow": "Low",
+      "gasMedium": "Medium",
+      "gasHigh": "High",
+      "response": "Response",
+      "online": "Online",
+      "supportedChains": "Supported",
+      "chains": "chains",
+      "api3Price": "API3 Price",
+      "tvs": "TVS",
+      "airnodeCount": "Airnodes",
+      "dapiCoverage": "dAPI Coverage",
+      "stakingApr": "Staking APR",
+      "supportedChainsCount": "Supported Chains",
+      "networkUptime": "Network Uptime",
+      "responseTime": "Response Time",
+      "dataFeeds": "Data Feeds"
+    },
+    "riskView": {
+      "metrics": {
+        "decentralization": {
+          "name": "Decentralization Score",
+          "description": "Based on Airnode operator diversity and geographic distribution"
+        },
+        "security": {
+          "name": "Security Rating",
+          "description": "Based on audit history, bug bounty programs, and incident response"
+        },
+        "reliability": {
+          "name": "Network Reliability",
+          "description": "Uptime and successful response rate over the last 30 days"
+        },
+        "transparency": {
+          "name": "Transparency Score",
+          "description": "Based on documentation quality and open-source availability"
+        }
+      },
+      "benchmark": {
+        "decentralization": "Decentralization",
+        "security": "Security",
+        "reliability": "Reliability",
+        "transparency": "Transparency",
+        "trackRecord": "Track Record"
+      },
+      "factors": {
+        "smartContract": {
+          "category": "Smart Contract Risk",
+          "description": "Multiple audits by Quantstamp and other leading security firms. Core contracts have been battle-tested since 2021.",
+          "detail1": "Quantstamp audit completed Q4 2023",
+          "detail2": "Continuous monitoring through Code4rena",
+          "detail3": "Bug bounty program with $250K+ rewards paid",
+          "detail4": "No critical vulnerabilities found to date"
+        },
+        "oracle": {
+          "category": "Oracle Risk",
+          "description": "First-party oracle architecture with direct data provider relationships and cryptographic attestations.",
+          "detail1": "150+ Airnodes operated by data providers",
+          "detail2": "Direct API provider relationships (no middlemen)",
+          "detail3": "Cryptographic proof of data origin",
+          "detail4": "DAO-governed dAPI updates"
+        },
+        "market": {
+          "category": "Market Risk",
+          "description": "API3 token price volatility affects staking rewards and coverage pool value.",
+          "detail1": "API3 price correlation with broader DeFi market",
+          "detail2": "Staking rewards subject to market conditions",
+          "detail3": "Coverage pool denominated in API3 tokens",
+          "detail4": "Treasury diversification ongoing"
+        },
+        "regulatory": {
+          "category": "Regulatory Risk",
+          "description": "Potential regulatory changes affecting first-party oracle models and data provider relationships.",
+          "detail1": "First-party model may face different regulatory treatment",
+          "detail2": "Data provider compliance requirements evolving",
+          "detail3": "DAO structure under regulatory scrutiny",
+          "detail4": "Active legal counsel monitoring developments"
+        },
+        "adoption": {
+          "category": "Adoption Risk",
+          "description": "Relatively newer protocol compared to established competitors, with smaller integration footprint.",
+          "detail1": "Fewer total integrations than Chainlink",
+          "detail2": "Growing but smaller developer community",
+          "detail3": "First-party model requires education and trust building",
+          "detail4": "Strategic partnerships expanding rapidly"
+        }
+      },
+      "events": {
+        "governance": {
+          "title": "API3 DAO Governance Upgrade",
+          "description": "Successfully completed DAO governance mechanism upgrade, introducing new proposal processes and voting weight calculation mechanisms to improve governance efficiency and security."
+        },
+        "oevMainnet": {
+          "title": "OEV Network Mainnet Launch",
+          "description": "OEV (Oracle Extractable Value) Network officially launched on mainnet, providing MEV recovery functionality for dApps."
+        },
+        "audit": {
+          "title": "Security Audit Report Released",
+          "description": "Quantstamp completed security audit of API3 core contracts, found and fixed 2 low-risk issues, no major vulnerabilities."
+        },
+        "airnodeMilestone": {
+          "title": "Airnode Deployment Milestone",
+          "description": "Global Airnode deployment count exceeded 150, covering 30+ blockchain networks, data provider ecosystem continues to expand."
+        },
+        "priceDelay": {
+          "title": "dAPI Price Delay Event",
+          "description": "Due to Polygon network congestion, some dAPI price updates were delayed 3-5 minutes. Team quickly activated backup nodes to restore service."
+        },
+        "stakingV2": {
+          "title": "Staking Pool v2 Released",
+          "description": "API3 Staking Pool v2 officially launched, introducing dynamic reward mechanism and more flexible staking strategies."
+        }
+      },
+      "level": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    },
+    "ecosystem": {
+      "tvlTrend": "Total Value Locked across API3 ecosystem",
+      "keyIndicators": "Key performance indicators",
+      "distributionByNetwork": "Distribution of projects across supported networks",
+      "tvlAnalysis": {
+        "title": "TVL Analysis",
+        "totalTvl": "Total TVL",
+        "ethereum": "Ethereum",
+        "l2Networks": "L2 Networks",
+        "altL1": "Alt L1",
+        "filterByChain": "Filter by chain"
+      },
+      "projectAnalysis": {
+        "projectsByChain": "Projects by Chain",
+        "totalProjects": "Total Projects",
+        "thisMonth": "this month"
+      },
+      "growth": {
+        "title": "Ecosystem Growth",
+        "newProjects": "New Projects",
+        "integrations": "Integrations",
+        "communityGrowth": "Community",
+        "protocolRevenue": "Revenue"
+      }
+    },
+    "analytics": {
+      "tabs": {
+        "report": "Custom Report",
+        "comparison": "Data Comparison",
+        "prediction": "Trend Prediction",
+        "anomaly": "Anomaly Detection"
+      },
+      "categories": {
+        "market": "Market Data",
+        "performance": "Performance",
+        "network": "Network",
+        "staking": "Staking",
+        "risk": "Risk"
+      },
+      "metrics": {
+        "price": {
+          "name": "Price",
+          "description": "Current price of API3 token"
+        },
+        "volume": {
+          "name": "Volume",
+          "description": "24h trading volume"
+        },
+        "marketCap": {
+          "name": "Market Cap",
+          "description": "Total market capitalization"
+        },
+        "responseTime": {
+          "name": "Response Time",
+          "description": "Average API response time"
+        },
+        "successRate": {
+          "name": "Success Rate",
+          "description": "API request success rate"
+        },
+        "activeAirnodes": {
+          "name": "Active Airnodes",
+          "description": "Number of active Airnode operators"
+        },
+        "activeDapis": {
+          "name": "Active dAPIs",
+          "description": "Number of active data feeds"
+        },
+        "stakingApr": {
+          "name": "Staking APR",
+          "description": "Annual percentage return for staking"
+        },
+        "totalStaked": {
+          "name": "Total Staked",
+          "description": "Total tokens staked"
+        },
+        "coverageRatio": {
+          "name": "Coverage Ratio",
+          "description": "Coverage pool collateralization ratio"
         }
       }
     }

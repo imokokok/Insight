@@ -661,50 +661,438 @@
           "burst": "突发限制",
           "price": "价格"
         },
-        "moreResources": "更多资源"
+        "moreResources": "更多资源",
+        "marketApi": {
+          "name": "市场 API",
+          "description": "获取市场价格、交易量等实时数据"
+        },
+        "daoApi": {
+          "name": "DAO API",
+          "description": "获取 DAO 治理、质押等数据"
+        },
+        "dapiApi": {
+          "name": "dAPI API",
+          "description": "获取 dAPI 数据源信息"
+        },
+        "yes": "是",
+        "no": "否",
+        "officialDocs": "API3 官方 API 文档",
+        "devGuide": "开发者指南"
       },
       "guide": {
         "quickStart": {
           "title": "快速开始",
-          "description": "几分钟内完成 API3 集成"
+          "description": "几分钟内完成 API3 集成",
+          "step1": {
+            "title": "获取 API Key",
+            "description": "注册 API3 开发者账户并获取 API Key"
+          },
+          "step2": {
+            "title": "安装 SDK",
+            "description": "安装 API3 JavaScript/TypeScript SDK"
+          },
+          "step3": {
+            "title": "配置合约地址",
+            "description": "配置 API3 ServerV1 合约地址"
+          },
+          "step4": {
+            "title": "读取数据源",
+            "description": "使用合约读取 dAPI 数据"
+          },
+          "getApiKey": "前往获取"
         },
         "scenarios": {
-          "title": "集成场景"
+          "title": "集成场景",
+          "defiLending": {
+            "title": "DeFi 借贷协议",
+            "description": "使用 API3 dAPI 作为价格预言机，实现去中心化借贷"
+          },
+          "derivatives": {
+            "title": "衍生品交易",
+            "description": "为衍生品协议提供可靠的价格数据"
+          },
+          "crossChain": {
+            "title": "跨链应用",
+            "description": "在多条链上使用统一的 dAPI 数据源"
+          }
         },
         "bestPractices": {
-          "title": "最佳实践"
+          "title": "最佳实践",
+          "useLatestData": {
+            "title": "使用最新数据",
+            "description": "始终检查数据时间戳，确保使用的是最新价格数据"
+          },
+          "fallback": {
+            "title": "实现降级机制",
+            "description": "当 dAPI 不可用时，准备备用价格源或暂停功能"
+          },
+          "monitorDeviation": {
+            "title": "监控价格偏差",
+            "description": "设置价格偏差告警，及时发现异常数据"
+          },
+          "gasSettings": {
+            "title": "合理设置 Gas",
+            "description": "根据网络状况调整 Gas 参数，确保交易顺利执行"
+          }
         },
         "troubleshooting": {
           "title": "故障排除",
           "problem": "问题",
-          "solution": "解决方案"
+          "solution": "解决方案",
+          "readFailed": {
+            "problem": "读取数据失败",
+            "solution": "检查合约地址是否正确，确认 dAPI 在该链上已激活"
+          },
+          "timestampExpired": {
+            "problem": "数据时间戳过期",
+            "solution": "dAPI 可能需要更新，检查 Airnode 是否正常运行"
+          },
+          "gasEstimationFailed": {
+            "problem": "Gas 估算失败",
+            "solution": "确保合约有足够的 ETH 支付 Gas 费用"
+          },
+          "signatureFailed": {
+            "problem": "签名验证失败",
+            "solution": "检查签名者是否为授权的 Airnode 地址"
+          }
         },
         "faq": {
-          "title": "常见问题"
+          "title": "常见问题",
+          "q1": {
+            "question": "API3 与其他预言机有什么区别？",
+            "answer": "API3 采用第一方预言机架构，直接从 API 提供商获取数据，消除了中间商风险，提供更高的透明度和安全性。"
+          },
+          "q2": {
+            "question": "如何选择合适的 dAPI？",
+            "answer": "根据您的应用需求选择 dAPI。考虑因素包括：资产类型、更新频率、偏差阈值、支持的链等。"
+          },
+          "q3": {
+            "question": "dAPI 的更新频率是多少？",
+            "answer": "dAPI 支持心跳更新和偏差触发更新。心跳间隔通常为 24 小时，偏差阈值根据资产类型不同而变化。"
+          },
+          "q4": {
+            "question": "如何处理价格异常？",
+            "answer": "建议实现价格验证逻辑，比较多个数据源，设置合理的偏差阈值，并准备降级机制。"
+          }
         }
       },
       "sdk": {
         "title": "SDK 下载",
         "description": "选择适合您技术栈的 SDK，快速集成 API3",
+        "stable": "稳定版",
+        "beta": "测试版",
+        "alpha": "开发版",
+        "package": "包",
+        "contracts": {
+          "name": "@api3/contracts",
+          "language": "JavaScript/TypeScript",
+          "description": "API3 智能合约 SDK，包含所有合约接口和工具函数",
+          "features": {
+            "typeDefinitions": "完整的合约类型定义",
+            "typescript": "TypeScript 支持",
+            "hardhat": "Hardhat 插件集成",
+            "deployScripts": "合约部署脚本"
+          }
+        },
+        "airnode": {
+          "name": "@api3/airnode-protocol",
+          "language": "JavaScript/TypeScript",
+          "description": "Airnode 协议 SDK，用于部署和管理 Airnode",
+          "features": {
+            "deploy": "Airnode 部署工具",
+            "config": "配置管理",
+            "ois": "OIS 模板",
+            "monitoring": "监控集成"
+          }
+        },
+        "python": {
+          "name": "api3-python",
+          "language": "Python",
+          "description": "Python SDK，用于与 API3 合约交互",
+          "features": {
+            "web3": "Web3.py 集成",
+            "async": "异步支持",
+            "abi": "合约 ABI 封装",
+            "typing": "类型提示"
+          }
+        },
+        "go": {
+          "name": "go-api3",
+          "language": "Go",
+          "description": "Go 语言 SDK，用于构建高性能应用",
+          "features": {
+            "native": "原生 Go 实现",
+            "concurrent": "并发安全",
+            "ethclient": "ethclient 集成",
+            "abi": "ABI 编码/解码"
+          }
+        },
+        "rust": {
+          "name": "api3-rs",
+          "language": "Rust",
+          "description": "Rust SDK，用于构建安全可靠的应用",
+          "features": {
+            "zero": "零成本抽象",
+            "async": "异步运行时",
+            "safe": "类型安全",
+            "noStd": "no_std 支持"
+          }
+        },
         "additionalTools": {
-          "title": "附加工具"
+          "title": "附加工具",
+          "hardhatPlugin": {
+            "title": "Hardhat 插件",
+            "description": "用于部署和测试 API3 合约的 Hardhat 插件"
+          },
+          "foundry": {
+            "title": "Foundry 组件",
+            "description": "用于 Foundry 项目的合约组件库"
+          },
+          "examples": {
+            "title": "示例代码库",
+            "description": "包含各种集成场景的示例代码",
+            "viewExamples": "查看示例"
+          }
         },
         "support": {
           "title": "需要帮助？",
-          "description": "如果您在集成过程中遇到问题，可以通过以下渠道获取支持"
+          "description": "如果您在集成过程中遇到问题，可以通过以下渠道获取支持",
+          "discord": "Discord 社区",
+          "github": "GitHub Issues",
+          "docs": "官方文档"
         }
       },
       "testnet": {
         "title": "网络环境切换",
         "description": "在主网和测试网之间切换，获取相应的配置信息",
+        "mainnet": "主网",
+        "mainnetDesc": "生产环境，真实资产",
+        "testnet": "测试网",
+        "testnetDesc": "测试环境，无风险测试",
         "config": {
-          "title": "网络配置"
+          "title": "网络配置",
+          "networkName": "网络名称",
+          "chainId": "链 ID",
+          "rpcUrl": "RPC URL",
+          "nativeToken": "原生代币",
+          "api3ServerAddress": "API3 Server 地址",
+          "blockExplorer": "区块浏览器",
+          "getTestTokens": "获取测试代币"
         },
         "testTokens": {
-          "title": "测试代币"
+          "title": "测试代币",
+          "warning": "测试代币仅用于测试目的，没有任何实际价值。请勿将测试代币发送到主网地址。"
         },
         "resources": {
-          "title": "更多资源"
+          "title": "更多资源",
+          "readDapi": "如何读取 dAPI 数据",
+          "supportedChains": "支持的链列表",
+          "api3Market": "API3 Market"
+        }
+      }
+    },
+    "hero": {
+      "priceTrend24h": "24H 走势",
+      "hoursAgo": "小时前",
+      "now": "现在",
+      "healthScore": "健康度",
+      "gas": "Gas",
+      "gasLow": "低",
+      "gasMedium": "中",
+      "gasHigh": "高",
+      "response": "响应",
+      "online": "在线",
+      "supportedChains": "支持",
+      "chains": "链",
+      "api3Price": "API3 价格",
+      "tvs": "TVS",
+      "airnodeCount": "Airnode 数",
+      "dapiCoverage": "dAPI 覆盖",
+      "stakingApr": "质押 APR",
+      "supportedChainsCount": "支持链",
+      "networkUptime": "网络在线",
+      "responseTime": "响应时间",
+      "dataFeeds": "数据喂价"
+    },
+    "riskView": {
+      "metrics": {
+        "decentralization": {
+          "name": "去中心化评分",
+          "description": "基于 Airnode 运营商多样性和地理分布"
+        },
+        "security": {
+          "name": "安全评级",
+          "description": "基于审计历史、漏洞赏金计划和事件响应"
+        },
+        "reliability": {
+          "name": "网络可靠性",
+          "description": "过去 30 天的正常运行时间和成功响应率"
+        },
+        "transparency": {
+          "name": "透明度评分",
+          "description": "基于文档质量和开源可用性"
+        }
+      },
+      "benchmark": {
+        "decentralization": "去中心化",
+        "security": "安全性",
+        "reliability": "可靠性",
+        "transparency": "透明度",
+        "trackRecord": "历史记录"
+      },
+      "factors": {
+        "smartContract": {
+          "category": "智能合约风险",
+          "description": "经 Quantstamp 和其他领先安全公司多次审计。核心合约自 2021 年以来已经过实战检验。",
+          "detail1": "Quantstamp 审计于 2023 年第四季度完成",
+          "detail2": "通过 Code4rena 持续监控",
+          "detail3": "漏洞赏金计划已支付超过 25 万美元",
+          "detail4": "迄今为止未发现严重漏洞"
+        },
+        "oracle": {
+          "category": "预言机风险",
+          "description": "第一方预言机架构，与数据提供商直接建立关系并提供密码学证明。",
+          "detail1": "由数据提供商运营的 150+ Airnodes",
+          "detail2": "直接的 API 提供商关系（无中间商）",
+          "detail3": "数据来源的密码学证明",
+          "detail4": "DAO 治理的 dAPI 更新"
+        },
+        "market": {
+          "category": "市场风险",
+          "description": "API3 代币价格波动影响质押奖励和覆盖池价值。",
+          "detail1": "API3 价格与更广泛的 DeFi 市场相关",
+          "detail2": "质押奖励受市场条件影响",
+          "detail3": "覆盖池以 API3 代币计价",
+          "detail4": "国库多元化正在进行中"
+        },
+        "regulatory": {
+          "category": "监管风险",
+          "description": "潜在的监管变化可能影响第一方预言机模型和数据提供商关系。",
+          "detail1": "第一方模型可能面临不同的监管待遇",
+          "detail2": "数据提供商合规要求不断演变",
+          "detail3": "DAO 结构受到监管审查",
+          "detail4": "积极的法律顾问监控发展"
+        },
+        "adoption": {
+          "category": "采用风险",
+          "description": "与成熟的竞争对手相比，协议相对较新，集成足迹较小。",
+          "detail1": "总集成数少于 Chainlink",
+          "detail2": "开发者社区正在增长但规模较小",
+          "detail3": "第一方模型需要教育和信任建设",
+          "detail4": "战略合作伙伴关系快速扩展"
+        }
+      },
+      "events": {
+        "governance": {
+          "title": "API3 DAO 治理升级",
+          "description": "成功完成 DAO 治理机制升级，引入新的提案流程和投票权重计算机制，提升治理效率和安全性。"
+        },
+        "oevMainnet": {
+          "title": "OEV Network 主网上线",
+          "description": "OEV (Oracle Extractable Value) Network 正式在主网启动，为 dApps 提供 MEV 回收功能。"
+        },
+        "audit": {
+          "title": "安全审计报告发布",
+          "description": "Quantstamp 完成 API3 核心合约的安全审计，发现并修复了 2 个低风险问题，无重大漏洞。"
+        },
+        "airnodeMilestone": {
+          "title": "Airnode 部署里程碑",
+          "description": "全球 Airnode 部署数量突破 150 个，覆盖 30+ 个区块链网络，数据提供商生态持续扩展。"
+        },
+        "priceDelay": {
+          "title": "dAPI 价格延迟事件",
+          "description": "由于 Polygon 网络拥堵，部分 dAPI 价格更新延迟 3-5 分钟。团队迅速启用备用节点恢复服务。"
+        },
+        "stakingV2": {
+          "title": "质押池 v2 发布",
+          "description": "API3 Staking Pool v2 正式上线，引入动态奖励机制和更灵活的质押策略。"
+        }
+      },
+      "level": {
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      }
+    },
+    "ecosystem": {
+      "tvlTrend": "API3 生态系统总锁仓价值",
+      "keyIndicators": "关键性能指标",
+      "distributionByNetwork": "各支持网络的项目分布",
+      "tvlAnalysis": {
+        "title": "TVL 分析",
+        "totalTvl": "总 TVL",
+        "ethereum": "以太坊",
+        "l2Networks": "L2 网络",
+        "altL1": "其他 L1",
+        "filterByChain": "按链筛选"
+      },
+      "projectAnalysis": {
+        "projectsByChain": "各链项目分布",
+        "totalProjects": "总项目数",
+        "thisMonth": "本月"
+      },
+      "growth": {
+        "title": "生态增长",
+        "newProjects": "新增项目",
+        "integrations": "集成数",
+        "communityGrowth": "社区增长",
+        "protocolRevenue": "协议收入"
+      }
+    },
+    "analytics": {
+      "tabs": {
+        "report": "自定义报告",
+        "comparison": "数据对比",
+        "prediction": "趋势预测",
+        "anomaly": "异常检测"
+      },
+      "categories": {
+        "market": "市场数据",
+        "performance": "性能",
+        "network": "网络",
+        "staking": "质押",
+        "risk": "风险"
+      },
+      "metrics": {
+        "price": {
+          "name": "价格",
+          "description": "API3 代币当前价格"
+        },
+        "volume": {
+          "name": "交易量",
+          "description": "24小时交易量"
+        },
+        "marketCap": {
+          "name": "市值",
+          "description": "总市值"
+        },
+        "responseTime": {
+          "name": "响应时间",
+          "description": "平均 API 响应时间"
+        },
+        "successRate": {
+          "name": "成功率",
+          "description": "API 请求成功率"
+        },
+        "activeAirnodes": {
+          "name": "活跃 Airnode",
+          "description": "活跃 Airnode 运营商数量"
+        },
+        "activeDapis": {
+          "name": "活跃 dAPI",
+          "description": "活跃数据源数量"
+        },
+        "stakingApr": {
+          "name": "质押 APR",
+          "description": "年化质押收益率"
+        },
+        "totalStaked": {
+          "name": "总质押量",
+          "description": "已质押代币总量"
+        },
+        "coverageRatio": {
+          "name": "覆盖率",
+          "description": "覆盖池抵押率"
         }
       }
     }

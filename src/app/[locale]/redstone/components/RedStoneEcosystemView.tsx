@@ -16,12 +16,12 @@ import {
   Cell,
 } from 'recharts';
 
+import { useRedStoneEcosystem } from '@/hooks/oracles/redstone';
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 import { type RedStoneEcosystemViewProps, type EcosystemIntegration } from '../types';
 
-// TVL Trend Data (12 months) - RedStone specific data
 const tvlTrendData = [
   {
     month: '2024-01',
@@ -145,7 +145,6 @@ const tvlTrendData = [
   },
 ];
 
-// Projects by Chain Data - RedStone specific
 const projectsByChainData = [
   { chain: 'Ethereum', projects: 145, color: '#627eea' },
   { chain: 'Arbitrum', projects: 85, color: '#28a0f0' },
@@ -155,7 +154,6 @@ const projectsByChainData = [
   { chain: 'Avalanche', projects: 32, color: '#e84142' },
 ];
 
-// Chain Colors
 const chainColors: Record<string, string> = {
   ethereum: '#627eea',
   arbitrum: '#28a0f0',
@@ -165,7 +163,7 @@ const chainColors: Record<string, string> = {
   base: '#0052ff',
 };
 
-const ECOSYSTEM_INTEGRATIONS: EcosystemIntegration[] = [
+const FALLBACK_ECOSYSTEM_INTEGRATIONS: EcosystemIntegration[] = [
   { name: 'Arweave', description: 'Permanent data storage', category: 'infrastructure' },
   { name: 'Ethereum', description: 'Smart contract platform', category: 'infrastructure' },
   { name: 'Avalanche', description: 'High-throughput blockchain', category: 'infrastructure' },
@@ -204,6 +202,8 @@ function TimeRangeButton({
 
 export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps) {
   const t = useTranslations();
+  const { ecosystem, isLoading: ecosystemLoading } = useRedStoneEcosystem(!isLoading);
+
   const [selectedChains, setSelectedChains] = useState<string[]>([
     'ethereum',
     'arbitrum',
@@ -211,13 +211,24 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
   ]);
   const [timeRange, setTimeRange] = useState<'1M' | '3M' | '6M' | '1Y'>('1Y');
 
-  // Filter TVL data based on time range
+  const showLoading = isLoading || ecosystemLoading;
+
+  const ecosystemIntegrations = useMemo(() => {
+    if (ecosystem?.integrations && ecosystem.integrations.length > 0) {
+      return ecosystem.integrations.map((integration) => ({
+        name: integration.name,
+        description: integration.description,
+        category: 'defi' as const,
+      }));
+    }
+    return FALLBACK_ECOSYSTEM_INTEGRATIONS;
+  }, [ecosystem]);
+
   const filteredTvlData = useMemo(() => {
     const months = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12 };
     return tvlTrendData.slice(-months[timeRange]);
   }, [timeRange]);
 
-  // Calculate TVL stats
   const tvlStats = useMemo(() => {
     const latest = filteredTvlData[filteredTvlData.length - 1];
     const previous = filteredTvlData[0];
@@ -237,19 +248,18 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
   }, [filteredTvlData]);
 
   const ecosystemByCategory = useMemo(() => {
-    const categories: Record<string, typeof ECOSYSTEM_INTEGRATIONS> = {};
-    ECOSYSTEM_INTEGRATIONS.forEach((item) => {
+    const categories: Record<string, typeof ecosystemIntegrations> = {};
+    ecosystemIntegrations.forEach((item) => {
       if (!categories[item.category]) {
         categories[item.category] = [];
       }
       categories[item.category].push(item);
     });
     return categories;
-  }, []);
+  }, [ecosystemIntegrations]);
 
   return (
     <div className="space-y-8">
-      {/* TVL Trend Analysis */}
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -271,12 +281,13 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
           </div>
         </div>
 
-        {/* TVL Stats - Clean text layout */}
         <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4 mb-6">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">Total TVL</p>
             <div className="flex items-baseline gap-2 mt-1">
-              <p className="text-3xl font-bold text-gray-900">${tvlStats.current.toFixed(2)}B</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {showLoading ? '-' : `$${tvlStats.current.toFixed(2)}B`}
+              </p>
               <span
                 className={cn(
                   'text-sm font-medium',
@@ -341,7 +352,6 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
           </div>
         </div>
 
-        {/* Chain Filter - Subtle pill buttons */}
         <div className="flex flex-wrap items-center gap-2 mb-6">
           <span className="text-xs text-gray-400 mr-1">Filter by Chain:</span>
           {tvlStats.breakdown.map((item) => (
@@ -374,7 +384,6 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
           ))}
         </div>
 
-        {/* Stacked Area Chart */}
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={filteredTvlData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -448,12 +457,9 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
         </div>
       </section>
 
-      {/* Section Divider */}
       <div className="border-t border-gray-200" />
 
-      {/* 生态概览 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* 项目分布 */}
         <section>
           <div className="mb-4">
             <h3 className="text-base font-semibold text-gray-900">Projects by Chain</h3>
@@ -497,10 +503,8 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
           </div>
         </section>
 
-        {/* Section Divider for mobile */}
         <div className="border-t border-gray-200 lg:hidden" />
 
-        {/* 核心指标 - Clean layout without colored backgrounds */}
         <section>
           <div className="mb-4">
             <h3 className="text-base font-semibold text-gray-900">Ecosystem Growth</h3>
@@ -523,7 +527,9 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
                 <span className="text-sm text-gray-600">Integrations</span>
               </div>
               <div className="text-right">
-                <p className="text-lg font-semibold text-gray-900">156</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {ecosystemIntegrations.length}
+                </p>
                 <p className="text-xs text-emerald-600">+22.3%</p>
               </div>
             </div>
@@ -551,10 +557,8 @@ export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps)
         </section>
       </div>
 
-      {/* Section Divider */}
       <div className="border-t border-gray-200" />
 
-      {/* Ecosystem Integrations by Category */}
       <section>
         <div className="mb-4">
           <h3 className="text-base font-semibold text-gray-900">Ecosystem Integrations</h3>

@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, Landmark, Shield, Globe, Lock, ShieldAlert } from 'lucide-react';
+import { BarChart3, Landmark, Shield, Globe, Lock, ShieldAlert, Vault, ArrowLeftRight, TrendingUpDown } from 'lucide-react';
 
 import { UnifiedSidebar } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
@@ -27,6 +27,21 @@ const navItems = [
     id: 'network' as ChronicleTabId,
     labelKey: 'chronicle.menu.networkHealth',
     icon: <Globe className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'vault' as ChronicleTabId,
+    labelKey: 'chronicle.menu.vaultStatus',
+    icon: <Vault className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'crossChain' as ChronicleTabId,
+    labelKey: 'chronicle.menu.crossChainAnalysis',
+    icon: <ArrowLeftRight className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'priceDeviation' as ChronicleTabId,
+    labelKey: 'chronicle.menu.priceDeviation',
+    icon: <TrendingUpDown className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
     id: 'scuttlebutt' as ChronicleTabId,

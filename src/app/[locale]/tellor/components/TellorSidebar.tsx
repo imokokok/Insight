@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, Globe, Users, Gavel, Wallet, Network, ShieldAlert } from 'lucide-react';
+import { BarChart3, Globe, Users, Gavel, Wallet, Network, ShieldAlert, Scale } from 'lucide-react';
 
 import { UnifiedSidebar } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
@@ -48,6 +48,11 @@ const getNavItems = (t: (key: string) => string): NavItem[] => [
     id: 'risk',
     labelKey: 'tellor.menu.riskAssessment',
     icon: <ShieldAlert className="w-5 h-5" />,
+  },
+  {
+    id: 'governance',
+    labelKey: 'tellor.menu.governance',
+    icon: <Scale className="w-5 h-5" />,
   },
 ];
 

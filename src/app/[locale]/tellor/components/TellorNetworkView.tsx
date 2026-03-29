@@ -2,11 +2,12 @@
 
 import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
+import { TellorNetworkPanel } from '@/components/oracle/panels/TellorNetworkPanel';
 import { useTranslations } from '@/i18n';
 
 import { type TellorNetworkViewProps } from '../types';
 
-export function TellorNetworkView({ config, networkStats, isLoading }: TellorNetworkViewProps) {
+export function TellorNetworkView({ config, networkStats, networkHealth, isLoading }: TellorNetworkViewProps) {
   const t = useTranslations();
 
   const metrics = [
@@ -212,6 +213,23 @@ export function TellorNetworkView({ config, networkStats, isLoading }: TellorNet
             </div>
           ))}
         </div>
+      </div>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 网络详情 Panel */}
+      <div>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('tellor.network.details') || 'Network Details'}
+        </h3>
+        {networkHealth ? (
+          <TellorNetworkPanel data={networkHealth} />
+        ) : (
+          <div className="text-sm text-gray-500 py-8 text-center">
+            {t('common.noData') || 'No data available'}
+          </div>
+        )}
       </div>
     </div>
   );

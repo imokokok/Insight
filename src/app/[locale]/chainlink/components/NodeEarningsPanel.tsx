@@ -19,7 +19,7 @@ type NodeTier = 'small' | 'medium' | 'large';
 interface TierConfig {
   minStake: number;
   maxStake: number;
-  label: string;
+  labelKey: string;
   color: string;
   avgEarningsPerDay: number;
 }
@@ -28,21 +28,21 @@ const TIER_CONFIG: Record<NodeTier, TierConfig> = {
   small: {
     minStake: 0,
     maxStake: 1500000,
-    label: 'Small',
+    labelKey: 'nodeTiers.small',
     color: '#60a5fa',
     avgEarningsPerDay: 45,
   },
   medium: {
     minStake: 1500000,
     maxStake: 2000000,
-    label: 'Medium',
+    labelKey: 'nodeTiers.medium',
     color: '#3b82f6',
     avgEarningsPerDay: 85,
   },
   large: {
     minStake: 2000000,
     maxStake: Infinity,
-    label: 'Large',
+    labelKey: 'nodeTiers.large',
     color: '#1d4ed8',
     avgEarningsPerDay: 150,
   },
@@ -109,12 +109,12 @@ export function NodeEarningsPanel({ nodes }: NodeEarningsPanelProps) {
 
   const comparisonStats = useMemo(() => {
     return (Object.keys(TIER_CONFIG) as NodeTier[]).map((tier) => ({
-      label: TIER_CONFIG[tier].label,
+      label: t(`chainlink.${TIER_CONFIG[tier].labelKey}`),
       value: `${tierStats[tier].avgEarnings} LINK`,
       change: tierChanges[tier],
       icon: <Wallet className="w-4 h-4" />,
     }));
-  }, [tierStats, tierChanges]);
+  }, [tierStats, tierChanges, t]);
 
   const totalDailyEarnings = useMemo(() => {
     return (Object.keys(tierStats) as NodeTier[]).reduce(
@@ -200,7 +200,9 @@ export function NodeEarningsPanel({ nodes }: NodeEarningsPanelProps) {
                       backgroundColor: TIER_CONFIG[tier].color,
                     }}
                   />
-                  <div className="text-xs text-gray-500">{TIER_CONFIG[tier].label}</div>
+                  <div className="text-xs text-gray-500">
+                    {t(`chainlink.${TIER_CONFIG[tier].labelKey}`)}
+                  </div>
                   <div className="text-xs font-medium text-gray-700">{percentage.toFixed(1)}%</div>
                 </div>
               );
@@ -222,7 +224,9 @@ export function NodeEarningsPanel({ nodes }: NodeEarningsPanelProps) {
           <div className="space-y-3">
             {(Object.keys(TIER_CONFIG) as NodeTier[]).map((tier) => (
               <div key={tier} className="flex items-center gap-3">
-                <div className="w-16 text-xs text-gray-500">{TIER_CONFIG[tier].label}</div>
+                <div className="w-16 text-xs text-gray-500">
+                  {t(`chainlink.${TIER_CONFIG[tier].labelKey}`)}
+                </div>
                 <div className="flex-1">
                   <SparklineChart
                     data={earningsTrendData[tier]}

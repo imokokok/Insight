@@ -541,7 +541,19 @@
     "yearly": "Yearly",
     "expectedRewards": "Expected Rewards",
     "totalAfter": "Total Rewards After",
-    "calculatorDisclaimer": "This calculator is for reference only. Actual rewards may vary based on network conditions, staking pool size, and protocol parameters."
+    "calculatorDisclaimer": "This calculator is for reference only. Actual rewards may vary based on network conditions, staking pool size, and protocol parameters.",
+    "daysAgo": "30D ago",
+    "min": "Min",
+    "avg": "Avg",
+    "avgDailyEarnings": "Avg Daily Earnings",
+    "perNodeAvg": "Per Node Average",
+    "monthlyGrowth": "Monthly Growth",
+    "vsLastMonth": "vs Last Month",
+    "topTierShare": "Top Tier Share",
+    "largeNodes": "Large Nodes",
+    "earningsByTier": "Earnings by Tier",
+    "nodeDistribution": "Node Distribution",
+    "earningsTrend": "Earnings Trend"
   },
   "tradingPair": "Trading Pair",
   "volume24h": "24h Volume",
@@ -807,6 +819,115 @@
     "auditLog": "Audit Log",
     "auditLogDesc": "Historical audit records and findings",
     "about": "About Proof of Reserve",
-    "aboutDesc": "Chainlink Proof of Reserve provides real-time, transparent verification of off-chain and cross-chain reserves. It enables automated auditing and helps ensure that on-chain assets are fully backed by real-world collateral."
+    "aboutDesc": "Chainlink Proof of Reserve provides real-time, transparent verification of off-chain and cross-chain reserves. It enables automated auditing and helps ensure that on-chain assets are fully backed by real-world collateral.",
+    "passed": "Passed",
+    "issuesFound": "Issues Found",
+    "finding": "finding",
+    "findings": "findings",
+    "timeAgo": {
+      "minutesAgo": "{count}m ago",
+      "hoursAgo": "{count}h ago",
+      "daysAgo": "{count}d ago"
+    },
+    "fromTarget": "from target"
+  },
+  "common": {
+    "keyPerformanceIndicators": "Key performance indicators",
+    "totalValueLockedEcosystem": "Total Value Locked across Chainlink ecosystem",
+    "distributionProjectsNetworks": "Distribution of projects across supported networks"
+  },
+  "riskFactors": {
+    "smartContract": {
+      "title": "Smart Contract Risk",
+      "description": "Multiple audits by leading security firms including Trail of Bits, OpenZeppelin, and CertiK. No critical vulnerabilities found in recent audits.",
+      "detail1": "Trail of Bits audit completed Q1 2024",
+      "detail2": "OpenZeppelin continuous monitoring active",
+      "detail3": "Bug bounty program with $500K+ rewards paid"
+    },
+    "oracle": {
+      "title": "Oracle Risk",
+      "description": "Decentralized node network with reputation system and economic incentives.",
+      "detail1": "1000+ node operators across 45+ countries",
+      "detail2": "Reputation-based node selection algorithm",
+      "detail3": "Staking mechanism with slashing conditions"
+    },
+    "market": {
+      "title": "Market Risk",
+      "description": "LINK token price volatility affects staking economics and network security budget.",
+      "detail1": "LINK price correlation with market sentiment",
+      "detail2": "Staking rewards denominated in LINK",
+      "detail3": "Treasury diversification in progress"
+    },
+    "regulatory": {
+      "title": "Regulatory Risk",
+      "description": "Potential regulatory changes in DeFi sector and oracle services classification.",
+      "detail1": "Ongoing regulatory clarity discussions",
+      "detail2": "Compliance framework development",
+      "detail3": "Geographic node distribution mitigates jurisdiction risk"
+    }
+  },
+  "riskMetrics": {
+    "decentralization": {
+      "name": "Decentralization Score",
+      "description": "Based on node operator diversity and geographic distribution"
+    },
+    "security": {
+      "name": "Security Rating",
+      "description": "Based on audit history, bug bounty programs, and incident response"
+    },
+    "reliability": {
+      "name": "Network Reliability",
+      "description": "Uptime and successful response rate over the last 30 days"
+    },
+    "transparency": {
+      "name": "Transparency Score",
+      "description": "Based on documentation quality and open-source availability"
+    }
+  },
+  "benchmark": {
+    "decentralization": "Decentralization",
+    "security": "Security",
+    "reliability": "Reliability",
+    "transparency": "Transparency",
+    "history": "History"
+  },
+  "scenarios": {
+    "conservative": {
+      "label": "Conservative",
+      "description": "Lower risk, stable returns"
+    },
+    "moderate": {
+      "label": "Moderate",
+      "description": "Balanced risk and reward"
+    },
+    "optimistic": {
+      "label": "Optimistic",
+      "description": "Higher risk, potential for greater returns"
+    }
+  },
+  "nodeTiers": {
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large"
+  },
+  "regions": {
+    "northAmerica": "North America",
+    "europe": "Europe",
+    "asia": "Asia",
+    "others": "Others"
+  },
+  "riskEvents": {
+    "securityAuditComplete": "Security Audit Completed",
+    "securityAuditCompleteDesc": "Chainlink core contracts passed joint security audit by Trail of Bits and OpenZeppelin with no critical vulnerabilities found.",
+    "nodeNetworkUpgrade": "Node Network Upgrade",
+    "nodeNetworkUpgradeDesc": "Completed node software v2.5.0 upgrade, introducing new consensus mechanism and enhanced failover capabilities.",
+    "vulnerabilityDisclosure": "Vulnerability Disclosure",
+    "vulnerabilityDisclosureDesc": "White hat hacker reported a medium severity vulnerability through Bug Bounty program. Team fixed and deployed patch within 48 hours.",
+    "decentralizationMilestone": "Decentralization Milestone",
+    "decentralizationMilestoneDesc": "Node operator count exceeded 1000, distributed across 45 countries and regions.",
+    "priceDelayEvent": "Price Delay Event",
+    "priceDelayEventDesc": "Due to Ethereum network congestion, some price feeds experienced 2-3 minute delays. Automatic failover mechanism was triggered.",
+    "stakingContractRelease": "Staking Contract Release",
+    "stakingContractReleaseDesc": "Chainlink Staking v0.2 officially launched, introducing slashing mechanism and higher security deposit requirements."
   }
 }

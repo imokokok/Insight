@@ -15,6 +15,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
+import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 interface FlowStage {
@@ -32,51 +33,60 @@ interface StageDetailModalProps {
   stage: FlowStage | null;
   onClose: () => void;
   themeColor: string;
+  t: ReturnType<typeof useTranslations>;
 }
 
-function StageDetailModal({ stage, onClose, themeColor }: StageDetailModalProps) {
+function StageDetailModal({ stage, onClose, themeColor, t }: StageDetailModalProps) {
   if (!stage) return null;
 
-  const details: Record<string, { points: string[]; example?: string }> = {
-    request: {
-      points: [
-        '用户或智能合约发起数据请求',
-        '指定所需数据类型和验证要求',
-        '提供请求奖励（激励验证者响应）',
-        '设定验证期和争议窗口时长',
-      ],
-      example: '例如：请求"BTC/USD在2024年1月1日的价格"',
-    },
-    validation: {
-      points: [
-        '验证者检查数据请求',
-        '提交初始答案和质押保证金',
-        '系统进入验证等待期',
-        '其他验证者可提交替代答案',
-      ],
-      example: '验证者提交答案：$42,500',
-    },
-    dispute: {
-      points: [
-        '争议窗口开启，任何人可质疑答案',
-        '质疑者需质押保证金发起争议',
-        '争议进入UMA投票系统',
-        'UMA代币持有者投票决定正确答案',
-      ],
-      example: '若有人认为答案错误，可发起争议',
-    },
-    confirmation: {
-      points: [
-        '验证期结束且无争议，答案确认',
-        '或争议解决后，最终答案确定',
-        '答案写入智能合约',
-        '奖励分配给正确方',
-      ],
-      example: '最终确认：$42,500（无争议）',
-    },
+  const getStageDetails = (stageId: string): { points: string[]; example?: string } => {
+    switch (stageId) {
+      case 'request':
+        return {
+          points: [
+            t('uma.optimisticOracle.dataRequest.point1'),
+            t('uma.optimisticOracle.dataRequest.point2'),
+            t('uma.optimisticOracle.dataRequest.point3'),
+            t('uma.optimisticOracle.dataRequest.point4'),
+          ],
+          example: t('uma.optimisticOracle.dataRequest.example'),
+        };
+      case 'validation':
+        return {
+          points: [
+            t('uma.optimisticOracle.validation.point1'),
+            t('uma.optimisticOracle.validation.point2'),
+            t('uma.optimisticOracle.validation.point3'),
+            t('uma.optimisticOracle.validation.point4'),
+          ],
+          example: t('uma.optimisticOracle.validation.example'),
+        };
+      case 'dispute':
+        return {
+          points: [
+            t('uma.optimisticOracle.dispute.point1'),
+            t('uma.optimisticOracle.dispute.point2'),
+            t('uma.optimisticOracle.dispute.point3'),
+            t('uma.optimisticOracle.dispute.point4'),
+          ],
+          example: t('uma.optimisticOracle.dispute.example'),
+        };
+      case 'confirmation':
+        return {
+          points: [
+            t('uma.optimisticOracle.confirmation.point1'),
+            t('uma.optimisticOracle.confirmation.point2'),
+            t('uma.optimisticOracle.confirmation.point3'),
+            t('uma.optimisticOracle.confirmation.point4'),
+          ],
+          example: t('uma.optimisticOracle.confirmation.example'),
+        };
+      default:
+        return { points: [] };
+    }
   };
 
-  const stageDetail = details[stage.id];
+  const stageDetail = getStageDetails(stage.id);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -109,7 +119,7 @@ function StageDetailModal({ stage, onClose, themeColor }: StageDetailModalProps)
         <div className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-600">持续时间：</span>
+            <span className="text-sm text-gray-600">{t('uma.optimisticOracle.dataRequest.duration')}:</span>
             <span className="text-sm font-semibold text-gray-900">{stage.duration}</span>
           </div>
 
@@ -129,7 +139,7 @@ function StageDetailModal({ stage, onClose, themeColor }: StageDetailModalProps)
 
           {stageDetail?.example && (
             <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1">示例</p>
+              <p className="text-xs text-gray-500 mb-1">{t('uma.education.usedByProjects')}</p>
               <p className="text-sm text-gray-700">{stageDetail.example}</p>
             </div>
           )}
@@ -141,7 +151,7 @@ function StageDetailModal({ stage, onClose, themeColor }: StageDetailModalProps)
             className="w-full py-2.5 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-opacity"
             style={{ backgroundColor: themeColor }}
           >
-            关闭
+            {t('uma.dataQuality.close')}
           </button>
         </div>
       </div>
@@ -194,6 +204,7 @@ function StageCard({
   isCompleted,
   onClick,
   themeColor,
+  t,
 }: {
   stage: FlowStage;
   index: number;
@@ -201,6 +212,7 @@ function StageCard({
   isCompleted: boolean;
   onClick: () => void;
   themeColor: string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   return (
     <div className="relative">
@@ -231,13 +243,13 @@ function StageCard({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-medium text-gray-400">步骤 {index + 1}</span>
+              <span className="text-xs font-medium text-gray-400">{t('uma.optimisticOracle.step')} {index + 1}</span>
               {isActive && (
                 <span
                   className="px-2 py-0.5 text-xs font-medium rounded-full"
                   style={{ backgroundColor: `${themeColor}20`, color: themeColor }}
                 >
-                  进行中
+                  {t('uma.optimisticOracle.inProgress')}
                 </span>
               )}
             </div>
@@ -268,11 +280,13 @@ function DesktopFlowView({
   activeStage,
   onStageClick,
   themeColor,
+  t,
 }: {
   stages: FlowStage[];
   activeStage: number;
   onStageClick: (index: number) => void;
   themeColor: string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   return (
     <div className="relative">
@@ -310,7 +324,7 @@ function DesktopFlowView({
                     {isCompleted ? <CheckCircle2 className="w-7 h-7" /> : stage.icon}
                   </div>
 
-                  <span className="text-xs text-gray-400 mb-1">步骤 {index + 1}</span>
+                  <span className="text-xs text-gray-400 mb-1">{t('uma.optimisticOracle.step')} {index + 1}</span>
                   <h3 className="text-sm font-bold text-gray-900 mb-2">{stage.titleCn}</h3>
                   <p className="text-xs text-gray-600 mb-3 line-clamp-2">{stage.description}</p>
 
@@ -337,7 +351,7 @@ function DesktopFlowView({
                         />
                       </span>
                       <span className="text-xs font-medium" style={{ color: themeColor }}>
-                        当前阶段
+                        {t('uma.optimisticOracle.currentStage')}
                       </span>
                     </div>
                   )}
@@ -363,6 +377,7 @@ function DesktopFlowView({
 }
 
 export function OptimisticOracleFlow() {
+  const t = useTranslations();
   const [activeStage, setActiveStage] = useState(1);
   const [selectedStage, setSelectedStage] = useState<FlowStage | null>(null);
   const themeColor = '#dc2626';
@@ -371,41 +386,40 @@ export function OptimisticOracleFlow() {
     {
       id: 'request',
       title: 'Data Request',
-      titleCn: '数据请求',
-      description: '用户发起数据请求，指定所需数据和奖励',
-      detailedDescription:
-        '用户或智能合约向乐观预言机提交数据请求，包括数据类型、验证要求和激励奖励。',
-      duration: '即时',
+      titleCn: t('uma.optimisticOracle.dataRequest.title'),
+      description: t('uma.optimisticOracle.dataRequest.description'),
+      detailedDescription: t('uma.optimisticOracle.dataRequest.description'),
+      duration: t('uma.optimisticOracle.dataRequest.duration'),
       icon: <Send className="w-5 h-5" />,
       status: activeStage === 0 ? 'active' : activeStage > 0 ? 'completed' : 'pending',
     },
     {
       id: 'validation',
       title: 'Validation Period',
-      titleCn: '验证期',
-      description: '验证者提交答案，进入等待验证阶段',
-      detailedDescription: '验证者检查请求并提交答案，同时质押保证金作为诚实保证。',
-      duration: '2小时',
+      titleCn: t('uma.optimisticOracle.validation.title'),
+      description: t('uma.optimisticOracle.validation.description'),
+      detailedDescription: t('uma.optimisticOracle.validation.description'),
+      duration: t('uma.optimisticOracle.validation.duration'),
       icon: <Clock className="w-5 h-5" />,
       status: activeStage === 1 ? 'active' : activeStage > 1 ? 'completed' : 'pending',
     },
     {
       id: 'dispute',
       title: 'Dispute Window',
-      titleCn: '争议窗口',
-      description: '任何人可质疑答案并发起争议',
-      detailedDescription: '在争议窗口期内，任何参与者都可以质疑提交的答案并提供替代答案。',
-      duration: '24小时',
+      titleCn: t('uma.optimisticOracle.dispute.title'),
+      description: t('uma.optimisticOracle.dispute.description'),
+      detailedDescription: t('uma.optimisticOracle.dispute.description'),
+      duration: t('uma.optimisticOracle.dispute.duration'),
       icon: <AlertTriangle className="w-5 h-5" />,
       status: activeStage === 2 ? 'active' : activeStage > 2 ? 'completed' : 'pending',
     },
     {
       id: 'confirmation',
       title: 'Final Confirmation',
-      titleCn: '最终确认',
-      description: '答案确认并写入智能合约',
-      detailedDescription: '验证期结束且无争议，或争议解决后，最终答案被确认并写入链上。',
-      duration: '即时',
+      titleCn: t('uma.optimisticOracle.confirmation.title'),
+      description: t('uma.optimisticOracle.confirmation.description'),
+      detailedDescription: t('uma.optimisticOracle.confirmation.description'),
+      duration: t('uma.optimisticOracle.confirmation.duration'),
       icon: <CheckCircle2 className="w-5 h-5" />,
       status: activeStage === 3 ? 'active' : 'completed',
     },
@@ -427,13 +441,13 @@ export function OptimisticOracleFlow() {
               <Zap className="w-5 h-5" style={{ color: themeColor }} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">乐观预言机工作流程</h2>
-              <p className="text-sm text-gray-500">Optimistic Oracle Workflow</p>
+              <h2 className="text-lg font-bold text-gray-900">{t('uma.optimisticOracle.title')}</h2>
+              <p className="text-sm text-gray-500">{t('uma.optimisticOracle.subtitle')}</p>
             </div>
           </div>
         </div>
         <p className="text-sm text-gray-600 mt-3">
-          UMA的乐观预言机采用&ldquo;乐观验证&rdquo;机制，默认信任验证者提交的答案，仅在出现争议时才进行投票裁决，大幅提升了效率和降低了成本。
+          {t('uma.optimisticOracle.description')}
         </p>
       </div>
 
@@ -444,6 +458,7 @@ export function OptimisticOracleFlow() {
             activeStage={activeStage}
             onStageClick={handleStageClick}
             themeColor={themeColor}
+            t={t}
           />
         </div>
 
@@ -457,6 +472,7 @@ export function OptimisticOracleFlow() {
               isCompleted={index < activeStage}
               onClick={() => handleStageClick(index)}
               themeColor={themeColor}
+              t={t}
             />
           ))}
         </div>
@@ -464,21 +480,21 @@ export function OptimisticOracleFlow() {
         <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-gray-400" />
-            <span>已完成</span>
+            <span>{t('uma.optimisticOracle.completed')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: themeColor }} />
-            <span>进行中</span>
+            <span>{t('uma.optimisticOracle.inProgress')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-gray-200" />
-            <span>待处理</span>
+            <span>{t('uma.optimisticOracle.pending')}</span>
           </div>
         </div>
       </div>
 
       <div className="p-6 bg-gray-50 border-t border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">核心优势</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('uma.optimisticOracle.coreAdvantages')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex items-start gap-3">
             <div
@@ -488,9 +504,9 @@ export function OptimisticOracleFlow() {
               <Zap className="w-4 h-4" style={{ color: themeColor }} />
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-900">高效快速</h4>
+              <h4 className="text-sm font-medium text-gray-900">{t('uma.optimisticOracle.fastEfficient')}</h4>
               <p className="text-xs text-gray-600 mt-1">
-                无争议情况下，2小时即可完成验证，远快于传统预言机
+                {t('uma.optimisticOracle.fastEfficientDesc')}
               </p>
             </div>
           </div>
@@ -502,9 +518,9 @@ export function OptimisticOracleFlow() {
               <Shield className="w-4 h-4" style={{ color: themeColor }} />
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-900">安全可靠</h4>
+              <h4 className="text-sm font-medium text-gray-900">{t('uma.optimisticOracle.secureReliable')}</h4>
               <p className="text-xs text-gray-600 mt-1">
-                经济激励机制确保验证者诚实，争议机制保障数据准确性
+                {t('uma.optimisticOracle.secureReliableDesc')}
               </p>
             </div>
           </div>
@@ -516,9 +532,9 @@ export function OptimisticOracleFlow() {
               <Users className="w-4 h-4" style={{ color: themeColor }} />
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-900">去中心化</h4>
+              <h4 className="text-sm font-medium text-gray-900">{t('uma.optimisticOracle.decentralizedOpen')}</h4>
               <p className="text-xs text-gray-600 mt-1">
-                任何人都可以成为验证者，UMA持有者参与争议投票
+                {t('uma.optimisticOracle.decentralizedOpenDesc')}
               </p>
             </div>
           </div>
@@ -528,7 +544,7 @@ export function OptimisticOracleFlow() {
       <div className="p-4 bg-gray-50 border-t border-gray-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">模拟进度控制：</span>
+            <span className="text-xs text-gray-500">{t('uma.optimisticOracle.simulateProgress')}:</span>
             <div className="flex gap-1">
               {stages.map((_, index) => (
                 <button
@@ -551,7 +567,7 @@ export function OptimisticOracleFlow() {
             onClick={() => setActiveStage((prev) => (prev + 1) % 4)}
             className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-all"
           >
-            下一步 →
+            {t('uma.optimisticOracle.nextStep')} →
           </button>
         </div>
       </div>
@@ -560,6 +576,7 @@ export function OptimisticOracleFlow() {
         stage={selectedStage}
         onClose={() => setSelectedStage(null)}
         themeColor={themeColor}
+        t={t}
       />
     </div>
   );

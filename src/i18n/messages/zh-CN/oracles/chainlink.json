@@ -555,7 +555,19 @@
     "yearly": "每年",
     "expectedRewards": "预期收益",
     "totalAfter": "总计收益",
-    "calculatorDisclaimer": "此计算器仅供参考，实际收益可能因网络条件、质押池规模和协议参数变化而有所不同。"
+    "calculatorDisclaimer": "此计算器仅供参考，实际收益可能因网络条件、质押池规模和协议参数变化而有所不同。",
+    "daysAgo": "30天前",
+    "min": "最小",
+    "avg": "平均",
+    "avgDailyEarnings": "平均日收益",
+    "perNodeAvg": "每节点平均",
+    "monthlyGrowth": "月增长",
+    "vsLastMonth": "较上月",
+    "topTierShare": "顶级节点占比",
+    "largeNodes": "大型节点",
+    "earningsByTier": "按层级收益",
+    "nodeDistribution": "节点分布",
+    "earningsTrend": "收益趋势"
   },
   "tradingPair": "交易对",
   "volume24h": "24小时成交量",
@@ -821,6 +833,115 @@
     "auditLog": "审计日志",
     "auditLogDesc": "历史审计记录和发现",
     "about": "关于储备证明",
-    "aboutDesc": "Chainlink 储备证明提供链下和跨链储备的实时透明验证。它支持自动化审计，帮助确保链上资产完全由现实世界抵押品支持。"
+    "aboutDesc": "Chainlink 储备证明提供链下和跨链储备的实时透明验证。它支持自动化审计，帮助确保链上资产完全由现实世界抵押品支持。",
+    "passed": "通过",
+    "issuesFound": "发现问题",
+    "finding": "个发现",
+    "findings": "个发现",
+    "timeAgo": {
+      "minutesAgo": "{count}分钟前",
+      "hoursAgo": "{count}小时前",
+      "daysAgo": "{count}天前"
+    },
+    "fromTarget": "偏离目标"
+  },
+  "common": {
+    "keyPerformanceIndicators": "关键性能指标",
+    "totalValueLockedEcosystem": "Chainlink 生态系统总锁仓价值",
+    "distributionProjectsNetworks": "各支持网络的项目分布"
+  },
+  "riskFactors": {
+    "smartContract": {
+      "title": "智能合约风险",
+      "description": "由 Trail of Bits、OpenZeppelin 和 CertiK 等领先安全公司进行多次审计。近期审计未发现严重漏洞。",
+      "detail1": "Trail of Bits 审计于 2024 年第一季度完成",
+      "detail2": "OpenZeppelin 持续监控已激活",
+      "detail3": "漏洞赏金计划已支付超过 50 万美元"
+    },
+    "oracle": {
+      "title": "预言机风险",
+      "description": "具有声誉系统和经济激励的去中心化节点网络。",
+      "detail1": "45+ 个国家/地区的 1000+ 个节点运营商",
+      "detail2": "基于声誉的节点选择算法",
+      "detail3": "具有惩罚条件的质押机制"
+    },
+    "market": {
+      "title": "市场风险",
+      "description": "LINK 代币价格波动影响质押经济学和网络安全预算。",
+      "detail1": "LINK 价格与市场情绪相关",
+      "detail2": "质押奖励以 LINK 计价",
+      "detail3": "国库多元化正在进行中"
+    },
+    "regulatory": {
+      "title": "监管风险",
+      "description": "DeFi 领域和预言机服务分类的潜在监管变化。",
+      "detail1": "正在进行的监管明确性讨论",
+      "detail2": "合规框架开发",
+      "detail3": "节点地理分布降低司法管辖区风险"
+    }
+  },
+  "riskMetrics": {
+    "decentralization": {
+      "name": "去中心化评分",
+      "description": "基于节点运营商多样性和地理分布"
+    },
+    "security": {
+      "name": "安全评级",
+      "description": "基于审计历史、漏洞赏金计划和事件响应"
+    },
+    "reliability": {
+      "name": "网络可靠性",
+      "description": "过去 30 天的正常运行时间和成功响应率"
+    },
+    "transparency": {
+      "name": "透明度评分",
+      "description": "基于文档质量和开源可用性"
+    }
+  },
+  "benchmark": {
+    "decentralization": "去中心化",
+    "security": "安全性",
+    "reliability": "可靠性",
+    "transparency": "透明度",
+    "history": "历史记录"
+  },
+  "scenarios": {
+    "conservative": {
+      "label": "保守",
+      "description": "较低风险，稳定回报"
+    },
+    "moderate": {
+      "label": "中等",
+      "description": "风险与回报平衡"
+    },
+    "optimistic": {
+      "label": "乐观",
+      "description": "较高风险，潜在更大回报"
+    }
+  },
+  "nodeTiers": {
+    "small": "小型",
+    "medium": "中型",
+    "large": "大型"
+  },
+  "regions": {
+    "northAmerica": "北美",
+    "europe": "欧洲",
+    "asia": "亚洲",
+    "others": "其他"
+  },
+  "riskEvents": {
+    "securityAuditComplete": "安全审计完成",
+    "securityAuditCompleteDesc": "Chainlink 核心合约通过 Trail of Bits 和 OpenZeppelin 的联合安全审计，未发现重大漏洞。",
+    "nodeNetworkUpgrade": "节点网络升级",
+    "nodeNetworkUpgradeDesc": "完成节点软件 v2.5.0 升级，引入新的共识机制和增强的故障恢复能力。",
+    "vulnerabilityDisclosure": "潜在漏洞披露",
+    "vulnerabilityDisclosureDesc": "白帽黑客通过 Bug Bounty 计划报告了一个中等严重程度的漏洞。团队已在 48 小时内修复并部署补丁。",
+    "decentralizationMilestone": "去中心化里程碑",
+    "decentralizationMilestoneDesc": "节点运营商数量突破 1000 个，分布在 45 个国家和地区。",
+    "priceDelayEvent": "价格延迟事件",
+    "priceDelayEventDesc": "由于以太坊网络拥堵，部分价格喂送出现 2-3 分钟延迟。触发自动故障转移机制。",
+    "stakingContractRelease": "质押合约发布",
+    "stakingContractReleaseDesc": "Chainlink Staking v0.2 正式上线，引入惩罚机制和更高的安全保证金要求。"
   }
 }

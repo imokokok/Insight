@@ -63,24 +63,19 @@ interface StatItem {
   sparklineData?: number[];
 }
 
-function OOOverviewCard({ themeColor }: { themeColor: string }) {
-  const t = useTranslations();
-
+function OOOverviewCard({ themeColor, t }: { themeColor: string; t: ReturnType<typeof useTranslations> }) {
   const advantages = [
     {
       icon: <Zap className="w-4 h-4" />,
-      title: '高效快速',
-      description: '无争议情况下2小时完成验证',
+      title: t('uma.hero.fastEfficientShort'),
     },
     {
       icon: <Shield className="w-4 h-4" />,
-      title: '安全可靠',
-      description: '经济激励确保验证者诚实',
+      title: t('uma.hero.secureReliableShort'),
     },
     {
       icon: <Users className="w-4 h-4" />,
-      title: '去中心化',
-      description: '任何人可参与验证和投票',
+      title: t('uma.hero.decentralizedOpenShort'),
     },
   ];
 
@@ -95,7 +90,7 @@ function OOOverviewCard({ themeColor }: { themeColor: string }) {
             <Zap className="w-4 h-4" style={{ color: themeColor }} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-gray-900">乐观预言机机制</h3>
+            <h3 className="text-sm font-bold text-gray-900">{t('uma.hero.optimisticOracleMechanism')}</h3>
             <p className="text-xs text-gray-500">Optimistic Oracle</p>
           </div>
         </div>
@@ -104,13 +99,13 @@ function OOOverviewCard({ themeColor }: { themeColor: string }) {
           className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors"
           style={{ color: themeColor }}
         >
-          <span>了解更多</span>
+          <span>{t('uma.hero.learnMore')}</span>
           <ArrowRight className="w-3 h-3" />
         </a>
       </div>
 
       <p className="text-xs text-gray-600 mb-3">
-        默认信任验证者答案，仅在争议时投票裁决，大幅提升效率降低成本。
+        {t('uma.hero.defaultTrustValidators')}
       </p>
 
       <div className="space-y-2">
@@ -126,7 +121,6 @@ function OOOverviewCard({ themeColor }: { themeColor: string }) {
             </div>
             <div className="flex-1 min-w-0">
               <span className="text-xs font-medium text-gray-900">{advantage.title}</span>
-              <span className="text-xs text-gray-500 ml-1">· {advantage.description}</span>
             </div>
           </div>
         ))}
@@ -140,11 +134,13 @@ function RealtimePriceDisplay({
   change24h,
   themeColor,
   isRealtimeConnected,
+  t,
 }: {
   price: number;
   change24h: number;
   themeColor: string;
   isRealtimeConnected: boolean;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const [displayPrice, setDisplayPrice] = useState(price);
   const [priceDirection, setPriceDirection] = useState<'up' | 'down' | null>(null);
@@ -213,14 +209,13 @@ function RealtimePriceDisplay({
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          <span className="text-xs text-gray-500">实时更新中</span>
+          <span className="text-xs text-gray-500">{t('uma.hero.realTimePrice')}</span>
         </div>
       )}
     </div>
   );
 }
 
-// 迷你走势图组件
 function Sparkline({
   data,
   positive,
@@ -270,9 +265,7 @@ function Sparkline({
   );
 }
 
-// 增强版核心统计组件 - 5个指标，响应式网格布局
 function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColor: string }) {
-  // 取前5个指标
   const displayStats = stats.slice(0, 5);
 
   return (
@@ -328,21 +321,21 @@ function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColo
   );
 }
 
-// 右侧迷你价格图表组件
 function MiniPriceChart({
   historicalData,
   currentPrice,
   themeColor,
+  t,
 }: {
   historicalData: PriceData[];
   currentPrice: PriceData | null;
   themeColor: string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
     }
-    // 生成基于当前价格的模拟数据
     const basePrice = currentPrice?.price || 4.5;
     return Array.from({ length: 20 }, (_, i) => basePrice * (1 + ((i % 7) - 3) * 0.015));
   }, [historicalData, currentPrice]);
@@ -361,7 +354,7 @@ function MiniPriceChart({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
+          <span>{t('uma.hero.trend24h')}</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
@@ -372,27 +365,26 @@ function MiniPriceChart({
         <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>24h{t('uma.hero.hoursAgo')}</span>
+        <span>{t('uma.hero.now')}</span>
       </div>
     </div>
   );
 }
 
-// 操作按钮组件
 function ActionButtons({
   onRefresh,
   onExport,
   isRefreshing,
   themeColor,
+  t,
 }: {
   onRefresh: () => void;
   onExport: () => void;
   isRefreshing: boolean;
   themeColor: string;
+  t: ReturnType<typeof useTranslations>;
 }) {
-  const t = useTranslations();
-
   return (
     <div className="flex items-center gap-2">
       <button
@@ -415,9 +407,7 @@ function ActionButtons({
   );
 }
 
-// 整合的次要指标行 - 4个指标在一行展示，纯文本+图标，无卡片背景，用分隔符区分
 function CompactMetricsRow({ stats }: { stats: StatItem[] }) {
-  // 只取前4个次要指标
   const displayStats = stats.slice(0, 4);
 
   return (
@@ -459,12 +449,12 @@ function CompactMetricsRow({ stats }: { stats: StatItem[] }) {
   );
 }
 
-// 整合的信息区 - 链上指标、网络健康度、多链支持整合为紧凑形式
 function UnifiedInfoSection({
   networkStats,
   healthScore,
   chains,
   themeColor,
+  t,
 }: {
   networkStats?: {
     avgResponseTime: number;
@@ -474,6 +464,7 @@ function UnifiedInfoSection({
   healthScore: number;
   chains: string[];
   themeColor: string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
@@ -489,26 +480,24 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return { label: t('uma.staking.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return { label: t('uma.staking.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return { label: t('uma.staking.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: t('uma.staking.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
-  // 只显示前3个链
   const displayChains = chains.slice(0, 3);
   const remainingCount = Math.max(0, chains.length - 3);
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 py-3 border-t border-gray-100">
-      {/* 网络健康度 - 进度条+数字紧凑形式 */}
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('uma.hero.healthScore')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -521,17 +510,14 @@ function UnifiedInfoSection({
         </div>
       </div>
 
-      {/* 分隔符 */}
       <div className="hidden sm:block w-px h-4 bg-gray-200" />
 
-      {/* 链上指标 - 紧凑展示 */}
       {networkStats && (
         <div className="flex items-center gap-3">
-          {/* Gas 费水平 */}
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('uma.hero.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -544,39 +530,33 @@ function UnifiedInfoSection({
             </div>
           </div>
 
-          {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('uma.hero.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
           </div>
 
-          {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('uma.hero.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
       )}
 
-      {/* 分隔符 */}
       <div className="hidden sm:block w-px h-4 bg-gray-200" />
 
-      {/* 多链支持 - 只显示链数量+前3个链图标 */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('uma.hero.supported')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {chains.length}+ {t('uma.hero.chains')}
           </span>
-          {/* 前3个链图标 */}
           <div className="flex -space-x-1">
             {displayChains.map((chain, index) => (
               <div
@@ -597,13 +577,12 @@ function UnifiedInfoSection({
   );
 }
 
-// 快速操作组件
-function QuickActions({ themeColor }: { themeColor: string }) {
+function QuickActions({ themeColor, t }: { themeColor: string; t: ReturnType<typeof useTranslations> }) {
   const actions = [
-    { icon: <Bell className="w-3.5 h-3.5" />, label: '价格提醒' },
-    { icon: <Plus className="w-3.5 h-3.5" />, label: '添加监控' },
-    { icon: <FileText className="w-3.5 h-3.5" />, label: 'API文档' },
-    { icon: <Layers className="w-3.5 h-3.5" />, label: '切换网络' },
+    { icon: <Bell className="w-3.5 h-3.5" />, label: t('uma.hero.priceAlert') },
+    { icon: <Plus className="w-3.5 h-3.5" />, label: t('uma.hero.addMonitor') },
+    { icon: <FileText className="w-3.5 h-3.5" />, label: t('uma.hero.apiDocs') },
+    { icon: <Layers className="w-3.5 h-3.5" />, label: t('uma.hero.switchNetwork') },
   ];
 
   return (
@@ -621,19 +600,18 @@ function QuickActions({ themeColor }: { themeColor: string }) {
   );
 }
 
-// 最新动态滚动条
-function LatestUpdates() {
+function LatestUpdates({ t }: { t: ReturnType<typeof useTranslations> }) {
   const defaultUpdates = [
-    { type: 'price' as const, text: '价格更新: $4.52 (+2.3%)', time: '2分钟前' },
-    { type: 'node' as const, text: '新节点加入: 0x7a8b...3c4d', time: '5分钟前' },
-    { type: 'feed' as const, text: '数据喂价更新', time: '8分钟前' },
-    { type: 'system' as const, text: '系统维护完成', time: '15分钟前' },
+    { type: 'price' as const, text: t('uma.hero.priceUpdate'), time: `2${t('uma.hero.hoursAgo')}` },
+    { type: 'node' as const, text: t('uma.hero.newNodeJoined'), time: `5${t('uma.hero.hoursAgo')}` },
+    { type: 'feed' as const, text: t('uma.hero.dataFeedUpdate'), time: `8${t('uma.hero.hoursAgo')}` },
+    { type: 'system' as const, text: t('uma.hero.systemMaintenanceComplete'), time: `15${t('uma.hero.hoursAgo')}` },
   ];
 
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">最新动态:</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">{t('uma.hero.latestUpdates')}:</span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {defaultUpdates.map((update, index) => (
@@ -704,7 +682,7 @@ export function UMAHero({
 
   const primaryStats: StatItem[] = [
     {
-      title: 'UMA 价格',
+      title: t('uma.hero.umaPrice'),
       value: `$${currentPrice.toFixed(2)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
@@ -713,31 +691,31 @@ export function UMAHero({
       sparklineData: priceSparkline,
     },
     {
-      title: 'TVS',
+      title: t('uma.hero.tvs'),
       value: marketCap > 0 ? `$${(marketCap / 1e6).toFixed(1)}M` : '$250M+',
       change: '+8.5%',
       changeType: 'positive',
       icon: <Wallet className="w-4 h-4" />,
-      subtitle: '30天',
+      subtitle: '30d',
     },
     {
-      title: '活跃验证者',
+      title: t('uma.hero.activeValidators'),
       value: `${config.networkData?.activeNodes?.toLocaleString() ?? '120+'}`,
       change: '+12%',
       changeType: 'positive',
       icon: <Shield className="w-4 h-4" />,
-      subtitle: '本月',
+      subtitle: t('uma.staking.delegation.month'),
     },
     {
-      title: '数据喂价',
+      title: t('uma.hero.dataFeeds'),
       value: `${networkStats?.dataFeeds ?? config.networkData?.dataFeeds ?? 85}+`,
       change: '+5',
       changeType: 'positive',
       icon: <Database className="w-4 h-4" />,
-      subtitle: '本周',
+      subtitle: t('uma.education.continuousLearning'),
     },
     {
-      title: '争议解决率',
+      title: t('uma.hero.disputeResolutionRate'),
       value: '98.5%',
       change: '+0.3%',
       changeType: 'positive',
@@ -748,28 +726,28 @@ export function UMAHero({
 
   const secondaryStats: StatItem[] = [
     {
-      title: '支持链数',
+      title: t('uma.hero.supportedChainsCount'),
       value: `${config.supportedChains?.length ?? 8}+`,
       change: '0%',
       changeType: 'neutral',
       icon: <Link2 className="w-3.5 h-3.5" />,
     },
     {
-      title: '质押量',
+      title: t('uma.hero.stakingAmount'),
       value: `${((config.marketData?.circulatingSupply ?? 6.5e7) / 1e6).toFixed(1)}M`,
       change: '+5.2%',
       changeType: 'positive',
       icon: <Database className="w-3.5 h-3.5" />,
     },
     {
-      title: '平均响应',
+      title: t('uma.hero.avgResponse'),
       value: `${networkStats?.avgResponseTime ?? config.networkData?.avgResponseTime ?? 200}ms`,
       change: '-10%',
       changeType: 'positive',
       icon: <Clock className="w-3.5 h-3.5" />,
     },
     {
-      title: '节点在线率',
+      title: t('uma.hero.nodeUptime'),
       value: `${networkStats?.nodeUptime ?? config.networkData?.nodeUptime ?? 99.5}%`,
       change: '+0.1%',
       changeType: 'positive',
@@ -812,7 +790,7 @@ export function UMAHero({
               compact={true}
             />
           </div>
-          <QuickActions themeColor={themeColor} />
+          <QuickActions themeColor={themeColor} t={t} />
         </div>
       </div>
 
@@ -844,6 +822,7 @@ export function UMAHero({
               onExport={onExport}
               isRefreshing={isRefreshing}
               themeColor={themeColor}
+              t={t}
             />
           </div>
         </div>
@@ -868,6 +847,7 @@ export function UMAHero({
                 ]
               }
               themeColor={themeColor}
+              t={t}
             />
           </div>
 
@@ -880,22 +860,24 @@ export function UMAHero({
                 onExport={onExport}
                 isRefreshing={isRefreshing}
                 themeColor={themeColor}
+                t={t}
               />
             </div>
 
-            <OOOverviewCard themeColor={themeColor} />
+            <OOOverviewCard themeColor={themeColor} t={t} />
 
             <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex-1">
               <MiniPriceChart
                 historicalData={historicalData}
                 currentPrice={price}
                 themeColor={themeColor}
+                t={t}
               />
             </div>
 
             <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500">实时价格</span>
+                <span className="text-xs text-gray-500">{t('uma.hero.realTimePrice')}</span>
                 <DataFreshnessIndicator
                   lastUpdate={realtimeLastUpdate}
                   connectionStatus={connectionStatus}
@@ -908,13 +890,14 @@ export function UMAHero({
                 change24h={priceChange24h}
                 themeColor={themeColor}
                 isRealtimeConnected={isRealtimeConnected}
+                t={t}
               />
             </div>
           </div>
         </div>
       </div>
 
-      <LatestUpdates />
+      <LatestUpdates t={t} />
     </div>
   );
 }

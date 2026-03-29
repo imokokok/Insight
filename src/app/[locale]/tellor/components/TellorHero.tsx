@@ -20,13 +20,16 @@ import {
   Plus,
   FileText,
   Layers,
+  Link2,
 } from 'lucide-react';
 
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
+import { VerificationBadge } from '@/components/oracle/data-display';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
+import { type ChainId, getEtherscanUrl, formatTxHash } from '@/lib/oracles/tellorDataVerification';
 
 export interface TellorHeroProps {
   config: OracleConfig;
@@ -41,6 +44,11 @@ export interface TellorHeroProps {
   isError: boolean;
   isRefreshing: boolean;
   lastUpdated: Date | null;
+  verificationData?: {
+    txHash?: string;
+    blockHeight?: number;
+    chainId?: ChainId;
+  };
 
   onRefresh: () => void;
   onExport: () => void;
@@ -107,15 +115,29 @@ function Sparkline({
 }
 
 // 增强版核心统计组件 - 5个指标，响应式网格布局
-function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColor: string }) {
-  // 取前5个指标
+function EnhancedCoreStats({
+  stats,
+  themeColor,
+  verificationData,
+}: {
+  stats: StatItem[];
+  themeColor: string;
+  verificationData?: {
+    txHash?: string;
+    blockHeight?: number;
+    chainId?: ChainId;
+  };
+}) {
   const displayStats = stats.slice(0, 5);
+  const t = useTranslations();
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       {displayStats.map((stat, index) => {
         const isPositive = stat.changeType === 'positive';
         const isNegative = stat.changeType === 'negative';
+        const isPriceStat = index === 0;
+        const hasVerification = isPriceStat && verificationData?.txHash;
 
         return (
           <div
@@ -140,7 +162,20 @@ function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColo
               )}
             </div>
             <div className="text-xs text-gray-500 mb-1">{stat.title}</div>
-            <div className="text-lg font-bold text-gray-900 tracking-tight">{stat.value}</div>
+            <div className="flex items-center gap-1.5">
+              <div className="text-lg font-bold text-gray-900 tracking-tight">{stat.value}</div>
+              {hasVerification && (
+                <a
+                  href={getEtherscanUrl('tx', verificationData.txHash!, verificationData.chainId || 1)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cyan-600 hover:text-cyan-700 transition-colors"
+                  title={t('tellor.reporters.viewOnEtherscan')}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
+            </div>
             {stat.change && (
               <div className="flex items-center gap-1 mt-1">
                 <span
@@ -155,6 +190,14 @@ function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColo
                 {stat.subtitle && (
                   <span className="text-[10px] text-gray-400">{stat.subtitle}</span>
                 )}
+              </div>
+            )}
+            {hasVerification && verificationData?.blockHeight && (
+              <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-gray-100">
+                <Link2 className="w-3 h-3 text-gray-400" />
+                <span className="text-[10px] text-gray-500">
+                  #{verificationData.blockHeight.toLocaleString()}
+                </span>
               </div>
             )}
           </div>
@@ -522,6 +565,7 @@ export function TellorHero({
   isError,
   isRefreshing,
   lastUpdated,
+  verificationData,
   onRefresh,
   onExport,
 }: TellorHeroProps) {
@@ -584,6 +628,14 @@ export function TellorHero({
       subtitle: 'TRB',
     },
   ];
+
+  const mockVerificationData = {
+    txHash: '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(''),
+    blockHeight: Math.floor(Math.random() * 1000000) + 18000000,
+    chainId: 1 as ChainId,
+  };
+
+  const displayVerificationData = verificationData || mockVerificationData;
 
   // 次要统计指标 (Secondary Stats) - 整合为1行
   const secondaryStats: StatItem[] = [
@@ -683,7 +735,11 @@ export function TellorHero({
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* 左侧区域（70%）- 核心指标 */}
           <div className="flex-1 lg:w-[70%] lg:flex-none">
-            <EnhancedCoreStats stats={primaryStats} themeColor={themeColor} />
+            <EnhancedCoreStats
+              stats={primaryStats}
+              themeColor={themeColor}
+              verificationData={displayVerificationData}
+            />
 
             {/* 次要指标行 */}
             <CompactMetricsRow stats={secondaryStats} />

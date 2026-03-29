@@ -220,11 +220,11 @@ export function ChainlinkProofOfReserveView() {
 
   const formatTimeAgo = (date: Date) => {
     const minutes = Math.floor((REFERENCE_TIME - date.getTime()) / (1000 * 60));
-    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 60) return t('chainlink.por.timeAgo.minutesAgo', { count: minutes });
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return t('chainlink.por.timeAgo.hoursAgo', { count: hours });
     const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    return t('chainlink.por.timeAgo.daysAgo', { count: days });
   };
 
   const avgCoverage =
@@ -582,7 +582,7 @@ export function ChainlinkProofOfReserveView() {
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${audit.status === 'passed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}
                       >
-                        {audit.status === 'passed' ? 'Passed' : 'Issues Found'}
+                        {audit.status === 'passed' ? t('chainlink.por.passed') : t('chainlink.por.issuesFound')}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500 mt-0.5">
@@ -597,7 +597,10 @@ export function ChainlinkProofOfReserveView() {
                 <div className="flex items-center gap-3">
                   {audit.findings.length > 0 && (
                     <span className="text-sm text-gray-500">
-                      {audit.findings.length} {audit.findings.length === 1 ? 'finding' : 'findings'}
+                      {audit.findings.length}{' '}
+                      {audit.findings.length === 1
+                        ? t('chainlink.por.finding')
+                        : t('chainlink.por.findings')}
                     </span>
                   )}
                   {expandedAudit === audit.id ? (

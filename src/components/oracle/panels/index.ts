@@ -41,3 +41,6 @@ export { DIADataFeedsPanel } from './DIADataFeedsPanel';
 export { DIAEcosystemPanel } from './DIAEcosystemPanel';
 export { DataQualityScorePanel } from './DataQualityScorePanel';
 export { CosmosEcosystemPanel } from './CosmosEcosystemPanel';
+export { TellorPriceStreamPanel } from './TellorPriceStreamPanel';
+export { TellorMarketDepthPanel } from './TellorMarketDepthPanel';
+export { TellorMultiChainAggregationPanel } from './TellorMultiChainAggregationPanel';

@@ -78,6 +78,55 @@ export interface ChronicleNetworkStats {
   stakingTokenSymbol: string;
 }
 
+export interface VaultData {
+  totalVaults: number;
+  totalCollateral: number;
+  totalDebt: number;
+  avgCollateralRatio: number;
+  vaultTypes: VaultTypeData[];
+}
+
+export interface VaultTypeData {
+  type: string;
+  count: number;
+  collateral: number;
+  debt: number;
+  collateralRatio: number;
+  stabilityFee: number;
+}
+
+export interface ScuttlebuttConsensus {
+  votingProgress: number;
+  consensusTime: number;
+  validatorVotes: ValidatorVote[];
+  forkStatus: 'none' | 'detected' | 'resolved';
+}
+
+export interface ValidatorVote {
+  validatorId: string;
+  voteWeight: number;
+  voteStatus: 'pending' | 'approved' | 'rejected';
+  timestamp: number;
+}
+
+export interface CrossChainPrice {
+  chain: string;
+  price: number;
+  lastUpdate: number;
+  deviation: number;
+  latency: number;
+}
+
+export interface PriceDeviation {
+  symbol: string;
+  chroniclePrice: number;
+  referencePrice: number;
+  deviation: number;
+  deviationPercent: number;
+  source: string;
+  timestamp: number;
+}
+
 export class ChronicleClient extends BaseOracleClient {
   name = OracleProvider.CHRONICLE;
   supportedChains = [
@@ -364,5 +413,243 @@ export class ChronicleClient extends BaseOracleClient {
       stakerCount: 1800,
       rewardPool: 1200000,
     };
+  }
+
+  async getVaultData(): Promise<VaultData> {
+    const now = Date.now();
+    const vaultTypes: VaultTypeData[] = [
+      {
+        type: 'ETH-A',
+        count: 12500,
+        collateral: 2800000000,
+        debt: 1850000000,
+        collateralRatio: 151.4,
+        stabilityFee: 3.5,
+      },
+      {
+        type: 'ETH-B',
+        count: 8500,
+        collateral: 950000000,
+        debt: 620000000,
+        collateralRatio: 153.2,
+        stabilityFee: 4.0,
+      },
+      {
+        type: 'WBTC-A',
+        count: 4200,
+        collateral: 680000000,
+        debt: 450000000,
+        collateralRatio: 151.1,
+        stabilityFee: 4.0,
+      },
+      {
+        type: 'USDC-A',
+        count: 3200,
+        collateral: 320000000,
+        debt: 316000000,
+        collateralRatio: 101.3,
+        stabilityFee: 1.0,
+      },
+      {
+        type: 'LINK-A',
+        count: 1800,
+        collateral: 85000000,
+        debt: 50000000,
+        collateralRatio: 170.0,
+        stabilityFee: 2.5,
+      },
+    ];
+
+    const totalCollateral = vaultTypes.reduce((sum, v) => sum + v.collateral, 0);
+    const totalDebt = vaultTypes.reduce((sum, v) => sum + v.debt, 0);
+    const avgCollateralRatio =
+      vaultTypes.reduce((sum, v) => sum + v.collateralRatio, 0) / vaultTypes.length;
+
+    return {
+      totalVaults: vaultTypes.reduce((sum, v) => sum + v.count, 0),
+      totalCollateral,
+      totalDebt,
+      avgCollateralRatio: Number(avgCollateralRatio.toFixed(2)),
+      vaultTypes,
+    };
+  }
+
+  async getScuttlebuttConsensus(): Promise<ScuttlebuttConsensus> {
+    const now = Date.now();
+    const validatorVotes: ValidatorVote[] = [
+      {
+        validatorId: 'val-001',
+        voteWeight: 20.5,
+        voteStatus: 'approved',
+        timestamp: now - 120000,
+      },
+      {
+        validatorId: 'val-002',
+        voteWeight: 17.2,
+        voteStatus: 'approved',
+        timestamp: now - 115000,
+      },
+      {
+        validatorId: 'val-003',
+        voteWeight: 15.8,
+        voteStatus: 'approved',
+        timestamp: now - 110000,
+      },
+      {
+        validatorId: 'val-004',
+        voteWeight: 13.4,
+        voteStatus: 'approved',
+        timestamp: now - 105000,
+      },
+      {
+        validatorId: 'val-005',
+        voteWeight: 11.6,
+        voteStatus: 'approved',
+        timestamp: now - 100000,
+      },
+      {
+        validatorId: 'val-006',
+        voteWeight: 10.2,
+        voteStatus: 'pending',
+        timestamp: now - 30000,
+      },
+      {
+        validatorId: 'val-007',
+        voteWeight: 8.5,
+        voteStatus: 'pending',
+        timestamp: now - 15000,
+      },
+    ];
+
+    const totalWeight = validatorVotes.reduce((sum, v) => sum + v.voteWeight, 0);
+    const approvedWeight = validatorVotes
+      .filter((v) => v.voteStatus === 'approved')
+      .reduce((sum, v) => sum + v.voteWeight, 0);
+
+    return {
+      votingProgress: Number(((approvedWeight / totalWeight) * 100).toFixed(2)),
+      consensusTime: now - 180000,
+      validatorVotes,
+      forkStatus: 'none',
+    };
+  }
+
+  async getCrossChainPrices(symbol: string): Promise<CrossChainPrice[]> {
+    const now = Date.now();
+    const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+    const chains: CrossChainPrice[] = [
+      {
+        chain: 'Ethereum',
+        price: basePrice,
+        lastUpdate: now - 30000,
+        deviation: 0,
+        latency: 120,
+      },
+      {
+        chain: 'Arbitrum',
+        price: basePrice * (1 + (Math.random() - 0.5) * 0.002),
+        lastUpdate: now - 35000,
+        deviation: Math.random() * 0.15,
+        latency: 145,
+      },
+      {
+        chain: 'Optimism',
+        price: basePrice * (1 + (Math.random() - 0.5) * 0.002),
+        lastUpdate: now - 32000,
+        deviation: Math.random() * 0.12,
+        latency: 138,
+      },
+      {
+        chain: 'Polygon',
+        price: basePrice * (1 + (Math.random() - 0.5) * 0.003),
+        lastUpdate: now - 40000,
+        deviation: Math.random() * 0.18,
+        latency: 165,
+      },
+      {
+        chain: 'Base',
+        price: basePrice * (1 + (Math.random() - 0.5) * 0.002),
+        lastUpdate: now - 28000,
+        deviation: Math.random() * 0.1,
+        latency: 125,
+      },
+      {
+        chain: 'Avalanche',
+        price: basePrice * (1 + (Math.random() - 0.5) * 0.0025),
+        lastUpdate: now - 38000,
+        deviation: Math.random() * 0.16,
+        latency: 155,
+      },
+    ];
+
+    return chains.map((chain) => ({
+      ...chain,
+      price: Number(chain.price.toFixed(2)),
+      deviation: Number(chain.deviation.toFixed(4)),
+    }));
+  }
+
+  async getPriceDeviation(symbol: string): Promise<PriceDeviation[]> {
+    const now = Date.now();
+    const chroniclePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+
+    const deviations: PriceDeviation[] = [
+      {
+        symbol,
+        chroniclePrice,
+        referencePrice: chroniclePrice * (1 + (Math.random() - 0.5) * 0.005),
+        deviation: 0,
+        deviationPercent: 0,
+        source: 'Chainlink',
+        timestamp: now - 30000,
+      },
+      {
+        symbol,
+        chroniclePrice,
+        referencePrice: chroniclePrice * (1 + (Math.random() - 0.5) * 0.008),
+        deviation: 0,
+        deviationPercent: 0,
+        source: 'Uniswap V3',
+        timestamp: now - 25000,
+      },
+      {
+        symbol,
+        chroniclePrice,
+        referencePrice: chroniclePrice * (1 + (Math.random() - 0.5) * 0.006),
+        deviation: 0,
+        deviationPercent: 0,
+        source: 'Curve Finance',
+        timestamp: now - 28000,
+      },
+      {
+        symbol,
+        chroniclePrice,
+        referencePrice: chroniclePrice * (1 + (Math.random() - 0.5) * 0.01),
+        deviation: 0,
+        deviationPercent: 0,
+        source: 'Binance',
+        timestamp: now - 20000,
+      },
+      {
+        symbol,
+        chroniclePrice,
+        referencePrice: chroniclePrice * (1 + (Math.random() - 0.5) * 0.007),
+        deviation: 0,
+        deviationPercent: 0,
+        source: 'Coinbase',
+        timestamp: now - 22000,
+      },
+    ];
+
+    return deviations.map((d) => {
+      const deviation = d.referencePrice - chroniclePrice;
+      const deviationPercent = (deviation / chroniclePrice) * 100;
+      return {
+        ...d,
+        referencePrice: Number(d.referencePrice.toFixed(2)),
+        deviation: Number(deviation.toFixed(4)),
+        deviationPercent: Number(deviationPercent.toFixed(4)),
+      };
+    });
   }
 }

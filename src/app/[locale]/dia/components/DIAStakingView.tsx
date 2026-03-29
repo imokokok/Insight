@@ -11,9 +11,9 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+import { StakingCalculator } from '@/components/oracle/charts/StakingCalculator';
 import { useDIAStaking, useDIAStakingDetails } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { cn } from '@/lib/utils';
 
 export function DIAStakingView() {
   const t = useTranslations();
@@ -236,6 +236,16 @@ export function DIAStakingView() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      {/* 质押计算器 */}
+      <div className="border-t border-gray-200 pt-8">
+        <StakingCalculator
+          tokenSymbol="DIA"
+          tokenPrice={0.85}
+          minStake={100}
+          maxStake={1000000}
+        />
       </div>
     </div>
   );

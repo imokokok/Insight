@@ -19,6 +19,10 @@ import {
   WinklinkStakingView,
   WinklinkGamingView,
   WinklinkRiskView,
+  WinklinkVRFView,
+  WinklinkCrossChainView,
+  WinklinkAccuracyView,
+  WinklinkDeveloperView,
   WinklinkHero,
 } from './components';
 import { useWinklinkPage } from './hooks/useWinklinkPage';
@@ -82,6 +86,14 @@ export default function WinklinkPage() {
         return <WinklinkStakingView staking={staking} isLoading={isLoading} />;
       case 'gaming':
         return <WinklinkGamingView gaming={gaming} isLoading={isLoading} />;
+      case 'vrf':
+        return <WinklinkVRFView vrf={null} isLoading={isLoading} />;
+      case 'cross-chain':
+        return <WinklinkCrossChainView isLoading={isLoading} />;
+      case 'accuracy':
+        return <WinklinkAccuracyView isLoading={isLoading} />;
+      case 'developer':
+        return <WinklinkDeveloperView />;
       case 'risk':
         return <WinklinkRiskView riskMetrics={riskMetrics} isLoading={isLoading} />;
       default:

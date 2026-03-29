@@ -36,95 +36,90 @@ import {
 
 import { type API3RiskViewProps } from '../types';
 
-// 历史风险事件
-const historicalRiskEvents: TimelineEvent[] = [
+// 历史风险事件翻译键
+const historicalRiskEventKeys = [
   {
     date: '2024-02-20T10:30:00',
-    title: 'API3 DAO 治理升级',
-    description:
-      '成功完成 DAO 治理机制升级，引入新的提案流程和投票权重计算机制，提升治理效率和安全性。',
-    type: 'success',
+    titleKey: 'api3.riskView.events.governance.title',
+    descriptionKey: 'api3.riskView.events.governance.description',
+    type: 'success' as const,
   },
   {
     date: '2023-12-15T14:20:00',
-    title: 'OEV Network 主网上线',
-    description:
-      'OEV (Oracle Extractable Value) Network 正式在主网启动，为 dApps 提供 MEV 回收功能。',
-    type: 'success',
+    titleKey: 'api3.riskView.events.oevMainnet.title',
+    descriptionKey: 'api3.riskView.events.oevMainnet.description',
+    type: 'success' as const,
   },
   {
     date: '2023-10-08T09:15:00',
-    title: '安全审计报告发布',
-    description:
-      'Quantstamp 完成 API3 核心合约的安全审计，发现并修复了 2 个低风险问题，无重大漏洞。',
-    type: 'info',
+    titleKey: 'api3.riskView.events.audit.title',
+    descriptionKey: 'api3.riskView.events.audit.description',
+    type: 'info' as const,
   },
   {
     date: '2023-08-22T16:45:00',
-    title: 'Airnode 部署里程碑',
-    description:
-      '全球 Airnode 部署数量突破 150 个，覆盖 30+ 个区块链网络，数据提供商生态持续扩展。',
-    type: 'success',
+    titleKey: 'api3.riskView.events.airnodeMilestone.title',
+    descriptionKey: 'api3.riskView.events.airnodeMilestone.description',
+    type: 'success' as const,
   },
   {
     date: '2023-06-12T11:30:00',
-    title: 'dAPI 价格延迟事件',
-    description:
-      '由于 Polygon 网络拥堵，部分 dAPI 价格更新延迟 3-5 分钟。团队迅速启用备用节点恢复服务。',
-    type: 'warning',
+    titleKey: 'api3.riskView.events.priceDelay.title',
+    descriptionKey: 'api3.riskView.events.priceDelay.description',
+    type: 'warning' as const,
   },
   {
     date: '2023-03-28T08:00:00',
-    title: '质押池 v2 发布',
-    description: 'API3 Staking Pool v2 正式上线，引入动态奖励机制和更灵活的质押策略。',
-    type: 'success',
+    titleKey: 'api3.riskView.events.stakingV2.title',
+    descriptionKey: 'api3.riskView.events.stakingV2.description',
+    type: 'success' as const,
   },
 ];
 
 // 行业基准对比数据
-const benchmarkData = [
-  { metric: '去中心化', api3: 85, pyth: 78, band: 65, chainlink: 95 },
-  { metric: '安全性', api3: 88, pyth: 85, band: 72, chainlink: 98 },
-  { metric: '可靠性', api3: 97.5, pyth: 97.5, band: 94.2, chainlink: 99.9 },
-  { metric: '透明度', api3: 92, pyth: 88, band: 70, chainlink: 92 },
-  { metric: '历史记录', api3: 75, pyth: 75, band: 82, chainlink: 98 },
+const getBenchmarkData = (t: (key: string) => string) => [
+  { metric: t('api3.riskView.benchmark.decentralization'), api3: 85, pyth: 78, band: 65, chainlink: 95 },
+  { metric: t('api3.riskView.benchmark.security'), api3: 88, pyth: 85, band: 72, chainlink: 98 },
+  { metric: t('api3.riskView.benchmark.reliability'), api3: 97.5, pyth: 97.5, band: 94.2, chainlink: 99.9 },
+  { metric: t('api3.riskView.benchmark.transparency'), api3: 92, pyth: 88, band: 70, chainlink: 92 },
+  { metric: t('api3.riskView.benchmark.trackRecord'), api3: 75, pyth: 75, band: 82, chainlink: 98 },
 ];
 
 // 风险指标
 const riskMetrics = [
   {
     id: 'decentralization',
-    name: 'Decentralization Score',
+    nameKey: 'api3.riskView.metrics.decentralization.name',
+    descKey: 'api3.riskView.metrics.decentralization.description',
     value: 85,
     max: 100,
-    description: 'Based on Airnode operator diversity and geographic distribution',
     status: 'low',
     trend: 'up',
   },
   {
     id: 'security',
-    name: 'Security Rating',
+    nameKey: 'api3.riskView.metrics.security.name',
+    descKey: 'api3.riskView.metrics.security.description',
     value: 88,
     max: 100,
-    description: 'Based on audit history, bug bounty programs, and incident response',
     status: 'low',
     trend: 'stable',
   },
   {
     id: 'reliability',
-    name: 'Network Reliability',
+    nameKey: 'api3.riskView.metrics.reliability.name',
+    descKey: 'api3.riskView.metrics.reliability.description',
     value: 97.5,
     max: 100,
-    description: 'Uptime and successful response rate over the last 30 days',
     status: 'low',
     trend: 'up',
   },
   {
     id: 'transparency',
-    name: 'Transparency Score',
+    nameKey: 'api3.riskView.metrics.transparency.name',
+    descKey: 'api3.riskView.metrics.transparency.description',
     value: 92,
     max: 100,
-    description: 'Based on documentation quality and open-source availability',
     status: 'low',
     trend: 'stable',
   },
@@ -133,62 +128,63 @@ const riskMetrics = [
 // 风险因素
 const riskFactors = [
   {
-    category: 'Smart Contract Risk',
+    id: 'smartContract',
+    categoryKey: 'api3.riskView.factors.smartContract.category',
     level: 'low',
-    description:
-      'Multiple audits by Quantstamp and other leading security firms. Core contracts have been battle-tested since 2021.',
-    details: [
-      'Quantstamp audit completed Q4 2023',
-      'Continuous monitoring through Code4rena',
-      'Bug bounty program with $250K+ rewards paid',
-      'No critical vulnerabilities found to date',
+    descriptionKey: 'api3.riskView.factors.smartContract.description',
+    detailKeys: [
+      'api3.riskView.factors.smartContract.detail1',
+      'api3.riskView.factors.smartContract.detail2',
+      'api3.riskView.factors.smartContract.detail3',
+      'api3.riskView.factors.smartContract.detail4',
     ],
   },
   {
-    category: 'Oracle Risk',
+    id: 'oracle',
+    categoryKey: 'api3.riskView.factors.oracle.category',
     level: 'low',
-    description:
-      'First-party oracle architecture with direct data provider relationships and cryptographic attestations.',
-    details: [
-      '150+ Airnodes operated by data providers',
-      'Direct API provider relationships (no middlemen)',
-      'Cryptographic proof of data origin',
-      'DAO-governed dAPI updates',
+    descriptionKey: 'api3.riskView.factors.oracle.description',
+    detailKeys: [
+      'api3.riskView.factors.oracle.detail1',
+      'api3.riskView.factors.oracle.detail2',
+      'api3.riskView.factors.oracle.detail3',
+      'api3.riskView.factors.oracle.detail4',
     ],
   },
   {
-    category: 'Market Risk',
+    id: 'market',
+    categoryKey: 'api3.riskView.factors.market.category',
     level: 'medium',
-    description: 'API3 token price volatility affects staking rewards and coverage pool value.',
-    details: [
-      'API3 price correlation with broader DeFi market',
-      'Staking rewards subject to market conditions',
-      'Coverage pool denominated in API3 tokens',
-      'Treasury diversification ongoing',
+    descriptionKey: 'api3.riskView.factors.market.description',
+    detailKeys: [
+      'api3.riskView.factors.market.detail1',
+      'api3.riskView.factors.market.detail2',
+      'api3.riskView.factors.market.detail3',
+      'api3.riskView.factors.market.detail4',
     ],
   },
   {
-    category: 'Regulatory Risk',
+    id: 'regulatory',
+    categoryKey: 'api3.riskView.factors.regulatory.category',
     level: 'medium',
-    description:
-      'Potential regulatory changes affecting first-party oracle models and data provider relationships.',
-    details: [
-      'First-party model may face different regulatory treatment',
-      'Data provider compliance requirements evolving',
-      'DAO structure under regulatory scrutiny',
-      'Active legal counsel monitoring developments',
+    descriptionKey: 'api3.riskView.factors.regulatory.description',
+    detailKeys: [
+      'api3.riskView.factors.regulatory.detail1',
+      'api3.riskView.factors.regulatory.detail2',
+      'api3.riskView.factors.regulatory.detail3',
+      'api3.riskView.factors.regulatory.detail4',
     ],
   },
   {
-    category: 'Adoption Risk',
+    id: 'adoption',
+    categoryKey: 'api3.riskView.factors.adoption.category',
     level: 'medium',
-    description:
-      'Relatively newer protocol compared to established competitors, with smaller integration footprint.',
-    details: [
-      'Fewer total integrations than Chainlink',
-      'Growing but smaller developer community',
-      'First-party model requires education and trust building',
-      'Strategic partnerships expanding rapidly',
+    descriptionKey: 'api3.riskView.factors.adoption.description',
+    detailKeys: [
+      'api3.riskView.factors.adoption.detail1',
+      'api3.riskView.factors.adoption.detail2',
+      'api3.riskView.factors.adoption.detail3',
+      'api3.riskView.factors.adoption.detail4',
     ],
   },
 ];
@@ -202,6 +198,15 @@ export function API3RiskView({
   const t = useTranslations();
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
+
+  const benchmarkData = getBenchmarkData(t);
+
+  const translatedRiskEvents: TimelineEvent[] = historicalRiskEventKeys.map(event => ({
+    date: event.date,
+    type: event.type,
+    title: t(event.titleKey),
+    description: t(event.descriptionKey),
+  }));
 
   const { coveragePoolDetails } = useAPI3CoveragePoolDetails(!isLoading);
   const { claims } = useAPI3CoveragePoolClaims(undefined, !isLoading);
@@ -282,7 +287,7 @@ export function API3RiskView({
           {riskMetrics.map((metric) => (
             <div key={metric.id} className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">{metric.name}</span>
+                <span className="text-sm text-gray-500">{t(metric.nameKey)}</span>
                 {getTrendIcon(metric.trend)}
               </div>
               <div className="flex items-baseline gap-2">
@@ -299,7 +304,7 @@ export function API3RiskView({
                   }}
                 />
               </div>
-              <p className="text-xs text-gray-400 leading-relaxed">{metric.description}</p>
+              <p className="text-xs text-gray-400 leading-relaxed">{t(metric.descKey)}</p>
             </div>
           ))}
         </div>
@@ -417,7 +422,7 @@ export function API3RiskView({
           {/* 时间线 */}
           <div className="lg:col-span-2">
             <TimelineChart
-              events={historicalRiskEvents}
+              events={translatedRiskEvents}
               onEventClick={(event) => setSelectedEvent(event)}
               showDateLabels={true}
               compact={false}
@@ -493,7 +498,7 @@ export function API3RiskView({
 
         <div className="space-y-2">
           {riskFactors.map((factor, index) => (
-            <div key={index} className="border-b border-gray-100 last:border-0">
+            <div key={factor.id} className="border-b border-gray-100 last:border-0">
               <button
                 onClick={() => setExpandedFactor(expandedFactor === index ? null : index)}
                 className="w-full py-4 flex items-center justify-between hover:bg-gray-50 transition-colors px-2 -mx-2 rounded-md"
@@ -502,13 +507,13 @@ export function API3RiskView({
                   <span
                     className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}
                   >
-                    {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
+                    {t(`api3.riskView.level.${factor.level}`)}
                   </span>
-                  <span className="text-sm font-medium text-gray-900">{factor.category}</span>
+                  <span className="text-sm font-medium text-gray-900">{t(factor.categoryKey)}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-500 hidden sm:block max-w-xs truncate">
-                    {factor.description}
+                    {t(factor.descriptionKey)}
                   </span>
                   {expandedFactor === index ? (
                     <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -519,15 +524,15 @@ export function API3RiskView({
               </button>
               {expandedFactor === index && (
                 <div className="pb-4 px-2">
-                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">{factor.description}</p>
+                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">{t(factor.descriptionKey)}</p>
                   <ul className="space-y-2">
-                    {factor.details.map((detail, detailIndex) => (
+                    {factor.detailKeys.map((detailKey, detailIndex) => (
                       <li
                         key={detailIndex}
                         className="flex items-start gap-2 text-sm text-gray-500"
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
-                        <span>{detail}</span>
+                        <span>{t(detailKey)}</span>
                       </li>
                     ))}
                   </ul>

@@ -220,6 +220,47 @@
         "decentralizedGovernance": "去中心化治理",
         "monitoring": "24/7 监控"
       }
+    },
+    "vault": {
+      "title": "金库状态",
+      "overview": "金库概览",
+      "totalVaults": "总金库数",
+      "totalCollateral": "总抵押品",
+      "totalDebt": "总债务",
+      "avgCollateralRatio": "平均抵押率",
+      "vaultTypes": "金库类型",
+      "liquidation": "清算监控",
+      "activeAuctions": "活跃拍卖",
+      "liquidationHistory": "清算历史",
+      "riskParameters": "风险参数"
+    },
+    "crossChain": {
+      "title": "跨链分析",
+      "priceComparison": "价格对比",
+      "deviationHeatmap": "偏差热力图",
+      "latencyAnalysis": "延迟分析",
+      "bridgeStatus": "跨链桥状态",
+      "chain": "链",
+      "price": "价格",
+      "deviation": "偏差",
+      "lastUpdate": "最后更新"
+    },
+    "priceDeviation": {
+      "title": "价格偏差监控",
+      "realtime": "实时偏差",
+      "history": "偏差历史",
+      "analysis": "原因分析",
+      "impact": "影响评估",
+      "source": "数据源",
+      "chroniclePrice": "Chronicle 价格",
+      "referencePrice": "参考价格"
+    },
+    "scuttlebuttDeep": {
+      "title": "Scuttlebutt 深度分析",
+      "consensus": "共识机制",
+      "identity": "身份验证",
+      "antiSybil": "抗女巫攻击",
+      "monitoring": "实时监控"
     }
   }
 }

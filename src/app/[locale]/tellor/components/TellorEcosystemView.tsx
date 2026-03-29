@@ -16,8 +16,11 @@ import {
   Cell,
 } from 'recharts';
 
+import { TellorEcosystemPanel } from '@/components/oracle/panels/TellorEcosystemPanel';
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
+
+import { type TellorEcosystemViewProps } from '../types';
 
 // TVL Trend Data (12 months)
 const tvlTrendData = [
@@ -171,11 +174,7 @@ function TimeRangeButton({
   );
 }
 
-interface TellorEcosystemViewProps {
-  isLoading?: boolean;
-}
-
-export function TellorEcosystemView({ isLoading }: TellorEcosystemViewProps) {
+export function TellorEcosystemView({ ecosystem, isLoading }: TellorEcosystemViewProps) {
   const t = useTranslations('tellor');
   const [selectedChains, setSelectedChains] = useState<string[]>([
     'ethereum',
@@ -554,6 +553,23 @@ export function TellorEcosystemView({ isLoading }: TellorEcosystemViewProps) {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Section Divider */}
+      <div className="border-t border-gray-200" />
+
+      {/* 生态系统详情 Panel */}
+      <section>
+        <h3 className="text-base font-semibold text-gray-900 mb-4">
+          {t('ecosystem.details') || 'Ecosystem Details'}
+        </h3>
+        {ecosystem ? (
+          <TellorEcosystemPanel data={ecosystem} />
+        ) : (
+          <div className="text-sm text-gray-500 py-8 text-center">
+            {t('common.noData') || 'No data available'}
+          </div>
+        )}
       </section>
     </div>
   );

@@ -19,43 +19,47 @@ import {
 
 import { useTranslations } from '@/i18n';
 
-const quickStartSteps = [
+const getQuickStartSteps = (t: (key: string) => string) => [
   {
     step: 1,
-    title: '获取 API Key',
-    description: '注册 API3 开发者账户并获取 API Key',
+    titleKey: 'api3.developer.guide.quickStart.step1.title',
+    descriptionKey: 'api3.developer.guide.quickStart.step1.description',
     code: null,
     link: 'https://api3.org/developers',
+    linkTextKey: 'api3.developer.guide.quickStart.getApiKey',
   },
   {
     step: 2,
-    title: '安装 SDK',
-    description: '安装 API3 JavaScript/TypeScript SDK',
+    titleKey: 'api3.developer.guide.quickStart.step2.title',
+    descriptionKey: 'api3.developer.guide.quickStart.step2.description',
     code: 'npm install @api3/contracts @api3/airnode-protocol',
     link: null,
+    linkTextKey: null,
   },
   {
     step: 3,
-    title: '配置合约地址',
-    description: '配置 API3 ServerV1 合约地址',
+    titleKey: 'api3.developer.guide.quickStart.step3.title',
+    descriptionKey: 'api3.developer.guide.quickStart.step3.description',
     code: `const API3_SERVER_V1_ADDRESS = '0x...'; // 根据网络选择正确地址`,
     link: null,
+    linkTextKey: null,
   },
   {
     step: 4,
-    title: '读取数据源',
-    description: '使用合约读取 dAPI 数据',
+    titleKey: 'api3.developer.guide.quickStart.step4.title',
+    descriptionKey: 'api3.developer.guide.quickStart.step4.description',
     code: `const serverV1 = new Api3ServerV1(API3_SERVER_V1_ADDRESS, provider);
 const value = await serverV1.readDataFeedValue(dapiId);`,
     link: null,
+    linkTextKey: null,
   },
 ];
 
-const integrationScenarios = [
+const getIntegrationScenarios = (t: (key: string) => string) => [
   {
     id: 'defi-lending',
-    title: 'DeFi 借贷协议',
-    description: '使用 API3 dAPI 作为价格预言机，实现去中心化借贷',
+    titleKey: 'api3.developer.guide.scenarios.defiLending.title',
+    descriptionKey: 'api3.developer.guide.scenarios.defiLending.description',
     steps: [
       '选择适合的 dAPI 数据源（如 ETH/USD）',
       '部署借贷合约并集成 API3 ServerV1',
@@ -81,8 +85,8 @@ contract LendingProtocol {
   },
   {
     id: 'derivatives',
-    title: '衍生品交易',
-    description: '为衍生品协议提供可靠的价格数据',
+    titleKey: 'api3.developer.guide.scenarios.derivatives.title',
+    descriptionKey: 'api3.developer.guide.scenarios.derivatives.description',
     steps: [
       '集成多个 dAPI 数据源',
       '实现价格聚合和验证逻辑',
@@ -107,8 +111,8 @@ contract DerivativesProtocol {
   },
   {
     id: 'cross-chain',
-    title: '跨链应用',
-    description: '在多条链上使用统一的 dAPI 数据源',
+    titleKey: 'api3.developer.guide.scenarios.crossChain.title',
+    descriptionKey: 'api3.developer.guide.scenarios.crossChain.description',
     steps: [
       '选择目标部署链',
       '获取各链的 API3 合约地址',
@@ -128,69 +132,74 @@ contract CrossChainPriceFeed {
   },
 ];
 
-const bestPractices = [
+const getBestPractices = (t: (key: string) => string) => [
   {
-    title: '使用最新数据',
-    description: '始终检查数据时间戳，确保使用的是最新价格数据',
+    titleKey: 'api3.developer.guide.bestPractices.useLatestData.title',
+    descriptionKey: 'api3.developer.guide.bestPractices.useLatestData.description',
     icon: <CheckCircle className="w-5 h-5 text-emerald-500" />,
   },
   {
-    title: '实现降级机制',
-    description: '当 dAPI 不可用时，准备备用价格源或暂停功能',
+    titleKey: 'api3.developer.guide.bestPractices.fallback.title',
+    descriptionKey: 'api3.developer.guide.bestPractices.fallback.description',
     icon: <AlertTriangle className="w-5 h-5 text-amber-500" />,
   },
   {
-    title: '监控价格偏差',
-    description: '设置价格偏差告警，及时发现异常数据',
+    titleKey: 'api3.developer.guide.bestPractices.monitorDeviation.title',
+    descriptionKey: 'api3.developer.guide.bestPractices.monitorDeviation.description',
     icon: <Lightbulb className="w-5 h-5 text-blue-500" />,
   },
   {
-    title: '合理设置 Gas',
-    description: '根据网络状况调整 Gas 参数，确保交易顺利执行',
+    titleKey: 'api3.developer.guide.bestPractices.gasSettings.title',
+    descriptionKey: 'api3.developer.guide.bestPractices.gasSettings.description',
     icon: <Settings className="w-5 h-5 text-purple-500" />,
   },
 ];
 
-const troubleshooting = [
+const getTroubleshooting = (t: (key: string) => string) => [
   {
-    problem: '读取数据失败',
-    solution: '检查合约地址是否正确，确认 dAPI 在该链上已激活',
+    problemKey: 'api3.developer.guide.troubleshooting.readFailed.problem',
+    solutionKey: 'api3.developer.guide.troubleshooting.readFailed.solution',
   },
   {
-    problem: '数据时间戳过期',
-    solution: 'dAPI 可能需要更新，检查 Airnode 是否正常运行',
+    problemKey: 'api3.developer.guide.troubleshooting.timestampExpired.problem',
+    solutionKey: 'api3.developer.guide.troubleshooting.timestampExpired.solution',
   },
   {
-    problem: 'Gas 估算失败',
-    solution: '确保合约有足够的 ETH 支付 Gas 费用',
+    problemKey: 'api3.developer.guide.troubleshooting.gasEstimationFailed.problem',
+    solutionKey: 'api3.developer.guide.troubleshooting.gasEstimationFailed.solution',
   },
   {
-    problem: '签名验证失败',
-    solution: '检查签名者是否为授权的 Airnode 地址',
+    problemKey: 'api3.developer.guide.troubleshooting.signatureFailed.problem',
+    solutionKey: 'api3.developer.guide.troubleshooting.signatureFailed.solution',
   },
 ];
 
-const faqItems = [
+const getFaqItems = (t: (key: string) => string) => [
   {
-    question: 'API3 与其他预言机有什么区别？',
-    answer: 'API3 采用第一方预言机架构，直接从 API 提供商获取数据，消除了中间商风险，提供更高的透明度和安全性。',
+    questionKey: 'api3.developer.guide.faq.q1.question',
+    answerKey: 'api3.developer.guide.faq.q1.answer',
   },
   {
-    question: '如何选择合适的 dAPI？',
-    answer: '根据您的应用需求选择 dAPI。考虑因素包括：资产类型、更新频率、偏差阈值、支持的链等。',
+    questionKey: 'api3.developer.guide.faq.q2.question',
+    answerKey: 'api3.developer.guide.faq.q2.answer',
   },
   {
-    question: 'dAPI 的更新频率是多少？',
-    answer: 'dAPI 支持心跳更新和偏差触发更新。心跳间隔通常为 24 小时，偏差阈值根据资产类型不同而变化。',
+    questionKey: 'api3.developer.guide.faq.q3.question',
+    answerKey: 'api3.developer.guide.faq.q3.answer',
   },
   {
-    question: '如何处理价格异常？',
-    answer: '建议实现价格验证逻辑，比较多个数据源，设置合理的偏差阈值，并准备降级机制。',
+    questionKey: 'api3.developer.guide.faq.q4.question',
+    answerKey: 'api3.developer.guide.faq.q4.answer',
   },
 ];
 
 export function API3IntegrationGuide() {
   const t = useTranslations();
+  const quickStartSteps = getQuickStartSteps(t);
+  const integrationScenarios = getIntegrationScenarios(t);
+  const bestPractices = getBestPractices(t);
+  const troubleshooting = getTroubleshooting(t);
+  const faqItems = getFaqItems(t);
   const [activeScenario, setActiveScenario] = useState<string>('defi-lending');
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -226,8 +235,8 @@ export function API3IntegrationGuide() {
                 )}
               </div>
               <div className="flex-1 pb-4">
-                <h3 className="text-sm font-medium text-gray-900">{step.title}</h3>
-                <p className="text-sm text-gray-500 mt-1">{step.description}</p>
+                <h3 className="text-sm font-medium text-gray-900">{t(step.titleKey)}</h3>
+                <p className="text-sm text-gray-500 mt-1">{t(step.descriptionKey)}</p>
                 {step.code && (
                   <div className="relative mt-2 bg-gray-900 rounded-lg p-3">
                     <button
@@ -250,7 +259,7 @@ export function API3IntegrationGuide() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-emerald-600 hover:text-emerald-700 mt-2"
                   >
-                    前往获取 <ExternalLink className="w-4 h-4" />
+                    {t(step.linkTextKey!)} <ExternalLink className="w-4 h-4" />
                   </a>
                 )}
               </div>
@@ -280,7 +289,7 @@ export function API3IntegrationGuide() {
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
-              {scenario.title}
+              {t(scenario.titleKey)}
             </button>
           ))}
         </div>
@@ -288,7 +297,7 @@ export function API3IntegrationGuide() {
         {integrationScenarios.map((scenario) => (
           activeScenario === scenario.id && (
             <div key={scenario.id} className="bg-white border border-gray-100 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">{scenario.description}</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-2">{t(scenario.descriptionKey)}</h3>
               <div className="space-y-2 mb-4">
                 {scenario.steps.map((step, index) => (
                   <div key={index} className="flex items-start gap-2">
@@ -331,8 +340,8 @@ export function API3IntegrationGuide() {
               <div className="flex items-start gap-3">
                 {practice.icon}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">{practice.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{practice.description}</p>
+                  <h3 className="text-sm font-medium text-gray-900">{t(practice.titleKey)}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{t(practice.descriptionKey)}</p>
                 </div>
               </div>
             </div>
@@ -365,8 +374,8 @@ export function API3IntegrationGuide() {
             <tbody className="divide-y divide-gray-100">
               {troubleshooting.map((item, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{item.problem}</td>
-                  <td className="px-4 py-3 text-gray-600">{item.solution}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">{t(item.problemKey)}</td>
+                  <td className="px-4 py-3 text-gray-600">{t(item.solutionKey)}</td>
                 </tr>
               ))}
             </tbody>
@@ -391,7 +400,7 @@ export function API3IntegrationGuide() {
                 onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
-                <span className="text-sm font-medium text-gray-900">{faq.question}</span>
+                <span className="text-sm font-medium text-gray-900">{t(faq.questionKey)}</span>
                 <ChevronRight
                   className={`w-5 h-5 text-gray-400 transition-transform ${
                     expandedFaq === index ? 'rotate-90' : ''
@@ -400,7 +409,7 @@ export function API3IntegrationGuide() {
               </button>
               {expandedFaq === index && (
                 <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
-                  <p className="text-sm text-gray-600">{faq.answer}</p>
+                  <p className="text-sm text-gray-600">{t(faq.answerKey)}</p>
                 </div>
               )}
             </div>

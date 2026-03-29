@@ -31,6 +31,40 @@
     "navigation": {
       "title": "Navigation"
     },
+    "hero": {
+      "trend24h": "24H Trend",
+      "ago24h": "24h ago",
+      "now": "Now",
+      "health": "Health",
+      "gas": "Gas",
+      "response": "Response",
+      "online": "Online",
+      "support": "Support",
+      "chains": "chains",
+      "latestUpdates": "Latest Updates:",
+      "gasLevel": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "updates": {
+        "priceUpdate": "BAND Price Update: ${{price}} ({{change}})",
+        "newValidator": "New validator joined: {{moniker}} ({{region}})",
+        "feedUpdate": "{{symbol}} data feed updated",
+        "blockHeight": "BandChain Block Height: #{{height}}",
+        "justNow": "Just now",
+        "minutesAgo": "{{count}}m ago",
+        "hoursAgo": "{{count}}h ago"
+      }
+    },
+    "time": {
+      "secondsAgo": "{{count}}s ago",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "daysAgo": "{{count}}d ago",
+      "ended": "Ended",
+      "timeRemaining": "{{days}}d {{hours}}h"
+    },
     "network": {
       "activeValidators": "Active Validators",
       "stakingRatio": "Staking Ratio",
@@ -41,7 +75,19 @@
       "bondedTokens": "Bonded Tokens",
       "communityPool": "Community Pool",
       "stakingParticipation": "Staking Participation",
-      "cosmosMetrics": "Network Overview"
+      "cosmosMetrics": "Network Overview",
+      "hourlyActivity": "Hourly Activity",
+      "performance": "Network Performance",
+      "successRate": "Success Rate",
+      "availability": "Availability",
+      "latency": "Latency",
+      "timeLabels": {
+        "start": "00:00",
+        "6h": "06:00",
+        "12h": "12:00",
+        "18h": "18:00",
+        "end": "23:59"
+      }
     },
     "activeValidators": "Active Validators",
     "activePercent": "active",
@@ -83,7 +129,72 @@
       "trendDesc": "Historical risk score changes over the past 30 days",
       "loading": "Loading risk metrics...",
       "loadError": "Failed to load risk metrics",
-      "viewSource": "View Source"
+      "viewSource": "View Source",
+      "riskFactors": {
+        "smartContract": {
+          "category": "Smart Contract Risk",
+          "description": "Audited by CertiK and PeckShield with no critical vulnerabilities found. Continuous monitoring active.",
+          "detail1": "CertiK audit completed Q1 2024",
+          "detail2": "PeckShield security review passed",
+          "detail3": "Bug bounty program with $200K+ rewards",
+          "detail4": "Multi-sig governance for contract upgrades"
+        },
+        "oracle": {
+          "category": "Oracle Risk",
+          "description": "Decentralized validator network with economic incentives and slashing mechanisms.",
+          "detail1": "{{count}} validators across 25+ countries",
+          "detail2": "BFT consensus with 2/3+ threshold",
+          "detail3": "Token staking with slashing conditions",
+          "detail4": "Data source diversity from 15+ providers"
+        },
+        "market": {
+          "category": "Market Risk",
+          "description": "BAND token price volatility affects staking economics and network security budget.",
+          "detail1": "BAND price correlation with market sentiment",
+          "detail2": "Staking rewards denominated in BAND",
+          "detail3": "Validator rewards tied to token value",
+          "detail4": "Treasury management in progress"
+        },
+        "centralization": {
+          "category": "Centralization Risk",
+          "description": "Validator set is permissioned, with top validators holding significant stake concentration.",
+          "detail1": "Permissioned validator set ({{count}} active)",
+          "detail2": "Top 10 validators control ~45% stake",
+          "detail3": "Geographic concentration in Asia (~40%)",
+          "detail4": "Ongoing efforts to diversify validator base"
+        },
+        "regulatory": {
+          "category": "Regulatory Risk",
+          "description": "Potential regulatory changes in DeFi sector and oracle services classification.",
+          "detail1": "Ongoing regulatory clarity discussions",
+          "detail2": "Compliance framework development",
+          "detail3": "Geographic node distribution mitigates risk",
+          "detail4": "Legal team monitoring global regulations"
+        }
+      },
+      "metricsDisplay": {
+        "decentralization": {
+          "name": "Decentralization Score",
+          "description": "Based on validator diversity and geographic distribution across 25+ countries"
+        },
+        "security": {
+          "name": "Security Rating",
+          "description": "Based on audit history, bug bounty programs, and incident response"
+        },
+        "reliability": {
+          "name": "Network Reliability",
+          "description": "Uptime and successful response rate over the last 30 days"
+        },
+        "transparency": {
+          "name": "Transparency Score",
+          "description": "Based on documentation quality and open-source availability"
+        }
+      },
+      "level": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
     },
     "riskAssessment": {
       "overallRiskScore": "Composite Risk Rating",

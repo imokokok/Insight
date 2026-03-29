@@ -30,15 +30,15 @@ const CATEGORY_CONFIG: Record<DataSourceCategory, { label: string; color: string
   random: { label: 'Random', color: 'bg-indigo-100 text-indigo-700' },
 };
 
-function formatTimeAgo(timestamp: number): string {
+function formatTimeAgo(timestamp: number, t: (key: string, params?: Record<string, string | number | Date>) => string): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 60) return t('band.bandProtocol.time.secondsAgo', { count: seconds });
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return t('band.bandProtocol.time.minutesAgo', { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t('band.bandProtocol.time.hoursAgo', { count: hours });
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return t('band.bandProtocol.time.daysAgo', { count: days });
 }
 
 function formatNumber(num: number): string {
@@ -383,7 +383,7 @@ export function BandProtocolDataFeedsView() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="text-sm text-gray-500">
-                        {formatTimeAgo(feed.lastUpdated)}
+                        {formatTimeAgo(feed.lastUpdated, t)}
                       </span>
                     </td>
                   </tr>

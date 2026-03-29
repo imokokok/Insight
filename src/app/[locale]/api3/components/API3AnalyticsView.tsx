@@ -12,6 +12,7 @@ import {
 } from '@/components/oracle/analytics';
 import { useTranslations } from '@/i18n';
 import { useAPI3Historical } from '@/hooks/oracles/api3';
+import { Blockchain } from '@/types/oracle';
 import useAPI3Analytics, {
   type MetricDefinition,
   type DataSource,
@@ -21,31 +22,33 @@ import useAPI3Analytics, {
 
 type AnalyticsTab = 'report' | 'comparison' | 'prediction' | 'anomaly';
 
-const tabs = [
-  { id: 'report' as const, label: 'Custom Report', icon: FileText },
-  { id: 'comparison' as const, label: 'Data Comparison', icon: GitCompare },
-  { id: 'prediction' as const, label: 'Trend Prediction', icon: TrendingUp },
-  { id: 'anomaly' as const, label: 'Anomaly Detection', icon: AlertTriangle },
+const getTabs = (t: (key: string) => string) => [
+  { id: 'report' as const, labelKey: 'api3.analytics.tabs.report', icon: FileText },
+  { id: 'comparison' as const, labelKey: 'api3.analytics.tabs.comparison', icon: GitCompare },
+  { id: 'prediction' as const, labelKey: 'api3.analytics.tabs.prediction', icon: TrendingUp },
+  { id: 'anomaly' as const, labelKey: 'api3.analytics.tabs.anomaly', icon: AlertTriangle },
 ];
 
-const availableMetrics: MetricDefinition[] = [
-  { id: 'price', name: 'Price', category: 'Market Data', unit: 'USD', description: 'Current price of API3 token' },
-  { id: 'volume', name: 'Volume', category: 'Market Data', unit: 'USD', description: '24h trading volume' },
-  { id: 'marketCap', name: 'Market Cap', category: 'Market Data', unit: 'USD', description: 'Total market capitalization' },
-  { id: 'responseTime', name: 'Response Time', category: 'Performance', unit: 'ms', description: 'Average API response time' },
-  { id: 'successRate', name: 'Success Rate', category: 'Performance', unit: '%', description: 'API request success rate' },
-  { id: 'activeAirnodes', name: 'Active Airnodes', category: 'Network', description: 'Number of active Airnode operators' },
-  { id: 'activeDapis', name: 'Active dAPIs', category: 'Network', description: 'Number of active data feeds' },
-  { id: 'stakingApr', name: 'Staking APR', category: 'Staking', unit: '%', description: 'Annual percentage return for staking' },
-  { id: 'totalStaked', name: 'Total Staked', category: 'Staking', unit: 'API3', description: 'Total tokens staked' },
-  { id: 'coverageRatio', name: 'Coverage Ratio', category: 'Risk', unit: '%', description: 'Coverage pool collateralization ratio' },
+const getAvailableMetrics = (t: (key: string) => string): MetricDefinition[] => [
+  { id: 'price', name: t('api3.analytics.metrics.price.name'), category: t('api3.analytics.categories.market'), unit: 'USD', description: t('api3.analytics.metrics.price.description') },
+  { id: 'volume', name: t('api3.analytics.metrics.volume.name'), category: t('api3.analytics.categories.market'), unit: 'USD', description: t('api3.analytics.metrics.volume.description') },
+  { id: 'marketCap', name: t('api3.analytics.metrics.marketCap.name'), category: t('api3.analytics.categories.market'), unit: 'USD', description: t('api3.analytics.metrics.marketCap.description') },
+  { id: 'responseTime', name: t('api3.analytics.metrics.responseTime.name'), category: t('api3.analytics.categories.performance'), unit: 'ms', description: t('api3.analytics.metrics.responseTime.description') },
+  { id: 'successRate', name: t('api3.analytics.metrics.successRate.name'), category: t('api3.analytics.categories.performance'), unit: '%', description: t('api3.analytics.metrics.successRate.description') },
+  { id: 'activeAirnodes', name: t('api3.analytics.metrics.activeAirnodes.name'), category: t('api3.analytics.categories.network'), description: t('api3.analytics.metrics.activeAirnodes.description') },
+  { id: 'activeDapis', name: t('api3.analytics.metrics.activeDapis.name'), category: t('api3.analytics.categories.network'), description: t('api3.analytics.metrics.activeDapis.description') },
+  { id: 'stakingApr', name: t('api3.analytics.metrics.stakingApr.name'), category: t('api3.analytics.categories.staking'), unit: '%', description: t('api3.analytics.metrics.stakingApr.description') },
+  { id: 'totalStaked', name: t('api3.analytics.metrics.totalStaked.name'), category: t('api3.analytics.categories.staking'), unit: 'API3', description: t('api3.analytics.metrics.totalStaked.description') },
+  { id: 'coverageRatio', name: t('api3.analytics.metrics.coverageRatio.name'), category: t('api3.analytics.categories.risk'), unit: '%', description: t('api3.analytics.metrics.coverageRatio.description') },
 ];
 
 export function API3AnalyticsView() {
   const t = useTranslations();
+  const tabs = getTabs(t);
+  const availableMetrics = getAvailableMetrics(t);
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('report');
 
-  const { historicalData: apiHistoricalData, isLoading } = useAPI3Historical('API3', 'ethereum', true);
+  const { historicalData: apiHistoricalData, isLoading } = useAPI3Historical({ symbol: 'API3', chain: Blockchain.ETHEREUM, enabled: true });
 
   const analytics = useAPI3Analytics();
 
@@ -163,7 +166,7 @@ export function API3AnalyticsView() {
                 }`}
               >
                 <Icon className="w-4 h-4" />
-                {t(`api3.analytics.tabs.${tab.id}`) || tab.label}
+                {t(tab.labelKey)}
               </button>
             );
           })}

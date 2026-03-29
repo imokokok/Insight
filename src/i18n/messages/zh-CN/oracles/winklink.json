@@ -12,6 +12,10 @@
       "tronEcosystem": "TRON生态",
       "staking": "质押",
       "gaming": "游戏",
+      "vrf": "VRF随机数",
+      "crossChain": "跨链数据",
+      "accuracy": "数据准确性",
+      "developer": "开发者资源",
       "riskAssessment": "风险评估"
     },
     "navigation": {

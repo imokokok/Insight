@@ -5,6 +5,15 @@ export { PythClient } from './pythNetwork';
 export { API3Client } from './api3';
 export { RedStoneClient } from './redstone';
 export { DIAClient } from './dia';
+export {
+  DIADataService,
+  getDIADataService,
+  resetDIADataService,
+  type DIAAssetQuotation,
+  type DIANFTQuotation,
+  type DIASupply,
+  type DIADigitalAsset,
+} from './diaDataService';
 export { TellorClient } from './tellor';
 export { ChronicleClient } from './chronicle';
 export { WINkLinkClient } from './winklink';
@@ -31,6 +40,12 @@ export type {
   ChronicleValidator,
   ValidatorNetwork,
   ChronicleNetworkStats,
+  VaultData,
+  VaultTypeData,
+  ScuttlebuttConsensus,
+  ValidatorVote,
+  CrossChainPrice,
+  PriceDeviation,
 } from './chronicle';
 export type {
   TRONNetworkStats,

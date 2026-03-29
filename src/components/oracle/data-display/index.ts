@@ -27,3 +27,4 @@ export { SnapshotComparison } from './SnapshotComparison';
 export { FavoriteManager } from './FavoriteManager';
 export { QuickAccessPanel } from './QuickAccessPanel';
 export { CacheStatusIndicator, CacheStatusPanel } from './CacheStatusIndicator';
+export { DataSourceIndicator, VerificationBadge } from './DataSourceIndicator';

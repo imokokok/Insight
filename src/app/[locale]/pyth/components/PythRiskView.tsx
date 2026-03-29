@@ -28,140 +28,134 @@ import { chartColors } from '@/lib/config/colors';
 
 import { type TimelineEvent, type RiskMetric, type RiskFactor } from '../types';
 
-// 历史风险事件
-const historicalRiskEvents: TimelineEvent[] = [
-  {
-    date: '2024-02-15T10:30:00',
-    title: '安全审计完成',
-    description: 'Pyth Network 核心合约通过 OtterSec 和 Neodyme 的联合安全审计，未发现重大漏洞。',
-    type: 'success',
-  },
-  {
-    date: '2023-12-08T14:20:00',
-    title: '主网升级完成',
-    description: '完成 Pythnet 升级，引入新的共识机制和增强的数据验证能力。',
-    type: 'info',
-  },
-  {
-    date: '2023-10-22T09:15:00',
-    title: '价格延迟事件',
-    description: '由于 Solana 网络拥堵，部分价格喂送出现 5-10 秒延迟。团队已优化数据分发路径。',
-    type: 'warning',
-  },
-  {
-    date: '2023-08-14T16:45:00',
-    title: '发布者里程碑',
-    description: '第一方数据发布者数量突破 80 家，包括顶级交易所和做市商。',
-    type: 'success',
-  },
-  {
-    date: '2023-05-03T11:30:00',
-    title: '跨链扩展',
-    description: '通过 Wormhole 支持扩展到 20+ 条区块链网络。',
-    type: 'success',
-  },
-];
-
-// 行业基准对比数据
-const benchmarkData = [
-  { metric: '去中心化', pyth: 85, chainlink: 95, band: 65, api3: 70 },
-  { metric: '安全性', pyth: 92, chainlink: 98, band: 72, api3: 80 },
-  { metric: '可靠性', pyth: 97.5, chainlink: 99.9, band: 94.2, api3: 96.8 },
-  { metric: '透明度', pyth: 88, chainlink: 92, band: 70, api3: 85 },
-  { metric: '历史记录', pyth: 75, chainlink: 98, band: 82, api3: 78 },
-];
-
-// 风险指标
-const riskMetrics: RiskMetric[] = [
-  {
-    id: 'decentralization',
-    name: 'Decentralization Score',
-    value: 85,
-    max: 100,
-    description: 'Based on publisher diversity and geographic distribution',
-    status: 'medium',
-    trend: 'up',
-  },
-  {
-    id: 'security',
-    name: 'Security Rating',
-    value: 92,
-    max: 100,
-    description: 'Based on audit history and incident response',
-    status: 'low',
-    trend: 'stable',
-  },
-  {
-    id: 'reliability',
-    name: 'Network Reliability',
-    value: 97.5,
-    max: 100,
-    description: 'Uptime and successful response rate over the last 30 days',
-    status: 'low',
-    trend: 'up',
-  },
-  {
-    id: 'transparency',
-    name: 'Transparency Score',
-    value: 88,
-    max: 100,
-    description: 'Based on documentation quality and data availability',
-    status: 'low',
-    trend: 'stable',
-  },
-];
-
-// 风险因素
-const riskFactors: RiskFactor[] = [
-  {
-    category: 'Smart Contract Risk',
-    level: 'low',
-    description:
-      'Multiple audits by leading security firms including OtterSec and Neodyme. No critical vulnerabilities found.',
-    details: [
-      'OtterSec audit completed Q1 2024',
-      'Neodyme continuous monitoring active',
-      'Open source contracts for community review',
-    ],
-  },
-  {
-    category: 'Oracle Risk',
-    level: 'medium',
-    description:
-      'First-party data model with 80+ publishers. Relies on publisher reputation and staking.',
-    details: [
-      '80+ first-party data publishers',
-      'Publisher staking mechanism',
-      'Consensus-based price aggregation',
-    ],
-  },
-  {
-    category: 'Network Risk',
-    level: 'medium',
-    description: 'Built on Solana, subject to network congestion and downtime risks.',
-    details: [
-      'Solana network dependency',
-      'Wormhole bridge for cross-chain',
-      'Backup data paths in development',
-    ],
-  },
-  {
-    category: 'Market Risk',
-    level: 'low',
-    description:
-      'PYTH token used for governance and staking. Price volatility affects staking economics.',
-    details: [
-      'PYTH token governance rights',
-      'Staking rewards in PYTH',
-      'Treasury diversification planned',
-    ],
-  },
-];
-
 export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
   const t = useTranslations();
+  const tPyth = useTranslations('pyth');
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
+
+  const historicalRiskEvents: TimelineEvent[] = [
+    {
+      date: '2024-02-15T10:30:00',
+      title: tPyth('riskEvents.securityAuditComplete.title'),
+      description: tPyth('riskEvents.securityAuditComplete.description'),
+      type: 'success',
+    },
+    {
+      date: '2023-12-08T14:20:00',
+      title: tPyth('riskEvents.mainnetUpgrade.title'),
+      description: tPyth('riskEvents.mainnetUpgrade.description'),
+      type: 'info',
+    },
+    {
+      date: '2023-10-22T09:15:00',
+      title: tPyth('riskEvents.priceDelay.title'),
+      description: tPyth('riskEvents.priceDelay.description'),
+      type: 'warning',
+    },
+    {
+      date: '2023-08-14T16:45:00',
+      title: tPyth('riskEvents.publisherMilestone.title'),
+      description: tPyth('riskEvents.publisherMilestone.description'),
+      type: 'success',
+    },
+    {
+      date: '2023-05-03T11:30:00',
+      title: tPyth('riskEvents.crossChainExpansion.title'),
+      description: tPyth('riskEvents.crossChainExpansion.description'),
+      type: 'success',
+    },
+  ];
+
+  const benchmarkData = [
+    { metric: tPyth('benchmarkMetrics.decentralization'), pyth: 85, chainlink: 95, band: 65, api3: 70 },
+    { metric: tPyth('benchmarkMetrics.security'), pyth: 92, chainlink: 98, band: 72, api3: 80 },
+    { metric: tPyth('benchmarkMetrics.reliability'), pyth: 97.5, chainlink: 99.9, band: 94.2, api3: 96.8 },
+    { metric: tPyth('benchmarkMetrics.transparency'), pyth: 88, chainlink: 92, band: 70, api3: 85 },
+    { metric: tPyth('benchmarkMetrics.trackRecord'), pyth: 75, chainlink: 98, band: 82, api3: 78 },
+  ];
+
+  const riskMetrics: RiskMetric[] = [
+    {
+      id: 'decentralization',
+      name: tPyth('riskMetricNames.decentralization'),
+      value: 85,
+      max: 100,
+      description: tPyth('riskMetricDescriptions.decentralization'),
+      status: 'medium',
+      trend: 'up',
+    },
+    {
+      id: 'security',
+      name: tPyth('riskMetricNames.security'),
+      value: 92,
+      max: 100,
+      description: tPyth('riskMetricDescriptions.security'),
+      status: 'low',
+      trend: 'stable',
+    },
+    {
+      id: 'reliability',
+      name: tPyth('riskMetricNames.reliability'),
+      value: 97.5,
+      max: 100,
+      description: tPyth('riskMetricDescriptions.reliability'),
+      status: 'low',
+      trend: 'up',
+    },
+    {
+      id: 'transparency',
+      name: tPyth('riskMetricNames.transparency'),
+      value: 88,
+      max: 100,
+      description: tPyth('riskMetricDescriptions.transparency'),
+      status: 'low',
+      trend: 'stable',
+    },
+  ];
+
+  const riskFactors: RiskFactor[] = [
+    {
+      category: tPyth('riskFactorCategories.smartContract'),
+      level: 'low',
+      description: tPyth('riskFactorDescriptions.smartContract'),
+      details: [
+        tPyth('riskFactorDetails.otterSecAudit'),
+        tPyth('riskFactorDetails.neodymeMonitoring'),
+        tPyth('riskFactorDetails.openSourceContracts'),
+      ],
+    },
+    {
+      category: tPyth('riskFactorCategories.oracle'),
+      level: 'medium',
+      description: tPyth('riskFactorDescriptions.oracle'),
+      details: [
+        tPyth('riskFactorDetails.firstPartyPublishers'),
+        tPyth('riskFactorDetails.publisherStaking'),
+        tPyth('riskFactorDetails.consensusAggregation'),
+      ],
+    },
+    {
+      category: tPyth('riskFactorCategories.network'),
+      level: 'medium',
+      description: tPyth('riskFactorDescriptions.network'),
+      details: [
+        tPyth('riskFactorDetails.solanaDependency'),
+        tPyth('riskFactorDetails.wormholeBridge'),
+        tPyth('riskFactorDetails.backupPaths'),
+      ],
+    },
+    {
+      category: tPyth('riskFactorCategories.market'),
+      level: 'low',
+      description: tPyth('riskFactorDescriptions.market'),
+      details: [
+        tPyth('riskFactorDetails.pythGovernance'),
+        tPyth('riskFactorDetails.stakingRewards'),
+        tPyth('riskFactorDetails.treasuryDiversification'),
+      ],
+    },
+  ];
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -210,17 +204,16 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
-              {t('pyth.risk.metrics') || 'Risk Metrics'}
+              {tPyth('risk.metrics')}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {t('pyth.risk.metricsDesc') ||
-                'Key performance indicators across decentralization, security, and reliability'}
+              {tPyth('risk.metricsDesc')}
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
             <Shield className="w-5 h-5 text-emerald-600" />
             <span className="text-sm font-medium text-emerald-700">
-              {t('pyth.risk.overallScore') || 'Overall'}: {overallScore.toFixed(1)}/100
+              {tPyth('risk.overallScore')}: {overallScore.toFixed(1)}/100
             </span>
           </div>
         </div>
@@ -259,11 +252,10 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('pyth.risk.benchmark') || 'Industry Benchmark Comparison'}
+            {tPyth('risk.benchmark')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('pyth.risk.benchmarkDesc') ||
-              'Performance comparison against other leading oracle providers'}
+            {tPyth('risk.benchmarkDesc')}
           </p>
         </div>
 
@@ -313,7 +305,7 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
           {/* 对比表格 */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-700">
-              {t('pyth.risk.comparison') || 'Detailed Comparison'}
+              {tPyth('risk.comparison')}
             </h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
@@ -352,11 +344,10 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('pyth.risk.timeline') || 'Historical Risk Events'}
+            {tPyth('risk.timeline')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('pyth.risk.timelineDesc') ||
-              'Security audits, incidents and upgrades over the past 24 months'}
+            {tPyth('risk.timelineDesc')}
           </p>
         </div>
 
@@ -411,7 +402,7 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
           {/* 事件详情 */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-4">
-              {t('pyth.risk.eventDetails') || 'Event Details'}
+              {tPyth('risk.eventDetails')}
             </h3>
             {selectedEvent ? (
               <div className="space-y-4 p-4 bg-gray-50 rounded-md">
@@ -448,7 +439,7 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
                 <p className="text-sm text-gray-500">
-                  {t('pyth.risk.clickEvent') || 'Click an event to view details'}
+                  {tPyth('risk.clickEvent')}
                 </p>
               </div>
             )}
@@ -463,10 +454,10 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('pyth.risk.factors') || 'Risk Factor Analysis'}
+            {tPyth('risk.factors')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('pyth.risk.factorsDesc') || 'Detailed breakdown of identified risk categories'}
+            {tPyth('risk.factorsDesc')}
           </p>
         </div>
 
@@ -481,7 +472,7 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
                   <span
                     className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}
                   >
-                    {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
+                    {tPyth(`riskLevelLabels.${factor.level}`)}
                   </span>
                   <span className="text-sm font-medium text-gray-900">{factor.category}</span>
                 </div>
@@ -525,11 +516,10 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
         <Info className="w-5 h-5 text-violet-600 mt-0.5 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('pyth.risk.disclaimer') || 'Disclaimer'}
+            {tPyth('risk.disclaimer')}
           </h3>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-            {t('pyth.risk.disclaimerText') ||
-              'Risk assessments are based on publicly available information and historical data. They do not constitute financial advice. Always conduct your own research before making investment decisions.'}
+            {tPyth('risk.disclaimerText')}
           </p>
         </div>
       </section>

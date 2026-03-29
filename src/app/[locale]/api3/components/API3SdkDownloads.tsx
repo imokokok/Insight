@@ -20,31 +20,31 @@ interface SdkInfo {
   name: string;
   language: string;
   version: string;
-  description: string;
+  descriptionKey: string;
   installCommand: string;
   npmUrl: string;
   githubUrl: string;
   docsUrl: string;
-  features: string[];
+  featureKeys: string[];
   status: 'stable' | 'beta' | 'alpha';
 }
 
-const sdks: SdkInfo[] = [
+const getSdks = (t: (key: string) => string): SdkInfo[] => [
   {
     id: 'javascript',
     name: '@api3/contracts',
     language: 'JavaScript/TypeScript',
     version: 'v2.0.0',
-    description: 'API3 智能合约 SDK，包含所有合约接口和工具函数',
+    descriptionKey: 'api3.developer.sdk.contracts.description',
     installCommand: 'npm install @api3/contracts',
     npmUrl: 'https://www.npmjs.com/package/@api3/contracts',
     githubUrl: 'https://github.com/api3dao/contracts',
     docsUrl: 'https://docs.api3.org/reference/contracts/',
-    features: [
-      '完整的合约类型定义',
-      'TypeScript 支持',
-      'Hardhat 插件集成',
-      '合约部署脚本',
+    featureKeys: [
+      'api3.developer.sdk.contracts.features.typeDefinitions',
+      'api3.developer.sdk.contracts.features.typescript',
+      'api3.developer.sdk.contracts.features.hardhat',
+      'api3.developer.sdk.contracts.features.deployScripts',
     ],
     status: 'stable',
   },
@@ -53,16 +53,16 @@ const sdks: SdkInfo[] = [
     name: '@api3/airnode-protocol',
     language: 'JavaScript/TypeScript',
     version: 'v0.11.0',
-    description: 'Airnode 协议 SDK，用于部署和管理 Airnode',
+    descriptionKey: 'api3.developer.sdk.airnode.description',
     installCommand: 'npm install @api3/airnode-protocol',
     npmUrl: 'https://www.npmjs.com/package/@api3/airnode-protocol',
     githubUrl: 'https://github.com/api3dao/airnode',
     docsUrl: 'https://docs.api3.org/airnode/',
-    features: [
-      'Airnode 部署工具',
-      '配置管理',
-      'OIS 模板',
-      '监控集成',
+    featureKeys: [
+      'api3.developer.sdk.airnode.features.deploy',
+      'api3.developer.sdk.airnode.features.config',
+      'api3.developer.sdk.airnode.features.ois',
+      'api3.developer.sdk.airnode.features.monitoring',
     ],
     status: 'stable',
   },
@@ -71,16 +71,16 @@ const sdks: SdkInfo[] = [
     name: 'api3-python',
     language: 'Python',
     version: 'v1.2.0',
-    description: 'Python SDK，用于与 API3 合约交互',
+    descriptionKey: 'api3.developer.sdk.python.description',
     installCommand: 'pip install api3-python',
     npmUrl: 'https://pypi.org/project/api3-python/',
     githubUrl: 'https://github.com/api3dao/api3-python',
     docsUrl: 'https://docs.api3.org/reference/python-sdk/',
-    features: [
-      'Web3.py 集成',
-      '异步支持',
-      '合约 ABI 封装',
-      '类型提示',
+    featureKeys: [
+      'api3.developer.sdk.python.features.web3',
+      'api3.developer.sdk.python.features.async',
+      'api3.developer.sdk.python.features.abi',
+      'api3.developer.sdk.python.features.typing',
     ],
     status: 'stable',
   },
@@ -89,16 +89,16 @@ const sdks: SdkInfo[] = [
     name: 'go-api3',
     language: 'Go',
     version: 'v0.3.0',
-    description: 'Go 语言 SDK，用于构建高性能应用',
+    descriptionKey: 'api3.developer.sdk.go.description',
     installCommand: 'go get github.com/api3dao/go-api3',
     npmUrl: '',
     githubUrl: 'https://github.com/api3dao/go-api3',
     docsUrl: 'https://docs.api3.org/reference/go-sdk/',
-    features: [
-      '原生 Go 实现',
-      '并发安全',
-      'ethclient 集成',
-      'ABI 编码/解码',
+    featureKeys: [
+      'api3.developer.sdk.go.features.native',
+      'api3.developer.sdk.go.features.concurrent',
+      'api3.developer.sdk.go.features.ethclient',
+      'api3.developer.sdk.go.features.abi',
     ],
     status: 'beta',
   },
@@ -107,39 +107,39 @@ const sdks: SdkInfo[] = [
     name: 'api3-rs',
     language: 'Rust',
     version: 'v0.2.0',
-    description: 'Rust SDK，用于构建安全可靠的应用',
+    descriptionKey: 'api3.developer.sdk.rust.description',
     installCommand: 'api3-rs = "0.2"',
     npmUrl: 'https://crates.io/crates/api3-rs',
     githubUrl: 'https://github.com/api3dao/api3-rs',
     docsUrl: 'https://docs.api3.org/reference/rust-sdk/',
-    features: [
-      '零成本抽象',
-      '异步运行时',
-      '类型安全',
-      'no_std 支持',
+    featureKeys: [
+      'api3.developer.sdk.rust.features.zero',
+      'api3.developer.sdk.rust.features.async',
+      'api3.developer.sdk.rust.features.safe',
+      'api3.developer.sdk.rust.features.noStd',
     ],
     status: 'alpha',
   },
 ];
 
-const getStatusBadge = (status: SdkInfo['status']) => {
+const getStatusBadge = (status: SdkInfo['status'], t: (key: string) => string) => {
   switch (status) {
     case 'stable':
       return (
         <span className="px-2 py-0.5 text-xs font-medium bg-emerald-50 text-emerald-700 rounded">
-          Stable
+          {t('api3.developer.sdk.stable')}
         </span>
       );
     case 'beta':
       return (
         <span className="px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded">
-          Beta
+          {t('api3.developer.sdk.beta')}
         </span>
       );
     case 'alpha':
       return (
         <span className="px-2 py-0.5 text-xs font-medium bg-amber-50 text-amber-700 rounded">
-          Alpha
+          {t('api3.developer.sdk.alpha')}
         </span>
       );
   }
@@ -147,6 +147,7 @@ const getStatusBadge = (status: SdkInfo['status']) => {
 
 export function API3SdkDownloads() {
   const t = useTranslations();
+  const sdks = getSdks(t);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopy = async (command: string, id: string) => {
@@ -175,14 +176,14 @@ export function API3SdkDownloads() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-semibold text-gray-900">{sdk.name}</h3>
-                    {getStatusBadge(sdk.status)}
+                    {getStatusBadge(sdk.status, t)}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">{sdk.language}</p>
                 </div>
                 <span className="text-xs font-mono text-gray-400">{sdk.version}</span>
               </div>
 
-              <p className="text-sm text-gray-600 mb-3">{sdk.description}</p>
+              <p className="text-sm text-gray-600 mb-3">{t(sdk.descriptionKey)}</p>
 
               <div className="relative bg-gray-900 rounded-lg p-3 mb-3">
                 <button
@@ -199,12 +200,12 @@ export function API3SdkDownloads() {
               </div>
 
               <div className="flex flex-wrap gap-1.5 mb-3">
-                {sdk.features.map((feature, index) => (
+                {sdk.featureKeys.map((featureKey, index) => (
                   <span
                     key={index}
                     className="px-2 py-0.5 text-xs bg-gray-50 text-gray-600 rounded"
                   >
-                    {feature}
+                    {t(featureKey)}
                   </span>
                 ))}
               </div>
@@ -218,7 +219,7 @@ export function API3SdkDownloads() {
                     className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-emerald-600"
                   >
                     <Box className="w-3.5 h-3.5" />
-                    Package
+                    {t('api3.developer.sdk.package')}
                   </a>
                 )}
                 <a
@@ -259,9 +260,9 @@ export function API3SdkDownloads() {
             <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-3">
               <FileText className="w-5 h-5 text-emerald-600" />
             </div>
-            <h3 className="text-sm font-medium text-gray-900">Hardhat 插件</h3>
+            <h3 className="text-sm font-medium text-gray-900">{t('api3.developer.sdk.additionalTools.hardhatPlugin.title')}</h3>
             <p className="text-xs text-gray-500 mt-1">
-              用于部署和测试 API3 合约的 Hardhat 插件
+              {t('api3.developer.sdk.additionalTools.hardhatPlugin.description')}
             </p>
             <div className="mt-3 bg-gray-900 rounded p-2">
               <code className="text-xs text-gray-100 font-mono">npm install @api3/hardhat-plugin</code>
@@ -272,9 +273,9 @@ export function API3SdkDownloads() {
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-3">
               <Box className="w-5 h-5 text-blue-600" />
             </div>
-            <h3 className="text-sm font-medium text-gray-900">Foundry 组件</h3>
+            <h3 className="text-sm font-medium text-gray-900">{t('api3.developer.sdk.additionalTools.foundry.title')}</h3>
             <p className="text-xs text-gray-500 mt-1">
-              用于 Foundry 项目的合约组件库
+              {t('api3.developer.sdk.additionalTools.foundry.description')}
             </p>
             <div className="mt-3 bg-gray-900 rounded p-2">
               <code className="text-xs text-gray-100 font-mono">forge install api3dao/contracts</code>
@@ -285,9 +286,9 @@ export function API3SdkDownloads() {
             <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center mb-3">
               <Github className="w-5 h-5 text-purple-600" />
             </div>
-            <h3 className="text-sm font-medium text-gray-900">示例代码库</h3>
+            <h3 className="text-sm font-medium text-gray-900">{t('api3.developer.sdk.additionalTools.examples.title')}</h3>
             <p className="text-xs text-gray-500 mt-1">
-              包含各种集成场景的示例代码
+              {t('api3.developer.sdk.additionalTools.examples.description')}
             </p>
             <a
               href="https://github.com/api3dao/examples"
@@ -295,7 +296,7 @@ export function API3SdkDownloads() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 mt-3"
             >
-              查看示例 <ExternalLink className="w-3.5 h-3.5" />
+              {t('api3.developer.sdk.additionalTools.examples.viewExamples')} <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>
@@ -320,7 +321,7 @@ export function API3SdkDownloads() {
               rel="noopener noreferrer"
               className="text-sm text-emerald-600 hover:text-emerald-700"
             >
-              Discord 社区
+              {t('api3.developer.sdk.support.discord')}
             </a>
             <a
               href="https://github.com/api3dao"
@@ -328,7 +329,7 @@ export function API3SdkDownloads() {
               rel="noopener noreferrer"
               className="text-sm text-emerald-600 hover:text-emerald-700"
             >
-              GitHub Issues
+              {t('api3.developer.sdk.support.github')}
             </a>
             <a
               href="https://docs.api3.org"
@@ -336,7 +337,7 @@ export function API3SdkDownloads() {
               rel="noopener noreferrer"
               className="text-sm text-emerald-600 hover:text-emerald-700"
             >
-              官方文档
+              {t('api3.developer.sdk.support.docs')}
             </a>
           </div>
         </div>

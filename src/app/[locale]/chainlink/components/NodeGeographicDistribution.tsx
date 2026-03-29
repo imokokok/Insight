@@ -13,7 +13,7 @@ type Region = 'all' | 'northAmerica' | 'europe' | 'asia' | 'others';
 
 interface RegionData {
   id: Region;
-  name: string;
+  nameKey: string;
   nodeCount: number;
   avgResponseTime: number;
   successRate: number;
@@ -29,7 +29,7 @@ const generateRegionData = (): RegionData[] => {
   const data: RegionData[] = [
     {
       id: 'northAmerica',
-      name: 'North America',
+      nameKey: 'regions.northAmerica',
       nodeCount: 684,
       avgResponseTime: 142,
       successRate: 99.94,
@@ -38,7 +38,7 @@ const generateRegionData = (): RegionData[] => {
     },
     {
       id: 'europe',
-      name: 'Europe',
+      nameKey: 'regions.europe',
       nodeCount: 516,
       avgResponseTime: 165,
       successRate: 99.91,
@@ -47,7 +47,7 @@ const generateRegionData = (): RegionData[] => {
     },
     {
       id: 'asia',
-      name: 'Asia',
+      nameKey: 'regions.asia',
       nodeCount: 443,
       avgResponseTime: 198,
       successRate: 99.87,
@@ -56,7 +56,7 @@ const generateRegionData = (): RegionData[] => {
     },
     {
       id: 'others',
-      name: 'Others',
+      nameKey: 'regions.others',
       nodeCount: 204,
       avgResponseTime: 215,
       successRate: 99.82,
@@ -172,7 +172,9 @@ export function NodeGeographicDistribution({ className }: NodeGeographicDistribu
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: region.color }} />
-                  <span className="font-medium text-gray-900">{region.name}</span>
+                  <span className="font-medium text-gray-900">
+                    {t(`chainlink.${region.nameKey}`)}
+                  </span>
                 </div>
                 <span className="text-sm text-gray-500">{region.percentage}%</span>
               </div>
@@ -223,12 +225,14 @@ export function NodeGeographicDistribution({ className }: NodeGeographicDistribu
 
         <div className="pt-3 border-t border-gray-100">
           <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>{t('chainlink.network.lastUpdated')}: 2 min ago</span>
+            <span>
+              {t('chainlink.network.lastUpdated')}: {t('chainlink.por.timeAgo.minutesAgo', { count: 2 })}
+            </span>
             <div className="flex items-center gap-4">
               {regionData.map((region) => (
                 <div key={region.id} className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: region.color }} />
-                  <span>{region.name}</span>
+                  <span>{t(`chainlink.${region.nameKey}`)}</span>
                 </div>
               ))}
             </div>

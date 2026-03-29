@@ -335,6 +335,163 @@
       "slashingConditions": "惩罚条件",
       "decentralizedGovernance": "去中心化治理",
       "realTimeMonitoring": "实时监控"
-    }
+    },
+    "hero": {
+      "thisMonth": "本月"
+    },
+    "categories": {
+      "all": "全部",
+      "crypto": "加密货币",
+      "forex": "外汇",
+      "commodities": "商品",
+      "equities": "股票"
+    },
+    "status": {
+      "active": "活跃",
+      "paused": "暂停",
+      "offline": "离线"
+    },
+    "dataSources": {
+      "pythNetwork": "Pyth Network",
+      "solanaMainnet": "Solana 主网",
+      "ethereumMainnet": "Ethereum 主网",
+      "publisherConsensus": "发布者共识"
+    },
+    "chains": {
+      "solana": "Solana",
+      "ethereum": "Ethereum",
+      "arbitrum": "Arbitrum",
+      "optimism": "Optimism",
+      "polygon": "Polygon",
+      "base": "Base",
+      "avalanche": "Avalanche",
+      "bsc": "BNB Chain"
+    },
+    "crossChain": {
+      "title": "跨链支持",
+      "supported": "已支持",
+      "updateFrequency": "更新频率",
+      "latency": "延迟",
+      "status": "状态",
+      "online": "在线",
+      "description": "Pyth 通过 Wormhole 跨链协议支持多条区块链，实现亚秒级价格更新。",
+      "avgDeviation": "平均价格偏差",
+      "maxDeviation": "最大偏差链",
+      "successRate": "更新成功率",
+      "wormholeStatus": "Wormhole状态",
+      "priceComparison": "多链价格对比",
+      "basePrice": "基准价格",
+      "chain": "链",
+      "price": "价格",
+      "deviation": "偏差",
+      "lastUpdate": "最后更新",
+      "deviationHeatmap": "价格偏差热力图",
+      "wormholeInfo": "Wormhole跨链状态",
+      "guardianNetwork": "Guardian网络",
+      "healthy": "健康",
+      "degraded": "降级",
+      "critical": "异常",
+      "activeGuardians": "活跃Guardians",
+      "vaaLatency": "VAA延迟",
+      "crossChainFlow": "跨链数据流",
+      "avgTransferTime": "平均传输时间",
+      "updateLatency": "链上更新延迟对比",
+      "consistencyScore": "价格一致性评分",
+      "overallScore": "总体评分",
+      "excellent": "优秀 - 跨链价格高度一致",
+      "updateSync": "更新同步率",
+      "chainsSynced": "所有链在1秒内同步更新",
+      "arbOpportunity": "套利机会",
+      "lowArb": "低套利空间 - 市场效率高",
+      "timeAgo": {
+        "seconds": "{seconds}秒前",
+        "minutes": "{minutes}分钟前"
+      }
+    },
+    "riskEvents": {
+      "securityAuditComplete": {
+        "title": "安全审计完成",
+        "description": "Pyth Network 核心合约通过 OtterSec 和 Neodyme 的联合安全审计，未发现重大漏洞。"
+      },
+      "mainnetUpgrade": {
+        "title": "主网升级完成",
+        "description": "完成 Pythnet 升级，引入新的共识机制和增强的数据验证能力。"
+      },
+      "priceDelay": {
+        "title": "价格延迟事件",
+        "description": "由于 Solana 网络拥堵，部分价格喂送出现 5-10 秒延迟。团队已优化数据分发路径。"
+      },
+      "publisherMilestone": {
+        "title": "发布者里程碑",
+        "description": "第一方数据发布者数量突破 80 家，包括顶级交易所和做市商。"
+      },
+      "crossChainExpansion": {
+        "title": "跨链扩展",
+        "description": "通过 Wormhole 支持扩展到 20+ 条区块链网络。"
+      }
+    },
+    "riskMetricNames": {
+      "decentralization": "去中心化评分",
+      "security": "安全评级",
+      "reliability": "网络可靠性",
+      "transparency": "透明度评分"
+    },
+    "riskMetricDescriptions": {
+      "decentralization": "基于发布者多样性和地理分布",
+      "security": "基于审计历史和事件响应",
+      "reliability": "过去30天的正常运行时间和成功响应率",
+      "transparency": "基于文档质量和数据可用性"
+    },
+    "riskFactorCategories": {
+      "smartContract": "智能合约风险",
+      "oracle": "预言机风险",
+      "network": "网络风险",
+      "market": "市场风险"
+    },
+    "riskFactorDescriptions": {
+      "smartContract": "由 OtterSec 和 Neodyme 等领先安全公司进行多次审计。未发现关键漏洞。",
+      "oracle": "第一方数据模型，拥有 80+ 发布者。依赖发布者声誉和质押。",
+      "network": "基于 Solana 构建，受网络拥堵和停机风险影响。",
+      "market": "PYTH 代币用于治理和质押。价格波动影响质押经济。"
+    },
+    "riskFactorDetails": {
+      "otterSecAudit": "OtterSec 审计于 2024 年第一季度完成",
+      "neodymeMonitoring": "Neodyme 持续监控已激活",
+      "openSourceContracts": "开源合约供社区审查",
+      "firstPartyPublishers": "80+ 第一方数据发布者",
+      "publisherStaking": "发布者质押机制",
+      "consensusAggregation": "基于共识的价格聚合",
+      "solanaDependency": "Solana 网络依赖",
+      "wormholeBridge": "Wormhole 跨链桥",
+      "backupPaths": "备用数据路径开发中",
+      "pythGovernance": "PYTH 代币治理权",
+      "stakingRewards": "PYTH 质押奖励",
+      "treasuryDiversification": "财政部多元化计划"
+    },
+    "benchmarkMetrics": {
+      "decentralization": "去中心化",
+      "security": "安全性",
+      "reliability": "可靠性",
+      "transparency": "透明度",
+      "trackRecord": "历史记录"
+    },
+    "riskLevelLabels": {
+      "low": "低",
+      "medium": "中",
+      "high": "高"
+    },
+    "riskMetricNames": {
+      "decentralization": "去中心化评分",
+      "security": "安全评级",
+      "reliability": "网络可靠性",
+      "transparency": "透明度评分"
+    },
+    "riskMetricDescriptions": {
+      "decentralization": "基于发布者多样性和地理分布",
+      "security": "基于审计历史和事件响应",
+      "reliability": "过去30天的正常运行时间和成功响应率",
+      "transparency": "基于文档质量和数据可用性"
+    },
+    "confidenceIntervalTrend": "置信区间趋势"
   }
 }

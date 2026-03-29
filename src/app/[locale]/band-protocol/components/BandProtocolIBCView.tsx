@@ -8,16 +8,16 @@ import { useTranslations } from '@/i18n';
 
 import { type BandProtocolIBCViewProps } from '../types';
 
-function formatTimeAgo(timestamp: number): string {
+function formatTimeAgo(timestamp: number, t: (key: string, params?: Record<string, string | number | Date>) => string): string {
   const now = Date.now();
   const diff = now - timestamp;
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
 
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return `${days}d ago`;
+  if (minutes < 60) return t('band.bandProtocol.time.minutesAgo', { count: minutes });
+  if (hours < 24) return t('band.bandProtocol.time.hoursAgo', { count: hours });
+  return t('band.bandProtocol.time.daysAgo', { count: days });
 }
 
 function formatDate(timestamp: number): string {
@@ -267,7 +267,7 @@ export function BandProtocolIBCView({
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-right text-gray-500 text-xs">
-                    {formatTimeAgo(conn.lastActivity)}
+                    {formatTimeAgo(conn.lastActivity, t)}
                   </td>
                 </tr>
               ))}

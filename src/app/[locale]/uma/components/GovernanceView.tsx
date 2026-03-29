@@ -38,7 +38,7 @@ interface GovernanceViewProps {
 
 type TabId = 'active' | 'history' | 'guide';
 
-function CountdownTimer({ endBlock, currentBlock }: { endBlock: number; currentBlock: number }) {
+function CountdownTimer({ endBlock, currentBlock, t }: { endBlock: number; currentBlock: number; t: ReturnType<typeof useTranslations> }) {
   const blocksRemaining = endBlock - currentBlock;
   const secondsRemaining = blocksRemaining * 12;
   const [timeLeft, setTimeLeft] = useState(secondsRemaining);
@@ -67,7 +67,7 @@ function CountdownTimer({ endBlock, currentBlock }: { endBlock: number; currentB
         {days > 0 && `${days}d `}
         {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m
       </span>
-      <span className="text-xs">剩余</span>
+      <span className="text-xs">{t('uma.governance.reached')}</span>
     </div>
   );
 }
@@ -75,11 +75,12 @@ function CountdownTimer({ endBlock, currentBlock }: { endBlock: number; currentB
 function ProposalCard({
   proposal,
   onViewDetails,
+  t,
 }: {
   proposal: GovernanceProposal;
   onViewDetails?: (proposal: GovernanceProposal) => void;
+  t: ReturnType<typeof useTranslations>;
 }) {
-  const t = useTranslations();
   const categoryConfig = PROPOSAL_CATEGORY_CONFIG[proposal.category];
   const statusConfig = PROPOSAL_STATUS_CONFIG[proposal.status];
 
@@ -111,7 +112,7 @@ function ProposalCard({
 
       {proposal.status === 'active' && (
         <div className="mb-4">
-          <CountdownTimer endBlock={proposal.endBlock} currentBlock={proposal.startBlock + 1000} />
+          <CountdownTimer endBlock={proposal.endBlock} currentBlock={proposal.startBlock + 1000} t={t} />
         </div>
       )}
 
@@ -120,7 +121,7 @@ function ProposalCard({
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span className="text-gray-600">支持</span>
+              <span className="text-gray-600">{t('uma.governance.support')}</span>
             </span>
             <span className="font-semibold text-gray-900">
               {formatNumber(proposal.forVotes, true)} ({forPercentage.toFixed(1)}%)
@@ -138,7 +139,7 @@ function ProposalCard({
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-1.5">
               <XCircle className="w-4 h-4 text-red-600" />
-              <span className="text-gray-600">反对</span>
+              <span className="text-gray-600">{t('uma.governance.against')}</span>
             </span>
             <span className="font-semibold text-gray-900">
               {formatNumber(proposal.againstVotes, true)} ({againstPercentage.toFixed(1)}%)
@@ -157,7 +158,7 @@ function ProposalCard({
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5" />
-            <span>法定人数: {quorumPercentage.toFixed(0)}%</span>
+            <span>{t('uma.governance.quorumLabel')}: {quorumPercentage.toFixed(0)}%</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span
@@ -165,14 +166,14 @@ function ProposalCard({
                 quorumPercentage >= 100 ? 'bg-emerald-500' : 'bg-amber-500'
               }`}
             />
-            <span>{quorumPercentage >= 100 ? '已达到' : '未达到'}</span>
+            <span>{quorumPercentage >= 100 ? t('uma.governance.reached') : t('uma.governance.notReached')}</span>
           </div>
         </div>
         <button
           onClick={() => onViewDetails?.(proposal)}
           className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
         >
-          查看详情
+          {t('uma.governance.viewDetails')}
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
@@ -180,14 +181,14 @@ function ProposalCard({
   );
 }
 
-function VotingWeightChart({ weights }: { weights: VotingWeightDistribution[] }) {
+function VotingWeightChart({ weights, t }: { weights: VotingWeightDistribution[]; t: ReturnType<typeof useTranslations> }) {
   const [viewMode, setViewMode] = useState<'bar' | 'pie'>('bar');
   const totalPower = weights.reduce((sum, w) => sum + w.votingPower, 0);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">投票权重分布</h4>
+        <h4 className="text-sm font-medium text-gray-700">{t('uma.governance.votingWeightDistribution')}</h4>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
           <button
             onClick={() => setViewMode('bar')}
@@ -215,7 +216,7 @@ function VotingWeightChart({ weights }: { weights: VotingWeightDistribution[] })
                   </span>
                   {weight.isDelegated && (
                     <span className="px-1.5 py-0.5 text-xs bg-blue-50 text-blue-600 rounded">
-                      委托
+                      {t('uma.governance.delegated')}
                     </span>
                   )}
                 </div>
@@ -272,7 +273,7 @@ function VotingWeightChart({ weights }: { weights: VotingWeightDistribution[] })
               <span className="text-lg font-bold text-gray-900">
                 {formatNumber(totalPower, true)}
               </span>
-              <span className="text-xs text-gray-500">总权重</span>
+              <span className="text-xs text-gray-500">{t('uma.governance.totalWeight')}</span>
             </div>
           </div>
         </div>
@@ -280,17 +281,17 @@ function VotingWeightChart({ weights }: { weights: VotingWeightDistribution[] })
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-3 border-t border-gray-100">
         <div className="p-2 rounded-lg bg-blue-50 text-center">
-          <p className="text-xs text-gray-600 mb-0.5">总持有者</p>
+          <p className="text-xs text-gray-600 mb-0.5">{t('uma.governance.totalHolders')}</p>
           <p className="text-base font-semibold text-gray-900">{weights.length}</p>
         </div>
         <div className="p-2 rounded-lg bg-purple-50 text-center">
-          <p className="text-xs text-gray-600 mb-0.5">委托比例</p>
+          <p className="text-xs text-gray-600 mb-0.5">{t('uma.governance.delegationRatio')}</p>
           <p className="text-base font-semibold text-gray-900">
             {((weights.filter((w) => w.isDelegated).length / weights.length) * 100).toFixed(0)}%
           </p>
         </div>
         <div className="p-2 rounded-lg bg-emerald-50 text-center">
-          <p className="text-xs text-gray-600 mb-0.5">平均权重</p>
+          <p className="text-xs text-gray-600 mb-0.5">{t('uma.governance.avgWeight')}</p>
           <p className="text-base font-semibold text-gray-900">
             {formatNumber(totalPower / weights.length, true)}
           </p>
@@ -300,46 +301,46 @@ function VotingWeightChart({ weights }: { weights: VotingWeightDistribution[] })
   );
 }
 
-function GovernanceGuide() {
+function GovernanceGuide({ t }: { t: ReturnType<typeof useTranslations> }) {
   const sections = [
     {
       icon: <Vote className="w-5 h-5" />,
-      title: '如何参与治理',
+      title: t('uma.governance.howToParticipate'),
       content: [
-        '持有UMA代币即可参与治理投票',
-        '通过官方治理门户查看活跃提案',
-        '在投票期内对提案进行投票',
-        '可以委托他人代为投票',
+        t('uma.governance.holdUmaToVote'),
+        t('uma.governance.viewActiveProposals'),
+        t('uma.governance.voteDuringPeriod'),
+        t('uma.governance.canDelegate'),
       ],
     },
     {
       icon: <BarChart3 className="w-5 h-5" />,
-      title: '投票权重计算',
+      title: t('uma.governance.votingWeightCalculation'),
       content: [
-        '投票权重 = 持有的UMA代币数量',
-        '委托的代币权重归受托人所有',
-        '快照时点决定投票权重',
-        '投票后权重不会立即释放',
+        t('uma.governance.votingWeightFormula'),
+        t('uma.governance.delegatedTokensBelong'),
+        t('uma.governance.snapshotDeterminesWeight'),
+        t('uma.governance.weightNotReleasedImmediately'),
       ],
     },
     {
       icon: <FileText className="w-5 h-5" />,
-      title: '提案流程',
+      title: t('uma.governance.proposalProcess'),
       content: [
-        '第一阶段：社区讨论（论坛）',
-        '第二阶段：温度检查（投票）',
-        '第三阶段：链上提案',
-        '第四阶段：执行实施',
+        t('uma.governance.stage1CommunityDiscussion'),
+        t('uma.governance.stage2TemperatureCheck'),
+        t('uma.governance.stage3OnChainProposal'),
+        t('uma.governance.stage4Execution'),
       ],
     },
     {
       icon: <Settings className="w-5 h-5" />,
-      title: '提案类型',
+      title: t('uma.governance.proposalTypes'),
       content: [
-        '参数调整：修改协议参数',
-        '协议升级：智能合约升级',
-        '资金管理：国库资金使用',
-        '其他：社区提案等',
+        t('uma.governance.parameterAdjustment'),
+        t('uma.governance.protocolUpgrade'),
+        t('uma.governance.treasuryManagement'),
+        t('uma.governance.otherProposals'),
       ],
     },
   ];
@@ -348,7 +349,7 @@ function GovernanceGuide() {
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
         <BookOpen className="w-5 h-5 text-gray-400" />
-        <h3 className="text-base font-semibold text-gray-900">治理参与指南</h3>
+        <h3 className="text-base font-semibold text-gray-900">{t('uma.governance.governanceGuide')}</h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -374,19 +375,19 @@ function GovernanceGuide() {
         <div className="flex items-start gap-3">
           <HelpCircle className="w-5 h-5 text-blue-600 mt-0.5" />
           <div>
-            <h4 className="font-semibold text-gray-900 mb-2">常见问题</h4>
+            <h4 className="font-semibold text-gray-900 mb-2">{t('uma.governance.commonQuestions')}</h4>
             <div className="space-y-3 text-sm text-gray-600">
               <div>
-                <p className="font-medium text-gray-700">Q: 投票后可以修改吗？</p>
-                <p>A: 投票提交后无法修改，请谨慎投票。</p>
+                <p className="font-medium text-gray-700">{t('uma.governance.canModifyVote')}</p>
+                <p>{t('uma.governance.cannotModifyVote')}</p>
               </div>
               <div>
-                <p className="font-medium text-gray-700">Q: 需要多少代币才能提案？</p>
-                <p>A: 需要持有至少 100 UMA 代币才能创建提案。</p>
+                <p className="font-medium text-gray-700">{t('uma.governance.tokensRequiredToPropose')}</p>
+                <p>{t('uma.governance.need100UmaToPropose')}</p>
               </div>
               <div>
-                <p className="font-medium text-gray-700">Q: 投票奖励如何分配？</p>
-                <p>A: 参与投票可获得治理奖励，按投票权重比例分配。</p>
+                <p className="font-medium text-gray-700">{t('uma.governance.votingRewardDistribution')}</p>
+                <p>{t('uma.governance.votingRewardsByWeight')}</p>
               </div>
             </div>
           </div>
@@ -400,9 +401,9 @@ function generateMockProposals(): GovernanceProposal[] {
   const proposals: GovernanceProposal[] = [
     {
       id: 'prop-001',
-      title: '提高验证者质押要求',
+      title: 'Increase Validator Staking Requirements',
       description:
-        '建议将验证者的最低质押要求从 10,000 UMA 提高到 15,000 UMA，以增强网络安全性和验证者承诺。',
+        'Proposal to increase the minimum staking requirement for validators from 10,000 UMA to 15,000 UMA to enhance network security and validator commitment.',
       status: 'active',
       proposer: '0x1234567890abcdef1234567890abcdef12345678',
       startBlock: 18000000,
@@ -415,9 +416,9 @@ function generateMockProposals(): GovernanceProposal[] {
     },
     {
       id: 'prop-002',
-      title: '协议升级 V2.5',
+      title: 'Protocol Upgrade V2.5',
       description:
-        '升级UMA Optimistic Oracle到V2.5版本，引入新的争议解决机制和更快的最终确认时间。',
+        'Upgrade UMA Optimistic Oracle to V2.5, introducing new dispute resolution mechanisms and faster finality times.',
       status: 'active',
       proposer: '0xabcdef1234567890abcdef1234567890abcdef12',
       startBlock: 18001000,
@@ -430,8 +431,8 @@ function generateMockProposals(): GovernanceProposal[] {
     },
     {
       id: 'prop-003',
-      title: '国库资金分配提案',
-      description: '建议从国库中分配 500,000 UMA 用于生态系统发展基金，支持基于UMA的项目构建。',
+      title: 'Treasury Fund Allocation',
+      description: 'Proposal to allocate 500,000 UMA from treasury for ecosystem development fund to support UMA-based projects.',
       status: 'passed',
       proposer: '0x9876543210fedcba9876543210fedcba98765432',
       startBlock: 17950000,
@@ -444,8 +445,8 @@ function generateMockProposals(): GovernanceProposal[] {
     },
     {
       id: 'prop-004',
-      title: '调整争议费用结构',
-      description: '修改争议费用结构，降低小额争议的参与门槛，同时保持对恶意争议的威慑力。',
+      title: 'Adjust Dispute Fee Structure',
+      description: 'Modify dispute fee structure to lower participation threshold for small disputes while maintaining deterrence against malicious disputes.',
       status: 'rejected',
       proposer: '0xfedcba9876543210fedcba9876543210fedcba98',
       startBlock: 17900000,
@@ -458,8 +459,8 @@ function generateMockProposals(): GovernanceProposal[] {
     },
     {
       id: 'prop-005',
-      title: '社区治理工具开发',
-      description: '资助开发社区治理仪表板，提供更好的提案追踪和投票分析工具。',
+      title: 'Community Governance Tool Development',
+      description: 'Fund development of community governance dashboard providing better proposal tracking and voting analysis tools.',
       status: 'pending',
       proposer: '0x1111222233334444555566667777888899990000',
       startBlock: 18020000,
@@ -561,26 +562,26 @@ export function GovernanceView({
   const tabs = [
     {
       id: 'active' as TabId,
-      label: '活跃提案',
+      label: t('uma.governance.activeTab'),
       icon: <Vote className="w-4 h-4" />,
       count: activeProposals.length,
     },
     {
       id: 'history' as TabId,
-      label: '历史提案',
+      label: t('uma.governance.historyTab'),
       icon: <Clock className="w-4 h-4" />,
       count: historicalProposals.length,
     },
-    { id: 'guide' as TabId, label: '参与指南', icon: <BookOpen className="w-4 h-4" /> },
+    { id: 'guide' as TabId, label: t('uma.governance.guideTab'), icon: <BookOpen className="w-4 h-4" /> },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">UMA 治理</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('uma.governance.title')}</h2>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <AlertCircle className="w-4 h-4" />
-          <span>{stats.activeProposals} 个活跃提案</span>
+          <span>{stats.activeProposals} {t('uma.governance.activeProposals')}</span>
         </div>
       </div>
 
@@ -588,28 +589,28 @@ export function GovernanceView({
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-1">
             <FileText className="w-4 h-4 text-gray-400" />
-            <span className="text-xs text-gray-500">总提案数</span>
+            <span className="text-xs text-gray-500">{t('uma.governance.totalProposals')}</span>
           </div>
           <p className="text-xl font-semibold text-gray-900">{stats.totalProposals}</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-1">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            <span className="text-xs text-gray-500">通过</span>
+            <span className="text-xs text-gray-500">{t('uma.governance.passed')}</span>
           </div>
           <p className="text-xl font-semibold text-emerald-600">{stats.passedProposals}</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-1">
             <XCircle className="w-4 h-4 text-red-500" />
-            <span className="text-xs text-gray-500">拒绝</span>
+            <span className="text-xs text-gray-500">{t('uma.governance.rejected')}</span>
           </div>
           <p className="text-xl font-semibold text-red-600">{stats.rejectedProposals}</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-1">
             <Users className="w-4 h-4 text-blue-500" />
-            <span className="text-xs text-gray-500">平均参与</span>
+            <span className="text-xs text-gray-500">{t('uma.governance.avgParticipation')}</span>
           </div>
           <p className="text-xl font-semibold text-gray-900">
             {stats.avgParticipation.toFixed(1)}%
@@ -654,18 +655,19 @@ export function GovernanceView({
                   key={proposal.id}
                   proposal={proposal}
                   onViewDetails={setSelectedProposal}
+                  t={t}
                 />
               ))}
             </div>
           ) : (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <Vote className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">暂无活跃提案</p>
+              <p className="text-gray-500">{t('uma.governance.noActiveProposals')}</p>
             </div>
           )}
 
           <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <VotingWeightChart weights={votingWeights} />
+            <VotingWeightChart weights={votingWeights} t={t} />
           </div>
         </div>
       )}
@@ -678,24 +680,25 @@ export function GovernanceView({
                 key={proposal.id}
                 proposal={proposal}
                 onViewDetails={setSelectedProposal}
+                t={t}
               />
             ))
           ) : (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">暂无历史提案</p>
+              <p className="text-gray-500">{t('uma.governance.noHistoricalProposals')}</p>
             </div>
           )}
         </div>
       )}
 
-      {activeTab === 'guide' && <GovernanceGuide />}
+      {activeTab === 'guide' && <GovernanceGuide t={t} />}
 
       {selectedProposal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">提案详情</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('uma.governance.proposalDetails')}</h3>
               <button
                 onClick={() => setSelectedProposal(null)}
                 className="text-gray-400 hover:text-gray-600"
@@ -739,47 +742,47 @@ export function GovernanceView({
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">提案人</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('uma.governance.proposer')}</p>
                   <p className="text-sm font-mono text-gray-900">
                     {selectedProposal.proposer.slice(0, 10)}...{selectedProposal.proposer.slice(-8)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">提案ID</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('uma.governance.proposalId')}</p>
                   <p className="text-sm font-mono text-gray-900">{selectedProposal.id}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">起始区块</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('uma.governance.startBlock')}</p>
                   <p className="text-sm text-gray-900">
                     {selectedProposal.startBlock.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">结束区块</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('uma.governance.endBlock')}</p>
                   <p className="text-sm text-gray-900">
                     {selectedProposal.endBlock.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">支持票数</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('uma.governance.supportVotes')}</p>
                   <p className="text-sm font-semibold text-emerald-600">
                     {formatNumber(selectedProposal.forVotes, true)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">反对票数</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('uma.governance.againstVotes')}</p>
                   <p className="text-sm font-semibold text-red-600">
                     {formatNumber(selectedProposal.againstVotes, true)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">法定人数要求</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('uma.governance.quorumRequired')}</p>
                   <p className="text-sm text-gray-900">
                     {formatNumber(selectedProposal.quorum, true)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">总投票权重</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('uma.governance.totalVotingWeight')}</p>
                   <p className="text-sm text-gray-900">
                     {formatNumber(selectedProposal.votingPower, true)}
                   </p>
@@ -791,10 +794,10 @@ export function GovernanceView({
                   onClick={() => setSelectedProposal(null)}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                 >
-                  关闭
+                  {t('uma.governance.close')}
                 </button>
                 <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors">
-                  在治理门户查看
+                  {t('uma.governance.viewOnGovernancePortal')}
                   <ArrowUpRight className="w-4 h-4" />
                 </button>
               </div>

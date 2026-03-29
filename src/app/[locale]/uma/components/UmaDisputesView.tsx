@@ -21,7 +21,6 @@ import { type UmaDisputesViewProps } from '../types';
 
 import { DisputeVotingDetails } from './DisputeVotingDetails';
 
-// 模拟争议趋势数据（7天）
 const disputeTrendData = [
   { day: 'Mon', active: 3, resolved: 5 },
   { day: 'Tue', active: 4, resolved: 3 },
@@ -71,7 +70,6 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
 
   return (
     <div className="space-y-8">
-      {/* Stats Row - 内联布局 */}
       <div className="flex flex-wrap items-center gap-6 md:gap-8">
         <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-amber-500" />
@@ -116,25 +114,22 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
         </div>
       </div>
 
-      {/* Dispute Trend Chart - 迷你柱状图 */}
       <div className="border-t border-gray-200 pt-8">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="w-4 h-4 text-gray-400" />
           <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-            {t('uma.disputes.trend') || 'Dispute Trend (7 Days)'}
+            {t('uma.disputes.trend')}
           </h3>
         </div>
         <div className="flex items-end gap-3 h-24">
           {disputeTrendData.map((data, index) => (
             <div key={index} className="flex-1 flex flex-col items-center gap-1">
               <div className="w-full flex gap-0.5 items-end justify-center h-16">
-                {/* Active disputes bar */}
                 <div
                   className="w-2 bg-amber-400 rounded-sm"
                   style={{ height: `${(data.active / maxActive) * 100}%`, minHeight: '4px' }}
                   title={`Active: ${data.active}`}
                 />
-                {/* Resolved disputes bar */}
                 <div
                   className="w-2 bg-emerald-400 rounded-sm"
                   style={{ height: `${(data.resolved / maxResolved) * 100}%`, minHeight: '4px' }}
@@ -148,27 +143,25 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
         <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 bg-amber-400 rounded-sm" />
-            <span>{t('uma.disputes.active') || 'Active'}</span>
+            <span>{t('uma.disputes.active')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 bg-emerald-400 rounded-sm" />
-            <span>{t('uma.disputes.resolved') || 'Resolved'}</span>
+            <span>{t('uma.disputes.resolved')}</span>
           </div>
         </div>
       </div>
 
-      {/* Dispute Resolution Panel */}
       <div className="border-t border-gray-200 pt-8">
         <div className="flex items-center gap-2 mb-4">
           <Scale className="w-4 h-4 text-gray-400" />
           <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-            {t('uma.disputes.resolutionPanel') || 'Dispute Resolution'}
+            {t('uma.disputes.resolutionPanel')}
           </h3>
         </div>
         <DisputeResolutionPanel />
       </div>
 
-      {/* Recent Disputes Table - 简化样式 */}
       <div className="border-t border-gray-200 pt-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -178,7 +171,7 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
             </h3>
           </div>
           <span className="text-xs text-gray-400">
-            {disputes.length} {t('uma.disputes.total') || 'total'}
+            {disputes.length} {t('uma.disputes.total')}
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -244,30 +237,29 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
         </div>
       </div>
 
-      {/* Resolution Time Stats */}
       <div className="border-t border-gray-200 pt-8">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-4 h-4 text-gray-400" />
           <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-            {t('uma.disputes.resolutionStats') || 'Resolution Statistics'}
+            {t('uma.disputes.resolutionStats')}
           </h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <p className="text-xs text-gray-500 mb-1">
-              {t('uma.disputes.avgResolutionTime') || 'Avg. Resolution Time'}
+              {t('uma.disputes.avgResolutionTime')}
             </p>
             <p className="text-lg font-semibold text-gray-900">
               {networkStats?.avgResolutionTime ? `${networkStats.avgResolutionTime}h` : '24h'}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t('uma.disputes.rejected') || 'Rejected'}</p>
+            <p className="text-xs text-gray-500 mb-1">{t('uma.disputes.rejected')}</p>
             <p className="text-lg font-semibold text-red-600">{rejectedDisputes}</p>
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1">
-              {t('uma.disputes.avgStake') || 'Avg. Stake Amount'}
+              {t('uma.disputes.avgStake')}
             </p>
             <p className="text-lg font-semibold text-gray-900">
               $
@@ -281,19 +273,18 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
         </div>
       </div>
 
-      {/* Voting Details Section */}
       {selectedDispute && (
         <div className="border-t border-gray-200 pt-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Vote className="w-4 h-4 text-gray-400" />
               <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                投票详情与分析
+                {t('uma.disputes.votingDetails')}
               </h3>
             </div>
             {disputes.filter((d) => d.status === 'active').length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">选择争议:</span>
+                <span className="text-xs text-gray-500">{t('uma.disputes.selectDispute')}:</span>
                 <select
                   value={selectedDisputeId || ''}
                   onChange={(e) => setSelectedDisputeId(e.target.value || null)}
@@ -314,13 +305,12 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
         </div>
       )}
 
-      {/* Active Disputes Quick Select */}
       {disputes.filter((d) => d.status === 'active').length > 1 && (
         <div className="border-t border-gray-200 pt-8">
           <div className="flex items-center gap-2 mb-4">
             <Activity className="w-4 h-4 text-amber-500" />
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-              活跃争议快速选择
+              {t('uma.disputes.activeQuickSelect')}
             </h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -342,7 +332,7 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
                       {dispute.id.slice(0, 8)}...
                     </span>
                     <span className="px-2 py-0.5 text-xs font-medium rounded bg-amber-100 text-amber-700">
-                      活跃
+                      {t('uma.disputes.active')}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500">
@@ -350,7 +340,7 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
                     <span>${dispute.stakeAmount.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-end mt-2 text-xs text-primary-600">
-                    <span>查看投票详情</span>
+                    <span>{t('uma.disputes.viewVotingDetails')}</span>
                     <ChevronRight className="w-3 h-3 ml-1" />
                   </div>
                 </button>
