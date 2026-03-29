@@ -38,7 +38,7 @@ export interface OracleConfig {
   symbol: string;
   defaultChain: Blockchain;
   supportedChains: Blockchain[];
-  client: BaseOracleClient;
+  client?: BaseOracleClient;
   icon: ReactNode;
   iconBgColor: string;
   themeColor: string;
@@ -885,4 +885,32 @@ export function getOracleViews(provider: OracleProvider): OracleViewConfig[] {
       component: `${provider.charAt(0).toUpperCase() + provider.slice(1).replace(/-/g, '')}View`,
     }))
   );
+}
+
+// Client-side only: Create oracle client instance dynamically
+export function createOracleClient(provider: OracleProvider): BaseOracleClient {
+  switch (provider) {
+    case OracleProvider.CHAINLINK:
+      return new ChainlinkClient();
+    case OracleProvider.BAND:
+      return new BandProtocolClient();
+    case OracleProvider.UMA:
+      return new UMAClient();
+    case OracleProvider.PYTH:
+      return new PythClient();
+    case OracleProvider.API3:
+      return new API3Client();
+    case OracleProvider.REDSTONE:
+      return new RedStoneClient();
+    case OracleProvider.DIA:
+      return new DIAClient();
+    case OracleProvider.TELLOR:
+      return new TellorClient();
+    case OracleProvider.CHRONICLE:
+      return new ChronicleClient();
+    case OracleProvider.WINKLINK:
+      return new WINkLinkClient();
+    default:
+      throw new Error(`Unknown oracle provider: ${provider}`);
+  }
 }

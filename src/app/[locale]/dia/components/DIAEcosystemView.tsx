@@ -568,11 +568,11 @@ export function DIAEcosystemView() {
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">
-              {t('dia.ecosystem.tvlAnalysis.title') || 'TVL Analysis'}
-            </h3>
-            <p className="text-sm text-gray-500 mt-0.5">Total Value Locked across DIA ecosystem</p>
-          </div>
+          <h3 className="text-base font-semibold text-gray-900">
+            {t('dia.ecosystem.tvlAnalysis.title')}
+          </h3>
+          <p className="text-sm text-gray-500 mt-0.5">{t('dia.ecosystem.tvlAnalysis.desc')}</p>
+        </div>
           <div className="flex items-center border-b border-gray-200">
             {(['1M', '3M', '6M', '1Y'] as const).map((range) => (
               <TimeRangeButton
@@ -590,7 +590,7 @@ export function DIAEcosystemView() {
         <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4 mb-6">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('dia.ecosystem.tvlAnalysis.totalTvl') || 'Total TVL'}
+              {t('dia.ecosystem.tvlAnalysis.totalTvl')}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-bold text-gray-900">${tvlStats.current.toFixed(1)}B</p>
@@ -608,7 +608,7 @@ export function DIAEcosystemView() {
           <div className="h-8 w-px bg-gray-200 hidden sm:block" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('dia.ecosystem.tvlAnalysis.ethereum') || 'Ethereum'}
+              {t('dia.ecosystem.tvlAnalysis.ethereum')}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
@@ -621,7 +621,7 @@ export function DIAEcosystemView() {
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('dia.ecosystem.tvlAnalysis.l2Networks') || 'L2 Networks'}
+              {t('dia.ecosystem.tvlAnalysis.l2Networks')}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
@@ -647,7 +647,7 @@ export function DIAEcosystemView() {
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('dia.ecosystem.tvlAnalysis.altL1') || 'Alt L1'}
+              {t('dia.ecosystem.tvlAnalysis.altL1')}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
@@ -667,7 +667,7 @@ export function DIAEcosystemView() {
         {/* Chain Filter - Subtle pill buttons */}
         <div className="flex flex-wrap items-center gap-2 mb-6">
           <span className="text-xs text-gray-400 mr-1">
-            {t('dia.ecosystem.tvlAnalysis.filterByChain') || 'Filter by chain'}:
+            {t('dia.ecosystem.tvlAnalysis.filterByChain')}:
           </span>
           {tvlStats.breakdown.map((item) => (
             <button
@@ -782,10 +782,10 @@ export function DIAEcosystemView() {
         <section>
           <div className="mb-4">
             <h3 className="text-base font-semibold text-gray-900">
-              {t('dia.ecosystem.projectAnalysis.projectsByChain') || 'Projects by Chain'}
+              {t('dia.ecosystem.projectAnalysis.projectsByChain')}
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
-              Distribution of projects across supported networks
+              {t('dia.ecosystem.projectAnalysis.desc')}
             </p>
           </div>
           <div className="h-56">
@@ -818,11 +818,11 @@ export function DIAEcosystemView() {
           </div>
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 text-sm">
             <span className="text-gray-500">
-              {t('dia.ecosystem.projectAnalysis.totalProjects') || 'Total Projects'}:{' '}
+              {t('dia.ecosystem.projectAnalysis.totalProjects')}:{' '}
               <span className="font-medium text-gray-900">800+</span>
             </span>
             <span className="text-emerald-600 font-medium">
-              +48 {t('dia.ecosystem.projectAnalysis.thisMonth') || 'this month'}
+              +48 {t('dia.ecosystem.projectAnalysis.thisMonth')}
             </span>
           </div>
         </section>
@@ -834,16 +834,16 @@ export function DIAEcosystemView() {
         <section>
           <div className="mb-4">
             <h3 className="text-base font-semibold text-gray-900">
-              {t('dia.ecosystem.growth.title') || 'Ecosystem Growth'}
+              {t('dia.ecosystem.growth.title')}
             </h3>
-            <p className="text-sm text-gray-500 mt-0.5">Key performance indicators</p>
+            <p className="text-sm text-gray-500 mt-0.5">{t('dia.ecosystem.growth.desc')}</p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Layers className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('dia.ecosystem.growth.newProjects') || 'New Projects'}
+                  {t('dia.ecosystem.growth.newProjects')}
                 </span>
               </div>
               <div className="text-right">
@@ -855,7 +855,7 @@ export function DIAEcosystemView() {
               <div className="flex items-center gap-3">
                 <Zap className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('dia.ecosystem.growth.integrations') || 'Integrations'}
+                  {t('dia.ecosystem.growth.integrations')}
                 </span>
               </div>
               <div className="text-right">
@@ -867,7 +867,7 @@ export function DIAEcosystemView() {
               <div className="flex items-center gap-3">
                 <Globe className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('dia.ecosystem.growth.communityGrowth') || 'Community'}
+                  {t('dia.ecosystem.growth.communityGrowth')}
                 </span>
               </div>
               <div className="text-right">
@@ -879,7 +879,7 @@ export function DIAEcosystemView() {
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('dia.ecosystem.growth.protocolRevenue') || 'Revenue'}
+                  {t('dia.ecosystem.growth.protocolRevenue')}
                 </span>
               </div>
               <div className="text-right">

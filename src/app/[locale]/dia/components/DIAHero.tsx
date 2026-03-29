@@ -170,6 +170,8 @@ function MiniPriceChart({
   currentPrice: PriceData | null;
   themeColor: string;
 }) {
+  const t = useTranslations();
+
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
@@ -192,9 +194,9 @@ function MiniPriceChart({
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
-          <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
-        </div>
+              <TrendingUpIcon className="w-3.5 h-3.5" />
+              <span>{t('dia.hero.24hTrend')}</span>
+            </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
           {priceChange.toFixed(2)}%
@@ -204,8 +206,8 @@ function MiniPriceChart({
         <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>{t('dia.hero.24hAgo')}</span>
+        <span>{t('dia.hero.now')}</span>
       </div>
     </div>
   );
@@ -307,6 +309,8 @@ function UnifiedInfoSection({
   chains: string[];
   themeColor: string;
 }) {
+  const t = useTranslations();
+
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
     if (healthScore >= 70) return 'text-yellow-600';
@@ -321,14 +325,14 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return { label: t('dia.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return { label: t('dia.hero.gasLevel.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return { label: t('dia.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: t('dia.hero.gasLevel.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
   // 只显示前3个链
   const displayChains = chains.slice(0, 3);
@@ -340,7 +344,7 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('dia.hero.healthScore')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -363,7 +367,7 @@ function UnifiedInfoSection({
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('dia.hero.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -379,7 +383,7 @@ function UnifiedInfoSection({
           {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('dia.hero.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
@@ -388,7 +392,7 @@ function UnifiedInfoSection({
           {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('dia.hero.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
@@ -401,12 +405,12 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('dia.hero.support')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {chains.length}+ {t('dia.hero.chains')}
           </span>
           {/* 前3个链图标 */}
           <div className="flex -space-x-1">
@@ -477,59 +481,59 @@ export function DIAHero({
 
   const primaryStats: StatItem[] = [
     {
-      title: 'DIA 价格',
+      title: `${t('dia.title')} ${t('dia.hero.price')}`,
       value: `$${currentPrice.toFixed(4)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
       icon: <Activity className="w-5 h-5" />,
-      subtitle: '24h 变化',
+      subtitle: t('dia.hero.change24h'),
       sparklineData: priceSparkline,
     },
     {
-      title: '市值',
+      title: t('dia.stats.marketCap'),
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
       change: config.marketData.change24h ? `${config.marketData.change24h >= 0 ? '+' : ''}${config.marketData.change24h.toFixed(1)}%` : undefined,
       changeType: (config.marketData.change24h ?? 0) >= 0 ? 'positive' : 'negative',
       icon: <Wallet className="w-5 h-5" />,
-      subtitle: config.marketData.change24h ? '24h 变化' : undefined,
+      subtitle: config.marketData.change24h ? t('dia.hero.change24h') : undefined,
     },
     {
-      title: '活跃数据源',
+      title: t('dia.stats.activeDataSources'),
       value: activeDataSources ? `${activeDataSources}+` : '--',
       icon: <Database className="w-5 h-5" />,
-      subtitle: 'Data providers',
+      subtitle: t('dia.hero.dataProviders'),
     },
     {
-      title: '数据喂价',
+      title: t('dia.stats.dataFeeds'),
       value: `${networkStats?.dataFeeds ?? config.networkData.dataFeeds}`,
       icon: <Zap className="w-5 h-5" />,
     },
     {
-      title: '质押量',
+      title: t('dia.hero.stakedAmount'),
       value: totalStaked ? formatStakedValue(totalStaked) : '--',
       icon: <Shield className="w-5 h-5" />,
-      subtitle: config.networkData.stakingTokenSymbol ? `质押代币: ${config.networkData.stakingTokenSymbol}` : undefined,
+      subtitle: config.networkData.stakingTokenSymbol ? `${t('dia.hero.stakingToken')}: ${config.networkData.stakingTokenSymbol}` : undefined,
     },
   ];
 
   const secondaryStats: StatItem[] = [
     {
-      title: '支持链数',
+      title: t('dia.hero.supportedChains'),
       value: `${config.supportedChains.length}+`,
       icon: <Globe className="w-4 h-4" />,
     },
     {
-      title: '平均响应时间',
+      title: t('dia.stats.avgResponseTime'),
       value: `${networkStats?.avgResponseTime ?? config.networkData.avgResponseTime}ms`,
       icon: <Clock className="w-4 h-4" />,
     },
     {
-      title: '节点在线率',
+      title: t('dia.stats.nodeUptime'),
       value: `${networkStats?.nodeUptime ?? config.networkData.nodeUptime}%`,
       icon: <Server className="w-4 h-4" />,
     },
     {
-      title: '24h 交易量',
+      title: t('dia.volume24h'),
       value: config.marketData.volume24h ? `$${(config.marketData.volume24h / 1e6).toFixed(1)}M` : '--',
       icon: <TrendingUp className="w-4 h-4" />,
     },
@@ -579,8 +583,8 @@ export function DIAHero({
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">DIA</h1>
-              <p className="text-xs text-gray-500">开源的跨链数据预言机平台</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('dia.title')}</h1>
+              <p className="text-xs text-gray-500">{t('dia.subtitle')}</p>
             </div>
           </div>
 

@@ -93,29 +93,31 @@ const mockDataFeeds: DataFeed[] = [
   },
 ];
 
-const categories = [
-  { id: 'all', label: 'All', count: mockDataFeeds.length },
+const getCategories = (t: (key: string) => string) => [
+  { id: 'all', label: t('dataFeedsFilter.all'), count: mockDataFeeds.length },
   {
     id: 'crypto',
-    label: 'Crypto',
+    label: t('dataFeedsFilter.crypto'),
     count: mockDataFeeds.filter((f) => f.category === 'crypto').length,
   },
   {
     id: 'forex',
-    label: 'Forex',
+    label: t('dataFeedsFilter.forex'),
     count: mockDataFeeds.filter((f) => f.category === 'forex').length,
   },
   {
     id: 'commodities',
-    label: 'Commodities',
+    label: t('dataFeedsFilter.commodities'),
     count: mockDataFeeds.filter((f) => f.category === 'commodities').length,
   },
-  { id: 'defi', label: 'DeFi', count: mockDataFeeds.filter((f) => f.category === 'defi').length },
+  { id: 'defi', label: t('dataFeedsFilter.defi'), count: mockDataFeeds.filter((f) => f.category === 'defi').length },
 ];
 
 export function ChainlinkDataFeedsView() {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const categories = getCategories(t);
 
   const filteredFeeds =
     selectedCategory === 'all'
@@ -258,7 +260,7 @@ export function ChainlinkDataFeedsView() {
       {/* Data Table */}
       <div>
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('chainlink.dataFeeds.title') || 'Data Feeds'}
+          {t('chainlink.dataFeeds.title')}
         </h3>
         <ChainlinkDataTable<DataFeed>
           data={filteredFeeds}
@@ -269,39 +271,35 @@ export function ChainlinkDataFeedsView() {
       {/* About Section */}
       <div className="pt-6 border-t border-gray-200">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('chainlink.dataFeeds.about') || 'About Data Feeds'}
+          {t('chainlink.dataFeeds.about')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('chainlink.dataFeeds.updateFrequency') || 'Update Frequency'}:
+                {t('chainlink.dataFeeds.updateFrequency')}:
               </span>{' '}
-              {t('chainlink.dataFeeds.frequencyDesc') ||
-                'Data feeds are updated based on deviation thresholds and heartbeat intervals to ensure price accuracy.'}
+              {t('chainlink.dataFeeds.frequencyDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('chainlink.dataFeeds.deviationThreshold') || 'Deviation Threshold'}:
+                {t('chainlink.dataFeeds.deviationThreshold')}:
               </span>{' '}
-              {t('chainlink.dataFeeds.thresholdDesc') ||
-                'Minimum price change required to trigger a new on-chain update.'}
+              {t('chainlink.dataFeeds.thresholdDesc')}
             </p>
           </div>
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('chainlink.dataFeeds.reliability') || 'Reliability'}:
+                {t('chainlink.dataFeeds.reliability')}:
               </span>{' '}
-              {t('chainlink.dataFeeds.reliabilityDesc') ||
-                'Percentage of successful updates over the last 30 days, excluding planned maintenance.'}
+              {t('chainlink.dataFeeds.reliabilityDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('chainlink.dataFeeds.decentralization') || 'Decentralization'}:
+                {t('chainlink.dataFeeds.decentralization')}:
               </span>{' '}
-              {t('chainlink.dataFeeds.decentralizationDesc') ||
-                'Each data feed is secured by multiple independent node operators.'}
+              {t('chainlink.dataFeeds.decentralizationDesc')}
             </p>
           </div>
         </div>

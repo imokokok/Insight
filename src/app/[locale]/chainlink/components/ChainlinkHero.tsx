@@ -600,7 +600,7 @@ export function ChainlinkHero({
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Chainlink</h1>
-              <p className="text-xs text-gray-500">{t('chainlink.subtitle')}</p>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
         </div>

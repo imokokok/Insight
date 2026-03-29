@@ -97,28 +97,28 @@ export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
   const statsCards = [
     {
       id: 'totalOev',
-      label: t('api3.oev.totalOevCaptured') || 'Total OEV Captured',
+      label: t('api3.oev.totalOevCaptured'),
       value: oevStats?.totalOevCaptured ?? 0,
       icon: <DollarSign className="w-5 h-5" />,
       format: 'currency',
     },
     {
       id: 'activeAuctions',
-      label: t('api3.oev.activeAuctions') || 'Active Auctions',
+      label: t('api3.oev.activeAuctions'),
       value: oevStats?.activeAuctions ?? 0,
       icon: <Activity className="w-5 h-5" />,
       format: 'number',
     },
     {
       id: 'totalDapps',
-      label: t('api3.oev.totalDapps') || 'Integrated dApps',
+      label: t('api3.oev.totalDapps'),
       value: oevStats?.totalDapps ?? 0,
       icon: <Users className="w-5 h-5" />,
       format: 'number',
     },
     {
       id: 'avgAuction',
-      label: t('api3.oev.avgAuctionValue') || 'Avg Auction Value',
+      label: t('api3.oev.avgAuctionValue'),
       value: oevStats?.avgAuctionValue ?? 0,
       icon: <BarChart3 className="w-5 h-5" />,
       format: 'currency',
@@ -169,13 +169,26 @@ export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
       <div className="border-t border-gray-200" />
 
       <section>
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.oev.trend.title') || 'OEV Trend (7 Days)'}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('api3.oev.trend.description') || 'Daily OEV captured and auction activity'}
-          </p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {t('api3.oev.trendAnalysis')}
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {t('api3.oev.trendDesc')}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {(['24h', '7d', '30d', '90d'] as const).map((range) => (
+              <TimeRangeButton
+                key={range}
+                active={timeRange === range}
+                onClick={() => setTimeRange(range)}
+              >
+                {range}
+              </TimeRangeButton>
+            ))}
+          </div>
         </div>
 
         <div className="h-72">
@@ -332,8 +345,8 @@ export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white border border-gray-100 rounded-lg p-4">
               <h3 className="text-sm font-medium text-gray-700 mb-4">
-                {t('api3.oev.participants.leaderboard') || 'Participant Leaderboard'}
-              </h3>
+              {t('api3.oev.participants.leaderboard')}
+            </h3>
               <div className="space-y-3">
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
@@ -362,7 +375,7 @@ export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
                         <div>
                           <p className="text-sm font-medium text-gray-900">{participant.name}</p>
                           <p className="text-xs text-gray-500">
-                            {participant.type === 'searcher' ? 'Searcher' : 'dApp'}
+                            {participant.type === 'searcher' ? t('api3.oev.participants.searcher') : t('api3.oev.participants.dapp')}
                           </p>
                         </div>
                       </div>
@@ -420,11 +433,10 @@ export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.oev.mechanism.title') || 'How OEV Network Works'}
+            {t('api3.oev.auctionProcess')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.oev.mechanism.description') ||
-              'Understanding the OEV capture and redistribution mechanism'}
+            {t('api3.oev.auctionDesc')}
           </p>
         </div>
 

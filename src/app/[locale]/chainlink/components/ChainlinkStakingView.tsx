@@ -149,11 +149,11 @@ const REWARD_COLORS = {
 
 const PIE_COLORS = ['#375bd2', '#10b981', '#f59e0b', '#ef4444'];
 
-const SCENARIOS = {
-  conservative: { label: 'Conservative', apy: 4.5, color: '#60a5fa' },
-  moderate: { label: 'Moderate', apy: 7.2, color: '#3b82f6' },
-  optimistic: { label: 'Optimistic', apy: 10.8, color: '#1d4ed8' },
-};
+const getScenarios = (t: (key: string) => string) => ({
+  conservative: { label: t('chainlink.scenarios.conservative.label'), apy: 4.5, color: '#60a5fa' },
+  moderate: { label: t('chainlink.scenarios.moderate.label'), apy: 7.2, color: '#3b82f6' },
+  optimistic: { label: t('chainlink.scenarios.optimistic.label'), apy: 10.8, color: '#1d4ed8' },
+});
 
 export function ChainlinkStakingView() {
   const t = useTranslations();
@@ -164,6 +164,7 @@ export function ChainlinkStakingView() {
   const [stakingPeriod, setStakingPeriod] = useState<number>(12);
 
   const amount = parseFloat(stakeAmount) || 0;
+  const SCENARIOS = getScenarios(t);
   const scenario = SCENARIOS[selectedScenario];
 
   const rewards = useMemo(() => {

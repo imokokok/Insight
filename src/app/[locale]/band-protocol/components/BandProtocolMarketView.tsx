@@ -42,14 +42,14 @@ export function BandProtocolMarketView({
 
   const networkStatus = [
     {
-      label: t('band.bandProtocol.network.activeNodes'),
+      label: t('band.bandProtocol.stats.activeNodes'),
       value: '70+',
       status: 'healthy',
       icon: Server,
     },
-    { label: t('band.bandProtocol.stats.dataFeeds'), value: '180+', status: 'healthy', icon: Zap },
+    { label: t('band.bandProtocol.dataFeeds.dataFeeds'), value: '180+', status: 'healthy', icon: Zap },
     {
-      label: t('band.bandProtocol.network.responseTime'),
+      label: t('band.bandProtocol.stats.responseTime'),
       value: '150ms',
       status: 'healthy',
       icon: Clock,
@@ -152,10 +152,10 @@ export function BandProtocolMarketView({
             </h3>
             <div className="flex-1 flex flex-col">
               {[
-                { name: 'Band Protocol Market', status: 'active', latency: '85ms' },
-                { name: 'Cosmos Hub', status: 'active', latency: '150ms' },
-                { name: 'Secondary Feed', status: 'active', latency: '120ms' },
-                { name: 'Backup Node', status: 'syncing', latency: '200ms' },
+                { name: t('band.bandProtocol.dataSource.bandProtocolMarket'), status: 'active', latency: '85ms' },
+                { name: t('band.bandProtocol.dataSource.cosmosHub'), status: 'active', latency: '150ms' },
+                { name: t('band.bandProtocol.dataSource.secondaryFeed'), status: 'active', latency: '120ms' },
+                { name: t('band.bandProtocol.dataSource.backupNode'), status: 'syncing', latency: '200ms' },
               ].map((source, index) => (
                 <div
                   key={index}
@@ -180,7 +180,7 @@ export function BandProtocolMarketView({
       {/* 核心交易对信息 */}
       <div className="border-t border-gray-200 pt-8">
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('band.bandProtocol.market.tradingPair') || '主要交易对'}
+          {t('band.bandProtocol.market.tradingPair')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>

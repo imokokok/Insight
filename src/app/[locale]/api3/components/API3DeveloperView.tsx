@@ -49,10 +49,10 @@ export function API3DeveloperView() {
     <div className="space-y-6">
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900">
-          {t('api3.developer.title') || '开发者工具'}
+          {t('api3.developerView.title')}
         </h2>
         <p className="text-sm text-gray-500 mt-1">
-          {t('api3.developer.description') || 'API 集成工具、SDK 下载和技术文档'}
+          {t('api3.developerView.description')}
         </p>
       </div>
 

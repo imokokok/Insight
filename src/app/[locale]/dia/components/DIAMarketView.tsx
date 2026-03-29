@@ -42,10 +42,10 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
   ];
 
   const networkStatus = [
-    { label: t('dia.stats.activeDataSources'), value: '45+', status: 'healthy', icon: Server },
-    { label: t('dia.stats.dataFeeds'), value: '280+', status: 'healthy', icon: Zap },
-    { label: t('dia.stats.avgResponseTime'), value: '150ms', status: 'healthy', icon: Clock },
-    { label: t('dia.stats.successRate'), value: '99.8%', status: 'healthy', icon: Shield },
+    { label: t('dia.stats.activeDataSources'), value: `45+`, status: 'healthy', icon: Server },
+    { label: t('dia.stats.dataFeeds'), value: `280+`, status: 'healthy', icon: Zap },
+    { label: t('dia.stats.avgResponseTime'), value: `150ms`, status: 'healthy', icon: Clock },
+    { label: t('dia.stats.successRate'), value: `99.8%`, status: 'healthy', icon: Shield },
   ];
 
   return (
@@ -137,11 +137,11 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
             <h3 className="text-base font-medium text-gray-900 mb-4">{t('dia.dataSources')}</h3>
             <div className="flex-1 flex flex-col">
               {[
-                { name: 'DIA Primary', status: 'active', latency: '85ms' },
-                { name: 'Ethereum Node', status: 'active', latency: '150ms' },
-                { name: 'Backup Feed', status: 'active', latency: '120ms' },
-                { name: 'Archive Node', status: 'syncing', latency: '280ms' },
-              ].map((source, index) => (
+            { name: t('dia.dataSource.diaPrimary'), status: 'active', latency: '85ms' },
+            { name: t('dia.dataSource.ethereumNode'), status: 'active', latency: '150ms' },
+            { name: t('dia.dataSource.backupFeed'), status: 'active', latency: '120ms' },
+            { name: t('dia.dataSource.archiveNode'), status: 'syncing', latency: '280ms' },
+          ].map((source, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0"
@@ -165,11 +165,11 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
       {/* 核心交易对信息 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('dia.tradingPair') || '主要交易对'}
+          {t('dia.tradingPair')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
-            <p className="text-xs text-gray-400 mb-1">DIA/USDC</p>
+            <p className="text-xs text-gray-400 mb-1">{t('dia.tradingPairDiaUsdc')}</p>
             <p className="text-2xl font-semibold text-gray-900">
               ${price?.price?.toFixed(2) || '0.45'}
             </p>
@@ -204,8 +204,8 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('dia.marketDepth')}</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-semibold text-gray-900">7.5</span>
-              <span className="text-sm text-gray-400">/10</span>
+              <span className="text-2xl font-semibold text-gray-900">{t('dia.depthScoreValue')}</span>
+              <span className="text-sm text-gray-400">{t('dia.depthScoreTotal')}</span>
             </div>
             <p className="text-xs text-gray-400 mt-1">{t('dia.depthScore')}</p>
           </div>

@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 
 import { Check, Copy } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface CopyButtonProps {
   text: string;
@@ -12,6 +13,7 @@ interface CopyButtonProps {
 }
 
 export function CopyButton({ text, className = '', size = 'md', showTooltip = true }: CopyButtonProps) {
+  const t = useTranslations();
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,12 +38,12 @@ export function CopyButton({ text, className = '', size = 'md', showTooltip = tr
         setCopied(false);
       }, 2000);
     } catch (err) {
-      setError('复制失败');
+      setError(t('common.copyFailed'));
       setTimeout(() => {
         setError(null);
       }, 2000);
     }
-  }, [text]);
+  }, [text, t]);
 
   return (
     <button
@@ -54,7 +56,7 @@ export function CopyButton({ text, className = '', size = 'md', showTooltip = tr
         transition-all duration-200
         ${className}
       `}
-      title={showTooltip ? (copied ? '已复制' : '复制') : undefined}
+      title={showTooltip ? (copied ? t('common.copied') : t('common.copy')) : undefined}
     >
       {error ? (
         <span className="text-xs text-red-500">{error}</span>

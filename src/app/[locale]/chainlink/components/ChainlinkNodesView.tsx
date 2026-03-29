@@ -96,14 +96,16 @@ const mockNodes: NodeData[] = [
   },
 ];
 
-const regionStats = [
-  { region: 'North America', count: 4, percentage: 50 },
-  { region: 'Europe', count: 3, percentage: 37.5 },
-  { region: 'Asia', count: 1, percentage: 12.5 },
+const getRegionStats = (t: (key: string) => string) => [
+  { region: t('regions.northAmerica'), count: 4, percentage: 50 },
+  { region: t('regions.europe'), count: 3, percentage: 37.5 },
+  { region: t('regions.asia'), count: 1, percentage: 12.5 },
 ];
 
 export function ChainlinkNodesView() {
   const t = useTranslations();
+
+  const regionStats = getRegionStats(t);
 
   const columns: ChainlinkDataTableProps<NodeData>['columns'] = [
     { key: 'name', header: t('chainlink.nodes.name'), sortable: true },

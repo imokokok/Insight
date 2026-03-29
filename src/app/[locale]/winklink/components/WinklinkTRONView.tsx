@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Activity, Zap, Users, BarChart3 } from 'lucide-react';
+import { Activity, Zap, Users, BarChart3, TrendingUp } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 import { type TRONDApp } from '@/lib/oracles/winklink';
@@ -25,6 +25,33 @@ export function WinklinkTRONView({ tronIntegration, isLoading }: WinklinkTRONVie
 
   const networkStats = tronIntegration?.networkStats;
   const dApps = tronIntegration?.integratedDApps || [];
+
+  const tronStats = [
+    {
+      label: t('winklink.tron.totalTransactions'),
+      value: '5.2B',
+      change: '+12%',
+      icon: <Activity className="w-4 h-4" />,
+    },
+    {
+      label: t('winklink.tron.tps'),
+      value: '65+',
+      change: 'Stable',
+      icon: <Zap className="w-4 h-4" />,
+    },
+    {
+      label: t('winklink.tron.totalAccounts'),
+      value: '180M',
+      change: '+8%',
+      icon: <Users className="w-4 h-4" />,
+    },
+    {
+      label: t('winklink.tron.dailyTransactions'),
+      value: '4.5M',
+      change: '+15%',
+      icon: <TrendingUp className="w-4 h-4" />,
+    },
+  ];
 
   const filteredDApps =
     selectedCategory === 'all' ? dApps : dApps.filter((dapp) => dapp.category === selectedCategory);
@@ -167,7 +194,7 @@ export function WinklinkTRONView({ tronIntegration, isLoading }: WinklinkTRONVie
       {/* Integration Stats */}
       <div className="pt-6 border-t border-gray-200">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('winklink.tron.integrationStats') || 'Integration Stats'}
+          {t('winklink.tron.integrationStats')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -216,39 +243,35 @@ export function WinklinkTRONView({ tronIntegration, isLoading }: WinklinkTRONVie
       {/* About Section */}
       <div className="pt-6 border-t border-gray-200">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('winklink.tron.about') || 'About TRON Integration'}
+          {t('winklink.tron.about')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('winklink.tron.networkPerformance') || 'Network Performance'}:
+                {t('winklink.tron.networkPerformance')}:
               </span>{' '}
-              {t('winklink.tron.performanceDesc') ||
-                'TRON network provides high throughput with 65+ TPS and low transaction costs, making it ideal for oracle data feeds.'}
+              {t('winklink.tron.performanceDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('winklink.tron.ecosystem') || 'Ecosystem'}:
+                {t('winklink.tron.ecosystem')}:
               </span>{' '}
-              {t('winklink.tron.ecosystemDesc') ||
-                'Winklink is the official oracle solution on TRON, powering DeFi, gaming, and NFT applications with reliable price data.'}
+              {t('winklink.tron.ecosystemDesc')}
             </p>
           </div>
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('winklink.tron.integrationCoverage') || 'Integration Coverage'}:
+                {t('winklink.tron.integrationCoverage')}:
               </span>{' '}
-              {t('winklink.tron.coverageDesc') ||
-                'Percentage of major dApps on TRON that have integrated Winklink oracle services for price feeds.'}
+              {t('winklink.tron.coverageDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('winklink.tron.dataReliability') || 'Data Reliability'}:
+                {t('winklink.tron.dataReliability')}:
               </span>{' '}
-              {t('winklink.tron.reliabilityDesc') ||
-                'Winklink aggregates data from multiple sources to ensure accurate and tamper-proof price feeds.'}
+              {t('winklink.tron.reliabilityDesc')}
             </p>
           </div>
         </div>

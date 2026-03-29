@@ -11,6 +11,45 @@ export function WinklinkNetworkView({ config, networkStats }: WinklinkNetworkVie
 
   const networkData = networkStats || config.networkData;
 
+  const networkStatsList: NetworkStat[] = [
+    {
+      label: t('winklink.network.activeNodes'),
+      value: '50+',
+      change: '+5',
+      icon: <Activity className="w-4 h-4" />,
+    },
+    {
+      label: t('winklink.network.dataFeeds'),
+      value: '20+',
+      change: '+3',
+      icon: <Database className="w-4 h-4" />,
+    },
+    {
+      label: t('winklink.network.responseTime'),
+      value: '150ms',
+      change: '-20ms',
+      icon: <Clock className="w-4 h-4" />,
+    },
+    {
+      label: t('winklink.network.uptime'),
+      value: '99.92%',
+      change: '+0.02%',
+      icon: <Shield className="w-4 h-4" />,
+    },
+    {
+      label: t('winklink.network.totalRequests'),
+      value: '2.5M',
+      change: '+12%',
+      icon: <Globe className="w-4 h-4" />,
+    },
+    {
+      label: t('winklink.network.avgGas'),
+      value: '45,000',
+      change: '-5%',
+      icon: <Zap className="w-4 h-4" />,
+    },
+  ];
+
   const metrics = [
     {
       label: t('winklink.network.activeNodes'),
@@ -43,10 +82,10 @@ export function WinklinkNetworkView({ config, networkStats }: WinklinkNetworkVie
   ];
 
   const overviewStats = [
-    { label: t('winklink.network.totalRequests') || 'Total Requests (24h)', value: '1.2M' },
-    { label: t('winklink.network.avgGas') || 'Avg Gas Used', value: '42,180' },
-    { label: t('winklink.network.activeChains') || 'Active Chains', value: '3' },
-    { label: t('winklink.network.nodeOperators') || 'Node Operators', value: '85' },
+    { label: t('winklink.network.totalRequests'), value: '1.2M' },
+    { label: t('winklink.network.avgGas'), value: '42,180' },
+    { label: t('winklink.network.activeChains'), value: '3' },
+    { label: t('winklink.network.nodeOperators'), value: '85' },
   ];
 
   return (
@@ -161,7 +200,7 @@ export function WinklinkNetworkView({ config, networkStats }: WinklinkNetworkVie
       {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('winklink.network.overview') || 'Network Overview'}
+          {t('winklink.network.overview')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (

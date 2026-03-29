@@ -21,15 +21,15 @@ import { type BandProtocolDataFeedsViewProps } from '../types';
 
 const ITEMS_PER_PAGE = 20;
 
-const CATEGORY_CONFIG: Record<DataSourceCategory, { label: string; color: string }> = {
-  crypto: { label: 'Crypto', color: 'bg-blue-100 text-blue-700' },
-  stablecoin: { label: 'Stablecoin', color: 'bg-emerald-100 text-emerald-700' },
-  forex: { label: 'Forex', color: 'bg-cyan-100 text-cyan-700' },
-  commodities: { label: 'Commodities', color: 'bg-amber-100 text-amber-700' },
-  equities: { label: 'Equities', color: 'bg-pink-100 text-pink-700' },
-  sports: { label: 'Sports', color: 'bg-purple-100 text-purple-700' },
-  random: { label: 'Random', color: 'bg-indigo-100 text-indigo-700' },
-};
+const getCategoryConfig = (t: (key: string) => string): Record<DataSourceCategory, { label: string; color: string }> => ({
+  crypto: { label: t('band.bandProtocol.categories.crypto'), color: 'bg-blue-100 text-blue-700' },
+  stablecoin: { label: t('band.bandProtocol.categories.stablecoin'), color: 'bg-emerald-100 text-emerald-700' },
+  forex: { label: t('band.bandProtocol.categories.forex'), color: 'bg-cyan-100 text-cyan-700' },
+  commodities: { label: t('band.bandProtocol.categories.commodities'), color: 'bg-amber-100 text-amber-700' },
+  equities: { label: t('band.bandProtocol.categories.equities'), color: 'bg-pink-100 text-pink-700' },
+  sports: { label: t('band.bandProtocol.categories.sports'), color: 'bg-purple-100 text-purple-700' },
+  random: { label: t('band.bandProtocol.categories.random'), color: 'bg-indigo-100 text-indigo-700' },
+});
 
 function formatTimeAgo(timestamp: number, t: (key: string, params?: Record<string, string | number | Date>) => string): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -63,9 +63,10 @@ export function BandProtocolDataFeedsView({ dataSources, total, isLoading, error
     dataSources.forEach((ds) => {
       categoryCounts[ds.category] = (categoryCounts[ds.category] || 0) + 1;
     });
+    const categoryConfig = getCategoryConfig(t);
     return [
       { id: 'all' as const, label: t('band.bandProtocol.dataFeeds.allCategories'), count: total },
-      ...Object.entries(CATEGORY_CONFIG).map(([id, config]) => ({
+      ...Object.entries(categoryConfig).map(([id, config]) => ({
         id: id as DataSourceCategory,
         label: config.label,
         count: categoryCounts[id] || 0,
@@ -312,7 +313,9 @@ export function BandProtocolDataFeedsView({ dataSources, total, isLoading, error
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {paginatedFeeds.map((feed) => (
+                {paginatedFeeds.map((feed) => {
+                  const categoryConfig = getCategoryConfig(t);
+                  return (
                   <tr key={feed.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <div>
@@ -323,10 +326,10 @@ export function BandProtocolDataFeedsView({ dataSources, total, isLoading, error
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
-                          CATEGORY_CONFIG[feed.category]?.color || 'bg-gray-100 text-gray-700'
+                          categoryConfig[feed.category]?.color || 'bg-gray-100 text-gray-700'
                         }`}
                       >
-                        {CATEGORY_CONFIG[feed.category]?.label || feed.category}
+                        {categoryConfig[feed.category]?.label || feed.category}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -339,7 +342,7 @@ export function BandProtocolDataFeedsView({ dataSources, total, isLoading, error
                           })}
                         </span>
                       ) : (
-                        <span className="text-sm text-gray-400">N/A</span>
+                        <span className="text-sm text-gray-400">{t('band.bandProtocol.common.na')}</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -400,7 +403,7 @@ export function BandProtocolDataFeedsView({ dataSources, total, isLoading, error
                       </span>
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>

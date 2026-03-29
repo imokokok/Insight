@@ -32,7 +32,7 @@ import {
 } from 'recharts';
 
 import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
-import { useTranslations } from '@/i18n';
+import { useTranslations, useLocale } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 import { RISK_BENCHMARKS } from '@/lib/config/riskBenchmarks';
 import {
@@ -113,6 +113,7 @@ function convertRiskEventToTimelineEvent(event: RiskEvent): TimelineEvent {
 
 export function BandProtocolRiskView() {
   const t = useTranslations();
+  const locale = useLocale();
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
 
@@ -259,7 +260,7 @@ export function BandProtocolRiskView() {
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
         <span className="ml-3 text-gray-600">
-          {t('band.bandProtocol.risk.loading') || 'Loading risk metrics...'}
+          {t('band.bandProtocol.risk.loading')}
         </span>
       </div>
     );
@@ -270,7 +271,7 @@ export function BandProtocolRiskView() {
       <div className="flex items-center justify-center py-16">
         <AlertTriangle className="w-8 h-8 text-amber-500" />
         <span className="ml-3 text-gray-600">
-          {t('band.bandProtocol.risk.loadError') || 'Failed to load risk metrics'}
+          {t('band.bandProtocol.risk.loadError')}
         </span>
       </div>
     );
@@ -282,7 +283,7 @@ export function BandProtocolRiskView() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
-              {t('band.bandProtocol.risk.metrics') || 'Risk Metrics'}
+              {t('band.bandProtocol.risk.metrics')}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
               {t('band.bandProtocol.risk.metricsDesc') ||
@@ -292,7 +293,7 @@ export function BandProtocolRiskView() {
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
             <Shield className="w-5 h-5 text-emerald-600" />
             <span className="text-sm font-medium text-emerald-700">
-              {t('band.bandProtocol.risk.overallScore') || 'Overall'}: {overallScore.toFixed(1)}/100
+              {t('band.bandProtocol.risk.overallScore')}: {overallScore.toFixed(1)}/100
             </span>
           </div>
         </div>
@@ -329,10 +330,10 @@ export function BandProtocolRiskView() {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('band.bandProtocol.risk.trendTitle') || 'Risk Score Trend (30 Days)'}
+            {t('band.bandProtocol.risk.trendTitle')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('band.bandProtocol.risk.trendDesc') || 'Historical risk score changes over the past 30 days'}
+            {t('band.bandProtocol.risk.trendDesc')}
           </p>
         </div>
 
@@ -357,7 +358,7 @@ export function BandProtocolRiskView() {
                 }}
                 labelFormatter={(label) => {
                   const date = new Date(label);
-                  return date.toLocaleDateString('zh-CN', {
+                  return date.toLocaleDateString(locale, {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
@@ -367,7 +368,7 @@ export function BandProtocolRiskView() {
               <Line
                 type="monotone"
                 dataKey="score"
-                name={t('band.bandProtocol.risk.overall') || 'Overall'}
+                name={t('band.bandProtocol.risk.overall')}
                 stroke={chartColors.oracle['band-protocol']}
                 strokeWidth={2}
                 dot={false}
@@ -375,7 +376,7 @@ export function BandProtocolRiskView() {
               <Line
                 type="monotone"
                 dataKey="decentralization"
-                name={t('band.bandProtocol.riskAssessment.decentralization') || 'Decentralization'}
+                name={t('band.bandProtocol.riskAssessment.decentralization')}
                 stroke="#10b981"
                 strokeWidth={1.5}
                 strokeDasharray="4 2"
@@ -384,7 +385,7 @@ export function BandProtocolRiskView() {
               <Line
                 type="monotone"
                 dataKey="security"
-                name={t('band.bandProtocol.riskAssessment.security') || 'Security'}
+                name={t('band.bandProtocol.riskAssessment.security')}
                 stroke="#3b82f6"
                 strokeWidth={1.5}
                 strokeDasharray="4 2"
@@ -393,7 +394,7 @@ export function BandProtocolRiskView() {
               <Line
                 type="monotone"
                 dataKey="reliability"
-                name={t('band.bandProtocol.riskAssessment.stability') || 'Reliability'}
+                name={t('band.bandProtocol.riskAssessment.stability')}
                 stroke="#f59e0b"
                 strokeWidth={1.5}
                 strokeDasharray="4 2"
@@ -410,7 +411,7 @@ export function BandProtocolRiskView() {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('band.bandProtocol.risk.benchmark') || 'Industry Benchmark Comparison'}
+            {t('band.bandProtocol.risk.benchmark')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             {t('band.bandProtocol.risk.benchmarkDesc') ||
@@ -462,7 +463,7 @@ export function BandProtocolRiskView() {
 
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-700">
-              {t('band.bandProtocol.risk.comparison') || 'Detailed Comparison'}
+              {t('band.bandProtocol.risk.comparison')}
             </h3>
             <div className="space-y-3">
               {RISK_BENCHMARKS.map((item) => (
@@ -499,7 +500,7 @@ export function BandProtocolRiskView() {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('band.bandProtocol.risk.timeline') || 'Historical Risk Events'}
+            {t('band.bandProtocol.risk.timeline')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             {t('band.bandProtocol.risk.timelineDesc') ||
@@ -519,7 +520,7 @@ export function BandProtocolRiskView() {
 
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-4">
-              {t('band.bandProtocol.risk.eventDetails') || 'Event Details'}
+              {t('band.bandProtocol.risk.eventDetails')}
             </h3>
             {selectedEvent ? (
               <div className="space-y-4 p-4 bg-gray-50 rounded-md">
@@ -547,7 +548,7 @@ export function BandProtocolRiskView() {
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-medium text-gray-900">{selectedEvent.title}</h4>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(selectedEvent.date).toLocaleDateString('zh-CN', {
+                      {new Date(selectedEvent.date).toLocaleDateString(locale, {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -563,7 +564,7 @@ export function BandProtocolRiskView() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
                   >
-                    {t('band.bandProtocol.risk.viewSource') || 'View Source'}
+                    {t('band.bandProtocol.risk.viewSource')}
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
@@ -572,7 +573,7 @@ export function BandProtocolRiskView() {
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
                 <p className="text-sm text-gray-500">
-                  {t('band.bandProtocol.risk.clickEvent') || 'Click an event to view details'}
+                  {t('band.bandProtocol.risk.clickEvent')}
                 </p>
               </div>
             )}
@@ -585,7 +586,7 @@ export function BandProtocolRiskView() {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('band.bandProtocol.risk.factors') || 'Risk Factor Analysis'}
+            {t('band.bandProtocol.risk.factors')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             {t('band.bandProtocol.risk.factorsDesc') ||
@@ -646,11 +647,10 @@ export function BandProtocolRiskView() {
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('band.bandProtocol.risk.disclaimer') || 'Risk Disclaimer'}
+            {t('band.bandProtocol.risk.disclaimer')}
           </h3>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-            {t('band.bandProtocol.risk.disclaimerText') ||
-              'The risk assessments provided are for informational purposes only and should not be considered as financial advice. Cryptocurrency investments carry significant risks including potential loss of capital. Past performance does not guarantee future results. Please conduct your own research and consult with qualified financial advisors before making investment decisions.'}
+            {t('band.bandProtocol.risk.disclaimerText')}
           </p>
         </div>
       </section>

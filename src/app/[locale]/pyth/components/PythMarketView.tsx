@@ -389,7 +389,7 @@ export function PythMarketView({
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
-            <p className="text-xs text-gray-400 mb-1">PYTH/USDC</p>
+            <p className="text-xs text-gray-400 mb-1">{t('pyth.tradingPairName')}</p>
             <p className="text-2xl font-semibold text-gray-900">
               ${price?.price?.toFixed(2) || '0.45'}
             </p>
@@ -409,19 +409,19 @@ export function PythMarketView({
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('pyth.stats.volume24h')}</p>
-            <p className="text-2xl font-semibold text-gray-900">$45.2M</p>
-            <p className="text-sm text-emerald-600 mt-1">+12.5%</p>
+            <p className="text-2xl font-semibold text-gray-900">{t('pyth.market.volumeValue')}</p>
+            <p className="text-sm text-emerald-600 mt-1">{t('pyth.market.volumeChange')}</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('pyth.stats.liquidity')}</p>
-            <p className="text-2xl font-semibold text-gray-900">$18.5M</p>
-            <p className="text-sm text-emerald-600 mt-1">+5.2%</p>
+            <p className="text-2xl font-semibold text-gray-900">{t('pyth.market.liquidityValue')}</p>
+            <p className="text-sm text-emerald-600 mt-1">{t('pyth.market.liquidityChange')}</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('pyth.stats.marketDepth')}</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-semibold text-gray-900">8.2</span>
-              <span className="text-sm text-gray-400">/10</span>
+              <span className="text-2xl font-semibold text-gray-900">{t('pyth.market.depthValue')}</span>
+              <span className="text-sm text-gray-400">{t('pyth.market.depthTotal')}</span>
             </div>
             <p className="text-xs text-gray-400 mt-1">{t('pyth.depthScore')}</p>
           </div>

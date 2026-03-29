@@ -26,12 +26,12 @@ export function ChronicleRiskView({ scuttlebutt, isLoading }: ChronicleRiskViewP
   const verificationStatus = scuttlebutt?.verificationStatus ?? 'verified';
 
   const mitigationMeasures = [
-    { name: 'Scuttlebutt Verification', effectiveness: 96 },
-    { name: 'Validator Rotation', effectiveness: 92 },
-    { name: 'Multi-Chain Validation', effectiveness: 89 },
-    { name: 'Threshold Signature', effectiveness: 94 },
-    { name: 'Decentralized Governance', effectiveness: 87 },
-    { name: 'Real-time Monitoring', effectiveness: 93 },
+    { name: t('chronicle.risk.mitigationMeasures.scuttlebuttVerification'), effectiveness: 96 },
+    { name: t('chronicle.risk.mitigationMeasures.validatorRotation'), effectiveness: 92 },
+    { name: t('chronicle.risk.mitigationMeasures.multiChainValidation'), effectiveness: 89 },
+    { name: t('chronicle.risk.mitigationMeasures.thresholdSignature'), effectiveness: 94 },
+    { name: t('chronicle.risk.mitigationMeasures.decentralizedGovernance'), effectiveness: 87 },
+    { name: t('chronicle.risk.mitigationMeasures.monitoring'), effectiveness: 93 },
   ];
 
   const getRiskColor = (score: number) => {
@@ -157,7 +157,9 @@ export function ChronicleRiskView({ scuttlebutt, isLoading }: ChronicleRiskViewP
           </div>
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.risk.securityLevel')}</p>
-            <p className="text-lg font-semibold text-gray-900 capitalize">{securityLevel}</p>
+            <p className="text-lg font-semibold text-gray-900 capitalize">
+              {securityLevel === 'high' ? t('chronicle.securityLevel.high') : securityLevel === 'medium' ? t('chronicle.securityLevel.medium') : t('chronicle.securityLevel.low')}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -170,7 +172,9 @@ export function ChronicleRiskView({ scuttlebutt, isLoading }: ChronicleRiskViewP
           </div>
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.risk.verificationStatus')}</p>
-            <p className="text-lg font-semibold text-gray-900 capitalize">{verificationStatus}</p>
+            <p className="text-lg font-semibold text-gray-900 capitalize">
+              {verificationStatus === 'verified' ? t('chronicle.verificationStatus.verified') : verificationStatus === 'pending' ? t('chronicle.verificationStatus.pending') : t('chronicle.verificationStatus.failed')}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -179,7 +183,7 @@ export function ChronicleRiskView({ scuttlebutt, isLoading }: ChronicleRiskViewP
           </div>
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.risk.lastAudit')}</p>
-            <p className="text-lg font-semibold text-gray-900">7 days ago</p>
+            <p className="text-lg font-semibold text-gray-900">{t('chronicle.timeAgo.days', { count: 7 }) || '7 days ago'}</p>
           </div>
         </div>
       </div>
@@ -221,27 +225,21 @@ export function ChronicleRiskView({ scuttlebutt, isLoading }: ChronicleRiskViewP
           <div className="flex items-start gap-3 py-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-gray-900">
-                {t('chronicle.risk.factor1Title')}
-              </p>
+              <p className="text-sm font-medium text-gray-900">{t('chronicle.risk.factor1Title')}</p>
               <p className="text-xs text-gray-500 mt-0.5">{t('chronicle.risk.factor1Desc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 py-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-gray-900">
-                {t('chronicle.risk.factor2Title')}
-              </p>
+              <p className="text-sm font-medium text-gray-900">{t('chronicle.risk.factor2Title')}</p>
               <p className="text-xs text-gray-500 mt-0.5">{t('chronicle.risk.factor2Desc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 py-2">
             <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-gray-900">
-                {t('chronicle.risk.factor3Title')}
-              </p>
+              <p className="text-sm font-medium text-gray-900">{t('chronicle.risk.factor3Title')}</p>
               <p className="text-xs text-gray-500 mt-0.5">{t('chronicle.risk.factor3Desc')}</p>
             </div>
           </div>

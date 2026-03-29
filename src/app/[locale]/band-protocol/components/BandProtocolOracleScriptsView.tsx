@@ -23,12 +23,12 @@ import { type BandProtocolOracleScriptsViewProps } from '../types';
 
 const ITEMS_PER_PAGE = 10;
 
-const categoryConfig: Record<OracleScriptCategory, { label: string; color: string }> = {
-  price: { label: 'Price', color: 'bg-blue-100 text-blue-700' },
-  sports: { label: 'Sports', color: 'bg-emerald-100 text-emerald-700' },
-  random: { label: 'Random', color: 'bg-purple-100 text-purple-700' },
-  custom: { label: 'Custom', color: 'bg-amber-100 text-amber-700' },
-};
+const getCategoryConfig = (t: (key: string) => string): Record<OracleScriptCategory, { label: string; color: string }> => ({
+  price: { label: t('band.bandProtocol.categories.price'), color: 'bg-blue-100 text-blue-700' },
+  sports: { label: t('band.bandProtocol.categories.sports'), color: 'bg-emerald-100 text-emerald-700' },
+  random: { label: t('band.bandProtocol.categories.random'), color: 'bg-purple-100 text-purple-700' },
+  custom: { label: t('band.bandProtocol.categories.custom'), color: 'bg-amber-100 text-amber-700' },
+});
 
 interface ScriptDetailModalProps {
   script: OracleScript | null;
@@ -74,9 +74,9 @@ function ScriptDetailModal({ script, onClose }: ScriptDetailModalProps) {
                   {t('band.bandProtocol.oracleScripts.category')}
                 </p>
                 <span
-                  className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${categoryConfig[script.category].color}`}
+                  className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${getCategoryConfig(t)[script.category].color}`}
                 >
-                  {categoryConfig[script.category].label}
+                  {getCategoryConfig(t)[script.category].label}
                 </span>
               </div>
             </div>
@@ -388,9 +388,9 @@ export function BandProtocolOracleScriptsView({ oracleScripts, isLoading, error:
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${categoryConfig[script.category].color}`}
+                      className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${getCategoryConfig(t)[script.category].color}`}
                     >
-                      {categoryConfig[script.category].label}
+                      {getCategoryConfig(t)[script.category].label}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">

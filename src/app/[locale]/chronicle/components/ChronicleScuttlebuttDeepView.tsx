@@ -354,7 +354,7 @@ export function ChronicleScuttlebuttDeepView({
   const voteColumns = [
     {
       key: 'validator',
-      header: t('chronicle.scuttlebutt.validator') ?? 'Validator',
+      header: t('chronicle.scuttlebutt.validator'),
       sortable: true,
       render: (item: ValidatorVote) => (
         <div className="flex items-center gap-2">
@@ -365,7 +365,7 @@ export function ChronicleScuttlebuttDeepView({
     },
     {
       key: 'vote',
-      header: t('chronicle.scuttlebutt.vote') ?? 'Vote',
+      header: t('chronicle.scuttlebutt.vote'),
       sortable: true,
       render: (item: ValidatorVote) => (
         <span
@@ -380,7 +380,7 @@ export function ChronicleScuttlebuttDeepView({
     },
     {
       key: 'weight',
-      header: t('chronicle.scuttlebutt.weight') ?? 'Weight',
+      header: t('chronicle.scuttlebutt.weight'),
       sortable: true,
       render: (item: ValidatorVote) => (
         <div className="flex items-center gap-2">
@@ -396,7 +396,7 @@ export function ChronicleScuttlebuttDeepView({
     },
     {
       key: 'signature',
-      header: t('chronicle.scuttlebutt.signature') ?? 'Signature',
+      header: t('chronicle.scuttlebutt.signature'),
       render: (item: ValidatorVote) => (
         <code className="text-xs bg-gray-50 px-2 py-0.5 rounded font-mono">{item.signature}</code>
       ),
@@ -406,7 +406,7 @@ export function ChronicleScuttlebuttDeepView({
   const identityColumns = [
     {
       key: 'validator',
-      header: t('chronicle.scuttlebutt.validator') ?? 'Validator',
+      header: t('chronicle.scuttlebutt.validator'),
       sortable: true,
       render: (item: IdentityStatus) => (
         <div className="flex items-center gap-2">
@@ -417,7 +417,7 @@ export function ChronicleScuttlebuttDeepView({
     },
     {
       key: 'status',
-      header: t('chronicle.scuttlebutt.status') ?? 'Status',
+      header: t('chronicle.scuttlebutt.status'),
       sortable: true,
       render: (item: IdentityStatus) => (
         <span
@@ -432,14 +432,14 @@ export function ChronicleScuttlebuttDeepView({
     },
     {
       key: 'keyType',
-      header: t('chronicle.scuttlebutt.keyType') ?? 'Key Type',
+      header: t('chronicle.scuttlebutt.keyType'),
       render: (item: IdentityStatus) => (
         <code className="text-xs bg-gray-50 px-2 py-0.5 rounded">{item.keyType}</code>
       ),
     },
     {
       key: 'expiryDate',
-      header: t('chronicle.scuttlebutt.expiry') ?? 'Expiry',
+      header: t('chronicle.scuttlebutt.expiry'),
       render: (item: IdentityStatus) => {
         const days = Math.ceil((item.expiryDate - Date.now()) / 86400000);
         return (
@@ -454,7 +454,7 @@ export function ChronicleScuttlebuttDeepView({
   const slashingColumns = [
     {
       key: 'validator',
-      header: t('chronicle.scuttlebutt.validator') ?? 'Validator',
+      header: t('chronicle.scuttlebutt.validator'),
       sortable: true,
       render: (item: SlashingRecord) => (
         <span className="font-medium">{item.validator}</span>
@@ -462,14 +462,14 @@ export function ChronicleScuttlebuttDeepView({
     },
     {
       key: 'reason',
-      header: t('chronicle.scuttlebutt.reason') ?? 'Reason',
+      header: t('chronicle.scuttlebutt.reason'),
       render: (item: SlashingRecord) => (
         <span className="text-sm text-gray-700">{item.reason}</span>
       ),
     },
     {
       key: 'amount',
-      header: t('chronicle.scuttlebutt.amount') ?? 'Amount',
+      header: t('chronicle.scuttlebutt.amount'),
       sortable: true,
       render: (item: SlashingRecord) => (
         <span className="font-medium text-red-600">-{item.amount.toLocaleString()}</span>
@@ -477,13 +477,13 @@ export function ChronicleScuttlebuttDeepView({
     },
     {
       key: 'timestamp',
-      header: t('chronicle.scuttlebutt.date') ?? 'Date',
+      header: t('chronicle.scuttlebutt.date'),
       sortable: true,
       render: (item: SlashingRecord) => formatTime(item.timestamp),
     },
     {
       key: 'status',
-      header: t('chronicle.scuttlebutt.status') ?? 'Status',
+      header: t('chronicle.scuttlebutt.status'),
       render: (item: SlashingRecord) => (
         <span
           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}
@@ -500,14 +500,14 @@ export function ChronicleScuttlebuttDeepView({
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4 flex items-center gap-2">
           <Vote className="w-5 h-5 text-blue-600" />
-          {t('chronicle.scuttlebutt.consensusMechanism') ?? 'Consensus Mechanism'}
+          {t('chronicle.scuttlebutt.consensusMechanism')}
         </h3>
 
         {/* 共识状态概览 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-sm text-gray-500 mb-1">
-              {t('chronicle.scuttlebutt.consensusTime') ?? 'Consensus Time'}
+              {t('chronicle.scuttlebutt.consensusTime')}
             </p>
             <div className="flex items-baseline gap-1">
               <span className="text-2xl font-semibold text-gray-900">{consensus.consensusTime}</span>
@@ -516,13 +516,13 @@ export function ChronicleScuttlebuttDeepView({
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-sm text-gray-500 mb-1">
-              {t('chronicle.scuttlebutt.totalVotes') ?? 'Total Votes'}
+              {t('chronicle.scuttlebutt.totalVotes')}
             </p>
             <span className="text-2xl font-semibold text-gray-900">{consensus.totalVotes}</span>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-sm text-gray-500 mb-1">
-              {t('chronicle.scuttlebutt.approvalRate') ?? 'Approval Rate'}
+              {t('chronicle.scuttlebutt.approvalRate')}
             </p>
             <span className="text-2xl font-semibold text-emerald-600">
               {Math.round((consensus.approvedVotes / consensus.totalVotes) * 100)}%
@@ -530,7 +530,7 @@ export function ChronicleScuttlebuttDeepView({
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-sm text-gray-500 mb-1">
-              {t('chronicle.scuttlebutt.forkStatus') ?? 'Fork Status'}
+              {t('chronicle.scuttlebutt.forkStatus')}
             </p>
             <span
               className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-sm font-medium ${getForkStatusColor(consensus.forkStatus)}`}
@@ -546,7 +546,7 @@ export function ChronicleScuttlebuttDeepView({
         {/* 投票权重分布 */}
         <div className="mb-6">
           <p className="text-sm text-gray-500 mb-3">
-            {t('chronicle.scuttlebutt.votingPowerDistribution') ?? 'Voting Power Distribution'}
+            {t('chronicle.scuttlebutt.votingPowerDistribution')}
           </p>
           <div className="flex items-center gap-1 h-8 rounded-lg overflow-hidden">
             {consensus.votingPowerDistribution.map((v, i) => {
@@ -602,7 +602,7 @@ export function ChronicleScuttlebuttDeepView({
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4 flex items-center gap-2">
           <Key className="w-5 h-5 text-purple-600" />
-          {t('chronicle.scuttlebutt.identityVerification') ?? 'Identity Verification System'}
+          {t('chronicle.scuttlebutt.identityVerification')}
         </h3>
 
         {/* 密钥管理状态概览 */}
@@ -613,7 +613,7 @@ export function ChronicleScuttlebuttDeepView({
             </div>
             <div>
               <p className="text-sm text-gray-500">
-                {t('chronicle.scuttlebutt.activeKeys') ?? 'Active Keys'}
+                {t('chronicle.scuttlebutt.activeKeys')}
               </p>
               <p className="text-xl font-semibold text-gray-900">12</p>
             </div>
@@ -624,7 +624,7 @@ export function ChronicleScuttlebuttDeepView({
             </div>
             <div>
               <p className="text-sm text-gray-500">
-                {t('chronicle.scuttlebutt.pendingRotation') ?? 'Pending Rotation'}
+                {t('chronicle.scuttlebutt.pendingRotation')}
               </p>
               <p className="text-xl font-semibold text-gray-900">2</p>
             </div>
@@ -635,7 +635,7 @@ export function ChronicleScuttlebuttDeepView({
             </div>
             <div>
               <p className="text-sm text-gray-500">
-                {t('chronicle.scuttlebutt.lastKeyAudit') ?? 'Last Key Audit'}
+                {t('chronicle.scuttlebutt.lastKeyAudit')}
               </p>
               <p className="text-lg font-semibold text-gray-900">3 days ago</p>
             </div>
@@ -646,7 +646,7 @@ export function ChronicleScuttlebuttDeepView({
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h4 className="text-sm font-medium text-blue-900 mb-2 flex items-center gap-2">
             <Info className="w-4 h-4" />
-            {t('chronicle.scuttlebutt.signatureProcess') ?? 'Signature Verification Process'}
+            {t('chronicle.scuttlebutt.signatureProcess')}
           </h4>
           <div className="flex flex-wrap items-center gap-2 text-sm text-blue-800">
             <span className="bg-white px-2 py-1 rounded border border-blue-200">1. Data Request</span>
@@ -671,7 +671,7 @@ export function ChronicleScuttlebuttDeepView({
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4 flex items-center gap-2">
           <Shield className="w-5 h-5 text-emerald-600" />
-          {t('chronicle.scuttlebutt.sybilResistance') ?? 'Sybil Attack Resistance'}
+          {t('chronicle.scuttlebutt.sybilResistance')}
         </h3>
 
         {/* 质押门槛与声誉 */}
@@ -682,7 +682,7 @@ export function ChronicleScuttlebuttDeepView({
                 <TrendingUp className="w-5 h-5 text-emerald-700" />
               </div>
               <p className="text-sm text-emerald-700 font-medium">
-                {t('chronicle.scuttlebutt.stakingThreshold') ?? 'Staking Threshold'}
+                {t('chronicle.scuttlebutt.stakingThreshold')}
               </p>
             </div>
             <p className="text-3xl font-bold text-emerald-900">
@@ -697,7 +697,7 @@ export function ChronicleScuttlebuttDeepView({
                 <Users className="w-5 h-5 text-blue-700" />
               </div>
               <p className="text-sm text-blue-700 font-medium">
-                {t('chronicle.scuttlebutt.totalStaked') ?? 'Total Staked'}
+                {t('chronicle.scuttlebutt.totalStaked')}
               </p>
             </div>
             <p className="text-3xl font-bold text-blue-900">
@@ -712,7 +712,7 @@ export function ChronicleScuttlebuttDeepView({
                 <Activity className="w-5 h-5 text-purple-700" />
               </div>
               <p className="text-sm text-purple-700 font-medium">
-                {t('chronicle.scuttlebutt.avgReputation') ?? 'Avg Reputation'}
+                {t('chronicle.scuttlebutt.avgReputation')}
               </p>
             </div>
             <p className="text-3xl font-bold text-purple-900">{avgReputation}</p>
@@ -723,7 +723,7 @@ export function ChronicleScuttlebuttDeepView({
         {/* 声誉系统详情 */}
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
           <h4 className="text-sm font-medium text-gray-900 mb-3">
-            {t('chronicle.scuttlebutt.reputationFactors') ?? 'Reputation Factors'}
+            {t('chronicle.scuttlebutt.reputationFactors')}
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
@@ -755,7 +755,7 @@ export function ChronicleScuttlebuttDeepView({
 
         {/* 惩罚记录列表 */}
         <h4 className="text-sm font-medium text-gray-700 mb-3">
-          {t('chronicle.scuttlebutt.slashingRecords') ?? 'Slashing Records'}
+          {t('chronicle.scuttlebutt.slashingRecords')}
         </h4>
         <ChronicleDataTable data={mockSlashingRecords} columns={slashingColumns} />
       </div>
@@ -766,14 +766,14 @@ export function ChronicleScuttlebuttDeepView({
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4 flex items-center gap-2">
           <Activity className="w-5 h-5 text-rose-600" />
-          {t('chronicle.scuttlebutt.realtimeMonitoring') ?? 'Real-time Monitoring'}
+          {t('chronicle.scuttlebutt.realtimeMonitoring')}
         </h3>
 
         {/* 异常检测告警 */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-medium text-gray-700">
-              {t('chronicle.scuttlebutt.anomalyAlerts') ?? 'Anomaly Alerts'}
+              {t('chronicle.scuttlebutt.anomalyAlerts')}
             </h4>
             <span className="text-xs text-gray-500">
               {mockAlerts.filter((a) => !a.resolved).length} active
@@ -793,7 +793,7 @@ export function ChronicleScuttlebuttDeepView({
                   </p>
                 </div>
                 {alert.resolved && (
-                  <span className="text-xs bg-white/50 px-2 py-0.5 rounded">Resolved</span>
+                  <span className="text-xs bg-white/50 px-2 py-0.5 rounded">{t('chronicle.scuttlebutt.resolved')}</span>
                 )}
               </div>
             ))}
@@ -803,7 +803,7 @@ export function ChronicleScuttlebuttDeepView({
         {/* 节点健康检查状态 */}
         <div className="mb-6">
           <h4 className="text-sm font-medium text-gray-700 mb-3">
-            {t('chronicle.scuttlebutt.nodeHealth') ?? 'Node Health Status'}
+            {t('chronicle.scuttlebutt.nodeHealth')}
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {mockNodeHealth.map((node) => (
@@ -824,11 +824,11 @@ export function ChronicleScuttlebuttDeepView({
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-500">Uptime</p>
+                    <p className="text-gray-500">{t('chronicle.validators.uptime')}</p>
                     <p className="font-medium text-gray-900">{node.uptime}%</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Response</p>
+                    <p className="text-gray-500">{t('chronicle.networkHealth.responseTime')}</p>
                     <p className="font-medium text-gray-900">
                       {node.responseTime > 0 ? `${node.responseTime}ms` : '-'}
                     </p>
@@ -844,25 +844,25 @@ export function ChronicleScuttlebuttDeepView({
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
               <Network className="w-4 h-4" />
-              {t('chronicle.scuttlebutt.networkPartition') ?? 'Network Partition Detection'}
+              {t('chronicle.scuttlebutt.networkPartition')}
             </h4>
             <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-700">
               <CheckCircle className="w-4 h-4" />
-              No Partition Detected
+              {t('chronicle.scuttlebutt.noPartitionDetected')}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <p className="text-2xl font-semibold text-gray-900">5</p>
-              <p className="text-xs text-gray-500">Connected Partitions</p>
+              <p className="text-xs text-gray-500">{t('chronicle.scuttlebutt.connectedPartitions')}</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-semibold text-gray-900">100%</p>
-              <p className="text-xs text-gray-500">Network Connectivity</p>
+              <p className="text-xs text-gray-500">{t('chronicle.scuttlebutt.networkConnectivity')}</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-semibold text-gray-900">0</p>
-              <p className="text-xs text-gray-500">Isolated Nodes</p>
+              <p className="text-xs text-gray-500">{t('chronicle.scuttlebutt.isolatedNodes')}</p>
             </div>
           </div>
         </div>

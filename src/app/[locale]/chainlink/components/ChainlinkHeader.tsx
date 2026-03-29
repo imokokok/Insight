@@ -28,8 +28,8 @@ export function ChainlinkHeader({
               <img src="/logos/oracles/chainlink.svg" alt="Chainlink" className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Chainlink</h1>
-              <p className="text-xs text-gray-500">LINK</p>
+              <h1 className="text-lg font-semibold text-gray-900">{t('chainlink.title')}</h1>
+              <p className="text-xs text-gray-500">{t('chainlink.symbol')}</p>
             </div>
           </div>
 

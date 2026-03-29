@@ -240,7 +240,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-base font-semibold text-gray-900">
-              {t('ecosystem.tvlAnalysis.title') || 'TVL Analysis'}
+              {t('ecosystem.tvlAnalysis.title')}
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">{t('ecosystem.tvlTrend')}</p>
           </div>
@@ -251,7 +251,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
                 active={timeRange === range}
                 onClick={() => setTimeRange(range)}
               >
-                {range}
+                {t(`ecosystem.timeRange.${range}`)}
               </TimeRangeButton>
             ))}
           </div>
@@ -261,7 +261,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
         <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4 mb-6">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('ecosystem.tvlAnalysis.totalTvl') || 'Total TVL'}
+              {t('ecosystem.tvlAnalysis.totalTvl')}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-bold text-gray-900">${tvlStats.current.toFixed(1)}M</p>
@@ -279,7 +279,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
           <div className="h-8 w-px bg-gray-200 hidden sm:block" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('ecosystem.tvlAnalysis.ethereum') || 'Ethereum'}
+              {t('ecosystem.tvlAnalysis.ethereum')}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
@@ -292,7 +292,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('ecosystem.tvlAnalysis.l2Networks') || 'L2 Networks'}
+              {t('ecosystem.tvlAnalysis.l2Networks')}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
@@ -318,7 +318,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('ecosystem.tvlAnalysis.altL1') || 'Alt L1'}
+              {t('ecosystem.tvlAnalysis.altL1')}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
@@ -338,7 +338,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
         {/* Chain Filter - Subtle pill buttons */}
         <div className="flex flex-wrap items-center gap-2 mb-6">
           <span className="text-xs text-gray-400 mr-1">
-            {t('ecosystem.tvlAnalysis.filterByChain') || 'Filter by chain'}:
+            {t('ecosystem.tvlAnalysis.filterByChain')}:
           </span>
           {tvlStats.breakdown.map((item) => (
             <button
@@ -453,7 +453,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
         <section>
           <div className="mb-4">
             <h3 className="text-base font-semibold text-gray-900">
-              {t('ecosystem.projectAnalysis.projectsByChain') || 'Projects by Chain'}
+              {t('ecosystem.projectAnalysis.projectsByChain')}
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
               {t('ecosystem.distributionByNetwork')}
@@ -489,11 +489,11 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
           </div>
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 text-sm">
             <span className="text-gray-500">
-              {t('ecosystem.projectAnalysis.totalProjects') || 'Total Projects'}:{' '}
+              {t('ecosystem.projectAnalysis.totalProjects')}:{' '}
               <span className="font-medium text-gray-900">356+</span>
             </span>
             <span className="text-emerald-600 font-medium">
-              +42 {t('ecosystem.projectAnalysis.thisMonth') || 'this month'}
+              +42 {t('ecosystem.projectAnalysis.thisMonth')}
             </span>
           </div>
         </section>
@@ -505,7 +505,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
         <section>
           <div className="mb-4">
             <h3 className="text-base font-semibold text-gray-900">
-              {t('ecosystem.growth.title') || 'Ecosystem Growth'}
+              {t('ecosystem.growth.title')}
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">{t('ecosystem.keyIndicators')}</p>
           </div>
@@ -514,7 +514,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
               <div className="flex items-center gap-3">
                 <Layers className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.newProjects') || 'New Projects'}
+                  {t('ecosystem.growth.newProjects')}
                 </span>
               </div>
               <div className="text-right">
@@ -526,7 +526,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
               <div className="flex items-center gap-3">
                 <Zap className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.integrations') || 'Integrations'}
+                  {t('ecosystem.growth.integrations')}
                 </span>
               </div>
               <div className="text-right">
@@ -538,7 +538,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
               <div className="flex items-center gap-3">
                 <Globe className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.communityGrowth') || 'Community'}
+                  {t('ecosystem.growth.communityGrowth')}
                 </span>
               </div>
               <div className="text-right">
@@ -550,7 +550,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.protocolRevenue') || 'Revenue'}
+                  {t('ecosystem.growth.protocolRevenue')}
                 </span>
               </div>
               <div className="text-right">

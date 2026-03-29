@@ -60,14 +60,14 @@ export function ChainlinkServicesView() {
       {/* 服务概览列表 */}
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('services.overview') || 'Service Overview'}
+          {t('services.overview')}
         </h3>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           {/* 表头 */}
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            <div className="col-span-5">{t('services.service') || 'Service'}</div>
-            <div className="col-span-4 text-right">{t('services.requests') || 'Requests'}</div>
-            <div className="col-span-3 text-right">{t('services.uptime') || 'Uptime'}</div>
+            <div className="col-span-5">{t('services.service')}</div>
+            <div className="col-span-4 text-right">{t('services.requests')}</div>
+            <div className="col-span-3 text-right">{t('services.uptime')}</div>
           </div>
           {/* 服务行 */}
           {services.map((service, index) => {
@@ -108,7 +108,7 @@ export function ChainlinkServicesView() {
       {/* 服务使用分布 */}
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('services.usageDistribution') || 'Service Usage Distribution'}
+          {t('services.usageDistribution')}
         </h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -152,7 +152,7 @@ export function ChainlinkServicesView() {
       {/* 服务说明 */}
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('services.about') || 'About Chainlink Services'}
+          {t('services.about')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
           <div className="flex items-start gap-3">
@@ -160,8 +160,7 @@ export function ChainlinkServicesView() {
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">Data Feeds</span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.dataFeedsDesc') ||
-                  'Decentralized price oracles for DeFi applications, providing high-quality financial market data.'}
+                {t('services.dataFeedsDesc')}
               </p>
             </div>
           </div>
@@ -170,8 +169,7 @@ export function ChainlinkServicesView() {
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">VRF</span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.vrfDesc') ||
-                  'Verifiable Random Function for provably fair randomness in gaming and NFT applications.'}
+                {t('services.vrfDesc')}
               </p>
             </div>
           </div>
@@ -180,8 +178,7 @@ export function ChainlinkServicesView() {
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">Automation</span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.automationDesc') ||
-                  'Decentralized automation for smart contracts, enabling conditional execution of on-chain functions.'}
+                {t('services.automationDesc')}
               </p>
             </div>
           </div>
@@ -190,8 +187,7 @@ export function ChainlinkServicesView() {
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">CCIP</span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.ccipDesc') ||
-                  'Cross-Chain Interoperability Protocol for secure cross-chain messaging and token transfers.'}
+                {t('services.ccipDesc')}
               </p>
             </div>
           </div>
@@ -200,8 +196,7 @@ export function ChainlinkServicesView() {
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">Functions</span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.functionsDesc') ||
-                  'Serverless compute for smart contracts, allowing custom off-chain computations and API integrations.'}
+                {t('services.functionsDesc')}
               </p>
             </div>
           </div>

@@ -147,28 +147,28 @@ export function WinklinkCrossChainView({
 
   const statsData = [
     {
-      label: t('winklink.crossChain.totalChains') || 'Total Chains',
+      label: t('winklink.crossChain.totalChains'),
       value: metrics.totalChains.toString(),
       icon: Globe,
       change: null,
       trend: null,
     },
     {
-      label: t('winklink.crossChain.totalRequests24h') || 'Total Requests (24h)',
+      label: t('winklink.crossChain.totalRequests24h'),
       value: metrics.totalRequests24h.toLocaleString(),
       icon: ArrowRightLeft,
       change: '+12%',
       trend: 'up',
     },
     {
-      label: t('winklink.crossChain.successRate') || 'Cross-chain Success Rate',
+      label: t('winklink.crossChain.successRate'),
       value: `${metrics.successRate}%`,
       icon: CheckCircle,
       change: '+0.2%',
       trend: 'up',
     },
     {
-      label: t('winklink.crossChain.avgLatency') || 'Avg Latency',
+      label: t('winklink.crossChain.avgLatency'),
       value: `${metrics.avgLatency}s`,
       icon: Clock,
       change: '-8%',
@@ -226,7 +226,7 @@ export function WinklinkCrossChainView({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
           <h3 className="text-base font-medium text-gray-900 mb-5">
-            {t('winklink.crossChain.chainDistribution') || 'Chain Distribution'}
+            {t('winklink.crossChain.chainDistribution')}
           </h3>
           <div className="space-y-4">
             {chainDistribution.map((chain) => (
@@ -252,7 +252,7 @@ export function WinklinkCrossChainView({
           <div className="mt-6 pt-4 border-t border-gray-100">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-500">
-                {t('winklink.crossChain.totalRequests') || 'Total Requests'}
+                {t('winklink.crossChain.totalRequests')}
               </span>
               <span className="font-medium text-gray-900">
                 {chainDistribution.reduce((sum, c) => sum + c.requestCount, 0).toLocaleString()}
@@ -263,7 +263,7 @@ export function WinklinkCrossChainView({
 
         <div>
           <h3 className="text-base font-medium text-gray-900 mb-5">
-            {t('winklink.crossChain.crossChainRoutes') || 'Cross-chain Data Transfer Metrics'}
+            {t('winklink.crossChain.crossChainRoutes')}
           </h3>
           <div className="space-y-4">
             {crossChainRoutes.map((route, index) => (
@@ -278,19 +278,19 @@ export function WinklinkCrossChainView({
                     <span className="text-sm font-medium text-gray-900">{route.to}</span>
                   </div>
                   <span className="text-xs text-gray-500">
-                    {route.dailyVolume.toLocaleString()} {t('winklink.crossChain.dailyVolume') || 'daily'}
+                    {route.dailyVolume.toLocaleString()} {t('winklink.crossChain.dailyVolume')}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">
-                      {t('winklink.crossChain.latency') || 'Latency'}
+                      {t('winklink.crossChain.latency')}
                     </p>
                     <p className="text-lg font-semibold text-gray-900">{route.latency}s</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">
-                      {t('winklink.crossChain.successRate') || 'Success Rate'}
+                      {t('winklink.crossChain.successRate')}
                     </p>
                     <div className="flex items-center gap-2">
                       <p className="text-lg font-semibold text-gray-900">{route.successRate}%</p>
@@ -330,7 +330,7 @@ export function WinklinkCrossChainView({
                   rel="noopener noreferrer"
                   className="text-xs text-pink-600 hover:text-pink-700 mt-2 inline-block"
                 >
-                  {t('winklink.crossChain.viewOnExplorer') || 'View on Explorer'} →
+                  {t('winklink.crossChain.viewOnExplorer')} →
                 </a>
               )}
             </div>
@@ -342,13 +342,13 @@ export function WinklinkCrossChainView({
 
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-5">
-          {t('winklink.crossChain.successRateIndicators') || 'Cross-chain Success Rate Indicators'}
+          {t('winklink.crossChain.successRateIndicators')}
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="p-6 bg-gradient-to-br from-pink-50 to-white rounded-xl border border-pink-100">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium text-gray-700">
-                {t('winklink.crossChain.overallSuccessRate') || 'Overall Success Rate'}
+                {t('winklink.crossChain.overallSuccessRate')}
               </span>
               <span className="text-2xl font-bold text-pink-600">{metrics.successRate}%</span>
             </div>
@@ -359,14 +359,13 @@ export function WinklinkCrossChainView({
               />
             </div>
             <p className="text-xs text-gray-500 mt-3">
-              {t('winklink.crossChain.overallDesc') ||
-                'Based on all cross-chain transactions in the last 30 days'}
+              {t('winklink.crossChain.overallDesc')}
             </p>
           </div>
 
           <div className="space-y-4">
             <h4 className="text-sm font-medium text-gray-700">
-              {t('winklink.crossChain.perChainBreakdown') || 'Per-chain Success Rate Breakdown'}
+              {t('winklink.crossChain.perChainBreakdown')}
             </h4>
             {chainSuccessRates.map((chain) => (
               <div key={chain.chain} className="flex items-center gap-4">
@@ -394,7 +393,7 @@ export function WinklinkCrossChainView({
             ))}
             <div className="pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>{t('winklink.crossChain.legend') || 'Legend'}:</span>
+                <span>{t('winklink.crossChain.legend')}:</span>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full bg-emerald-500" />

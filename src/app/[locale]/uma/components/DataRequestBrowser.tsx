@@ -145,16 +145,16 @@ function formatTimeAgo(timestamp: number): string {
   return `${days}d ago`;
 }
 
-function formatTimeRemaining(expirationTime: number): string {
+function formatTimeRemaining(expirationTime: number, t: ReturnType<typeof useTranslations>): string {
   const seconds = Math.floor((expirationTime - Date.now()) / 1000);
-  if (seconds <= 0) return 'Expired';
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds <= 0) return t('uma.dataRequest.expired');
+  if (seconds < 60) return t('uma.common.timeRemaining.seconds', { count: seconds });
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 60) return t('uma.common.timeRemaining.minutes', { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ${minutes % 60}m`;
+  if (hours < 24) return t('uma.common.timeRemaining.hoursMinutes', { hours, minutes: minutes % 60 });
   const days = Math.floor(hours / 24);
-  return `${days}d ${hours % 24}h`;
+  return t('uma.common.timeRemaining.daysHours', { days, hours: hours % 24 });
 }
 
 function truncateAddress(address: string): string {
@@ -284,7 +284,7 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {type === 'all' ? t('uma.disputeVoting.all') : type.charAt(0).toUpperCase() + type.slice(1)}
+                {type === 'all' ? t('uma.common.all') : t(`uma.dataRequest.types.${type}`)}
               </button>
             ))}
           </div>
@@ -368,7 +368,7 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
                             {formatTimeAgo(request.timestamp)}
                           </span>
                           <span className="text-xs text-gray-400">
-                            Exp: {formatTimeRemaining(request.expirationTime)}
+                            {t('uma.dataRequest.expires')}: {formatTimeRemaining(request.expirationTime, t)}
                           </span>
                         </div>
                       </td>

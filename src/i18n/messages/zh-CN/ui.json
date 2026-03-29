@@ -119,7 +119,8 @@
     "loading": "加载中...",
     "sort": {
       "asc": "升序",
-      "desc": "降序"
+      "desc": "降序",
+      "unsorted": "未排序"
     },
     "density": {
       "compact": "紧凑",

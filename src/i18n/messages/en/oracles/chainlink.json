@@ -782,8 +782,7 @@
     "feature5Desc": "Connect to any HTTP API, including Web2 services, without traditional oracle limitations.",
     "feature6Title": "Gas Efficient",
     "feature6Desc": "Off-chain computation reduces on-chain gas costs while maintaining security guarantees."
-  }
-},
+  },
   "por": {
     "title": "Proof of Reserve",
     "overview": "Reserve Monitoring Overview",

@@ -254,7 +254,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
     () => [
       {
         key: 'requestId',
-        header: t('winklink.vrf.requestId') || 'Request ID',
+        header: t('winklink.vrf.requestId'),
         sortable: true,
         render: (item: VRFRequest) => (
           <div className="flex items-center gap-2">
@@ -272,7 +272,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       },
       {
         key: 'consumer',
-        header: t('winklink.vrf.consumer') || 'Consumer',
+        header: t('winklink.vrf.consumer'),
         sortable: true,
         render: (item: VRFRequest) => (
           <span className="font-mono text-xs text-gray-600">
@@ -282,7 +282,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       },
       {
         key: 'randomValue',
-        header: t('winklink.vrf.randomValue') || 'Random Value',
+        header: t('winklink.vrf.randomValue'),
         render: (item: VRFRequest) => (
           <span className="font-mono text-xs text-gray-600">
             {item.randomValue
@@ -293,7 +293,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       },
       {
         key: 'status',
-        header: t('winklink.vrf.status') || 'Status',
+        header: t('winklink.vrf.status'),
         sortable: true,
         render: (item: VRFRequest) => {
           const statusConfig = {
@@ -315,15 +315,15 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       },
       {
         key: 'timestamp',
-        header: t('winklink.vrf.timestamp') || 'Timestamp',
+        header: t('winklink.vrf.timestamp'),
         sortable: true,
         render: (item: VRFRequest) => {
           const diff = BASE_TIMESTAMP - item.timestamp;
           const minutes = Math.floor(diff / 60000);
           const hours = Math.floor(diff / 3600000);
-          if (hours > 0) return `${hours}h ago`;
-          if (minutes > 0) return `${minutes}m ago`;
-          return 'Just now';
+          if (hours > 0) return t('winklink.hero.hoursAgo', { count: hours });
+          if (minutes > 0) return t('winklink.hero.minutesAgo', { count: minutes });
+          return t('winklink.hero.justNow');
         },
       },
     ],
@@ -338,7 +338,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
           <Activity className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('winklink.vrf.totalRequests') || 'Total Requests'}
+              {t('winklink.vrf.totalRequests')}
             </p>
             <p className="text-xl font-semibold text-gray-900">
               {(vrfData.totalRequests / 1e6).toFixed(1)}M
@@ -350,7 +350,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
           <Zap className="w-5 h-5 text-emerald-500" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('winklink.vrf.dailyRequests') || 'Daily Requests'}
+              {t('winklink.vrf.dailyRequests')}
             </p>
             <p className="text-xl font-semibold text-emerald-600">
               {(vrfData.dailyRequests / 1e3).toFixed(0)}K
@@ -362,7 +362,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
           <Clock className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('winklink.vrf.avgResponseTime') || 'Avg Response Time'}
+              {t('winklink.vrf.avgResponseTime')}
             </p>
             <p className="text-xl font-semibold text-gray-900">{vrfData.averageResponseTime}ms</p>
           </div>
@@ -372,7 +372,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
           <CheckCircle2 className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('winklink.vrf.successRate') || 'Success Rate'}
+              {t('winklink.vrf.successRate')}
             </p>
             <p className="text-xl font-semibold text-gray-900">{vrfData.successRate}%</p>
           </div>
@@ -382,7 +382,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       {/* VRF Verification Flow Diagram */}
       <div className="border-t border-gray-200 pt-8">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-6">
-          {t('winklink.vrf.verificationFlow') || 'VRF Verification Flow'}
+          {t('winklink.vrf.verificationFlow')}
         </h3>
         <div className="relative">
           <div className="flex items-start justify-between overflow-x-auto pb-4">
@@ -416,7 +416,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       <div className="border-t border-gray-200 pt-8">
         <div className="flex items-center gap-3 mb-4">
           <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-            {t('winklink.vrf.verificationTool') || 'Random Number Verification Tool'}
+            {t('winklink.vrf.verificationTool')}
           </h3>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
             <AlertCircle className="w-3 h-3" />
@@ -458,7 +458,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
                 ) : (
                   <>
                     <Shield className="w-4 h-4" />
-                    {t('winklink.vrf.verify') || 'Verify'}
+                    {t('winklink.vrf.verify')}
                   </>
                 )}
               </button>
@@ -473,7 +473,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
                   <div className="flex items-center gap-2 mb-4">
                     <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                     <span className="font-medium text-emerald-700">
-                      {t('winklink.vrf.verificationSuccess') || 'Verification Successful'}
+                      {t('winklink.vrf.verificationSuccess')}
                     </span>
                   </div>
                   <div className="space-y-3 text-sm">
@@ -536,7 +536,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
                   <div className="flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-red-600" />
                     <span className="font-medium text-red-700">
-                      {t('winklink.vrf.verificationFailed') || 'Verification Failed'}
+                      {t('winklink.vrf.verificationFailed')}
                     </span>
                   </div>
                   <p className="text-sm text-red-600 mt-2">{verificationResult.error}</p>
@@ -555,7 +555,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       {/* VRF Security Proof Mechanism */}
       <div className="border-t border-gray-200 pt-8">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-6">
-          {t('winklink.vrf.securityMechanism') || 'VRF Security Proof Mechanism'}
+          {t('winklink.vrf.securityMechanism')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {SECURITY_MECHANISMS.map((mechanism, index) => {
@@ -579,10 +579,10 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       <div className="border-t border-gray-200 pt-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-            {t('winklink.vrf.recentRequests') || 'Recent VRF Requests'}
+            {t('winklink.vrf.recentRequests')}
           </h3>
           <button className="text-sm text-pink-600 hover:text-pink-700 flex items-center gap-1">
-            {t('winklink.vrf.viewAll') || 'View All'}
+            {t('winklink.vrf.viewAll')}
             <ExternalLink className="w-3 h-3" />
           </button>
         </div>
@@ -602,7 +602,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       {/* VRF Use Cases */}
       <div className="border-t border-gray-200 pt-8">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-6">
-          {t('winklink.vrf.useCases') || 'VRF Use Cases'}
+          {t('winklink.vrf.useCases')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {VRF_USE_CASES.map((useCase) => (
@@ -644,39 +644,35 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       {/* About Section */}
       <div className="border-t border-gray-200 pt-8">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('winklink.vrf.about') || 'About VRF'}
+          {t('winklink.vrf.about')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('winklink.vrf.whatIsVrf') || 'What is VRF'}:
+                {t('winklink.vrf.whatIsVrf')}:
               </span>{' '}
-              {t('winklink.vrf.whatIsVrfDesc') ||
-                'Verifiable Random Function (VRF) is a cryptographic primitive that produces random outputs with proofs that can be verified publicly.'}
+              {t('winklink.vrf.whatIsVrfDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('winklink.vrf.unpredictability') || 'Unpredictability'}:
+                {t('winklink.vrf.unpredictability')}:
               </span>{' '}
-              {t('winklink.vrf.unpredictabilityDesc') ||
-                'Random values cannot be predicted before generation, ensuring fair outcomes for all participants.'}
+              {t('winklink.vrf.unpredictabilityDesc')}
             </p>
           </div>
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('winklink.vrf.verifiability') || 'Verifiability'}:
+                {t('winklink.vrf.verifiability')}:
               </span>{' '}
-              {t('winklink.vrf.verifiabilityDesc') ||
-                'Anyone can verify that the random value was generated correctly using the public proof.'}
+              {t('winklink.vrf.verifiabilityDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('winklink.vrf.tamperProof') || 'Tamper-Proof'}:
+                {t('winklink.vrf.tamperProof')}:
               </span>{' '}
-              {t('winklink.vrf.tamperProofDesc') ||
-                'Neither oracle operators nor consumers can manipulate the random output once requested.'}
+              {t('winklink.vrf.tamperProofDesc')}
             </p>
           </div>
         </div>

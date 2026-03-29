@@ -88,7 +88,7 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
             <AlertCircle className="w-5 h-5 text-red-500" />
             <div>
               <p className="text-sm font-medium text-red-800">
-                {t('pyth.priceFeeds.error') || 'Failed to load price feeds'}
+                {t('pyth.priceFeeds.error')}
               </p>
               <p className="text-xs text-red-600">{error.message}</p>
             </div>
@@ -98,7 +98,7 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
             className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-700 hover:text-red-800 hover:bg-red-100 rounded-md transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
-            {t('common.retry') || 'Retry'}
+            {t('common.retry')}
           </button>
         </div>
       )}
@@ -108,7 +108,7 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
           <Activity className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('pyth.priceFeeds.total') || 'Total Feeds'}
+              {t('pyth.priceFeeds.total')}
             </p>
             <p className="text-xl font-semibold text-gray-900">
               {isLoading ? '-' : priceFeeds.length}
@@ -120,7 +120,7 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('pyth.priceFeeds.active') || 'Active'}
+              {t('pyth.priceFeeds.active')}
             </p>
             <p className="text-xl font-semibold text-emerald-600">
               {isLoading ? '-' : priceFeeds.filter((f) => f.status === 'active').length}
@@ -132,7 +132,7 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
           <TrendingUp className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('pyth.priceFeeds.totalRequests') || 'Total Requests'}
+              {t('pyth.priceFeeds.totalRequests')}
             </p>
             <p className="text-xl font-semibold text-gray-900">
               {isLoading ? '-' : `${(totalRequests / 1e6).toFixed(1)}M`}
@@ -144,7 +144,7 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
           <Clock className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('pyth.priceFeeds.avgReliability') || 'Avg Reliability'}
+              {t('pyth.priceFeeds.avgReliability')}
             </p>
             <p className="text-xl font-semibold text-gray-900">
               {isLoading ? '-' : `${avgReliability}%`}
@@ -179,7 +179,7 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
 
       <div>
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('pyth.priceFeeds.title') || 'Price Feeds'}
+          {t('pyth.priceFeeds.title')}
         </h3>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           {isLoading ? (
@@ -195,12 +195,12 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
                   </div>
                 ))}
               </div>
-              <p className="mt-4 text-sm text-gray-500">{t('common.loading') || 'Loading...'}</p>
+              <p className="mt-4 text-sm text-gray-500">{t('common.loading')}</p>
             </div>
           ) : filteredFeeds.length === 0 ? (
             <div className="p-8 text-center">
               <p className="text-gray-500">
-                {t('pyth.priceFeeds.noData') || 'No price feeds available'}
+                {t('pyth.priceFeeds.noData')}
               </p>
             </div>
           ) : (
@@ -208,22 +208,22 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                    {t('pyth.priceFeeds.name') || 'Name'}
+                    {t('pyth.priceFeeds.name')}
                   </th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                    {t('pyth.priceFeeds.category') || 'Category'}
+                    {t('pyth.priceFeeds.category')}
                   </th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                    {t('pyth.priceFeeds.frequency') || 'Update Frequency'}
+                    {t('pyth.priceFeeds.frequency')}
                   </th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                    {t('pyth.priceFeeds.threshold') || 'Deviation Threshold'}
+                    {t('pyth.priceFeeds.threshold')}
                   </th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                    {t('pyth.priceFeeds.status') || 'Status'}
+                    {t('pyth.priceFeeds.status')}
                   </th>
                   <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
-                    {t('pyth.priceFeeds.reliability') || 'Reliability'}
+                    {t('pyth.priceFeeds.reliability')}
                   </th>
                 </tr>
               </thead>
@@ -287,39 +287,35 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
       {/* About Section */}
       <div className="pt-6 border-t border-gray-200">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('pyth.priceFeeds.about') || 'About Price Feeds'}
+          {t('pyth.priceFeeds.about')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('pyth.priceFeeds.updateFrequency') || 'Update Frequency'}:
+                {t('pyth.priceFeeds.updateFrequency')}:
               </span>{' '}
-              {t('pyth.priceFeeds.frequencyDesc') ||
-                'Pyth price feeds update based on sub-second intervals, providing near real-time price data from first-party sources.'}
+              {t('pyth.priceFeeds.frequencyDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('pyth.priceFeeds.deviationThreshold') || 'Deviation Threshold'}:
+                {t('pyth.priceFeeds.deviationThreshold')}:
               </span>{' '}
-              {t('pyth.priceFeeds.thresholdDesc') ||
-                'Minimum price change required to trigger a new update on-chain.'}
+              {t('pyth.priceFeeds.thresholdDesc')}
             </p>
           </div>
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('pyth.priceFeeds.reliability') || 'Reliability'}:
+                {t('pyth.priceFeeds.reliability')}:
               </span>{' '}
-              {t('pyth.priceFeeds.reliabilityDesc') ||
-                'Percentage of successful updates over the last 30 days, maintained by publisher consensus.'}
+              {t('pyth.priceFeeds.reliabilityDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('pyth.priceFeeds.firstParty') || 'First-Party Data'}:
+                {t('pyth.priceFeeds.firstParty')}:
               </span>{' '}
-              {t('pyth.priceFeeds.firstPartyDesc') ||
-                'Data comes directly from leading trading firms and exchanges, not aggregated from third parties.'}
+              {t('pyth.priceFeeds.firstPartyDesc')}
             </p>
           </div>
         </div>

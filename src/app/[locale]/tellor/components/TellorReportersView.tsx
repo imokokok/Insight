@@ -1,481 +1,359 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState } from 'react';
 
 import {
-  Activity,
+  Users,
+  TrendingUp,
+  TrendingDown,
+  Award,
+  Target,
   Clock,
   Shield,
-  Award,
   Globe,
-  Server,
-  TrendingUp,
+  Wallet,
+  BarChart3,
+  MapPin,
+  ChevronDown,
+  ChevronUp,
   ExternalLink,
-  Database,
-  RefreshCw,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
-import type { Reporter } from '@/lib/oracles/tellor';
-import { tellorOnChainService } from '@/lib/oracles/tellorOnChainService';
 
-import { type TellorReportersViewProps, type ReporterData } from '../types';
+import { type TellorReportersViewProps } from '../types';
 
-import { TellorDataTable } from './TellorDataTable';
+interface Reporter {
+  address: string;
+  stake: number;
+  reports24h: number;
+  totalReports: number;
+  accuracy: number;
+  rewards: number;
+  status: 'active' | 'inactive';
+  lastReport: string;
+  region: string;
+}
 
-const fallbackReporters: ReporterData[] = [
+const mockReporters: Reporter[] = [
   {
-    id: '1',
-    name: 'TellorWhale',
-    address: '0x7a2f...3f9b',
+    address: '0x7a8b...3c4d',
+    stake: 5000,
+    reports24h: 156,
+    totalReports: 45230,
+    accuracy: 99.8,
+    rewards: 12500,
+    status: 'active',
+    lastReport: '2 min ago',
     region: 'North America',
-    responseTime: 85,
-    successRate: 99.8,
-    reputation: 98.5,
-    stakedAmount: 10000,
-    reports: 45230,
-    reward: 1250,
   },
   {
-    id: '2',
-    name: 'CryptoReporter',
-    address: '0x9c4f...8a2d',
+    address: '0x9e2f...8a1b',
+    stake: 3200,
+    reports24h: 142,
+    totalReports: 38450,
+    accuracy: 99.5,
+    rewards: 9800,
+    status: 'active',
+    lastReport: '5 min ago',
     region: 'Europe',
-    responseTime: 92,
-    successRate: 99.7,
-    reputation: 97.2,
-    stakedAmount: 8500,
-    reports: 38920,
-    reward: 1080,
   },
   {
-    id: '3',
-    name: 'DataMiner',
-    address: '0x3f8a...1c5e',
+    address: '0x3d5c...9f2e',
+    stake: 2800,
+    reports24h: 128,
+    totalReports: 32100,
+    accuracy: 99.2,
+    rewards: 8200,
+    status: 'active',
+    lastReport: '8 min ago',
     region: 'Asia',
-    responseTime: 105,
-    successRate: 99.5,
-    reputation: 96.8,
-    stakedAmount: 7200,
-    reports: 32150,
-    reward: 920,
   },
   {
-    id: '4',
-    name: 'OracleNode',
-    address: '0x5a1b...9b3c',
-    region: 'North America',
-    responseTime: 88,
-    successRate: 99.6,
-    reputation: 95.5,
-    stakedAmount: 6500,
-    reports: 28400,
-    reward: 810,
+    address: '0x1b4a...7d3c',
+    stake: 1500,
+    reports24h: 89,
+    totalReports: 18500,
+    accuracy: 98.9,
+    rewards: 4500,
+    status: 'active',
+    lastReport: '12 min ago',
+    region: 'South America',
   },
   {
-    id: '5',
-    name: 'BlockReporter',
-    address: '0x2d7e...4e8a',
-    region: 'Europe',
-    responseTime: 95,
-    successRate: 99.4,
-    reputation: 94.9,
-    stakedAmount: 5800,
-    reports: 25600,
-    reward: 730,
-  },
-  {
-    id: '6',
-    name: 'ChainWatcher',
-    address: '0x8f3c...2a1d',
-    region: 'Asia',
-    responseTime: 110,
-    successRate: 99.3,
-    reputation: 93.8,
-    stakedAmount: 5200,
-    reports: 23100,
-    reward: 680,
-  },
-  {
-    id: '7',
-    name: 'PriceOracle',
-    address: '0x4b2a...7c9f',
-    region: 'North America',
-    responseTime: 90,
-    successRate: 99.5,
-    reputation: 93.2,
-    stakedAmount: 4800,
-    reports: 21500,
-    reward: 620,
-  },
-  {
-    id: '8',
-    name: 'DataFeeder',
-    address: '0x1e9d...5b3a',
-    region: 'Europe',
-    responseTime: 98,
-    successRate: 99.2,
-    reputation: 92.5,
-    stakedAmount: 4200,
-    reports: 19800,
-    reward: 580,
+    address: '0x6f8e...2a9b',
+    stake: 1200,
+    reports24h: 76,
+    totalReports: 15200,
+    accuracy: 98.5,
+    rewards: 3800,
+    status: 'active',
+    lastReport: '15 min ago',
+    region: 'Oceania',
   },
 ];
 
-const regionStats = [
-  { region: 'North America', count: 3, percentage: 37.5 },
-  { region: 'Europe', count: 3, percentage: 37.5 },
-  { region: 'Asia', count: 2, percentage: 25 },
+const regionDistribution = [
+  { region: 'North America', count: 28, percentage: 38.9 },
+  { region: 'Europe', count: 22, percentage: 30.6 },
+  { region: 'Asia', count: 15, percentage: 20.8 },
+  { region: 'South America', count: 5, percentage: 6.9 },
+  { region: 'Oceania', count: 2, percentage: 2.8 },
 ];
 
-interface DataStatus {
-  source: 'on-chain' | 'cache' | 'fallback';
-  lastUpdated: Date | null;
-  isLoading: boolean;
-  error: string | null;
-}
+export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
+  const t = useTranslations('tellor');
+  const [expandedReporter, setExpandedReporter] = useState<string | null>(null);
 
-function formatAddress(address: string): string {
-  if (address.length <= 12) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
-
-function getEtherscanUrl(address: string): string {
-  return `https://etherscan.io/address/${address}`;
-}
-
-export function TellorReportersView({ isLoading: propsLoading }: TellorReportersViewProps) {
-  const t = useTranslations();
-  const [onChainReporters, setOnChainReporters] = useState<Reporter[]>([]);
-  const [dataStatus, setDataStatus] = useState<DataStatus>({
-    source: 'fallback',
-    lastUpdated: null,
-    isLoading: true,
-    error: null,
-  });
-
-  const fetchReporters = async (useCache = true) => {
-    setDataStatus((prev) => ({ ...prev, isLoading: true, error: null }));
-
-    try {
-      const reporters = await tellorOnChainService.getReporterList(1, 20);
-
-      if (reporters && reporters.length > 0) {
-        setOnChainReporters(reporters);
-        setDataStatus({
-          source: useCache ? 'cache' : 'on-chain',
-          lastUpdated: new Date(),
-          isLoading: false,
-          error: null,
-        });
-      } else {
-        throw new Error('No reporters data received');
-      }
-    } catch (error) {
-      console.error('Failed to fetch on-chain reporters:', error);
-      setDataStatus((prev) => ({
-        ...prev,
-        source: 'fallback',
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch data',
-      }));
-    }
-  };
-
-  useEffect(() => {
-    fetchReporters(true);
-  }, []);
-
-  const displayReporters: ReporterData[] = useMemo(() => {
-    if (onChainReporters.length > 0) {
-      return onChainReporters.map((reporter, index) => ({
-        id: reporter.id,
-        name: `Reporter ${index + 1}`,
-        address: reporter.address,
-        region: ['North America', 'Europe', 'Asia'][index % 3],
-        responseTime: Math.floor(80 + Math.random() * 30),
-        successRate: Number((reporter.successRate * 100).toFixed(1)),
-        reputation: 90 + Math.random() * 10,
-        stakedAmount: Math.floor(reporter.stakedAmount),
-        reports: reporter.totalReports,
-        reward: Math.floor(reporter.totalReports * 0.5),
-      }));
-    }
-    return fallbackReporters;
-  }, [onChainReporters]);
-
-  const totalStaked = displayReporters.reduce((acc, r) => acc + r.stakedAmount, 0);
-  const avgSuccessRate = (
-    displayReporters.reduce((acc, r) => acc + r.successRate, 0) / displayReporters.length
-  ).toFixed(1);
-  const avgResponseTime = Math.round(
-    displayReporters.reduce((acc, r) => acc + r.responseTime, 0) / displayReporters.length
-  );
-
-  const columns = [
+  const stats = [
     {
-      key: 'address',
-      header: t('tellor.reporters.address'),
-      sortable: true,
-      render: (item: ReporterData) => {
-        const fullAddress = item.address;
-        const isRealAddress = fullAddress.startsWith('0x') && fullAddress.length === 42;
-        return (
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-sm">{formatAddress(fullAddress)}</span>
-            {isRealAddress && (
-              <a
-                href={getEtherscanUrl(fullAddress)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-cyan-600 hover:text-cyan-700 transition-colors"
-                title={t('tellor.reporters.viewOnEtherscan')}
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            )}
-          </div>
-        );
-      },
+      label: t('reporters.totalReporters'),
+      value: '72',
+      change: '+5',
+      icon: Users,
+      trend: 'up',
     },
     {
-      key: 'reports',
-      header: t('tellor.reporters.reports'),
-      sortable: true,
-      render: (item: ReporterData) => item.reports.toLocaleString(),
+      label: t('reporters.active'),
+      value: '68',
+      change: '+3',
+      icon: Target,
+      trend: 'up',
     },
     {
-      key: 'successRate',
-      header: t('tellor.reporters.accuracy'),
-      sortable: true,
-      render: (item: ReporterData) => (
-        <span
-          className={`font-medium ${item.successRate >= 99.5 ? 'text-emerald-600' : item.successRate >= 99.0 ? 'text-amber-600' : 'text-gray-600'}`}
-        >
-          {item.successRate}%
-        </span>
-      ),
+      label: t('reporters.totalStaked'),
+      value: '2.8M',
+      change: '+12%',
+      icon: Wallet,
+      trend: 'up',
     },
     {
-      key: 'stakedAmount',
-      header: t('tellor.reporters.stake'),
-      sortable: true,
-      render: (item: ReporterData) => `${item.stakedAmount.toLocaleString()} TRB`,
-    },
-    {
-      key: 'reward',
-      header: t('tellor.reporters.reward'),
-      sortable: true,
-      render: (item: ReporterData) => (
-        <span className="text-emerald-600 font-medium">+{item.reward} TRB</span>
-      ),
+      label: t('reporters.avg'),
+      value: '38,900',
+      change: '+8%',
+      icon: BarChart3,
+      trend: 'up',
     },
   ];
 
-  const getSourceLabel = () => {
-    switch (dataStatus.source) {
-      case 'on-chain':
-        return t('tellor.reporters.dataSourceOnChain');
-      case 'cache':
-        return t('tellor.reporters.dataSourceCache');
-      case 'fallback':
-        return t('tellor.reporters.dataSourceFallback');
-    }
-  };
-
-  const getSourceColor = () => {
-    switch (dataStatus.source) {
-      case 'on-chain':
-        return 'text-emerald-600 bg-emerald-50';
-      case 'cache':
-        return 'text-blue-600 bg-blue-50';
-      case 'fallback':
-        return 'text-amber-600 bg-amber-50';
-    }
-  };
+  const avgMetrics = [
+    { label: t('reporters.avgResponse'), value: '95ms', icon: Clock },
+    { label: t('reporters.avgSuccess'), value: '99.2%', icon: Shield },
+    { label: t('reporters.reports24h'), value: '12.5K', icon: Target },
+    { label: t('reporters.avgRewards'), value: '850 TRB', icon: Award },
+  ];
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-b border-gray-100">
-        <div className="flex flex-wrap items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-500">{t('tellor.reporters.total')}</span>
-            <span className="text-lg font-semibold text-gray-900">{displayReporters.length}</span>
-          </div>
-          <div className="w-px h-4 bg-gray-200" />
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-500">{t('tellor.reporters.avgResponse')}</span>
-            <span className="text-lg font-semibold text-gray-900">{avgResponseTime}ms</span>
-          </div>
-          <div className="w-px h-4 bg-gray-200" />
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-500">{t('tellor.reporters.avgSuccess')}</span>
-            <span className="text-lg font-semibold text-emerald-600">{avgSuccessRate}%</span>
-          </div>
-          <div className="w-px h-4 bg-gray-200" />
-          <div className="flex items-center gap-2">
-            <Award className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-500">{t('tellor.reporters.totalStaked')}</span>
-            <span className="text-lg font-semibold text-gray-900">
-              {(totalStaked / 1e3).toFixed(1)}K TRB
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getSourceColor()}`}
-          >
-            <Database className="w-3.5 h-3.5" />
-            <span>{getSourceLabel()}</span>
-          </div>
-          {dataStatus.lastUpdated && (
-            <span className="text-xs text-gray-400">
-              {t('tellor.reporters.lastUpdated')}: {dataStatus.lastUpdated.toLocaleTimeString()}
-            </span>
-          )}
-          <button
-            onClick={() => fetchReporters(false)}
-            disabled={dataStatus.isLoading}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
-            title={t('tellor.reporters.refresh')}
-          >
-            <RefreshCw className={`w-4 h-4 ${dataStatus.isLoading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3 space-y-4">
-          <div className="flex items-center gap-2">
-            <Server className="w-4 h-4 text-gray-500" />
-            <h2 className="text-base font-medium text-gray-900">
-              {t('tellor.reporters.activeReporters')}
-            </h2>
-          </div>
-          <TellorDataTable
-            data={displayReporters as unknown as Record<string, unknown>[]}
-            columns={
-              columns as unknown as Array<{
-                key: string;
-                header: string;
-                width?: string;
-                sortable?: boolean;
-                render?: (item: Record<string, unknown>) => React.ReactNode;
-              }>
-            }
-            isLoading={dataStatus.isLoading}
-          />
-        </div>
-
-        <div className="space-y-8">
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">
-                {t('tellor.reporters.regionDistribution')}
-              </h3>
-            </div>
-            <div className="space-y-4">
-              {regionStats.map((stat, index) => (
-                <div key={index}>
-                  <div className="flex items-center justify-between text-sm mb-1.5">
-                    <span className="text-gray-600">{stat.region}</span>
-                    <span className="font-medium text-gray-900">
-                      {stat.count} <span className="text-gray-400">({stat.percentage}%)</span>
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div
-                      className="bg-cyan-500 h-1.5 rounded-full transition-all"
-                      style={{ width: `${stat.percentage}%` }}
-                    />
-                  </div>
+      {/* 统计概览 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          const isPositive = stat.trend === 'up';
+          return (
+            <div
+              key={index}
+              className="p-4 rounded-xl bg-gray-50/50 border border-gray-100 hover:border-gray-200 transition-all"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-1.5 rounded-lg bg-cyan-50">
+                  <Icon className="w-4 h-4 text-cyan-600" />
                 </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">
-                {t('tellor.reporters.overview')}
-              </h3>
-            </div>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">{t('tellor.reporters.avgReputation')}</span>
-                <span className="font-medium text-gray-900">
-                  {(
-                    displayReporters.reduce((acc, r) => acc + r.reputation, 0) /
-                    displayReporters.length
-                  ).toFixed(1)}
+                <span className="text-xs text-gray-500">{stat.label}</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
+                <span
+                  className={`text-xs flex items-center gap-0.5 ${
+                    isPositive ? 'text-emerald-600' : 'text-red-600'
+                  }`}
+                >
+                  {isPositive ? (
+                    <TrendingUp className="w-3 h-3" />
+                  ) : (
+                    <TrendingDown className="w-3 h-3" />
+                  )}
+                  {stat.change}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">{t('tellor.reporters.topPerformers')}</span>
-                <span className="font-medium text-gray-900">3</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">{t('tellor.reporters.regions')}</span>
-                <span className="font-medium text-gray-900">{regionStats.length}</span>
-              </div>
             </div>
-          </section>
+          );
+        })}
+      </div>
+
+      {/* 平均指标和地域分布 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 平均指标 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-base font-medium text-gray-900 mb-4">{t('reporters.overview')}</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {avgMetrics.map((metric, index) => {
+              const Icon = metric.icon;
+              return (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                  <div className="p-2 rounded-lg bg-white">
+                    <Icon className="w-4 h-4 text-cyan-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">{metric.label}</p>
+                    <p className="text-lg font-semibold text-gray-900">{metric.value}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 地域分布 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-base font-medium text-gray-900 mb-4">{t('reporters.regionDistribution')}</h3>
+          <div className="space-y-3">
+            {regionDistribution.map((region, index) => (
+              <div key={index} className="flex items-center gap-3">
+                <MapPin className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600 flex-1">{region.region}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-cyan-500 rounded-full"
+                      style={{ width: `${region.percentage}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-500 w-12 text-right">
+                    {region.count} ({region.percentage}%)
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="border-t border-gray-200" />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('tellor.reporters.howToBecome')}
-          </h3>
-          <ul className="space-y-3 text-sm text-gray-600">
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs font-medium flex-shrink-0">
-                1
-              </span>
-              <span>{t('tellor.reporters.step1')}</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs font-medium flex-shrink-0">
-                2
-              </span>
-              <span>{t('tellor.reporters.step2')}</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs font-medium flex-shrink-0">
-                3
-              </span>
-              <span>{t('tellor.reporters.step3')}</span>
-            </li>
-          </ul>
+      {/* 顶级报告者列表 */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-base font-medium text-gray-900">{t('reporters.topReporters')}</h3>
         </div>
-
-        <div>
-          <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('tellor.reporters.rewards')}
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">{t('tellor.reporters.baseReward')}</span>
-              <span className="text-sm font-medium text-gray-900">0.5 TRB / report</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">{t('tellor.reporters.accuracyBonus')}</span>
-              <span className="text-sm font-medium text-emerald-600">+20%</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm text-gray-600">{t('tellor.reporters.stakeBonus')}</span>
-              <span className="text-sm font-medium text-emerald-600">Up to +50%</span>
-            </div>
-          </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('reporters.rank')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('reporters.address')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('reporters.staked')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('reporters.reports')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('reporters.accuracy')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('reporters.reward')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('reporters.status')}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {mockReporters.map((reporter, index) => (
+                <>
+                  <tr
+                    key={reporter.address}
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() =>
+                      setExpandedReporter(
+                        expandedReporter === reporter.address ? null : reporter.address
+                      )
+                    }
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-cyan-100 text-cyan-700 text-xs font-medium">
+                        {index + 1}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900">{reporter.address}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`https://etherscan.io/address/${reporter.address}`, '_blank');
+                          }}
+                          className="text-gray-400 hover:text-cyan-600 transition-colors"
+                          title={t('reporters.viewOnEtherscan')}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {reporter.stake.toLocaleString()} TRB
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {reporter.totalReports.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-emerald-600 font-medium">{reporter.accuracy}%</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {reporter.rewards.toLocaleString()} TRB
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          reporter.status === 'active'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {reporter.status === 'active' ? t('reporters.active') : t('reporters.inactive')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {expandedReporter === reporter.address ? (
+                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                      )}
+                    </td>
+                  </tr>
+                  {expandedReporter === reporter.address && (
+                    <tr className="bg-gray-50">
+                      <td colSpan={8} className="px-6 py-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">{t('reporters.region')}</p>
+                            <p className="text-sm font-medium text-gray-900">{reporter.region}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">{t('reporters.lastReport')}</p>
+                            <p className="text-sm font-medium text-gray-900">{reporter.lastReport}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">{t('reporters.reports24h')}</p>
+                            <p className="text-sm font-medium text-gray-900">{reporter.reports24h}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">{t('reporters.activityRate')}</p>
+                            <p className="text-sm font-medium text-emerald-600">
+                              {((reporter.reports24h / 24) * 100).toFixed(1)}%
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

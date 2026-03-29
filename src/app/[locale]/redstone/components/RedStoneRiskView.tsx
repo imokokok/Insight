@@ -6,7 +6,6 @@ import {
   Shield,
   AlertTriangle,
   CheckCircle,
-  Award,
   Info,
   ChevronDown,
   ChevronUp,
@@ -35,50 +34,50 @@ import { type RedStoneRiskViewProps } from '../types';
 const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2024-02-20T10:00:00',
-    title: '安全审计完成',
+    title: 'Security Audit Completed',
     description:
-      'RedStone 核心合约通过 Certora 形式化验证和 OpenZeppelin 安全审计，未发现重大漏洞。',
+      'RedStone core contracts passed Certora formal verification and OpenZeppelin security audit with no critical vulnerabilities found.',
     type: 'success',
   },
   {
     date: '2024-01-15T14:30:00',
-    title: '数据流协议升级',
-    description: '发布 RedStone Core v2.0，引入更高效的数据压缩算法和更低的 gas 成本。',
+    title: 'Data Stream Protocol Upgrade',
+    description: 'Released RedStone Core v2.0 with more efficient data compression and lower gas costs.',
     type: 'info',
   },
   {
     date: '2023-12-08T09:20:00',
-    title: '节点网络扩展',
-    description: '节点运营商数量突破 150 个，覆盖 30+ 个国家和地区，去中心化程度显著提升。',
+    title: 'Node Network Expansion',
+    description: 'Node operators exceeded 150, covering 30+ countries and regions, significantly improving decentralization.',
     type: 'success',
   },
   {
     date: '2023-10-22T16:45:00',
-    title: '价格偏差事件',
+    title: 'Price Deviation Event',
     description:
-      '由于极端市场波动，部分资产价格喂送出现短暂偏差。团队迅速响应并在 15 分钟内恢复正常。',
+      'Due to extreme market volatility, some asset price feeds experienced brief deviations. Team responded quickly and restored normal operation within 15 minutes.',
     type: 'warning',
   },
   {
     date: '2023-08-14T11:30:00',
-    title: '主网上线里程碑',
-    description: 'RedStone 正式在以太坊主网上线，为 DeFi 协议提供去中心化数据喂送服务。',
+    title: 'Mainnet Launch Milestone',
+    description: 'RedStone officially launched on Ethereum mainnet, providing decentralized data feeds for DeFi protocols.',
     type: 'success',
   },
   {
     date: '2023-06-03T08:00:00',
-    title: '测试网漏洞修复',
-    description: '白帽黑客通过 Bug Bounty 计划报告了一个低严重程度的漏洞，已在测试网阶段修复。',
+    title: 'Testnet Vulnerability Fix',
+    description: 'White hat hackers reported a low-severity vulnerability through the Bug Bounty program, which was fixed during the testnet phase.',
     type: 'info',
   },
 ];
 
 const benchmarkData = [
-  { metric: '去中心化', redstone: 85, chainlink: 95, pyth: 78, band: 65 },
-  { metric: '安全性', redstone: 90, chainlink: 98, pyth: 85, band: 72 },
-  { metric: '可靠性', redstone: 96.5, chainlink: 99.9, pyth: 97.5, band: 94.2 },
-  { metric: '透明度', redstone: 88, chainlink: 92, pyth: 88, band: 70 },
-  { metric: '历史记录', redstone: 72, chainlink: 98, pyth: 75, band: 82 },
+  { metric: 'Decentralization', redstone: 85, chainlink: 95, pyth: 78, band: 65 },
+  { metric: 'Security', redstone: 90, chainlink: 98, pyth: 85, band: 72 },
+  { metric: 'Reliability', redstone: 96.5, chainlink: 99.9, pyth: 97.5, band: 94.2 },
+  { metric: 'Transparency', redstone: 88, chainlink: 92, pyth: 88, band: 70 },
+  { metric: 'History', redstone: 72, chainlink: 98, pyth: 75, band: 82 },
 ];
 
 const riskMetrics = [
@@ -282,17 +281,16 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
-              {t('redstone.risk.metrics') || 'Risk Metrics'}
+              {t('redstone.risk.metrics')}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {t('redstone.risk.metricsDesc') ||
-                'Key performance indicators across decentralization, security, and reliability'}
+              {t('redstone.risk.metricsDesc')}
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
             <Shield className="w-5 h-5 text-emerald-600" />
             <span className="text-sm font-medium text-emerald-700">
-              {t('redstone.risk.overallScore') || 'Overall'}: {overallScore.toFixed(1)}/100
+              {t('redstone.risk.overallScore')}: {overallScore.toFixed(1)}/100
             </span>
           </div>
         </div>
@@ -329,11 +327,10 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('redstone.risk.benchmark') || 'Industry Benchmark Comparison'}
+            {t('redstone.risk.benchmark')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('redstone.risk.benchmarkDesc') ||
-              'Performance comparison against other leading oracle providers'}
+            {t('redstone.risk.benchmarkDesc')}
           </p>
         </div>
 
@@ -381,7 +378,7 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
 
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-700">
-              {t('redstone.risk.comparison') || 'Detailed Comparison'}
+              {t('redstone.risk.comparison')}
             </h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
@@ -418,15 +415,13 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('redstone.risk.timeline') || 'Historical Risk Events'}
+            {t('redstone.risk.timeline')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('redstone.risk.timelineDesc') ||
-              'Security audits, incidents and upgrades over the past 24 months'}
+            {t('redstone.risk.timelineDesc')}
           </p>
           <p className="text-xs text-gray-400 mt-2 italic">
-            Note: Historical events are placeholder data for demonstration. Real-time event tracking
-            will be integrated in future updates.
+            {t('redstone.risk.note')}
           </p>
         </div>
 
@@ -442,7 +437,7 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
 
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-4">
-              {t('redstone.risk.eventDetails') || 'Event Details'}
+              {t('redstone.risk.eventDetails')}
             </h3>
             {selectedEvent ? (
               <div className="space-y-4 p-4 bg-gray-50 rounded-md">
@@ -470,7 +465,7 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-medium text-gray-900">{selectedEvent.title}</h4>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(selectedEvent.date).toLocaleDateString('zh-CN', {
+                      {new Date(selectedEvent.date).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -484,7 +479,7 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
                 <p className="text-sm text-gray-500">
-                  {t('redstone.risk.clickEvent') || 'Click an event to view details'}
+                  {t('redstone.risk.clickEvent')}
                 </p>
               </div>
             )}
@@ -497,10 +492,10 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('redstone.risk.factors') || 'Risk Factor Analysis'}
+            {t('redstone.risk.factors')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('redstone.risk.factorsDesc') || 'Detailed breakdown of identified risk categories'}
+            {t('redstone.risk.factorsDesc')}
           </p>
         </div>
 

@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 
 import { Activity, CheckCircle, XCircle, TrendingUp, Users, Radio } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
+import { useTranslations, useLocale } from '@/i18n';
 
 import { type BandProtocolIBCViewProps } from '../types';
 
@@ -20,8 +20,8 @@ function formatTimeAgo(timestamp: number, t: (key: string, params?: Record<strin
   return t('band.bandProtocol.time.daysAgo', { count: days });
 }
 
-function formatDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString('en-US', {
+function formatDate(timestamp: number, locale: string = 'en-US'): string {
+  return new Date(timestamp).toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
   });
@@ -34,6 +34,7 @@ export function BandProtocolIBCView({
   isLoading,
 }: BandProtocolIBCViewProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   const filteredConnections = useMemo(() => {
@@ -137,7 +138,7 @@ export function BandProtocolIBCView({
                     title={`${trend.transfers.toLocaleString()} transfers`}
                   />
                   {index % 2 === 0 && (
-                    <span className="text-xs text-gray-400">{formatDate(trend.timestamp)}</span>
+                    <span className="text-xs text-gray-400">{formatDate(trend.timestamp, locale)}</span>
                   )}
                 </div>
               );

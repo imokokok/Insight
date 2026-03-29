@@ -110,7 +110,7 @@ function generateMultiChainData(basePrice: number, symbol: string): MultiChainAg
 }
 
 export function TellorMarketView({ config, price }: TellorMarketViewProps) {
-  const t = useTranslations();
+  const t = useTranslations('tellor');
   const [activePanelTab, setActivePanelTab] = useState<PanelTab>('priceStream');
 
   const basePrice = price?.price ?? 45.85;
@@ -130,22 +130,22 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
 
   const stats = [
     {
-      label: t('tellor.stats.marketCap'),
+      label: t('stats.marketCap'),
       value: `$${(config.marketData.marketCap / 1e9).toFixed(2)}B`,
       change: config.marketData.change24hValue,
     },
     {
-      label: t('tellor.stats.volume24h'),
+      label: t('stats.volume24h'),
       value: `$${(config.marketData.volume24h / 1e6).toFixed(1)}M`,
       change: '+12%',
     },
     {
-      label: t('tellor.stats.circulatingSupply'),
+      label: t('stats.circulatingSupply'),
       value: `${(config.marketData.circulatingSupply / 1e6).toFixed(1)}M TRB`,
       change: null,
     },
     {
-      label: t('tellor.stats.stakingApr'),
+      label: t('stats.stakingApr'),
       value: `${config.marketData.stakingApr ?? '-'}%`,
       change: null,
       highlight: true,
@@ -153,10 +153,17 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
   ];
 
   const networkStatus = [
-    { label: t('tellor.stats.activeReporters'), value: '72+', status: 'healthy', icon: Server },
-    { label: t('tellor.stats.dataFeeds'), value: '350+', status: 'healthy', icon: Zap },
-    { label: t('tellor.stats.responseTime'), value: '95ms', status: 'healthy', icon: Clock },
-    { label: t('tellor.successRate'), value: '99.9%', status: 'healthy', icon: Shield },
+    { label: t('stats.activeReporters'), value: '72+', status: 'healthy', icon: Server },
+    { label: t('stats.dataFeeds'), value: '350+', status: 'healthy', icon: Zap },
+    { label: t('stats.responseTime'), value: '95ms', status: 'healthy', icon: Clock },
+    { label: t('successRate'), value: '99.9%', status: 'healthy', icon: Shield },
+  ];
+
+  const dataSources = [
+    { name: t('market.dataSources.tellorMainnet'), status: 'active', latency: '95ms' },
+    { name: t('market.dataSources.ethereumMainnet'), status: 'active', latency: '120ms' },
+    { name: t('market.dataSources.arbitrumOne'), status: 'active', latency: '85ms' },
+    { name: t('market.dataSources.backupReporter'), status: 'syncing', latency: '150ms' },
   ];
 
   return (
@@ -166,7 +173,7 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
         {/* 左侧价格趋势图表 - 占2列 */}
         <div className="lg:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium text-gray-900">{t('tellor.priceTrend')}</h3>
+            <h3 className="text-base font-medium text-gray-900">{t('priceTrend')}</h3>
           </div>
           <div className="flex-1">
             <PriceChart
@@ -184,7 +191,7 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
         <div className="flex flex-col gap-8">
           {/* 快速统计 */}
           <div className="flex-1 flex flex-col">
-            <h3 className="text-base font-medium text-gray-900 mb-4">{t('tellor.quickStats')}</h3>
+            <h3 className="text-base font-medium text-gray-900 mb-4">{t('quickStats')}</h3>
             <div className="flex-1 flex flex-col">
               {stats.map((stat, index) => (
                 <div
@@ -220,7 +227,7 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
           {/* 网络状态 - 内联布局 */}
           <div className="flex-1 flex flex-col">
             <h3 className="text-base font-medium text-gray-900 mb-4">
-              {t('tellor.networkStatus')}
+              {t('networkStatus')}
             </h3>
             <div className="flex-1 flex flex-col gap-3">
               {networkStatus.map((item, index) => {
@@ -247,14 +254,9 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
 
           {/* 数据来源 */}
           <div className="flex-1 flex flex-col">
-            <h3 className="text-base font-medium text-gray-900 mb-4">{t('tellor.dataSource')}</h3>
+            <h3 className="text-base font-medium text-gray-900 mb-4">{t('dataSource')}</h3>
             <div className="flex-1 flex flex-col">
-              {[
-                { name: 'Tellor Mainnet', status: 'active', latency: '95ms' },
-                { name: 'Ethereum Mainnet', status: 'active', latency: '120ms' },
-                { name: 'Arbitrum One', status: 'active', latency: '85ms' },
-                { name: 'Backup Reporter', status: 'syncing', latency: '150ms' },
-              ].map((source, index) => (
+              {dataSources.map((source, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0"
@@ -278,7 +280,7 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
       {/* 核心交易对信息 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('tellor.tradingPair') || '主要交易对'}
+          {t('market.tradingPair')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
@@ -301,22 +303,22 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-1">{t('tellor.volume24h')}</p>
+            <p className="text-xs text-gray-400 mb-1">{t('volume24h')}</p>
             <p className="text-2xl font-semibold text-gray-900">$8.2M</p>
             <p className="text-sm text-emerald-600 mt-1">+15.3%</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-1">{t('tellor.liquidity')}</p>
+            <p className="text-xs text-gray-400 mb-1">{t('liquidity')}</p>
             <p className="text-2xl font-semibold text-gray-900">$12.5M</p>
             <p className="text-sm text-emerald-600 mt-1">+8.7%</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-1">{t('tellor.marketDepthLabel')}</p>
+            <p className="text-xs text-gray-400 mb-1">{t('marketDepthLabel')}</p>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-2xl font-semibold text-gray-900">7.8</span>
               <span className="text-sm text-gray-400">/10</span>
             </div>
-            <p className="text-xs text-gray-400 mt-1">{t('tellor.depthScore')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('market.depthScore')}</p>
           </div>
         </div>
       </div>
@@ -327,15 +329,15 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
       {/* 数据面板区域 - 使用Tabs组织 */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-medium text-gray-900">{t('tellor.panels.title')}</h3>
+          <h3 className="text-base font-medium text-gray-900">{t('panels.title')}</h3>
         </div>
 
         {/* Tabs 导航 */}
         <nav className="flex space-x-6 border-b border-gray-200 mb-6" aria-label="PanelTabs">
           {[
-            { id: 'priceStream' as PanelTab, label: t('tellor.tabs.priceStream') },
-            { id: 'marketDepth' as PanelTab, label: t('tellor.tabs.marketDepth') },
-            { id: 'multiChain' as PanelTab, label: t('tellor.tabs.multiChain') },
+            { id: 'priceStream' as PanelTab, label: t('tabs.priceStream') },
+            { id: 'marketDepth' as PanelTab, label: t('tabs.marketDepth') },
+            { id: 'multiChain' as PanelTab, label: t('tabs.multiChain') },
           ].map((tab) => {
             const isActive = activePanelTab === tab.id;
             return (

@@ -181,6 +181,7 @@ function generateMockData(basePrice: number, length: number): number[] {
 function MiniPriceChart({
   historicalData,
   currentPrice,
+  themeColor,
 }: {
   historicalData: PriceData[];
   currentPrice: PriceData | null;
@@ -667,8 +668,8 @@ export function RedStoneHero({
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">RedStone</h1>
-              <p className="text-xs text-gray-500">{t('redstone.subtitle')}</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('redstone.hero.title')}</h1>
+              <p className="text-xs text-gray-500">{t('redstone.hero.subtitle')}</p>
             </div>
           </div>
 

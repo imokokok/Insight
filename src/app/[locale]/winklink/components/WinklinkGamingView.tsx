@@ -409,39 +409,35 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
       {/* About Section */}
       <div className="pt-6 border-t border-gray-200">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('winklink.gaming.about') || 'About Gaming Services'}
+          {t('winklink.gaming.about')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('winklink.gaming.vrfTitle') || 'Verifiable Randomness'}:
+                {t('winklink.gaming.vrfTitle')}:
               </span>{' '}
-              {t('winklink.gaming.vrfDesc') ||
-                'WINkLink VRF provides cryptographically secure random numbers for fair gaming outcomes.'}
+              {t('winklink.gaming.vrfDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('winklink.gaming.securityTitle') || 'Security Level'}:
+                {t('winklink.gaming.securityTitle')}:
               </span>{' '}
-              {t('winklink.gaming.securityDesc') ||
-                'High security VRF uses multiple oracle nodes for maximum randomness guarantee.'}
+              {t('winklink.gaming.securityDesc')}
             </p>
           </div>
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('winklink.gaming.responseTitle') || 'Response Time'}:
+                {t('winklink.gaming.responseTitle')}:
               </span>{' '}
-              {t('winklink.gaming.responseDesc') ||
-                'Average response time under 110ms ensures smooth gaming experience.'}
+              {t('winklink.gaming.responseDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('winklink.gaming.multiChainTitle') || 'Multi-Chain Support'}:
+                {t('winklink.gaming.multiChainTitle')}:
               </span>{' '}
-              {t('winklink.gaming.multiChainDesc') ||
-                'Available on TRON, BNB Chain, and BTTC networks.'}
+              {t('winklink.gaming.multiChainDesc')}
             </p>
           </div>
         </div>

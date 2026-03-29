@@ -9,12 +9,12 @@ import { useDIACustomFeeds, useDIADataTransparency } from '@/hooks';
 import { useTranslations } from '@/i18n';
 
 const categories = [
-  { id: 'all', label: 'All' },
-  { id: 'crypto', label: 'Crypto' },
-  { id: 'fiat', label: 'Fiat' },
-  { id: 'commodity', label: 'Commodity' },
-  { id: 'nft', label: 'NFT' },
-  { id: 'custom', label: 'Custom' },
+  { id: 'all', labelKey: 'dia.dataFeeds.all' },
+  { id: 'crypto', labelKey: 'dia.dataFeeds.crypto' },
+  { id: 'fiat', labelKey: 'dia.dataFeeds.fiat' },
+  { id: 'commodity', labelKey: 'dia.dataFeeds.commodity' },
+  { id: 'nft', labelKey: 'dia.dataFeeds.nft' },
+  { id: 'custom', labelKey: 'dia.dataFeeds.custom' },
 ];
 
 export function DIADataFeedsView() {
@@ -142,7 +142,7 @@ export function DIADataFeedsView() {
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
-            {category.label}
+            {t(category.labelKey)}
             <span
               className={`text-xs ${
                 selectedCategory === category.id ? 'text-gray-600' : 'text-gray-400'
@@ -237,7 +237,7 @@ export function DIADataFeedsView() {
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${getStatusColor(feed.status)}`}
                           />
-                          {feed.status.charAt(0).toUpperCase() + feed.status.slice(1)}
+                          {t(`dia.status.${feed.status}`)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -338,7 +338,7 @@ export function DIADataFeedsView() {
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${getStatusColor(source.status)}`}
                           />
-                          {source.status.charAt(0).toUpperCase() + source.status.slice(1)}
+                          {t(`dia.status.${source.status}`)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">
@@ -359,39 +359,35 @@ export function DIADataFeedsView() {
       {/* About Section */}
       <div className="pt-6 border-t border-gray-200">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('dia.dataFeeds.about') || 'About Data Feeds'}
+          {t('dia.dataFeeds.about')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('dia.dataFeeds.confidence') || 'Confidence Score'}:
+                {t('dia.dataFeeds.confidence')}:
               </span>{' '}
-              {t('dia.dataFeeds.confidenceDesc') ||
-                'Measures the reliability of data sources based on historical accuracy and verification methods.'}
+              {t('dia.dataFeeds.confidenceDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('dia.dataFeeds.multiChain') || 'Multi-Chain Support'}:
+                {t('dia.dataFeeds.multiChain')}:
               </span>{' '}
-              {t('dia.dataFeeds.multiChainDesc') ||
-                'DIA data feeds are available across multiple blockchain networks for maximum interoperability.'}
+              {t('dia.dataFeeds.multiChainDesc')}
             </p>
           </div>
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('dia.dataFeeds.transparency') || 'Data Transparency'}:
+                {t('dia.dataFeeds.transparency')}:
               </span>{' '}
-              {t('dia.dataFeeds.transparencyDesc') ||
-                'All data sources are publicly verified with credibility scores and transparent verification methods.'}
+              {t('dia.dataFeeds.transparencyDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('dia.dataFeeds.customFeeds') || 'Custom Feeds'}:
+                {t('dia.dataFeeds.customFeeds')}:
               </span>{' '}
-              {t('dia.dataFeeds.customFeedsDesc') ||
-                'DIA supports custom data feeds for specific assets, NFT collections, and specialized use cases.'}
+              {t('dia.dataFeeds.customFeedsDesc')}
             </p>
           </div>
         </div>

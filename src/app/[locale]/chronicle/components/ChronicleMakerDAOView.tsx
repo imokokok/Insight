@@ -85,20 +85,23 @@ const mockAssets: AssetData[] = [
   },
 ];
 
-const categories = [
-  { id: 'all', label: 'All', count: mockAssets.length },
-  { id: 'crypto', label: 'Crypto', count: mockAssets.filter((f) => f.type === 'crypto').length },
-  {
-    id: 'stablecoin',
-    label: 'Stablecoin',
-    count: mockAssets.filter((f) => f.type === 'stablecoin').length,
-  },
-  { id: 'rwa', label: 'RWA', count: mockAssets.filter((f) => f.type === 'rwa').length },
-];
+// Categories will be created in component with translations
 
 export function ChronicleMakerDAOView({ makerDAO, isLoading }: ChronicleMakerDAOViewProps) {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  // Categories with translations
+  const categories = [
+    { id: 'all', label: t('chronicle.makerdao.allAssets'), count: mockAssets.length },
+    { id: 'crypto', label: t('chronicle.assetType.crypto'), count: mockAssets.filter((f) => f.type === 'crypto').length },
+    {
+      id: 'stablecoin',
+      label: t('chronicle.assetType.stablecoin'),
+      count: mockAssets.filter((f) => f.type === 'stablecoin').length,
+    },
+    { id: 'rwa', label: t('chronicle.assetType.rwa'), count: mockAssets.filter((f) => f.type === 'rwa').length },
+  ];
 
   const getAssetTypeColor = (type: string) => {
     switch (type) {
@@ -255,7 +258,7 @@ export function ChronicleMakerDAOView({ makerDAO, isLoading }: ChronicleMakerDAO
       {/* 集成信息说明 */}
       <div>
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('chronicle.makerdao.integrationInfo') || 'Integration Information'}
+          {t('chronicle.makerdao.integrationInfo')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
@@ -269,7 +272,7 @@ export function ChronicleMakerDAOView({ makerDAO, isLoading }: ChronicleMakerDAO
               <span className="font-medium text-gray-900">
                 {t('chronicle.makerdao.lastUpdate')}:
               </span>{' '}
-              2 hours ago
+              {t('chronicle.timeAgo.hours', { count: 2 })}
             </p>
           </div>
           <div>
@@ -277,7 +280,7 @@ export function ChronicleMakerDAOView({ makerDAO, isLoading }: ChronicleMakerDAO
               <span className="font-medium text-gray-900">
                 {t('chronicle.makerdao.oracleType')}:
               </span>{' '}
-              Primary Price Feed
+              {t('chronicle.makerdao.primaryPriceFeed')}
             </p>
             <p>
               <span className="font-medium text-gray-900">

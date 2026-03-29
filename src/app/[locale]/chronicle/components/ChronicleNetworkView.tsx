@@ -46,10 +46,10 @@ export function ChronicleNetworkView({
   ];
 
   const overviewStats = [
-    { label: t('chronicle.network.totalRequests') || 'Total Requests (24h)', value: '1.2M' },
-    { label: t('chronicle.network.avgGas') || 'Avg Gas Used', value: '65,420' },
-    { label: t('chronicle.network.activeChains') || 'Active Chains', value: '3' },
-    { label: t('chronicle.network.validatorOperators') || 'Validator Operators', value: '6' },
+    { label: t('chronicle.network.totalRequests'), value: '1.2M' },
+    { label: t('chronicle.network.avgGas'), value: '65,420' },
+    { label: t('chronicle.network.activeChains'), value: '3' },
+    { label: t('chronicle.network.validatorOperators'), value: '6' },
   ];
 
   const hourlyActivity = networkStats?.hourlyActivity || [
@@ -169,7 +169,7 @@ export function ChronicleNetworkView({
       {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chronicle.network.overview') || 'Network Overview'}
+          {t('chronicle.network.overview')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (

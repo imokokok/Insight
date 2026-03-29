@@ -138,24 +138,24 @@ export function ChroniclePriceDeviationView({
     },
     factors: [
       {
-        name: t('chronicle.deviation.marketVolatility') || '市场波动因素',
+        name: t('chronicle.deviation.marketVolatility'),
         impact: 35,
         description:
-          t('chronicle.deviation.marketVolatilityDesc') || '高波动市场环境下价格更新延迟导致偏差',
+          t('chronicle.deviation.marketVolatilityDesc'),
         status: 'medium',
       },
       {
-        name: t('chronicle.deviation.updateDelay') || '更新延迟因素',
+        name: t('chronicle.deviation.updateDelay'),
         impact: 45,
         description:
-          t('chronicle.deviation.updateDelayDesc') || '预言机更新频率差异造成临时价格偏差',
+          t('chronicle.deviation.updateDelayDesc'),
         status: 'high',
       },
       {
-        name: t('chronicle.deviation.liquidityIssue') || '流动性问题因素',
+        name: t('chronicle.deviation.liquidityIssue'),
         impact: 20,
         description:
-          t('chronicle.deviation.liquidityIssueDesc') || '低流动性时段大额交易导致价格滑点',
+          t('chronicle.deviation.liquidityIssueDesc'),
         status: 'low',
       },
     ],
@@ -240,10 +240,10 @@ export function ChroniclePriceDeviationView({
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-base font-medium text-gray-900">
-              {t('chronicle.deviation.realtimeTitle') || '实时价格偏差'}
+              {t('chronicle.priceDeviation.realtimeTitle')}
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              {t('chronicle.deviation.realtimeDesc') || 'Chronicle 价格与其他预言机对比'}
+              {t('chronicle.priceDeviation.realtimeDesc')}
             </p>
           </div>
           <div className="text-right">
@@ -252,7 +252,7 @@ export function ChroniclePriceDeviationView({
               ${data.chroniclePrice.toLocaleString()}
             </p>
             <p className="text-xs text-gray-500">
-              {t('chronicle.deviation.chroniclePrice') || 'Chronicle 价格'}
+              {t('chronicle.priceDeviation.chroniclePrice')}
             </p>
           </div>
         </div>
@@ -289,7 +289,7 @@ export function ChroniclePriceDeviationView({
                   {source.lastUpdate}
                 </span>
                 <span>
-                  {source.reliability}% {t('chronicle.deviation.reliability') || '可靠'}
+                  {source.reliability}% {t('chronicle.deviation.reliability')}
                 </span>
               </div>
             </div>
@@ -304,12 +304,12 @@ export function ChroniclePriceDeviationView({
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-medium text-gray-900">
-            {t('chronicle.deviation.historyTitle') || '24小时偏差趋势'}
+            {t('chronicle.deviation.historyTitle')}
           </h3>
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-amber-500" />
-              {t('chronicle.deviation.deviation') || '偏差'}
+              {t('chronicle.deviation.deviation')}
             </span>
           </div>
         </div>
@@ -328,11 +328,11 @@ export function ChroniclePriceDeviationView({
           })}
         </div>
         <div className="flex justify-between text-xs text-gray-400 mt-2">
-          <span>24h ago</span>
+          <span>{t('chronicle.hero.24hAgo')}</span>
           <span>18h</span>
           <span>12h</span>
           <span>6h</span>
-          <span>now</span>
+          <span>{t('chronicle.hero.now')}</span>
         </div>
       </div>
 
@@ -340,31 +340,31 @@ export function ChroniclePriceDeviationView({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="p-4 rounded-lg bg-gray-50">
           <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.deviation.maxDeviation') || '最大偏差'}
+            {t('chronicle.priceDeviation.maxDeviation')}
           </p>
           <p className={`text-2xl font-semibold ${getDeviationColor(data.stats.maxDeviation)}`}>
-            {(data.stats.maxDeviation * 100).toFixed(2)}%
+            {data.stats.maxDeviation}%
           </p>
         </div>
         <div className="p-4 rounded-lg bg-gray-50">
           <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.deviation.avgDeviation') || '平均偏差'}
+            {t('chronicle.priceDeviation.avgDeviation')}
           </p>
           <p className={`text-2xl font-semibold ${getDeviationColor(data.stats.avgDeviation)}`}>
-            {(data.stats.avgDeviation * 100).toFixed(2)}%
+            {data.stats.avgDeviation}%
           </p>
         </div>
         <div className="p-4 rounded-lg bg-gray-50">
           <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.deviation.minDeviation') || '最小偏差'}
+            {t('chronicle.priceDeviation.minDeviation')}
           </p>
           <p className={`text-2xl font-semibold ${getDeviationColor(data.stats.minDeviation)}`}>
-            {(data.stats.minDeviation * 100).toFixed(2)}%
+            {data.stats.minDeviation}%
           </p>
         </div>
         <div className="p-4 rounded-lg bg-gray-50">
           <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.deviation.deviationCount') || '偏差次数'}
+            {t('chronicle.priceDeviation.deviationCount')}
           </p>
           <p className="text-2xl font-semibold text-gray-900">{data.stats.deviationCount}</p>
         </div>
@@ -376,7 +376,7 @@ export function ChroniclePriceDeviationView({
       {/* 偏差原因分析 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chronicle.deviation.analysisTitle') || '偏差原因分析'}
+          {t('chronicle.priceDeviation.analysisTitle')}
         </h3>
         <div className="space-y-4">
           {data.factors.map((factor, index) => (
@@ -422,7 +422,7 @@ export function ChroniclePriceDeviationView({
       {/* 偏差影响评估 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chronicle.deviation.impactTitle') || '偏差影响评估'}
+          {t('chronicle.priceDeviation.impactTitle')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 影响的金库数量 */}
@@ -433,13 +433,13 @@ export function ChroniclePriceDeviationView({
               </div>
               <div>
                 <p className="text-xs text-gray-500">
-                  {t('chronicle.deviation.affectedVaults') || '影响金库'}
+                  {t('chronicle.priceDeviation.affectedVaults')}
                 </p>
                 <p className="text-2xl font-semibold text-gray-900">{data.impact.affectedVaults}</p>
               </div>
             </div>
             <p className="text-xs text-gray-500">
-              {t('chronicle.deviation.vaultsDesc') || '受价格偏差影响的活跃金库数量'}
+              {t('chronicle.priceDeviation.vaultsDesc')}
             </p>
           </div>
 
@@ -451,17 +451,17 @@ export function ChroniclePriceDeviationView({
               </div>
               <div>
                 <p className="text-xs text-gray-500">
-                  {t('chronicle.deviation.liquidationRisk') || '清算风险'}
+                  {t('chronicle.priceDeviation.liquidationRisk')}
                 </p>
                 <p
                   className={`text-xl font-semibold capitalize ${getRiskColor(data.impact.liquidationRisk)}`}
                 >
-                  {data.impact.liquidationRisk}
+                  {data.impact.liquidationRisk === 'low' ? t('chronicle.risk.lowRisk') : data.impact.liquidationRisk === 'medium' ? t('chronicle.risk.mediumRisk') : t('chronicle.risk.highRisk')}
                 </p>
               </div>
             </div>
             <p className="text-xs text-gray-500">
-              {t('chronicle.deviation.liquidationRiskDesc') || '基于当前偏差的清算风险评估'}
+              {t('chronicle.priceDeviation.liquidationRiskDesc')}
             </p>
           </div>
 
@@ -477,19 +477,19 @@ export function ChroniclePriceDeviationView({
               </div>
               <div>
                 <p className="text-xs text-gray-500">
-                  {t('chronicle.deviation.arbitrageOpportunity') || '套利机会'}
+                  {t('chronicle.priceDeviation.arbitrageOpportunity')}
                 </p>
                 <p
                   className={`text-xl font-semibold ${data.impact.arbitrageOpportunity ? 'text-emerald-600' : 'text-gray-400'}`}
                 >
                   {data.impact.arbitrageOpportunity
-                    ? t('chronicle.deviation.available') || '可用'
-                    : t('chronicle.deviation.unavailable') || '不可用'}
+                    ? t('chronicle.priceDeviation.available')
+                    : t('chronicle.priceDeviation.unavailable')}
                 </p>
               </div>
             </div>
             <p className="text-xs text-gray-500">
-              {t('chronicle.deviation.arbitrageDesc') || '是否存在可利用的套利空间'}
+              {t('chronicle.priceDeviation.arbitrageDesc')}
             </p>
           </div>
 
@@ -505,7 +505,7 @@ export function ChroniclePriceDeviationView({
               </div>
               <div>
                 <p className="text-xs text-gray-500">
-                  {t('chronicle.deviation.potentialProfit') || '潜在收益'}
+                  {t('chronicle.priceDeviation.potentialProfit')}
                 </p>
                 <p
                   className={`text-xl font-semibold ${data.impact.arbitrageOpportunity ? 'text-purple-600' : 'text-gray-400'}`}
@@ -515,7 +515,7 @@ export function ChroniclePriceDeviationView({
               </div>
             </div>
             <p className="text-xs text-gray-500">
-              {t('chronicle.deviation.profitDesc') || '套利机会预估最大收益'}
+              {t('chronicle.priceDeviation.profitDesc')}
             </p>
           </div>
         </div>
@@ -527,7 +527,7 @@ export function ChroniclePriceDeviationView({
       {/* 偏差分布统计 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chronicle.deviation.distributionTitle') || '偏差分布统计'}
+          {t('chronicle.priceDeviation.distributionTitle')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="flex items-center gap-4 p-4 rounded-lg bg-emerald-50">
@@ -536,11 +536,11 @@ export function ChroniclePriceDeviationView({
             </div>
             <div>
               <p className="text-sm text-gray-600">
-                {t('chronicle.deviation.normalRange') || '正常范围 (<0.05%)'}
+                {t('chronicle.priceDeviation.normalRange')}
               </p>
               <p className="text-2xl font-semibold text-emerald-600">68%</p>
               <p className="text-xs text-gray-500">
-                {t('chronicle.deviation.timeSpent') || '时间占比'}
+                {t('chronicle.priceDeviation.timeSpent')}
               </p>
             </div>
           </div>
@@ -550,11 +550,11 @@ export function ChroniclePriceDeviationView({
             </div>
             <div>
               <p className="text-sm text-gray-600">
-                {t('chronicle.deviation.moderateRange') || '中等偏差 (0.05-0.15%)'}
+                {t('chronicle.priceDeviation.moderateRange')}
               </p>
               <p className="text-2xl font-semibold text-amber-600">27%</p>
               <p className="text-xs text-gray-500">
-                {t('chronicle.deviation.timeSpent') || '时间占比'}
+                {t('chronicle.priceDeviation.timeSpent')}
               </p>
             </div>
           </div>
@@ -564,11 +564,11 @@ export function ChroniclePriceDeviationView({
             </div>
             <div>
               <p className="text-sm text-gray-600">
-                {t('chronicle.deviation.highRange') || '高偏差 (>0.15%)'}
+                {t('chronicle.priceDeviation.highRange')}
               </p>
               <p className="text-2xl font-semibold text-red-600">5%</p>
               <p className="text-xs text-gray-500">
-                {t('chronicle.deviation.timeSpent') || '时间占比'}
+                {t('chronicle.priceDeviation.timeSpent')}
               </p>
             </div>
           </div>
@@ -587,27 +587,26 @@ export function ChroniclePriceDeviationView({
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-medium text-gray-900">
-                    {t('chronicle.deviation.arbitrageAlert') || '套利机会提示'}
+                    {t('chronicle.priceDeviation.arbitrageAlert')}
                   </p>
                   <span className="px-2 py-1 rounded text-xs font-medium bg-emerald-100 text-emerald-700">
-                    {t('chronicle.deviation.active') || '活跃'}
+                    {t('chronicle.priceDeviation.active')}
                   </span>
                 </div>
                 <p className="text-xs text-gray-600 mb-3">
-                  {t('chronicle.deviation.arbitrageDetail') ||
-                    '检测到 Chronicle 与 Uniswap V3 之间存在价格偏差，可能存在套利机会。'}
+                  {t('chronicle.priceDeviation.arbitrageDetail')}
                 </p>
                 <div className="flex items-center gap-2 text-xs">
                   <span className="text-gray-500">
-                    {t('chronicle.deviation.buyAt') || '在 Chronicle 买入'}: $2,000.45
+                    {t('chronicle.priceDeviation.buyAt')}: $2,000.45
                   </span>
                   <ArrowRight className="w-3 h-3 text-gray-400" />
                   <span className="text-gray-500">
-                    {t('chronicle.deviation.sellAt') || '在 Uniswap 卖出'}: $2,002.15
+                    {t('chronicle.priceDeviation.sellAt')}: $2,002.15
                   </span>
                   <span className="ml-2 text-emerald-600 font-medium">
                     +${data.impact.potentialProfit.toLocaleString()}{' '}
-                    {t('chronicle.deviation.potential') || '潜在收益'}
+                    {t('chronicle.priceDeviation.potential')}
                   </span>
                 </div>
               </div>
@@ -621,11 +620,10 @@ export function ChroniclePriceDeviationView({
         <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium text-gray-900 mb-1">
-            {t('chronicle.deviation.infoTitle') || '偏差说明'}
+            {t('chronicle.priceDeviation.infoTitle')}
           </p>
           <p className="text-xs text-gray-600">
-            {t('chronicle.deviation.infoDesc') ||
-              '价格偏差是预言机系统的正常现象。Chronicle 通过 Scuttlebutt 验证机制确保价格数据的准确性和安全性。当偏差超过阈值时，系统会自动触发更新以保持价格同步。'}
+            {t('chronicle.priceDeviation.infoDesc')}
           </p>
         </div>
       </div>

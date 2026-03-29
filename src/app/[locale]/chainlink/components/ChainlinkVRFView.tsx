@@ -208,11 +208,11 @@ export function ChainlinkVRFView() {
   const getStatusLabel = (status: VRFRequest['status']) => {
     switch (status) {
       case 'fulfilled':
-        return t('vrf.fulfilled') || 'Fulfilled';
+        return t('vrf.fulfilled');
       case 'pending':
-        return t('vrf.pending') || 'Pending';
+        return t('vrf.pending');
       case 'failed':
-        return t('vrf.failed') || 'Failed';
+        return t('vrf.failed');
     }
   };
 
@@ -220,14 +220,14 @@ export function ChainlinkVRFView() {
     <div className="space-y-8">
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('vrf.requestStats') || 'Request Statistics'}
+          {t('vrf.requestStats')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Dice5 className="w-4 h-4 text-purple-600" />
               <span className="text-xs text-gray-500">
-                {t('vrf.requests24h') || 'Requests (24h)'}
+                {t('vrf.requests24h')}
               </span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
@@ -238,7 +238,7 @@ export function ChainlinkVRFView() {
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span className="text-xs text-gray-500">
-                {t('vrf.successRate') || 'Success Rate'}
+                {t('vrf.successRate')}
               </span>
             </div>
             <div className="text-xl font-semibold text-gray-900">{mockVRFStats.successRate}%</div>
@@ -247,7 +247,7 @@ export function ChainlinkVRFView() {
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-4 h-4 text-blue-600" />
               <span className="text-xs text-gray-500">
-                {t('vrf.avgResponseTime') || 'Avg Response Time'}
+                {t('vrf.avgResponseTime')}
               </span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
@@ -257,7 +257,7 @@ export function ChainlinkVRFView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Fuel className="w-4 h-4 text-amber-600" />
-              <span className="text-xs text-gray-500">{t('vrf.gasUsed') || 'Gas Used'}</span>
+              <span className="text-xs text-gray-500">{t('vrf.gasUsed')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {formatGas(mockVRFStats.gasUsed)}
@@ -268,14 +268,14 @@ export function ChainlinkVRFView() {
 
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('vrf.subscriptionOverview') || 'Subscription Overview'}
+          {t('vrf.subscriptionOverview')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-4 h-4 text-blue-600" />
               <span className="text-xs text-gray-500">
-                {t('vrf.activeSubscriptions') || 'Active Subscriptions'}
+                {t('vrf.activeSubscriptions')}
               </span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
@@ -286,7 +286,7 @@ export function ChainlinkVRFView() {
             <div className="flex items-center gap-2 mb-2">
               <Wallet className="w-4 h-4 text-emerald-600" />
               <span className="text-xs text-gray-500">
-                {t('vrf.totalFunded') || 'Total Funded'}
+                {t('vrf.totalFunded')}
               </span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
@@ -296,7 +296,7 @@ export function ChainlinkVRFView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 text-purple-600" />
-              <span className="text-xs text-gray-500">{t('vrf.avgBalance') || 'Avg Balance'}</span>
+              <span className="text-xs text-gray-500">{t('vrf.avgBalance')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {formatCurrency(safeDivide(mockVRFStats.totalFunded, mockVRFStats.activeSubscriptions))}
@@ -306,11 +306,11 @@ export function ChainlinkVRFView() {
 
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            <div className="col-span-2">{t('vrf.subscriptionId') || 'ID'}</div>
-            <div className="col-span-3">{t('vrf.owner') || 'Owner'}</div>
-            <div className="col-span-3 text-right">{t('vrf.balance') || 'Balance (LINK)'}</div>
+            <div className="col-span-2">{t('vrf.subscriptionId')}</div>
+            <div className="col-span-3">{t('vrf.owner')}</div>
+            <div className="col-span-3 text-right">{t('vrf.balance')}</div>
             <div className="col-span-4 text-right">
-              {t('vrf.consumers') || 'Consumer Contracts'}
+              {t('vrf.consumers')}
             </div>
           </div>
           {mockSubscriptions.map((sub, index) => (
@@ -333,7 +333,7 @@ export function ChainlinkVRFView() {
               </div>
               <div className="col-span-4 text-right">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                  {sub.consumers} {t('vrf.contracts') || 'contracts'}
+                  {sub.consumers} {t('vrf.contracts')}
                 </span>
               </div>
             </div>
@@ -343,15 +343,15 @@ export function ChainlinkVRFView() {
 
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('vrf.recentRequests') || 'Recent Randomness Requests'}
+          {t('vrf.recentRequests')}
         </h3>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            <div className="col-span-3">{t('vrf.requestId') || 'Request ID'}</div>
-            <div className="col-span-2">{t('vrf.consumer') || 'Consumer'}</div>
-            <div className="col-span-2 text-center">{t('vrf.randomWords') || 'Random Words'}</div>
-            <div className="col-span-2 text-right">{t('vrf.gasUsed') || 'Gas'}</div>
-            <div className="col-span-3 text-center">{t('vrf.status') || 'Status'}</div>
+            <div className="col-span-3">{t('vrf.requestId')}</div>
+            <div className="col-span-2">{t('vrf.consumer')}</div>
+            <div className="col-span-2 text-center">{t('vrf.randomWords')}</div>
+            <div className="col-span-2 text-right">{t('vrf.gasUsed')}</div>
+            <div className="col-span-3 text-center">{t('vrf.status')}</div>
           </div>
           {mockRequests.map((req, index) => (
             <div
@@ -394,7 +394,7 @@ export function ChainlinkVRFView() {
 
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('vrf.useCaseDistribution') || 'Use Case Distribution'}
+          {t('vrf.useCaseDistribution')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {useCaseDistribution.map((useCase) => (
@@ -408,7 +408,7 @@ export function ChainlinkVRFView() {
               </div>
               <div className="text-sm font-medium text-gray-900 mb-1">{useCase.name}</div>
               <div className="text-xs text-gray-500">
-                {formatNumber(useCase.count)} {t('vrf.requests') || 'requests'}
+                {formatNumber(useCase.count)} {t('vrf.requests')}
               </div>
               <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
@@ -423,14 +423,14 @@ export function ChainlinkVRFView() {
 
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('vrf.v2_5Features') || 'VRF v2.5 Features'}
+          {t('vrf.v2_5Features')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
           <div className="flex items-start gap-3">
             <Wallet className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('vrf.feature1Title') || 'Native Payment'}
+                {t('vrf.feature1Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('vrf.feature1Desc') ||
@@ -442,7 +442,7 @@ export function ChainlinkVRFView() {
             <Dice5 className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('vrf.feature2Title') || 'Batch Requests'}
+                {t('vrf.feature2Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('vrf.feature2Desc') ||
@@ -454,11 +454,10 @@ export function ChainlinkVRFView() {
             <Fuel className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('vrf.feature3Title') || 'Custom Callback Gas'}
+                {t('vrf.feature3Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {t('vrf.feature3Desc') ||
-                  'Configure custom gas limits for callback functions to optimize costs and ensure reliable execution.'}
+                {t('vrf.feature3Desc')}
               </p>
             </div>
           </div>
@@ -466,7 +465,7 @@ export function ChainlinkVRFView() {
             <Zap className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('vrf.feature4Title') || 'Faster Fulfillment'}
+                {t('vrf.feature4Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('vrf.feature4Desc') ||
@@ -478,7 +477,7 @@ export function ChainlinkVRFView() {
             <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('vrf.feature5Title') || 'On-Chain Verification'}
+                {t('vrf.feature5Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('vrf.feature5Desc') ||
@@ -490,7 +489,7 @@ export function ChainlinkVRFView() {
             <TrendingUp className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('vrf.feature6Title') || 'Subscription Model'}
+                {t('vrf.feature6Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('vrf.feature6Desc') ||

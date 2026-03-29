@@ -43,10 +43,10 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
   ];
 
   const overviewStats = [
-    { label: t('pyth.network.totalRequests') || 'Total Requests (24h)', value: '2.8M' },
-    { label: t('pyth.network.avgGas') || 'Avg Gas Used', value: '45,230' },
-    { label: t('pyth.network.activeChains') || 'Active Chains', value: '20+' },
-    { label: t('pyth.network.publisherCount') || 'Active Publishers', value: '85+' },
+    { label: t('pyth.network.totalRequests'), value: '2.8M' },
+    { label: t('pyth.network.avgGas'), value: '45,230' },
+    { label: t('pyth.network.activeChains'), value: '20+' },
+    { label: t('pyth.network.publisherCount'), value: '85+' },
   ];
 
   return (
@@ -93,7 +93,7 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
             <h3 className="text-base font-medium text-gray-900">
               {t('pyth.network.hourlyActivity')}
             </h3>
-            <span className="text-sm text-gray-500">24h</span>
+            <span className="text-sm text-gray-500">{t('common.timeRange.24h')}</span>
           </div>
           <div className="h-40 flex items-end gap-0.5">
             {config.networkData.hourlyActivity?.map((value, index) => {
@@ -110,11 +110,11 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
             })}
           </div>
           <div className="flex justify-between text-xs text-gray-400 mt-2">
-            <span>00:00</span>
-            <span>06:00</span>
-            <span>12:00</span>
-            <span>18:00</span>
-            <span>23:59</span>
+            <span>{t('common.time.00:00')}</span>
+            <span>{t('common.time.06:00')}</span>
+            <span>{t('common.time.12:00')}</span>
+            <span>{t('common.time.18:00')}</span>
+            <span>{t('common.time.23:59')}</span>
           </div>
         </div>
 
@@ -127,7 +127,7 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('pyth.network.successRate')}</span>
-                <span className="font-medium text-gray-900">99.9%</span>
+                <span className="font-medium text-gray-900">{t('pyth.network.successRateValue')}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '99.9%' }} />
@@ -136,7 +136,7 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('pyth.network.availability')}</span>
-                <span className="font-medium text-gray-900">99.99%</span>
+                <span className="font-medium text-gray-900">{t('pyth.network.availabilityValue')}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div className="bg-violet-500 h-1.5 rounded-full" style={{ width: '99.99%' }} />
@@ -145,7 +145,7 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('pyth.network.latency')}</span>
-                <span className="font-medium text-gray-900">100ms avg</span>
+                <span className="font-medium text-gray-900">{t('pyth.network.latencyValue')}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '75%' }} />
@@ -161,7 +161,7 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
       {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('pyth.network.overview') || 'Network Overview'}
+          {t('pyth.network.overview')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (

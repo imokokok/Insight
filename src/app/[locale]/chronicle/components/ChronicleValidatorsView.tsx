@@ -146,28 +146,31 @@ export function ChronicleValidatorsView({
       key: 'status',
       header: t('chronicle.validators.status'),
       sortable: true,
-      render: (item: ValidatorData) => (
-        <span
-          className={`inline-flex items-center gap-1.5 text-sm font-medium ${
-            item.status === 'active'
-              ? 'text-emerald-600'
-              : item.status === 'inactive'
-                ? 'text-gray-500'
-                : 'text-red-600'
-          }`}
-        >
+      render: (item: ValidatorData) => {
+        const statusKey = item.status === 'active' ? 'active' : item.status === 'inactive' ? 'inactive' : 'jailed';
+        return (
           <span
-            className={`w-1.5 h-1.5 rounded-full ${
+            className={`inline-flex items-center gap-1.5 text-sm font-medium ${
               item.status === 'active'
-                ? 'bg-emerald-500'
+                ? 'text-emerald-600'
                 : item.status === 'inactive'
-                  ? 'bg-gray-400'
-                  : 'bg-red-500'
+                  ? 'text-gray-500'
+                  : 'text-red-600'
             }`}
-          />
-          {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-        </span>
-      ),
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                item.status === 'active'
+                  ? 'bg-emerald-500'
+                  : item.status === 'inactive'
+                    ? 'bg-gray-400'
+                    : 'bg-red-500'
+              }`}
+            />
+            {t(`chronicle.status.${statusKey}`)}
+          </span>
+        );
+      },
     },
   ];
 

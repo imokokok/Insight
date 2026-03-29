@@ -235,14 +235,14 @@ export function BandProtocolStakingView({
           <div className="flex items-center gap-2 mb-4">
             <Calculator className="w-5 h-5 text-purple-600" />
             <h3 className="text-base font-medium text-gray-900">
-              {t('band.bandProtocol.staking.rewardCalculator') || 'Reward Calculator'}
+              {t('band.bandProtocol.staking.rewardCalculator')}
             </h3>
           </div>
 
           <div className="space-y-4 mb-6">
             <div>
               <label className="block text-sm text-gray-600 mb-2">
-                {t('band.bandProtocol.staking.stakeAmount') || 'Stake Amount (BAND)'}
+                {t('band.bandProtocol.staking.stakeAmount')}
               </label>
               <input
                 type="number"
@@ -255,7 +255,7 @@ export function BandProtocolStakingView({
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-2">
-                {t('band.bandProtocol.staking.stakingDuration') || 'Staking Duration (days)'}
+                {t('band.bandProtocol.staking.stakingDuration')}
               </label>
               <input
                 type="number"
@@ -272,7 +272,7 @@ export function BandProtocolStakingView({
           <div className="bg-purple-50 rounded-xl p-4 space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">
-                {t('band.bandProtocol.staking.estimatedReward') || 'Estimated Reward'}
+                {t('band.bandProtocol.staking.estimatedReward')}
               </span>
               <span className="text-lg font-semibold text-purple-600">
                 {rewardCalculation.estimatedReward.toFixed(4)} BAND
@@ -280,7 +280,7 @@ export function BandProtocolStakingView({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">
-                {t('band.bandProtocol.staking.apy') || 'APY'}
+                {t('band.bandProtocol.staking.apy')}
               </span>
               <span className="text-lg font-semibold text-purple-600">
                 {rewardCalculation.apy.toFixed(2)}%
@@ -288,7 +288,7 @@ export function BandProtocolStakingView({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">
-                {t('band.bandProtocol.staking.totalValue') || 'Total Value'}
+                {t('band.bandProtocol.staking.totalValue')}
               </span>
               <span className="text-lg font-semibold text-gray-900">
                 {(rewardCalculation.principal + rewardCalculation.estimatedReward).toFixed(4)} BAND
@@ -323,11 +323,10 @@ export function BandProtocolStakingView({
             <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
               <h4 className="text-sm font-medium text-amber-800 mb-1">
-                {t('band.bandProtocol.staking.riskWarning') || 'Staking Risk Warning'}
+                {t('band.bandProtocol.staking.riskWarning')}
               </h4>
               <p className="text-sm text-amber-700">
-                {t('band.bandProtocol.staking.riskWarningText') ||
-                  'Staking involves risks including slashing for validator misbehavior. The unbonding period is 21 days, during which your tokens are locked and cannot be transferred. Please stake responsibly.'}
+                {t('band.bandProtocol.staking.riskWarningText')}
               </p>
             </div>
           </div>

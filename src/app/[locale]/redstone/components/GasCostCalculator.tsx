@@ -200,17 +200,17 @@ export function GasCostCalculator() {
   const chartData = useMemo(() => {
     return [
       {
-        name: t('redstone.gasCalculator.daily') || 'Daily',
+        name: t('redstone.gasCalculator.daily'),
         push: Number(calculations.pushDailyCost.toFixed(2)),
         pull: Number(calculations.pullDailyCost.toFixed(2)),
       },
       {
-        name: t('redstone.gasCalculator.monthly') || 'Monthly',
+        name: t('redstone.gasCalculator.monthly'),
         push: Number(calculations.pushMonthlyCost.toFixed(2)),
         pull: Number(calculations.pullMonthlyCost.toFixed(2)),
       },
       {
-        name: t('redstone.gasCalculator.yearly') || 'Yearly',
+        name: t('redstone.gasCalculator.yearly'),
         push: Number((calculations.pushDailyCost * 365).toFixed(2)),
         pull: Number((calculations.pullDailyCost * 365).toFixed(2)),
       },
@@ -238,10 +238,10 @@ export function GasCostCalculator() {
           </div>
           <div className="text-left">
             <h3 className="text-sm font-semibold text-gray-900">
-              {t('redstone.gasCalculator.title') || 'Gas Cost Calculator'}
+              {t('redstone.gasCalculator.title')}
             </h3>
             <p className="text-xs text-gray-500">
-              {t('redstone.gasCalculator.subtitle') || 'Advanced gas savings analysis'}
+              {t('redstone.gasCalculator.subtitle')}
             </p>
           </div>
         </div>
@@ -249,7 +249,7 @@ export function GasCostCalculator() {
           <div className="px-3 py-1 bg-emerald-100 rounded-full">
             <span className="text-sm font-semibold text-emerald-600">
               {calculations.savingsPercent.toFixed(0)}%{' '}
-              {t('redstone.gasCalculator.savings') || 'Savings'}
+              {t('redstone.gasCalculator.savings')}
             </span>
           </div>
           {isExpanded ? (
@@ -266,7 +266,7 @@ export function GasCostCalculator() {
             <div className="space-y-4">
               <div>
                 <label className="text-xs text-gray-500 mb-2 block font-medium">
-                  {t('redstone.gasCalculator.scenario') || 'Use Case Scenario'}
+                  {t('redstone.gasCalculator.scenario')}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {(Object.keys(scenarioConfigs) as Scenario[]).map((key) => {
@@ -289,7 +289,7 @@ export function GasCostCalculator() {
                           <span
                             className={`text-xs font-medium ${scenario === key ? 'text-red-600' : 'text-gray-600'}`}
                           >
-                            {t(`redstone.gasCalculator.scenarios.${key}`) || config.name}
+                            {t(`redstone.gasCalculator.scenarios.${key}`)}
                           </span>
                         </div>
                         <p className="text-xs text-gray-400 truncate">{config.description}</p>
@@ -301,7 +301,7 @@ export function GasCostCalculator() {
 
               <div>
                 <label className="text-xs text-gray-500 mb-2 block font-medium">
-                  {t('redstone.gasCalculator.chain') || 'Blockchain Network'}
+                  {t('redstone.gasCalculator.chain')}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {(Object.keys(chainConfigs) as Chain[]).map((key) => {
@@ -329,7 +329,7 @@ export function GasCostCalculator() {
 
               <div>
                 <label className="text-xs text-gray-500 mb-1 block font-medium">
-                  {t('redstone.gasCalculator.priceFeeds') || 'Number of Price Feeds'}: {priceFeeds}
+                  {t('redstone.gasCalculator.priceFeeds')}: {priceFeeds}
                 </label>
                 <input
                   type="range"
@@ -348,7 +348,7 @@ export function GasCostCalculator() {
 
               <div>
                 <label className="text-xs text-gray-500 mb-2 block font-medium">
-                  {t('redstone.gasCalculator.updateFrequency') || 'Update Frequency'}
+                  {t('redstone.gasCalculator.updateFrequency')}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {(['hourly', '15min', 'realtime'] as UpdateFrequency[]).map((freq) => (
@@ -365,7 +365,7 @@ export function GasCostCalculator() {
                       <span
                         className={`text-xs font-medium ${updateFrequency === freq ? 'text-red-600' : 'text-gray-600'}`}
                       >
-                        {t(`redstone.gasCalculator.frequencies.${freq}`) || freq}
+                        {t(`redstone.gasCalculator.frequencies.${freq}`)}
                       </span>
                     </button>
                   ))}
@@ -374,7 +374,7 @@ export function GasCostCalculator() {
 
               <div>
                 <label className="text-xs text-gray-500 mb-2 block font-medium">
-                  {t('redstone.gasCalculator.dataComplexity') || 'Data Complexity'}
+                  {t('redstone.gasCalculator.dataComplexity')}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {(['simple', 'twap', 'volatility'] as DataComplexity[]).map((complexity) => (
@@ -390,7 +390,7 @@ export function GasCostCalculator() {
                       <span
                         className={`text-xs font-medium ${dataComplexity === complexity ? 'text-red-600' : 'text-gray-600'}`}
                       >
-                        {t(`redstone.gasCalculator.complexity.${complexity}`) || complexity}
+                        {t(`redstone.gasCalculator.complexity.${complexity}`)}
                       </span>
                     </button>
                   ))}
@@ -399,7 +399,7 @@ export function GasCostCalculator() {
 
               <div>
                 <label className="text-xs text-gray-500 mb-1 block font-medium">
-                  {t('redstone.gasCalculator.gasPrice') || 'Gas Price (Gwei)'}:{' '}
+                  {t('redstone.gasCalculator.gasPrice')}:{' '}
                   {gasPriceOverride ?? chainConfigs[chain].avgGasPrice}
                 </label>
                 <input
@@ -432,13 +432,13 @@ export function GasCostCalculator() {
                     <Legend />
                     <Bar
                       dataKey="push"
-                      name={t('redstone.gasCalculator.pushModel') || 'Push Model'}
+                      name={t('redstone.gasCalculator.pushModel')}
                       fill="#9ca3af"
                       radius={[0, 4, 4, 0]}
                     />
                     <Bar
                       dataKey="pull"
-                      name={t('redstone.gasCalculator.pullModel') || 'Pull Model'}
+                      name={t('redstone.gasCalculator.pullModel')}
                       fill="#ef4444"
                       radius={[0, 4, 4, 0]}
                     />
@@ -449,7 +449,7 @@ export function GasCostCalculator() {
               <div className="grid grid-cols-3 gap-3">
                 <div className="p-3 bg-gray-50 rounded-lg text-center">
                   <p className="text-xs text-gray-500 mb-1">
-                    {t('redstone.gasCalculator.dailySavings') || 'Daily Savings'}
+                    {t('redstone.gasCalculator.dailySavings')}
                   </p>
                   <p className="text-lg font-bold text-emerald-600">
                     {formatCurrency(calculations.dailySavings)}
@@ -457,7 +457,7 @@ export function GasCostCalculator() {
                 </div>
                 <div className="p-3 bg-gray-50 rounded-lg text-center">
                   <p className="text-xs text-gray-500 mb-1">
-                    {t('redstone.gasCalculator.monthlySavings') || 'Monthly Savings'}
+                    {t('redstone.gasCalculator.monthlySavings')}
                   </p>
                   <p className="text-lg font-bold text-emerald-600">
                     {formatCurrency(calculations.monthlySavings)}
@@ -465,7 +465,7 @@ export function GasCostCalculator() {
                 </div>
                 <div className="p-3 bg-emerald-50 rounded-lg text-center border border-emerald-200">
                   <p className="text-xs text-emerald-600 mb-1">
-                    {t('redstone.gasCalculator.yearlySavings') || 'Yearly Savings'}
+                    {t('redstone.gasCalculator.yearlySavings')}
                   </p>
                   <p className="text-lg font-bold text-emerald-600">
                     {formatCurrency(calculations.yearlySavings)}
@@ -477,7 +477,7 @@ export function GasCostCalculator() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">
-                      {t('redstone.gasCalculator.totalSavings') || 'Total Estimated Savings'}
+                      {t('redstone.gasCalculator.totalSavings')}
                     </p>
                     <p className="text-2xl font-bold text-emerald-600">
                       {formatCurrency(calculations.yearlySavings)}
@@ -485,7 +485,7 @@ export function GasCostCalculator() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-600">
-                      {t('redstone.gasCalculator.savingsRate') || 'Savings Rate'}
+                      {t('redstone.gasCalculator.savingsRate')}
                     </p>
                     <p className="text-2xl font-bold text-red-500">
                       {calculations.savingsPercent.toFixed(1)}%
@@ -499,7 +499,7 @@ export function GasCostCalculator() {
           <div>
             <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Landmark className="w-4 h-4 text-red-500" />
-              {t('redstone.gasCalculator.historicalCases') || 'Historical Savings Cases'}
+              {t('redstone.gasCalculator.historicalCases')}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               {historicalCases.map((case_, index) => (
@@ -516,19 +516,19 @@ export function GasCostCalculator() {
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
                       <span className="text-gray-500">
-                        {t('redstone.gasCalculator.chain') || 'Chain'}:
+                        {t('redstone.gasCalculator.chain')}:
                       </span>
                       <span className="text-gray-700">{case_.chain}</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-gray-500">
-                        {t('redstone.gasCalculator.feeds') || 'Feeds'}:
+                        {t('redstone.gasCalculator.feeds')}:
                       </span>
                       <span className="text-gray-700">{case_.feedsCount}</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-gray-500">
-                        {t('redstone.gasCalculator.monthlySavings') || 'Monthly'}:
+                        {t('redstone.gasCalculator.monthlySavings')}:
                       </span>
                       <span className="text-emerald-600 font-semibold">
                         ${case_.monthlySavings.toLocaleString()}
@@ -538,7 +538,7 @@ export function GasCostCalculator() {
                   <div className="mt-2 pt-2 border-t border-gray-200">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">
-                        {t('redstone.gasCalculator.savings') || 'Savings'}:
+                        {t('redstone.gasCalculator.savings')}:
                       </span>
                       <span className="text-sm font-bold text-emerald-600">
                         {case_.savingsPercent}%

@@ -351,7 +351,7 @@ function HistoricalDisputesList({
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString('zh-CN', {
+    return new Date(timestamp).toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
     });

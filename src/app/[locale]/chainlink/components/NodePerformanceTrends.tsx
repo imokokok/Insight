@@ -172,7 +172,7 @@ export function NodePerformanceTrends({ nodes }: NodePerformanceTrendsProps) {
                 {t('chainlink.nodes.successRateTrend')}
               </h3>
             </div>
-            <span className="text-xs text-gray-400">30D</span>
+            <span className="text-xs text-gray-400">{t('chainlink.common.30d')}</span>
           </div>
           <div className="space-y-3">
             {selectedNodesData.slice(0, 3).map((node) => (
@@ -204,7 +204,7 @@ export function NodePerformanceTrends({ nodes }: NodePerformanceTrendsProps) {
                 {t('chainlink.nodes.responseTimeTrend')}
               </h3>
             </div>
-            <span className="text-xs text-gray-400">30D</span>
+            <span className="text-xs text-gray-400">{t('chainlink.common.30d')}</span>
           </div>
           <div className="space-y-3">
             {selectedNodesData.slice(0, 3).map((node) => (

@@ -213,9 +213,9 @@ export function ChainlinkFunctionsView() {
   const getStatusLabel = (status: FunctionExecution['status']) => {
     switch (status) {
       case 'success':
-        return t('functions.success') || 'Success';
+        return t('functions.success');
       case 'failed':
-        return t('functions.failed') || 'Failed';
+        return t('functions.failed');
     }
   };
 
@@ -223,14 +223,14 @@ export function ChainlinkFunctionsView() {
     <div className="space-y-8">
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('functions.executionStats') || 'Execution Statistics'}
+          {t('functions.executionStats')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Terminal className="w-4 h-4 text-blue-600" />
               <span className="text-xs text-gray-500">
-                {t('functions.totalCalls') || 'Total Calls'}
+                {t('functions.totalCalls')}
               </span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
@@ -241,7 +241,7 @@ export function ChainlinkFunctionsView() {
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span className="text-xs text-gray-500">
-                {t('functions.successRate') || 'Success Rate'}
+                {t('functions.successRate')}
               </span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
@@ -252,7 +252,7 @@ export function ChainlinkFunctionsView() {
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-4 h-4 text-purple-600" />
               <span className="text-xs text-gray-500">
-                {t('functions.avgExecutionTime') || 'Avg Execution Time'}
+                {t('functions.avgExecutionTime')}
               </span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
@@ -263,7 +263,7 @@ export function ChainlinkFunctionsView() {
             <div className="flex items-center gap-2 mb-2">
               <Globe className="w-4 h-4 text-amber-600" />
               <span className="text-xs text-gray-500">
-                {t('functions.supportedApis') || 'Supported APIs'}
+                {t('functions.supportedApis')}
               </span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
@@ -275,15 +275,15 @@ export function ChainlinkFunctionsView() {
 
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('functions.recentExecutions') || 'Recent Executions'}
+          {t('functions.recentExecutions')}
         </h3>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            <div className="col-span-3">{t('functions.requestId') || 'Request ID'}</div>
-            <div className="col-span-3">{t('functions.sourceHash') || 'Source Hash'}</div>
-            <div className="col-span-2 text-center">{t('functions.result') || 'Result'}</div>
-            <div className="col-span-2 text-right">{t('functions.gasUsed') || 'Gas Used'}</div>
-            <div className="col-span-2 text-center">{t('functions.status') || 'Status'}</div>
+            <div className="col-span-3">{t('functions.requestId')}</div>
+            <div className="col-span-3">{t('functions.sourceHash')}</div>
+            <div className="col-span-2 text-center">{t('functions.result')}</div>
+            <div className="col-span-2 text-right">{t('functions.gasUsed')}</div>
+            <div className="col-span-2 text-center">{t('functions.status')}</div>
           </div>
           {mockExecutions.map((exec, index) => (
             <div
@@ -330,7 +330,7 @@ export function ChainlinkFunctionsView() {
 
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('functions.secretsManagement') || 'Secrets Management'}
+          {t('functions.secretsManagement')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {mockSecrets.map((secret) => (
@@ -347,16 +347,16 @@ export function ChainlinkFunctionsView() {
                 </div>
                 {secret.encrypted ? (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
-                    {t('functions.encrypted') || 'Encrypted'}
+                    {t('functions.encrypted')}
                   </span>
                 ) : (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                    {t('functions.unencrypted') || 'Unencrypted'}
+                    {t('functions.unencrypted')}
                   </span>
                 )}
               </div>
               <div className="text-xs text-gray-500">
-                {t('functions.expiresAt') || 'Expires'}: {formatDaysUntil(secret.expiresAt)}
+                {t('functions.expiresAt')}: {formatDaysUntil(secret.expiresAt)}
               </div>
             </div>
           ))}
@@ -365,7 +365,7 @@ export function ChainlinkFunctionsView() {
 
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('functions.useCaseDistribution') || 'Use Case Distribution'}
+          {t('functions.useCaseDistribution')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {useCaseDistribution.map((useCase) => (
@@ -379,7 +379,7 @@ export function ChainlinkFunctionsView() {
               </div>
               <div className="text-sm font-medium text-gray-900 mb-1">{useCase.name}</div>
               <div className="text-xs text-gray-500">
-                {formatNumber(useCase.count)} {t('functions.calls') || 'calls'}
+                {formatNumber(useCase.count)} {t('functions.calls')}
               </div>
               <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
@@ -394,14 +394,14 @@ export function ChainlinkFunctionsView() {
 
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('functions.features') || 'Key Features'}
+          {t('functions.features')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
           <div className="flex items-start gap-3">
             <Code className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('functions.feature1Title') || 'Custom JavaScript'}
+                {t('functions.feature1Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('functions.feature1Desc') ||
@@ -413,7 +413,7 @@ export function ChainlinkFunctionsView() {
             <Shield className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('functions.feature2Title') || 'Decentralized Execution'}
+                {t('functions.feature2Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('functions.feature2Desc') ||
@@ -425,7 +425,7 @@ export function ChainlinkFunctionsView() {
             <Lock className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('functions.feature3Title') || 'Secrets Management'}
+                {t('functions.feature3Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('functions.feature3Desc') ||
@@ -437,7 +437,7 @@ export function ChainlinkFunctionsView() {
             <Zap className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('functions.feature4Title') || 'Low Latency'}
+                {t('functions.feature4Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('functions.feature4Desc') ||
@@ -449,7 +449,7 @@ export function ChainlinkFunctionsView() {
             <Globe className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('functions.feature5Title') || 'Any API Support'}
+                {t('functions.feature5Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('functions.feature5Desc') ||
@@ -461,7 +461,7 @@ export function ChainlinkFunctionsView() {
             <Fuel className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">
-                {t('functions.feature6Title') || 'Gas Efficient'}
+                {t('functions.feature6Title')}
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('functions.feature6Desc') ||

@@ -290,11 +290,11 @@ function ChartTypeSelector({
     label: string;
     icon: React.ReactNode;
   }> = [
-    { type: 'price', label: '价格', icon: <DollarSign className="w-4 h-4" /> },
-    { type: 'volume', label: '交易量', icon: <BarChart3 className="w-4 h-4" /> },
-    { type: 'tvl', label: 'TVL', icon: <Activity className="w-4 h-4" /> },
-    { type: 'validators', label: '验证者', icon: <Users className="w-4 h-4" /> },
-    { type: 'disputes', label: '争议', icon: <Scale className="w-4 h-4" /> },
+    { type: 'price', label: t('uma.market.price'), icon: <DollarSign className="w-4 h-4" /> },
+    { type: 'volume', label: t('uma.market.volume24h'), icon: <BarChart3 className="w-4 h-4" /> },
+    { type: 'tvl', label: t('uma.ecosystem.tvl'), icon: <Activity className="w-4 h-4" /> },
+    { type: 'validators', label: t('uma.validators.title'), icon: <Users className="w-4 h-4" /> },
+    { type: 'disputes', label: t('uma.disputes.title'), icon: <Scale className="w-4 h-4" /> },
   ];
 
   return (

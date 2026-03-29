@@ -796,8 +796,7 @@
     "feature5Desc": "连接任意 HTTP API，包括 Web2 服务，突破传统预言机限制。",
     "feature6Title": "Gas 高效",
     "feature6Desc": "链下计算降低链上 Gas 成本，同时保持安全保证。"
-  }
-},
+  },
   "por": {
     "title": "储备证明",
     "overview": "储备监控概览",
