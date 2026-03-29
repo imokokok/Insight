@@ -80,7 +80,14 @@ const getStats = (context: PanelRenderContext) => {
 };
 
 const renderMarketTab = (context: PanelRenderContext): ReactNode => {
-  const { config } = context;
+  const { config, priceData } = context;
+
+  const price = priceData?.price ?? config.marketData.change24hValue ?? 0;
+  const confidenceInterval = priceData?.confidenceInterval ?? {
+    bid: price * 0.999,
+    ask: price * 1.001,
+    widthPercentage: 0.15,
+  };
 
   return (
     <>
@@ -95,7 +102,11 @@ const renderMarketTab = (context: PanelRenderContext): ReactNode => {
         <DataQualityScorePanel symbol={config.symbol} />
       </div>
       <div className="mb-6">
-        <ConfidenceIntervalChart />
+        <ConfidenceIntervalChart
+          price={price}
+          confidenceInterval={confidenceInterval}
+          showTrend={true}
+        />
       </div>
       <div className="mb-6">
         <ConfidenceAlertPanel symbol={config.symbol} />

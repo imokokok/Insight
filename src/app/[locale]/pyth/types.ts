@@ -1,7 +1,7 @@
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
 
-export type PythTabId = 'market' | 'network' | 'publishers' | 'validators' | 'price-feeds' | 'risk';
+export type PythTabId = 'market' | 'network' | 'publishers' | 'validators' | 'price-feeds' | 'risk' | 'cross-chain';
 
 export interface NetworkStats {
   activeNodes: number;
@@ -133,4 +133,18 @@ export interface BenchmarkData {
   chainlink: number;
   band: number;
   api3: number;
+}
+
+// Cross-chain price data
+export interface ChainPriceData {
+  chain: string;
+  price: number;
+  deviation: number;
+  latency: number;
+  status: 'online' | 'degraded' | 'offline';
+  lastUpdate: Date;
+}
+
+export interface PythCrossChainViewProps {
+  isLoading: boolean;
 }

@@ -4,16 +4,16 @@ import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 
 import { useFavorites, type FavoriteConfig } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { OracleProvider, Blockchain } from '@/lib/oracles';
+import { type OracleProvider, type Blockchain } from '@/lib/oracles';
 import { useUser } from '@/stores/authStore';
 
 import { type QueryResult, providerNames, chainNames, oracleI18nKeys } from '../constants';
 
-import { usePriceQueryState, type TimeComparisonConfig } from './usePriceQueryState';
-import { usePriceQueryData, type QueryError } from './usePriceQueryData';
 import { usePriceQueryChart, type ChartDataPoint } from './usePriceQueryChart';
+import { usePriceQueryData, type QueryError } from './usePriceQueryData';
 import { usePriceQueryExport } from './usePriceQueryExport';
 import { usePriceQueryHistory } from './usePriceQueryHistory';
+import { usePriceQueryState, type TimeComparisonConfig } from './usePriceQueryState';
 
 export interface UsePriceQueryReturn {
   selectedOracles: OracleProvider[];

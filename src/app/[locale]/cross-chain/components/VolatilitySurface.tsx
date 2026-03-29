@@ -19,8 +19,8 @@ import {
 import { DropdownSelect } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
-import { type Blockchain } from '@/types/oracle';
 import { isBlockchain } from '@/lib/utils/chainUtils';
+import { type Blockchain } from '@/types/oracle';
 
 import { type useCrossChainData } from '../useCrossChainData';
 import {

@@ -582,14 +582,19 @@ export class MockWebSocketManager extends WebSocketManager {
     this.mockDataGenerators.set('uma:disputes', () => {
       const statuses = ['active', 'resolved', 'rejected'] as const;
       const types = ['price', 'state', 'liquidation', 'other'] as const;
+      const stakeAmount = Math.floor(Math.random() * 5000) + 1000;
+      const rewardAmount = Math.floor(Math.random() * 3000) + 500;
       return {
         id: `dispute-${Math.floor(Math.random() * 1000)}`,
         timestamp: Date.now(),
         status: statuses[Math.floor(Math.random() * statuses.length)],
         type: types[Math.floor(Math.random() * types.length)],
-        reward: Math.floor(Math.random() * 5000) + 1000,
+        reward: rewardAmount,
         resolutionTime: Math.random() > 0.5 ? Math.floor(Math.random() * 48) + 1 : undefined,
         transactionHash: `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+        stakeAmount,
+        rewardAmount,
+        totalValue: stakeAmount + rewardAmount,
       };
     });
 
@@ -602,6 +607,40 @@ export class MockWebSocketManager extends WebSocketManager {
       staked: Math.floor(Math.random() * 500000) + 100000,
       earnings: Math.floor(Math.random() * 10000) + 1000,
     }));
+
+    // UMA 网络状态生成器
+    this.mockDataGenerators.set('uma:network', () => ({
+      activeValidators: 50 + Math.floor(Math.random() * 20),
+      validatorUptime: 95 + Math.random() * 5,
+      avgResponseTime: 150 + Math.floor(Math.random() * 100),
+      updateFrequency: 300 + Math.floor(Math.random() * 200),
+      totalStaked: 10000000 + Math.floor(Math.random() * 5000000),
+      dataSources: 20 + Math.floor(Math.random() * 10),
+      totalDisputes: 100 + Math.floor(Math.random() * 50),
+      disputeSuccessRate: 70 + Math.random() * 20,
+      avgResolutionTime: 12 + Math.random() * 24,
+      activeDisputes: 5 + Math.floor(Math.random() * 10),
+      updateType: ['stats', 'validator_change', 'dispute_change'][Math.floor(Math.random() * 3)] as
+        | 'stats'
+        | 'validator_change'
+        | 'dispute_change',
+    }));
+
+    // UMA 数据请求生成器
+    this.mockDataGenerators.set('uma:requests', () => {
+      const statuses = ['pending', 'verified', 'disputed', 'resolved'] as const;
+      return {
+        requestId: `request-${Math.floor(Math.random() * 10000)}`,
+        timestamp: Date.now(),
+        status: statuses[Math.floor(Math.random() * statuses.length)],
+        requester: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+        proposer: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+        proposedValue: (1000 + Math.random() * 10000).toFixed(2),
+        challengePeriodEnd: Date.now() + Math.floor(Math.random() * 86400000),
+        reward: Math.floor(Math.random() * 1000) + 100,
+        bond: Math.floor(Math.random() * 5000) + 1000,
+      };
+    });
   }
 
   private startMockDataStream(): void {

@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 import {
   OracleProvider,
-  Blockchain,
+  type Blockchain,
   type PriceData,
   ChainlinkClient,
   BandProtocolClient,
@@ -21,13 +21,13 @@ import { createLogger } from '@/lib/utils/logger';
 import { saveQueryHistory, getQueryHistory } from '@/utils/queryHistory';
 
 import { type QueryResult } from '../constants';
+import { usePerformanceMonitoring } from '../utils/performanceMonitoring';
 import {
   validatePrice,
   validateTimestamp,
   validateTimeSeries,
   type AnomalyInfo,
 } from '../utils/priceValidator';
-import { usePerformanceMonitoring } from '../utils/performanceMonitoring';
 
 const logger = createLogger('price-query-data');
 
@@ -314,7 +314,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     const collectedErrors: QueryError[] = [];
 
     try {
-
       const taskResults = await limitConcurrency(
         allTasks,
         async (task: QueryTask) => {

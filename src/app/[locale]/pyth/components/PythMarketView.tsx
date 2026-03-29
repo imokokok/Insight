@@ -1,10 +1,13 @@
 'use client';
 
-import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield } from 'lucide-react';
+import { useMemo } from 'react';
+import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 
-import { PriceChart } from '@/components/oracle';
+import { PriceChart, ConfidenceIntervalChart } from '@/components/oracle';
+import { chartColors } from '@/lib/config/colors';
 import { useTranslations } from '@/i18n';
 import { PythClient } from '@/lib/oracles/pythNetwork';
+import { calculateEMA } from '@/lib/indicators';
 
 import { type PythMarketViewProps } from '../types';
 
@@ -18,6 +21,68 @@ export function PythMarketView({
   const t = useTranslations();
 
   const client = new PythClient();
+
+  const confidenceIntervalData = useMemo(() => {
+    if (price?.confidenceInterval) {
+      return price.confidenceInterval;
+    }
+    const currentPrice = price?.price ?? 0.45;
+    const spread = currentPrice * 0.002;
+    return {
+      bid: currentPrice - spread / 2,
+      ask: currentPrice + spread / 2,
+      widthPercentage: 0.2,
+    };
+  }, [price]);
+
+  const historicalConfidenceData = useMemo(() => {
+    if (historicalData && historicalData.length > 0) {
+      return historicalData
+        .filter((d) => d.confidence !== undefined)
+        .map((d) => d.confidence!);
+    }
+    const baseConfidence = 85;
+    return Array.from({ length: 20 }, () =>
+      Math.round(baseConfidence + (Math.random() - 0.5) * 20)
+    );
+  }, [historicalData]);
+
+  const emaData = useMemo(() => {
+    const prices = historicalData && historicalData.length > 0
+      ? historicalData.map((d) => d.price)
+      : Array.from({ length: 50 }, (_, i) => (price?.price ?? 0.45) * (1 + (Math.random() - 0.5) * 0.02));
+
+    const ema7Values = calculateEMA(prices, 7);
+    const ema25Values = calculateEMA(prices, 25);
+
+    const currentPrice = price?.price ?? prices[prices.length - 1] ?? 0.45;
+    const ema7 = ema7Values[ema7Values.length - 1] ?? currentPrice;
+    const ema25 = ema25Values[ema25Values.length - 1] ?? currentPrice;
+
+    const getTrend = (emaValue: number, currentPriceValue: number): 'up' | 'down' | 'neutral' => {
+      const deviation = Math.abs((currentPriceValue - emaValue) / emaValue) * 100;
+      if (deviation < 0.1) return 'neutral';
+      return currentPriceValue > emaValue ? 'up' : 'down';
+    };
+
+    const getDeviation = (emaValue: number, currentPriceValue: number): number => {
+      return ((currentPriceValue - emaValue) / emaValue) * 100;
+    };
+
+    return {
+      ema7: {
+        value: ema7,
+        trend: getTrend(ema7, currentPrice),
+        deviation: getDeviation(ema7, currentPrice),
+      },
+      ema25: {
+        value: ema25,
+        trend: getTrend(ema25, currentPrice),
+        deviation: getDeviation(ema25, currentPrice),
+      },
+      currentPrice,
+    };
+  }, [historicalData, price]);
 
   const stats = [
     {
@@ -165,6 +230,150 @@ export function PythMarketView({
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 置信区间趋势图区域 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-medium text-gray-900">{t('pyth.confidenceIntervalTrend') || '置信区间趋势'}</h3>
+          </div>
+          <ConfidenceIntervalChart
+            price={price?.price ?? 0.45}
+            confidenceInterval={confidenceIntervalData}
+            historicalConfidence={historicalConfidenceData}
+            showTrend={true}
+            height={120}
+            themeColor={chartColors.oracle.pyth}
+          />
+        </div>
+      </div>
+
+      {/* EMA 价格展示区域 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* EMA-7 卡片 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-medium text-gray-700">
+              {t('pythNetwork.ema.periods.ema7')}
+            </h4>
+            {emaData.ema7.trend === 'up' ? (
+              <div className="flex items-center gap-1 text-emerald-600">
+                <ArrowUpRight className="w-4 h-4" />
+                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.up')}</span>
+              </div>
+            ) : emaData.ema7.trend === 'down' ? (
+              <div className="flex items-center gap-1 text-red-600">
+                <ArrowDownRight className="w-4 h-4" />
+                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.down')}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 text-gray-500">
+                <Minus className="w-4 h-4" />
+                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.neutral')}</span>
+              </div>
+            )}
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-xs text-gray-400 mb-1">{t('pythNetwork.ema.emaValue')}</p>
+                <p className={`text-xl font-semibold ${emaData.ema7.trend === 'up' ? 'text-emerald-600' : emaData.ema7.trend === 'down' ? 'text-red-600' : 'text-gray-900'}`}>
+                  ${emaData.ema7.value.toFixed(4)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-400 mb-1">{t('pythNetwork.ema.currentPrice')}</p>
+                <p className="text-lg font-medium text-gray-700">${emaData.currentPrice.toFixed(4)}</p>
+              </div>
+            </div>
+            <div className="pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">{t('pythNetwork.ema.deviation')}</span>
+                <span className={`text-sm font-medium ${emaData.ema7.deviation >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {emaData.ema7.deviation >= 0 ? '+' : ''}{emaData.ema7.deviation.toFixed(2)}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* EMA-25 卡片 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-medium text-gray-700">
+              {t('pythNetwork.ema.periods.ema25')}
+            </h4>
+            {emaData.ema25.trend === 'up' ? (
+              <div className="flex items-center gap-1 text-emerald-600">
+                <ArrowUpRight className="w-4 h-4" />
+                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.up')}</span>
+              </div>
+            ) : emaData.ema25.trend === 'down' ? (
+              <div className="flex items-center gap-1 text-red-600">
+                <ArrowDownRight className="w-4 h-4" />
+                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.down')}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 text-gray-500">
+                <Minus className="w-4 h-4" />
+                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.neutral')}</span>
+              </div>
+            )}
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-xs text-gray-400 mb-1">{t('pythNetwork.ema.emaValue')}</p>
+                <p className={`text-xl font-semibold ${emaData.ema25.trend === 'up' ? 'text-emerald-600' : emaData.ema25.trend === 'down' ? 'text-red-600' : 'text-gray-900'}`}>
+                  ${emaData.ema25.value.toFixed(4)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-400 mb-1">{t('pythNetwork.ema.currentPrice')}</p>
+                <p className="text-lg font-medium text-gray-700">${emaData.currentPrice.toFixed(4)}</p>
+              </div>
+            </div>
+            <div className="pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">{t('pythNetwork.ema.deviation')}</span>
+                <span className={`text-sm font-medium ${emaData.ema25.deviation >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {emaData.ema25.deviation >= 0 ? '+' : ''}{emaData.ema25.deviation.toFixed(2)}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* EMA 说明卡片 */}
+        <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl border border-violet-200 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Activity className="w-5 h-5 text-violet-600" />
+            <h4 className="text-sm font-medium text-violet-900">{t('pythNetwork.ema.title')}</h4>
+          </div>
+          <p className="text-xs text-violet-700 leading-relaxed mb-4">
+            {t('pythNetwork.ema.explanation')}
+          </p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-violet-400" />
+              <span className="text-xs text-violet-600">
+                EMA-7: {t('pythNetwork.ema.calculationMethod')}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-violet-500" />
+              <span className="text-xs text-violet-600">
+                EMA-25: {t('pythNetwork.ema.calculationMethod')}
+              </span>
+            </div>
+          </div>
+          <div className="mt-4 pt-3 border-t border-violet-200">
+            <p className="text-xs text-violet-500">
+              {t('pythNetwork.ema.priceComparison')}
+            </p>
           </div>
         </div>
       </div>

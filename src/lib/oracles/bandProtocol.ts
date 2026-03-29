@@ -60,12 +60,152 @@ export interface ChainDataRequest {
   supportedSymbols: string[];
 }
 
+export interface IBCRelayer {
+  address: string;
+  moniker: string;
+  transferCount: number;
+  successRate: number;
+}
+
+export interface IBCConnection {
+  chainName: string;
+  chainId: string;
+  channelId: string;
+  connectionId: string;
+  status: 'active' | 'inactive';
+  transfers24h: number;
+  transfers7d: number;
+  totalTransfers: number;
+  successRate: number;
+  relayers: IBCRelayer[];
+  lastActivity: number;
+}
+
+export interface IBCTransferStats {
+  totalTransfers24h: number;
+  totalTransfers7d: number;
+  totalTransfers30d: number;
+  successRate: number;
+  activeChannels: number;
+  activeRelayers: number;
+}
+
+export interface IBCTransferTrend {
+  timestamp: number;
+  transfers: number;
+  successRate: number;
+}
+
+export interface StakingInfo {
+  totalStaked: number;
+  stakingRatio: number;
+  stakingAPR: number;
+  unbondingPeriod: number;
+  minStake: number;
+  slashingRate: number;
+  communityPool: number;
+  inflation: number;
+}
+
+export interface StakingDistribution {
+  range: string;
+  count: number;
+  percentage: number;
+  totalStake: number;
+}
+
+export interface StakingReward {
+  principal: number;
+  duration: number;
+  estimatedReward: number;
+  apy: number;
+}
+
+export type ProposalStatus = 'deposit' | 'voting' | 'passed' | 'rejected' | 'failed';
+export type VoteOption = 'yes' | 'no' | 'abstain' | 'no_with_veto';
+
+export interface GovernanceProposal {
+  id: number;
+  title: string;
+  description: string;
+  type: string;
+  status: ProposalStatus;
+  submitTime: number;
+  depositEndTime: number;
+  votingEndTime: number;
+  proposer: string;
+  totalDeposit: number;
+  votes: {
+    yes: number;
+    no: number;
+    abstain: number;
+    noWithVeto: number;
+  };
+}
+
+export interface GovernanceParams {
+  minDeposit: number;
+  maxDepositPeriod: number;
+  votingPeriod: number;
+  quorum: number;
+  threshold: number;
+  vetoThreshold: number;
+}
+
 export interface CrossChainStats {
   totalRequests24h: number;
   totalRequests7d: number;
   totalRequests30d: number;
   chains: ChainDataRequest[];
   timestamp: number;
+}
+
+export type TrendPeriod = '7d' | '30d' | '90d';
+
+export interface CrossChainTrend {
+  date: string;
+  requestCount: number;
+  successCount: number;
+  failureCount: number;
+  avgLatency: number;
+}
+
+export interface CrossChainComparison {
+  period: TrendPeriod;
+  currentTotal: number;
+  previousTotal: number;
+  changeAmount: number;
+  changePercent: number;
+  avgLatencyChange: number;
+  successRateChange: number;
+}
+
+export interface RiskMetrics {
+  decentralizationScore: number;
+  securityScore: number;
+  reliabilityScore: number;
+  transparencyScore: number;
+  overallScore: number;
+  giniCoefficient: number;
+  nakamotoCoefficient: number;
+  top10ValidatorsShare: number;
+}
+
+export interface RiskTrendData {
+  date: string;
+  score: number;
+  decentralization: number;
+  security: number;
+  reliability: number;
+}
+
+export interface RiskEvent {
+  id: string;
+  date: string;
+  title: string;
+  description: string;
+  type: 'success' | 'warning' | 'error' | 'info';
+  source: string;
 }
 
 export interface BandCrossChainSnapshot {
@@ -206,6 +346,66 @@ export interface ChainEvent {
   txHash: string;
 }
 
+export type OracleScriptCategory = 'price' | 'sports' | 'random' | 'custom';
+
+export interface OracleScript {
+  id: number;
+  name: string;
+  description: string;
+  owner: string;
+  schema: string;
+  code: string;
+  callCount: number;
+  successRate: number;
+  avgResponseTime: number;
+  category: OracleScriptCategory;
+  lastUpdated: number;
+}
+
+export type DataSourceCategory =
+  | 'crypto'
+  | 'forex'
+  | 'commodities'
+  | 'sports'
+  | 'random'
+  | 'equities'
+  | 'stablecoin';
+
+export interface DataSource {
+  id: number;
+  name: string;
+  symbol: string;
+  description: string;
+  owner: string;
+  provider: string;
+  status: 'active' | 'inactive';
+  lastUpdated: number;
+  reliability: number;
+  category: DataSourceCategory;
+  updateFrequency: string;
+  deviationThreshold: string;
+  totalRequests: number;
+  price?: number;
+  change24h?: number;
+}
+
+export interface PriceFeed {
+  symbol: string;
+  price: number;
+  change24h: number;
+  change24hPercent: number;
+  lastUpdated: number;
+  dataSource: string;
+  confidence: number;
+  category: DataSourceCategory;
+}
+
+export interface DataSourceListResponse {
+  dataSources: DataSource[];
+  total: number;
+  hasMore: boolean;
+}
+
 export class BandProtocolClient extends BaseOracleClient {
   name = OracleProvider.BAND_PROTOCOL;
   supportedChains = [
@@ -258,6 +458,226 @@ export class BandProtocolClient extends BaseOracleClient {
         'BAND_PROTOCOL_HISTORICAL_ERROR'
       );
     }
+  }
+
+  async getDataSourceList(page: number = 1, limit: number = 20): Promise<DataSourceListResponse> {
+    try {
+      const allDataSources = await this.generateAllDataSources();
+      const start = (page - 1) * limit;
+      const end = start + limit;
+      const paginatedSources = allDataSources.slice(start, end);
+
+      return {
+        dataSources: paginatedSources,
+        total: allDataSources.length,
+        hasMore: end < allDataSources.length,
+      };
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch data sources',
+        'DATA_SOURCES_ERROR'
+      );
+    }
+  }
+
+  async getPriceFeeds(): Promise<PriceFeed[]> {
+    try {
+      const dataSources = await this.generateAllDataSources();
+      return dataSources
+        .filter((ds) => ds.price !== undefined)
+        .map((ds) => ({
+          symbol: ds.symbol,
+          price: ds.price!,
+          change24h: ds.change24h!,
+          change24hPercent:
+            ds.change24h !== undefined && ds.price !== undefined
+              ? (ds.change24h / ds.price) * 100
+              : 0,
+          lastUpdated: ds.lastUpdated,
+          dataSource: ds.provider,
+          confidence: ds.reliability / 100,
+          category: ds.category,
+        }));
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch price feeds',
+        'PRICE_FEEDS_ERROR'
+      );
+    }
+  }
+
+  private async generateAllDataSources(): Promise<DataSource[]> {
+    const dataSources: DataSource[] = [];
+    const now = Date.now();
+
+    const cryptoFeeds = [
+      { symbol: 'BTC', name: 'Bitcoin', basePrice: 67842.35 },
+      { symbol: 'ETH', name: 'Ethereum', basePrice: 3456.78 },
+      { symbol: 'ATOM', name: 'Cosmos', basePrice: 8.45 },
+      { symbol: 'OSMO', name: 'Osmosis', basePrice: 0.85 },
+      { symbol: 'SOL', name: 'Solana', basePrice: 145.23 },
+      { symbol: 'MATIC', name: 'Polygon', basePrice: 0.72 },
+      { symbol: 'AVAX', name: 'Avalanche', basePrice: 35.67 },
+      { symbol: 'LINK', name: 'Chainlink', basePrice: 14.89 },
+      { symbol: 'DOT', name: 'Polkadot', basePrice: 7.12 },
+      { symbol: 'UNI', name: 'Uniswap', basePrice: 9.34 },
+      { symbol: 'ARB', name: 'Arbitrum', basePrice: 1.12 },
+      { symbol: 'OP', name: 'Optimism', basePrice: 2.45 },
+      { symbol: 'INJ', name: 'Injective', basePrice: 25.67 },
+      { symbol: 'SEI', name: 'Sei', basePrice: 0.45 },
+      { symbol: 'TIA', name: 'Celestia', basePrice: 12.34 },
+      { symbol: 'BNB', name: 'BNB', basePrice: 587.23 },
+      { symbol: 'XRP', name: 'Ripple', basePrice: 0.52 },
+      { symbol: 'DOGE', name: 'Dogecoin', basePrice: 0.12 },
+      { symbol: 'ADA', name: 'Cardano', basePrice: 0.45 },
+      { symbol: 'NEAR', name: 'NEAR Protocol', basePrice: 5.67 },
+    ];
+
+    const stablecoinFeeds = [
+      { symbol: 'USDC', name: 'USD Coin', basePrice: 1.0001 },
+      { symbol: 'USDT', name: 'Tether', basePrice: 1.0002 },
+      { symbol: 'DAI', name: 'Dai', basePrice: 0.9998 },
+      { symbol: 'BUSD', name: 'Binance USD', basePrice: 1.0001 },
+      { symbol: 'FRAX', name: 'Frax', basePrice: 0.9999 },
+    ];
+
+    const forexFeeds = [
+      { symbol: 'EUR', name: 'Euro', basePrice: 1.0876 },
+      { symbol: 'GBP', name: 'British Pound', basePrice: 1.2634 },
+      { symbol: 'JPY', name: 'Japanese Yen', basePrice: 0.0067 },
+      { symbol: 'CHF', name: 'Swiss Franc', basePrice: 1.1234 },
+      { symbol: 'AUD', name: 'Australian Dollar', basePrice: 0.6543 },
+    ];
+
+    const commodityFeeds = [
+      { symbol: 'XAU', name: 'Gold', basePrice: 2234.56 },
+      { symbol: 'XAG', name: 'Silver', basePrice: 25.67 },
+      { symbol: 'XBR', name: 'Brent Crude Oil', basePrice: 85.34 },
+      { symbol: 'XTI', name: 'WTI Crude Oil', basePrice: 78.92 },
+      { symbol: 'NG', name: 'Natural Gas', basePrice: 1.78 },
+    ];
+
+    const equityFeeds = [
+      { symbol: 'AAPL', name: 'Apple Inc.', basePrice: 178.45 },
+      { symbol: 'GOOGL', name: 'Alphabet Inc.', basePrice: 156.78 },
+      { symbol: 'MSFT', name: 'Microsoft Corp.', basePrice: 423.56 },
+      { symbol: 'AMZN', name: 'Amazon.com Inc.', basePrice: 178.23 },
+      { symbol: 'TSLA', name: 'Tesla Inc.', basePrice: 245.67 },
+    ];
+
+    const providers = [
+      'CoinGecko',
+      'CoinMarketCap',
+      'Binance',
+      'Coinbase',
+      'Kraken',
+      'CryptoCompare',
+      'Amberdata',
+      'BraveNewCoin',
+      'Kaiko',
+      'Nomics',
+    ];
+
+    let id = 1;
+
+    const generateDataSource = (
+      feed: { symbol: string; name: string; basePrice: number },
+      category: DataSourceCategory,
+      updateFreq: string,
+      deviation: string
+    ): DataSource => {
+      const priceChange = (Math.random() - 0.5) * feed.basePrice * 0.1;
+      const currentPrice = feed.basePrice + priceChange;
+      const reliability = 95 + Math.random() * 4.99;
+      const totalRequests = Math.floor(Math.random() * 2000000) + 100000;
+
+      return {
+        id: id++,
+        name: `${feed.symbol}/USD`,
+        symbol: feed.symbol,
+        description: `${feed.name} price feed in USD`,
+        owner: `band1${this.generateRandomAddress()}`,
+        provider: providers[Math.floor(Math.random() * providers.length)],
+        status: Math.random() > 0.05 ? 'active' : 'inactive',
+        lastUpdated: now - Math.floor(Math.random() * 60000),
+        reliability: Number(reliability.toFixed(2)),
+        category,
+        updateFrequency: updateFreq,
+        deviationThreshold: deviation,
+        totalRequests,
+        price: Number(currentPrice.toFixed(4)),
+        change24h: Number(priceChange.toFixed(4)),
+      };
+    };
+
+    cryptoFeeds.forEach((feed) => {
+      dataSources.push(generateDataSource(feed, 'crypto', '30s', '0.5%'));
+    });
+
+    stablecoinFeeds.forEach((feed) => {
+      dataSources.push(generateDataSource(feed, 'stablecoin', '300s', '0.1%'));
+    });
+
+    forexFeeds.forEach((feed) => {
+      dataSources.push(generateDataSource(feed, 'forex', '300s', '0.2%'));
+    });
+
+    commodityFeeds.forEach((feed) => {
+      dataSources.push(generateDataSource(feed, 'commodities', '600s', '0.5%'));
+    });
+
+    equityFeeds.forEach((feed) => {
+      dataSources.push(generateDataSource(feed, 'equities', '900s', '0.3%'));
+    });
+
+    const sportsFeeds = [
+      { symbol: 'NBA_SCORES', name: 'NBA Game Scores', basePrice: 0 },
+      { symbol: 'NFL_SCORES', name: 'NFL Game Scores', basePrice: 0 },
+      { symbol: 'SOCCER_ODDS', name: 'Soccer Match Odds', basePrice: 0 },
+    ];
+
+    sportsFeeds.forEach((feed) => {
+      dataSources.push({
+        id: id++,
+        name: feed.name,
+        symbol: feed.symbol,
+        description: `${feed.name} data feed`,
+        owner: `band1${this.generateRandomAddress()}`,
+        provider: providers[Math.floor(Math.random() * providers.length)],
+        status: Math.random() > 0.1 ? 'active' : 'inactive',
+        lastUpdated: now - Math.floor(Math.random() * 3600000),
+        reliability: Number((98 + Math.random() * 1.99).toFixed(2)),
+        category: 'sports',
+        updateFrequency: '60s',
+        deviationThreshold: 'N/A',
+        totalRequests: Math.floor(Math.random() * 500000) + 50000,
+      });
+    });
+
+    const randomFeeds = [
+      { symbol: 'VRF_256', name: 'VRF Random 256-bit', basePrice: 0 },
+      { symbol: 'VRF_64', name: 'VRF Random 64-bit', basePrice: 0 },
+    ];
+
+    randomFeeds.forEach((feed) => {
+      dataSources.push({
+        id: id++,
+        name: feed.name,
+        symbol: feed.symbol,
+        description: `${feed.name} verifiable randomness`,
+        owner: `band1${this.generateRandomAddress()}`,
+        provider: 'Band VRF',
+        status: 'active',
+        lastUpdated: now - Math.floor(Math.random() * 10000),
+        reliability: 99.99,
+        category: 'random',
+        updateFrequency: 'on-demand',
+        deviationThreshold: 'N/A',
+        totalRequests: Math.floor(Math.random() * 1000000) + 200000,
+      });
+    });
+
+    return dataSources;
   }
 
   async getBandMarketData(): Promise<BandProtocolMarketData> {
@@ -500,6 +920,105 @@ export class BandProtocolClient extends BaseOracleClient {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch cross-chain stats',
         'CROSS_CHAIN_STATS_ERROR'
+      );
+    }
+  }
+
+  async getCrossChainTrend(period: TrendPeriod = '7d'): Promise<CrossChainTrend[]> {
+    try {
+      const trends: CrossChainTrend[] = [];
+      const now = new Date();
+      const dayMs = 24 * 60 * 60 * 1000;
+
+      const periodDays: Record<TrendPeriod, number> = {
+        '7d': 7,
+        '30d': 30,
+        '90d': 90,
+      };
+
+      const days = periodDays[period];
+
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * dayMs);
+        const dateStr = date.toISOString().split('T')[0];
+
+        const baseRequests = 9800 + Math.floor(Math.random() * 4000);
+        const trend = Math.sin(i / 3) * 800;
+        const requestCount = Math.floor(baseRequests + trend + (Math.random() - 0.5) * 1000);
+
+        const successRate = 0.97 + Math.random() * 0.025;
+        const successCount = Math.floor(requestCount * successRate);
+        const failureCount = requestCount - successCount;
+
+        const avgLatency = 150 + Math.floor(Math.random() * 100);
+
+        trends.push({
+          date: dateStr,
+          requestCount,
+          successCount,
+          failureCount,
+          avgLatency,
+        });
+      }
+
+      return trends;
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch cross-chain trend',
+        'CROSS_CHAIN_TREND_ERROR'
+      );
+    }
+  }
+
+  async getCrossChainComparison(period: TrendPeriod = '7d'): Promise<CrossChainComparison> {
+    try {
+      const trends = await this.getCrossChainTrend(period);
+
+      const periodDays: Record<TrendPeriod, number> = {
+        '7d': 7,
+        '30d': 30,
+        '90d': 90,
+      };
+
+      const days = periodDays[period];
+      const halfDays = Math.floor(days / 2);
+
+      const currentPeriod = trends.slice(halfDays);
+      const previousPeriod = trends.slice(0, halfDays);
+
+      const currentTotal = currentPeriod.reduce((sum, t) => sum + t.requestCount, 0);
+      const previousTotal = previousPeriod.reduce((sum, t) => sum + t.requestCount, 0);
+
+      const changeAmount = currentTotal - previousTotal;
+      const changePercent = previousTotal > 0 ? (changeAmount / previousTotal) * 100 : 0;
+
+      const currentAvgLatency =
+        currentPeriod.reduce((sum, t) => sum + t.avgLatency, 0) / currentPeriod.length;
+      const previousAvgLatency =
+        previousPeriod.reduce((sum, t) => sum + t.avgLatency, 0) / previousPeriod.length;
+      const avgLatencyChange = currentAvgLatency - previousAvgLatency;
+
+      const currentSuccessRate =
+        currentPeriod.reduce((sum, t) => sum + t.successCount, 0) /
+        currentPeriod.reduce((sum, t) => sum + t.requestCount, 0);
+      const previousSuccessRate =
+        previousPeriod.reduce((sum, t) => sum + t.successCount, 0) /
+        previousPeriod.reduce((sum, t) => sum + t.requestCount, 0);
+      const successRateChange = (currentSuccessRate - previousSuccessRate) * 100;
+
+      return {
+        period,
+        currentTotal,
+        previousTotal,
+        changeAmount,
+        changePercent,
+        avgLatencyChange,
+        successRateChange,
+      };
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch cross-chain comparison',
+        'CROSS_CHAIN_COMPARISON_DATA_ERROR'
       );
     }
   }
@@ -848,6 +1367,735 @@ export class BandProtocolClient extends BaseOracleClient {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch chain events',
         'CHAIN_EVENTS_ERROR'
+      );
+    }
+  }
+
+  async getOracleScripts(): Promise<OracleScript[]> {
+    try {
+      const scripts: OracleScript[] = [];
+      const scriptTemplates = [
+        {
+          name: 'Crypto Price Feed',
+          description: 'Retrieves real-time cryptocurrency prices from multiple exchanges',
+          category: 'price' as OracleScriptCategory,
+          baseCalls: 150000,
+        },
+        {
+          name: 'Stock Price Oracle',
+          description: 'Fetches stock market prices from major exchanges',
+          category: 'price' as OracleScriptCategory,
+          baseCalls: 85000,
+        },
+        {
+          name: 'Forex Rates',
+          description: 'Provides foreign exchange rates for major currency pairs',
+          category: 'price' as OracleScriptCategory,
+          baseCalls: 62000,
+        },
+        {
+          name: 'Commodity Prices',
+          description: 'Real-time commodity prices including gold, silver, and oil',
+          category: 'price' as OracleScriptCategory,
+          baseCalls: 45000,
+        },
+        {
+          name: 'Sports Scores',
+          description: 'Live sports scores and results from major leagues',
+          category: 'sports' as OracleScriptCategory,
+          baseCalls: 38000,
+        },
+        {
+          name: 'Match Results',
+          description: 'Historical and live match results for betting applications',
+          category: 'sports' as OracleScriptCategory,
+          baseCalls: 28000,
+        },
+        {
+          name: 'VRF Random Number',
+          description: 'Verifiable random number generation for gaming and lotteries',
+          category: 'random' as OracleScriptCategory,
+          baseCalls: 95000,
+        },
+        {
+          name: 'Secure Randomness',
+          description: 'Cryptographically secure random number generation',
+          category: 'random' as OracleScriptCategory,
+          baseCalls: 72000,
+        },
+        {
+          name: 'Weather Data',
+          description: 'Weather information from global meteorological services',
+          category: 'custom' as OracleScriptCategory,
+          baseCalls: 22000,
+        },
+        {
+          name: 'NFT Price Oracle',
+          description: 'NFT collection valuations and market data',
+          category: 'custom' as OracleScriptCategory,
+          baseCalls: 35000,
+        },
+        {
+          name: 'DeFi TVL Feed',
+          description: 'Total Value Locked data for DeFi protocols',
+          category: 'custom' as OracleScriptCategory,
+          baseCalls: 48000,
+        },
+        {
+          name: 'Gas Price Oracle',
+          description: 'Real-time gas price estimates across multiple chains',
+          category: 'custom' as OracleScriptCategory,
+          baseCalls: 110000,
+        },
+      ];
+
+      for (let i = 0; i < scriptTemplates.length; i++) {
+        const template = scriptTemplates[i];
+        const callCount = template.baseCalls + Math.floor(Math.random() * 20000);
+        const successRate = 95 + Math.random() * 4.99;
+        const avgResponseTime = 200 + Math.floor(Math.random() * 800);
+
+        scripts.push({
+          id: i + 1,
+          name: template.name,
+          description: template.description,
+          owner: `band1${this.generateRandomAddress()}`,
+          schema: `{"input": "symbol", "output": "price"}`,
+          code: `// Oracle Script: ${template.name}\n// Execute data request...\nreturn fetchPrice(symbol);`,
+          callCount,
+          successRate: Number(successRate.toFixed(2)),
+          avgResponseTime,
+          category: template.category,
+          lastUpdated: Date.now() - Math.floor(Math.random() * 24 * 60 * 60 * 1000),
+        });
+      }
+
+      return scripts;
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch oracle scripts',
+        'ORACLE_SCRIPTS_ERROR'
+      );
+    }
+  }
+
+  async getOracleScriptById(id: number): Promise<OracleScript | null> {
+    try {
+      const scripts = await this.getOracleScripts();
+      return scripts.find((s) => s.id === id) || null;
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch oracle script',
+        'ORACLE_SCRIPT_ERROR'
+      );
+    }
+  }
+
+  async getIBCConnections(): Promise<IBCConnection[]> {
+    try {
+      const connections: IBCConnection[] = [];
+      const chainConfigs = [
+        {
+          name: 'Cosmos Hub',
+          chainId: 'cosmoshub-4',
+          channelId: 'channel-0',
+          connectionId: 'connection-0',
+        },
+        {
+          name: 'Osmosis',
+          chainId: 'osmosis-1',
+          channelId: 'channel-1',
+          connectionId: 'connection-1',
+        },
+        { name: 'Juno', chainId: 'juno-1', channelId: 'channel-2', connectionId: 'connection-2' },
+        {
+          name: 'Stargaze',
+          chainId: 'stargaze-1',
+          channelId: 'channel-3',
+          connectionId: 'connection-3',
+        },
+        {
+          name: 'Stride',
+          chainId: 'stride-1',
+          channelId: 'channel-4',
+          connectionId: 'connection-4',
+        },
+        {
+          name: 'Axelar',
+          chainId: 'axelar-dojo-1',
+          channelId: 'channel-5',
+          connectionId: 'connection-5',
+        },
+        {
+          name: 'Injective',
+          chainId: 'injective-1',
+          channelId: 'channel-6',
+          connectionId: 'connection-6',
+        },
+        {
+          name: 'Persistence',
+          chainId: 'core-1',
+          channelId: 'channel-7',
+          connectionId: 'connection-7',
+        },
+        {
+          name: 'Crescent',
+          chainId: 'crescent-1',
+          channelId: 'channel-8',
+          connectionId: 'connection-8',
+        },
+        {
+          name: 'Kujira',
+          chainId: 'kaiyo-1',
+          channelId: 'channel-9',
+          connectionId: 'connection-9',
+        },
+        {
+          name: 'Neutron',
+          chainId: 'neutron-1',
+          channelId: 'channel-10',
+          connectionId: 'connection-10',
+        },
+        {
+          name: 'Celestia',
+          chainId: 'celestia-1',
+          channelId: 'channel-11',
+          connectionId: 'connection-11',
+        },
+      ];
+
+      const relayerNames = ['Stride Rly', 'Cosmos Rly', 'IBC Go', 'Hermes', 'TsRelayer', 'Polymer'];
+
+      const now = Date.now();
+
+      for (const config of chainConfigs) {
+        const isActive = Math.random() > 0.15;
+        const transfers24h = isActive
+          ? Math.floor(Math.random() * 500 + 100)
+          : Math.floor(Math.random() * 50);
+        const transfers7d = transfers24h * 7 + Math.floor(Math.random() * 500);
+        const totalTransfers = transfers7d * 4 + Math.floor(Math.random() * 5000);
+        const successRate = isActive ? 98 + Math.random() * 1.9 : 85 + Math.random() * 10;
+
+        const relayerCount = Math.floor(Math.random() * 3) + 1;
+        const relayers: IBCRelayer[] = [];
+
+        for (let i = 0; i < relayerCount; i++) {
+          const relayerName = relayerNames[Math.floor(Math.random() * relayerNames.length)];
+          relayers.push({
+            address: `band1${this.generateRandomAddress()}`,
+            moniker: relayerName,
+            transferCount: Math.floor(Math.random() * transfers24h * 0.6 + transfers24h * 0.2),
+            successRate: 95 + Math.random() * 4.9,
+          });
+        }
+
+        connections.push({
+          chainName: config.name,
+          chainId: config.chainId,
+          channelId: config.channelId,
+          connectionId: config.connectionId,
+          status: isActive ? 'active' : 'inactive',
+          transfers24h,
+          transfers7d,
+          totalTransfers,
+          successRate: Number(successRate.toFixed(2)),
+          relayers,
+          lastActivity: isActive
+            ? now - Math.floor(Math.random() * 3600000)
+            : now - Math.floor(Math.random() * 86400000 * 7),
+        });
+      }
+
+      return connections;
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch IBC connections',
+        'IBC_CONNECTIONS_ERROR'
+      );
+    }
+  }
+
+  async getIBCTransferStats(): Promise<IBCTransferStats> {
+    try {
+      const connections = await this.getIBCConnections();
+      const activeConnections = connections.filter((c) => c.status === 'active');
+
+      const totalTransfers24h = connections.reduce((sum, c) => sum + c.transfers24h, 0);
+      const totalTransfers7d = connections.reduce((sum, c) => sum + c.transfers7d, 0);
+      const totalTransfers30d = totalTransfers7d * 4 + Math.floor(Math.random() * 10000);
+      const avgSuccessRate =
+        connections.reduce((sum, c) => sum + c.successRate, 0) / connections.length;
+      const activeRelayers = connections.reduce((sum, c) => sum + c.relayers.length, 0);
+
+      return {
+        totalTransfers24h,
+        totalTransfers7d,
+        totalTransfers30d,
+        successRate: Number(avgSuccessRate.toFixed(2)),
+        activeChannels: activeConnections.length,
+        activeRelayers,
+      };
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch IBC transfer stats',
+        'IBC_TRANSFER_STATS_ERROR'
+      );
+    }
+  }
+
+  async getIBCTransferTrends(days: number = 7): Promise<IBCTransferTrend[]> {
+    try {
+      const trends: IBCTransferTrend[] = [];
+      const now = Date.now();
+      const dayMs = 24 * 60 * 60 * 1000;
+
+      for (let i = days - 1; i >= 0; i--) {
+        const timestamp = now - i * dayMs;
+        const baseTransfers = 3000 + Math.floor(Math.random() * 1000);
+        const trend = Math.sin(i / 2) * 500;
+        const transfers = Math.floor(baseTransfers + trend + (Math.random() - 0.5) * 500);
+        const successRate = 97 + Math.random() * 2.5;
+
+        trends.push({
+          timestamp,
+          transfers,
+          successRate: Number(successRate.toFixed(2)),
+        });
+      }
+
+      return trends;
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch IBC transfer trends',
+        'IBC_TRANSFER_TRENDS_ERROR'
+      );
+    }
+  }
+
+  async getStakingInfo(): Promise<StakingInfo> {
+    try {
+      const networkStats = await this.getNetworkStats();
+      const marketData = await this.getBandMarketData();
+
+      return {
+        totalStaked: networkStats.bondedTokens,
+        stakingRatio: networkStats.stakingRatio,
+        stakingAPR: marketData.stakingApr,
+        unbondingPeriod: 21,
+        minStake: 100,
+        slashingRate: 0.05,
+        communityPool: networkStats.communityPool,
+        inflation: networkStats.inflationRate,
+      };
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch staking info',
+        'STAKING_INFO_ERROR'
+      );
+    }
+  }
+
+  async getStakingDistribution(): Promise<StakingDistribution[]> {
+    try {
+      const validators = await this.getValidators(50);
+      const totalStake = validators.reduce((sum, v) => sum + v.tokens, 0);
+
+      const ranges = [
+        { range: '0 - 100', min: 0, max: 100 },
+        { range: '100 - 1K', min: 100, max: 1000 },
+        { range: '1K - 10K', min: 1000, max: 10000 },
+        { range: '10K - 100K', min: 10000, max: 100000 },
+        { range: '100K - 1M', min: 100000, max: 1000000 },
+        { range: '1M+', min: 1000000, max: Infinity },
+      ];
+
+      const distribution: StakingDistribution[] = ranges.map((r) => {
+        const count = validators.filter((v) => v.tokens >= r.min && v.tokens < r.max).length;
+        const totalStakeInRange = validators
+          .filter((v) => v.tokens >= r.min && v.tokens < r.max)
+          .reduce((sum, v) => sum + v.tokens, 0);
+        const percentage = totalStake > 0 ? (totalStakeInRange / totalStake) * 100 : 0;
+
+        return {
+          range: r.range,
+          count,
+          percentage: Number(percentage.toFixed(2)),
+          totalStake: Number(totalStakeInRange.toFixed(2)),
+        };
+      });
+
+      return distribution;
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch staking distribution',
+        'STAKING_DISTRIBUTION_ERROR'
+      );
+    }
+  }
+
+  calculateStakingReward(amount: number, durationDays: number): StakingReward {
+    const apr = 10 + Math.random() * 4;
+    const dailyRate = apr / 100 / 365;
+    const estimatedReward = amount * dailyRate * durationDays;
+    const apy = (Math.pow(1 + apr / 100 / 365, 365) - 1) * 100;
+
+    return {
+      principal: amount,
+      duration: durationDays,
+      estimatedReward: Number(estimatedReward.toFixed(4)),
+      apy: Number(apy.toFixed(2)),
+    };
+  }
+
+  async getRiskMetrics(): Promise<RiskMetrics> {
+    try {
+      const validators = await this.getValidators(50);
+      const networkStats = await this.getNetworkStats();
+
+      const totalStake = validators.reduce((sum, v) => sum + v.tokens, 0);
+      const sortedValidators = [...validators].sort((a, b) => b.tokens - a.tokens);
+
+      const stakes = sortedValidators.map((v) => v.tokens);
+      const giniCoefficient = this.calculateGiniCoefficient(stakes);
+
+      const top10Stake = sortedValidators.slice(0, 10).reduce((sum, v) => sum + v.tokens, 0);
+      const top10ValidatorsShare = (top10Stake / totalStake) * 100;
+
+      const nakamotoCoefficient = this.calculateNakamotoCoefficient(sortedValidators, totalStake);
+
+      const avgUptime =
+        validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length;
+      const avgCommission =
+        validators.reduce((sum, v) => sum + v.commissionRate, 0) / validators.length;
+
+      const decentralizationScore = Math.max(
+        0,
+        Math.min(100, 100 - giniCoefficient * 100 - (top10ValidatorsShare - 33) * 0.5)
+      );
+
+      const securityScore = Math.max(
+        0,
+        Math.min(100, 70 + networkStats.activeValidators * 0.3 + (100 - top10ValidatorsShare) * 0.3)
+      );
+
+      const reliabilityScore = Math.max(0, Math.min(100, avgUptime));
+
+      const transparencyScore = 75 + Math.random() * 10;
+
+      const overallScore =
+        (decentralizationScore * 0.3 + securityScore * 0.3 + reliabilityScore * 0.25 + transparencyScore * 0.15);
+
+      return {
+        decentralizationScore: Number(decentralizationScore.toFixed(1)),
+        securityScore: Number(securityScore.toFixed(1)),
+        reliabilityScore: Number(reliabilityScore.toFixed(1)),
+        transparencyScore: Number(transparencyScore.toFixed(1)),
+        overallScore: Number(overallScore.toFixed(1)),
+        giniCoefficient: Number(giniCoefficient.toFixed(3)),
+        nakamotoCoefficient,
+        top10ValidatorsShare: Number(top10ValidatorsShare.toFixed(1)),
+      };
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch risk metrics',
+        'RISK_METRICS_ERROR'
+      );
+    }
+  }
+
+  async getRiskTrendData(days: number = 30): Promise<RiskTrendData[]> {
+    try {
+      const trends: RiskTrendData[] = [];
+      const now = new Date();
+
+      const baseDecentralization = 72;
+      const baseSecurity = 78;
+      const baseReliability = 94;
+
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        const dayVariation = Math.sin(i / 5) * 3 + (Math.random() - 0.5) * 4;
+        const decentralization = Math.max(60, Math.min(85, baseDecentralization + dayVariation));
+        const security = Math.max(70, Math.min(90, baseSecurity + dayVariation * 0.8));
+        const reliability = Math.max(90, Math.min(99, baseReliability + dayVariation * 0.3));
+
+        const score = decentralization * 0.3 + security * 0.3 + reliability * 0.25 + 75 * 0.15;
+
+        trends.push({
+          date: dateStr,
+          score: Number(score.toFixed(1)),
+          decentralization: Number(decentralization.toFixed(1)),
+          security: Number(security.toFixed(1)),
+          reliability: Number(reliability.toFixed(1)),
+        });
+      }
+
+      return trends;
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch risk trend data',
+        'RISK_TREND_ERROR'
+      );
+    }
+  }
+
+  async getSecurityAuditEvents(): Promise<RiskEvent[]> {
+    try {
+      const events: RiskEvent[] = [
+        {
+          id: 'audit-2024-q1',
+          date: '2024-02-20T10:30:00',
+          title: 'Security Audit Completed',
+          description:
+            'Band Protocol core contracts passed joint security audit by CertiK and PeckShield with no critical vulnerabilities found.',
+          type: 'success',
+          source: 'https://www.certik.com/projects/bandprotocol',
+        },
+        {
+          id: 'upgrade-2023-v25',
+          date: '2023-12-15T14:20:00',
+          title: 'Mainnet Upgrade v2.5',
+          description:
+            'Completed BandChain mainnet upgrade, introducing new oracle script execution environment and optimized gas fee model.',
+          type: 'info',
+          source: 'https://docs.bandchain.org/',
+        },
+        {
+          id: 'validator-expansion-2023',
+          date: '2023-10-08T09:15:00',
+          title: 'Validator Node Expansion',
+          description:
+            'Validator nodes increased to 72, distributed across 25 countries and regions, improving network decentralization.',
+          type: 'success',
+          source: 'https://docs.bandchain.org/',
+        },
+        {
+          id: 'latency-2023',
+          date: '2023-08-22T16:45:00',
+          title: 'Price Delay Incident',
+          description:
+            'Due to network congestion, some price feeds experienced 3-5 minute delays. Team optimized data aggregation algorithm to improve response speed.',
+          type: 'warning',
+          source: 'https://docs.bandchain.org/',
+        },
+        {
+          id: 'datasource-2023',
+          date: '2023-06-10T11:30:00',
+          title: 'New Data Source Integration',
+          description:
+            'Successfully integrated 15 new institutional-grade data sources, improving price data accuracy and manipulation resistance.',
+          type: 'success',
+          source: 'https://docs.bandchain.org/',
+        },
+        {
+          id: 'staking-2023',
+          date: '2023-04-05T08:00:00',
+          title: 'Staking Mechanism Optimization',
+          description:
+            'Updated validator staking requirements, introducing dynamic slashing mechanism to enhance network security.',
+          type: 'info',
+          source: 'https://docs.bandchain.org/',
+        },
+        {
+          id: 'audit-2023',
+          date: '2023-01-15T10:00:00',
+          title: 'Annual Security Review',
+          description:
+            'Completed comprehensive security review covering smart contracts, validator infrastructure, and cross-chain bridges.',
+          type: 'success',
+          source: 'https://www.certik.com/projects/bandprotocol',
+        },
+        {
+          id: 'ibc-upgrade-2022',
+          date: '2022-11-20T14:00:00',
+          title: 'IBC Protocol Upgrade',
+          description:
+            'Upgraded IBC protocol to latest version, improving cross-chain communication reliability and adding new features.',
+          type: 'info',
+          source: 'https://docs.bandchain.org/',
+        },
+      ];
+
+      return events;
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch security audit events',
+        'SECURITY_AUDIT_EVENTS_ERROR'
+      );
+    }
+  }
+
+  private calculateGiniCoefficient(values: number[]): number {
+    if (values.length === 0) return 0;
+
+    const sortedValues = [...values].sort((a, b) => a - b);
+    const n = sortedValues.length;
+    const total = sortedValues.reduce((sum, v) => sum + v, 0);
+
+    if (total === 0) return 0;
+
+    let cumulativeSum = 0;
+    let giniSum = 0;
+
+    for (let i = 0; i < n; i++) {
+      cumulativeSum += sortedValues[i];
+      giniSum += cumulativeSum;
+    }
+
+    const gini = (2 * giniSum) / (n * total) - (n + 1) / n;
+    return Math.max(0, Math.min(1, gini));
+  }
+
+  private calculateNakamotoCoefficient(validators: ValidatorInfo[], totalStake: number): number {
+    if (validators.length === 0 || totalStake === 0) return 0;
+
+    const sortedValidators = [...validators].sort((a, b) => b.tokens - a.tokens);
+    const threshold = totalStake / 3;
+
+    let cumulativeStake = 0;
+    let count = 0;
+
+    for (const validator of sortedValidators) {
+      cumulativeStake += validator.tokens;
+      count++;
+      if (cumulativeStake >= threshold) {
+        break;
+      }
+    }
+
+    return count;
+  }
+
+  async getGovernanceProposals(status?: ProposalStatus): Promise<GovernanceProposal[]> {
+    try {
+      const proposals: GovernanceProposal[] = [];
+      const now = Date.now();
+
+      const proposalTemplates = [
+        {
+          title: 'Upgrade BandChain to v3.0',
+          description: 'Proposal to upgrade BandChain mainnet to version 3.0, introducing enhanced oracle script execution environment and improved gas optimization.',
+          type: 'Software Upgrade',
+          status: 'voting' as ProposalStatus,
+        },
+        {
+          title: 'Increase Validator Set Size',
+          description: 'Proposal to increase the active validator set from 72 to 100 validators to improve network decentralization.',
+          type: 'Parameter Change',
+          status: 'voting' as ProposalStatus,
+        },
+        {
+          title: 'Community Pool Spending for Marketing',
+          description: 'Proposal to allocate 500,000 BAND from the community pool for marketing and ecosystem development initiatives.',
+          type: 'Community Pool Spend',
+          status: 'passed' as ProposalStatus,
+        },
+        {
+          title: 'Reduce Minimum Deposit Amount',
+          description: 'Proposal to reduce the minimum deposit for governance proposals from 512 BAND to 256 BAND to lower barriers to participation.',
+          type: 'Parameter Change',
+          status: 'voting' as ProposalStatus,
+        },
+        {
+          title: 'Add New Oracle Scripts',
+          description: 'Proposal to add 10 new oracle scripts for emerging DeFi protocols and NFT price feeds.',
+          type: 'Oracle Script Addition',
+          status: 'passed' as ProposalStatus,
+        },
+        {
+          title: 'Adjust Staking Parameters',
+          description: 'Proposal to adjust staking parameters including unbonding period and slashing rates.',
+          type: 'Parameter Change',
+          status: 'rejected' as ProposalStatus,
+        },
+        {
+          title: 'Fund Developer Grant Program',
+          description: 'Proposal to establish a developer grant program with 1,000,000 BAND allocation for ecosystem growth.',
+          type: 'Community Pool Spend',
+          status: 'passed' as ProposalStatus,
+        },
+        {
+          title: 'Enable IBC Relayer Incentives',
+          description: 'Proposal to implement incentive mechanisms for IBC relayers to improve cross-chain connectivity.',
+          type: 'Parameter Change',
+          status: 'deposit' as ProposalStatus,
+        },
+        {
+          title: 'Security Audit Funding',
+          description: 'Proposal to fund comprehensive security audit by leading firms for BandChain core contracts.',
+          type: 'Community Pool Spend',
+          status: 'passed' as ProposalStatus,
+        },
+        {
+          title: 'Update Oracle Script Standards',
+          description: 'Proposal to update standards and requirements for oracle script development and deployment.',
+          type: 'Software Upgrade',
+          status: 'failed' as ProposalStatus,
+        },
+      ];
+
+      for (let i = 0; i < proposalTemplates.length; i++) {
+        const template = proposalTemplates[i];
+        const submitTime = now - Math.floor(Math.random() * 14 * 24 * 60 * 60 * 1000);
+        const depositEndTime = submitTime + 14 * 24 * 60 * 60 * 1000;
+        const votingEndTime = depositEndTime + 7 * 24 * 60 * 60 * 1000;
+
+        const totalVotes = 50000000 + Math.floor(Math.random() * 50000000);
+        const yesRatio = template.status === 'passed' ? 0.7 + Math.random() * 0.2 : 
+                         template.status === 'rejected' ? 0.2 + Math.random() * 0.2 :
+                         0.4 + Math.random() * 0.2;
+
+        proposals.push({
+          id: i + 1,
+          title: template.title,
+          description: template.description,
+          type: template.type,
+          status: template.status,
+          submitTime,
+          depositEndTime,
+          votingEndTime,
+          proposer: `band1${this.generateRandomAddress()}`,
+          totalDeposit: 512 + Math.floor(Math.random() * 1000),
+          votes: {
+            yes: Math.floor(totalVotes * yesRatio),
+            no: Math.floor(totalVotes * (1 - yesRatio) * 0.5),
+            abstain: Math.floor(totalVotes * (1 - yesRatio) * 0.3),
+            noWithVeto: Math.floor(totalVotes * (1 - yesRatio) * 0.2),
+          },
+        });
+      }
+
+      if (status) {
+        return proposals.filter((p) => p.status === status);
+      }
+
+      return proposals;
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch governance proposals',
+        'GOVERNANCE_PROPOSALS_ERROR'
+      );
+    }
+  }
+
+  async getGovernanceParams(): Promise<GovernanceParams> {
+    try {
+      return {
+        minDeposit: 512,
+        maxDepositPeriod: 14,
+        votingPeriod: 7,
+        quorum: 33.4,
+        threshold: 50,
+        vetoThreshold: 33.4,
+      };
+    } catch (error) {
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch governance params',
+        'GOVERNANCE_PARAMS_ERROR'
       );
     }
   }

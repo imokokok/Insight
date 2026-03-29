@@ -2,7 +2,12 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback, MobileMenuButton, OracleErrorBoundary } from '@/components/oracle';
+import {
+  LoadingState,
+  ErrorFallback,
+  MobileMenuButton,
+  OracleErrorBoundary,
+} from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -14,6 +19,7 @@ import {
   PythValidatorsView,
   PythPriceFeedsView,
   PythRiskView,
+  PythCrossChainView,
   PythHero,
 } from './components';
 import { usePythPage } from './hooks/usePythPage';
@@ -77,6 +83,8 @@ export default function PythPage() {
         return <PythPriceFeedsView isLoading={isLoading} />;
       case 'risk':
         return <PythRiskView isLoading={isLoading} />;
+      case 'cross-chain':
+        return <PythCrossChainView isLoading={isLoading} />;
       default:
         return null;
     }

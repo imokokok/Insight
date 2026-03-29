@@ -603,7 +603,6 @@ export function ChainlinkHero({
               <p className="text-xs text-gray-500">{t('chainlink.subtitle')}</p>
             </div>
           </div>
-
         </div>
 
         {/* 桌面端左右分栏布局 */}

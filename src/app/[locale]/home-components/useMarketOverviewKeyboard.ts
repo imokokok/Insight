@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 
-import { useKeyboardShortcuts, type KeyboardShortcut } from '@/hooks';
 import { useShortcutHelp } from '@/components/shortcuts';
+import { useKeyboardShortcuts, type KeyboardShortcut } from '@/hooks';
 
 export type ChartType = 'pie' | 'trend' | 'bar';
 export type ViewType = 'chart' | 'table';

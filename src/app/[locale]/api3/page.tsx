@@ -2,7 +2,12 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback, MobileMenuButton, OracleErrorBoundary } from '@/components/oracle';
+import {
+  LoadingState,
+  ErrorFallback,
+  MobileMenuButton,
+  OracleErrorBoundary,
+} from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -14,7 +19,9 @@ import {
   API3DapiView,
   API3EcosystemView,
   API3RiskView,
+  API3OevView,
   API3Hero,
+  API3AnalyticsView,
 } from './components';
 import { useAPI3Page } from './hooks/useAPI3Page';
 import { type API3TabId } from './types';
@@ -31,6 +38,7 @@ export default function API3Page() {
     firstParty,
     deviations,
     sourceTrace,
+    oevStats,
     isLoading,
     isError,
     error,
@@ -109,6 +117,10 @@ export default function API3Page() {
             isLoading={isLoading}
           />
         );
+      case 'oev':
+        return <API3OevView oevStats={oevStats} isLoading={isLoading} />;
+      case 'analytics':
+        return <API3AnalyticsView />;
       default:
         return null;
     }

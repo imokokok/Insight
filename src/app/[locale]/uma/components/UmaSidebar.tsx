@@ -1,6 +1,18 @@
 'use client';
 
-import { BarChart3, Globe, Gavel, Shield, Wallet, Network, ShieldAlert } from 'lucide-react';
+import {
+  BarChart3,
+  Globe,
+  Database,
+  Gavel,
+  Shield,
+  Wallet,
+  Vote,
+  Network,
+  ShieldAlert,
+  BookOpen,
+  ArrowLeftRight,
+} from 'lucide-react';
 
 import { UnifiedSidebar } from '@/components/oracle';
 
@@ -24,6 +36,11 @@ const getNavItems = (): NavItem[] => [
     icon: <Globe className="w-5 h-5" />,
   },
   {
+    id: 'requests',
+    labelKey: 'uma.menu.dataRequests',
+    icon: <Database className="w-5 h-5" />,
+  },
+  {
     id: 'disputes',
     labelKey: 'uma.menu.disputeResolution',
     icon: <Gavel className="w-5 h-5" />,
@@ -39,6 +56,11 @@ const getNavItems = (): NavItem[] => [
     icon: <Wallet className="w-5 h-5" />,
   },
   {
+    id: 'governance',
+    labelKey: 'uma.menu.governance',
+    icon: <Vote className="w-5 h-5" />,
+  },
+  {
     id: 'ecosystem',
     labelKey: 'uma.menu.ecosystem',
     icon: <Network className="w-5 h-5" />,
@@ -47,6 +69,16 @@ const getNavItems = (): NavItem[] => [
     id: 'risk',
     labelKey: 'uma.menu.riskAssessment',
     icon: <ShieldAlert className="w-5 h-5" />,
+  },
+  {
+    id: 'crosschain',
+    labelKey: 'uma.menu.crossChain',
+    icon: <ArrowLeftRight className="w-5 h-5" />,
+  },
+  {
+    id: 'education',
+    labelKey: 'uma.menu.education',
+    icon: <BookOpen className="w-5 h-5" />,
   },
 ];
 

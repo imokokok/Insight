@@ -30,7 +30,6 @@ import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
 
-
 export interface BandProtocolHeroProps {
   config: OracleConfig;
   price: PriceData | null;
@@ -452,23 +451,48 @@ function UnifiedInfoSection({
 
 // 快速操作组件
 function QuickActions({ themeColor }: { themeColor: string }) {
+  const t = useTranslations();
+
   const actions = [
-    { icon: <Bell className="w-3.5 h-3.5" />, label: '价格提醒', href: '#' },
-    { icon: <Plus className="w-3.5 h-3.5" />, label: '添加监控', href: '#' },
-    { icon: <FileText className="w-3.5 h-3.5" />, label: 'API文档', href: '#' },
-    { icon: <Layers className="w-3.5 h-3.5" />, label: '切换网络', href: '#' },
+    { 
+      icon: <ExternalLink className="w-3.5 h-3.5" />, 
+      label: t('band.bandProtocol.quickActions.blockExplorer'), 
+      href: 'https://cosmoscan.io/',
+      isExternal: true 
+    },
+    { 
+      icon: <FileText className="w-3.5 h-3.5" />, 
+      label: t('band.bandProtocol.quickActions.apiDocs'), 
+      href: 'https://docs.bandchain.org/',
+      isExternal: true 
+    },
+    { icon: <Bell className="w-3.5 h-3.5" />, label: t('band.bandProtocol.quickActions.priceAlert'), href: '#' },
+    { icon: <Plus className="w-3.5 h-3.5" />, label: t('band.bandProtocol.quickActions.addMonitor'), href: '#' },
   ];
 
   return (
     <div className="flex flex-wrap gap-1.5">
       {actions.map((action, index) => (
-        <button
-          key={index}
-          className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-[11px] text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all"
-        >
-          {action.icon}
-          <span>{action.label}</span>
-        </button>
+        action.isExternal ? (
+          <a
+            key={index}
+            href={action.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-[11px] text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all"
+          >
+            {action.icon}
+            <span>{action.label}</span>
+          </a>
+        ) : (
+          <button
+            key={index}
+            className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-[11px] text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all"
+          >
+            {action.icon}
+            <span>{action.label}</span>
+          </button>
+        )
       ))}
     </div>
   );

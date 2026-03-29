@@ -1,6 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
-import { usePriceQueryState } from '../usePriceQueryState';
+
 import { OracleProvider, Blockchain } from '@/lib/oracles';
+
+import { usePriceQueryState } from '../usePriceQueryState';
 
 jest.mock('@/hooks', () => ({
   usePreferences: () => ({
@@ -87,8 +89,14 @@ describe('usePriceQueryState', () => {
         result.current.setSelectedOracles([OracleProvider.PYTH, OracleProvider.BAND_PROTOCOL]);
       });
 
-      expect(result.current.selectedOracles).toEqual([OracleProvider.PYTH, OracleProvider.BAND_PROTOCOL]);
-      expect(result.current.selectedOraclesRef.current).toEqual([OracleProvider.PYTH, OracleProvider.BAND_PROTOCOL]);
+      expect(result.current.selectedOracles).toEqual([
+        OracleProvider.PYTH,
+        OracleProvider.BAND_PROTOCOL,
+      ]);
+      expect(result.current.selectedOraclesRef.current).toEqual([
+        OracleProvider.PYTH,
+        OracleProvider.BAND_PROTOCOL,
+      ]);
     });
 
     it('should update selectedChains', () => {
@@ -99,7 +107,10 @@ describe('usePriceQueryState', () => {
       });
 
       expect(result.current.selectedChains).toEqual([Blockchain.ARBITRUM, Blockchain.POLYGON]);
-      expect(result.current.selectedChainsRef.current).toEqual([Blockchain.ARBITRUM, Blockchain.POLYGON]);
+      expect(result.current.selectedChainsRef.current).toEqual([
+        Blockchain.ARBITRUM,
+        Blockchain.POLYGON,
+      ]);
     });
 
     it('should update selectedSymbol', () => {
@@ -245,7 +256,12 @@ describe('usePriceQueryState', () => {
 
     it('should handle sort for all valid fields', () => {
       const { result } = renderHook(() => usePriceQueryState());
-      const fields: Array<'oracle' | 'blockchain' | 'price' | 'timestamp'> = ['oracle', 'blockchain', 'price', 'timestamp'];
+      const fields: Array<'oracle' | 'blockchain' | 'price' | 'timestamp'> = [
+        'oracle',
+        'blockchain',
+        'price',
+        'timestamp',
+      ];
 
       fields.forEach((field) => {
         act(() => {

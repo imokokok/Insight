@@ -2,7 +2,12 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback, MobileMenuButton, OracleErrorBoundary } from '@/components/oracle';
+import {
+  LoadingState,
+  ErrorFallback,
+  MobileMenuButton,
+  OracleErrorBoundary,
+} from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -13,9 +18,16 @@ import {
   ChainlinkNetworkView,
   ChainlinkNodesView,
   ChainlinkDataFeedsView,
+  ChainlinkDataStreamsView,
   ChainlinkServicesView,
   ChainlinkEcosystemView,
   ChainlinkRiskView,
+  ChainlinkCCIPView,
+  ChainlinkStakingView,
+  ChainlinkFunctionsView,
+  ChainlinkAutomationView,
+  ChainlinkProofOfReserveView,
+  ChainlinkVRFView,
 } from './components';
 import { useChainlinkPage } from './hooks/useChainlinkPage';
 import { type ChainlinkTabId } from './types';
@@ -71,12 +83,26 @@ export default function ChainlinkPage() {
         return <ChainlinkNodesView />;
       case 'data-feeds':
         return <ChainlinkDataFeedsView />;
+      case 'data-streams':
+        return <ChainlinkDataStreamsView />;
       case 'services':
         return <ChainlinkServicesView />;
+      case 'ccip':
+        return <ChainlinkCCIPView />;
+      case 'vrf':
+        return <ChainlinkVRFView />;
+      case 'staking':
+        return <ChainlinkStakingView />;
+      case 'automation':
+        return <ChainlinkAutomationView />;
       case 'ecosystem':
         return <ChainlinkEcosystemView />;
       case 'risk':
         return <ChainlinkRiskView />;
+      case 'functions':
+        return <ChainlinkFunctionsView />;
+      case 'proof-of-reserve':
+        return <ChainlinkProofOfReserveView />;
       default:
         return null;
     }

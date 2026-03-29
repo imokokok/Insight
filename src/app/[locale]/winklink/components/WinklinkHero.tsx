@@ -30,7 +30,6 @@ import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
 
-
 interface WinklinkHeroProps {
   config: OracleConfig;
   price: PriceData | null;

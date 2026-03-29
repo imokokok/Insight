@@ -2,8 +2,8 @@
 
 import { useState, useCallback } from 'react';
 
-import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { useTranslations } from '@/i18n';
+import { type OracleProvider, type Blockchain } from '@/lib/oracles';
 
 import { type QueryResult, providerNames, chainNames } from '../constants';
 

@@ -25,8 +25,14 @@ import {
 } from 'recharts';
 
 import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
+import { CoveragePoolDashboard } from '@/components/oracle/panels/CoveragePoolDashboard';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
+import {
+  useAPI3CoveragePoolDetails,
+  useAPI3CoveragePoolClaims,
+  useAPI3StakerRewards,
+} from '@/hooks/oracles/api3';
 
 import { type API3RiskViewProps } from '../types';
 
@@ -197,6 +203,10 @@ export function API3RiskView({
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
 
+  const { coveragePoolDetails } = useAPI3CoveragePoolDetails(!isLoading);
+  const { claims } = useAPI3CoveragePoolClaims(undefined, !isLoading);
+  const { stakerRewards } = useAPI3StakerRewards(undefined, !isLoading);
+
   const getRiskColor = (level: string) => {
     switch (level) {
       case 'low':
@@ -239,6 +249,15 @@ export function API3RiskView({
 
   return (
     <div className="space-y-8">
+      <CoveragePoolDashboard
+        coveragePoolDetails={coveragePoolDetails}
+        claims={claims}
+        stakerRewards={stakerRewards}
+        isLoading={isLoading}
+      />
+
+      <div className="border-t border-gray-200" />
+
       {/* 风险指标统计 */}
       <section>
         <div className="flex items-center justify-between mb-6">

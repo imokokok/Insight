@@ -99,7 +99,11 @@ export function Selectors({
   }));
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" role="region" aria-label={t('priceQuery.selectors.panelLabel')}>
+    <div
+      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+      role="region"
+      aria-label={t('priceQuery.selectors.panelLabel')}
+    >
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
           <Search className="w-4 h-4 text-gray-500" aria-hidden="true" />

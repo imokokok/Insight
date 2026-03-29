@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from 'react';
 
-import { Search, ArrowUpDown, Activity, Award, TrendingUp, Shield } from 'lucide-react';
+import { Search, ArrowUpDown, Activity, Award, TrendingUp, Shield, Eye } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
-import { type PythPublishersViewProps } from '../types';
+import { type PythPublishersViewProps, type PublisherData } from '../types';
+import { PublisherDetailModal } from './PublisherDetailModal';
 
 type SortField = 'stake' | 'accuracy' | 'name';
 type SortOrder = 'asc' | 'desc';
@@ -16,6 +17,18 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
   const [sortField, setSortField] = useState<SortField>('stake');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPublisher, setSelectedPublisher] = useState<PublisherData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handlePublisherClick = (publisher: PublisherData) => {
+    setSelectedPublisher(publisher);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPublisher(null);
+  };
 
   const filteredPublishers = useMemo(() => {
     return publishers
@@ -166,14 +179,20 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
             {filteredPublishers.map((publisher, index) => (
               <tr
                 key={publisher.id}
-                className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                onClick={() => handlePublisherClick(publisher)}
+                className="border-b border-gray-100 hover:bg-violet-50 transition-colors cursor-pointer group"
               >
                 <td className="py-3 px-4">
                   <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-medium bg-gray-100 text-gray-600 rounded">
                     {index + 1}
                   </span>
                 </td>
-                <td className="py-3 px-4 font-medium text-gray-900">{publisher.name}</td>
+                <td className="py-3 px-4">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-900">{publisher.name}</span>
+                    <Eye className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </td>
                 <td className="py-3 px-4">
                   <div className="space-y-1">
                     <span className="text-sm text-gray-900">
@@ -214,6 +233,15 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
             {t('pyth.publishers.noResults') || 'No publishers found'}
           </p>
         </div>
+      )}
+
+      {/* 发布者详情弹窗 */}
+      {selectedPublisher && (
+        <PublisherDetailModal
+          publisher={selectedPublisher}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       )}
     </div>
   );

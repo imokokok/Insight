@@ -4,6 +4,7 @@ export { AccuracyAnalysisPanel } from './AccuracyAnalysisPanel';
 export { AirnodeDeploymentPanel } from './AirnodeDeploymentPanel';
 export { ConfidenceAlertPanel } from './ConfidenceAlertPanel';
 export { CoveragePoolPanel } from './CoveragePoolPanel';
+export { CoveragePoolDashboard } from './CoveragePoolDashboard';
 export { CrossChainPanel } from './CrossChainPanel';
 export { DapiCoveragePanel } from './DapiCoveragePanel';
 export { DataSourceTraceabilityPanel } from './DataSourceTraceabilityPanel';

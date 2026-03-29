@@ -1,9 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
-import { type DisputeData, type DisputeType } from '@/lib/oracles/uma';
-import { useWebSocket, type WebSocketMessage } from '@/lib/realtime/websocket';
+import { type DisputeData, type DisputeType, type UMANetworkStats } from '@/lib/oracles/uma/types';
+import {
+  useWebSocket,
+  type WebSocketMessage,
+  type PerformanceMetrics,
+} from '@/lib/realtime/websocket';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('useUMARealtime');
@@ -31,24 +35,47 @@ export interface UMAValidatorUpdate {
   earnings: number;
 }
 
+export interface UMANetworkUpdate extends UMANetworkStats {
+  updateType: 'stats' | 'validator_change' | 'dispute_change';
+}
+
+export interface UMADataRequestUpdate {
+  requestId: string;
+  timestamp: number;
+  status: 'pending' | 'verified' | 'disputed' | 'resolved';
+  requester: string;
+  proposer: string;
+  proposedValue: string;
+  challengePeriodEnd: number;
+  reward: number;
+  bond: number;
+}
+
+export interface RealtimeData {
+  type: 'price' | 'network' | 'dispute' | 'validator' | 'request';
+  data: unknown;
+  timestamp: number;
+}
+
+export interface ConnectionStatus {
+  status: 'connecting' | 'connected' | 'disconnected' | 'error' | 'reconnecting';
+  lastConnected?: Date;
+  retryCount: number;
+}
+
 export interface UseUMARealtimePriceOptions {
   symbol?: string;
   enabled?: boolean;
   onPriceUpdate?: (data: UMAPriceData) => void;
+  throttleMs?: number;
 }
-
-export type ConnectionStatus =
-  | 'connecting'
-  | 'connected'
-  | 'disconnected'
-  | 'error'
-  | 'reconnecting';
 
 export interface UseUMARealtimePriceReturn {
   priceData: UMAPriceData | null;
-  connectionStatus: ConnectionStatus;
+  connectionStatus: ConnectionStatus['status'];
   lastUpdate: Date | null;
   error: Error | null;
+  performanceMetrics: PerformanceMetrics | null;
 }
 
 export interface UseUMARealtimeDisputesOptions {
@@ -56,12 +83,13 @@ export interface UseUMARealtimeDisputesOptions {
   onDisputeUpdate?: (data: UMADisputeUpdate) => void;
   filterStatus?: ('active' | 'resolved' | 'rejected')[];
   filterType?: DisputeType[];
+  throttleMs?: number;
 }
 
 export interface UseUMARealtimeDisputesReturn {
   disputes: UMADisputeUpdate[];
   latestDispute: UMADisputeUpdate | null;
-  connectionStatus: ConnectionStatus;
+  connectionStatus: ConnectionStatus['status'];
   lastUpdate: Date | null;
   error: Error | null;
   activeCount: number;
@@ -73,24 +101,117 @@ export interface UseUMARealtimeValidatorsOptions {
   enabled?: boolean;
   onValidatorUpdate?: (data: UMAValidatorUpdate) => void;
   validatorIds?: string[];
+  throttleMs?: number;
 }
 
 export interface UseUMARealtimeValidatorsReturn {
   validators: Map<string, UMAValidatorUpdate>;
-  connectionStatus: ConnectionStatus;
+  connectionStatus: ConnectionStatus['status'];
   lastUpdate: Date | null;
   error: Error | null;
 }
 
+export interface UseUMARealtimeNetworkOptions {
+  enabled?: boolean;
+  onNetworkUpdate?: (data: UMANetworkUpdate) => void;
+  throttleMs?: number;
+}
+
+export interface UseUMARealtimeNetworkReturn {
+  networkData: UMANetworkUpdate | null;
+  connectionStatus: ConnectionStatus['status'];
+  lastUpdate: Date | null;
+  error: Error | null;
+}
+
+export interface UseUMARealtimeRequestsOptions {
+  enabled?: boolean;
+  onRequestUpdate?: (data: UMADataRequestUpdate) => void;
+  filterStatus?: ('pending' | 'verified' | 'disputed' | 'resolved')[];
+  throttleMs?: number;
+}
+
+export interface UseUMARealtimeRequestsReturn {
+  requests: UMADataRequestUpdate[];
+  latestRequest: UMADataRequestUpdate | null;
+  connectionStatus: ConnectionStatus['status'];
+  lastUpdate: Date | null;
+  error: Error | null;
+  pendingCount: number;
+  verifiedCount: number;
+  disputedCount: number;
+  resolvedCount: number;
+}
+
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://api.example.com/ws';
+
+const DEFAULT_THROTTLE_MS = 1000;
+
+function useThrottledCallback<T extends (...args: never[]) => void>(
+  callback: T,
+  throttleMs: number
+): T {
+  const lastCallTimeRef = useRef(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingArgsRef = useRef<Parameters<T> | null>(null);
+
+  const throttledCallback = useCallback(
+    (...args: Parameters<T>) => {
+      const now = Date.now();
+      const timeSinceLastCall = now - lastCallTimeRef.current;
+
+      if (timeSinceLastCall >= throttleMs) {
+        lastCallTimeRef.current = now;
+        callback(...args);
+      } else {
+        pendingArgsRef.current = args;
+
+        if (!timeoutRef.current) {
+          timeoutRef.current = setTimeout(() => {
+            if (pendingArgsRef.current) {
+              lastCallTimeRef.current = Date.now();
+              callback(...pendingArgsRef.current);
+              pendingArgsRef.current = null;
+            }
+            timeoutRef.current = null;
+          }, throttleMs - timeSinceLastCall);
+        }
+      }
+    },
+    [callback, throttleMs]
+  ) as T;
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return throttledCallback;
+}
 
 export function useUMARealtimePrice(
   options: UseUMARealtimePriceOptions = {}
 ): UseUMARealtimePriceReturn {
-  const { symbol, enabled = true, onPriceUpdate } = options;
+  const { symbol, enabled = true, onPriceUpdate, throttleMs = DEFAULT_THROTTLE_MS } = options;
   const [priceData, setPriceData] = useState<UMAPriceData | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics | null>(null);
+
+  const handlePriceUpdate = useCallback(
+    (data: UMAPriceData) => {
+      setPriceData(data);
+      setLastUpdate(new Date());
+      setError(null);
+      onPriceUpdate?.(data);
+    },
+    [onPriceUpdate]
+  );
+
+  const throttledHandlePriceUpdate = useThrottledCallback(handlePriceUpdate, throttleMs);
 
   const handleMessage = useCallback(
     (message: WebSocketMessage<UMAPriceData>) => {
@@ -101,19 +222,13 @@ export function useUMARealtimePrice(
           return;
         }
 
-        setPriceData(data);
-        setLastUpdate(new Date());
-        setError(null);
-
-        if (onPriceUpdate) {
-          onPriceUpdate(data);
-        }
+        throttledHandlePriceUpdate(data);
       } catch (err) {
         logger.error('Error handling UMA price message', err as Error);
         setError(err instanceof Error ? err : new Error(String(err)));
       }
     },
-    [symbol, onPriceUpdate]
+    [symbol, throttledHandlePriceUpdate]
   );
 
   const { status: connectionStatus, subscribe } = useWebSocket({
@@ -121,6 +236,7 @@ export function useUMARealtimePrice(
     channels: enabled ? ['uma:prices'] : [],
     autoConnect: enabled,
     useMock: true,
+    onPerformanceMetrics: setPerformanceMetrics,
   });
 
   useEffect(() => {
@@ -137,18 +253,40 @@ export function useUMARealtimePrice(
     connectionStatus,
     lastUpdate,
     error,
+    performanceMetrics,
   };
 }
 
 export function useUMARealtimeDisputes(
   options: UseUMARealtimeDisputesOptions = {}
 ): UseUMARealtimeDisputesReturn {
-  const { enabled = true, onDisputeUpdate, filterStatus, filterType } = options;
+  const {
+    enabled = true,
+    onDisputeUpdate,
+    filterStatus,
+    filterType,
+    throttleMs = DEFAULT_THROTTLE_MS,
+  } = options;
   const [disputes, setDisputes] = useState<UMADisputeUpdate[]>([]);
   const [latestDispute, setLatestDispute] = useState<UMADisputeUpdate | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const disputesMapRef = useRef<Map<string, UMADisputeUpdate>>(new Map());
+
+  const handleDisputeUpdate = useCallback(
+    (disputeUpdate: UMADisputeUpdate) => {
+      setLatestDispute(disputeUpdate);
+      setDisputes(
+        Array.from(disputesMapRef.current.values()).sort((a, b) => b.timestamp - a.timestamp)
+      );
+      setLastUpdate(new Date());
+      setError(null);
+      onDisputeUpdate?.(disputeUpdate);
+    },
+    [onDisputeUpdate]
+  );
+
+  const throttledHandleDisputeUpdate = useThrottledCallback(handleDisputeUpdate, throttleMs);
 
   const handleMessage = useCallback(
     (message: WebSocketMessage<DisputeData>) => {
@@ -177,22 +315,13 @@ export function useUMARealtimeDisputes(
         };
 
         disputesMapRef.current.set(data.id, disputeUpdate);
-        setLatestDispute(disputeUpdate);
-        setDisputes(
-          Array.from(disputesMapRef.current.values()).sort((a, b) => b.timestamp - a.timestamp)
-        );
-        setLastUpdate(new Date());
-        setError(null);
-
-        if (onDisputeUpdate) {
-          onDisputeUpdate(disputeUpdate);
-        }
+        throttledHandleDisputeUpdate(disputeUpdate);
       } catch (err) {
         logger.error('Error handling UMA dispute message', err as Error);
         setError(err instanceof Error ? err : new Error(String(err)));
       }
     },
-    [filterStatus, filterType, onDisputeUpdate]
+    [filterStatus, filterType, throttledHandleDisputeUpdate]
   );
 
   const { status: connectionStatus, subscribe } = useWebSocket({
@@ -211,14 +340,18 @@ export function useUMARealtimeDisputes(
     };
   }, [enabled, subscribe, handleMessage]);
 
-  const stats = disputes.reduce(
-    (acc, dispute) => {
-      if (dispute.status === 'active') acc.activeCount++;
-      else if (dispute.status === 'resolved') acc.resolvedCount++;
-      else if (dispute.status === 'rejected') acc.rejectedCount++;
-      return acc;
-    },
-    { activeCount: 0, resolvedCount: 0, rejectedCount: 0 }
+  const stats = useMemo(
+    () =>
+      disputes.reduce(
+        (acc, dispute) => {
+          if (dispute.status === 'active') acc.activeCount++;
+          else if (dispute.status === 'resolved') acc.resolvedCount++;
+          else if (dispute.status === 'rejected') acc.rejectedCount++;
+          return acc;
+        },
+        { activeCount: 0, resolvedCount: 0, rejectedCount: 0 }
+      ),
+    [disputes]
   );
 
   return {
@@ -234,10 +367,31 @@ export function useUMARealtimeDisputes(
 export function useUMARealtimeValidators(
   options: UseUMARealtimeValidatorsOptions = {}
 ): UseUMARealtimeValidatorsReturn {
-  const { enabled = true, onValidatorUpdate, validatorIds } = options;
+  const {
+    enabled = true,
+    onValidatorUpdate,
+    validatorIds,
+    throttleMs = DEFAULT_THROTTLE_MS,
+  } = options;
   const [validators, setValidators] = useState<Map<string, UMAValidatorUpdate>>(new Map());
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<Error | null>(null);
+
+  const handleValidatorUpdate = useCallback(
+    (data: UMAValidatorUpdate) => {
+      setValidators((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(data.validatorId, data);
+        return newMap;
+      });
+      setLastUpdate(new Date());
+      setError(null);
+      onValidatorUpdate?.(data);
+    },
+    [onValidatorUpdate]
+  );
+
+  const throttledHandleValidatorUpdate = useThrottledCallback(handleValidatorUpdate, throttleMs);
 
   const handleMessage = useCallback(
     (message: WebSocketMessage<UMAValidatorUpdate>) => {
@@ -248,23 +402,13 @@ export function useUMARealtimeValidators(
           return;
         }
 
-        setValidators((prev) => {
-          const newMap = new Map(prev);
-          newMap.set(data.validatorId, data);
-          return newMap;
-        });
-        setLastUpdate(new Date());
-        setError(null);
-
-        if (onValidatorUpdate) {
-          onValidatorUpdate(data);
-        }
+        throttledHandleValidatorUpdate(data);
       } catch (err) {
         logger.error('Error handling UMA validator message', err as Error);
         setError(err instanceof Error ? err : new Error(String(err)));
       }
     },
-    [validatorIds, onValidatorUpdate]
+    [validatorIds, throttledHandleValidatorUpdate]
   );
 
   const { status: connectionStatus, subscribe } = useWebSocket({
@@ -291,26 +435,181 @@ export function useUMARealtimeValidators(
   };
 }
 
+export function useUMARealtimeNetwork(
+  options: UseUMARealtimeNetworkOptions = {}
+): UseUMARealtimeNetworkReturn {
+  const { enabled = true, onNetworkUpdate, throttleMs = DEFAULT_THROTTLE_MS } = options;
+  const [networkData, setNetworkData] = useState<UMANetworkUpdate | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+
+  const handleNetworkUpdate = useCallback(
+    (data: UMANetworkUpdate) => {
+      setNetworkData(data);
+      setLastUpdate(new Date());
+      setError(null);
+      onNetworkUpdate?.(data);
+    },
+    [onNetworkUpdate]
+  );
+
+  const throttledHandleNetworkUpdate = useThrottledCallback(handleNetworkUpdate, throttleMs);
+
+  const handleMessage = useCallback(
+    (message: WebSocketMessage<UMANetworkUpdate>) => {
+      try {
+        throttledHandleNetworkUpdate(message.data);
+      } catch (err) {
+        logger.error('Error handling UMA network message', err as Error);
+        setError(err instanceof Error ? err : new Error(String(err)));
+      }
+    },
+    [throttledHandleNetworkUpdate]
+  );
+
+  const { status: connectionStatus, subscribe } = useWebSocket({
+    url: WS_URL,
+    channels: enabled ? ['uma:network'] : [],
+    autoConnect: enabled,
+    useMock: true,
+  });
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const unsubscribe = subscribe<UMANetworkUpdate>('uma:network', handleMessage);
+    return () => {
+      unsubscribe?.();
+    };
+  }, [enabled, subscribe, handleMessage]);
+
+  return {
+    networkData,
+    connectionStatus,
+    lastUpdate,
+    error,
+  };
+}
+
+export function useUMARealtimeRequests(
+  options: UseUMARealtimeRequestsOptions = {}
+): UseUMARealtimeRequestsReturn {
+  const {
+    enabled = true,
+    onRequestUpdate,
+    filterStatus,
+    throttleMs = DEFAULT_THROTTLE_MS,
+  } = options;
+  const [requests, setRequests] = useState<UMADataRequestUpdate[]>([]);
+  const [latestRequest, setLatestRequest] = useState<UMADataRequestUpdate | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const requestsMapRef = useRef<Map<string, UMADataRequestUpdate>>(new Map());
+
+  const handleRequestUpdate = useCallback(
+    (requestUpdate: UMADataRequestUpdate) => {
+      setLatestRequest(requestUpdate);
+      setRequests(
+        Array.from(requestsMapRef.current.values()).sort((a, b) => b.timestamp - a.timestamp)
+      );
+      setLastUpdate(new Date());
+      setError(null);
+      onRequestUpdate?.(requestUpdate);
+    },
+    [onRequestUpdate]
+  );
+
+  const throttledHandleRequestUpdate = useThrottledCallback(handleRequestUpdate, throttleMs);
+
+  const handleMessage = useCallback(
+    (message: WebSocketMessage<UMADataRequestUpdate>) => {
+      try {
+        const data = message.data;
+
+        if (filterStatus && !filterStatus.includes(data.status)) {
+          return;
+        }
+
+        requestsMapRef.current.set(data.requestId, data);
+        throttledHandleRequestUpdate(data);
+      } catch (err) {
+        logger.error('Error handling UMA request message', err as Error);
+        setError(err instanceof Error ? err : new Error(String(err)));
+      }
+    },
+    [filterStatus, throttledHandleRequestUpdate]
+  );
+
+  const { status: connectionStatus, subscribe } = useWebSocket({
+    url: WS_URL,
+    channels: enabled ? ['uma:requests'] : [],
+    autoConnect: enabled,
+    useMock: true,
+  });
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const unsubscribe = subscribe<UMADataRequestUpdate>('uma:requests', handleMessage);
+    return () => {
+      unsubscribe?.();
+    };
+  }, [enabled, subscribe, handleMessage]);
+
+  const stats = useMemo(
+    () =>
+      requests.reduce(
+        (acc, request) => {
+          if (request.status === 'pending') acc.pendingCount++;
+          else if (request.status === 'verified') acc.verifiedCount++;
+          else if (request.status === 'disputed') acc.disputedCount++;
+          else if (request.status === 'resolved') acc.resolvedCount++;
+          return acc;
+        },
+        { pendingCount: 0, verifiedCount: 0, disputedCount: 0, resolvedCount: 0 }
+      ),
+    [requests]
+  );
+
+  return {
+    requests,
+    latestRequest,
+    connectionStatus,
+    lastUpdate,
+    error,
+    ...stats,
+  };
+}
+
 export interface UseUMARealtimeOptions {
   priceSymbol?: string;
   enablePrices?: boolean;
   enableDisputes?: boolean;
   enableValidators?: boolean;
+  enableNetwork?: boolean;
+  enableRequests?: boolean;
   disputeFilterStatus?: ('active' | 'resolved' | 'rejected')[];
   disputeFilterType?: DisputeType[];
   validatorIds?: string[];
+  requestFilterStatus?: ('pending' | 'verified' | 'disputed' | 'resolved')[];
+  throttleMs?: number;
   onPriceUpdate?: (data: UMAPriceData) => void;
   onDisputeUpdate?: (data: UMADisputeUpdate) => void;
   onValidatorUpdate?: (data: UMAValidatorUpdate) => void;
+  onNetworkUpdate?: (data: UMANetworkUpdate) => void;
+  onRequestUpdate?: (data: UMADataRequestUpdate) => void;
 }
 
 export interface UseUMARealtimeReturn {
   price: UseUMARealtimePriceReturn;
   disputes: UseUMARealtimeDisputesReturn;
   validators: UseUMARealtimeValidatorsReturn;
+  network: UseUMARealtimeNetworkReturn;
+  requests: UseUMARealtimeRequestsReturn;
   isConnected: boolean;
   isConnecting: boolean;
   isReconnecting: boolean;
+  connectionInfo: ConnectionStatus;
 }
 
 export function useUMARealtime(options: UseUMARealtimeOptions = {}): UseUMARealtimeReturn {
@@ -319,18 +618,25 @@ export function useUMARealtime(options: UseUMARealtimeOptions = {}): UseUMARealt
     enablePrices = true,
     enableDisputes = true,
     enableValidators = false,
+    enableNetwork = true,
+    enableRequests = true,
     disputeFilterStatus,
     disputeFilterType,
     validatorIds,
+    requestFilterStatus,
+    throttleMs = DEFAULT_THROTTLE_MS,
     onPriceUpdate,
     onDisputeUpdate,
     onValidatorUpdate,
+    onNetworkUpdate,
+    onRequestUpdate,
   } = options;
 
   const price = useUMARealtimePrice({
     symbol: priceSymbol,
     enabled: enablePrices,
     onPriceUpdate,
+    throttleMs,
   });
 
   const disputes = useUMARealtimeDisputes({
@@ -338,36 +644,67 @@ export function useUMARealtime(options: UseUMARealtimeOptions = {}): UseUMARealt
     onDisputeUpdate,
     filterStatus: disputeFilterStatus,
     filterType: disputeFilterType,
+    throttleMs,
   });
 
   const validators = useUMARealtimeValidators({
     enabled: enableValidators,
     onValidatorUpdate,
     validatorIds,
+    throttleMs,
   });
 
-  const isConnected =
-    (enablePrices && price.connectionStatus === 'connected') ||
-    (enableDisputes && disputes.connectionStatus === 'connected') ||
-    (enableValidators && validators.connectionStatus === 'connected');
+  const network = useUMARealtimeNetwork({
+    enabled: enableNetwork,
+    onNetworkUpdate,
+    throttleMs,
+  });
 
-  const isConnecting =
-    (enablePrices && price.connectionStatus === 'connecting') ||
-    (enableDisputes && disputes.connectionStatus === 'connecting') ||
-    (enableValidators && validators.connectionStatus === 'connecting');
+  const requests = useUMARealtimeRequests({
+    enabled: enableRequests,
+    onRequestUpdate,
+    filterStatus: requestFilterStatus,
+    throttleMs,
+  });
 
-  const isReconnecting =
-    (enablePrices && price.connectionStatus === 'reconnecting') ||
-    (enableDisputes && disputes.connectionStatus === 'reconnecting') ||
-    (enableValidators && validators.connectionStatus === 'reconnecting');
+  const connectionStatuses = [
+    enablePrices && price.connectionStatus,
+    enableDisputes && disputes.connectionStatus,
+    enableValidators && validators.connectionStatus,
+    enableNetwork && network.connectionStatus,
+    enableRequests && requests.connectionStatus,
+  ].filter(Boolean) as ConnectionStatus['status'][];
+
+  const isConnected = connectionStatuses.some((s) => s === 'connected');
+  const isConnecting = connectionStatuses.some((s) => s === 'connecting');
+  const isReconnecting = connectionStatuses.some((s) => s === 'reconnecting');
+
+  const connectionInfo: ConnectionStatus = useMemo(() => {
+    const status: ConnectionStatus['status'] = isReconnecting
+      ? 'reconnecting'
+      : isConnecting
+        ? 'connecting'
+        : isConnected
+          ? 'connected'
+          : 'disconnected';
+
+    return {
+      status,
+      lastConnected: isConnected ? new Date() : undefined,
+      retryCount: 0,
+    };
+  }, [isConnected, isConnecting, isReconnecting]);
 
   return {
     price,
     disputes,
     validators,
+    network,
+    requests,
     isConnected,
     isConnecting,
     isReconnecting,
+    connectionInfo,
   };
 }
 

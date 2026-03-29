@@ -59,7 +59,9 @@ export function PriceResultsTable({
     );
   };
 
-  const getAriaSort = (field: 'oracle' | 'blockchain' | 'price' | 'timestamp'): 'ascending' | 'descending' | 'none' => {
+  const getAriaSort = (
+    field: 'oracle' | 'blockchain' | 'price' | 'timestamp'
+  ): 'ascending' | 'descending' | 'none' => {
     if (sortField !== field) return 'none';
     return sortDirection === 'asc' ? 'ascending' : 'descending';
   };
@@ -68,7 +70,10 @@ export function PriceResultsTable({
     onSort(field);
     const fieldName = t(`priceQuery.results.${field}`);
     const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
-    const directionText = newDirection === 'asc' ? t('priceQuery.results.sortAscending') : t('priceQuery.results.sortDescending');
+    const directionText =
+      newDirection === 'asc'
+        ? t('priceQuery.results.sortAscending')
+        : t('priceQuery.results.sortDescending');
     setSortAnnouncement(`${fieldName} ${directionText}`);
   };
 
@@ -147,7 +152,10 @@ export function PriceResultsTable({
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-gray-900">{t('priceQuery.results.title')}</h3>
-          <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded-full" aria-label={`${filteredResults.length} ${t('priceQuery.results.resultsCount')}`}>
+          <span
+            className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded-full"
+            aria-label={`${filteredResults.length} ${t('priceQuery.results.resultsCount')}`}
+          >
             {filteredResults.length}
           </span>
         </div>
@@ -161,7 +169,11 @@ export function PriceResultsTable({
             }`}
             aria-expanded={showFilters}
             aria-controls="filter-panel"
-            aria-label={showFilters ? t('priceQuery.results.hideFilters') : t('priceQuery.results.showFilters')}
+            aria-label={
+              showFilters
+                ? t('priceQuery.results.hideFilters')
+                : t('priceQuery.results.showFilters')
+            }
           >
             <Filter className="w-3.5 h-3.5" aria-hidden="true" />
             {t('filter')}
@@ -199,7 +211,11 @@ export function PriceResultsTable({
       )}
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm" role="grid" aria-label={t('priceQuery.results.tableLabel')}>
+        <table
+          className="w-full text-sm"
+          role="grid"
+          aria-label={t('priceQuery.results.tableLabel')}
+        >
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th

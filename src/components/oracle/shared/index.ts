@@ -10,3 +10,4 @@ export {
   type OracleErrorBoundaryProps,
   type ErrorInfo,
 } from './OracleErrorBoundary';
+export { BlockExplorerLink, ExplorerLink, type BlockExplorerLinkProps, type ExplorerLinkProps } from './BlockExplorerLink';

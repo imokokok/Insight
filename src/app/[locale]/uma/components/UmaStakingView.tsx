@@ -18,6 +18,8 @@ import { useTranslations } from '@/i18n';
 
 import { type UmaStakingViewProps } from '../types';
 
+import { DelegationAnalysis } from './DelegationAnalysis';
+
 export function UmaStakingView({ validators, networkStats, isLoading }: UmaStakingViewProps) {
   const t = useTranslations();
   const [stakeAmount, setStakeAmount] = useState<number>(10000);
@@ -251,6 +253,14 @@ export function UmaStakingView({ validators, networkStats, isLoading }: UmaStaki
             <p className="text-lg font-bold text-emerald-600">8.5%</p>
           </div>
         </div>
+      </section>
+
+      {/* Divider */}
+      <div className="border-t border-gray-200" />
+
+      {/* Delegation Analysis */}
+      <section>
+        <DelegationAnalysis />
       </section>
 
       {/* Divider */}

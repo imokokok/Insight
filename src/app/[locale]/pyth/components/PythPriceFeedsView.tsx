@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from 'react';
 
-import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
+import { Activity, CheckCircle2, Clock, TrendingUp, Eye } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
 import { type PriceFeed } from '../types';
+import { PriceFeedDetailModal } from './PriceFeedDetailModal';
 
 const mockPriceFeeds: PriceFeed[] = [
   {
@@ -138,6 +139,18 @@ const categories = [
 export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedFeed, setSelectedFeed] = useState<PriceFeed | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleFeedClick = (feed: PriceFeed) => {
+    setSelectedFeed(feed);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedFeed(null);
+  };
 
   const filteredFeeds =
     selectedCategory === 'all'
@@ -255,9 +268,15 @@ export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
               {filteredFeeds.map((feed) => (
                 <tr
                   key={feed.id}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  onClick={() => handleFeedClick(feed)}
+                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
                 >
-                  <td className="py-3 px-4 font-medium text-gray-900">{feed.name}</td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900">{feed.name}</span>
+                      <Eye className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </td>
                   <td className="py-3 px-4">
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
                       {feed.category}
@@ -337,6 +356,14 @@ export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
           </div>
         </div>
       </div>
+
+      {selectedFeed && (
+        <PriceFeedDetailModal
+          priceFeed={selectedFeed}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

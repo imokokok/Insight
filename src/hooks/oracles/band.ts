@@ -5,14 +5,57 @@ import { useMemo, useCallback } from 'react';
 import { useQuery, useQueries } from '@tanstack/react-query';
 
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-import type { BandNetworkStats, ValidatorInfo, CrossChainStats } from '@/lib/oracles/bandProtocol';
+import type {
+  BandNetworkStats,
+  ValidatorInfo,
+  CrossChainStats,
+  CrossChainTrend,
+  CrossChainComparison,
+  TrendPeriod,
+  IBCConnection,
+  IBCTransferStats,
+  IBCTransferTrend,
+  OracleScript,
+  PriceFeed,
+  DataSourceListResponse,
+  RiskMetrics,
+  RiskTrendData,
+  RiskEvent,
+  StakingInfo,
+  StakingDistribution,
+  StakingReward,
+  GovernanceProposal,
+  GovernanceParams,
+  ProposalStatus,
+} from '@/lib/oracles/bandProtocol';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useLastUpdated } from './useLastUpdated';
 
 const bandClient = new BandProtocolClient();
 
-type BandDataType = 'price' | 'historical' | 'network' | 'validators' | 'crossChain';
+type BandDataType =
+  | 'price'
+  | 'historical'
+  | 'network'
+  | 'validators'
+  | 'crossChain'
+  | 'crossChainTrend'
+  | 'crossChainComparison'
+  | 'ibcConnections'
+  | 'ibcTransferStats'
+  | 'ibcTransferTrends'
+  | 'oracleScripts'
+  | 'oracleScript'
+  | 'dataSources'
+  | 'priceFeeds'
+  | 'stakingInfo'
+  | 'stakingDistribution'
+  | 'riskMetrics'
+  | 'riskTrend'
+  | 'securityAuditEvents'
+  | 'governanceProposals'
+  | 'governanceParams';
 
 const getBandKey = (type: BandDataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['band', type];
@@ -117,9 +160,9 @@ export function useBandValidators(options: UseBandValidatorsOptions = {}) {
     queryKey,
     queryFn: () => bandClient.getValidators(limit),
     enabled,
-    staleTime: 60000,
-    gcTime: 120000,
-    refetchInterval: 60000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: 3,
   });
@@ -148,6 +191,134 @@ export function useBandCrossChainStats(enabled = true) {
 
   return {
     crossChainStats: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+interface UseBandCrossChainTrendOptions {
+  period?: TrendPeriod;
+  enabled?: boolean;
+}
+
+export function useBandCrossChainTrend(options: UseBandCrossChainTrendOptions = {}) {
+  const { period = '7d', enabled = true } = options;
+  const queryKey = getBandKey('crossChainTrend', { period });
+
+  const { data, error, isLoading, refetch } = useQuery<CrossChainTrend[], Error>({
+    queryKey,
+    queryFn: () => bandClient.getCrossChainTrend(period),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    crossChainTrend: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+interface UseBandCrossChainComparisonOptions {
+  period?: TrendPeriod;
+  enabled?: boolean;
+}
+
+export function useBandCrossChainComparison(options: UseBandCrossChainComparisonOptions = {}) {
+  const { period = '7d', enabled = true } = options;
+  const queryKey = getBandKey('crossChainComparison', { period });
+
+  const { data, error, isLoading, refetch } = useQuery<CrossChainComparison, Error>({
+    queryKey,
+    queryFn: () => bandClient.getCrossChainComparison(period),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    crossChainComparison: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useBandIBCConnections(enabled = true) {
+  const queryKey = getBandKey('ibcConnections');
+
+  const { data, error, isLoading, refetch } = useQuery<IBCConnection[], Error>({
+    queryKey,
+    queryFn: () => bandClient.getIBCConnections(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    ibcConnections: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useBandIBCTransferStats(enabled = true) {
+  const queryKey = getBandKey('ibcTransferStats');
+
+  const { data, error, isLoading, refetch } = useQuery<IBCTransferStats, Error>({
+    queryKey,
+    queryFn: () => bandClient.getIBCTransferStats(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    ibcTransferStats: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+interface UseBandIBCTransferTrendsOptions {
+  days?: number;
+  enabled?: boolean;
+}
+
+export function useBandIBCTransferTrends(options: UseBandIBCTransferTrendsOptions = {}) {
+  const { days = 7, enabled = true } = options;
+  const queryKey = getBandKey('ibcTransferTrends', { days });
+
+  const { data, error, isLoading, refetch } = useQuery<IBCTransferTrend[], Error>({
+    queryKey,
+    queryFn: () => bandClient.getIBCTransferTrends(days),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    ibcTransferTrends: data ?? [],
     error,
     isLoading,
     refetch,
@@ -207,9 +378,9 @@ export function useBandProtocolAllData({
         queryKey: getBandKey('validators', { limit: 20 }),
         queryFn: () => bandClient.getValidators(20),
         enabled,
-        staleTime: 60000,
-        gcTime: 120000,
-        refetchInterval: 60000,
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchInterval: 5 * 60 * 1000,
         refetchOnWindowFocus: false,
         retry: 3,
       },
@@ -265,4 +436,277 @@ export function useBandProtocolAllData({
       lastUpdated,
     ]
   );
+}
+
+export function useBandOracleScripts(enabled = true) {
+  const queryKey = getBandKey('oracleScripts');
+
+  const { data, error, isLoading, refetch } = useQuery<OracleScript[], Error>({
+    queryKey,
+    queryFn: () => bandClient.getOracleScripts(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    oracleScripts: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+interface UseBandOracleScriptOptions {
+  id: number;
+  enabled?: boolean;
+}
+
+export function useBandOracleScript(options: UseBandOracleScriptOptions) {
+  const { id, enabled = true } = options;
+  const queryKey = getBandKey('oracleScript', { id });
+
+  const { data, error, isLoading, refetch } = useQuery<OracleScript | null, Error>({
+    queryKey,
+    queryFn: () => bandClient.getOracleScriptById(id),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    oracleScript: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+interface UseBandDataSourcesOptions {
+  page?: number;
+  limit?: number;
+  enabled?: boolean;
+}
+
+export function useBandDataSources(options: UseBandDataSourcesOptions = {}) {
+  const { page = 1, limit = 20, enabled = true } = options;
+  const queryKey = getBandKey('dataSources', { page, limit });
+
+  const { data, error, isLoading, refetch } = useQuery<DataSourceListResponse, Error>({
+    queryKey,
+    queryFn: () => bandClient.getDataSourceList(page, limit),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    dataSources: data?.dataSources ?? [],
+    total: data?.total ?? 0,
+    hasMore: data?.hasMore ?? false,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useBandPriceFeeds(enabled = true) {
+  const queryKey = getBandKey('priceFeeds');
+
+  const { data, error, isLoading, refetch } = useQuery<PriceFeed[], Error>({
+    queryKey,
+    queryFn: () => bandClient.getPriceFeeds(),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    priceFeeds: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useBandStakingInfo(enabled = true) {
+  const queryKey = getBandKey('stakingInfo');
+
+  const { data, error, isLoading, refetch } = useQuery<StakingInfo, Error>({
+    queryKey,
+    queryFn: () => bandClient.getStakingInfo(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    stakingInfo: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useBandStakingDistribution(enabled = true) {
+  const queryKey = getBandKey('stakingDistribution');
+
+  const { data, error, isLoading, refetch } = useQuery<StakingDistribution[], Error>({
+    queryKey,
+    queryFn: () => bandClient.getStakingDistribution(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    stakingDistribution: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useBandStakingReward(amount: number, durationDays: number) {
+  return useMemo(() => {
+    return bandClient.calculateStakingReward(amount, durationDays);
+  }, [amount, durationDays]);
+}
+
+export function useBandRiskMetrics(enabled = true) {
+  const queryKey = getBandKey('riskMetrics');
+
+  const { data, error, isLoading, refetch } = useQuery<RiskMetrics, Error>({
+    queryKey,
+    queryFn: () => bandClient.getRiskMetrics(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    riskMetrics: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+interface UseBandRiskTrendOptions {
+  days?: number;
+  enabled?: boolean;
+}
+
+export function useBandRiskTrend(options: UseBandRiskTrendOptions = {}) {
+  const { days = 30, enabled = true } = options;
+  const queryKey = getBandKey('riskTrend', { days });
+
+  const { data, error, isLoading, refetch } = useQuery<RiskTrendData[], Error>({
+    queryKey,
+    queryFn: () => bandClient.getRiskTrendData(days),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    riskTrend: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useBandSecurityAuditEvents(enabled = true) {
+  const queryKey = getBandKey('securityAuditEvents');
+
+  const { data, error, isLoading, refetch } = useQuery<RiskEvent[], Error>({
+    queryKey,
+    queryFn: () => bandClient.getSecurityAuditEvents(),
+    enabled,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    events: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+interface UseBandGovernanceProposalsOptions {
+  status?: ProposalStatus;
+  enabled?: boolean;
+}
+
+export function useBandGovernanceProposals(options: UseBandGovernanceProposalsOptions = {}) {
+  const { status, enabled = true } = options;
+  const queryKey = getBandKey('governanceProposals', { status });
+
+  const { data, error, isLoading, refetch } = useQuery<GovernanceProposal[], Error>({
+    queryKey,
+    queryFn: () => bandClient.getGovernanceProposals(status),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    proposals: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useBandGovernanceParams(enabled = true) {
+  const queryKey = getBandKey('governanceParams');
+
+  const { data, error, isLoading, refetch } = useQuery<GovernanceParams, Error>({
+    queryKey,
+    queryFn: () => bandClient.getGovernanceParams(),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    governanceParams: data,
+    error,
+    isLoading,
+    refetch,
+  };
 }

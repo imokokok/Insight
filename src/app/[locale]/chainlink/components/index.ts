@@ -5,17 +5,22 @@ export { ChainlinkMarketView } from './ChainlinkMarketView';
 export { ChainlinkNetworkView } from './ChainlinkNetworkView';
 export { ChainlinkNodesView } from './ChainlinkNodesView';
 export { ChainlinkDataFeedsView } from './ChainlinkDataFeedsView';
+export { ChainlinkDataStreamsView } from './ChainlinkDataStreamsView';
 export { ChainlinkServicesView } from './ChainlinkServicesView';
 export { ChainlinkEcosystemView } from './ChainlinkEcosystemView';
 export { ChainlinkRiskView } from './ChainlinkRiskView';
+export { ChainlinkCCIPView } from './ChainlinkCCIPView';
+export { ChainlinkStakingView } from './ChainlinkStakingView';
+export { ChainlinkVRFView } from './ChainlinkVRFView';
+export { ChainlinkFunctionsView } from './ChainlinkFunctionsView';
+export { ChainlinkAutomationView } from './ChainlinkAutomationView';
+export { ChainlinkProofOfReserveView } from './ChainlinkProofOfReserveView';
 export { ChainlinkDataTable } from './ChainlinkDataTable';
 
-// Enhanced Network Components
 export { NodeGeographicDistribution } from './NodeGeographicDistribution';
 export { RealtimeThroughputMonitor } from './RealtimeThroughputMonitor';
 export { NetworkTopologyOverview } from './NetworkTopologyOverview';
 
-// Enhanced Node Components
 export { NodeEarningsPanel } from './NodeEarningsPanel';
 export { NodePerformanceTrends } from './NodePerformanceTrends';
 export { StakingRewardsCalculator } from './StakingRewardsCalculator';

@@ -10,6 +10,7 @@ import {
   getWebVitalRatingDisplay,
   type PerformanceThresholds,
 } from '../utils/performanceMonitoring';
+
 import type { CacheStats } from '../utils/cacheUtils';
 
 interface PerformanceIndicatorProps {
@@ -96,7 +97,11 @@ export function PerformanceIndicator({
         };
       }
 
-      const { rating, color, label: metricLabel } = metricKey
+      const {
+        rating,
+        color,
+        label: metricLabel,
+      } = metricKey
         ? getMetricRatingDisplay(metricKey, value)
         : { rating: 'good' as const, color: 'text-gray-400', label: '未知' };
 
@@ -345,9 +350,7 @@ export function WebVitalsDisplay({ className = '' }: WebVitalsDisplayProps) {
           <span className="text-gray-500">FCP</span>
           <span
             className={`font-mono ${
-              vitals.fcp
-                ? getWebVitalRatingDisplay('FCP', vitals.fcp).color
-                : 'text-gray-400'
+              vitals.fcp ? getWebVitalRatingDisplay('FCP', vitals.fcp).color : 'text-gray-400'
             }`}
           >
             {formatMs(vitals.fcp)}
@@ -357,9 +360,7 @@ export function WebVitalsDisplay({ className = '' }: WebVitalsDisplayProps) {
           <span className="text-gray-500">LCP</span>
           <span
             className={`font-mono ${
-              vitals.lcp
-                ? getWebVitalRatingDisplay('LCP', vitals.lcp).color
-                : 'text-gray-400'
+              vitals.lcp ? getWebVitalRatingDisplay('LCP', vitals.lcp).color : 'text-gray-400'
             }`}
           >
             {formatMs(vitals.lcp)}
@@ -369,9 +370,7 @@ export function WebVitalsDisplay({ className = '' }: WebVitalsDisplayProps) {
           <span className="text-gray-500">INP</span>
           <span
             className={`font-mono ${
-              vitals.inp
-                ? getWebVitalRatingDisplay('INP', vitals.inp).color
-                : 'text-gray-400'
+              vitals.inp ? getWebVitalRatingDisplay('INP', vitals.inp).color : 'text-gray-400'
             }`}
           >
             {formatMs(vitals.inp)}

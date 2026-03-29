@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { type DataFreshnessStatus } from '@/hooks/useDataFreshness';
+import { useTranslations } from '@/i18n';
 
 interface DataFreshnessIndicatorProps {
   status: DataFreshnessStatus;
@@ -11,7 +11,13 @@ interface DataFreshnessIndicatorProps {
   className?: string;
 }
 
-export function DataFreshnessIndicator({ status, lastUpdated, onRefresh, themeColor = 'blue', className = '' }: DataFreshnessIndicatorProps) {
+export function DataFreshnessIndicator({
+  status,
+  lastUpdated,
+  onRefresh,
+  themeColor = 'blue',
+  className = '',
+}: DataFreshnessIndicatorProps) {
   const t = useTranslations();
 
   const getStatusConfig = () => {
@@ -55,7 +61,9 @@ export function DataFreshnessIndicator({ status, lastUpdated, onRefresh, themeCo
   const isExpired = status === 'expired';
 
   return (
-    <div className={`inline-flex items-center gap-2 ${statusConfig.bgColor} ${statusConfig.borderColor} border rounded-md px-3 py-1.5 text-sm ${className}`}>
+    <div
+      className={`inline-flex items-center gap-2 ${statusConfig.bgColor} ${statusConfig.borderColor} border rounded-md px-3 py-1.5 text-sm ${className}`}
+    >
       <span className={`font-bold ${statusConfig.color}`}>{statusConfig.icon}</span>
       <span className={`${statusConfig.color} font-medium`}>{statusConfig.label}</span>
       {lastUpdated && (
