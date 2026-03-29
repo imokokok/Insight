@@ -199,12 +199,20 @@
     "active": "Active",
     "marketDominance": "Market Dominance",
     "volatility24h": "24h Volatility",
+    "dominanceChange24h": "Dominance Change",
     "noData": "No data available",
     "didYouKnow": "Did you know?",
     "marketInfoTip": "Oracle market TVS reflects the health of the entire DeFi ecosystem",
-    "anomalyAlerts": "Anomaly Alerts",
-    "priceAlerts": "Price Alerts",
-    "riskAnalysis": "Risk Analysis"
+    "marketConcentration": "Market Concentration",
+    "top4Share": "Top 4 Share",
+    "concentrationLevel": "Concentration Level",
+    "highConcentration": "High Concentration",
+    "mediumConcentration": "Medium Concentration",
+    "lowConcentration": "Competitive",
+    "top4Oracles": "Top 4 Oracles",
+    "topGainers": "Top Gainers (24h)",
+    "topChainSupporters": "Chain Support Rank",
+    "chains": "Chains"
   },
   "chainBreakdown": {
     "loading": "Loading...",
@@ -314,5 +322,29 @@
     "pearson": "Pearson",
     "spearman": "Spearman"
   },
-  "asset": "Asset"
+  "asset": "Asset",
+  "price": "Price",
+  "change24h": "24h Change",
+  "change7d": "7d Change",
+  "volume24h": "24h Volume",
+  "primaryOracle": "Primary Oracle",
+  "topAssets": "Top Assets",
+  "assetsCount": "assets",
+  "viewOracleDetails": "View {oracle} details",
+  "filter": {
+    "filteredFrom": "filtered from",
+    "searchPlaceholder": "Search assets...",
+    "allOracles": "All Oracles",
+    "all": "All",
+    "allChanges": "All Changes",
+    "highChange": "High Change",
+    "mediumChange": "Medium Change",
+    "lowChange": "Low Change",
+    "clear": "Clear",
+    "activeFilters": "Active Filters",
+    "search": "Search",
+    "change": "Change"
+  },
+  "oracle": "Oracle",
+  "chartHint": "Click chart elements to view details"
 }
