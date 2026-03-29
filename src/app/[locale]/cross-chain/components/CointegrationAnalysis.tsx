@@ -231,14 +231,14 @@ function CointegrationPairCard({ pair }: { pair: CointegrationPair }) {
                 className="w-3 h-0.5 bg-success-500"
                 style={{ borderTop: `1px dashed ${semanticColors.success.DEFAULT}` }}
               />
-              <span className="text-xs text-gray-500">+2σ</span>
+              <span className="text-xs text-gray-500">{t('crossChain.plus2Sigma')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div
                 className="w-3 h-0.5 bg-danger-500"
                 style={{ borderTop: `1px dashed ${semanticColors.danger.DEFAULT}` }}
               />
-              <span className="text-xs text-gray-500">-2σ</span>
+              <span className="text-xs text-gray-500">{t('crossChain.minus2Sigma')}</span>
             </div>
           </div>
         </div>

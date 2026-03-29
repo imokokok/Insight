@@ -210,14 +210,14 @@ export function OverviewTab({
         ) : getChartData().length === 0 ? (
           <div className="border border-gray-200 rounded-lg">
             <EmptyState
-              title="No Data Available"
-              description="There is no price data available for the selected time range."
+              title={t('crossOracle.noDataAvailable')}
+              description={t('crossOracle.noDataDescription')}
               action={
                 <button
                   onClick={fetchPriceData}
                   className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
                 >
-                  Refresh
+                  {t('crossOracle.refresh')}
                 </button>
               }
             />

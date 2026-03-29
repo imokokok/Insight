@@ -68,7 +68,7 @@ export function HeaderStats({
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
           <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-            Live
+            {t('crossOracle.liveBadge')}
           </span>
         </div>
         <span className="text-xs text-gray-500 dark:text-gray-400">

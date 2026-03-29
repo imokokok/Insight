@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 import { TrendingUp, Activity, Globe, ChevronDown, Search } from 'lucide-react';
 
-import { useLocale } from '@/i18n';
+import { useLocale, useTranslations } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { baseColors } from '@/lib/config/colors';
 
@@ -20,13 +20,7 @@ interface ChainData {
 
 type Category = 'all' | 'layer1' | 'defi' | 'stablecoin';
 
-// 分类标签配置
-const categoryLabels: Record<Category, string> = {
-  all: '全部',
-  layer1: 'Layer 1',
-  defi: 'DeFi',
-  stablecoin: '稳定币',
-};
+
 
 // 加密货币到logo文件的映射
 const cryptoLogoMap: Record<string, string> = {
@@ -164,6 +158,7 @@ function PairSelector({
   selectedSymbol: string;
   onSymbolChange: (symbol: string) => void;
 }) {
+  const t = useTranslations('home.crossChainMonitor');
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Category>('all');
@@ -346,7 +341,7 @@ function PairSelector({
           {/* 分类标签 */}
           {!searchQuery && (
             <div className="flex" style={{ borderBottom: `1px solid ${baseColors.gray[100]}` }}>
-              {(Object.keys(categoryLabels) as Category[]).map((category) => (
+              {(['all', 'layer1', 'defi', 'stablecoin'] as Category[]).map((category) => (
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
@@ -376,7 +371,7 @@ function PairSelector({
                     }
                   }}
                 >
-                  {categoryLabels[category]}
+                  {t(`categories.${category}`)}
                 </button>
               ))}
             </div>
@@ -389,7 +384,7 @@ function PairSelector({
                 className="px-3 py-4 text-sm text-center"
                 style={{ color: baseColors.gray[500] }}
               >
-                未找到匹配的交易对
+                {t('noResults')}
               </div>
             ) : (
               filteredPairs.map((pair, index) => {
@@ -469,8 +464,8 @@ function PairSelector({
               color: baseColors.gray[400],
             }}
           >
-            <span>使用 ↑↓ 导航，Enter 选择</span>
-            <span>共 {filteredPairs.length} 个</span>
+            <span>{t('keyboardHint')}</span>
+            <span>{t('totalCount', { count: filteredPairs.length })}</span>
           </div>
         </div>
       )}
@@ -479,6 +474,7 @@ function PairSelector({
 }
 
 export default function CrossChainPriceMonitor() {
+  const t = useTranslations('home.crossChainMonitor');
   const locale = useLocale();
   const isZh = isChineseLocale(locale);
   const [selectedPair, setSelectedPair] = useState('BTC/USD');
@@ -500,17 +496,15 @@ export default function CrossChainPriceMonitor() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
-                {isZh ? '跨链价格监控' : 'Cross-Chain Price Monitor'}
+                {t('title')}
               </h2>
               <p className="text-sm text-gray-500">
-                {isZh
-                  ? '实时追踪不同链上的价格差异'
-                  : 'Real-time price deviation tracking across chains'}
+                {t('description')}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">{isZh ? '交易对:' : 'Trading Pair:'}</span>
+            <span className="text-sm text-gray-500">{t('tradingPair')}:</span>
             <PairSelector selectedSymbol={selectedPair} onSymbolChange={setSelectedPair} />
           </div>
         </div>
@@ -522,14 +516,14 @@ export default function CrossChainPriceMonitor() {
           <div className="bg-gray-50/80 p-4 rounded-lg flex flex-col justify-center h-24">
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp className="w-4 h-4 text-primary-600" />
-              <span className="text-sm text-gray-500">{isZh ? '平均价格' : 'Average Price'}</span>
+              <span className="text-sm text-gray-500">{t('stats.averagePrice')}</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">${avgPrice.toFixed(2)}</div>
           </div>
           <div className="bg-gray-50/80 p-4 rounded-lg flex flex-col justify-center h-24">
             <div className="flex items-center gap-2 mb-1">
               <Activity className="w-4 h-4 text-amber-600" />
-              <span className="text-sm text-gray-500">{isZh ? '最大偏差' : 'Max Deviation'}</span>
+              <span className="text-sm text-gray-500">{t('stats.maxDeviation')}</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">{maxDeviation.toFixed(3)}%</div>
           </div>
@@ -537,7 +531,7 @@ export default function CrossChainPriceMonitor() {
             <div className="flex items-center gap-2 mb-1">
               <Globe className="w-4 h-4 text-emerald-600" />
               <span className="text-sm text-gray-500">
-                {isZh ? '监控链数' : 'Chains Monitored'}
+                {t('stats.chainsMonitored')}
               </span>
             </div>
             <div className="text-2xl font-bold text-gray-900">{currentData.length}</div>
@@ -546,7 +540,7 @@ export default function CrossChainPriceMonitor() {
             <div className="flex items-center gap-2 mb-1">
               <Activity className="w-4 h-4 text-purple-600" />
               <span className="text-sm text-gray-500">
-                {isZh ? '一致性率' : 'Consistency Rate'}
+                {t('stats.consistencyRate')}
               </span>
             </div>
             <div className="text-2xl font-bold text-gray-900">{consistencyRate.toFixed(1)}%</div>
@@ -601,19 +595,19 @@ export default function CrossChainPriceMonitor() {
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm shadow-emerald-200" />
             <span className="text-gray-600 font-medium">
-              {isZh ? '高一致性 (<0.1%)' : 'High Consistency (<0.1%)'}
+              {t('legend.highConsistency')}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-amber-500 shadow-sm shadow-amber-200" />
             <span className="text-gray-600 font-medium">
-              {isZh ? '中等一致性 (0.1-0.3%)' : 'Medium Consistency (0.1-0.3%)'}
+              {t('legend.mediumConsistency')}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-danger-500 shadow-sm shadow-red-200" />
             <span className="text-gray-600 font-medium">
-              {isZh ? '低一致性 (>0.3%)' : 'Low Consistency (>0.3%)'}
+              {t('legend.lowConsistency')}
             </span>
           </div>
         </div>

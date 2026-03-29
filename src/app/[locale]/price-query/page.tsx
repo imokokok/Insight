@@ -126,9 +126,45 @@ export default function PriceQueryPage() {
       avgChange24hPercent,
     };
 
+    const csvTranslations = {
+      csvTitle: t('priceQuery.priceChart.export.csvTitle'),
+      symbol: t('priceQuery.priceChart.export.symbol'),
+      exportTime: t('priceQuery.priceChart.export.exportTime'),
+      oracle: t('priceQuery.export.oracle'),
+      blockchain: t('priceQuery.export.blockchain'),
+      price: t('priceQuery.export.price'),
+      timestamp: t('priceQuery.export.timestamp'),
+      change24h: t('priceQuery.export.change24h'),
+      confidence: t('priceQuery.export.confidence'),
+      source: t('priceQuery.export.source'),
+    };
+
+    const pdfTranslations = {
+      ...csvTranslations,
+      reportTitle: t('priceQuery.priceChart.export.reportTitle'),
+      generatedAt: t('priceQuery.lastUpdated'),
+      queryParams: t('priceQuery.priceChart.export.queryParams'),
+      oracles: t('priceQuery.export.oracle'),
+      chains: t('priceQuery.export.blockchain'),
+      timeRange: t('priceQuery.selectors.timeRange'),
+      hours: 'h',
+      statsSummary: t('priceQuery.priceChart.export.statsSummary'),
+      avgPriceLabel: t('priceQuery.stats.avgPrice'),
+      maxPriceLabel: t('priceQuery.stats.maxPrice'),
+      minPriceLabel: t('priceQuery.stats.minPrice'),
+      priceRangeLabel: t('priceQuery.stats.priceRange'),
+      stdDevLabel: t('priceQuery.stats.standardDeviation'),
+      dataPointsLabel: t('priceQuery.stats.dataPoints'),
+      change24hLabel: t('priceQuery.export.change24h'),
+      indicator: t('priceQuery.priceChart.export.indicator'),
+      value: t('priceQuery.priceChart.export.value'),
+      priceChart: t('priceQuery.chart.title'),
+      priceData: t('priceQuery.priceChart.export.priceDataTitle'),
+    };
+
     switch (config.format) {
       case 'csv':
-        exportToCSV(queryResults, config, selectedSymbol);
+        exportToCSV(queryResults, config, selectedSymbol, csvTranslations);
         break;
       case 'json':
         exportToJSON(queryResults, config, selectedSymbol, selectedOracles, selectedChains);
@@ -142,7 +178,8 @@ export default function PriceQueryPage() {
           selectedChains,
           selectedTimeRange,
           stats,
-          chartContainerRef
+          chartContainerRef,
+          pdfTranslations
         );
         break;
     }

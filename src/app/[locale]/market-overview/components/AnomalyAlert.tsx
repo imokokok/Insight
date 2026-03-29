@@ -14,8 +14,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+import { useTranslations } from '@/i18n';
 
 import { type AnomalyData } from '../types';
 
@@ -26,7 +25,7 @@ interface AnomalyAlertProps {
 }
 
 export default function AnomalyAlert({ data, loading = false, onAcknowledge }: AnomalyAlertProps) {
-  const locale = useLocale();
+  const t = useTranslations('marketOverview.anomaly');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [dismissedItems, setDismissedItems] = useState<Set<string>>(new Set());
 
@@ -91,10 +90,10 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
   // 获取严重程度标签
   const getLevelLabel = (level: AnomalyData['level']) => {
     const labels: Record<AnomalyData['level'], string> = {
-      critical: isChineseLocale(locale) ? '严重' : 'Critical',
-      high: isChineseLocale(locale) ? '高' : 'High',
-      medium: isChineseLocale(locale) ? '中' : 'Medium',
-      low: isChineseLocale(locale) ? '低' : 'Low',
+      critical: t('critical'),
+      high: t('high'),
+      medium: t('medium'),
+      low: t('low'),
     };
     return labels[level];
   };
@@ -122,12 +121,12 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
   // 获取类型标签
   const getTypeLabel = (type: AnomalyData['type']) => {
     const labels: Record<AnomalyData['type'], string> = {
-      price_spike: isChineseLocale(locale) ? '价格飙升' : 'Price Spike',
-      price_drop: isChineseLocale(locale) ? '价格暴跌' : 'Price Drop',
-      volatility_spike: isChineseLocale(locale) ? '波动率激增' : 'Volatility Spike',
-      trend_break: isChineseLocale(locale) ? '趋势突破' : 'Trend Break',
-      volume_anomaly: isChineseLocale(locale) ? '交易量异常' : 'Volume Anomaly',
-      correlation_break: isChineseLocale(locale) ? '相关性崩溃' : 'Correlation Break',
+      price_spike: t('priceSpike'),
+      price_drop: t('priceDrop'),
+      volatility_spike: t('volatilitySpike'),
+      trend_break: t('trendBreak'),
+      volume_anomaly: t('volumeAnomaly'),
+      correlation_break: t('correlationBreak'),
     };
     return labels[type];
   };
@@ -141,15 +140,15 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
     // 小于1小时
     if (diff < 3600000) {
       const minutes = Math.floor(diff / 60000);
-      return isChineseLocale(locale) ? `${minutes}分钟前` : `${minutes}m ago`;
+      return t('minutesAgo', { minutes });
     }
     // 小于24小时
     if (diff < 86400000) {
       const hours = Math.floor(diff / 3600000);
-      return isChineseLocale(locale) ? `${hours}小时前` : `${hours}h ago`;
+      return t('hoursAgo', { hours });
     }
     // 默认显示日期
-    return date.toLocaleDateString(isChineseLocale(locale) ? 'zh-CN' : 'en-US', {
+    return date.toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -162,9 +161,7 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
-          <span className="text-gray-500 text-sm">
-            {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
-          </span>
+          <span className="text-gray-500 text-sm">{t('loading')}</span>
         </div>
       </div>
     );
@@ -177,12 +174,8 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
           <div className="w-10 h-10 bg-success-100 border border-green-200 flex items-center justify-center mx-auto mb-2">
             <Activity className="w-5 h-5 text-success-600" />
           </div>
-          <p className="text-gray-500 text-sm">
-            {isChineseLocale(locale) ? '暂无异常警报' : 'No anomaly alerts'}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            {isChineseLocale(locale) ? '所有指标正常' : 'All indicators normal'}
-          </p>
+          <p className="text-gray-500 text-sm">{t('noAlerts')}</p>
+          <p className="text-xs text-gray-400 mt-1">{t('allNormal')}</p>
         </div>
       </div>
     );
@@ -193,18 +186,16 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
       {/* 统计摘要 */}
       <div className="flex items-center gap-3 text-xs mb-3">
         <span className="text-gray-500">
-          {isChineseLocale(locale) ? '活跃警报:' : 'Active:'} {sortedAlerts.length}
+          {t('active')}: {sortedAlerts.length}
         </span>
         {sortedAlerts.some((a) => a.level === 'critical') && (
           <span className="px-1.5 py-0.5 bg-danger-100 text-danger-700 font-medium">
-            {sortedAlerts.filter((a) => a.level === 'critical').length}{' '}
-            {isChineseLocale(locale) ? '严重' : 'Critical'}
+            {sortedAlerts.filter((a) => a.level === 'critical').length} {t('critical')}
           </span>
         )}
         {sortedAlerts.some((a) => a.level === 'high') && (
           <span className="px-1.5 py-0.5 bg-warning-100 text-orange-700 font-medium">
-            {sortedAlerts.filter((a) => a.level === 'high').length}{' '}
-            {isChineseLocale(locale) ? '高' : 'High'}
+            {sortedAlerts.filter((a) => a.level === 'high').length} {t('high')}
           </span>
         )}
       </div>
@@ -244,11 +235,11 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
                       {formatTime(alert.timestamp)}
                     </span>
                     <span>
-                      {isChineseLocale(locale) ? '当前值:' : 'Current:'}{' '}
+                      {t('currentValue')}:{' '}
                       <span className="font-medium text-gray-700">{alert.value}</span>
                     </span>
                     <span>
-                      {isChineseLocale(locale) ? '预期值:' : 'Expected:'}{' '}
+                      {t('expectedValue')}:{' '}
                       <span className="font-medium text-gray-700">{alert.expectedValue}</span>
                     </span>
                   </div>
@@ -279,30 +270,20 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
               <div className="pt-2 mt-2 border-t border-black/5">
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-gray-500">
-                      {isChineseLocale(locale) ? '异常ID:' : 'ID:'}
-                    </span>
+                    <span className="text-gray-500">{t('anomalyId')}:</span>
                     <span className="ml-1 font-mono text-gray-700">{alert.id}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">
-                      {isChineseLocale(locale) ? '持续时间:' : 'Duration:'}
-                    </span>
+                    <span className="text-gray-500">{t('duration')}:</span>
                     <span className="ml-1 text-gray-700">
                       {alert.duration
-                        ? `${Math.floor(alert.duration / 60000)}${
-                            isChineseLocale(locale) ? '分钟' : 'min'
-                          }`
-                        : isChineseLocale(locale)
-                          ? '进行中'
-                          : 'Ongoing'}
+                        ? t('minutes', { minutes: Math.floor(alert.duration / 60000) })
+                        : t('ongoing')}
                     </span>
                   </div>
                   {alert.oracle && (
                     <div className="col-span-2">
-                      <span className="text-gray-500">
-                        {isChineseLocale(locale) ? '受影响预言机:' : 'Affected Oracle:'}
-                      </span>
+                      <span className="text-gray-500">{t('affectedOracle')}:</span>
                       <div className="flex flex-wrap gap-1 mt-1">
                         <span className="px-1.5 py-0.5 bg-white/60 text-xs text-gray-700">
                           {alert.oracle}

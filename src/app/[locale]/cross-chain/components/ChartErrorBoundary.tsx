@@ -106,21 +106,21 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
   const [showDetails, setShowDetails] = useState(false);
 
   const getSimpleErrorMessage = (err: Error | null): string => {
-    if (!err) return t('crossChain.chartRenderError') || '图表渲染失败';
+    if (!err) return t('crossChain.chartRenderError');
 
     const message = err.message.toLowerCase();
 
     if (message.includes('network') || message.includes('fetch')) {
-      return t('crossChain.networkError') || '网络连接失败';
+      return t('crossChain.networkError');
     }
     if (message.includes('data') || message.includes('undefined')) {
-      return t('crossChain.dataError') || '数据加载失败';
+      return t('crossChain.dataError');
     }
     if (message.includes('memory') || message.includes('heap')) {
-      return t('crossChain.memoryError') || '内存不足';
+      return t('crossChain.memoryError');
     }
 
-    return t('crossChain.chartRenderError') || '图表渲染失败';
+    return t('crossChain.chartRenderError');
   };
 
   return (
@@ -148,8 +148,8 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="text-lg font-semibold text-gray-900">
-                {t('crossChain.chartError') || '图表错误'}
-              </h3>
+              {t('crossChain.chartError')}
+            </h3>
               {chartName && (
                 <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
                   {chartName}
@@ -172,7 +172,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
                 </svg>
-                {t('actions.retry') || '重试'}
+                {t('actions.retry')}
               </button>
 
               <button
@@ -192,7 +192,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
                     d="M19 9l-7 7-7-7"
                   />
                 </svg>
-                {t('crossChain.viewDetails') || '查看详情'}
+                {t('crossChain.viewDetails')}
               </button>
             </div>
 
@@ -200,7 +200,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
               <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
                 <div className="mb-3">
                   <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                    {t('crossChain.errorInfo') || '错误信息'}
+                    {t('crossChain.errorInfo')}
                   </h4>
                   <div className="bg-red-50 border border-red-100 rounded p-3">
                     <p className="text-sm text-red-800 font-mono break-all">
@@ -212,7 +212,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
                 {error?.stack && (
                   <div className="mb-3">
                     <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                      {t('crossChain.errorStack') || '错误堆栈'}
+                      {t('crossChain.errorStack')}
                     </h4>
                     <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-40 overflow-y-auto">
                       <pre className="text-xs text-gray-600 font-mono whitespace-pre-wrap break-all">
@@ -225,7 +225,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
                 {errorInfo?.componentStack && (
                   <div>
                     <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                      {t('crossChain.componentStack') || '组件堆栈'}
+                      {t('crossChain.componentStack')}
                     </h4>
                     <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-40 overflow-y-auto">
                       <pre className="text-xs text-gray-600 font-mono whitespace-pre-wrap break-all">
@@ -241,8 +241,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
 
         <div className="mt-4 pt-4 border-t border-red-200">
           <p className="text-xs text-gray-500">
-            {t('crossChain.errorBoundaryTip') ||
-              '此错误已被错误边界捕获，不会影响页面的其他部分。您可以尝试重新加载图表或刷新页面。'}
+            {t('crossChain.errorBoundaryTip')}
           </p>
         </div>
       </div>

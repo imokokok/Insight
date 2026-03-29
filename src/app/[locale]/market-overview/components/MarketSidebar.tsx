@@ -1,302 +1,274 @@
 'use client';
 
-import { useMemo } from 'react';
-
-import Link from 'next/link';
+import { useState } from 'react';
 
 import {
-  Clock,
-  PieChart as PieChartIcon,
+  AlertTriangle,
+  Bell,
+  Shield,
+  ChevronRight,
+  ChevronDown,
+  Activity,
   TrendingUp,
   TrendingDown,
-  Activity,
-  Link2,
+  Info,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
-import { semanticColors } from '@/lib/config/colors';
 
-import { type MarketFilterState } from '../hooks/useMarketFilter';
-import { type OracleMarketData, type TVSTrendData } from '../types';
+import { type MarketStats, type AnomalyData } from '../types';
 
-import { FilterPanel } from './FilterPanel';
+import AnomalyAlert from './AnomalyAlert';
+import PriceAlertConfig from './PriceAlertConfig';
+import RiskDashboard from './RiskDashboard';
 
 interface MarketSidebarProps {
-  selectedTimeRange: string;
-  lastUpdated: Date | null;
-  sortedOracleData: OracleMarketData[];
-  selectedItem: string | null;
-  setSelectedItem: (item: string | null) => void;
-  hoveredItem: string | null;
-  setHoveredItem: (item: string | null) => void;
-  marketStats: {
-    oracleCount: number;
-  };
-  trendData: TVSTrendData[];
-  filters?: MarketFilterState;
-  onMarketShareChange?: (value: number | null) => void;
-  onChange24hFilter?: (value: 'all' | 'positive' | 'negative') => void;
-  onChainsChange?: (value: number | null) => void;
-  onClearFilters?: () => void;
-  hasActiveFilters?: boolean;
-  activeFilterCount?: number;
-}
-
-// 预言机名称到 trendData 字段的映射
-const ORACLE_FIELD_MAP: Record<string, string> = {
-  Chainlink: 'chainlink',
-  Pyth: 'pyth',
-  Band: 'band',
-  API3: 'api3',
-  UMA: 'uma',
-  RedStone: 'redstone',
-  DIA: 'dia',
-  Tellor: 'tellor',
-  Chronicle: 'chronicle',
-  WinkLink: 'winklink',
-};
-
-// 迷你 Sparkline 图表组件
-function MiniSparkline({ data, color }: { data: number[]; color: string }) {
-  if (!data || data.length < 2) {
-    return (
-      <svg width={48} height={24} className="flex-shrink-0">
-        <line x1="0" y1="12" x2="48" y2="12" stroke={color} strokeWidth="1" strokeDasharray="2,2" />
-      </svg>
-    );
-  }
-
-  const { points, width, height } = useMemo(() => {
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const range = max - min || 1;
-    const width = 48;
-    const height = 24;
-    const padding = 2;
-
-    const points = data
-      .map((value, index) => {
-        const x = (index / (data.length - 1)) * width;
-        const y = height - padding - ((value - min) / range) * (height - 2 * padding);
-        return `${x.toFixed(2)},${y.toFixed(2)}`;
-      })
-      .join(' ');
-
-    return { points, width, height };
-  }, [data]);
-
-  return (
-    <svg width={width} height={height} className="flex-shrink-0">
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* 渐变填充 */}
-      <defs>
-        <linearGradient id={`gradient-${color.replace('#', '')}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon
-        points={`0,${height} ${points} ${width},${height}`}
-        fill={`url(#gradient-${color.replace('#', '')})`}
-      />
-    </svg>
-  );
-}
-
-// 变化率徽章组件
-function ChangeBadge({ value }: { value: number }) {
-  const isPositive = value >= 0;
-  const Icon = isPositive ? TrendingUp : TrendingDown;
-
-  return (
-    <span
-      className="inline-flex items-center gap-0.5 text-xs font-medium"
-      style={{
-        color: isPositive ? semanticColors.success.text : semanticColors.danger.text,
-      }}
-    >
-      <Icon className="w-3 h-3" />
-      {isPositive ? '+' : ''}
-      {value.toFixed(1)}%
-    </span>
-  );
-}
-
-// Tooltip 组件
-function Tooltip({ children, content }: { children: React.ReactNode; content: React.ReactNode }) {
-  return (
-    <div className="group relative">
-      {children}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10">
-        {content}
-        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-      </div>
-    </div>
-  );
+  stats: MarketStats | null;
+  anomalies: AnomalyData[];
+  loading?: boolean;
+  activeTab?: 'overview' | 'alerts' | 'risk';
+  onTabChange?: (tab: 'overview' | 'alerts' | 'risk') => void;
 }
 
 export default function MarketSidebar({
-  selectedTimeRange,
-  lastUpdated,
-  sortedOracleData,
-  selectedItem,
-  setSelectedItem,
-  hoveredItem,
-  setHoveredItem,
-  marketStats,
-  trendData,
-  filters,
-  onMarketShareChange,
-  onChange24hFilter,
-  onChainsChange,
-  onClearFilters,
-  hasActiveFilters = false,
-  activeFilterCount = 0,
+  stats,
+  anomalies,
+  loading = false,
+  activeTab = 'overview',
+  onTabChange,
 }: MarketSidebarProps) {
-  const t = useTranslations('marketOverview');
+  const t = useTranslations('marketOverview.sidebar');
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(['stats', 'alerts'])
+  );
 
-  const getSparklineData = (oracleName: string): number[] => {
-    const fieldName = ORACLE_FIELD_MAP[oracleName];
-    if (!fieldName || !trendData || trendData.length === 0) {
-      return [];
+  // 切换展开状态
+  const toggleSection = (section: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
     }
+    setExpandedSections(newExpanded);
+  };
 
-    const data = trendData
-      .slice(-20)
-      .map((item) => (item as unknown as Record<string, number>)[fieldName])
-      .filter((v): v is number => typeof v === 'number');
+  // 获取趋势图标
+  const getTrendIcon = (value: number) => {
+    if (value > 0) {
+      return <TrendingUp className="w-3.5 h-3.5 text-success-500" />;
+    } else if (value < 0) {
+      return <TrendingDown className="w-3.5 h-3.5 text-danger-500" />;
+    }
+    return <Activity className="w-3.5 h-3.5 text-gray-400" />;
+  };
 
-    return data;
+  // 格式化数值
+  const formatValue = (value: number, prefix = '', suffix = '') => {
+    return `${prefix}${value >= 0 ? '+' : ''}${value.toFixed(2)}${suffix}`;
+  };
+
+  // 格式化大数值
+  const formatLargeValue = (value: number) => {
+    if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
+    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+    return `$${value.toFixed(2)}`;
   };
 
   return (
-    <div className="space-y-3">
-      <div className="py-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-500 mb-0.5 font-medium flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {t('timeRange') || 'Time Range'}
-            </p>
-            <p className="text-xl font-bold text-gray-900">{selectedTimeRange}</p>
+    <div className="h-full flex flex-col bg-white border-l border-gray-200">
+      {/* Tabs */}
+      <div className="flex border-b border-gray-200">
+        <button
+          onClick={() => onTabChange?.('overview')}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            activeTab === 'overview'
+              ? 'text-primary-600 border-b-2 border-primary-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          {t('overview')}
+        </button>
+        <button
+          onClick={() => onTabChange?.('alerts')}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            activeTab === 'alerts'
+              ? 'text-primary-600 border-b-2 border-primary-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <div className="flex items-center justify-center gap-1.5">
+            <Bell className="w-4 h-4" />
+            {t('alerts')}
+            {anomalies?.length > 0 && (
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-warning-100 text-warning-700">
+                {anomalies.length}
+              </span>
+            )}
           </div>
-          <div className="p-2">
-            <Activity className="w-4 h-4 text-gray-400" />
+        </button>
+        <button
+          onClick={() => onTabChange?.('risk')}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            activeTab === 'risk'
+              ? 'text-primary-600 border-b-2 border-primary-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <div className="flex items-center justify-center gap-1.5">
+            <Shield className="w-4 h-4" />
+            {t('risk')}
           </div>
-        </div>
-        <div className="mt-2 text-xs text-gray-400 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          {lastUpdated
-            ? `${t('updatedAt') || 'Updated'} ${lastUpdated.toLocaleTimeString()}`
-            : t('dataUpdated') || 'Data updated'}
-        </div>
+        </button>
       </div>
 
-      {filters && onMarketShareChange && onChange24hFilter && onChainsChange && onClearFilters && (
-        <div className="border-b border-gray-100 pb-3">
-          <FilterPanel
-            filters={filters}
-            onMarketShareChange={onMarketShareChange}
-            onChange24hFilter={onChange24hFilter}
-            onChainsChange={onChainsChange}
-            onClearFilters={onClearFilters}
-            hasActiveFilters={hasActiveFilters}
-            activeFilterCount={activeFilterCount}
-          />
-        </div>
-      )}
-
-      <div className="overflow-hidden">
-        <div className="py-2 border-b border-gray-100">
-          <h4 className="text-xs text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-            <PieChartIcon className="w-3 h-3" />
-            {t('oracleMarketShare') || 'Oracle Market Share'}
-          </h4>
-        </div>
-        <div className="max-h-[400px] overflow-y-auto">
-          {sortedOracleData.map((item, index) => {
-            const isSelected = selectedItem === item.name;
-            const isHovered = hoveredItem === item.name;
-            const hasHover = hoveredItem !== null;
-            const sparklineData = getSparklineData(item.name);
-            const isLast = index === sortedOracleData.length - 1;
-
-            return (
-              <Tooltip
-                key={item.name}
-                content={
-                  <div className="flex items-center gap-3">
-                    <span>
-                      TVS: <span className="font-semibold">{item.tvs}</span>
-                    </span>
-                    <span className="text-gray-500">|</span>
-                    <span className="flex items-center gap-1">
-                      <Link2 className="w-3 h-3" />
-                      {item.chains} chains
-                    </span>
-                  </div>
-                }
+      {/* Content */}
+      <div className="flex-1 overflow-auto p-4">
+        {activeTab === 'overview' && (
+          <div className="space-y-4">
+            {/* Market Stats */}
+            <div className="border border-gray-200">
+              <button
+                onClick={() => toggleSection('stats')}
+                className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
               >
-                <Link
-                  href={`/${item.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  className={`flex items-center py-2 pl-3 transition-all duration-200 cursor-pointer border-l-2 ${
-                    isSelected ? 'border-primary-500' : 'border-transparent'
-                  } ${!isLast ? 'border-b border-gray-100' : ''} ${
-                    hasHover && !isHovered ? 'opacity-50' : 'opacity-100'
-                  } hover:text-primary-600`}
-                  onMouseEnter={() => setHoveredItem(item.name)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (isSelected) {
-                      setSelectedItem(null);
-                    } else {
-                      setSelectedItem(item.name);
-                    }
-                  }}
-                >
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: item.color, boxShadow: `0 0 4px ${item.color}60` }}
-                    />
-                    <span
-                      className={`font-semibold text-sm truncate ${isSelected ? 'text-primary-600' : 'text-gray-900'}`}
-                    >
-                      {item.name}
-                    </span>
-                  </div>
+                <span className="font-medium text-gray-900">{t('marketStats')}</span>
+                {expandedSections.has('stats') ? (
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                )}
+              </button>
+              {expandedSections.has('stats') && (
+                <div className="p-3 border-t border-gray-100 space-y-3">
+                  {loading ? (
+                    <div className="py-4 flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent animate-spin" />
+                    </div>
+                  ) : stats ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-3 bg-gray-50">
+                          <div className="text-xs text-gray-500 mb-1">{t('totalTVS')}</div>
+                          <div className="text-lg font-semibold text-gray-900">
+                            {formatLargeValue(stats.totalTVS)}
+                          </div>
+                          <div className="flex items-center gap-1 mt-1">
+                            {getTrendIcon(stats.tvsChange24h)}
+                            <span
+                              className={`text-xs ${stats.tvsChange24h >= 0 ? 'text-success-600' : 'text-danger-600'}`}
+                            >
+                              {formatValue(stats.tvsChange24h, '', '%')}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-3 bg-gray-50">
+                          <div className="text-xs text-gray-500 mb-1">{t('totalChains')}</div>
+                          <div className="text-lg font-semibold text-gray-900">
+                            {stats.totalChains}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">{t('supported')}</div>
+                        </div>
+                        <div className="p-3 bg-gray-50">
+                          <div className="text-xs text-gray-500 mb-1">{t('totalProtocols')}</div>
+                          <div className="text-lg font-semibold text-gray-900">
+                            {stats.totalProtocols}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">{t('integrated')}</div>
+                        </div>
+                        <div className="p-3 bg-gray-50">
+                          <div className="text-xs text-gray-500 mb-1">{t('oracleCount')}</div>
+                          <div className="text-lg font-semibold text-gray-900">
+                            {stats.oracleCount}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">{t('active')}</div>
+                        </div>
+                      </div>
+                      <div className="pt-3 border-t border-gray-100">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500">{t('marketDominance')}</span>
+                          <span className="font-medium text-gray-900">
+                            {stats.marketDominance?.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm mt-2">
+                          <span className="text-gray-500">{t('volatility24h')}</span>
+                          <span className="font-medium text-gray-900">
+                            {stats.volatility24h?.toFixed(2)}%
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="py-4 text-center text-gray-500 text-sm">{t('noData')}</div>
+                  )}
+                </div>
+              )}
+            </div>
 
-                  <div className="flex-shrink-0 mx-2">
-                    <MiniSparkline data={sparklineData} color={item.color} />
-                  </div>
+            {/* Quick Info */}
+            <div className="p-4 bg-primary-50 border border-primary-100">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-primary-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-gray-900">{t('didYouKnow')}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{t('marketInfoTip')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-sm font-bold text-gray-900 w-10 text-right">
-                      {item.share}%
-                    </span>
-                    <ChangeBadge value={item.change24h} />
-                  </div>
-                </Link>
-              </Tooltip>
-            );
-          })}
-        </div>
-      </div>
+        {activeTab === 'alerts' && (
+          <div className="space-y-4">
+            {/* Anomaly Alerts */}
+            <div className="border border-gray-200">
+              <div className="p-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-warning-500" />
+                  <span className="font-medium text-gray-900">{t('anomalyAlerts')}</span>
+                </div>
+              </div>
+              <div className="p-3">
+                <AnomalyAlert data={anomalies || []} loading={loading} />
+              </div>
+            </div>
 
-      <div className="py-2 text-xs text-gray-400 flex items-center justify-between">
-        <span>
-          {t('coveringOracles', { count: marketStats.oracleCount }) ||
-            `Covering ${marketStats.oracleCount} major oracles`}
-        </span>
-        <span className="text-emerald-500 font-medium">{sortedOracleData.length} Active</span>
+            {/* Price Alerts */}
+            <div className="border border-gray-200">
+              <div className="p-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-primary-500" />
+                  <span className="font-medium text-gray-900">{t('priceAlerts')}</span>
+                </div>
+              </div>
+              <div className="p-3">
+                <PriceAlertConfig
+                  alerts={[]}
+                  onAdd={() => {}}
+                  onRemove={() => {}}
+                  onUpdate={() => {}}
+                  loading={loading}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'risk' && (
+          <div className="border border-gray-200">
+            <div className="p-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-primary-500" />
+                <span className="font-medium text-gray-900">{t('riskAnalysis')}</span>
+              </div>
+            </div>
+            <div className="p-3">
+              <RiskDashboard data={null} loading={loading} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

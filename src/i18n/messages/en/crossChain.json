@@ -106,6 +106,12 @@
     "chainPriceBoxPlot": "Chain Price Box Plot",
     "boxPlot": {
       "outliers": "Outliers",
+      "max": "Max",
+      "q3": "Q3",
+      "median": "Median",
+      "q1": "Q1",
+      "min": "Min",
+      "iqr": "IQR",
       "legend": {
         "box": "Box",
         "median": "Median",
@@ -165,6 +171,8 @@
     "mean": "Mean",
     "p25": "25th Percentile",
     "p10": "10th Percentile",
+    "p75p25": "25%/75%",
+    "p90p10": "10%/90%",
     "anomalyDetectionConfig": "Anomaly Detection Threshold Configuration",
     "thresholdType": "Threshold Type",
     "fixedThreshold": "Fixed Threshold",
@@ -201,6 +209,8 @@
     "criticalValue": "Critical Value",
     "currentZScore": "Current Z-Score",
     "stdDev": "Std Dev",
+    "plus2Sigma": "+2σ",
+    "minus2Sigma": "-2σ",
     "spreadSeries": "Spread Series",
     "spread": "Spread",
     "longSpread": "Long Spread",
@@ -256,7 +266,14 @@
       "title": "Data Sources"
     },
     "benchmark": {
-      "title": "Industry Benchmark Comparison"
+      "title": "Industry Benchmark Comparison",
+      "average": "Average",
+      "median": "Median",
+      "highestPrice": "Highest Price",
+      "chain": "Chain",
+      "price": "Price",
+      "diffFromAvg": "Diff from Avg",
+      "rank": "Rank"
     }
   },
   "crossChainPanel": {

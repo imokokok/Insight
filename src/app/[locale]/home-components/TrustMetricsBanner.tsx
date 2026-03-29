@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 
 import { Globe, Users, Activity, Clock } from 'lucide-react';
 
-import { useLocale } from '@/i18n';
+import { useLocale, useTranslations } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
 import { baseColors, semanticColors } from '@/lib/config/colors';
 
@@ -22,62 +22,15 @@ interface TrustMetric {
   };
 }
 
-const trustMetrics: TrustMetric[] = [
-  {
-    id: 'networks',
-    icon: Globe,
-    value: '15+',
-    label: {
-      en: 'Supported Networks',
-      zh: '支持网络',
-    },
-    subLabel: {
-      en: 'Multi-chain',
-      zh: '多链',
-    },
-  },
-  {
-    id: 'partners',
-    icon: Users,
-    value: '200+',
-    label: {
-      en: 'Partners',
-      zh: '合作伙伴',
-    },
-    subLabel: {
-      en: 'Global',
-      zh: '全球',
-    },
-  },
-  {
-    id: 'apiCalls',
-    icon: Activity,
-    value: '50M+',
-    label: {
-      en: 'API Calls/Day',
-      zh: 'API 调用/天',
-    },
-    subLabel: {
-      en: 'High throughput',
-      zh: '高吞吐量',
-    },
-  },
-  {
-    id: 'uptime',
-    icon: Clock,
-    value: '99.99%',
-    label: {
-      en: 'Uptime',
-      zh: '正常运行时间',
-    },
-    subLabel: {
-      en: 'Reliable',
-      zh: '稳定可靠',
-    },
-  },
+const trustMetricIds = [
+  { id: 'networks', icon: Globe, value: '15+' },
+  { id: 'partners', icon: Users, value: '200+' },
+  { id: 'apiCalls', icon: Activity, value: '50M+' },
+  { id: 'uptime', icon: Clock, value: '99.99%' },
 ];
 
 export default function TrustMetricsBanner() {
+  const t = useTranslations('home.trustMetrics');
   const locale = useLocale();
   const [hoveredMetric, setHoveredMetric] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -87,8 +40,6 @@ export default function TrustMetricsBanner() {
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
-
-  const isChinese = isChineseLocale(locale);
 
   return (
     <div
@@ -101,10 +52,10 @@ export default function TrustMetricsBanner() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 py-6">
         <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 lg:gap-12">
-          {trustMetrics.map((metric, index) => {
+          {trustMetricIds.map((metric, index) => {
             const Icon = metric.icon;
             const isHovered = hoveredMetric === metric.id;
-            const isLast = index === trustMetrics.length - 1;
+            const isLast = index === trustMetricIds.length - 1;
 
             return (
               <div
@@ -146,19 +97,17 @@ export default function TrustMetricsBanner() {
                     </span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-medium" style={{ color: baseColors.gray[600] }}>
-                        {isChinese ? metric.label.zh : metric.label.en}
+                        {t(`metrics.${metric.id}.label`)}
                       </span>
-                      {metric.subLabel && (
-                        <span
-                          className="text-[10px] px-1.5 py-0.5 rounded"
-                          style={{
-                            backgroundColor: semanticColors.success.light,
-                            color: semanticColors.success.text,
-                          }}
-                        >
-                          {isChinese ? metric.subLabel.zh : metric.subLabel.en}
-                        </span>
-                      )}
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded"
+                        style={{
+                          backgroundColor: semanticColors.success.light,
+                          color: semanticColors.success.text,
+                        }}
+                      >
+                        {t(`metrics.${metric.id}.subLabel`)}
+                      </span>
                     </div>
                   </div>
                 </div>

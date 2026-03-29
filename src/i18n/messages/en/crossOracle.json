@@ -47,6 +47,7 @@
     "price": "Price",
     "confidence": "Confidence",
     "live": "LIVE",
+    "liveBadge": "Live",
     "crossOraclePriceComparison": "Cross-Oracle Price Comparison",
     "oracleCount": "Oracle Count",
     "oracles": "Oracles",
@@ -58,6 +59,9 @@
     "deviation": "Deviation (%)",
     "standardDeviation": "Standard Deviation",
     "variance": "Variance",
+    "avg": "Avg",
+    "range": "Range",
+    "stdDev": "Std Dev",
     "consistencyRating": "Price Convergence Index",
     "consistency": {
       "excellent": "Excellent",
@@ -74,6 +78,9 @@
     "trend": "Trend",
     "loading": "Loading...",
     "updated": "Updated:",
+    "time": {
+      "lastUpdated": "Last Updated"
+    },
     "selectOraclesTitle": "Select Oracles",
     "source": "Source",
     "high": "High",
@@ -195,7 +202,8 @@
       "oracleFilter": "Oracle Filter",
       "filtersApplied": "{count} filter(s) applied",
       "noFilters": "No filters",
-      "confirm": "Confirm"
+      "confirm": "Confirm",
+      "filtersActive": "filters active"
     },
     "filterSummary": {
       "deviation": "Deviation",
@@ -262,7 +270,8 @@
       "title": "History Data",
       "selectSnapshot": "Select Snapshot",
       "selectHint": "Select a snapshot from the history list to view",
-      "exportHistory": "Export History"
+      "exportHistory": "Export History",
+      "exporting": "Exporting..."
     },
     "advancedTab": {
       "movingAverage": "Moving Average Analysis",
@@ -312,6 +321,9 @@
       "5m": "5m"
     },
     "noData": "No data available",
+    "noDataAvailable": "No Data Available",
+    "noDataDescription": "There is no price data available for the selected time range.",
+    "refresh": "Refresh",
     "dataSources": {
       "title": "Comparison Data Sources"
     },
@@ -356,7 +368,20 @@
       "deviation": "Deviation (%)",
       "latency": "Latency (ms)",
       "confidence": "Confidence",
-      "updateFrequency": "Update Frequency (s)"
+      "updateFrequency": "Update Frequency (s)",
+      "source": "Source",
+      "csvHeaders": ["Oracle", "Price", "Deviation (%)", "Confidence", "Source", "Timestamp"],
+      "jsonFields": {
+        "oracle": "Oracle",
+        "provider": "Provider",
+        "symbol": "Symbol",
+        "price": "Price",
+        "deviationPercent": "Deviation Percent",
+        "confidence": "Confidence",
+        "source": "Source",
+        "timestamp": "Timestamp"
+      },
+      "filename": "oracle-prices"
     },
     "deviationAnalysis": {
       "count": "Count",

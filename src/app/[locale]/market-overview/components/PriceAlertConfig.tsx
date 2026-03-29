@@ -1,257 +1,310 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-import {
-  Bell,
-  Plus,
-  Trash2,
-  TrendingUp,
-  TrendingDown,
-  Mail,
-  MessageSquare,
-  Smartphone,
-  Check,
-} from 'lucide-react';
+import { Bell, Plus, Trash2, Edit2, X, Check, TrendingUp, TrendingDown } from 'lucide-react';
 
-import { SegmentedControl } from '@/components/ui';
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+import { useTranslations } from '@/i18n';
 
 import { type PriceAlert } from '../types';
 
 interface PriceAlertConfigProps {
   alerts: PriceAlert[];
-  onAddAlert?: (alert: Omit<PriceAlert, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  onRemoveAlert?: (id: string) => void;
-  onToggleAlert?: (id: string, enabled: boolean) => void;
+  onAdd: (alert: Omit<PriceAlert, 'id' | 'createdAt' | 'triggered'>) => void;
+  onRemove: (id: string) => void;
+  onUpdate: (id: string, alert: Partial<PriceAlert>) => void;
+  loading?: boolean;
 }
 
 export default function PriceAlertConfig({
   alerts,
-  onAddAlert,
-  onRemoveAlert,
-  onToggleAlert,
+  onAdd,
+  onRemove,
+  onUpdate,
+  loading = false,
 }: PriceAlertConfigProps) {
-  const locale = useLocale();
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newAlert, setNewAlert] = useState<{
-    asset: string;
-    type: 'above' | 'below';
-    price: string;
-    channels: PriceAlert['channels'];
-  }>({
+  const t = useTranslations('marketOverview.priceAlert');
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
     asset: '',
-    type: 'above',
+    type: 'above' as PriceAlert['type'],
     price: '',
-    channels: ['email'],
+    note: '',
   });
 
-  const typeOptions = [
-    { value: 'above' as const, label: isChineseLocale(locale) ? '高于' : 'Above' },
-    { value: 'below' as const, label: isChineseLocale(locale) ? '低于' : 'Below' },
-  ];
-
-  const handleAddAlert = () => {
-    if (!newAlert.asset || !newAlert.price) return;
-
-    onAddAlert?.({
-      asset: newAlert.asset.toUpperCase(),
-      type: newAlert.type,
-      price: parseFloat(newAlert.price),
-      enabled: true,
-      channels: newAlert.channels,
-    });
-
-    setNewAlert({
+  // 重置表单
+  const resetForm = () => {
+    setFormData({
       asset: '',
       type: 'above',
       price: '',
-      channels: ['email'],
+      note: '',
     });
-    setShowAddForm(false);
+    setIsAdding(false);
+    setEditingId(null);
   };
 
-  const toggleChannel = (channel: PriceAlert['channels'][0]) => {
-    setNewAlert((prev) => ({
-      ...prev,
-      channels: prev.channels.includes(channel)
-        ? prev.channels.filter((c) => c !== channel)
-        : [...prev.channels, channel],
-    }));
-  };
+  // 处理提交
+  const handleSubmit = () => {
+    if (!formData.asset || !formData.price) return;
 
-  const getChannelIcon = (channel: PriceAlert['channels'][0]) => {
-    switch (channel) {
-      case 'email':
-        return <Mail className="w-3 h-3" />;
-      case 'push':
-        return <Smartphone className="w-3 h-3" />;
-      case 'webhook':
-        return <MessageSquare className="w-3 h-3" />;
-      default:
-        return null;
+    const priceValue = parseFloat(formData.price);
+    if (isNaN(priceValue) || priceValue <= 0) return;
+
+    if (editingId) {
+      onUpdate(editingId, {
+        asset: formData.asset,
+        type: formData.type,
+        price: priceValue,
+        note: formData.note,
+      });
+    } else {
+      onAdd({
+        asset: formData.asset,
+        type: formData.type,
+        price: priceValue,
+        note: formData.note,
+        enabled: true,
+      });
     }
+    resetForm();
   };
+
+  // 开始编辑
+  const startEdit = (alert: PriceAlert) => {
+    setFormData({
+      asset: alert.asset,
+      type: alert.type,
+      price: alert.price.toString(),
+      note: alert.note || '',
+    });
+    setEditingId(alert.id);
+    setIsAdding(true);
+  };
+
+  // 切换启用状态
+  const toggleEnabled = (alert: PriceAlert) => {
+    onUpdate(alert.id, { enabled: !alert.enabled });
+  };
+
+  // 格式化价格
+  const formatPrice = (price: number) => {
+    return price >= 1000 ? `$${(price / 1000).toFixed(2)}K` : `$${price.toFixed(2)}`;
+  };
+
+  // 格式化时间
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="py-8 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
+          <span className="text-gray-500 text-sm">{t('loading')}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bell className="w-4 h-4 text-gray-500" />
-          <span className="text-sm text-gray-700">
-            {isChineseLocale(locale) ? '价格警报' : 'Price Alerts'} ({alerts.length})
+          <span className="text-sm font-medium text-gray-700">
+            {t('activeAlerts')}: {alerts.filter((a) => a.enabled).length}
           </span>
         </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center gap-1 px-2.5 py-1 bg-primary-600 text-white hover:bg-primary-700 transition-colors text-sm"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          {isChineseLocale(locale) ? '添加' : 'Add'}
-        </button>
+        {!isAdding && (
+          <button
+            onClick={() => setIsAdding(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('addAlert')}
+          </button>
+        )}
       </div>
 
-      {showAddForm && (
-        <div className="py-3 border-t border-gray-100">
-          <div className="space-y-2">
-            <div className="grid grid-cols-3 gap-2">
-              <input
-                type="text"
-                placeholder={isChineseLocale(locale) ? '资产 (如: BTC)' : 'Asset (e.g., BTC)'}
-                value={newAlert.asset}
-                onChange={(e) => setNewAlert({ ...newAlert, asset: e.target.value })}
-                className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-              <SegmentedControl
-                options={typeOptions}
-                value={newAlert.type}
-                onChange={(value) => setNewAlert({ ...newAlert, type: value as 'above' | 'below' })}
-                size="sm"
-              />
-              <input
-                type="number"
-                placeholder={isChineseLocale(locale) ? '价格' : 'Price'}
-                value={newAlert.price}
-                onChange={(e) => setNewAlert({ ...newAlert, price: e.target.value })}
-                className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">
-                {isChineseLocale(locale) ? '通知方式:' : 'Notify via:'}
-              </span>
-              <div className="flex gap-1.5">
-                {(['email', 'push', 'webhook'] as const).map((channel) => (
-                  <button
-                    key={channel}
-                    onClick={() => toggleChannel(channel)}
-                    className={`flex items-center gap-1 px-2 py-1 text-xs transition-colors ${
-                      newAlert.channels.includes(channel)
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {getChannelIcon(channel)}
-                    {channel === 'email' && (isChineseLocale(locale) ? '邮件' : 'Email')}
-                    {channel === 'push' && (isChineseLocale(locale) ? '推送' : 'Push')}
-                    {channel === 'webhook' && 'Webhook'}
-                  </button>
-                ))}
+      {/* Add/Edit Form */}
+      {isAdding && (
+        <div className="p-4 bg-gray-50 border border-gray-200">
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {t('asset')}
+                </label>
+                <input
+                  type="text"
+                  value={formData.asset}
+                  onChange={(e) => setFormData({ ...formData, asset: e.target.value.toUpperCase() })}
+                  placeholder={t('assetPlaceholder')}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {t('alertType')}
+                </label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as PriceAlert['type'] })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="above">{t('priceAbove')}</option>
+                  <option value="below">{t('priceBelow')}</option>
+                  <option value="percent_change">{t('percentChange')}</option>
+                </select>
               </div>
             </div>
-
-            <div className="flex gap-2">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {formData.type === 'percent_change' ? t('changePercent') : t('targetPrice')}
+              </label>
+              <input
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                placeholder={formData.type === 'percent_change' ? '5' : '1000'}
+                className="w-full px-3 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {t('note')} ({t('optional')})
+              </label>
+              <input
+                type="text"
+                value={formData.note}
+                onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                placeholder={t('notePlaceholder')}
+                className="w-full px-3 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-2">
               <button
-                onClick={handleAddAlert}
-                disabled={!newAlert.asset || !newAlert.price}
-                className="flex-1 px-3 py-1.5 bg-primary-600 text-white hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                onClick={handleSubmit}
+                disabled={!formData.asset || !formData.price}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isChineseLocale(locale) ? '保存' : 'Save'}
+                <Check className="w-4 h-4" />
+                {editingId ? t('update') : t('create')}
               </button>
               <button
-                onClick={() => setShowAddForm(false)}
-                className="px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors text-sm"
+                onClick={resetForm}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
               >
-                {isChineseLocale(locale) ? '取消' : 'Cancel'}
+                <X className="w-4 h-4" />
+                {t('cancel')}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="space-y-1.5">
-        {alerts.map((alert) => (
-          <div
-            key={alert.id}
-            className={`flex items-center justify-between py-2.5 px-3 border ${
-              alert.enabled ? 'bg-gray-50 border-gray-200' : 'bg-gray-50/50 border-gray-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onToggleAlert?.(alert.id, !alert.enabled)}
-                className={`w-4 h-4 border flex items-center justify-center transition-colors ${
-                  alert.enabled
-                    ? 'bg-primary-600 border-primary-600 text-white'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                {alert.enabled && <Check className="w-3 h-3" />}
-              </button>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-medium text-gray-900 text-sm">{alert.asset}</span>
-                  {alert.type === 'above' ? (
-                    <TrendingUp className="w-3 h-3 text-success-500" />
-                  ) : (
-                    <TrendingDown className="w-3 h-3 text-danger-500" />
-                  )}
-                  <span className="text-sm text-gray-600">
-                    {alert.type === 'above'
-                      ? isChineseLocale(locale)
-                        ? '高于'
-                        : 'above'
-                      : isChineseLocale(locale)
-                        ? '低于'
-                        : 'below'}
-                  </span>
-                  <span className="font-medium text-gray-900 text-sm">
-                    ${alert.price.toLocaleString()}
-                  </span>
+      {/* Alert List */}
+      <div className="space-y-2 max-h-[300px] overflow-auto">
+        {alerts.length === 0 ? (
+          <div className="text-center py-6">
+            <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">{t('noAlerts')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('addAlertHint')}</p>
+          </div>
+        ) : (
+          alerts.map((alert) => (
+            <div
+              key={alert.id}
+              className={`p-3 border ${alert.enabled ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100'} ${alert.triggered ? 'border-l-4 border-l-warning-500' : ''}`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <button
+                    onClick={() => toggleEnabled(alert)}
+                    className={`mt-0.5 w-4 h-4 border ${alert.enabled ? 'bg-primary-600 border-primary-600' : 'bg-white border-gray-300'} flex items-center justify-center transition-colors`}
+                  >
+                    {alert.enabled && <Check className="w-3 h-3 text-white" />}
+                  </button>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900">{alert.asset}</span>
+                      <span
+                        className={`px-1.5 py-0.5 text-xs font-medium flex items-center gap-1 ${
+                          alert.type === 'above'
+                            ? 'bg-success-100 text-success-700'
+                            : alert.type === 'below'
+                              ? 'bg-danger-100 text-danger-700'
+                              : 'bg-primary-100 text-primary-700'
+                        }`}
+                      >
+                        {alert.type === 'above' ? (
+                          <TrendingUp className="w-3 h-3" />
+                        ) : alert.type === 'below' ? (
+                          <TrendingDown className="w-3 h-3" />
+                        ) : (
+                          <span>%</span>
+                        )}
+                        {alert.type === 'above'
+                          ? t('above')
+                          : alert.type === 'below'
+                            ? t('below')
+                            : t('change')}
+                      </span>
+                      {alert.triggered && (
+                        <span className="px-1.5 py-0.5 text-xs font-medium bg-warning-100 text-warning-700">
+                          {t('triggered')}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
+                      <span>
+                        {alert.type === 'percent_change'
+                          ? `${alert.price > 0 ? '+' : ''}${alert.price}%`
+                          : formatPrice(alert.price)}
+                      </span>
+                      {alert.note && (
+                        <span className="text-gray-400 truncate max-w-[150px]">{alert.note}</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {t('createdAt')}: {formatTime(alert.createdAt)}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  {alert.channels.map((channel) => (
-                    <span key={channel} className="flex items-center gap-0.5 text-xs text-gray-500">
-                      {getChannelIcon(channel)}
-                    </span>
-                  ))}
-                  <span className="text-xs text-gray-400">
-                    {new Date(alert.updatedAt).toLocaleDateString()}
-                  </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => startEdit(alert)}
+                    className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onRemove(alert.id)}
+                    className="p-1.5 text-gray-400 hover:text-danger-600 hover:bg-danger-50 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => onRemoveAlert?.(alert.id)}
-              className="p-1.5 text-gray-400 hover:text-danger-500 hover:bg-danger-50 transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
-      {alerts.length === 0 && !showAddForm && (
-        <div className="text-center py-6">
-          <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-gray-500 text-sm">
-            {isChineseLocale(locale) ? '暂无价格警报' : 'No price alerts'}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            {isChineseLocale(locale) ? '点击添加按钮创建新警报' : 'Click add button to create one'}
-          </p>
+      {/* Info */}
+      {alerts.length > 0 && (
+        <div className="pt-3 border-t border-gray-100">
+          <p className="text-xs text-gray-500">{t('alertNote')}</p>
         </div>
       )}
     </div>

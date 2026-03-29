@@ -78,6 +78,7 @@ export function StatsSection({
 
   useEffect(() => {
     setMounted(true);
+    // 使用浏览器默认语言环境格式化时间
     setFormattedTime(qualityScoreData.freshness.lastUpdated.toLocaleTimeString());
   }, [qualityScoreData.freshness.lastUpdated]);
 

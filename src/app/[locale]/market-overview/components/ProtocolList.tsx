@@ -1,13 +1,10 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { Layers, ExternalLink, Search, ChevronUp, ChevronDown, Building2 } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown } from 'lucide-react';
 
-import { DropdownSelect, type SelectorOption } from '@/components/ui';
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
+import { useTranslations } from '@/i18n';
 
 import { type ProtocolDetail } from '../types';
 
@@ -16,324 +13,147 @@ interface ProtocolListProps {
   loading?: boolean;
 }
 
-type SortField = 'tvl' | 'change24h' | 'change7d' | 'oracleCount';
-type SortDirection = 'asc' | 'desc';
-
 export default function ProtocolList({ data, loading = false }: ProtocolListProps) {
-  const locale = useLocale();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [sortField, setSortField] = useState<SortField>('tvl');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const t = useTranslations('marketOverview.protocolList');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'tvs' | 'change'>('tvs');
 
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  const categories = useMemo(() => {
-    const cats = new Set(data.map((p) => p.category));
-    return ['all', ...Array.from(cats)];
-  }, [data]);
-
-  const categoryOptions: SelectorOption<string>[] = useMemo(() => {
-    return categories.map((cat) => ({
-      value: cat,
-      label: cat === 'all' ? (isChineseLocale(locale) ? '所有类别' : 'All Categories') : cat,
-    }));
-  }, [categories, locale]);
-
+  // 过滤和排序数据
   const filteredData = useMemo(() => {
-    let filtered = data;
+    let result = [...data];
 
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(term) ||
-          p.category.toLowerCase().includes(term) ||
-          p.chains.some((c) => c.toLowerCase().includes(term))
+    // 搜索过滤
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (item) =>
+          item.name.toLowerCase().includes(query) ||
+          item.chain.toLowerCase().includes(query) ||
+          item.oracle.toLowerCase().includes(query)
       );
     }
 
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter((p) => p.category === selectedCategory);
-    }
-
-    return [...filtered].sort((a, b) => {
-      const aVal = a[sortField];
-      const bVal = b[sortField];
-      const multiplier = sortDirection === 'asc' ? 1 : -1;
-      return (aVal - bVal) * multiplier;
+    // 排序
+    result.sort((a, b) => {
+      if (sortBy === 'tvs') {
+        return b.tvs - a.tvs;
+      }
+      return b.change24h - a.change24h;
     });
-  }, [data, searchTerm, selectedCategory, sortField, sortDirection]);
 
-  const getEstimatedSize = (index: number) => {
-    const protocol = filteredData[index];
-    return expandedItems.has(protocol.id) ? 200 : 80;
-  };
+    return result;
+  }, [data, searchQuery, sortBy]);
 
-  const virtualizer = useVirtualizer({
-    count: filteredData.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: getEstimatedSize,
-    overscan: 5,
-  });
-
-  const _handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
-  };
-
-  const toggleExpand = (id: string) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedItems(newExpanded);
-  };
-
-  const getCategoryColor = (category: string): string => {
-    const colors: Record<string, string> = {
-      Lending: 'bg-primary-100 text-primary-700',
-      'Liquid Staking': 'bg-purple-100 text-purple-700',
-      DEX: 'bg-success-100 text-success-700',
-      CDP: 'bg-warning-100 text-orange-700',
-      Derivatives: 'bg-danger-100 text-danger-700',
-      Synthetics: 'bg-pink-100 text-pink-700',
-      Yield: 'bg-warning-100 text-warning-700',
-    };
-    return colors[category] || 'bg-gray-100 text-gray-700';
-  };
-
-  const _SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) {
-      return <ChevronUp className="w-3 h-3 text-gray-300" />;
-    }
-    return sortDirection === 'asc' ? (
-      <ChevronUp className="w-3 h-3 text-primary-600" />
-    ) : (
-      <ChevronDown className="w-3 h-3 text-primary-600" />
-    );
+  // 格式化TVS
+  const formatTVS = (value: number) => {
+    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+    return `$${value.toFixed(2)}`;
   };
 
   if (loading) {
     return (
-      <div className="py-12 flex items-center justify-center">
+      <div className="h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
-          <span className="text-gray-500 text-sm">
-            {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
-          </span>
+          <span className="text-gray-500 text-sm">{t('loading')}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-1">
+    <div className="h-full flex flex-col">
+      {/* Search and Filter */}
+      <div className="mb-4 space-y-3">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder={isChineseLocale(locale) ? '搜索协议...' : 'Search protocols...'}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('searchPlaceholder')}
+            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
-        <DropdownSelect
-          options={categoryOptions}
-          value={selectedCategory}
-          onChange={(value) => setSelectedCategory(value)}
-          placeholder={isChineseLocale(locale) ? '选择类别' : 'Select category'}
-          searchable
-          searchPlaceholder={isChineseLocale(locale) ? '搜索类别...' : 'Search categories...'}
-          className="w-48"
-        />
-      </div>
-
-      <div className="flex items-center gap-4 text-xs text-gray-500">
-        <span>
-          {isChineseLocale(locale) ? '共' : 'Total'} {filteredData.length}{' '}
-          {isChineseLocale(locale) ? '个协议' : 'protocols'}
-        </span>
-        {searchTerm && (
-          <span className="text-primary-600">
-            {isChineseLocale(locale) ? '搜索: ' : 'Search: '}&quot;{searchTerm}&quot;
-          </span>
-        )}
-      </div>
-
-      <div ref={parentRef} className="space-y-1.5 max-h-[360px] overflow-auto">
-        {filteredData.length > 0 && (
-          <div
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              width: '100%',
-              position: 'relative',
-            }}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSortBy('tvs')}
+            className={`px-3 py-1.5 text-sm transition-colors ${
+              sortBy === 'tvs'
+                ? 'bg-primary-100 text-primary-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
           >
-            {virtualizer.getVirtualItems().map((virtualItem) => {
-              const protocol = filteredData[virtualItem.index];
+            {t('sortByTVS')}
+          </button>
+          <button
+            onClick={() => setSortBy('change')}
+            className={`px-3 py-1.5 text-sm transition-colors ${
+              sortBy === 'change'
+                ? 'bg-primary-100 text-primary-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {t('sortByChange')}
+          </button>
+        </div>
+      </div>
 
-              return (
-                <div
-                  key={protocol.id}
-                  data-index={virtualItem.index}
-                  ref={virtualizer.measureElement}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                >
-                  <div className="py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <div className="cursor-pointer" onClick={() => toggleExpand(protocol.id)}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-primary-600 flex items-center justify-center text-white font-bold text-xs">
-                            {protocol.name.slice(0, 2).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-medium text-gray-900 text-sm">
-                                {protocol.name}
-                              </span>
-                              <span
-                                className={`px-1.5 py-0.5 text-xs font-medium ${getCategoryColor(
-                                  protocol.category
-                                )}`}
-                              >
-                                {protocol.category}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                              <span className="flex items-center gap-1">
-                                <Layers className="w-3 h-3" />
-                                {protocol.chains.length}{' '}
-                                {isChineseLocale(locale) ? '条链' : 'chains'}
-                              </span>
-                              <span>•</span>
-                              <span>
-                                {isChineseLocale(locale) ? '主要预言机' : 'Primary'}:{' '}
-                                {protocol.primaryOracle}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <div className="font-medium text-gray-900 text-sm">
-                              {protocol.tvlFormatted}
-                            </div>
-                            <div
-                              className={`text-xs font-medium ${
-                                protocol.change24h >= 0 ? 'text-success-600' : 'text-danger-600'
-                              }`}
-                            >
-                              {protocol.change24h >= 0 ? '+' : ''}
-                              {protocol.change24h.toFixed(1)}% (24h)
-                            </div>
-                          </div>
-                          {expandedItems.has(protocol.id) ? (
-                            <ChevronUp className="w-4 h-4 text-gray-400" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 text-gray-400" />
-                          )}
-                        </div>
+      {/* Protocol List */}
+      <div className="flex-1 overflow-auto">
+        {filteredData.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-sm">{t('noData')}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {filteredData.map((protocol) => (
+              <div
+                key={protocol.id}
+                className="p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-primary-100 flex items-center justify-center text-primary-600 font-medium text-sm">
+                      {protocol.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">{protocol.name}</div>
+                      <div className="text-xs text-gray-500">
+                        {protocol.chain} • {protocol.oracle}
                       </div>
                     </div>
-
-                    {expandedItems.has(protocol.id) && (
-                      <div className="pt-3 mt-2 border-t border-gray-100">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-2">
-                          <div>
-                            <div className="text-xs text-gray-500 mb-0.5">
-                              {isChineseLocale(locale) ? '7天变化' : '7d Change'}
-                            </div>
-                            <div
-                              className={`font-medium text-sm ${
-                                protocol.change7d >= 0 ? 'text-success-600' : 'text-danger-600'
-                              }`}
-                            >
-                              {protocol.change7d >= 0 ? '+' : ''}
-                              {protocol.change7d.toFixed(1)}%
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-gray-500 mb-0.5">
-                              {isChineseLocale(locale) ? '预言机数量' : 'Oracles'}
-                            </div>
-                            <div className="font-medium text-gray-900 text-sm">
-                              {protocol.oracleCount}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-gray-500 mb-0.5">
-                              {isChineseLocale(locale) ? '支持链' : 'Chains'}
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                              {protocol.chains.slice(0, 4).map((chain) => (
-                                <span
-                                  key={chain}
-                                  className="px-1 py-0.5 bg-gray-100 text-xs text-gray-600"
-                                >
-                                  {chain}
-                                </span>
-                              ))}
-                              {protocol.chains.length > 4 && (
-                                <span className="px-1 py-0.5 bg-gray-100 text-xs text-gray-400">
-                                  +{protocol.chains.length - 4}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-gray-500 mb-0.5">
-                              {isChineseLocale(locale) ? '主要预言机' : 'Primary Oracle'}
-                            </div>
-                            <div className="font-medium text-gray-900 text-sm">
-                              {protocol.primaryOracle}
-                            </div>
-                          </div>
-                        </div>
-                        {protocol.url && (
-                          <a
-                            href={protocol.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 mt-2"
-                          >
-                            {isChineseLocale(locale) ? '访问网站' : 'Visit Website'}
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
-                      </div>
-                    )}
+                  </div>
+                  <div className="text-right">
+                    <div className="font-medium text-gray-900">{formatTVS(protocol.tvs)}</div>
+                    <div
+                      className={`text-xs flex items-center justify-end gap-1 ${
+                        protocol.change24h >= 0 ? 'text-success-600' : 'text-danger-600'
+                      }`}
+                    >
+                      {protocol.change24h >= 0 ? (
+                        <TrendingUp className="w-3 h-3" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3" />
+                      )}
+                      {protocol.change24h >= 0 ? '+' : ''}
+                      {protocol.change24h.toFixed(2)}%
+                    </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {filteredData.length === 0 && (
-        <div className="text-center py-8">
-          <Building2 className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-          <p className="text-gray-500 text-sm">
-            {isChineseLocale(locale) ? '未找到匹配的协议' : 'No protocols found'}
-          </p>
-        </div>
-      )}
+      {/* Summary */}
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <p className="text-xs text-gray-500">
+          {t('showing', { count: filteredData.length })}
+        </p>
+      </div>
     </div>
   );
 }

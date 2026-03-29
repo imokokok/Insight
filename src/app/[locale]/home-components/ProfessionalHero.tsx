@@ -282,8 +282,7 @@ export default function ProfessionalHero() {
 
           {/* Description */}
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed max-w-lg mx-auto">
-            {t('home.hero.description') ||
-              '全面分析和比较主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。'}
+            {t('home.hero.description')}
           </p>
 
           {/* Platform Stats */}
@@ -483,7 +482,7 @@ export default function ProfessionalHero() {
               href="/market-overview"
               className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors duration-200 group rounded-lg"
             >
-              {t('home.hero.ctaPrimary') || '查看市场概览'}
+              {t('home.hero.ctaPrimary')}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
             </Link>
             <Link
@@ -491,7 +490,7 @@ export default function ProfessionalHero() {
               className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-700 font-semibold border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors duration-200 group rounded-lg"
             >
               <Search className="w-5 h-5 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
-              {t('home.hero.ctaSecondary') || '查询价格'}
+              {t('home.hero.ctaSecondary')}
             </Link>
           </div>
         </div>

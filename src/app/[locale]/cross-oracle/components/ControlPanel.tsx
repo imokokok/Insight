@@ -59,11 +59,13 @@ interface ControlPanelProps {
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-const deviationFilters: { value: DeviationFilter; label: string; threshold: string }[] = [
-  { value: 'all', label: 'All', threshold: '' },
-  { value: 'excellent', label: 'Low', threshold: '<0.1%' },
-  { value: 'good', label: 'Medium', threshold: '0.1-0.5%' },
-  { value: 'poor', label: 'High', threshold: '>0.5%' },
+const getDeviationFilters = (
+  t: (key: string) => string
+): { value: DeviationFilter; label: string; threshold: string }[] => [
+  { value: 'all', label: t('crossOracle.groups.all') || 'All', threshold: '' },
+  { value: 'excellent', label: t('crossOracle.consistency.excellent') || 'Low', threshold: '<0.1%' },
+  { value: 'good', label: t('crossOracle.consistency.good') || 'Medium', threshold: '0.1-0.5%' },
+  { value: 'poor', label: t('crossOracle.consistency.poor') || 'High', threshold: '>0.5%' },
 ];
 
 export function ControlPanel({
@@ -114,6 +116,7 @@ export function ControlPanel({
   }));
 
   // Deviation filter options for dropdown
+  const deviationFilters = getDeviationFilters(t);
   const deviationFilterOptions = deviationFilters.map((filter) => ({
     value: filter.value,
     label: `${filter.label} ${filter.threshold}`.trim(),

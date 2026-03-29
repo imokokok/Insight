@@ -661,11 +661,11 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-0.5 bg-primary-500" style={{ height: '1px' }} />
-              <span className="text-gray-600">25%/75%</span>
+              <span className="text-gray-600">{t('crossChain.p75p25')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-0.5 bg-warning-500" style={{ height: '1px' }} />
-              <span className="text-gray-600">10%/90%</span>
+              <span className="text-gray-600">{t('crossChain.p90p10')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-0.5 bg-danger-600" style={{ height: '1px' }} />

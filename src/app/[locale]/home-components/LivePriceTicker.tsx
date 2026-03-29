@@ -126,7 +126,7 @@ function TickerItem({ pair, priceData }: TickerItemProps) {
 }
 
 export default function LivePriceTicker() {
-  const t = useTranslations();
+  const t = useTranslations('ui.livePrice');
   const locale = useLocale();
   const isZh = isChineseLocale(locale);
   const [isPaused, setIsPaused] = useState(false);

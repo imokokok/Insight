@@ -1,44 +1,115 @@
 'use client';
 
+import { useState, useMemo } from 'react';
+
 import {
-  AlertTriangle,
   Shield,
+  AlertTriangle,
   TrendingUp,
+  TrendingDown,
   Activity,
-  PieChart,
-  BarChart3,
+  Clock,
   Info,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
-import { getRiskLevelColor } from '@/lib/analytics/riskMetrics';
-import { chartColors, getChartColor } from '@/lib/chartColors';
-import { semanticColors } from '@/lib/config/colors';
+import { useTranslations } from '@/i18n';
 
-import { type RiskMetrics, type RiskLevel } from '../types';
+import { type RiskMetrics } from '../types';
 
 interface RiskDashboardProps {
   data: RiskMetrics | null;
   loading?: boolean;
 }
 
-export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
-  const locale = useLocale();
+export default function RiskDashboard({ data, loading = false }: RiskDashboardProps) {
+  const t = useTranslations('marketOverview.risk');
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['overview']));
+
+  // 切换展开状态
+  const toggleSection = (section: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
+    }
+    setExpandedSections(newExpanded);
+  };
+
+  // 获取风险等级样式
+  const getRiskLevelStyle = (level: string) => {
+    switch (level) {
+      case 'low':
+        return 'bg-success-100 text-success-700 border-success-200';
+      case 'medium':
+        return 'bg-warning-100 text-warning-700 border-warning-200';
+      case 'high':
+        return 'bg-orange-100 text-orange-700 border-orange-200';
+      case 'critical':
+        return 'bg-danger-100 text-danger-700 border-danger-200';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
+
+  // 获取风险等级标签
+  const getRiskLevelLabel = (level: string) => {
+    const labels: Record<string, string> = {
+      low: t('lowRisk'),
+      medium: t('mediumRisk'),
+      high: t('highRisk'),
+      critical: t('criticalRisk'),
+    };
+    return labels[level] || level;
+  };
+
+  // 获取趋势图标
+  const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
+    switch (trend) {
+      case 'up':
+        return <TrendingUp className="w-4 h-4 text-success-500" />;
+      case 'down':
+        return <TrendingDown className="w-4 h-4 text-danger-500" />;
+      case 'stable':
+        return <Activity className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
+  // 计算风险分布
+  const riskDistribution = useMemo(() => {
+    if (!data) return [];
+    return [
+      { level: 'low', count: data.lowRiskCount || 0, color: 'bg-success-500' },
+      { level: 'medium', count: data.mediumRiskCount || 0, color: 'bg-warning-500' },
+      { level: 'high', count: data.highRiskCount || 0, color: 'bg-orange-500' },
+      { level: 'critical', count: data.criticalRiskCount || 0, color: 'bg-danger-500' },
+    ];
+  }, [data]);
+
+  // 格式化百分比
+  const formatPercent = (value: number) => {
+    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+  };
+
+  // 格式化时间
+  const formatTime = (timestamp?: number) => {
+    if (!timestamp) return '-';
+    return new Date(timestamp).toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   if (loading) {
     return (
-      <div className="py-4 border-b border-gray-100">
-        <div className="flex items-center gap-2 mb-3">
-          <Shield className="w-4 h-4 text-gray-400" />
-          <h3 className="text-sm font-semibold text-gray-900">
-            {isChineseLocale(locale) ? '风险指标' : 'Risk Metrics'}
-          </h3>
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="animate-pulse bg-gray-50 h-24 border border-gray-200" />
-          ))}
+      <div className="py-8 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
+          <span className="text-gray-500 text-sm">{t('loading')}</span>
         </div>
       </div>
     );
@@ -46,296 +117,205 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
 
   if (!data) {
     return (
-      <div className="py-4 border-b border-gray-100">
-        <div className="flex items-center gap-2 mb-3">
-          <Shield className="w-4 h-4 text-gray-400" />
-          <h3 className="text-sm font-semibold text-gray-900">
-            {isChineseLocale(locale) ? '风险指标' : 'Risk Metrics'}
-          </h3>
-        </div>
-        <div className="text-center py-6 text-gray-500 text-sm">
-          {isChineseLocale(locale) ? '暂无风险数据' : 'No risk data available'}
+      <div className="py-8 flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+          <p className="text-gray-500 text-sm">{t('noData')}</p>
         </div>
       </div>
     );
   }
 
-  const getRiskLabel = (level: RiskLevel): string => {
-    const labels: Record<RiskLevel, string> = {
-      low: isChineseLocale(locale) ? '低风险' : 'Low Risk',
-      medium: isChineseLocale(locale) ? '中等风险' : 'Medium Risk',
-      high: isChineseLocale(locale) ? '高风险' : 'High Risk',
-      critical: isChineseLocale(locale) ? '极高风险' : 'Critical Risk',
-    };
-    return labels[level];
-  };
-
-  const getHHIStatus = (value: number): { label: string; color: string } => {
-    if (value < 1500) {
-      return {
-        label: isChineseLocale(locale) ? '竞争型市场' : 'Competitive Market',
-        color: semanticColors.success.main,
-      };
-    } else if (value < 2500) {
-      return {
-        label: isChineseLocale(locale) ? '中度集中' : 'Moderate Concentration',
-        color: semanticColors.warning.main,
-      };
-    } else if (value < 3500) {
-      return {
-        label: isChineseLocale(locale) ? '高度集中' : 'High Concentration',
-        color: semanticColors.danger.main,
-      };
-    } else {
-      return {
-        label: isChineseLocale(locale) ? '垄断型市场' : 'Monopoly Market',
-        color: semanticColors.info.dark,
-      };
-    }
-  };
-
-  const hhiStatus = getHHIStatus(data.hhi.value);
-
   return (
-    <div className="py-4 border-b border-gray-100">
-      {/* 标题栏 */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-primary-600" />
-          <h3 className="text-sm font-semibold text-gray-900">
-            {isChineseLocale(locale) ? '风险指标' : 'Risk Metrics'}
-          </h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">
-            {isChineseLocale(locale) ? '综合风险:' : 'Overall Risk:'}
-          </span>
+    <div className="space-y-4">
+      {/* Overall Risk Level */}
+      <div className="p-4 bg-gray-50 border border-gray-200">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary-500" />
+            <span className="font-medium text-gray-900">{t('overallRiskLevel')}</span>
+          </div>
           <span
-            className="px-2 py-0.5 text-xs font-medium"
-            style={{
-              backgroundColor: `${getRiskLevelColor(data.overallRisk.level)}15`,
-              color: getRiskLevelColor(data.overallRisk.level),
-            }}
+            className={`px-3 py-1 text-sm font-medium border ${getRiskLevelStyle(data.overallRiskLevel)}`}
           >
-            {getRiskLabel(data.overallRisk.level)} ({data.overallRisk.score})
+            {getRiskLevelLabel(data.overallRiskLevel)}
           </span>
         </div>
-      </div>
-
-      {/* 风险指标卡片 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* HHI 指数 */}
-        <div className="py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 mb-2">
-            <PieChart className="w-3.5 h-3.5 text-gray-500" />
-            <span className="text-xs text-gray-700">
-              {isChineseLocale(locale) ? 'HHI 指数' : 'HHI Index'}
-            </span>
+        <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-1.5">
+            <span className="text-gray-500">{t('riskScore')}:</span>
+            <span className="font-semibold text-gray-900">{data.riskScore?.toFixed(1) || '-'}</span>
+            <span className="text-gray-400">/100</span>
           </div>
-          <div className="mb-1">
-            <span className="text-xl font-semibold text-gray-900">{data.hhi.value}</span>
-          </div>
-          <div className="space-y-1.5">
-            <div
-              className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium"
-              style={{ backgroundColor: `${hhiStatus.color}15`, color: hhiStatus.color }}
-            >
-              {hhiStatus.label}
-            </div>
-            <div className="text-xs text-gray-500">
-              CR4: {data.hhi.concentrationRatio.toFixed(1)}%
-            </div>
-          </div>
-          {/* 进度条 */}
-          <div className="mt-2">
-            <div className="h-1.5 bg-gray-100 overflow-hidden">
-              <div
-                className="h-full transition-all duration-500"
-                style={{
-                  width: `${Math.min((data.hhi.value / 5000) * 100, 100)}%`,
-                  backgroundColor: hhiStatus.color,
-                }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>0</span>
-              <span>2500</span>
-              <span>5000+</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 多元化评分 */}
-        <div className="py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 mb-2">
-            <BarChart3 className="w-3.5 h-3.5 text-gray-500" />
-            <span className="text-xs text-gray-700">
-              {isChineseLocale(locale) ? '多元化评分' : 'Diversification'}
-            </span>
-          </div>
-          <div className="mb-1">
-            <span className="text-xl font-semibold text-gray-900">
-              {data.diversification.score}
-            </span>
-            <span className="text-xs text-gray-500">/100</span>
-          </div>
-          <div
-            className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium mb-2"
-            style={{
-              backgroundColor: `${getRiskLevelColor(data.diversification.level)}15`,
-              color: getRiskLevelColor(data.diversification.level),
-            }}
-          >
-            {getRiskLabel(data.diversification.level)}
-          </div>
-          {/* 因素分解 */}
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? '链多样性' : 'Chains'}
-              </span>
-              <span className="font-medium">{data.diversification.factors.chainDiversity}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? '协议多样性' : 'Protocols'}
-              </span>
-              <span className="font-medium">{data.diversification.factors.protocolDiversity}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? '资产多样性' : 'Assets'}
-              </span>
-              <span className="font-medium">{data.diversification.factors.assetDiversity}%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 波动率指数 */}
-        <div className="py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 mb-2">
-            <Activity className="w-3.5 h-3.5 text-gray-500" />
-            <span className="text-xs text-gray-700">
-              {isChineseLocale(locale) ? '波动率指数' : 'Volatility Index'}
-            </span>
-          </div>
-          <div className="mb-1">
-            <span className="text-xl font-semibold text-gray-900">{data.volatility.index}</span>
-          </div>
-          <div
-            className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium mb-2"
-            style={{
-              backgroundColor: `${getRiskLevelColor(data.volatility.level)}15`,
-              color: getRiskLevelColor(data.volatility.level),
-            }}
-          >
-            {getRiskLabel(data.volatility.level)}
-          </div>
-          {/* 波动率详情 */}
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? '年化波动率' : 'Annualized'}
-              </span>
-              <span className="font-medium">
-                {(data.volatility.annualizedVolatility * 100).toFixed(1)}%
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? '日波动率' : 'Daily'}
-              </span>
-              <span className="font-medium">
-                {(data.volatility.dailyVolatility * 100).toFixed(2)}%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* 相关性风险 */}
-        <div className="py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-3.5 h-3.5 text-gray-500" />
-            <span className="text-xs text-gray-700">
-              {isChineseLocale(locale) ? '相关性风险' : 'Correlation Risk'}
-            </span>
-          </div>
-          <div className="mb-1">
-            <span className="text-xl font-semibold text-gray-900">
-              {data.correlationRisk.score}
-            </span>
-            <span className="text-xs text-gray-500">/100</span>
-          </div>
-          <div
-            className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium mb-2"
-            style={{
-              backgroundColor: `${getRiskLevelColor(data.correlationRisk.level)}15`,
-              color: getRiskLevelColor(data.correlationRisk.level),
-            }}
-          >
-            {getRiskLabel(data.correlationRisk.level)}
-          </div>
-          {/* 相关性详情 */}
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? '平均相关性' : 'Avg Correlation'}
-              </span>
-              <span className="font-medium">
-                {(data.correlationRisk.avgCorrelation * 100).toFixed(1)}%
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? '高相关对' : 'High Corr Pairs'}
-              </span>
-              <span className="font-medium">
-                {data.correlationRisk.highCorrelationPairs.length}
-              </span>
-            </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-gray-500">{t('trend')}:</span>
+            {getTrendIcon(data.riskTrend)}
           </div>
         </div>
       </div>
 
-      {/* 风险提示 */}
-      {(data.hhi.level === 'high' || data.hhi.level === 'critical') && (
-        <div className="mt-3 p-2.5 bg-danger-50 border-l-2 border-red-400 flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 text-danger-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-medium text-danger-800">
-              {isChineseLocale(locale) ? '市场集中度风险警告' : 'Market Concentration Risk Warning'}
-            </p>
-            <p className="text-xs text-danger-600 mt-0.5">
-              {isChineseLocale(locale)
-                ? `HHI 指数为 ${data.hhi.value}，表明市场高度集中。前4大企业占据 ${data.hhi.concentrationRatio}% 的市场份额，存在系统性风险。`
-                : `HHI index is ${data.hhi.value}, indicating high market concentration. Top 4 players control ${data.hhi.concentrationRatio}% market share, posing systemic risk.`}
-            </p>
+      {/* Risk Distribution */}
+      <div className="border border-gray-200">
+        <button
+          onClick={() => toggleSection('distribution')}
+          className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+        >
+          <span className="font-medium text-gray-900">{t('riskDistribution')}</span>
+          {expandedSections.has('distribution') ? (
+            <ChevronUp className="w-4 h-4 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-400" />
+          )}
+        </button>
+        {expandedSections.has('distribution') && (
+          <div className="p-3 border-t border-gray-100">
+            <div className="space-y-2">
+              {riskDistribution.map((item) => (
+                <div key={item.level} className="flex items-center gap-3">
+                  <div className={`w-3 h-3 ${item.color}`} />
+                  <span className="flex-1 text-sm text-gray-600">
+                    {getRiskLevelLabel(item.level)}
+                  </span>
+                  <span className="text-sm font-medium text-gray-900">{item.count}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">{t('totalAssets')}</span>
+                <span className="font-medium text-gray-900">{data.totalAssets || 0}</span>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
-
-      {data.diversification.score < 40 && (
-        <div className="mt-3 p-2.5 bg-amber-50 border-l-2 border-amber-400 flex items-start gap-2.5">
-          <Info className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-medium text-amber-800">
-              {isChineseLocale(locale) ? '多元化不足警告' : 'Diversification Warning'}
-            </p>
-            <p className="text-xs text-amber-600 mt-0.5">
-              {isChineseLocale(locale)
-                ? '多元化评分较低，建议增加链、协议和资产的多样性以降低风险。'
-                : 'Diversification score is low. Consider increasing diversity across chains, protocols, and assets to reduce risk.'}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* 更新时间 */}
-      <div className="mt-3 text-xs text-gray-400 text-right">
-        {isChineseLocale(locale) ? '更新于: ' : 'Updated: '}
-        {new Date(data.overallRisk.timestamp).toLocaleString(
-          isChineseLocale(locale) ? 'zh-CN' : 'en-US'
         )}
+      </div>
+
+      {/* Key Risk Metrics */}
+      <div className="border border-gray-200">
+        <button
+          onClick={() => toggleSection('metrics')}
+          className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+        >
+          <span className="font-medium text-gray-900">{t('keyMetrics')}</span>
+          {expandedSections.has('metrics') ? (
+            <ChevronUp className="w-4 h-4 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-400" />
+          )}
+        </button>
+        {expandedSections.has('metrics') && (
+          <div className="p-3 border-t border-gray-100 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-gray-50">
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+                  <Info className="w-3 h-3" />
+                  {t('volatilityIndex')}
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-semibold text-gray-900">
+                    {data.volatilityIndex?.toFixed(2) || '-'}
+                  </span>
+                  {data.volatilityChange !== undefined && (
+                    <span
+                      className={`text-xs ${data.volatilityChange >= 0 ? 'text-success-600' : 'text-danger-600'}`}
+                    >
+                      {formatPercent(data.volatilityChange)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="p-3 bg-gray-50">
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  {t('maxDrawdown')}
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-semibold text-gray-900">
+                    {data.maxDrawdown ? `${data.maxDrawdown.toFixed(2)}%` : '-'}
+                  </span>
+                </div>
+              </div>
+              <div className="p-3 bg-gray-50">
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+                  <Activity className="w-3 h-3" />
+                  {t('sharpeRatio')}
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-semibold text-gray-900">
+                    {data.sharpeRatio?.toFixed(2) || '-'}
+                  </span>
+                </div>
+              </div>
+              <div className="p-3 bg-gray-50">
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+                  <Shield className="w-3 h-3" />
+                  {t('var95')}
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-semibold text-gray-900">
+                    {data.var95 ? `${data.var95.toFixed(2)}%` : '-'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Risk Alerts */}
+      {data.recentAlerts && data.recentAlerts.length > 0 && (
+        <div className="border border-gray-200">
+          <button
+            onClick={() => toggleSection('alerts')}
+            className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-gray-900">{t('recentAlerts')}</span>
+              <span className="px-2 py-0.5 text-xs font-medium bg-warning-100 text-warning-700">
+                {data.recentAlerts.length}
+              </span>
+            </div>
+            {expandedSections.has('alerts') ? (
+              <ChevronUp className="w-4 h-4 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-400" />
+            )}
+          </button>
+          {expandedSections.has('alerts') && (
+            <div className="p-3 border-t border-gray-100 space-y-2">
+              {data.recentAlerts.slice(0, 5).map((alert, index) => (
+                <div
+                  key={index}
+                  className={`p-2.5 border-l-2 ${getRiskLevelStyle(alert.level).replace('bg-', 'border-').split(' ')[2]}`}
+                >
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-warning-500 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900">{alert.message}</p>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatTime(alert.timestamp)}
+                        </span>
+                        <span>{getRiskLevelLabel(alert.level)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Last Updated */}
+      <div className="pt-2 border-t border-gray-100">
+        <div className="flex items-center gap-1.5 text-xs text-gray-400">
+          <Clock className="w-3 h-3" />
+          <span>
+            {t('lastUpdated')}: {formatTime(data.lastUpdated)}
+          </span>
+        </div>
       </div>
     </div>
   );

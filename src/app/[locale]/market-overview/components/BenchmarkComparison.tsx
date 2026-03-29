@@ -1,32 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 
 import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Target,
-  BarChart3,
-  Info,
-  ChevronDown,
-} from 'lucide-react';
-import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip as RechartsTooltip,
+  Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
-  Cell,
+  Legend,
 } from 'recharts';
 
-import { useLocale } from '@/i18n';
-import { isChineseLocale } from '@/i18n/routing';
-import { chartColors, semanticColors } from '@/lib/config/colors';
-import { type TooltipProps } from '@/types/ui/recharts';
+import { useTranslations } from '@/i18n';
 
 import { type BenchmarkData } from '../types';
 
@@ -35,72 +22,36 @@ interface BenchmarkComparisonProps {
   loading?: boolean;
 }
 
+type Timeframe = '1d' | '7d' | '30d' | '90d' | '1y';
+
 export default function BenchmarkComparison({ data, loading = false }: BenchmarkComparisonProps) {
-  const locale = useLocale();
-  const [selectedMetric, setSelectedMetric] = useState<string>(data[0]?.metric.name || '');
-  const [showMetricSelector, setShowMetricSelector] = useState(false);
+  const t = useTranslations('marketOverview.benchmark');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>('30d');
 
-  const currentMetric = useMemo(() => {
-    return data.find((d) => d.metric.name === selectedMetric) || data[0];
-  }, [data, selectedMetric]);
-
-  const chartData = useMemo(() => {
-    if (!currentMetric) return [];
-    return currentMetric.oracleValues.map((ov) => ({
-      name: ov.oracle,
-      value: ov.value,
-      color: ov.color,
-      diffPercent: ov.diffPercent,
-      percentile: ov.percentile,
-      diffFromAverage: ov.diffFromAverage,
-    }));
-  }, [currentMetric]);
-
-  const getPerformanceIcon = (diffPercent: number) => {
-    if (diffPercent > 5) return <TrendingUp className="w-4 h-4 text-success-500" />;
-    if (diffPercent < -5) return <TrendingDown className="w-4 h-4 text-danger-500" />;
-    return <Minus className="w-4 h-4 text-gray-400" />;
+  // 格式化百分比
+  const formatPercent = (value: number) => {
+    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
 
-  const getPerformanceClass = (diffPercent: number) => {
-    if (diffPercent > 5) return 'text-success-600';
-    if (diffPercent < -5) return 'text-danger-600';
-    return 'text-gray-600';
-  };
-
-  const CustomTooltip = ({ active, payload }: TooltipProps<(typeof chartData)[0]>) => {
+  // 自定义Tooltip
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const item = payload[0].payload as (typeof chartData)[0];
-      const metric = currentMetric?.metric;
       return (
-        <div className="bg-white border border-gray-200 p-2 min-w-[180px] rounded-lg">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-2 h-2" style={{ backgroundColor: item.color }} />
-            <span className="font-medium text-gray-900 text-sm">{item.name}</span>
-          </div>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-500">{metric?.name}:</span>
-              <span className="font-medium">
-                {item.value}
-                {metric?.unit}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? 'vs 行业平均' : 'vs Industry Avg'}:
-              </span>
-              <span className={`font-medium ${getPerformanceClass(item.diffPercent)}`}>
-                {item.diffPercent > 0 ? '+' : ''}
-                {item.diffPercent.toFixed(1)}%
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">
-                {isChineseLocale(locale) ? '排名百分位' : 'Percentile'}:
-              </span>
-              <span className="font-medium text-primary-600">Top {item.percentile}%</span>
-            </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+          <p className="font-semibold text-gray-900 mb-2">{label}</p>
+          <div className="space-y-1">
+            {payload.map((entry: any, index: number) => (
+              <div key={index} className="flex items-center gap-2 text-sm">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-gray-600">{entry.name}:</span>
+                <span className="font-medium text-gray-900">
+                  {formatPercent(entry.value)}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       );
@@ -110,238 +61,85 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
 
   if (loading) {
     return (
-      <div className="py-12 flex items-center justify-center">
+      <div className="h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
-          <span className="text-gray-500 text-sm">
-            {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
-          </span>
+          <span className="text-gray-500 text-sm">{t('loading')}</span>
         </div>
       </div>
     );
   }
 
-  if (data.length === 0 || !currentMetric) {
+  if (data.length === 0) {
     return (
-      <div className="py-12 flex items-center justify-center">
+      <div className="h-full flex items-center justify-center">
         <div className="text-center">
-          <BarChart3 className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-          <p className="text-gray-500 text-sm">
-            {isChineseLocale(locale) ? '暂无基准数据' : 'No benchmark data available'}
-          </p>
+          <p className="text-gray-500 text-sm">{t('noData')}</p>
         </div>
       </div>
     );
   }
+
+  const timeframes: Timeframe[] = ['1d', '7d', '30d', '90d', '1y'];
 
   return (
-    <div className="space-y-4">
-      {/* 指标选择器 */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="relative">
-          <button
-            onClick={() => setShowMetricSelector(!showMetricSelector)}
-            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors rounded-md"
-          >
-            <Target className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-gray-700">{currentMetric.metric.name}</span>
-            <ChevronDown
-              className={`w-4 h-4 text-gray-500 transition-transform ${
-                showMetricSelector ? 'rotate-180' : ''
+    <div className="h-full flex flex-col">
+      {/* Timeframe Selection */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-sm text-gray-600">{t('timeframes.1d')}:</span>
+        <div className="flex gap-1">
+          {timeframes.map((tf) => (
+            <button
+              key={tf}
+              onClick={() => setSelectedTimeframe(tf)}
+              className={`px-3 py-1.5 text-sm transition-colors ${
+                selectedTimeframe === tf
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
-            />
-          </button>
-
-          {showMetricSelector && (
-            <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 z-10 rounded-lg">
-              <div className="p-1.5">
-                {data.map((item) => (
-                  <button
-                    key={item.metric.name}
-                    onClick={() => {
-                      setSelectedMetric(item.metric.name);
-                      setShowMetricSelector(false);
-                    }}
-                    className={`w-full px-2.5 py-1.5 text-left transition-colors ${
-                      selectedMetric === item.metric.name
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'hover:bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    <div className="text-sm">{item.metric.name}</div>
-                    <div className="text-xs text-gray-500 truncate">{item.metric.description}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 行业基准统计 */}
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 text-xs">
-              {isChineseLocale(locale) ? '行业平均' : 'Industry Avg'}:
-            </span>
-            <span className="font-medium text-gray-900 text-sm">
-              {currentMetric.metric.industryAverage}
-              {currentMetric.metric.unit}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 text-xs">
-              {isChineseLocale(locale) ? '行业中位数' : 'Median'}:
-            </span>
-            <span className="font-medium text-gray-900 text-sm">
-              {currentMetric.metric.industryMedian}
-              {currentMetric.metric.unit}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 text-xs">
-              {isChineseLocale(locale) ? '行业最佳' : 'Best'}:
-            </span>
-            <span className="font-medium text-success-600 text-sm">
-              {currentMetric.metric.industryBest}
-              {currentMetric.metric.unit}
-            </span>
-          </div>
+            >
+              {t(`timeframes.${tf}`)}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* 图表 */}
-      <div className="h-[300px]">
+      {/* Chart */}
+      <div className="flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} layout="vertical" margin={{ left: 90 }}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke={chartColors.recharts.grid}
-              horizontal={false}
+          <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="date"
+              tick={{ fill: '#4b5563', fontSize: 12 }}
+              stroke="#9ca3af"
             />
-            <XAxis type="number" stroke={chartColors.recharts.axis} fontSize={12} />
             <YAxis
-              dataKey="name"
-              type="category"
-              stroke={chartColors.recharts.secondaryAxis}
-              fontSize={11}
-              width={85}
+              tickFormatter={(value) => formatPercent(value)}
+              tick={{ fill: '#4b5563', fontSize: 12 }}
+              stroke="#9ca3af"
             />
-            <RechartsTooltip content={<CustomTooltip />} />
-            <ReferenceLine
-              x={currentMetric.metric.industryAverage}
-              stroke={semanticColors.warning.main}
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="oraclePerformance"
+              name={t('performance')}
+              stroke="#3b82f6"
+              strokeWidth={2}
+              dot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="benchmarkPerformance"
+              name={t('compareTo')}
+              stroke="#10b981"
+              strokeWidth={2}
               strokeDasharray="5 5"
-              label={{
-                value: isChineseLocale(locale) ? '平均' : 'Avg',
-                position: 'top',
-                fill: semanticColors.warning.main,
-                fontSize: 10,
-              }}
+              dot={false}
             />
-            <Bar dataKey="value">
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
+          </LineChart>
         </ResponsiveContainer>
-      </div>
-
-      {/* 详细对比表格 */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {isChineseLocale(locale) ? '预言机' : 'Oracle'}
-              </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {currentMetric.metric.name}
-              </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {isChineseLocale(locale) ? 'vs 行业平均' : 'vs Industry Avg'}
-              </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {isChineseLocale(locale) ? '差异值' : 'Difference'}
-              </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {isChineseLocale(locale) ? '排名百分位' : 'Percentile'}
-              </th>
-              <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {isChineseLocale(locale) ? '表现' : 'Performance'}
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {currentMetric.oracleValues
-              .sort((a, b) => b.value - a.value)
-              .map((ov) => (
-                <tr key={ov.oracle} className="hover:bg-gray-50">
-                  <td className="px-3 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5" style={{ backgroundColor: ov.color }} />
-                      <span className="font-medium text-gray-900 text-sm">{ov.oracle}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2.5 text-right">
-                    <span className="font-medium text-gray-900 text-sm">
-                      {ov.value}
-                      {currentMetric.metric.unit}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2.5 text-right">
-                    <span className={`font-medium text-sm ${getPerformanceClass(ov.diffPercent)}`}>
-                      {ov.diffPercent > 0 ? '+' : ''}
-                      {ov.diffPercent.toFixed(1)}%
-                    </span>
-                  </td>
-                  <td className="px-3 py-2.5 text-right">
-                    <span
-                      className={`font-medium text-sm ${
-                        ov.diffFromAverage > 0 ? 'text-success-600' : 'text-danger-600'
-                      }`}
-                    >
-                      {ov.diffFromAverage > 0 ? '+' : ''}
-                      {ov.diffFromAverage}
-                      {currentMetric.metric.unit}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2.5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <div className="w-14 h-1.5 bg-gray-100 overflow-hidden">
-                        <div
-                          className="h-full bg-primary-500"
-                          style={{ width: `${ov.percentile}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-gray-600">Top {ov.percentile}%</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2.5 text-center">
-                    <div className="flex items-center justify-center">
-                      {getPerformanceIcon(ov.diffPercent)}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 说明 */}
-      <div className="flex items-start gap-2 text-xs text-gray-500 py-3 border-b border-gray-100">
-        <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="font-medium text-gray-700 mb-0.5">
-            {isChineseLocale(locale) ? '关于行业基准' : 'About Industry Benchmarks'}
-          </p>
-          <p>{currentMetric.metric.description}</p>
-          <p className="mt-0.5">
-            {isChineseLocale(locale)
-              ? '黄色虚线表示行业平均值。绿色表示高于平均，红色表示低于平均。'
-              : 'Yellow dashed line indicates industry average. Green = above average, Red = below average.'}
-          </p>
-        </div>
       </div>
     </div>
   );

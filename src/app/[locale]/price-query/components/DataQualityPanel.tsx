@@ -53,11 +53,11 @@ interface DataQualityPanelProps {
 
 type ScoreLevel = 'excellent' | 'good' | 'warning' | 'critical';
 
-const SCORE_CONFIG: Record<ScoreLevel, { color: string; bgColor: string; label: string }> = {
-  excellent: { color: semanticColors.success.main, bgColor: 'bg-success-500', label: '优秀' },
-  good: { color: semanticColors.info.main, bgColor: 'bg-primary-500', label: '良好' },
-  warning: { color: semanticColors.warning.main, bgColor: 'bg-warning-500', label: '警告' },
-  critical: { color: semanticColors.danger.main, bgColor: 'bg-danger-500', label: '异常' },
+const SCORE_CONFIG: Record<ScoreLevel, { color: string; bgColor: string; labelKey: string }> = {
+  excellent: { color: semanticColors.success.main, bgColor: 'bg-success-500', labelKey: 'excellent' },
+  good: { color: semanticColors.info.main, bgColor: 'bg-primary-500', labelKey: 'good' },
+  warning: { color: semanticColors.warning.main, bgColor: 'bg-warning-500', labelKey: 'warning' },
+  critical: { color: semanticColors.danger.main, bgColor: 'bg-danger-500', labelKey: 'critical' },
 };
 
 const LATENCY_COLORS = {
@@ -128,7 +128,8 @@ function generateLatencyDistribution(avgLatency: number): LatencyDistributionIte
 
 function generateFreshnessTrend(
   results: QueryResult[],
-  historicalData: Partial<Record<string, QueryResult['priceData'][]>>
+  historicalData: Partial<Record<string, QueryResult['priceData'][]>>,
+  locale: string = 'zh-CN'
 ): FreshnessTrendItem[] {
   const now = Date.now();
   const points = 24;
@@ -136,7 +137,7 @@ function generateFreshnessTrend(
 
   return Array.from({ length: points }, (_, i) => {
     const timestamp = now - (points - 1 - i) * interval;
-    const time = new Date(timestamp).toLocaleTimeString('zh-CN', {
+    const time = new Date(timestamp).toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -188,9 +189,9 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
       <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('dataQuality.completenessScore')}
+            {t('priceQuery.dataQuality.completenessScore')}
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.completenessDesc')}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('priceQuery.dataQuality.completenessDesc')}</p>
         </div>
         <svg
           className="w-5 h-5 text-primary-600"
@@ -209,7 +210,7 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
 
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="py-2 text-center">
-          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgScore')}</p>
+          <p className="text-xs text-gray-500 mb-1">{t('priceQuery.dataQuality.avgScore')}</p>
           <p
             className={`text-xl font-bold ${
               avgScore >= 90
@@ -225,11 +226,11 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
           </p>
         </div>
         <div className="py-2 text-center">
-          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.dataSources')}</p>
+          <p className="text-xs text-gray-500 mb-1">{t('priceQuery.dataQuality.dataSources')}</p>
           <p className="text-xl font-bold text-gray-900">{metrics.length}</p>
         </div>
         <div className="py-2 text-center">
-          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.excellentRate')}</p>
+          <p className="text-xs text-gray-500 mb-1">{t('priceQuery.dataQuality.excellentRate')}</p>
           <p className="text-xl font-bold text-success-600">
             {metrics.length > 0
               ? Math.round(
@@ -257,19 +258,19 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
                   SCORE_CONFIG[getScoreLevel(metric.completenessScore)].bgColor
                 } text-white`}
               >
-                {SCORE_CONFIG[getScoreLevel(metric.completenessScore)].label}
+                {t(`priceQuery.dataQuality.${SCORE_CONFIG[getScoreLevel(metric.completenessScore)].labelKey}`)}
               </span>
             </div>
             <ScoreBadge score={metric.completenessScore} />
             <div className="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
               <span>
-                {t('dataQuality.dataPoints')}: {metric.dataPoints}
+                {t('priceQuery.dataQuality.dataPoints')}: {metric.dataPoints}
               </span>
               <span>
-                {t('dataQuality.continuity')}: {metric.timeContinuity}%
+                {t('priceQuery.dataQuality.continuity')}: {metric.timeContinuity}%
               </span>
               <span>
-                {t('dataQuality.missing')}: {metric.missingRatio}%
+                {t('priceQuery.dataQuality.missing')}: {metric.missingRatio}%
               </span>
             </div>
           </div>
@@ -319,9 +320,9 @@ function LatencyDistributionChart({ results }: { results: QueryResult[] }) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('dataQuality.latencyDistribution')}
+            {t('priceQuery.dataQuality.latencyDistribution')}
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.latencyDistributionDesc')}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('priceQuery.dataQuality.latencyDistributionDesc')}</p>
         </div>
         <div className="p-2 bg-purple-50 border border-purple-100">
           <svg
@@ -354,19 +355,19 @@ function LatencyDistributionChart({ results }: { results: QueryResult[] }) {
 
       <div className="grid grid-cols-4 gap-2 mb-4">
         <div className="bg-success-50 border border-green-100 p-2 text-center">
-          <p className="text-xs text-gray-500">{t('dataQuality.excellent')}</p>
+          <p className="text-xs text-gray-500">{t('priceQuery.dataQuality.excellent')}</p>
           <p className="text-sm font-bold text-success-600">{stats.excellent}%</p>
         </div>
         <div className="bg-primary-50 border border-primary-100 p-2 text-center">
-          <p className="text-xs text-gray-500">{t('dataQuality.good')}</p>
+          <p className="text-xs text-gray-500">{t('priceQuery.dataQuality.good')}</p>
           <p className="text-sm font-bold text-primary-600">{stats.good}%</p>
         </div>
         <div className="bg-warning-50 border border-yellow-100 p-2 text-center">
-          <p className="text-xs text-gray-500">{t('dataQuality.warning')}</p>
+          <p className="text-xs text-gray-500">{t('priceQuery.dataQuality.warning')}</p>
           <p className="text-sm font-bold text-warning-600">{stats.warning}%</p>
         </div>
         <div className="bg-danger-50 border border-danger-100 p-2 text-center">
-          <p className="text-xs text-gray-500">{t('dataQuality.critical')}</p>
+          <p className="text-xs text-gray-500">{t('priceQuery.dataQuality.critical')}</p>
           <p className="text-sm font-bold text-danger-600">{stats.critical}%</p>
         </div>
       </div>
@@ -400,16 +401,16 @@ function LatencyDistributionChart({ results }: { results: QueryResult[] }) {
               return (
                 <div className="bg-white border border-gray-200 p-3">
                   <p className="text-xs text-gray-600 font-medium">
-                    {t('dataQuality.latencyRange')}: {item.range}ms
+                    {t('priceQuery.dataQuality.latencyRange')}: {item.range}ms
                   </p>
                   <p className="text-xs text-gray-600 mt-1">
-                    {t('dataQuality.percentage')}: {item.percentage}%
+                    {t('priceQuery.dataQuality.percentage')}: {item.percentage}%
                   </p>
                   <p className="text-xs text-gray-600 mt-1">
-                    {t('dataQuality.sampleCount')}: {item.count}
+                    {t('priceQuery.dataQuality.sampleCount')}: {item.count}
                   </p>
                   <p className="text-xs text-gray-600 mt-1">
-                    {t('dataQuality.level')}: {SCORE_CONFIG[item.level].label}
+                    {t('priceQuery.dataQuality.level')}: {t(`priceQuery.dataQuality.${SCORE_CONFIG[item.level].labelKey}`)}
                   </p>
                 </div>
               );
@@ -467,6 +468,10 @@ function FreshnessTrendChart({
     API3: chartColors.oracle.api3,
   };
 
+  const getLevelLabel = (level: ScoreLevel) => {
+    return t(`priceQuery.dataQuality.${SCORE_CONFIG[level].labelKey}`);
+  };
+
   const toggleSeries = (key: string) => {
     setHiddenSeries((prev) => {
       const newSet = new Set(prev);
@@ -483,8 +488,8 @@ function FreshnessTrendChart({
     <div className="bg-white border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.freshnessTrend')}</h3>
-          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.freshnessTrendDesc')}</p>
+          <h3 className="text-sm font-semibold text-gray-900">{t('priceQuery.dataQuality.freshnessTrend')}</h3>
+          <p className="text-xs text-gray-500 mt-0.5">{t('priceQuery.dataQuality.freshnessTrendDesc')}</p>
         </div>
         <div className="p-2 bg-success-50 border border-green-100">
           <svg
@@ -618,15 +623,15 @@ function FreshnessTrendChart({
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-success-500" />
-          <span className="text-xs text-gray-500">{t('dataQuality.fresh')} (&gt;80%)</span>
+          <span className="text-xs text-gray-500">{t('priceQuery.dataQuality.fresh')} (&gt;80%)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-warning-500" />
-          <span className="text-xs text-gray-500">{t('dataQuality.stale')} (50-80%)</span>
+          <span className="text-xs text-gray-500">{t('priceQuery.dataQuality.stale')} (50-80%)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-danger-500" />
-          <span className="text-xs text-gray-500">{t('dataQuality.delayed')} (&lt;50%)</span>
+          <span className="text-xs text-gray-500">{t('priceQuery.dataQuality.delayed')} (&lt;50%)</span>
         </div>
       </div>
     </div>
@@ -678,19 +683,19 @@ export function DataQualityPanel({ results, historicalData }: DataQualityPanelPr
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('dataQuality.dataQualityAnalysis')}
+            {t('priceQuery.dataQuality.dataQualityAnalysis')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{t('dataQuality.oracleDataQualityMetrics')}</p>
+          <p className="text-sm text-gray-500 mt-1">{t('priceQuery.dataQuality.oracleDataQualityMetrics')}</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500">
-            {t('dataQuality.lastUpdated')}: {lastUpdated.toLocaleTimeString('zh-CN')}
+            {t('priceQuery.dataQuality.lastUpdated')}: {lastUpdated.toLocaleTimeString()}
           </span>
           <button
             onClick={handleRefresh}
             className="px-3 py-1.5 bg-primary-50 text-primary-600 text-sm font-medium border border-primary-200 hover:border-primary-300 transition-colors"
           >
-            {t('dataQuality.refreshData')}
+            {t('priceQuery.dataQuality.refreshData')}
           </button>
         </div>
       </div>
