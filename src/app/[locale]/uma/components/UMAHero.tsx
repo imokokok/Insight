@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 
 import {
   TrendingUp,
@@ -22,7 +22,6 @@ import {
   Link2,
   Server,
   TrendingUp as TrendingUpIcon,
-  ArrowRight,
   Users,
   CheckCircle,
 } from 'lucide-react';
@@ -113,159 +112,6 @@ function DataSourceBadge({
         <span className={`relative inline-flex rounded-full h-2 w-2 ${config.dot}`} />
       </span>
       <span>{t('uma.market.dataSourceLabel')}: {config.label}</span>
-    </div>
-  );
-}
-
-function OOOverviewCard({ themeColor, t }: { themeColor: string; t: ReturnType<typeof useTranslations> }) {
-  const advantages = [
-    {
-      icon: <Zap className="w-4 h-4" />,
-      title: t('uma.hero.fastEfficientShort'),
-    },
-    {
-      icon: <Shield className="w-4 h-4" />,
-      title: t('uma.hero.secureReliableShort'),
-    },
-    {
-      icon: <Users className="w-4 h-4" />,
-      title: t('uma.hero.decentralizedOpenShort'),
-    },
-  ];
-
-  return (
-    <div className="p-4 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-100">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: `${themeColor}15` }}
-          >
-            <Zap className="w-4 h-4" style={{ color: themeColor }} />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900">{t('uma.hero.optimisticOracleMechanism')}</h3>
-            <p className="text-xs text-gray-500">Optimistic Oracle</p>
-          </div>
-        </div>
-        <a
-          href="#optimistic-oracle-flow"
-          className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors"
-          style={{ color: themeColor }}
-        >
-          <span>{t('uma.hero.learnMore')}</span>
-          <ArrowRight className="w-3 h-3" />
-        </a>
-      </div>
-
-      <p className="text-xs text-gray-600 mb-3">
-        {t('uma.hero.defaultTrustValidators')}
-      </p>
-
-      <div className="space-y-2">
-        {advantages.map((advantage, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${themeColor}10` }}
-            >
-              <div style={{ color: themeColor }} className="w-3.5 h-3.5">
-                {advantage.icon}
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <span className="text-xs font-medium text-gray-900">{advantage.title}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function RealtimePriceDisplay({
-  price,
-  change24h,
-  themeColor,
-  isRealtimeConnected,
-  t,
-}: {
-  price: number;
-  change24h: number;
-  themeColor: string;
-  isRealtimeConnected: boolean;
-  t: ReturnType<typeof useTranslations>;
-}) {
-  const [displayPrice, setDisplayPrice] = useState(price);
-  const [priceDirection, setPriceDirection] = useState<'up' | 'down' | null>(null);
-  const [showPulse, setShowPulse] = useState(false);
-
-  useEffect(() => {
-    if (price !== displayPrice) {
-      setPriceDirection(price > displayPrice ? 'up' : 'down');
-      setShowPulse(true);
-      setDisplayPrice(price);
-
-      const timer = setTimeout(() => {
-        setShowPulse(false);
-        setPriceDirection(null);
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [price, displayPrice]);
-
-  const isPositive = change24h >= 0;
-
-  return (
-    <div className="relative">
-      <div className="flex items-baseline gap-2">
-        <span
-          className={`text-2xl font-bold tracking-tight transition-colors duration-300 ${
-            priceDirection === 'up'
-              ? 'text-emerald-600'
-              : priceDirection === 'down'
-                ? 'text-red-600'
-                : 'text-gray-900'
-          }`}
-        >
-          ${displayPrice.toFixed(2)}
-        </span>
-        <span
-          className={`text-sm font-medium flex items-center gap-0.5 ${
-            isPositive ? 'text-emerald-600' : 'text-red-600'
-          }`}
-        >
-          {isPositive ? (
-            <TrendingUp className="w-3.5 h-3.5" />
-          ) : (
-            <TrendingDown className="w-3.5 h-3.5" />
-          )}
-          {isPositive ? '+' : ''}
-          {change24h.toFixed(2)}%
-        </span>
-      </div>
-
-      {showPulse && (
-        <div
-          className={`absolute -inset-1 rounded-lg opacity-20 ${
-            priceDirection === 'up' ? 'bg-emerald-500' : 'bg-red-500'
-          }`}
-          style={{
-            animation: 'pulse 1s ease-out',
-          }}
-        />
-      )}
-
-      {isRealtimeConnected && (
-        <div className="flex items-center gap-1 mt-1">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-          </span>
-          <span className="text-xs text-gray-500">{t('uma.hero.realTimePrice')}</span>
-        </div>
-      )}
     </div>
   );
 }
@@ -923,8 +769,6 @@ export function UMAHero({
               />
             </div>
 
-            <OOOverviewCard themeColor={themeColor} t={t} />
-
             <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex-1">
               <MiniPriceChart
                 historicalData={historicalData}
@@ -934,24 +778,6 @@ export function UMAHero({
               />
             </div>
 
-            <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500">{t('uma.hero.realTimePrice')}</span>
-                <DataFreshnessIndicator
-                  lastUpdate={realtimeLastUpdate}
-                  connectionStatus={connectionStatus}
-                  compact={true}
-                  showConnectionStatus={false}
-                />
-              </div>
-              <RealtimePriceDisplay
-                price={currentPrice}
-                change24h={priceChange24h}
-                themeColor={themeColor}
-                isRealtimeConnected={isRealtimeConnected}
-                t={t}
-              />
-            </div>
           </div>
         </div>
       </div>
