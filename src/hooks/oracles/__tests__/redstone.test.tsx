@@ -5,6 +5,7 @@ import { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 
+import { RedStoneClient } from '@/lib/oracles/redstone';
 import * as storage from '@/lib/oracles/storage';
 
 import { useRedStonePrice, useRedStoneHistorical, useRedStoneAllData } from '../redstone';
@@ -29,8 +30,11 @@ const createWrapper = (queryClient: QueryClient) => {
   };
 };
 
+const createClient = () => new RedStoneClient();
+
 describe('useRedStonePrice', () => {
   let queryClient: QueryClient;
+  let client: RedStoneClient;
 
   beforeEach(() => {
     queryClient = new QueryClient({
@@ -41,6 +45,7 @@ describe('useRedStonePrice', () => {
         },
       },
     });
+    client = createClient();
     jest.clearAllMocks();
     (storage.shouldUseDatabase as jest.Mock).mockReturnValue(false);
   });
@@ -50,7 +55,7 @@ describe('useRedStonePrice', () => {
   });
 
   it('should fetch price data successfully', async () => {
-    const { result } = renderHook(() => useRedStonePrice({ symbol: 'BTC' }), {
+    const { result } = renderHook(() => useRedStonePrice({ symbol: 'BTC', client }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -67,7 +72,7 @@ describe('useRedStonePrice', () => {
   });
 
   it('should handle different symbols', async () => {
-    const { result } = renderHook(() => useRedStonePrice({ symbol: 'ETH' }), {
+    const { result } = renderHook(() => useRedStonePrice({ symbol: 'ETH', client }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -79,9 +84,12 @@ describe('useRedStonePrice', () => {
   });
 
   it('should handle chain parameter', async () => {
-    const { result } = renderHook(() => useRedStonePrice({ symbol: 'BTC', chain: 'ethereum' }), {
-      wrapper: createWrapper(queryClient),
-    });
+    const { result } = renderHook(
+      () => useRedStonePrice({ symbol: 'BTC', chain: 'ethereum', client }),
+      {
+        wrapper: createWrapper(queryClient),
+      }
+    );
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -91,16 +99,19 @@ describe('useRedStonePrice', () => {
   });
 
   it('should respect enabled option', async () => {
-    const { result } = renderHook(() => useRedStonePrice({ symbol: 'BTC', enabled: false }), {
-      wrapper: createWrapper(queryClient),
-    });
+    const { result } = renderHook(
+      () => useRedStonePrice({ symbol: 'BTC', enabled: false, client }),
+      {
+        wrapper: createWrapper(queryClient),
+      }
+    );
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.price).toBeUndefined();
   });
 
   it('should support refetch', async () => {
-    const { result } = renderHook(() => useRedStonePrice({ symbol: 'BTC' }), {
+    const { result } = renderHook(() => useRedStonePrice({ symbol: 'BTC', client }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -120,6 +131,7 @@ describe('useRedStonePrice', () => {
 
 describe('useRedStoneHistorical', () => {
   let queryClient: QueryClient;
+  let client: RedStoneClient;
 
   beforeEach(() => {
     queryClient = new QueryClient({
@@ -130,6 +142,7 @@ describe('useRedStoneHistorical', () => {
         },
       },
     });
+    client = createClient();
     jest.clearAllMocks();
     (storage.shouldUseDatabase as jest.Mock).mockReturnValue(false);
   });
@@ -139,9 +152,12 @@ describe('useRedStoneHistorical', () => {
   });
 
   it('should fetch historical data successfully', async () => {
-    const { result } = renderHook(() => useRedStoneHistorical({ symbol: 'BTC', period: 30 }), {
-      wrapper: createWrapper(queryClient),
-    });
+    const { result } = renderHook(
+      () => useRedStoneHistorical({ symbol: 'BTC', period: 30, client }),
+      {
+        wrapper: createWrapper(queryClient),
+      }
+    );
 
     expect(result.current.isLoading).toBe(true);
 
@@ -155,7 +171,7 @@ describe('useRedStoneHistorical', () => {
   });
 
   it('should use default period of 30', async () => {
-    const { result } = renderHook(() => useRedStoneHistorical({ symbol: 'BTC' }), {
+    const { result } = renderHook(() => useRedStoneHistorical({ symbol: 'BTC', client }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -167,9 +183,12 @@ describe('useRedStoneHistorical', () => {
   });
 
   it('should return prices in chronological order', async () => {
-    const { result } = renderHook(() => useRedStoneHistorical({ symbol: 'BTC', period: 24 }), {
-      wrapper: createWrapper(queryClient),
-    });
+    const { result } = renderHook(
+      () => useRedStoneHistorical({ symbol: 'BTC', period: 24, client }),
+      {
+        wrapper: createWrapper(queryClient),
+      }
+    );
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -184,6 +203,7 @@ describe('useRedStoneHistorical', () => {
 
 describe('useRedStoneAllData', () => {
   let queryClient: QueryClient;
+  let client: RedStoneClient;
 
   beforeEach(() => {
     queryClient = new QueryClient({
@@ -194,6 +214,7 @@ describe('useRedStoneAllData', () => {
         },
       },
     });
+    client = createClient();
     jest.clearAllMocks();
     (storage.shouldUseDatabase as jest.Mock).mockReturnValue(false);
   });
@@ -203,7 +224,7 @@ describe('useRedStoneAllData', () => {
   });
 
   it('should fetch all data successfully', async () => {
-    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC' }), {
+    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC', client }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -222,7 +243,7 @@ describe('useRedStoneAllData', () => {
   });
 
   it('should return ecosystem data', async () => {
-    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC' }), {
+    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC', client }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -236,7 +257,7 @@ describe('useRedStoneAllData', () => {
   });
 
   it('should return risk metrics data', async () => {
-    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC' }), {
+    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC', client }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -251,7 +272,7 @@ describe('useRedStoneAllData', () => {
   });
 
   it('should combine loading states', async () => {
-    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC' }), {
+    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC', client }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -269,7 +290,7 @@ describe('useRedStoneAllData', () => {
   });
 
   it('should collect errors from all queries', async () => {
-    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC' }), {
+    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC', client }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -281,7 +302,7 @@ describe('useRedStoneAllData', () => {
   });
 
   it('should support refetchAll', async () => {
-    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC' }), {
+    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC', client }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -299,16 +320,19 @@ describe('useRedStoneAllData', () => {
   });
 
   it('should handle disabled state', async () => {
-    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC', enabled: false }), {
-      wrapper: createWrapper(queryClient),
-    });
+    const { result } = renderHook(
+      () => useRedStoneAllData({ symbol: 'BTC', enabled: false, client }),
+      {
+        wrapper: createWrapper(queryClient),
+      }
+    );
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.price).toBeUndefined();
   });
 
   it('should return lastUpdated from price timestamp', async () => {
-    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC' }), {
+    const { result } = renderHook(() => useRedStoneAllData({ symbol: 'BTC', client }), {
       wrapper: createWrapper(queryClient),
     });
 

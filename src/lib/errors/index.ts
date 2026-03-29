@@ -23,10 +23,13 @@ export {
   PriceFetchError,
   UnsupportedChainError,
   UnsupportedSymbolError,
+  RedStoneApiError,
   type OracleErrorDetails,
   type PriceFetchErrorDetails,
   type UnsupportedChainErrorDetails,
   type UnsupportedSymbolErrorDetails,
+  type RedStoneApiErrorDetails,
+  type RedStoneErrorCode,
 } from './OracleError';
 
 export {

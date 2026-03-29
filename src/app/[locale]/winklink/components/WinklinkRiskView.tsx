@@ -5,6 +5,7 @@ import { Shield, CheckCircle } from 'lucide-react';
 import { useTranslations } from '@/i18n';
 
 import { type WinklinkRiskViewProps } from '../types';
+import { RISK_TREND_DATA } from '../constants';
 
 export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewProps) {
   const t = useTranslations();
@@ -161,7 +162,7 @@ export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewPro
               {t('winklink.risk.riskTrend')}
             </h3>
             <div className="h-48 flex items-end gap-2">
-              {[3.2, 3.0, 2.8, 2.7, 2.6, 2.5, 2.5, 2.4, 2.5, 2.5, 2.5, 2.5].map((value, index) => {
+              {RISK_TREND_DATA.map((value, index) => {
                 const max = 5;
                 const height = (value / max) * 100;
                 return (

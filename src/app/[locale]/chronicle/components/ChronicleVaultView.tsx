@@ -2,9 +2,18 @@
 
 import { useState } from 'react';
 
-import { Landmark, Shield, TrendingUp, AlertTriangle, Coins, Percent, Activity } from 'lucide-react';
+import {
+  Landmark,
+  Shield,
+  TrendingUp,
+  AlertTriangle,
+  Coins,
+  Percent,
+  Activity,
+} from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
+import { formatCompactCurrency } from '@/lib/utils/format';
 
 import { ChronicleDataTable } from './ChronicleDataTable';
 
@@ -182,25 +191,21 @@ const mockLiquidationHistory: LiquidationHistory[] = [
 const vaultCategories = [
   { id: 'all', label: 'All', count: mockVaultTypes.length },
   { id: 'ETH-A', label: 'ETH-A', count: mockVaultTypes.filter((v) => v.type === 'ETH-A').length },
-  { id: 'WBTC-A', label: 'WBTC-A', count: mockVaultTypes.filter((v) => v.type === 'WBTC-A').length },
-  { id: 'USDC-A', label: 'USDC-A', count: mockVaultTypes.filter((v) => v.type === 'USDC-A').length },
+  {
+    id: 'WBTC-A',
+    label: 'WBTC-A',
+    count: mockVaultTypes.filter((v) => v.type === 'WBTC-A').length,
+  },
+  {
+    id: 'USDC-A',
+    label: 'USDC-A',
+    count: mockVaultTypes.filter((v) => v.type === 'USDC-A').length,
+  },
 ];
 
 export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewProps) {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
-  const formatCurrency = (value: number) => {
-    if (value >= 1e9) {
-      return `$${(value / 1e9).toFixed(2)}B`;
-    } else if (value >= 1e6) {
-      return `$${(value / 1e6).toFixed(2)}M`;
-    } else if (value >= 1e3) {
-      return `$${(value / 1e3).toFixed(2)}K`;
-    } else {
-      return `$${value.toLocaleString()}`;
-    }
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -234,12 +239,12 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
     },
     {
       label: t('chronicle.vault.totalCollateral') || 'Total Collateral',
-      value: formatCurrency(vaultData?.totalCollateralValue || 3635000000),
+      value: formatCompactCurrency(vaultData?.totalCollateralValue || 3635000000),
       icon: Shield,
     },
     {
       label: t('chronicle.vault.totalDebt') || 'Total Debt',
-      value: formatCurrency(vaultData?.totalDebtValue || 2022000000),
+      value: formatCompactCurrency(vaultData?.totalDebtValue || 2022000000),
       icon: Coins,
     },
     {
@@ -272,13 +277,13 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
       key: 'collateralValue',
       header: t('chronicle.vault.collateralValue') || 'Collateral Value',
       sortable: true,
-      render: (item: VaultTypeData) => formatCurrency(item.collateralValue),
+      render: (item: VaultTypeData) => formatCompactCurrency(item.collateralValue),
     },
     {
       key: 'debtValue',
       header: t('chronicle.vault.debtValue') || 'Debt Value',
       sortable: true,
-      render: (item: VaultTypeData) => formatCurrency(item.debtValue),
+      render: (item: VaultTypeData) => formatCompactCurrency(item.debtValue),
     },
     {
       key: 'collateralRatio',
@@ -305,7 +310,11 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
           <div className="w-16 bg-gray-100 rounded-full h-1.5">
             <div
               className={`h-1.5 rounded-full ${
-                item.debtCeilingUsed > 80 ? 'bg-red-500' : item.debtCeilingUsed > 60 ? 'bg-amber-500' : 'bg-emerald-500'
+                item.debtCeilingUsed > 80
+                  ? 'bg-red-500'
+                  : item.debtCeilingUsed > 60
+                    ? 'bg-amber-500'
+                    : 'bg-emerald-500'
               }`}
               style={{ width: `${Math.min(item.debtCeilingUsed, 100)}%` }}
             />
@@ -321,9 +330,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
       key: 'vaultId',
       header: t('chronicle.vault.vaultId') || 'Vault ID',
       sortable: true,
-      render: (item: AuctionData) => (
-        <span className="font-mono text-sm">{item.vaultId}</span>
-      ),
+      render: (item: AuctionData) => <span className="font-mono text-sm">{item.vaultId}</span>,
     },
     {
       key: 'collateralType',
@@ -345,7 +352,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
       key: 'debtAmount',
       header: t('chronicle.vault.debtAmount') || 'Debt',
       sortable: true,
-      render: (item: AuctionData) => formatCurrency(item.debtAmount),
+      render: (item: AuctionData) => formatCompactCurrency(item.debtAmount),
     },
     {
       key: 'status',
@@ -396,7 +403,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
       key: 'debtCovered',
       header: t('chronicle.vault.debtCovered') || 'Debt Covered',
       sortable: true,
-      render: (item: LiquidationHistory) => formatCurrency(item.debtCovered),
+      render: (item: LiquidationHistory) => formatCompactCurrency(item.debtCovered),
     },
     {
       key: 'price',
@@ -488,11 +495,15 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Collateral</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(vault.collateralValue)}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCompactCurrency(vault.collateralValue)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Debt</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(vault.debtValue)}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCompactCurrency(vault.debtValue)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Ratio</span>
@@ -529,18 +540,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
           ))}
         </div>
 
-        <ChronicleDataTable
-          data={filteredVaultTypes as unknown as Record<string, unknown>[]}
-          columns={
-            vaultTypeColumns as unknown as Array<{
-              key: string;
-              header: string;
-              width?: string;
-              sortable?: boolean;
-              render?: (item: Record<string, unknown>) => React.ReactNode;
-            }>
-          }
-        />
+        <ChronicleDataTable data={filteredVaultTypes} columns={vaultTypeColumns} />
       </div>
 
       <div className="border-t border-gray-200" />
@@ -555,21 +555,12 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
             </h3>
             <div className="flex items-center gap-1 text-amber-600">
               <AlertTriangle className="w-4 h-4" />
-              <span className="text-sm font-medium">{mockAuctions.filter(a => a.status === 'active').length} active</span>
+              <span className="text-sm font-medium">
+                {mockAuctions.filter((a) => a.status === 'active').length} active
+              </span>
             </div>
           </div>
-          <ChronicleDataTable
-            data={mockAuctions as unknown as Record<string, unknown>[]}
-            columns={
-              auctionColumns as unknown as Array<{
-                key: string;
-                header: string;
-                width?: string;
-                sortable?: boolean;
-                render?: (item: Record<string, unknown>) => React.ReactNode;
-              }>
-            }
-          />
+          <ChronicleDataTable data={mockAuctions} columns={auctionColumns} />
         </div>
 
         {/* 清算价格预警 */}
@@ -581,18 +572,44 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
           </div>
           <div className="space-y-3">
             {mockVaultTypes.map((vault, index) => {
-              const warningLevel = vault.collateralRatio < 150 ? 'high' : vault.collateralRatio < 170 ? 'medium' : 'low';
-              const warningColor = warningLevel === 'high' ? 'bg-red-50 border-red-200' : warningLevel === 'medium' ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200';
-              const warningText = warningLevel === 'high' ? 'text-red-700' : warningLevel === 'medium' ? 'text-amber-700' : 'text-emerald-700';
-              const warningCount = warningLevel === 'high' ? Math.floor(Math.random() * 5) + 1 : warningLevel === 'medium' ? Math.floor(Math.random() * 10) + 5 : 0;
-              
+              const warningLevel =
+                vault.collateralRatio < 150
+                  ? 'high'
+                  : vault.collateralRatio < 170
+                    ? 'medium'
+                    : 'low';
+              const warningColor =
+                warningLevel === 'high'
+                  ? 'bg-red-50 border-red-200'
+                  : warningLevel === 'medium'
+                    ? 'bg-amber-50 border-amber-200'
+                    : 'bg-emerald-50 border-emerald-200';
+              const warningText =
+                warningLevel === 'high'
+                  ? 'text-red-700'
+                  : warningLevel === 'medium'
+                    ? 'text-amber-700'
+                    : 'text-emerald-700';
+              const warningCount =
+                warningLevel === 'high'
+                  ? Math.floor(Math.random() * 5) + 1
+                  : warningLevel === 'medium'
+                    ? Math.floor(Math.random() * 10) + 5
+                    : 0;
+
               return (
                 <div key={index} className={`p-3 rounded-lg border ${warningColor}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-900">{vault.type}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${warningText} bg-white/50`}>
-                        {warningLevel === 'high' ? 'High Risk' : warningLevel === 'medium' ? 'Medium Risk' : 'Low Risk'}
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${warningText} bg-white/50`}
+                      >
+                        {warningLevel === 'high'
+                          ? 'High Risk'
+                          : warningLevel === 'medium'
+                            ? 'Medium Risk'
+                            : 'Low Risk'}
                       </span>
                     </div>
                     {warningCount > 0 && (
@@ -602,8 +619,18 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
                     )}
                   </div>
                   <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
-                    <span>Current Ratio: <span className={`font-medium ${getCollateralRatioColor(vault.collateralRatio)}`}>{vault.collateralRatio}%</span></span>
-                    <span>Min Required: {vault.type === 'USDC-A' ? 101 : vault.type === 'LINK-A' ? 165 : 145}%</span>
+                    <span>
+                      Current Ratio:{' '}
+                      <span
+                        className={`font-medium ${getCollateralRatioColor(vault.collateralRatio)}`}
+                      >
+                        {vault.collateralRatio}%
+                      </span>
+                    </span>
+                    <span>
+                      Min Required:{' '}
+                      {vault.type === 'USDC-A' ? 101 : vault.type === 'LINK-A' ? 165 : 145}%
+                    </span>
                   </div>
                 </div>
               );
@@ -617,18 +644,7 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
         <h3 className="text-base font-medium text-gray-900 mb-4">
           {t('chronicle.vault.liquidationHistory') || 'Liquidation History'}
         </h3>
-        <ChronicleDataTable
-          data={mockLiquidationHistory as unknown as Record<string, unknown>[]}
-          columns={
-            liquidationColumns as unknown as Array<{
-              key: string;
-              header: string;
-              width?: string;
-              sortable?: boolean;
-              render?: (item: Record<string, unknown>) => React.ReactNode;
-            }>
-          }
-        />
+        <ChronicleDataTable data={mockLiquidationHistory} columns={liquidationColumns} />
       </div>
 
       <div className="border-t border-gray-200" />
@@ -666,13 +682,17 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div
                       className={`h-1.5 rounded-full ${
-                        param.debtCeilingUsed > 80 ? 'bg-red-500' : param.debtCeilingUsed > 60 ? 'bg-amber-500' : 'bg-emerald-500'
+                        param.debtCeilingUsed > 80
+                          ? 'bg-red-500'
+                          : param.debtCeilingUsed > 60
+                            ? 'bg-amber-500'
+                            : 'bg-emerald-500'
                       }`}
                       style={{ width: `${Math.min(param.debtCeilingUsed, 100)}%` }}
                     />
                   </div>
                   <p className="text-xs text-gray-400 mt-1">
-                    Ceiling: {formatCurrency(param.debtCeiling)}
+                    Ceiling: {formatCompactCurrency(param.debtCeiling)}
                   </p>
                 </div>
               </div>
@@ -691,7 +711,9 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-sm text-gray-500 mb-1">Total Active Auctions</p>
-            <p className="text-xl font-semibold text-gray-900">{mockAuctions.filter(a => a.status === 'active').length}</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {mockAuctions.filter((a) => a.status === 'active').length}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500 mb-1">Liquidations (30d)</p>

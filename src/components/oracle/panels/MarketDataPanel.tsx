@@ -26,6 +26,8 @@ interface MarketDataConfig {
   tokenSymbol: string;
   marketCap: number;
   volume24h: number;
+  volume24hChange?: number | null;
+  liquidity?: number;
   circulatingSupply: number;
   totalSupply: number;
   fullyDilutedValuation: number;

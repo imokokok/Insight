@@ -6,6 +6,27 @@ import { BaseOracleClient } from './base';
 
 import type { OracleClientConfig } from './base';
 
+class SeededRandom {
+  private seed: number;
+
+  constructor(seed: number = Date.now()) {
+    this.seed = seed;
+  }
+
+  next(): number {
+    this.seed = (this.seed * 1103515245 + 12345) & 0x7fffffff;
+    return this.seed / 0x7fffffff;
+  }
+
+  reset(seed: number): void {
+    this.seed = seed;
+  }
+}
+
+let globalSeed = 12345;
+const seededRandom = new SeededRandom(globalSeed);
+const dataCache = new Map<string, unknown>();
+
 export interface BandProtocolMarketData {
   symbol: string;
   price: number;
@@ -507,6 +528,13 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   private async generateAllDataSources(): Promise<DataSource[]> {
+    const cacheKey = 'allDataSources';
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as DataSource[];
+    }
+
+    seededRandom.reset(globalSeed);
     const dataSources: DataSource[] = [];
     const now = Date.now();
 
@@ -586,10 +614,10 @@ export class BandProtocolClient extends BaseOracleClient {
       updateFreq: string,
       deviation: string
     ): DataSource => {
-      const priceChange = (Math.random() - 0.5) * feed.basePrice * 0.1;
+      const priceChange = (seededRandom.next() - 0.5) * feed.basePrice * 0.1;
       const currentPrice = feed.basePrice + priceChange;
-      const reliability = 95 + Math.random() * 4.99;
-      const totalRequests = Math.floor(Math.random() * 2000000) + 100000;
+      const reliability = 95 + seededRandom.next() * 4.99;
+      const totalRequests = Math.floor(seededRandom.next() * 2000000) + 100000;
 
       return {
         id: id++,
@@ -597,9 +625,9 @@ export class BandProtocolClient extends BaseOracleClient {
         symbol: feed.symbol,
         description: `${feed.name} price feed in USD`,
         owner: `band1${this.generateRandomAddress()}`,
-        provider: providers[Math.floor(Math.random() * providers.length)],
-        status: Math.random() > 0.05 ? 'active' : 'inactive',
-        lastUpdated: now - Math.floor(Math.random() * 60000),
+        provider: providers[Math.floor(seededRandom.next() * providers.length)],
+        status: seededRandom.next() > 0.05 ? 'active' : 'inactive',
+        lastUpdated: now - Math.floor(seededRandom.next() * 60000),
         reliability: Number(reliability.toFixed(2)),
         category,
         updateFrequency: updateFreq,
@@ -643,14 +671,14 @@ export class BandProtocolClient extends BaseOracleClient {
         symbol: feed.symbol,
         description: `${feed.name} data feed`,
         owner: `band1${this.generateRandomAddress()}`,
-        provider: providers[Math.floor(Math.random() * providers.length)],
-        status: Math.random() > 0.1 ? 'active' : 'inactive',
-        lastUpdated: now - Math.floor(Math.random() * 3600000),
-        reliability: Number((98 + Math.random() * 1.99).toFixed(2)),
+        provider: providers[Math.floor(seededRandom.next() * providers.length)],
+        status: seededRandom.next() > 0.1 ? 'active' : 'inactive',
+        lastUpdated: now - Math.floor(seededRandom.next() * 3600000),
+        reliability: Number((98 + seededRandom.next() * 1.99).toFixed(2)),
         category: 'sports',
         updateFrequency: '60s',
         deviationThreshold: 'N/A',
-        totalRequests: Math.floor(Math.random() * 500000) + 50000,
+        totalRequests: Math.floor(seededRandom.next() * 500000) + 50000,
       });
     });
 
@@ -668,306 +696,318 @@ export class BandProtocolClient extends BaseOracleClient {
         owner: `band1${this.generateRandomAddress()}`,
         provider: 'Band VRF',
         status: 'active',
-        lastUpdated: now - Math.floor(Math.random() * 10000),
+        lastUpdated: now - Math.floor(seededRandom.next() * 10000),
         reliability: 99.99,
         category: 'random',
         updateFrequency: 'on-demand',
         deviationThreshold: 'N/A',
-        totalRequests: Math.floor(Math.random() * 1000000) + 200000,
+        totalRequests: Math.floor(seededRandom.next() * 1000000) + 200000,
       });
     });
 
+    dataCache.set(cacheKey, dataSources);
     return dataSources;
   }
 
   async getBandMarketData(): Promise<BandProtocolMarketData> {
-    try {
-      const basePrice = UNIFIED_BASE_PRICES.BAND || 2.5;
-      const priceChange = (Math.random() - 0.5) * 0.5;
-      const priceChangePercentage = (priceChange / basePrice) * 100;
-      const currentPrice = basePrice + priceChange;
-      const circulatingSupply = 145_000_000 + Math.random() * 5_000_000;
-      const totalSupply = 165_000_000 + Math.random() * 5_000_000;
-
-      return {
-        symbol: 'BAND',
-        price: Number(currentPrice.toFixed(4)),
-        priceChange24h: Number(priceChange.toFixed(4)),
-        priceChangePercentage24h: Number(priceChangePercentage.toFixed(2)),
-        marketCap: Number((currentPrice * circulatingSupply).toFixed(2)),
-        volume24h: Number((currentPrice * circulatingSupply * 0.05).toFixed(2)),
-        circulatingSupply: Number(circulatingSupply.toFixed(2)),
-        totalSupply: Number(totalSupply.toFixed(2)),
-        maxSupply: 250_000_000,
-        stakingRatio: Number((((circulatingSupply * 0.65) / circulatingSupply) * 100).toFixed(2)),
-        stakingApr: Number((8 + Math.random() * 4).toFixed(2)),
-        timestamp: Date.now(),
-      };
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch BAND market data',
-        'BAND_MARKET_DATA_ERROR'
-      );
+    const cacheKey = 'bandMarketData';
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as BandProtocolMarketData;
     }
+
+    seededRandom.reset(globalSeed + 16);
+    const basePrice = UNIFIED_BASE_PRICES.BAND || 2.5;
+    const priceChange = (seededRandom.next() - 0.5) * 0.5;
+    const priceChangePercentage = (priceChange / basePrice) * 100;
+    const currentPrice = basePrice + priceChange;
+    const circulatingSupply = 145_000_000 + seededRandom.next() * 5_000_000;
+    const totalSupply = 165_000_000 + seededRandom.next() * 5_000_000;
+
+    const result = {
+      symbol: 'BAND',
+      price: Number(currentPrice.toFixed(4)),
+      priceChange24h: Number(priceChange.toFixed(4)),
+      priceChangePercentage24h: Number(priceChangePercentage.toFixed(2)),
+      marketCap: Number((currentPrice * circulatingSupply).toFixed(2)),
+      volume24h: Number((currentPrice * circulatingSupply * 0.05).toFixed(2)),
+      circulatingSupply: Number(circulatingSupply.toFixed(2)),
+      totalSupply: Number(totalSupply.toFixed(2)),
+      maxSupply: 250_000_000,
+      stakingRatio: Number((((circulatingSupply * 0.65) / circulatingSupply) * 100).toFixed(2)),
+      stakingApr: Number((8 + seededRandom.next() * 4).toFixed(2)),
+      timestamp: Date.now(),
+    };
+
+    dataCache.set(cacheKey, result);
+    return result;
   }
 
   async getValidators(limit: number = 50): Promise<ValidatorInfo[]> {
-    try {
-      const validators: ValidatorInfo[] = [];
-      const validatorNames = [
-        'Band Foundation',
-        'Cosmostation',
-        'Stake.fish',
-        'Figment',
-        'Blockdaemon',
-        'Everstake',
-        'InfStones',
-        'Staked',
-        'Chorus One',
-        'Dokia Capital',
-        'P2P Validator',
-        'SNZ Pool',
-        'HashQuark',
-        'Certus One',
-        'B-Harvest',
-        'StakeWith.Us',
-        'Forbole',
-        'Simply Staking',
-        'Smart Stake',
-        'KingNodes',
-        'ChainLayer',
-        'BlockNgine',
-        'Stakin',
-        'Lavender.Five',
-        '0base.vc',
-        'Masternode24',
-        'Stakewolle',
-        'Crosnest',
-        'AutoStake',
-        'Nodes.Guru',
-        'Polkachu',
-        'Imperator.co',
-        'StakeLab',
-        'Kollider',
-        'NodeStake',
-        'Stakely',
-        'Staking4All',
-        'Citadel.one',
-        'Kleomedes',
-        'Golden Ratio Staking',
-        'Disperze',
-        'Tessellated',
-        'Notional',
-        'Strangelove',
-        'SG-1',
-        'Oni',
-        'WhisperNode',
-        'Cosmos Spaces',
-        'Validatrium',
-        'Staking Fund',
-        'Moonlet',
-      ];
-
-      const totalTokens = 85_000_000 + Math.random() * 10_000_000;
-
-      for (let i = 0; i < Math.min(limit, validatorNames.length); i++) {
-        const tokens =
-          i === 0 ? totalTokens * 0.08 : totalTokens * (0.05 / (i + 1) + Math.random() * 0.01);
-
-        validators.push({
-          operatorAddress: `bandvaloper1${this.generateRandomAddress()}`,
-          moniker: validatorNames[i],
-          identity: this.generateRandomHex(16),
-          website:
-            i < 10 ? `https://${validatorNames[i].toLowerCase().replace(/\s+/g, '')}.com` : '',
-          details: `Professional validator ${validatorNames[i]} securing Band Protocol network`,
-          tokens: Number(tokens.toFixed(2)),
-          delegatorShares: Number(tokens.toFixed(2)),
-          commissionRate: Number((0.05 + Math.random() * 0.15).toFixed(4)),
-          maxCommissionRate: Number((0.15 + Math.random() * 0.1).toFixed(4)),
-          maxCommissionChangeRate: Number((0.01 + Math.random() * 0.02).toFixed(4)),
-          uptime: Number((99.5 + Math.random() * 0.48).toFixed(2)),
-          jailed: false,
-          rank: i + 1,
-        });
-      }
-
-      return validators;
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch validators',
-        'VALIDATORS_ERROR'
-      );
+    const cacheKey = `validators_${limit}`;
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as ValidatorInfo[];
     }
+
+    seededRandom.reset(globalSeed + 1);
+    const validators: ValidatorInfo[] = [];
+    const validatorNames = [
+      'Band Foundation',
+      'Cosmostation',
+      'Stake.fish',
+      'Figment',
+      'Blockdaemon',
+      'Everstake',
+      'InfStones',
+      'Staked',
+      'Chorus One',
+      'Dokia Capital',
+      'P2P Validator',
+      'SNZ Pool',
+      'HashQuark',
+      'Certus One',
+      'B-Harvest',
+      'StakeWith.Us',
+      'Forbole',
+      'Simply Staking',
+      'Smart Stake',
+      'KingNodes',
+      'ChainLayer',
+      'BlockNgine',
+      'Stakin',
+      'Lavender.Five',
+      '0base.vc',
+      'Masternode24',
+      'Stakewolle',
+      'Crosnest',
+      'AutoStake',
+      'Nodes.Guru',
+      'Polkachu',
+      'Imperator.co',
+      'StakeLab',
+      'Kollider',
+      'NodeStake',
+      'Stakely',
+      'Staking4All',
+      'Citadel.one',
+      'Kleomedes',
+      'Golden Ratio Staking',
+      'Disperze',
+      'Tessellated',
+      'Notional',
+      'Strangelove',
+      'SG-1',
+      'Oni',
+      'WhisperNode',
+      'Cosmos Spaces',
+      'Validatrium',
+      'Staking Fund',
+      'Moonlet',
+    ];
+
+    const totalTokens = 85_000_000 + seededRandom.next() * 10_000_000;
+
+    for (let i = 0; i < Math.min(limit, validatorNames.length); i++) {
+      const tokens =
+        i === 0 ? totalTokens * 0.08 : totalTokens * (0.05 / (i + 1) + seededRandom.next() * 0.01);
+
+      validators.push({
+        operatorAddress: `bandvaloper1${this.generateRandomAddress()}`,
+        moniker: validatorNames[i],
+        identity: this.generateRandomHex(16),
+        website:
+          i < 10 ? `https://${validatorNames[i].toLowerCase().replace(/\s+/g, '')}.com` : '',
+        details: `Professional validator ${validatorNames[i]} securing Band Protocol network`,
+        tokens: Number(tokens.toFixed(2)),
+        delegatorShares: Number(tokens.toFixed(2)),
+        commissionRate: Number((0.05 + seededRandom.next() * 0.15).toFixed(4)),
+        maxCommissionRate: Number((0.15 + seededRandom.next() * 0.1).toFixed(4)),
+        maxCommissionChangeRate: Number((0.01 + seededRandom.next() * 0.02).toFixed(4)),
+        uptime: Number((99.5 + seededRandom.next() * 0.48).toFixed(2)),
+        jailed: false,
+        rank: i + 1,
+      });
+    }
+
+    dataCache.set(cacheKey, validators);
+    return validators;
   }
 
   async getNetworkStats(): Promise<BandNetworkStats> {
-    try {
-      const totalValidators = 72 + Math.floor(Math.random() * 15);
-      const activeValidators = 65 + Math.floor(Math.random() * 10);
-      const bondedTokens = 85_000_000 + Math.random() * 10_000_000;
-      const totalSupply = 165_000_000 + Math.random() * 5_000_000;
-
-      return {
-        activeValidators,
-        totalValidators,
-        bondedTokens: Number(bondedTokens.toFixed(2)),
-        totalSupply: Number(totalSupply.toFixed(2)),
-        stakingRatio: Number(((bondedTokens / totalSupply) * 100).toFixed(2)),
-        blockTime: Number((2.8 + Math.random() * 0.4).toFixed(2)),
-        latestBlockHeight: 15_000_000 + Math.floor(Math.random() * 1_000_000),
-        inflationRate: Number((7 + Math.random() * 3).toFixed(2)),
-        communityPool: Number((500_000 + Math.random() * 100_000).toFixed(2)),
-        timestamp: Date.now(),
-      };
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch network stats',
-        'NETWORK_STATS_ERROR'
-      );
+    const cacheKey = 'networkStats';
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as BandNetworkStats;
     }
+
+    seededRandom.reset(globalSeed + 2);
+    const totalValidators = 72 + Math.floor(seededRandom.next() * 15);
+    const activeValidators = 65 + Math.floor(seededRandom.next() * 10);
+    const bondedTokens = 85_000_000 + seededRandom.next() * 10_000_000;
+    const totalSupply = 165_000_000 + seededRandom.next() * 5_000_000;
+
+    const result = {
+      activeValidators,
+      totalValidators,
+      bondedTokens: Number(bondedTokens.toFixed(2)),
+      totalSupply: Number(totalSupply.toFixed(2)),
+      stakingRatio: Number(((bondedTokens / totalSupply) * 100).toFixed(2)),
+      blockTime: Number((2.8 + seededRandom.next() * 0.4).toFixed(2)),
+      latestBlockHeight: 15_000_000 + Math.floor(seededRandom.next() * 1_000_000),
+      inflationRate: Number((7 + seededRandom.next() * 3).toFixed(2)),
+      communityPool: Number((500_000 + seededRandom.next() * 100_000).toFixed(2)),
+      timestamp: Date.now(),
+    };
+
+    dataCache.set(cacheKey, result);
+    return result;
   }
 
   async getCrossChainStats(): Promise<CrossChainStats> {
-    try {
-      const chains: ChainDataRequest[] = [
-        {
-          chainName: 'Cosmos Hub',
-          chainId: 'cosmoshub-4',
-          requestCount24h: 1500 + Math.floor(Math.random() * 500),
-          requestCount7d: 10000 + Math.floor(Math.random() * 3000),
-          requestCount30d: 45000 + Math.floor(Math.random() * 15000),
-          avgGasCost: 0.0025 + Math.random() * 0.001,
-          supportedSymbols: ['ATOM', 'OSMO', 'JUNO', 'STARS'],
-        },
-        {
-          chainName: 'Osmosis',
-          chainId: 'osmosis-1',
-          requestCount24h: 2000 + Math.floor(Math.random() * 800),
-          requestCount7d: 14000 + Math.floor(Math.random() * 5000),
-          requestCount30d: 60000 + Math.floor(Math.random() * 20000),
-          avgGasCost: 0.003 + Math.random() * 0.0015,
-          supportedSymbols: ['OSMO', 'ATOM', 'USDC', 'WBTC'],
-        },
-        {
-          chainName: 'Ethereum',
-          chainId: '1',
-          requestCount24h: 3000 + Math.floor(Math.random() * 1000),
-          requestCount7d: 21000 + Math.floor(Math.random() * 7000),
-          requestCount30d: 90000 + Math.floor(Math.random() * 30000),
-          avgGasCost: 0.005 + Math.random() * 0.002,
-          supportedSymbols: ['ETH', 'USDC', 'USDT', 'WBTC', 'DAI'],
-        },
-        {
-          chainName: 'Polygon',
-          chainId: '137',
-          requestCount24h: 1200 + Math.floor(Math.random() * 400),
-          requestCount7d: 8400 + Math.floor(Math.random() * 2800),
-          requestCount30d: 36000 + Math.floor(Math.random() * 12000),
-          avgGasCost: 0.001 + Math.random() * 0.0005,
-          supportedSymbols: ['MATIC', 'USDC', 'USDT', 'WETH'],
-        },
-        {
-          chainName: 'Avalanche',
-          chainId: '43114',
-          requestCount24h: 800 + Math.floor(Math.random() * 300),
-          requestCount7d: 5600 + Math.floor(Math.random() * 2100),
-          requestCount30d: 24000 + Math.floor(Math.random() * 9000),
-          avgGasCost: 0.0015 + Math.random() * 0.0007,
-          supportedSymbols: ['AVAX', 'USDC', 'USDT', 'BTC.b'],
-        },
-        {
-          chainName: 'Fantom',
-          chainId: '250',
-          requestCount24h: 600 + Math.floor(Math.random() * 200),
-          requestCount7d: 4200 + Math.floor(Math.random() * 1400),
-          requestCount30d: 18000 + Math.floor(Math.random() * 6000),
-          avgGasCost: 0.0012 + Math.random() * 0.0006,
-          supportedSymbols: ['FTM', 'USDC', 'USDT', 'WETH'],
-        },
-        {
-          chainName: 'Cronos',
-          chainId: '25',
-          requestCount24h: 400 + Math.floor(Math.random() * 150),
-          requestCount7d: 2800 + Math.floor(Math.random() * 1050),
-          requestCount30d: 12000 + Math.floor(Math.random() * 4500),
-          avgGasCost: 0.001 + Math.random() * 0.0005,
-          supportedSymbols: ['CRO', 'USDC', 'USDT', 'WBTC'],
-        },
-        {
-          chainName: 'Juno',
-          chainId: 'juno-1',
-          requestCount24h: 300 + Math.floor(Math.random() * 100),
-          requestCount7d: 2100 + Math.floor(Math.random() * 700),
-          requestCount30d: 9000 + Math.floor(Math.random() * 3000),
-          avgGasCost: 0.002 + Math.random() * 0.0008,
-          supportedSymbols: ['JUNO', 'ATOM', 'OSMO', 'STARS'],
-        },
-      ];
-
-      const totalRequests24h = chains.reduce((sum, chain) => sum + chain.requestCount24h, 0);
-      const totalRequests7d = chains.reduce((sum, chain) => sum + chain.requestCount7d, 0);
-      const totalRequests30d = chains.reduce((sum, chain) => sum + chain.requestCount30d, 0);
-
-      return {
-        totalRequests24h,
-        totalRequests7d,
-        totalRequests30d,
-        chains,
-        timestamp: Date.now(),
-      };
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch cross-chain stats',
-        'CROSS_CHAIN_STATS_ERROR'
-      );
+    const cacheKey = 'crossChainStats';
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as CrossChainStats;
     }
+
+    seededRandom.reset(globalSeed + 3);
+    const chains: ChainDataRequest[] = [
+      {
+        chainName: 'Cosmos Hub',
+        chainId: 'cosmoshub-4',
+        requestCount24h: 1500 + Math.floor(seededRandom.next() * 500),
+        requestCount7d: 10000 + Math.floor(seededRandom.next() * 3000),
+        requestCount30d: 45000 + Math.floor(seededRandom.next() * 15000),
+        avgGasCost: 0.0025 + seededRandom.next() * 0.001,
+        supportedSymbols: ['ATOM', 'OSMO', 'JUNO', 'STARS'],
+      },
+      {
+        chainName: 'Osmosis',
+        chainId: 'osmosis-1',
+        requestCount24h: 2000 + Math.floor(seededRandom.next() * 800),
+        requestCount7d: 14000 + Math.floor(seededRandom.next() * 5000),
+        requestCount30d: 60000 + Math.floor(seededRandom.next() * 20000),
+        avgGasCost: 0.003 + seededRandom.next() * 0.0015,
+        supportedSymbols: ['OSMO', 'ATOM', 'USDC', 'WBTC'],
+      },
+      {
+        chainName: 'Ethereum',
+        chainId: '1',
+        requestCount24h: 3000 + Math.floor(seededRandom.next() * 1000),
+        requestCount7d: 21000 + Math.floor(seededRandom.next() * 7000),
+        requestCount30d: 90000 + Math.floor(seededRandom.next() * 30000),
+        avgGasCost: 0.005 + seededRandom.next() * 0.002,
+        supportedSymbols: ['ETH', 'USDC', 'USDT', 'WBTC', 'DAI'],
+      },
+      {
+        chainName: 'Polygon',
+        chainId: '137',
+        requestCount24h: 1200 + Math.floor(seededRandom.next() * 400),
+        requestCount7d: 8400 + Math.floor(seededRandom.next() * 2800),
+        requestCount30d: 36000 + Math.floor(seededRandom.next() * 12000),
+        avgGasCost: 0.001 + seededRandom.next() * 0.0005,
+        supportedSymbols: ['MATIC', 'USDC', 'USDT', 'WETH'],
+      },
+      {
+        chainName: 'Avalanche',
+        chainId: '43114',
+        requestCount24h: 800 + Math.floor(seededRandom.next() * 300),
+        requestCount7d: 5600 + Math.floor(seededRandom.next() * 2100),
+        requestCount30d: 24000 + Math.floor(seededRandom.next() * 9000),
+        avgGasCost: 0.0015 + seededRandom.next() * 0.0007,
+        supportedSymbols: ['AVAX', 'USDC', 'USDT', 'BTC.b'],
+      },
+      {
+        chainName: 'Fantom',
+        chainId: '250',
+        requestCount24h: 600 + Math.floor(seededRandom.next() * 200),
+        requestCount7d: 4200 + Math.floor(seededRandom.next() * 1400),
+        requestCount30d: 18000 + Math.floor(seededRandom.next() * 6000),
+        avgGasCost: 0.0012 + seededRandom.next() * 0.0006,
+        supportedSymbols: ['FTM', 'USDC', 'USDT', 'WETH'],
+      },
+      {
+        chainName: 'Cronos',
+        chainId: '25',
+        requestCount24h: 400 + Math.floor(seededRandom.next() * 150),
+        requestCount7d: 2800 + Math.floor(seededRandom.next() * 1050),
+        requestCount30d: 12000 + Math.floor(seededRandom.next() * 4500),
+        avgGasCost: 0.001 + seededRandom.next() * 0.0005,
+        supportedSymbols: ['CRO', 'USDC', 'USDT', 'WBTC'],
+      },
+      {
+        chainName: 'Juno',
+        chainId: 'juno-1',
+        requestCount24h: 300 + Math.floor(seededRandom.next() * 100),
+        requestCount7d: 2100 + Math.floor(seededRandom.next() * 700),
+        requestCount30d: 9000 + Math.floor(seededRandom.next() * 3000),
+        avgGasCost: 0.002 + seededRandom.next() * 0.0008,
+        supportedSymbols: ['JUNO', 'ATOM', 'OSMO', 'STARS'],
+      },
+    ];
+
+    const totalRequests24h = chains.reduce((sum, chain) => sum + chain.requestCount24h, 0);
+    const totalRequests7d = chains.reduce((sum, chain) => sum + chain.requestCount7d, 0);
+    const totalRequests30d = chains.reduce((sum, chain) => sum + chain.requestCount30d, 0);
+
+    const result = {
+      totalRequests24h,
+      totalRequests7d,
+      totalRequests30d,
+      chains,
+      timestamp: Date.now(),
+    };
+
+    dataCache.set(cacheKey, result);
+    return result;
   }
 
   async getCrossChainTrend(period: TrendPeriod = '7d'): Promise<CrossChainTrend[]> {
-    try {
-      const trends: CrossChainTrend[] = [];
-      const now = new Date();
-      const dayMs = 24 * 60 * 60 * 1000;
-
-      const periodDays: Record<TrendPeriod, number> = {
-        '7d': 7,
-        '30d': 30,
-        '90d': 90,
-      };
-
-      const days = periodDays[period];
-
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(now.getTime() - i * dayMs);
-        const dateStr = date.toISOString().split('T')[0];
-
-        const baseRequests = 9800 + Math.floor(Math.random() * 4000);
-        const trend = Math.sin(i / 3) * 800;
-        const requestCount = Math.floor(baseRequests + trend + (Math.random() - 0.5) * 1000);
-
-        const successRate = 0.97 + Math.random() * 0.025;
-        const successCount = Math.floor(requestCount * successRate);
-        const failureCount = requestCount - successCount;
-
-        const avgLatency = 150 + Math.floor(Math.random() * 100);
-
-        trends.push({
-          date: dateStr,
-          requestCount,
-          successCount,
-          failureCount,
-          avgLatency,
-        });
-      }
-
-      return trends;
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch cross-chain trend',
-        'CROSS_CHAIN_TREND_ERROR'
-      );
+    const cacheKey = `crossChainTrend_${period}`;
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as CrossChainTrend[];
     }
+
+    seededRandom.reset(globalSeed + 4);
+    const trends: CrossChainTrend[] = [];
+    const now = new Date();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    const periodDays: Record<TrendPeriod, number> = {
+      '7d': 7,
+      '30d': 30,
+      '90d': 90,
+    };
+
+    const days = periodDays[period];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(now.getTime() - i * dayMs);
+      const dateStr = date.toISOString().split('T')[0];
+
+      const baseRequests = 9800 + Math.floor(seededRandom.next() * 4000);
+      const trend = Math.sin(i / 3) * 800;
+      const requestCount = Math.floor(baseRequests + trend + (seededRandom.next() - 0.5) * 1000);
+
+      const successRate = 0.97 + seededRandom.next() * 0.025;
+      const successCount = Math.floor(requestCount * successRate);
+      const failureCount = requestCount - successCount;
+
+      const avgLatency = 150 + Math.floor(seededRandom.next() * 100);
+
+      trends.push({
+        date: dateStr,
+        requestCount,
+        successCount,
+        failureCount,
+        avgLatency,
+      });
+    }
+
+    dataCache.set(cacheKey, trends);
+    return trends;
   }
 
   async getCrossChainComparison(period: TrendPeriod = '7d'): Promise<CrossChainComparison> {
@@ -1026,69 +1066,72 @@ export class BandProtocolClient extends BaseOracleClient {
   async getHistoricalBandPrices(
     period: '1d' | '7d' | '30d' | '90d' | '1y' = '30d'
   ): Promise<HistoricalPricePoint[]> {
-    try {
-      const basePrice = UNIFIED_BASE_PRICES.BAND || 2.5;
-      const prices: HistoricalPricePoint[] = [];
-
-      const periodConfig: Record<string, { points: number; intervalHours: number }> = {
-        '1d': { points: 24, intervalHours: 1 },
-        '7d': { points: 84, intervalHours: 2 },
-        '30d': { points: 120, intervalHours: 6 },
-        '90d': { points: 90, intervalHours: 24 },
-        '1y': { points: 365, intervalHours: 24 },
-      };
-
-      const config = periodConfig[period];
-      const now = Date.now();
-      const intervalMs = config.intervalHours * 60 * 60 * 1000;
-
-      for (let i = 0; i < config.points; i++) {
-        const timestamp = now - (config.points - 1 - i) * intervalMs;
-        const volatility = 0.03;
-        const trend = Math.sin(i / 10) * 0.1;
-        const randomChange = (Math.random() - 0.5) * 2 * volatility;
-        const price = basePrice * (1 + trend + randomChange);
-        const open = price * (1 + (Math.random() - 0.5) * 0.02);
-        const close = price;
-        const high = Math.max(open, close) * (1 + Math.random() * 0.01);
-        const low = Math.min(open, close) * (1 - Math.random() * 0.01);
-
-        prices.push({
-          timestamp,
-          price: Number(price.toFixed(4)),
-          volume: Number((100000 + Math.random() * 500000).toFixed(2)),
-          high: Number(high.toFixed(4)),
-          low: Number(low.toFixed(4)),
-          open: Number(open.toFixed(4)),
-          close: Number(close.toFixed(4)),
-        });
-      }
-
-      const priceValues = prices.map((p) => p.price);
-      const indicators = calculateTechnicalIndicators(priceValues);
-
-      return prices.map((point, index) => ({
-        ...point,
-        ma7: indicators.ma7[index],
-        ma20: indicators.ma20[index],
-        stdDev1Upper: indicators.stdDev1Upper[index],
-        stdDev1Lower: indicators.stdDev1Lower[index],
-        stdDev2Upper: indicators.stdDev2Upper[index],
-        stdDev2Lower: indicators.stdDev2Lower[index],
-      }));
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch historical BAND prices',
-        'HISTORICAL_BAND_PRICES_ERROR'
-      );
+    const cacheKey = `historicalBandPrices_${period}`;
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as HistoricalPricePoint[];
     }
+
+    seededRandom.reset(globalSeed + 5);
+    const basePrice = UNIFIED_BASE_PRICES.BAND || 2.5;
+    const prices: HistoricalPricePoint[] = [];
+
+    const periodConfig: Record<string, { points: number; intervalHours: number }> = {
+      '1d': { points: 24, intervalHours: 1 },
+      '7d': { points: 84, intervalHours: 2 },
+      '30d': { points: 120, intervalHours: 6 },
+      '90d': { points: 90, intervalHours: 24 },
+      '1y': { points: 365, intervalHours: 24 },
+    };
+
+    const config = periodConfig[period];
+    const now = Date.now();
+    const intervalMs = config.intervalHours * 60 * 60 * 1000;
+
+    for (let i = 0; i < config.points; i++) {
+      const timestamp = now - (config.points - 1 - i) * intervalMs;
+      const volatility = 0.03;
+      const trend = Math.sin(i / 10) * 0.1;
+      const randomChange = (seededRandom.next() - 0.5) * 2 * volatility;
+      const price = basePrice * (1 + trend + randomChange);
+      const open = price * (1 + (seededRandom.next() - 0.5) * 0.02);
+      const close = price;
+      const high = Math.max(open, close) * (1 + seededRandom.next() * 0.01);
+      const low = Math.min(open, close) * (1 - seededRandom.next() * 0.01);
+
+      prices.push({
+        timestamp,
+        price: Number(price.toFixed(4)),
+        volume: Number((100000 + seededRandom.next() * 500000).toFixed(2)),
+        high: Number(high.toFixed(4)),
+        low: Number(low.toFixed(4)),
+        open: Number(open.toFixed(4)),
+        close: Number(close.toFixed(4)),
+      });
+    }
+
+    const priceValues = prices.map((p) => p.price);
+    const indicators = calculateTechnicalIndicators(priceValues);
+
+    const result = prices.map((point, index) => ({
+      ...point,
+      ma7: indicators.ma7[index],
+      ma20: indicators.ma20[index],
+      stdDev1Upper: indicators.stdDev1Upper[index],
+      stdDev1Lower: indicators.stdDev1Lower[index],
+      stdDev2Upper: indicators.stdDev2Upper[index],
+      stdDev2Lower: indicators.stdDev2Lower[index],
+    }));
+
+    dataCache.set(cacheKey, result);
+    return result;
   }
 
   private generateRandomAddress(): string {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < 39; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+      result += chars.charAt(Math.floor(seededRandom.next() * chars.length));
     }
     return result;
   }
@@ -1097,7 +1140,7 @@ export class BandProtocolClient extends BaseOracleClient {
     const chars = '0123456789abcdef';
     let result = '';
     for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+      result += chars.charAt(Math.floor(seededRandom.next() * chars.length));
     }
     return result;
   }
@@ -1106,108 +1149,112 @@ export class BandProtocolClient extends BaseOracleClient {
     validatorAddress: string,
     period: HistoryPeriod = 30
   ): Promise<ValidatorHistory[]> {
-    try {
-      const history: ValidatorHistory[] = [];
-      const now = Date.now();
-      const dayMs = 24 * 60 * 60 * 1000;
-
-      const baseUptime = 99.5 + Math.random() * 0.48;
-      const baseStakedAmount = 1000000 + Math.random() * 5000000;
-      const baseCommissionRate = 0.05 + Math.random() * 0.15;
-
-      for (let i = 0; i < period; i++) {
-        const timestamp = now - (period - 1 - i) * dayMs;
-
-        const uptimeVariation = (Math.random() - 0.5) * 0.5;
-        const uptime = Math.min(100, Math.max(95, baseUptime + uptimeVariation));
-
-        const stakeVariation = (Math.random() - 0.5) * 0.1;
-        const stakedAmount = baseStakedAmount * (1 + stakeVariation);
-
-        const commissionVariation = (Math.random() - 0.5) * 0.02;
-        const commissionRate = Math.min(
-          0.3,
-          Math.max(0.01, baseCommissionRate + commissionVariation)
-        );
-
-        history.push({
-          timestamp,
-          uptime: Number(uptime.toFixed(2)),
-          stakedAmount: Number(stakedAmount.toFixed(2)),
-          commissionRate: Number(commissionRate.toFixed(4)),
-        });
-      }
-
-      return history;
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch validator history',
-        'VALIDATOR_HISTORY_ERROR'
-      );
+    const cacheKey = `validatorHistory_${validatorAddress}_${period}`;
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as ValidatorHistory[];
     }
+
+    seededRandom.reset(globalSeed + 6);
+    const history: ValidatorHistory[] = [];
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    const baseUptime = 99.5 + seededRandom.next() * 0.48;
+    const baseStakedAmount = 1000000 + seededRandom.next() * 5000000;
+    const baseCommissionRate = 0.05 + seededRandom.next() * 0.15;
+
+    for (let i = 0; i < period; i++) {
+      const timestamp = now - (period - 1 - i) * dayMs;
+
+      const uptimeVariation = (seededRandom.next() - 0.5) * 0.5;
+      const uptime = Math.min(100, Math.max(95, baseUptime + uptimeVariation));
+
+      const stakeVariation = (seededRandom.next() - 0.5) * 0.1;
+      const stakedAmount = baseStakedAmount * (1 + stakeVariation);
+
+      const commissionVariation = (seededRandom.next() - 0.5) * 0.02;
+      const commissionRate = Math.min(
+        0.3,
+        Math.max(0.01, baseCommissionRate + commissionVariation)
+      );
+
+      history.push({
+        timestamp,
+        uptime: Number(uptime.toFixed(2)),
+        stakedAmount: Number(stakedAmount.toFixed(2)),
+        commissionRate: Number(commissionRate.toFixed(4)),
+      });
+    }
+
+    dataCache.set(cacheKey, history);
+    return history;
   }
 
   async getCrossChainSnapshot(timestamp: number): Promise<BandCrossChainSnapshot> {
-    try {
-      const prices = new Map<string, number>();
-      const deviations = new Map<string, number>();
+    const cacheKey = `crossChainSnapshot_${timestamp}`;
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as BandCrossChainSnapshot;
+    }
 
-      const basePrices: Record<string, number> = {
-        'BTC/USD': 67842.35,
-        'ETH/USD': 3456.78,
-        'USDC/USD': 1.0001,
-      };
+    seededRandom.reset(globalSeed + 7);
+    const prices = new Map<string, number>();
+    const deviations = new Map<string, number>();
 
-      const chains = ['Cosmos Hub', 'Osmosis', 'Ethereum', 'Polygon', 'Avalanche', 'Fantom'];
+    const basePrices: Record<string, number> = {
+      'BTC/USD': 67842.35,
+      'ETH/USD': 3456.78,
+      'USDC/USD': 1.0001,
+    };
 
-      const now = Date.now();
-      const hoursAgo = (now - timestamp) / (1000 * 60 * 60);
-      const timeFactor = Math.max(0, Math.min(1, hoursAgo / (24 * 30)));
+    const chains = ['Cosmos Hub', 'Osmosis', 'Ethereum', 'Polygon', 'Avalanche', 'Fantom'];
 
-      let totalLatency = 0;
-      let maxDeviation = 0;
+    const now = Date.now();
+    const hoursAgo = (now - timestamp) / (1000 * 60 * 60);
+    const timeFactor = Math.max(0, Math.min(1, hoursAgo / (24 * 30)));
 
-      chains.forEach((chain, index) => {
-        Object.entries(basePrices).forEach(([symbol, basePrice]) => {
-          const key = `${chain}:${symbol}`;
-          const volatility = 0.02 * timeFactor;
-          const randomChange = (Math.random() - 0.5) * 2 * volatility;
-          const price = basePrice * (1 + randomChange);
-          prices.set(key, Number(price.toFixed(4)));
+    let totalLatency = 0;
+    let maxDeviation = 0;
 
-          if (index > 0) {
-            const deviationFactor = (Math.random() - 0.5) * 0.8 * (1 - timeFactor * 0.3);
-            deviations.set(key, Number(deviationFactor.toFixed(4)));
-            maxDeviation = Math.max(maxDeviation, Math.abs(deviationFactor));
-          }
-        });
+    chains.forEach((chain, index) => {
+      Object.entries(basePrices).forEach(([symbol, basePrice]) => {
+        const key = `${chain}:${symbol}`;
+        const volatility = 0.02 * timeFactor;
+        const randomChange = (seededRandom.next() - 0.5) * 2 * volatility;
+        const price = basePrice * (1 + randomChange);
+        prices.set(key, Number(price.toFixed(4)));
 
-        totalLatency += Math.floor(Math.random() * 100 + 50);
+        if (index > 0) {
+          const deviationFactor = (seededRandom.next() - 0.5) * 0.8 * (1 - timeFactor * 0.3);
+          deviations.set(key, Number(deviationFactor.toFixed(4)));
+          maxDeviation = Math.max(maxDeviation, Math.abs(deviationFactor));
+        }
       });
 
-      const avgLatency = Math.round(totalLatency / chains.length);
+      totalLatency += Math.floor(seededRandom.next() * 100 + 50);
+    });
 
-      let status: 'normal' | 'warning' | 'critical' = 'normal';
-      if (maxDeviation >= 0.5) {
-        status = 'critical';
-      } else if (maxDeviation >= 0.1) {
-        status = 'warning';
-      }
+    const avgLatency = Math.round(totalLatency / chains.length);
 
-      return {
-        timestamp,
-        prices,
-        deviations,
-        avgLatency,
-        maxDeviation,
-        status,
-      };
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch cross-chain snapshot',
-        'CROSS_CHAIN_SNAPSHOT_ERROR'
-      );
+    let status: 'normal' | 'warning' | 'critical' = 'normal';
+    if (maxDeviation >= 0.5) {
+      status = 'critical';
+    } else if (maxDeviation >= 0.1) {
+      status = 'warning';
     }
+
+    const result = {
+      timestamp,
+      prices,
+      deviations,
+      avgLatency,
+      maxDeviation,
+      status,
+    };
+
+    dataCache.set(cacheKey, result);
+    return result;
   }
 
   getAvailableSnapshotDates(): Date[] {
@@ -1290,193 +1337,196 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getChainEvents(limit: number = 20, type?: EventType): Promise<ChainEvent[]> {
-    try {
-      const events: ChainEvent[] = [];
-      const validatorNames = [
-        'Band Foundation',
-        'Cosmostation',
-        'Stake.fish',
-        'Figment',
-        'Blockdaemon',
-        'Everstake',
-        'InfStones',
-        'Staked',
-        'Chorus One',
-        'Dokia Capital',
-      ];
-
-      const eventTemplates: Record<
-        EventType,
-        { description: string; minAmount: number; maxAmount: number }
-      > = {
-        [EventType.DELEGATION]: {
-          description: 'Delegated to validator',
-          minAmount: 1000,
-          maxAmount: 50000,
-        },
-        [EventType.UNDELEGATION]: {
-          description: 'Undelegated from validator',
-          minAmount: 500,
-          maxAmount: 30000,
-        },
-        [EventType.COMMISSION_CHANGE]: {
-          description: 'Commission rate updated',
-          minAmount: 0,
-          maxAmount: 0,
-        },
-        [EventType.JAILED]: {
-          description: 'Validator jailed for downtime',
-          minAmount: 0,
-          maxAmount: 0,
-        },
-        [EventType.UNJAILED]: {
-          description: 'Validator unjailed',
-          minAmount: 0,
-          maxAmount: 0,
-        },
-      };
-
-      const now = Date.now();
-
-      for (let i = 0; i < limit; i++) {
-        const eventTypes = type ? [type] : EVENT_TYPE_VALUES;
-        const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-        const template = eventTemplates[eventType];
-        const validator = validatorNames[Math.floor(Math.random() * validatorNames.length)];
-
-        const timestamp = now - Math.floor(Math.random() * 24 * 60 * 60 * 1000);
-        const amount =
-          template.minAmount === template.maxAmount
-            ? 0
-            : template.minAmount + Math.random() * (template.maxAmount - template.minAmount);
-
-        events.push({
-          id: `evt-${this.generateRandomHex(12)}`,
-          type: eventType,
-          validator,
-          validatorAddress: `bandvaloper1${this.generateRandomAddress()}`,
-          amount: Number(amount.toFixed(2)),
-          timestamp,
-          description: template.description,
-          txHash: `0x${this.generateRandomHex(64)}`,
-        });
-      }
-
-      return events.sort((a, b) => b.timestamp - a.timestamp);
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch chain events',
-        'CHAIN_EVENTS_ERROR'
-      );
+    const cacheKey = `chainEvents_${limit}_${type || 'all'}`;
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as ChainEvent[];
     }
+
+    seededRandom.reset(globalSeed + 8);
+    const events: ChainEvent[] = [];
+    const validatorNames = [
+      'Band Foundation',
+      'Cosmostation',
+      'Stake.fish',
+      'Figment',
+      'Blockdaemon',
+      'Everstake',
+      'InfStones',
+      'Staked',
+      'Chorus One',
+      'Dokia Capital',
+    ];
+
+    const eventTemplates: Record<
+      EventType,
+      { description: string; minAmount: number; maxAmount: number }
+    > = {
+      [EventType.DELEGATION]: {
+        description: 'Delegated to validator',
+        minAmount: 1000,
+        maxAmount: 50000,
+      },
+      [EventType.UNDELEGATION]: {
+        description: 'Undelegated from validator',
+        minAmount: 500,
+        maxAmount: 30000,
+      },
+      [EventType.COMMISSION_CHANGE]: {
+        description: 'Commission rate updated',
+        minAmount: 0,
+        maxAmount: 0,
+      },
+      [EventType.JAILED]: {
+        description: 'Validator jailed for downtime',
+        minAmount: 0,
+        maxAmount: 0,
+      },
+      [EventType.UNJAILED]: {
+        description: 'Validator unjailed',
+        minAmount: 0,
+        maxAmount: 0,
+      },
+    };
+
+    const now = Date.now();
+
+    for (let i = 0; i < limit; i++) {
+      const eventTypes = type ? [type] : EVENT_TYPE_VALUES;
+      const eventType = eventTypes[Math.floor(seededRandom.next() * eventTypes.length)];
+      const template = eventTemplates[eventType];
+      const validator = validatorNames[Math.floor(seededRandom.next() * validatorNames.length)];
+
+      const timestamp = now - Math.floor(seededRandom.next() * 24 * 60 * 60 * 1000);
+      const amount =
+        template.minAmount === template.maxAmount
+          ? 0
+          : template.minAmount + seededRandom.next() * (template.maxAmount - template.minAmount);
+
+      events.push({
+        id: `evt-${this.generateRandomHex(12)}`,
+        type: eventType,
+        validator,
+        validatorAddress: `bandvaloper1${this.generateRandomAddress()}`,
+        amount: Number(amount.toFixed(2)),
+        timestamp,
+        description: template.description,
+        txHash: `0x${this.generateRandomHex(64)}`,
+      });
+    }
+
+    const result = events.sort((a, b) => b.timestamp - a.timestamp);
+    dataCache.set(cacheKey, result);
+    return result;
   }
 
   async getOracleScripts(): Promise<OracleScript[]> {
-    try {
-      const scripts: OracleScript[] = [];
-      const scriptTemplates = [
-        {
-          name: 'Crypto Price Feed',
-          description: 'Retrieves real-time cryptocurrency prices from multiple exchanges',
-          category: 'price' as OracleScriptCategory,
-          baseCalls: 150000,
-        },
-        {
-          name: 'Stock Price Oracle',
-          description: 'Fetches stock market prices from major exchanges',
-          category: 'price' as OracleScriptCategory,
-          baseCalls: 85000,
-        },
-        {
-          name: 'Forex Rates',
-          description: 'Provides foreign exchange rates for major currency pairs',
-          category: 'price' as OracleScriptCategory,
-          baseCalls: 62000,
-        },
-        {
-          name: 'Commodity Prices',
-          description: 'Real-time commodity prices including gold, silver, and oil',
-          category: 'price' as OracleScriptCategory,
-          baseCalls: 45000,
-        },
-        {
-          name: 'Sports Scores',
-          description: 'Live sports scores and results from major leagues',
-          category: 'sports' as OracleScriptCategory,
-          baseCalls: 38000,
-        },
-        {
-          name: 'Match Results',
-          description: 'Historical and live match results for betting applications',
-          category: 'sports' as OracleScriptCategory,
-          baseCalls: 28000,
-        },
-        {
-          name: 'VRF Random Number',
-          description: 'Verifiable random number generation for gaming and lotteries',
-          category: 'random' as OracleScriptCategory,
-          baseCalls: 95000,
-        },
-        {
-          name: 'Secure Randomness',
-          description: 'Cryptographically secure random number generation',
-          category: 'random' as OracleScriptCategory,
-          baseCalls: 72000,
-        },
-        {
-          name: 'Weather Data',
-          description: 'Weather information from global meteorological services',
-          category: 'custom' as OracleScriptCategory,
-          baseCalls: 22000,
-        },
-        {
-          name: 'NFT Price Oracle',
-          description: 'NFT collection valuations and market data',
-          category: 'custom' as OracleScriptCategory,
-          baseCalls: 35000,
-        },
-        {
-          name: 'DeFi TVL Feed',
-          description: 'Total Value Locked data for DeFi protocols',
-          category: 'custom' as OracleScriptCategory,
-          baseCalls: 48000,
-        },
-        {
-          name: 'Gas Price Oracle',
-          description: 'Real-time gas price estimates across multiple chains',
-          category: 'custom' as OracleScriptCategory,
-          baseCalls: 110000,
-        },
-      ];
-
-      for (let i = 0; i < scriptTemplates.length; i++) {
-        const template = scriptTemplates[i];
-        const callCount = template.baseCalls + Math.floor(Math.random() * 20000);
-        const successRate = 95 + Math.random() * 4.99;
-        const avgResponseTime = 200 + Math.floor(Math.random() * 800);
-
-        scripts.push({
-          id: i + 1,
-          name: template.name,
-          description: template.description,
-          owner: `band1${this.generateRandomAddress()}`,
-          schema: `{"input": "symbol", "output": "price"}`,
-          code: `// Oracle Script: ${template.name}\n// Execute data request...\nreturn fetchPrice(symbol);`,
-          callCount,
-          successRate: Number(successRate.toFixed(2)),
-          avgResponseTime,
-          category: template.category,
-          lastUpdated: Date.now() - Math.floor(Math.random() * 24 * 60 * 60 * 1000),
-        });
-      }
-
-      return scripts;
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch oracle scripts',
-        'ORACLE_SCRIPTS_ERROR'
-      );
+    const cacheKey = 'oracleScripts';
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as OracleScript[];
     }
+
+    seededRandom.reset(globalSeed + 9);
+    const scripts: OracleScript[] = [];
+    const scriptTemplates = [
+      {
+        name: 'Crypto Price Feed',
+        description: 'Retrieves real-time cryptocurrency prices from multiple exchanges',
+        category: 'price' as OracleScriptCategory,
+        baseCalls: 150000,
+      },
+      {
+        name: 'Stock Price Oracle',
+        description: 'Fetches stock market prices from major exchanges',
+        category: 'price' as OracleScriptCategory,
+        baseCalls: 85000,
+      },
+      {
+        name: 'Forex Rates',
+        description: 'Provides foreign exchange rates for major currency pairs',
+        category: 'price' as OracleScriptCategory,
+        baseCalls: 62000,
+      },
+      {
+        name: 'Commodity Prices',
+        description: 'Real-time commodity prices including gold, silver, and oil',
+        category: 'price' as OracleScriptCategory,
+        baseCalls: 45000,
+      },
+      {
+        name: 'Sports Scores',
+        description: 'Live sports scores and results from major leagues',
+        category: 'sports' as OracleScriptCategory,
+        baseCalls: 38000,
+      },
+      {
+        name: 'Match Results',
+        description: 'Historical and live match results for betting applications',
+        category: 'sports' as OracleScriptCategory,
+        baseCalls: 28000,
+      },
+      {
+        name: 'VRF Random Number',
+        description: 'Verifiable random number generation for gaming and lotteries',
+        category: 'random' as OracleScriptCategory,
+        baseCalls: 95000,
+      },
+      {
+        name: 'Secure Randomness',
+        description: 'Cryptographically secure random number generation',
+        category: 'random' as OracleScriptCategory,
+        baseCalls: 72000,
+      },
+      {
+        name: 'Weather Data',
+        description: 'Weather information from global meteorological services',
+        category: 'custom' as OracleScriptCategory,
+        baseCalls: 22000,
+      },
+      {
+        name: 'NFT Price Oracle',
+        description: 'NFT collection valuations and market data',
+        category: 'custom' as OracleScriptCategory,
+        baseCalls: 35000,
+      },
+      {
+        name: 'DeFi TVL Feed',
+        description: 'Total Value Locked data for DeFi protocols',
+        category: 'custom' as OracleScriptCategory,
+        baseCalls: 48000,
+      },
+      {
+        name: 'Gas Price Oracle',
+        description: 'Real-time gas price estimates across multiple chains',
+        category: 'custom' as OracleScriptCategory,
+        baseCalls: 110000,
+      },
+    ];
+
+    for (let i = 0; i < scriptTemplates.length; i++) {
+      const template = scriptTemplates[i];
+      const callCount = template.baseCalls + Math.floor(seededRandom.next() * 20000);
+      const successRate = 95 + seededRandom.next() * 4.99;
+      const avgResponseTime = 200 + Math.floor(seededRandom.next() * 800);
+
+      scripts.push({
+        id: i + 1,
+        name: template.name,
+        description: template.description,
+        owner: `band1${this.generateRandomAddress()}`,
+        schema: `{"input": "symbol", "output": "price"}`,
+        code: `// Oracle Script: ${template.name}\n// Execute data request...\nreturn fetchPrice(symbol);`,
+        callCount,
+        successRate: Number(successRate.toFixed(2)),
+        avgResponseTime,
+        category: template.category,
+        lastUpdated: Date.now() - Math.floor(seededRandom.next() * 24 * 60 * 60 * 1000),
+      });
+    }
+
+    dataCache.set(cacheKey, scripts);
+    return scripts;
   }
 
   async getOracleScriptById(id: number): Promise<OracleScript | null> {
@@ -1492,128 +1542,129 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getIBCConnections(): Promise<IBCConnection[]> {
-    try {
-      const connections: IBCConnection[] = [];
-      const chainConfigs = [
-        {
-          name: 'Cosmos Hub',
-          chainId: 'cosmoshub-4',
-          channelId: 'channel-0',
-          connectionId: 'connection-0',
-        },
-        {
-          name: 'Osmosis',
-          chainId: 'osmosis-1',
-          channelId: 'channel-1',
-          connectionId: 'connection-1',
-        },
-        { name: 'Juno', chainId: 'juno-1', channelId: 'channel-2', connectionId: 'connection-2' },
-        {
-          name: 'Stargaze',
-          chainId: 'stargaze-1',
-          channelId: 'channel-3',
-          connectionId: 'connection-3',
-        },
-        {
-          name: 'Stride',
-          chainId: 'stride-1',
-          channelId: 'channel-4',
-          connectionId: 'connection-4',
-        },
-        {
-          name: 'Axelar',
-          chainId: 'axelar-dojo-1',
-          channelId: 'channel-5',
-          connectionId: 'connection-5',
-        },
-        {
-          name: 'Injective',
-          chainId: 'injective-1',
-          channelId: 'channel-6',
-          connectionId: 'connection-6',
-        },
-        {
-          name: 'Persistence',
-          chainId: 'core-1',
-          channelId: 'channel-7',
-          connectionId: 'connection-7',
-        },
-        {
-          name: 'Crescent',
-          chainId: 'crescent-1',
-          channelId: 'channel-8',
-          connectionId: 'connection-8',
-        },
-        {
-          name: 'Kujira',
-          chainId: 'kaiyo-1',
-          channelId: 'channel-9',
-          connectionId: 'connection-9',
-        },
-        {
-          name: 'Neutron',
-          chainId: 'neutron-1',
-          channelId: 'channel-10',
-          connectionId: 'connection-10',
-        },
-        {
-          name: 'Celestia',
-          chainId: 'celestia-1',
-          channelId: 'channel-11',
-          connectionId: 'connection-11',
-        },
-      ];
+    const cacheKey = 'ibcConnections';
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as IBCConnection[];
+    }
 
-      const relayerNames = ['Stride Rly', 'Cosmos Rly', 'IBC Go', 'Hermes', 'TsRelayer', 'Polymer'];
+    seededRandom.reset(globalSeed + 10);
+    const connections: IBCConnection[] = [];
+    const chainConfigs = [
+      {
+        name: 'Cosmos Hub',
+        chainId: 'cosmoshub-4',
+        channelId: 'channel-0',
+        connectionId: 'connection-0',
+      },
+      {
+        name: 'Osmosis',
+        chainId: 'osmosis-1',
+        channelId: 'channel-1',
+        connectionId: 'connection-1',
+      },
+      { name: 'Juno', chainId: 'juno-1', channelId: 'channel-2', connectionId: 'connection-2' },
+      {
+        name: 'Stargaze',
+        chainId: 'stargaze-1',
+        channelId: 'channel-3',
+        connectionId: 'connection-3',
+      },
+      {
+        name: 'Stride',
+        chainId: 'stride-1',
+        channelId: 'channel-4',
+        connectionId: 'connection-4',
+      },
+      {
+        name: 'Axelar',
+        chainId: 'axelar-dojo-1',
+        channelId: 'channel-5',
+        connectionId: 'connection-5',
+      },
+      {
+        name: 'Injective',
+        chainId: 'injective-1',
+        channelId: 'channel-6',
+        connectionId: 'connection-6',
+      },
+      {
+        name: 'Persistence',
+        chainId: 'core-1',
+        channelId: 'channel-7',
+        connectionId: 'connection-7',
+      },
+      {
+        name: 'Crescent',
+        chainId: 'crescent-1',
+        channelId: 'channel-8',
+        connectionId: 'connection-8',
+      },
+      {
+        name: 'Kujira',
+        chainId: 'kaiyo-1',
+        channelId: 'channel-9',
+        connectionId: 'connection-9',
+      },
+      {
+        name: 'Neutron',
+        chainId: 'neutron-1',
+        channelId: 'channel-10',
+        connectionId: 'connection-10',
+      },
+      {
+        name: 'Celestia',
+        chainId: 'celestia-1',
+        channelId: 'channel-11',
+        connectionId: 'connection-11',
+      },
+    ];
 
-      const now = Date.now();
+    const relayerNames = ['Stride Rly', 'Cosmos Rly', 'IBC Go', 'Hermes', 'TsRelayer', 'Polymer'];
 
-      for (const config of chainConfigs) {
-        const isActive = Math.random() > 0.15;
-        const transfers24h = isActive
-          ? Math.floor(Math.random() * 500 + 100)
-          : Math.floor(Math.random() * 50);
-        const transfers7d = transfers24h * 7 + Math.floor(Math.random() * 500);
-        const totalTransfers = transfers7d * 4 + Math.floor(Math.random() * 5000);
-        const successRate = isActive ? 98 + Math.random() * 1.9 : 85 + Math.random() * 10;
+    const now = Date.now();
 
-        const relayerCount = Math.floor(Math.random() * 3) + 1;
-        const relayers: IBCRelayer[] = [];
+    for (const config of chainConfigs) {
+      const isActive = seededRandom.next() > 0.15;
+      const transfers24h = isActive
+        ? Math.floor(seededRandom.next() * 500 + 100)
+        : Math.floor(seededRandom.next() * 50);
+      const transfers7d = transfers24h * 7 + Math.floor(seededRandom.next() * 500);
+      const totalTransfers = transfers7d * 4 + Math.floor(seededRandom.next() * 5000);
+      const successRate = isActive ? 98 + seededRandom.next() * 1.9 : 85 + seededRandom.next() * 10;
 
-        for (let i = 0; i < relayerCount; i++) {
-          const relayerName = relayerNames[Math.floor(Math.random() * relayerNames.length)];
-          relayers.push({
-            address: `band1${this.generateRandomAddress()}`,
-            moniker: relayerName,
-            transferCount: Math.floor(Math.random() * transfers24h * 0.6 + transfers24h * 0.2),
-            successRate: 95 + Math.random() * 4.9,
-          });
-        }
+      const relayerCount = Math.floor(seededRandom.next() * 3) + 1;
+      const relayers: IBCRelayer[] = [];
 
-        connections.push({
-          chainName: config.name,
-          chainId: config.chainId,
-          channelId: config.channelId,
-          connectionId: config.connectionId,
-          status: isActive ? 'active' : 'inactive',
-          transfers24h,
-          transfers7d,
-          totalTransfers,
-          successRate: Number(successRate.toFixed(2)),
-          relayers,
-          lastActivity: isActive
-            ? now - Math.floor(Math.random() * 3600000)
-            : now - Math.floor(Math.random() * 86400000 * 7),
+      for (let i = 0; i < relayerCount; i++) {
+        const relayerName = relayerNames[Math.floor(seededRandom.next() * relayerNames.length)];
+        relayers.push({
+          address: `band1${this.generateRandomAddress()}`,
+          moniker: relayerName,
+          transferCount: Math.floor(seededRandom.next() * transfers24h * 0.6 + transfers24h * 0.2),
+          successRate: 95 + seededRandom.next() * 4.9,
         });
       }
 
-      return connections;
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch IBC connections',
-        'IBC_CONNECTIONS_ERROR'
-      );
+      connections.push({
+        chainName: config.name,
+        chainId: config.chainId,
+        channelId: config.channelId,
+        connectionId: config.connectionId,
+        status: isActive ? 'active' : 'inactive',
+        transfers24h,
+        transfers7d,
+        totalTransfers,
+        successRate: Number(successRate.toFixed(2)),
+        relayers,
+        lastActivity: isActive
+          ? now - Math.floor(seededRandom.next() * 3600000)
+          : now - Math.floor(seededRandom.next() * 86400000 * 7),
+      });
     }
+
+    dataCache.set(cacheKey, connections);
+    return connections;
   }
 
   async getIBCTransferStats(): Promise<IBCTransferStats> {
@@ -1645,32 +1696,33 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getIBCTransferTrends(days: number = 7): Promise<IBCTransferTrend[]> {
-    try {
-      const trends: IBCTransferTrend[] = [];
-      const now = Date.now();
-      const dayMs = 24 * 60 * 60 * 1000;
-
-      for (let i = days - 1; i >= 0; i--) {
-        const timestamp = now - i * dayMs;
-        const baseTransfers = 3000 + Math.floor(Math.random() * 1000);
-        const trend = Math.sin(i / 2) * 500;
-        const transfers = Math.floor(baseTransfers + trend + (Math.random() - 0.5) * 500);
-        const successRate = 97 + Math.random() * 2.5;
-
-        trends.push({
-          timestamp,
-          transfers,
-          successRate: Number(successRate.toFixed(2)),
-        });
-      }
-
-      return trends;
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch IBC transfer trends',
-        'IBC_TRANSFER_TRENDS_ERROR'
-      );
+    const cacheKey = `ibcTransferTrends_${days}`;
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as IBCTransferTrend[];
     }
+
+    seededRandom.reset(globalSeed + 11);
+    const trends: IBCTransferTrend[] = [];
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    for (let i = days - 1; i >= 0; i--) {
+      const timestamp = now - i * dayMs;
+      const baseTransfers = 3000 + Math.floor(seededRandom.next() * 1000);
+      const trend = Math.sin(i / 2) * 500;
+      const transfers = Math.floor(baseTransfers + trend + (seededRandom.next() - 0.5) * 500);
+      const successRate = 97 + seededRandom.next() * 2.5;
+
+      trends.push({
+        timestamp,
+        transfers,
+        successRate: Number(successRate.toFixed(2)),
+      });
+    }
+
+    dataCache.set(cacheKey, trends);
+    return trends;
   }
 
   async getStakingInfo(): Promise<StakingInfo> {
@@ -1735,7 +1787,8 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   calculateStakingReward(amount: number, durationDays: number): StakingReward {
-    const apr = 10 + Math.random() * 4;
+    seededRandom.reset(globalSeed + 12);
+    const apr = 10 + seededRandom.next() * 4;
     const dailyRate = apr / 100 / 365;
     const estimatedReward = amount * dailyRate * durationDays;
     const apy = (Math.pow(1 + apr / 100 / 365, 365) - 1) * 100;
@@ -1749,98 +1802,102 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getRiskMetrics(): Promise<RiskMetrics> {
-    try {
-      const validators = await this.getValidators(50);
-      const networkStats = await this.getNetworkStats();
-
-      const totalStake = validators.reduce((sum, v) => sum + v.tokens, 0);
-      const sortedValidators = [...validators].sort((a, b) => b.tokens - a.tokens);
-
-      const stakes = sortedValidators.map((v) => v.tokens);
-      const giniCoefficient = this.calculateGiniCoefficient(stakes);
-
-      const top10Stake = sortedValidators.slice(0, 10).reduce((sum, v) => sum + v.tokens, 0);
-      const top10ValidatorsShare = (top10Stake / totalStake) * 100;
-
-      const nakamotoCoefficient = this.calculateNakamotoCoefficient(sortedValidators, totalStake);
-
-      const avgUptime =
-        validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length;
-      const avgCommission =
-        validators.reduce((sum, v) => sum + v.commissionRate, 0) / validators.length;
-
-      const decentralizationScore = Math.max(
-        0,
-        Math.min(100, 100 - giniCoefficient * 100 - (top10ValidatorsShare - 33) * 0.5)
-      );
-
-      const securityScore = Math.max(
-        0,
-        Math.min(100, 70 + networkStats.activeValidators * 0.3 + (100 - top10ValidatorsShare) * 0.3)
-      );
-
-      const reliabilityScore = Math.max(0, Math.min(100, avgUptime));
-
-      const transparencyScore = 75 + Math.random() * 10;
-
-      const overallScore =
-        (decentralizationScore * 0.3 + securityScore * 0.3 + reliabilityScore * 0.25 + transparencyScore * 0.15);
-
-      return {
-        decentralizationScore: Number(decentralizationScore.toFixed(1)),
-        securityScore: Number(securityScore.toFixed(1)),
-        reliabilityScore: Number(reliabilityScore.toFixed(1)),
-        transparencyScore: Number(transparencyScore.toFixed(1)),
-        overallScore: Number(overallScore.toFixed(1)),
-        giniCoefficient: Number(giniCoefficient.toFixed(3)),
-        nakamotoCoefficient,
-        top10ValidatorsShare: Number(top10ValidatorsShare.toFixed(1)),
-      };
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch risk metrics',
-        'RISK_METRICS_ERROR'
-      );
+    const cacheKey = 'riskMetrics';
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as RiskMetrics;
     }
+
+    seededRandom.reset(globalSeed + 13);
+    const validators = await this.getValidators(50);
+    const networkStats = await this.getNetworkStats();
+
+    const totalStake = validators.reduce((sum, v) => sum + v.tokens, 0);
+    const sortedValidators = [...validators].sort((a, b) => b.tokens - a.tokens);
+
+    const stakes = sortedValidators.map((v) => v.tokens);
+    const giniCoefficient = this.calculateGiniCoefficient(stakes);
+
+    const top10Stake = sortedValidators.slice(0, 10).reduce((sum, v) => sum + v.tokens, 0);
+    const top10ValidatorsShare = (top10Stake / totalStake) * 100;
+
+    const nakamotoCoefficient = this.calculateNakamotoCoefficient(sortedValidators, totalStake);
+
+    const avgUptime =
+      validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length;
+    const avgCommission =
+      validators.reduce((sum, v) => sum + v.commissionRate, 0) / validators.length;
+
+    const decentralizationScore = Math.max(
+      0,
+      Math.min(100, 100 - giniCoefficient * 100 - (top10ValidatorsShare - 33) * 0.5)
+    );
+
+    const securityScore = Math.max(
+      0,
+      Math.min(100, 70 + networkStats.activeValidators * 0.3 + (100 - top10ValidatorsShare) * 0.3)
+    );
+
+    const reliabilityScore = Math.max(0, Math.min(100, avgUptime));
+
+    const transparencyScore = 75 + seededRandom.next() * 10;
+
+    const overallScore =
+      (decentralizationScore * 0.3 + securityScore * 0.3 + reliabilityScore * 0.25 + transparencyScore * 0.15);
+
+    const result = {
+      decentralizationScore: Number(decentralizationScore.toFixed(1)),
+      securityScore: Number(securityScore.toFixed(1)),
+      reliabilityScore: Number(reliabilityScore.toFixed(1)),
+      transparencyScore: Number(transparencyScore.toFixed(1)),
+      overallScore: Number(overallScore.toFixed(1)),
+      giniCoefficient: Number(giniCoefficient.toFixed(3)),
+      nakamotoCoefficient,
+      top10ValidatorsShare: Number(top10ValidatorsShare.toFixed(1)),
+    };
+
+    dataCache.set(cacheKey, result);
+    return result;
   }
 
   async getRiskTrendData(days: number = 30): Promise<RiskTrendData[]> {
-    try {
-      const trends: RiskTrendData[] = [];
-      const now = new Date();
-
-      const baseDecentralization = 72;
-      const baseSecurity = 78;
-      const baseReliability = 94;
-
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
-
-        const dayVariation = Math.sin(i / 5) * 3 + (Math.random() - 0.5) * 4;
-        const decentralization = Math.max(60, Math.min(85, baseDecentralization + dayVariation));
-        const security = Math.max(70, Math.min(90, baseSecurity + dayVariation * 0.8));
-        const reliability = Math.max(90, Math.min(99, baseReliability + dayVariation * 0.3));
-
-        const score = decentralization * 0.3 + security * 0.3 + reliability * 0.25 + 75 * 0.15;
-
-        trends.push({
-          date: dateStr,
-          score: Number(score.toFixed(1)),
-          decentralization: Number(decentralization.toFixed(1)),
-          security: Number(security.toFixed(1)),
-          reliability: Number(reliability.toFixed(1)),
-        });
-      }
-
-      return trends;
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch risk trend data',
-        'RISK_TREND_ERROR'
-      );
+    const cacheKey = `riskTrendData_${days}`;
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as RiskTrendData[];
     }
+
+    seededRandom.reset(globalSeed + 14);
+    const trends: RiskTrendData[] = [];
+    const now = new Date();
+
+    const baseDecentralization = 72;
+    const baseSecurity = 78;
+    const baseReliability = 94;
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+
+      const dayVariation = Math.sin(i / 5) * 3 + (seededRandom.next() - 0.5) * 4;
+      const decentralization = Math.max(60, Math.min(85, baseDecentralization + dayVariation));
+      const security = Math.max(70, Math.min(90, baseSecurity + dayVariation * 0.8));
+      const reliability = Math.max(90, Math.min(99, baseReliability + dayVariation * 0.3));
+
+      const score = decentralization * 0.3 + security * 0.3 + reliability * 0.25 + 75 * 0.15;
+
+      trends.push({
+        date: dateStr,
+        score: Number(score.toFixed(1)),
+        decentralization: Number(decentralization.toFixed(1)),
+        security: Number(security.toFixed(1)),
+        reliability: Number(reliability.toFixed(1)),
+      });
+    }
+
+    dataCache.set(cacheKey, trends);
+    return trends;
   }
 
   async getSecurityAuditEvents(): Promise<RiskEvent[]> {
@@ -1971,115 +2028,113 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getGovernanceProposals(status?: ProposalStatus): Promise<GovernanceProposal[]> {
-    try {
-      const proposals: GovernanceProposal[] = [];
-      const now = Date.now();
-
-      const proposalTemplates = [
-        {
-          title: 'Upgrade BandChain to v3.0',
-          description: 'Proposal to upgrade BandChain mainnet to version 3.0, introducing enhanced oracle script execution environment and improved gas optimization.',
-          type: 'Software Upgrade',
-          status: 'voting' as ProposalStatus,
-        },
-        {
-          title: 'Increase Validator Set Size',
-          description: 'Proposal to increase the active validator set from 72 to 100 validators to improve network decentralization.',
-          type: 'Parameter Change',
-          status: 'voting' as ProposalStatus,
-        },
-        {
-          title: 'Community Pool Spending for Marketing',
-          description: 'Proposal to allocate 500,000 BAND from the community pool for marketing and ecosystem development initiatives.',
-          type: 'Community Pool Spend',
-          status: 'passed' as ProposalStatus,
-        },
-        {
-          title: 'Reduce Minimum Deposit Amount',
-          description: 'Proposal to reduce the minimum deposit for governance proposals from 512 BAND to 256 BAND to lower barriers to participation.',
-          type: 'Parameter Change',
-          status: 'voting' as ProposalStatus,
-        },
-        {
-          title: 'Add New Oracle Scripts',
-          description: 'Proposal to add 10 new oracle scripts for emerging DeFi protocols and NFT price feeds.',
-          type: 'Oracle Script Addition',
-          status: 'passed' as ProposalStatus,
-        },
-        {
-          title: 'Adjust Staking Parameters',
-          description: 'Proposal to adjust staking parameters including unbonding period and slashing rates.',
-          type: 'Parameter Change',
-          status: 'rejected' as ProposalStatus,
-        },
-        {
-          title: 'Fund Developer Grant Program',
-          description: 'Proposal to establish a developer grant program with 1,000,000 BAND allocation for ecosystem growth.',
-          type: 'Community Pool Spend',
-          status: 'passed' as ProposalStatus,
-        },
-        {
-          title: 'Enable IBC Relayer Incentives',
-          description: 'Proposal to implement incentive mechanisms for IBC relayers to improve cross-chain connectivity.',
-          type: 'Parameter Change',
-          status: 'deposit' as ProposalStatus,
-        },
-        {
-          title: 'Security Audit Funding',
-          description: 'Proposal to fund comprehensive security audit by leading firms for BandChain core contracts.',
-          type: 'Community Pool Spend',
-          status: 'passed' as ProposalStatus,
-        },
-        {
-          title: 'Update Oracle Script Standards',
-          description: 'Proposal to update standards and requirements for oracle script development and deployment.',
-          type: 'Software Upgrade',
-          status: 'failed' as ProposalStatus,
-        },
-      ];
-
-      for (let i = 0; i < proposalTemplates.length; i++) {
-        const template = proposalTemplates[i];
-        const submitTime = now - Math.floor(Math.random() * 14 * 24 * 60 * 60 * 1000);
-        const depositEndTime = submitTime + 14 * 24 * 60 * 60 * 1000;
-        const votingEndTime = depositEndTime + 7 * 24 * 60 * 60 * 1000;
-
-        const totalVotes = 50000000 + Math.floor(Math.random() * 50000000);
-        const yesRatio = template.status === 'passed' ? 0.7 + Math.random() * 0.2 : 
-                         template.status === 'rejected' ? 0.2 + Math.random() * 0.2 :
-                         0.4 + Math.random() * 0.2;
-
-        proposals.push({
-          id: i + 1,
-          title: template.title,
-          description: template.description,
-          type: template.type,
-          status: template.status,
-          submitTime,
-          depositEndTime,
-          votingEndTime,
-          proposer: `band1${this.generateRandomAddress()}`,
-          totalDeposit: 512 + Math.floor(Math.random() * 1000),
-          votes: {
-            yes: Math.floor(totalVotes * yesRatio),
-            no: Math.floor(totalVotes * (1 - yesRatio) * 0.5),
-            abstain: Math.floor(totalVotes * (1 - yesRatio) * 0.3),
-            noWithVeto: Math.floor(totalVotes * (1 - yesRatio) * 0.2),
-          },
-        });
-      }
-
-      if (status) {
-        return proposals.filter((p) => p.status === status);
-      }
-
-      return proposals;
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch governance proposals',
-        'GOVERNANCE_PROPOSALS_ERROR'
-      );
+    const cacheKey = `governanceProposals_${status || 'all'}`;
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as GovernanceProposal[];
     }
+
+    seededRandom.reset(globalSeed + 15);
+    const proposals: GovernanceProposal[] = [];
+    const now = Date.now();
+
+    const proposalTemplates = [
+      {
+        title: 'Upgrade BandChain to v3.0',
+        description: 'Proposal to upgrade BandChain mainnet to version 3.0, introducing enhanced oracle script execution environment and improved gas optimization.',
+        type: 'Software Upgrade',
+        status: 'voting' as ProposalStatus,
+      },
+      {
+        title: 'Increase Validator Set Size',
+        description: 'Proposal to increase the active validator set from 72 to 100 validators to improve network decentralization.',
+        type: 'Parameter Change',
+        status: 'voting' as ProposalStatus,
+      },
+      {
+        title: 'Community Pool Spending for Marketing',
+        description: 'Proposal to allocate 500,000 BAND from the community pool for marketing and ecosystem development initiatives.',
+        type: 'Community Pool Spend',
+        status: 'passed' as ProposalStatus,
+      },
+      {
+        title: 'Reduce Minimum Deposit Amount',
+        description: 'Proposal to reduce the minimum deposit for governance proposals from 512 BAND to 256 BAND to lower barriers to participation.',
+        type: 'Parameter Change',
+        status: 'voting' as ProposalStatus,
+      },
+      {
+        title: 'Add New Oracle Scripts',
+        description: 'Proposal to add 10 new oracle scripts for emerging DeFi protocols and NFT price feeds.',
+        type: 'Oracle Script Addition',
+        status: 'passed' as ProposalStatus,
+      },
+      {
+        title: 'Adjust Staking Parameters',
+        description: 'Proposal to adjust staking parameters including unbonding period and slashing rates.',
+        type: 'Parameter Change',
+        status: 'rejected' as ProposalStatus,
+      },
+      {
+        title: 'Fund Developer Grant Program',
+        description: 'Proposal to establish a developer grant program with 1,000,000 BAND allocation for ecosystem growth.',
+        type: 'Community Pool Spend',
+        status: 'passed' as ProposalStatus,
+      },
+      {
+        title: 'Enable IBC Relayer Incentives',
+        description: 'Proposal to implement incentive mechanisms for IBC relayers to improve cross-chain connectivity.',
+        type: 'Parameter Change',
+        status: 'deposit' as ProposalStatus,
+      },
+      {
+        title: 'Security Audit Funding',
+        description: 'Proposal to fund comprehensive security audit by leading firms for BandChain core contracts.',
+        type: 'Community Pool Spend',
+        status: 'passed' as ProposalStatus,
+      },
+      {
+        title: 'Update Oracle Script Standards',
+        description: 'Proposal to update standards and requirements for oracle script development and deployment.',
+        type: 'Software Upgrade',
+        status: 'failed' as ProposalStatus,
+      },
+    ];
+
+    for (let i = 0; i < proposalTemplates.length; i++) {
+      const template = proposalTemplates[i];
+      const submitTime = now - Math.floor(seededRandom.next() * 14 * 24 * 60 * 60 * 1000);
+      const depositEndTime = submitTime + 14 * 24 * 60 * 60 * 1000;
+      const votingEndTime = depositEndTime + 7 * 24 * 60 * 60 * 1000;
+
+      const totalVotes = 50000000 + Math.floor(seededRandom.next() * 50000000);
+      const yesRatio = template.status === 'passed' ? 0.7 + seededRandom.next() * 0.2 : 
+                       template.status === 'rejected' ? 0.2 + seededRandom.next() * 0.2 :
+                       0.4 + seededRandom.next() * 0.2;
+
+      proposals.push({
+        id: i + 1,
+        title: template.title,
+        description: template.description,
+        type: template.type,
+        status: template.status,
+        submitTime,
+        depositEndTime,
+        votingEndTime,
+        proposer: `band1${this.generateRandomAddress()}`,
+        totalDeposit: 512 + Math.floor(seededRandom.next() * 1000),
+        votes: {
+          yes: Math.floor(totalVotes * yesRatio),
+          no: Math.floor(totalVotes * (1 - yesRatio) * 0.5),
+          abstain: Math.floor(totalVotes * (1 - yesRatio) * 0.3),
+          noWithVeto: Math.floor(totalVotes * (1 - yesRatio) * 0.2),
+        },
+      });
+    }
+
+    const result = status ? proposals.filter((p) => p.status === status) : proposals;
+    dataCache.set(cacheKey, result);
+    return result;
   }
 
   async getGovernanceParams(): Promise<GovernanceParams> {

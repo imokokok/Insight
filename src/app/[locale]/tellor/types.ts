@@ -119,16 +119,6 @@ export interface DataFeed {
   reliability: number;
 }
 
-export interface ReporterData {
-  id: string;
-  name: string;
-  region: string;
-  responseTime: number;
-  successRate: number;
-  reputation: number;
-  stakedAmount: number;
-}
-
 export type SortDirection = 'asc' | 'desc';
 
 export interface SortConfig {

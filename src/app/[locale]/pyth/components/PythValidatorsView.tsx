@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { Activity, Shield, Clock, Award, ArrowUpDown } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
@@ -43,6 +44,16 @@ export function PythValidatorsView({ validators, isLoading }: PythValidatorsView
   const avgUptime = validators.length
     ? (validators.reduce((sum, v) => sum + (v.uptime ?? 0), 0) / validators.length).toFixed(1)
     : 0;
+
+  const parentRef = useRef<HTMLDivElement>(null);
+  const shouldUseVirtualScroll = sortedValidators.length > 50;
+
+  const virtualizer = useVirtualizer({
+    count: sortedValidators.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 53,
+    overscan: 5,
+  });
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {

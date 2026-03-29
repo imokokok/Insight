@@ -119,7 +119,9 @@ function StageDetailModal({ stage, onClose, themeColor, t }: StageDetailModalPro
         <div className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-600">{t('uma.optimisticOracle.dataRequest.duration')}:</span>
+            <span className="text-sm text-gray-600">
+              {t('uma.optimisticOracle.dataRequest.duration')}:
+            </span>
             <span className="text-sm font-semibold text-gray-900">{stage.duration}</span>
           </div>
 
@@ -243,7 +245,9 @@ function StageCard({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-medium text-gray-400">{t('uma.optimisticOracle.step')} {index + 1}</span>
+              <span className="text-xs font-medium text-gray-400">
+                {t('uma.optimisticOracle.step')} {index + 1}
+              </span>
               {isActive && (
                 <span
                   className="px-2 py-0.5 text-xs font-medium rounded-full"
@@ -324,7 +328,9 @@ function DesktopFlowView({
                     {isCompleted ? <CheckCircle2 className="w-7 h-7" /> : stage.icon}
                   </div>
 
-                  <span className="text-xs text-gray-400 mb-1">{t('uma.optimisticOracle.step')} {index + 1}</span>
+                  <span className="text-xs text-gray-400 mb-1">
+                    {t('uma.optimisticOracle.step')} {index + 1}
+                  </span>
                   <h3 className="text-sm font-bold text-gray-900 mb-2">{stage.titleCn}</h3>
                   <p className="text-xs text-gray-600 mb-3 line-clamp-2">{stage.description}</p>
 
@@ -446,9 +452,7 @@ export function OptimisticOracleFlow() {
             </div>
           </div>
         </div>
-        <p className="text-sm text-gray-600 mt-3">
-          {t('uma.optimisticOracle.description')}
-        </p>
+        <p className="text-sm text-gray-600 mt-3">{t('uma.optimisticOracle.description')}</p>
       </div>
 
       <div className="p-6">
@@ -494,7 +498,9 @@ export function OptimisticOracleFlow() {
       </div>
 
       <div className="p-6 bg-gray-50 border-t border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('uma.optimisticOracle.coreAdvantages')}</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">
+          {t('uma.optimisticOracle.coreAdvantages')}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex items-start gap-3">
             <div
@@ -504,7 +510,9 @@ export function OptimisticOracleFlow() {
               <Zap className="w-4 h-4" style={{ color: themeColor }} />
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-900">{t('uma.optimisticOracle.fastEfficient')}</h4>
+              <h4 className="text-sm font-medium text-gray-900">
+                {t('uma.optimisticOracle.fastEfficient')}
+              </h4>
               <p className="text-xs text-gray-600 mt-1">
                 {t('uma.optimisticOracle.fastEfficientDesc')}
               </p>
@@ -518,7 +526,9 @@ export function OptimisticOracleFlow() {
               <Shield className="w-4 h-4" style={{ color: themeColor }} />
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-900">{t('uma.optimisticOracle.secureReliable')}</h4>
+              <h4 className="text-sm font-medium text-gray-900">
+                {t('uma.optimisticOracle.secureReliable')}
+              </h4>
               <p className="text-xs text-gray-600 mt-1">
                 {t('uma.optimisticOracle.secureReliableDesc')}
               </p>
@@ -532,7 +542,9 @@ export function OptimisticOracleFlow() {
               <Users className="w-4 h-4" style={{ color: themeColor }} />
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-900">{t('uma.optimisticOracle.decentralizedOpen')}</h4>
+              <h4 className="text-sm font-medium text-gray-900">
+                {t('uma.optimisticOracle.decentralizedOpen')}
+              </h4>
               <p className="text-xs text-gray-600 mt-1">
                 {t('uma.optimisticOracle.decentralizedOpenDesc')}
               </p>
@@ -541,36 +553,40 @@ export function OptimisticOracleFlow() {
         </div>
       </div>
 
-      <div className="p-4 bg-gray-50 border-t border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">{t('uma.optimisticOracle.simulateProgress')}:</span>
-            <div className="flex gap-1">
-              {stages.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveStage(index)}
-                  className={cn(
-                    'w-8 h-8 rounded-lg text-xs font-medium transition-all',
-                    activeStage === index
-                      ? 'text-white'
-                      : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
-                  )}
-                  style={activeStage === index ? { backgroundColor: themeColor } : {}}
-                >
-                  {index + 1}
-                </button>
-              ))}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="p-4 bg-gray-50 border-t border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">
+                {t('uma.optimisticOracle.simulateProgress')}:
+              </span>
+              <div className="flex gap-1">
+                {stages.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveStage(index)}
+                    className={cn(
+                      'w-8 h-8 rounded-lg text-xs font-medium transition-all',
+                      activeStage === index
+                        ? 'text-white'
+                        : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
+                    )}
+                    style={activeStage === index ? { backgroundColor: themeColor } : {}}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
             </div>
+            <button
+              onClick={() => setActiveStage((prev) => (prev + 1) % 4)}
+              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-all"
+            >
+              {t('uma.optimisticOracle.nextStep')} →
+            </button>
           </div>
-          <button
-            onClick={() => setActiveStage((prev) => (prev + 1) % 4)}
-            className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-all"
-          >
-            {t('uma.optimisticOracle.nextStep')} →
-          </button>
         </div>
-      </div>
+      )}
 
       <StageDetailModal
         stage={selectedStage}

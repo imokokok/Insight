@@ -59,6 +59,15 @@ export function useUmaPage() {
     setActiveTab(tab);
   }, []);
 
+  const aggregatedError =
+    errors.length > 0
+      ? {
+          message: errors.map((e, i) => `[${i + 1}] ${e.message}`).join('; '),
+          count: errors.length,
+          errors,
+        }
+      : null;
+
   return {
     activeTab,
     config,
@@ -70,7 +79,7 @@ export function useUmaPage() {
     disputes,
     isLoading,
     isError,
-    error: errors[0] || null,
+    error: aggregatedError,
     lastUpdated,
     isRefreshing,
     dataFreshnessStatus,

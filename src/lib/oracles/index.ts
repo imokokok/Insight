@@ -42,10 +42,22 @@ export type {
   ChronicleNetworkStats,
   VaultData,
   VaultTypeData,
+  AuctionData,
+  LiquidationHistory,
   ScuttlebuttConsensus,
   ValidatorVote,
   CrossChainPrice,
+  ChainPriceData,
+  ChainLatencyData,
+  BridgeStatusData,
+  CrossChainData,
   PriceDeviation,
+  DeviationDataSource,
+  DeviationHistoryPoint,
+  DeviationStats,
+  DeviationFactor,
+  DeviationImpact,
+  DeviationData,
 } from './chronicle';
 export type {
   TRONNetworkStats,
@@ -71,9 +83,11 @@ export {
   resetPythDataService,
   type PriceFeed,
   type PublisherData,
-  type NetworkStats,
-  type RetryConfig,
+  type ValidatorData,
+  type CrossChainPriceData,
+  type CrossChainResult,
 } from './pythDataService';
+export type { RetryConfig } from './pythConstants';
 export { BaseOracleClient, shouldUseDatabase, configureStorage, getStorageConfig } from './base';
 export type { OracleClientConfig, OracleStorageConfig } from './base';
 export type { IOracleClient, IOracleClientFactory } from './interfaces';

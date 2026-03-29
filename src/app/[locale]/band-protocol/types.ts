@@ -11,6 +11,7 @@ import {
   type StakingDistribution,
   type GovernanceProposal,
   type GovernanceParams,
+  type DataSource,
 } from '@/lib/oracles/bandProtocol';
 import { type PriceData } from '@/types/oracle';
 
@@ -25,15 +26,6 @@ export type BandProtocolTabId =
   | 'ibc'
   | 'staking'
   | 'governance';
-
-export interface NetworkStats {
-  activeNodes: number;
-  dataFeeds: number;
-  nodeUptime: number;
-  avgResponseTime: number;
-  latency: number;
-  hourlyActivity?: number[];
-}
 
 export interface BandProtocolPageState {
   activeTab: BandProtocolTabId;
@@ -87,11 +79,21 @@ export interface BandProtocolNetworkViewProps {
 export interface BandProtocolValidatorsViewProps {
   validators: ValidatorInfo[];
   isLoading: boolean;
+  error?: Error | null;
+  onRefresh?: () => void;
 }
 
 export interface BandProtocolCrossChainViewProps {
   crossChainStats: CrossChainStats | null | undefined;
   isLoading: boolean;
+}
+
+export interface BandProtocolDataFeedsViewProps {
+  dataSources: DataSource[];
+  total: number;
+  isLoading: boolean;
+  error?: Error | null;
+  onRefresh: () => void;
 }
 
 export interface BandProtocolIBCViewProps {
@@ -104,6 +106,8 @@ export interface BandProtocolIBCViewProps {
 export interface BandProtocolOracleScriptsViewProps {
   oracleScripts: OracleScript[];
   isLoading: boolean;
+  error?: Error | null;
+  onRefresh: () => void;
 }
 
 export interface BandProtocolStakingViewProps {
@@ -123,18 +127,4 @@ export type SortDirection = 'asc' | 'desc';
 export interface SortConfig {
   key: string;
   direction: SortDirection;
-}
-
-export interface BandProtocolDataTableProps<T> {
-  data: T[];
-  columns: Array<{
-    key: string;
-    header: string;
-    width?: string;
-    sortable?: boolean;
-    render?: (item: T) => React.ReactNode;
-  }>;
-  sortConfig?: SortConfig;
-  onSort?: (key: string) => void;
-  isLoading?: boolean;
 }

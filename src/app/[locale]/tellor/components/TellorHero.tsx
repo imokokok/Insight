@@ -23,13 +23,13 @@ import {
   Link2,
 } from 'lucide-react';
 
+import { VerificationBadge } from '@/components/oracle/data-display';
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
-import { VerificationBadge } from '@/components/oracle/data-display';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
-import { type PriceData } from '@/types/oracle';
 import { type ChainId, getEtherscanUrl, formatTxHash } from '@/lib/oracles/tellorDataVerification';
+import { type PriceData } from '@/types/oracle';
 
 export interface TellorHeroProps {
   config: OracleConfig;
@@ -166,7 +166,11 @@ function EnhancedCoreStats({
               <div className="text-lg font-bold text-gray-900 tracking-tight">{stat.value}</div>
               {hasVerification && (
                 <a
-                  href={getEtherscanUrl('tx', verificationData.txHash!, verificationData.chainId || 1)}
+                  href={getEtherscanUrl(
+                    'tx',
+                    verificationData.txHash!,
+                    verificationData.chainId || 1
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-cyan-600 hover:text-cyan-700 transition-colors"
@@ -629,13 +633,7 @@ export function TellorHero({
     },
   ];
 
-  const mockVerificationData = {
-    txHash: '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(''),
-    blockHeight: Math.floor(Math.random() * 1000000) + 18000000,
-    chainId: 1 as ChainId,
-  };
-
-  const displayVerificationData = verificationData || mockVerificationData;
+  const displayVerificationData = verificationData || null;
 
   // 次要统计指标 (Secondary Stats) - 整合为1行
   const secondaryStats: StatItem[] = [
@@ -738,7 +736,7 @@ export function TellorHero({
             <EnhancedCoreStats
               stats={primaryStats}
               themeColor={themeColor}
-              verificationData={displayVerificationData}
+              verificationData={displayVerificationData ?? undefined}
             />
 
             {/* 次要指标行 */}

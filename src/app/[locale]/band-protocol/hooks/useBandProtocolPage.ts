@@ -2,10 +2,9 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useBandProtocolAllData, useDataFreshness, useBandIBCConnections, useBandIBCTransferStats, useBandIBCTransferTrends, useBandStakingInfo, useBandStakingDistribution, useBandGovernanceProposals, useBandGovernanceParams } from '@/hooks';
+import { useRefresh, useExport, useBandProtocolAllData, useBandIBCConnections, useBandIBCTransferStats, useBandIBCTransferTrends, useBandStakingInfo, useBandStakingDistribution, useBandGovernanceProposals, useBandGovernanceParams, useBandDataSources, useBandOracleScripts } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { OracleProvider } from '@/types/oracle';
 
 import { type BandProtocolTabId } from '../types';
@@ -15,7 +14,6 @@ export function useBandProtocolPage() {
   const [activeTab, setActiveTab] = useState<BandProtocolTabId>('market');
 
   const config = useMemo(() => getOracleConfig(OracleProvider.BAND_PROTOCOL), []);
-  const client = useMemo(() => new BandProtocolClient(), []);
 
   const {
     price,
@@ -41,6 +39,8 @@ export function useBandProtocolPage() {
   const { stakingDistribution } = useBandStakingDistribution(true);
   const { proposals: governanceProposals } = useBandGovernanceProposals({ enabled: true });
   const { governanceParams } = useBandGovernanceParams(true);
+  const { dataSources, total: dataSourcesTotal, error: dataSourcesError, isLoading: dataSourcesLoading, refetch: refetchDataSources } = useBandDataSources({ getAllDataSources: true });
+  const { oracleScripts, error: oracleScriptsError, isLoading: oracleScriptsLoading, refetch: refetchOracleScripts } = useBandOracleScripts(true);
 
   const { exportData } = useExport({
     data: {
@@ -61,7 +61,11 @@ export function useBandProtocolPage() {
     minLoadingTime: 500,
   });
 
-  const dataFreshnessStatus = useDataFreshness(lastUpdated);
+  const aggregatedError = useMemo(() => {
+    if (errors.length === 0) return null;
+    if (errors.length === 1) return errors[0];
+    return new Error(`${errors.length} errors occurred: ${errors.map(e => e.message).join('; ')}`);
+  }, [errors]);
 
   const handleTabChange = useCallback((tab: BandProtocolTabId) => {
     setActiveTab(tab);
@@ -70,7 +74,6 @@ export function useBandProtocolPage() {
   return {
     activeTab,
     config,
-    client,
     price,
     historicalData,
     networkStats,
@@ -83,15 +86,24 @@ export function useBandProtocolPage() {
     stakingDistribution,
     governanceProposals,
     governanceParams,
+    dataSources,
+    dataSourcesTotal,
+    dataSourcesLoading,
+    dataSourcesError,
+    oracleScripts,
+    oracleScriptsLoading,
+    oracleScriptsError,
     isLoading,
     isError,
+    errors,
+    aggregatedError,
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
-    dataFreshnessStatus,
-    shouldRefreshData: dataFreshnessStatus.status === 'expired',
     setActiveTab: handleTabChange,
     refresh,
+    refetchDataSources,
+    refetchOracleScripts,
     exportData,
     t,
   };

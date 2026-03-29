@@ -97,13 +97,15 @@ export default function ChroniclePage() {
       case 'risk':
         return <ChronicleRiskView scuttlebutt={scuttlebutt} isLoading={isLoading} />;
       case 'vault':
-        return <ChronicleVaultView vaultData={vaultData} isLoading={isLoading} />;
+        return <ChronicleVaultView vaultData={vaultData ?? null} isLoading={isLoading} />;
       case 'crossChain':
-        return <ChronicleCrossChainView crossChainData={crossChainData} isLoading={isLoading} />;
+        return (
+          <ChronicleCrossChainView crossChainData={crossChainData ?? null} isLoading={isLoading} />
+        );
       case 'priceDeviation':
         return (
           <ChroniclePriceDeviationView
-            deviationData={deviationData}
+            deviationData={deviationData ?? null}
             symbol={config.symbol}
             isLoading={isLoading}
           />
@@ -136,6 +138,7 @@ export default function ChroniclePage() {
                 <ChronicleSidebar
                   activeTab={activeTab}
                   onTabChange={(tab) => setActiveTab(tab as ChronicleTabId)}
+                  themeColor={config.themeColor}
                 />
               </div>
             </div>
@@ -160,6 +163,7 @@ export default function ChroniclePage() {
                   setActiveTab(tab);
                   setIsMobileMenuOpen(false);
                 }}
+                themeColor={config.themeColor}
               />
             </MobileSidebar>
 

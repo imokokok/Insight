@@ -274,6 +274,8 @@ export {
   useBandStakingReward,
   useBandGovernanceProposals,
   useBandGovernanceParams,
+  useBandDataSources,
+  useBandOracleScripts,
 } from './oracles/band';
 
 // Shared Oracle Hooks

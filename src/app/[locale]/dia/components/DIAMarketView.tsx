@@ -12,8 +12,12 @@ import { type DIAMarketViewProps } from '../types';
 export function DIAMarketView({ config, price, historicalData, isLoading }: DIAMarketViewProps) {
   const t = useTranslations();
 
-  // 核心市场统计数据
-  const stats = [
+  const stats: Array<{
+    label: string;
+    value: string;
+    change: number | string | null;
+    highlight?: boolean;
+  }> = [
     {
       label: t('dia.stats.marketCap'),
       value: `$${(config.marketData.marketCap / 1e9).toFixed(2)}B`,
@@ -22,7 +26,7 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
     {
       label: t('dia.stats.volume24h'),
       value: `$${(config.marketData.volume24h / 1e6).toFixed(1)}M`,
-      change: '+5.8%',
+      change: config.marketData.volume24hChange ?? null,
     },
     {
       label: t('dia.stats.circulatingSupply'),
@@ -185,13 +189,17 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('dia.volume24h')}</p>
-            <p className="text-2xl font-semibold text-gray-900">$2.8M</p>
-            <p className="text-sm text-emerald-600 mt-1">+5.8%</p>
+            <p className="text-2xl font-semibold text-gray-900">
+              ${config.marketData.volume24h ? `${(config.marketData.volume24h / 1e6).toFixed(1)}M` : '--'}
+            </p>
+            <p className="text-sm text-gray-400 mt-1">--</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('dia.liquidity')}</p>
-            <p className="text-2xl font-semibold text-gray-900">$1.2M</p>
-            <p className="text-sm text-emerald-600 mt-1">+3.2%</p>
+            <p className="text-2xl font-semibold text-gray-900">
+              {config.marketData.liquidity ? `$${(config.marketData.liquidity / 1e6).toFixed(1)}M` : '--'}
+            </p>
+            <p className="text-sm text-gray-400 mt-1">--</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('dia.marketDepth')}</p>

@@ -6,6 +6,8 @@ import { Calculator, TrendingUp, Clock, Calendar, AlertCircle, Info } from 'luci
 
 import { useTranslations } from '@/i18n';
 
+import { STAKING_SCENARIOS, DEFAULT_WIN_PRICE } from '../constants';
+
 type ScenarioType = 'conservative' | 'moderate' | 'optimistic';
 
 interface ScenarioConfig {
@@ -15,37 +17,20 @@ interface ScenarioConfig {
   description: string;
 }
 
-const SCENARIOS: Record<ScenarioType, ScenarioConfig> = {
-  conservative: {
-    label: 'Conservative',
-    apy: 8.5,
-    color: '#60a5fa',
-    description: 'Lower risk, stable returns',
-  },
-  moderate: {
-    label: 'Moderate',
-    apy: 12.5,
-    color: '#3b82f6',
-    description: 'Balanced risk and reward',
-  },
-  optimistic: {
-    label: 'Optimistic',
-    apy: 16.0,
-    color: '#1d4ed8',
-    description: 'Higher risk, potential for greater returns',
-  },
-};
+interface StakingRewardsCalculatorProps {
+  winPrice?: number;
+}
 
-const WIN_PRICE = 0.00012; // Mock WIN price in USD
-
-export function StakingRewardsCalculator() {
+export function StakingRewardsCalculator({ winPrice }: StakingRewardsCalculatorProps) {
   const t = useTranslations();
   const [stakeAmount, setStakeAmount] = useState<string>('1000000');
   const [selectedScenario, setSelectedScenario] = useState<ScenarioType>('moderate');
-  const [stakingPeriod, setStakingPeriod] = useState<number>(12); // months
+  const [stakingPeriod, setStakingPeriod] = useState<number>(12);
 
   const amount = parseFloat(stakeAmount) || 0;
-  const scenario = SCENARIOS[selectedScenario];
+  const scenario = STAKING_SCENARIOS[selectedScenario];
+  const effectivePrice = winPrice ?? DEFAULT_WIN_PRICE;
+  const isPriceLoading = winPrice === undefined;
 
   const rewards = useMemo(() => {
     const apyDecimal = scenario.apy / 100;
@@ -75,7 +60,7 @@ export function StakingRewardsCalculator() {
   };
 
   const formatUsd = (winAmount: number): string => {
-    return `$${(winAmount * WIN_PRICE).toFixed(2)}`;
+    return `$${(winAmount * effectivePrice).toFixed(2)}`;
   };
 
   return (
@@ -105,7 +90,14 @@ export function StakingRewardsCalculator() {
               WIN
             </span>
           </div>
-          <div className="text-xs text-gray-400 mt-1">≈ {formatUsd(amount)}</div>
+          <div className="text-xs text-gray-400 mt-1">
+            ≈ {formatUsd(amount)}
+            {isPriceLoading ? (
+              <span className="ml-1 text-amber-500">(预估价格)</span>
+            ) : (
+              <span className="ml-1 text-emerald-500">(实时价格)</span>
+            )}
+          </div>
         </div>
 
         <div>
@@ -134,7 +126,7 @@ export function StakingRewardsCalculator() {
           {t('winklink.staking.scenario')}
         </label>
         <div className="grid grid-cols-3 gap-2">
-          {(Object.keys(SCENARIOS) as ScenarioType[]).map((key) => (
+          {(Object.keys(STAKING_SCENARIOS) as ScenarioType[]).map((key) => (
             <button
               key={key}
               onClick={() => setSelectedScenario(key)}
@@ -147,8 +139,8 @@ export function StakingRewardsCalculator() {
                 }
               `}
             >
-              <div>{SCENARIOS[key].label}</div>
-              <div className="text-xs opacity-60">{SCENARIOS[key].apy}% APY</div>
+              <div>{STAKING_SCENARIOS[key].label}</div>
+              <div className="text-xs opacity-60">{STAKING_SCENARIOS[key].apy}% APY</div>
             </button>
           ))}
         </div>
@@ -220,9 +212,15 @@ export function StakingRewardsCalculator() {
       {/* Disclaimer */}
       <div className="flex items-start gap-2 pt-3 border-t border-gray-100">
         <AlertCircle className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-gray-400 leading-relaxed">
-          {t('winklink.staking.calculatorDisclaimer')}
-        </p>
+        <div className="text-xs text-gray-400 leading-relaxed space-y-1">
+          <p>{t('winklink.staking.calculatorDisclaimer')}</p>
+          <p className="flex items-center gap-1">
+            <span className={`w-1.5 h-1.5 rounded-full ${isPriceLoading ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+            {isPriceLoading
+              ? '使用预估价格进行计算，实时价格加载中...'
+              : `实时价格来自 API: $${effectivePrice.toFixed(8)}`}
+          </p>
+        </div>
       </div>
     </div>
   );

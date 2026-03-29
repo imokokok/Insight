@@ -14,9 +14,10 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-import { useBandDataSources } from '@/hooks/oracles/band';
 import { useTranslations } from '@/i18n';
 import type { DataSourceCategory } from '@/lib/oracles/bandProtocol';
+
+import { type BandProtocolDataFeedsViewProps } from '../types';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -51,16 +52,11 @@ function formatNumber(num: number): string {
   return num.toLocaleString();
 }
 
-export function BandProtocolDataFeedsView() {
+export function BandProtocolDataFeedsView({ dataSources, total, isLoading, error: propError, onRefresh }: BandProtocolDataFeedsViewProps) {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<DataSourceCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-
-  const { dataSources, total, hasMore, error, isLoading, refetch } = useBandDataSources({
-    page: currentPage,
-    limit: ITEMS_PER_PAGE,
-  });
 
   const categories = useMemo(() => {
     const categoryCounts: Record<string, number> = { all: total };
@@ -97,6 +93,12 @@ export function BandProtocolDataFeedsView() {
     return result;
   }, [dataSources, selectedCategory, searchQuery]);
 
+  const paginatedFeeds = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    return filteredFeeds.slice(start, end);
+  }, [filteredFeeds, currentPage]);
+
   const stats = useMemo(() => {
     const activeCount = dataSources.filter((f) => f.status === 'active').length;
     const totalRequests = dataSources.reduce((acc, f) => acc + f.totalRequests, 0);
@@ -113,7 +115,7 @@ export function BandProtocolDataFeedsView() {
     };
   }, [dataSources]);
 
-  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredFeeds.length / ITEMS_PER_PAGE);
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -133,10 +135,12 @@ export function BandProtocolDataFeedsView() {
   }, []);
 
   const handleRefresh = useCallback(() => {
-    refetch();
-  }, [refetch]);
+    onRefresh();
+  }, [onRefresh]);
 
-  if (error) {
+  const displayError = propError;
+
+  if (displayError) {
     return (
       <div className="space-y-8">
         <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -145,7 +149,7 @@ export function BandProtocolDataFeedsView() {
             {t('band.bandProtocol.dataFeeds.loadError')}
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            {error.message || t('band.bandProtocol.dataFeeds.failedToLoad')}
+            {displayError.message || t('band.bandProtocol.dataFeeds.failedToLoad')}
           </p>
           <button
             onClick={handleRefresh}
@@ -253,6 +257,15 @@ export function BandProtocolDataFeedsView() {
         ))}
       </div>
 
+      {searchQuery.trim() && (
+        <div className="flex items-center gap-2 text-sm text-gray-600 bg-blue-50 px-4 py-2 rounded-md">
+          <Search className="w-4 h-4 text-blue-500" />
+          <span>
+            {t('band.bandProtocol.dataFeeds.searchResults', { count: filteredFeeds.length })}
+          </span>
+        </div>
+      )}
+
       <div>
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('band.bandProtocol.dataFeeds.title')}
@@ -299,7 +312,7 @@ export function BandProtocolDataFeedsView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredFeeds.map((feed) => (
+                {paginatedFeeds.map((feed) => (
                   <tr key={feed.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <div>
@@ -398,8 +411,8 @@ export function BandProtocolDataFeedsView() {
         <div className="flex items-center justify-between border-t border-gray-200 pt-4">
           <div className="text-sm text-gray-500">
             {t('band.bandProtocol.dataFeeds.showing')} {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{' '}
-            {Math.min(currentPage * ITEMS_PER_PAGE, total)} {t('band.bandProtocol.dataFeeds.of')}{' '}
-            {total} {t('band.bandProtocol.dataFeeds.feeds')}
+            {Math.min(currentPage * ITEMS_PER_PAGE, filteredFeeds.length)} {t('band.bandProtocol.dataFeeds.of')}{' '}
+            {filteredFeeds.length} {t('band.bandProtocol.dataFeeds.feeds')}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -439,7 +452,7 @@ export function BandProtocolDataFeedsView() {
             </div>
             <button
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={!hasMore}
+              disabled={currentPage === totalPages}
               className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('band.bandProtocol.dataFeeds.next')}

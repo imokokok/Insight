@@ -491,15 +491,26 @@ interface UseBandDataSourcesOptions {
   page?: number;
   limit?: number;
   enabled?: boolean;
+  getAllDataSources?: boolean;
 }
 
 export function useBandDataSources(options: UseBandDataSourcesOptions = {}) {
-  const { page = 1, limit = 20, enabled = true } = options;
-  const queryKey = getBandKey('dataSources', { page, limit });
+  const { page = 1, limit = 20, enabled = true, getAllDataSources = false } = options;
+  const queryKey = getBandKey('dataSources', { page, limit, getAllDataSources });
 
   const { data, error, isLoading, refetch } = useQuery<DataSourceListResponse, Error>({
     queryKey,
-    queryFn: () => bandClient.getDataSourceList(page, limit),
+    queryFn: async () => {
+      if (getAllDataSources) {
+        const allData = await bandClient.getDataSourceList(1, Number.MAX_SAFE_INTEGER);
+        return {
+          dataSources: allData.dataSources,
+          total: allData.total,
+          hasMore: false,
+        };
+      }
+      return bandClient.getDataSourceList(page, limit);
+    },
     enabled,
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,

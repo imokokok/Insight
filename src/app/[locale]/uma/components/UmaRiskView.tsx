@@ -16,6 +16,7 @@ import {
   ArrowRight,
   Lightbulb,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
@@ -224,8 +225,18 @@ const mitigationRecommendations: MitigationRecommendation[] = [
   },
 ];
 
-export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
+export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRiskViewProps) {
   const t = useTranslations();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
 
   const resolvedDisputes = disputes.filter((d) => d.status === 'resolved');
   const avgResolutionTime =

@@ -37,6 +37,35 @@ export interface CacheStats {
   missRate: number;
 }
 
+export interface StorageError {
+  type: 'quota_exceeded' | 'init_failed' | 'read_failed' | 'write_failed' | 'unknown';
+  message: string;
+  originalError?: unknown;
+  timestamp: number;
+}
+
+const STORAGE_ERRORS = {
+  QUOTA_EXCEEDED: 'quota_exceeded' as const,
+  INIT_FAILED: 'init_failed' as const,
+  READ_FAILED: 'read_failed' as const,
+  WRITE_FAILED: 'write_failed' as const,
+  UNKNOWN: 'unknown' as const,
+};
+
+function createStorageError(type: StorageError['type'], message: string, originalError?: unknown): StorageError {
+  return {
+    type,
+    message,
+    originalError,
+    timestamp: Date.now(),
+  };
+}
+
+function logStorageError(error: StorageError): void {
+  const prefix = `[API3OfflineStorage][${error.type.toUpperCase()}]`;
+  console.error(prefix, error.message, error.originalError || '');
+}
+
 export class API3OfflineStorage {
   private dbName = 'api3-offline-data';
   private dbVersion = 1;
@@ -45,9 +74,48 @@ export class API3OfflineStorage {
   private hitCount = 0;
   private missCount = 0;
   private client: API3Client;
+  private lastError: StorageError | null = null;
+  private errorListeners: Set<(error: StorageError) => void> = new Set();
+  private quotaExceeded = false;
 
   constructor(client?: API3Client) {
     this.client = client || new API3Client();
+  }
+
+  subscribeToErrors(callback: (error: StorageError) => void): () => void {
+    this.errorListeners.add(callback);
+    return () => this.errorListeners.delete(callback);
+  }
+
+  getLastError(): StorageError | null {
+    return this.lastError;
+  }
+
+  isQuotaExceeded(): boolean {
+    return this.quotaExceeded;
+  }
+
+  private notifyErrorListeners(error: StorageError): void {
+    this.lastError = error;
+    this.errorListeners.forEach(callback => {
+      try {
+        callback(error);
+      } catch (e) {
+        console.error('[API3OfflineStorage] Error in error listener:', e);
+      }
+    });
+  }
+
+  private handleError(type: StorageError['type'], message: string, originalError?: unknown): StorageError {
+    const error = createStorageError(type, message, originalError);
+    logStorageError(error);
+    this.notifyErrorListeners(error);
+    
+    if (type === STORAGE_ERRORS.QUOTA_EXCEEDED) {
+      this.quotaExceeded = true;
+    }
+    
+    return error;
   }
 
   async init(): Promise<void> {
@@ -62,28 +130,40 @@ export class API3OfflineStorage {
   }
 
   private async initializeDB(): Promise<void> {
-    this.db = await openDB<API3OfflineDBSchema>(this.dbName, this.dbVersion, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains('cache')) {
-          const cacheStore = db.createObjectStore('cache');
-          cacheStore.createIndex('by-timestamp', 'timestamp');
-          cacheStore.createIndex('by-ttl', 'ttl');
-        }
-        if (!db.objectStoreNames.contains('metadata')) {
-          db.createObjectStore('metadata');
-        }
-      },
-    });
+    try {
+      this.db = await openDB<API3OfflineDBSchema>(this.dbName, this.dbVersion, {
+        upgrade(db) {
+          if (!db.objectStoreNames.contains('cache')) {
+            const cacheStore = db.createObjectStore('cache');
+            cacheStore.createIndex('by-timestamp', 'timestamp');
+            cacheStore.createIndex('by-ttl', 'ttl');
+          }
+          if (!db.objectStoreNames.contains('metadata')) {
+            db.createObjectStore('metadata');
+          }
+        },
+      });
 
-    await this.clearExpired();
+      await this.clearExpired();
+    } catch (error) {
+      this.handleError(STORAGE_ERRORS.INIT_FAILED, 'Failed to initialize IndexedDB', error);
+      throw error;
+    }
   }
 
   async setData<T>(key: string, data: T | null, ttl?: number): Promise<void> {
     await this.init();
-    if (!this.db) return;
+    if (!this.db) {
+      this.handleError(STORAGE_ERRORS.WRITE_FAILED, 'Database not initialized');
+      return;
+    }
 
     if (data === null) {
-      await this.db.delete('cache', key);
+      try {
+        await this.db.delete('cache', key);
+      } catch (error) {
+        this.handleError(STORAGE_ERRORS.WRITE_FAILED, `Failed to delete key: ${key}`, error);
+      }
       return;
     }
 
@@ -104,12 +184,46 @@ export class API3OfflineStorage {
       size,
     };
 
-    await this.db.put('cache', entry as CachedDataEntry<unknown>, key);
+    try {
+      await this.db.put('cache', entry as CachedDataEntry<unknown>, key);
+      this.quotaExceeded = false;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      if (errorMessage.includes('QuotaExceededError') || errorMessage.includes('quota')) {
+        this.handleError(STORAGE_ERRORS.QUOTA_EXCEEDED, 'Storage quota exceeded. Consider clearing old data.', error);
+        await this.handleQuotaExceeded();
+        try {
+          await this.db.put('cache', entry as CachedDataEntry<unknown>, key);
+        } catch (retryError) {
+          this.handleError(STORAGE_ERRORS.WRITE_FAILED, `Failed to write data for key: ${key} after quota handling`, retryError);
+        }
+      } else {
+        this.handleError(STORAGE_ERRORS.WRITE_FAILED, `Failed to write data for key: ${key}`, error);
+      }
+    }
+  }
+
+  private async handleQuotaExceeded(): Promise<void> {
+    if (!this.db) return;
+    
+    const tx = this.db.transaction('cache', 'readwrite');
+    const store = tx.objectStore('cache');
+    
+    try {
+      await store.clear();
+      await tx.done;
+    } catch (error) {
+      this.handleError(STORAGE_ERRORS.WRITE_FAILED, 'Failed to clear cache during quota handling', error);
+    }
   }
 
   async getData<T>(key: string): Promise<T | null> {
     await this.init();
-    if (!this.db) return null;
+    if (!this.db) {
+      this.handleError(STORAGE_ERRORS.READ_FAILED, 'Database not initialized');
+      return null;
+    }
 
     try {
       const entry = await this.db.get('cache', key);
@@ -128,7 +242,8 @@ export class API3OfflineStorage {
 
       this.hitCount++;
       return entry.data as T;
-    } catch {
+    } catch (error) {
+      this.handleError(STORAGE_ERRORS.READ_FAILED, `Failed to read data for key: ${key}`, error);
       this.missCount++;
       return null;
     }
@@ -217,29 +332,58 @@ export class API3OfflineStorage {
     };
   }
 
-  async precacheCriticalData(): Promise<void> {
+  async precacheCriticalData(): Promise<{ success: string[]; failed: { type: string; error: string }[] }> {
     await this.init();
-    if (!this.db) return;
+    if (!this.db) {
+      this.handleError(STORAGE_ERRORS.WRITE_FAILED, 'Database not initialized for precaching');
+      return { success: [], failed: [{ type: 'init', error: 'Database not initialized' }] };
+    }
 
     const criticalTypes = CACHE_CONFIG.offline.criticalDataTypes;
+    const success: string[] = [];
+    const failed: { type: string; error: string }[] = [];
     const precachePromises: Promise<void>[] = [];
 
     if (criticalTypes.includes('price' as never)) {
       const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'API3/USD'];
       for (const symbol of symbols) {
-        precachePromises.push(this.precachePriceData(symbol));
+        precachePromises.push(
+          this.precachePriceData(symbol).then(() => {
+            success.push(`price-${symbol}`);
+          }).catch((error) => {
+            failed.push({ type: `price-${symbol}`, error: error instanceof Error ? error.message : String(error) });
+          })
+        );
       }
     }
 
     if (criticalTypes.includes('alerts' as never)) {
-      precachePromises.push(this.precacheAlerts());
+      precachePromises.push(
+        this.precacheAlerts().then(() => {
+          success.push('alerts');
+        }).catch((error) => {
+          failed.push({ type: 'alerts', error: error instanceof Error ? error.message : String(error) });
+        })
+      );
     }
 
     if (criticalTypes.includes('airnodeStats' as never)) {
-      precachePromises.push(this.precacheAirnodeStats());
+      precachePromises.push(
+        this.precacheAirnodeStats().then(() => {
+          success.push('airnodeStats');
+        }).catch((error) => {
+          failed.push({ type: 'airnodeStats', error: error instanceof Error ? error.message : String(error) });
+        })
+      );
     }
 
     await Promise.allSettled(precachePromises);
+
+    if (failed.length > 0) {
+      console.warn('[API3OfflineStorage] Some precache operations failed:', failed);
+    }
+
+    return { success, failed };
   }
 
   private async precachePriceData(symbol: string): Promise<void> {

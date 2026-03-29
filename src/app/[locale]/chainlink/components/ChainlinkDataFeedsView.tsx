@@ -6,7 +6,7 @@ import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
-import { type DataFeed } from '../types';
+import { type DataFeed, type ChainlinkDataTableProps } from '../types';
 
 import { ChainlinkDataTable } from './ChainlinkDataTable';
 
@@ -122,13 +122,13 @@ export function ChainlinkDataFeedsView() {
       ? mockDataFeeds
       : mockDataFeeds.filter((feed) => feed.category === selectedCategory);
 
-  const columns = [
+  const columns: ChainlinkDataTableProps<DataFeed>['columns'] = [
     { key: 'name', header: t('chainlink.dataFeeds.name'), sortable: true },
     {
       key: 'category',
       header: t('chainlink.dataFeeds.category'),
       sortable: true,
-      render: (item: DataFeed) => (
+      render: (item) => (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
           {item.category}
         </span>
@@ -140,7 +140,7 @@ export function ChainlinkDataFeedsView() {
       key: 'status',
       header: t('chainlink.dataFeeds.status'),
       sortable: true,
-      render: (item: DataFeed) => (
+      render: (item) => (
         <span
           className={`inline-flex items-center gap-1.5 text-sm font-medium ${
             item.status === 'active'
@@ -167,13 +167,13 @@ export function ChainlinkDataFeedsView() {
       key: 'totalRequests',
       header: t('chainlink.dataFeeds.requests'),
       sortable: true,
-      render: (item: DataFeed) => `${(item.totalRequests / 1e6).toFixed(1)}M`,
+      render: (item) => `${(item.totalRequests / 1e6).toFixed(1)}M`,
     },
     {
       key: 'reliability',
       header: t('chainlink.dataFeeds.reliability'),
       sortable: true,
-      render: (item: DataFeed) => `${item.reliability}%`,
+      render: (item) => `${item.reliability}%`,
     },
   ];
 
@@ -260,17 +260,9 @@ export function ChainlinkDataFeedsView() {
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('chainlink.dataFeeds.title') || 'Data Feeds'}
         </h3>
-        <ChainlinkDataTable
-          data={filteredFeeds as unknown as Record<string, unknown>[]}
-          columns={
-            columns as unknown as Array<{
-              key: string;
-              header: string;
-              width?: string;
-              sortable?: boolean;
-              render?: (item: Record<string, unknown>) => React.ReactNode;
-            }>
-          }
+        <ChainlinkDataTable<DataFeed>
+          data={filteredFeeds}
+          columns={columns}
         />
       </div>
 

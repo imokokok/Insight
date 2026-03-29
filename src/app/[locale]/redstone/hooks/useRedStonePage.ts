@@ -12,9 +12,9 @@ import {
 } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { RedStoneClient } from '@/lib/oracles/redstone';
 import { OracleProvider } from '@/types/oracle';
 
+import { useRedStoneClient } from '../context/RedStoneClientContext';
 import { type RedStoneTabId } from '../types';
 
 export function useRedStonePage() {
@@ -22,7 +22,7 @@ export function useRedStonePage() {
   const [activeTab, setActiveTab] = useState<RedStoneTabId>('market');
 
   const config = useMemo(() => getOracleConfig(OracleProvider.REDSTONE), []);
-  const redstoneClient = useMemo(() => new RedStoneClient(), []);
+  const redstoneClient = useRedStoneClient();
 
   const {
     price,
@@ -36,12 +36,41 @@ export function useRedStonePage() {
   } = useRedStoneAllData({
     symbol: config.symbol,
     enabled: true,
+    client: redstoneClient,
   });
 
-  const { providers, isLoading: providersLoading } = useRedStoneProviders(true);
-  const { metrics, isLoading: metricsLoading } = useRedStoneMetrics(true);
+  const { providers, isLoading: providersLoading, error: providersError } = useRedStoneProviders(
+    redstoneClient,
+    true
+  );
+  const { metrics, isLoading: metricsLoading, error: metricsError } = useRedStoneMetrics(
+    redstoneClient,
+    true
+  );
 
   const isLoading = allDataLoading || providersLoading || metricsLoading;
+
+  const failedDataSources = useMemo(() => {
+    const failed: string[] = [];
+    if (errors.some((e) => e?.message.includes('price'))) {
+      failed.push(t('common.price.title'));
+    }
+    if (errors.some((e) => e?.message.includes('historical'))) {
+      failed.push(t('redstone.tabs.historical'));
+    }
+    if (errors.some((e) => e?.message.includes('network'))) {
+      failed.push(t('redstone.network.title'));
+    }
+    if (providersError) {
+      failed.push(t('redstone.providers.title'));
+    }
+    if (metricsError) {
+      failed.push(t('redstone.metrics.title'));
+    }
+    return failed;
+  }, [errors, providersError, metricsError, t]);
+
+  const hasPartialData = failedDataSources.length > 0 && !isError;
 
   const { exportData } = useExport({
     data: {
@@ -84,6 +113,8 @@ export function useRedStonePage() {
     isRefreshing,
     dataFreshnessStatus,
     shouldRefreshData: dataFreshnessStatus.status === 'expired',
+    hasPartialData,
+    failedDataSources,
     setActiveTab: handleTabChange,
     refresh,
     exportData,

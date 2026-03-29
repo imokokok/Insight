@@ -2,16 +2,26 @@
 
 import { useState, useEffect, useMemo } from 'react';
 
-import { Activity, Clock, Shield, Award, Globe, Server, TrendingUp, ExternalLink, Database, RefreshCw } from 'lucide-react';
+import {
+  Activity,
+  Clock,
+  Shield,
+  Award,
+  Globe,
+  Server,
+  TrendingUp,
+  ExternalLink,
+  Database,
+  RefreshCw,
+} from 'lucide-react';
 
-import { tellorOnChainService } from '@/lib/oracles/tellorOnChainService';
 import { useTranslations } from '@/i18n';
+import type { Reporter } from '@/lib/oracles/tellor';
+import { tellorOnChainService } from '@/lib/oracles/tellorOnChainService';
 
 import { type TellorReportersViewProps, type ReporterData } from '../types';
 
 import { TellorDataTable } from './TellorDataTable';
-
-import type { Reporter } from '@/lib/oracles/tellor';
 
 const fallbackReporters: ReporterData[] = [
   {
@@ -145,11 +155,11 @@ export function TellorReportersView({ isLoading: propsLoading }: TellorReporters
   });
 
   const fetchReporters = async (useCache = true) => {
-    setDataStatus(prev => ({ ...prev, isLoading: true, error: null }));
-    
+    setDataStatus((prev) => ({ ...prev, isLoading: true, error: null }));
+
     try {
       const reporters = await tellorOnChainService.getReporterList(1, 20);
-      
+
       if (reporters && reporters.length > 0) {
         setOnChainReporters(reporters);
         setDataStatus({
@@ -163,7 +173,7 @@ export function TellorReportersView({ isLoading: propsLoading }: TellorReporters
       }
     } catch (error) {
       console.error('Failed to fetch on-chain reporters:', error);
-      setDataStatus(prev => ({
+      setDataStatus((prev) => ({
         ...prev,
         source: 'fallback',
         isLoading: false,
@@ -316,7 +326,9 @@ export function TellorReportersView({ isLoading: propsLoading }: TellorReporters
         </div>
 
         <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getSourceColor()}`}>
+          <div
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getSourceColor()}`}
+          >
             <Database className="w-3.5 h-3.5" />
             <span>{getSourceLabel()}</span>
           </div>
@@ -399,7 +411,8 @@ export function TellorReportersView({ isLoading: propsLoading }: TellorReporters
                 <span className="text-gray-500">{t('tellor.reporters.avgReputation')}</span>
                 <span className="font-medium text-gray-900">
                   {(
-                    displayReporters.reduce((acc, r) => acc + r.reputation, 0) / displayReporters.length
+                    displayReporters.reduce((acc, r) => acc + r.reputation, 0) /
+                    displayReporters.length
                   ).toFixed(1)}
                 </span>
               </div>

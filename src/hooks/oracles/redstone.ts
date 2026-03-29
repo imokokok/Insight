@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 
 import { useQuery, useQueries } from '@tanstack/react-query';
 
+import { RedStoneApiError } from '@/lib/errors';
 import {
   RedStoneClient,
   type RedStoneProviderInfo,
@@ -16,8 +17,6 @@ import {
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useLastUpdated } from './useLastUpdated';
-
-const redstoneClient = new RedStoneClient();
 
 type RedStoneDataType =
   | 'price'
@@ -38,25 +37,50 @@ const getRedStoneKey = (type: RedStoneDataType, params?: Record<string, unknown>
   return [...baseKey, paramStr];
 };
 
+const shouldRetry = (failureCount: number, error: unknown): boolean => {
+  if (failureCount >= 3) {
+    return false;
+  }
+
+  if (error instanceof RedStoneApiError) {
+    return error.retryable;
+  }
+
+  return true;
+};
+
+const getRetryDelay = (attemptIndex: number, error: unknown): number => {
+  const baseDelay = 1000;
+  const maxDelay = 10000;
+
+  if (error instanceof RedStoneApiError && error.errorCode === 'RATE_LIMIT_ERROR') {
+    return Math.min(baseDelay * Math.pow(2, attemptIndex + 1), maxDelay);
+  }
+
+  return Math.min(baseDelay * Math.pow(2, attemptIndex), maxDelay);
+};
+
 interface UseRedStonePriceOptions {
   symbol: string;
   chain?: Blockchain;
   enabled?: boolean;
+  client: RedStoneClient;
 }
 
 export function useRedStonePrice(options: UseRedStonePriceOptions) {
-  const { symbol, chain, enabled = true } = options;
+  const { symbol, chain, enabled = true, client } = options;
   const queryKey = getRedStoneKey('price', { symbol, chain });
 
   const { data, error, isLoading, refetch } = useQuery<PriceData, Error>({
     queryKey,
-    queryFn: () => redstoneClient.getPrice(symbol, chain),
+    queryFn: () => client.getPrice(symbol, chain),
     enabled,
     staleTime: 30000,
     gcTime: 60000,
     refetchInterval: 30000,
     refetchOnWindowFocus: false,
-    retry: 3,
+    retry: shouldRetry,
+    retryDelay: getRetryDelay,
   });
 
   return {
@@ -72,20 +96,22 @@ interface UseRedStoneHistoricalOptions {
   chain?: Blockchain;
   period?: number;
   enabled?: boolean;
+  client: RedStoneClient;
 }
 
 export function useRedStoneHistorical(options: UseRedStoneHistoricalOptions) {
-  const { symbol, chain, period = 30, enabled = true } = options;
+  const { symbol, chain, period = 30, enabled = true, client } = options;
   const queryKey = getRedStoneKey('historical', { symbol, chain, period });
 
   const { data, error, isLoading, refetch } = useQuery<PriceData[], Error>({
     queryKey,
-    queryFn: () => redstoneClient.getHistoricalPrices(symbol, chain, period),
+    queryFn: () => client.getHistoricalPrices(symbol, chain, period),
     enabled,
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    retry: 3,
+    retry: shouldRetry,
+    retryDelay: getRetryDelay,
   });
 
   return {
@@ -96,17 +122,18 @@ export function useRedStoneHistorical(options: UseRedStoneHistoricalOptions) {
   };
 }
 
-export function useRedStoneProviders(enabled = true) {
+export function useRedStoneProviders(client: RedStoneClient, enabled = true) {
   const queryKey = getRedStoneKey('providers');
 
   const { data, error, isLoading, refetch } = useQuery<RedStoneProviderInfo[], Error>({
     queryKey,
-    queryFn: () => redstoneClient.getDataProviders(),
+    queryFn: () => client.getDataProviders(),
     enabled,
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    retry: 3,
+    retry: shouldRetry,
+    retryDelay: getRetryDelay,
   });
 
   return {
@@ -117,17 +144,18 @@ export function useRedStoneProviders(enabled = true) {
   };
 }
 
-export function useRedStoneMetrics(enabled = true) {
+export function useRedStoneMetrics(client: RedStoneClient, enabled = true) {
   const queryKey = getRedStoneKey('metrics');
 
   const { data, error, isLoading, refetch } = useQuery<RedStoneMetrics, Error>({
     queryKey,
-    queryFn: () => redstoneClient.getRedStoneMetrics(),
+    queryFn: () => client.getRedStoneMetrics(),
     enabled,
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    retry: 3,
+    retry: shouldRetry,
+    retryDelay: getRetryDelay,
   });
 
   return {
@@ -138,17 +166,18 @@ export function useRedStoneMetrics(enabled = true) {
   };
 }
 
-export function useRedStoneSupportedChains(enabled = true) {
+export function useRedStoneSupportedChains(client: RedStoneClient, enabled = true) {
   const queryKey = getRedStoneKey('chains');
 
   const { data, error, isLoading, refetch } = useQuery<RedStoneChainInfo[], Error>({
     queryKey,
-    queryFn: () => redstoneClient.getSupportedChains(),
+    queryFn: () => client.getSupportedChains(),
     enabled,
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    retry: 3,
+    retry: shouldRetry,
+    retryDelay: getRetryDelay,
   });
 
   return {
@@ -159,17 +188,18 @@ export function useRedStoneSupportedChains(enabled = true) {
   };
 }
 
-export function useRedStoneNetworkStats(enabled = true) {
+export function useRedStoneNetworkStats(client: RedStoneClient, enabled = true) {
   const queryKey = getRedStoneKey('network');
 
   const { data, error, isLoading, refetch } = useQuery<RedStoneNetworkStats, Error>({
     queryKey,
-    queryFn: () => redstoneClient.getNetworkStats(),
+    queryFn: () => client.getNetworkStats(),
     enabled,
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    retry: 3,
+    retry: shouldRetry,
+    retryDelay: getRetryDelay,
   });
 
   return {
@@ -180,17 +210,18 @@ export function useRedStoneNetworkStats(enabled = true) {
   };
 }
 
-export function useRedStoneEcosystem(enabled = true) {
+export function useRedStoneEcosystem(client: RedStoneClient, enabled = true) {
   const queryKey = getRedStoneKey('ecosystem');
 
   const { data, error, isLoading, refetch } = useQuery<RedStoneEcosystemData, Error>({
     queryKey,
-    queryFn: () => redstoneClient.getEcosystemData(),
+    queryFn: () => client.getEcosystemData(),
     enabled,
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    retry: 3,
+    retry: shouldRetry,
+    retryDelay: getRetryDelay,
   });
 
   return {
@@ -201,17 +232,18 @@ export function useRedStoneEcosystem(enabled = true) {
   };
 }
 
-export function useRedStoneRiskMetrics(enabled = true) {
+export function useRedStoneRiskMetrics(client: RedStoneClient, enabled = true) {
   const queryKey = getRedStoneKey('risk');
 
   const { data, error, isLoading, refetch } = useQuery<RedStoneRiskMetrics, Error>({
     queryKey,
-    queryFn: () => redstoneClient.getRiskMetrics(),
+    queryFn: () => client.getRiskMetrics(),
     enabled,
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    retry: 3,
+    retry: shouldRetry,
+    retryDelay: getRetryDelay,
   });
 
   return {
@@ -226,10 +258,11 @@ interface UseRedStoneAllDataOptions {
   symbol: string;
   chain?: Blockchain;
   enabled?: boolean;
+  client: RedStoneClient;
 }
 
 export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
-  const { symbol, chain, enabled = true } = options;
+  const { symbol, chain, enabled = true, client } = options;
   const { lastUpdated, updateLastUpdated } = useLastUpdated();
 
   const results = useQueries({
@@ -237,7 +270,7 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
       {
         queryKey: getRedStoneKey('price', { symbol, chain }),
         queryFn: async () => {
-          const result = await redstoneClient.getPrice(symbol, chain);
+          const result = await client.getPrice(symbol, chain);
           updateLastUpdated();
           return result;
         },
@@ -246,57 +279,91 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
         gcTime: 60000,
         refetchInterval: 30000,
         refetchOnWindowFocus: false,
-        retry: 3,
+        retry: shouldRetry,
+        retryDelay: getRetryDelay,
       },
       {
         queryKey: getRedStoneKey('historical', { symbol, chain, period: 30 }),
-        queryFn: () => redstoneClient.getHistoricalPrices(symbol, chain, 30),
+        queryFn: () => client.getHistoricalPrices(symbol, chain, 30),
         enabled,
         staleTime: 300000,
         gcTime: 600000,
         refetchOnWindowFocus: false,
-        retry: 3,
+        retry: shouldRetry,
+        retryDelay: getRetryDelay,
       },
       {
         queryKey: getRedStoneKey('network', { symbol, chain }),
-        queryFn: () => redstoneClient.getNetworkStats(),
+        queryFn: () => client.getNetworkStats(),
         enabled,
         staleTime: 300000,
         gcTime: 600000,
         refetchOnWindowFocus: false,
-        retry: 3,
+        retry: shouldRetry,
+        retryDelay: getRetryDelay,
       },
       {
         queryKey: getRedStoneKey('ecosystem', { symbol, chain }),
-        queryFn: () => redstoneClient.getEcosystemData(),
+        queryFn: () => client.getEcosystemData(),
         enabled,
         staleTime: 300000,
         gcTime: 600000,
         refetchOnWindowFocus: false,
-        retry: 3,
+        retry: shouldRetry,
+        retryDelay: getRetryDelay,
       },
       {
         queryKey: getRedStoneKey('risk', { symbol, chain }),
-        queryFn: () => redstoneClient.getRiskMetrics(),
+        queryFn: () => client.getRiskMetrics(),
         enabled,
         staleTime: 300000,
         gcTime: 600000,
         refetchOnWindowFocus: false,
-        retry: 3,
+        retry: shouldRetry,
+        retryDelay: getRetryDelay,
+      },
+      {
+        queryKey: getRedStoneKey('providers'),
+        queryFn: () => client.getDataProviders(),
+        enabled,
+        staleTime: 300000,
+        gcTime: 600000,
+        refetchOnWindowFocus: false,
+        retry: shouldRetry,
+        retryDelay: getRetryDelay,
+      },
+      {
+        queryKey: getRedStoneKey('metrics'),
+        queryFn: () => client.getRedStoneMetrics(),
+        enabled,
+        staleTime: 300000,
+        gcTime: 600000,
+        refetchOnWindowFocus: false,
+        retry: shouldRetry,
+        retryDelay: getRetryDelay,
       },
     ],
   });
 
-  const [priceResult, historicalResult, networkResult, ecosystemResult, riskResult] = results;
+  const [
+    priceResult,
+    historicalResult,
+    networkResult,
+    ecosystemResult,
+    riskResult,
+    providersResult,
+    metricsResult,
+  ] = results;
 
   const isLoading = results.some((r) => r.isLoading);
+  const isFetching = results.some((r) => r.isFetching);
   const isError = results.some((r) => r.isError);
   const errors = results.map((r) => r.error).filter(Boolean) as Error[];
 
   const refetchAll = useCallback(async () => {
     await Promise.all(results.map((r) => r.refetch()));
     updateLastUpdated();
-  }, []);
+  }, [results, updateLastUpdated]);
 
   return useMemo(
     () => ({
@@ -305,7 +372,10 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
       networkStats: networkResult.data,
       ecosystem: ecosystemResult.data,
       riskMetrics: riskResult.data,
+      providers: providersResult.data ?? [],
+      metrics: metricsResult.data,
       isLoading,
+      isFetching,
       isError,
       errors,
       refetchAll,
@@ -317,7 +387,10 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
       networkResult.data,
       ecosystemResult.data,
       riskResult.data,
+      providersResult.data,
+      metricsResult.data,
       isLoading,
+      isFetching,
       isError,
       errors,
       refetchAll,

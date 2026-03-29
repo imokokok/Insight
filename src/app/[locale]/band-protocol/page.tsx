@@ -44,14 +44,24 @@ export default function BandProtocolPage() {
     stakingDistribution,
     governanceProposals,
     governanceParams,
+    dataSources,
+    dataSourcesTotal,
+    dataSourcesLoading,
+    dataSourcesError,
+    oracleScripts,
+    oracleScriptsLoading,
+    oracleScriptsError,
     isLoading,
     isError,
     error,
+    aggregatedError,
     lastUpdated,
     isRefreshing,
 
     setActiveTab,
     refresh,
+    refetchDataSources,
+    refetchOracleScripts,
     exportData,
     t,
   } = useBandProtocolPage();
@@ -89,7 +99,14 @@ export default function BandProtocolPage() {
           />
         );
       case 'validators':
-        return <BandProtocolValidatorsView validators={validators} isLoading={isLoading} />;
+        return (
+          <BandProtocolValidatorsView
+            validators={validators}
+            isLoading={isLoading}
+            error={aggregatedError}
+            onRefresh={refresh}
+          />
+        );
       case 'cross-chain':
         return (
           <BandProtocolCrossChainView crossChainStats={crossChainStats} isLoading={isLoading} />
@@ -120,9 +137,24 @@ export default function BandProtocolPage() {
           />
         );
       case 'data-feeds':
-        return <BandProtocolDataFeedsView />;
+        return (
+          <BandProtocolDataFeedsView
+            dataSources={dataSources}
+            total={dataSourcesTotal}
+            isLoading={dataSourcesLoading}
+            error={dataSourcesError || aggregatedError}
+            onRefresh={refetchDataSources}
+          />
+        );
       case 'oracle-scripts':
-        return <BandProtocolOracleScriptsView />;
+        return (
+          <BandProtocolOracleScriptsView
+            oracleScripts={oracleScripts}
+            isLoading={oracleScriptsLoading}
+            error={oracleScriptsError || aggregatedError}
+            onRefresh={refetchOracleScripts}
+          />
+        );
       case 'risk':
         return <BandProtocolRiskView />;
       default:

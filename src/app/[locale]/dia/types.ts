@@ -1,5 +1,6 @@
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
+import { type DIANetworkStats } from '@/lib/oracles/dia';
 
 export type DIATabId =
   | 'market'
@@ -9,21 +10,6 @@ export type DIATabId =
   | 'staking'
   | 'ecosystem'
   | 'risk';
-
-export interface DIANetworkStats {
-  activeDataSources: number;
-  dataFeeds: number;
-  nodeUptime: number;
-  avgResponseTime: number;
-  latency: number;
-  hourlyActivity?: number[];
-  // Risk view properties
-  uptime?: number;
-  dataQuality?: number;
-  oracleDiversity?: number;
-  avgConfidence?: number;
-  riskLevel?: 'low' | 'medium' | 'high';
-}
 
 export interface DIAPageState {
   activeTab: DIATabId;

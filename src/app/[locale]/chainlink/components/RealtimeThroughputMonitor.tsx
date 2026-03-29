@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 
 import { Activity, Zap, TrendingUp, Clock } from 'lucide-react';
 import {
@@ -19,6 +19,7 @@ import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
+import { safeGetLastElement } from '../utils/helpers';
 
 interface ThroughputDataPoint {
   timestamp: string;
@@ -114,28 +115,32 @@ export function RealtimeThroughputMonitor({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<'rps' | 'successRate' | 'latency'>('rps');
 
+  const updateDataCallback = useRef(() => {
+    setData((prevData) => {
+      const now = new Date();
+      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+      const baseRps = 12500;
+      const trend = Math.sin(Date.now() / 10000) * 0.2;
+      const randomFactor = (Math.random() - 0.5) * 0.3;
+      const rps = Math.round(baseRps * (1 + trend + randomFactor));
+
+      const newPoint: ThroughputDataPoint = {
+        timestamp: timeStr,
+        rps: Math.max(rps, 8000),
+        successRate: Number((99.5 + Math.random() * 0.5).toFixed(2)),
+        avgLatency: Number((140 + Math.random() * 60).toFixed(1)),
+      };
+
+      return [...prevData.slice(1), newPoint];
+    });
+  });
+
   useEffect(() => {
     if (!autoUpdate) return;
 
     const interval = setInterval(() => {
-      setData((prevData) => {
-        const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-
-        const baseRps = 12500;
-        const trend = Math.sin(Date.now() / 10000) * 0.2;
-        const randomFactor = (Math.random() - 0.5) * 0.3;
-        const rps = Math.round(baseRps * (1 + trend + randomFactor));
-
-        const newPoint: ThroughputDataPoint = {
-          timestamp: timeStr,
-          rps: Math.max(rps, 8000),
-          successRate: Number((99.5 + Math.random() * 0.5).toFixed(2)),
-          avgLatency: Number((140 + Math.random() * 60).toFixed(1)),
-        };
-
-        return [...prevData.slice(1), newPoint];
-      });
+      updateDataCallback.current();
     }, updateInterval);
 
     return () => clearInterval(interval);
@@ -153,7 +158,8 @@ export function RealtimeThroughputMonitor({
       };
     }
 
-    const currentRps = data[data.length - 1].rps;
+    const lastDataPoint = safeGetLastElement(data);
+    const currentRps = lastDataPoint?.rps ?? 0;
     const peakRps = Math.max(...data.map((d) => d.rps));
     const avgSuccessRate = data.reduce((sum, d) => sum + d.successRate, 0) / data.length;
     const avgLatency = data.reduce((sum, d) => sum + d.avgLatency, 0) / data.length;
@@ -178,13 +184,16 @@ export function RealtimeThroughputMonitor({
     };
   }, [data]);
 
-  const metricButtons = [
-    { key: 'rps' as const, label: t('chainlink.network.rps'), color: 'blue' },
-    { key: 'successRate' as const, label: t('chainlink.network.successRate'), color: 'emerald' },
-    { key: 'latency' as const, label: t('chainlink.network.latency'), color: 'purple' },
-  ];
+  const metricButtons = useMemo(
+    () => [
+      { key: 'rps' as const, label: t('chainlink.network.rps'), color: 'blue' },
+      { key: 'successRate' as const, label: t('chainlink.network.successRate'), color: 'emerald' },
+      { key: 'latency' as const, label: t('chainlink.network.latency'), color: 'purple' },
+    ],
+    [t]
+  );
 
-  const getChartColor = () => {
+  const getChartColor = useCallback(() => {
     switch (selectedMetric) {
       case 'rps':
         return chartColors.recharts.primary;
@@ -195,9 +204,9 @@ export function RealtimeThroughputMonitor({
       default:
         return chartColors.recharts.primary;
     }
-  };
+  }, [selectedMetric]);
 
-  const getChartDataKey = () => {
+  const getChartDataKey = useCallback(() => {
     switch (selectedMetric) {
       case 'rps':
         return 'rps';
@@ -208,9 +217,9 @@ export function RealtimeThroughputMonitor({
       default:
         return 'rps';
     }
-  };
+  }, [selectedMetric]);
 
-  const getYAxisDomain = () => {
+  const getYAxisDomain = useCallback((): [number, number] | ['auto', 'auto'] => {
     switch (selectedMetric) {
       case 'rps':
         return [8000, 16000];
@@ -221,7 +230,7 @@ export function RealtimeThroughputMonitor({
       default:
         return ['auto', 'auto'];
     }
-  };
+  }, [selectedMetric]);
 
   return (
     <DashboardCard

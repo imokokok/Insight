@@ -2,10 +2,9 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 
-import { useRefresh, useExport, useDIAAllData, useDataFreshness } from '@/hooks';
+import { useRefresh, useExport, useDIAAllData } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { DIAClient } from '@/lib/oracles/dia';
 import { OracleProvider } from '@/types/oracle';
 
 import { type DIATabId } from '../types';
@@ -16,7 +15,6 @@ export function useDIAPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const config = useMemo(() => getOracleConfig(OracleProvider.DIA), []);
-  const client = useMemo(() => new DIAClient(), []);
 
   const { price, historicalData, networkStats, isLoading, isError, errors, refetchAll } =
     useDIAAllData({
@@ -49,17 +47,13 @@ export function useDIAPage() {
     minLoadingTime: 500,
   });
 
-  const dataFreshnessStatus = useDataFreshness(lastUpdated);
-
   const handleTabChange = useCallback((tab: DIATabId) => {
     setActiveTab(tab);
   }, []);
 
   return {
-    // State
     activeTab,
     config,
-    client,
     price,
     historicalData,
     networkStats,
@@ -68,10 +62,7 @@ export function useDIAPage() {
     error: errors[0] || null,
     lastUpdated,
     isRefreshing,
-    dataFreshnessStatus,
-    shouldRefreshData: dataFreshnessStatus.status === 'expired',
 
-    // Actions
     setActiveTab: handleTabChange,
     refresh,
     exportData,

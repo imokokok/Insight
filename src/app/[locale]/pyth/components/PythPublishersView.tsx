@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { Search, ArrowUpDown, Activity, Award, TrendingUp, Shield, Eye } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
@@ -40,7 +41,7 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
             comparison = (a.stake ?? 0) - (b.stake ?? 0);
             break;
           case 'accuracy':
-            comparison = a.accuracy - b.accuracy;
+            comparison = (a.accuracy ?? 0) - (b.accuracy ?? 0);
             break;
           case 'name':
             comparison = a.name.localeCompare(b.name);
@@ -52,9 +53,19 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
 
   const totalStake = publishers.reduce((sum, p) => sum + (p.stake ?? 0), 0);
   const avgAccuracy = publishers.length
-    ? (publishers.reduce((sum, p) => sum + p.accuracy, 0) / publishers.length).toFixed(1)
+    ? (publishers.reduce((sum, p) => sum + (p.accuracy ?? 0), 0) / publishers.length).toFixed(1)
     : 0;
   const topPublisher = publishers.sort((a, b) => (b.stake ?? 0) - (a.stake ?? 0))[0];
+
+  const parentRef = useRef<HTMLDivElement>(null);
+  const shouldUseVirtualScroll = filteredPublishers.length > 50;
+
+  const virtualizer = useVirtualizer({
+    count: filteredPublishers.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 57,
+    overscan: 5,
+  });
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -155,75 +166,169 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
 
       {/* 数据表格 */}
       <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                {t('pyth.publishers.rank') || 'Rank'}
-              </th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                {t('pyth.publishers.name') || 'Name'}
-              </th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                {t('pyth.publishers.stake') || 'Stake'}
-              </th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                {t('pyth.publishers.contribution') || 'Contribution'}
-              </th>
-              <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
-                {t('pyth.publishers.accuracy') || 'Accuracy'}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredPublishers.map((publisher, index) => (
-              <tr
-                key={publisher.id}
-                onClick={() => handlePublisherClick(publisher)}
-                className="border-b border-gray-100 hover:bg-violet-50 transition-colors cursor-pointer group"
+        {shouldUseVirtualScroll ? (
+          <div ref={parentRef} className="h-[600px] overflow-auto">
+            <table className="w-full">
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.publishers.rank') || 'Rank'}
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.publishers.name') || 'Name'}
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.publishers.stake') || 'Stake'}
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.publishers.contribution') || 'Contribution'}
+                  </th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.publishers.accuracy') || 'Accuracy'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                style={{
+                  height: `${virtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                  display: 'block',
+                }}
               >
-                <td className="py-3 px-4">
-                  <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-medium bg-gray-100 text-gray-600 rounded">
-                    {index + 1}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900">{publisher.name}</span>
-                    <Eye className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  <div className="space-y-1">
-                    <span className="text-sm text-gray-900">
-                      {((publisher.stake ?? 0) / 1e6).toFixed(1)}M PYTH
-                    </span>
-                    <div className="w-32 bg-gray-100 rounded-full h-1.5">
-                      <div
-                        className="bg-violet-500 h-1.5 rounded-full"
-                        style={{
-                          width: `${Math.min(((publisher.stake ?? 0) / (topPublisher?.stake || 1)) * 100, 100)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </td>
-                <td className="py-3 px-4 text-sm text-gray-600">
-                  {(((publisher.stake ?? 0) / (totalStake || 1)) * 100).toFixed(2)}%
-                </td>
-                <td className="py-3 px-4 text-right">
-                  <span
-                    className={`text-sm font-medium ${
-                      publisher.accuracy >= 99 ? 'text-emerald-600' : 'text-amber-600'
-                    }`}
-                  >
-                    {publisher.accuracy}%
-                  </span>
-                </td>
+                {virtualizer.getVirtualItems().map((virtualItem) => {
+                  const publisher = filteredPublishers[virtualItem.index];
+                  return (
+                    <tr
+                      key={publisher.id}
+                      data-index={virtualItem.index}
+                      ref={virtualizer.measureElement}
+                      onClick={() => handlePublisherClick(publisher)}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualItem.start}px)`,
+                        display: 'flex',
+                      }}
+                      className="border-b border-gray-100 hover:bg-violet-50 transition-colors cursor-pointer group"
+                    >
+                      <td className="py-3 px-4 flex-none w-[10%]">
+                        <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                          {virtualItem.index + 1}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 flex-none w-[25%]">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-900">{publisher.name}</span>
+                          <Eye className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 flex-none w-[25%]">
+                        <div className="space-y-1">
+                          <span className="text-sm text-gray-900">
+                            {((publisher.stake ?? 0) / 1e6).toFixed(1)}M PYTH
+                          </span>
+                          <div className="w-32 bg-gray-100 rounded-full h-1.5">
+                            <div
+                              className="bg-violet-500 h-1.5 rounded-full"
+                              style={{
+                                width: `${Math.min(((publisher.stake ?? 0) / (topPublisher?.stake || 1)) * 100, 100)}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-600 flex-none w-[20%]">
+                        {(((publisher.stake ?? 0) / (totalStake || 1)) * 100).toFixed(2)}%
+                      </td>
+                      <td className="py-3 px-4 text-right flex-none w-[20%]">
+                        <span
+                          className={`text-sm font-medium ${
+                            (publisher.accuracy ?? 0) >= 99 ? 'text-emerald-600' : 'text-amber-600'
+                          }`}
+                        >
+                          {(publisher.accuracy ?? 0).toFixed(2)}%
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.publishers.rank') || 'Rank'}
+                </th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.publishers.name') || 'Name'}
+                </th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.publishers.stake') || 'Stake'}
+                </th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.publishers.contribution') || 'Contribution'}
+                </th>
+                <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
+                  {t('pyth.publishers.accuracy') || 'Accuracy'}
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredPublishers.map((publisher, index) => (
+                <tr
+                  key={publisher.id}
+                  onClick={() => handlePublisherClick(publisher)}
+                  className="border-b border-gray-100 hover:bg-violet-50 transition-colors cursor-pointer group"
+                >
+                  <td className="py-3 px-4">
+                    <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                      {index + 1}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900">{publisher.name}</span>
+                      <Eye className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="space-y-1">
+                      <span className="text-sm text-gray-900">
+                        {((publisher.stake ?? 0) / 1e6).toFixed(1)}M PYTH
+                      </span>
+                      <div className="w-32 bg-gray-100 rounded-full h-1.5">
+                        <div
+                          className="bg-violet-500 h-1.5 rounded-full"
+                          style={{
+                            width: `${Math.min(((publisher.stake ?? 0) / (topPublisher?.stake || 1)) * 100, 100)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600">
+                    {(((publisher.stake ?? 0) / (totalStake || 1)) * 100).toFixed(2)}%
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <span
+                      className={`text-sm font-medium ${
+                        (publisher.accuracy ?? 0) >= 99 ? 'text-emerald-600' : 'text-amber-600'
+                      }`}
+                    >
+                      {(publisher.accuracy ?? 0).toFixed(2)}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* 空状态 */}

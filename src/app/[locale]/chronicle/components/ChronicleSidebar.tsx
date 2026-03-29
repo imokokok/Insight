@@ -55,7 +55,7 @@ const navItems = [
   },
 ];
 
-export function ChronicleSidebar({ activeTab, onTabChange }: ChronicleSidebarProps) {
+export function ChronicleSidebar({ activeTab, onTabChange, themeColor }: ChronicleSidebarProps) {
   const t = useTranslations();
 
   return (
@@ -63,7 +63,7 @@ export function ChronicleSidebar({ activeTab, onTabChange }: ChronicleSidebarPro
       items={navItems}
       activeTab={activeTab}
       onTabChange={(tab) => onTabChange(tab as ChronicleTabId)}
-      themeColor="#f59e0b"
+      themeColor={themeColor}
     />
   );
 }

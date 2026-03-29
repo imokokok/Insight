@@ -17,7 +17,7 @@ export function RedStoneMarketView({
   const t = useTranslations();
 
   const currentPrice = price?.price ?? 0;
-  const priceChange24h = 5.5; // Mock data
+  const priceChange24h = price?.change24hPercent ?? 0;
   const isPositive = priceChange24h >= 0;
 
   const stats = [

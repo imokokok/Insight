@@ -5,7 +5,6 @@ import { useState, useCallback, useMemo } from 'react';
 import { useRefresh, useExport, useChronicleAllData, useDataFreshness } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { ChronicleClient } from '@/lib/oracles';
 import { OracleProvider } from '@/types/oracle';
 
 import { type ChronicleTabId } from '../types';
@@ -15,7 +14,6 @@ export function useChroniclePage() {
   const [activeTab, setActiveTab] = useState<ChronicleTabId>('market');
 
   const config = useMemo(() => getOracleConfig(OracleProvider.CHRONICLE), []);
-  const client = useMemo(() => new ChronicleClient(), []);
 
   const {
     price,
@@ -42,12 +40,12 @@ export function useChroniclePage() {
   const { exportData } = useExport({
     data: {
       timestamp: new Date().toISOString(),
-      price,
-      historical: historicalData,
-      scuttlebutt,
-      makerDAO,
-      networkStats,
-      validatorMetrics,
+      price: price ?? null,
+      historical: historicalData ?? [],
+      scuttlebutt: scuttlebutt ?? null,
+      makerDAO: makerDAO ?? null,
+      networkStats: networkStats ?? null,
+      validatorMetrics: validatorMetrics ?? null,
     },
     filename: 'chronicle-data',
   });
@@ -68,7 +66,6 @@ export function useChroniclePage() {
   return {
     activeTab,
     config,
-    client,
     price,
     historicalData,
     networkStats,

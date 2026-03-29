@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
-import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield } from 'lucide-react';
+import { TrendingUp, TrendingDown, Zap, Server, Clock, Shield } from 'lucide-react';
 
 import { PriceChart } from '@/components/oracle';
 import {
@@ -22,98 +22,111 @@ import { type TellorMarketViewProps } from '../types';
 
 type PanelTab = 'priceStream' | 'marketDepth' | 'multiChain';
 
-export function TellorMarketView({
-  config,
-  price,
-  historicalData,
-  isLoading,
-}: TellorMarketViewProps) {
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function generatePriceStreamData(basePrice: number, symbol: string): PriceStreamPoint[] {
+  const data: PriceStreamPoint[] = [];
+  const now = Date.now();
+  const seedBase = symbol.charCodeAt(0) + basePrice;
+
+  for (let i = 0; i < 50; i++) {
+    const seed = seedBase + i;
+    const change = (seededRandom(seed) - 0.5) * 0.1;
+    const currentPrice = basePrice + change;
+    data.push({
+      timestamp: now - (50 - i) * 60000,
+      price: currentPrice,
+      volume: Math.floor(seededRandom(seed + 100) * 10000) + 1000,
+      change: change,
+      changePercent: (change / basePrice) * 100,
+      source: ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism'][Math.floor(seededRandom(seed + 200) * 4)],
+    });
+  }
+  return data;
+}
+
+function generateMarketDepthData(basePrice: number, symbol: string): MarketDepth {
+  const levels = [];
+  const seedBase = symbol.charCodeAt(0) + basePrice;
+
+  for (let i = 0; i < 15; i++) {
+    const priceOffset = i * 0.05;
+    const seed = seedBase + i;
+    levels.push({
+      price: basePrice - priceOffset,
+      bidVolume: Math.floor(seededRandom(seed + 300) * 5000) + 500,
+      askVolume: 0,
+      bidCount: Math.floor(seededRandom(seed + 400) * 20) + 1,
+      askCount: 0,
+    });
+    levels.push({
+      price: basePrice + priceOffset,
+      bidVolume: 0,
+      askVolume: Math.floor(seededRandom(seed + 500) * 5000) + 500,
+      bidCount: 0,
+      askCount: Math.floor(seededRandom(seed + 600) * 20) + 1,
+    });
+  }
+
+  return {
+    symbol,
+    timestamp: Date.now(),
+    levels: levels.sort((a, b) => a.price - b.price),
+    totalBidVolume: levels.reduce((sum, l) => sum + l.bidVolume, 0),
+    totalAskVolume: levels.reduce((sum, l) => sum + l.askVolume, 0),
+    spread: 0.1,
+    spreadPercent: (0.1 / basePrice) * 100,
+  };
+}
+
+function generateMultiChainData(basePrice: number, symbol: string): MultiChainAggregation {
+  const chains = [
+    Blockchain.ETHEREUM,
+    Blockchain.ARBITRUM,
+    Blockchain.POLYGON,
+    Blockchain.OPTIMISM,
+    Blockchain.BASE,
+  ];
+  const seedBase = symbol.charCodeAt(0) + basePrice;
+
+  return {
+    symbol,
+    aggregatedPrice: basePrice,
+    consensusMethod: 'Median',
+    chainPrices: chains.map((chain, idx) => ({
+      chain,
+      price: basePrice + (seededRandom(seedBase + idx * 10) - 0.5) * 0.2,
+      timestamp: Date.now() - Math.floor(seededRandom(seedBase + idx * 20) * 5000),
+      confidence: 0.95 + seededRandom(seedBase + idx * 30) * 0.04,
+      latency: 50 + Math.floor(seededRandom(seedBase + idx * 40) * 100),
+    })),
+    priceDeviation: seededRandom(seedBase + 100) * 0.3,
+    maxDeviation: seededRandom(seedBase + 200) * 0.5,
+    lastUpdated: Date.now(),
+  };
+}
+
+export function TellorMarketView({ config, price }: TellorMarketViewProps) {
   const t = useTranslations();
   const [activePanelTab, setActivePanelTab] = useState<PanelTab>('priceStream');
 
-  const generateMockPriceStreamData = (): PriceStreamPoint[] => {
-    const data: PriceStreamPoint[] = [];
-    const basePrice = price?.price ?? 45.85;
-    const now = Date.now();
+  const basePrice = price?.price ?? 45.85;
 
-    for (let i = 0; i < 50; i++) {
-      const change = (Math.random() - 0.5) * 0.1;
-      const currentPrice = basePrice + change;
-      data.push({
-        timestamp: now - (50 - i) * 60000,
-        price: currentPrice,
-        volume: Math.floor(Math.random() * 10000) + 1000,
-        change: change,
-        changePercent: (change / basePrice) * 100,
-        source: ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism'][Math.floor(Math.random() * 4)],
-      });
-    }
-    return data;
-  };
-
-  const generateMockMarketDepth = (): MarketDepth => {
-    const basePrice = price?.price ?? 45.85;
-    const levels = [];
-
-    for (let i = 0; i < 15; i++) {
-      const priceOffset = i * 0.05;
-      levels.push({
-        price: basePrice - priceOffset,
-        bidVolume: Math.floor(Math.random() * 5000) + 500,
-        askVolume: 0,
-        bidCount: Math.floor(Math.random() * 20) + 1,
-        askCount: 0,
-      });
-      levels.push({
-        price: basePrice + priceOffset,
-        bidVolume: 0,
-        askVolume: Math.floor(Math.random() * 5000) + 500,
-        bidCount: 0,
-        askCount: Math.floor(Math.random() * 20) + 1,
-      });
-    }
-
-    return {
-      symbol: config.symbol,
-      timestamp: Date.now(),
-      levels: levels.sort((a, b) => a.price - b.price),
-      totalBidVolume: levels.reduce((sum, l) => sum + l.bidVolume, 0),
-      totalAskVolume: levels.reduce((sum, l) => sum + l.askVolume, 0),
-      spread: 0.1,
-      spreadPercent: (0.1 / basePrice) * 100,
-    };
-  };
-
-  const generateMockMultiChainData = (): MultiChainAggregation => {
-    const basePrice = price?.price ?? 45.85;
-    const chains = [
-      Blockchain.ETHEREUM,
-      Blockchain.ARBITRUM,
-      Blockchain.POLYGON,
-      Blockchain.OPTIMISM,
-      Blockchain.BASE,
-    ];
-
-    return {
-      symbol: config.symbol,
-      aggregatedPrice: basePrice,
-      consensusMethod: 'Median',
-      chainPrices: chains.map((chain) => ({
-        chain,
-        price: basePrice + (Math.random() - 0.5) * 0.2,
-        timestamp: Date.now() - Math.floor(Math.random() * 5000),
-        confidence: 0.95 + Math.random() * 0.04,
-        latency: 50 + Math.floor(Math.random() * 100),
-      })),
-      priceDeviation: Math.random() * 0.3,
-      maxDeviation: Math.random() * 0.5,
-      lastUpdated: Date.now(),
-    };
-  };
-
-  const priceStreamData = generateMockPriceStreamData();
-  const marketDepthData = generateMockMarketDepth();
-  const multiChainData = generateMockMultiChainData();
+  const priceStreamData = useMemo(
+    () => generatePriceStreamData(basePrice, config.symbol),
+    [basePrice, config.symbol]
+  );
+  const marketDepthData = useMemo(
+    () => generateMarketDepthData(basePrice, config.symbol),
+    [basePrice, config.symbol]
+  );
+  const multiChainData = useMemo(
+    () => generateMultiChainData(basePrice, config.symbol),
+    [basePrice, config.symbol]
+  );
 
   const stats = [
     {
@@ -346,12 +359,8 @@ export function TellorMarketView({
 
         {/* Panel 内容 */}
         <div className="mt-4">
-          {activePanelTab === 'priceStream' && (
-            <TellorPriceStreamPanel data={priceStreamData} />
-          )}
-          {activePanelTab === 'marketDepth' && (
-            <TellorMarketDepthPanel data={marketDepthData} />
-          )}
+          {activePanelTab === 'priceStream' && <TellorPriceStreamPanel data={priceStreamData} />}
+          {activePanelTab === 'marketDepth' && <TellorMarketDepthPanel data={marketDepthData} />}
           {activePanelTab === 'multiChain' && (
             <TellorMultiChainAggregationPanel data={multiChainData} />
           )}

@@ -7,6 +7,7 @@ import {
   ErrorFallback,
   MobileMenuButton,
   OracleErrorBoundary,
+  PartialDataWarning,
 } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
@@ -26,10 +27,11 @@ import {
   RedStoneArweaveView,
   RedStoneHero,
 } from './components';
+import { RedStoneClientProvider } from './context/RedStoneClientContext';
 import { useRedStonePage } from './hooks/useRedStonePage';
 import { type RedStoneTabId } from './types';
 
-export default function RedStonePage() {
+function RedStonePageContent() {
   const {
     activeTab,
     config,
@@ -44,7 +46,8 @@ export default function RedStonePage() {
     error,
     lastUpdated,
     isRefreshing,
-
+    hasPartialData,
+    failedDataSources,
     setActiveTab,
     refresh,
     exportData,
@@ -122,6 +125,14 @@ export default function RedStonePage() {
         />
 
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {hasPartialData && (
+            <PartialDataWarning
+              failedItems={failedDataSources}
+              onRetry={refresh}
+              themeColor={config.themeColor}
+            />
+          )}
+
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="hidden lg:block w-64 flex-shrink-0">
               <div className="sticky top-6">
@@ -160,5 +171,13 @@ export default function RedStonePage() {
         </div>
       </div>
     </OracleErrorBoundary>
+  );
+}
+
+export default function RedStonePage() {
+  return (
+    <RedStoneClientProvider>
+      <RedStonePageContent />
+    </RedStoneClientProvider>
   );
 }

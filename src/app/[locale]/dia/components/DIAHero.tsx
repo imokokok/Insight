@@ -46,7 +46,7 @@ interface StatItem {
   title: string;
   value: string;
   change?: string;
-  changeType: 'positive' | 'negative' | 'neutral';
+  changeType?: 'positive' | 'negative' | 'neutral';
   icon: React.ReactNode;
   subtitle?: string;
   sparklineData?: number[];
@@ -462,7 +462,19 @@ export function DIAHero({
     );
   }, [historicalData, currentPrice]);
 
-  // 核心统计指标 (Primary stats) - 增加到5个
+  const formatStakedValue = (value: number): string => {
+    if (value >= 1e6) {
+      return `${(value / 1e6).toFixed(1)}M`;
+    }
+    if (value >= 1e3) {
+      return `${(value / 1e3).toFixed(1)}K`;
+    }
+    return value.toString();
+  };
+
+  const activeDataSources = config.networkData.activeNodes;
+  const totalStaked = config.networkData.totalStaked;
+
   const primaryStats: StatItem[] = [
     {
       title: 'DIA 价格',
@@ -476,65 +488,49 @@ export function DIAHero({
     {
       title: '市值',
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
-      change: '+5.2%',
-      changeType: 'positive',
+      change: config.marketData.change24h ? `${config.marketData.change24h >= 0 ? '+' : ''}${config.marketData.change24h.toFixed(1)}%` : undefined,
+      changeType: (config.marketData.change24h ?? 0) >= 0 ? 'positive' : 'negative',
       icon: <Wallet className="w-5 h-5" />,
-      subtitle: '24h 变化',
+      subtitle: config.marketData.change24h ? '24h 变化' : undefined,
     },
     {
       title: '活跃数据源',
-      value: '100+',
-      change: '+8%',
-      changeType: 'positive',
+      value: activeDataSources ? `${activeDataSources}+` : '--',
       icon: <Database className="w-5 h-5" />,
       subtitle: 'Data providers',
     },
     {
       title: '数据喂价',
       value: `${networkStats?.dataFeeds ?? config.networkData.dataFeeds}`,
-      change: '+12',
-      changeType: 'positive',
       icon: <Zap className="w-5 h-5" />,
-      subtitle: '24h 新增',
     },
     {
       title: '质押量',
-      value: '2.5M',
-      change: '+3.5%',
-      changeType: 'positive',
+      value: totalStaked ? formatStakedValue(totalStaked) : '--',
       icon: <Shield className="w-5 h-5" />,
-      subtitle: '24h 变化',
+      subtitle: config.networkData.stakingTokenSymbol ? `质押代币: ${config.networkData.stakingTokenSymbol}` : undefined,
     },
   ];
 
-  // 次要统计指标 (Secondary stats) - 保持4个用于紧凑行展示
   const secondaryStats: StatItem[] = [
     {
       title: '支持链数',
       value: `${config.supportedChains.length}+`,
-      change: '+1',
-      changeType: 'positive',
       icon: <Globe className="w-4 h-4" />,
     },
     {
       title: '平均响应时间',
       value: `${networkStats?.avgResponseTime ?? config.networkData.avgResponseTime}ms`,
-      change: '-10%',
-      changeType: 'positive',
       icon: <Clock className="w-4 h-4" />,
     },
     {
       title: '节点在线率',
       value: `${networkStats?.nodeUptime ?? config.networkData.nodeUptime}%`,
-      change: '+0.1%',
-      changeType: 'positive',
       icon: <Server className="w-4 h-4" />,
     },
     {
       title: '24h 交易量',
-      value: '$1.2M',
-      change: '+15%',
-      changeType: 'positive',
+      value: config.marketData.volume24h ? `$${(config.marketData.volume24h / 1e6).toFixed(1)}M` : '--',
       icon: <TrendingUp className="w-4 h-4" />,
     },
   ];

@@ -16,6 +16,7 @@ import {
   RefreshCw,
   ChevronRight,
   Info,
+  Loader2,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
@@ -386,7 +387,7 @@ function SeverityBadge({ severity, t }: { severity: RiskPoint['severity']; t: Re
   );
 }
 
-export function CrossChainVerification() {
+export function CrossChainVerification({ isLoading = false }: { isLoading?: boolean }) {
   const t = useTranslations();
   const [selectedChain, setSelectedChain] = useState<SupportedChain | null>(null);
   const [activeSection, setActiveSection] = useState<'messages' | 'monitoring' | 'security'>('messages');
@@ -417,6 +418,16 @@ export function CrossChainVerification() {
 
     return () => clearInterval(interval);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
 
   const chains: SupportedChain[] = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base'];
 

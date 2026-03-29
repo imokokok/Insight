@@ -186,6 +186,8 @@ function MiniPriceChart({
   currentPrice: PriceData | null;
   themeColor: string;
 }) {
+  const t = useTranslations();
+
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
@@ -209,7 +211,7 @@ function MiniPriceChart({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
+          <span>{t('redstone.hero.priceTrend24h')}</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
@@ -220,8 +222,8 @@ function MiniPriceChart({
         <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>{t('redstone.hero.timeAgo.24hAgo')}</span>
+        <span>{t('redstone.hero.timeAgo.now')}</span>
       </div>
     </div>
   );
@@ -323,6 +325,8 @@ function UnifiedInfoSection({
   chains: string[];
   themeColor: string;
 }) {
+  const t = useTranslations();
+
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
     if (healthScore >= 70) return 'text-yellow-600';
@@ -337,14 +341,14 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return { label: t('redstone.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return { label: t('redstone.hero.gasLevel.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return { label: t('redstone.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: t('redstone.hero.gasLevel.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
   // 只显示前3个链
   const displayChains = chains.slice(0, 3);
@@ -356,7 +360,7 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('redstone.hero.health')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -379,7 +383,7 @@ function UnifiedInfoSection({
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('redstone.hero.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -395,7 +399,7 @@ function UnifiedInfoSection({
           {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('redstone.hero.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
@@ -404,7 +408,7 @@ function UnifiedInfoSection({
           {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('redstone.hero.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
@@ -417,12 +421,12 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('redstone.hero.supported')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {t('redstone.hero.chainsCount', { count: chains.length })}
           </span>
           {/* 前3个链图标 */}
           <div className="flex -space-x-1">
@@ -447,11 +451,13 @@ function UnifiedInfoSection({
 
 // 快速操作组件
 function QuickActions() {
+  const t = useTranslations();
+
   const actions = [
-    { icon: <Bell className="w-3.5 h-3.5" />, label: '价格提醒', href: '#' },
-    { icon: <Plus className="w-3.5 h-3.5" />, label: '添加监控', href: '#' },
-    { icon: <FileText className="w-3.5 h-3.5" />, label: 'API文档', href: '#' },
-    { icon: <Layers className="w-3.5 h-3.5" />, label: '切换网络', href: '#' },
+    { icon: <Bell className="w-3.5 h-3.5" />, label: t('redstone.hero.quickActions.priceAlert'), href: '#' },
+    { icon: <Plus className="w-3.5 h-3.5" />, label: t('redstone.hero.quickActions.addMonitor'), href: '#' },
+    { icon: <FileText className="w-3.5 h-3.5" />, label: t('redstone.hero.quickActions.apiDocs'), href: '#' },
+    { icon: <Layers className="w-3.5 h-3.5" />, label: t('redstone.hero.quickActions.switchNetwork'), href: '#' },
   ];
 
   return (
@@ -471,17 +477,19 @@ function QuickActions() {
 
 // 最新动态滚动条
 function LatestUpdates() {
+  const t = useTranslations();
+
   const updates = [
-    { type: 'price', text: 'RED 价格更新: $0.85 (+3.2%)', time: '1分钟前' },
-    { type: 'provider', text: '新数据提供者加入: DataProvider_42 (欧洲)', time: '3分钟前' },
-    { type: 'feed', text: 'BTC/USD 数据流更新延迟 < 100ms', time: '5分钟前' },
-    { type: 'bridge', text: '新增跨链桥支持: Arbitrum Nova', time: '12分钟前' },
+    { type: 'price', text: t('redstone.hero.updates.price'), time: t('redstone.hero.timeAgo.1minAgo') },
+    { type: 'provider', text: t('redstone.hero.updates.provider'), time: t('redstone.hero.timeAgo.3minAgo') },
+    { type: 'feed', text: t('redstone.hero.updates.feed'), time: t('redstone.hero.timeAgo.5minAgo') },
+    { type: 'bridge', text: t('redstone.hero.updates.bridge'), time: t('redstone.hero.timeAgo.12minAgo') },
   ];
 
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">最新动态:</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">{t('redstone.hero.latestUpdates')}</span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {updates.map((update, index) => (
@@ -540,73 +548,73 @@ export function RedStoneHero({
   // 核心统计指标 - 增加到5个关键指标
   const primaryStats: StatItem[] = [
     {
-      title: '价格',
+      title: t('redstone.hero.stats.price'),
       value: `$${currentPrice.toFixed(2)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
       icon: <Activity className="w-4 h-4" />,
-      subtitle: '24h',
+      subtitle: t('redstone.hero.periods.24h'),
       sparklineData: priceSparkline,
     },
     {
-      title: 'TVS',
+      title: t('redstone.hero.stats.tvs'),
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
       change: '+8.3%',
       changeType: 'positive',
       icon: <Wallet className="w-4 h-4" />,
-      subtitle: '30天',
+      subtitle: t('redstone.hero.periods.30days'),
     },
     {
-      title: '数据流',
+      title: t('redstone.hero.stats.dataFeeds'),
       value: `${networkStats?.dataFeeds ?? config.networkData.dataFeeds}+`,
       change: '+50',
       changeType: 'positive',
       icon: <Zap className="w-4 h-4" />,
-      subtitle: '本周',
+      subtitle: t('redstone.hero.periods.thisWeek'),
     },
     {
-      title: '数据提供者',
+      title: t('redstone.hero.stats.providers'),
       value: '100+',
       change: '+12',
       changeType: 'positive',
       icon: <Database className="w-4 h-4" />,
-      subtitle: '本月',
+      subtitle: t('redstone.hero.periods.thisMonth'),
     },
     {
-      title: '质押量',
+      title: t('redstone.hero.stats.staked'),
       value: '$45.2M',
       change: '+5.7%',
       changeType: 'positive',
       icon: <Lock className="w-4 h-4" />,
-      subtitle: '24h',
+      subtitle: t('redstone.hero.periods.24h'),
     },
   ];
 
   // 次要统计指标 - 整合为紧凑行
   const secondaryStats: StatItem[] = [
     {
-      title: '支持链数',
+      title: t('redstone.hero.stats.supportedChains'),
       value: `${config.supportedChains.length}+`,
       change: '+2',
       changeType: 'positive',
       icon: <Globe className="w-4 h-4" />,
     },
     {
-      title: '节点数',
+      title: t('redstone.hero.stats.nodes'),
       value: '150+',
       change: '+8',
       changeType: 'positive',
       icon: <Server className="w-4 h-4" />,
     },
     {
-      title: '响应时间',
+      title: t('redstone.hero.stats.responseTime'),
       value: `${networkStats?.avgResponseTime ?? config.networkData.avgResponseTime}ms`,
       change: '-15ms',
       changeType: 'positive',
       icon: <Clock className="w-4 h-4" />,
     },
     {
-      title: '在线率',
+      title: t('redstone.hero.stats.uptime'),
       value: `${networkStats?.nodeUptime ?? config.networkData.nodeUptime}%`,
       change: '+0.1%',
       changeType: 'positive',

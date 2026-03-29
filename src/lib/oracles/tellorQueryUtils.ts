@@ -110,9 +110,9 @@ function decodeUint256Hex(hex: string, start: number): number {
 export function decodeQueryData(queryData: string): DecodedQueryData {
   try {
     const cleanData = queryData.startsWith('0x') ? queryData : '0x' + queryData;
-    
+
     const queryType = decodeHexString(cleanData, 0, 32).trim();
-    
+
     let params: Record<string, unknown> = {};
     let humanReadable = '';
 

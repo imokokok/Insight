@@ -9,14 +9,17 @@ import {
   Code,
   ExternalLink,
   FileJson,
+  RefreshCw,
   Search,
   TrendingUp,
   X,
+  AlertCircle,
 } from 'lucide-react';
 
-import { useBandOracleScripts } from '@/hooks/oracles/band';
 import { useTranslations } from '@/i18n';
 import type { OracleScript, OracleScriptCategory } from '@/lib/oracles/bandProtocol';
+
+import { type BandProtocolOracleScriptsViewProps } from '../types';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -147,9 +150,8 @@ function ScriptDetailModal({ script, onClose }: ScriptDetailModalProps) {
   );
 }
 
-export function BandProtocolOracleScriptsView() {
+export function BandProtocolOracleScriptsView({ oracleScripts, isLoading, error: propError, onRefresh }: BandProtocolOracleScriptsViewProps) {
   const t = useTranslations();
-  const { oracleScripts, isLoading } = useBandOracleScripts();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -221,6 +223,35 @@ export function BandProtocolOracleScriptsView() {
   const handleCloseModal = useCallback(() => {
     setSelectedScript(null);
   }, []);
+
+  const handleRefresh = useCallback(() => {
+    onRefresh();
+  }, [onRefresh]);
+
+  const displayError = propError;
+
+  if (displayError) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {t('band.bandProtocol.oracleScripts.loadError')}
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            {displayError.message || t('band.bandProtocol.oracleScripts.failedToLoad')}
+          </p>
+          <button
+            onClick={handleRefresh}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            {t('band.bandProtocol.oracleScripts.retry')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

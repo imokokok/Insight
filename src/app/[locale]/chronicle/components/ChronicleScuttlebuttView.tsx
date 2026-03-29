@@ -204,18 +204,7 @@ export function ChronicleScuttlebuttView({
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('chronicle.scuttlebutt.historicalEvents')}
         </h3>
-        <ChronicleDataTable
-          data={mockEvents as unknown as Record<string, unknown>[]}
-          columns={
-            columns as unknown as Array<{
-              key: string;
-              header: string;
-              width?: string;
-              sortable?: boolean;
-              render?: (item: Record<string, unknown>) => React.ReactNode;
-            }>
-          }
-        />
+        <ChronicleDataTable data={mockEvents} columns={columns} />
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ export { MoreOptionsDropdown } from './MoreOptionsDropdown';
 export { RealtimeUpdateControl } from './RealtimeUpdateControl';
 export { LoadingState } from './LoadingState';
 export { ErrorFallback } from './ErrorFallback';
+export { PartialDataWarning } from './PartialDataWarning';
 export {
   OracleErrorBoundary,
   type OracleErrorBoundaryProps,

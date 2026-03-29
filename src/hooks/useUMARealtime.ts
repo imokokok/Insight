@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
 import { type DisputeData, type DisputeType, type UMANetworkStats } from '@/lib/oracles/uma/types';
 import {
-  useWebSocket,
+  useUMAWebSocketOptional,
   type WebSocketMessage,
   type PerformanceMetrics,
-} from '@/lib/realtime/websocket';
+} from '@/lib/realtime/UMAWebSocketContext';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('useUMARealtime');
@@ -143,8 +143,6 @@ export interface UseUMARealtimeRequestsReturn {
   resolvedCount: number;
 }
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://api.example.com/ws';
-
 const DEFAULT_THROTTLE_MS = 1000;
 
 function useThrottledCallback<T extends (...args: never[]) => void>(
@@ -199,7 +197,8 @@ export function useUMARealtimePrice(
   const [priceData, setPriceData] = useState<UMAPriceData | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<Error | null>(null);
-  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics | null>(null);
+
+  const sharedContext = useUMAWebSocketOptional();
 
   const handlePriceUpdate = useCallback(
     (data: UMAPriceData) => {
@@ -231,29 +230,21 @@ export function useUMARealtimePrice(
     [symbol, throttledHandlePriceUpdate]
   );
 
-  const { status: connectionStatus, subscribe } = useWebSocket({
-    url: WS_URL,
-    channels: enabled ? ['uma:prices'] : [],
-    autoConnect: enabled,
-    useMock: true,
-    onPerformanceMetrics: setPerformanceMetrics,
-  });
-
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !sharedContext) return;
 
-    const unsubscribe = subscribe<UMAPriceData>('uma:prices', handleMessage);
+    const unsubscribe = sharedContext.subscribe<UMAPriceData>('uma:prices', handleMessage);
     return () => {
       unsubscribe?.();
     };
-  }, [enabled, subscribe, handleMessage]);
+  }, [enabled, sharedContext, handleMessage]);
 
   return {
     priceData,
-    connectionStatus,
+    connectionStatus: sharedContext?.status ?? 'disconnected',
     lastUpdate,
     error,
-    performanceMetrics,
+    performanceMetrics: sharedContext?.performanceMetrics ?? null,
   };
 }
 
@@ -272,6 +263,8 @@ export function useUMARealtimeDisputes(
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const disputesMapRef = useRef<Map<string, UMADisputeUpdate>>(new Map());
+
+  const sharedContext = useUMAWebSocketOptional();
 
   const handleDisputeUpdate = useCallback(
     (disputeUpdate: UMADisputeUpdate) => {
@@ -324,21 +317,14 @@ export function useUMARealtimeDisputes(
     [filterStatus, filterType, throttledHandleDisputeUpdate]
   );
 
-  const { status: connectionStatus, subscribe } = useWebSocket({
-    url: WS_URL,
-    channels: enabled ? ['uma:disputes'] : [],
-    autoConnect: enabled,
-    useMock: true,
-  });
-
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !sharedContext) return;
 
-    const unsubscribe = subscribe<DisputeData>('uma:disputes', handleMessage);
+    const unsubscribe = sharedContext.subscribe<DisputeData>('uma:disputes', handleMessage);
     return () => {
       unsubscribe?.();
     };
-  }, [enabled, subscribe, handleMessage]);
+  }, [enabled, sharedContext, handleMessage]);
 
   const stats = useMemo(
     () =>
@@ -357,7 +343,7 @@ export function useUMARealtimeDisputes(
   return {
     disputes,
     latestDispute,
-    connectionStatus,
+    connectionStatus: sharedContext?.status ?? 'disconnected',
     lastUpdate,
     error,
     ...stats,
@@ -376,6 +362,8 @@ export function useUMARealtimeValidators(
   const [validators, setValidators] = useState<Map<string, UMAValidatorUpdate>>(new Map());
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<Error | null>(null);
+
+  const sharedContext = useUMAWebSocketOptional();
 
   const handleValidatorUpdate = useCallback(
     (data: UMAValidatorUpdate) => {
@@ -411,25 +399,18 @@ export function useUMARealtimeValidators(
     [validatorIds, throttledHandleValidatorUpdate]
   );
 
-  const { status: connectionStatus, subscribe } = useWebSocket({
-    url: WS_URL,
-    channels: enabled ? ['uma:validators'] : [],
-    autoConnect: enabled,
-    useMock: true,
-  });
-
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !sharedContext) return;
 
-    const unsubscribe = subscribe<UMAValidatorUpdate>('uma:validators', handleMessage);
+    const unsubscribe = sharedContext.subscribe<UMAValidatorUpdate>('uma:validators', handleMessage);
     return () => {
       unsubscribe?.();
     };
-  }, [enabled, subscribe, handleMessage]);
+  }, [enabled, sharedContext, handleMessage]);
 
   return {
     validators,
-    connectionStatus,
+    connectionStatus: sharedContext?.status ?? 'disconnected',
     lastUpdate,
     error,
   };
@@ -442,6 +423,8 @@ export function useUMARealtimeNetwork(
   const [networkData, setNetworkData] = useState<UMANetworkUpdate | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<Error | null>(null);
+
+  const sharedContext = useUMAWebSocketOptional();
 
   const handleNetworkUpdate = useCallback(
     (data: UMANetworkUpdate) => {
@@ -467,25 +450,18 @@ export function useUMARealtimeNetwork(
     [throttledHandleNetworkUpdate]
   );
 
-  const { status: connectionStatus, subscribe } = useWebSocket({
-    url: WS_URL,
-    channels: enabled ? ['uma:network'] : [],
-    autoConnect: enabled,
-    useMock: true,
-  });
-
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !sharedContext) return;
 
-    const unsubscribe = subscribe<UMANetworkUpdate>('uma:network', handleMessage);
+    const unsubscribe = sharedContext.subscribe<UMANetworkUpdate>('uma:network', handleMessage);
     return () => {
       unsubscribe?.();
     };
-  }, [enabled, subscribe, handleMessage]);
+  }, [enabled, sharedContext, handleMessage]);
 
   return {
     networkData,
-    connectionStatus,
+    connectionStatus: sharedContext?.status ?? 'disconnected',
     lastUpdate,
     error,
   };
@@ -505,6 +481,8 @@ export function useUMARealtimeRequests(
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const requestsMapRef = useRef<Map<string, UMADataRequestUpdate>>(new Map());
+
+  const sharedContext = useUMAWebSocketOptional();
 
   const handleRequestUpdate = useCallback(
     (requestUpdate: UMADataRequestUpdate) => {
@@ -540,21 +518,14 @@ export function useUMARealtimeRequests(
     [filterStatus, throttledHandleRequestUpdate]
   );
 
-  const { status: connectionStatus, subscribe } = useWebSocket({
-    url: WS_URL,
-    channels: enabled ? ['uma:requests'] : [],
-    autoConnect: enabled,
-    useMock: true,
-  });
-
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !sharedContext) return;
 
-    const unsubscribe = subscribe<UMADataRequestUpdate>('uma:requests', handleMessage);
+    const unsubscribe = sharedContext.subscribe<UMADataRequestUpdate>('uma:requests', handleMessage);
     return () => {
       unsubscribe?.();
     };
-  }, [enabled, subscribe, handleMessage]);
+  }, [enabled, sharedContext, handleMessage]);
 
   const stats = useMemo(
     () =>
@@ -574,7 +545,7 @@ export function useUMARealtimeRequests(
   return {
     requests,
     latestRequest,
-    connectionStatus,
+    connectionStatus: sharedContext?.status ?? 'disconnected',
     lastUpdate,
     error,
     ...stats,
@@ -632,6 +603,8 @@ export function useUMARealtime(options: UseUMARealtimeOptions = {}): UseUMARealt
     onRequestUpdate,
   } = options;
 
+  const sharedContext = useUMAWebSocketOptional();
+
   const price = useUMARealtimePrice({
     symbol: priceSymbol,
     enabled: enablePrices,
@@ -667,17 +640,9 @@ export function useUMARealtime(options: UseUMARealtimeOptions = {}): UseUMARealt
     throttleMs,
   });
 
-  const connectionStatuses = [
-    enablePrices && price.connectionStatus,
-    enableDisputes && disputes.connectionStatus,
-    enableValidators && validators.connectionStatus,
-    enableNetwork && network.connectionStatus,
-    enableRequests && requests.connectionStatus,
-  ].filter(Boolean) as ConnectionStatus['status'][];
-
-  const isConnected = connectionStatuses.some((s) => s === 'connected');
-  const isConnecting = connectionStatuses.some((s) => s === 'connecting');
-  const isReconnecting = connectionStatuses.some((s) => s === 'reconnecting');
+  const isConnected = sharedContext?.isConnected ?? false;
+  const isConnecting = sharedContext?.isConnecting ?? false;
+  const isReconnecting = sharedContext?.isReconnecting ?? false;
 
   const connectionInfo: ConnectionStatus = useMemo(() => {
     const status: ConnectionStatus['status'] = isReconnecting

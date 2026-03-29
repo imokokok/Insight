@@ -170,7 +170,8 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
         <div>
           <h2 className="text-xl font-semibold text-gray-900">{layerOverviewData.chainName}</h2>
           <p className="text-sm text-gray-500">
-            {t('tellorLayer.overview.chainId')}: {layerOverviewData.chainId} · {t('tellorLayer.overview.consensus')}: {layerOverviewData.consensus}
+            {t('tellorLayer.overview.chainId')}: {layerOverviewData.chainId} ·{' '}
+            {t('tellorLayer.overview.consensus')}: {layerOverviewData.consensus}
           </p>
         </div>
       </div>
@@ -265,9 +266,7 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
       <div>
         <div className="flex items-center gap-2 mb-4">
           <ArrowRightLeft className="w-5 h-5 text-gray-600" />
-          <h3 className="text-base font-medium text-gray-900">
-            {t('tellorLayer.bridge.title')}
-          </h3>
+          <h3 className="text-base font-medium text-gray-900">{t('tellorLayer.bridge.title')}</h3>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -284,7 +283,9 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-xs text-gray-500">{t('tellorLayer.bridge.volume')}</p>
-                <p className="text-lg font-semibold text-gray-900">{bridgeStats.ethToLayer.volume}</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {bridgeStats.ethToLayer.volume}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">{t('tellorLayer.bridge.transactions')}</p>
@@ -294,7 +295,9 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
               </div>
               <div>
                 <p className="text-xs text-gray-500">{t('tellorLayer.bridge.pending')}</p>
-                <p className="text-lg font-semibold text-amber-600">{bridgeStats.ethToLayer.pendingTx}</p>
+                <p className="text-lg font-semibold text-amber-600">
+                  {bridgeStats.ethToLayer.pendingTx}
+                </p>
               </div>
             </div>
           </div>
@@ -312,7 +315,9 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-xs text-gray-500">{t('tellorLayer.bridge.volume')}</p>
-                <p className="text-lg font-semibold text-gray-900">{bridgeStats.layerToEth.volume}</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {bridgeStats.layerToEth.volume}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">{t('tellorLayer.bridge.transactions')}</p>
@@ -322,7 +327,9 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
               </div>
               <div>
                 <p className="text-xs text-gray-500">{t('tellorLayer.bridge.pending')}</p>
-                <p className="text-lg font-semibold text-amber-600">{bridgeStats.layerToEth.pendingTx}</p>
+                <p className="text-lg font-semibold text-amber-600">
+                  {bridgeStats.layerToEth.pendingTx}
+                </p>
               </div>
             </div>
           </div>
@@ -345,7 +352,9 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
           <p className="text-sm text-gray-500 mb-3">{t('tellorLayer.bridge.activityChart')}</p>
           <div className="h-32 flex items-end gap-1">
             {bridgeHistory.map((item, index) => {
-              const maxValue = Math.max(...bridgeHistory.map((h) => Math.max(h.ethToLayer, h.layerToEth)));
+              const maxValue = Math.max(
+                ...bridgeHistory.map((h) => Math.max(h.ethToLayer, h.layerToEth))
+              );
               return (
                 <div key={index} className="flex-1 flex flex-col gap-0.5">
                   <div
@@ -440,12 +449,8 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
                 <th className="text-left py-3 text-sm font-medium text-gray-500">
                   {t('tellorLayer.comparison.feature')}
                 </th>
-                <th className="text-center py-3 text-sm font-medium text-gray-500">
-                  Tellor Layer
-                </th>
-                <th className="text-center py-3 text-sm font-medium text-gray-500">
-                  EVM Chains
-                </th>
+                <th className="text-center py-3 text-sm font-medium text-gray-500">Tellor Layer</th>
+                <th className="text-center py-3 text-sm font-medium text-gray-500">EVM Chains</th>
               </tr>
             </thead>
             <tbody>

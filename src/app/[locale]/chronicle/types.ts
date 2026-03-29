@@ -18,17 +18,7 @@ export type ChronicleTabId =
   | 'crossChain'
   | 'priceDeviation';
 
-export interface NetworkStats {
-  activeValidators: number;
-  dataFeeds: number;
-  nodeUptime: number;
-  avgResponseTime: number;
-  latency: number;
-  hourlyActivity?: number[];
-  status?: 'online' | 'warning' | 'offline';
-  totalStaked?: number;
-  updateFrequency?: number;
-}
+export type NetworkStats = ChronicleNetworkStats;
 
 export interface ChroniclePageState {
   activeTab: ChronicleTabId;
@@ -52,6 +42,7 @@ export interface ChroniclePageActions {
 export interface ChronicleSidebarProps {
   activeTab: ChronicleTabId;
   onTabChange: (tab: ChronicleTabId) => void;
+  themeColor: string;
 }
 
 export interface ChronicleHeaderProps {

@@ -34,20 +34,13 @@ import {
 import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
+import { RISK_BENCHMARKS } from '@/lib/config/riskBenchmarks';
 import {
   useBandRiskMetrics,
   useBandRiskTrend,
   useBandSecurityAuditEvents,
 } from '@/hooks/oracles/band';
 import type { RiskEvent } from '@/lib/oracles/bandProtocol';
-
-const benchmarkData = [
-  { metric: 'Decentralization', chainlink: 85, pyth: 68, band: 72, api3: 65 },
-  { metric: 'Security', chainlink: 92, pyth: 82, band: 78, api3: 78 },
-  { metric: 'Reliability', chainlink: 99.5, pyth: 97.0, band: 94.2, api3: 96.5 },
-  { metric: 'Transparency', chainlink: 88, pyth: 85, band: 75, api3: 82 },
-  { metric: 'Track Record', chainlink: 95, pyth: 72, band: 80, api3: 75 },
-];
 
 function getRiskFactors(t: (key: string, params?: Record<string, string | number | Date>) => string) {
   return [
@@ -429,7 +422,7 @@ export function BandProtocolRiskView() {
           <div className="lg:col-span-2">
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={benchmarkData}>
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={RISK_BENCHMARKS}>
                   <PolarGrid stroke="#e5e7eb" />
                   <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
                   <PolarRadiusAxis
@@ -472,7 +465,7 @@ export function BandProtocolRiskView() {
               {t('band.bandProtocol.risk.comparison') || 'Detailed Comparison'}
             </h3>
             <div className="space-y-3">
-              {benchmarkData.map((item) => (
+              {RISK_BENCHMARKS.map((item) => (
                 <div key={item.metric} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">{item.metric}</span>

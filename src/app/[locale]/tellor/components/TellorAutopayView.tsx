@@ -1,6 +1,17 @@
 'use client';
 
-import { TrendingUp, TrendingDown, Database, Activity, Gift, Users, Clock, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Database,
+  Activity,
+  Gift,
+  Users,
+  Clock,
+  DollarSign,
+  ArrowUpRight,
+  ArrowDownRight,
+} from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
@@ -284,7 +295,9 @@ export function TellorAutopayView({ isLoading }: TellorAutopayViewProps) {
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-1">
                       <DollarSign className="w-3.5 h-3.5 text-gray-400" />
-                      <span className={`text-sm font-medium ${record.type === 'tip' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      <span
+                        className={`text-sm font-medium ${record.type === 'tip' ? 'text-emerald-600' : 'text-amber-600'}`}
+                      >
                         {record.amount}
                       </span>
                     </div>

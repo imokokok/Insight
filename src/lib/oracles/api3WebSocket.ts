@@ -36,9 +36,26 @@ export interface WebSocketStatus {
   reconnectAttempts: number;
   lastConnected?: Date;
   error?: string;
+  queueSize?: number;
+}
+
+export interface QueueStats {
+  size: number;
+  maxSize: number;
+  oldestMessageAge: number;
+  droppedMessages: number;
 }
 
 type WebSocketCallback = (data: unknown) => void;
+
+interface QueuedMessage {
+  data: unknown;
+  timestamp: number;
+  channel: string;
+}
+
+const DEFAULT_MAX_QUEUE_SIZE = 100;
+const MESSAGE_TTL = 60000;
 
 export class API3WebSocketClient {
   private ws: WebSocket | null = null;
@@ -51,15 +68,19 @@ export class API3WebSocketClient {
   private subscriptions: Map<string, Subscription[]> = new Map();
   private status: WebSocketStatus = { connected: false, reconnectAttempts: 0 };
   private statusListeners: Set<(status: WebSocketStatus) => void> = new Set();
-  private messageQueue: WebSocketMessage[] = [];
+  private messageQueue: QueuedMessage[] = [];
   private isConnecting = false;
   private url: string;
+  private maxQueueSize: number;
+  private droppedMessages = 0;
+  private queueCleanupTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(url?: string) {
     this.url = url || API3_DATA_SOURCES.websocket.url;
     this.maxReconnectAttempts = API3_DATA_SOURCES.websocket.maxReconnectAttempts;
     this.reconnectInterval = API3_DATA_SOURCES.websocket.reconnectInterval;
     this.pingInterval = API3_DATA_SOURCES.websocket.pingInterval;
+    this.maxQueueSize = DEFAULT_MAX_QUEUE_SIZE;
   }
 
   connect(): Promise<void> {
@@ -92,9 +113,11 @@ export class API3WebSocketClient {
             connected: true,
             reconnectAttempts: 0,
             lastConnected: new Date(),
+            queueSize: this.messageQueue.length,
           };
           this.notifyStatusListeners();
           this.startPingInterval();
+          this.startQueueCleanup();
           this.resubscribeAll();
           this.flushMessageQueue();
           resolve();
@@ -147,6 +170,7 @@ export class API3WebSocketClient {
 
   disconnect(): void {
     this.stopPingInterval();
+    this.stopQueueCleanup();
     this.clearReconnectTimer();
     
     if (this.ws) {
@@ -154,7 +178,7 @@ export class API3WebSocketClient {
       this.ws = null;
     }
 
-    this.status = { connected: false, reconnectAttempts: 0 };
+    this.status = { connected: false, reconnectAttempts: 0, queueSize: 0 };
     this.notifyStatusListeners();
   }
 
@@ -256,38 +280,106 @@ export class API3WebSocketClient {
     this.send({
       type: 'subscribe',
       channel,
-    });
+    }, channel);
   }
 
   private sendUnsubscribe(channel: string): void {
     this.send({
       type: 'unsubscribe',
       channel,
-    });
+    }, channel);
   }
 
-  private send(data: unknown): void {
+  private send(data: unknown, channel: string = ''): void {
     const message = JSON.stringify(data);
     
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(message);
     } else {
-      this.messageQueue.push({
-        type: 'price_update',
-        channel: '',
-        data,
-        timestamp: Date.now(),
-      });
+      this.addToQueue(data, channel);
+    }
+  }
+
+  private addToQueue(data: unknown, channel: string): void {
+    this.cleanupExpiredMessages();
+    
+    if (this.messageQueue.length >= this.maxQueueSize) {
+      this.messageQueue.shift();
+      this.droppedMessages++;
+      console.warn('[API3WebSocket] Message queue full, dropping oldest message');
+    }
+    
+    this.messageQueue.push({
+      data,
+      timestamp: Date.now(),
+      channel,
+    });
+    
+    this.status.queueSize = this.messageQueue.length;
+    this.notifyStatusListeners();
+  }
+
+  private cleanupExpiredMessages(): void {
+    const now = Date.now();
+    const initialLength = this.messageQueue.length;
+    
+    this.messageQueue = this.messageQueue.filter(msg => {
+      return now - msg.timestamp < MESSAGE_TTL;
+    });
+    
+    const removed = initialLength - this.messageQueue.length;
+    if (removed > 0) {
+      this.droppedMessages += removed;
+    }
+  }
+
+  private startQueueCleanup(): void {
+    this.stopQueueCleanup();
+    this.queueCleanupTimer = setInterval(() => {
+      this.cleanupExpiredMessages();
+    }, 30000);
+  }
+
+  private stopQueueCleanup(): void {
+    if (this.queueCleanupTimer) {
+      clearInterval(this.queueCleanupTimer);
+      this.queueCleanupTimer = null;
     }
   }
 
   private flushMessageQueue(): void {
+    this.cleanupExpiredMessages();
+    
     while (this.messageQueue.length > 0 && this.ws?.readyState === WebSocket.OPEN) {
       const queued = this.messageQueue.shift();
       if (queued) {
         this.ws.send(JSON.stringify(queued.data));
       }
     }
+    
+    this.status.queueSize = this.messageQueue.length;
+    this.notifyStatusListeners();
+  }
+
+  getQueueStats(): QueueStats {
+    const now = Date.now();
+    const oldestTimestamp = this.messageQueue.length > 0 
+      ? this.messageQueue[0].timestamp 
+      : now;
+    
+    return {
+      size: this.messageQueue.length,
+      maxSize: this.maxQueueSize,
+      oldestMessageAge: now - oldestTimestamp,
+      droppedMessages: this.droppedMessages,
+    };
+  }
+
+  clearQueue(): void {
+    this.messageQueue = [];
+    this.droppedMessages = 0;
+    this.status.queueSize = 0;
+    this.notifyStatusListeners();
   }
 
   private resubscribeAll(): void {

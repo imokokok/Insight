@@ -1,5 +1,5 @@
-import { API3_DATA_SOURCES, API3_CHAIN_IDS, getAPI3Contract } from './api3DataSources';
-import type { StakingData, CoveragePoolDetails, AirnodeNetworkStats } from './api3';
+import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
+import { getAPI3Contract } from './api3DataSources';
 
 export interface TokenData {
   totalSupply: bigint;
@@ -48,7 +48,7 @@ const API3_TOKEN_ABI = [
     name: 'balanceOf',
     type: 'function',
     stateMutability: 'view',
-    inputs: [{ type: 'address' }],
+    inputs: [{ type: 'address', name: 'account' }],
     outputs: [{ type: 'uint256' }],
   },
 ] as const;
@@ -72,7 +72,7 @@ const API3_POOL_ABI = [
     name: 'getStakerDetails',
     type: 'function',
     stateMutability: 'view',
-    inputs: [{ type: 'address' }],
+    inputs: [{ type: 'address', name: 'staker' }],
     outputs: [
       { type: 'uint256' },
       { type: 'uint256' },
@@ -97,54 +97,48 @@ const API3_POOL_ABI = [
   },
 ] as const;
 
-const RPC_ENDPOINTS: Record<number, string> = {
-  1: 'https://eth.llamarpc.com',
-  42161: 'https://arb1.arbitrum.io/rpc',
-  137: 'https://polygon-rpc.com',
-  8453: 'https://mainnet.base.org',
-  43114: 'https://api.avax.network/ext/bc/C/rpc',
-  56: 'https://bsc-dataseed.binance.org',
+const RPC_ENDPOINTS: Record<number, string[]> = {
+  1: ['https://eth.llamarpc.com', 'https://ethereum.publicnode.com', 'https://rpc.ankr.com/eth'],
+  42161: ['https://arb1.arbitrum.io/rpc', 'https://arbitrum.publicnode.com', 'https://rpc.ankr.com/arbitrum'],
+  137: ['https://polygon-rpc.com', 'https://polygon.publicnode.com', 'https://rpc.ankr.com/polygon'],
+  8453: ['https://mainnet.base.org', 'https://base.publicnode.com', 'https://rpc.ankr.com/base'],
+  43114: ['https://api.avax.network/ext/bc/C/rpc', 'https://avalanche.publicnode.com', 'https://rpc.ankr.com/avalanche'],
+  56: ['https://bsc-dataseed.binance.org', 'https://bsc.publicnode.com', 'https://rpc.ankr.com/bsc'],
 };
 
-function encodeFunctionData(abi: readonly unknown[], functionName: string, args: unknown[] = []): string {
-  const functionAbi = abi.find((item: unknown) => (item as { name: string }).name === functionName);
-  if (!functionAbi) {
-    throw new Error(`Function ${functionName} not found in ABI`);
+function encodeTokenCall(functionName: 'totalSupply' | 'balanceOf', args?: readonly [`0x${string}`]): `0x${string}` {
+  if (functionName === 'balanceOf' && args) {
+    return viemEncodeFunctionData({
+      abi: API3_TOKEN_ABI,
+      functionName: 'balanceOf',
+      args: args,
+    });
   }
-
-  const selector = keccak256(functionName);
-  const encodedArgs = args.map(arg => encodeArg(arg)).join('');
-  
-  return selector + encodedArgs;
+  return viemEncodeFunctionData({
+    abi: API3_TOKEN_ABI,
+    functionName: functionName,
+  });
 }
 
-function keccak256(input: string): string {
-  const hash = simpleHash(input);
-  return hash.slice(0, 8);
-}
-
-function simpleHash(str: string): string {
-  let hashNum = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hashNum = ((hashNum << 5) - hashNum + char) | 0;
+function encodePoolCall(functionName: 'totalStaked' | 'stakerCount' | 'getStakerDetails' | 'unstakeAmount' | 'effectiveStake', args?: readonly [`0x${string}`]): `0x${string}` {
+  if (functionName === 'getStakerDetails' && args) {
+    return viemEncodeFunctionData({
+      abi: API3_POOL_ABI,
+      functionName: 'getStakerDetails',
+      args: args,
+    });
   }
-  const hash = hashNum.toString(16);
-  return hash.padStart(64, '0');
-}
-
-function encodeArg(arg: unknown): string {
-  if (typeof arg === 'string' && arg.startsWith('0x')) {
-    return arg.slice(2).padStart(64, '0');
-  }
-  if (typeof arg === 'number' || typeof arg === 'bigint') {
-    return BigInt(arg).toString(16).padStart(64, '0');
-  }
-  return '0'.padStart(64, '0');
+  return viemEncodeFunctionData({
+    abi: API3_POOL_ABI,
+    functionName: functionName,
+  });
 }
 
 function decodeUint256(data: string): bigint {
   const cleanData = data.startsWith('0x') ? data.slice(2) : data;
+  if (!cleanData || cleanData === '0x') {
+    return BigInt(0);
+  }
   return BigInt('0x' + cleanData);
 }
 
@@ -161,49 +155,74 @@ function decodeUint256Array(data: string): bigint[] {
 }
 
 export class API3OnChainService {
-  private rpcEndpoints: Record<number, string>;
+  private rpcEndpoints: Record<number, string[]>;
+  private currentEndpointIndex: Record<number, number> = {};
   private requestId = 0;
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 60000;
+  private endpointHealth: Record<number, boolean> = {};
 
   constructor() {
     this.rpcEndpoints = RPC_ENDPOINTS;
   }
 
-  private async rpcCall<T>(chainId: number, method: string, params: unknown[]): Promise<T> {
-    const endpoint = this.rpcEndpoints[chainId];
-    if (!endpoint) {
-      throw new Error(`No RPC endpoint for chain ${chainId}`);
+  private async rpcCallWithFallback<T>(chainId: number, method: string, params: unknown[]): Promise<T> {
+    const endpoints = this.rpcEndpoints[chainId];
+    if (!endpoints || endpoints.length === 0) {
+      throw new Error(`No RPC endpoints for chain ${chainId}`);
     }
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: ++this.requestId,
-        method,
-        params,
-      }),
-    });
+    const startIndex = this.currentEndpointIndex[chainId] || 0;
+    let lastError: Error | null = null;
 
-    if (!response.ok) {
-      throw new Error(`RPC call failed: ${response.status}`);
+    for (let i = 0; i < endpoints.length; i++) {
+      const endpointIndex = (startIndex + i) % endpoints.length;
+      const endpoint = endpoints[endpointIndex];
+
+      if (this.endpointHealth[`${chainId}-${endpointIndex}`] === false) {
+        continue;
+      }
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: ++this.requestId,
+            method,
+            params,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`RPC call failed: ${response.status}`);
+        }
+
+        const result: RPCResponse<T> = await response.json();
+
+        if (result.error) {
+          throw new Error(`RPC error: ${result.error.message}`);
+        }
+
+        this.currentEndpointIndex[chainId] = endpointIndex;
+        this.endpointHealth[`${chainId}-${endpointIndex}`] = true;
+
+        return result.result as T;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        this.endpointHealth[`${chainId}-${endpointIndex}`] = false;
+        console.warn(`RPC endpoint ${endpoint} failed, trying next:`, error);
+      }
     }
 
-    const result: RPCResponse<T> = await response.json();
-    
-    if (result.error) {
-      throw new Error(`RPC error: ${result.error.message}`);
-    }
-
-    return result.result as T;
+    throw lastError || new Error(`All RPC endpoints failed for chain ${chainId}`);
   }
 
-  private async ethCall(chainId: number, to: `0x${string}`, data: string): Promise<string> {
-    return this.rpcCall<string>(chainId, 'eth_call', [{ to, data }, 'latest']);
+  private async ethCall(chainId: number, to: `0x${string}`, data: `0x${string}`): Promise<string> {
+    return this.rpcCallWithFallback<string>(chainId, 'eth_call', [{ to, data }, 'latest']);
   }
 
   private getCached<T>(key: string): T | null {
@@ -230,14 +249,14 @@ export class API3OnChainService {
       const totalStakedData = await this.ethCall(
         chainId,
         poolAddress,
-        encodeFunctionData(API3_POOL_ABI, 'totalStaked')
+        encodePoolCall('totalStaked')
       );
       const totalStaked = decodeUint256(totalStakedData);
 
       const stakerCountData = await this.ethCall(
         chainId,
         poolAddress,
-        encodeFunctionData(API3_POOL_ABI, 'stakerCount')
+        encodePoolCall('stakerCount')
       );
       const stakerCount = Number(decodeUint256(stakerCountData));
 
@@ -254,7 +273,7 @@ export class API3OnChainService {
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
-      console.error('Failed to fetch staking data:', error);
+      console.error('[API3OnChainService] Failed to fetch staking data:', error);
       return this.getFallbackStakingData();
     }
   }
@@ -271,14 +290,14 @@ export class API3OnChainService {
       const totalStakedData = await this.ethCall(
         chainId,
         poolAddress,
-        encodeFunctionData(API3_POOL_ABI, 'totalStaked')
+        encodePoolCall('totalStaked')
       );
       const totalValueLocked = decodeUint256(totalStakedData);
 
       const stakerCountData = await this.ethCall(
         chainId,
         poolAddress,
-        encodeFunctionData(API3_POOL_ABI, 'stakerCount')
+        encodePoolCall('stakerCount')
       );
       const stakerCount = Number(decodeUint256(stakerCountData));
 
@@ -293,7 +312,7 @@ export class API3OnChainService {
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
-      console.error('Failed to fetch coverage pool data:', error);
+      console.error('[API3OnChainService] Failed to fetch coverage pool data:', error);
       return this.getFallbackCoverageData();
     }
   }
@@ -304,9 +323,9 @@ export class API3OnChainService {
     if (cached) return cached;
 
     try {
-      const contracts = getAPI3Contract('mainnet') as { 
-        api3Token: `0x${string}`; 
-        api3Pool: `0x${string}` 
+      const contracts = getAPI3Contract('mainnet') as {
+        api3Token: `0x${string}`;
+        api3Pool: `0x${string}`
       };
       const tokenAddress = contracts.api3Token;
       const poolAddress = contracts.api3Pool;
@@ -314,14 +333,14 @@ export class API3OnChainService {
       const totalSupplyData = await this.ethCall(
         chainId,
         tokenAddress,
-        encodeFunctionData(API3_TOKEN_ABI, 'totalSupply')
+        encodeTokenCall('totalSupply')
       );
       const totalSupply = decodeUint256(totalSupplyData);
 
       const stakedBalanceData = await this.ethCall(
         chainId,
         tokenAddress,
-        encodeFunctionData(API3_TOKEN_ABI, 'balanceOf', [poolAddress])
+        encodeTokenCall('balanceOf', [poolAddress])
       );
       const totalStaked = decodeUint256(stakedBalanceData);
 
@@ -338,7 +357,7 @@ export class API3OnChainService {
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
-      console.error('Failed to fetch token data:', error);
+      console.error('[API3OnChainService] Failed to fetch token data:', error);
       return this.getFallbackTokenData();
     }
   }
@@ -380,17 +399,30 @@ export class API3OnChainService {
   }
 
   async getBlockNumber(chainId: number = 1): Promise<number> {
-    const result = await this.rpcCall<string>(chainId, 'eth_blockNumber', []);
+    const result = await this.rpcCallWithFallback<string>(chainId, 'eth_blockNumber', []);
     return parseInt(result, 16);
   }
 
   async getGasPrice(chainId: number = 1): Promise<bigint> {
-    const result = await this.rpcCall<string>(chainId, 'eth_gasPrice', []);
+    const result = await this.rpcCallWithFallback<string>(chainId, 'eth_gasPrice', []);
     return BigInt(result);
+  }
+
+  getEndpointStatus(chainId: number): { current: number; total: number; health: Record<number, boolean> } {
+    const endpoints = this.rpcEndpoints[chainId] || [];
+    return {
+      current: this.currentEndpointIndex[chainId] || 0,
+      total: endpoints.length,
+      health: this.endpointHealth,
+    };
   }
 
   clearCache(): void {
     this.cache.clear();
+  }
+
+  resetEndpointHealth(): void {
+    this.endpointHealth = {};
   }
 }
 

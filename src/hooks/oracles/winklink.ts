@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 
 import { useQuery, useQueries } from '@tanstack/react-query';
 
@@ -14,6 +14,25 @@ import type {
 import { type Blockchain } from '@/types/oracle';
 
 const client = new WINkLinkClient();
+
+export interface DataSourceState<T = unknown> {
+  data: T | null;
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+  lastUpdated: Date | null;
+  refetch: () => Promise<void>;
+}
+
+export type WinklinkDataStates = Record<string, DataSourceState<unknown>> & {
+  price: DataSourceState<ReturnType<WINkLinkClient['getPrice']> extends Promise<infer T> ? T : never>;
+  historical: DataSourceState<ReturnType<WINkLinkClient['getHistoricalPrices']> extends Promise<infer T> ? T : never>;
+  tron: DataSourceState<TRONEcosystem>;
+  staking: DataSourceState<NodeStakingData>;
+  gaming: DataSourceState<WINkLinkGamingData>;
+  network: DataSourceState<ReturnType<WINkLinkClient['getNetworkStats']> extends Promise<infer T> ? T : never>;
+  risk: DataSourceState<WINkLinkRiskMetrics>;
+};
 
 function useLastUpdated() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -89,6 +108,19 @@ interface UseWINkLinkAllDataOptions {
 
 export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLinkAllDataOptions) {
   const { lastUpdated, updateLastUpdated } = useLastUpdated();
+  const [dataLastUpdated, setDataLastUpdated] = useState<Record<string, Date | null>>({
+    price: null,
+    historical: null,
+    tron: null,
+    staking: null,
+    gaming: null,
+    network: null,
+    risk: null,
+  });
+
+  const updateDataLastUpdated = useCallback((key: string) => {
+    setDataLastUpdated((prev) => ({ ...prev, [key]: new Date() }));
+  }, []);
 
   const results = useQueries({
     queries: [
@@ -97,6 +129,7 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
         queryFn: async () => {
           const result = await client.getPrice(symbol, chain);
           updateLastUpdated();
+          updateDataLastUpdated('price');
           return result;
         },
         enabled,
@@ -104,37 +137,61 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
       },
       {
         queryKey: ['winklink', 'historical', symbol, chain, 24],
-        queryFn: () => client.getHistoricalPrices(symbol, chain, 24),
+        queryFn: async () => {
+          const result = await client.getHistoricalPrices(symbol, chain, 24);
+          updateDataLastUpdated('historical');
+          return result;
+        },
         enabled,
         refetchInterval: 300000,
       },
       {
         queryKey: ['winklink', 'tron'],
-        queryFn: () => client.getTRONEcosystem(),
+        queryFn: async () => {
+          const result = await client.getTRONEcosystem();
+          updateDataLastUpdated('tron');
+          return result;
+        },
         enabled,
         refetchInterval: 60000,
       },
       {
         queryKey: ['winklink', 'staking'],
-        queryFn: () => client.getNodeStaking(),
+        queryFn: async () => {
+          const result = await client.getNodeStaking();
+          updateDataLastUpdated('staking');
+          return result;
+        },
         enabled,
         refetchInterval: 60000,
       },
       {
         queryKey: ['winklink', 'gaming'],
-        queryFn: () => client.getGamingData(),
+        queryFn: async () => {
+          const result = await client.getGamingData();
+          updateDataLastUpdated('gaming');
+          return result;
+        },
         enabled,
         refetchInterval: 60000,
       },
       {
         queryKey: ['winklink', 'network'],
-        queryFn: () => client.getNetworkStats(),
+        queryFn: async () => {
+          const result = await client.getNetworkStats();
+          updateDataLastUpdated('network');
+          return result;
+        },
         enabled,
         refetchInterval: 60000,
       },
       {
         queryKey: ['winklink', 'risk'],
-        queryFn: () => client.getRiskMetrics(),
+        queryFn: async () => {
+          const result = await client.getRiskMetrics();
+          updateDataLastUpdated('risk');
+          return result;
+        },
         enabled,
         refetchInterval: 60000,
       },
@@ -151,6 +208,18 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
     riskResult,
   ] = results;
 
+  useEffect(() => {
+    const errors = results.filter((r) => r.isError && r.error);
+    if (errors.length > 0) {
+      console.group('[WINkLink] 数据加载错误');
+      errors.forEach((result, index) => {
+        const keys = ['price', 'historical', 'tron', 'staking', 'gaming', 'network', 'risk'];
+        console.error(`[${keys[index]}] 加载失败:`, result.error);
+      });
+      console.groupEnd();
+    }
+  }, [results]);
+
   const isLoading = results.some((r) => r.isLoading);
   const isError = results.some((r) => r.isError);
   const errors = results.map((r) => r.error).filter(Boolean) as Error[];
@@ -158,8 +227,66 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
   const refetchAll = useCallback(async () => {
     await Promise.all(results.map((r) => r.refetch()));
     updateLastUpdated();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const createDataSourceState = <T>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    result: any,
+    key: string,
+    refetchFn: () => Promise<void>
+  ): DataSourceState<T> => ({
+    data: result.data as T | null,
+    isLoading: result.isLoading,
+    isError: result.isError,
+    error: result.error as Error | null,
+    lastUpdated: dataLastUpdated[key],
+    refetch: refetchFn,
+  });
+
+  const dataStates: WinklinkDataStates = useMemo(
+    () =>
+      ({
+        price: createDataSourceState(priceResult, 'price', async () => {
+          await priceResult.refetch();
+          updateDataLastUpdated('price');
+        }),
+        historical: createDataSourceState(historicalResult, 'historical', async () => {
+          await historicalResult.refetch();
+          updateDataLastUpdated('historical');
+        }),
+        tron: createDataSourceState(tronResult, 'tron', async () => {
+          await tronResult.refetch();
+          updateDataLastUpdated('tron');
+        }),
+        staking: createDataSourceState(stakingResult, 'staking', async () => {
+          await stakingResult.refetch();
+          updateDataLastUpdated('staking');
+        }),
+        gaming: createDataSourceState(gamingResult, 'gaming', async () => {
+          await gamingResult.refetch();
+          updateDataLastUpdated('gaming');
+        }),
+        network: createDataSourceState(networkResult, 'network', async () => {
+          await networkResult.refetch();
+          updateDataLastUpdated('network');
+        }),
+        risk: createDataSourceState(riskResult, 'risk', async () => {
+          await riskResult.refetch();
+          updateDataLastUpdated('risk');
+        }),
+      }) as WinklinkDataStates,
+    [
+      priceResult,
+      historicalResult,
+      tronResult,
+      stakingResult,
+      gamingResult,
+      networkResult,
+      riskResult,
+      dataLastUpdated,
+      updateDataLastUpdated,
+    ]
+  );
 
   return useMemo(
     () => ({
@@ -175,6 +302,7 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
       errors,
       refetchAll,
       lastUpdated,
+      dataStates,
     }),
     [
       priceResult.data,
@@ -189,6 +317,7 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
       errors,
       refetchAll,
       lastUpdated,
+      dataStates,
     ]
   );
 }

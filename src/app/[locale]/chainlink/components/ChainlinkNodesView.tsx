@@ -14,7 +14,7 @@ import {
 
 import { useTranslations } from '@/i18n';
 
-import { type NodeData } from '../types';
+import { type NodeData, type ChainlinkDataTableProps } from '../types';
 
 import { ChainlinkDataTable } from './ChainlinkDataTable';
 import { NodeEarningsPanel } from './NodeEarningsPanel';
@@ -105,26 +105,26 @@ const regionStats = [
 export function ChainlinkNodesView() {
   const t = useTranslations();
 
-  const columns = [
+  const columns: ChainlinkDataTableProps<NodeData>['columns'] = [
     { key: 'name', header: t('chainlink.nodes.name'), sortable: true },
     { key: 'region', header: t('chainlink.nodes.region'), sortable: true },
     {
       key: 'responseTime',
       header: t('chainlink.nodes.responseTime'),
       sortable: true,
-      render: (item: NodeData) => `${item.responseTime}ms`,
+      render: (item) => `${item.responseTime}ms`,
     },
     {
       key: 'successRate',
       header: t('chainlink.nodes.successRate'),
       sortable: true,
-      render: (item: NodeData) => `${item.successRate}%`,
+      render: (item) => `${item.successRate}%`,
     },
     {
       key: 'reputation',
       header: t('chainlink.nodes.reputation'),
       sortable: true,
-      render: (item: NodeData) => (
+      render: (item) => (
         <span
           className={`font-medium ${item.reputation >= 95 ? 'text-emerald-600' : item.reputation >= 90 ? 'text-amber-600' : 'text-gray-600'}`}
         >
@@ -136,7 +136,7 @@ export function ChainlinkNodesView() {
       key: 'stakedAmount',
       header: t('chainlink.nodes.staked'),
       sortable: true,
-      render: (item: NodeData) => `${(item.stakedAmount / 1e6).toFixed(2)}M LINK`,
+      render: (item) => `${(item.stakedAmount / 1e6).toFixed(2)}M LINK`,
     },
   ];
 
@@ -189,17 +189,9 @@ export function ChainlinkNodesView() {
               {t('chainlink.nodes.activeNodes')}
             </h2>
           </div>
-          <ChainlinkDataTable
-            data={mockNodes as unknown as Record<string, unknown>[]}
-            columns={
-              columns as unknown as Array<{
-                key: string;
-                header: string;
-                width?: string;
-                sortable?: boolean;
-                render?: (item: Record<string, unknown>) => React.ReactNode;
-              }>
-            }
+          <ChainlinkDataTable<NodeData>
+            data={mockNodes}
+            columns={columns}
           />
         </div>
 

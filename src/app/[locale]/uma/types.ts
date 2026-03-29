@@ -87,6 +87,7 @@ export interface UmaStakingViewProps {
 
 export interface UmaEcosystemViewProps {
   config: OracleConfig;
+  isLoading?: boolean;
 }
 
 export interface UmaRiskViewProps {

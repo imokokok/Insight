@@ -17,8 +17,6 @@ import type {
 } from '@/lib/oracles/dia';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
-const diaClient = new DIAClient();
-
 type DIADataType =
   | 'price'
   | 'historical'
@@ -49,6 +47,7 @@ interface UseDIAPriceOptions {
 
 export function useDIAPrice(options: UseDIAPriceOptions) {
   const { symbol, chain, enabled = true } = options;
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('price', { symbol, chain });
 
   const { data, error, isLoading, refetch } = useQuery<PriceData, Error>({
@@ -79,6 +78,7 @@ interface UseDIAHistoricalOptions {
 
 export function useDIAHistorical(options: UseDIAHistoricalOptions) {
   const { symbol, chain, period = 7, enabled = true } = options;
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('historical', { symbol, chain, period });
 
   const { data, error, isLoading, refetch } = useQuery<PriceData[], Error>({
@@ -101,6 +101,7 @@ export function useDIAHistorical(options: UseDIAHistoricalOptions) {
 }
 
 export function useDIADataTransparency(enabled = true) {
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('dataTransparency');
 
   const { data, error, isLoading, refetch } = useQuery<DataSourceTransparency[], Error>({
@@ -123,6 +124,7 @@ export function useDIADataTransparency(enabled = true) {
 }
 
 export function useDIACrossChainCoverage(enabled = true) {
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('crossChainCoverage');
 
   const { data, error, isLoading, refetch } = useQuery<CrossChainCoverage, Error>({
@@ -145,6 +147,7 @@ export function useDIACrossChainCoverage(enabled = true) {
 }
 
 export function useDIADataSourceVerification(enabled = true) {
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('dataSourceVerification');
 
   const { data, error, isLoading, refetch } = useQuery<DataSourceVerification[], Error>({
@@ -167,6 +170,7 @@ export function useDIADataSourceVerification(enabled = true) {
 }
 
 export function useDIANetworkStats(enabled = true) {
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('networkStats');
 
   const { data, error, isLoading, refetch } = useQuery<DIANetworkStats, Error>({
@@ -189,6 +193,7 @@ export function useDIANetworkStats(enabled = true) {
 }
 
 export function useDIAStaking(enabled = true) {
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('staking');
 
   const { data, error, isLoading, refetch } = useQuery<
@@ -219,6 +224,7 @@ export function useDIAStaking(enabled = true) {
 }
 
 export function useDIANFTData(enabled = true) {
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('nftData');
 
   const { data, error, isLoading, refetch } = useQuery<NFTData, Error>({
@@ -241,6 +247,7 @@ export function useDIANFTData(enabled = true) {
 }
 
 export function useDIAStakingDetails(enabled = true) {
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('stakingDetails');
 
   const { data, error, isLoading, refetch } = useQuery<StakingDetails, Error>({
@@ -263,6 +270,7 @@ export function useDIAStakingDetails(enabled = true) {
 }
 
 export function useDIACustomFeeds(enabled = true) {
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('customFeeds');
 
   const { data, error, isLoading, refetch } = useQuery<CustomFeed[], Error>({
@@ -285,6 +293,7 @@ export function useDIACustomFeeds(enabled = true) {
 }
 
 export function useDIAEcosystem(enabled = true) {
+  const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('ecosystem');
 
   const { data, error, isLoading, refetch } = useQuery<EcosystemIntegration[], Error>({

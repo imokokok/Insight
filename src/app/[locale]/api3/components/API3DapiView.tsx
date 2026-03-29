@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
-import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
+import { Activity, CheckCircle2, Clock, TrendingUp, AlertTriangle } from 'lucide-react';
 
 import { DapiDataFlowVisualization, type DataSourceInfo } from '@/components/oracle/charts/DapiDataFlowVisualization';
 import { RealtimePriceAnimation } from '@/components/oracle/charts/RealtimePriceAnimation';
@@ -11,8 +11,10 @@ import { useTranslations } from '@/i18n';
 
 import { ChainlinkDataTable } from '../../chainlink/components/ChainlinkDataTable';
 import { type DapiFeed, type API3DapiViewProps } from '../types';
+import { useAPI3Price, useAPI3Historical, useAPI3SourceTrace } from '@/hooks/oracles/api3';
+import { isMockData, getMockDataAnnotation } from '@/lib/oracles/api3MockDataAnnotations';
 
-const mockDapiFeeds: DapiFeed[] = [
+const DEFAULT_DAPI_FEEDS: DapiFeed[] = [
   {
     id: '1',
     name: 'ETH/USD',
@@ -63,67 +65,12 @@ const mockDapiFeeds: DapiFeed[] = [
     totalRequests: 2100000,
     reliability: 99.94,
   },
-  {
-    id: '6',
-    name: 'XAU/USD',
-    category: 'commodities',
-    updateFrequency: '300s',
-    deviationThreshold: '0.2%',
-    status: 'active',
-    totalRequests: 1800000,
-    reliability: 99.93,
-  },
-  {
-    id: '7',
-    name: 'AAPL/USD',
-    category: 'stocks',
-    updateFrequency: '600s',
-    deviationThreshold: '0.5%',
-    status: 'active',
-    totalRequests: 1200000,
-    reliability: 99.92,
-  },
-  {
-    id: '8',
-    name: 'TSLA/USD',
-    category: 'stocks',
-    updateFrequency: '600s',
-    deviationThreshold: '0.5%',
-    status: 'paused',
-    totalRequests: 980000,
-    reliability: 99.9,
-  },
 ];
 
-const categories = [
-  { id: 'all', label: 'All', count: mockDapiFeeds.length },
-  {
-    id: 'crypto',
-    label: 'Crypto',
-    count: mockDapiFeeds.filter((f) => f.category === 'crypto').length,
-  },
-  {
-    id: 'forex',
-    label: 'Forex',
-    count: mockDapiFeeds.filter((f) => f.category === 'forex').length,
-  },
-  {
-    id: 'commodities',
-    label: 'Commodities',
-    count: mockDapiFeeds.filter((f) => f.category === 'commodities').length,
-  },
-  {
-    id: 'stocks',
-    label: 'Stocks',
-    count: mockDapiFeeds.filter((f) => f.category === 'stocks').length,
-  },
-];
-
-const mockDataSources: DataSourceInfo[] = [
+const DEFAULT_DATA_SOURCES: DataSourceInfo[] = [
   { id: 'src-1', name: 'Binance', type: 'exchange', reliability: 99.9, latency: 15, status: 'active', lastUpdate: new Date() },
   { id: 'src-2', name: 'Coinbase Pro', type: 'exchange', reliability: 99.8, latency: 18, status: 'active', lastUpdate: new Date() },
   { id: 'src-3', name: 'Kraken', type: 'exchange', reliability: 99.85, latency: 20, status: 'active', lastUpdate: new Date() },
-  { id: 'src-4', name: 'CoinGecko', type: 'aggregator', reliability: 99.5, latency: 35, status: 'active', lastUpdate: new Date() },
 ];
 
 function generateHistoricalData(basePrice: number, points: number): { timestamp: number; value: number }[] {
@@ -144,31 +91,7 @@ function generateHistoricalData(basePrice: number, points: number): { timestamp:
   return data;
 }
 
-const mockHistoricalSeries: DataSeries[] = [
-  {
-    id: 'api3',
-    name: 'API3',
-    color: '#10b981',
-    data: generateHistoricalData(1.5, 168),
-    type: 'price',
-  },
-  {
-    id: 'chainlink',
-    name: 'Chainlink',
-    color: '#3b82f6',
-    data: generateHistoricalData(14.5, 168),
-    type: 'price',
-  },
-  {
-    id: 'pyth',
-    name: 'Pyth',
-    color: '#8b5cf6',
-    data: generateHistoricalData(0.35, 168),
-    type: 'price',
-  },
-];
-
-export function API3DapiView(_props: API3DapiViewProps) {
+export function API3DapiView(props: API3DapiViewProps) {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [currentPrice, setCurrentPrice] = useState(2456.78);
@@ -180,25 +103,116 @@ export function API3DapiView(_props: API3DapiViewProps) {
     label: '7d',
   });
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPreviousPrice(currentPrice);
-      const change = (Math.random() - 0.5) * 20;
-      setCurrentPrice((prev) => Math.max(prev + change, 2000));
-    }, 5000);
+  const symbol = props.symbol || 'ETH/USD';
+  const chain = props.chain;
 
-    return () => clearInterval(interval);
+  const priceQuery = useAPI3Price({ symbol, chain, enabled: !!props.useRealData });
+  const historicalQuery = useAPI3Historical({ symbol, chain, period: 7, enabled: !!props.useRealData });
+  const sourceTraceQuery = useAPI3SourceTrace(!!props.useRealData);
+
+  const dapiFeeds = useMemo(() => {
+    return props.dapiFeeds || DEFAULT_DAPI_FEEDS;
+  }, [props.dapiFeeds]);
+
+  const dataSources = useMemo(() => {
+    if (props.dataSources) {
+      return props.dataSources;
+    }
+    if (props.useRealData && sourceTraceQuery.sourceTrace) {
+      return sourceTraceQuery.sourceTrace.map((src: DataSourceInfo) => ({
+        id: src.id,
+        name: src.name,
+        type: src.type as 'exchange' | 'aggregator' | 'traditional_finance',
+        reliability: src.accuracy,
+        latency: src.responseSpeed,
+        status: 'active' as const,
+        lastUpdate: new Date(),
+      }));
+    }
+    return DEFAULT_DATA_SOURCES;
+  }, [props.dataSources, props.useRealData, sourceTraceQuery.sourceTrace]);
+
+  const categories = useMemo(() => [
+    { id: 'all', label: 'All', count: dapiFeeds.length },
+    { id: 'crypto', label: 'Crypto', count: dapiFeeds.filter((f: DapiFeed) => f.category === 'crypto').length },
+    { id: 'forex', label: 'Forex', count: dapiFeeds.filter((f: DapiFeed) => f.category === 'forex').length },
+    { id: 'commodities', label: 'Commodities', count: dapiFeeds.filter((f: DapiFeed) => f.category === 'commodities').length },
+    { id: 'stocks', label: 'Stocks', count: dapiFeeds.filter((f: DapiFeed) => f.category === 'stocks').length },
+  ], [dapiFeeds]);
+
+  const historicalSeries = useMemo((): DataSeries[] => {
+    if (props.useRealData && historicalQuery.historicalData) {
+      return [
+        {
+          id: 'api3',
+          name: symbol,
+          color: '#10b981',
+          data: historicalQuery.historicalData.map(d => ({
+            timestamp: Math.floor(d.timestamp / 1000),
+            value: d.price,
+          })),
+          type: 'price',
+        },
+      ];
+    }
+    return [
+      {
+        id: 'api3',
+        name: 'API3',
+        color: '#10b981',
+        data: generateHistoricalData(1.5, 168),
+        type: 'price',
+      },
+      {
+        id: 'chainlink',
+        name: 'Chainlink',
+        color: '#3b82f6',
+        data: generateHistoricalData(14.5, 168),
+        type: 'price',
+      },
+    ];
+  }, [props.useRealData, historicalQuery.historicalData, symbol]);
+
+  // 使用 ref 来存储当前价格，避免依赖循环
+  const currentPriceRef = useRef(currentPrice);
+  useEffect(() => {
+    currentPriceRef.current = currentPrice;
   }, [currentPrice]);
 
   useEffect(() => {
-    const data = Array.from({ length: 20 }, () => 2400 + Math.random() * 100);
-    setSparklineData(data);
-  }, []);
+    if (props.useRealData && priceQuery.price) {
+      setPreviousPrice(currentPriceRef.current);
+      setCurrentPrice(priceQuery.price.price);
+    }
+  }, [props.useRealData, priceQuery.price]);
 
-  const filteredFeeds =
+  useEffect(() => {
+    if (!props.useRealData) {
+      const interval = setInterval(() => {
+        setPreviousPrice((prev) => currentPriceRef.current);
+        const change = (Math.random() - 0.5) * 20;
+        setCurrentPrice((prev) => Math.max(prev + change, 2000));
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [props.useRealData]);
+
+  useEffect(() => {
+    if (!props.useRealData) {
+      const data = Array.from({ length: 20 }, () => 2400 + Math.random() * 100);
+      setSparklineData(data);
+    } else if (historicalQuery.historicalData) {
+      const data = historicalQuery.historicalData.slice(-20).map(d => d.price);
+      setSparklineData(data);
+    }
+  }, [props.useRealData, historicalQuery.historicalData]);
+
+  const filteredFeeds = useMemo(() =>
     selectedCategory === 'all'
-      ? mockDapiFeeds
-      : mockDapiFeeds.filter((feed) => feed.category === selectedCategory);
+      ? dapiFeeds
+      : dapiFeeds.filter((feed: DapiFeed) => feed.category === selectedCategory),
+    [selectedCategory, dapiFeeds]);
 
   const columns = [
     { key: 'name', header: t('api3.dapi.name') || 'Name', sortable: true },
@@ -264,12 +278,33 @@ export function API3DapiView(_props: API3DapiViewProps) {
   ];
 
   const trend = currentPrice > previousPrice ? 'up' : currentPrice < previousPrice ? 'down' : 'stable';
+  const isLoading = props.useRealData && (priceQuery.isLoading || historicalQuery.isLoading);
+  const hasError = props.useRealData && (priceQuery.error || historicalQuery.error);
+  const showMockWarning = !props.useRealData || isMockData('dataSources');
 
   return (
     <div className="space-y-8">
+      {showMockWarning && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300">
+          <AlertTriangle className="w-4 h-4" />
+          <span>
+            {t('api3.dapi.mockDataWarning') || '部分数据为模拟数据，仅供参考'}
+          </span>
+        </div>
+      )}
+
+      {hasError && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+          <AlertTriangle className="w-4 h-4" />
+          <span>
+            {t('api3.dapi.dataError') || '数据加载失败，显示备用数据'}
+          </span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RealtimePriceAnimation
-          symbol="ETH/USD"
+          symbol={symbol}
           currentPrice={currentPrice}
           previousPrice={previousPrice}
           trend={trend}
@@ -285,7 +320,7 @@ export function API3DapiView(_props: API3DapiViewProps) {
               <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 {t('api3.dapi.total') || 'Total dAPIs'}
               </p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">{mockDapiFeeds.length}</p>
+              <p className="text-xl font-semibold text-gray-900 dark:text-white">{dapiFeeds.length}</p>
             </div>
           </div>
           <div className="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-700" />
@@ -296,7 +331,7 @@ export function API3DapiView(_props: API3DapiViewProps) {
                 {t('api3.dapi.active') || 'Active'}
               </p>
               <p className="text-xl font-semibold text-emerald-600 dark:text-emerald-400">
-                {mockDapiFeeds.filter((f) => f.status === 'active').length}
+                {dapiFeeds.filter((f: DapiFeed) => f.status === 'active').length}
               </p>
             </div>
           </div>
@@ -308,7 +343,7 @@ export function API3DapiView(_props: API3DapiViewProps) {
                 {t('api3.dapi.totalRequests') || 'Total Requests'}
               </p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                {(mockDapiFeeds.reduce((acc, f) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
+                {(dapiFeeds.reduce((acc: number, f: DapiFeed) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
               </p>
             </div>
           </div>
@@ -321,7 +356,7 @@ export function API3DapiView(_props: API3DapiViewProps) {
               </p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">
                 {(
-                  mockDapiFeeds.reduce((acc, f) => acc + f.reliability, 0) / mockDapiFeeds.length
+                  dapiFeeds.reduce((acc: number, f: DapiFeed) => acc + f.reliability, 0) / dapiFeeds.length
                 ).toFixed(2)}
                 %
               </p>
@@ -331,13 +366,13 @@ export function API3DapiView(_props: API3DapiViewProps) {
       </div>
 
       <DapiDataFlowVisualization
-        dapiName="ETH/USD"
-        sources={mockDataSources}
-        targetChain="Ethereum"
+        dapiName={symbol}
+        sources={dataSources}
+        targetChain={chain || 'Ethereum'}
       />
 
       <HistoricalDataComparison
-        dataSeries={mockHistoricalSeries}
+        dataSeries={historicalSeries}
         timeRange={timeRange}
         onTimeRangeChange={setTimeRange}
       />

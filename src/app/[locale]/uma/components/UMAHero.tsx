@@ -63,6 +63,60 @@ interface StatItem {
   sparklineData?: number[];
 }
 
+function DataSourceBadge({
+  isRealtime,
+  isCached,
+  t,
+}: {
+  isRealtime: boolean;
+  isCached: boolean;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const getStatusConfig = () => {
+    if (isRealtime) {
+      return {
+        label: t('uma.market.dataSourceRealtime'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-50',
+        dot: 'bg-emerald-500',
+        animate: true,
+      };
+    }
+    if (isCached) {
+      return {
+        label: t('uma.market.dataSourceCached'),
+        color: 'text-amber-600',
+        bg: 'bg-amber-50',
+        dot: 'bg-amber-500',
+        animate: false,
+      };
+    }
+    return {
+      label: t('uma.market.dataSourceSimulated'),
+      color: 'text-blue-600',
+      bg: 'bg-blue-50',
+      dot: 'bg-blue-500',
+      animate: false,
+    };
+  };
+
+  const config = getStatusConfig();
+
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.color}`}
+    >
+      <span className="relative flex h-2 w-2">
+        {config.animate && (
+          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.dot} opacity-75`} />
+        )}
+        <span className={`relative inline-flex rounded-full h-2 w-2 ${config.dot}`} />
+      </span>
+      <span>{t('uma.market.dataSourceLabel')}: {config.label}</span>
+    </div>
+  );
+}
+
 function OOOverviewCard({ themeColor, t }: { themeColor: string; t: ReturnType<typeof useTranslations> }) {
   const advantages = [
     {
@@ -788,6 +842,11 @@ export function UMAHero({
               showCountdown={true}
               showManualRefresh={true}
               compact={true}
+            />
+            <DataSourceBadge
+              isRealtime={isRealtimeConnected}
+              isCached={!!lastUpdated && !isRealtimeConnected}
+              t={t}
             />
           </div>
           <QuickActions themeColor={themeColor} t={t} />

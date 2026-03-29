@@ -64,6 +64,7 @@ interface ChronicleValidatorDetailProps {
   validator: ValidatorDetail | null;
   isOpen: boolean;
   onClose: () => void;
+  themeColor: string;
 }
 
 function MiniChart({ data, color, height = 40 }: { data: number[]; color: string; height?: number }) {
@@ -133,7 +134,7 @@ function formatDate(timestamp: number): string {
   });
 }
 
-export function ChronicleValidatorDetail({ validator, isOpen, onClose }: ChronicleValidatorDetailProps) {
+export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColor }: ChronicleValidatorDetailProps) {
   const t = useTranslations();
 
   const stats = useMemo(() => {
@@ -370,7 +371,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose }: Chronic
                   </div>
                   <span className="text-sm font-medium text-amber-600">{validator.reputation}</span>
                 </div>
-                <MiniChart data={validator.reputationHistory} color="#f59e0b" height={50} />
+                <MiniChart data={validator.reputationHistory} color={themeColor} height={50} />
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-gray-400">
                     {t('chronicle.validators.last30Days') || '近30天'}

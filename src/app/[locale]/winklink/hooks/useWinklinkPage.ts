@@ -30,6 +30,7 @@ export function useWinklinkPage() {
     errors,
     refetchAll,
     lastUpdated,
+    dataStates,
   } = useWINkLinkAllData({
     symbol: config.symbol,
     chain: config.defaultChain,
@@ -63,8 +64,26 @@ export function useWinklinkPage() {
     setActiveTab(tab);
   }, []);
 
+  const criticalDataSources = ['price', 'network'];
+  const hasAllCriticalErrors = criticalDataSources.every(
+    (key) => dataStates[key as keyof typeof dataStates]?.isError
+  );
+  const hasPartialErrors =
+    isError && !hasAllCriticalErrors && Object.values(dataStates).some((ds) => ds.isError);
+
+  const failedDataSources = useMemo(() => {
+    return Object.entries(dataStates)
+      .filter(([, state]) => state.isError)
+      .map(([key]) => key);
+  }, [dataStates]);
+
+  const loadingDataSources = useMemo(() => {
+    return Object.entries(dataStates)
+      .filter(([, state]) => state.isLoading)
+      .map(([key]) => key);
+  }, [dataStates]);
+
   return {
-    // State
     activeTab,
     config,
     client,
@@ -78,12 +97,17 @@ export function useWinklinkPage() {
     isLoading,
     isError,
     error: errors[0] || null,
+    errors,
     lastUpdated,
     isRefreshing,
     dataFreshnessStatus,
     shouldRefreshData: dataFreshnessStatus.status === 'expired',
+    dataStates,
+    hasAllCriticalErrors,
+    hasPartialErrors,
+    failedDataSources,
+    loadingDataSources,
 
-    // Actions
     setActiveTab: handleTabChange,
     refresh,
     exportData,

@@ -7,7 +7,12 @@ import { useTranslations } from '@/i18n';
 
 import { type TellorNetworkViewProps } from '../types';
 
-export function TellorNetworkView({ config, networkStats, networkHealth, isLoading }: TellorNetworkViewProps) {
+export function TellorNetworkView({
+  config,
+  networkStats,
+  networkHealth,
+  isLoading,
+}: TellorNetworkViewProps) {
   const t = useTranslations();
 
   const metrics = [

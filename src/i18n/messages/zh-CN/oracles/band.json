@@ -393,6 +393,7 @@
       "decentralization": "去中心化",
       "decentralizationDesc": "每个数据源都由多个独立的验证者保护。",
       "searchPlaceholder": "搜索名称、交易对或描述...",
+      "searchResults": "找到 {{count}} 个结果",
       "loadError": "加载数据失败",
       "failedToLoad": "无法获取数据源，请重试。",
       "retry": "重试",

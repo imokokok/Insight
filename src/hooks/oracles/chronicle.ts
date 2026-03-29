@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 
 import { useQuery, useQueries } from '@tanstack/react-query';
 
@@ -11,14 +11,13 @@ import type {
   ValidatorNetwork,
   VaultData,
   ScuttlebuttConsensus,
-  CrossChainPrice,
-  PriceDeviation,
+  CrossChainData,
+  DeviationData,
 } from '@/lib/oracles';
 import { type Blockchain } from '@/types/oracle';
 
-const client = new ChronicleClient();
-
 export function useChroniclePrice(symbol: string) {
+  const client = useMemo(() => new ChronicleClient(), []);
   return useQuery({
     queryKey: ['chronicle', 'price', symbol],
     queryFn: () => client.getPrice(symbol),
@@ -27,6 +26,7 @@ export function useChroniclePrice(symbol: string) {
 }
 
 export function useChronicleHistoricalPrices(symbol: string, period: number = 24) {
+  const client = useMemo(() => new ChronicleClient(), []);
   return useQuery({
     queryKey: ['chronicle', 'historical', symbol, period],
     queryFn: () => client.getHistoricalPrices(symbol, undefined, period),
@@ -35,6 +35,7 @@ export function useChronicleHistoricalPrices(symbol: string, period: number = 24
 }
 
 export function useChronicleScuttlebutt() {
+  const client = useMemo(() => new ChronicleClient(), []);
   return useQuery<ScuttlebuttData>({
     queryKey: ['chronicle', 'scuttlebutt'],
     queryFn: () => client.getScuttlebuttSecurity(),
@@ -43,6 +44,7 @@ export function useChronicleScuttlebutt() {
 }
 
 export function useChronicleMakerDAO() {
+  const client = useMemo(() => new ChronicleClient(), []);
   return useQuery<MakerDAOIntegration>({
     queryKey: ['chronicle', 'makerdao'],
     queryFn: () => client.getMakerDAOIntegration(),
@@ -51,6 +53,7 @@ export function useChronicleMakerDAO() {
 }
 
 export function useChronicleValidators() {
+  const client = useMemo(() => new ChronicleClient(), []);
   return useQuery<ValidatorNetwork>({
     queryKey: ['chronicle', 'validators'],
     queryFn: () => client.getValidatorNetwork(),
@@ -59,6 +62,7 @@ export function useChronicleValidators() {
 }
 
 export function useChronicleNetworkStats() {
+  const client = useMemo(() => new ChronicleClient(), []);
   return useQuery({
     queryKey: ['chronicle', 'network'],
     queryFn: () => client.getNetworkStats(),
@@ -73,6 +77,7 @@ interface UseChronicleAllDataOptions {
 }
 
 export function useChronicleAllData({ symbol, chain, enabled = true }: UseChronicleAllDataOptions) {
+  const client = useMemo(() => new ChronicleClient(), []);
   const results = useQueries({
     queries: [
       {
@@ -155,9 +160,18 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
   const isError = results.some((r) => r.isError);
   const errors = results.map((r) => r.error).filter(Boolean) as Error[];
 
-  const refetchAll = () => {
-    results.forEach((r) => r.refetch());
-  };
+  const refetchAll = useCallback(async () => {
+    const promises = results.map((r) => r.refetch());
+    try {
+      const settledResults = await Promise.allSettled(promises);
+      const failedCount = settledResults.filter((r) => r.status === 'rejected').length;
+      if (failedCount > 0) {
+        console.error(`Failed to refetch ${failedCount} of ${results.length} data sources`);
+      }
+    } catch (error) {
+      console.error('Failed to refetch data:', error);
+    }
+  }, [results]);
 
   const lastUpdated = useMemo(() => {
     const timestamps = results.map((r) => r.dataUpdatedAt).filter((t): t is number => t > 0);
@@ -196,12 +210,14 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
       isLoading,
       isError,
       errors,
+      refetchAll,
       lastUpdated,
     ]
   );
 }
 
 export function useChronicleVaultData() {
+  const client = useMemo(() => new ChronicleClient(), []);
   return useQuery<VaultData>({
     queryKey: ['chronicle', 'vault'],
     queryFn: () => client.getVaultData(),
@@ -210,6 +226,7 @@ export function useChronicleVaultData() {
 }
 
 export function useChronicleScuttlebuttConsensus() {
+  const client = useMemo(() => new ChronicleClient(), []);
   return useQuery<ScuttlebuttConsensus>({
     queryKey: ['chronicle', 'scuttlebutt-consensus'],
     queryFn: () => client.getScuttlebuttConsensus(),
@@ -218,7 +235,8 @@ export function useChronicleScuttlebuttConsensus() {
 }
 
 export function useChronicleCrossChain(symbol: string) {
-  return useQuery<CrossChainPrice[]>({
+  const client = useMemo(() => new ChronicleClient(), []);
+  return useQuery<CrossChainData>({
     queryKey: ['chronicle', 'cross-chain', symbol],
     queryFn: () => client.getCrossChainPrices(symbol),
     refetchInterval: 60000,
@@ -226,7 +244,8 @@ export function useChronicleCrossChain(symbol: string) {
 }
 
 export function useChroniclePriceDeviation(symbol: string) {
-  return useQuery<PriceDeviation[]>({
+  const client = useMemo(() => new ChronicleClient(), []);
+  return useQuery<DeviationData>({
     queryKey: ['chronicle', 'price-deviation', symbol],
     queryFn: () => client.getPriceDeviation(symbol),
     refetchInterval: 30000,

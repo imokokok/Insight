@@ -20,6 +20,57 @@ interface WinklinkDataTableProps<T> {
   isLoading?: boolean;
 }
 
+type SortableValue = string | number | boolean | Date | null | undefined;
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getPropertySafely<T>(obj: T, key: string): unknown {
+  if (obj === null || obj === undefined) {
+    return undefined;
+  }
+  if (isObject(obj)) {
+    return obj[key];
+  }
+  return undefined;
+}
+
+function toSortableValue(value: unknown): SortableValue {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
+  if (value instanceof Date) {
+    return value;
+  }
+  return String(value);
+}
+
+function compareValues(a: SortableValue, b: SortableValue): number {
+  if (a === b) return 0;
+  if (a === null || a === undefined) return 1;
+  if (b === null || b === undefined) return -1;
+
+  if (a instanceof Date && b instanceof Date) {
+    return a.getTime() - b.getTime();
+  }
+
+  if (typeof a === 'number' && typeof b === 'number') {
+    return a - b;
+  }
+
+  if (typeof a === 'boolean' && typeof b === 'boolean') {
+    return (a ? 1 : 0) - (b ? 1 : 0);
+  }
+
+  const aStr = String(a);
+  const bStr = String(b);
+  return aStr.localeCompare(bStr);
+}
+
 export function WinklinkDataTable<T extends Record<string, unknown> | object>({
   data,
   columns,
@@ -46,12 +97,9 @@ export function WinklinkDataTable<T extends Record<string, unknown> | object>({
 
   const sortedData = [...data].sort((a, b) => {
     if (!sortConfig) return 0;
-    const aValue = (a as Record<string, unknown>)[sortConfig.key];
-    const bValue = (b as Record<string, unknown>)[sortConfig.key];
-    if (aValue === bValue) return 0;
-    if (aValue === null || aValue === undefined) return 1;
-    if (bValue === null || bValue === undefined) return -1;
-    const comparison = aValue < bValue ? -1 : 1;
+    const aValue = toSortableValue(getPropertySafely(a, sortConfig.key));
+    const bValue = toSortableValue(getPropertySafely(b, sortConfig.key));
+    const comparison = compareValues(aValue, bValue);
     return sortConfig.direction === 'asc' ? comparison : -comparison;
   });
 
@@ -99,13 +147,16 @@ export function WinklinkDataTable<T extends Record<string, unknown> | object>({
               key={index}
               className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
             >
-              {columns.map((column) => (
-                <td key={column.key} className="px-4 py-3 text-sm text-gray-900">
-                  {column.render
-                    ? column.render(item as T)
-                    : String((item as Record<string, unknown>)[column.key] ?? '-')}
-                </td>
-              ))}
+              {columns.map((column) => {
+                const cellValue = getPropertySafely(item, column.key);
+                return (
+                  <td key={column.key} className="px-4 py-3 text-sm text-gray-900">
+                    {column.render
+                      ? column.render(item)
+                      : String(cellValue ?? '-')}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

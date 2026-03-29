@@ -8,7 +8,8 @@ import type {
   DataSourceInfo,
   OEVNetworkStats,
 } from '@/lib/oracles/api3';
-import { type PriceData } from '@/types/oracle';
+import { type PriceData, type Blockchain } from '@/types/oracle';
+import type { DataSourceInfo as ChartDataSourceInfo } from '@/components/oracle/charts/DapiDataFlowVisualization';
 
 export type API3TabId = 'market' | 'network' | 'airnode' | 'dapi' | 'ecosystem' | 'risk' | 'oev' | 'analytics';
 
@@ -66,7 +67,12 @@ export interface API3DapiViewProps {
   dapiCoverage?: DAPICoverage | null;
   deviations?: DAPIPriceDeviation[];
   sourceTrace?: DataSourceInfo[];
-  isLoading: boolean;
+  isLoading?: boolean;
+  symbol?: string;
+  chain?: Blockchain;
+  useRealData?: boolean;
+  dapiFeeds?: DapiFeed[];
+  dataSources?: ChartDataSourceInfo[];
 }
 
 export interface API3EcosystemViewProps {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -27,6 +27,11 @@ import type {
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 import { CACHE_CONFIG } from '@/lib/config/cacheConfig';
 import { api3OfflineStorage } from '@/lib/oracles/api3OfflineStorage';
+import { 
+  api3RequestManager, 
+  REQUEST_PRIORITIES,
+  type RequestPriority 
+} from '@/lib/oracles/api3RequestManager';
 
 const api3Client = new API3Client();
 
@@ -77,13 +82,23 @@ export function useCacheStatus(dataType: API3DataType, params?: Record<string, u
     isStale: false,
     lastUpdated: null,
     source: null,
-    isOffline: !navigator.onLine,
+    isOffline: false,
   });
 
   const queryKey = getAPI3Key(dataType, params);
+  const checkCountRef = useRef(0);
 
   useEffect(() => {
+    const isClient = typeof window !== 'undefined';
+    if (!isClient) return;
+
     const checkStatus = () => {
+      checkCountRef.current++;
+      
+      if (checkCountRef.current % 2 !== 0) {
+        return;
+      }
+
       const queryState = queryClient.getQueryState(queryKey);
       const config = CACHE_CONFIG.api3[dataType as keyof typeof CACHE_CONFIG.api3];
 
@@ -102,7 +117,7 @@ export function useCacheStatus(dataType: API3DataType, params?: Record<string, u
     };
 
     checkStatus();
-    const interval = setInterval(checkStatus, 5000);
+    const interval = setInterval(checkStatus, 10000);
 
     const handleOnline = () => setStatus(prev => ({ ...prev, isOffline: false }));
     const handleOffline = () => setStatus(prev => ({ ...prev, isOffline: true }));
@@ -942,23 +957,36 @@ export function useAPI3AllData(options: UseAPI3AllDataOptions): UseAPI3AllDataRe
   const isError = errors.length > 0;
 
   const refetchAll = useCallback(async () => {
-    await Promise.all([
+    const criticalRequests = [
       priceQuery.refetch(),
+    ];
+    
+    const highPriorityRequests = [
+      stakingQuery.refetch(),
+      dapiCoverageQuery.refetch(),
+    ];
+    
+    const normalPriorityRequests = [
       historicalQuery.refetch(),
       airnodeStatsQuery.refetch(),
-      dapiCoverageQuery.refetch(),
-      stakingQuery.refetch(),
       firstPartyQuery.refetch(),
       latencyQuery.refetch(),
       qualityQuery.refetch(),
       deviationsQuery.refetch(),
+    ];
+    
+    const lowPriorityRequests = [
       sourceTraceQuery.refetch(),
       coverageEventsQuery.refetch(),
       gasFeesQuery.refetch(),
       ohlcQuery.refetch(),
       qualityHistoryQuery.refetch(),
       crossOracleQuery.refetch(),
-    ]);
+    ];
+
+    await Promise.all(criticalRequests);
+    await Promise.all(highPriorityRequests);
+    await Promise.all([...normalPriorityRequests, ...lowPriorityRequests]);
   }, [
     priceQuery,
     historicalQuery,
@@ -982,6 +1010,10 @@ export function useAPI3AllData(options: UseAPI3AllDataOptions): UseAPI3AllDataRe
     lastUpdated: priceQuery.lastUpdated,
   }), [priceQuery.isOffline, priceQuery.lastUpdated]);
 
+  const queueStats = useMemo(() => 
+    api3RequestManager.getQueueStats(), 
+  []);
+
   return {
     price: priceQuery.price,
     historicalData: historicalQuery.historicalData,
@@ -1004,6 +1036,7 @@ export function useAPI3AllData(options: UseAPI3AllDataOptions): UseAPI3AllDataRe
     errors,
     refetchAll,
     cacheStatus,
+    queueStats,
   };
 }
 
@@ -1016,8 +1049,9 @@ export function useAPI3OEVStats(enabled = true) {
     queryFn: async () => {
       try {
         const result = await api3Client.getOEVNetworkStats();
-        await api3OfflineStorage.setData('oevStats', result, config.gcTime);
-        return result;
+        const oevStats = 'data' in result ? result.data : result;
+        await api3OfflineStorage.setData('oevStats', oevStats, config.gcTime);
+        return oevStats;
       } catch (error) {
         const cachedData = await api3OfflineStorage.getData<OEVNetworkStats>('oevStats');
         if (cachedData) {

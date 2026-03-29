@@ -2,146 +2,59 @@
 
 import { useState, useMemo } from 'react';
 
-import { Activity, CheckCircle2, Clock, TrendingUp, Eye } from 'lucide-react';
+import {
+  Activity,
+  CheckCircle2,
+  Clock,
+  TrendingUp,
+  Eye,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react';
 
+import { usePythPriceFeeds } from '@/hooks/oracles/pyth';
 import { useTranslations } from '@/i18n';
 
 import { type PriceFeed } from '../types';
+
 import { PriceFeedDetailModal } from './PriceFeedDetailModal';
 
-const mockPriceFeeds: PriceFeed[] = [
-  {
-    id: '1',
-    name: 'BTC/USD',
-    category: 'crypto',
-    updateFrequency: '400ms',
-    deviationThreshold: '0.1%',
-    status: 'active',
-    totalRequests: 12500000,
-    reliability: 99.99,
-  },
-  {
-    id: '2',
-    name: 'ETH/USD',
-    category: 'crypto',
-    updateFrequency: '400ms',
-    deviationThreshold: '0.1%',
-    status: 'active',
-    totalRequests: 15200000,
-    reliability: 99.99,
-  },
-  {
-    id: '3',
-    name: 'SOL/USD',
-    category: 'crypto',
-    updateFrequency: '400ms',
-    deviationThreshold: '0.2%',
-    status: 'active',
-    totalRequests: 8900000,
-    reliability: 99.98,
-  },
-  {
-    id: '4',
-    name: 'EUR/USD',
-    category: 'forex',
-    updateFrequency: '1s',
-    deviationThreshold: '0.05%',
-    status: 'active',
-    totalRequests: 5600000,
-    reliability: 99.97,
-  },
-  {
-    id: '5',
-    name: 'GBP/USD',
-    category: 'forex',
-    updateFrequency: '1s',
-    deviationThreshold: '0.05%',
-    status: 'active',
-    totalRequests: 3200000,
-    reliability: 99.96,
-  },
-  {
-    id: '6',
-    name: 'XAU/USD',
-    category: 'commodities',
-    updateFrequency: '2s',
-    deviationThreshold: '0.1%',
-    status: 'active',
-    totalRequests: 2100000,
-    reliability: 99.95,
-  },
-  {
-    id: '7',
-    name: 'AAPL/USD',
-    category: 'equities',
-    updateFrequency: '3s',
-    deviationThreshold: '0.2%',
-    status: 'active',
-    totalRequests: 7800000,
-    reliability: 99.98,
-  },
-  {
-    id: '8',
-    name: 'TSLA/USD',
-    category: 'equities',
-    updateFrequency: '3s',
-    deviationThreshold: '0.2%',
-    status: 'active',
-    totalRequests: 9200000,
-    reliability: 99.98,
-  },
-  {
-    id: '9',
-    name: 'NVDA/USD',
-    category: 'equities',
-    updateFrequency: '3s',
-    deviationThreshold: '0.2%',
-    status: 'active',
-    totalRequests: 8500000,
-    reliability: 99.97,
-  },
-  {
-    id: '10',
-    name: 'JPY/USD',
-    category: 'forex',
-    updateFrequency: '1s',
-    deviationThreshold: '0.05%',
-    status: 'active',
-    totalRequests: 4100000,
-    reliability: 99.96,
-  },
-];
-
-export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
+export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?: boolean }) {
   const t = useTranslations();
   const tPyth = useTranslations('pyth');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedFeed, setSelectedFeed] = useState<PriceFeed | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const categories = [
-    { id: 'all', label: tPyth('categories.all'), count: mockPriceFeeds.length },
-    {
-      id: 'crypto',
-      label: tPyth('categories.crypto'),
-      count: mockPriceFeeds.filter((f) => f.category === 'crypto').length,
-    },
-    {
-      id: 'forex',
-      label: tPyth('categories.forex'),
-      count: mockPriceFeeds.filter((f) => f.category === 'forex').length,
-    },
-    {
-      id: 'commodities',
-      label: tPyth('categories.commodities'),
-      count: mockPriceFeeds.filter((f) => f.category === 'commodities').length,
-    },
-    {
-      id: 'equities',
-      label: tPyth('categories.equities'),
-      count: mockPriceFeeds.filter((f) => f.category === 'equities').length,
-    },
-  ];
+  const { priceFeeds, error, isLoading: dataLoading, refetch } = usePythPriceFeeds();
+  const isLoading = externalLoading || dataLoading;
+
+  const categories = useMemo(
+    () => [
+      { id: 'all', label: tPyth('categories.all'), count: priceFeeds.length },
+      {
+        id: 'crypto',
+        label: tPyth('categories.crypto'),
+        count: priceFeeds.filter((f) => f.category === 'crypto').length,
+      },
+      {
+        id: 'forex',
+        label: tPyth('categories.forex'),
+        count: priceFeeds.filter((f) => f.category === 'forex').length,
+      },
+      {
+        id: 'commodities',
+        label: tPyth('categories.commodities'),
+        count: priceFeeds.filter((f) => f.category === 'commodities').length,
+      },
+      {
+        id: 'equities',
+        label: tPyth('categories.equities'),
+        count: priceFeeds.filter((f) => f.category === 'equities').length,
+      },
+    ],
+    [priceFeeds, tPyth]
+  );
 
   const handleFeedClick = (feed: PriceFeed) => {
     setSelectedFeed(feed);
@@ -153,19 +66,43 @@ export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
     setSelectedFeed(null);
   };
 
-  const filteredFeeds =
-    selectedCategory === 'all'
-      ? mockPriceFeeds
-      : mockPriceFeeds.filter((feed) => feed.category === selectedCategory);
+  const filteredFeeds = useMemo(
+    () =>
+      selectedCategory === 'all'
+        ? priceFeeds
+        : priceFeeds.filter((feed) => feed.category === selectedCategory),
+    [priceFeeds, selectedCategory]
+  );
 
-  const totalRequests = mockPriceFeeds.reduce((acc, f) => acc + f.totalRequests, 0);
-  const avgReliability = (
-    mockPriceFeeds.reduce((acc, f) => acc + f.reliability, 0) / mockPriceFeeds.length
-  ).toFixed(2);
+  const totalRequests = priceFeeds.reduce((acc, f) => acc + f.totalRequests, 0);
+  const avgReliability =
+    priceFeeds.length > 0
+      ? (priceFeeds.reduce((acc, f) => acc + f.reliability, 0) / priceFeeds.length).toFixed(2)
+      : '0.00';
 
   return (
     <div className="space-y-8">
-      {/* Stats Row */}
+      {error && (
+        <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500" />
+            <div>
+              <p className="text-sm font-medium text-red-800">
+                {t('pyth.priceFeeds.error') || 'Failed to load price feeds'}
+              </p>
+              <p className="text-xs text-red-600">{error.message}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-700 hover:text-red-800 hover:bg-red-100 rounded-md transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            {t('common.retry') || 'Retry'}
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-6 md:gap-8">
         <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-gray-400" />
@@ -173,7 +110,9 @@ export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
             <p className="text-xs text-gray-500 uppercase tracking-wider">
               {t('pyth.priceFeeds.total') || 'Total Feeds'}
             </p>
-            <p className="text-xl font-semibold text-gray-900">{mockPriceFeeds.length}</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {isLoading ? '-' : priceFeeds.length}
+            </p>
           </div>
         </div>
         <div className="hidden md:block w-px h-8 bg-gray-200" />
@@ -184,7 +123,7 @@ export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
               {t('pyth.priceFeeds.active') || 'Active'}
             </p>
             <p className="text-xl font-semibold text-emerald-600">
-              {mockPriceFeeds.filter((f) => f.status === 'active').length}
+              {isLoading ? '-' : priceFeeds.filter((f) => f.status === 'active').length}
             </p>
           </div>
         </div>
@@ -196,7 +135,7 @@ export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
               {t('pyth.priceFeeds.totalRequests') || 'Total Requests'}
             </p>
             <p className="text-xl font-semibold text-gray-900">
-              {(totalRequests / 1e6).toFixed(1)}M
+              {isLoading ? '-' : `${(totalRequests / 1e6).toFixed(1)}M`}
             </p>
           </div>
         </div>
@@ -207,7 +146,9 @@ export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
             <p className="text-xs text-gray-500 uppercase tracking-wider">
               {t('pyth.priceFeeds.avgReliability') || 'Avg Reliability'}
             </p>
-            <p className="text-xl font-semibold text-gray-900">{avgReliability}%</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {isLoading ? '-' : `${avgReliability}%`}
+            </p>
           </div>
         </div>
       </div>
@@ -236,88 +177,110 @@ export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
         ))}
       </div>
 
-      {/* Data Table */}
       <div>
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('pyth.priceFeeds.title') || 'Price Feeds'}
         </h3>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.priceFeeds.name') || 'Name'}
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.priceFeeds.category') || 'Category'}
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.priceFeeds.frequency') || 'Update Frequency'}
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.priceFeeds.threshold') || 'Deviation Threshold'}
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.priceFeeds.status') || 'Status'}
-                </th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.priceFeeds.reliability') || 'Reliability'}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredFeeds.map((feed) => (
-                <tr
-                  key={feed.id}
-                  onClick={() => handleFeedClick(feed)}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900">{feed.name}</span>
-                      <Eye className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
-                      {feed.category}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">{feed.updateFrequency}</td>
-                  <td className="py-3 px-4 text-sm text-gray-600">{feed.deviationThreshold}</td>
-                  <td className="py-3 px-4">
-                    <span
-                      className={`inline-flex items-center gap-1.5 text-sm font-medium ${
-                        feed.status === 'active'
-                          ? 'text-emerald-600'
-                          : feed.status === 'paused'
-                            ? 'text-amber-600'
-                            : 'text-red-600'
-                      }`}
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          feed.status === 'active'
-                            ? 'bg-emerald-500'
-                            : feed.status === 'paused'
-                              ? 'bg-amber-500'
-                              : 'bg-red-500'
-                        }`}
-                      />
-                      {feed.status === 'active'
-                        ? tPyth('status.active')
-                        : feed.status === 'paused'
-                          ? tPyth('status.paused')
-                          : tPyth('status.offline')}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right text-sm font-medium text-gray-900">
-                    {feed.reliability}%
-                  </td>
+          {isLoading ? (
+            <div className="p-8 text-center">
+              <div className="animate-pulse space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center space-x-4">
+                    <div className="h-4 bg-gray-200 rounded w-24" />
+                    <div className="h-4 bg-gray-200 rounded w-16" />
+                    <div className="h-4 bg-gray-200 rounded w-20" />
+                    <div className="h-4 bg-gray-200 rounded w-16" />
+                    <div className="h-4 bg-gray-200 rounded w-12" />
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-sm text-gray-500">{t('common.loading') || 'Loading...'}</p>
+            </div>
+          ) : filteredFeeds.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-gray-500">
+                {t('pyth.priceFeeds.noData') || 'No price feeds available'}
+              </p>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.priceFeeds.name') || 'Name'}
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.priceFeeds.category') || 'Category'}
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.priceFeeds.frequency') || 'Update Frequency'}
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.priceFeeds.threshold') || 'Deviation Threshold'}
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.priceFeeds.status') || 'Status'}
+                  </th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.priceFeeds.reliability') || 'Reliability'}
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredFeeds.map((feed) => (
+                  <tr
+                    key={feed.id}
+                    onClick={() => handleFeedClick(feed)}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">{feed.name}</span>
+                        <Eye className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
+                        {feed.category}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">{feed.updateFrequency}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600">{feed.deviationThreshold}</td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+                          feed.status === 'active'
+                            ? 'text-emerald-600'
+                            : feed.status === 'paused'
+                              ? 'text-amber-600'
+                              : 'text-red-600'
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            feed.status === 'active'
+                              ? 'bg-emerald-500'
+                              : feed.status === 'paused'
+                                ? 'bg-amber-500'
+                                : 'bg-red-500'
+                          }`}
+                        />
+                        {feed.status === 'active'
+                          ? tPyth('status.active')
+                          : feed.status === 'paused'
+                            ? tPyth('status.paused')
+                            : tPyth('status.offline')}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right text-sm font-medium text-gray-900">
+                      {feed.reliability.toFixed(2)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

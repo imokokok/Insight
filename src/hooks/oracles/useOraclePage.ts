@@ -6,40 +6,16 @@ import { useRefresh, useExport } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig, type OracleConfig } from '@/lib/config/oracles';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
+import type {
+  NetworkStats,
+  PublisherData,
+  ValidatorData,
+} from '@/app/[locale]/pyth/types';
 
 import { useChainlinkAllData } from './chainlink';
 import { usePythAllData } from './pyth';
 
-export interface NetworkStats {
-  activeNodes: number;
-  dataFeeds: number;
-  nodeUptime: number;
-  avgResponseTime: number;
-  latency?: number;
-  hourlyActivity?: number[];
-  status?: string;
-  totalStaked?: number;
-  updateFrequency?: number;
-}
-
-export interface PublisherData {
-  id: string;
-  name: string;
-  status?: string;
-  contribution?: number;
-  accuracy: number;
-  stake?: number;
-}
-
-export interface ValidatorData {
-  id: string;
-  name: string;
-  stake?: number;
-  performance?: number;
-  status: string;
-  uptime?: number;
-  rewards?: number;
-}
+export type { NetworkStats, PublisherData, ValidatorData };
 
 export interface UseOraclePageOptions {
   provider: OracleProvider;

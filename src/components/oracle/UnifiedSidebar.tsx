@@ -28,9 +28,12 @@ export function UnifiedSidebar({
 
   return (
     <aside className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <nav className="py-2">
+      <nav className="py-2" aria-label="主导航">
         {items.map((item) => {
           const isActive = activeTab === item.id;
+          const label = translationNamespace
+            ? t(`${translationNamespace}.${item.labelKey}`)
+            : t(item.labelKey);
           return (
             <button
               key={item.id}
@@ -46,12 +49,12 @@ export function UnifiedSidebar({
                 color: isActive ? themeColor : undefined,
                 borderLeftColor: isActive ? themeColor : undefined,
               }}
+              aria-label={label}
+              aria-current={isActive ? 'page' : undefined}
             >
               <span style={{ color: isActive ? themeColor : '#9ca3af' }}>{item.icon}</span>
               <span>
-                {translationNamespace
-                  ? t(`${translationNamespace}.${item.labelKey}`)
-                  : t(item.labelKey)}
+                {label}
               </span>
             </button>
           );

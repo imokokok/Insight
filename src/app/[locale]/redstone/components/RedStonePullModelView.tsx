@@ -10,7 +10,6 @@ import {
   Database,
   Server,
   CheckCircle,
-  AlertCircle,
   TrendingDown,
   ChevronDown,
   ChevronUp,
@@ -25,7 +24,7 @@ import { type RedStonePullModelViewProps } from '../types';
 import { GasCostCalculator } from './GasCostCalculator';
 import { SignatureVerification } from './SignatureVerification';
 
-export function RedStonePullModelView({ isLoading: _isLoading }: RedStonePullModelViewProps) {
+export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps) {
   const t = useTranslations();
 
   const [activeStep, setActiveStep] = useState(0);
@@ -128,6 +127,29 @@ export function RedStonePullModelView({ isLoading: _isLoading }: RedStonePullMod
       desc: t('redstone.pullModel.efficiencyDesc') || 'Data injected directly into transactions',
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, index) => (
+            <div
+              key={index}
+              className="p-4 bg-white rounded-lg border border-gray-100 animate-pulse"
+            >
+              <div className="w-5 h-5 bg-gray-200 rounded mb-2" />
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-1" />
+              <div className="h-3 bg-gray-200 rounded w-1/2" />
+            </div>
+          ))}
+        </div>
+        <div className="bg-white rounded-lg border border-gray-100 p-4 animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4" />
+          <div className="h-32 bg-gray-200 rounded" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

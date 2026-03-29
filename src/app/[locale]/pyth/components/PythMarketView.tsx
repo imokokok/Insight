@@ -21,7 +21,7 @@ export function PythMarketView({
   const t = useTranslations();
   const tPyth = useTranslations('pyth');
 
-  const client = new PythClient();
+  const client = useMemo(() => new PythClient(), []);
 
   const confidenceIntervalData = useMemo(() => {
     if (price?.confidenceInterval) {

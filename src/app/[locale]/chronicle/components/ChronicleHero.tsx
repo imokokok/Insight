@@ -429,6 +429,11 @@ function UnifiedInfoSection({
   );
 }
 
+function deterministicVariation(index: number, seed: number, amplitude: number): number {
+  const x = index * 0.5 + seed;
+  return Math.sin(x) * amplitude + Math.cos(x * 0.7) * amplitude * 0.5;
+}
+
 export function ChronicleHero({
   config,
   price,
@@ -448,36 +453,31 @@ export function ChronicleHero({
   const priceChange24h = config.marketData.change24h ?? 0;
   const isPositive = priceChange24h >= 0;
 
-  // 生成价格走势数据
   const priceSparkline = useMemo(() => {
     if (historicalData.length > 0) {
       return historicalData.slice(-24).map((d) => d.price);
     }
-    return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + (Math.random() - 0.5) * 0.1));
+    return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + deterministicVariation(i, 1, 0.05)));
   }, [historicalData, currentPrice]);
 
-  // 生成市值 sparkline 数据
   const marketCapSparkline = useMemo(() => {
     const baseMarketCap = config.marketData.marketCap / 1e6;
-    return Array.from({ length: 24 }, (_, i) => baseMarketCap * (1 + (Math.random() - 0.5) * 0.05));
+    return Array.from({ length: 24 }, (_, i) => baseMarketCap * (1 + deterministicVariation(i, 2, 0.025)));
   }, [config.marketData.marketCap]);
 
-  // 生成验证者 sparkline 数据
   const validatorSparkline = useMemo(() => {
     const baseValidators = networkStats?.activeValidators ?? 45;
-    return Array.from({ length: 24 }, (_, i) => baseValidators + Math.floor(Math.random() * 5));
+    return Array.from({ length: 24 }, (_, i) => baseValidators + Math.floor(Math.abs(deterministicVariation(i, 3, 2.5))));
   }, [networkStats?.activeValidators]);
 
-  // 生成数据喂价 sparkline 数据
   const dataFeedSparkline = useMemo(() => {
     const baseFeeds = networkStats?.dataFeeds ?? config.networkData.dataFeeds;
-    return Array.from({ length: 24 }, (_, i) => baseFeeds + Math.floor(Math.random() * 3));
+    return Array.from({ length: 24 }, (_, i) => baseFeeds + Math.floor(Math.abs(deterministicVariation(i, 4, 1.5))));
   }, [networkStats?.dataFeeds, config.networkData.dataFeeds]);
 
-  // 生成质押量 sparkline 数据
   const stakingSparkline = useMemo(() => {
     const baseStaking = config.marketData.circulatingSupply / 1e6;
-    return Array.from({ length: 24 }, (_, i) => baseStaking * (1 + (Math.random() - 0.5) * 0.03));
+    return Array.from({ length: 24 }, (_, i) => baseStaking * (1 + deterministicVariation(i, 5, 0.015)));
   }, [config.marketData.circulatingSupply]);
 
   // 核心统计指标 (Primary stats) - 5个关键指标
