@@ -146,22 +146,15 @@ export default function MarketOverviewPage() {
 
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
                 <MarketSidebar
-                  selectedTimeRange={selectedTimeRange}
-                  lastUpdated={lastUpdated}
-                  sortedOracleData={sortedOracleData}
-                  selectedItem={selectedItem}
-                  setSelectedItem={setSelectedItem}
-                  hoveredItem={hoveredItem}
-                  setHoveredItem={setHoveredItem}
-                  marketStats={marketStats}
-                  trendData={trendData}
-                  filters={filter.filters}
-                  onMarketShareChange={filter.setMarketShareMin}
-                  onChange24hFilter={filter.setChange24hFilter}
-                  onChainsChange={filter.setChainsMin}
-                  onClearFilters={filter.clearFilters}
-                  hasActiveFilters={filter.hasActiveFilters}
-                  activeFilterCount={filter.activeFilterCount}
+                  stats={marketStats}
+                  oracleData={sortedOracleData.map(o => ({
+                    name: o.name,
+                    share: o.share,
+                    change24h: o.change24h,
+                    chains: o.chains,
+                    color: o.color,
+                  }))}
+                  loading={isLoading}
                 />
               </div>
             </div>

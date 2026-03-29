@@ -199,12 +199,20 @@
     "active": "活跃",
     "marketDominance": "市场主导率",
     "volatility24h": "24h波动率",
+    "dominanceChange24h": "主导率变化",
     "noData": "暂无数据",
     "didYouKnow": "你知道吗？",
     "marketInfoTip": "预言机市场TVS反映了整个DeFi生态系统的健康状况",
-    "anomalyAlerts": "异常警报",
-    "priceAlerts": "价格警报",
-    "riskAnalysis": "风险分析"
+    "marketConcentration": "市场集中度",
+    "top4Share": "前4名份额",
+    "concentrationLevel": "集中度等级",
+    "highConcentration": "高度集中",
+    "mediumConcentration": "中度集中",
+    "lowConcentration": "竞争充分",
+    "top4Oracles": "前4名预言机",
+    "topGainers": "增长最快 (24h)",
+    "topChainSupporters": "链支持排行",
+    "chains": "链"
   },
   "chainBreakdown": {
     "loading": "加载中...",
@@ -314,5 +322,29 @@
     "pearson": "皮尔逊",
     "spearman": "斯皮尔曼"
   },
-  "asset": "资产"
+  "asset": "资产",
+  "price": "价格",
+  "change24h": "24h变化",
+  "change7d": "7天变化",
+  "volume24h": "24h交易量",
+  "primaryOracle": "主要预言机",
+  "topAssets": "热门资产",
+  "assetsCount": "个资产",
+  "viewOracleDetails": "查看 {oracle} 详情",
+  "filter": {
+    "filteredFrom": "筛选自",
+    "searchPlaceholder": "搜索资产...",
+    "allOracles": "所有预言机",
+    "all": "全部",
+    "allChanges": "所有变化",
+    "highChange": "高变化",
+    "mediumChange": "中等变化",
+    "lowChange": "低变化",
+    "clear": "清除",
+    "activeFilters": "活跃筛选",
+    "search": "搜索",
+    "change": "变化"
+  },
+  "oracle": "预言机",
+  "chartHint": "点击图表元素查看详情"
 }
