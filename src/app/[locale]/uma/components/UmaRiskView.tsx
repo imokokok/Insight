@@ -508,7 +508,7 @@ export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
               {t('uma.risk.trendHistory') || 'Risk Score Trend'}
             </h3>
           </div>
-          <span className="text-xs text-gray-500">Last 30 days</span>
+          <span className="text-xs text-gray-500">{t('uma.dataQuality.last30DaysTrend')}</span>
         </div>
 
         <div className="relative h-48 border border-gray-200 rounded-lg p-4">
@@ -559,11 +559,11 @@ export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
           <div className="absolute bottom-2 right-4 flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-emerald-500" />
-              <span className="text-gray-500">Risk Score</span>
+              <span className="text-gray-500">{t('uma.risk.overallScore')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-amber-500" />
-              <span className="text-gray-500">Events</span>
+              <span className="text-gray-500">{t('uma.crossChain.securityEventHistory')}</span>
             </div>
           </div>
         </div>
@@ -577,13 +577,13 @@ export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
                   {t('uma.risk.prediction') || 'Risk Prediction'}
                 </span>
               </div>
-              <p className="text-xs text-gray-500">Based on recent trends and patterns</p>
+              <p className="text-xs text-gray-500">{t('uma.risk.disputeSuccessRateDescription', { rate: '0' })}</p>
             </div>
             <div className="text-right">
               <p className={`text-2xl font-bold ${getScoreColor(predictionScore)}`}>
                 {predictionScore.toFixed(0)}
               </p>
-              <p className="text-xs text-gray-500">Expected next week</p>
+              <p className="text-xs text-gray-500">{t('uma.governance.stage4Execution')}</p>
             </div>
           </div>
         </div>
@@ -623,7 +623,7 @@ export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
                             : 'bg-gray-100 text-gray-700'
                       }`}
                     >
-                      {event.impact} impact
+                      {t(`uma.risk.status${event.impact.charAt(0).toUpperCase() + event.impact.slice(1)}`)} {t('uma.crossChain.activeCount')}
                     </span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded ${
@@ -634,7 +634,7 @@ export function UmaRiskView({ networkStats, disputes }: UmaRiskViewProps) {
                             : 'bg-red-100 text-red-700'
                       }`}
                     >
-                      {event.type}
+                      {t(`uma.disputeVoting.${event.type === 'resolved' ? 'passed' : event.type === 'warning' ? 'statusInProgress' : 'statusRejected'}`)}
                     </span>
                   </div>
                 </div>

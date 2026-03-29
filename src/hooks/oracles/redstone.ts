@@ -11,6 +11,7 @@ import {
   type RedStoneNetworkStats,
   type RedStoneEcosystemData,
   type RedStoneRiskMetrics,
+  type RedStoneChainInfo,
 } from '@/lib/oracles/redstone';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
@@ -25,7 +26,8 @@ type RedStoneDataType =
   | 'ecosystem'
   | 'risk'
   | 'providers'
-  | 'metrics';
+  | 'metrics'
+  | 'chains';
 
 const getRedStoneKey = (type: RedStoneDataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['redstone', type];
@@ -136,6 +138,90 @@ export function useRedStoneMetrics(enabled = true) {
   };
 }
 
+export function useRedStoneSupportedChains(enabled = true) {
+  const queryKey = getRedStoneKey('chains');
+
+  const { data, error, isLoading, refetch } = useQuery<RedStoneChainInfo[], Error>({
+    queryKey,
+    queryFn: () => redstoneClient.getSupportedChains(),
+    enabled,
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    chains: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useRedStoneNetworkStats(enabled = true) {
+  const queryKey = getRedStoneKey('network');
+
+  const { data, error, isLoading, refetch } = useQuery<RedStoneNetworkStats, Error>({
+    queryKey,
+    queryFn: () => redstoneClient.getNetworkStats(),
+    enabled,
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    networkStats: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useRedStoneEcosystem(enabled = true) {
+  const queryKey = getRedStoneKey('ecosystem');
+
+  const { data, error, isLoading, refetch } = useQuery<RedStoneEcosystemData, Error>({
+    queryKey,
+    queryFn: () => redstoneClient.getEcosystemData(),
+    enabled,
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    ecosystem: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useRedStoneRiskMetrics(enabled = true) {
+  const queryKey = getRedStoneKey('risk');
+
+  const { data, error, isLoading, refetch } = useQuery<RedStoneRiskMetrics, Error>({
+    queryKey,
+    queryFn: () => redstoneClient.getRiskMetrics(),
+    enabled,
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    riskMetrics: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
 interface UseRedStoneAllDataOptions {
   symbol: string;
   chain?: Blockchain;
@@ -210,7 +296,6 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
   const refetchAll = useCallback(async () => {
     await Promise.all(results.map((r) => r.refetch()));
     updateLastUpdated();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return useMemo(
@@ -247,4 +332,5 @@ export type {
   RedStoneNetworkStats,
   RedStoneEcosystemData,
   RedStoneRiskMetrics,
+  RedStoneChainInfo,
 };

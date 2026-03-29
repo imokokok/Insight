@@ -208,6 +208,47 @@
         "decentralizedGovernance": "Decentralized Governance",
         "monitoring": "24/7 Monitoring"
       }
+    },
+    "vault": {
+      "title": "Vault Status",
+      "overview": "Vault Overview",
+      "totalVaults": "Total Vaults",
+      "totalCollateral": "Total Collateral",
+      "totalDebt": "Total Debt",
+      "avgCollateralRatio": "Avg Collateral Ratio",
+      "vaultTypes": "Vault Types",
+      "liquidation": "Liquidation Monitoring",
+      "activeAuctions": "Active Auctions",
+      "liquidationHistory": "Liquidation History",
+      "riskParameters": "Risk Parameters"
+    },
+    "crossChain": {
+      "title": "Cross-Chain Analysis",
+      "priceComparison": "Price Comparison",
+      "deviationHeatmap": "Deviation Heatmap",
+      "latencyAnalysis": "Latency Analysis",
+      "bridgeStatus": "Bridge Status",
+      "chain": "Chain",
+      "price": "Price",
+      "deviation": "Deviation",
+      "lastUpdate": "Last Update"
+    },
+    "priceDeviation": {
+      "title": "Price Deviation Monitor",
+      "realtime": "Real-time Deviation",
+      "history": "Deviation History",
+      "analysis": "Cause Analysis",
+      "impact": "Impact Assessment",
+      "source": "Source",
+      "chroniclePrice": "Chronicle Price",
+      "referencePrice": "Reference Price"
+    },
+    "scuttlebuttDeep": {
+      "title": "Scuttlebutt Deep Dive",
+      "consensus": "Consensus Mechanism",
+      "identity": "Identity Verification",
+      "antiSybil": "Anti-Sybil Protection",
+      "monitoring": "Real-time Monitoring"
     }
   }
 }

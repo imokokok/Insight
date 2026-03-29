@@ -1,9 +1,11 @@
 'use client';
 
-import { Layers, TrendingUp, DollarSign, Link2 } from 'lucide-react';
+import { useState } from 'react';
+import { Layers, TrendingUp, DollarSign, Link2, ChevronRight } from 'lucide-react';
 
 import { ErrorFallback } from '@/components/oracle/shared/ErrorFallback';
 import { LoadingState } from '@/components/oracle/shared/LoadingState';
+import { NFTFloorPriceHistory } from '@/components/oracle/charts/NFTFloorPriceHistory';
 import { useDIANFTData } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { Blockchain } from '@/types/oracle';
@@ -11,6 +13,11 @@ import { Blockchain } from '@/types/oracle';
 export function DIANFTView() {
   const t = useTranslations('dia');
   const { nftData, isLoading, error, refetch } = useDIANFTData();
+  const [selectedCollection, setSelectedCollection] = useState<{
+    address: string;
+    name: string;
+    chain: Blockchain;
+  } | null>(null);
 
   if (isLoading) {
     return <LoadingState message={t('nft.loading')} />;
@@ -175,7 +182,14 @@ export function DIANFTView() {
               {collections.map((collection) => (
                 <tr
                   key={collection.id}
-                  className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
+                  className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors cursor-pointer"
+                  onClick={() =>
+                    setSelectedCollection({
+                      address: collection.id,
+                      name: collection.name,
+                      chain: collection.chain,
+                    })
+                  }
                 >
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-900">{collection.name}</p>
@@ -205,6 +219,9 @@ export function DIANFTView() {
                       {getChainLabel(collection.chain)}
                     </span>
                   </td>
+                  <td className="px-4 py-3">
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -232,6 +249,43 @@ export function DIANFTView() {
           <div className="text-center py-8 text-gray-500">{t('nft.noChainData')}</div>
         )}
       </div>
+
+      {/* NFT Floor Price History - 展开详情 */}
+      {selectedCollection && (
+        <div className="border-t border-gray-200 pt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-semibold text-gray-900">
+              {selectedCollection.name} - Floor Price History
+            </h3>
+            <button
+              onClick={() => setSelectedCollection(null)}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Close
+            </button>
+          </div>
+          <NFTFloorPriceHistory
+            collection={selectedCollection}
+            days={14}
+            showVolume={true}
+          />
+        </div>
+      )}
+
+      {/* 默认显示热门NFT历史趋势 */}
+      {!selectedCollection && collections.length > 0 && (
+        <div className="border-t border-gray-200 pt-8">
+          <NFTFloorPriceHistory
+            collection={{
+              address: collections[0].id,
+              name: collections[0].name,
+              chain: collections[0].chain,
+            }}
+            days={14}
+            showVolume={true}
+          />
+        </div>
+      )}
     </div>
   );
 }

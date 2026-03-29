@@ -25,12 +25,12 @@ import {
 } from 'recharts';
 
 import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
+import { useRedStoneRiskMetrics } from '@/hooks/oracles/redstone';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 
 import { type RedStoneRiskViewProps } from '../types';
 
-// 历史风险事件
 const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2024-02-20T10:00:00',
@@ -72,7 +72,6 @@ const historicalRiskEvents: TimelineEvent[] = [
   },
 ];
 
-// 行业基准对比数据
 const benchmarkData = [
   { metric: '去中心化', redstone: 85, chainlink: 95, pyth: 78, band: 65 },
   { metric: '安全性', redstone: 90, chainlink: 98, pyth: 85, band: 72 },
@@ -81,7 +80,6 @@ const benchmarkData = [
   { metric: '历史记录', redstone: 72, chainlink: 98, pyth: 75, band: 82 },
 ];
 
-// 风险指标
 const riskMetrics = [
   {
     id: 'decentralization',
@@ -121,7 +119,6 @@ const riskMetrics = [
   },
 ];
 
-// 风险因素
 const riskFactors = [
   {
     category: 'Smart Contract Risk',
@@ -171,8 +168,12 @@ const riskFactors = [
 
 export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
   const t = useTranslations();
+  const { riskMetrics: apiRiskMetrics, isLoading: riskLoading } =
+    useRedStoneRiskMetrics(!isLoading);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
+
+  const showLoading = isLoading || riskLoading;
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -211,10 +212,50 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
     }
   };
 
-  // 计算综合风险评分
   const overallScore = riskMetrics.reduce((sum, m) => sum + m.value, 0) / riskMetrics.length;
 
-  if (isLoading) {
+  const combinedRiskMetrics = apiRiskMetrics
+    ? [
+        {
+          id: 'centralization',
+          name: 'Centralization Risk',
+          value: Math.round((1 - apiRiskMetrics.centralizationRisk) * 100),
+          max: 100,
+          description: 'Distribution of node operators and data sources',
+          status: apiRiskMetrics.centralizationRisk < 0.3 ? 'low' : 'medium',
+          trend: 'stable' as const,
+        },
+        {
+          id: 'liquidity',
+          name: 'Liquidity Risk',
+          value: Math.round((1 - apiRiskMetrics.liquidityRisk) * 100),
+          max: 100,
+          description: 'Market depth and price stability',
+          status: apiRiskMetrics.liquidityRisk < 0.3 ? 'low' : 'medium',
+          trend: 'stable' as const,
+        },
+        {
+          id: 'technical',
+          name: 'Technical Risk',
+          value: Math.round((1 - apiRiskMetrics.technicalRisk) * 100),
+          max: 100,
+          description: 'Smart contract and infrastructure security',
+          status: apiRiskMetrics.technicalRisk < 0.2 ? 'low' : 'medium',
+          trend: 'up' as const,
+        },
+        {
+          id: 'overall',
+          name: 'Overall Risk Score',
+          value: Math.round((1 - apiRiskMetrics.overallRisk) * 100),
+          max: 100,
+          description: 'Combined risk assessment',
+          status: apiRiskMetrics.overallRisk < 0.25 ? 'low' : 'medium',
+          trend: 'up' as const,
+        },
+      ]
+    : riskMetrics;
+
+  if (showLoading) {
     return (
       <div className="space-y-8">
         <div className="animate-pulse space-y-4">
@@ -235,7 +276,6 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
 
   return (
     <div className="space-y-8">
-      {/* 风险指标统计 */}
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -256,7 +296,7 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {riskMetrics.map((metric) => (
+          {combinedRiskMetrics.map((metric) => (
             <div key={metric.id} className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">{metric.name}</span>
@@ -282,10 +322,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
         </div>
       </section>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 行业基准对比 */}
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -298,7 +336,6 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 雷达图 */}
           <div className="lg:col-span-2">
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -340,7 +377,6 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
             </div>
           </div>
 
-          {/* 对比表格 */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-700">
               {t('redstone.risk.comparison') || 'Detailed Comparison'}
@@ -375,10 +411,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
         </div>
       </section>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 历史风险事件时间线 */}
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -388,10 +422,13 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
             {t('redstone.risk.timelineDesc') ||
               'Security audits, incidents and upgrades over the past 24 months'}
           </p>
+          <p className="text-xs text-gray-400 mt-2 italic">
+            Note: Historical events are placeholder data for demonstration. Real-time event tracking
+            will be integrated in future updates.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 时间线 */}
           <div className="lg:col-span-2">
             <TimelineChart
               events={historicalRiskEvents}
@@ -401,7 +438,6 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
             />
           </div>
 
-          {/* 事件详情 */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-4">
               {t('redstone.risk.eventDetails') || 'Event Details'}
@@ -454,10 +490,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
         </div>
       </section>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 风险因素 */}
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -515,10 +549,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
         </div>
       </section>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 免责声明 */}
       <section className="flex items-start gap-4 py-2">
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>

@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 
 import { Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 
+import { useTranslations } from '@/i18n';
+
 export interface TimelineEvent {
   date: string;
   title: string;
@@ -79,6 +81,7 @@ export function TimelineChart({
   showDateLabels = true,
   compact = false,
 }: TimelineChartProps) {
+  const t = useTranslations();
   const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
 
   const sortedEvents = useMemo(() => {
@@ -93,7 +96,7 @@ export function TimelineChart({
   if (events.length === 0) {
     return (
       <div className={`flex items-center justify-center p-8 bg-gray-50 rounded-lg ${className}`}>
-        <span className="text-sm text-gray-500">No events available</span>
+        <span className="text-sm text-gray-500">{t('common.noEvents') || 'No events available'}</span>
       </div>
     );
   }
@@ -169,7 +172,7 @@ export function TimelineChart({
 
                 {/* Expand indicator */}
                 {!compact && !isExpanded && (
-                  <p className="mt-1 text-xs text-gray-400">点击查看详情</p>
+                  <p className="mt-1 text-xs text-gray-400">{t('common.clickForDetails') || 'Click for details'}</p>
                 )}
               </div>
             </div>

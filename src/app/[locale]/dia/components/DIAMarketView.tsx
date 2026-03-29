@@ -3,7 +3,9 @@
 import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield } from 'lucide-react';
 
 import { PriceChart } from '@/components/oracle';
+import { CrossChainPriceComparison } from '@/components/oracle/charts/CrossChainPriceComparison';
 import { useTranslations } from '@/i18n';
+import { Blockchain } from '@/types/oracle';
 
 import { type DIAMarketViewProps } from '../types';
 
@@ -200,6 +202,20 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
             <p className="text-xs text-gray-400 mt-1">{t('dia.depthScore')}</p>
           </div>
         </div>
+      </div>
+
+      {/* 跨链价格对比 */}
+      <div className="border-t border-gray-200 pt-8">
+        <CrossChainPriceComparison
+          symbol={config.symbol || 'DIA'}
+          chains={[
+            Blockchain.ETHEREUM,
+            Blockchain.ARBITRUM,
+            Blockchain.POLYGON,
+            Blockchain.BASE,
+          ]}
+          priceThreshold={0.5}
+        />
       </div>
     </div>
   );

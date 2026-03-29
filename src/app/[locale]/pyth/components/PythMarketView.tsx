@@ -19,6 +19,7 @@ export function PythMarketView({
   isLoading,
 }: PythMarketViewProps) {
   const t = useTranslations();
+  const tPyth = useTranslations('pyth');
 
   const client = new PythClient();
 
@@ -209,10 +210,10 @@ export function PythMarketView({
             <h3 className="text-base font-medium text-gray-900 mb-4">{t('pyth.dataSource')}</h3>
             <div className="flex-1 flex flex-col">
               {[
-                { name: 'Pyth Network', status: 'active', latency: '150ms' },
-                { name: 'Solana Mainnet', status: 'active', latency: '200ms' },
-                { name: 'Ethereum Mainnet', status: 'active', latency: '250ms' },
-                { name: 'Publisher Consensus', status: 'active', latency: '180ms' },
+                { name: tPyth('dataSources.pythNetwork'), status: 'active', latency: '150ms' },
+                { name: tPyth('dataSources.solanaMainnet'), status: 'active', latency: '200ms' },
+                { name: tPyth('dataSources.ethereumMainnet'), status: 'active', latency: '250ms' },
+                { name: tPyth('dataSources.publisherConsensus'), status: 'active', latency: '180ms' },
               ].map((source, index) => (
                 <div
                   key={index}
@@ -238,7 +239,7 @@ export function PythMarketView({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium text-gray-900">{t('pyth.confidenceIntervalTrend') || '置信区间趋势'}</h3>
+            <h3 className="text-base font-medium text-gray-900">{tPyth('confidenceIntervalTrend')}</h3>
           </div>
           <ConfidenceIntervalChart
             price={price?.price ?? 0.45}
@@ -384,7 +385,7 @@ export function PythMarketView({
       {/* 核心交易对信息 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('pyth.tradingPair') || '主要交易对'}
+          {tPyth('tradingPair')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>

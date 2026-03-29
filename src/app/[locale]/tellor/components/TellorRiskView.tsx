@@ -2,11 +2,12 @@
 
 import { Shield, AlertTriangle, CheckCircle2, XCircle, Info } from 'lucide-react';
 
+import { TellorRiskPanel } from '@/components/oracle/panels/TellorRiskPanel';
 import { useTranslations } from '@/i18n';
 
 import { type TellorRiskViewProps } from '../types';
 
-export function TellorRiskView({ isLoading }: TellorRiskViewProps) {
+export function TellorRiskView({ risk, isLoading }: TellorRiskViewProps) {
   const t = useTranslations();
 
   const riskMetrics = [
@@ -200,6 +201,23 @@ export function TellorRiskView({ isLoading }: TellorRiskViewProps) {
       <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
         <Info className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
         <p className="text-xs text-gray-500">{t('tellor.risk.disclaimer')}</p>
+      </div>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 风险评估详情 Panel */}
+      <div>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('tellor.risk.details') || 'Risk Assessment Details'}
+        </h3>
+        {risk ? (
+          <TellorRiskPanel data={risk} />
+        ) : (
+          <div className="text-sm text-gray-500 py-8 text-center">
+            {t('common.noData') || 'No data available'}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,11 +1,26 @@
 'use client';
 
+import { useState } from 'react';
+
 import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield } from 'lucide-react';
 
 import { PriceChart } from '@/components/oracle';
+import {
+  TellorPriceStreamPanel,
+  TellorMarketDepthPanel,
+  TellorMultiChainAggregationPanel,
+} from '@/components/oracle/panels';
 import { useTranslations } from '@/i18n';
+import {
+  type PriceStreamPoint,
+  type MarketDepth,
+  type MultiChainAggregation,
+} from '@/lib/oracles/tellor';
+import { Blockchain } from '@/types/oracle';
 
 import { type TellorMarketViewProps } from '../types';
+
+type PanelTab = 'priceStream' | 'marketDepth' | 'multiChain';
 
 export function TellorMarketView({
   config,
@@ -14,6 +29,91 @@ export function TellorMarketView({
   isLoading,
 }: TellorMarketViewProps) {
   const t = useTranslations();
+  const [activePanelTab, setActivePanelTab] = useState<PanelTab>('priceStream');
+
+  const generateMockPriceStreamData = (): PriceStreamPoint[] => {
+    const data: PriceStreamPoint[] = [];
+    const basePrice = price?.price ?? 45.85;
+    const now = Date.now();
+
+    for (let i = 0; i < 50; i++) {
+      const change = (Math.random() - 0.5) * 0.1;
+      const currentPrice = basePrice + change;
+      data.push({
+        timestamp: now - (50 - i) * 60000,
+        price: currentPrice,
+        volume: Math.floor(Math.random() * 10000) + 1000,
+        change: change,
+        changePercent: (change / basePrice) * 100,
+        source: ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism'][Math.floor(Math.random() * 4)],
+      });
+    }
+    return data;
+  };
+
+  const generateMockMarketDepth = (): MarketDepth => {
+    const basePrice = price?.price ?? 45.85;
+    const levels = [];
+
+    for (let i = 0; i < 15; i++) {
+      const priceOffset = i * 0.05;
+      levels.push({
+        price: basePrice - priceOffset,
+        bidVolume: Math.floor(Math.random() * 5000) + 500,
+        askVolume: 0,
+        bidCount: Math.floor(Math.random() * 20) + 1,
+        askCount: 0,
+      });
+      levels.push({
+        price: basePrice + priceOffset,
+        bidVolume: 0,
+        askVolume: Math.floor(Math.random() * 5000) + 500,
+        bidCount: 0,
+        askCount: Math.floor(Math.random() * 20) + 1,
+      });
+    }
+
+    return {
+      symbol: config.symbol,
+      timestamp: Date.now(),
+      levels: levels.sort((a, b) => a.price - b.price),
+      totalBidVolume: levels.reduce((sum, l) => sum + l.bidVolume, 0),
+      totalAskVolume: levels.reduce((sum, l) => sum + l.askVolume, 0),
+      spread: 0.1,
+      spreadPercent: (0.1 / basePrice) * 100,
+    };
+  };
+
+  const generateMockMultiChainData = (): MultiChainAggregation => {
+    const basePrice = price?.price ?? 45.85;
+    const chains = [
+      Blockchain.ETHEREUM,
+      Blockchain.ARBITRUM,
+      Blockchain.POLYGON,
+      Blockchain.OPTIMISM,
+      Blockchain.BASE,
+    ];
+
+    return {
+      symbol: config.symbol,
+      aggregatedPrice: basePrice,
+      consensusMethod: 'Median',
+      chainPrices: chains.map((chain) => ({
+        chain,
+        price: basePrice + (Math.random() - 0.5) * 0.2,
+        timestamp: Date.now() - Math.floor(Math.random() * 5000),
+        confidence: 0.95 + Math.random() * 0.04,
+        latency: 50 + Math.floor(Math.random() * 100),
+      })),
+      priceDeviation: Math.random() * 0.3,
+      maxDeviation: Math.random() * 0.5,
+      lastUpdated: Date.now(),
+    };
+  };
+
+  const priceStreamData = generateMockPriceStreamData();
+  const marketDepthData = generateMockMarketDepth();
+  const multiChainData = generateMockMultiChainData();
 
   const stats = [
     {
@@ -205,6 +305,56 @@ export function TellorMarketView({
             </div>
             <p className="text-xs text-gray-400 mt-1">{t('tellor.depthScore')}</p>
           </div>
+        </div>
+      </div>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 数据面板区域 - 使用Tabs组织 */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-medium text-gray-900">{t('tellor.panels.title')}</h3>
+        </div>
+
+        {/* Tabs 导航 */}
+        <nav className="flex space-x-6 border-b border-gray-200 mb-6" aria-label="PanelTabs">
+          {[
+            { id: 'priceStream' as PanelTab, label: t('tellor.tabs.priceStream') },
+            { id: 'marketDepth' as PanelTab, label: t('tellor.tabs.marketDepth') },
+            { id: 'multiChain' as PanelTab, label: t('tellor.tabs.multiChain') },
+          ].map((tab) => {
+            const isActive = activePanelTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActivePanelTab(tab.id)}
+                className={`
+                  relative px-1 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200
+                  ${
+                    isActive
+                      ? 'text-cyan-600 border-b-2 border-cyan-600'
+                      : 'text-gray-500 hover:text-gray-700 hover:border-b-2 hover:border-gray-300'
+                  }
+                `}
+              >
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Panel 内容 */}
+        <div className="mt-4">
+          {activePanelTab === 'priceStream' && (
+            <TellorPriceStreamPanel data={priceStreamData} />
+          )}
+          {activePanelTab === 'marketDepth' && (
+            <TellorMarketDepthPanel data={marketDepthData} />
+          )}
+          {activePanelTab === 'multiChain' && (
+            <TellorMultiChainAggregationPanel data={multiChainData} />
+          )}
         </div>
       </div>
     </div>

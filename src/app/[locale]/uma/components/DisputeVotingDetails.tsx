@@ -83,7 +83,7 @@ interface DisputeVotingDetailsProps {
   isLoading?: boolean;
 }
 
-function CountdownTimer({ remainingTime }: { remainingTime: number }) {
+function CountdownTimer({ remainingTime, t }: { remainingTime: number; t: ReturnType<typeof useTranslations> }) {
   const [timeLeft, setTimeLeft] = useState(remainingTime);
 
   useEffect(() => {
@@ -110,26 +110,24 @@ function CountdownTimer({ remainingTime }: { remainingTime: number }) {
         {String(hours).padStart(2, '0')}:{String(minutes).padStart(2, '0')}:
         {String(seconds).padStart(2, '0')}
       </span>
-      <span className="text-xs">剩余</span>
+      <span className="text-xs">{t('uma.disputeVoting.remaining')}</span>
     </div>
   );
 }
 
-function VotingProgressBar({ data }: { data: VotingProgressData }) {
-  const t = useTranslations();
-
+function VotingProgressBar({ data, t }: { data: VotingProgressData; t: ReturnType<typeof useTranslations> }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">投票进度</h4>
-        <CountdownTimer remainingTime={data.remainingTime} />
+        <h4 className="text-sm font-medium text-gray-700">{t('uma.disputeVoting.votingProgress')}</h4>
+        <CountdownTimer remainingTime={data.remainingTime} t={t} />
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
           <span className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-emerald-500" />
-            <span className="text-gray-600">支持</span>
+            <span className="text-gray-600">{t('uma.disputeVoting.support')}</span>
           </span>
           <span className="font-semibold text-gray-900">
             {formatNumber(data.supportVotes, true)} ({data.supportPercentage.toFixed(1)}%)
@@ -147,7 +145,7 @@ function VotingProgressBar({ data }: { data: VotingProgressData }) {
         <div className="flex items-center justify-between text-sm">
           <span className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-red-500" />
-            <span className="text-gray-600">反对</span>
+            <span className="text-gray-600">{t('uma.disputeVoting.against')}</span>
           </span>
           <span className="font-semibold text-gray-900">
             {formatNumber(data.opposeVotes, true)} ({data.opposePercentage.toFixed(1)}%)
@@ -170,7 +168,7 @@ function VotingProgressBar({ data }: { data: VotingProgressData }) {
               }`}
             />
             <span className="text-xs text-gray-500">
-              {data.quorumReached ? '已达到法定人数' : '未达法定人数'}
+              {data.quorumReached ? t('uma.disputeVoting.quorumReachedLabel') : t('uma.disputeVoting.quorumNotReached')}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -180,18 +178,17 @@ function VotingProgressBar({ data }: { data: VotingProgressData }) {
               }`}
             />
             <span className="text-xs text-gray-500">
-              {data.thresholdReached ? '已达到阈值' : '未达阈值'}
+              {data.thresholdReached ? t('uma.disputeVoting.thresholdReached') : t('uma.disputeVoting.thresholdNotReached')}
             </span>
           </div>
         </div>
-        <span className="text-xs text-gray-400">总票数: {formatNumber(data.totalVotes, true)}</span>
+        <span className="text-xs text-gray-400">{t('uma.disputeVoting.totalVotes')}: {formatNumber(data.totalVotes, true)}</span>
       </div>
     </div>
   );
 }
 
-function WeightDistributionChart({ distributions }: { distributions: WeightDistribution[] }) {
-  const t = useTranslations();
+function WeightDistributionChart({ distributions, t }: { distributions: WeightDistribution[]; t: ReturnType<typeof useTranslations> }) {
   const [viewMode, setViewMode] = useState<'pie' | 'bar'>('bar');
 
   const totalWeight = distributions.reduce((sum, d) => sum + d.totalWeight, 0);
@@ -205,7 +202,7 @@ function WeightDistributionChart({ distributions }: { distributions: WeightDistr
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">投票权重分布</h4>
+        <h4 className="text-sm font-medium text-gray-700">{t('uma.disputeVoting.weightDistribution')}</h4>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
           <button
             onClick={() => setViewMode('bar')}
@@ -264,11 +261,11 @@ function WeightDistributionChart({ distributions }: { distributions: WeightDistr
               <div className="flex items-center gap-4 text-xs text-gray-500">
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  支持: {formatNumber(dist.supportWeight, true)}
+                  {t('uma.disputeVoting.support')}: {formatNumber(dist.supportWeight, true)}
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-red-500" />
-                  反对: {formatNumber(dist.opposeWeight, true)}
+                  {t('uma.disputeVoting.against')}: {formatNumber(dist.opposeWeight, true)}
                 </span>
               </div>
             </div>
@@ -318,7 +315,7 @@ function WeightDistributionChart({ distributions }: { distributions: WeightDistr
               <span className="text-lg font-bold text-gray-900">
                 {formatNumber(totalWeight, true)}
               </span>
-              <span className="text-xs text-gray-500">总权重</span>
+              <span className="text-xs text-gray-500">{t('uma.governance.totalWeight')}</span>
             </div>
           </div>
         </div>
@@ -340,17 +337,17 @@ function WeightDistributionChart({ distributions }: { distributions: WeightDistr
 function HistoricalDisputesList({
   disputes,
   onSelect,
+  t,
 }: {
   disputes: HistoricalDispute[];
   onSelect?: (dispute: HistoricalDispute) => void;
+  t: ReturnType<typeof useTranslations>;
 }) {
-  const t = useTranslations();
-
   const typeLabels: Record<DisputeType, string> = {
-    price: '价格争议',
-    state: '状态争议',
-    liquidation: '清算争议',
-    other: '其他',
+    price: t('uma.disputeTypes.price'),
+    state: t('uma.disputeTypes.state'),
+    liquidation: t('uma.disputeTypes.liquidation'),
+    other: t('uma.disputeTypes.other'),
   };
 
   const formatDate = (timestamp: number) => {
@@ -363,8 +360,8 @@ function HistoricalDisputesList({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">历史争议案例</h4>
-        <span className="text-xs text-gray-400">最近 {disputes.length} 个已解决</span>
+        <h4 className="text-sm font-medium text-gray-700">{t('uma.disputeVoting.historicalCases')}</h4>
+        <span className="text-xs text-gray-400">{disputes.length} {t('uma.disputeVoting.recentResolved')}</span>
       </div>
 
       <div className="space-y-2">
@@ -383,7 +380,7 @@ function HistoricalDisputesList({
                       : 'bg-red-100 text-red-700'
                   }`}
                 >
-                  {dispute.result === 'resolved' ? '通过' : '拒绝'}
+                  {dispute.result === 'resolved' ? t('uma.disputeVoting.passed') : t('uma.disputeVoting.rejected')}
                 </span>
                 <span className="text-xs text-gray-500">{typeLabels[dispute.type]}</span>
               </div>
@@ -406,8 +403,8 @@ function HistoricalDisputesList({
               <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
             </div>
             <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-              <span>质押: ${dispute.stakeAmount.toLocaleString()}</span>
-              <span>投票: {formatNumber(dispute.totalVotes, true)}</span>
+              <span>{t('uma.disputeVoting.stakeAmountLabel')}: ${dispute.stakeAmount.toLocaleString()}</span>
+              <span>{t('uma.disputeVoting.totalVotesLabel')}: {formatNumber(dispute.totalVotes, true)}</span>
             </div>
           </button>
         ))}
@@ -416,26 +413,24 @@ function HistoricalDisputesList({
   );
 }
 
-function PredictionPanel({ prediction }: { prediction: PredictionResult }) {
-  const t = useTranslations();
-
+function PredictionPanel({ prediction, t }: { prediction: PredictionResult; t: ReturnType<typeof useTranslations> }) {
   const outcomeConfig = {
     support: {
-      label: '预测通过',
+      label: t('uma.disputeVoting.predictPass'),
       color: 'text-emerald-700',
       bgColor: 'bg-emerald-50',
       borderColor: 'border-emerald-200',
       icon: <TrendingUp className="w-5 h-5" />,
     },
     oppose: {
-      label: '预测拒绝',
+      label: t('uma.disputeVoting.predictReject'),
       color: 'text-red-700',
       bgColor: 'bg-red-50',
       borderColor: 'border-red-200',
       icon: <TrendingDown className="w-5 h-5" />,
     },
     undecided: {
-      label: '结果未定',
+      label: t('uma.disputeVoting.predictUndecided'),
       color: 'text-amber-700',
       bgColor: 'bg-amber-50',
       borderColor: 'border-amber-200',
@@ -448,9 +443,9 @@ function PredictionPanel({ prediction }: { prediction: PredictionResult }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">结果预测</h4>
+        <h4 className="text-sm font-medium text-gray-700">{t('uma.disputeVoting.outcomePrediction')}</h4>
         <div className="flex items-center gap-1 text-xs text-gray-500">
-          <span>准确度</span>
+          <span>{t('uma.disputeVoting.accuracy')}</span>
           <span className="font-semibold text-gray-700">{prediction.confidence}%</span>
         </div>
       </div>
@@ -479,7 +474,7 @@ function PredictionPanel({ prediction }: { prediction: PredictionResult }) {
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs text-gray-600 font-medium">影响因素:</p>
+          <p className="text-xs text-gray-600 font-medium">{t('uma.disputeVoting.influencingFactors')}:</p>
           {prediction.factors.slice(0, 4).map((factor, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -517,7 +512,7 @@ function PredictionPanel({ prediction }: { prediction: PredictionResult }) {
       <div className="flex items-center gap-2 text-xs text-gray-500">
         <Clock className="w-3.5 h-3.5" />
         <span>
-          趋势方向:{' '}
+          {t('uma.disputeVoting.trendDirection')}:{' '}
           <span
             className={`font-medium ${
               prediction.trendDirection === 'up'
@@ -528,10 +523,10 @@ function PredictionPanel({ prediction }: { prediction: PredictionResult }) {
             }`}
           >
             {prediction.trendDirection === 'up'
-              ? '上升'
+              ? t('uma.disputeVoting.up')
               : prediction.trendDirection === 'down'
-                ? '下降'
-                : '稳定'}
+                ? t('uma.disputeVoting.down')
+                : t('uma.disputeVoting.stable')}
           </span>
         </span>
       </div>
@@ -620,22 +615,22 @@ function calculateVotingProgress(votes: DisputeVote[], dispute: DisputeData): Vo
   };
 }
 
-function calculateWeightDistribution(votes: DisputeVote[]): WeightDistribution[] {
+function calculateWeightDistribution(votes: DisputeVote[], t: ReturnType<typeof useTranslations>): WeightDistribution[] {
   const totalWeight = votes.reduce((sum, v) => sum + v.weight, 0);
 
   const typeConfig = {
     institution: {
-      label: '机构验证者',
+      label: t('uma.disputeVoting.institutionValidators'),
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     community: {
-      label: '社区验证者',
+      label: t('uma.disputeVoting.communityValidators'),
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
     },
     independent: {
-      label: '独立验证者',
+      label: t('uma.disputeVoting.independentValidators'),
       color: 'text-teal-600',
       bgColor: 'bg-teal-50',
     },
@@ -675,7 +670,8 @@ function calculateWeightDistribution(votes: DisputeVote[]): WeightDistribution[]
 
 function generatePrediction(
   votingProgress: VotingProgressData,
-  distributions: WeightDistribution[]
+  distributions: WeightDistribution[],
+  t: ReturnType<typeof useTranslations>
 ): PredictionResult {
   const supportRatio = votingProgress.supportPercentage / 100;
   const institutionWeight = distributions.find((d) => d.type === 'institution');
@@ -708,7 +704,7 @@ function generatePrediction(
 
   const factors = [
     {
-      name: '当前支持率',
+      name: t('uma.disputeVoting.currentSupportRate'),
       impact: (supportRatio > 0.5 ? 'positive' : supportRatio < 0.5 ? 'negative' : 'neutral') as
         | 'positive'
         | 'negative'
@@ -716,7 +712,7 @@ function generatePrediction(
       weight: Math.round(Math.abs(supportRatio - 0.5) * 100),
     },
     {
-      name: '机构投票倾向',
+      name: t('uma.disputeVoting.institutionVotingTrend'),
       impact: (institutionSupportRatio > 0.6
         ? 'positive'
         : institutionSupportRatio < 0.4
@@ -725,7 +721,7 @@ function generatePrediction(
       weight: Math.round(Math.abs(institutionSupportRatio - 0.5) * 80),
     },
     {
-      name: '法定人数达成',
+      name: t('uma.disputeVoting.quorumAchieved'),
       impact: (votingProgress.quorumReached ? 'positive' : 'neutral') as
         | 'positive'
         | 'negative'
@@ -733,7 +729,7 @@ function generatePrediction(
       weight: votingProgress.quorumReached ? 70 : 30,
     },
     {
-      name: '投票活跃度',
+      name: t('uma.disputeVoting.votingActivity'),
       impact: (votingProgress.totalVotes > 100000 ? 'positive' : 'neutral') as
         | 'positive'
         | 'negative'
@@ -772,12 +768,12 @@ export function DisputeVotingDetails({
   }, [votes, dispute]);
 
   const weightDistributions = useMemo(() => {
-    return calculateWeightDistribution(votes);
-  }, [votes]);
+    return calculateWeightDistribution(votes, t);
+  }, [votes, t]);
 
   const prediction = useMemo(() => {
-    return generatePrediction(votingProgress, weightDistributions);
-  }, [votingProgress, weightDistributions]);
+    return generatePrediction(votingProgress, weightDistributions, t);
+  }, [votingProgress, weightDistributions, t]);
 
   if (isLoading) {
     return (
@@ -799,25 +795,25 @@ export function DisputeVotingDetails({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">投票详情与分析</h3>
-        <span className="text-sm text-gray-500">争议 ID: {dispute.id.slice(0, 8)}...</span>
+        <h3 className="text-lg font-semibold text-gray-900">{t('uma.disputeVoting.votingDetails')}</h3>
+        <span className="text-sm text-gray-500">{t('uma.disputeVoting.disputeId')}: {dispute.id.slice(0, 8)}...</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <VotingProgressBar data={votingProgress} />
+          <VotingProgressBar data={votingProgress} t={t} />
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <WeightDistributionChart distributions={weightDistributions} />
+          <WeightDistributionChart distributions={weightDistributions} t={t} />
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <PredictionPanel prediction={prediction} />
+          <PredictionPanel prediction={prediction} t={t} />
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <HistoricalDisputesList disputes={historicalDisputes} onSelect={setSelectedHistorical} />
+          <HistoricalDisputesList disputes={historicalDisputes} onSelect={setSelectedHistorical} t={t} />
         </div>
       </div>
 
@@ -825,7 +821,7 @@ export function DisputeVotingDetails({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-gray-900">历史争议详情</h4>
+              <h4 className="font-semibold text-gray-900">{t('uma.disputeVoting.disputeDetails')}</h4>
               <button
                 onClick={() => setSelectedHistorical(null)}
                 className="text-gray-400 hover:text-gray-600"
@@ -842,11 +838,11 @@ export function DisputeVotingDetails({
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">争议ID</span>
+                <span className="text-sm text-gray-500">{t('uma.disputeVoting.disputeId')}</span>
                 <span className="text-sm font-mono text-gray-900">{selectedHistorical.id}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">结果</span>
+                <span className="text-sm text-gray-500">{t('uma.disputeVoting.result')}</span>
                 <span
                   className={`px-2 py-0.5 text-xs font-medium rounded ${
                     selectedHistorical.result === 'resolved'
@@ -854,23 +850,23 @@ export function DisputeVotingDetails({
                       : 'bg-red-100 text-red-700'
                   }`}
                 >
-                  {selectedHistorical.result === 'resolved' ? '通过' : '拒绝'}
+                  {selectedHistorical.result === 'resolved' ? t('uma.disputeVoting.passed') : t('uma.disputeVoting.rejected')}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">支持率</span>
+                <span className="text-sm text-gray-500">{t('uma.disputeVoting.supportRateLabel')}</span>
                 <span className="text-sm font-semibold text-gray-900">
                   {selectedHistorical.supportPercentage.toFixed(1)}%
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">总投票数</span>
+                <span className="text-sm text-gray-500">{t('uma.disputeVoting.totalVotesLabel')}</span>
                 <span className="text-sm font-semibold text-gray-900">
                   {formatNumber(selectedHistorical.totalVotes, true)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">质押金额</span>
+                <span className="text-sm text-gray-500">{t('uma.disputeVoting.stakeAmountLabel')}</span>
                 <span className="text-sm font-semibold text-gray-900">
                   ${selectedHistorical.stakeAmount.toLocaleString()}
                 </span>

@@ -32,88 +32,86 @@ import { chartColors } from '@/lib/config/colors';
 const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2024-01-15T10:30:00',
-    title: '安全审计完成',
-    description:
-      'Chainlink 核心合约通过 Trail of Bits 和 OpenZeppelin 的联合安全审计，未发现重大漏洞。',
+    title: 'securityAuditComplete',
+    description: 'securityAuditCompleteDesc',
     type: 'success',
   },
   {
     date: '2023-11-08T14:20:00',
-    title: '节点网络升级',
-    description: '完成节点软件 v2.5.0 升级，引入新的共识机制和增强的故障恢复能力。',
+    title: 'nodeNetworkUpgrade',
+    description: 'nodeNetworkUpgradeDesc',
     type: 'info',
   },
   {
     date: '2023-09-22T09:15:00',
-    title: '潜在漏洞披露',
-    description:
-      '白帽黑客通过 Bug Bounty 计划报告了一个中等严重程度的漏洞。团队已在 48 小时内修复并部署补丁。',
+    title: 'vulnerabilityDisclosure',
+    description: 'vulnerabilityDisclosureDesc',
     type: 'warning',
   },
   {
     date: '2023-07-14T16:45:00',
-    title: '去中心化里程碑',
-    description: '节点运营商数量突破 1000 个，分布在 45 个国家和地区。',
+    title: 'decentralizationMilestone',
+    description: 'decentralizationMilestoneDesc',
     type: 'success',
   },
   {
     date: '2023-05-03T11:30:00',
-    title: '价格延迟事件',
-    description: '由于以太坊网络拥堵，部分价格喂送出现 2-3 分钟延迟。触发自动故障转移机制。',
+    title: 'priceDelayEvent',
+    description: 'priceDelayEventDesc',
     type: 'warning',
   },
   {
     date: '2023-02-28T08:00:00',
-    title: '质押合约发布',
-    description: 'Chainlink Staking v0.2 正式上线，引入惩罚机制和更高的安全保证金要求。',
+    title: 'stakingContractRelease',
+    description: 'stakingContractReleaseDesc',
     type: 'success',
   },
 ];
 
 // 行业基准对比数据
 const benchmarkData = [
-  { metric: '去中心化', chainlink: 95, pyth: 78, band: 65, api3: 70 },
-  { metric: '安全性', chainlink: 98, pyth: 85, band: 72, api3: 80 },
-  { metric: '可靠性', chainlink: 99.9, pyth: 97.5, band: 94.2, api3: 96.8 },
-  { metric: '透明度', chainlink: 92, pyth: 88, band: 70, api3: 85 },
-  { metric: '历史记录', chainlink: 98, pyth: 75, band: 82, api3: 78 },
+  { metric: 'decentralization', chainlink: 95, pyth: 78, band: 65, api3: 70 },
+  { metric: 'security', chainlink: 98, pyth: 85, band: 72, api3: 80 },
+  { metric: 'reliability', chainlink: 99.9, pyth: 97.5, band: 94.2, api3: 96.8 },
+  { metric: 'transparency', chainlink: 92, pyth: 88, band: 70, api3: 85 },
+  { metric: 'history', chainlink: 98, pyth: 75, band: 82, api3: 78 },
 ];
 
 // 风险指标
 const riskMetrics = [
   {
     id: 'decentralization',
-    name: 'Decentralization Score',
+    nameKey: 'riskMetrics.decentralization.name',
+    descKey: 'riskMetrics.decentralization.description',
     value: 95,
     max: 100,
-    description: 'Based on node operator diversity and geographic distribution',
     status: 'low',
     trend: 'up',
   },
   {
     id: 'security',
-    name: 'Security Rating',
+    nameKey: 'riskMetrics.security.name',
+    descKey: 'riskMetrics.security.description',
     value: 98,
     max: 100,
-    description: 'Based on audit history, bug bounty programs, and incident response',
     status: 'low',
     trend: 'stable',
   },
   {
     id: 'reliability',
-    name: 'Network Reliability',
+    nameKey: 'riskMetrics.reliability.name',
+    descKey: 'riskMetrics.reliability.description',
     value: 99.9,
     max: 100,
-    description: 'Uptime and successful response rate over the last 30 days',
     status: 'low',
     trend: 'up',
   },
   {
     id: 'transparency',
-    name: 'Transparency Score',
+    nameKey: 'riskMetrics.transparency.name',
+    descKey: 'riskMetrics.transparency.description',
     value: 92,
     max: 100,
-    description: 'Based on documentation quality and open-source availability',
     status: 'low',
     trend: 'stable',
   },
@@ -122,45 +120,43 @@ const riskMetrics = [
 // 风险因素
 const riskFactors = [
   {
-    category: 'Smart Contract Risk',
+    categoryKey: 'riskFactors.smartContract.title',
     level: 'low',
-    description:
-      'Multiple audits by leading security firms including Trail of Bits, OpenZeppelin, and CertiK. No critical vulnerabilities found in recent audits.',
-    details: [
-      'Trail of Bits audit completed Q1 2024',
-      'OpenZeppelin continuous monitoring active',
-      'Bug bounty program with $500K+ rewards paid',
+    descKey: 'riskFactors.smartContract.description',
+    detailKeys: [
+      'riskFactors.smartContract.detail1',
+      'riskFactors.smartContract.detail2',
+      'riskFactors.smartContract.detail3',
     ],
   },
   {
-    category: 'Oracle Risk',
+    categoryKey: 'riskFactors.oracle.title',
     level: 'low',
-    description: 'Decentralized node network with reputation system and economic incentives.',
-    details: [
-      '1000+ node operators across 45+ countries',
-      'Reputation-based node selection algorithm',
-      'Staking mechanism with slashing conditions',
+    descKey: 'riskFactors.oracle.description',
+    detailKeys: [
+      'riskFactors.oracle.detail1',
+      'riskFactors.oracle.detail2',
+      'riskFactors.oracle.detail3',
     ],
   },
   {
-    category: 'Market Risk',
+    categoryKey: 'riskFactors.market.title',
     level: 'medium',
-    description:
-      'LINK token price volatility affects staking economics and network security budget.',
-    details: [
-      'LINK price correlation with market sentiment',
-      'Staking rewards denominated in LINK',
-      'Treasury diversification in progress',
+    descKey: 'riskFactors.market.description',
+    detailKeys: [
+      'riskFactors.market.detail1',
+      'riskFactors.market.detail2',
+      'riskFactors.market.detail3',
     ],
   },
   {
-    category: 'Regulatory Risk',
+    categoryKey: 'riskFactors.regulatory.title',
     level: 'medium',
-    description: 'Potential regulatory changes in DeFi sector and oracle services classification.',
-    details: [
-      'Ongoing regulatory clarity discussions',
-      'Compliance framework development',
-      'Geographic node distribution mitigates jurisdiction risk',
+    descKey: 'riskFactors.regulatory.description',
+    detailKeys: [
+      'riskFactors.regulatory.detail1',
+      'riskFactors.regulatory.detail2',
+      'riskFactors.regulatory.detail3',
     ],
   },
 ];
@@ -236,7 +232,7 @@ export function ChainlinkRiskView() {
           {riskMetrics.map((metric) => (
             <div key={metric.id} className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">{metric.name}</span>
+                <span className="text-sm text-gray-500">{t(`chainlink.${metric.nameKey}`)}</span>
                 {getTrendIcon(metric.trend)}
               </div>
               <div className="flex items-baseline gap-2">
@@ -253,7 +249,9 @@ export function ChainlinkRiskView() {
                   }}
                 />
               </div>
-              <p className="text-xs text-gray-400 leading-relaxed">{metric.description}</p>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                {t(`chainlink.${metric.descKey}`)}
+              </p>
             </div>
           ))}
         </div>
@@ -281,7 +279,11 @@ export function ChainlinkRiskView() {
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={benchmarkData}>
                   <PolarGrid stroke="#e5e7eb" />
-                  <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
+                  <PolarAngleAxis
+                    dataKey="metric"
+                    tick={{ fontSize: 11, fill: '#6b7280' }}
+                    tickFormatter={(value) => t(`chainlink.benchmark.${value}`)}
+                  />
                   <PolarRadiusAxis
                     angle={90}
                     domain={[0, 100]}
@@ -326,7 +328,7 @@ export function ChainlinkRiskView() {
               {benchmarkData.map((item) => (
                 <div key={item.metric} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{item.metric}</span>
+                    <span className="text-gray-600">{t(`chainlink.benchmark.${item.metric}`)}</span>
                     <span className="font-medium text-gray-900">{item.chainlink}</span>
                   </div>
                   <div className="flex gap-1 h-1.5">
@@ -407,7 +409,9 @@ export function ChainlinkRiskView() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900">{selectedEvent.title}</h4>
+                    <h4 className="text-sm font-medium text-gray-900">
+                      {t(`chainlink.riskEvents.${selectedEvent.title}`)}
+                    </h4>
                     <p className="text-xs text-gray-500 mt-1">
                       {new Date(selectedEvent.date).toLocaleDateString('zh-CN', {
                         year: 'numeric',
@@ -417,7 +421,9 @@ export function ChainlinkRiskView() {
                     </p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed">{selectedEvent.description}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {t(`chainlink.riskEvents.${selectedEvent.description}`)}
+                </p>
               </div>
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
@@ -458,11 +464,13 @@ export function ChainlinkRiskView() {
                   >
                     {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
                   </span>
-                  <span className="text-sm font-medium text-gray-900">{factor.category}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {t(`chainlink.${factor.categoryKey}`)}
+                  </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-500 hidden sm:block max-w-xs truncate">
-                    {factor.description}
+                    {t(`chainlink.${factor.descKey}`)}
                   </span>
                   {expandedFactor === index ? (
                     <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -473,15 +481,17 @@ export function ChainlinkRiskView() {
               </button>
               {expandedFactor === index && (
                 <div className="pb-4 px-2">
-                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">{factor.description}</p>
+                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                    {t(`chainlink.${factor.descKey}`)}
+                  </p>
                   <ul className="space-y-2">
-                    {factor.details.map((detail, detailIndex) => (
+                    {factor.detailKeys.map((detailKey, detailIndex) => (
                       <li
                         key={detailIndex}
                         className="flex items-start gap-2 text-sm text-gray-500"
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
-                        <span>{detail}</span>
+                        <span>{t(`chainlink.${detailKey}`)}</span>
                       </li>
                     ))}
                   </ul>

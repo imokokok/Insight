@@ -31,6 +31,40 @@
     "navigation": {
       "title": "导航"
     },
+    "hero": {
+      "trend24h": "24小时走势",
+      "ago24h": "24小时前",
+      "now": "现在",
+      "health": "健康度",
+      "gas": "Gas",
+      "response": "响应",
+      "online": "在线",
+      "support": "支持",
+      "chains": "链",
+      "latestUpdates": "最新动态：",
+      "gasLevel": {
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      },
+      "updates": {
+        "priceUpdate": "BAND 价格更新：${{price}} ({{change}})",
+        "newValidator": "新验证者加入：{{moniker}} ({{region}})",
+        "feedUpdate": "{{symbol}} 数据喂价更新",
+        "blockHeight": "BandChain 区块高度：#{{height}}",
+        "justNow": "刚刚",
+        "minutesAgo": "{{count}}分钟前",
+        "hoursAgo": "{{count}}小时前"
+      }
+    },
+    "time": {
+      "secondsAgo": "{{count}}秒前",
+      "minutesAgo": "{{count}}分钟前",
+      "hoursAgo": "{{count}}小时前",
+      "daysAgo": "{{count}}天前",
+      "ended": "已结束",
+      "timeRemaining": "{{days}}天 {{hours}}小时"
+    },
     "network": {
       "activeValidators": "活跃验证者",
       "stakingRatio": "质押比例",
@@ -41,7 +75,19 @@
       "bondedTokens": "质押代币",
       "communityPool": "社区池",
       "stakingParticipation": "质押参与率",
-      "cosmosMetrics": "网络概览"
+      "cosmosMetrics": "网络概览",
+      "hourlyActivity": "每小时活动",
+      "performance": "网络性能",
+      "successRate": "成功率",
+      "availability": "可用性",
+      "latency": "延迟",
+      "timeLabels": {
+        "start": "00:00",
+        "6h": "06:00",
+        "12h": "12:00",
+        "18h": "18:00",
+        "end": "23:59"
+      }
     },
     "activeValidators": "活跃验证者",
     "activePercent": "活跃",
@@ -83,7 +129,72 @@
       "trendDesc": "过去30天的风险评分变化",
       "loading": "加载风险指标中...",
       "loadError": "加载风险指标失败",
-      "viewSource": "查看来源"
+      "viewSource": "查看来源",
+      "riskFactors": {
+        "smartContract": {
+          "category": "智能合约风险",
+          "description": "已通过 CertiK 和 PeckShield 审计，未发现严重漏洞。持续监控中。",
+          "detail1": "2024年第一季度完成 CertiK 审计",
+          "detail2": "通过 PeckShield 安全审查",
+          "detail3": "漏洞赏金计划奖励超过20万美元",
+          "detail4": "合约升级采用多重签名治理"
+        },
+        "oracle": {
+          "category": "预言机风险",
+          "description": "去中心化验证者网络，具有经济激励和惩罚机制。",
+          "detail1": "{{count}} 个验证者分布在25个以上国家",
+          "detail2": "BFT 共识，需2/3以上阈值",
+          "detail3": "代币质押与惩罚条件",
+          "detail4": "来自15个以上提供商的数据源多样性"
+        },
+        "market": {
+          "category": "市场风险",
+          "description": "BAND 代币价格波动影响质押经济学和网络安全预算。",
+          "detail1": "BAND 价格与市场情绪相关",
+          "detail2": "质押奖励以 BAND 计价",
+          "detail3": "验证者奖励与代币价值挂钩",
+          "detail4": "国库管理进行中"
+        },
+        "centralization": {
+          "category": "中心化风险",
+          "description": "验证者集合是许可制的，头部验证者持有大量质押份额。",
+          "detail1": "许可制验证者集合（{{count}} 个活跃）",
+          "detail2": "前10名验证者控制约45%质押",
+          "detail3": "亚洲地理集中度约40%",
+          "detail4": "正在努力分散验证者基础"
+        },
+        "regulatory": {
+          "category": "监管风险",
+          "description": "DeFi 领域和预言机服务分类的潜在监管变化。",
+          "detail1": "持续的监管明确性讨论",
+          "detail2": "合规框架开发",
+          "detail3": "地理节点分布降低风险",
+          "detail4": "法务团队监控全球法规"
+        }
+      },
+      "metricsDisplay": {
+        "decentralization": {
+          "name": "去中心化评分",
+          "description": "基于验证者多样性和25个以上国家的地理分布"
+        },
+        "security": {
+          "name": "安全评级",
+          "description": "基于审计历史、漏洞赏金计划和事件响应"
+        },
+        "reliability": {
+          "name": "网络可靠性",
+          "description": "过去30天的正常运行时间和成功响应率"
+        },
+        "transparency": {
+          "name": "透明度评分",
+          "description": "基于文档质量和开源可用性"
+        }
+      },
+      "level": {
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      }
     },
     "riskAssessment": {
       "overallRiskScore": "综合风险评级",

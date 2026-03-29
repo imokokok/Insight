@@ -112,35 +112,36 @@ const mockPriceFeeds: PriceFeed[] = [
   },
 ];
 
-const categories = [
-  { id: 'all', label: 'All', count: mockPriceFeeds.length },
-  {
-    id: 'crypto',
-    label: 'Crypto',
-    count: mockPriceFeeds.filter((f) => f.category === 'crypto').length,
-  },
-  {
-    id: 'forex',
-    label: 'Forex',
-    count: mockPriceFeeds.filter((f) => f.category === 'forex').length,
-  },
-  {
-    id: 'commodities',
-    label: 'Commodities',
-    count: mockPriceFeeds.filter((f) => f.category === 'commodities').length,
-  },
-  {
-    id: 'equities',
-    label: 'Equities',
-    count: mockPriceFeeds.filter((f) => f.category === 'equities').length,
-  },
-];
-
 export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
   const t = useTranslations();
+  const tPyth = useTranslations('pyth');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedFeed, setSelectedFeed] = useState<PriceFeed | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const categories = [
+    { id: 'all', label: tPyth('categories.all'), count: mockPriceFeeds.length },
+    {
+      id: 'crypto',
+      label: tPyth('categories.crypto'),
+      count: mockPriceFeeds.filter((f) => f.category === 'crypto').length,
+    },
+    {
+      id: 'forex',
+      label: tPyth('categories.forex'),
+      count: mockPriceFeeds.filter((f) => f.category === 'forex').length,
+    },
+    {
+      id: 'commodities',
+      label: tPyth('categories.commodities'),
+      count: mockPriceFeeds.filter((f) => f.category === 'commodities').length,
+    },
+    {
+      id: 'equities',
+      label: tPyth('categories.equities'),
+      count: mockPriceFeeds.filter((f) => f.category === 'equities').length,
+    },
+  ];
 
   const handleFeedClick = (feed: PriceFeed) => {
     setSelectedFeed(feed);
@@ -303,7 +304,11 @@ export function PythPriceFeedsView({ isLoading }: { isLoading?: boolean }) {
                               : 'bg-red-500'
                         }`}
                       />
-                      {feed.status.charAt(0).toUpperCase() + feed.status.slice(1)}
+                      {feed.status === 'active'
+                        ? tPyth('status.active')
+                        : feed.status === 'paused'
+                          ? tPyth('status.paused')
+                          : tPyth('status.offline')}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right text-sm font-medium text-gray-900">

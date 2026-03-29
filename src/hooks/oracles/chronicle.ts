@@ -5,7 +5,15 @@ import { useMemo } from 'react';
 import { useQuery, useQueries } from '@tanstack/react-query';
 
 import { ChronicleClient } from '@/lib/oracles';
-import type { ScuttlebuttData, MakerDAOIntegration, ValidatorNetwork } from '@/lib/oracles';
+import type {
+  ScuttlebuttData,
+  MakerDAOIntegration,
+  ValidatorNetwork,
+  VaultData,
+  ScuttlebuttConsensus,
+  CrossChainPrice,
+  PriceDeviation,
+} from '@/lib/oracles';
 import { type Blockchain } from '@/types/oracle';
 
 const client = new ChronicleClient();
@@ -109,6 +117,24 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
         enabled,
         refetchInterval: 60000,
       },
+      {
+        queryKey: ['chronicle', 'vault'],
+        queryFn: () => client.getVaultData(),
+        enabled,
+        refetchInterval: 60000,
+      },
+      {
+        queryKey: ['chronicle', 'cross-chain', symbol],
+        queryFn: () => client.getCrossChainPrices(symbol),
+        enabled,
+        refetchInterval: 60000,
+      },
+      {
+        queryKey: ['chronicle', 'price-deviation', symbol],
+        queryFn: () => client.getPriceDeviation(symbol),
+        enabled,
+        refetchInterval: 30000,
+      },
     ],
   });
 
@@ -120,6 +146,9 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
     validatorsResult,
     networkResult,
     stakingResult,
+    vaultResult,
+    crossChainResult,
+    deviationResult,
   ] = results;
 
   const isLoading = results.some((r) => r.isLoading);
@@ -130,7 +159,6 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
     results.forEach((r) => r.refetch());
   };
 
-  // Get the most recent data update timestamp
   const lastUpdated = useMemo(() => {
     const timestamps = results.map((r) => r.dataUpdatedAt).filter((t): t is number => t > 0);
     return timestamps.length > 0 ? new Date(Math.max(...timestamps)) : null;
@@ -145,6 +173,9 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
       validatorMetrics: validatorsResult.data,
       networkStats: networkResult.data,
       staking: stakingResult.data,
+      vaultData: vaultResult.data,
+      crossChainData: crossChainResult.data,
+      deviationData: deviationResult.data,
       isLoading,
       isError,
       errors,
@@ -159,10 +190,45 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
       validatorsResult.data,
       networkResult.data,
       stakingResult.data,
+      vaultResult.data,
+      crossChainResult.data,
+      deviationResult.data,
       isLoading,
       isError,
       errors,
       lastUpdated,
     ]
   );
+}
+
+export function useChronicleVaultData() {
+  return useQuery<VaultData>({
+    queryKey: ['chronicle', 'vault'],
+    queryFn: () => client.getVaultData(),
+    refetchInterval: 60000,
+  });
+}
+
+export function useChronicleScuttlebuttConsensus() {
+  return useQuery<ScuttlebuttConsensus>({
+    queryKey: ['chronicle', 'scuttlebutt-consensus'],
+    queryFn: () => client.getScuttlebuttConsensus(),
+    refetchInterval: 30000,
+  });
+}
+
+export function useChronicleCrossChain(symbol: string) {
+  return useQuery<CrossChainPrice[]>({
+    queryKey: ['chronicle', 'cross-chain', symbol],
+    queryFn: () => client.getCrossChainPrices(symbol),
+    refetchInterval: 60000,
+  });
+}
+
+export function useChroniclePriceDeviation(symbol: string) {
+  return useQuery<PriceDeviation[]>({
+    queryKey: ['chronicle', 'price-deviation', symbol],
+    queryFn: () => client.getPriceDeviation(symbol),
+    refetchInterval: 30000,
+  });
 }

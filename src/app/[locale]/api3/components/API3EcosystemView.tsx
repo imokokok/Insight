@@ -242,7 +242,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
             <h3 className="text-base font-semibold text-gray-900">
               {t('ecosystem.tvlAnalysis.title') || 'TVL Analysis'}
             </h3>
-            <p className="text-sm text-gray-500 mt-0.5">Total Value Locked across API3 ecosystem</p>
+            <p className="text-sm text-gray-500 mt-0.5">{t('ecosystem.tvlTrend')}</p>
           </div>
           <div className="flex items-center border-b border-gray-200">
             {(['1M', '3M', '6M', '1Y'] as const).map((range) => (
@@ -456,7 +456,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
               {t('ecosystem.projectAnalysis.projectsByChain') || 'Projects by Chain'}
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
-              Distribution of projects across supported networks
+              {t('ecosystem.distributionByNetwork')}
             </p>
           </div>
           <div className="h-56">
@@ -507,7 +507,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
             <h3 className="text-base font-semibold text-gray-900">
               {t('ecosystem.growth.title') || 'Ecosystem Growth'}
             </h3>
-            <p className="text-sm text-gray-500 mt-0.5">Key performance indicators</p>
+            <p className="text-sm text-gray-500 mt-0.5">{t('ecosystem.keyIndicators')}</p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between py-3 border-b border-gray-100">

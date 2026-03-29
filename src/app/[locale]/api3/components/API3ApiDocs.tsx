@@ -19,11 +19,11 @@ import { useTranslations } from '@/i18n';
 
 import { type API3ApiDocsProps } from '../types';
 
-const apiEndpoints = [
+const getApiEndpoints = (t: (key: string) => string) => [
   {
     id: 'market',
-    name: 'Market API',
-    description: '获取市场价格、交易量等实时数据',
+    name: t('api3.developer.apiDocs.marketApi.name'),
+    description: t('api3.developer.apiDocs.marketApi.description'),
     endpoints: [
       {
         method: 'GET',
@@ -73,8 +73,8 @@ const apiEndpoints = [
   },
   {
     id: 'dao',
-    name: 'DAO API',
-    description: '获取DAO治理、质押等数据',
+    name: t('api3.developer.apiDocs.daoApi.name'),
+    description: t('api3.developer.apiDocs.daoApi.description'),
     endpoints: [
       {
         method: 'GET',
@@ -128,8 +128,8 @@ const apiEndpoints = [
   },
   {
     id: 'dapi',
-    name: 'dAPI API',
-    description: '获取dAPI数据源信息',
+    name: t('api3.developer.apiDocs.dapiApi.name'),
+    description: t('api3.developer.apiDocs.dapiApi.description'),
     endpoints: [
       {
         method: 'GET',
@@ -255,6 +255,7 @@ const rateLimits = [
 
 export function API3ApiDocs({ locale }: API3ApiDocsProps) {
   const t = useTranslations();
+  const apiEndpoints = getApiEndpoints(t);
   const [expandedApi, setExpandedApi] = useState<string>('market');
   const [expandedEndpoint, setExpandedEndpoint] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<'javascript' | 'python' | 'curl'>('javascript');
@@ -360,9 +361,9 @@ export function API3ApiDocs({ locale }: API3ApiDocsProps) {
                                         <td className="px-3 py-2 text-gray-600">{param.type}</td>
                                         <td className="px-3 py-2">
                                           {param.required ? (
-                                            <span className="text-red-500 text-xs">Yes</span>
+                                            <span className="text-red-500 text-xs">{t('api3.developer.apiDocs.yes')}</span>
                                           ) : (
-                                            <span className="text-gray-400 text-xs">No</span>
+                                            <span className="text-gray-400 text-xs">{t('api3.developer.apiDocs.no')}</span>
                                           )}
                                         </td>
                                         <td className="px-3 py-2 text-gray-600">{param.description}</td>
@@ -531,7 +532,7 @@ Content-Type: application/json`}
               rel="noopener noreferrer"
               className="block text-sm text-emerald-600 hover:text-emerald-700"
             >
-              API3 官方 API 文档 →
+              {t('api3.developer.apiDocs.officialDocs')} →
             </a>
             <a
               href="https://docs.api3.org/guides/"
@@ -539,7 +540,7 @@ Content-Type: application/json`}
               rel="noopener noreferrer"
               className="block text-sm text-emerald-600 hover:text-emerald-700"
             >
-              开发者指南 →
+              {t('api3.developer.apiDocs.devGuide')} →
             </a>
           </div>
         </div>

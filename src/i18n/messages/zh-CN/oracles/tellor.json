@@ -9,7 +9,8 @@
       "disputes": "争议",
       "staking": "质押",
       "ecosystem": "生态系统",
-      "riskAssessment": "风险评估"
+      "riskAssessment": "风险评估",
+      "governance": "治理"
     },
     "navigation": {
       "title": "导航"
@@ -57,6 +58,9 @@
       "currentPrice": "当前价格",
       "avgPrice": "平均价格",
       "volume": "交易量"
+    },
+    "panels": {
+      "title": "数据面板"
     },
     "marketDepth": {
       "title": "市场深度分析",
@@ -144,6 +148,12 @@
       "accuracyBonus": "准确率奖励",
       "stakeBonus": "质押奖励",
       "regionDistribution": "地区分布",
+      "viewOnEtherscan": "在 Etherscan 上查看",
+      "dataSourceOnChain": "链上数据",
+      "dataSourceCache": "缓存数据",
+      "dataSourceFallback": "备用数据",
+      "lastUpdated": "最后更新",
+      "refresh": "刷新数据",
       "avgReputation": "平均声誉",
       "topPerformers": "顶级表现者",
       "regions": "地区"
@@ -322,12 +332,34 @@
       "howItWorks": "质押说明",
       "risks": "质押风险"
     },
+    "autopay": {
+      "totalFunds": "总资金量",
+      "activeQueries": "活跃Query",
+      "pendingRewards": "待领取奖励",
+      "sponsors": "赞助商数量",
+      "activeQueriesList": "活跃Query列表",
+      "queryId": "Query ID",
+      "dataType": "数据类型",
+      "currentTip": "当前打赏",
+      "totalReward": "累计奖励",
+      "lastUpdate": "最后更新",
+      "fundingHistory": "资金历史记录",
+      "time": "时间",
+      "type": "类型",
+      "amount": "金额",
+      "address": "地址",
+      "tip": "打赏",
+      "claim": "领取",
+      "howItWorks": "Autopay 工作原理",
+      "benefits": "优势"
+    },
     "disputes": {
       "title": "争议",
       "total": "总计",
       "pending": "待处理",
       "recent": "最近争议",
       "stakeAmount": "质押金额",
+      "transaction": "交易",
       "flow": {
         "title": "争议解决流程",
         "submit": "提交数据",
@@ -373,7 +405,110 @@
       "step2Title": "发起挑战",
       "step2Desc": "任何参与者都可以对数据提出质疑",
       "step3Title": "投票解决",
-      "step3Desc": "社区投票决定争议结果"
+      "step3Desc": "社区投票决定争议结果",
+      "dataSource": "数据来源",
+      "lastUpdated": "最后更新",
+      "refresh": "刷新",
+      "viewOnEtherscan": "在 Etherscan 查看",
+      "evidence": "争议证据",
+      "votingProgress": "投票进度",
+      "timeline": "时间线",
+      "started": "开始时间",
+      "deadline": "投票截止",
+      "disputedValue": "争议价值",
+      "noDisputes": "暂无争议数据"
+    },
+    "queryData": {
+      "title": "Query Data",
+      "whatIsQueryId": "什么是 Query ID？",
+      "queryIdDescription": "Query ID 是 Tellor 网络中每个数据请求的唯一标识符。它通过对查询数据使用 keccak256 哈希算法生成。",
+      "encodingFormat": "编码格式",
+      "queryDataStructure": "查询数据结构",
+      "supportedTypes": "支持的查询类型",
+      "queryTool": "Query ID 解码工具",
+      "enterQueryData": "输入查询数据",
+      "decode": "解码",
+      "inputRequired": "请输入查询数据",
+      "invalidFormat": "无效的查询数据格式",
+      "decodeFailed": "解码失败",
+      "decodedResult": "解码结果",
+      "queryType": "查询类型",
+      "queryId": "Query ID",
+      "humanReadable": "人类可读描述",
+      "parameters": "参数",
+      "example": "示例",
+      "popularQueries": "热门查询",
+      "topUsed": "最常用查询",
+      "currentValue": "当前值",
+      "lastUpdated": "最后更新"
+    },
+    "tellorLayer": {
+      "overview": {
+        "chainId": "链 ID",
+        "consensus": "共识机制",
+        "blockHeight": "区块高度",
+        "validators": "验证者数量",
+        "avgBlockTime": "平均区块时间",
+        "networkStatus": "网络状态",
+        "active": "运行中"
+      },
+      "metrics": {
+        "title": "链状态指标",
+        "activeValidators": "活跃验证者",
+        "onlineRate": "在线率",
+        "throughput": "交易吞吐量",
+        "trbStaked": "TRB 质押量"
+      },
+      "bridge": {
+        "title": "跨链桥统计",
+        "ethToLayer": "ETH → Layer",
+        "layerToEth": "Layer → ETH",
+        "volume": "桥接量",
+        "transactions": "交易数",
+        "pending": "待处理",
+        "avgTime": "平均桥接时间",
+        "fee": "桥接费用",
+        "activityChart": "桥接活动 (近2小时)"
+      },
+      "dataSources": {
+        "title": "Layer 原生数据源",
+        "queries": "查询数",
+        "reporters": "报告者",
+        "spotPriceDesc": "来自多个数据源的实时现货价格数据",
+        "twapDesc": "时间加权平均价格，降低波动性",
+        "randomDesc": "可验证的随机数生成",
+        "customDesc": "用于专业数据需求的自定义查询类型"
+      },
+      "comparison": {
+        "title": "Layer 与 EVM 链对比",
+        "feature": "特性",
+        "updateSpeed": "更新速度",
+        "gasCost": "Gas 费用",
+        "customData": "自定义数据支持",
+        "native": "原生支持",
+        "limited": "有限支持",
+        "consensus": "共识机制",
+        "finality": "最终性"
+      }
+    },
+    "governance": {
+      "title": "Tellor 治理",
+      "totalVotingPower": "总投票权",
+      "activeProposals": "活跃提案",
+      "participationRate": "参与率",
+      "nextDeadline": "下次投票截止",
+      "category": {
+        "parameter": "参数更改",
+        "treasury": "资金分配",
+        "other": "其他"
+      },
+      "status": {
+        "active": "进行中",
+        "passed": "已通过",
+        "rejected": "已拒绝",
+        "pending": "待投票",
+        "executed": "已执行"
+      }
     }
   }
 }

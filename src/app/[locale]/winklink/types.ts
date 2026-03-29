@@ -11,7 +11,7 @@ import { type PriceData } from '@/types/oracle';
 
 export type StakingNode = WINkLinkNode;
 
-export type WinklinkTabId = 'market' | 'network' | 'tron' | 'staking' | 'gaming' | 'risk';
+export type WinklinkTabId = 'market' | 'network' | 'tron' | 'staking' | 'gaming' | 'vrf' | 'cross-chain' | 'accuracy' | 'developer' | 'risk';
 
 export interface WinklinkPageState {
   activeTab: WinklinkTabId;
@@ -69,6 +69,40 @@ export interface WinklinkGamingViewProps {
 
 export interface WinklinkRiskViewProps {
   riskMetrics: WINkLinkRiskMetrics | null | undefined;
+  isLoading: boolean;
+}
+
+export interface VRFRequest {
+  requestId: string;
+  consumer: string;
+  randomValue: string | null;
+  status: 'fulfilled' | 'pending' | 'failed';
+  timestamp: number;
+  proof: string | null;
+}
+
+export interface VRFUseCase {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  usageCount: number;
+  reliability: number;
+  avgLatency: number;
+}
+
+export interface VRFData {
+  totalRequests: number;
+  dailyRequests: number;
+  averageResponseTime: number;
+  successRate: number;
+  activeConsumers: number;
+  totalRandomnessGenerated: string;
+  recentRequests: VRFRequest[];
+}
+
+export interface WinklinkVRFViewProps {
+  vrf: VRFData | null | undefined;
   isLoading: boolean;
 }
 

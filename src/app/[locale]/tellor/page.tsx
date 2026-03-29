@@ -21,6 +21,7 @@ import {
   TellorEcosystemView,
   TellorRiskView,
   TellorHero,
+  TellorGovernanceView,
 } from './components';
 import { useTellorPage } from './hooks/useTellorPage';
 import { type TellorTabId } from './types';
@@ -32,6 +33,9 @@ export default function TellorPage() {
     price,
     historicalData,
     networkStats,
+    networkHealth,
+    ecosystem,
+    risk,
     isLoading,
     isError,
     error,
@@ -70,7 +74,12 @@ export default function TellorPage() {
         );
       case 'network':
         return (
-          <TellorNetworkView config={config} networkStats={networkStats} isLoading={isLoading} />
+          <TellorNetworkView
+            config={config}
+            networkStats={networkStats}
+            networkHealth={networkHealth}
+            isLoading={isLoading}
+          />
         );
       case 'reporters':
         return <TellorReportersView isLoading={isLoading} />;
@@ -79,9 +88,11 @@ export default function TellorPage() {
       case 'staking':
         return <TellorStakingView isLoading={isLoading} />;
       case 'ecosystem':
-        return <TellorEcosystemView isLoading={isLoading} />;
+        return <TellorEcosystemView ecosystem={ecosystem} isLoading={isLoading} />;
       case 'risk':
-        return <TellorRiskView isLoading={isLoading} />;
+        return <TellorRiskView risk={risk} isLoading={isLoading} />;
+      case 'governance':
+        return <TellorGovernanceView isLoading={isLoading} />;
       default:
         return null;
     }

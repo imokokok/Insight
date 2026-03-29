@@ -132,10 +132,10 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
             <div className="flex items-center justify-center gap-2 mb-2">
               <Network className={`w-5 h-5 ${currentNetwork === 'mainnet' ? 'text-emerald-600' : 'text-gray-400'}`} />
               <span className={`font-medium ${currentNetwork === 'mainnet' ? 'text-emerald-700' : 'text-gray-700'}`}>
-                Mainnet
+                {t('api3.developer.testnet.mainnet')}
               </span>
             </div>
-            <p className="text-xs text-gray-500 text-center">生产环境，真实资产</p>
+            <p className="text-xs text-gray-500 text-center">{t('api3.developer.testnet.mainnetDesc')}</p>
           </button>
 
           <button
@@ -149,10 +149,10 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
             <div className="flex items-center justify-center gap-2 mb-2">
               <TestTube className={`w-5 h-5 ${currentNetwork === 'testnet' ? 'text-emerald-600' : 'text-gray-400'}`} />
               <span className={`font-medium ${currentNetwork === 'testnet' ? 'text-emerald-700' : 'text-gray-700'}`}>
-                Testnet
+                {t('api3.developer.testnet.testnet')}
               </span>
             </div>
-            <p className="text-xs text-gray-500 text-center">测试环境，无风险测试</p>
+            <p className="text-xs text-gray-500 text-center">{t('api3.developer.testnet.testnetDesc')}</p>
           </button>
         </div>
 
@@ -185,15 +185,15 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
         <div className="bg-white border border-gray-100 rounded-lg overflow-hidden">
           <div className="divide-y divide-gray-100">
             <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-gray-500">Network Name</span>
+              <span className="text-sm text-gray-500">{t('api3.developer.testnet.config.networkName')}</span>
               <span className="text-sm font-medium text-gray-900">{selectedConfig.name}</span>
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-gray-500">Chain ID</span>
+              <span className="text-sm text-gray-500">{t('api3.developer.testnet.config.chainId')}</span>
               <span className="text-sm font-mono text-gray-900">{selectedConfig.chainId}</span>
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-gray-500">RPC URL</span>
+              <span className="text-sm text-gray-500">{t('api3.developer.testnet.config.rpcUrl')}</span>
               <div className="flex items-center gap-2">
                 <code className="text-sm font-mono text-gray-900 truncate max-w-[200px]">{selectedConfig.rpcUrl}</code>
                 <button
@@ -209,11 +209,11 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
               </div>
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-gray-500">Native Token</span>
+              <span className="text-sm text-gray-500">{t('api3.developer.testnet.config.nativeToken')}</span>
               <span className="text-sm font-medium text-gray-900">{selectedConfig.nativeToken}</span>
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-gray-500">API3 Server Address</span>
+              <span className="text-sm text-gray-500">{t('api3.developer.testnet.config.api3ServerAddress')}</span>
               <div className="flex items-center gap-2">
                 <code className="text-sm font-mono text-gray-900 truncate max-w-[200px]">
                   {selectedConfig.api3ServerAddress}
@@ -241,7 +241,7 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
             className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
           >
             <LinkIcon className="w-4 h-4" />
-            区块浏览器
+            {t('api3.developer.testnet.config.blockExplorer')}
           </a>
           {selectedConfig.faucetUrl && (
             <a
@@ -251,7 +251,7 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100"
             >
               <Coins className="w-4 h-4" />
-              获取测试代币
+              {t('api3.developer.testnet.config.getTestTokens')}
             </a>
           )}
         </div>
@@ -273,7 +273,7 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5" />
                 <p className="text-sm text-amber-800">
-                  测试代币仅用于测试目的，没有任何实际价值。请勿将测试代币发送到主网地址。
+                  {t('api3.developer.testnet.testTokens.warning')}
                 </p>
               </div>
             </div>
@@ -330,7 +330,7 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
               rel="noopener noreferrer"
               className="block text-sm text-emerald-600 hover:text-emerald-700"
             >
-              如何读取 dAPI 数据 →
+              {t('api3.developer.testnet.resources.readDapi')} →
             </a>
             <a
               href="https://docs.api3.org/reference/chains/"
@@ -338,7 +338,7 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
               rel="noopener noreferrer"
               className="block text-sm text-emerald-600 hover:text-emerald-700"
             >
-              支持的链列表 →
+              {t('api3.developer.testnet.resources.supportedChains')} →
             </a>
             <a
               href="https://market.api3.org"
@@ -346,7 +346,7 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
               rel="noopener noreferrer"
               className="block text-sm text-emerald-600 hover:text-emerald-700"
             >
-              API3 Market →
+              {t('api3.developer.testnet.resources.api3Market')} →
             </a>
           </div>
         </div>

@@ -1,4 +1,9 @@
 import { type OracleConfig } from '@/lib/config/oracles';
+import {
+  type TellorNetworkHealth,
+  type EcosystemStats,
+  type RiskMetrics,
+} from '@/lib/oracles/tellor';
 import { type PriceData } from '@/types/oracle';
 
 export type TellorTabId =
@@ -8,7 +13,8 @@ export type TellorTabId =
   | 'disputes'
   | 'staking'
   | 'ecosystem'
-  | 'risk';
+  | 'risk'
+  | 'governance';
 
 export interface NetworkStats {
   activeNodes: number;
@@ -51,6 +57,7 @@ export interface TellorMarketViewProps {
 export interface TellorNetworkViewProps {
   config: OracleConfig;
   networkStats: NetworkStats | null | undefined;
+  networkHealth: TellorNetworkHealth | null | undefined;
   isLoading: boolean;
 }
 
@@ -66,11 +73,25 @@ export interface TellorStakingViewProps {
   isLoading: boolean;
 }
 
+export interface TellorAutopayViewProps {
+  isLoading: boolean;
+}
+
 export interface TellorEcosystemViewProps {
+  ecosystem: EcosystemStats | null | undefined;
   isLoading: boolean;
 }
 
 export interface TellorRiskViewProps {
+  risk: RiskMetrics | null | undefined;
+  isLoading: boolean;
+}
+
+export interface TellorQueryDataViewProps {
+  isLoading: boolean;
+}
+
+export interface TellorLayerViewProps {
   isLoading: boolean;
 }
 
@@ -126,5 +147,46 @@ export interface TellorDataTableProps<T> {
   }>;
   sortConfig?: SortConfig;
   onSort?: (key: string) => void;
+  isLoading?: boolean;
+}
+
+export interface TellorGovernanceProposal {
+  id: string;
+  title: string;
+  description: string;
+  status: 'active' | 'passed' | 'rejected' | 'pending' | 'executed';
+  proposer: string;
+  startBlock: number;
+  endBlock: number;
+  forVotes: number;
+  againstVotes: number;
+  abstainVotes: number;
+  quorum: number;
+  votingPower: number;
+  category: 'parameter' | 'treasury' | 'other';
+}
+
+export interface TellorVotingWeightDistribution {
+  holder: string;
+  votingPower: number;
+  percentage: number;
+  isDelegated: boolean;
+}
+
+export interface TellorGovernanceStats {
+  totalVotingPower: number;
+  activeProposals: number;
+  participationRate: number;
+  nextVotingDeadline: number;
+  totalProposals: number;
+  passedProposals: number;
+  rejectedProposals: number;
+  quorumThreshold: number;
+}
+
+export interface TellorGovernanceViewProps {
+  proposals?: TellorGovernanceProposal[];
+  votingWeights?: TellorVotingWeightDistribution[];
+  stats?: TellorGovernanceStats;
   isLoading?: boolean;
 }

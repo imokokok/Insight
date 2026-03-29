@@ -86,6 +86,7 @@ function getLatencyColor(latency: number): string {
 
 export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
   const t = useTranslations();
+  const tPyth = useTranslations('pyth');
 
   const chainData = useMemo(() => generateMockChainData(), []);
 
@@ -128,7 +129,7 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
         <div className="py-2">
           <div className="flex items-center gap-2 text-gray-500 mb-1">
             <TrendingUp className="w-4 h-4" />
-            <span className="text-sm">{t('pyth.crossChain.avgDeviation') || '平均价格偏差'}</span>
+            <span className="text-sm">{tPyth('crossChain.avgDeviation')}</span>
           </div>
           <p className="text-3xl font-semibold text-gray-900 tracking-tight">
             {stats.avgDeviation}%
@@ -138,7 +139,7 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
         <div className="py-2">
           <div className="flex items-center gap-2 text-gray-500 mb-1">
             <AlertTriangle className="w-4 h-4" />
-            <span className="text-sm">{t('pyth.crossChain.maxDeviation') || '最大偏差链'}</span>
+            <span className="text-sm">{tPyth('crossChain.maxDeviation')}</span>
           </div>
           <p className="text-3xl font-semibold text-gray-900 tracking-tight">
             {stats.maxDeviationChain}
@@ -149,7 +150,7 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
         <div className="py-2">
           <div className="flex items-center gap-2 text-gray-500 mb-1">
             <CheckCircle className="w-4 h-4" />
-            <span className="text-sm">{t('pyth.crossChain.successRate') || '更新成功率'}</span>
+            <span className="text-sm">{tPyth('crossChain.successRate')}</span>
           </div>
           <p className="text-3xl font-semibold text-gray-900 tracking-tight">
             {stats.successRate}%
@@ -159,7 +160,7 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
         <div className="py-2">
           <div className="flex items-center gap-2 text-gray-500 mb-1">
             <Globe className="w-4 h-4" />
-            <span className="text-sm">{t('pyth.crossChain.wormholeStatus') || 'Wormhole状态'}</span>
+            <span className="text-sm">{tPyth('crossChain.wormholeStatus')}</span>
           </div>
           <div className="flex items-center gap-2">
             <p className="text-3xl font-semibold text-gray-900 tracking-tight">
@@ -183,10 +184,10 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-medium text-gray-900">
-            {t('pyth.crossChain.priceComparison') || '多链价格对比'}
+            {tPyth('crossChain.priceComparison')}
           </h3>
           <span className="text-sm text-gray-500">
-            {t('pyth.crossChain.basePrice') || '基准价格'}: $0.4500
+            {tPyth('crossChain.basePrice')}: $0.4500
           </span>
         </div>
 
@@ -195,22 +196,22 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('pyth.crossChain.chain') || '链'}
+                  {tPyth('crossChain.chain')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('pyth.crossChain.price') || '价格'}
+                  {tPyth('crossChain.price')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('pyth.crossChain.deviation') || '偏差'}
+                  {tPyth('crossChain.deviation')}
                 </th>
                 <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('pyth.crossChain.status') || '状态'}
+                  {tPyth('crossChain.status')}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('pyth.crossChain.latency') || '延迟'}
+                  {tPyth('crossChain.latency')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                  {t('pyth.crossChain.lastUpdate') || '最后更新'}
+                  {tPyth('crossChain.lastUpdate')}
                 </th>
               </tr>
             </thead>
@@ -267,7 +268,7 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
                     </td>
                     <td className="py-3 px-4 text-right">
                       <span className="text-xs text-gray-400">
-                        {timeAgo < 60 ? `${timeAgo}s ago` : `${Math.floor(timeAgo / 60)}m ago`}
+                        {timeAgo < 60 ? tPyth('crossChain.timeAgo.seconds', { seconds: timeAgo }) : tPyth('crossChain.timeAgo.minutes', { minutes: Math.floor(timeAgo / 60) })}
                       </span>
                     </td>
                   </tr>
@@ -283,7 +284,7 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
           <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('pyth.crossChain.deviationHeatmap') || '价格偏差热力图'}
+            {tPyth('crossChain.deviationHeatmap')}
           </h3>
           <div className="grid grid-cols-4 gap-2">
             {sortedByDeviation.map((data) => {
@@ -341,7 +342,7 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
 
         <div>
           <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('pyth.crossChain.wormholeInfo') || 'Wormhole跨链状态'}
+            {tPyth('crossChain.wormholeInfo')}
           </h3>
 
           <div className="space-y-4">
@@ -350,7 +351,7 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
                 <div className="flex items-center gap-2">
                   <Zap className="w-5 h-5 text-violet-500" />
                   <span className="text-sm font-medium text-gray-900">
-                    {t('pyth.crossChain.guardianNetwork') || 'Guardian网络'}
+                    {tPyth('crossChain.guardianNetwork')}
                   </span>
                 </div>
                 <span
@@ -363,20 +364,20 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
                   }`}
                 >
                   {wormholeStatus.status === 'healthy'
-                    ? t('pyth.crossChain.healthy') || '健康'
+                    ? tPyth('crossChain.healthy')
                     : wormholeStatus.status === 'degraded'
-                      ? t('pyth.crossChain.degraded') || '降级'
-                      : t('pyth.crossChain.critical') || '异常'}
+                      ? tPyth('crossChain.degraded')
+                      : tPyth('crossChain.critical')}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">{t('pyth.crossChain.activeGuardians') || '活跃Guardians'}</p>
+                  <p className="text-gray-500">{tPyth('crossChain.activeGuardians')}</p>
                   <p className="text-lg font-semibold text-gray-900">19/19</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">{t('pyth.crossChain.vaaLatency') || 'VAA延迟'}</p>
+                  <p className="text-gray-500">{tPyth('crossChain.vaaLatency')}</p>
                   <p className="text-lg font-semibold text-gray-900">~3s</p>
                 </div>
               </div>
@@ -384,30 +385,30 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
 
             <div className="p-4 rounded-lg border border-gray-200">
               <h4 className="text-sm font-medium text-gray-900 mb-3">
-                {t('pyth.crossChain.crossChainFlow') || '跨链数据流'}
+                {tPyth('crossChain.crossChainFlow')}
               </h4>
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">◎</span>
-                  <span className="text-gray-600">Solana</span>
+                  <span className="text-gray-600">{tPyth('chains.solana')}</span>
                 </div>
                 <ArrowRight className="w-4 h-4 text-gray-400" />
                 <div className="flex items-center gap-2">
                   <span className="text-lg">Ξ</span>
-                  <span className="text-gray-600">Ethereum</span>
+                  <span className="text-gray-600">{tPyth('chains.ethereum')}</span>
                 </div>
               </div>
               <div className="mt-3 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-xs text-gray-500">
-                  {t('pyth.crossChain.avgTransferTime') || '平均传输时间'}: ~5s
+                  {tPyth('crossChain.avgTransferTime')}: ~5s
                 </span>
               </div>
             </div>
 
             <div className="p-4 rounded-lg border border-gray-200">
               <h4 className="text-sm font-medium text-gray-900 mb-3">
-                {t('pyth.crossChain.updateLatency') || '链上更新延迟对比'}
+                {tPyth('crossChain.updateLatency')}
               </h4>
               <div className="space-y-3">
                 {chainData.slice(0, 4).map((data) => {
@@ -436,13 +437,13 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
 
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('pyth.crossChain.consistencyScore') || '价格一致性评分'}
+          {tPyth('crossChain.consistencyScore')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-500">
-                {t('pyth.crossChain.overallScore') || '总体评分'}
+                {tPyth('crossChain.overallScore')}
               </span>
               <span className="text-2xl font-bold text-emerald-600">98.5</span>
             </div>
@@ -450,14 +451,14 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
               <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '98.5%' }} />
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              {t('pyth.crossChain.excellent') || '优秀 - 跨链价格高度一致'}
+              {tPyth('crossChain.excellent')}
             </p>
           </div>
 
           <div className="p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-500">
-                {t('pyth.crossChain.updateSync') || '更新同步率'}
+                {tPyth('crossChain.updateSync')}
               </span>
               <span className="text-2xl font-bold text-violet-600">99.2%</span>
             </div>
@@ -465,14 +466,14 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
               <div className="bg-violet-500 h-2 rounded-full" style={{ width: '99.2%' }} />
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              {t('pyth.crossChain.chainsSynced') || '所有链在1秒内同步更新'}
+              {tPyth('crossChain.chainsSynced')}
             </p>
           </div>
 
           <div className="p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-500">
-                {t('pyth.crossChain.arbOpportunity') || '套利机会'}
+                {tPyth('crossChain.arbOpportunity')}
               </span>
               <span className="text-2xl font-bold text-amber-600">0.12%</span>
             </div>
@@ -480,7 +481,7 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
               <div className="bg-amber-500 h-2 rounded-full" style={{ width: '24%' }} />
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              {t('pyth.crossChain.lowArb') || '低套利空间 - 市场效率高'}
+              {tPyth('crossChain.lowArb')}
             </p>
           </div>
         </div>

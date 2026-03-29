@@ -36,16 +36,15 @@ function formatDate(timestamp: number): string {
   });
 }
 
-function formatTimeRemaining(endTime: number): string {
+function formatTimeRemaining(endTime: number, t: (key: string, params?: Record<string, string | number | Date>) => string): string {
   const now = Date.now();
   const diff = endTime - now;
-  if (diff <= 0) return 'Ended';
+  if (diff <= 0) return t('band.bandProtocol.time.ended');
   
   const days = Math.floor(diff / (24 * 60 * 60 * 1000));
   const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
   
-  if (days > 0) return `${days}d ${hours}h`;
-  return `${hours}h`;
+  return t('band.bandProtocol.time.timeRemaining', { days, hours });
 }
 
 function getStatusIcon(status: ProposalStatus) {
@@ -429,7 +428,7 @@ export function BandProtocolGovernanceView({
                     <span>{t('band.bandProtocol.governance.proposer') || 'Proposer'}: {proposal.proposer.slice(0, 16)}...</span>
                     {proposal.status === 'voting' && (
                       <span className="text-blue-600 font-medium">
-                        {t('band.bandProtocol.governance.timeRemaining') || 'Time Remaining'}: {formatTimeRemaining(proposal.votingEndTime)}
+                        {t('band.bandProtocol.governance.timeRemaining')}: {formatTimeRemaining(proposal.votingEndTime, t)}
                       </span>
                     )}
                   </div>

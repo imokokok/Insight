@@ -183,10 +183,12 @@ function MiniPriceChart({
   historicalData,
   currentPrice,
   themeColor,
+  t,
 }: {
   historicalData: PriceData[];
   currentPrice: PriceData | null;
   themeColor: string;
+  t: (key: string) => string;
 }) {
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
@@ -215,7 +217,7 @@ function MiniPriceChart({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
+          <span>{t('api3.hero.priceTrend24h')}</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
@@ -226,8 +228,8 @@ function MiniPriceChart({
         <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>{t('api3.hero.hoursAgo')}</span>
+        <span>{t('api3.hero.now')}</span>
       </div>
     </div>
   );
@@ -329,6 +331,7 @@ function UnifiedInfoSection({
   healthScore,
   chains,
   themeColor,
+  t,
 }: {
   networkStats?: {
     avgResponseTime: number;
@@ -338,6 +341,7 @@ function UnifiedInfoSection({
   healthScore: number;
   chains: string[];
   themeColor: string;
+  t: (key: string) => string;
 }) {
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
@@ -353,14 +357,14 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return { label: t('api3.hero.gasMedium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return { label: t('api3.hero.gasLow'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return { label: t('api3.hero.gasMedium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: t('api3.hero.gasHigh'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
   // 只显示前3个链
   const displayChains = chains.slice(0, 3);
@@ -372,7 +376,7 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('api3.hero.healthScore')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -395,7 +399,7 @@ function UnifiedInfoSection({
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('api3.hero.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -411,7 +415,7 @@ function UnifiedInfoSection({
           {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('api3.hero.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
@@ -420,7 +424,7 @@ function UnifiedInfoSection({
           {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('api3.hero.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
@@ -433,12 +437,12 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('api3.hero.supportedChains')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {chains.length}+ {t('api3.hero.chains')}
           </span>
           {/* 前3个链图标 */}
           <div className="flex -space-x-1">
@@ -501,7 +505,7 @@ export function API3Hero({
   // 核心统计指标 - 增加到5个
   const primaryStats: StatItem[] = [
     {
-      title: 'API3 价格',
+      title: t('api3.hero.api3Price'),
       value: `$${currentPrice.toFixed(2)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
@@ -510,7 +514,7 @@ export function API3Hero({
       sparklineData: priceSparkline,
     },
     {
-      title: 'TVS',
+      title: t('api3.hero.tvs'),
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
       change: '+5.2%',
       changeType: 'positive',
@@ -518,7 +522,7 @@ export function API3Hero({
       subtitle: '7天',
     },
     {
-      title: 'Airnode 数',
+      title: t('api3.hero.airnodeCount'),
       value: `${airnodeStats?.activeAirnodes ?? config.networkData.activeNodes}+`,
       change: '+3%',
       changeType: 'positive',
@@ -526,7 +530,7 @@ export function API3Hero({
       subtitle: '本月',
     },
     {
-      title: 'dAPI 覆盖',
+      title: t('api3.hero.dapiCoverage'),
       value: `${dapiCoverage?.totalDapis ?? config.networkData.dataFeeds}+`,
       change: '+8%',
       changeType: 'positive',
@@ -534,7 +538,7 @@ export function API3Hero({
       subtitle: '本月',
     },
     {
-      title: '质押 APR',
+      title: t('api3.hero.stakingApr'),
       value: `${staking?.stakingApr ?? 12.5}%`,
       change: '+2.1%',
       changeType: 'positive',
@@ -546,28 +550,28 @@ export function API3Hero({
   // 次要统计指标
   const secondaryStats: StatItem[] = [
     {
-      title: '支持链',
+      title: t('api3.hero.supportedChainsCount'),
       value: `${config.supportedChains.length}+`,
       change: '+2',
       changeType: 'positive',
       icon: <Globe className="w-4 h-4" />,
     },
     {
-      title: '网络在线',
+      title: t('api3.hero.networkUptime'),
       value: `${airnodeStats?.nodeUptime ?? config.networkData.nodeUptime}%`,
       change: '+0.1%',
       changeType: 'positive',
       icon: <Shield className="w-4 h-4" />,
     },
     {
-      title: '响应时间',
+      title: t('api3.hero.responseTime'),
       value: `${airnodeStats?.avgResponseTime ?? config.networkData.avgResponseTime}ms`,
       change: '-5%',
       changeType: 'positive',
       icon: <Zap className="w-4 h-4" />,
     },
     {
-      title: '数据喂价',
+      title: t('api3.hero.dataFeeds'),
       value: `${config.networkData.dataFeeds}+`,
       change: '+12',
       changeType: 'positive',
@@ -673,6 +677,7 @@ export function API3Hero({
               healthScore={healthScore}
               chains={config.supportedChains}
               themeColor={themeColor}
+              t={t}
             />
           </div>
 
@@ -694,6 +699,7 @@ export function API3Hero({
                 historicalData={historicalData}
                 currentPrice={price}
                 themeColor={themeColor}
+                t={t}
               />
             </div>
 

@@ -1,6 +1,17 @@
 'use client';
 
-import { BarChart3, Globe, CircleDot, Wallet, Gamepad2, ShieldAlert } from 'lucide-react';
+import {
+  BarChart3,
+  Globe,
+  CircleDot,
+  Wallet,
+  Gamepad2,
+  ShieldAlert,
+  Shuffle,
+  ArrowRightLeft,
+  Target,
+  Code,
+} from 'lucide-react';
 
 import { UnifiedSidebar } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
@@ -32,6 +43,26 @@ const navItems = [
     id: 'gaming' as WinklinkTabId,
     labelKey: 'winklink.menu.gaming',
     icon: <Gamepad2 className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'vrf' as WinklinkTabId,
+    labelKey: 'winklink.menu.vrf',
+    icon: <Shuffle className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'cross-chain' as WinklinkTabId,
+    labelKey: 'winklink.menu.crossChain',
+    icon: <ArrowRightLeft className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'accuracy' as WinklinkTabId,
+    labelKey: 'winklink.menu.accuracy',
+    icon: <Target className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'developer' as WinklinkTabId,
+    labelKey: 'winklink.menu.developer',
+    icon: <Code className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
     id: 'risk' as WinklinkTabId,

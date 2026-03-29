@@ -20,6 +20,9 @@ import {
   ChronicleScuttlebuttView,
   ChronicleRiskView,
   ChronicleHero,
+  ChronicleVaultView,
+  ChronicleCrossChainView,
+  ChroniclePriceDeviationView,
 } from './components';
 import { useChroniclePage } from './hooks/useChroniclePage';
 import { type ChronicleTabId } from './types';
@@ -34,6 +37,9 @@ export default function ChroniclePage() {
     validatorMetrics,
     makerDAO,
     scuttlebutt,
+    vaultData,
+    crossChainData,
+    deviationData,
     isLoading,
     isError,
     error,
@@ -90,6 +96,18 @@ export default function ChroniclePage() {
         return <ChronicleScuttlebuttView scuttlebutt={scuttlebutt} isLoading={isLoading} />;
       case 'risk':
         return <ChronicleRiskView scuttlebutt={scuttlebutt} isLoading={isLoading} />;
+      case 'vault':
+        return <ChronicleVaultView vaultData={vaultData} isLoading={isLoading} />;
+      case 'crossChain':
+        return <ChronicleCrossChainView crossChainData={crossChainData} isLoading={isLoading} />;
+      case 'priceDeviation':
+        return (
+          <ChroniclePriceDeviationView
+            deviationData={deviationData}
+            symbol={config.symbol}
+            isLoading={isLoading}
+          />
+        );
       default:
         return null;
     }

@@ -14,6 +14,7 @@ import { OracleProvider } from '@/types/oracle';
 
 import {
   RedStoneSidebar,
+  RedStonePullModelView,
   RedStoneMarketView,
   RedStoneNetworkView,
   RedStoneDataStreamsView,
@@ -21,6 +22,8 @@ import {
   RedStoneCrossChainView,
   RedStoneEcosystemView,
   RedStoneRiskView,
+  RedStoneAVSView,
+  RedStoneArweaveView,
   RedStoneHero,
 } from './components';
 import { useRedStonePage } from './hooks/useRedStonePage';
@@ -63,6 +66,8 @@ export default function RedStonePage() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'pull-model':
+        return <RedStonePullModelView isLoading={isLoading} />;
       case 'market':
         return (
           <RedStoneMarketView
@@ -91,6 +96,10 @@ export default function RedStonePage() {
         return <RedStoneEcosystemView isLoading={isLoading} />;
       case 'risk':
         return <RedStoneRiskView isLoading={isLoading} />;
+      case 'avs':
+        return <RedStoneAVSView isLoading={isLoading} />;
+      case 'arweave':
+        return <RedStoneArweaveView isLoading={isLoading} />;
       default:
         return null;
     }

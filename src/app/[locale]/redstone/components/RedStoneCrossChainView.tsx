@@ -2,11 +2,12 @@
 
 import { Link, Zap, Trophy, Activity, Server } from 'lucide-react';
 
+import { useRedStoneSupportedChains } from '@/hooks/oracles/redstone';
 import { useTranslations } from '@/i18n';
 
 import { type RedStoneCrossChainViewProps, type ChainInfo } from '../types';
 
-const SUPPORTED_CHAINS: ChainInfo[] = [
+const FALLBACK_CHAINS: ChainInfo[] = [
   { chain: 'Ethereum', latency: 80, updateFreq: 60, status: 'active' },
   { chain: 'Arbitrum', latency: 65, updateFreq: 30, status: 'active' },
   { chain: 'Optimism', latency: 70, updateFreq: 30, status: 'active' },
@@ -23,17 +24,21 @@ const SUPPORTED_CHAINS: ChainInfo[] = [
 
 export function RedStoneCrossChainView({ isLoading }: RedStoneCrossChainViewProps) {
   const t = useTranslations();
+  const { chains, isLoading: chainsLoading } = useRedStoneSupportedChains(!isLoading);
+
+  const supportedChains = chains.length > 0 ? chains : FALLBACK_CHAINS;
+  const showLoading = isLoading || chainsLoading;
 
   const avgLatency = Math.round(
-    SUPPORTED_CHAINS.reduce((sum, c) => sum + c.latency, 0) / SUPPORTED_CHAINS.length
+    supportedChains.reduce((sum, c) => sum + c.latency, 0) / supportedChains.length
   );
-  const fastestChain = SUPPORTED_CHAINS.reduce((min, c) => (c.latency < min.latency ? c : min));
-  const maxLatency = Math.max(...SUPPORTED_CHAINS.map((c) => c.latency));
+  const fastestChain = supportedChains.reduce((min, c) => (c.latency < min.latency ? c : min));
+  const maxLatency = Math.max(...supportedChains.map((c) => c.latency));
 
   const stats = [
     {
       title: t('redstone.crossChain.supportedChains'),
-      value: String(SUPPORTED_CHAINS.length),
+      value: String(supportedChains.length),
       change: '+2',
       changeType: 'positive' as const,
       icon: Link,
@@ -63,7 +68,6 @@ export function RedStoneCrossChainView({ isLoading }: RedStoneCrossChainViewProp
 
   return (
     <div className="space-y-8">
-      {/* 跨链统计 - 行内布局 */}
       <div className="flex flex-wrap items-center gap-6 p-4 bg-white border border-gray-200 rounded-lg">
         {stats.map((stat, index) => {
           const IconComponent = stat.icon;
@@ -75,7 +79,9 @@ export function RedStoneCrossChainView({ isLoading }: RedStoneCrossChainViewProp
               <div>
                 <p className="text-xs text-gray-500">{stat.title}</p>
                 <div className="flex items-center gap-2">
-                  <p className="text-lg font-bold text-gray-900">{isLoading ? '-' : stat.value}</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {showLoading ? '-' : stat.value}
+                  </p>
                   <span
                     className={`text-xs font-medium ${
                       stat.changeType === 'positive' ? 'text-emerald-600' : 'text-gray-500'
@@ -93,7 +99,6 @@ export function RedStoneCrossChainView({ isLoading }: RedStoneCrossChainViewProp
         })}
       </div>
 
-      {/* 链列表表格 */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center gap-2">
@@ -126,7 +131,7 @@ export function RedStoneCrossChainView({ isLoading }: RedStoneCrossChainViewProp
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {SUPPORTED_CHAINS.map((chain) => (
+              {supportedChains.map((chain) => (
                 <tr key={chain.chain} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">

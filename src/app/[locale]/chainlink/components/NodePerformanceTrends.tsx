@@ -302,7 +302,7 @@ export function NodePerformanceTrends({ nodes }: NodePerformanceTrendsProps) {
                           showArea={true}
                         />
                         <div className="flex justify-between text-xs mt-1">
-                          <span className="text-gray-400">30D ago</span>
+                          <span className="text-gray-400">{t('chainlink.nodes.daysAgo')}</span>
                           <span className="text-amber-600 font-medium">
                             {trends.reputationTrend[trends.reputationTrend.length - 1]?.toFixed(1)}
                           </span>
@@ -323,10 +323,10 @@ export function NodePerformanceTrends({ nodes }: NodePerformanceTrendsProps) {
                         />
                         <div className="flex justify-between text-xs mt-1">
                           <span className="text-gray-400">
-                            Min: {Math.min(...trends.successRateTrend).toFixed(2)}%
+                            {t('chainlink.nodes.min')}: {Math.min(...trends.successRateTrend).toFixed(2)}%
                           </span>
                           <span className="text-emerald-600 font-medium">
-                            Avg:{' '}
+                            {t('chainlink.nodes.avg')}:{' '}
                             {(
                               trends.successRateTrend.reduce((a, b) => a + b, 0) /
                               trends.successRateTrend.length
@@ -350,10 +350,10 @@ export function NodePerformanceTrends({ nodes }: NodePerformanceTrendsProps) {
                         />
                         <div className="flex justify-between text-xs mt-1">
                           <span className="text-gray-400">
-                            Min: {Math.min(...trends.responseTimeTrend).toFixed(0)}ms
+                            {t('chainlink.nodes.min')}: {Math.min(...trends.responseTimeTrend).toFixed(0)}ms
                           </span>
                           <span className="text-blue-600 font-medium">
-                            Avg:{' '}
+                            {t('chainlink.nodes.avg')}:{' '}
                             {Math.round(
                               trends.responseTimeTrend.reduce((a, b) => a + b, 0) /
                                 trends.responseTimeTrend.length

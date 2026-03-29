@@ -25,6 +25,9 @@ export function useChroniclePage() {
     validatorMetrics,
     networkStats,
     staking,
+    vaultData,
+    crossChainData,
+    deviationData,
     isLoading,
     isError,
     errors,
@@ -63,7 +66,6 @@ export function useChroniclePage() {
   }, []);
 
   return {
-    // State
     activeTab,
     config,
     client,
@@ -74,6 +76,9 @@ export function useChroniclePage() {
     makerDAO,
     scuttlebutt,
     staking,
+    vaultData,
+    crossChainData,
+    deviationData,
     isLoading,
     isError,
     error: errors[0] || null,
@@ -82,7 +87,6 @@ export function useChroniclePage() {
     dataFreshnessStatus,
     shouldRefreshData: dataFreshnessStatus.status === 'expired',
 
-    // Actions
     setActiveTab: handleTabChange,
     refresh,
     exportData,

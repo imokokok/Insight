@@ -313,10 +313,10 @@ function MessageFlowAnimation({
   );
 }
 
-function MessageStatusBadge({ status }: { status: CrossChainMessage['status'] }) {
+function MessageStatusBadge({ status, t }: { status: CrossChainMessage['status']; t: ReturnType<typeof useTranslations> }) {
   const config = {
-    pending: { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', label: 'Pending' },
-    validating: { icon: RefreshCw, color: 'text-blue-600', bg: 'bg-blue-50', label: 'Validating' },
+    pending: { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', label: t('uma.crossChain.pending') },
+    validating: { icon: RefreshCw, color: 'text-blue-600', bg: 'bg-blue-50', label: t('uma.crossChain.processing') },
     confirmed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Confirmed' },
     failed: { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50', label: 'Failed' },
   };
@@ -369,11 +369,11 @@ function SecurityScoreRing({ score }: { score: number }) {
   );
 }
 
-function SeverityBadge({ severity }: { severity: RiskPoint['severity'] }) {
+function SeverityBadge({ severity, t }: { severity: RiskPoint['severity']; t: ReturnType<typeof useTranslations> }) {
   const config = {
-    low: { color: 'text-blue-600', bg: 'bg-blue-50', label: 'Low' },
-    medium: { color: 'text-amber-600', bg: 'bg-amber-50', label: 'Medium' },
-    high: { color: 'text-orange-600', bg: 'bg-orange-50', label: 'High' },
+    low: { color: 'text-blue-600', bg: 'bg-blue-50', label: t('uma.risk.statusLow') },
+    medium: { color: 'text-amber-600', bg: 'bg-amber-50', label: t('uma.risk.statusMedium') },
+    high: { color: 'text-orange-600', bg: 'bg-orange-50', label: t('uma.risk.statusHigh') },
     critical: { color: 'text-red-600', bg: 'bg-red-50', label: 'Critical' },
   };
 
@@ -465,12 +465,18 @@ export function CrossChainVerification() {
     return `${Math.floor(hours / 24)}d ago`;
   };
 
+  const getSecurityStatusText = (score: number) => {
+    if (score >= 80) return t('uma.crossChain.crossChainSecure');
+    if (score >= 60) return t('uma.crossChain.someSecurityConcerns');
+    return t('uma.crossChain.criticalSecurityIssues');
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">Cross-Chain Verification</h3>
-          <p className="text-sm text-gray-500 mt-0.5">Real-time cross-chain message monitoring and security analysis</p>
+          <h3 className="text-base font-semibold text-gray-900">{t('uma.crossChain.title')}</h3>
+          <p className="text-sm text-gray-500 mt-0.5">{t('uma.crossChain.subtitle')}</p>
         </div>
         <div className="flex items-center border-b border-gray-200">
           {(['messages', 'monitoring', 'security'] as const).map((section) => (
@@ -484,7 +490,7 @@ export function CrossChainVerification() {
                   : 'text-gray-500 hover:text-gray-700'
               )}
             >
-              {section.charAt(0).toUpperCase() + section.slice(1)}
+              {t(`uma.crossChain.${section}`)}
             </button>
           ))}
         </div>
@@ -493,7 +499,7 @@ export function CrossChainVerification() {
       {activeSection === 'messages' && (
         <>
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">Supported Chains</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.supportedChains')}</h4>
             <div className="flex flex-wrap gap-3">
               {chains.map((chain) => (
                 <ChainNode
@@ -511,8 +517,8 @@ export function CrossChainVerification() {
 
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-gray-900">Active Messages</h4>
-              <span className="text-xs text-gray-500">{filteredMessages.length} messages</span>
+              <h4 className="text-sm font-medium text-gray-900">{t('uma.crossChain.activeMessages')}</h4>
+              <span className="text-xs text-gray-500">{filteredMessages.length} {t('uma.crossChain.messagesCount')}</span>
             </div>
             <div className="space-y-3">
               {filteredMessages.map((message) => (
@@ -539,7 +545,7 @@ export function CrossChainVerification() {
                         {CHAIN_CONFIGS[message.sourceChain].name} → {CHAIN_CONFIGS[message.targetChain].name}
                       </span>
                     </div>
-                    <MessageStatusBadge status={message.status} />
+                    <MessageStatusBadge status={message.status} t={t} />
                   </div>
                   <MessageFlowAnimation
                     sourceChain={message.sourceChain}
@@ -561,24 +567,24 @@ export function CrossChainVerification() {
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">Message Latency Statistics</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.messageLatencyStats')}</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
-                <p className="text-xs text-gray-500">Avg Latency</p>
+                <p className="text-xs text-gray-500">{t('uma.crossChain.avgLatency')}</p>
                 <p className="text-xl font-semibold text-gray-900">{avgLatency}ms</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Pending Messages</p>
+                <p className="text-xs text-gray-500">{t('uma.crossChain.pendingMessages')}</p>
                 <p className="text-xl font-semibold text-gray-900">{totalPending}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Success Rate</p>
+                <p className="text-xs text-gray-500">{t('uma.crossChain.successRate')}</p>
                 <p className="text-xl font-semibold text-emerald-600">
                   {transactionStats ? ((transactionStats.successfulTransactions / transactionStats.totalTransactions) * 100).toFixed(1) : 0}%
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">24h Volume</p>
+                <p className="text-xs text-gray-500">{t('uma.crossChain.volume24h')}</p>
                 <p className="text-xl font-semibold text-gray-900">
                   ${transactionStats ? (transactionStats.volume24h / 1e6).toFixed(1) : 0}M
                 </p>
@@ -591,7 +597,7 @@ export function CrossChainVerification() {
       {activeSection === 'monitoring' && (
         <>
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">Validator Status by Chain</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.validatorStatusByChain')}</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {validators.map((validator) => (
                 <div key={validator.chainId} className="border border-gray-200 p-4">
@@ -620,17 +626,17 @@ export function CrossChainVerification() {
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Active Validators</span>
+                      <span className="text-gray-500">{t('uma.stats.activeValidators')}</span>
                       <span className="font-medium text-gray-900">
                         {validator.activeValidators}/{validator.totalValidators}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Response Time</span>
+                      <span className="text-gray-500">{t('uma.networkHealth.responseTime')}</span>
                       <span className="font-medium text-gray-900">{validator.avgResponseTime}ms</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Uptime</span>
+                      <span className="text-gray-500">{t('uma.stats.validatorUptime')}</span>
                       <span className="font-medium text-emerald-600">{validator.uptime.toFixed(1)}%</span>
                     </div>
                   </div>
@@ -642,16 +648,16 @@ export function CrossChainVerification() {
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">Bridge Health Status</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.bridgeHealthStatus')}</h4>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">Route</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">Status</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">Latency</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">Success Rate</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">Pending</th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.crossChain.route')}</th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.disputes.status')}</th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.networkHealth.responseTime')}</th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.crossChain.successRate')}</th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.crossChain.pending')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -698,7 +704,7 @@ export function CrossChainVerification() {
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">Pending Message Queue</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.pendingQueue')}</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {pendingQueue.map((queue) => (
                 <div key={queue.chain} className="border border-gray-200 p-3">
@@ -712,15 +718,15 @@ export function CrossChainVerification() {
                   </div>
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Pending</span>
+                      <span className="text-gray-500">{t('uma.crossChain.pending')}</span>
                       <span className="font-medium text-amber-600">{queue.pending}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Processing</span>
+                      <span className="text-gray-500">{t('uma.crossChain.processing')}</span>
                       <span className="font-medium text-blue-600">{queue.processing}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Avg Wait</span>
+                      <span className="text-gray-500">{t('uma.crossChain.avgWait')}</span>
                       <span className="font-medium text-gray-900">{queue.avgWaitTime}s</span>
                     </div>
                   </div>
@@ -732,16 +738,16 @@ export function CrossChainVerification() {
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">Cross-Chain Transaction Statistics</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.transactionStats')}</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
-                <p className="text-xs text-gray-500">Total Transactions</p>
+                <p className="text-xs text-gray-500">{t('uma.crossChain.totalTransactions')}</p>
                 <p className="text-xl font-semibold text-gray-900">
                   {transactionStats?.totalTransactions.toLocaleString()}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Success Rate</p>
+                <p className="text-xs text-gray-500">{t('uma.crossChain.successRate')}</p>
                 <p className="text-xl font-semibold text-emerald-600">
                   {transactionStats
                     ? ((transactionStats.successfulTransactions / transactionStats.totalTransactions) * 100).toFixed(2)
@@ -750,7 +756,7 @@ export function CrossChainVerification() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">24h Volume</p>
+                <p className="text-xs text-gray-500">{t('uma.crossChain.volume24h')}</p>
                 <div className="flex items-baseline gap-2">
                   <p className="text-xl font-semibold text-gray-900">
                     ${transactionStats ? (transactionStats.volume24h / 1e6).toFixed(1) : 0}M
@@ -767,7 +773,7 @@ export function CrossChainVerification() {
                 </div>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Failed Transactions</p>
+                <p className="text-xs text-gray-500">{t('uma.crossChain.failedTransactions')}</p>
                 <p className="text-xl font-semibold text-red-600">
                   {transactionStats?.failedTransactions.toLocaleString()}
                 </p>
@@ -784,14 +790,10 @@ export function CrossChainVerification() {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-900">Overall Security Score</span>
+                <span className="text-sm font-medium text-gray-900">{t('uma.crossChain.overallSecurityScore')}</span>
               </div>
               <p className="text-sm text-gray-500">
-                {securityScore && securityScore.overall >= 80
-                  ? 'Cross-chain operations are secure'
-                  : securityScore && securityScore.overall >= 60
-                    ? 'Some security concerns detected'
-                    : 'Critical security issues require attention'}
+                {securityScore && getSecurityStatusText(securityScore.overall)}
               </p>
             </div>
           </div>
@@ -799,7 +801,7 @@ export function CrossChainVerification() {
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">Security Components</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.securityComponents')}</h4>
             <div className="space-y-3">
               {securityScore?.components.map((component, index) => (
                 <div key={index} className="flex items-center justify-between">
@@ -845,15 +847,15 @@ export function CrossChainVerification() {
 
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-gray-900">Active Risk Points</h4>
-              <span className="text-xs text-gray-500">{activeRisks.length} active</span>
+              <h4 className="text-sm font-medium text-gray-900">{t('uma.crossChain.activeRiskPoints')}</h4>
+              <span className="text-xs text-gray-500">{activeRisks.length} {t('uma.crossChain.activeCount')}</span>
             </div>
             <div className="space-y-3">
               {activeRisks.map((risk) => (
                 <div key={risk.id} className="border border-gray-200 p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <SeverityBadge severity={risk.severity} />
+                      <SeverityBadge severity={risk.severity} t={t} />
                       <span className="text-sm font-medium text-gray-900">{risk.title}</span>
                     </div>
                     <span className="text-xs text-gray-500">{formatTime(risk.timestamp)}</span>
@@ -875,7 +877,7 @@ export function CrossChainVerification() {
               {activeRisks.length === 0 && (
                 <div className="text-center py-8 text-gray-500 text-sm">
                   <CheckCircle className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
-                  No active risk points
+                  {t('uma.crossChain.noActiveRiskPoints')}
                 </div>
               )}
             </div>
@@ -884,7 +886,7 @@ export function CrossChainVerification() {
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">Security Event History</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.securityEventHistory')}</h4>
             <div className="space-y-2">
               {securityEvents.slice(0, 5).map((event) => (
                 <div
@@ -922,7 +924,7 @@ export function CrossChainVerification() {
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">Security Recommendations</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.securityRecommendations')}</h4>
             <div className="space-y-3">
               {recommendations.map((rec) => (
                 <div key={rec.id} className="flex items-start gap-3 p-3 border border-gray-200">
@@ -945,7 +947,7 @@ export function CrossChainVerification() {
                     </div>
                     <p className="text-xs text-gray-600 mb-1">{rec.description}</p>
                     <p className="text-xs text-gray-500">
-                      <span className="font-medium">Action:</span> {rec.action}
+                      <span className="font-medium">{t('uma.crossChain.action')}:</span> {rec.action}
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />

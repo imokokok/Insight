@@ -70,6 +70,12 @@ export {
   type MobileMenuButtonProps,
 } from './UnifiedSidebar';
 
+export {
+  GroupedSidebar,
+  type SidebarGroup,
+  type GroupedSidebarProps,
+} from './GroupedSidebar';
+
 export * from './oracle-panels';
 
 export * from './analytics';

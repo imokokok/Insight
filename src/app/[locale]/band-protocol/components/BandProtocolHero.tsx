@@ -186,11 +186,12 @@ function MiniPriceChart({
   currentPrice: PriceData | null;
   themeColor: string;
 }) {
+  const t = useTranslations();
+
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
     }
-    // 生成模拟数据 - 使用伪随机确保稳定性
     const basePrice = currentPrice?.price || 100;
     return Array.from({ length: 20 }, (_, i) => {
       const seed = (i * 9301 + 49297) % 233280;
@@ -213,7 +214,7 @@ function MiniPriceChart({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
+          <span>{t('band.bandProtocol.hero.trend24h')}</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
@@ -224,8 +225,8 @@ function MiniPriceChart({
         <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>{t('band.bandProtocol.hero.ago24h')}</span>
+        <span>{t('band.bandProtocol.hero.now')}</span>
       </div>
     </div>
   );
@@ -327,6 +328,8 @@ function UnifiedInfoSection({
   chains: string[];
   themeColor: string;
 }) {
+  const t = useTranslations();
+
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
     if (healthScore >= 70) return 'text-yellow-600';
@@ -341,26 +344,24 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return { label: t('band.bandProtocol.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return { label: t('band.bandProtocol.hero.gasLevel.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return { label: t('band.bandProtocol.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: t('band.bandProtocol.hero.gasLevel.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
-  // 只显示前3个链
   const displayChains = chains.slice(0, 3);
   const remainingCount = Math.max(0, chains.length - 3);
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 py-3 border-t border-gray-100">
-      {/* 网络健康度 - 进度条+数字紧凑形式 */}
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('band.bandProtocol.hero.health')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -373,17 +374,14 @@ function UnifiedInfoSection({
         </div>
       </div>
 
-      {/* 分隔符 */}
       <div className="hidden sm:block w-px h-4 bg-gray-200" />
 
-      {/* 链上指标 - 紧凑展示 */}
       {networkStats && (
         <div className="flex items-center gap-3">
-          {/* Gas 费水平 */}
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('band.bandProtocol.hero.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -396,39 +394,33 @@ function UnifiedInfoSection({
             </div>
           </div>
 
-          {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('band.bandProtocol.hero.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
           </div>
 
-          {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('band.bandProtocol.hero.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
       )}
 
-      {/* 分隔符 */}
       <div className="hidden sm:block w-px h-4 bg-gray-200" />
 
-      {/* 多链支持 - 只显示链数量+前3个链图标 */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('band.bandProtocol.hero.support')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {chains.length}+ {t('band.bandProtocol.hero.chains')}
           </span>
-          {/* 前3个链图标 */}
           <div className="flex -space-x-1">
             {displayChains.map((chain, index) => (
               <div
@@ -500,17 +492,19 @@ function QuickActions({ themeColor }: { themeColor: string }) {
 
 // 最新动态滚动条
 function LatestUpdates() {
+  const t = useTranslations();
+
   const updates = [
-    { type: 'price', text: 'BAND 价格更新: $1.24 (+3.2%)', time: '2分钟前' },
-    { type: 'validator', text: '新验证者加入: BandVal...8x9y (亚太地区)', time: '5分钟前' },
-    { type: 'feed', text: 'BTC/USD 数据喂价更新', time: '8分钟前' },
-    { type: 'system', text: 'BandChain 区块高度: #12,458,923', time: '刚刚' },
+    { type: 'price', text: t('band.bandProtocol.hero.updates.priceUpdate', { price: '1.24', change: '+3.2%' }), time: t('band.bandProtocol.hero.updates.minutesAgo', { count: 2 }) },
+    { type: 'validator', text: t('band.bandProtocol.hero.updates.newValidator', { moniker: 'BandVal...8x9y', region: 'Asia-Pacific' }), time: t('band.bandProtocol.hero.updates.minutesAgo', { count: 5 }) },
+    { type: 'feed', text: t('band.bandProtocol.hero.updates.feedUpdate', { symbol: 'BTC/USD' }), time: t('band.bandProtocol.hero.updates.minutesAgo', { count: 8 }) },
+    { type: 'system', text: t('band.bandProtocol.hero.updates.blockHeight', { height: '12,458,923' }), time: t('band.bandProtocol.hero.updates.justNow') },
   ];
 
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">最新动态:</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">{t('band.bandProtocol.hero.latestUpdates')}</span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {updates.map((update, index) => (

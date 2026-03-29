@@ -6,13 +6,18 @@ import {
 import { type PriceData } from '@/types/oracle';
 
 export type RedStoneTabId =
+  | 'pull-model'
+  | 'erc7412'
   | 'market'
   | 'network'
   | 'data-streams'
   | 'providers'
   | 'cross-chain'
   | 'ecosystem'
-  | 'risk';
+  | 'risk'
+  | 'avs'
+  | 'arweave'
+  | 'token';
 
 export interface NetworkStats {
   activeNodes: number;
@@ -80,6 +85,14 @@ export interface RedStoneRiskViewProps {
   isLoading: boolean;
 }
 
+export interface RedStoneAVSViewProps {
+  isLoading: boolean;
+}
+
+export interface RedStoneTokenViewProps {
+  isLoading: boolean;
+}
+
 export interface ChainInfo {
   chain: string;
   latency: number;
@@ -95,3 +108,15 @@ export interface EcosystemIntegration {
 
 export type SortOption = 'reputation' | 'dataPoints' | 'lastUpdate';
 export type FilterOption = 'all' | 'highReputation' | 'mostData';
+
+export interface RedStonePullModelViewProps {
+  isLoading: boolean;
+}
+
+export interface RedStoneERC7412ViewProps {
+  isLoading: boolean;
+}
+
+export interface RedStoneArweaveViewProps {
+  isLoading: boolean;
+}

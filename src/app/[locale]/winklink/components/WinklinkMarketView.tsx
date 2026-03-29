@@ -1,11 +1,45 @@
 'use client';
 
-import { TrendingUp, TrendingDown, Server, Zap, Clock, Shield } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Server,
+  Zap,
+  Clock,
+  Shield,
+  Database,
+  Activity,
+  CheckCircle,
+  AlertTriangle,
+  BarChart3,
+  RefreshCw,
+  Layers,
+  Target,
+  Gauge,
+  Building2,
+} from 'lucide-react';
 
 import { PriceChart } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
 
 import { type WinklinkMarketViewProps } from '../types';
+
+interface DataSourceDetail {
+  name: string;
+  type: 'exchange' | 'aggregator';
+  status: 'active' | 'inactive' | 'degraded';
+  reliability: number;
+  lastUpdate: string;
+  latency: string;
+  weight: number;
+}
+
+interface DataQualityMetric {
+  label: string;
+  value: string | number;
+  status: 'excellent' | 'good' | 'warning';
+  description: string;
+}
 
 export function WinklinkMarketView({
   config,
@@ -56,11 +90,133 @@ export function WinklinkMarketView({
     { label: t('winklink.stats.successRate'), value: '99.92%', status: 'healthy', icon: Shield },
   ];
 
+  const dataSources: DataSourceDetail[] = [
+    {
+      name: 'Binance',
+      type: 'exchange',
+      status: 'active',
+      reliability: 99.8,
+      lastUpdate: '2s ago',
+      latency: '45ms',
+      weight: 35,
+    },
+    {
+      name: 'Huobi',
+      type: 'exchange',
+      status: 'active',
+      reliability: 99.5,
+      lastUpdate: '3s ago',
+      latency: '62ms',
+      weight: 25,
+    },
+    {
+      name: 'CoinGecko',
+      type: 'aggregator',
+      status: 'active',
+      reliability: 98.9,
+      lastUpdate: '5s ago',
+      latency: '85ms',
+      weight: 20,
+    },
+    {
+      name: 'CoinMarketCap',
+      type: 'aggregator',
+      status: 'active',
+      reliability: 99.2,
+      lastUpdate: '4s ago',
+      latency: '78ms',
+      weight: 20,
+    },
+  ];
+
+  const dataQualityMetrics: DataQualityMetric[] = [
+    {
+      label: t('winklink.dataQuality.priceDeviation') || '价格偏离度',
+      value: '0.12%',
+      status: 'excellent',
+      description: t('winklink.dataQuality.priceDeviationDesc') || '与中位价格的偏差',
+    },
+    {
+      label: t('winklink.dataQuality.updateFrequency') || '更新频率',
+      value: '3s',
+      status: 'excellent',
+      description: t('winklink.dataQuality.updateFrequencyDesc') || '数据更新间隔',
+    },
+    {
+      label: t('winklink.dataQuality.freshnessScore') || '数据新鲜度',
+      value: '98.5%',
+      status: 'excellent',
+      description: t('winklink.dataQuality.freshnessScoreDesc') || '数据时效性评分',
+    },
+    {
+      label: t('winklink.dataQuality.contributingSources') || '贡献源数量',
+      value: 4,
+      status: 'good',
+      description: t('winklink.dataQuality.contributingSourcesDesc') || '活跃数据源数量',
+    },
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+      case 'excellent':
+        return 'text-emerald-600';
+      case 'good':
+        return 'text-blue-600';
+      case 'degraded':
+      case 'warning':
+        return 'text-amber-600';
+      case 'inactive':
+        return 'text-red-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
+  const getStatusBgColor = (status: string) => {
+    switch (status) {
+      case 'active':
+      case 'excellent':
+        return 'bg-emerald-50';
+      case 'good':
+        return 'bg-blue-50';
+      case 'degraded':
+      case 'warning':
+        return 'bg-amber-50';
+      case 'inactive':
+        return 'bg-red-50';
+      default:
+        return 'bg-gray-50';
+    }
+  };
+
+  const getStatusDotColor = (status: string) => {
+    switch (status) {
+      case 'active':
+      case 'excellent':
+        return 'bg-emerald-500';
+      case 'good':
+        return 'bg-blue-500';
+      case 'degraded':
+      case 'warning':
+        return 'bg-amber-500';
+      case 'inactive':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const getReliabilityColor = (reliability: number) => {
+    if (reliability >= 99.5) return 'text-emerald-600';
+    if (reliability >= 98) return 'text-blue-600';
+    if (reliability >= 95) return 'text-amber-600';
+    return 'text-red-600';
+  };
+
   return (
     <div className="space-y-8">
-      {/* 主内容区域 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-        {/* 左侧价格趋势图表 - 占2列 */}
         <div className="lg:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-medium text-gray-900">{t('winklink.priceTrend')}</h3>
@@ -77,9 +233,7 @@ export function WinklinkMarketView({
           </div>
         </div>
 
-        {/* 右侧统计区域 */}
         <div className="flex flex-col gap-8">
-          {/* 快速统计 */}
           <div className="flex-1 flex flex-col">
             <h3 className="text-base font-medium text-gray-900 mb-4">{t('winklink.quickStats')}</h3>
             <div className="flex-1 flex flex-col">
@@ -112,7 +266,6 @@ export function WinklinkMarketView({
             </div>
           </div>
 
-          {/* 网络状态 - 内联布局 */}
           <div className="flex-1 flex flex-col">
             <h3 className="text-base font-medium text-gray-900 mb-4">
               {t('winklink.networkStatus')}
@@ -140,29 +293,45 @@ export function WinklinkMarketView({
             </div>
           </div>
 
-          {/* 数据来源 */}
           <div className="flex-1 flex flex-col">
-            <h3 className="text-base font-medium text-gray-900 mb-4">{t('winklink.dataSource')}</h3>
-            <div className="flex-1 flex flex-col">
-              {[
-                { name: 'TRON Mainnet', status: 'active', latency: '85ms' },
-                { name: 'BNB Chain', status: 'active', latency: '110ms' },
-                { name: 'BTTC Network', status: 'active', latency: '95ms' },
-                { name: 'Backup Node', status: 'active', latency: '120ms' },
-              ].map((source, index) => (
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-medium text-gray-900">{t('winklink.dataSource')}</h3>
+              <div className="flex items-center gap-1 text-xs text-gray-400">
+                <RefreshCw className="w-3 h-3" />
+                <span>Live</span>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col gap-2">
+              {dataSources.map((source, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0"
+                  className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50/50 hover:bg-gray-100/50 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        source.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
+                      className={`w-2 h-2 rounded-full ${getStatusDotColor(source.status)} ${
+                        source.status === 'active' ? '' : 'animate-pulse'
                       }`}
                     />
-                    <span className="text-sm text-gray-700">{source.name}</span>
+                    <div className="flex items-center gap-1.5">
+                      {source.type === 'exchange' ? (
+                        <Building2 className="w-3.5 h-3.5 text-gray-400" />
+                      ) : (
+                        <Layers className="w-3.5 h-3.5 text-gray-400" />
+                      )}
+                      <span className="text-sm text-gray-700">{source.name}</span>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-400 font-mono">{source.latency}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <span className={`text-xs font-medium ${getReliabilityColor(source.reliability)}`}>
+                        {source.reliability}%
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-400 font-mono w-12 text-right">
+                      {source.latency}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -170,7 +339,203 @@ export function WinklinkMarketView({
         </div>
       </div>
 
-      {/* 核心交易对信息 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <Database className="w-5 h-5 text-gray-600" />
+            <h3 className="text-base font-medium text-gray-900">
+              {t('winklink.dataSourceDetails') || '数据源详情'}
+            </h3>
+          </div>
+
+          <div className="space-y-5">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-700">
+                  {t('winklink.dataProviders') || '数据提供商'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {dataSources.map((source, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg ${getStatusBgColor(source.status)}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(source.status)}`} />
+                      <span className="text-sm text-gray-700">{source.name}</span>
+                    </div>
+                    <span className="text-xs text-gray-400">{source.type === 'exchange' ? '交易所' : '聚合器'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Target className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-700">
+                  {t('winklink.aggregationMethod') || '数据聚合方式'}
+                </span>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <BarChart3 className="w-5 h-5 text-blue-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      {t('winklink.weightedAverage') || '加权平均算法'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t('winklink.weightedAverageDesc') || 
+                        '基于各数据源的可靠性和交易量权重，计算加权平均价格。异常值会被自动过滤。'}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">{t('winklink.weightDistribution') || '权重分布'}</span>
+                    <div className="flex items-center gap-2">
+                      {dataSources.map((source, index) => (
+                        <span key={index} className="text-gray-600">
+                          {source.name}: {source.weight}%
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Shield className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-700">
+                  {t('winklink.verificationMechanism') || '数据验证机制'}
+                </span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  <span className="text-gray-600">{t('winklink.multiSourceVerify') || '多源交叉验证'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  <span className="text-gray-600">{t('winklink.outlierDetection') || '异常值自动检测与过滤'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  <span className="text-gray-600">{t('winklink.timestampVerify') || '时间戳一致性校验'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Gauge className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-700">
+                  {t('winklink.reliabilityScore') || '数据源可靠性评分'}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {dataSources.map((source, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">{source.name}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            source.reliability >= 99.5
+                              ? 'bg-emerald-500'
+                              : source.reliability >= 98
+                                ? 'bg-blue-500'
+                                : 'bg-amber-500'
+                          }`}
+                          style={{ width: `${source.reliability}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-medium w-12 text-right ${getReliabilityColor(source.reliability)}`}>
+                        {source.reliability}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-700">
+                  {t('winklink.lastUpdate') || '最后更新时间'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {dataSources.map((source, index) => (
+                  <div key={index} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">{source.name}</span>
+                    <span className="text-xs text-gray-400">{source.lastUpdate}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <Activity className="w-5 h-5 text-gray-600" />
+            <h3 className="text-base font-medium text-gray-900">
+              {t('winklink.dataQualityMetrics') || '数据质量指标'}
+            </h3>
+          </div>
+
+          <div className="space-y-4">
+            {dataQualityMetrics.map((metric, index) => (
+              <div
+                key={index}
+                className={`flex items-center justify-between p-4 rounded-lg ${getStatusBgColor(metric.status)}`}
+              >
+                <div className="flex items-center gap-3">
+                  {metric.status === 'excellent' ? (
+                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                  ) : metric.status === 'good' ? (
+                    <Activity className="w-5 h-5 text-blue-500" />
+                  ) : (
+                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">{metric.label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{metric.description}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className={`text-lg font-semibold ${getStatusColor(metric.status)}`}>
+                    {metric.value}
+                    {typeof metric.value === 'number' && metric.label.includes('数量') ? '' : ''}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-500">{t('winklink.overallQuality') || '综合质量评分'}</span>
+              <div className="flex items-center gap-2">
+                <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: '96%' }} />
+                </div>
+                <span className="text-sm font-medium text-emerald-600">96/100</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              {t('winklink.qualityNote') || '数据质量基于价格一致性、更新频率和来源多样性综合评估'}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
           {t('winklink.tradingPair') || '主要交易对'}

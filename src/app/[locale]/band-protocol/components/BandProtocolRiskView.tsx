@@ -49,67 +49,65 @@ const benchmarkData = [
   { metric: 'Track Record', chainlink: 95, pyth: 72, band: 80, api3: 75 },
 ];
 
-const riskFactors = [
-  {
-    category: 'Smart Contract Risk',
-    level: 'medium',
-    description:
-      'Audited by CertiK and PeckShield with no critical vulnerabilities found. Continuous monitoring active.',
-    details: [
-      'CertiK audit completed Q1 2024',
-      'PeckShield security review passed',
-      'Bug bounty program with $200K+ rewards',
-      'Multi-sig governance for contract upgrades',
-    ],
-  },
-  {
-    category: 'Oracle Risk',
-    level: 'medium',
-    description:
-      'Decentralized validator network with economic incentives and slashing mechanisms.',
-    details: [
-      '72 validators across 25+ countries',
-      'BFT consensus with 2/3+ threshold',
-      'Token staking with slashing conditions',
-      'Data source diversity from 15+ providers',
-    ],
-  },
-  {
-    category: 'Market Risk',
-    level: 'medium',
-    description:
-      'BAND token price volatility affects staking economics and network security budget.',
-    details: [
-      'BAND price correlation with market sentiment',
-      'Staking rewards denominated in BAND',
-      'Validator rewards tied to token value',
-      'Treasury management in progress',
-    ],
-  },
-  {
-    category: 'Centralization Risk',
-    level: 'medium',
-    description:
-      'Validator set is permissioned, with top validators holding significant stake concentration.',
-    details: [
-      'Permissioned validator set (72 active)',
-      'Top 10 validators control ~45% stake',
-      'Geographic concentration in Asia (~40%)',
-      'Ongoing efforts to diversify validator base',
-    ],
-  },
-  {
-    category: 'Regulatory Risk',
-    level: 'low',
-    description: 'Potential regulatory changes in DeFi sector and oracle services classification.',
-    details: [
-      'Ongoing regulatory clarity discussions',
-      'Compliance framework development',
-      'Geographic node distribution mitigates risk',
-      'Legal team monitoring global regulations',
-    ],
-  },
-];
+function getRiskFactors(t: (key: string, params?: Record<string, string | number | Date>) => string) {
+  return [
+    {
+      category: t('band.bandProtocol.risk.riskFactors.smartContract.category'),
+      level: 'medium',
+      description: t('band.bandProtocol.risk.riskFactors.smartContract.description'),
+      details: [
+        t('band.bandProtocol.risk.riskFactors.smartContract.detail1'),
+        t('band.bandProtocol.risk.riskFactors.smartContract.detail2'),
+        t('band.bandProtocol.risk.riskFactors.smartContract.detail3'),
+        t('band.bandProtocol.risk.riskFactors.smartContract.detail4'),
+      ],
+    },
+    {
+      category: t('band.bandProtocol.risk.riskFactors.oracle.category'),
+      level: 'medium',
+      description: t('band.bandProtocol.risk.riskFactors.oracle.description'),
+      details: [
+        t('band.bandProtocol.risk.riskFactors.oracle.detail1', { count: 72 }),
+        t('band.bandProtocol.risk.riskFactors.oracle.detail2'),
+        t('band.bandProtocol.risk.riskFactors.oracle.detail3'),
+        t('band.bandProtocol.risk.riskFactors.oracle.detail4'),
+      ],
+    },
+    {
+      category: t('band.bandProtocol.risk.riskFactors.market.category'),
+      level: 'medium',
+      description: t('band.bandProtocol.risk.riskFactors.market.description'),
+      details: [
+        t('band.bandProtocol.risk.riskFactors.market.detail1'),
+        t('band.bandProtocol.risk.riskFactors.market.detail2'),
+        t('band.bandProtocol.risk.riskFactors.market.detail3'),
+        t('band.bandProtocol.risk.riskFactors.market.detail4'),
+      ],
+    },
+    {
+      category: t('band.bandProtocol.risk.riskFactors.centralization.category'),
+      level: 'medium',
+      description: t('band.bandProtocol.risk.riskFactors.centralization.description'),
+      details: [
+        t('band.bandProtocol.risk.riskFactors.centralization.detail1', { count: 72 }),
+        t('band.bandProtocol.risk.riskFactors.centralization.detail2'),
+        t('band.bandProtocol.risk.riskFactors.centralization.detail3'),
+        t('band.bandProtocol.risk.riskFactors.centralization.detail4'),
+      ],
+    },
+    {
+      category: t('band.bandProtocol.risk.riskFactors.regulatory.category'),
+      level: 'low',
+      description: t('band.bandProtocol.risk.riskFactors.regulatory.description'),
+      details: [
+        t('band.bandProtocol.risk.riskFactors.regulatory.detail1'),
+        t('band.bandProtocol.risk.riskFactors.regulatory.detail2'),
+        t('band.bandProtocol.risk.riskFactors.regulatory.detail3'),
+        t('band.bandProtocol.risk.riskFactors.regulatory.detail4'),
+      ],
+    },
+  ];
+}
 
 function convertRiskEventToTimelineEvent(event: RiskEvent): TimelineEvent {
   return {
@@ -183,37 +181,37 @@ export function BandProtocolRiskView() {
       return [
         {
           id: 'decentralization',
-          name: 'Decentralization Score',
+          name: t('band.bandProtocol.risk.metricsDisplay.decentralization.name'),
           value: 72,
           max: 100,
-          description: 'Based on validator diversity and geographic distribution across 25+ countries',
+          description: t('band.bandProtocol.risk.metricsDisplay.decentralization.description'),
           status: 'medium',
           trend: 'up',
         },
         {
           id: 'security',
-          name: 'Security Rating',
+          name: t('band.bandProtocol.risk.metricsDisplay.security.name'),
           value: 78,
           max: 100,
-          description: 'Based on audit history, bug bounty programs, and incident response',
+          description: t('band.bandProtocol.risk.metricsDisplay.security.description'),
           status: 'medium',
           trend: 'stable',
         },
         {
           id: 'reliability',
-          name: 'Network Reliability',
+          name: t('band.bandProtocol.risk.metricsDisplay.reliability.name'),
           value: 94.2,
           max: 100,
-          description: 'Uptime and successful response rate over the last 30 days',
+          description: t('band.bandProtocol.risk.metricsDisplay.reliability.description'),
           status: 'low',
           trend: 'up',
         },
         {
           id: 'transparency',
-          name: 'Transparency Score',
+          name: t('band.bandProtocol.risk.metricsDisplay.transparency.name'),
           value: 75,
           max: 100,
-          description: 'Based on documentation quality and open-source availability',
+          description: t('band.bandProtocol.risk.metricsDisplay.transparency.description'),
           status: 'medium',
           trend: 'stable',
         },
@@ -223,7 +221,7 @@ export function BandProtocolRiskView() {
     return [
       {
         id: 'decentralization',
-        name: 'Decentralization Score',
+        name: t('band.bandProtocol.risk.metricsDisplay.decentralization.name'),
         value: riskMetrics.decentralizationScore,
         max: 100,
         description: `Gini: ${riskMetrics.giniCoefficient.toFixed(3)} | Nakamoto: ${riskMetrics.nakamotoCoefficient} | Top 10: ${riskMetrics.top10ValidatorsShare.toFixed(1)}%`,
@@ -232,33 +230,33 @@ export function BandProtocolRiskView() {
       },
       {
         id: 'security',
-        name: 'Security Rating',
+        name: t('band.bandProtocol.risk.metricsDisplay.security.name'),
         value: riskMetrics.securityScore,
         max: 100,
-        description: 'Based on audit history, bug bounty programs, and incident response',
+        description: t('band.bandProtocol.risk.metricsDisplay.security.description'),
         status: riskMetrics.securityScore >= 80 ? 'low' : riskMetrics.securityScore >= 60 ? 'medium' : 'high',
         trend: 'stable',
       },
       {
         id: 'reliability',
-        name: 'Network Reliability',
+        name: t('band.bandProtocol.risk.metricsDisplay.reliability.name'),
         value: riskMetrics.reliabilityScore,
         max: 100,
-        description: 'Uptime and successful response rate over the last 30 days',
+        description: t('band.bandProtocol.risk.metricsDisplay.reliability.description'),
         status: riskMetrics.reliabilityScore >= 95 ? 'low' : riskMetrics.reliabilityScore >= 85 ? 'medium' : 'high',
         trend: 'up',
       },
       {
         id: 'transparency',
-        name: 'Transparency Score',
+        name: t('band.bandProtocol.risk.metricsDisplay.transparency.name'),
         value: riskMetrics.transparencyScore,
         max: 100,
-        description: 'Based on documentation quality and open-source availability',
+        description: t('band.bandProtocol.risk.metricsDisplay.transparency.description'),
         status: riskMetrics.transparencyScore >= 80 ? 'low' : riskMetrics.transparencyScore >= 60 ? 'medium' : 'high',
         trend: 'stable',
       },
     ];
-  }, [riskMetrics]);
+  }, [riskMetrics, t]);
 
   const overallScore = riskMetrics?.overallScore ?? 
     metricsDisplay.reduce((sum, m) => sum + m.value, 0) / metricsDisplay.length;
@@ -603,7 +601,7 @@ export function BandProtocolRiskView() {
         </div>
 
         <div className="space-y-2">
-          {riskFactors.map((factor, index) => (
+          {getRiskFactors(t).map((factor, index) => (
             <div key={index} className="border-b border-gray-100 last:border-0">
               <button
                 onClick={() => setExpandedFactor(expandedFactor === index ? null : index)}
@@ -613,7 +611,7 @@ export function BandProtocolRiskView() {
                   <span
                     className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}
                   >
-                    {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
+                    {t(`band.bandProtocol.risk.level.${factor.level}`)}
                   </span>
                   <span className="text-sm font-medium text-gray-900">{factor.category}</span>
                 </div>

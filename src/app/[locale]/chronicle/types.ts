@@ -13,7 +13,10 @@ export type ChronicleTabId =
   | 'validators'
   | 'makerdao'
   | 'scuttlebutt'
-  | 'risk';
+  | 'risk'
+  | 'vault'
+  | 'crossChain'
+  | 'priceDeviation';
 
 export interface NetworkStats {
   activeValidators: number;
