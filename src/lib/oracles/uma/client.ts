@@ -4,9 +4,16 @@ import type { PriceData } from '@/types/oracle';
 
 import { BaseOracleClient } from '../base';
 
+import {
+  UMA_MOCK_CONFIG,
+  SeededRandom,
+  generateMockDisputes,
+  generateMockEarningsTrends,
+  generateMockDisputeTrends,
+} from './mockDataConfig';
+
 import type { OracleClientConfig } from '../base';
 import type {
-  DisputeType,
   ValidatorData,
   DisputeData,
   UMANetworkStats,
@@ -22,6 +29,16 @@ import type {
   EarningsSourceBreakdown,
   DisputeAmountDistributionStats,
 } from './types';
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+let disputesCache: CacheEntry<DisputeData[]> | null = null;
+let heatmapCache: CacheEntry<ValidatorPerformanceHeatmapData[]> | null = null;
 
 export class UMAClient extends BaseOracleClient {
   name = OracleProvider.UMA;
@@ -40,6 +57,10 @@ export class UMAClient extends BaseOracleClient {
   }
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+    if (!symbol || symbol.trim() === '') {
+      throw this.createError('Symbol is required', 'PRICE_FETCH_ERROR');
+    }
+
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
@@ -59,6 +80,13 @@ export class UMAClient extends BaseOracleClient {
     chain?: Blockchain,
     period: number = 24
   ): Promise<PriceData[]> {
+    if (!symbol || symbol.trim() === '') {
+      throw this.createError('Symbol is required', 'PRICE_FETCH_ERROR');
+    }
+    if (!period || period <= 0) {
+      throw this.createError('Period must be greater than 0', 'HISTORICAL_PRICE_ERROR');
+    }
+
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
@@ -74,181 +102,25 @@ export class UMAClient extends BaseOracleClient {
   }
 
   async getValidators(): Promise<ValidatorData[]> {
-    const validators: ValidatorData[] = [
-      {
-        id: '1',
-        name: 'UMA Foundation',
-        type: 'institution',
-        region: 'North America',
-        responseTime: 110,
-        successRate: 99.9,
-        reputation: 98,
-        staked: 680000,
-        earnings: 12500,
-        address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-      },
-      {
-        id: '2',
-        name: 'Risk Labs',
-        type: 'institution',
-        region: 'Europe',
-        responseTime: 120,
-        successRate: 99.8,
-        reputation: 95,
-        staked: 500000,
-        earnings: 9800,
-        address: '0x8ba1f109551bD432803012645Hac136c82C3e8C9',
-      },
-      {
-        id: '3',
-        name: 'SuperUMAn',
-        type: 'community',
-        region: 'Asia',
-        responseTime: 135,
-        successRate: 99.5,
-        reputation: 92,
-        staked: 420000,
-        earnings: 8200,
-        address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-      },
-      {
-        id: '4',
-        name: 'Across Validator',
-        type: 'institution',
-        region: 'North America',
-        responseTime: 125,
-        successRate: 99.7,
-        reputation: 94,
-        staked: 380000,
-        earnings: 7500,
-        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      },
-      {
-        id: '5',
-        name: 'Polymarket Node',
-        type: 'institution',
-        region: 'Europe',
-        responseTime: 140,
-        successRate: 99.4,
-        reputation: 90,
-        staked: 320000,
-        earnings: 6400,
-        address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-      },
-      {
-        id: '6',
-        name: 'Independent Validator A',
-        type: 'independent',
-        region: 'Asia',
-        responseTime: 150,
-        successRate: 99.2,
-        reputation: 88,
-        staked: 280000,
-        earnings: 5600,
-        address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-      },
-      {
-        id: '7',
-        name: 'Independent Validator B',
-        type: 'independent',
-        region: 'North America',
-        responseTime: 145,
-        successRate: 99.3,
-        reputation: 89,
-        staked: 260000,
-        earnings: 5200,
-        address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-      },
-      {
-        id: '8',
-        name: 'Community Node 1',
-        type: 'community',
-        region: 'Europe',
-        responseTime: 160,
-        successRate: 99.0,
-        reputation: 85,
-        staked: 220000,
-        earnings: 4400,
-        address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
-      },
-      {
-        id: '9',
-        name: 'Community Node 2',
-        type: 'community',
-        region: 'Asia',
-        responseTime: 155,
-        successRate: 99.1,
-        reputation: 86,
-        staked: 200000,
-        earnings: 4000,
-        address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
-      },
-      {
-        id: '10',
-        name: 'Independent Validator C',
-        type: 'independent',
-        region: 'Other',
-        responseTime: 165,
-        successRate: 98.9,
-        reputation: 84,
-        staked: 180000,
-        earnings: 3600,
-        address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
-      },
-    ];
-    return validators;
+    return UMA_MOCK_CONFIG.validators();
   }
 
   async getDisputes(): Promise<DisputeData[]> {
-    const disputes: DisputeData[] = [];
     const now = Date.now();
-    const disputeTypes: DisputeType[] = ['price', 'state', 'liquidation', 'other'];
-
-    for (let i = 0; i < 50; i++) {
-      const isResolved = Math.random() > 0.3;
-      const stakeAmount = Math.floor(Math.random() * 50000) + 5000;
-      const rewardMultiplier = isResolved ? 0.8 + Math.random() * 1.5 : 0;
-      const rewardAmount = Math.floor(stakeAmount * rewardMultiplier);
-      const totalValue = stakeAmount + rewardAmount + Math.floor(Math.random() * 10000);
-
-      disputes.push({
-        id: `dispute-${i + 1}`,
-        timestamp: now - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000),
-        status: isResolved ? 'resolved' : Math.random() > 0.5 ? 'active' : 'rejected',
-        reward: Math.floor(Math.random() * 5000) + 1000,
-        resolutionTime: isResolved ? Math.floor(Math.random() * 48) + 1 : undefined,
-        type: disputeTypes[Math.floor(Math.random() * disputeTypes.length)],
-        transactionHash: `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-        stakeAmount,
-        rewardAmount,
-        totalValue,
-      });
+    if (disputesCache && now - disputesCache.timestamp < CACHE_TTL_MS) {
+      return disputesCache.data;
     }
-
-    return disputes.sort((a, b) => b.timestamp - a.timestamp);
+    const data = generateMockDisputes(UMA_MOCK_CONFIG.seed);
+    disputesCache = { data, timestamp: now };
+    return data;
   }
 
   async getNetworkStats(): Promise<UMANetworkStats> {
-    return {
-      activeValidators: 850,
-      validatorUptime: 99.5,
-      avgResponseTime: 180,
-      updateFrequency: 60,
-      totalStaked: 25000000,
-      dataSources: 320,
-      totalDisputes: 1250,
-      disputeSuccessRate: 78,
-      avgResolutionTime: 4.2,
-      activeDisputes: 23,
-    };
+    return UMA_MOCK_CONFIG.networkStats();
   }
 
   async getVerificationActivity(): Promise<VerificationActivity> {
-    const hourly = [
-      3200, 2800, 2500, 2200, 1900, 2100, 2800, 4200, 5800, 7200, 8500, 9200, 8800, 8400, 7900,
-      8200, 8600, 9100, 8800, 7600, 6500, 5200, 4100, 3500,
-    ];
-
+    const hourly = UMA_MOCK_CONFIG.verificationActivity.hourly;
     const total = hourly.reduce((a, b) => a + b, 0);
     const peakRequests = Math.max(...hourly);
     const peakHour = hourly.indexOf(peakRequests);
@@ -263,56 +135,31 @@ export class UMAClient extends BaseOracleClient {
   }
 
   async getDisputeTrends(): Promise<{ date: string; filed: number; resolved: number }[]> {
-    const trends = [];
-    const now = new Date();
-
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      trends.push({
-        date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
-        filed: Math.floor(Math.random() * 20) + 10,
-        resolved: Math.floor(Math.random() * 15) + 8,
-      });
-    }
-
-    return trends;
+    return generateMockDisputeTrends(UMA_MOCK_CONFIG.seed);
   }
 
   async getEarningsTrends(): Promise<{ day: string; daily: number; cumulative: number }[]> {
-    const trends = [];
-    let cumulative = 0;
-    const now = new Date();
-
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      const daily = Math.floor(Math.random() * 500) + 300;
-      cumulative += daily;
-      trends.push({
-        day: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
-        daily,
-        cumulative,
-      });
-    }
-
-    return trends;
+    return generateMockEarningsTrends(UMA_MOCK_CONFIG.seed);
   }
 
   async getValidatorPerformanceHeatmap(): Promise<ValidatorPerformanceHeatmapData[]> {
+    const now = Date.now();
+    if (heatmapCache && now - heatmapCache.timestamp < CACHE_TTL_MS) {
+      return heatmapCache.data;
+    }
     const validators = await this.getValidators();
     const heatmapData: ValidatorPerformanceHeatmapData[] = [];
+    const rng = new SeededRandom(UMA_MOCK_CONFIG.seed + 1000);
 
     for (const validator of validators.slice(0, 8)) {
       const hourlyData = [];
       for (let hour = 0; hour < 24; hour++) {
         const baseResponseTime = validator.responseTime;
-        const variation = Math.sin((hour / 24) * Math.PI * 2) * 20 + Math.random() * 10 - 5;
+        const variation = Math.sin((hour / 24) * Math.PI * 2) * 20 + rng.range(-5, 5);
         const responseTime = Math.max(50, baseResponseTime + variation);
 
         const baseSuccessRate = validator.successRate;
-        const successVariation =
-          Math.cos((hour / 24) * Math.PI * 2) * 0.3 + Math.random() * 0.2 - 0.1;
+        const successVariation = Math.cos((hour / 24) * Math.PI * 2) * 0.3 + rng.range(-0.1, 0.1);
         const successRate = Math.min(100, Math.max(95, baseSuccessRate + successVariation));
 
         hourlyData.push({
@@ -329,6 +176,7 @@ export class UMAClient extends BaseOracleClient {
       });
     }
 
+    heatmapCache = { data: heatmapData, timestamp: now };
     return heatmapData;
   }
 
@@ -337,6 +185,7 @@ export class UMAClient extends BaseOracleClient {
   ): Promise<ValidatorPerformanceHeatmapDataByDay[]> {
     const validators = await this.getValidators();
     const heatmapData: ValidatorPerformanceHeatmapDataByDay[] = [];
+    const rng = new SeededRandom(UMA_MOCK_CONFIG.seed + 2000);
     const now = new Date();
 
     for (const validator of validators.slice(0, 8)) {
@@ -348,12 +197,12 @@ export class UMAClient extends BaseOracleClient {
         const dateStr = date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
 
         const baseResponseTime = validator.responseTime;
-        const dayVariation = Math.sin((dayIndex / days) * Math.PI) * 15 + Math.random() * 10 - 5;
+        const dayVariation = Math.sin((dayIndex / days) * Math.PI) * 15 + rng.range(-5, 5);
         const avgResponseTime = Math.max(50, baseResponseTime + dayVariation);
 
         const baseSuccessRate = validator.successRate;
         const successVariation =
-          Math.cos((dayIndex / days) * Math.PI) * 0.2 + Math.random() * 0.15 - 0.075;
+          Math.cos((dayIndex / days) * Math.PI) * 0.2 + rng.range(-0.075, 0.075);
         const avgSuccessRate = Math.min(100, Math.max(95, baseSuccessRate + successVariation));
 
         dailyData.push({
@@ -396,6 +245,7 @@ export class UMAClient extends BaseOracleClient {
         : 0;
     const stdDeviation = Math.sqrt(variance);
 
+    const rng = new SeededRandom(UMA_MOCK_CONFIG.seed + 3000);
     const successRateTrend = [];
     const now = new Date();
     for (let i = 13; i >= 0; i--) {
@@ -403,7 +253,7 @@ export class UMAClient extends BaseOracleClient {
       date.setDate(date.getDate() - i);
       successRateTrend.push({
         date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
-        rate: 70 + Math.random() * 20,
+        rate: 70 + rng.range(0, 20),
       });
     }
 
@@ -437,6 +287,7 @@ export class UMAClient extends BaseOracleClient {
 
   async getDataQualityScore(): Promise<DataQualityScore> {
     const networkStats = await this.getNetworkStats();
+    const rng = new SeededRandom(UMA_MOCK_CONFIG.seed + 4000);
 
     const networkHealthScore = Math.min(
       100,
@@ -445,7 +296,7 @@ export class UMAClient extends BaseOracleClient {
         (networkStats.disputeSuccessRate / 100) * 25
     );
 
-    const dataIntegrityScore = 85 + Math.random() * 10;
+    const dataIntegrityScore = 85 + rng.range(0, 10);
 
     const responseTimeScore = Math.max(0, 100 - (networkStats.avgResponseTime - 100) / 2);
 
@@ -461,7 +312,7 @@ export class UMAClient extends BaseOracleClient {
       validatorActivityScore * 0.2;
 
     const getTrend = (): 'up' | 'down' | 'stable' => {
-      const rand = Math.random();
+      const rand = rng.next();
       return rand > 0.6 ? 'up' : rand > 0.3 ? 'stable' : 'down';
     };
 
@@ -497,6 +348,7 @@ export class UMAClient extends BaseOracleClient {
     const baseResponseTime = validator?.responseTime ?? 150;
     const baseReputation = validator?.reputation ?? 85;
 
+    const rng = new SeededRandom(UMA_MOCK_CONFIG.seed + parseInt(validatorId) * 100);
     const history: ValidatorHistoryData[] = [];
     const now = new Date();
 
@@ -506,7 +358,7 @@ export class UMAClient extends BaseOracleClient {
       const dateStr = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
 
       const trendFactor = Math.sin(((days - i) / days) * Math.PI) * 2;
-      const randomVariation = (Math.random() - 0.5) * 2;
+      const randomVariation = rng.range(-1, 1);
 
       const successRate = Math.min(
         100,
@@ -514,11 +366,11 @@ export class UMAClient extends BaseOracleClient {
       );
 
       const responseTimeVariation =
-        Math.cos(((days - i) / days) * Math.PI) * 20 + (Math.random() - 0.5) * 30;
+        Math.cos(((days - i) / days) * Math.PI) * 20 + rng.range(-15, 15);
       const responseTime = Math.max(50, Math.round(baseResponseTime + responseTimeVariation));
 
       const reputationTrend = ((days - i) / days) * 3;
-      const reputationVariation = (Math.random() - 0.5) * 4;
+      const reputationVariation = rng.range(-2, 2);
       const reputation = Math.min(
         100,
         Math.max(70, Math.round(baseReputation + reputationTrend + reputationVariation))
@@ -540,6 +392,10 @@ export class UMAClient extends BaseOracleClient {
     validatorType: 'institution' | 'independent' | 'community',
     disputeFrequency: 'low' | 'medium' | 'high'
   ): Promise<StakingCalculation> {
+    if (!amount || amount <= 0) {
+      throw this.createError('Amount must be greater than 0', 'STAKING_AMOUNT_ERROR');
+    }
+
     const baseAprMap = {
       institution: 0.08,
       independent: 0.1,
@@ -580,8 +436,14 @@ export class UMAClient extends BaseOracleClient {
     const validator = validators.find((v) => v.id === validatorId);
 
     if (!validator) {
-      throw new Error(`Validator not found: ${validatorId}`);
+      const availableIds = validators.map((v) => v.id).join(', ');
+      throw this.createError(
+        `验证者不存在: ID "${validatorId}" 未找到。可用的验证者 ID: ${availableIds}`,
+        'VALIDATOR_NOT_FOUND'
+      );
     }
+
+    const rng = new SeededRandom(UMA_MOCK_CONFIG.seed + parseInt(validatorId) * 200);
 
     const periodMultiplier = {
       daily: 1 / 30,
@@ -592,35 +454,40 @@ export class UMAClient extends BaseOracleClient {
 
     const totalEarnings = validator.earnings * periodMultiplier;
 
-    const baseRatio = 0.6 + Math.random() * 0.15;
-    const disputeRatio = 0.15 + Math.random() * 0.15;
+    const baseRatio = 0.6 + rng.range(0, 0.15);
+    const disputeRatio = 0.15 + rng.range(0, 0.15);
     const otherRatio = 1 - baseRatio - disputeRatio;
 
     const baseAmount = totalEarnings * baseRatio;
     const disputeAmount = totalEarnings * disputeRatio;
     const otherAmount = totalEarnings * otherRatio;
 
+    const getTrend = (): 'up' | 'down' | 'stable' => {
+      const rand = rng.next();
+      return rand > 0.5 ? 'up' : rand > 0.25 ? 'stable' : 'down';
+    };
+
     const sources: EarningsSourceBreakdown[] = [
       {
         type: 'base',
         amount: baseAmount,
         percentage: baseRatio * 100,
-        trend: Math.random() > 0.4 ? 'up' : Math.random() > 0.5 ? 'stable' : 'down',
-        trendValue: parseFloat((Math.random() * 10 - 3).toFixed(2)),
+        trend: getTrend(),
+        trendValue: parseFloat(rng.range(-3, 7).toFixed(2)),
       },
       {
         type: 'dispute',
         amount: disputeAmount,
         percentage: disputeRatio * 100,
-        trend: Math.random() > 0.5 ? 'up' : Math.random() > 0.5 ? 'stable' : 'down',
-        trendValue: parseFloat((Math.random() * 15 - 5).toFixed(2)),
+        trend: getTrend(),
+        trendValue: parseFloat(rng.range(-5, 10).toFixed(2)),
       },
       {
         type: 'other',
         amount: otherAmount,
         percentage: otherRatio * 100,
-        trend: Math.random() > 0.6 ? 'stable' : Math.random() > 0.5 ? 'up' : 'down',
-        trendValue: parseFloat((Math.random() * 8 - 4).toFixed(2)),
+        trend: getTrend(),
+        trendValue: parseFloat(rng.range(-4, 4).toFixed(2)),
       },
     ];
 
@@ -644,9 +511,9 @@ export class UMAClient extends BaseOracleClient {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
 
-      const dailyBase = (baseAmount / days) * (0.9 + Math.random() * 0.2);
-      const dailyDispute = (disputeAmount / days) * (0.5 + Math.random() * 1.5);
-      const dailyOther = (otherAmount / days) * (0.8 + Math.random() * 0.4);
+      const dailyBase = (baseAmount / days) * rng.range(0.9, 1.1);
+      const dailyDispute = (disputeAmount / days) * rng.range(0.5, 2.0);
+      const dailyOther = (otherAmount / days) * rng.range(0.8, 1.2);
 
       history.push({
         date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),

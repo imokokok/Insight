@@ -111,6 +111,127 @@ function getBridgeStatusBg(status: string): string {
   }
 }
 
+const MOCK_DATA: CrossChainData = {
+  medianPrice: 2650.45,
+  prices: [
+    {
+      chain: 'Ethereum',
+      chainId: 1,
+      price: 2650.45,
+      deviation: 0,
+      lastUpdate: '2s ago',
+      status: 'active',
+      confirmations: 12,
+    },
+    {
+      chain: 'Arbitrum',
+      chainId: 42161,
+      price: 2650.12,
+      deviation: -0.012,
+      lastUpdate: '5s ago',
+      status: 'active',
+      confirmations: 1,
+    },
+    {
+      chain: 'Optimism',
+      chainId: 10,
+      price: 2651.2,
+      deviation: 0.028,
+      lastUpdate: '3s ago',
+      status: 'active',
+      confirmations: 1,
+    },
+    {
+      chain: 'Polygon',
+      chainId: 137,
+      price: 2648.9,
+      deviation: -0.058,
+      lastUpdate: '8s ago',
+      status: 'active',
+      confirmations: 128,
+    },
+    {
+      chain: 'Base',
+      chainId: 8453,
+      price: 2652.8,
+      deviation: 0.088,
+      lastUpdate: '4s ago',
+      status: 'active',
+      confirmations: 1,
+    },
+    {
+      chain: 'Avalanche',
+      chainId: 43114,
+      price: 2645.3,
+      deviation: -0.194,
+      lastUpdate: '6s ago',
+      status: 'warning',
+      confirmations: 1,
+    },
+  ],
+  latencies: [
+    { chain: 'Ethereum', avgBlockTime: 12, finalityTime: 900, gasPrice: 35, gasPriceUnit: 'Gwei' },
+    {
+      chain: 'Arbitrum',
+      avgBlockTime: 0.25,
+      finalityTime: 600,
+      gasPrice: 0.1,
+      gasPriceUnit: 'Gwei',
+    },
+    { chain: 'Optimism', avgBlockTime: 2, finalityTime: 300, gasPrice: 0.001, gasPriceUnit: 'ETH' },
+    { chain: 'Polygon', avgBlockTime: 2.1, finalityTime: 120, gasPrice: 30, gasPriceUnit: 'Gwei' },
+    { chain: 'Base', avgBlockTime: 2, finalityTime: 300, gasPrice: 0.001, gasPriceUnit: 'ETH' },
+    { chain: 'Avalanche', avgBlockTime: 2, finalityTime: 1, gasPrice: 25, gasPriceUnit: 'nAVAX' },
+  ],
+  bridges: [
+    {
+      bridge: 'Arbitrum Bridge',
+      sourceChain: 'Ethereum',
+      targetChain: 'Arbitrum',
+      totalTransactions: 1250000,
+      avgDelay: 10,
+      status: 'healthy',
+      lastUpdate: '1m ago',
+    },
+    {
+      bridge: 'Optimism Bridge',
+      sourceChain: 'Ethereum',
+      targetChain: 'Optimism',
+      totalTransactions: 980000,
+      avgDelay: 20,
+      status: 'healthy',
+      lastUpdate: '30s ago',
+    },
+    {
+      bridge: 'Polygon PoS',
+      sourceChain: 'Ethereum',
+      targetChain: 'Polygon',
+      totalTransactions: 2100000,
+      avgDelay: 180,
+      status: 'healthy',
+      lastUpdate: '2m ago',
+    },
+    {
+      bridge: 'Base Bridge',
+      sourceChain: 'Ethereum',
+      targetChain: 'Base',
+      totalTransactions: 450000,
+      avgDelay: 20,
+      status: 'healthy',
+      lastUpdate: '1m ago',
+    },
+    {
+      bridge: 'Avalanche Bridge',
+      sourceChain: 'Ethereum',
+      targetChain: 'Avalanche',
+      totalTransactions: 720000,
+      avgDelay: 300,
+      status: 'degraded',
+      lastUpdate: '5m ago',
+    },
+  ],
+};
+
 export function ChronicleCrossChainView({
   crossChainData,
   isLoading,
@@ -121,34 +242,7 @@ export function ChronicleCrossChainView({
     direction: 'desc',
   });
 
-  const mockData: CrossChainData = useMemo(() => ({
-    medianPrice: 2650.45,
-    prices: [
-      { chain: 'Ethereum', chainId: 1, price: 2650.45, deviation: 0, lastUpdate: '2s ago', status: 'active', confirmations: 12 },
-      { chain: 'Arbitrum', chainId: 42161, price: 2650.12, deviation: -0.012, lastUpdate: '5s ago', status: 'active', confirmations: 1 },
-      { chain: 'Optimism', chainId: 10, price: 2651.20, deviation: 0.028, lastUpdate: '3s ago', status: 'active', confirmations: 1 },
-      { chain: 'Polygon', chainId: 137, price: 2648.90, deviation: -0.058, lastUpdate: '8s ago', status: 'active', confirmations: 128 },
-      { chain: 'Base', chainId: 8453, price: 2652.80, deviation: 0.088, lastUpdate: '4s ago', status: 'active', confirmations: 1 },
-      { chain: 'Avalanche', chainId: 43114, price: 2645.30, deviation: -0.194, lastUpdate: '6s ago', status: 'warning', confirmations: 1 },
-    ],
-    latencies: [
-      { chain: 'Ethereum', avgBlockTime: 12, finalityTime: 900, gasPrice: 35, gasPriceUnit: 'Gwei' },
-      { chain: 'Arbitrum', avgBlockTime: 0.25, finalityTime: 600, gasPrice: 0.1, gasPriceUnit: 'Gwei' },
-      { chain: 'Optimism', avgBlockTime: 2, finalityTime: 300, gasPrice: 0.001, gasPriceUnit: 'ETH' },
-      { chain: 'Polygon', avgBlockTime: 2.1, finalityTime: 120, gasPrice: 30, gasPriceUnit: 'Gwei' },
-      { chain: 'Base', avgBlockTime: 2, finalityTime: 300, gasPrice: 0.001, gasPriceUnit: 'ETH' },
-      { chain: 'Avalanche', avgBlockTime: 2, finalityTime: 1, gasPrice: 25, gasPriceUnit: 'nAVAX' },
-    ],
-    bridges: [
-      { bridge: 'Arbitrum Bridge', sourceChain: 'Ethereum', targetChain: 'Arbitrum', totalTransactions: 1250000, avgDelay: 10, status: 'healthy', lastUpdate: '1m ago' },
-      { bridge: 'Optimism Bridge', sourceChain: 'Ethereum', targetChain: 'Optimism', totalTransactions: 980000, avgDelay: 20, status: 'healthy', lastUpdate: '30s ago' },
-      { bridge: 'Polygon PoS', sourceChain: 'Ethereum', targetChain: 'Polygon', totalTransactions: 2100000, avgDelay: 180, status: 'healthy', lastUpdate: '2m ago' },
-      { bridge: 'Base Bridge', sourceChain: 'Ethereum', targetChain: 'Base', totalTransactions: 450000, avgDelay: 20, status: 'healthy', lastUpdate: '1m ago' },
-      { bridge: 'Avalanche Bridge', sourceChain: 'Ethereum', targetChain: 'Avalanche', totalTransactions: 720000, avgDelay: 300, status: 'degraded', lastUpdate: '5m ago' },
-    ],
-  }), []);
-
-  const data = crossChainData || mockData;
+  const data = crossChainData || MOCK_DATA;
 
   const sortedPrices = useMemo(() => {
     const sorted = [...data.prices];
@@ -160,8 +254,8 @@ export function ChronicleCrossChainView({
         bValue = b.lastUpdate;
       }
       if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortConfig.direction === 'asc' 
-          ? aValue.localeCompare(bValue) 
+        return sortConfig.direction === 'asc'
+          ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
       if (typeof aValue === 'number' && typeof bValue === 'number') {
@@ -173,7 +267,7 @@ export function ChronicleCrossChainView({
   }, [data.prices, sortConfig]);
 
   const handleSort = (key: SortKey) => {
-    setSortConfig(prev => ({
+    setSortConfig((prev) => ({
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
     }));
@@ -183,9 +277,11 @@ export function ChronicleCrossChainView({
     if (sortConfig.key !== columnKey) {
       return <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />;
     }
-    return sortConfig.direction === 'asc' 
-      ? <ArrowUp className="w-3.5 h-3.5 text-amber-500" />
-      : <ArrowDown className="w-3.5 h-3.5 text-amber-500" />;
+    return sortConfig.direction === 'asc' ? (
+      <ArrowUp className="w-3.5 h-3.5 text-amber-500" />
+    ) : (
+      <ArrowDown className="w-3.5 h-3.5 text-amber-500" />
+    );
   };
 
   if (isLoading) {
@@ -218,7 +314,7 @@ export function ChronicleCrossChainView({
                 <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
                   {t('chronicle.crossChain.chain') || 'Chain'}
                 </th>
-                <th 
+                <th
                   className="text-right py-3 px-4 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
                   onClick={() => handleSort('price')}
                 >
@@ -227,7 +323,7 @@ export function ChronicleCrossChainView({
                     <SortIcon columnKey="price" />
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-right py-3 px-4 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
                   onClick={() => handleSort('deviation')}
                 >
@@ -236,7 +332,7 @@ export function ChronicleCrossChainView({
                     <SortIcon columnKey="deviation" />
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-right py-3 px-4 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700"
                   onClick={() => handleSort('lastUpdate')}
                 >
@@ -252,7 +348,10 @@ export function ChronicleCrossChainView({
             </thead>
             <tbody>
               {sortedPrices.map((item, index) => (
-                <tr key={item.chain} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <tr
+                  key={item.chain}
+                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                >
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{CHAIN_ICONS[item.chain] || '⛓️'}</span>
@@ -260,16 +359,21 @@ export function ChronicleCrossChainView({
                     </div>
                   </td>
                   <td className="py-3 px-4 text-right font-mono text-gray-900">
-                    ${item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    $
+                    {item.price.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium ${getDeviationColor(item.deviation)}`}>
-                      {item.deviation >= 0 ? '+' : ''}{item.deviation.toFixed(3)}%
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium ${getDeviationColor(item.deviation)}`}
+                    >
+                      {item.deviation >= 0 ? '+' : ''}
+                      {item.deviation.toFixed(3)}%
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-right text-sm text-gray-500">
-                    {item.lastUpdate}
-                  </td>
+                  <td className="py-3 px-4 text-right text-sm text-gray-500">{item.lastUpdate}</td>
                   <td className="py-3 px-4 text-center">
                     <div className="flex items-center justify-center gap-1">
                       {item.status === 'active' ? (
@@ -299,13 +403,13 @@ export function ChronicleCrossChainView({
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {data.prices.map((item) => (
-            <div 
+            <div
               key={item.chain}
               className="relative p-4 rounded-lg border border-gray-200 bg-white overflow-hidden"
             >
-              <div 
+              <div
                 className={`absolute inset-0 opacity-10 ${getDeviationBarColor(item.deviation)}`}
-                style={{ 
+                style={{
                   width: `${Math.min(Math.abs(item.deviation) * 100, 100)}%`,
                   height: '100%',
                 }}
@@ -317,14 +421,21 @@ export function ChronicleCrossChainView({
                 </div>
                 <div className="space-y-1">
                   <div className="text-lg font-semibold text-gray-900">
-                    ${item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    $
+                    {item.price.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </div>
-                  <div className={`text-sm font-medium ${getDeviationColor(item.deviation).split(' ')[1]}`}>
-                    {item.deviation >= 0 ? '+' : ''}{item.deviation.toFixed(3)}%
+                  <div
+                    className={`text-sm font-medium ${getDeviationColor(item.deviation).split(' ')[1]}`}
+                  >
+                    {item.deviation >= 0 ? '+' : ''}
+                    {item.deviation.toFixed(3)}%
                   </div>
                 </div>
                 <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5">
-                  <div 
+                  <div
                     className={`h-1.5 rounded-full transition-all duration-300 ${getDeviationBarColor(item.deviation)}`}
                     style={{ width: `${Math.min(Math.abs(item.deviation) * 100, 100)}%` }}
                   />
@@ -368,18 +479,25 @@ export function ChronicleCrossChainView({
           </div>
           <div className="space-y-4">
             {data.latencies.map((item) => (
-              <div key={item.chain} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div
+                key={item.chain}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{CHAIN_ICONS[item.chain] || '⛓️'}</span>
                   <span className="font-medium text-gray-900">{item.chain}</span>
                 </div>
                 <div className="flex items-center gap-6 text-sm">
                   <div className="text-right">
-                    <p className="text-gray-500">{t('chronicle.crossChain.blockTime') || 'Block Time'}</p>
+                    <p className="text-gray-500">
+                      {t('chronicle.crossChain.blockTime') || 'Block Time'}
+                    </p>
                     <p className="font-medium text-gray-900">{item.avgBlockTime}s</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-gray-500">{t('chronicle.crossChain.finality') || 'Finality'}</p>
+                    <p className="text-gray-500">
+                      {t('chronicle.crossChain.finality') || 'Finality'}
+                    </p>
                     <p className="font-medium text-gray-900">{item.finalityTime}s</p>
                   </div>
                 </div>
@@ -398,7 +516,7 @@ export function ChronicleCrossChainView({
           </div>
           <div className="space-y-4">
             {data.latencies.map((item) => {
-              const maxGas = Math.max(...data.latencies.map(l => l.gasPrice));
+              const maxGas = Math.max(...data.latencies.map((l) => l.gasPrice));
               const percentage = (item.gasPrice / maxGas) * 100;
               return (
                 <div key={item.chain} className="space-y-2">
@@ -412,7 +530,7 @@ export function ChronicleCrossChainView({
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-amber-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${Math.max(percentage, 5)}%` }}
                     />
@@ -457,11 +575,17 @@ export function ChronicleCrossChainView({
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">{t('chronicle.crossChain.totalTxns') || 'Total Txns'}</p>
-                  <p className="font-medium text-gray-900">{bridge.totalTransactions.toLocaleString()}</p>
+                  <p className="text-gray-500">
+                    {t('chronicle.crossChain.totalTxns') || 'Total Txns'}
+                  </p>
+                  <p className="font-medium text-gray-900">
+                    {bridge.totalTransactions.toLocaleString()}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-gray-500">{t('chronicle.crossChain.avgDelay') || 'Avg Delay'}</p>
+                  <p className="text-gray-500">
+                    {t('chronicle.crossChain.avgDelay') || 'Avg Delay'}
+                  </p>
                   <p className="font-medium text-gray-900">{bridge.avgDelay}s</p>
                 </div>
               </div>
@@ -480,21 +604,33 @@ export function ChronicleCrossChainView({
       {/* 统计摘要 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-4 bg-gray-50 rounded-lg">
         <div>
-          <p className="text-sm text-gray-500 mb-1">{t('chronicle.crossChain.activeChains') || 'Active Chains'}</p>
-          <p className="text-2xl font-semibold text-gray-900">{data.prices.filter(p => p.status === 'active').length}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500 mb-1">{t('chronicle.crossChain.maxDeviation') || 'Max Deviation'}</p>
+          <p className="text-sm text-gray-500 mb-1">
+            {t('chronicle.crossChain.activeChains') || 'Active Chains'}
+          </p>
           <p className="text-2xl font-semibold text-gray-900">
-            {Math.max(...data.prices.map(p => Math.abs(p.deviation))).toFixed(3)}%
+            {data.prices.filter((p) => p.status === 'active').length}
           </p>
         </div>
         <div>
-          <p className="text-sm text-gray-500 mb-1">{t('chronicle.crossChain.activeBridges') || 'Active Bridges'}</p>
-          <p className="text-2xl font-semibold text-gray-900">{data.bridges.filter(b => b.status === 'healthy').length}</p>
+          <p className="text-sm text-gray-500 mb-1">
+            {t('chronicle.crossChain.maxDeviation') || 'Max Deviation'}
+          </p>
+          <p className="text-2xl font-semibold text-gray-900">
+            {Math.max(...data.prices.map((p) => Math.abs(p.deviation))).toFixed(3)}%
+          </p>
         </div>
         <div>
-          <p className="text-sm text-gray-500 mb-1">{t('chronicle.crossChain.totalBridgeTxns') || 'Total Bridge Txns'}</p>
+          <p className="text-sm text-gray-500 mb-1">
+            {t('chronicle.crossChain.activeBridges') || 'Active Bridges'}
+          </p>
+          <p className="text-2xl font-semibold text-gray-900">
+            {data.bridges.filter((b) => b.status === 'healthy').length}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-500 mb-1">
+            {t('chronicle.crossChain.totalBridgeTxns') || 'Total Bridge Txns'}
+          </p>
           <p className="text-2xl font-semibold text-gray-900">
             {data.bridges.reduce((sum, b) => sum + b.totalTransactions, 0).toLocaleString()}
           </p>

@@ -393,6 +393,7 @@
       "decentralization": "Decentralization",
       "decentralizationDesc": "Each data feed is secured by multiple independent validators.",
       "searchPlaceholder": "Search by name, symbol, or description...",
+      "searchResults": "Found {{count}} results",
       "loadError": "Failed to Load Data",
       "failedToLoad": "Unable to fetch data sources. Please try again.",
       "retry": "Retry",

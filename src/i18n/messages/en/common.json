@@ -242,6 +242,10 @@
     },
     "error": {
       "loadingFailed": "Loading failed"
+    },
+    "warning": {
+      "partialData": "Some data failed to load",
+      "partialDataDescription": "The following data sources are unavailable: {items}. Displaying available data."
     }
   },
   "comparison": {

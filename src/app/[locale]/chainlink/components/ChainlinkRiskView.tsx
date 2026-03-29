@@ -452,53 +452,66 @@ export function ChainlinkRiskView() {
         </div>
 
         <div className="space-y-2">
-          {riskFactors.map((factor, index) => (
-            <div key={index} className="border-b border-gray-100 last:border-0">
-              <button
-                onClick={() => setExpandedFactor(expandedFactor === index ? null : index)}
-                className="w-full py-4 flex items-center justify-between hover:bg-gray-50 transition-colors px-2 -mx-2 rounded-md"
-              >
-                <div className="flex items-center gap-4">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}
-                  >
-                    {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
-                  </span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {t(`chainlink.${factor.categoryKey}`)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-500 hidden sm:block max-w-xs truncate">
-                    {t(`chainlink.${factor.descKey}`)}
-                  </span>
-                  {expandedFactor === index ? (
-                    <ChevronUp className="w-4 h-4 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                  )}
-                </div>
-              </button>
-              {expandedFactor === index && (
-                <div className="pb-4 px-2">
-                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-                    {t(`chainlink.${factor.descKey}`)}
-                  </p>
-                  <ul className="space-y-2">
-                    {factor.detailKeys.map((detailKey, detailIndex) => (
-                      <li
-                        key={detailIndex}
-                        className="flex items-start gap-2 text-sm text-gray-500"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
-                        <span>{t(`chainlink.${detailKey}`)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ))}
+          {riskFactors.map((factor, index) => {
+            const isExpanded = expandedFactor === index;
+            const contentId = `risk-factor-content-${index}`;
+
+            return (
+              <div key={index} className="border-b border-gray-100 last:border-0">
+                <button
+                  onClick={() => setExpandedFactor(expandedFactor === index ? null : index)}
+                  className="w-full py-4 flex items-center justify-between hover:bg-gray-50 transition-colors px-2 -mx-2 rounded-md"
+                  aria-expanded={isExpanded}
+                  aria-controls={contentId}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setExpandedFactor(expandedFactor === index ? null : index);
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBgColor(factor.level)} ${getRiskColor(factor.level)}`}
+                    >
+                      {factor.level.charAt(0).toUpperCase() + factor.level.slice(1)}
+                    </span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {t(`chainlink.${factor.categoryKey}`)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-500 hidden sm:block max-w-xs truncate">
+                      {t(`chainlink.${factor.descKey}`)}
+                    </span>
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                    )}
+                  </div>
+                </button>
+                {isExpanded && (
+                  <div id={contentId} className="pb-4 px-2">
+                    <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                      {t(`chainlink.${factor.descKey}`)}
+                    </p>
+                    <ul className="space-y-2">
+                      {factor.detailKeys.map((detailKey, detailIndex) => (
+                        <li
+                          key={detailIndex}
+                          className="flex items-start gap-2 text-sm text-gray-500"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0" />
+                          <span>{t(`chainlink.${detailKey}`)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
 

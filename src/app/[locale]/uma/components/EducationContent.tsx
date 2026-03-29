@@ -22,6 +22,7 @@ import {
   Wallet,
   Gavel,
   ArrowRight,
+  Loader2,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
@@ -189,9 +190,19 @@ function BestPracticeCard({ practice, t }: { practice: BestPractice; t: ReturnTy
   );
 }
 
-export function EducationContent() {
+export function EducationContent({ isLoading = false }: { isLoading?: boolean }) {
   const t = useTranslations();
   const [activeSection, setActiveSection] = useState<'intro' | 'cases' | 'faq' | 'practices'>('intro');
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
 
   const sections = [
     { id: 'intro' as const, label: t('uma.education.intro'), icon: <BookOpen className="w-4 h-4" /> },

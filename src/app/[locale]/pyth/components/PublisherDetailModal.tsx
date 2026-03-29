@@ -29,6 +29,17 @@ import {
 import { type PublisherData } from '../types';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
+import { type TooltipProps } from '@/types/ui/recharts';
+import {
+  generateStakeHistory,
+  generateAccuracyHistory,
+  generatePriceSources,
+  generatePerformanceMetrics,
+  type StakeHistoryPoint,
+  type AccuracyHistoryPoint,
+  type PriceSource,
+  type PerformanceMetric,
+} from '@/lib/oracles/pythMockData';
 
 interface PublisherDetailModalProps {
   publisher: PublisherData;
@@ -36,95 +47,12 @@ interface PublisherDetailModalProps {
   onClose: () => void;
 }
 
-interface StakeHistoryPoint {
-  date: string;
-  stake: number;
-}
-
-interface AccuracyHistoryPoint {
-  date: string;
-  accuracy: number;
-}
-
-interface PriceSource {
-  id: string;
-  name: string;
-  category: string;
-  lastUpdate: string;
-  status: 'active' | 'inactive';
-}
-
-interface PerformanceMetric {
-  label: string;
-  value: number;
-  change: number;
-}
-
-function generateStakeHistory(): StakeHistoryPoint[] {
-  const data: StakeHistoryPoint[] = [];
-  const baseStake = Math.random() * 50 + 50;
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const variation = (Math.random() - 0.5) * 10;
-    data.push({
-      date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
-      stake: Math.max(0, baseStake + variation + (30 - i) * 0.5),
-    });
-  }
-  return data;
-}
-
-function generateAccuracyHistory(): AccuracyHistoryPoint[] {
-  const data: AccuracyHistoryPoint[] = [];
-  const baseAccuracy = 97 + Math.random() * 2;
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const variation = (Math.random() - 0.5) * 2;
-    data.push({
-      date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
-      accuracy: Math.min(100, Math.max(95, baseAccuracy + variation)),
-    });
-  }
-  return data;
-}
-
-function generatePriceSources(): PriceSource[] {
-  const sources = [
-    { name: 'BTC/USD', category: 'Crypto' },
-    { name: 'ETH/USD', category: 'Crypto' },
-    { name: 'SOL/USD', category: 'Crypto' },
-    { name: 'BNB/USD', category: 'Crypto' },
-    { name: 'XRP/USD', category: 'Crypto' },
-    { name: 'ADA/USD', category: 'Crypto' },
-    { name: 'DOGE/USD', category: 'Crypto' },
-    { name: 'AVAX/USD', category: 'Crypto' },
-  ];
-  return sources.map((source, index) => ({
-    id: `source-${index}`,
-    name: source.name,
-    category: source.category,
-    lastUpdate: new Date(Date.now() - Math.random() * 60000).toLocaleTimeString('zh-CN'),
-    status: Math.random() > 0.1 ? 'active' : 'inactive',
-  }));
-}
-
-function generatePerformanceMetrics(): PerformanceMetric[] {
-  return [
-    { label: '数据提交次数', value: Math.floor(Math.random() * 10000 + 5000), change: Math.random() * 10 - 5 },
-    { label: '平均响应时间', value: Math.floor(Math.random() * 100 + 50), change: -(Math.random() * 5) },
-    { label: '成功率', value: 99 + Math.random() * 0.9, change: Math.random() * 0.5 },
-    { label: '活跃天数', value: Math.floor(Math.random() * 300 + 100), change: 1 },
-  ];
-}
-
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
         <p className="text-sm font-medium text-gray-900 mb-1">{label}</p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index: number) => (
           <p key={index} className="text-sm">
             <span className="text-gray-500">{entry.name}:</span>
             <span className="ml-2 font-medium" style={{ color: entry.color }}>

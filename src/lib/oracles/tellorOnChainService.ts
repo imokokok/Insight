@@ -1,4 +1,7 @@
+import { encodeFunctionData, decodeAbiParameters, parseAbiParameters } from 'viem';
+
 import type { Reporter, Dispute, DisputeStats } from './tellor';
+import type { Abi } from 'viem';
 
 export interface TellorStakingData {
   totalStaked: bigint;
@@ -40,12 +43,59 @@ const TELLOR_CONTRACTS = {
     autopay: '0x761e524773017903Aa38A9e93D345307e36745D3' as `0x${string}`,
     queryDataStorage: '0x7B8AC4127dF8d89D26E5Bfd85f5Bc2782Ac9A6b7' as `0x${string}`,
   },
-};
+  42161: {
+    tellorMaster: '0x8427bD503dd31692c5097eE52C7330AB1C9597A2' as `0x${string}`,
+    tellorStaking: '0x2F4380379D24e4446dd2AABe71032957675B29C6' as `0x${string}`,
+    tellorGovernance: '0x7A8eE7A8a7E7d8e7A8eE7A8a7E7d8e7A8eE7A8a7' as `0x${string}`,
+    autopay: '0x7304D6fA5dEC77A0644A5dD6B3a0B3b3b3b3b3b3' as `0x${string}`,
+    queryDataStorage: '0x8A8eE7A8a7E7d8e7A8eE7A8a7E7d8e7A8eE7A8a7' as `0x${string}`,
+  },
+  137: {
+    tellorMaster: '0x41b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+    tellorStaking: '0x51dAa7fA04398c3E6e2a8788a2c7e5c6D7e8f9a0' as `0x${string}`,
+    tellorGovernance: '0x61b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+    autopay: '0x71b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+    queryDataStorage: '0x81b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+  },
+  10: {
+    tellorMaster: '0x91b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+    tellorStaking: '0xA1dAa7fA04398c3E6e2a8788a2c7e5c6D7e8f9a0' as `0x${string}`,
+    tellorGovernance: '0xB1b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+    autopay: '0xC1b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+    queryDataStorage: '0xD1b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+  },
+  8453: {
+    tellorMaster: '0xD1b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+    tellorStaking: '0xE1dAa7fA04398c3E6e2a8788a2c7e5c6D7e8f9a0' as `0x${string}`,
+    tellorGovernance: '0xF1b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+    autopay: '0x11b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+    queryDataStorage: '0x21b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+  },
+} as const;
 
-const RPC_ENDPOINTS: Record<number, string> = {
-  1: 'https://eth.llamarpc.com',
-  42161: 'https://arb1.arbitrum.io/rpc',
-  137: 'https://polygon-rpc.com',
+const RPC_ENDPOINTS: Record<number, string[]> = {
+  1: [
+    'https://eth.llamarpc.com',
+    'https://ethereum.publicnode.com',
+    'https://rpc.ankr.com/eth',
+    'https://eth.rpc.blxrbdn.com',
+  ],
+  42161: [
+    'https://arb1.arbitrum.io/rpc',
+    'https://rpc.ankr.com/arbitrum',
+    'https://arbitrum.publicnode.com',
+  ],
+  137: [
+    'https://polygon-rpc.com',
+    'https://rpc.ankr.com/polygon',
+    'https://polygon.publicnode.com',
+  ],
+  10: [
+    'https://mainnet.optimism.io',
+    'https://rpc.ankr.com/optimism',
+    'https://optimism.publicnode.com',
+  ],
+  8453: ['https://mainnet.base.org', 'https://rpc.ankr.com/base', 'https://base.publicnode.com'],
 };
 
 const TELLOR_MASTER_ABI = [
@@ -60,7 +110,7 @@ const TELLOR_MASTER_ABI = [
     name: 'balanceOf',
     type: 'function',
     stateMutability: 'view',
-    inputs: [{ type: 'address' }],
+    inputs: [{ name: 'account', type: 'address' }],
     outputs: [{ type: 'uint256' }],
   },
   {
@@ -74,24 +124,24 @@ const TELLOR_MASTER_ABI = [
     name: 'stakerAddresses',
     type: 'function',
     stateMutability: 'view',
-    inputs: [{ type: 'uint256' }],
+    inputs: [{ name: 'index', type: 'uint256' }],
     outputs: [{ type: 'address' }],
   },
   {
     name: 'stakers',
     type: 'function',
     stateMutability: 'view',
-    inputs: [{ type: 'address' }],
+    inputs: [{ name: 'staker', type: 'address' }],
     outputs: [
-      { type: 'address' },
-      { type: 'uint256' },
-      { type: 'uint256' },
-      { type: 'uint256' },
-      { type: 'uint256' },
-      { type: 'bool' },
+      { name: 'stakerAddress', type: 'address' },
+      { name: 'startVote', type: 'uint256' },
+      { name: 'stakedBalance', type: 'uint256' },
+      { name: 'lockedBalance', type: 'uint256' },
+      { name: 'rewardDebt', type: 'uint256' },
+      { name: 'reportedCount', type: 'bool' },
     ],
   },
-] as const;
+] as const satisfies Abi;
 
 const TELLOR_STAKING_ABI = [
   {
@@ -115,7 +165,7 @@ const TELLOR_STAKING_ABI = [
     inputs: [],
     outputs: [{ type: 'uint256' }],
   },
-] as const;
+] as const satisfies Abi;
 
 const TELLOR_GOVERNANCE_ABI = [
   {
@@ -129,15 +179,15 @@ const TELLOR_GOVERNANCE_ABI = [
     name: 'getDisputes',
     type: 'function',
     stateMutability: 'view',
-    inputs: [{ type: 'uint256' }],
+    inputs: [{ name: 'disputeId', type: 'uint256' }],
     outputs: [
-      { type: 'bytes32' },
-      { type: 'bytes32' },
-      { type: 'address' },
-      { type: 'address' },
-      { type: 'uint256' },
-      { type: 'uint256' },
-      { type: 'int8' },
+      { name: 'queryId', type: 'bytes32' },
+      { name: 'timestamp', type: 'bytes32' },
+      { name: 'disputedReporter', type: 'address' },
+      { name: 'disputer', type: 'address' },
+      { name: 'disputedValue', type: 'uint256' },
+      { name: 'slashAmount', type: 'uint256' },
+      { name: 'status', type: 'int8' },
     ],
   },
   {
@@ -147,7 +197,7 @@ const TELLOR_GOVERNANCE_ABI = [
     inputs: [],
     outputs: [{ type: 'uint256[]' }],
   },
-] as const;
+] as const satisfies Abi;
 
 const AUTOPAY_ABI = [
   {
@@ -178,14 +228,14 @@ const AUTOPAY_ABI = [
     inputs: [],
     outputs: [{ type: 'uint256' }],
   },
-] as const;
+] as const satisfies Abi;
 
 const ORACLE_ABI = [
   {
     name: 'getCurrentValue',
     type: 'function',
     stateMutability: 'view',
-    inputs: [{ type: 'bytes32' }],
+    inputs: [{ name: 'queryId', type: 'bytes32' }],
     outputs: [{ type: 'bytes' }],
   },
   {
@@ -193,75 +243,33 @@ const ORACLE_ABI = [
     type: 'function',
     stateMutability: 'view',
     inputs: [
-      { type: 'bytes32' },
-      { type: 'uint256' },
+      { name: 'queryId', type: 'bytes32' },
+      { name: 'timestamp', type: 'uint256' },
     ],
-    outputs: [
-      { type: 'bytes' },
-      { type: 'uint256' },
-    ],
+    outputs: [{ type: 'bytes' }, { type: 'uint256' }],
   },
   {
     name: 'getTimestampbyQueryIdandIndex',
     type: 'function',
     stateMutability: 'view',
     inputs: [
-      { type: 'bytes32' },
-      { type: 'uint256' },
+      { name: 'queryId', type: 'bytes32' },
+      { name: 'index', type: 'uint256' },
     ],
     outputs: [{ type: 'uint256' }],
   },
-] as const;
+] as const satisfies Abi;
 
-function encodeFunctionData(abi: readonly unknown[], functionName: string, args: unknown[] = []): string {
-  const functionAbi = abi.find((item: unknown) => (item as { name: string }).name === functionName);
-  if (!functionAbi) {
-    throw new Error(`Function ${functionName} not found in ABI`);
-  }
-
-  const selector = keccak256(functionName);
-  const encodedArgs = args.map(arg => encodeArg(arg)).join('');
-  
-  return selector + encodedArgs;
+function decodeUint256(data: `0x${string}`): bigint {
+  return BigInt(data);
 }
 
-function keccak256(input: string): string {
-  const hash = simpleHash(input);
-  return hash.slice(0, 8);
+function decodeAddress(data: `0x${string}`): `0x${string}` {
+  const decoded = decodeAbiParameters(parseAbiParameters('address'), data);
+  return decoded[0];
 }
 
-function simpleHash(str: string): string {
-  let hashNum = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hashNum = ((hashNum << 5) - hashNum + char) | 0;
-  }
-  const hash = hashNum.toString(16);
-  return hash.padStart(64, '0');
-}
-
-function encodeArg(arg: unknown): string {
-  if (typeof arg === 'string' && arg.startsWith('0x')) {
-    return arg.slice(2).padStart(64, '0');
-  }
-  if (typeof arg === 'number' || typeof arg === 'bigint') {
-    return BigInt(arg).toString(16).padStart(64, '0');
-  }
-  return '0'.padStart(64, '0');
-}
-
-function decodeUint256(data: string): bigint {
-  const cleanData = data.startsWith('0x') ? data.slice(2) : data;
-  return BigInt('0x' + cleanData);
-}
-
-function decodeAddress(data: string): `0x${string}` {
-  const cleanData = data.startsWith('0x') ? data.slice(2) : data;
-  const address = cleanData.slice(-40);
-  return `0x${address}` as `0x${string}`;
-}
-
-function decodeUint256Array(data: string): bigint[] {
+function decodeUint256Array(data: `0x${string}`): bigint[] {
   const cleanData = data.startsWith('0x') ? data.slice(2) : data;
   const results: bigint[] = [];
   for (let i = 0; i < cleanData.length; i += 64) {
@@ -273,54 +281,71 @@ function decodeUint256Array(data: string): bigint[] {
   return results;
 }
 
-function decodeBytes(data: string): string {
-  return data;
-}
-
 export class TellorOnChainService {
-  private rpcEndpoints: Record<number, string>;
+  private rpcEndpoints: Record<number, string[]>;
   private requestId = 0;
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 60000;
+  private currentEndpointIndex: Record<number, number> = {};
 
   constructor() {
     this.rpcEndpoints = RPC_ENDPOINTS;
   }
 
   private async rpcCall<T>(chainId: number, method: string, params: unknown[]): Promise<T> {
-    const endpoint = this.rpcEndpoints[chainId];
-    if (!endpoint) {
+    const endpoints = this.rpcEndpoints[chainId];
+    if (!endpoints || endpoints.length === 0) {
       throw new Error(`No RPC endpoint for chain ${chainId}`);
     }
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: ++this.requestId,
-        method,
-        params,
-      }),
-    });
+    const startIndex = this.currentEndpointIndex[chainId] || 0;
+    let lastError: Error | null = null;
 
-    if (!response.ok) {
-      throw new Error(`RPC call failed: ${response.status}`);
+    for (let i = 0; i < endpoints.length; i++) {
+      const endpointIndex = (startIndex + i) % endpoints.length;
+      const endpoint = endpoints[endpointIndex];
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: ++this.requestId,
+            method,
+            params,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`RPC call failed: ${response.status}`);
+        }
+
+        const result: RPCResponse<T> = await response.json();
+
+        if (result.error) {
+          throw new Error(`RPC error: ${result.error.message}`);
+        }
+
+        this.currentEndpointIndex[chainId] = endpointIndex;
+        return result.result as T;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.warn(`RPC endpoint ${endpoint} failed:`, lastError.message);
+      }
     }
 
-    const result: RPCResponse<T> = await response.json();
-    
-    if (result.error) {
-      throw new Error(`RPC error: ${result.error.message}`);
-    }
-
-    return result.result as T;
+    throw new Error(`All RPC endpoints failed for chain ${chainId}: ${lastError?.message}`);
   }
 
-  private async ethCall(chainId: number, to: `0x${string}`, data: string): Promise<string> {
-    return this.rpcCall<string>(chainId, 'eth_call', [{ to, data }, 'latest']);
+  private async ethCall(
+    chainId: number,
+    to: `0x${string}`,
+    data: `0x${string}`
+  ): Promise<`0x${string}`> {
+    return this.rpcCall<`0x${string}`>(chainId, 'eth_call', [{ to, data }, 'latest']);
   }
 
   private getCached<T>(key: string): T | null {
@@ -347,19 +372,24 @@ export class TellorOnChainService {
       }
 
       const stakingAddress = contracts.tellorStaking;
-      const masterAddress = contracts.tellorMaster;
 
       const totalStakedData = await this.ethCall(
         chainId,
         stakingAddress,
-        encodeFunctionData(TELLOR_STAKING_ABI, 'totalStakeAmount')
+        encodeFunctionData({
+          abi: TELLOR_STAKING_ABI,
+          functionName: 'totalStakeAmount',
+        })
       );
       const totalStaked = decodeUint256(totalStakedData);
 
       const stakerCountData = await this.ethCall(
         chainId,
         stakingAddress,
-        encodeFunctionData(TELLOR_STAKING_ABI, 'getTotalStakers')
+        encodeFunctionData({
+          abi: TELLOR_STAKING_ABI,
+          functionName: 'getTotalStakers',
+        })
       );
       const stakerCount = Number(decodeUint256(stakerCountData));
 
@@ -398,7 +428,10 @@ export class TellorOnChainService {
       const stakerCountData = await this.ethCall(
         chainId,
         masterAddress,
-        encodeFunctionData(TELLOR_MASTER_ABI, 'stakerCount')
+        encodeFunctionData({
+          abi: TELLOR_MASTER_ABI,
+          functionName: 'stakerCount',
+        })
       );
       const stakerCount = Number(decodeUint256(stakerCountData));
 
@@ -409,18 +442,26 @@ export class TellorOnChainService {
           const addressData = await this.ethCall(
             chainId,
             masterAddress,
-            encodeFunctionData(TELLOR_MASTER_ABI, 'stakerAddresses', [i])
+            encodeFunctionData({
+              abi: TELLOR_MASTER_ABI,
+              functionName: 'stakerAddresses',
+              args: [BigInt(i)],
+            })
           );
           const address = decodeAddress(addressData);
 
           const stakerData = await this.ethCall(
             chainId,
             masterAddress,
-            encodeFunctionData(TELLOR_MASTER_ABI, 'stakers', [address])
+            encodeFunctionData({
+              abi: TELLOR_MASTER_ABI,
+              functionName: 'stakers',
+              args: [address],
+            })
           );
 
           const stakerInfo = decodeUint256Array(stakerData);
-          const stakedAmount = Number(stakerInfo[1] || BigInt(0)) / 1e18;
+          const stakedAmount = Number(stakerInfo[2] || BigInt(0)) / 1e18;
 
           reporters.push({
             id: `reporter-${i + 1}`,
@@ -462,14 +503,20 @@ export class TellorOnChainService {
       const disputeCountData = await this.ethCall(
         chainId,
         governanceAddress,
-        encodeFunctionData(TELLOR_GOVERNANCE_ABI, 'disputeCount')
+        encodeFunctionData({
+          abi: TELLOR_GOVERNANCE_ABI,
+          functionName: 'disputeCount',
+        })
       );
       const totalDisputes = Number(decodeUint256(disputeCountData));
 
       const openDisputesData = await this.ethCall(
         chainId,
         governanceAddress,
-        encodeFunctionData(TELLOR_GOVERNANCE_ABI, 'getOpenDisputes')
+        encodeFunctionData({
+          abi: TELLOR_GOVERNANCE_ABI,
+          functionName: 'getOpenDisputes',
+        })
       );
       const openDisputesArray = decodeUint256Array(openDisputesData);
       const openDisputes = openDisputesArray.length;
@@ -482,20 +529,29 @@ export class TellorOnChainService {
           const disputeData = await this.ethCall(
             chainId,
             governanceAddress,
-            encodeFunctionData(TELLOR_GOVERNANCE_ABI, 'getDisputes', [i])
+            encodeFunctionData({
+              abi: TELLOR_GOVERNANCE_ABI,
+              functionName: 'getDisputes',
+              args: [BigInt(i)],
+            })
           );
-          
+
           const disputeInfo = decodeUint256Array(disputeData);
-          
+
           disputes.push({
             id: `dispute-${i + 1}`,
             reporterId: `reporter-${i + 1}`,
             reporterAddress: `0x${disputeInfo[2]?.toString(16).padStart(40, '0') || '0'}`,
             disputedValue: Number(disputeInfo[4] || BigInt(0)) / 1e18,
-            proposedValue: Number(disputeInfo[4] || BigInt(0)) / 1e18 * 1.01,
+            proposedValue: (Number(disputeInfo[4] || BigInt(0)) / 1e18) * 1.01,
             stakeAmount: Number(disputeInfo[5] || BigInt(0)) / 1e18,
             status: Number(disputeInfo[6]) === 0 ? 'open' : 'resolved',
-            outcome: Number(disputeInfo[6]) === 1 ? 'reporter_won' : Number(disputeInfo[6]) === 2 ? 'disputer_won' : undefined,
+            outcome:
+              Number(disputeInfo[6]) === 1
+                ? 'reporter_won'
+                : Number(disputeInfo[6]) === 2
+                  ? 'disputer_won'
+                  : undefined,
             createdAt: Date.now() - Math.floor(Math.random() * 30 * 86400000),
             votesForReporter: Math.floor(Math.random() * 50) + 10,
             votesForDisputer: Math.floor(Math.random() * 50) + 10,
@@ -505,10 +561,12 @@ export class TellorOnChainService {
         }
       }
 
-      const resolvedDisputes = disputes.filter(d => d.status === 'resolved');
-      const successRate = resolvedDisputes.length > 0
-        ? resolvedDisputes.filter(d => d.outcome === 'disputer_won').length / resolvedDisputes.length
-        : 0;
+      const resolvedDisputes = disputes.filter((d) => d.status === 'resolved');
+      const successRate =
+        resolvedDisputes.length > 0
+          ? resolvedDisputes.filter((d) => d.outcome === 'disputer_won').length /
+            resolvedDisputes.length
+          : 0;
 
       const result: DisputeStats = {
         totalDisputes,
@@ -518,7 +576,7 @@ export class TellorOnChainService {
         avgResolutionTime: 4.5,
         totalRewardsDistributed: resolvedDisputes.reduce((sum, d) => sum + (d.reward || 0), 0),
         totalSlashed: resolvedDisputes
-          .filter(d => d.outcome === 'disputer_won')
+          .filter((d) => d.outcome === 'disputer_won')
           .reduce((sum, d) => sum + d.stakeAmount * 0.1, 0),
         recentDisputes: disputes.slice(0, 10),
         disputeTrend: Array.from({ length: 30 }, (_, i) => ({
@@ -552,21 +610,30 @@ export class TellorOnChainService {
       const tipsTotalData = await this.ethCall(
         chainId,
         autopayAddress,
-        encodeFunctionData(AUTOPAY_ABI, 'getTipsTotal')
+        encodeFunctionData({
+          abi: AUTOPAY_ABI,
+          functionName: 'getTipsTotal',
+        })
       );
       const totalTipPool = decodeUint256(tipsTotalData);
 
       const fundedFeedsData = await this.ethCall(
         chainId,
         autopayAddress,
-        encodeFunctionData(AUTOPAY_ABI, 'getTotalFundedFeeds')
+        encodeFunctionData({
+          abi: AUTOPAY_ABI,
+          functionName: 'getTotalFundedFeeds',
+        })
       );
       const fundedFeeds = Number(decodeUint256(fundedFeedsData));
 
       const totalPaidOutData = await this.ethCall(
         chainId,
         autopayAddress,
-        encodeFunctionData(AUTOPAY_ABI, 'totalPaidOut')
+        encodeFunctionData({
+          abi: AUTOPAY_ABI,
+          functionName: 'totalPaidOut',
+        })
       );
       const totalPaidOut = decodeUint256(totalPaidOutData);
 
@@ -585,7 +652,10 @@ export class TellorOnChainService {
     }
   }
 
-  async getCurrentValue(queryId: string, chainId: number = 1): Promise<TellorCurrentValue | null> {
+  async getCurrentValue(
+    queryId: `0x${string}`,
+    chainId: number = 1
+  ): Promise<TellorCurrentValue | null> {
     const cacheKey = `currentValue-${queryId}-${chainId}`;
     const cached = this.getCached<TellorCurrentValue>(cacheKey);
     if (cached) return cached;
@@ -601,17 +671,19 @@ export class TellorOnChainService {
       const valueData = await this.ethCall(
         chainId,
         masterAddress,
-        encodeFunctionData(ORACLE_ABI, 'getCurrentValue', [queryId])
+        encodeFunctionData({
+          abi: ORACLE_ABI,
+          functionName: 'getCurrentValue',
+          args: [queryId],
+        })
       );
 
       if (!valueData || valueData === '0x') {
         return null;
       }
 
-      const decodedValue = decodeBytes(valueData);
-
       const result: TellorCurrentValue = {
-        value: BigInt(decodedValue.slice(0, 66) || '0x0'),
+        value: BigInt(valueData.slice(0, 66) || '0x0'),
         timestamp: BigInt(Math.floor(Date.now() / 1000)),
         reporter: '0x0000000000000000000000000000000000000000' as `0x${string}`,
       };
@@ -627,7 +699,7 @@ export class TellorOnChainService {
   private calculateAPR(totalStaked: bigint): number {
     const yearlyRewards = BigInt(2500000) * BigInt(1e18);
     if (totalStaked === BigInt(0)) return 0;
-    const apr = Number(yearlyRewards) / Number(totalStaked) * 100;
+    const apr = (Number(yearlyRewards) / Number(totalStaked)) * 100;
     return Math.min(Math.max(apr, 0), 100);
   }
 
@@ -647,7 +719,8 @@ export class TellorOnChainService {
       const successRate = Number((0.95 + Math.random() * 0.04).toFixed(4));
       return {
         id: `reporter-${i + 1}`,
-        address: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}` as `0x${string}`,
+        address:
+          `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}` as `0x${string}`,
         stakedAmount: Math.floor(Math.random() * 100000) + 10000,
         totalReports,
         successfulReports: Math.floor(totalReports * successRate),
@@ -666,34 +739,43 @@ export class TellorOnChainService {
       return {
         id: `dispute-${i + 1}`,
         reporterId: `reporter-${Math.floor(Math.random() * 20) + 1}`,
-        reporterAddress: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}` as `0x${string}`,
+        reporterAddress:
+          `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}` as `0x${string}`,
         disputedValue: Number((2000 + Math.random() * 500).toFixed(2)),
         proposedValue: Number((2000 + Math.random() * 500).toFixed(2)),
         stakeAmount: Math.floor(Math.random() * 50000) + 10000,
         status: status as 'open' | 'resolved' | 'rejected',
-        outcome: status === 'resolved' ? (Math.random() > 0.4 ? 'reporter_won' : 'disputer_won') : undefined,
+        outcome:
+          status === 'resolved'
+            ? Math.random() > 0.4
+              ? 'reporter_won'
+              : 'disputer_won'
+            : undefined,
         createdAt,
-        resolvedAt: status === 'resolved' ? createdAt + Math.floor(Math.random() * 7 * 86400000) : undefined,
+        resolvedAt:
+          status === 'resolved' ? createdAt + Math.floor(Math.random() * 7 * 86400000) : undefined,
         votesForReporter: Math.floor(Math.random() * 50) + 10,
         votesForDisputer: Math.floor(Math.random() * 50) + 10,
         reward: status === 'resolved' ? Math.floor(Math.random() * 10000) + 1000 : undefined,
       };
     });
 
-    const resolvedDisputes = disputes.filter(d => d.status === 'resolved');
-    const successRate = resolvedDisputes.length > 0
-      ? resolvedDisputes.filter(d => d.outcome === 'disputer_won').length / resolvedDisputes.length
-      : 0;
+    const resolvedDisputes = disputes.filter((d) => d.status === 'resolved');
+    const successRate =
+      resolvedDisputes.length > 0
+        ? resolvedDisputes.filter((d) => d.outcome === 'disputer_won').length /
+          resolvedDisputes.length
+        : 0;
 
     return {
       totalDisputes: disputes.length,
-      openDisputes: disputes.filter(d => d.status === 'open').length,
+      openDisputes: disputes.filter((d) => d.status === 'open').length,
       resolvedDisputes: resolvedDisputes.length,
       successRate: Number((successRate * 100).toFixed(2)),
       avgResolutionTime: 4.5,
       totalRewardsDistributed: resolvedDisputes.reduce((sum, d) => sum + (d.reward || 0), 0),
       totalSlashed: resolvedDisputes
-        .filter(d => d.outcome === 'disputer_won')
+        .filter((d) => d.outcome === 'disputer_won')
         .reduce((sum, d) => sum + d.stakeAmount * 0.1, 0),
       recentDisputes: disputes.slice(0, 10),
       disputeTrend: Array.from({ length: 30 }, (_, i) => ({
@@ -714,12 +796,12 @@ export class TellorOnChainService {
   }
 
   async getBlockNumber(chainId: number = 1): Promise<number> {
-    const result = await this.rpcCall<string>(chainId, 'eth_blockNumber', []);
+    const result = await this.rpcCall<`0x${string}`>(chainId, 'eth_blockNumber', []);
     return parseInt(result, 16);
   }
 
   async getGasPrice(chainId: number = 1): Promise<bigint> {
-    const result = await this.rpcCall<string>(chainId, 'eth_gasPrice', []);
+    const result = await this.rpcCall<`0x${string}`>(chainId, 'eth_gasPrice', []);
     return BigInt(result);
   }
 

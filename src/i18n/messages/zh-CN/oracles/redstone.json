@@ -815,6 +815,58 @@
       "expandChart": "展开图表",
       "collapseChart": "收起图表",
       "quickActions": "快捷操作"
+    },
+    "hero": {
+      "priceTrend24h": "24H 走势",
+      "timeAgo": {
+        "24hAgo": "24h前",
+        "now": "现在",
+        "1minAgo": "1分钟前",
+        "3minAgo": "3分钟前",
+        "5minAgo": "5分钟前",
+        "12minAgo": "12分钟前"
+      },
+      "gasLevel": {
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      },
+      "health": "健康度",
+      "gas": "Gas",
+      "response": "响应",
+      "online": "在线",
+      "supported": "支持",
+      "chainsCount": "{{count}}+ 链",
+      "quickActions": {
+        "priceAlert": "价格提醒",
+        "addMonitor": "添加监控",
+        "apiDocs": "API文档",
+        "switchNetwork": "切换网络"
+      },
+      "latestUpdates": "最新动态:",
+      "updates": {
+        "price": "RED 价格更新: $0.85 (+3.2%)",
+        "provider": "新数据提供者加入: DataProvider_42 (欧洲)",
+        "feed": "BTC/USD 数据流更新延迟 < 100ms",
+        "bridge": "新增跨链桥支持: Arbitrum Nova"
+      },
+      "stats": {
+        "price": "价格",
+        "tvs": "TVS",
+        "dataFeeds": "数据流",
+        "providers": "数据提供者",
+        "staked": "质押量",
+        "supportedChains": "支持链数",
+        "nodes": "节点数",
+        "responseTime": "响应时间",
+        "uptime": "在线率"
+      },
+      "periods": {
+        "24h": "24h",
+        "30days": "30天",
+        "thisWeek": "本周",
+        "thisMonth": "本月"
+      }
     }
   }
 }

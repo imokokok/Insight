@@ -6,6 +6,15 @@ import { BaseOracleClient } from './base';
 
 import type { OracleClientConfig } from './base';
 
+export type DataSource = 'on-chain' | 'cache' | 'mock' | 'fallback';
+
+export interface DataWithSource<T> {
+  data: T;
+  source: DataSource;
+  timestamp: number;
+  chainId?: number;
+}
+
 export interface PriceStreamPoint {
   timestamp: number;
   price: number;
@@ -234,18 +243,62 @@ export class TellorClient extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 15;
+  private lastDataSource: DataSource = 'mock';
 
   constructor(config?: OracleClientConfig) {
     super(config);
+  }
+
+  getLastDataSource(): DataSource {
+    return this.lastDataSource;
+  }
+
+  async getPriceWithSource(symbol: string, chain?: Blockchain): Promise<DataWithSource<PriceData>> {
+    try {
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      const data = await this.fetchPriceWithDatabase(symbol, chain, () => {
+        this.lastDataSource = 'mock';
+        return this.generateMockPrice(symbol, basePrice, chain);
+      });
+      this.lastDataSource = 'cache';
+      return {
+        data,
+        source: this.lastDataSource,
+        timestamp: Date.now(),
+        chainId: chain ? this.getChainId(chain) : undefined,
+      };
+    } catch (error) {
+      this.lastDataSource = 'fallback';
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch price from Tellor',
+        'TELLOR_ERROR'
+      );
+    }
+  }
+
+  private getChainId(chain: Blockchain): number {
+    const chainIds: Partial<Record<Blockchain, number>> = {
+      [Blockchain.ETHEREUM]: 1,
+      [Blockchain.ARBITRUM]: 42161,
+      [Blockchain.OPTIMISM]: 10,
+      [Blockchain.POLYGON]: 137,
+      [Blockchain.BASE]: 8453,
+      [Blockchain.AVALANCHE]: 43114,
+      [Blockchain.BNB_CHAIN]: 56,
+      [Blockchain.SOLANA]: 0,
+      [Blockchain.CELO]: 42220,
+    };
+    return chainIds[chain] ?? 1;
   }
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
-      return this.fetchPriceWithDatabase(symbol, chain, () =>
-        this.generateMockPrice(symbol, basePrice, chain)
-      );
+      return this.fetchPriceWithDatabase(symbol, chain, () => {
+        this.lastDataSource = 'mock';
+        return this.generateMockPrice(symbol, basePrice, chain);
+      });
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from Tellor',

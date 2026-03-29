@@ -14,6 +14,7 @@ import {
   TellorClient,
   ChronicleClient,
   WINkLinkClient,
+  BaseOracleClient,
 } from '@/lib/oracles';
 import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
 
@@ -30,13 +31,6 @@ export interface OracleViewConfig {
   default?: boolean;
 }
 
-interface OracleClientInterface {
-  getPrice(symbol: string, chain?: Blockchain): Promise<PriceData>;
-  getHistoricalPrices(symbol: string, chain?: Blockchain, period?: number): Promise<PriceData[]>;
-  name: OracleProvider;
-  supportedChains: Blockchain[];
-}
-
 export interface OracleConfig {
   provider: OracleProvider;
   name: string;
@@ -44,7 +38,7 @@ export interface OracleConfig {
   symbol: string;
   defaultChain: Blockchain;
   supportedChains: Blockchain[];
-  client: OracleClientInterface;
+  client: BaseOracleClient;
   icon: ReactNode;
   iconBgColor: string;
   themeColor: string;

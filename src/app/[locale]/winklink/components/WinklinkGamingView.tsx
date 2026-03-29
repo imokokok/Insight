@@ -19,133 +19,135 @@ import { type WinklinkGamingViewProps } from '../types';
 
 import { WinklinkDataTable } from './WinklinkDataTable';
 
+const DEFAULT_GAMING_DATA = {
+  totalGamingVolume: 850000000,
+  activeGames: 125,
+  dailyRandomRequests: 125000,
+  dataSources: [
+    {
+      id: 'game-001',
+      name: 'Dice',
+      type: 'game',
+      category: 'casino',
+      users: 450000,
+      volume24h: 8500000,
+      dataTypes: ['random_number', 'outcome_verification'],
+      reliability: 99.9,
+      lastUpdate: Date.now(),
+    },
+    {
+      id: 'game-002',
+      name: 'Moon',
+      type: 'game',
+      category: 'casino',
+      users: 320000,
+      volume24h: 6200000,
+      dataTypes: ['random_number', 'outcome_verification'],
+      reliability: 99.8,
+      lastUpdate: Date.now(),
+    },
+    {
+      id: 'game-003',
+      name: 'Slots Pro',
+      type: 'game',
+      category: 'casino',
+      users: 280000,
+      volume24h: 4800000,
+      dataTypes: ['random_number', 'outcome_verification'],
+      reliability: 99.85,
+      lastUpdate: Date.now(),
+    },
+    {
+      id: 'game-004',
+      name: 'Poker Room',
+      type: 'game',
+      category: 'card',
+      users: 195000,
+      volume24h: 3200000,
+      dataTypes: ['random_number', 'outcome_verification'],
+      reliability: 99.9,
+      lastUpdate: Date.now(),
+    },
+    {
+      id: 'game-005',
+      name: 'Blackjack',
+      type: 'game',
+      category: 'card',
+      users: 165000,
+      volume24h: 2800000,
+      dataTypes: ['random_number', 'outcome_verification'],
+      reliability: 99.88,
+      lastUpdate: Date.now(),
+    },
+  ],
+  randomNumberServices: [
+    {
+      serviceId: 'vrf-001',
+      name: 'WINkLink VRF',
+      requestCount: 5200000,
+      averageResponseTime: 105,
+      securityLevel: 'high',
+      supportedChains: ['TRON', 'BNB'],
+    },
+    {
+      serviceId: 'rng-001',
+      name: 'Casino RNG Service',
+      requestCount: 3200000,
+      averageResponseTime: 95,
+      securityLevel: 'medium',
+      supportedChains: ['TRON', 'BTTC'],
+    },
+    {
+      serviceId: 'rng-002',
+      name: 'Gaming RNG Pro',
+      requestCount: 1800000,
+      averageResponseTime: 88,
+      securityLevel: 'high',
+      supportedChains: ['TRON', 'BNB', 'BTTC'],
+    },
+  ],
+};
+
+const VRF_USE_CASES = [
+  {
+    id: '1',
+    name: 'Casino Games',
+    category: 'Gaming',
+    description: 'Random outcomes for dice, slots, and card games',
+    usageCount: 2500000,
+    reliability: 99.9,
+  },
+  {
+    id: '2',
+    name: 'Lottery Draws',
+    category: 'Gaming',
+    description: 'Fair and verifiable lottery number generation',
+    usageCount: 850000,
+    reliability: 99.95,
+  },
+  {
+    id: '3',
+    name: 'NFT Minting',
+    category: 'Gaming',
+    description: 'Random NFT attribute generation',
+    usageCount: 420000,
+    reliability: 99.8,
+  },
+  {
+    id: '4',
+    name: 'Tournament Brackets',
+    category: 'Esports',
+    description: 'Random tournament seeding and matchmaking',
+    usageCount: 180000,
+    reliability: 99.9,
+  },
+];
+
 export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProps) {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const gamingData = gaming || {
-    totalGamingVolume: 850000000,
-    activeGames: 125,
-    dailyRandomRequests: 125000,
-    dataSources: [
-      {
-        id: 'game-001',
-        name: 'Dice',
-        type: 'game',
-        category: 'casino',
-        users: 450000,
-        volume24h: 8500000,
-        dataTypes: ['random_number', 'outcome_verification'],
-        reliability: 99.9,
-        lastUpdate: Date.now(),
-      },
-      {
-        id: 'game-002',
-        name: 'Moon',
-        type: 'game',
-        category: 'casino',
-        users: 320000,
-        volume24h: 6200000,
-        dataTypes: ['random_number', 'outcome_verification'],
-        reliability: 99.8,
-        lastUpdate: Date.now(),
-      },
-      {
-        id: 'game-003',
-        name: 'Slots Pro',
-        type: 'game',
-        category: 'casino',
-        users: 280000,
-        volume24h: 4800000,
-        dataTypes: ['random_number', 'outcome_verification'],
-        reliability: 99.85,
-        lastUpdate: Date.now(),
-      },
-      {
-        id: 'game-004',
-        name: 'Poker Room',
-        type: 'game',
-        category: 'card',
-        users: 195000,
-        volume24h: 3200000,
-        dataTypes: ['random_number', 'outcome_verification'],
-        reliability: 99.9,
-        lastUpdate: Date.now(),
-      },
-      {
-        id: 'game-005',
-        name: 'Blackjack',
-        type: 'game',
-        category: 'card',
-        users: 165000,
-        volume24h: 2800000,
-        dataTypes: ['random_number', 'outcome_verification'],
-        reliability: 99.88,
-        lastUpdate: Date.now(),
-      },
-    ],
-    randomNumberServices: [
-      {
-        serviceId: 'vrf-001',
-        name: 'WINkLink VRF',
-        requestCount: 5200000,
-        averageResponseTime: 105,
-        securityLevel: 'high',
-        supportedChains: ['TRON', 'BNB'],
-      },
-      {
-        serviceId: 'rng-001',
-        name: 'Casino RNG Service',
-        requestCount: 3200000,
-        averageResponseTime: 95,
-        securityLevel: 'medium',
-        supportedChains: ['TRON', 'BTTC'],
-      },
-      {
-        serviceId: 'rng-002',
-        name: 'Gaming RNG Pro',
-        requestCount: 1800000,
-        averageResponseTime: 88,
-        securityLevel: 'high',
-        supportedChains: ['TRON', 'BNB', 'BTTC'],
-      },
-    ],
-  };
-
-  const vrfUseCases = [
-    {
-      id: '1',
-      name: 'Casino Games',
-      category: 'Gaming',
-      description: 'Random outcomes for dice, slots, and card games',
-      usageCount: 2500000,
-      reliability: 99.9,
-    },
-    {
-      id: '2',
-      name: 'Lottery Draws',
-      category: 'Gaming',
-      description: 'Fair and verifiable lottery number generation',
-      usageCount: 850000,
-      reliability: 99.95,
-    },
-    {
-      id: '3',
-      name: 'NFT Minting',
-      category: 'Gaming',
-      description: 'Random NFT attribute generation',
-      usageCount: 420000,
-      reliability: 99.8,
-    },
-    {
-      id: '4',
-      name: 'Tournament Brackets',
-      category: 'Esports',
-      description: 'Random tournament seeding and matchmaking',
-      usageCount: 180000,
-      reliability: 99.9,
-    },
-  ];
+  const gamingData = gaming || DEFAULT_GAMING_DATA;
 
   const categories = [
     { id: 'all', label: 'All', count: gamingData.dataSources.length },
@@ -372,7 +374,7 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
           {t('winklink.gaming.vrfUseCases')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {vrfUseCases.map((useCase) => (
+          {VRF_USE_CASES.map((useCase) => (
             <div
               key={useCase.id}
               className="flex items-start gap-3 p-3 border-b border-gray-100 last:border-0"

@@ -116,7 +116,7 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-medium text-gray-900">
-              {t('chainlink.network.hourlyActivity')}
+              {t('band.bandProtocol.network.hourlyActivity')}
             </h3>
             <span className="text-sm text-gray-500">24h</span>
           </div>
@@ -146,12 +146,12 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
         {/* 网络性能指标 - 简洁进度条 */}
         <div>
           <h3 className="text-base font-medium text-gray-900 mb-5">
-            {t('chainlink.network.performance')}
+            {t('band.bandProtocol.network.performance')}
           </h3>
           <div className="space-y-5">
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">{t('chainlink.network.successRate')}</span>
+                <span className="text-gray-600">{t('band.bandProtocol.network.successRate')}</span>
                 <span className="font-medium text-gray-900">99.85%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -160,7 +160,7 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">{t('chainlink.network.availability')}</span>
+                <span className="text-gray-600">{t('band.bandProtocol.network.availability')}</span>
                 <span className="font-medium text-gray-900">99.99%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -169,7 +169,7 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">{t('chainlink.network.latency')}</span>
+                <span className="text-gray-600">{t('band.bandProtocol.network.latency')}</span>
                 <span className="font-medium text-gray-900">150ms avg</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
-import { AlertTriangle, ArrowUpDown, CheckCircle2, XCircle } from 'lucide-react';
+import { AlertTriangle, AlertCircle, ArrowUpDown, CheckCircle2, RefreshCw, XCircle } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
@@ -12,9 +12,38 @@ import { type BandProtocolValidatorsViewProps, type SortConfig } from '../types'
 export function BandProtocolValidatorsView({
   validators,
   isLoading,
+  error,
+  onRefresh,
 }: BandProtocolValidatorsViewProps) {
   const t = useTranslations();
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'rank', direction: 'asc' });
+
+  const handleRefresh = useCallback(() => {
+    onRefresh?.();
+  }, [onRefresh]);
+
+  if (error) {
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {t('band.bandProtocol.validators.loadError')}
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            {error.message || t('band.bandProtocol.validators.failedToLoad')}
+          </p>
+          <button
+            onClick={handleRefresh}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            {t('band.bandProtocol.validators.retry')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const sortedValidators = useMemo(() => {
     if (!validators.length) return [];
@@ -94,7 +123,6 @@ export function BandProtocolValidatorsView({
 
   return (
     <div className="space-y-3">
-      {/* Inline Stats */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-1">
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500 uppercase tracking-wider">
@@ -124,6 +152,18 @@ export function BandProtocolValidatorsView({
           </span>
           <span className="text-sm font-semibold text-gray-900">{avgUptime.toFixed(2)}%</span>
         </div>
+        {onRefresh && (
+          <div className="ml-auto">
+            <button
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              {t('band.bandProtocol.validators.refresh')}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Jailed Warning Banner */}

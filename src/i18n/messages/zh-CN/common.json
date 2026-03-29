@@ -242,6 +242,10 @@
     },
     "error": {
       "loadingFailed": "加载失败"
+    },
+    "warning": {
+      "partialData": "部分数据加载失败",
+      "partialDataDescription": "以下数据源不可用: {items}。正在显示可用数据。"
     }
   },
   "comparison": {

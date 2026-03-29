@@ -1,18 +1,17 @@
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { RedStoneApiError, type RedStoneErrorCode } from '@/lib/errors';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
+
+import {
+  REDSTONE_SUPPORTED_CHAINS,
+  SPREAD_PERCENTAGES,
+  type RedStoneChainInfo,
+} from './redstoneConstants';
 
 import { BaseOracleClient } from './base';
 
 import type { OracleClientConfig } from './base';
-
-const SPREAD_PERCENTAGES: Record<string, number> = {
-  BTC: 0.02,
-  ETH: 0.03,
-  SOL: 0.05,
-  REDSTONE: 0.08,
-  USDC: 0.01,
-};
 
 const REDSTONE_API_BASE = 'https://api.redstone.finance';
 const REDSTONE_CACHE_TTL = {
@@ -23,28 +22,55 @@ const REDSTONE_CACHE_TTL = {
   ECOSYSTEM: 300000,
 };
 
+/**
+ * Converts a timestamp from seconds to milliseconds.
+ * RedStone API returns timestamps in seconds, but JavaScript uses milliseconds.
+ * @param timestampInSeconds - Timestamp in seconds
+ * @returns Timestamp in milliseconds
+ */
+function timestampSecondsToMillis(timestampInSeconds: number): number {
+  return timestampInSeconds * 1000;
+}
+
+/**
+ * Converts a timestamp from milliseconds to seconds.
+ * Useful when sending timestamps to RedStone API.
+ * @param timestampInMillis - Timestamp in milliseconds
+ * @returns Timestamp in seconds
+ */
+function timestampMillisToSeconds(timestampInMillis: number): number {
+  return Math.floor(timestampInMillis / 1000);
+}
+
 interface CacheEntry<T> {
   data: T;
+  /** Timestamp in milliseconds */
   timestamp: number;
+  /** Time-to-live in milliseconds */
   ttl: number;
 }
 
 interface RedStonePriceResponse {
   symbol: string;
   value: number;
+  /** Timestamp in seconds (from RedStone API) */
   timestamp: number;
   provider?: string;
   permawireTx?: string;
   source?: {
     value: number;
+    /** Timestamp in seconds */
     timestamp: number;
   }[];
+  change24h?: number;
+  change24hPercent?: number;
 }
 
 interface RedStoneProviderResponse {
   name: string;
   address?: string;
   dataFeedsCount?: number;
+  /** Timestamp in seconds (from RedStone API) */
   lastUpdateTimestamp?: number;
   totalDataPoints?: number;
   reputation?: number;
@@ -55,6 +81,7 @@ export interface RedStoneProviderInfo {
   name: string;
   reputation: number;
   dataPoints: number;
+  /** Timestamp in milliseconds */
   lastUpdate: number;
 }
 
@@ -87,23 +114,22 @@ export interface RedStoneRiskMetrics {
   overallRisk: number;
 }
 
-export interface RedStoneChainInfo {
-  chain: string;
-  latency: number;
-  updateFreq: number;
-  status: 'active' | 'inactive';
-}
-
 async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+interface RetryOptions {
+  maxAttempts?: number;
+  baseDelay?: number;
+  operationName?: string;
+  onRetry?: (attempt: number, error: Error) => void;
+}
+
 async function withRetry<T>(
   operation: () => Promise<T>,
-  maxAttempts: number = 3,
-  baseDelay: number = 1000,
-  operationName: string = 'operation'
+  options: RetryOptions = {}
 ): Promise<T> {
+  const { maxAttempts = 3, baseDelay = 1000, operationName = 'operation', onRetry } = options;
   let lastError: Error | undefined;
   let delay = baseDelay;
 
@@ -114,6 +140,7 @@ async function withRetry<T>(
       lastError = error instanceof Error ? error : new Error(String(error));
 
       if (attempt < maxAttempts) {
+        onRetry?.(attempt, lastError);
         await sleep(delay);
         delay = Math.min(delay * 2, 10000);
       }
@@ -168,10 +195,19 @@ export class RedStoneClient extends BaseOracleClient {
     });
   }
 
+  /**
+   * Generates a confidence interval (bid/ask spread) for a given price and symbol.
+   * Uses a deterministic algorithm based on time to ensure consistent spreads within each minute.
+   * @param price - The current price of the asset
+   * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
+   * @returns A ConfidenceInterval object containing bid, ask, and width percentage
+   */
   private generateConfidenceInterval(price: number, symbol: string): ConfidenceInterval {
     const baseSpread = SPREAD_PERCENTAGES[symbol.toUpperCase()] || 0.05;
-    const randomFactor = 0.8 + Math.random() * 0.4;
-    const spreadPercentage = baseSpread * randomFactor;
+    const minute = Math.floor(Date.now() / 60000);
+    const hash = (minute * 2654435761) % 1000 / 1000;
+    const deterministicFactor = 0.8 + hash * 0.4;
+    const spreadPercentage = baseSpread * deterministicFactor;
 
     const halfSpread = price * (spreadPercentage / 100 / 2);
 
@@ -182,6 +218,35 @@ export class RedStoneClient extends BaseOracleClient {
     };
   }
 
+  private classifyError(error: unknown): RedStoneErrorCode {
+    if (error instanceof Error) {
+      if (error.message.includes('HTTP 429') || error.message.includes('rate limit')) {
+        return 'RATE_LIMIT_ERROR';
+      }
+      if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
+        return 'TIMEOUT_ERROR';
+      }
+      if (
+        error.message.includes('network') ||
+        error.message.includes('ECONNREFUSED') ||
+        error.message.includes('ENOTFOUND')
+      ) {
+        return 'NETWORK_ERROR';
+      }
+      if (error.message.includes('parse') || error.message.includes('JSON')) {
+        return 'PARSE_ERROR';
+      }
+    }
+    return 'FETCH_ERROR';
+  }
+
+  /**
+   * Fetches real-time price data from the RedStone API.
+   * Implements caching and retry logic with exponential backoff.
+   * @param symbol - The trading symbol to fetch (e.g., 'BTC', 'ETH')
+   * @returns PriceData if successful, null if no data available
+   * @throws RedStoneApiError if the API request fails after all retries
+   */
   private async fetchRealPrice(symbol: string): Promise<PriceData | null> {
     const cacheKey = `price:${symbol}`;
     const cached = this.getFromCache<PriceData>(cacheKey);
@@ -189,35 +254,71 @@ export class RedStoneClient extends BaseOracleClient {
       return cached;
     }
 
+    let lastError: Error | undefined;
+    let attemptCount = 0;
+
     try {
       const result = await withRetry(
         async () => {
-          const response = await fetch(
-            `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&provider=redstone-rapid`,
-            {
-              method: 'GET',
-              headers: {
-                Accept: 'application/json',
-              },
+          attemptCount++;
+          try {
+            const response = await fetch(
+              `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&provider=redstone-rapid`,
+              {
+                method: 'GET',
+                headers: {
+                  Accept: 'application/json',
+                },
+              }
+            );
+
+            if (!response.ok) {
+              const errorCode = this.classifyErrorFromStatus(response.status);
+              throw new RedStoneApiError(
+                `HTTP ${response.status}: ${response.statusText}`,
+                errorCode,
+                { symbol, attemptCount }
+              );
             }
-          );
 
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            let data: RedStonePriceResponse[];
+            try {
+              data = await response.json();
+            } catch {
+              throw new RedStoneApiError(
+                'Failed to parse API response as JSON',
+                'PARSE_ERROR',
+                { symbol, attemptCount }
+              );
+            }
+
+            if (!Array.isArray(data) || data.length === 0) {
+              return null;
+            }
+
+            const priceData = data[0];
+            return this.parsePriceResponse(priceData, symbol);
+          } catch (error) {
+            if (error instanceof RedStoneApiError) {
+              throw error;
+            }
+            const errorCode = this.classifyError(error);
+            throw new RedStoneApiError(
+              `Failed to fetch price: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              errorCode,
+              { symbol, attemptCount },
+              error instanceof Error ? error : undefined
+            );
           }
-
-          const data: RedStonePriceResponse[] = await response.json();
-
-          if (!Array.isArray(data) || data.length === 0) {
-            return null;
-          }
-
-          const priceData = data[0];
-          return this.parsePriceResponse(priceData, symbol);
         },
-        3,
-        1000,
-        'fetchRealPrice'
+        {
+          maxAttempts: 3,
+          baseDelay: 1000,
+          operationName: 'fetchRealPrice',
+          onRetry: (attempt, error) => {
+            lastError = error;
+          },
+        }
       );
 
       if (result) {
@@ -226,13 +327,41 @@ export class RedStoneClient extends BaseOracleClient {
 
       return result;
     } catch (error) {
-      return null;
+      if (error instanceof RedStoneApiError) {
+        throw error;
+      }
+      throw new RedStoneApiError(
+        `Failed to fetch price for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        this.classifyError(error),
+        { symbol, attemptCount },
+        error instanceof Error ? error : undefined
+      );
     }
   }
 
+  private classifyErrorFromStatus(status: number): RedStoneErrorCode {
+    switch (status) {
+      case 429:
+        return 'RATE_LIMIT_ERROR';
+      case 504:
+        return 'TIMEOUT_ERROR';
+      case 503:
+        return 'NETWORK_ERROR';
+      default:
+        return 'FETCH_ERROR';
+    }
+  }
+
+  /**
+   * Parses a RedStone API price response into a standardized PriceData object.
+   * Converts timestamps from seconds to milliseconds and generates confidence intervals.
+   * @param response - The raw response from RedStone API
+   * @param symbol - The trading symbol
+   * @returns Standardized PriceData object
+   */
   private parsePriceResponse(response: RedStonePriceResponse, symbol: string): PriceData {
     const price = response.value;
-    const timestamp = response.timestamp * 1000;
+    const timestamp = timestampSecondsToMillis(response.timestamp);
     const confidenceInterval = this.generateConfidenceInterval(price, symbol);
 
     return {
@@ -241,17 +370,41 @@ export class RedStoneClient extends BaseOracleClient {
       price,
       timestamp,
       decimals: 8,
-      confidence: 0.95 + Math.random() * 0.05,
+      confidence: 0.97,
       confidenceInterval,
-      change24h: 0,
-      change24hPercent: 0,
+      change24h: response.change24h ?? 0,
+      change24hPercent: response.change24hPercent ?? 0,
       source: response.provider,
     };
   }
 
+  /**
+   * Gets the current price for a given symbol from RedStone oracle.
+   * Falls back to mock data if the API is unavailable.
+   * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
+   * @param chain - Optional blockchain context for chain-specific pricing
+   * @returns Promise resolving to PriceData with current price information
+   * @throws OracleError if price fetching fails completely
+   */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
-      const realPrice = await this.fetchRealPrice(symbol);
+      let realPrice: PriceData | null = null;
+      let fetchError: RedStoneApiError | null = null;
+
+      try {
+        realPrice = await this.fetchRealPrice(symbol);
+      } catch (error) {
+        if (error instanceof RedStoneApiError) {
+          fetchError = error;
+        } else {
+          fetchError = new RedStoneApiError(
+            `Unexpected error fetching price: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            'FETCH_ERROR',
+            { symbol },
+            error instanceof Error ? error : undefined
+          );
+        }
+      }
 
       if (realPrice) {
         return {
@@ -279,8 +432,17 @@ export class RedStoneClient extends BaseOracleClient {
         };
       }
 
+      if (fetchError) {
+        console.warn(
+          `[RedStone] Using fallback data for ${symbol} due to API error: ${fetchError.message}`
+        );
+      }
+
       return priceData;
     } catch (error) {
+      if (error instanceof RedStoneApiError) {
+        throw this.createError(error.message, error.code);
+      }
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from RedStone',
         'REDSTONE_ERROR'
@@ -288,6 +450,14 @@ export class RedStoneClient extends BaseOracleClient {
     }
   }
 
+  /**
+   * Gets historical price data for a given symbol over a specified time period.
+   * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
+   * @param chain - Optional blockchain context
+   * @param period - Time period in hours (default: 24)
+   * @returns Promise resolving to an array of PriceData points
+   * @throws OracleError if historical data fetching fails
+   */
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
@@ -307,6 +477,11 @@ export class RedStoneClient extends BaseOracleClient {
     }
   }
 
+  /**
+   * Gets RedStone network metrics including provider statistics and data freshness.
+   * Results are cached for performance.
+   * @returns Promise resolving to RedStoneMetrics object
+   */
   async getRedStoneMetrics(): Promise<RedStoneMetrics> {
     const cacheKey = 'metrics';
     const cached = this.getFromCache<RedStoneMetrics>(cacheKey);
@@ -322,9 +497,9 @@ export class RedStoneClient extends BaseOracleClient {
           : 0.85;
 
       const metrics: RedStoneMetrics = {
-        modularFee: 0.0001 + Math.random() * 0.0002,
-        dataFreshnessScore: 95 + Math.random() * 4,
-        providerCount: providers.length || 15 + Math.floor(Math.random() * 10),
+        modularFee: 0.0002,
+        dataFreshnessScore: 97,
+        providerCount: providers.length || 18,
         avgProviderReputation: avgReputation,
       };
 
@@ -332,14 +507,20 @@ export class RedStoneClient extends BaseOracleClient {
       return metrics;
     } catch {
       return {
-        modularFee: 0.0001 + Math.random() * 0.0002,
-        dataFreshnessScore: 95 + Math.random() * 4,
-        providerCount: 15 + Math.floor(Math.random() * 10),
-        avgProviderReputation: 0.85 + Math.random() * 0.1,
+        modularFee: 0.0002,
+        dataFreshnessScore: 97,
+        providerCount: 18,
+        avgProviderReputation: 0.90,
       };
     }
   }
 
+  /**
+   * Gets information about all RedStone data providers.
+   * Includes reputation scores, data points contributed, and last update timestamps.
+   * Falls back to static provider list if API is unavailable.
+   * @returns Promise resolving to an array of RedStoneProviderInfo objects
+   */
   async getDataProviders(): Promise<RedStoneProviderInfo[]> {
     const cacheKey = 'providers';
     const cached = this.getFromCache<RedStoneProviderInfo[]>(cacheKey);
@@ -370,16 +551,18 @@ export class RedStoneClient extends BaseOracleClient {
           return data.map((provider, index) => ({
             id: provider.address || `provider-${index}`,
             name: provider.name || `Provider ${index + 1}`,
-            reputation: provider.reputation || 0.85 + Math.random() * 0.15,
-            dataPoints: provider.totalDataPoints || Math.floor(Math.random() * 1000000),
+            reputation: provider.reputation || 0.92,
+            dataPoints: provider.totalDataPoints || 500000,
             lastUpdate: provider.lastUpdateTimestamp
-              ? provider.lastUpdateTimestamp * 1000
+              ? timestampSecondsToMillis(provider.lastUpdateTimestamp)
               : Date.now(),
           }));
         },
-        3,
-        1000,
-        'getDataProviders'
+        {
+          maxAttempts: 3,
+          baseDelay: 1000,
+          operationName: 'getDataProviders',
+        }
       );
 
       this.setCache(cacheKey, result, REDSTONE_CACHE_TTL.PROVIDERS);
@@ -422,6 +605,11 @@ export class RedStoneClient extends BaseOracleClient {
     ];
   }
 
+  /**
+   * Gets RedStone network statistics including active nodes, data feeds, and latency.
+   * Results are cached for performance.
+   * @returns Promise resolving to RedStoneNetworkStats object
+   */
   async getNetworkStats(): Promise<RedStoneNetworkStats> {
     const cacheKey = 'networkStats';
     const cached = this.getFromCache<RedStoneNetworkStats>(cacheKey);
@@ -431,25 +619,25 @@ export class RedStoneClient extends BaseOracleClient {
 
     try {
       const providers = await this.getDataProviders();
-      const activeNodes = providers.length > 0 ? providers.length : 50 + Math.floor(Math.random() * 20);
+      const activeNodes = providers.length > 0 ? providers.length : 55;
 
       const stats: RedStoneNetworkStats = {
         activeNodes,
-        dataFeeds: 200 + Math.floor(Math.random() * 50),
-        nodeUptime: 99.5 + Math.random() * 0.4,
-        avgResponseTime: 150 + Math.floor(Math.random() * 100),
-        latency: 50 + Math.floor(Math.random() * 50),
+        dataFeeds: 225,
+        nodeUptime: 99.7,
+        avgResponseTime: 180,
+        latency: 65,
       };
 
       this.setCache(cacheKey, stats, REDSTONE_CACHE_TTL.STATS);
       return stats;
     } catch {
       return {
-        activeNodes: 50 + Math.floor(Math.random() * 20),
-        dataFeeds: 200 + Math.floor(Math.random() * 50),
-        nodeUptime: 99.5 + Math.random() * 0.4,
-        avgResponseTime: 150 + Math.floor(Math.random() * 100),
-        latency: 50 + Math.floor(Math.random() * 50),
+        activeNodes: 55,
+        dataFeeds: 225,
+        nodeUptime: 99.7,
+        avgResponseTime: 180,
+        latency: 65,
       };
     }
   }
@@ -478,10 +666,10 @@ export class RedStoneClient extends BaseOracleClient {
 
   async getRiskMetrics(): Promise<RedStoneRiskMetrics> {
     return {
-      centralizationRisk: 0.2 + Math.random() * 0.1,
-      liquidityRisk: 0.15 + Math.random() * 0.1,
-      technicalRisk: 0.1 + Math.random() * 0.05,
-      overallRisk: 0.15 + Math.random() * 0.1,
+      centralizationRisk: 0.25,
+      liquidityRisk: 0.20,
+      technicalRisk: 0.12,
+      overallRisk: 0.19,
     };
   }
 
@@ -492,23 +680,8 @@ export class RedStoneClient extends BaseOracleClient {
       return cached;
     }
 
-    const chains: RedStoneChainInfo[] = [
-      { chain: 'Ethereum', latency: 80, updateFreq: 60, status: 'active' },
-      { chain: 'Arbitrum', latency: 65, updateFreq: 30, status: 'active' },
-      { chain: 'Optimism', latency: 70, updateFreq: 30, status: 'active' },
-      { chain: 'Polygon', latency: 75, updateFreq: 45, status: 'active' },
-      { chain: 'Avalanche', latency: 85, updateFreq: 60, status: 'active' },
-      { chain: 'Base', latency: 60, updateFreq: 30, status: 'active' },
-      { chain: 'BNB Chain', latency: 90, updateFreq: 60, status: 'active' },
-      { chain: 'Fantom', latency: 95, updateFreq: 60, status: 'active' },
-      { chain: 'Linea', latency: 70, updateFreq: 45, status: 'active' },
-      { chain: 'Mantle', latency: 75, updateFreq: 45, status: 'active' },
-      { chain: 'Scroll', latency: 80, updateFreq: 60, status: 'active' },
-      { chain: 'zkSync', latency: 72, updateFreq: 45, status: 'active' },
-    ];
-
-    this.setCache(cacheKey, chains, REDSTONE_CACHE_TTL.CHAINS);
-    return chains;
+    this.setCache(cacheKey, REDSTONE_SUPPORTED_CHAINS, REDSTONE_CACHE_TTL.CHAINS);
+    return REDSTONE_SUPPORTED_CHAINS;
   }
 
   async getMultiplePrices(symbols: string[]): Promise<Map<string, PriceData>> {
@@ -552,3 +725,5 @@ export class RedStoneClient extends BaseOracleClient {
     this.cache.clear();
   }
 }
+
+export { type RedStoneChainInfo } from './redstoneConstants';

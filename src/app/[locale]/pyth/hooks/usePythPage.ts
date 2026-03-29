@@ -6,6 +6,7 @@ import { useRefresh, useExport, usePythAllData, useDataFreshness } from '@/hooks
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { getPythDataService } from '@/lib/oracles';
+import type { WebSocketConnectionState } from '@/lib/oracles/pythDataService';
 import { OracleProvider } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -33,15 +34,15 @@ export function usePythPage() {
     priceUpdateAnimation: 'none',
   });
   const [wsError, setWsError] = useState<Error | null>(null);
-  const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [isUsingFallback, setIsUsingFallback] = useState(false);
 
   const config = useMemo(() => getOracleConfig(OracleProvider.PYTH), []);
   const previousPriceRef = useRef<number | null>(null);
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const unsubscribeRef = useRef<(() => void) | null>(null);
+  const unsubscribePriceRef = useRef<(() => void) | null>(null);
+  const unsubscribeConnectionRef = useRef<(() => void) | null>(null);
   const fallbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const lastUpdateTimeRef = useRef<number>(Date.now());
+  const lastUpdateTimeRef = useRef<number>(0);
 
   const {
     price: initialPrice,
@@ -68,44 +69,47 @@ export function usePythPage() {
     }
   }, []);
 
-  const updatePriceAnimation = useCallback((newPrice: number) => {
-    clearAnimationTimeout();
+  const updatePriceAnimation = useCallback(
+    (newPrice: number) => {
+      clearAnimationTimeout();
 
-    if (previousPriceRef.current !== null) {
-      if (newPrice > previousPriceRef.current) {
-        setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'up' }));
-      } else if (newPrice < previousPriceRef.current) {
-        setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'down' }));
-      } else {
-        setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'none' }));
+      if (previousPriceRef.current !== null) {
+        if (newPrice > previousPriceRef.current) {
+          setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'up' }));
+        } else if (newPrice < previousPriceRef.current) {
+          setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'down' }));
+        } else {
+          setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'none' }));
+        }
+
+        animationTimeoutRef.current = setTimeout(() => {
+          setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'none' }));
+        }, ANIMATION_RESET_DELAY);
       }
 
-      animationTimeoutRef.current = setTimeout(() => {
-        setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'none' }));
-      }, ANIMATION_RESET_DELAY);
-    }
+      previousPriceRef.current = newPrice;
+    },
+    [clearAnimationTimeout]
+  );
 
-    previousPriceRef.current = newPrice;
-  }, [clearAnimationTimeout]);
+  const handlePriceUpdate = useCallback(
+    (updatedPrice: PriceData) => {
+      const now = Date.now();
+      const latency = now - lastUpdateTimeRef.current;
+      lastUpdateTimeRef.current = now;
 
-  const handlePriceUpdate = useCallback((updatedPrice: PriceData) => {
-    const now = Date.now();
-    const latency = now - lastUpdateTimeRef.current;
-    lastUpdateTimeRef.current = now;
+      setRealtimePrice(updatedPrice);
+      setRealtimeState((prev) => ({
+        ...prev,
+        lastUpdateLatency: latency,
+      }));
+      setWsError(null);
+      setIsUsingFallback(false);
 
-    setRealtimePrice(updatedPrice);
-    setRealtimeState((prev) => ({
-      ...prev,
-      isConnected: true,
-      connectionStatus: 'connected',
-      lastUpdateLatency: latency,
-    }));
-    setWsError(null);
-    setReconnectAttempts(0);
-    setIsUsingFallback(false);
-
-    updatePriceAnimation(updatedPrice.price);
-  }, [updatePriceAnimation]);
+      updatePriceAnimation(updatedPrice.price);
+    },
+    [updatePriceAnimation]
+  );
 
   const startFallbackPolling = useCallback(() => {
     if (fallbackIntervalRef.current) {
@@ -143,61 +147,57 @@ export function usePythPage() {
   useEffect(() => {
     const pythService = getPythDataService();
 
-    setRealtimeState((prev) => ({
-      ...prev,
-      connectionStatus: 'connecting',
-    }));
+    unsubscribeConnectionRef.current = pythService.subscribeToConnectionState(
+      (state: WebSocketConnectionState) => {
+        setRealtimeState((prev) => ({
+          ...prev,
+          isConnected: state.isConnected,
+          connectionStatus: state.status,
+          lastUpdateLatency: state.lastUpdateLatency,
+        }));
 
-    const handleWsError = (error: Error) => {
-      setWsError(error);
-      setReconnectAttempts((prev) => {
-        const newAttempts = prev + 1;
-        if (newAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        if (state.error) {
+          setWsError(state.error);
+        }
+
+        if (state.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS && state.status === 'disconnected') {
           startFallbackPolling();
         }
-        return newAttempts;
-      });
-    };
+      }
+    );
 
     try {
-      unsubscribeRef.current = pythService.subscribeToPriceUpdates(
+      unsubscribePriceRef.current = pythService.subscribeToPriceUpdates(
         config.symbol,
         handlePriceUpdate
       );
-
-      const connectionTimeout = setTimeout(() => {
-        if (!realtimeState.isConnected && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-          handleWsError(new Error('Connection timeout'));
-        }
-      }, 5000);
-
-      return () => {
-        clearTimeout(connectionTimeout);
-      };
     } catch (error) {
-      handleWsError(error instanceof Error ? error : new Error(String(error)));
-      startFallbackPolling();
+      const err = error instanceof Error ? error : new Error(String(error));
+      setTimeout(() => {
+        setWsError(err);
+        startFallbackPolling();
+      }, 0);
     }
 
     return () => {
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-        unsubscribeRef.current = null;
+      if (unsubscribePriceRef.current) {
+        unsubscribePriceRef.current();
+        unsubscribePriceRef.current = null;
+      }
+      if (unsubscribeConnectionRef.current) {
+        unsubscribeConnectionRef.current();
+        unsubscribeConnectionRef.current = null;
       }
       stopFallbackPolling();
       clearAnimationTimeout();
     };
-  }, [config.symbol, handlePriceUpdate, startFallbackPolling, stopFallbackPolling, clearAnimationTimeout, realtimeState.isConnected, reconnectAttempts]);
-
-  useEffect(() => {
-    return () => {
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-      }
-      stopFallbackPolling();
-      clearAnimationTimeout();
-    };
-  }, [stopFallbackPolling, clearAnimationTimeout]);
+  }, [
+    config.symbol,
+    handlePriceUpdate,
+    startFallbackPolling,
+    stopFallbackPolling,
+    clearAnimationTimeout,
+  ]);
 
   const lastUpdated = useMemo(() => {
     if (realtimePrice?.timestamp) {
@@ -207,7 +207,7 @@ export function usePythPage() {
       return new Date(price.timestamp);
     }
     return new Date();
-  }, [realtimePrice?.timestamp, price?.timestamp]);
+  }, [realtimePrice, price]);
 
   const { exportData } = useExport({
     data: {
@@ -247,26 +247,25 @@ export function usePythPage() {
   }, []);
 
   const manualReconnect = useCallback(() => {
-    setReconnectAttempts(0);
     setWsError(null);
     stopFallbackPolling();
 
-    if (unsubscribeRef.current) {
-      unsubscribeRef.current();
-      unsubscribeRef.current = null;
+    if (unsubscribePriceRef.current) {
+      unsubscribePriceRef.current();
+      unsubscribePriceRef.current = null;
     }
 
-    setRealtimeState((prev) => ({
-      ...prev,
-      connectionStatus: 'connecting',
-    }));
-
     const pythService = getPythDataService();
-    unsubscribeRef.current = pythService.subscribeToPriceUpdates(
+    unsubscribePriceRef.current = pythService.subscribeToPriceUpdates(
       config.symbol,
       handlePriceUpdate
     );
   }, [config.symbol, handlePriceUpdate, stopFallbackPolling]);
+
+  const reconnectAttempts = useMemo(() => {
+    const pythService = getPythDataService();
+    return pythService.getConnectionState().reconnectAttempts;
+  }, []);
 
   return {
     activeTab,

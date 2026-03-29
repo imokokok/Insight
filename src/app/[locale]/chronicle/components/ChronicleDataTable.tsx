@@ -20,7 +20,7 @@ interface ChronicleDataTableProps<T> {
   isLoading?: boolean;
 }
 
-export function ChronicleDataTable<T extends Record<string, unknown>>({
+export function ChronicleDataTable<T extends object>({
   data,
   columns,
   sortConfig: externalSortConfig,
@@ -46,12 +46,22 @@ export function ChronicleDataTable<T extends Record<string, unknown>>({
 
   const sortedData = [...data].sort((a, b) => {
     if (!sortConfig) return 0;
-    const aValue = a[sortConfig.key];
-    const bValue = b[sortConfig.key];
+    const aValue = (a as Record<string, unknown>)[sortConfig.key];
+    const bValue = (b as Record<string, unknown>)[sortConfig.key];
+
     if (aValue === bValue) return 0;
     if (aValue === null || aValue === undefined) return 1;
     if (bValue === null || bValue === undefined) return -1;
-    const comparison = aValue < bValue ? -1 : 1;
+
+    let comparison = 0;
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      comparison = aValue - bValue;
+    } else if (typeof aValue === 'string' && typeof bValue === 'string') {
+      comparison = aValue.localeCompare(bValue);
+    } else {
+      comparison = String(aValue).localeCompare(String(bValue));
+    }
+
     return sortConfig.direction === 'asc' ? comparison : -comparison;
   });
 
@@ -102,7 +112,7 @@ export function ChronicleDataTable<T extends Record<string, unknown>>({
               {columns.map((column) => (
                 <td key={column.key} className="px-4 py-3 text-sm text-gray-900">
                   {column.render
-                    ? column.render(item as T)
+                    ? column.render(item)
                     : String((item as Record<string, unknown>)[column.key] ?? '-')}
                 </td>
               ))}

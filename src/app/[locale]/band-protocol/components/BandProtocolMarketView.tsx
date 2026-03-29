@@ -18,22 +18,22 @@ export function BandProtocolMarketView({
   // 核心市场统计数据
   const stats = [
     {
-      label: t('chainlink.stats.marketCap'),
+      label: t('band.bandProtocol.stats.marketCap'),
       value: `$${(config.marketData.marketCap / 1e9).toFixed(2)}B`,
       change: config.marketData.change24hValue,
     },
     {
-      label: t('chainlink.stats.volume24h'),
+      label: t('band.bandProtocol.stats.volume24h'),
       value: `$${(config.marketData.volume24h / 1e6).toFixed(1)}M`,
       change: '+8%',
     },
     {
-      label: t('chainlink.stats.circulatingSupply'),
+      label: t('band.bandProtocol.stats.circulatingSupply'),
       value: `${(config.marketData.circulatingSupply / 1e6).toFixed(1)}M BAND`,
       change: null,
     },
     {
-      label: t('chainlink.stats.stakingApr'),
+      label: t('band.bandProtocol.stats.stakingApr'),
       value: `${config.marketData.stakingApr ?? '8.5'}%`,
       change: null,
       highlight: true,
@@ -42,19 +42,19 @@ export function BandProtocolMarketView({
 
   const networkStatus = [
     {
-      label: t('chainlink.networkHealth.activeNodes'),
+      label: t('band.bandProtocol.network.activeNodes'),
       value: '70+',
       status: 'healthy',
       icon: Server,
     },
-    { label: t('chainlink.stats.dataFeeds'), value: '180+', status: 'healthy', icon: Zap },
+    { label: t('band.bandProtocol.stats.dataFeeds'), value: '180+', status: 'healthy', icon: Zap },
     {
-      label: t('chainlink.networkHealth.responseTime'),
+      label: t('band.bandProtocol.network.responseTime'),
       value: '150ms',
       status: 'healthy',
       icon: Clock,
     },
-    { label: t('chainlink.successRate'), value: '99.85%', status: 'healthy', icon: Shield },
+    { label: t('band.bandProtocol.stats.successRate'), value: '99.85%', status: 'healthy', icon: Shield },
   ];
 
   return (
@@ -64,7 +64,7 @@ export function BandProtocolMarketView({
         {/* 左侧价格趋势图表 - 占2列 */}
         <div className="lg:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium text-gray-900">{t('chainlink.priceTrend')}</h3>
+            <h3 className="text-base font-medium text-gray-900">{t('band.bandProtocol.market.priceTrend')}</h3>
           </div>
           <div className="flex-1">
             <PriceChart
@@ -83,7 +83,7 @@ export function BandProtocolMarketView({
           {/* 快速统计 */}
           <div className="flex-1 flex flex-col">
             <h3 className="text-base font-medium text-gray-900 mb-4">
-              {t('chainlink.quickStats')}
+              {t('band.bandProtocol.market.quickStats')}
             </h3>
             <div className="flex-1 flex flex-col">
               {stats.map((stat, index) => (
@@ -120,7 +120,7 @@ export function BandProtocolMarketView({
           {/* 网络状态 - 内联布局 */}
           <div className="flex-1 flex flex-col">
             <h3 className="text-base font-medium text-gray-900 mb-4">
-              {t('chainlink.networkStatus')}
+              {t('band.bandProtocol.network.status')}
             </h3>
             <div className="flex-1 flex flex-col gap-3">
               {networkStatus.map((item, index) => {
@@ -148,7 +148,7 @@ export function BandProtocolMarketView({
           {/* 数据来源 */}
           <div className="flex-1 flex flex-col">
             <h3 className="text-base font-medium text-gray-900 mb-4">
-              {t('chainlink.dataSource')}
+              {t('band.bandProtocol.market.dataSource')}
             </h3>
             <div className="flex-1 flex flex-col">
               {[
@@ -180,7 +180,7 @@ export function BandProtocolMarketView({
       {/* 核心交易对信息 */}
       <div className="border-t border-gray-200 pt-8">
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chainlink.tradingPair') || '主要交易对'}
+          {t('band.bandProtocol.market.tradingPair') || '主要交易对'}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
@@ -203,22 +203,22 @@ export function BandProtocolMarketView({
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-1">{t('chainlink.volume24h')}</p>
+            <p className="text-xs text-gray-400 mb-1">{t('band.bandProtocol.stats.volume24h')}</p>
             <p className="text-2xl font-semibold text-gray-900">$12.5M</p>
             <p className="text-sm text-emerald-600 mt-1">+8.3%</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-1">{t('chainlink.liquidity')}</p>
+            <p className="text-xs text-gray-400 mb-1">{t('band.bandProtocol.market.liquidity')}</p>
             <p className="text-2xl font-semibold text-gray-900">$8.2M</p>
             <p className="text-sm text-emerald-600 mt-1">+3.7%</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-1">{t('chainlink.marketDepth')}</p>
+            <p className="text-xs text-gray-400 mb-1">{t('band.bandProtocol.market.depth')}</p>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-2xl font-semibold text-gray-900">7.5</span>
               <span className="text-sm text-gray-400">/10</span>
             </div>
-            <p className="text-xs text-gray-400 mt-1">{t('chainlink.depthScore')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('band.bandProtocol.market.depthScore')}</p>
           </div>
         </div>
       </div>

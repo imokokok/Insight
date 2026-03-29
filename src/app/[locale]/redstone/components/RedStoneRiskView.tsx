@@ -29,6 +29,7 @@ import { useRedStoneRiskMetrics } from '@/hooks/oracles/redstone';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 
+import { useRedStoneClient } from '../context/RedStoneClientContext';
 import { type RedStoneRiskViewProps } from '../types';
 
 const historicalRiskEvents: TimelineEvent[] = [
@@ -168,8 +169,9 @@ const riskFactors = [
 
 export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
   const t = useTranslations();
+  const client = useRedStoneClient();
   const { riskMetrics: apiRiskMetrics, isLoading: riskLoading } =
-    useRedStoneRiskMetrics(!isLoading);
+    useRedStoneRiskMetrics(client, !isLoading);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
 

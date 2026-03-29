@@ -27,24 +27,30 @@ import {
   Area,
 } from 'recharts';
 
-import { type PriceFeed } from '../types';
+import { ConfidenceIntervalChart } from '@/components/oracle/charts/ConfidenceIntervalChart';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
-import { ConfidenceIntervalChart } from '@/components/oracle/charts/ConfidenceIntervalChart';
-import { getPythDataService, type PublisherData } from '@/lib/oracles/pythDataService';
-import type { PriceData, ConfidenceInterval } from '@/types/oracle';
+import { PYTH_PRICE_FEED_IDS } from '@/lib/oracles/pythConstants';
+import {
+  getPythDataService,
+  type PublisherData,
+  type WebSocketConnectionState,
+} from '@/lib/oracles/pythDataService';
+import {
+  generatePriceHistory,
+  getBasePrice,
+  type PriceHistoryPoint,
+} from '@/lib/oracles/pythMockData';
 import { cn } from '@/lib/utils';
+import type { PriceData, ConfidenceInterval } from '@/types/oracle';
+import { type TooltipProps } from '@/types/ui/recharts';
+
+import { type PriceFeed, type RealtimeState } from '../types';
 
 interface PriceFeedDetailModalProps {
   priceFeed: PriceFeed;
   isOpen: boolean;
   onClose: () => void;
-}
-
-interface PriceHistoryPoint {
-  time: string;
-  price: number;
-  confidence: number;
 }
 
 interface Publisher {
@@ -56,69 +62,18 @@ interface Publisher {
   status: 'active' | 'inactive';
 }
 
-interface RealtimeState {
-  isConnected: boolean;
-  connectionStatus: 'connecting' | 'connected' | 'disconnected';
-  lastUpdateLatency: number;
-  priceUpdateAnimation: 'up' | 'down' | 'none';
-}
-
-const PYTH_PRICE_FEED_IDS: Record<string, string> = {
-  'BTC/USD': '0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',
-  'ETH/USD': '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace',
-  'SOL/USD': '0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d',
-  'PYTH/USD': '0x0a0408d619e9380abad35060f9192039ed5042fa6f82301d0e48bb52be830996',
-  'USDC/USD': '0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a',
-  'LINK/USD': '0x8ac0c70fff57e9aefdf5edf44b51d62c2d433617f47b4d5d3a132b01d9dca6a9',
-  'AVAX/USD': '0x93da3352f9f1d105fdfe4971cfa80e9dd777bfc5d0f683ebb6e1294b92137bb7',
-  'MATIC/USD': '0x5de33a9112c2b700b8d30b8a3402c103578ccfa2765696471cc672bd5cf6ac52',
-  'DOT/USD': '0xca3eed9b267293f6595901c734c7525ce8ef49adafe8284606ceb307afa2ca5b',
-  'UNI/USD': '0x78d185a741d07edb3412b09008b7c5cfb9bbbd7d56834200e2a28e860bb308e3',
-};
-
-function getBasePrice(name: string): number {
-  const prices: Record<string, number> = {
-    'BTC/USD': 67500,
-    'ETH/USD': 3450,
-    'SOL/USD': 145,
-    'EUR/USD': 1.08,
-    'GBP/USD': 1.27,
-    'XAU/USD': 2350,
-    'AAPL/USD': 178,
-    'TSLA/USD': 245,
-    'NVDA/USD': 875,
-    'JPY/USD': 0.0067,
-  };
-  return prices[name] || 100;
-}
-
-function generatePriceHistory(basePrice: number): PriceHistoryPoint[] {
-  const data: PriceHistoryPoint[] = [];
-  const now = Date.now();
-  for (let i = 24; i >= 0; i--) {
-    const time = new Date(now - i * 3600000);
-    const variation = (Math.random() - 0.5) * basePrice * 0.02;
-    const price = basePrice + variation;
-    const confidence = Math.random() * basePrice * 0.001 + basePrice * 0.0005;
-    data.push({
-      time: time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-      price: parseFloat(price.toFixed(2)),
-      confidence: parseFloat(confidence.toFixed(4)),
-    });
-  }
-  return data;
-}
-
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
         <p className="text-sm font-medium text-gray-900 mb-1">{label}</p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index: number) => (
           <p key={index} className="text-sm">
             <span className="text-gray-500">{entry.name}:</span>
             <span className="ml-2 font-medium" style={{ color: entry.color }}>
-              {entry.name === '价格' ? `$${entry.value.toLocaleString()}` : `$${entry.value.toFixed(4)}`}
+              {entry.name === '价格'
+                ? `$${entry.value.toLocaleString()}`
+                : `$${entry.value.toFixed(4)}`}
             </span>
           </p>
         ))}
@@ -142,7 +97,8 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
   const [isLoadingPublishers, setIsLoadingPublishers] = useState(false);
   const [historicalConfidence, setHistoricalConfidence] = useState<number[]>([]);
 
-  const unsubscribeRef = useRef<(() => void) | null>(null);
+  const unsubscribePriceRef = useRef<(() => void) | null>(null);
+  const unsubscribeConnectionRef = useRef<(() => void) | null>(null);
   const previousPriceRef = useRef<number | null>(null);
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastUpdateTimeRef = useRef<number>(Date.now());
@@ -150,9 +106,11 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
   const basePrice = useMemo(() => getBasePrice(priceFeed.name), [priceFeed.name]);
   const priceHistory = useMemo(() => generatePriceHistory(basePrice), [basePrice]);
 
-  const currentPrice = realtimePrice?.price ?? priceHistory[priceHistory.length - 1]?.price ?? basePrice;
+  const currentPrice =
+    realtimePrice?.price ?? priceHistory[priceHistory.length - 1]?.price ?? basePrice;
   const previousPrice = priceHistory[priceHistory.length - 2]?.price || basePrice;
-  const priceChange = realtimePrice?.change24hPercent ?? ((currentPrice - previousPrice) / previousPrice) * 100;
+  const priceChange =
+    realtimePrice?.change24hPercent ?? ((currentPrice - previousPrice) / previousPrice) * 100;
   const isPositive = priceChange >= 0;
 
   const confidenceInterval: ConfidenceInterval = useMemo(() => {
@@ -175,50 +133,56 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
     }
   }, []);
 
-  const updatePriceAnimation = useCallback((newPrice: number) => {
-    clearAnimationTimeout();
+  const updatePriceAnimation = useCallback(
+    (newPrice: number) => {
+      clearAnimationTimeout();
 
-    if (previousPriceRef.current !== null) {
-      if (newPrice > previousPriceRef.current) {
-        setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'up' }));
-      } else if (newPrice < previousPriceRef.current) {
-        setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'down' }));
-      } else {
-        setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'none' }));
+      if (previousPriceRef.current !== null) {
+        if (newPrice > previousPriceRef.current) {
+          setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'up' }));
+        } else if (newPrice < previousPriceRef.current) {
+          setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'down' }));
+        } else {
+          setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'none' }));
+        }
+
+        animationTimeoutRef.current = setTimeout(() => {
+          setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'none' }));
+        }, 500);
       }
 
-      animationTimeoutRef.current = setTimeout(() => {
-        setRealtimeState((prev) => ({ ...prev, priceUpdateAnimation: 'none' }));
-      }, 500);
-    }
+      previousPriceRef.current = newPrice;
+    },
+    [clearAnimationTimeout]
+  );
 
-    previousPriceRef.current = newPrice;
-  }, [clearAnimationTimeout]);
+  const handlePriceUpdate = useCallback(
+    (updatedPrice: PriceData) => {
+      const now = Date.now();
+      const latency = now - lastUpdateTimeRef.current;
+      lastUpdateTimeRef.current = now;
 
-  const handlePriceUpdate = useCallback((updatedPrice: PriceData) => {
-    const now = Date.now();
-    const latency = now - lastUpdateTimeRef.current;
-    lastUpdateTimeRef.current = now;
+      setRealtimePrice(updatedPrice);
+      setRealtimeState((prev) => ({
+        ...prev,
+        isConnected: true,
+        connectionStatus: 'connected',
+        lastUpdateLatency: latency,
+      }));
 
-    setRealtimePrice(updatedPrice);
-    setRealtimeState((prev) => ({
-      ...prev,
-      isConnected: true,
-      connectionStatus: 'connected',
-      lastUpdateLatency: latency,
-    }));
+      updatePriceAnimation(updatedPrice.price);
 
-    updatePriceAnimation(updatedPrice.price);
-
-    setHistoricalConfidence((prev) => {
-      const newConfidence = updatedPrice.confidence ?? 85;
-      const updated = [...prev, newConfidence];
-      if (updated.length > 20) {
-        return updated.slice(-20);
-      }
-      return updated;
-    });
-  }, [updatePriceAnimation]);
+      setHistoricalConfidence((prev) => {
+        const newConfidence = updatedPrice.confidence ?? 85;
+        const updated = [...prev, newConfidence];
+        if (updated.length > 20) {
+          return updated.slice(-20);
+        }
+        return updated;
+      });
+    },
+    [updatePriceAnimation]
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -226,31 +190,36 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
     const pythService = getPythDataService();
     const priceId = PYTH_PRICE_FEED_IDS[priceFeed.name];
 
-    setRealtimeState((prev) => ({
-      ...prev,
-      connectionStatus: 'connecting',
-    }));
+    unsubscribeConnectionRef.current = pythService.subscribeToConnectionState(
+      (state: WebSocketConnectionState) => {
+        setRealtimeState((prev) => ({
+          ...prev,
+          isConnected: state.isConnected,
+          connectionStatus: state.status,
+          lastUpdateLatency: state.lastUpdateLatency,
+        }));
+      }
+    );
 
     if (priceId) {
       try {
-        unsubscribeRef.current = pythService.subscribeToPriceUpdates(
+        unsubscribePriceRef.current = pythService.subscribeToPriceUpdates(
           priceFeed.name,
           handlePriceUpdate
         );
       } catch (error) {
         console.error('Failed to subscribe to price updates:', error);
-        setRealtimeState((prev) => ({
-          ...prev,
-          connectionStatus: 'disconnected',
-          isConnected: false,
-        }));
       }
     }
 
     return () => {
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-        unsubscribeRef.current = null;
+      if (unsubscribePriceRef.current) {
+        unsubscribePriceRef.current();
+        unsubscribePriceRef.current = null;
+      }
+      if (unsubscribeConnectionRef.current) {
+        unsubscribeConnectionRef.current();
+        unsubscribeConnectionRef.current = null;
       }
       clearAnimationTimeout();
     };
@@ -264,7 +233,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
       try {
         const pythService = getPythDataService();
         const publisherData = await pythService.getPublishers();
-        
+
         const formattedPublishers: Publisher[] = publisherData.map((p: PublisherData) => ({
           id: p.id,
           name: p.name,
@@ -273,16 +242,51 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
           lastUpdate: new Date(p.lastUpdate ?? Date.now()).toLocaleTimeString('zh-CN'),
           status: p.status === 'active' ? 'active' : 'inactive',
         }));
-        
+
         setPublishers(formattedPublishers);
       } catch (error) {
         console.error('Failed to fetch publishers:', error);
         const fallbackPublishers: Publisher[] = [
-          { id: '1', name: 'Binance', stake: 50000000, accuracy: 99.2, lastUpdate: new Date().toLocaleTimeString('zh-CN'), status: 'active' },
-          { id: '2', name: 'OKX', stake: 45000000, accuracy: 99.1, lastUpdate: new Date().toLocaleTimeString('zh-CN'), status: 'active' },
-          { id: '3', name: 'Coinbase', stake: 40000000, accuracy: 99.0, lastUpdate: new Date().toLocaleTimeString('zh-CN'), status: 'active' },
-          { id: '4', name: 'Kraken', stake: 35000000, accuracy: 98.9, lastUpdate: new Date().toLocaleTimeString('zh-CN'), status: 'active' },
-          { id: '5', name: 'Bybit', stake: 30000000, accuracy: 98.8, lastUpdate: new Date().toLocaleTimeString('zh-CN'), status: 'active' },
+          {
+            id: '1',
+            name: 'Binance',
+            stake: 50000000,
+            accuracy: 99.2,
+            lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+            status: 'active',
+          },
+          {
+            id: '2',
+            name: 'OKX',
+            stake: 45000000,
+            accuracy: 99.1,
+            lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+            status: 'active',
+          },
+          {
+            id: '3',
+            name: 'Coinbase',
+            stake: 40000000,
+            accuracy: 99.0,
+            lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+            status: 'active',
+          },
+          {
+            id: '4',
+            name: 'Kraken',
+            stake: 35000000,
+            accuracy: 98.9,
+            lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+            status: 'active',
+          },
+          {
+            id: '5',
+            name: 'Bybit',
+            stake: 30000000,
+            accuracy: 98.8,
+            lastUpdate: new Date().toLocaleTimeString('zh-CN'),
+            status: 'active',
+          },
         ];
         setPublishers(fallbackPublishers);
       } finally {
@@ -375,9 +379,9 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                   <>
                     <WifiOff className="w-4 h-4 text-gray-400" />
                     <span className="text-xs font-medium text-gray-500">
-                      {realtimeState.connectionStatus === 'connecting' 
-                        ? (t('pyth.priceFeeds.connecting') || '连接中...')
-                        : (t('pyth.priceFeeds.disconnected') || '未连接')}
+                      {realtimeState.connectionStatus === 'connecting'
+                        ? t('pyth.priceFeeds.connecting') || '连接中...'
+                        : t('pyth.priceFeeds.disconnected') || '未连接'}
                     </span>
                   </>
                 )}
@@ -401,15 +405,24 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                   {t('pyth.priceFeeds.currentPrice') || '当前价格'}
                 </span>
               </div>
-              <p className={cn(
-                "text-2xl font-bold text-gray-900 transition-colors duration-300",
-                realtimeState.priceUpdateAnimation === 'up' && "text-emerald-600",
-                realtimeState.priceUpdateAnimation === 'down' && "text-red-600"
-              )}>
-                ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <p
+                className={cn(
+                  'text-2xl font-bold text-gray-900 transition-colors duration-300',
+                  realtimeState.priceUpdateAnimation === 'up' && 'text-emerald-600',
+                  realtimeState.priceUpdateAnimation === 'down' && 'text-red-600'
+                )}
+              >
+                $
+                {currentPrice.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
-              <p className={`text-xs font-medium mt-1 ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
-                {isPositive ? '+' : ''}{priceChange.toFixed(4)}%
+              <p
+                className={`text-xs font-medium mt-1 ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}
+              >
+                {isPositive ? '+' : ''}
+                {priceChange.toFixed(4)}%
               </p>
               {realtimeState.isConnected && (
                 <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
@@ -523,7 +536,11 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                 <AreaChart data={priceHistory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={chartColors.recharts.primary} stopOpacity={0.3} />
+                      <stop
+                        offset="5%"
+                        stopColor={chartColors.recharts.primary}
+                        stopOpacity={0.3}
+                      />
                       <stop offset="95%" stopColor={chartColors.recharts.primary} stopOpacity={0} />
                     </linearGradient>
                   </defs>
@@ -590,12 +607,19 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                 </thead>
                 <tbody>
                   {publishers.map((publisher) => (
-                    <tr key={publisher.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                      <td className="py-3 px-4 text-sm font-medium text-gray-900">{publisher.name}</td>
+                    <tr
+                      key={publisher.id}
+                      className="border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                    >
+                      <td className="py-3 px-4 text-sm font-medium text-gray-900">
+                        {publisher.name}
+                      </td>
                       <td className="py-3 px-4 text-sm text-gray-600">
                         {(publisher.stake / 1e6).toFixed(1)}M
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">{publisher.accuracy.toFixed(2)}%</td>
+                      <td className="py-3 px-4 text-sm text-gray-600">
+                        {publisher.accuracy.toFixed(2)}%
+                      </td>
                       <td className="py-3 px-4 text-sm text-gray-500">{publisher.lastUpdate}</td>
                       <td className="py-3 px-4 text-center">
                         <span
@@ -614,7 +638,8 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
               </table>
             </div>
             <p className="text-sm text-gray-500 mt-3">
-              {t('pyth.priceFeeds.totalPublishers') || '总计'} {publishers.length} {t('pyth.priceFeeds.publishersCount') || '个发布者'}
+              {t('pyth.priceFeeds.totalPublishers') || '总计'} {publishers.length}{' '}
+              {t('pyth.priceFeeds.publishersCount') || '个发布者'}
             </p>
           </div>
 

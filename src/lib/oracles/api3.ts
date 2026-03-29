@@ -11,6 +11,16 @@ import type { OracleClientConfig } from './base';
 import { isMockDataEnabled } from './api3DataSources';
 import { api3DataAggregator } from './api3DataAggregator';
 import { api3OnChainService } from './api3OnChainService';
+import { 
+  MOCK_DATA_STATUS, 
+  type MockDataAnnotation,
+  type MockDataStatus 
+} from './api3MockDataAnnotations';
+
+export interface AnnotatedData<T> {
+  data: T;
+  annotation: MockDataAnnotation;
+}
 
 export interface API3Alert {
   id: string;
@@ -434,7 +444,7 @@ export class API3Client extends BaseOracleClient {
     };
   }
 
-  async getLatencyDistribution(): Promise<number[]> {
+  async getLatencyDistribution(): Promise<AnnotatedData<number[]>> {
     const samples: number[] = [];
     const baseLatency = 180;
     for (let i = 0; i < 100; i++) {
@@ -442,7 +452,10 @@ export class API3Client extends BaseOracleClient {
       const spike = Math.random() > 0.95 ? Math.random() * 150 : 0;
       samples.push(Math.max(50, Math.round(baseLatency + variance + spike)));
     }
-    return samples;
+    return {
+      data: samples,
+      annotation: MOCK_DATA_STATUS.latencyDistribution,
+    };
   }
 
   async getDataQualityMetrics(): Promise<{
@@ -645,7 +658,7 @@ export class API3Client extends BaseOracleClient {
     ];
   }
 
-  async getCoveragePoolEvents(): Promise<CoveragePoolEvent[]> {
+  async getCoveragePoolEvents(): Promise<AnnotatedData<CoveragePoolEvent[]>> {
     const events: CoveragePoolEvent[] = [];
     const baseTime = Date.now();
 
@@ -794,7 +807,10 @@ export class API3Client extends BaseOracleClient {
       description: 'Coverage pool collateralization target increased to 150%',
     });
 
-    return events;
+    return {
+      data: events,
+      annotation: MOCK_DATA_STATUS.coveragePoolEvents,
+    };
   }
 
   async getGasFeeData(): Promise<GasFeeData[]> {
@@ -855,14 +871,14 @@ export class API3Client extends BaseOracleClient {
     symbol: string,
     chain?: Blockchain,
     period: number = 30
-  ): Promise<OHLCVDataPoint[]> {
+  ): Promise<AnnotatedData<OHLCVDataPoint[]>> {
     if (!symbol) {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');
     }
     const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
     const prices: OHLCVDataPoint[] = [];
     const now = Date.now();
-    const interval = 24 * 60 * 60 * 1000; // 1 day
+    const interval = 24 * 60 * 60 * 1000;
 
     for (let i = period; i >= 0; i--) {
       const timestamp = now - i * interval;
@@ -870,7 +886,6 @@ export class API3Client extends BaseOracleClient {
       const price = basePrice * (1 + randomChange);
       const volatility = basePrice * 0.02;
 
-      // 确保 high >= low
       const highOffset = volatility * Math.random();
       const lowOffset = volatility * Math.random();
       const high = price + Math.max(highOffset, lowOffset);
@@ -885,13 +900,16 @@ export class API3Client extends BaseOracleClient {
       });
     }
 
-    return prices;
+    return {
+      data: prices,
+      annotation: MOCK_DATA_STATUS.ohlcPrices,
+    };
   }
 
-  async getQualityHistory(): Promise<QualityDataPoint[]> {
+  async getQualityHistory(): Promise<AnnotatedData<QualityDataPoint[]>> {
     const history: QualityDataPoint[] = [];
     const now = Date.now();
-    const interval = 60 * 60 * 1000; // 1 hour
+    const interval = 60 * 60 * 1000;
 
     for (let i = 24; i >= 0; i--) {
       const timestamp = now - i * interval;
@@ -908,7 +926,10 @@ export class API3Client extends BaseOracleClient {
       });
     }
 
-    return history;
+    return {
+      data: history,
+      annotation: MOCK_DATA_STATUS.qualityHistory,
+    };
   }
 
   async getCrossOracleComparison(): Promise<
@@ -965,7 +986,7 @@ export class API3Client extends BaseOracleClient {
     ];
   }
 
-  async getOEVNetworkStats(): Promise<OEVNetworkStats> {
+  async getOEVNetworkStats(): Promise<AnnotatedData<OEVNetworkStats>> {
     const participants: OEVParticipant[] = [
       {
         id: 'p1',
@@ -1036,14 +1057,17 @@ export class API3Client extends BaseOracleClient {
     }
 
     return {
-      totalOevCaptured: 12450000,
-      activeAuctions: 12,
-      totalParticipants: 89,
-      totalDapps: 34,
-      avgAuctionValue: 18500,
-      last24hVolume: 892000,
-      participantList: participants,
-      recentAuctions,
+      data: {
+        totalOevCaptured: 12450000,
+        activeAuctions: 12,
+        totalParticipants: 89,
+        totalDapps: 34,
+        avgAuctionValue: 18500,
+        last24hVolume: 892000,
+        participantList: participants,
+        recentAuctions,
+      },
+      annotation: MOCK_DATA_STATUS.oevNetworkStats,
     };
   }
 

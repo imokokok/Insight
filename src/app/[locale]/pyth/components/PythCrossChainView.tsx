@@ -10,9 +10,11 @@ import {
   Zap,
   TrendingUp,
   TrendingDown,
+  RefreshCw,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
+import { usePythCrossChain } from '@/hooks/oracles/pyth';
 
 import { type PythCrossChainViewProps, type ChainPriceData } from '../types';
 
@@ -26,29 +28,6 @@ const CHAIN_CONFIG: Record<string, { name: string; color: string; icon: string }
   avalanche: { name: 'Avalanche', color: '#E84142', icon: '🔺' },
   bsc: { name: 'BNB Chain', color: '#F0B90B', icon: '⬛' },
 };
-
-function generateMockChainData(): ChainPriceData[] {
-  const basePrice = 0.45;
-  const chains = Object.keys(CHAIN_CONFIG);
-
-  return chains.map((chain) => {
-    const deviation = (Math.random() - 0.5) * 0.8;
-    const latency = Math.floor(Math.random() * 300) + 50;
-    const statusRandom = Math.random();
-    let status: 'online' | 'degraded' | 'offline' = 'online';
-    if (statusRandom > 0.95) status = 'offline';
-    else if (statusRandom > 0.85) status = 'degraded';
-
-    return {
-      chain,
-      price: basePrice * (1 + deviation / 100),
-      deviation,
-      latency,
-      status,
-      lastUpdate: new Date(Date.now() - Math.floor(Math.random() * 60000)),
-    };
-  });
-}
 
 function getDeviationColor(deviation: number): string {
   const absDeviation = Math.abs(deviation);
@@ -84,11 +63,14 @@ function getLatencyColor(latency: number): string {
   return 'bg-red-500';
 }
 
-export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
+export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainViewProps) {
   const t = useTranslations();
   const tPyth = useTranslations('pyth');
 
-  const chainData = useMemo(() => generateMockChainData(), []);
+  const { crossChainData, basePrice, error, isLoading: dataLoading, refetch } = usePythCrossChain();
+
+  const isLoading = propIsLoading || dataLoading;
+  const chainData = crossChainData;
 
   const wormholeStatus = useMemo(() => {
     const onlineCount = chainData.filter((c) => c.status === 'online').length;
@@ -122,6 +104,34 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
     () => [...chainData].sort((a, b) => Math.abs(b.deviation) - Math.abs(a.deviation)),
     [chainData]
   );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <RefreshCw className="w-8 h-8 text-gray-400 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error && chainData.length === 0) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-500 mb-4" />
+          <p className="text-gray-600 mb-4">{tPyth('crossChain.errorLoading')}</p>
+          <button
+            onClick={() => refetch()}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            {tPyth('crossChain.retry')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -187,7 +197,7 @@ export function PythCrossChainView({ isLoading }: PythCrossChainViewProps) {
             {tPyth('crossChain.priceComparison')}
           </h3>
           <span className="text-sm text-gray-500">
-            {tPyth('crossChain.basePrice')}: $0.4500
+            {tPyth('crossChain.basePrice')}: ${basePrice.toFixed(4)}
           </span>
         </div>
 

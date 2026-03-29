@@ -59,6 +59,7 @@ export interface WinklinkTRONViewProps {
 
 export interface WinklinkStakingViewProps {
   staking: NodeStakingData | null | undefined;
+  price: PriceData | null | undefined;
   isLoading: boolean;
 }
 

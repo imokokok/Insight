@@ -5,7 +5,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useRefresh, useExport, useTellorAllData, useDataFreshness } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { TellorClient } from '@/lib/oracles/tellor';
+import { getTellorClient } from '@/lib/oracles/tellorClientSingleton';
 import { OracleProvider } from '@/types/oracle';
 
 import { type TellorTabId } from '../types';
@@ -15,7 +15,7 @@ export function useTellorPage() {
   const [activeTab, setActiveTab] = useState<TellorTabId>('market');
 
   const config = useMemo(() => getOracleConfig(OracleProvider.TELLOR), []);
-  const client = useMemo(() => new TellorClient(), []);
+  const client = useMemo(() => getTellorClient(), []);
 
   const {
     price,

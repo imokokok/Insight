@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
+import { safeDivide } from '../utils/helpers';
 
 interface VRFStats {
   requests24h: number;
@@ -298,7 +299,7 @@ export function ChainlinkVRFView() {
               <span className="text-xs text-gray-500">{t('vrf.avgBalance') || 'Avg Balance'}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
-              {formatCurrency(mockVRFStats.totalFunded / mockVRFStats.activeSubscriptions)}
+              {formatCurrency(safeDivide(mockVRFStats.totalFunded, mockVRFStats.activeSubscriptions))}
             </div>
           </div>
         </div>

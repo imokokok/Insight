@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Database, Coins, TrendingUp, Shield } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
+import { formatCompactCurrency } from '@/lib/utils/format';
 
 import { type ChronicleMakerDAOViewProps } from '../types';
 
@@ -99,16 +100,6 @@ export function ChronicleMakerDAOView({ makerDAO, isLoading }: ChronicleMakerDAO
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const formatCurrency = (value: number) => {
-    if (value >= 1e9) {
-      return `$${(value / 1e9).toFixed(2)}B`;
-    } else if (value >= 1e6) {
-      return `$${(value / 1e6).toFixed(2)}M`;
-    } else {
-      return `$${value.toLocaleString()}`;
-    }
-  };
-
   const getAssetTypeColor = (type: string) => {
     switch (type) {
       case 'stablecoin':
@@ -173,30 +164,30 @@ export function ChronicleMakerDAOView({ makerDAO, isLoading }: ChronicleMakerDAO
       key: 'debtCeiling',
       header: t('chronicle.makerdao.debtCeiling'),
       sortable: true,
-      render: (item: AssetData) => (item.debtCeiling > 0 ? formatCurrency(item.debtCeiling) : '-'),
+      render: (item: AssetData) => (item.debtCeiling > 0 ? formatCompactCurrency(item.debtCeiling) : '-'),
     },
   ];
 
   const keyMetrics = [
     {
       label: t('chronicle.makerdao.tvl'),
-      value: formatCurrency(makerDAO?.totalValueLocked || 4500000000),
+      value: formatCompactCurrency(makerDAO?.totalValueLocked || 4500000000),
       icon: Database,
     },
     {
       label: t('chronicle.makerdao.daiSupply'),
-      value: formatCurrency(makerDAO?.daiSupply || 3200000000),
+      value: formatCompactCurrency(makerDAO?.daiSupply || 3200000000),
       icon: Coins,
     },
     {
       label: t('chronicle.makerdao.systemSurplus'),
-      value: formatCurrency(makerDAO?.systemSurplus || 85000000),
+      value: formatCompactCurrency(makerDAO?.systemSurplus || 85000000),
       icon: TrendingUp,
       highlight: true,
     },
     {
       label: t('chronicle.makerdao.debtCeiling'),
-      value: formatCurrency(makerDAO?.globalDebtCeiling || 5000000000),
+      value: formatCompactCurrency(makerDAO?.globalDebtCeiling || 5000000000),
       icon: Shield,
     },
   ];
@@ -255,18 +246,7 @@ export function ChronicleMakerDAOView({ makerDAO, isLoading }: ChronicleMakerDAO
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('chronicle.makerdao.supportedAssets')}
         </h3>
-        <ChronicleDataTable
-          data={filteredAssets as unknown as Record<string, unknown>[]}
-          columns={
-            columns as unknown as Array<{
-              key: string;
-              header: string;
-              width?: string;
-              sortable?: boolean;
-              render?: (item: Record<string, unknown>) => React.ReactNode;
-            }>
-          }
-        />
+        <ChronicleDataTable data={filteredAssets} columns={columns} />
       </div>
 
       {/* 分隔线 */}

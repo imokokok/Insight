@@ -1,5 +1,6 @@
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
+import { type Publisher, type GenericValidator, type PublisherStatus } from '@/types/oracle/publisher';
 
 export type PythTabId = 'market' | 'network' | 'publishers' | 'validators' | 'price-feeds' | 'risk' | 'cross-chain';
 
@@ -15,23 +16,30 @@ export interface NetworkStats {
   totalStaked?: number;
 }
 
-export interface PublisherData {
-  id: string;
-  name: string;
+export interface PythServiceNetworkStats {
+  totalPublishers: number;
+  activePublishers: number;
+  totalPriceFeeds: number;
+  totalSubmissions24h: number;
+  averageLatency: number;
+  uptimePercentage: number;
+  lastUpdated: number;
+}
+
+export interface PublisherData extends Publisher {
+  publisherKey?: string;
+  priceFeeds?: string[];
+  totalSubmissions?: number;
+  averageLatency?: number;
+  accuracy?: number;
   stake?: number;
-  accuracy: number;
-  status?: string;
   contribution?: number;
 }
 
-export interface ValidatorData {
-  id: string;
-  name: string;
-  stake?: number;
-  uptime?: number;
+export interface ValidatorData extends GenericValidator {
   rewards?: number;
+  stake?: number;
   performance?: number;
-  status: string;
 }
 
 export interface PythPageState {
@@ -147,4 +155,45 @@ export interface ChainPriceData {
 
 export interface PythCrossChainViewProps {
   isLoading: boolean;
+  symbol?: string;
 }
+
+export interface CrossChainPriceData {
+  chain: string;
+  price: number;
+  deviation: number;
+  latency: number;
+  status: 'online' | 'degraded' | 'offline';
+  lastUpdate: Date;
+}
+
+export interface CrossChainResult {
+  data: CrossChainPriceData[];
+  basePrice: number;
+  timestamp: number;
+}
+
+export interface RealtimeState {
+  isConnected: boolean;
+  connectionStatus: 'connecting' | 'connected' | 'disconnected';
+  lastUpdateLatency: number;
+  priceUpdateAnimation: 'up' | 'down' | 'none';
+}
+
+export interface PythPriceRaw {
+  price: string | number;
+  conf?: string | number;
+  expo?: number;
+  publish_time?: number;
+  slot?: number;
+}
+
+export interface PythServicePriceFeed {
+  id: string;
+  symbol: string;
+  description: string;
+  assetType: string;
+  status: string;
+}
+
+export type { PublisherStatus };

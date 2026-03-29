@@ -23,10 +23,183 @@ import {
 import { useTranslations } from '@/i18n';
 
 import { type WinklinkVRFViewProps, type VRFRequest, type VRFUseCase } from '../types';
+import { BASE_TIMESTAMP } from '../constants';
 
 import { WinklinkDataTable } from './WinklinkDataTable';
 
-const BASE_TIMESTAMP = 1700000000000;
+const VRF_USE_CASES: VRFUseCase[] = [
+  {
+    id: '1',
+    name: 'Casino Games',
+    category: 'Gaming',
+    description:
+      'Provably fair random outcomes for dice, slots, roulette, and card games with on-chain verification',
+    usageCount: 5200000,
+    reliability: 99.95,
+    avgLatency: 95,
+  },
+  {
+    id: '2',
+    name: 'Lottery Systems',
+    category: 'Gaming',
+    description:
+      'Transparent and verifiable lottery number generation with cryptographic proof of fairness',
+    usageCount: 1850000,
+    reliability: 99.98,
+    avgLatency: 110,
+  },
+  {
+    id: '3',
+    name: 'NFT Minting',
+    category: 'DeFi',
+    description:
+      'Random NFT attribute and rarity generation ensuring fair distribution of digital assets',
+    usageCount: 980000,
+    reliability: 99.9,
+    avgLatency: 120,
+  },
+  {
+    id: '4',
+    name: 'Tournament Seeding',
+    category: 'Esports',
+    description:
+      'Fair tournament bracket generation and matchmaking with verifiable randomness',
+    usageCount: 320000,
+    reliability: 99.92,
+    avgLatency: 100,
+  },
+  {
+    id: '5',
+    name: 'Governance Selection',
+    category: 'DAO',
+    description:
+      'Random selection of committee members and proposal reviewers for decentralized governance',
+    usageCount: 150000,
+    reliability: 99.97,
+    avgLatency: 130,
+  },
+  {
+    id: '6',
+    name: 'Airdrop Distribution',
+    category: 'DeFi',
+    description:
+      'Fair and transparent selection of airdrop recipients with verifiable random selection',
+    usageCount: 420000,
+    reliability: 99.93,
+    avgLatency: 105,
+  },
+];
+
+const VERIFICATION_STEPS = [
+  {
+    step: 1,
+    title: 'Request Initiation',
+    description: 'Consumer contract calls VRF coordinator with seed and callback parameters',
+    icon: Hash,
+  },
+  {
+    step: 2,
+    title: 'Oracle Processing',
+    description: 'VRF oracle generates randomness using private key and seed',
+    icon: RefreshCw,
+  },
+  {
+    step: 3,
+    title: 'Proof Generation',
+    description: 'Cryptographic proof is created to verify the randomness',
+    icon: Lock,
+  },
+  {
+    step: 4,
+    title: 'On-chain Verification',
+    description: 'Proof is verified on-chain using VRF public key',
+    icon: FileCheck,
+  },
+  {
+    step: 5,
+    title: 'Randomness Delivery',
+    description: 'Verified random value is delivered to consumer contract',
+    icon: CheckCircle2,
+  },
+];
+
+const SECURITY_MECHANISMS = [
+  {
+    title: 'Cryptographic Security',
+    description:
+      'Uses elliptic curve cryptography (ECVRF) to generate verifiable random outputs that cannot be predicted or manipulated.',
+    icon: Lock,
+  },
+  {
+    title: 'On-chain Verification',
+    description:
+      'Every random value comes with a cryptographic proof that can be verified on-chain by anyone.',
+    icon: FileCheck,
+  },
+  {
+    title: 'Decentralized Oracle Network',
+    description:
+      'Multiple independent oracle nodes participate in randomness generation, eliminating single points of failure.',
+    icon: Database,
+  },
+  {
+    title: 'Replay Protection',
+    description:
+      'Each request includes a unique nonce and consumer address to prevent replay attacks.',
+    icon: Shield,
+  },
+];
+
+const DEFAULT_VRF_DATA = {
+  totalRequests: 12500000,
+  dailyRequests: 125000,
+  averageResponseTime: 105,
+  successRate: 99.95,
+  activeConsumers: 85,
+  totalRandomnessGenerated: '256 bits',
+  recentRequests: [
+    {
+      requestId: '0x8a7b3c2d1e0f9a8b7c6d5e4f3a2b1c0d',
+      consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qc',
+      randomValue: '0x7f3a9c2e8b1d4f6a5c3b2e1d0f9a8c7b',
+      status: 'fulfilled',
+      timestamp: BASE_TIMESTAMP - 120000,
+      proof: '0x1a2b3c4d5e6f...',
+    },
+    {
+      requestId: '0x9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e',
+      consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qd',
+      randomValue: '0x3e5f7a9c1b2d4e6f8a0c2b4d6e8f0a2c',
+      status: 'fulfilled',
+      timestamp: BASE_TIMESTAMP - 300000,
+      proof: '0x2b3c4d5e6f7a...',
+    },
+    {
+      requestId: '0x1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f',
+      consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qe',
+      randomValue: '0x9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d',
+      status: 'pending',
+      timestamp: BASE_TIMESTAMP - 60000,
+      proof: null,
+    },
+    {
+      requestId: '0x2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a',
+      consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qf',
+      randomValue: '0x5f7a9c1b2d4e6f8a0c2b4d6e8f0a2c4e',
+      status: 'fulfilled',
+      timestamp: BASE_TIMESTAMP - 600000,
+      proof: '0x3c4d5e6f7a8b...',
+    },
+    {
+      requestId: '0x3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
+      consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qg',
+      randomValue: null,
+      status: 'failed',
+      timestamp: BASE_TIMESTAMP - 900000,
+      proof: null,
+    },
+  ],
+};
 
 export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
   const t = useTranslations();
@@ -44,192 +217,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
     error?: string;
   }>({ status: 'idle' });
 
-  const vrfData = useMemo(
-    () =>
-      vrf || {
-        totalRequests: 12500000,
-        dailyRequests: 125000,
-        averageResponseTime: 105,
-        successRate: 99.95,
-        activeConsumers: 85,
-        totalRandomnessGenerated: '256 bits',
-        recentRequests: [
-          {
-            requestId: '0x8a7b3c2d1e0f9a8b7c6d5e4f3a2b1c0d',
-            consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qc',
-            randomValue: '0x7f3a9c2e8b1d4f6a5c3b2e1d0f9a8c7b',
-            status: 'fulfilled',
-            timestamp: BASE_TIMESTAMP - 120000,
-            proof: '0x1a2b3c4d5e6f...',
-          },
-          {
-            requestId: '0x9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e',
-            consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qd',
-            randomValue: '0x3e5f7a9c1b2d4e6f8a0c2b4d6e8f0a2c',
-            status: 'fulfilled',
-            timestamp: BASE_TIMESTAMP - 300000,
-            proof: '0x2b3c4d5e6f7a...',
-          },
-          {
-            requestId: '0x1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f',
-            consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qe',
-            randomValue: '0x9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d',
-            status: 'pending',
-            timestamp: BASE_TIMESTAMP - 60000,
-            proof: null,
-          },
-          {
-            requestId: '0x2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a',
-            consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qf',
-            randomValue: '0x5f7a9c1b2d4e6f8a0c2b4d6e8f0a2c4e',
-            status: 'fulfilled',
-            timestamp: BASE_TIMESTAMP - 600000,
-            proof: '0x3c4d5e6f7a8b...',
-          },
-          {
-            requestId: '0x3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
-            consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qg',
-            randomValue: null,
-            status: 'failed',
-            timestamp: BASE_TIMESTAMP - 900000,
-            proof: null,
-          },
-        ],
-      },
-    [vrf]
-  );
-
-  const vrfUseCases: VRFUseCase[] = useMemo(
-    () => [
-      {
-        id: '1',
-        name: 'Casino Games',
-        category: 'Gaming',
-        description:
-          'Provably fair random outcomes for dice, slots, roulette, and card games with on-chain verification',
-        usageCount: 5200000,
-        reliability: 99.95,
-        avgLatency: 95,
-      },
-      {
-        id: '2',
-        name: 'Lottery Systems',
-        category: 'Gaming',
-        description:
-          'Transparent and verifiable lottery number generation with cryptographic proof of fairness',
-        usageCount: 1850000,
-        reliability: 99.98,
-        avgLatency: 110,
-      },
-      {
-        id: '3',
-        name: 'NFT Minting',
-        category: 'DeFi',
-        description:
-          'Random NFT attribute and rarity generation ensuring fair distribution of digital assets',
-        usageCount: 980000,
-        reliability: 99.9,
-        avgLatency: 120,
-      },
-      {
-        id: '4',
-        name: 'Tournament Seeding',
-        category: 'Esports',
-        description:
-          'Fair tournament bracket generation and matchmaking with verifiable randomness',
-        usageCount: 320000,
-        reliability: 99.92,
-        avgLatency: 100,
-      },
-      {
-        id: '5',
-        name: 'Governance Selection',
-        category: 'DAO',
-        description:
-          'Random selection of committee members and proposal reviewers for decentralized governance',
-        usageCount: 150000,
-        reliability: 99.97,
-        avgLatency: 130,
-      },
-      {
-        id: '6',
-        name: 'Airdrop Distribution',
-        category: 'DeFi',
-        description:
-          'Fair and transparent selection of airdrop recipients with verifiable random selection',
-        usageCount: 420000,
-        reliability: 99.93,
-        avgLatency: 105,
-      },
-    ],
-    []
-  );
-
-  const verificationSteps = useMemo(
-    () => [
-      {
-        step: 1,
-        title: 'Request Initiation',
-        description: 'Consumer contract calls VRF coordinator with seed and callback parameters',
-        icon: Hash,
-      },
-      {
-        step: 2,
-        title: 'Oracle Processing',
-        description: 'VRF oracle generates randomness using private key and seed',
-        icon: RefreshCw,
-      },
-      {
-        step: 3,
-        title: 'Proof Generation',
-        description: 'Cryptographic proof is created to verify the randomness',
-        icon: Lock,
-      },
-      {
-        step: 4,
-        title: 'On-chain Verification',
-        description: 'Proof is verified on-chain using VRF public key',
-        icon: FileCheck,
-      },
-      {
-        step: 5,
-        title: 'Randomness Delivery',
-        description: 'Verified random value is delivered to consumer contract',
-        icon: CheckCircle2,
-      },
-    ],
-    []
-  );
-
-  const securityMechanisms = useMemo(
-    () => [
-      {
-        title: 'Cryptographic Security',
-        description:
-          'Uses elliptic curve cryptography (ECVRF) to generate verifiable random outputs that cannot be predicted or manipulated.',
-        icon: Lock,
-      },
-      {
-        title: 'On-chain Verification',
-        description:
-          'Every random value comes with a cryptographic proof that can be verified on-chain by anyone.',
-        icon: FileCheck,
-      },
-      {
-        title: 'Decentralized Oracle Network',
-        description:
-          'Multiple independent oracle nodes participate in randomness generation, eliminating single points of failure.',
-        icon: Database,
-      },
-      {
-        title: 'Replay Protection',
-        description:
-          'Each request includes a unique nonce and consumer address to prevent replay attacks.',
-        icon: Shield,
-      },
-    ],
-    []
-  );
+  const vrfData = useMemo(() => vrf || DEFAULT_VRF_DATA, [vrf]);
 
   const handleVerify = async () => {
     if (!requestIdInput.trim()) return;
@@ -398,7 +386,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
         </h3>
         <div className="relative">
           <div className="flex items-start justify-between overflow-x-auto pb-4">
-            {verificationSteps.map((step, index) => {
+            {VERIFICATION_STEPS.map((step, index) => {
               const Icon = step.icon;
               return (
                 <div key={step.step} className="flex items-center flex-1 min-w-[180px]">
@@ -414,7 +402,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
                       {step.description}
                     </p>
                   </div>
-                  {index < verificationSteps.length - 1 && (
+                  {index < VERIFICATION_STEPS.length - 1 && (
                     <ArrowRight className="w-5 h-5 text-gray-300 mx-2 flex-shrink-0 mt-5" />
                   )}
                 </div>
@@ -426,9 +414,15 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
 
       {/* Random Number Verification Tool */}
       <div className="border-t border-gray-200 pt-8">
-        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('winklink.vrf.verificationTool') || 'Random Number Verification Tool'}
-        </h3>
+        <div className="flex items-center gap-3 mb-4">
+          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+            {t('winklink.vrf.verificationTool') || 'Random Number Verification Tool'}
+          </h3>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+            <AlertCircle className="w-3 h-3" />
+            {t('winklink.vrf.demoMode')}
+          </span>
+        </div>
         <div className="bg-gray-50 rounded-lg p-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -445,6 +439,10 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
                 />
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               </div>
+              <p className="mt-2 text-xs text-amber-600 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {t('winklink.vrf.demoNotice')}
+              </p>
             </div>
             <div className="flex items-end">
               <button
@@ -455,7 +453,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
                 {verificationResult.status === 'loading' ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    Verifying...
+                    {t('winklink.vrf.verifying')}
                   </>
                 ) : (
                   <>
@@ -519,6 +517,17 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
                       <span className="text-emerald-600 font-medium">Yes ✓</span>
                     </div>
                   </div>
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <a
+                      href="https://tronscan.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm text-pink-600 hover:text-pink-700 font-medium"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      {t('winklink.vrf.verifyOnTronScan')}
+                    </a>
+                  </div>
                 </div>
               )}
 
@@ -531,6 +540,11 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
                     </span>
                   </div>
                   <p className="text-sm text-red-600 mt-2">{verificationResult.error}</p>
+                  <div className="mt-3 pt-3 border-t border-red-100">
+                    <p className="text-xs text-gray-500">
+                      <span className="font-medium text-gray-700">{t('winklink.vrf.tip')}:</span> {t('winklink.vrf.invalidRequestIdHint')}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -544,7 +558,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
           {t('winklink.vrf.securityMechanism') || 'VRF Security Proof Mechanism'}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {securityMechanisms.map((mechanism, index) => {
+          {SECURITY_MECHANISMS.map((mechanism, index) => {
             const Icon = mechanism.icon;
             return (
               <div key={index} className="flex gap-4 p-4 bg-gray-50 rounded-lg">
@@ -591,7 +605,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
           {t('winklink.vrf.useCases') || 'VRF Use Cases'}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {vrfUseCases.map((useCase) => (
+          {VRF_USE_CASES.map((useCase) => (
             <div
               key={useCase.id}
               className="border border-gray-200 rounded-lg p-4 hover:border-pink-200 hover:shadow-sm transition-all"

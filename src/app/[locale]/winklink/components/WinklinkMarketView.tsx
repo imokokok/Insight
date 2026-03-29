@@ -23,6 +23,7 @@ import { PriceChart } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
 
 import { type WinklinkMarketViewProps } from '../types';
+import { RELIABILITY_THRESHOLDS } from '../constants';
 
 interface DataSourceDetail {
   name: string;
@@ -208,9 +209,9 @@ export function WinklinkMarketView({
   };
 
   const getReliabilityColor = (reliability: number) => {
-    if (reliability >= 99.5) return 'text-emerald-600';
-    if (reliability >= 98) return 'text-blue-600';
-    if (reliability >= 95) return 'text-amber-600';
+    if (reliability >= RELIABILITY_THRESHOLDS.excellent) return 'text-emerald-600';
+    if (reliability >= RELIABILITY_THRESHOLDS.good) return 'text-blue-600';
+    if (reliability >= RELIABILITY_THRESHOLDS.warning) return 'text-amber-600';
     return 'text-red-600';
   };
 
@@ -445,9 +446,9 @@ export function WinklinkMarketView({
                       <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            source.reliability >= 99.5
+                            source.reliability >= RELIABILITY_THRESHOLDS.excellent
                               ? 'bg-emerald-500'
-                              : source.reliability >= 98
+                              : source.reliability >= RELIABILITY_THRESHOLDS.good
                                 ? 'bg-blue-500'
                                 : 'bg-amber-500'
                           }`}

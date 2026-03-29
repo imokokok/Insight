@@ -20,6 +20,7 @@ import { useRedStoneEcosystem } from '@/hooks/oracles/redstone';
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
+import { useRedStoneClient } from '../context/RedStoneClientContext';
 import { type RedStoneEcosystemViewProps, type EcosystemIntegration } from '../types';
 
 const tvlTrendData = [
@@ -202,7 +203,8 @@ function TimeRangeButton({
 
 export function RedStoneEcosystemView({ isLoading }: RedStoneEcosystemViewProps) {
   const t = useTranslations();
-  const { ecosystem, isLoading: ecosystemLoading } = useRedStoneEcosystem(!isLoading);
+  const client = useRedStoneClient();
+  const { ecosystem, isLoading: ecosystemLoading } = useRedStoneEcosystem(client, !isLoading);
 
   const [selectedChains, setSelectedChains] = useState<string[]>([
     'ethereum',

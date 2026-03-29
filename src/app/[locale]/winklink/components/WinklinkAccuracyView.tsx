@@ -13,6 +13,8 @@ import {
 
 import { useTranslations } from '@/i18n';
 
+import { DEVIATION_THRESHOLDS } from '../constants';
+
 export interface AccuracyMetric {
   score: number;
   label: string;
@@ -62,15 +64,15 @@ export interface WinklinkAccuracyViewProps {
 
 const getDeviationColor = (deviation: number): string => {
   const absDeviation = Math.abs(deviation);
-  if (absDeviation < 0.1) return 'text-emerald-600';
-  if (absDeviation < 0.5) return 'text-amber-600';
+  if (absDeviation < DEVIATION_THRESHOLDS.excellent) return 'text-emerald-600';
+  if (absDeviation < DEVIATION_THRESHOLDS.warning) return 'text-amber-600';
   return 'text-red-600';
 };
 
 const getDeviationBgColor = (deviation: number): string => {
   const absDeviation = Math.abs(deviation);
-  if (absDeviation < 0.1) return 'bg-emerald-50';
-  if (absDeviation < 0.5) return 'bg-amber-50';
+  if (absDeviation < DEVIATION_THRESHOLDS.excellent) return 'bg-emerald-50';
+  if (absDeviation < DEVIATION_THRESHOLDS.warning) return 'bg-amber-50';
   return 'bg-red-50';
 };
 
@@ -85,14 +87,14 @@ const getStatusIcon = (status: 'accurate' | 'warning' | 'error') => {
   }
 };
 
-const getStatusLabel = (status: 'accurate' | 'warning' | 'error'): string => {
+const getStatusLabel = (status: 'accurate' | 'warning' | 'error', t: (key: string) => string): string => {
   switch (status) {
     case 'accurate':
-      return 'Accurate';
+      return t('winklink.accuracy.statusAccurate');
     case 'warning':
-      return 'Warning';
+      return t('winklink.accuracy.statusWarning');
     case 'error':
-      return 'Error';
+      return t('winklink.accuracy.statusError');
   }
 };
 
@@ -129,6 +131,120 @@ const DEFAULT_DEVIATION_HISTORY: PriceDeviationRecord[] = [
   { date: '2024-01-30', deviation: 0.09 },
 ];
 
+const DEFAULT_COMPARISONS: OracleComparison[] = [
+  {
+    name: 'WINkLink',
+    winPrice: 0.0000892,
+    deviation: 0.05,
+    lastUpdate: '2 sec ago',
+    status: 'accurate',
+  },
+  {
+    name: 'Chainlink',
+    winPrice: 0.0000895,
+    deviation: 0.12,
+    lastUpdate: '5 sec ago',
+    status: 'accurate',
+  },
+  {
+    name: 'Band Protocol',
+    winPrice: 0.000089,
+    deviation: 0.08,
+    lastUpdate: '8 sec ago',
+    status: 'accurate',
+  },
+  {
+    name: 'Pyth',
+    winPrice: 0.0000898,
+    deviation: 0.18,
+    lastUpdate: '3 sec ago',
+    status: 'warning',
+  },
+];
+
+const DEFAULT_RECORDS: HistoricalRecord[] = [
+  {
+    date: '2024-01-15 14:32:00',
+    symbol: 'WIN/USDT',
+    winklinkPrice: 0.0000892,
+    referencePrice: 0.0000891,
+    deviation: 0.11,
+    status: 'accurate',
+  },
+  {
+    date: '2024-01-15 14:30:00',
+    symbol: 'TRX/USDT',
+    winklinkPrice: 0.1256,
+    referencePrice: 0.1255,
+    deviation: 0.08,
+    status: 'accurate',
+  },
+  {
+    date: '2024-01-15 14:28:00',
+    symbol: 'BTT/USDT',
+    winklinkPrice: 0.0000012,
+    referencePrice: 0.00000118,
+    deviation: 1.69,
+    status: 'warning',
+  },
+  {
+    date: '2024-01-15 14:25:00',
+    symbol: 'JST/USDT',
+    winklinkPrice: 0.0312,
+    referencePrice: 0.0311,
+    deviation: 0.32,
+    status: 'accurate',
+  },
+  {
+    date: '2024-01-15 14:22:00',
+    symbol: 'SUN/USDT',
+    winklinkPrice: 0.0156,
+    referencePrice: 0.0155,
+    deviation: 0.65,
+    status: 'warning',
+  },
+  {
+    date: '2024-01-15 14:20:00',
+    symbol: 'WIN/USDT',
+    winklinkPrice: 0.000089,
+    referencePrice: 0.0000892,
+    deviation: 0.22,
+    status: 'accurate',
+  },
+  {
+    date: '2024-01-15 14:18:00',
+    symbol: 'TRX/USDT',
+    winklinkPrice: 0.1254,
+    referencePrice: 0.1256,
+    deviation: 0.16,
+    status: 'accurate',
+  },
+  {
+    date: '2024-01-15 14:15:00',
+    symbol: 'BTT/USDT',
+    winklinkPrice: 0.00000119,
+    referencePrice: 0.0000012,
+    deviation: 0.84,
+    status: 'warning',
+  },
+  {
+    date: '2024-01-15 14:12:00',
+    symbol: 'JST/USDT',
+    winklinkPrice: 0.0313,
+    referencePrice: 0.0312,
+    deviation: 0.32,
+    status: 'accurate',
+  },
+  {
+    date: '2024-01-15 14:10:00',
+    symbol: 'SUN/USDT',
+    winklinkPrice: 0.0157,
+    referencePrice: 0.0156,
+    deviation: 0.64,
+    status: 'warning',
+  },
+];
+
 export function WinklinkAccuracyView({
   accuracyMetrics,
   priceDeviationHistory,
@@ -148,36 +264,7 @@ export function WinklinkAccuracyView({
 
   const deviationHistory = priceDeviationHistory || DEFAULT_DEVIATION_HISTORY;
 
-  const comparisons = oracleComparisons || [
-    {
-      name: 'WINkLink',
-      winPrice: 0.0000892,
-      deviation: 0.05,
-      lastUpdate: '2 sec ago',
-      status: 'accurate' as const,
-    },
-    {
-      name: 'Chainlink',
-      winPrice: 0.0000895,
-      deviation: 0.12,
-      lastUpdate: '5 sec ago',
-      status: 'accurate' as const,
-    },
-    {
-      name: 'Band Protocol',
-      winPrice: 0.000089,
-      deviation: 0.08,
-      lastUpdate: '8 sec ago',
-      status: 'accurate' as const,
-    },
-    {
-      name: 'Pyth',
-      winPrice: 0.0000898,
-      deviation: 0.18,
-      lastUpdate: '3 sec ago',
-      status: 'warning' as const,
-    },
-  ];
+  const comparisons = oracleComparisons || DEFAULT_COMPARISONS;
 
   const accuracy = dataAccuracy || {
     priceAccuracy: 97.2,
@@ -186,88 +273,7 @@ export function WinklinkAccuracyView({
     historicalReliability: 96.1,
   };
 
-  const records = historicalRecords || [
-    {
-      date: '2024-01-15 14:32:00',
-      symbol: 'WIN/USDT',
-      winklinkPrice: 0.0000892,
-      referencePrice: 0.0000891,
-      deviation: 0.11,
-      status: 'accurate' as const,
-    },
-    {
-      date: '2024-01-15 14:30:00',
-      symbol: 'TRX/USDT',
-      winklinkPrice: 0.1256,
-      referencePrice: 0.1255,
-      deviation: 0.08,
-      status: 'accurate' as const,
-    },
-    {
-      date: '2024-01-15 14:28:00',
-      symbol: 'BTT/USDT',
-      winklinkPrice: 0.0000012,
-      referencePrice: 0.00000118,
-      deviation: 1.69,
-      status: 'warning' as const,
-    },
-    {
-      date: '2024-01-15 14:25:00',
-      symbol: 'JST/USDT',
-      winklinkPrice: 0.0312,
-      referencePrice: 0.0311,
-      deviation: 0.32,
-      status: 'accurate' as const,
-    },
-    {
-      date: '2024-01-15 14:22:00',
-      symbol: 'SUN/USDT',
-      winklinkPrice: 0.0156,
-      referencePrice: 0.0155,
-      deviation: 0.65,
-      status: 'warning' as const,
-    },
-    {
-      date: '2024-01-15 14:20:00',
-      symbol: 'WIN/USDT',
-      winklinkPrice: 0.000089,
-      referencePrice: 0.0000892,
-      deviation: 0.22,
-      status: 'accurate' as const,
-    },
-    {
-      date: '2024-01-15 14:18:00',
-      symbol: 'TRX/USDT',
-      winklinkPrice: 0.1254,
-      referencePrice: 0.1256,
-      deviation: 0.16,
-      status: 'accurate' as const,
-    },
-    {
-      date: '2024-01-15 14:15:00',
-      symbol: 'BTT/USDT',
-      winklinkPrice: 0.00000119,
-      referencePrice: 0.0000012,
-      deviation: 0.84,
-      status: 'warning' as const,
-    },
-    {
-      date: '2024-01-15 14:12:00',
-      symbol: 'JST/USDT',
-      winklinkPrice: 0.0313,
-      referencePrice: 0.0312,
-      deviation: 0.32,
-      status: 'accurate' as const,
-    },
-    {
-      date: '2024-01-15 14:10:00',
-      symbol: 'SUN/USDT',
-      winklinkPrice: 0.0157,
-      referencePrice: 0.0156,
-      deviation: 0.64,
-      status: 'warning' as const,
-    },
-  ];
+  const records = historicalRecords || DEFAULT_RECORDS;
 
   const statsItems = [
     {
@@ -538,7 +544,7 @@ export function WinklinkAccuracyView({
                     <div className="flex items-center justify-center gap-1.5">
                       {getStatusIcon(oracle.status)}
                       <span className={`text-sm ${getDeviationColor(oracle.deviation)}`}>
-                        {getStatusLabel(oracle.status)}
+                        {getStatusLabel(oracle.status, t)}
                       </span>
                     </div>
                   </td>
@@ -658,7 +664,7 @@ export function WinklinkAccuracyView({
                     <div className="flex items-center justify-center gap-1.5">
                       {getStatusIcon(record.status)}
                       <span className={`text-sm ${getDeviationColor(record.deviation)}`}>
-                        {getStatusLabel(record.status)}
+                        {getStatusLabel(record.status, t)}
                       </span>
                     </div>
                   </td>

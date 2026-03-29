@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import {
   TrendingUp,
   TrendingDown,
   Activity,
-  Zap,
   Server,
   Clock,
   Shield,
@@ -13,7 +13,6 @@ import {
   BarChart3,
   Brain,
   MessageCircle,
-  AlertTriangle,
   ChevronDown,
   ChevronUp,
   Eye,
@@ -22,9 +21,11 @@ import {
 
 import { PriceChart } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
+import { SeededRandom } from '@/lib/oracles/uma/mockDataConfig';
 import { cn } from '@/lib/utils';
 
 import { type UmaMarketViewProps } from '../types';
+
 import { OptimisticOracleFlow } from './OptimisticOracleFlow';
 
 interface OrderBookEntry {
@@ -43,9 +44,13 @@ interface LargeTransaction {
 }
 
 function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
+  const t = useTranslations();
   const [viewMode, setViewMode] = useState<'both' | 'bids' | 'asks'>('both');
 
-  const generateOrderBook = (basePrice: number): { bids: OrderBookEntry[]; asks: OrderBookEntry[] } => {
+  const generateOrderBook = (
+    basePrice: number
+  ): { bids: OrderBookEntry[]; asks: OrderBookEntry[] } => {
+    const rng = new SeededRandom(Math.floor(basePrice * 1000));
     const bids: OrderBookEntry[] = [];
     const asks: OrderBookEntry[] = [];
     let bidTotal = 0;
@@ -53,12 +58,12 @@ function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
 
     for (let i = 0; i < 8; i++) {
       const bidPrice = basePrice * (1 - (i + 1) * 0.002);
-      const bidAmount = Math.random() * 5000 + 1000;
+      const bidAmount = rng.range(1000, 6000);
       bidTotal += bidAmount;
       bids.push({ price: bidPrice, amount: bidAmount, total: bidTotal });
 
       const askPrice = basePrice * (1 + (i + 1) * 0.002);
-      const askAmount = Math.random() * 5000 + 1000;
+      const askAmount = rng.range(1000, 6000);
       askTotal += askAmount;
       asks.push({ price: askPrice, amount: askAmount, total: askTotal });
     }
@@ -72,7 +77,7 @@ function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4">
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-sm font-medium text-gray-900">订单簿</h4>
+        <h4 className="text-sm font-medium text-gray-900">{t('uma.market.orderBook')}</h4>
         <div className="flex gap-1">
           {(['both', 'bids', 'asks'] as const).map((mode) => (
             <button
@@ -85,7 +90,7 @@ function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               )}
             >
-              {mode === 'both' ? '全部' : mode === 'bids' ? '买单' : '卖单'}
+              {mode === 'both' ? t('uma.market.all') : mode === 'bids' ? t('uma.market.bids') : t('uma.market.asks')}
             </button>
           ))}
         </div>
@@ -95,27 +100,30 @@ function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
         {(viewMode === 'both' || viewMode === 'asks') && (
           <div className="space-y-0.5">
             <div className="grid grid-cols-3 text-xs text-gray-500 mb-1">
-              <span>价格</span>
-              <span className="text-center">数量</span>
-              <span className="text-right">累计</span>
+              <span>{t('uma.market.price')}</span>
+              <span className="text-center">{t('uma.market.amount')}</span>
+              <span className="text-right">{t('uma.market.total')}</span>
             </div>
-            {asks.slice().reverse().map((ask, i) => (
-              <div key={i} className="relative">
-                <div
-                  className="absolute inset-0 bg-red-100"
-                  style={{ width: `${(ask.total / maxTotal) * 100}%`, right: 0, left: 'auto' }}
-                />
-                <div className="relative grid grid-cols-3 text-xs py-1 px-1">
-                  <span className="text-red-600 font-mono">{ask.price.toFixed(2)}</span>
-                  <span className="text-center text-gray-700 font-mono">
-                    {ask.amount.toFixed(0)}
-                  </span>
-                  <span className="text-right text-gray-500 font-mono">
-                    {ask.total.toFixed(0)}
-                  </span>
+            {asks
+              .slice()
+              .reverse()
+              .map((ask, i) => (
+                <div key={i} className="relative">
+                  <div
+                    className="absolute inset-0 bg-red-100"
+                    style={{ width: `${(ask.total / maxTotal) * 100}%`, right: 0, left: 'auto' }}
+                  />
+                  <div className="relative grid grid-cols-3 text-xs py-1 px-1">
+                    <span className="text-red-600 font-mono">{ask.price.toFixed(2)}</span>
+                    <span className="text-center text-gray-700 font-mono">
+                      {ask.amount.toFixed(0)}
+                    </span>
+                    <span className="text-right text-gray-500 font-mono">
+                      {ask.total.toFixed(0)}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         )}
 
@@ -136,9 +144,7 @@ function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
                   <span className="text-center text-gray-700 font-mono">
                     {bid.amount.toFixed(0)}
                   </span>
-                  <span className="text-right text-gray-500 font-mono">
-                    {bid.total.toFixed(0)}
-                  </span>
+                  <span className="text-right text-gray-500 font-mono">{bid.total.toFixed(0)}</span>
                 </div>
               </div>
             ))}
@@ -150,11 +156,13 @@ function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
 }
 
 function LiquidityDistribution({ currentPrice }: { currentPrice: number }) {
+  const t = useTranslations();
   const liquidityData = useMemo(() => {
+    const rng = new SeededRandom(Math.floor(currentPrice * 1000) + 500);
     return Array.from({ length: 20 }, (_, i) => {
       const priceOffset = (i - 10) * 0.5;
       const price = currentPrice + priceOffset;
-      const liquidity = Math.random() * 1000000 + 100000;
+      const liquidity = rng.range(100000, 1100000);
       return { price, liquidity };
     });
   }, [currentPrice]);
@@ -165,7 +173,7 @@ function LiquidityDistribution({ currentPrice }: { currentPrice: number }) {
     <div className="bg-white rounded-xl border border-gray-200 p-4">
       <div className="flex items-center gap-2 mb-4">
         <Layers className="w-4 h-4 text-gray-600" />
-        <h4 className="text-sm font-medium text-gray-900">流动性分布</h4>
+        <h4 className="text-sm font-medium text-gray-900">{t('uma.market.liquidityDistribution')}</h4>
       </div>
 
       <div className="space-y-1">
@@ -178,7 +186,11 @@ function LiquidityDistribution({ currentPrice }: { currentPrice: number }) {
                 <div
                   className={cn(
                     'h-full rounded transition-all',
-                    isCurrentPrice ? 'bg-blue-500' : data.price > currentPrice ? 'bg-red-400' : 'bg-emerald-400'
+                    isCurrentPrice
+                      ? 'bg-blue-500'
+                      : data.price > currentPrice
+                        ? 'bg-red-400'
+                        : 'bg-emerald-400'
                   )}
                   style={{ width: `${(data.liquidity / maxLiquidity) * 100}%` }}
                 />
@@ -193,15 +205,15 @@ function LiquidityDistribution({ currentPrice }: { currentPrice: number }) {
 
       <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-3 gap-4 text-center">
         <div>
-          <p className="text-xs text-gray-500">买盘流动性</p>
+          <p className="text-xs text-gray-500">{t('uma.market.buySideLiquidity')}</p>
           <p className="text-sm font-semibold text-emerald-600">$2.8M</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">卖盘流动性</p>
+          <p className="text-xs text-gray-500">{t('uma.market.sellSideLiquidity')}</p>
           <p className="text-sm font-semibold text-red-600">$3.1M</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">买卖比</p>
+          <p className="text-xs text-gray-500">{t('uma.market.buySellRatio')}</p>
           <p className="text-sm font-semibold text-gray-900">0.90</p>
         </div>
       </div>
@@ -210,6 +222,7 @@ function LiquidityDistribution({ currentPrice }: { currentPrice: number }) {
 }
 
 function LargeTransactionMonitor() {
+  const t = useTranslations();
   const transactions: LargeTransaction[] = useMemo(
     () => [
       {
@@ -218,7 +231,7 @@ function LargeTransactionMonitor() {
         price: 3.45,
         amount: 25000,
         value: 86250,
-        time: '2分钟前',
+        time: `2${t('uma.market.minutesAgo')}`,
       },
       {
         id: '2',
@@ -226,7 +239,7 @@ function LargeTransactionMonitor() {
         price: 3.44,
         amount: 18000,
         value: 61920,
-        time: '5分钟前',
+        time: `5${t('uma.market.minutesAgo')}`,
       },
       {
         id: '3',
@@ -234,7 +247,7 @@ function LargeTransactionMonitor() {
         price: 3.46,
         amount: 32000,
         value: 110720,
-        time: '8分钟前',
+        time: `8${t('uma.market.minutesAgo')}`,
       },
       {
         id: '4',
@@ -242,7 +255,7 @@ function LargeTransactionMonitor() {
         price: 3.43,
         amount: 15000,
         value: 51450,
-        time: '12分钟前',
+        time: `12${t('uma.market.minutesAgo')}`,
       },
       {
         id: '5',
@@ -250,10 +263,10 @@ function LargeTransactionMonitor() {
         price: 3.45,
         amount: 28000,
         value: 96600,
-        time: '15分钟前',
+        time: `15${t('uma.market.minutesAgo')}`,
       },
     ],
-    []
+    [t]
   );
 
   return (
@@ -261,7 +274,7 @@ function LargeTransactionMonitor() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Eye className="w-4 h-4 text-gray-600" />
-          <h4 className="text-sm font-medium text-gray-900">大额交易监控</h4>
+          <h4 className="text-sm font-medium text-gray-900">{t('uma.market.largeTransactionMonitor')}</h4>
         </div>
         <span className="text-xs text-gray-500">{'>'}$50K</span>
       </div>
@@ -287,9 +300,11 @@ function LargeTransactionMonitor() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  {tx.type === 'buy' ? '买入' : '卖出'} {tx.amount.toLocaleString()} UMA
+                  {tx.type === 'buy' ? t('uma.market.buy') : t('uma.market.sell')} {tx.amount.toLocaleString()} UMA
                 </p>
-                <p className="text-xs text-gray-500">${tx.price.toFixed(2)} · {tx.time}</p>
+                <p className="text-xs text-gray-500">
+                  ${tx.price.toFixed(2)} · {tx.time}
+                </p>
               </div>
             </div>
             <div className="text-right">
@@ -303,6 +318,8 @@ function LargeTransactionMonitor() {
 }
 
 function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
+  const t = useTranslations();
+
   const rsiValue = 58;
   const macdValue = { macd: 0.045, signal: 0.032, histogram: 0.013 };
   const bollingerBands = {
@@ -507,7 +524,9 @@ function MarketSentimentAnalysis() {
                 <span className="text-xs font-semibold text-red-700">{longShortRatio.short}%</span>
               </div>
               <div className="flex-1 h-8 bg-emerald-100 rounded-r-lg overflow-hidden flex items-center pl-2">
-                <span className="text-xs font-semibold text-emerald-700">{longShortRatio.long}%</span>
+                <span className="text-xs font-semibold text-emerald-700">
+                  {longShortRatio.long}%
+                </span>
               </div>
             </div>
             <div className="flex justify-between mt-1 text-xs text-gray-500">
@@ -519,7 +538,9 @@ function MarketSentimentAnalysis() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-600">恐惧贪婪指数</span>
-              <span className={cn('text-xs px-2 py-0.5 rounded', sentimentInfo.bg, sentimentInfo.color)}>
+              <span
+                className={cn('text-xs px-2 py-0.5 rounded', sentimentInfo.bg, sentimentInfo.color)}
+              >
                 {sentimentInfo.label}
               </span>
             </div>
@@ -585,14 +606,15 @@ function MarketSentimentAnalysis() {
 
 function MarketDepthChart({ currentPrice }: { currentPrice: number }) {
   const depthData = useMemo(() => {
+    const rng = new SeededRandom(Math.floor(currentPrice * 1000) + 600);
     const bids: { price: number; depth: number }[] = [];
     const asks: { price: number; depth: number }[] = [];
 
     for (let i = 0; i < 15; i++) {
       const bidPrice = currentPrice * (1 - i * 0.01);
       const askPrice = currentPrice * (1 + i * 0.01);
-      const bidDepth = Math.random() * 500000 + 100000;
-      const askDepth = Math.random() * 500000 + 100000;
+      const bidDepth = rng.range(100000, 600000);
+      const askDepth = rng.range(100000, 600000);
 
       bids.push({ price: bidPrice, depth: bidDepth });
       asks.push({ price: askPrice, depth: askDepth });
@@ -672,7 +694,15 @@ function MarketDepthChart({ currentPrice }: { currentPrice: number }) {
             fill="url(#askGradient)"
           />
 
-          <line x1="200" y1="0" x2="200" y2="160" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4" />
+          <line
+            x1="200"
+            y1="0"
+            x2="200"
+            y2="160"
+            stroke="#3b82f6"
+            strokeWidth="2"
+            strokeDasharray="4"
+          />
         </svg>
 
         <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded">

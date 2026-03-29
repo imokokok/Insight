@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 
 import { TrendingUp, Layers, Globe, Zap } from 'lucide-react';
 import {
@@ -18,6 +18,7 @@ import {
 
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
+import { safeDivide, safeGetLastElement, safeGetFirstElement } from '../utils/helpers';
 
 // TVL Trend Data (12 months)
 const tvlTrendData = [
@@ -163,7 +164,7 @@ const chainColors: Record<string, string> = {
   base: '#0052ff',
 };
 
-function TimeRangeButton({
+const TimeRangeButton = memo(function TimeRangeButton({
   active,
   onClick,
   children,
@@ -183,7 +184,7 @@ function TimeRangeButton({
       {children}
     </button>
   );
-}
+});
 
 export function ChainlinkEcosystemView() {
   const t = useTranslations('chainlink');
@@ -194,6 +195,24 @@ export function ChainlinkEcosystemView() {
   ]);
   const [timeRange, setTimeRange] = useState<'1M' | '3M' | '6M' | '1Y'>('1Y');
 
+  const handleTimeRangeChange = useCallback((range: '1M' | '3M' | '6M' | '1Y') => {
+    setTimeRange(range);
+  }, []);
+
+  const timeRangeButtons = useMemo(
+    () =>
+      (['1M', '3M', '6M', '1Y'] as const).map((range) => (
+        <TimeRangeButton
+          key={range}
+          active={timeRange === range}
+          onClick={() => handleTimeRangeChange(range)}
+        >
+          {range}
+        </TimeRangeButton>
+      )),
+    [timeRange, handleTimeRangeChange]
+  );
+
   // Filter TVL data based on time range
   const filteredTvlData = useMemo(() => {
     const months = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12 };
@@ -202,9 +221,16 @@ export function ChainlinkEcosystemView() {
 
   // Calculate TVL stats
   const tvlStats = useMemo(() => {
-    const latest = filteredTvlData[filteredTvlData.length - 1];
-    const previous = filteredTvlData[0];
-    const change = ((latest.total - previous.total) / previous.total) * 100;
+    const latest = safeGetLastElement(filteredTvlData);
+    const previous = safeGetFirstElement(filteredTvlData);
+    if (!latest || !previous) {
+      return {
+        current: 0,
+        change: 0,
+        breakdown: [],
+      };
+    }
+    const change = safeDivide(latest.total - previous.total, previous.total) * 100;
     return {
       current: latest.total,
       change,
@@ -233,15 +259,7 @@ export function ChainlinkEcosystemView() {
             </p>
           </div>
           <div className="flex items-center border-b border-gray-200">
-            {(['1M', '3M', '6M', '1Y'] as const).map((range) => (
-              <TimeRangeButton
-                key={range}
-                active={timeRange === range}
-                onClick={() => setTimeRange(range)}
-              >
-                {range}
-              </TimeRangeButton>
-            ))}
+            {timeRangeButtons}
           </div>
         </div>
 

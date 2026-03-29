@@ -593,18 +593,7 @@ export function ChronicleScuttlebuttDeepView({
         </div>
 
         {/* 验证者投票表格 */}
-        <ChronicleDataTable
-          data={mockValidatorVotes as unknown as Record<string, unknown>[]}
-          columns={
-            voteColumns as unknown as Array<{
-              key: string;
-              header: string;
-              width?: string;
-              sortable?: boolean;
-              render?: (item: Record<string, unknown>) => React.ReactNode;
-            }>
-          }
-        />
+        <ChronicleDataTable data={mockValidatorVotes} columns={voteColumns} />
       </div>
 
       <div className="border-t border-gray-200" />
@@ -673,18 +662,7 @@ export function ChronicleScuttlebuttDeepView({
         </div>
 
         {/* 验证者身份认证状态表格 */}
-        <ChronicleDataTable
-          data={mockIdentityStatuses as unknown as Record<string, unknown>[]}
-          columns={
-            identityColumns as unknown as Array<{
-              key: string;
-              header: string;
-              width?: string;
-              sortable?: boolean;
-              render?: (item: Record<string, unknown>) => React.ReactNode;
-            }>
-          }
-        />
+        <ChronicleDataTable data={mockIdentityStatuses} columns={identityColumns} />
       </div>
 
       <div className="border-t border-gray-200" />
@@ -779,18 +757,7 @@ export function ChronicleScuttlebuttDeepView({
         <h4 className="text-sm font-medium text-gray-700 mb-3">
           {t('chronicle.scuttlebutt.slashingRecords') ?? 'Slashing Records'}
         </h4>
-        <ChronicleDataTable
-          data={mockSlashingRecords as unknown as Record<string, unknown>[]}
-          columns={
-            slashingColumns as unknown as Array<{
-              key: string;
-              header: string;
-              width?: string;
-              sortable?: boolean;
-              render?: (item: Record<string, unknown>) => React.ReactNode;
-            }>
-          }
-        />
+        <ChronicleDataTable data={mockSlashingRecords} columns={slashingColumns} />
       </div>
 
       <div className="border-t border-gray-200" />

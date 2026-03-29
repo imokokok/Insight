@@ -61,3 +61,16 @@ export function formatCompactNumberWithDecimals(value: number, decimals: number 
   if (absValue >= 1e3) return `${sign}${(absValue / 1e3).toFixed(decimals)}K`;
   return value.toString();
 }
+
+export function formatCompactCurrency(value: number, decimals: number = 2): string {
+  if (!isFiniteNumber(value)) return '—';
+  if (value === 0) return '$0';
+
+  const absValue = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+
+  if (absValue >= 1e9) return `${sign}$${(absValue / 1e9).toFixed(decimals)}B`;
+  if (absValue >= 1e6) return `${sign}$${(absValue / 1e6).toFixed(decimals)}M`;
+  if (absValue >= 1e3) return `${sign}$${(absValue / 1e3).toFixed(decimals)}K`;
+  return `${sign}$${absValue.toLocaleString()}`;
+}

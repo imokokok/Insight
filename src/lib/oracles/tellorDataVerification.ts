@@ -41,11 +41,7 @@ const CHAIN_CONFIGS: Record<ChainId, ChainConfig> = {
   },
 };
 
-export function getEtherscanUrl(
-  type: ExplorerType,
-  hash: string,
-  chain: ChainId = 1
-): string {
+export function getEtherscanUrl(type: ExplorerType, hash: string, chain: ChainId = 1): string {
   const config = CHAIN_CONFIGS[chain] || CHAIN_CONFIGS[1];
 
   const baseUrl = config.etherscanUrl;
@@ -74,7 +70,11 @@ export function formatTxHash(hash: string, startChars: number = 6, endChars: num
   return `${hash.slice(0, startChars)}...${hash.slice(-endChars)}`;
 }
 
-export function formatAddress(address: string, startChars: number = 6, endChars: number = 4): string {
+export function formatAddress(
+  address: string,
+  startChars: number = 6,
+  endChars: number = 4
+): string {
   return formatTxHash(address, startChars, endChars);
 }
 

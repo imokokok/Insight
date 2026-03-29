@@ -85,3 +85,87 @@ export class UnsupportedSymbolError extends AppError {
     });
   }
 }
+
+export type RedStoneErrorCode =
+  | 'FETCH_ERROR'
+  | 'PARSE_ERROR'
+  | 'NETWORK_ERROR'
+  | 'TIMEOUT_ERROR'
+  | 'RATE_LIMIT_ERROR'
+  | 'INVALID_RESPONSE';
+
+export interface RedStoneApiErrorDetails extends OracleErrorDetails {
+  errorCode: RedStoneErrorCode;
+  retryable: boolean;
+  attemptCount?: number;
+}
+
+export class RedStoneApiError extends AppError {
+  public readonly errorCode: RedStoneErrorCode;
+  public readonly retryable: boolean;
+  public readonly attemptCount: number;
+
+  constructor(
+    message: string,
+    errorCode: RedStoneErrorCode,
+    details?: Partial<RedStoneApiErrorDetails>,
+    cause?: Error
+  ) {
+    const isRetryable = RedStoneApiError.isRetryableError(errorCode);
+    super({
+      message,
+      code: 'REDSTONE_API_ERROR',
+      statusCode: RedStoneApiError.getStatusCode(errorCode),
+      isOperational: true,
+      details: {
+        ...details,
+        errorCode,
+        retryable: isRetryable,
+      },
+      i18nKey: 'errors.oracle.redstoneApi',
+      cause,
+    });
+    this.errorCode = errorCode;
+    this.retryable = isRetryable;
+    this.attemptCount = details?.attemptCount ?? 1;
+  }
+
+  private static isRetryableError(errorCode: RedStoneErrorCode): boolean {
+    return ['NETWORK_ERROR', 'TIMEOUT_ERROR', 'RATE_LIMIT_ERROR', 'FETCH_ERROR'].includes(
+      errorCode
+    );
+  }
+
+  private static getStatusCode(errorCode: RedStoneErrorCode): number {
+    switch (errorCode) {
+      case 'RATE_LIMIT_ERROR':
+        return 429;
+      case 'TIMEOUT_ERROR':
+        return 504;
+      case 'NETWORK_ERROR':
+        return 503;
+      default:
+        return 502;
+    }
+  }
+
+  toApiResponse(): {
+    error: {
+      code: string;
+      message: string;
+      retryable: boolean;
+      errorCode: RedStoneErrorCode;
+      details?: AppErrorDetails;
+    };
+  } {
+    return {
+      error: {
+        code: this.code,
+        message: this.message,
+        retryable: this.retryable,
+        errorCode: this.errorCode,
+        details: this.details,
+      },
+    };
+  }
+}

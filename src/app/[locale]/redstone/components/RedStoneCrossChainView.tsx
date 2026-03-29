@@ -4,29 +4,17 @@ import { Link, Zap, Trophy, Activity, Server } from 'lucide-react';
 
 import { useRedStoneSupportedChains } from '@/hooks/oracles/redstone';
 import { useTranslations } from '@/i18n';
+import { REDSTONE_SUPPORTED_CHAINS } from '@/lib/oracles/redstoneConstants';
 
+import { useRedStoneClient } from '../context/RedStoneClientContext';
 import { type RedStoneCrossChainViewProps, type ChainInfo } from '../types';
-
-const FALLBACK_CHAINS: ChainInfo[] = [
-  { chain: 'Ethereum', latency: 80, updateFreq: 60, status: 'active' },
-  { chain: 'Arbitrum', latency: 65, updateFreq: 30, status: 'active' },
-  { chain: 'Optimism', latency: 70, updateFreq: 30, status: 'active' },
-  { chain: 'Polygon', latency: 75, updateFreq: 45, status: 'active' },
-  { chain: 'Avalanche', latency: 85, updateFreq: 60, status: 'active' },
-  { chain: 'Base', latency: 60, updateFreq: 30, status: 'active' },
-  { chain: 'BNB Chain', latency: 90, updateFreq: 60, status: 'active' },
-  { chain: 'Fantom', latency: 95, updateFreq: 60, status: 'active' },
-  { chain: 'Linea', latency: 70, updateFreq: 45, status: 'active' },
-  { chain: 'Mantle', latency: 75, updateFreq: 45, status: 'active' },
-  { chain: 'Scroll', latency: 80, updateFreq: 60, status: 'active' },
-  { chain: 'zkSync', latency: 72, updateFreq: 45, status: 'active' },
-];
 
 export function RedStoneCrossChainView({ isLoading }: RedStoneCrossChainViewProps) {
   const t = useTranslations();
-  const { chains, isLoading: chainsLoading } = useRedStoneSupportedChains(!isLoading);
+  const client = useRedStoneClient();
+  const { chains, isLoading: chainsLoading } = useRedStoneSupportedChains(client, !isLoading);
 
-  const supportedChains = chains.length > 0 ? chains : FALLBACK_CHAINS;
+  const supportedChains = chains.length > 0 ? chains : REDSTONE_SUPPORTED_CHAINS;
   const showLoading = isLoading || chainsLoading;
 
   const avgLatency = Math.round(

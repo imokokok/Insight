@@ -31,12 +31,14 @@ interface RegionData {
   totalStaked: number;
 }
 
-export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewProps) {
+export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStakingViewProps) {
   const t = useTranslations();
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: 'stakedAmount',
     direction: 'desc',
   });
+
+  const winPrice = price?.price;
 
   const stakingData = staking || {
     totalStaked: 45000000,
@@ -299,7 +301,7 @@ export function WinklinkStakingView({ staking, isLoading }: WinklinkStakingViewP
         <div className="space-y-8">
           {/* 质押计算器 */}
           <section>
-            <StakingRewardsCalculator />
+            <StakingRewardsCalculator winPrice={winPrice} />
           </section>
 
           {/* 质押等级分布 - 紧凑进度条 */}

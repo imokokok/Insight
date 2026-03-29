@@ -10,6 +10,7 @@ import {
 } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
+import { UMAWebSocketProvider } from '@/lib/realtime/UMAWebSocketContext';
 
 import {
   UmaSidebar,
@@ -131,69 +132,71 @@ export default function UmaPage() {
   };
 
   return (
-    <OracleErrorBoundary themeColor={config.themeColor} onReset={refresh}>
-      <div className="min-h-screen bg-insight">
-        <UMAHero
-          config={config}
-          price={price ?? null}
-          historicalData={historicalData}
-          networkStats={
-            networkStats
-              ? {
-                  avgResponseTime: networkStats.avgResponseTime,
-                  nodeUptime: networkStats.validatorUptime,
-                  dataFeeds: networkStats.dataSources,
-                }
-              : undefined
-          }
-          isLoading={isLoading}
-          isError={isError}
-          isRefreshing={isRefreshing}
-          lastUpdated={lastUpdated}
-          onRefresh={refresh}
-          onExport={exportData}
-        />
+    <UMAWebSocketProvider>
+      <OracleErrorBoundary themeColor={config.themeColor} onReset={refresh}>
+        <div className="min-h-screen bg-insight">
+          <UMAHero
+            config={config}
+            price={price ?? null}
+            historicalData={historicalData}
+            networkStats={
+              networkStats
+                ? {
+                    avgResponseTime: networkStats.avgResponseTime,
+                    nodeUptime: networkStats.validatorUptime,
+                    dataFeeds: networkStats.dataSources,
+                  }
+                : undefined
+            }
+            isLoading={isLoading}
+            isError={isError}
+            isRefreshing={isRefreshing}
+            lastUpdated={lastUpdated}
+            onRefresh={refresh}
+            onExport={exportData}
+          />
 
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="hidden lg:block w-64 flex-shrink-0">
-              <div className="sticky top-6">
-                <UmaSidebar
-                  activeTab={activeTab}
-                  onTabChange={(tab) => setActiveTab(tab as UmaTabId)}
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="hidden lg:block w-64 flex-shrink-0">
+                <div className="sticky top-6">
+                  <UmaSidebar
+                    activeTab={activeTab}
+                    onTabChange={(tab) => setActiveTab(tab as UmaTabId)}
+                    themeColor={config.themeColor}
+                  />
+                </div>
+              </div>
+
+              <div className="lg:hidden">
+                <MobileMenuButton
+                  isOpen={isMobileMenuOpen}
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   themeColor={config.themeColor}
+                  label={t('uma.menu.title')}
                 />
               </div>
-            </div>
 
-            <div className="lg:hidden">
-              <MobileMenuButton
+              <MobileSidebar
                 isOpen={isMobileMenuOpen}
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                themeColor={config.themeColor}
-                label={t('uma.menu.title')}
-              />
+                onClose={() => setIsMobileMenuOpen(false)}
+                title={t('uma.navigation.title')}
+              >
+                <UmaSidebar
+                  activeTab={activeTab}
+                  onTabChange={(tab) => {
+                    setActiveTab(tab as UmaTabId);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  themeColor={config.themeColor}
+                />
+              </MobileSidebar>
+
+              <div className="flex-1 min-w-0">{renderContent()}</div>
             </div>
-
-            <MobileSidebar
-              isOpen={isMobileMenuOpen}
-              onClose={() => setIsMobileMenuOpen(false)}
-              title={t('uma.navigation.title')}
-            >
-              <UmaSidebar
-                activeTab={activeTab}
-                onTabChange={(tab) => {
-                  setActiveTab(tab as UmaTabId);
-                  setIsMobileMenuOpen(false);
-                }}
-                themeColor={config.themeColor}
-              />
-            </MobileSidebar>
-
-            <div className="flex-1 min-w-0">{renderContent()}</div>
           </div>
         </div>
-      </div>
-    </OracleErrorBoundary>
+      </OracleErrorBoundary>
+    </UMAWebSocketProvider>
   );
 }

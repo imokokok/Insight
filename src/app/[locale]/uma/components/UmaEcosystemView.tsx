@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 
-import { TrendingUp, Layers, Globe, Zap, Shield, Clock, Users, Building2 } from 'lucide-react';
+import { TrendingUp, Layers, Globe, Zap, Shield, Clock, Users, Building2, Loader2 } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -77,7 +77,7 @@ function TimeRangeButton({
   );
 }
 
-export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
+export function UmaEcosystemView({ config, isLoading = false }: UmaEcosystemViewProps) {
   const t = useTranslations();
   const [selectedChains, setSelectedChains] = useState<string[]>([
     'ethereum',
@@ -85,6 +85,16 @@ export function UmaEcosystemView({ config }: UmaEcosystemViewProps) {
     'polygon',
   ]);
   const [timeRange, setTimeRange] = useState<'1M' | '3M' | '6M' | '1Y'>('1Y');
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
 
   const integrations = [
     { name: 'Across Protocol', category: 'bridge', tvl: '$450M' },

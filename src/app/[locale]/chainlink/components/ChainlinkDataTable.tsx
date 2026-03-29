@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { type SortConfig } from '../types';
 
 interface Column<T> {
-  key: string;
+  key: keyof T;
   header: string;
   width?: string;
   sortable?: boolean;
@@ -20,7 +20,7 @@ interface ChainlinkDataTableProps<T> {
   isLoading?: boolean;
 }
 
-export function ChainlinkDataTable<T extends Record<string, unknown>>({
+export function ChainlinkDataTable<T>({
   data,
   columns,
   sortConfig: externalSortConfig,
@@ -46,8 +46,10 @@ export function ChainlinkDataTable<T extends Record<string, unknown>>({
 
   const sortedData = [...data].sort((a, b) => {
     if (!sortConfig) return 0;
-    const aValue = a[sortConfig.key];
-    const bValue = b[sortConfig.key];
+    const column = columns.find((col) => col.key === sortConfig.key);
+    if (!column) return 0;
+    const aValue = a[column.key];
+    const bValue = b[column.key];
     if (aValue === bValue) return 0;
     if (aValue === null || aValue === undefined) return 1;
     if (bValue === null || bValue === undefined) return -1;
@@ -71,26 +73,50 @@ export function ChainlinkDataTable<T extends Record<string, unknown>>({
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
-            {columns.map((column) => (
-              <th
-                key={column.key}
-                className={`
-                  px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider
-                  ${column.sortable ? 'cursor-pointer hover:text-gray-700' : ''}
-                  ${column.width ? column.width : ''}
-                `}
-                onClick={() => column.sortable && handleSort(column.key)}
-              >
-                <div className="flex items-center gap-1">
-                  {column.header}
-                  {column.sortable && sortConfig?.key === column.key && (
-                    <span className="text-gray-400">
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </div>
-              </th>
-            ))}
+            {columns.map((column) => {
+              const isSorted = sortConfig?.key === column.key;
+              const sortDirection = isSorted ? sortConfig.direction : null;
+              const sortDescriptionId = `sort-desc-${String(column.key)}`;
+
+              return (
+                <th
+                  key={String(column.key)}
+                  className={`
+                    px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider
+                    ${column.sortable ? 'cursor-pointer hover:text-gray-700' : ''}
+                    ${column.width ? column.width : ''}
+                  `}
+                  onClick={() => column.sortable && handleSort(String(column.key))}
+                  {...(column.sortable && {
+                    'aria-label': `${column.header}, ${isSorted ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '未排序'}`,
+                    'aria-pressed': isSorted,
+                    'aria-describedby': isSorted ? sortDescriptionId : undefined,
+                    role: 'button',
+                    tabIndex: 0,
+                    onKeyDown: (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSort(String(column.key));
+                      }
+                    },
+                  })}
+                >
+                  <div className="flex items-center gap-1">
+                    {column.header}
+                    {column.sortable && sortConfig?.key === column.key && (
+                      <>
+                        <span className="text-gray-400" aria-hidden="true">
+                          {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                        </span>
+                        <span id={sortDescriptionId} className="sr-only">
+                          {sortDirection === 'asc' ? '升序排列' : '降序排列'}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -100,10 +126,10 @@ export function ChainlinkDataTable<T extends Record<string, unknown>>({
               className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
             >
               {columns.map((column) => (
-                <td key={column.key} className="px-4 py-3 text-sm text-gray-900">
+                <td key={String(column.key)} className="px-4 py-3 text-sm text-gray-900">
                   {column.render
-                    ? column.render(item as T)
-                    : String((item as Record<string, unknown>)[column.key] ?? '-')}
+                    ? column.render(item)
+                    : String(item[column.key] ?? '-')}
                 </td>
               ))}
             </tr>

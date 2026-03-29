@@ -813,6 +813,58 @@
       "expandChart": "Expand Chart",
       "collapseChart": "Collapse Chart",
       "quickActions": "Quick Actions"
+    },
+    "hero": {
+      "priceTrend24h": "24H Trend",
+      "timeAgo": {
+        "24hAgo": "24h ago",
+        "now": "Now",
+        "1minAgo": "1 min ago",
+        "3minAgo": "3 min ago",
+        "5minAgo": "5 min ago",
+        "12minAgo": "12 min ago"
+      },
+      "gasLevel": {
+        "low": "Low",
+        "medium": "Med",
+        "high": "High"
+      },
+      "health": "Health",
+      "gas": "Gas",
+      "response": "Response",
+      "online": "Online",
+      "supported": "Supported",
+      "chainsCount": "{{count}}+ Chains",
+      "quickActions": {
+        "priceAlert": "Price Alert",
+        "addMonitor": "Add Monitor",
+        "apiDocs": "API Docs",
+        "switchNetwork": "Switch Network"
+      },
+      "latestUpdates": "Latest Updates:",
+      "updates": {
+        "price": "RED Price Update: $0.85 (+3.2%)",
+        "provider": "New Provider Joined: DataProvider_42 (Europe)",
+        "feed": "BTC/USD Feed Update Latency < 100ms",
+        "bridge": "New Bridge Support: Arbitrum Nova"
+      },
+      "stats": {
+        "price": "Price",
+        "tvs": "TVS",
+        "dataFeeds": "Data Feeds",
+        "providers": "Providers",
+        "staked": "Staked",
+        "supportedChains": "Chains",
+        "nodes": "Nodes",
+        "responseTime": "Response",
+        "uptime": "Uptime"
+      },
+      "periods": {
+        "24h": "24h",
+        "30days": "30 days",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month"
+      }
     }
   }
 }

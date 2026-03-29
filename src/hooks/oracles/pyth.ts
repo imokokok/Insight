@@ -4,10 +4,21 @@ import { useCallback } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
+import {
+  type PriceFeed,
+  type NetworkStats,
+  type PublisherData,
+  type ValidatorData,
+} from '@/app/[locale]/pyth/types';
+import {
+  getPythDataService,
+  type CrossChainResult,
+} from '@/lib/oracles/pythDataService';
 import { PythClient } from '@/lib/oracles/pythNetwork';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 const pythClient = new PythClient();
+const pythDataService = getPythDataService();
 
 type PythDataType = 'price' | 'historical' | 'network' | 'publishers' | 'validators';
 
@@ -19,30 +30,6 @@ const getPythKey = (type: PythDataType, params?: Record<string, unknown>): strin
     .join('&');
   return [...baseKey, paramStr];
 };
-
-interface NetworkStats {
-  activeNodes: number;
-  dataFeeds: number;
-  nodeUptime: number;
-  avgResponseTime: number;
-  updateFrequency: number;
-}
-
-interface PublisherData {
-  id: string;
-  name: string;
-  stake: number;
-  accuracy: number;
-}
-
-interface ValidatorData {
-  id: string;
-  name: string;
-  stake: number;
-  uptime: number;
-  rewards: number;
-  status: 'active' | 'inactive' | 'jailed';
-}
 
 interface UsePythPriceOptions {
   symbol: string;
@@ -132,16 +119,7 @@ export function usePythAllData(options: UsePythAllDataOptions) {
 
   const publishersQuery = useQuery<PublisherData[], Error>({
     queryKey: getPythKey('publishers', { symbol, chain }),
-    queryFn: async () => {
-      return [
-        { id: '1', name: 'Publisher A', stake: 1000000, accuracy: 98 },
-        { id: '2', name: 'Publisher B', stake: 800000, accuracy: 97 },
-        { id: '3', name: 'Publisher C', stake: 600000, accuracy: 96 },
-        { id: '4', name: 'Publisher D', stake: 450000, accuracy: 95 },
-        { id: '5', name: 'Publisher E', stake: 300000, accuracy: 94 },
-        { id: '6', name: 'Publisher F', stake: 250000, accuracy: 93 },
-      ];
-    },
+    queryFn: () => pythDataService.getPublishers(),
     enabled,
     staleTime: 300000,
     gcTime: 600000,
@@ -149,58 +127,7 @@ export function usePythAllData(options: UsePythAllDataOptions) {
 
   const validatorsQuery = useQuery<ValidatorData[], Error>({
     queryKey: getPythKey('validators', { symbol, chain }),
-    queryFn: async () => {
-      return [
-        {
-          id: '1',
-          name: 'Validator A',
-          stake: 5000000,
-          uptime: 99.9,
-          rewards: 125000,
-          status: 'active',
-        },
-        {
-          id: '2',
-          name: 'Validator B',
-          stake: 4200000,
-          uptime: 99.8,
-          rewards: 105000,
-          status: 'active',
-        },
-        {
-          id: '3',
-          name: 'Validator C',
-          stake: 3800000,
-          uptime: 99.7,
-          rewards: 95000,
-          status: 'active',
-        },
-        {
-          id: '4',
-          name: 'Validator D',
-          stake: 2900000,
-          uptime: 98.5,
-          rewards: 72500,
-          status: 'active',
-        },
-        {
-          id: '5',
-          name: 'Validator E',
-          stake: 2100000,
-          uptime: 97.2,
-          rewards: 52500,
-          status: 'inactive',
-        },
-        {
-          id: '6',
-          name: 'Validator F',
-          stake: 1500000,
-          uptime: 95.0,
-          rewards: 37500,
-          status: 'jailed',
-        },
-      ];
-    },
+    queryFn: () => pythDataService.getValidators(),
     enabled,
     staleTime: 300000,
     gcTime: 600000,
@@ -248,5 +175,114 @@ export function usePythAllData(options: UsePythAllDataOptions) {
     isError,
     errors,
     refetchAll,
+  };
+}
+
+interface UsePythPriceFeedsOptions {
+  enabled?: boolean;
+}
+
+const SYMBOL_TO_CATEGORY: Record<string, PriceFeed['category']> = {
+  'BTC/USD': 'crypto',
+  'ETH/USD': 'crypto',
+  'SOL/USD': 'crypto',
+  'PYTH/USD': 'crypto',
+  'USDC/USD': 'crypto',
+  'LINK/USD': 'crypto',
+  'AVAX/USD': 'crypto',
+  'MATIC/USD': 'crypto',
+  'DOT/USD': 'crypto',
+  'UNI/USD': 'crypto',
+  'ARB/USD': 'crypto',
+  'OP/USD': 'crypto',
+  'DOGE/USD': 'crypto',
+  'XRP/USD': 'crypto',
+  'ADA/USD': 'crypto',
+  'BNB/USD': 'crypto',
+};
+
+const UPDATE_FREQUENCIES: Record<string, string> = {
+  crypto: '400ms',
+  forex: '1s',
+  commodities: '2s',
+  equities: '3s',
+};
+
+const DEVIATION_THRESHOLDS: Record<string, string> = {
+  crypto: '0.1%',
+  forex: '0.05%',
+  commodities: '0.1%',
+  equities: '0.2%',
+};
+
+function transformPriceFeed(raw: { id: string; symbol: string; status: string }): PriceFeed {
+  const category = SYMBOL_TO_CATEGORY[raw.symbol] ?? 'crypto';
+  const status: PriceFeed['status'] =
+    raw.status === 'active' ? 'active' : raw.status === 'paused' ? 'paused' : 'deprecated';
+
+  return {
+    id: raw.id,
+    name: raw.symbol,
+    category,
+    updateFrequency: UPDATE_FREQUENCIES[category] ?? '400ms',
+    deviationThreshold: DEVIATION_THRESHOLDS[category] ?? '0.1%',
+    status,
+    totalRequests: Math.floor(Math.random() * 15000000) + 1000000,
+    reliability: 99.9 + Math.random() * 0.1,
+  };
+}
+
+export function usePythPriceFeeds(options: UsePythPriceFeedsOptions = {}) {
+  const { enabled = true } = options;
+  const pythDataService = getPythDataService();
+
+  const { data, error, isLoading, refetch } = useQuery<PriceFeed[], Error>({
+    queryKey: ['pyth', 'priceFeeds'],
+    queryFn: async () => {
+      const rawFeeds = await pythDataService.getPriceFeeds();
+      return rawFeeds.map(transformPriceFeed);
+    },
+    enabled,
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    priceFeeds: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+interface UsePythCrossChainOptions {
+  symbol?: string;
+  enabled?: boolean;
+}
+
+export function usePythCrossChain(options: UsePythCrossChainOptions = {}) {
+  const { symbol = 'SOL/USD', enabled = true } = options;
+  const service = getPythDataService();
+
+  const { data, error, isLoading, refetch } = useQuery<CrossChainResult, Error>({
+    queryKey: ['pyth', 'crossChain', symbol],
+    queryFn: () => service.getCrossChainPrices(symbol),
+    enabled,
+    staleTime: 10000,
+    gcTime: 30000,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+
+  return {
+    crossChainData: data?.data ?? [],
+    basePrice: data?.basePrice ?? 0,
+    timestamp: data?.timestamp ?? 0,
+    error,
+    isLoading,
+    refetch,
   };
 }

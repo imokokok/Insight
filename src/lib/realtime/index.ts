@@ -14,6 +14,19 @@ export type {
   UseWebSocketOptions,
 } from './websocket';
 
+// UMA WebSocket Context
+export {
+  UMAWebSocketProvider,
+  useUMAWebSocket,
+  useUMAWebSocketOptional,
+} from './UMAWebSocketContext';
+export type {
+  UMAChannel,
+  PerformanceMetrics as UMAPerformanceMetrics,
+  WebSocketMessage as UMAWebSocketMessage,
+  WebSocketStatus as UMAWebSocketStatus,
+} from './UMAWebSocketContext';
+
 // 价格预警模块
 export {
   usePriceAlerts,

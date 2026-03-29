@@ -43,6 +43,9 @@ interface WinklinkHeroProps {
   isError: boolean;
   isRefreshing: boolean;
   lastUpdated: Date | null;
+  dataStates?: Record<string, { isLoading: boolean; isError: boolean; lastUpdated: Date | null }>;
+  failedDataSources?: string[];
+  loadingDataSources?: string[];
 
   onRefresh: () => void;
   onExport: () => void;
@@ -176,6 +179,8 @@ function MiniPriceChart({
   currentPrice: PriceData | null;
   themeColor: string;
 }) {
+  const t = useTranslations();
+
   const chartData = useMemo(() => {
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
@@ -199,7 +204,7 @@ function MiniPriceChart({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span>24H 走势</span>
+          <span>{t('winklink.hero.priceTrend24h')}</span>
         </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
@@ -210,8 +215,8 @@ function MiniPriceChart({
         <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-        <span>24h前</span>
-        <span>现在</span>
+        <span>{t('winklink.hero.hoursAgo24')}</span>
+        <span>{t('winklink.hero.now')}</span>
       </div>
     </div>
   );
@@ -313,6 +318,8 @@ function UnifiedInfoSection({
   chains: string[];
   themeColor: string;
 }) {
+  const t = useTranslations();
+
   const getHealthColor = () => {
     if (healthScore >= 90) return 'text-emerald-600';
     if (healthScore >= 70) return 'text-yellow-600';
@@ -327,14 +334,14 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return { label: t('winklink.hero.gasMedium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: '低', color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return { label: t('winklink.hero.gasLow'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
     if (avgResponseTime < 300)
-      return { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: '高', color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
-  }, [networkStats]);
+      return { label: t('winklink.hero.gasMedium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+    return { label: t('winklink.hero.gasHigh'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+  }, [networkStats, t]);
 
   // 只显示前3个链
   const displayChains = chains.slice(0, 3);
@@ -346,7 +353,7 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2 min-w-[120px]">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Activity className="w-3.5 h-3.5" />
-          <span>健康度</span>
+          <span>{t('winklink.hero.health')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -369,7 +376,7 @@ function UnifiedInfoSection({
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Zap className="w-3.5 h-3.5" />
-              <span>Gas</span>
+              <span>{t('winklink.hero.gas')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -385,7 +392,7 @@ function UnifiedInfoSection({
           {/* 响应时间 */}
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">响应</span>
+            <span className="text-xs text-gray-500">{t('winklink.hero.response')}</span>
             <span className="text-xs font-medium text-gray-900">
               {networkStats.avgResponseTime}ms
             </span>
@@ -394,7 +401,7 @@ function UnifiedInfoSection({
           {/* 节点在线率 */}
           <div className="flex items-center gap-1">
             <Server className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500">在线</span>
+            <span className="text-xs text-gray-500">{t('winklink.hero.online')}</span>
             <span className="text-xs font-medium text-gray-900">{networkStats.nodeUptime}%</span>
           </div>
         </div>
@@ -407,12 +414,12 @@ function UnifiedInfoSection({
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Globe className="w-3.5 h-3.5" />
-          <span>支持</span>
+          <span>{t('winklink.hero.support')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           {/* 链数量 */}
           <span className="text-xs font-semibold" style={{ color: themeColor }}>
-            {chains.length}+ 链
+            {chains.length}+ {t('winklink.hero.chains')}
           </span>
           {/* 前3个链图标 */}
           <div className="flex -space-x-1">
@@ -437,11 +444,13 @@ function UnifiedInfoSection({
 
 // 快速操作组件
 function QuickActions({ themeColor }: { themeColor: string }) {
+  const t = useTranslations();
+
   const actions = [
-    { icon: <Bell className="w-3.5 h-3.5" />, label: '价格提醒', href: '#' },
-    { icon: <Plus className="w-3.5 h-3.5" />, label: '添加监控', href: '#' },
-    { icon: <FileText className="w-3.5 h-3.5" />, label: 'API文档', href: '#' },
-    { icon: <Layers className="w-3.5 h-3.5" />, label: '切换网络', href: '#' },
+    { icon: <Bell className="w-3.5 h-3.5" />, label: t('winklink.hero.priceAlert'), href: '#' },
+    { icon: <Plus className="w-3.5 h-3.5" />, label: t('winklink.hero.addMonitor'), href: '#' },
+    { icon: <FileText className="w-3.5 h-3.5" />, label: t('winklink.hero.apiDocs'), href: '#' },
+    { icon: <Layers className="w-3.5 h-3.5" />, label: t('winklink.hero.switchNetwork'), href: '#' },
   ];
 
   return (
@@ -461,17 +470,19 @@ function QuickActions({ themeColor }: { themeColor: string }) {
 
 // 最新动态滚动条
 function LatestUpdates({ themeColor }: { themeColor: string }) {
+  const t = useTranslations();
+
   const updates = [
-    { type: 'price', text: 'WIN 价格更新: $0.00012 (+5.2%)', time: '2分钟前' },
-    { type: 'node', text: '新节点加入: TRON生态 (亚太地区)', time: '5分钟前' },
-    { type: 'feed', text: '游戏数据喂价更新: WIN/TRX', time: '8分钟前' },
-    { type: 'system', text: 'TRON网络同步完成', time: '15分钟前' },
+    { type: 'price', text: t('winklink.hero.updatePrice'), time: t('winklink.hero.minutesAgo', { count: 2 }) },
+    { type: 'node', text: t('winklink.hero.updateNode'), time: t('winklink.hero.minutesAgo', { count: 5 }) },
+    { type: 'feed', text: t('winklink.hero.updateFeed'), time: t('winklink.hero.minutesAgo', { count: 8 }) },
+    { type: 'system', text: t('winklink.hero.updateSystem'), time: t('winklink.hero.minutesAgo', { count: 15 }) },
   ];
 
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">最新动态:</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">{t('winklink.hero.latestUpdates')}:</span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {updates.map((update, index) => (
@@ -509,15 +520,81 @@ export default function WinklinkHero({
   lastUpdated,
   onRefresh,
   onExport,
+  dataStates,
+  failedDataSources = [],
+  loadingDataSources = [],
 }: WinklinkHeroProps) {
   const t = useTranslations();
 
-  // 使用 config.themeColor 获取主题色
   const themeColor = config.themeColor || '#ec4899';
 
   const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
   const priceChange24h = config.marketData.change24h ?? 0;
   const isPositive = priceChange24h >= 0;
+
+  const sourceLabels: Record<string, string> = {
+    price: t('winklink.hero.sourcePrice'),
+    historical: t('winklink.hero.sourceHistorical'),
+    tron: 'TRON',
+    staking: t('winklink.hero.sourceStaking'),
+    gaming: t('winklink.hero.sourceGaming'),
+    network: t('winklink.hero.sourceNetwork'),
+    risk: t('winklink.hero.sourceRisk'),
+  };
+
+  const formatLastUpdated = (date: Date | null) => {
+    if (!date) return t('winklink.hero.unknown');
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return t('winklink.hero.justNow');
+    if (diffMins < 60) return t('winklink.hero.minutesAgo', { count: diffMins });
+    const diffHours = Math.floor(diffMins / 60);
+    return t('winklink.hero.hoursAgo', { count: diffHours });
+  };
+
+  const DataStatusIndicator = () => {
+    if (!dataStates) return null;
+
+    const allSources = Object.keys(dataStates);
+
+    return (
+      <div className="flex items-center gap-2 flex-wrap">
+        {allSources.map((source) => {
+          const state = dataStates[source];
+          const isFailed = failedDataSources.includes(source);
+          const isLoadingNow = loadingDataSources.includes(source);
+
+          return (
+            <div
+              key={source}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] ${
+                isFailed
+                  ? 'bg-red-50 text-red-600'
+                  : isLoadingNow
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'bg-gray-50 text-gray-500'
+              }`}
+            >
+              {isFailed ? (
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              ) : isLoadingNow ? (
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+              ) : (
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              )}
+              <span>{sourceLabels[source] || source}</span>
+              {state.lastUpdated && !isFailed && (
+                <span className="text-[8px] opacity-60">
+                  ({formatLastUpdated(state.lastUpdated)})
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   // 生成价格走势数据
   const priceSparkline = useMemo(() => {
@@ -535,72 +612,72 @@ export default function WinklinkHero({
   // 核心统计指标 (Primary stats) - 增加到5个
   const primaryStats: StatItem[] = [
     {
-      title: 'WINKLINK Price',
+      title: t('winklink.hero.winklinkPrice'),
       value: `$${currentPrice.toFixed(6)}`,
       change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
       changeType: isPositive ? 'positive' : 'negative',
       icon: <Activity className="w-4 h-4" />,
-      subtitle: '24h 变化',
+      subtitle: t('winklink.hero.change24h'),
       sparklineData: priceSparkline,
     },
     {
-      title: 'Market Cap',
+      title: t('winklink.hero.marketCap'),
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
       change: '+8.3%',
       changeType: 'positive',
       icon: <Shield className="w-4 h-4" />,
-      subtitle: '30天增长',
+      subtitle: t('winklink.hero.growth30d'),
     },
     {
-      title: 'Gaming Data Feeds',
+      title: t('winklink.hero.gamingDataFeeds'),
       value: '20+',
       change: '+15%',
       changeType: 'positive',
       icon: <Gamepad2 className="w-4 h-4" />,
-      subtitle: '本周新增 3 个',
+      subtitle: t('winklink.hero.addedThisWeek'),
     },
     {
-      title: 'Supported Chains',
+      title: t('winklink.hero.supportedChains'),
       value: `${config.supportedChains.length}+`,
       change: '0%',
       changeType: 'neutral',
       icon: <Database className="w-4 h-4" />,
     },
     {
-      title: 'Staking Amount',
+      title: t('winklink.hero.stakingAmount'),
       value: `${(config.marketData.circulatingSupply / 1e6).toFixed(0)}M`,
       change: '+5.7%',
       changeType: 'positive',
       icon: <Wallet className="w-4 h-4" />,
-      subtitle: '总质押量',
+      subtitle: t('winklink.hero.totalStaked'),
     },
   ];
 
   // 次要统计指标 (Secondary stats) - 4个指标
   const secondaryStats: StatItem[] = [
     {
-      title: 'Avg Response Time',
+      title: t('winklink.hero.avgResponseTime'),
       value: `${config.networkData.avgResponseTime}ms`,
       change: '-8%',
       changeType: 'positive',
       icon: <Clock className="w-4 h-4" />,
     },
     {
-      title: 'Network Uptime',
+      title: t('winklink.hero.networkUptime'),
       value: `${config.networkData.nodeUptime}%`,
       change: '+0.02%',
       changeType: 'positive',
       icon: <Cpu className="w-4 h-4" />,
     },
     {
-      title: 'Data Feeds',
+      title: t('winklink.hero.dataFeeds'),
       value: `${config.networkData.dataFeeds}+`,
       change: '+12%',
       changeType: 'positive',
       icon: <Globe className="w-4 h-4" />,
     },
     {
-      title: 'Node Count',
+      title: t('winklink.hero.nodeCount'),
       value: '50+',
       change: '+5%',
       changeType: 'positive',
@@ -628,6 +705,7 @@ export default function WinklinkHero({
           />
           <QuickActions themeColor={themeColor} />
         </div>
+        {dataStates && <DataStatusIndicator />}
       </div>
 
       {/* 主要内容区 - 桌面端左右分栏布局 */}

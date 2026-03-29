@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 import {
   Wallet,
@@ -205,24 +205,29 @@ export function ChainlinkStakingView() {
     ];
   }, [t]);
 
-  const formatNumber = (value: number): string => {
+  const chartData = useMemo(() => MOCK_REWARD_HISTORY, []);
+
+  const formatNumber = useCallback((value: number): string => {
     if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
     if (value >= 1_000) return `${(value / 1_000).toFixed(2)}K`;
     return value.toFixed(2);
-  };
+  }, []);
 
-  const formatUsd = (linkAmount: number): string => `$${(linkAmount * LINK_PRICE).toFixed(2)}`;
+  const formatUsd = useCallback(
+    (linkAmount: number): string => `$${(linkAmount * LINK_PRICE).toFixed(2)}`,
+    []
+  );
 
-  const formatDate = (date: Date): string => {
+  const formatDate = useCallback((date: Date): string => {
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
+  }, []);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'active':
       case 'ready':
@@ -235,7 +240,7 @@ export function ChainlinkStakingView() {
       default:
         return 'text-gray-600 bg-gray-50';
     }
-  };
+  }, []);
 
   const totalSlashed = MOCK_SLASHING_EVENTS.reduce((sum, e) => sum + e.amount, 0);
   const pendingUnlock = MOCK_UNLOCK_QUEUE.filter(
@@ -348,7 +353,7 @@ export function ChainlinkStakingView() {
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={MOCK_REWARD_HISTORY}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorBase" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={REWARD_COLORS.base} stopOpacity={0.2} />

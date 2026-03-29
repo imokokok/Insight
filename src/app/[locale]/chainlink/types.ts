@@ -104,7 +104,7 @@ export interface SortConfig {
 export interface ChainlinkDataTableProps<T> {
   data: T[];
   columns: Array<{
-    key: string;
+    key: keyof T;
     header: string;
     width?: string;
     sortable?: boolean;

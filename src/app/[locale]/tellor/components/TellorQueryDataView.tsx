@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+
 import {
   Search,
   Info,
@@ -51,7 +52,9 @@ export function TellorQueryDataView({ isLoading }: TellorQueryDataViewProps) {
       setDecodeError(null);
     } catch (error) {
       setDecodeError(
-        error instanceof Error ? error.message : t('tellor.queryData.decodeFailed') || 'Failed to decode'
+        error instanceof Error
+          ? error.message
+          : t('tellor.queryData.decodeFailed') || 'Failed to decode'
       );
       setDecodedResult(null);
     }
@@ -77,9 +80,7 @@ export function TellorQueryDataView({ isLoading }: TellorQueryDataViewProps) {
               <p className="text-sm font-medium text-gray-900">
                 {t('tellor.queryData.encodingFormat') || 'Encoding Format'}
               </p>
-              <p className="text-xs text-gray-500 mt-1 font-mono">
-                queryId = keccak256(queryData)
-              </p>
+              <p className="text-xs text-gray-500 mt-1 font-mono">queryId = keccak256(queryData)</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -119,7 +120,9 @@ export function TellorQueryDataView({ isLoading }: TellorQueryDataViewProps) {
               </div>
               <p className="text-xs text-gray-500 mb-3">{type.description}</p>
               <div className="space-y-1">
-                <p className="text-xs text-gray-400">{t('tellor.queryData.example') || 'Example'}:</p>
+                <p className="text-xs text-gray-400">
+                  {t('tellor.queryData.example') || 'Example'}:
+                </p>
                 <p className="text-xs font-mono text-gray-600 bg-gray-50 px-2 py-1 rounded">
                   {type.example}
                 </p>
@@ -202,7 +205,9 @@ export function TellorQueryDataView({ isLoading }: TellorQueryDataViewProps) {
                   <p className="text-xs text-gray-400 mb-1">
                     {t('tellor.queryData.queryId') || 'Query ID'}
                   </p>
-                  <p className="text-sm font-mono text-gray-900 truncate">{decodedResult.queryId}</p>
+                  <p className="text-sm font-mono text-gray-900 truncate">
+                    {decodedResult.queryId}
+                  </p>
                 </div>
               </div>
 

@@ -6,7 +6,7 @@ import { Database, Clock, CheckCircle2, Star, ArrowUpDown, TrendingUp, Filter } 
 
 import { useTranslations } from '@/i18n';
 
-import { type RedStoneProvidersViewProps, type SortOption, type FilterOption } from '../types';
+import { type RedStoneProvidersViewProps, type FilterOption } from '../types';
 
 interface SortConfig {
   key: string;
@@ -19,7 +19,6 @@ export function RedStoneProvidersView({
   isLoading,
 }: RedStoneProvidersViewProps) {
   const t = useTranslations();
-  const [sortBy, setSortBy] = useState<SortOption>('reputation');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: 'reputation',
@@ -31,7 +30,7 @@ export function RedStoneProvidersView({
     ? (metrics.avgProviderReputation * 100).toFixed(1)
     : '93.5';
 
-  const sortedProviders = useMemo(() => {
+  const filteredProviders = useMemo(() => {
     if (!providers) return [];
     let filtered = [...providers];
 
@@ -41,19 +40,8 @@ export function RedStoneProvidersView({
       filtered = filtered.filter((p) => p.dataPoints >= 500000);
     }
 
-    return filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'reputation':
-          return b.reputation - a.reputation;
-        case 'dataPoints':
-          return b.dataPoints - a.dataPoints;
-        case 'lastUpdate':
-          return b.lastUpdate - a.lastUpdate;
-        default:
-          return 0;
-      }
-    });
-  }, [providers, sortBy, filterBy]);
+    return filtered;
+  }, [providers, filterBy]);
 
   const handleSort = (key: string) => {
     setSortConfig((current) => {
@@ -65,7 +53,7 @@ export function RedStoneProvidersView({
   };
 
   const tableData = useMemo(() => {
-    const data = [...sortedProviders];
+    const data = [...filteredProviders];
     if (sortConfig.key === 'reputation') {
       data.sort((a, b) =>
         sortConfig.direction === 'asc' ? a.reputation - b.reputation : b.reputation - a.reputation
@@ -80,7 +68,7 @@ export function RedStoneProvidersView({
       );
     }
     return data;
-  }, [sortedProviders, sortConfig]);
+  }, [filteredProviders, sortConfig]);
 
   const filterOptions = [
     { id: 'all', label: t('redstone.providers.all') || 'All', count: providers?.length || 4 },

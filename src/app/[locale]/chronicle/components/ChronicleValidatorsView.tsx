@@ -212,18 +212,7 @@ export function ChronicleValidatorsView({
               {t('chronicle.validators.activeValidators')}
             </h2>
           </div>
-          <ChronicleDataTable
-            data={mockValidators as unknown as Record<string, unknown>[]}
-            columns={
-              columns as unknown as Array<{
-                key: string;
-                header: string;
-                width?: string;
-                sortable?: boolean;
-                render?: (item: Record<string, unknown>) => React.ReactNode;
-              }>
-            }
-          />
+          <ChronicleDataTable data={mockValidators} columns={columns} />
         </div>
 
         {/* 右侧边栏 */}
