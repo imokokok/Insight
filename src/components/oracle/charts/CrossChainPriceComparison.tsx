@@ -30,7 +30,7 @@ export function CrossChainPriceComparison({
 }: CrossChainPriceComparisonProps) {
   // 计算统计数据
   const stats = useMemo(() => {
-    if (priceData.length === 0) return null;
+    if (!priceData || priceData.length === 0) return null;
 
     const prices = priceData.map((d) => d.price);
     const minPrice = Math.min(...prices);
