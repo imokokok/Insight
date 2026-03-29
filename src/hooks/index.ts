@@ -83,6 +83,8 @@ export {
   useAPI3QualityHistory,
   useAPI3CrossOracle,
   useAPI3AllData,
+  useAPI3OEVStats,
+  useAPI3OEVAuctions,
 } from './oracles/api3';
 
 // API3 WebSocket Hooks
@@ -264,6 +266,14 @@ export {
   useBandNetworkStats,
   useBandValidators,
   useBandCrossChainStats,
+  useBandIBCConnections,
+  useBandIBCTransferStats,
+  useBandIBCTransferTrends,
+  useBandStakingInfo,
+  useBandStakingDistribution,
+  useBandStakingReward,
+  useBandGovernanceProposals,
+  useBandGovernanceParams,
 } from './oracles/band';
 
 // Shared Oracle Hooks
@@ -306,3 +316,17 @@ export type {
   DeviationDetectionResult,
   DEFAULT_DEVIATION_THRESHOLD,
 } from './useDeviationDetection';
+
+// API3 Analytics Hook
+export { useAPI3Analytics } from './useAPI3Analytics';
+export type {
+  DataPoint,
+  Anomaly,
+  PredictionResult,
+  CorrelationResult,
+  ComparisonResult,
+  MetricDefinition,
+  ReportConfig,
+  DataSource,
+  TimeRange,
+} from './useAPI3Analytics';

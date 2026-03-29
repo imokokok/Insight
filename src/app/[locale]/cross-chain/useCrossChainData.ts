@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback, useMemo, useState, useRef } from 'react';
 
+import { useToastMethods } from '@/components/ui/Toast';
 import { useFavorites, type FavoriteConfig } from '@/hooks';
 import {
   OracleProvider,
@@ -19,11 +20,10 @@ import {
   WINkLinkClient,
   type BaseOracleClient,
 } from '@/lib/oracles';
-import { createLogger } from '@/lib/utils/logger';
 import { isBlockchain, safeBlockchainCast } from '@/lib/utils/chainUtils';
+import { createLogger } from '@/lib/utils/logger';
 import { useUser } from '@/stores/authStore';
 import { useCrossChainStore } from '@/stores/crossChainStore';
-import { useToastMethods } from '@/components/ui/Toast';
 
 import {
   type HeatmapData,

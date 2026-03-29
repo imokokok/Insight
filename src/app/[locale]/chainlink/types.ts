@@ -6,9 +6,16 @@ export type ChainlinkTabId =
   | 'network'
   | 'nodes'
   | 'data-feeds'
+  | 'data-streams'
   | 'services'
   | 'ecosystem'
-  | 'risk';
+  | 'risk'
+  | 'ccip'
+  | 'vrf'
+  | 'automation'
+  | 'staking'
+  | 'proof-of-reserve'
+  | 'functions';
 
 export interface NetworkStats {
   activeNodes: number;
@@ -326,4 +333,41 @@ export interface StakingRewards {
   yearly: number;
   total: number;
   apy: number;
+}
+
+export interface StakingPoolStats {
+  totalStaked: number;
+  stakingRate: number;
+  currentAPR: number;
+  communityPoolStatus: 'active' | 'paused';
+  communityPoolSize: number;
+}
+
+export interface RewardHistory {
+  date: string;
+  amount: number;
+  type: 'base' | 'service' | 'slashing';
+}
+
+export interface SlashingEvent {
+  id: string;
+  node: string;
+  reason: string;
+  amount: number;
+  timestamp: Date;
+}
+
+export interface UnlockQueue {
+  address: string;
+  amount: number;
+  unlockTime: Date;
+  status: 'queued' | 'ready' | 'withdrawn';
+}
+
+export interface OperatorStake {
+  rank: number;
+  name: string;
+  stakedAmount: number;
+  reputation: number;
+  rewards: number;
 }

@@ -5,7 +5,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 
 import { createLogger } from '@/lib/utils/logger';
-import { Blockchain, OracleProvider } from '@/types/oracle';
+import { Blockchain, type OracleProvider } from '@/types/oracle';
 
 import {
   oracleClients,

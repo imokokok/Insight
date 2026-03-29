@@ -1,9 +1,10 @@
 'use client';
 
-import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown, ExternalLink } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 import type { BandNetworkStats } from '@/lib/oracles/bandProtocol';
+import { BlockExplorerLink } from '@/components/oracle/shared';
 
 import { type BandProtocolNetworkViewProps } from '../types';
 
@@ -54,18 +55,22 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
     {
       label: t('band.bandProtocol.network.blockHeight') || 'Block Height',
       value: data?.latestBlockHeight?.toLocaleString() || '15,500,000',
+      isBlockHeight: true,
     },
     {
       label: t('band.bandProtocol.network.totalValidators') || 'Total Validators',
       value: data?.totalValidators?.toLocaleString() || '80',
+      isBlockHeight: false,
     },
     {
       label: t('band.bandProtocol.network.bondedTokens') || 'Bonded Tokens',
       value: `${((data?.bondedTokens || 85000000) / 1e6).toFixed(1)}M BAND`,
+      isBlockHeight: false,
     },
     {
       label: t('band.bandProtocol.network.communityPool') || 'Community Pool',
       value: `${((data?.communityPool || 550000) / 1e3).toFixed(1)}K BAND`,
+      isBlockHeight: false,
     },
   ];
 
@@ -198,7 +203,13 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
           {overviewStats.map((stat, index) => (
             <div key={index}>
               <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
-              <p className="text-xl font-semibold text-gray-900">{stat.value}</p>
+              {stat.isBlockHeight ? (
+                <div className="flex items-center gap-1.5">
+                  <BlockExplorerLink blockHeight={stat.value} className="text-xl font-semibold" />
+                </div>
+              ) : (
+                <p className="text-xl font-semibold text-gray-900">{stat.value}</p>
+              )}
             </div>
           ))}
         </div>

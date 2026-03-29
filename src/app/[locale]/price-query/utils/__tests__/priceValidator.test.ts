@@ -1,3 +1,5 @@
+import type { PriceData } from '@/lib/oracles';
+
 import {
   validatePrice,
   validateTimestamp,
@@ -7,7 +9,6 @@ import {
   isPriceWithinBounds,
   getPriceDeviation,
 } from '../priceValidator';
-import type { PriceData } from '@/lib/oracles';
 
 describe('priceValidator', () => {
   describe('validatePrice', () => {
@@ -199,7 +200,7 @@ describe('priceValidator', () => {
 
       it('should assign correct severity for stale data', () => {
         const maxAge = 30 * 60 * 1000;
-        
+
         const oneHourAgo = Date.now() - 60 * 60 * 1000;
         const result1 = validateTimestamp(oneHourAgo, maxAge);
         expect(result1.anomalies[0].severity).toBe('medium');
@@ -319,10 +320,7 @@ describe('priceValidator', () => {
 
       it('should not flag normal intervals', () => {
         const now = Date.now();
-        const data: PriceData[] = [
-          createPriceData(100, now - 5000),
-          createPriceData(101, now),
-        ];
+        const data: PriceData[] = [createPriceData(100, now - 5000), createPriceData(101, now)];
 
         const result = validateTimeSeries(data);
 
@@ -368,7 +366,9 @@ describe('priceValidator', () => {
 
         const result = validateTimeSeries(data);
 
-        expect(result.anomalies.some((a) => a.type === 'price_spike' || a.type === 'price_drop')).toBe(true);
+        expect(
+          result.anomalies.some((a) => a.type === 'price_spike' || a.type === 'price_drop')
+        ).toBe(true);
       });
     });
 

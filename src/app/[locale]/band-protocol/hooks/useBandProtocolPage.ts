@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useBandProtocolAllData, useDataFreshness } from '@/hooks';
+import { useRefresh, useExport, useBandProtocolAllData, useDataFreshness, useBandIBCConnections, useBandIBCTransferStats, useBandIBCTransferTrends, useBandStakingInfo, useBandStakingDistribution, useBandGovernanceProposals, useBandGovernanceParams } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
@@ -33,6 +33,14 @@ export function useBandProtocolPage() {
     chain: config.defaultChain,
     enabled: true,
   });
+
+  const { ibcConnections } = useBandIBCConnections(true);
+  const { ibcTransferStats } = useBandIBCTransferStats(true);
+  const { ibcTransferTrends } = useBandIBCTransferTrends({ days: 7, enabled: true });
+  const { stakingInfo } = useBandStakingInfo(true);
+  const { stakingDistribution } = useBandStakingDistribution(true);
+  const { proposals: governanceProposals } = useBandGovernanceProposals({ enabled: true });
+  const { governanceParams } = useBandGovernanceParams(true);
 
   const { exportData } = useExport({
     data: {
@@ -68,6 +76,13 @@ export function useBandProtocolPage() {
     networkStats,
     validators,
     crossChainStats,
+    ibcConnections,
+    ibcTransferStats,
+    ibcTransferTrends,
+    stakingInfo,
+    stakingDistribution,
+    governanceProposals,
+    governanceParams,
     isLoading,
     isError,
     error: errors[0] || null,

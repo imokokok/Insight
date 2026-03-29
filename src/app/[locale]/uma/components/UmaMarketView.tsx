@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import {
   TrendingUp,
   TrendingDown,
@@ -9,12 +10,684 @@ import {
   Clock,
   Shield,
   Scale,
+  BarChart3,
+  Brain,
+  MessageCircle,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Layers,
 } from 'lucide-react';
 
 import { PriceChart } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
+import { cn } from '@/lib/utils';
 
 import { type UmaMarketViewProps } from '../types';
+import { OptimisticOracleFlow } from './OptimisticOracleFlow';
+
+interface OrderBookEntry {
+  price: number;
+  amount: number;
+  total: number;
+}
+
+interface LargeTransaction {
+  id: string;
+  type: 'buy' | 'sell';
+  price: number;
+  amount: number;
+  value: number;
+  time: string;
+}
+
+function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
+  const [viewMode, setViewMode] = useState<'both' | 'bids' | 'asks'>('both');
+
+  const generateOrderBook = (basePrice: number): { bids: OrderBookEntry[]; asks: OrderBookEntry[] } => {
+    const bids: OrderBookEntry[] = [];
+    const asks: OrderBookEntry[] = [];
+    let bidTotal = 0;
+    let askTotal = 0;
+
+    for (let i = 0; i < 8; i++) {
+      const bidPrice = basePrice * (1 - (i + 1) * 0.002);
+      const bidAmount = Math.random() * 5000 + 1000;
+      bidTotal += bidAmount;
+      bids.push({ price: bidPrice, amount: bidAmount, total: bidTotal });
+
+      const askPrice = basePrice * (1 + (i + 1) * 0.002);
+      const askAmount = Math.random() * 5000 + 1000;
+      askTotal += askAmount;
+      asks.push({ price: askPrice, amount: askAmount, total: askTotal });
+    }
+
+    return { bids, asks };
+  };
+
+  const { bids, asks } = useMemo(() => generateOrderBook(currentPrice), [currentPrice]);
+  const maxTotal = Math.max(bids[bids.length - 1]?.total || 0, asks[asks.length - 1]?.total || 0);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="text-sm font-medium text-gray-900">订单簿</h4>
+        <div className="flex gap-1">
+          {(['both', 'bids', 'asks'] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={cn(
+                'px-2 py-1 text-xs rounded transition-colors',
+                viewMode === mode
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              )}
+            >
+              {mode === 'both' ? '全部' : mode === 'bids' ? '买单' : '卖单'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        {(viewMode === 'both' || viewMode === 'asks') && (
+          <div className="space-y-0.5">
+            <div className="grid grid-cols-3 text-xs text-gray-500 mb-1">
+              <span>价格</span>
+              <span className="text-center">数量</span>
+              <span className="text-right">累计</span>
+            </div>
+            {asks.slice().reverse().map((ask, i) => (
+              <div key={i} className="relative">
+                <div
+                  className="absolute inset-0 bg-red-100"
+                  style={{ width: `${(ask.total / maxTotal) * 100}%`, right: 0, left: 'auto' }}
+                />
+                <div className="relative grid grid-cols-3 text-xs py-1 px-1">
+                  <span className="text-red-600 font-mono">{ask.price.toFixed(2)}</span>
+                  <span className="text-center text-gray-700 font-mono">
+                    {ask.amount.toFixed(0)}
+                  </span>
+                  <span className="text-right text-gray-500 font-mono">
+                    {ask.total.toFixed(0)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="py-2 text-center border-y border-gray-100 my-2">
+          <span className="text-lg font-bold text-gray-900">${currentPrice.toFixed(2)}</span>
+        </div>
+
+        {(viewMode === 'both' || viewMode === 'bids') && (
+          <div className="space-y-0.5">
+            {bids.map((bid, i) => (
+              <div key={i} className="relative">
+                <div
+                  className="absolute inset-0 bg-emerald-100"
+                  style={{ width: `${(bid.total / maxTotal) * 100}%` }}
+                />
+                <div className="relative grid grid-cols-3 text-xs py-1 px-1">
+                  <span className="text-emerald-600 font-mono">{bid.price.toFixed(2)}</span>
+                  <span className="text-center text-gray-700 font-mono">
+                    {bid.amount.toFixed(0)}
+                  </span>
+                  <span className="text-right text-gray-500 font-mono">
+                    {bid.total.toFixed(0)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LiquidityDistribution({ currentPrice }: { currentPrice: number }) {
+  const liquidityData = useMemo(() => {
+    return Array.from({ length: 20 }, (_, i) => {
+      const priceOffset = (i - 10) * 0.5;
+      const price = currentPrice + priceOffset;
+      const liquidity = Math.random() * 1000000 + 100000;
+      return { price, liquidity };
+    });
+  }, [currentPrice]);
+
+  const maxLiquidity = Math.max(...liquidityData.map((d) => d.liquidity));
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Layers className="w-4 h-4 text-gray-600" />
+        <h4 className="text-sm font-medium text-gray-900">流动性分布</h4>
+      </div>
+
+      <div className="space-y-1">
+        {liquidityData.map((data, i) => {
+          const isCurrentPrice = Math.abs(data.price - currentPrice) < 0.5;
+          return (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 w-16 font-mono">${data.price.toFixed(1)}</span>
+              <div className="flex-1 h-4 bg-gray-100 rounded overflow-hidden">
+                <div
+                  className={cn(
+                    'h-full rounded transition-all',
+                    isCurrentPrice ? 'bg-blue-500' : data.price > currentPrice ? 'bg-red-400' : 'bg-emerald-400'
+                  )}
+                  style={{ width: `${(data.liquidity / maxLiquidity) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-500 w-20 text-right font-mono">
+                ${(data.liquidity / 1000).toFixed(0)}K
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-3 gap-4 text-center">
+        <div>
+          <p className="text-xs text-gray-500">买盘流动性</p>
+          <p className="text-sm font-semibold text-emerald-600">$2.8M</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">卖盘流动性</p>
+          <p className="text-sm font-semibold text-red-600">$3.1M</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">买卖比</p>
+          <p className="text-sm font-semibold text-gray-900">0.90</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LargeTransactionMonitor() {
+  const transactions: LargeTransaction[] = useMemo(
+    () => [
+      {
+        id: '1',
+        type: 'buy',
+        price: 3.45,
+        amount: 25000,
+        value: 86250,
+        time: '2分钟前',
+      },
+      {
+        id: '2',
+        type: 'sell',
+        price: 3.44,
+        amount: 18000,
+        value: 61920,
+        time: '5分钟前',
+      },
+      {
+        id: '3',
+        type: 'buy',
+        price: 3.46,
+        amount: 32000,
+        value: 110720,
+        time: '8分钟前',
+      },
+      {
+        id: '4',
+        type: 'buy',
+        price: 3.43,
+        amount: 15000,
+        value: 51450,
+        time: '12分钟前',
+      },
+      {
+        id: '5',
+        type: 'sell',
+        price: 3.45,
+        amount: 28000,
+        value: 96600,
+        time: '15分钟前',
+      },
+    ],
+    []
+  );
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Eye className="w-4 h-4 text-gray-600" />
+          <h4 className="text-sm font-medium text-gray-900">大额交易监控</h4>
+        </div>
+        <span className="text-xs text-gray-500">{'>'}$50K</span>
+      </div>
+
+      <div className="space-y-2">
+        {transactions.map((tx) => (
+          <div
+            key={tx.id}
+            className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0"
+          >
+            <div className="flex items-center gap-2">
+              <div
+                className={cn(
+                  'w-6 h-6 rounded-full flex items-center justify-center',
+                  tx.type === 'buy' ? 'bg-emerald-100' : 'bg-red-100'
+                )}
+              >
+                {tx.type === 'buy' ? (
+                  <ChevronUp className="w-3 h-3 text-emerald-600" />
+                ) : (
+                  <ChevronDown className="w-3 h-3 text-red-600" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  {tx.type === 'buy' ? '买入' : '卖出'} {tx.amount.toLocaleString()} UMA
+                </p>
+                <p className="text-xs text-gray-500">${tx.price.toFixed(2)} · {tx.time}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-semibold text-gray-900">${tx.value.toLocaleString()}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
+  const rsiValue = 58;
+  const macdValue = { macd: 0.045, signal: 0.032, histogram: 0.013 };
+  const bollingerBands = {
+    upper: currentPrice * 1.05,
+    middle: currentPrice,
+    lower: currentPrice * 0.95,
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-900">RSI 指标</h4>
+          <span
+            className={cn(
+              'text-xs px-2 py-0.5 rounded',
+              rsiValue > 70
+                ? 'bg-red-100 text-red-700'
+                : rsiValue < 30
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-gray-100 text-gray-700'
+            )}
+          >
+            {rsiValue > 70 ? '超买' : rsiValue < 30 ? '超卖' : '中性'}
+          </span>
+        </div>
+        <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={cn(
+              'absolute h-full rounded-full transition-all',
+              rsiValue > 70 ? 'bg-red-500' : rsiValue < 30 ? 'bg-emerald-500' : 'bg-blue-500'
+            )}
+            style={{ width: `${rsiValue}%` }}
+          />
+          <div className="absolute top-0 h-full w-px bg-red-400" style={{ left: '70%' }} />
+          <div className="absolute top-0 h-full w-px bg-emerald-400" style={{ left: '30%' }} />
+        </div>
+        <div className="flex justify-between mt-2 text-xs text-gray-500">
+          <span>超卖</span>
+          <span className="font-semibold text-gray-900">{rsiValue}</span>
+          <span>超买</span>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-900">MACD 指标</h4>
+          <span
+            className={cn(
+              'text-xs px-2 py-0.5 rounded',
+              macdValue.histogram > 0
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-red-100 text-red-700'
+            )}
+          >
+            {macdValue.histogram > 0 ? '看涨' : '看跌'}
+          </span>
+        </div>
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">MACD</span>
+            <span className="font-mono text-gray-900">{macdValue.macd.toFixed(3)}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">信号线</span>
+            <span className="font-mono text-gray-900">{macdValue.signal.toFixed(3)}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">柱状图</span>
+            <span
+              className={cn(
+                'font-mono',
+                macdValue.histogram > 0 ? 'text-emerald-600' : 'text-red-600'
+              )}
+            >
+              {macdValue.histogram.toFixed(3)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-900">布林带</h4>
+          <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">正常</span>
+        </div>
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">上轨</span>
+            <span className="font-mono text-red-600">${bollingerBands.upper.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">中轨</span>
+            <span className="font-mono text-gray-900">${bollingerBands.middle.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">下轨</span>
+            <span className="font-mono text-emerald-600">${bollingerBands.lower.toFixed(2)}</span>
+          </div>
+        </div>
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-gray-500">带宽</span>
+            <span className="text-gray-900">10.0%</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-900">成交量</h4>
+          <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">活跃</span>
+        </div>
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">24h成交量</span>
+            <span className="font-mono text-gray-900">$8.2M</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">平均成交量</span>
+            <span className="font-mono text-gray-900">$6.5M</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">成交量比率</span>
+            <span className="font-mono text-emerald-600">1.26x</span>
+          </div>
+        </div>
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-gray-500">状态</span>
+            <span className="text-emerald-600">高于平均</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MarketSentimentAnalysis() {
+  const [activeTab, setActiveTab] = useState<'sentiment' | 'social'>('sentiment');
+
+  const longShortRatio = { long: 62, short: 38 };
+  const fearGreedIndex = 45;
+  const socialSentiment = {
+    twitter: { positive: 68, neutral: 22, negative: 10, mentions: 1250 },
+    reddit: { positive: 55, neutral: 30, negative: 15, mentions: 320 },
+    telegram: { positive: 72, neutral: 18, negative: 10, mentions: 890 },
+  };
+
+  const getSentimentLabel = (index: number) => {
+    if (index <= 25) return { label: '极度恐惧', color: 'text-red-600', bg: 'bg-red-100' };
+    if (index <= 45) return { label: '恐惧', color: 'text-orange-600', bg: 'bg-orange-100' };
+    if (index <= 55) return { label: '中性', color: 'text-gray-600', bg: 'bg-gray-100' };
+    if (index <= 75) return { label: '贪婪', color: 'text-emerald-600', bg: 'bg-emerald-100' };
+    return { label: '极度贪婪', color: 'text-green-600', bg: 'bg-green-100' };
+  };
+
+  const sentimentInfo = getSentimentLabel(fearGreedIndex);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Brain className="w-4 h-4 text-gray-600" />
+          <h4 className="text-sm font-medium text-gray-900">市场情绪分析</h4>
+        </div>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setActiveTab('sentiment')}
+            className={cn(
+              'px-3 py-1 text-xs rounded transition-colors',
+              activeTab === 'sentiment'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            )}
+          >
+            市场情绪
+          </button>
+          <button
+            onClick={() => setActiveTab('social')}
+            className={cn(
+              'px-3 py-1 text-xs rounded transition-colors',
+              activeTab === 'social'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            )}
+          >
+            社交媒体
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'sentiment' ? (
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">多空比例</span>
+              <span className="text-xs text-gray-500">24h</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-8 bg-red-100 rounded-l-lg overflow-hidden flex items-center justify-end pr-2">
+                <span className="text-xs font-semibold text-red-700">{longShortRatio.short}%</span>
+              </div>
+              <div className="flex-1 h-8 bg-emerald-100 rounded-r-lg overflow-hidden flex items-center pl-2">
+                <span className="text-xs font-semibold text-emerald-700">{longShortRatio.long}%</span>
+              </div>
+            </div>
+            <div className="flex justify-between mt-1 text-xs text-gray-500">
+              <span>做空 {longShortRatio.short}%</span>
+              <span>做多 {longShortRatio.long}%</span>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">恐惧贪婪指数</span>
+              <span className={cn('text-xs px-2 py-0.5 rounded', sentimentInfo.bg, sentimentInfo.color)}>
+                {sentimentInfo.label}
+              </span>
+            </div>
+            <div className="relative h-3 bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 rounded-full overflow-hidden">
+              <div
+                className="absolute top-0 w-1 h-full bg-gray-900"
+                style={{ left: `${fearGreedIndex}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-2">
+              <span className="text-2xl font-bold text-gray-900">{fearGreedIndex}</span>
+              <div className="text-right">
+                <p className="text-xs text-gray-500">昨日</p>
+                <p className="text-sm font-semibold text-gray-700">52</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-100">
+            <div>
+              <p className="text-xs text-gray-500 mb-1">清算热度</p>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: '35%' }} />
+                </div>
+                <span className="text-xs font-semibold text-gray-900">35%</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">资金费率</p>
+              <p className="text-sm font-semibold text-emerald-600">+0.0125%</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {Object.entries(socialSentiment).map(([platform, data]) => (
+            <div key={platform} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 capitalize">{platform}</span>
+                </div>
+                <span className="text-xs text-gray-500">{data.mentions} 条讨论</span>
+              </div>
+              <div className="flex gap-1 h-2 rounded-full overflow-hidden">
+                <div className="bg-emerald-400" style={{ width: `${data.positive}%` }} />
+                <div className="bg-gray-300" style={{ width: `${data.neutral}%` }} />
+                <div className="bg-red-400" style={{ width: `${data.negative}%` }} />
+              </div>
+              <div className="flex justify-between mt-1 text-xs text-gray-500">
+                <span className="text-emerald-600">积极 {data.positive}%</span>
+                <span className="text-gray-500">中性 {data.neutral}%</span>
+                <span className="text-red-600">消极 {data.negative}%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MarketDepthChart({ currentPrice }: { currentPrice: number }) {
+  const depthData = useMemo(() => {
+    const bids: { price: number; depth: number }[] = [];
+    const asks: { price: number; depth: number }[] = [];
+
+    for (let i = 0; i < 15; i++) {
+      const bidPrice = currentPrice * (1 - i * 0.01);
+      const askPrice = currentPrice * (1 + i * 0.01);
+      const bidDepth = Math.random() * 500000 + 100000;
+      const askDepth = Math.random() * 500000 + 100000;
+
+      bids.push({ price: bidPrice, depth: bidDepth });
+      asks.push({ price: askPrice, depth: askDepth });
+    }
+
+    return { bids, asks };
+  }, [currentPrice]);
+
+  const maxDepth = Math.max(
+    ...depthData.bids.map((d) => d.depth),
+    ...depthData.asks.map((d) => d.depth)
+  );
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <BarChart3 className="w-4 h-4 text-gray-600" />
+        <h4 className="text-sm font-medium text-gray-900">买卖盘深度图</h4>
+      </div>
+
+      <div className="relative h-40">
+        <svg className="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="bidGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0.05" />
+            </linearGradient>
+            <linearGradient id="askGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#ef4444" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#ef4444" stopOpacity="0.05" />
+            </linearGradient>
+          </defs>
+
+          <path
+            d={depthData.bids
+              .map((d, i) => {
+                const x = 200 - (i / 15) * 180;
+                const y = 160 - (d.depth / maxDepth) * 140;
+                return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+              })
+              .join(' ')}
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="2"
+          />
+          <path
+            d={depthData.bids
+              .map((d, i) => {
+                const x = 200 - (i / 15) * 180;
+                const y = 160 - (d.depth / maxDepth) * 140;
+                return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+              })
+              .join(' ')}
+            fill="url(#bidGradient)"
+          />
+
+          <path
+            d={depthData.asks
+              .map((d, i) => {
+                const x = 200 + (i / 15) * 180;
+                const y = 160 - (d.depth / maxDepth) * 140;
+                return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+              })
+              .join(' ')}
+            fill="none"
+            stroke="#ef4444"
+            strokeWidth="2"
+          />
+          <path
+            d={depthData.asks
+              .map((d, i) => {
+                const x = 200 + (i / 15) * 180;
+                const y = 160 - (d.depth / maxDepth) * 140;
+                return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+              })
+              .join(' ')}
+            fill="url(#askGradient)"
+          />
+
+          <line x1="200" y1="0" x2="200" y2="160" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4" />
+        </svg>
+
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded">
+          ${currentPrice.toFixed(2)}
+        </div>
+      </div>
+
+      <div className="flex justify-between mt-2 text-xs text-gray-500">
+        <span>买盘深度</span>
+        <span>当前价格</span>
+        <span>卖盘深度</span>
+      </div>
+    </div>
+  );
+}
 
 export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProps) {
   const t = useTranslations();
@@ -75,9 +748,9 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
 
   return (
     <div className="space-y-8">
-      {/* 主内容区域 */}
+      <OptimisticOracleFlow />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-        {/* 左侧价格趋势图表 - 占2列 */}
         <div className="lg:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-medium text-gray-900">{t('uma.priceTrend')}</h3>
@@ -94,9 +767,7 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
           </div>
         </div>
 
-        {/* 右侧统计区域 */}
         <div className="flex flex-col gap-8">
-          {/* 快速统计 */}
           <div className="flex-1 flex flex-col">
             <h3 className="text-base font-medium text-gray-900 mb-4">{t('uma.quickStats')}</h3>
             <div className="flex-1 flex flex-col">
@@ -129,7 +800,6 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
             </div>
           </div>
 
-          {/* 网络状态 - 内联布局 */}
           <div className="flex-1 flex flex-col">
             <h3 className="text-base font-medium text-gray-900 mb-4">{t('uma.networkStatus')}</h3>
             <div className="flex-1 flex flex-col gap-3">
@@ -155,7 +825,6 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
             </div>
           </div>
 
-          {/* 数据来源 */}
           <div className="flex-1 flex flex-col">
             <h3 className="text-base font-medium text-gray-900 mb-4">{t('uma.dataSource')}</h3>
             <div className="flex-1 flex flex-col">
@@ -185,7 +854,6 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
         </div>
       </div>
 
-      {/* 核心交易对信息 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
           {t('uma.tradingPair') || '主要交易对'}
@@ -229,6 +897,33 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
             <p className="text-xs text-gray-400 mt-1">{t('uma.depthScore')}</p>
           </div>
         </div>
+      </div>
+
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Activity className="w-5 h-5 text-gray-600" />
+          <h3 className="text-base font-medium text-gray-900">技术指标</h3>
+        </div>
+        <TechnicalIndicators currentPrice={currentPrice} />
+      </div>
+
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Layers className="w-5 h-5 text-gray-600" />
+          <h3 className="text-base font-medium text-gray-900">市场深度数据</h3>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <MarketDepthChart currentPrice={currentPrice} />
+          <OrderBookVisualization currentPrice={currentPrice} />
+          <div className="space-y-6">
+            <LiquidityDistribution currentPrice={currentPrice} />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <LargeTransactionMonitor />
+        <MarketSentimentAnalysis />
       </div>
     </div>
   );

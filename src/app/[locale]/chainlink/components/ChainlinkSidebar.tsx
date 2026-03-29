@@ -1,6 +1,20 @@
 'use client';
 
-import { BarChart3, Globe, Server, Database, Layers, Network, ShieldAlert } from 'lucide-react';
+import {
+  BarChart3,
+  Globe,
+  Server,
+  Database,
+  Layers,
+  Network,
+  ShieldAlert,
+  ArrowRightLeft,
+  Activity,
+  Zap,
+  Clock,
+  Code,
+  Shield,
+} from 'lucide-react';
 
 import { UnifiedSidebar } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
@@ -29,9 +43,34 @@ const navItems = [
     icon: <Database className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
+    id: 'data-streams' as ChainlinkTabId,
+    labelKey: 'chainlink.menu.dataStreams',
+    icon: <Activity className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
     id: 'services' as ChainlinkTabId,
     labelKey: 'chainlink.menu.services',
     icon: <Layers className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'ccip' as ChainlinkTabId,
+    labelKey: 'chainlink.menu.ccip',
+    icon: <ArrowRightLeft className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'vrf' as ChainlinkTabId,
+    labelKey: 'chainlink.menu.vrf',
+    icon: <Zap className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'automation' as ChainlinkTabId,
+    labelKey: 'chainlink.menu.automation',
+    icon: <Clock className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'functions' as ChainlinkTabId,
+    labelKey: 'chainlink.menu.functions',
+    icon: <Code className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
     id: 'ecosystem' as ChainlinkTabId,
@@ -42,6 +81,11 @@ const navItems = [
     id: 'risk' as ChainlinkTabId,
     labelKey: 'chainlink.menu.riskAssessment',
     icon: <ShieldAlert className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'proof-of-reserve' as ChainlinkTabId,
+    labelKey: 'chainlink.menu.proofOfReserve',
+    icon: <Shield className="w-5 h-5" strokeWidth={1.5} />,
   },
 ];
 

@@ -16,8 +16,7 @@ function calculateMarketStats(oracleData: OracleMarketData[], assets: AssetData[
 
   const chainsChange24h =
     oracleData.length > 0
-      ? oracleData.reduce((sum, oracle) => sum + oracle.change24h * oracle.chains, 0) /
-        totalChains
+      ? oracleData.reduce((sum, oracle) => sum + oracle.change24h * oracle.chains, 0) / totalChains
       : 0;
   const protocolsChange24h =
     oracleData.length > 0
@@ -29,7 +28,7 @@ function calculateMarketStats(oracleData: OracleMarketData[], assets: AssetData[
 
   const latencyChange24h =
     oracleData.length > 0
-      ? oracleData.reduce((sum, oracle) => sum + oracle.change24h, 0) / oracleData.length * -0.5
+      ? (oracleData.reduce((sum, oracle) => sum + oracle.change24h, 0) / oracleData.length) * -0.5
       : 0;
 
   const oracleCountChange24h = 0;
@@ -188,8 +187,7 @@ describe('MarketStats Calculations', () => {
   describe('change24h', () => {
     it('should calculate weighted 24h change correctly', () => {
       const stats = calculateMarketStats(mockOracleData, mockAssets);
-      const expected =
-        (2.5 * 45.5 + 3.1 * 25.3 + -1.5 * 10.2) / 100;
+      const expected = (2.5 * 45.5 + 3.1 * 25.3 + -1.5 * 10.2) / 100;
       expect(stats.change24h).toBeCloseTo(expected, 4);
     });
 
@@ -203,8 +201,7 @@ describe('MarketStats Calculations', () => {
     it('should calculate chains-weighted 24h change correctly', () => {
       const stats = calculateMarketStats(mockOracleData, mockAssets);
       const totalChains = 50 + 40 + 30;
-      const expected =
-        (2.5 * 50 + 3.1 * 40 + -1.5 * 30) / totalChains;
+      const expected = (2.5 * 50 + 3.1 * 40 + -1.5 * 30) / totalChains;
       expect(stats.chainsChange24h).toBeCloseTo(expected, 4);
     });
 
@@ -218,8 +215,7 @@ describe('MarketStats Calculations', () => {
     it('should calculate protocols-weighted 24h change correctly', () => {
       const stats = calculateMarketStats(mockOracleData, mockAssets);
       const totalProtocols = 1800 + 450 + 200;
-      const expected =
-        (2.5 * 1800 + 3.1 * 450 + -1.5 * 200) / totalProtocols;
+      const expected = (2.5 * 1800 + 3.1 * 450 + -1.5 * 200) / totalProtocols;
       expect(stats.protocolsChange24h).toBeCloseTo(expected, 4);
     });
 
@@ -289,13 +285,13 @@ describe('MarketStats Calculations', () => {
     it('should handle single oracle correctly', () => {
       const singleOracle = [mockOracleData[0]];
       const stats = calculateMarketStats(singleOracle, mockAssets);
-      
+
       expect(stats.totalTVS).toBe(45.5);
       expect(stats.totalChains).toBe(50);
       expect(stats.totalProtocols).toBe(1800);
       expect(stats.avgUpdateLatency).toBe(12);
       expect(stats.marketDominance).toBe(45.5);
-      expect(stats.change24h).toBeCloseTo(2.5 * 45.5 / 100, 4);
+      expect(stats.change24h).toBeCloseTo((2.5 * 45.5) / 100, 4);
     });
 
     it('should handle negative changes correctly', () => {
@@ -316,9 +312,9 @@ describe('MarketStats Calculations', () => {
           change30d: -15.8,
         },
       ];
-      
+
       const stats = calculateMarketStats(negativeChangeData, mockAssets);
-      expect(stats.change24h).toBeCloseTo(-5.5 * 50 / 100, 4);
+      expect(stats.change24h).toBeCloseTo((-5.5 * 50) / 100, 4);
       expect(stats.dominanceChange24h).toBe(-5.5);
     });
 
@@ -340,7 +336,7 @@ describe('MarketStats Calculations', () => {
           change30d: 500,
         },
       ];
-      
+
       const stats = calculateMarketStats(largeData, mockAssets);
       expect(stats.totalTVS).toBe(1000);
       expect(stats.totalChains).toBe(1000);
@@ -365,7 +361,7 @@ describe('MarketStats Calculations', () => {
           change30d: 0,
         },
       ];
-      
+
       const stats = calculateMarketStats(zeroData, mockAssets);
       expect(stats.totalTVS).toBe(0);
       expect(stats.totalChains).toBe(0);

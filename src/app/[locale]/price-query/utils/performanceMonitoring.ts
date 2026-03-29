@@ -2,8 +2,8 @@
 
 import { useCallback, useRef, useEffect } from 'react';
 
-import { reportCustomMetric, PERFORMANCE_THRESHOLDS } from '@/lib/monitoring';
 import { env } from '@/lib/config/env';
+import { reportCustomMetric, PERFORMANCE_THRESHOLDS } from '@/lib/monitoring';
 import { createLogger } from '@/lib/utils/logger';
 
 import { priceCache, historicalCache, type CacheStats } from './cacheUtils';

@@ -2,7 +2,12 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback, MobileMenuButton, OracleErrorBoundary } from '@/components/oracle';
+import {
+  LoadingState,
+  ErrorFallback,
+  MobileMenuButton,
+  OracleErrorBoundary,
+} from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -16,6 +21,10 @@ import {
   UmaEcosystemView,
   UmaRiskView,
   UMAHero,
+  DataRequestBrowser,
+  GovernanceView,
+  EducationContent,
+  CrossChainVerification,
 } from './components';
 import { useUmaPage } from './hooks/useUmaPage';
 import { type UmaTabId } from './types';
@@ -74,6 +83,8 @@ export default function UmaPage() {
             isLoading={isLoading}
           />
         );
+      case 'requests':
+        return <DataRequestBrowser />;
       case 'disputes':
         return (
           <UmaDisputesView
@@ -98,6 +109,8 @@ export default function UmaPage() {
             isLoading={isLoading}
           />
         );
+      case 'governance':
+        return <GovernanceView isLoading={isLoading} />;
       case 'ecosystem':
         return <UmaEcosystemView config={config} />;
       case 'risk':
@@ -108,6 +121,10 @@ export default function UmaPage() {
             isLoading={isLoading}
           />
         );
+      case 'crosschain':
+        return <CrossChainVerification />;
+      case 'education':
+        return <EducationContent />;
       default:
         return null;
     }

@@ -24,7 +24,6 @@ import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
 
-
 export interface DIAHeroProps {
   config: OracleConfig;
   price: PriceData | null;
@@ -561,7 +560,6 @@ export function DIAHero({
             latency={networkStats?.avgResponseTime ?? config.networkData.avgResponseTime}
             lastUpdate={lastUpdated || undefined}
           />
-
         </div>
       </div>
 

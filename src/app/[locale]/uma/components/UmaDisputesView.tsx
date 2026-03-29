@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import {
   Activity,
   CheckCircle2,
@@ -8,12 +10,16 @@ import {
   TrendingUp,
   Clock,
   Shield,
+  ChevronRight,
+  Vote,
 } from 'lucide-react';
 
 import { DisputeResolutionPanel } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
 
 import { type UmaDisputesViewProps } from '../types';
+
+import { DisputeVotingDetails } from './DisputeVotingDetails';
 
 // 模拟争议趋势数据（7天）
 const disputeTrendData = [
@@ -28,6 +34,7 @@ const disputeTrendData = [
 
 export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisputesViewProps) {
   const t = useTranslations();
+  const [selectedDisputeId, setSelectedDisputeId] = useState<string | null>(null);
 
   const activeDisputes = disputes.filter((d) => d.status === 'active').length;
   const resolvedDisputes = disputes.filter((d) => d.status === 'resolved').length;
@@ -36,6 +43,10 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
 
   const maxActive = Math.max(...disputeTrendData.map((d) => d.active));
   const maxResolved = Math.max(...disputeTrendData.map((d) => d.resolved));
+
+  const selectedDispute = selectedDisputeId
+    ? disputes.find((d) => d.id === selectedDisputeId)
+    : disputes.find((d) => d.status === 'active') || disputes[0];
 
   if (isLoading) {
     return (
@@ -269,6 +280,84 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
           </div>
         </div>
       </div>
+
+      {/* Voting Details Section */}
+      {selectedDispute && (
+        <div className="border-t border-gray-200 pt-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Vote className="w-4 h-4 text-gray-400" />
+              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                投票详情与分析
+              </h3>
+            </div>
+            {disputes.filter((d) => d.status === 'active').length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">选择争议:</span>
+                <select
+                  value={selectedDisputeId || ''}
+                  onChange={(e) => setSelectedDisputeId(e.target.value || null)}
+                  className="text-xs border border-gray-200 rounded px-2 py-1 bg-white"
+                >
+                  {disputes
+                    .filter((d) => d.status === 'active')
+                    .map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.id.slice(0, 8)}... - {d.type}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
+          </div>
+          <DisputeVotingDetails dispute={selectedDispute} isLoading={isLoading} />
+        </div>
+      )}
+
+      {/* Active Disputes Quick Select */}
+      {disputes.filter((d) => d.status === 'active').length > 1 && (
+        <div className="border-t border-gray-200 pt-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity className="w-4 h-4 text-amber-500" />
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+              活跃争议快速选择
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {disputes
+              .filter((d) => d.status === 'active')
+              .slice(0, 6)
+              .map((dispute) => (
+                <button
+                  key={dispute.id}
+                  onClick={() => setSelectedDisputeId(dispute.id)}
+                  className={`p-4 rounded-lg border text-left transition-all ${
+                    selectedDisputeId === dispute.id
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-mono text-gray-900">
+                      {dispute.id.slice(0, 8)}...
+                    </span>
+                    <span className="px-2 py-0.5 text-xs font-medium rounded bg-amber-100 text-amber-700">
+                      活跃
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span className="capitalize">{dispute.type}</span>
+                    <span>${dispute.stakeAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-end mt-2 text-xs text-primary-600">
+                    <span>查看投票详情</span>
+                    <ChevronRight className="w-3 h-3 ml-1" />
+                  </div>
+                </button>
+              ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

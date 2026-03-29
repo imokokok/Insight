@@ -13,7 +13,90 @@
       "gas": "Gas",
       "crossOracle": "Cross-Oracle",
       "ecosystem": "Ecosystem",
-      "risk": "Risk"
+      "risk": "Risk",
+      "alerts": "Alerts"
+    },
+    "alerts": {
+      "title": "Alert Center",
+      "subtitle": "Real-time monitoring of API3 network status and risk events",
+      "activeAlerts": "Active Alerts",
+      "alertHistory": "Alert History",
+      "thresholdSettings": "Threshold Settings",
+      "noAlerts": "No Alerts",
+      "noAlertsDesc": "Network is operating normally with no alerts requiring attention",
+      "markRead": "Mark as Read",
+      "markAllRead": "Mark All as Read",
+      "resolve": "Resolve",
+      "resolveAll": "Resolve All",
+      "viewAll": "View All",
+      "refresh": "Refresh",
+      "filter": "Filter",
+      "filterByType": "Filter by Type",
+      "filterBySeverity": "Filter by Severity",
+      "filterByStatus": "Filter by Status",
+      "allTypes": "All Types",
+      "allSeverities": "All Severities",
+      "allStatus": "All Status",
+      "types": {
+        "price_deviation": "Price Deviation",
+        "node_offline": "Node Offline",
+        "coverage_pool_risk": "Coverage Pool Risk",
+        "security_event": "Security Event"
+      },
+      "severities": {
+        "info": "Info",
+        "warning": "Warning",
+        "critical": "Critical"
+      },
+      "status": {
+        "unread": "Unread",
+        "read": "Read",
+        "resolved": "Resolved",
+        "unresolved": "Unresolved"
+      },
+      "stats": {
+        "total": "Total Alerts",
+        "unread": "Unread",
+        "critical": "Critical",
+        "warning": "Warning",
+        "info": "Info",
+        "resolved": "Resolved"
+      },
+      "time": {
+        "justNow": "Just now",
+        "minutesAgo": "{count} minutes ago",
+        "hoursAgo": "{count} hours ago",
+        "daysAgo": "{count} days ago"
+      },
+      "messages": {
+        "priceDeviationWarning": "{symbol} dAPI price deviation from market price exceeds threshold, attention recommended",
+        "priceDeviationCritical": "{symbol} price deviation is critical, immediate action required",
+        "nodeOfflineWarning": "Multiple Airnode nodes experiencing response delays",
+        "nodeOfflineCritical": "Critical Airnode nodes are offline",
+        "coveragePoolWarning": "Coverage pool collateralization ratio below recommended level",
+        "coveragePoolCritical": "Coverage pool collateralization critically insufficient",
+        "securityEventInfo": "Potential security risk detected",
+        "securityEventWarning": "Abnormal trading activity detected",
+        "securityEventCritical": "Security event requires immediate attention"
+      },
+      "thresholds": {
+        "title": "Alert Threshold Settings",
+        "subtitle": "Configure alert trigger conditions",
+        "priceDeviationWarning": "Price Deviation Warning Threshold",
+        "priceDeviationCritical": "Price Deviation Critical Threshold",
+        "nodeResponseTime": "Node Response Time Threshold",
+        "coveragePoolRatio": "Coverage Pool Ratio Threshold",
+        "nodeOffline": "Node Offline Count Threshold",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "lastTriggered": "Last Triggered"
+      },
+      "notifications": {
+        "title": "Notification Settings",
+        "enablePush": "Enable Push Notifications",
+        "enableEmail": "Enable Email Notifications",
+        "enableSound": "Enable Sound Alerts"
+      }
     },
     "menu": {
       "title": "API3",
@@ -21,9 +104,11 @@
       "networkHealth": "Network Health",
       "airnode": "Airnode",
       "dapi": "dAPI",
+      "oev": "OEV Network",
       "ecosystem": "Ecosystem",
       "riskAssessment": "Risk Assessment",
-      "crossOracleComparison": "Cross-Oracle Comparison"
+      "crossOracleComparison": "Cross-Oracle Comparison",
+      "analytics": "Analytics Tools"
     },
     "navigation": {
       "title": "API3"
@@ -189,6 +274,53 @@
       "disclaimer": "Risk Disclaimer",
       "disclaimerText": "This risk analysis is for reference only and does not constitute investment advice. Please assess risks independently before investing."
     },
+    "coveragePool": {
+      "title": "Coverage Pool Dashboard",
+      "subtitle": "Real-time monitoring of coverage pool health and claims",
+      "healthy": "Healthy",
+      "warning": "Warning",
+      "critical": "Critical",
+      "unknown": "Unknown",
+      "solvencyGauge": "Solvency Gauge",
+      "collateralizationRatio": "Collateralization Ratio",
+      "targetRatio": "Target Ratio",
+      "keyMetrics": "Key Metrics",
+      "totalValueLocked": "Total Value Locked",
+      "stakerCount": "Stakers",
+      "pendingClaims": "Pending Claims",
+      "totalPayouts": "Total Payouts",
+      "healthIndicators": "Health Indicators",
+      "collateralHealth": "Collateral Health",
+      "claimHealth": "Claim Health",
+      "participation": "Participation",
+      "claimsList": "Claims Status",
+      "allClaims": "All Claims",
+      "filterPending": "Pending",
+      "filterProcessing": "Processing",
+      "filterApproved": "Approved",
+      "filterRejected": "Rejected",
+      "claimId": "ID",
+      "claimStatus": "Status",
+      "claimAmount": "Amount",
+      "claimRequester": "Requester",
+      "claimDate": "Date",
+      "claimVotes": "Votes",
+      "claimPending": "Pending",
+      "claimProcessing": "Processing",
+      "claimApproved": "Approved",
+      "claimRejected": "Rejected",
+      "stakerStats": "Top Stakers Statistics",
+      "stakerAddress": "Address",
+      "stakedAmount": "Staked Amount",
+      "pendingRewards": "Pending Rewards",
+      "claimedRewards": "Claimed Rewards",
+      "apr": "APR",
+      "stakeDate": "Stake Date",
+      "historicalPayouts": "Historical Payouts",
+      "totalProcessedClaims": "Total Processed Claims",
+      "avgStakeAmount": "Average Stake Amount",
+      "lastUpdate": "Last Updated"
+    },
     "crossOracle": {
       "overview": {
         "title": "Multi-Oracle Comparative Analysis",
@@ -251,7 +383,73 @@
       "successRate": "Success Rate",
       "availability": "Availability",
       "latency": "Latency",
-      "overview": "Network Overview"
+      "overview": "Network Overview",
+      "topology": "Network Topology"
+    },
+    "visualization": {
+      "geoMap": {
+        "title": "Airnode Geographic Distribution",
+        "subtitle": "Global node distribution",
+        "activeNodes": "Active Nodes",
+        "totalNodes": "Total Nodes",
+        "activeRate": "Active Rate",
+        "regionStats": "Region Statistics",
+        "nodeStatus": "Node Status",
+        "nodeSize": "Node Size",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out",
+        "resetView": "Reset View"
+      },
+      "dataFlow": {
+        "title": "Data Flow Visualization",
+        "dataSources": "Data Sources",
+        "flowPath": "Data Flow Path",
+        "processing": "Processing",
+        "currentPhase": "Current Phase",
+        "phaseDelay": "Phase Delay",
+        "totalDelay": "Total Delay",
+        "updateFrequency": "Update Frequency",
+        "pause": "Pause",
+        "play": "Play"
+      },
+      "priceAnimation": {
+        "title": "Real-time Price",
+        "priceUpdate": "Price updating",
+        "trend": {
+          "up": "Up",
+          "down": "Down",
+          "stable": "Stable"
+        }
+      },
+      "historicalComparison": {
+        "title": "Historical Data Comparison",
+        "dataSeries": "Data Series",
+        "timeRange": "Time Range",
+        "export": "Export Data",
+        "zoomSelect": "Zoom Selection",
+        "resetZoom": "Reset Zoom",
+        "latest": "Latest",
+        "average": "Average",
+        "change": "Change"
+      },
+      "networkTopology": {
+        "title": "Network Topology",
+        "nodeHealth": "Node Health",
+        "connectionHealth": "Connection Health",
+        "avgLatency": "Avg Latency",
+        "totalConnections": "Total Connections",
+        "nodeTypes": {
+          "airnode": "Airnode",
+          "dapi": "dAPI",
+          "chain": "Chain",
+          "source": "Source"
+        },
+        "connectionStatus": {
+          "healthy": "Healthy",
+          "degraded": "Degraded",
+          "failed": "Failed"
+        }
+      }
     },
     "ecosystem": {
       "tvlAnalysis": {
@@ -302,7 +500,209 @@
       "thresholdDesc": "Updates triggered when price change exceeds threshold",
       "reliabilityDesc": "Reliability score based on historical performance",
       "decentralization": "Decentralization",
-      "decentralizationDesc": "Degree of distribution of data sources"
+      "decentralizationDesc": "Degree of distribution of data sources",
+      "searchPlaceholder": "Search dAPIs...",
+      "searchLabel": "Search dAPIs",
+      "filters": "Filters",
+      "savedFilters": "Saved",
+      "savedFiltersTitle": "Saved Filters",
+      "noSavedFilters": "No saved filters",
+      "saveCurrentFilters": "Save Current",
+      "filterNamePlaceholder": "Filter name...",
+      "clearAll": "Clear All",
+      "categories": "Categories",
+      "chains": "Chains",
+      "statuses": "Status",
+      "search": "Search",
+      "results": "results"
+    },
+    "oev": {
+      "totalOevCaptured": "Total OEV Captured",
+      "activeAuctions": "Active Auctions",
+      "totalDapps": "Integrated dApps",
+      "avgAuctionValue": "Avg Auction Value",
+      "overview": {
+        "title": "OEV Network Overview",
+        "description": "Oracle Extractable Value (OEV) Network captures value from oracle updates and redistributes it to dApps and searchers"
+      },
+      "trend": {
+        "title": "OEV Trend (7 Days)",
+        "description": "Daily OEV captured and auction activity"
+      },
+      "realtime": {
+        "title": "Real-time Auctions",
+        "description": "Latest OEV auctions across the network"
+      },
+      "tabs": {
+        "auctions": "Auctions",
+        "participants": "Participants"
+      },
+      "table": {
+        "dapp": "dApp",
+        "dapi": "dAPI",
+        "amount": "Amount",
+        "winner": "Winner",
+        "status": "Status",
+        "time": "Time"
+      },
+      "participants": {
+        "leaderboard": "Participant Leaderboard"
+      },
+      "distribution": {
+        "title": "Value Distribution"
+      },
+      "wins": "wins",
+      "mechanism": {
+        "title": "How OEV Network Works",
+        "description": "Understanding the OEV capture and redistribution mechanism",
+        "step1": {
+          "title": "1. OEV Detection",
+          "description": "When oracle price updates occur, the OEV Network detects extractable value opportunities before they can be exploited by MEV bots."
+        },
+        "step2": {
+          "title": "2. Auction Process",
+          "description": "Searchers bid in transparent auctions for the right to capture OEV. The highest bidder wins and their bid goes to the dApp."
+        },
+        "step3": {
+          "title": "3. Value Distribution",
+          "description": "Captured value is distributed to dApps, searchers, and protocol participants, creating a fair and transparent MEV ecosystem."
+        }
+      },
+      "info": {
+        "title": "About OEV Network",
+        "description": "OEV (Oracle Extractable Value) Network is API3's solution for capturing and redistributing value from oracle updates. Unlike traditional MEV that benefits only miners/validators, OEV Network ensures that dApps and their users receive the value generated by oracle price movements."
+      },
+      "learnMore": "Learn more about OEV Network"
+    },
+    "timeRange": {
+      "custom": "Custom",
+      "quickSelect": "Quick Select",
+      "customRange": "Custom Range",
+      "start": "Start Date",
+      "end": "End Date",
+      "selected": "Selected"
+    },
+    "export": {
+      "title": "Export Data",
+      "records": "records",
+      "format": "Format",
+      "fields": "Fields",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "preview": "Preview",
+      "history": "History",
+      "previewTitle": "Preview (first 5 rows)",
+      "historyTitle": "Export History",
+      "noHistory": "No export history",
+      "scheduledExports": "Scheduled Exports",
+      "addSchedule": "Add",
+      "noScheduled": "No scheduled exports",
+      "exporting": "Exporting...",
+      "download": "Download"
+    },
+    "favorites": {
+      "add": "Add to Favorites",
+      "remove": "Remove from Favorites",
+      "addToFavorites": "Favorite",
+      "favorited": "Favorited",
+      "addToGroup": "Add to Group",
+      "ungrouped": "Ungrouped",
+      "manageGroups": "Manage Groups",
+      "groupManager": "Group Manager",
+      "newGroupName": "New group name...",
+      "noGroups": "No groups created yet"
+    },
+    "quickAccess": {
+      "title": "Quick Access",
+      "recent": "Recent",
+      "favorites": "Favorites",
+      "noRecent": "No recent items",
+      "noFavorites": "No favorites yet",
+      "clearRecent": "Clear recent items",
+      "justNow": "Just now",
+      "minutesAgo": "{count}m ago",
+      "hoursAgo": "{count}h ago",
+      "daysAgo": "{count}d ago",
+      "marketData": "Market Data",
+      "dapi": "dAPI",
+      "airnode": "Airnode"
+    },
+    "developer": {
+      "title": "Developer Tools",
+      "description": "API integration tools, SDK downloads and technical documentation",
+      "tabs": {
+        "apiDocs": "API Docs",
+        "guide": "Integration Guide",
+        "sdk": "SDK Downloads",
+        "testnet": "Testnet"
+      },
+      "apiDocs": {
+        "title": "API Documentation",
+        "description": "Complete API reference documentation with all endpoints, parameters and response formats",
+        "parameters": "Parameters",
+        "paramName": "Parameter",
+        "type": "Type",
+        "required": "Required",
+        "description": "Description",
+        "responseExample": "Response Example",
+        "codeExample": "Code Example",
+        "authentication": {
+          "title": "Authentication",
+          "description": "All API requests require an API Key in the Header for authentication"
+        },
+        "rateLimits": {
+          "title": "Rate Limits",
+          "tier": "Tier",
+          "requests": "Requests",
+          "burst": "Burst Limit",
+          "price": "Price"
+        },
+        "moreResources": "More Resources"
+      },
+      "guide": {
+        "quickStart": {
+          "title": "Quick Start",
+          "description": "Complete API3 integration in minutes"
+        },
+        "scenarios": {
+          "title": "Integration Scenarios"
+        },
+        "bestPractices": {
+          "title": "Best Practices"
+        },
+        "troubleshooting": {
+          "title": "Troubleshooting",
+          "problem": "Problem",
+          "solution": "Solution"
+        },
+        "faq": {
+          "title": "FAQ"
+        }
+      },
+      "sdk": {
+        "title": "SDK Downloads",
+        "description": "Choose the SDK that fits your tech stack for quick API3 integration",
+        "additionalTools": {
+          "title": "Additional Tools"
+        },
+        "support": {
+          "title": "Need Help?",
+          "description": "If you encounter issues during integration, get support through these channels"
+        }
+      },
+      "testnet": {
+        "title": "Network Switch",
+        "description": "Switch between mainnet and testnet environments and get configuration info",
+        "config": {
+          "title": "Network Configuration"
+        },
+        "testTokens": {
+          "title": "Test Tokens"
+        },
+        "resources": {
+          "title": "More Resources"
+        }
+      }
     }
   },
   "dapiCoverage": {
@@ -348,6 +748,97 @@
       "exchanges": "Exchanges",
       "traditionalFinance": "Traditional Finance",
       "others": "Others"
+    }
+  },
+  "analytics": {
+    "title": "Analytics Tools",
+    "subtitle": "Advanced data analysis and prediction tools",
+    "tabs": {
+      "report": "Custom Report",
+      "comparison": "Data Comparison",
+      "prediction": "Trend Prediction",
+      "anomaly": "Anomaly Detection"
+    },
+    "reportGenerator": {
+      "title": "Custom Report Generator",
+      "subtitle": "Create custom reports with selected metrics and time ranges",
+      "reportTitle": "Report Title",
+      "selectMetrics": "Select Metrics",
+      "addMetric": "Add Metric",
+      "timeRange": "Time Range",
+      "chartType": "Chart Type",
+      "filters": "Filters",
+      "savedTemplates": "Saved Templates",
+      "noTemplates": "No saved templates",
+      "saveTemplate": "Save Template",
+      "preview": "Preview Report",
+      "exportPDF": "Export PDF",
+      "exportImage": "Export Image",
+      "previewTitle": "Report Preview"
+    },
+    "comparison": {
+      "title": "Data Comparison Analysis",
+      "subtitle": "Compare data across different dAPIs, chains, or timeframes",
+      "comparisonType": "Comparison Type",
+      "dapi": "dAPI",
+      "chain": "Chain",
+      "timeframe": "Timeframe",
+      "source1": "Source 1",
+      "source2": "Source 2",
+      "metric": "Metric",
+      "compare": "Compare",
+      "comparisonChart": "Comparison Chart",
+      "summary": "Comparison Summary",
+      "difference": "Difference",
+      "percentChange": "Percent Change",
+      "correlation": "Correlation Analysis",
+      "coefficient": "Coefficient",
+      "strength": "Strength",
+      "direction": "Direction",
+      "differenceChart": "Difference Analysis",
+      "analysisTitle": "Analysis Insight",
+      "highDeviation": "Significant deviation detected between sources. This may indicate market inefficiency or data quality issues.",
+      "moderateDeviation": "Moderate deviation between sources. Values are within acceptable range.",
+      "lowDeviation": "Low deviation between sources. Data is consistent and reliable.",
+      "export": "Export Results"
+    },
+    "prediction": {
+      "title": "Trend Prediction",
+      "subtitle": "Historical trend analysis and price prediction",
+      "settings": "Settings",
+      "predictionHorizon": "Prediction Horizon",
+      "confidenceLevel": "Confidence Level",
+      "maWindow": "Moving Average Window",
+      "currentPrice": "Current Price",
+      "predictedPrice": "Predicted Price",
+      "trend": "Trend",
+      "expectedChange": "Expected Change",
+      "chartTitle": "Historical Data & Prediction",
+      "predictionDetails": "Prediction Details",
+      "accuracyMetrics": "Accuracy Metrics",
+      "volatility": "Annualized Volatility",
+      "confidenceWidth": "Confidence Interval Width",
+      "disclaimer": "Predictions are based on historical linear regression and should not be used as financial advice. Market conditions can change rapidly."
+    },
+    "anomaly": {
+      "title": "Anomaly Detection",
+      "subtitle": "Detect statistical anomalies using Z-score and IQR methods",
+      "settings": "Settings",
+      "sensitivity": "Detection Sensitivity",
+      "detectionMethod": "Detection Method",
+      "export": "Export Report",
+      "totalPoints": "Total Points",
+      "anomaliesFound": "Anomalies Found",
+      "anomalyRate": "Anomaly Rate",
+      "mean": "Mean",
+      "stdDev": "Std Dev",
+      "chartTitle": "Data with Anomalies Highlighted",
+      "anomalyList": "Detected Anomalies",
+      "noAnomalies": "No anomalies detected with current settings",
+      "severityBreakdown": "Severity Breakdown",
+      "anomalyDetails": "Anomaly Details",
+      "aboutTitle": "About Anomaly Detection",
+      "aboutDesc": "Anomalies are detected using statistical methods. Z-score measures deviation from the mean, while IQR identifies outliers based on quartile ranges."
     }
   }
 }

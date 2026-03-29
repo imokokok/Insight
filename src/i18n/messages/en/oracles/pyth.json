@@ -66,6 +66,18 @@
         "up": "Up",
         "down": "Down",
         "neutral": "Neutral"
+      },
+      "priceComparison": "EMA vs Current Price",
+      "emaPeriod": "EMA Period",
+      "currentPrice": "Current Price",
+      "emaValue": "EMA Value",
+      "deviation": "Deviation",
+      "trendIndicator": "Trend Indicator",
+      "explanation": "EMA gives more weight to recent prices, making it more responsive to new information than simple moving average.",
+      "periods": {
+        "ema7": "EMA-7 (Short-term)",
+        "ema25": "EMA-25 (Medium-term)",
+        "ema99": "EMA-99 (Long-term)"
       }
     },
     "pageTitles": {

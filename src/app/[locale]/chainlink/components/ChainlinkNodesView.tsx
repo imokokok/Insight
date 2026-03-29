@@ -1,12 +1,24 @@
 'use client';
 
-import { Server, TrendingUp, Globe, Award, Activity, Clock, Shield } from 'lucide-react';
+import {
+  Server,
+  TrendingUp,
+  Globe,
+  Award,
+  Activity,
+  Clock,
+  Shield,
+  Wallet,
+  BarChart3,
+} from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
 import { type NodeData } from '../types';
 
 import { ChainlinkDataTable } from './ChainlinkDataTable';
+import { NodeEarningsPanel } from './NodeEarningsPanel';
+import { NodePerformanceTrends } from './NodePerformanceTrends';
 import { StakingRewardsCalculator } from './StakingRewardsCalculator';
 
 const mockNodes: NodeData[] = [
@@ -253,6 +265,34 @@ export function ChainlinkNodesView() {
           </section>
         </div>
       </div>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200 my-8" />
+
+      {/* 节点收益分析 */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Wallet className="w-4 h-4 text-gray-500" />
+          <h2 className="text-base font-medium text-gray-900">
+            {t('chainlink.nodes.earningsAnalysis')}
+          </h2>
+        </div>
+        <NodeEarningsPanel nodes={mockNodes} />
+      </section>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200 my-8" />
+
+      {/* 节点性能趋势 */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-gray-500" />
+          <h2 className="text-base font-medium text-gray-900">
+            {t('chainlink.nodes.performanceTrends')}
+          </h2>
+        </div>
+        <NodePerformanceTrends nodes={mockNodes} />
+      </section>
     </div>
   );
 }

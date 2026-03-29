@@ -179,7 +179,13 @@ const mockComparisonData: ComparisonData[] = [
       marketShare: { name: 'Market Share', value: 45.5, normalizedValue: 95, unit: '%', rank: 1 },
       chains: { name: 'Chains', value: 50, normalizedValue: 90, unit: '', rank: 1 },
       protocols: { name: 'Protocols', value: 1800, normalizedValue: 95, unit: '', rank: 1 },
-      updateFrequency: { name: 'Update Frequency', value: 1, normalizedValue: 85, unit: 's', rank: 3 },
+      updateFrequency: {
+        name: 'Update Frequency',
+        value: 1,
+        normalizedValue: 85,
+        unit: 's',
+        rank: 3,
+      },
     },
     overallScore: 92,
     rank: 1,
@@ -197,16 +203,32 @@ const mockBenchmarkData: BenchmarkData[] = [
       description: 'Average price update latency',
     },
     oracleValues: [
-      { oracle: 'Chainlink', color: '#375BD2', value: 12, diffFromAverage: -3, diffPercent: -20, percentile: 75 },
+      {
+        oracle: 'Chainlink',
+        color: '#375BD2',
+        value: 12,
+        diffFromAverage: -3,
+        diffPercent: -20,
+        percentile: 75,
+      },
     ],
   },
 ];
 
 const mockCorrelationData: CorrelationData = {
   oracles: ['Chainlink', 'Pyth'],
-  matrix: [[1.0, 0.85], [0.85, 1.0]],
+  matrix: [
+    [1.0, 0.85],
+    [0.85, 1.0],
+  ],
   pairs: [
-    { oracleA: 'Chainlink', oracleB: 'Pyth', correlation: 0.85, sampleSize: 1000, confidence: 0.95 },
+    {
+      oracleA: 'Chainlink',
+      oracleB: 'Pyth',
+      correlation: 0.85,
+      sampleSize: 1000,
+      confidence: 0.95,
+    },
   ],
   timeRange: '30D',
   lastUpdated: new Date().toISOString(),

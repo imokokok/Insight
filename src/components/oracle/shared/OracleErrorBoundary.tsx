@@ -1,6 +1,7 @@
 'use client';
 
 import { Component, type ReactNode } from 'react';
+
 import { useTranslations } from '@/i18n';
 
 interface ErrorInfo {

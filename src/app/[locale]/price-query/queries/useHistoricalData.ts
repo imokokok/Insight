@@ -8,12 +8,13 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 
+import { getOracleClient } from '@/lib/oracles';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 import type { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
-import { getOracleClient } from '@/lib/oracles';
+
+import { CACHE_CONFIG, historicalCache, createCacheKey } from '../utils/cacheUtils';
 
 import { priceQueryKeys } from './queryKeys';
-import { CACHE_CONFIG, historicalCache, createCacheKey } from '../utils/cacheUtils';
 
 export interface UseHistoricalDataOptions {
   provider: OracleProvider;

@@ -1,10 +1,10 @@
+import { isBlockchain } from '@/lib/utils/chainUtils';
 import {
   type OracleProvider,
   type Blockchain,
   ORACLE_PROVIDER_VALUES,
   BLOCKCHAIN_VALUES,
 } from '@/types/oracle';
-import { isBlockchain } from '@/lib/utils/chainUtils';
 
 export interface QueryConfig {
   oracles: OracleProvider[];

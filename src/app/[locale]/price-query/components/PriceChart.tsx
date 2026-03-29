@@ -344,7 +344,11 @@ export function PriceChart({
                 : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
             }`}
             aria-pressed={showDataTable}
-            aria-label={showDataTable ? t('priceQuery.charts.hideDataTable') : t('priceQuery.charts.showDataTable')}
+            aria-label={
+              showDataTable
+                ? t('priceQuery.charts.hideDataTable')
+                : t('priceQuery.charts.showDataTable')
+            }
           >
             <Table className="w-3.5 h-3.5" aria-hidden="true" />
             <span className="hidden sm:inline">{t('priceQuery.charts.tableView')}</span>
@@ -494,22 +498,21 @@ export function PriceChart({
           </ResponsiveContainer>
         </div>
 
-        <div
-          className="sr-only"
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-        >
+        <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
           {focusedDataPoint && (
             <>
-              {t('priceQuery.charts.currentDataPoint')}: {new Date(focusedDataPoint.timestamp).toLocaleString()}
-              {seriesNames.map((name) => {
-                const value = focusedDataPoint[name];
-                if (typeof value === 'number' && !hiddenSeries.has(name)) {
-                  return `, ${name}: ${formatPrice(value)}`;
-                }
-                return null;
-              }).filter(Boolean).join('')}
+              {t('priceQuery.charts.currentDataPoint')}:{' '}
+              {new Date(focusedDataPoint.timestamp).toLocaleString()}
+              {seriesNames
+                .map((name) => {
+                  const value = focusedDataPoint[name];
+                  if (typeof value === 'number' && !hiddenSeries.has(name)) {
+                    return `, ${name}: ${formatPrice(value)}`;
+                  }
+                  return null;
+                })
+                .filter(Boolean)
+                .join('')}
             </>
           )}
         </div>

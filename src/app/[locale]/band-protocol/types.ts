@@ -3,6 +3,14 @@ import {
   type BandNetworkStats,
   type ValidatorInfo,
   type CrossChainStats,
+  type IBCConnection,
+  type IBCTransferStats,
+  type IBCTransferTrend,
+  type OracleScript,
+  type StakingInfo,
+  type StakingDistribution,
+  type GovernanceProposal,
+  type GovernanceParams,
 } from '@/lib/oracles/bandProtocol';
 import { type PriceData } from '@/types/oracle';
 
@@ -12,7 +20,11 @@ export type BandProtocolTabId =
   | 'validators'
   | 'cross-chain'
   | 'data-feeds'
-  | 'risk';
+  | 'oracle-scripts'
+  | 'risk'
+  | 'ibc'
+  | 'staking'
+  | 'governance';
 
 export interface NetworkStats {
   activeNodes: number;
@@ -30,6 +42,9 @@ export interface BandProtocolPageState {
   networkStats: BandNetworkStats | null;
   validators: ValidatorInfo[];
   crossChainStats: CrossChainStats | null;
+  ibcConnections: IBCConnection[];
+  ibcTransferStats: IBCTransferStats | null;
+  ibcTransferTrends: IBCTransferTrend[];
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
@@ -76,6 +91,30 @@ export interface BandProtocolValidatorsViewProps {
 
 export interface BandProtocolCrossChainViewProps {
   crossChainStats: CrossChainStats | null | undefined;
+  isLoading: boolean;
+}
+
+export interface BandProtocolIBCViewProps {
+  ibcConnections: IBCConnection[];
+  ibcTransferStats: IBCTransferStats | null | undefined;
+  ibcTransferTrends: IBCTransferTrend[];
+  isLoading: boolean;
+}
+
+export interface BandProtocolOracleScriptsViewProps {
+  oracleScripts: OracleScript[];
+  isLoading: boolean;
+}
+
+export interface BandProtocolStakingViewProps {
+  stakingInfo: StakingInfo | null | undefined;
+  stakingDistribution: StakingDistribution[];
+  isLoading: boolean;
+}
+
+export interface BandProtocolGovernanceViewProps {
+  proposals: GovernanceProposal[];
+  governanceParams: GovernanceParams | null | undefined;
   isLoading: boolean;
 }
 

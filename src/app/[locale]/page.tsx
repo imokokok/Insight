@@ -1,6 +1,6 @@
-import type { Metadata } from 'next';
-
 import HomeContent from './HomeContent';
+
+import type { Metadata } from 'next';
 
 export async function generateMetadata({
   params,

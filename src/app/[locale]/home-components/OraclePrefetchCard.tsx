@@ -15,12 +15,12 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
-import { useHoverPrefetch } from '@/hooks';
-import { createLogger } from '@/lib/utils/logger';
-import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { useHoverPrefetch } from '@/hooks';
 import { useTranslations, useLocale } from '@/i18n';
 import { formatCompactNumber } from '@/lib/utils/format';
+import { createLogger } from '@/lib/utils/logger';
+import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 
 const logger = createLogger('OraclePrefetchCard');
 

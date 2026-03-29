@@ -18,12 +18,14 @@ import {
   TrendingUp as TrendingUpIcon,
 } from 'lucide-react';
 
+import { API3AlertBadgeCompact, API3AlertStatusIndicator } from '@/components/oracle/alerts';
+import { QuickAccessPanel } from '@/components/oracle/data-display/QuickAccessPanel';
+import { EnhancedDataExport, type ExportableData } from '@/components/oracle/forms/EnhancedDataExport';
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import type { OracleConfig } from '@/lib/config/oracles';
 import type { PriceData } from '@/types/oracle';
-
 
 interface AirnodeStats {
   activeAirnodes: number;
@@ -52,6 +54,10 @@ export interface API3HeroProps {
   lastUpdated: Date | null;
   onRefresh: () => void;
   onExport: () => void;
+  alertUnreadCount?: number;
+  alertCriticalCount?: number;
+  alertWarningCount?: number;
+  onAlertClick?: () => void;
 }
 
 interface StatItem {
@@ -233,11 +239,13 @@ function ActionButtons({
   onExport,
   isRefreshing,
   themeColor,
+  exportData,
 }: {
   onRefresh: () => void;
   onExport: () => void;
   isRefreshing: boolean;
   themeColor: string;
+  exportData?: ExportableData[];
 }) {
   const t = useTranslations();
 
@@ -251,14 +259,22 @@ function ActionButtons({
         <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
         <span className="hidden sm:inline">{t('common.refresh')}</span>
       </button>
-      <button
-        onClick={onExport}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-90 transition-all shadow-sm"
-        style={{ backgroundColor: themeColor }}
-      >
-        <ExternalLink className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">{t('common.export')}</span>
-      </button>
+      {exportData && exportData.length > 0 ? (
+        <EnhancedDataExport
+          data={exportData}
+          filename="api3_data"
+          supportedFormats={['csv', 'json']}
+        />
+      ) : (
+        <button
+          onClick={onExport}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-90 transition-all shadow-sm"
+          style={{ backgroundColor: themeColor }}
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">{t('common.export')}</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -457,6 +473,10 @@ export function API3Hero({
   lastUpdated,
   onRefresh,
   onExport,
+  alertUnreadCount = 0,
+  alertCriticalCount = 0,
+  alertWarningCount = 0,
+  onAlertClick,
 }: API3HeroProps) {
   const t = useTranslations();
   const themeColor = config.themeColor;
@@ -576,25 +596,41 @@ export function API3Hero({
     [airnodeStats, dapiCoverage, config]
   );
 
+  const exportData: ExportableData[] = useMemo(() => {
+    return primaryStats.map((stat) => ({
+      title: stat.title,
+      value: stat.value,
+      change: stat.change || '',
+      changeType: stat.changeType,
+    }));
+  }, [primaryStats]);
+
   return (
     <div className="bg-white border-b border-gray-200">
-      {/* 顶部状态栏 */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-2">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <LiveStatusBar
-            isConnected={!isError}
-            latency={airnodeStats?.avgResponseTime ?? config.networkData.avgResponseTime}
-            lastUpdate={lastUpdated || undefined}
+          <div className="flex items-center gap-3">
+            <LiveStatusBar
+              isConnected={!isError}
+              latency={airnodeStats?.avgResponseTime ?? config.networkData.avgResponseTime}
+              lastUpdate={lastUpdated || undefined}
+            />
+            <API3AlertStatusIndicator
+              criticalCount={alertCriticalCount}
+              warningCount={alertWarningCount}
+            />
+          </div>
+          <API3AlertBadgeCompact
+            unreadCount={alertUnreadCount}
+            criticalCount={alertCriticalCount}
+            warningCount={alertWarningCount}
+            onClick={onAlertClick}
           />
-
         </div>
       </div>
 
-      {/* 主要内容区 - 桌面端左右分栏布局 */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* 头部信息 - Logo、标题 */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
-          {/* 左侧：Logo + 标题 */}
           <div className="flex items-center gap-3">
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
@@ -615,27 +651,23 @@ export function API3Hero({
             </div>
           </div>
 
-          {/* 右侧：操作按钮（桌面端显示在标题右侧） */}
           <div className="hidden lg:block">
             <ActionButtons
               onRefresh={onRefresh}
               onExport={onExport}
               isRefreshing={isRefreshing}
               themeColor={themeColor}
+              exportData={exportData}
             />
           </div>
         </div>
 
-        {/* 桌面端左右分栏布局 */}
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-          {/* 左侧区域（70%）- 核心指标 */}
           <div className="flex-1 lg:w-[70%] lg:flex-none">
             <EnhancedCoreStats stats={primaryStats} themeColor={themeColor} />
 
-            {/* 次要指标行 */}
             <CompactMetricsRow stats={secondaryStats} />
 
-            {/* 整合信息区 */}
             <UnifiedInfoSection
               networkStats={networkStats}
               healthScore={healthScore}
@@ -644,22 +676,19 @@ export function API3Hero({
             />
           </div>
 
-          {/* 分隔线（仅桌面端显示） */}
           <div className="hidden lg:block w-px bg-gray-200 self-stretch" />
 
-          {/* 右侧区域（30%）- 迷你图表 + 操作按钮 */}
           <div className="lg:w-[30%] flex flex-col gap-3">
-            {/* 操作按钮（平板/移动端显示在右侧区域顶部） */}
             <div className="lg:hidden">
               <ActionButtons
                 onRefresh={onRefresh}
                 onExport={onExport}
                 isRefreshing={isRefreshing}
                 themeColor={themeColor}
+                exportData={exportData}
               />
             </div>
 
-            {/* 迷你价格图表 */}
             <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex-1">
               <MiniPriceChart
                 historicalData={historicalData}
@@ -667,6 +696,8 @@ export function API3Hero({
                 themeColor={themeColor}
               />
             </div>
+
+            <QuickAccessPanel defaultCollapsed />
           </div>
         </div>
       </div>

@@ -6,10 +6,11 @@ import type {
   FirstPartyOracleData,
   DAPIPriceDeviation,
   DataSourceInfo,
+  OEVNetworkStats,
 } from '@/lib/oracles/api3';
 import { type PriceData } from '@/types/oracle';
 
-export type API3TabId = 'market' | 'network' | 'airnode' | 'dapi' | 'ecosystem' | 'risk';
+export type API3TabId = 'market' | 'network' | 'airnode' | 'dapi' | 'ecosystem' | 'risk' | 'oev' | 'analytics';
 
 export interface NetworkStats {
   activeNodes: number;
@@ -79,6 +80,15 @@ export interface API3RiskViewProps {
   isLoading: boolean;
 }
 
+export interface API3OevViewProps {
+  oevStats?: OEVNetworkStats | null;
+  isLoading: boolean;
+}
+
+export interface API3AnalyticsViewProps {
+  isLoading: boolean;
+}
+
 export interface AirnodeNode {
   id: string;
   name: string;
@@ -122,4 +132,13 @@ export interface TimelineEvent {
   title: string;
   description: string;
   type: 'success' | 'warning' | 'info' | 'error';
+}
+
+export interface API3ApiDocsProps {
+  locale: string;
+}
+
+export interface API3TestnetSwitchProps {
+  currentNetwork: 'mainnet' | 'testnet';
+  onNetworkChange: (network: 'mainnet' | 'testnet') => void;
 }

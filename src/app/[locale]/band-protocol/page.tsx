@@ -2,7 +2,12 @@
 
 import { useState } from 'react';
 
-import { LoadingState, ErrorFallback, MobileMenuButton, OracleErrorBoundary } from '@/components/oracle';
+import {
+  LoadingState,
+  ErrorFallback,
+  MobileMenuButton,
+  OracleErrorBoundary,
+} from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 
@@ -13,7 +18,11 @@ import {
   BandProtocolValidatorsView,
   BandProtocolCrossChainView,
   BandProtocolDataFeedsView,
+  BandProtocolOracleScriptsView,
   BandProtocolRiskView,
+  BandProtocolIBCView,
+  BandProtocolStakingView,
+  BandProtocolGovernanceView,
   BandProtocolHero,
 } from './components';
 import { useBandProtocolPage } from './hooks/useBandProtocolPage';
@@ -28,6 +37,13 @@ export default function BandProtocolPage() {
     networkStats,
     validators,
     crossChainStats,
+    ibcConnections,
+    ibcTransferStats,
+    ibcTransferTrends,
+    stakingInfo,
+    stakingDistribution,
+    governanceProposals,
+    governanceParams,
     isLoading,
     isError,
     error,
@@ -78,8 +94,35 @@ export default function BandProtocolPage() {
         return (
           <BandProtocolCrossChainView crossChainStats={crossChainStats} isLoading={isLoading} />
         );
+      case 'ibc':
+        return (
+          <BandProtocolIBCView
+            ibcConnections={ibcConnections}
+            ibcTransferStats={ibcTransferStats}
+            ibcTransferTrends={ibcTransferTrends}
+            isLoading={isLoading}
+          />
+        );
+      case 'staking':
+        return (
+          <BandProtocolStakingView
+            stakingInfo={stakingInfo}
+            stakingDistribution={stakingDistribution}
+            isLoading={isLoading}
+          />
+        );
+      case 'governance':
+        return (
+          <BandProtocolGovernanceView
+            proposals={governanceProposals}
+            governanceParams={governanceParams}
+            isLoading={isLoading}
+          />
+        );
       case 'data-feeds':
         return <BandProtocolDataFeedsView />;
+      case 'oracle-scripts':
+        return <BandProtocolOracleScriptsView />;
       case 'risk':
         return <BandProtocolRiskView />;
       default:

@@ -66,6 +66,18 @@
         "up": "上涨",
         "down": "下跌",
         "neutral": "平稳"
+      },
+      "priceComparison": "EMA 与实时价格对比",
+      "emaPeriod": "EMA 周期",
+      "currentPrice": "实时价格",
+      "emaValue": "EMA 价格",
+      "deviation": "偏离度",
+      "trendIndicator": "趋势指示器",
+      "explanation": "EMA 对近期价格赋予更高权重，相比简单移动平均更能快速反映价格变化。",
+      "periods": {
+        "ema7": "EMA-7 (短期)",
+        "ema25": "EMA-25 (中期)",
+        "ema99": "EMA-99 (长期)"
       }
     },
     "pageTitles": {

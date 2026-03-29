@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, Globe, Shield, ArrowLeftRight, Database, ShieldAlert } from 'lucide-react';
+import { BarChart3, Globe, Shield, ArrowLeftRight, Database, ShieldAlert, Radio, Code, Lock, Scale } from 'lucide-react';
 
 import { UnifiedSidebar, type SidebarItem } from '@/components/oracle/UnifiedSidebar';
 import { useTranslations } from '@/i18n';
@@ -24,14 +24,34 @@ const getNavItems = (t: (key: string) => string): SidebarItem[] => [
     icon: <Shield className="w-5 h-5" />,
   },
   {
+    id: 'staking' as BandProtocolTabId,
+    labelKey: 'band.bandProtocol.menu.staking',
+    icon: <Lock className="w-5 h-5" />,
+  },
+  {
+    id: 'governance' as BandProtocolTabId,
+    labelKey: 'band.bandProtocol.menu.governance',
+    icon: <Scale className="w-5 h-5" />,
+  },
+  {
     id: 'cross-chain' as BandProtocolTabId,
     labelKey: 'band.bandProtocol.menu.crossChain',
     icon: <ArrowLeftRight className="w-5 h-5" />,
   },
   {
+    id: 'ibc' as BandProtocolTabId,
+    labelKey: 'band.bandProtocol.menu.ibc',
+    icon: <Radio className="w-5 h-5" />,
+  },
+  {
     id: 'data-feeds' as BandProtocolTabId,
     labelKey: 'band.bandProtocol.menu.dataFeeds',
     icon: <Database className="w-5 h-5" />,
+  },
+  {
+    id: 'oracle-scripts' as BandProtocolTabId,
+    labelKey: 'band.bandProtocol.menu.oracleScripts',
+    icon: <Code className="w-5 h-5" />,
   },
   {
     id: 'risk' as BandProtocolTabId,

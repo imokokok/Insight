@@ -119,6 +119,12 @@ export {
   useBandValidators,
   useBandCrossChainStats,
   useBandProtocolAllData,
+  useBandIBCConnections,
+  useBandIBCTransferStats,
+  useBandIBCTransferTrends,
+  useBandStakingInfo,
+  useBandStakingDistribution,
+  useBandStakingReward,
 } from './band';
 
 // Unified Oracle Page Hook

@@ -24,3 +24,6 @@ export { SecurityTimeline } from './SecurityTimeline';
 export { MitigationMeasuresGrid } from './MitigationMeasuresGrid';
 export { SnapshotManager } from './SnapshotManager';
 export { SnapshotComparison } from './SnapshotComparison';
+export { FavoriteManager } from './FavoriteManager';
+export { QuickAccessPanel } from './QuickAccessPanel';
+export { CacheStatusIndicator, CacheStatusPanel } from './CacheStatusIndicator';

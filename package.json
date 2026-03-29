@@ -100,6 +100,7 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^12.36.0",
     "fuse.js": "^7.1.0",
+    "idb": "^8.0.3",
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",
     "jszip": "^3.10.1",

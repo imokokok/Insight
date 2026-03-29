@@ -6,6 +6,10 @@ import { useTranslations } from '@/i18n';
 
 import { type ChainlinkNetworkViewProps } from '../types';
 
+import { NetworkTopologyOverview } from './NetworkTopologyOverview';
+import { NodeGeographicDistribution } from './NodeGeographicDistribution';
+import { RealtimeThroughputMonitor } from './RealtimeThroughputMonitor';
+
 export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkViewProps) {
   const t = useTranslations();
 
@@ -172,6 +176,24 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
           ))}
         </div>
       </div>
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 实时吞吐量监控 */}
+      <RealtimeThroughputMonitor />
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 网络拓扑概览 */}
+      <NetworkTopologyOverview />
+
+      {/* 分隔线 */}
+      <div className="border-t border-gray-200" />
+
+      {/* 节点地理分布 */}
+      <NodeGeographicDistribution />
     </div>
   );
 }

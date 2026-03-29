@@ -50,6 +50,15 @@ export {
   resetPythHermesClient,
   type PythPriceUpdate,
 } from './pythHermesClient';
+export {
+  PythDataService,
+  getPythDataService,
+  resetPythDataService,
+  type PriceFeed,
+  type PublisherData,
+  type NetworkStats,
+  type RetryConfig,
+} from './pythDataService';
 export { BaseOracleClient, shouldUseDatabase, configureStorage, getStorageConfig } from './base';
 export type { OracleClientConfig, OracleStorageConfig } from './base';
 export type { IOracleClient, IOracleClientFactory } from './interfaces';

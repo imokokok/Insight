@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import {
   TrendingUp,
@@ -22,14 +22,18 @@ import {
   Link2,
   Server,
   TrendingUp as TrendingUpIcon,
+  ArrowRight,
+  Users,
+  CheckCircle,
 } from 'lucide-react';
 
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
+import { DataFreshnessIndicator } from '@/components/ui/DataFreshnessIndicator';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
-
+import { useUMARealtime } from '@/hooks/useUMARealtime';
 
 export interface UMAHeroProps {
   config: OracleConfig;
@@ -57,6 +61,163 @@ interface StatItem {
   icon: React.ReactNode;
   subtitle?: string;
   sparklineData?: number[];
+}
+
+function OOOverviewCard({ themeColor }: { themeColor: string }) {
+  const t = useTranslations();
+
+  const advantages = [
+    {
+      icon: <Zap className="w-4 h-4" />,
+      title: '高效快速',
+      description: '无争议情况下2小时完成验证',
+    },
+    {
+      icon: <Shield className="w-4 h-4" />,
+      title: '安全可靠',
+      description: '经济激励确保验证者诚实',
+    },
+    {
+      icon: <Users className="w-4 h-4" />,
+      title: '去中心化',
+      description: '任何人可参与验证和投票',
+    },
+  ];
+
+  return (
+    <div className="p-4 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-100">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ backgroundColor: `${themeColor}15` }}
+          >
+            <Zap className="w-4 h-4" style={{ color: themeColor }} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900">乐观预言机机制</h3>
+            <p className="text-xs text-gray-500">Optimistic Oracle</p>
+          </div>
+        </div>
+        <a
+          href="#optimistic-oracle-flow"
+          className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors"
+          style={{ color: themeColor }}
+        >
+          <span>了解更多</span>
+          <ArrowRight className="w-3 h-3" />
+        </a>
+      </div>
+
+      <p className="text-xs text-gray-600 mb-3">
+        默认信任验证者答案，仅在争议时投票裁决，大幅提升效率降低成本。
+      </p>
+
+      <div className="space-y-2">
+        {advantages.map((advantage, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <div
+              className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: `${themeColor}10` }}
+            >
+              <div style={{ color: themeColor }} className="w-3.5 h-3.5">
+                {advantage.icon}
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-xs font-medium text-gray-900">{advantage.title}</span>
+              <span className="text-xs text-gray-500 ml-1">· {advantage.description}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RealtimePriceDisplay({
+  price,
+  change24h,
+  themeColor,
+  isRealtimeConnected,
+}: {
+  price: number;
+  change24h: number;
+  themeColor: string;
+  isRealtimeConnected: boolean;
+}) {
+  const [displayPrice, setDisplayPrice] = useState(price);
+  const [priceDirection, setPriceDirection] = useState<'up' | 'down' | null>(null);
+  const [showPulse, setShowPulse] = useState(false);
+
+  useEffect(() => {
+    if (price !== displayPrice) {
+      setPriceDirection(price > displayPrice ? 'up' : 'down');
+      setShowPulse(true);
+      setDisplayPrice(price);
+
+      const timer = setTimeout(() => {
+        setShowPulse(false);
+        setPriceDirection(null);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [price, displayPrice]);
+
+  const isPositive = change24h >= 0;
+
+  return (
+    <div className="relative">
+      <div className="flex items-baseline gap-2">
+        <span
+          className={`text-2xl font-bold tracking-tight transition-colors duration-300 ${
+            priceDirection === 'up'
+              ? 'text-emerald-600'
+              : priceDirection === 'down'
+                ? 'text-red-600'
+                : 'text-gray-900'
+          }`}
+        >
+          ${displayPrice.toFixed(2)}
+        </span>
+        <span
+          className={`text-sm font-medium flex items-center gap-0.5 ${
+            isPositive ? 'text-emerald-600' : 'text-red-600'
+          }`}
+        >
+          {isPositive ? (
+            <TrendingUp className="w-3.5 h-3.5" />
+          ) : (
+            <TrendingDown className="w-3.5 h-3.5" />
+          )}
+          {isPositive ? '+' : ''}
+          {change24h.toFixed(2)}%
+        </span>
+      </div>
+
+      {showPulse && (
+        <div
+          className={`absolute -inset-1 rounded-lg opacity-20 ${
+            priceDirection === 'up' ? 'bg-emerald-500' : 'bg-red-500'
+          }`}
+          style={{
+            animation: 'pulse 1s ease-out',
+          }}
+        />
+      )}
+
+      {isRealtimeConnected && (
+        <div className="flex items-center gap-1 mt-1">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          </span>
+          <span className="text-xs text-gray-500">实时更新中</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // 迷你走势图组件
@@ -513,24 +674,34 @@ export function UMAHero({
 }: UMAHeroProps) {
   const t = useTranslations();
 
-  // 使用 config.themeColor 获取主题色，默认为 UMA 红色
   const themeColor = config.themeColor || '#dc2626';
 
-  const currentPrice = price?.price ?? config.marketData.change24hValue ?? 4.5;
-  const priceChange24h = config.marketData.change24h ?? 0;
+  const realtime = useUMARealtime({
+    enablePrices: true,
+    enableNetwork: true,
+    enableDisputes: false,
+    enableValidators: false,
+    enableRequests: false,
+  });
+
+  const isRealtimeConnected = realtime.isConnected;
+  const realtimePrice = realtime.price.priceData;
+  const realtimeLastUpdate = realtime.price.lastUpdate;
+
+  const currentPrice = realtimePrice?.price ?? price?.price ?? config.marketData.change24hValue ?? 4.5;
+  const priceChange24h = realtimePrice?.change24h ?? config.marketData.change24h ?? 0;
   const isPositive = priceChange24h >= 0;
   const marketCap = config.marketData.marketCap ?? 0;
 
-  // 生成价格走势数据
+  const effectiveLastUpdate = realtimeLastUpdate ?? lastUpdated;
+
   const priceSparkline = useMemo(() => {
     if (historicalData.length > 0) {
       return historicalData.slice(-24).map((d) => d.price);
     }
-    // 生成基于当前价格的模拟数据
     return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + ((i % 5) - 2) * 0.02));
   }, [historicalData, currentPrice]);
 
-  // 核心统计指标 (Primary Stats) - 增加到5个
   const primaryStats: StatItem[] = [
     {
       title: 'UMA 价格',
@@ -575,7 +746,6 @@ export function UMAHero({
     },
   ];
 
-  // 次要统计指标 (Secondary Stats) - 整合为4个
   const secondaryStats: StatItem[] = [
     {
       title: '支持链数',
@@ -607,7 +777,6 @@ export function UMAHero({
     },
   ];
 
-  // 网络健康度评分
   const healthScore = useMemo(() => {
     const uptime = networkStats?.nodeUptime ?? config.networkData?.nodeUptime ?? 99.5;
     const responseTime =
@@ -620,25 +789,35 @@ export function UMAHero({
     return Math.round(uptimeScore + responseScore + feedScore);
   }, [networkStats, config]);
 
+  const connectionStatus = isRealtimeConnected ? 'connected' : realtime.isConnecting ? 'connecting' : realtime.isReconnecting ? 'reconnecting' : 'disconnected';
+
   return (
     <div className="bg-white border-b border-gray-200">
-      {/* 顶部状态栏 */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-2">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <LiveStatusBar
-            isConnected={!isError}
-            latency={networkStats?.avgResponseTime || 245}
-            lastUpdate={lastUpdated || undefined}
-          />
+          <div className="flex items-center gap-3">
+            <LiveStatusBar
+              isConnected={!isError}
+              latency={networkStats?.avgResponseTime || 245}
+              lastUpdate={lastUpdated || undefined}
+            />
+            <DataFreshnessIndicator
+              lastUpdate={effectiveLastUpdate}
+              connectionStatus={connectionStatus}
+              onRefresh={onRefresh}
+              isRefreshing={isRefreshing}
+              showConnectionStatus={true}
+              showCountdown={true}
+              showManualRefresh={true}
+              compact={true}
+            />
+          </div>
           <QuickActions themeColor={themeColor} />
         </div>
       </div>
 
-      {/* 主要内容区 - 桌面端左右分栏布局 */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* 头部信息 - Logo、标题 */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
-          {/* 左侧：Logo + 标题 */}
           <div className="flex items-center gap-3">
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
@@ -659,7 +838,6 @@ export function UMAHero({
             </div>
           </div>
 
-          {/* 右侧：操作按钮（桌面端显示在标题右侧） */}
           <div className="hidden lg:block">
             <ActionButtons
               onRefresh={onRefresh}
@@ -670,16 +848,12 @@ export function UMAHero({
           </div>
         </div>
 
-        {/* 桌面端左右分栏布局 */}
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-          {/* 左侧区域（70%）- 核心指标 */}
           <div className="flex-1 lg:w-[70%] lg:flex-none">
             <EnhancedCoreStats stats={primaryStats} themeColor={themeColor} />
 
-            {/* 次要指标行 */}
             <CompactMetricsRow stats={secondaryStats} />
 
-            {/* 整合信息区 */}
             <UnifiedInfoSection
               networkStats={networkStats}
               healthScore={healthScore}
@@ -697,12 +871,9 @@ export function UMAHero({
             />
           </div>
 
-          {/* 分隔线（仅桌面端显示） */}
           <div className="hidden lg:block w-px bg-gray-200 self-stretch" />
 
-          {/* 右侧区域（30%）- 迷你图表 + 操作按钮 */}
           <div className="lg:w-[30%] flex flex-col gap-3">
-            {/* 操作按钮（平板/移动端显示在右侧区域顶部） */}
             <div className="lg:hidden">
               <ActionButtons
                 onRefresh={onRefresh}
@@ -712,7 +883,8 @@ export function UMAHero({
               />
             </div>
 
-            {/* 迷你价格图表 */}
+            <OOOverviewCard themeColor={themeColor} />
+
             <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex-1">
               <MiniPriceChart
                 historicalData={historicalData}
@@ -720,11 +892,28 @@ export function UMAHero({
                 themeColor={themeColor}
               />
             </div>
+
+            <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500">实时价格</span>
+                <DataFreshnessIndicator
+                  lastUpdate={realtimeLastUpdate}
+                  connectionStatus={connectionStatus}
+                  compact={true}
+                  showConnectionStatus={false}
+                />
+              </div>
+              <RealtimePriceDisplay
+                price={currentPrice}
+                change24h={priceChange24h}
+                themeColor={themeColor}
+                isRealtimeConnected={isRealtimeConnected}
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 最新动态滚动条 */}
       <LatestUpdates />
     </div>
   );

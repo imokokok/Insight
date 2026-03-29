@@ -13,7 +13,90 @@
       "gas": "Gas",
       "crossOracle": "跨预言机分析",
       "ecosystem": "生态",
-      "risk": "风险"
+      "risk": "风险",
+      "alerts": "告警"
+    },
+    "alerts": {
+      "title": "告警中心",
+      "subtitle": "实时监控 API3 网络状态和风险事件",
+      "activeAlerts": "活跃告警",
+      "alertHistory": "历史告警",
+      "thresholdSettings": "阈值设置",
+      "noAlerts": "暂无告警",
+      "noAlertsDesc": "网络运行正常，没有需要关注的告警",
+      "markRead": "标记已读",
+      "markAllRead": "全部标记已读",
+      "resolve": "解决",
+      "resolveAll": "批量解决",
+      "viewAll": "查看全部",
+      "refresh": "刷新",
+      "filter": "筛选",
+      "filterByType": "按类型筛选",
+      "filterBySeverity": "按严重程度筛选",
+      "filterByStatus": "按状态筛选",
+      "allTypes": "全部类型",
+      "allSeverities": "全部级别",
+      "allStatus": "全部状态",
+      "types": {
+        "price_deviation": "价格偏差",
+        "node_offline": "节点离线",
+        "coverage_pool_risk": "覆盖池风险",
+        "security_event": "安全事件"
+      },
+      "severities": {
+        "info": "信息",
+        "warning": "警告",
+        "critical": "严重"
+      },
+      "status": {
+        "unread": "未读",
+        "read": "已读",
+        "resolved": "已解决",
+        "unresolved": "未解决"
+      },
+      "stats": {
+        "total": "总告警数",
+        "unread": "未读",
+        "critical": "严重",
+        "warning": "警告",
+        "info": "信息",
+        "resolved": "已解决"
+      },
+      "time": {
+        "justNow": "刚刚",
+        "minutesAgo": "{count} 分钟前",
+        "hoursAgo": "{count} 小时前",
+        "daysAgo": "{count} 天前"
+      },
+      "messages": {
+        "priceDeviationWarning": "{symbol} dAPI 价格与市场价格偏差超过阈值，建议关注",
+        "priceDeviationCritical": "{symbol} 价格偏差严重，需要立即处理",
+        "nodeOfflineWarning": "多个 Airnode 节点响应延迟",
+        "nodeOfflineCritical": "关键 Airnode 节点离线",
+        "coveragePoolWarning": "覆盖池抵押率低于推荐值",
+        "coveragePoolCritical": "覆盖池抵押率严重不足",
+        "securityEventInfo": "检测到潜在安全风险",
+        "securityEventWarning": "发现异常交易活动",
+        "securityEventCritical": "安全事件需要立即处理"
+      },
+      "thresholds": {
+        "title": "告警阈值设置",
+        "subtitle": "配置告警触发条件",
+        "priceDeviationWarning": "价格偏差警告阈值",
+        "priceDeviationCritical": "价格偏差严重阈值",
+        "nodeResponseTime": "节点响应时间阈值",
+        "coveragePoolRatio": "覆盖池抵押率阈值",
+        "nodeOffline": "节点离线数量阈值",
+        "enabled": "已启用",
+        "disabled": "已禁用",
+        "lastTriggered": "上次触发"
+      },
+      "notifications": {
+        "title": "通知设置",
+        "enablePush": "启用推送通知",
+        "enableEmail": "启用邮件通知",
+        "enableSound": "启用声音提醒"
+      }
     },
     "menu": {
       "title": "API3",
@@ -21,9 +104,12 @@
       "networkHealth": "网络健康度",
       "airnode": "Airnode",
       "dapi": "dAPI",
+      "oev": "OEV Network",
       "ecosystem": "生态系统",
       "riskAssessment": "风险评估",
-      "crossOracleComparison": "跨预言机分析"
+      "crossOracleComparison": "跨预言机分析",
+      "analytics": "分析工具"
+    },  "analytics": "分析工具"
     },
     "navigation": {
       "title": "API3"
@@ -182,6 +268,53 @@
       "disclaimer": "风险提示",
       "disclaimerText": "本风险分析仅供参考，不构成投资建议。投资前请自行评估风险。"
     },
+    "coveragePool": {
+      "title": "覆盖池仪表盘",
+      "subtitle": "实时监控覆盖池健康状态和索赔情况",
+      "healthy": "健康",
+      "warning": "警告",
+      "critical": "危险",
+      "unknown": "未知",
+      "solvencyGauge": "偿付能力仪表盘",
+      "collateralizationRatio": "抵押率",
+      "targetRatio": "目标比率",
+      "keyMetrics": "关键指标",
+      "totalValueLocked": "总锁仓价值",
+      "stakerCount": "质押者数量",
+      "pendingClaims": "待处理索赔",
+      "totalPayouts": "总赔付金额",
+      "healthIndicators": "健康指标",
+      "collateralHealth": "抵押健康度",
+      "claimHealth": "索赔健康度",
+      "participation": "参与度",
+      "claimsList": "索赔状态列表",
+      "allClaims": "全部索赔",
+      "filterPending": "待处理",
+      "filterProcessing": "处理中",
+      "filterApproved": "已批准",
+      "filterRejected": "已拒绝",
+      "claimId": "ID",
+      "claimStatus": "状态",
+      "claimAmount": "金额",
+      "claimRequester": "申请人",
+      "claimDate": "日期",
+      "claimVotes": "投票",
+      "claimPending": "待处理",
+      "claimProcessing": "处理中",
+      "claimApproved": "已批准",
+      "claimRejected": "已拒绝",
+      "stakerStats": "质押者统计",
+      "stakerAddress": "地址",
+      "stakedAmount": "质押数量",
+      "pendingRewards": "待领取奖励",
+      "claimedRewards": "已领取奖励",
+      "apr": "APR",
+      "stakeDate": "质押日期",
+      "historicalPayouts": "历史赔付记录",
+      "totalProcessedClaims": "已处理索赔总数",
+      "avgStakeAmount": "平均质押数量",
+      "lastUpdate": "最后更新"
+    },
     "crossOracle": {
       "overview": {
         "title": "跨预言机价格分析",
@@ -244,7 +377,73 @@
       "successRate": "成功率",
       "availability": "可用性",
       "latency": "延迟",
-      "overview": "网络概览"
+      "overview": "网络概览",
+      "topology": "网络拓扑图"
+    },
+    "visualization": {
+      "geoMap": {
+        "title": "Airnode 地理分布",
+        "subtitle": "全球节点分布",
+        "activeNodes": "活跃节点",
+        "totalNodes": "总节点数",
+        "activeRate": "活跃率",
+        "regionStats": "地区统计",
+        "nodeStatus": "节点状态",
+        "nodeSize": "节点大小",
+        "zoomIn": "放大",
+        "zoomOut": "缩小",
+        "resetView": "重置视图"
+      },
+      "dataFlow": {
+        "title": "数据流可视化",
+        "dataSources": "数据源",
+        "flowPath": "数据流路径",
+        "processing": "正在处理",
+        "currentPhase": "当前阶段",
+        "phaseDelay": "阶段延迟",
+        "totalDelay": "总延迟",
+        "updateFrequency": "更新频率",
+        "pause": "暂停",
+        "play": "播放"
+      },
+      "priceAnimation": {
+        "title": "实时价格",
+        "priceUpdate": "价格更新中",
+        "trend": {
+          "up": "上涨",
+          "down": "下跌",
+          "stable": "稳定"
+        }
+      },
+      "historicalComparison": {
+        "title": "历史数据对比",
+        "dataSeries": "数据系列",
+        "timeRange": "时间范围",
+        "export": "导出数据",
+        "zoomSelect": "缩放选择",
+        "resetZoom": "重置缩放",
+        "latest": "最新",
+        "average": "平均",
+        "change": "变化"
+      },
+      "networkTopology": {
+        "title": "网络拓扑图",
+        "nodeHealth": "节点健康度",
+        "connectionHealth": "连接健康度",
+        "avgLatency": "平均延迟",
+        "totalConnections": "总连接数",
+        "nodeTypes": {
+          "airnode": "Airnode",
+          "dapi": "dAPI",
+          "chain": "链",
+          "source": "数据源"
+        },
+        "connectionStatus": {
+          "healthy": "健康",
+          "degraded": "降级",
+          "failed": "故障"
+        }
+      }
     },
     "ecosystem": {
       "tvlAnalysis": {
@@ -305,7 +504,209 @@
       "thresholdDesc": "价格变化超过阈值时触发更新",
       "reliabilityDesc": "基于历史表现的可靠性评分",
       "decentralization": "去中心化",
-      "decentralizationDesc": "数据源的分布式程度"
+      "decentralizationDesc": "数据源的分布式程度",
+      "searchPlaceholder": "搜索 dAPI...",
+      "searchLabel": "搜索 dAPI",
+      "filters": "筛选",
+      "savedFilters": "已保存",
+      "savedFiltersTitle": "已保存的筛选条件",
+      "noSavedFilters": "暂无已保存的筛选条件",
+      "saveCurrentFilters": "保存当前筛选",
+      "filterNamePlaceholder": "筛选条件名称...",
+      "clearAll": "清除全部",
+      "categories": "类别",
+      "chains": "链",
+      "statuses": "状态",
+      "search": "搜索",
+      "results": "结果"
+    },
+    "oev": {
+      "totalOevCaptured": "OEV 总捕获量",
+      "activeAuctions": "活跃拍卖",
+      "totalDapps": "集成 dApps",
+      "avgAuctionValue": "平均拍卖价值",
+      "overview": {
+        "title": "OEV 网络概览",
+        "description": "Oracle Extractable Value (OEV) 网络捕获预言机更新产生的价值，并将其重新分配给 dApps 和搜索者"
+      },
+      "trend": {
+        "title": "OEV 趋势 (7天)",
+        "description": "每日 OEV 捕获量和拍卖活动"
+      },
+      "realtime": {
+        "title": "实时拍卖",
+        "description": "网络上最新的 OEV 拍卖"
+      },
+      "tabs": {
+        "auctions": "拍卖",
+        "participants": "参与者"
+      },
+      "table": {
+        "dapp": "dApp",
+        "dapi": "dAPI",
+        "amount": "金额",
+        "winner": "获胜者",
+        "status": "状态",
+        "time": "时间"
+      },
+      "participants": {
+        "leaderboard": "参与者排行榜"
+      },
+      "distribution": {
+        "title": "价值分配"
+      },
+      "wins": "次获胜",
+      "mechanism": {
+        "title": "OEV 网络工作原理",
+        "description": "了解 OEV 捕获和重新分配机制",
+        "step1": {
+          "title": "1. OEV 检测",
+          "description": "当预言机价格更新时，OEV 网络在 MEV 机器人利用之前检测可提取价值机会。"
+        },
+        "step2": {
+          "title": "2. 拍卖流程",
+          "description": "搜索者在透明拍卖中竞价以获取 OEV。最高出价者获胜，其出价归 dApp 所有。"
+        },
+        "step3": {
+          "title": "3. 价值分配",
+          "description": "捕获的价值分配给 dApps、搜索者和协议参与者，创建公平透明的 MEV 生态系统。"
+        }
+      },
+      "info": {
+        "title": "关于 OEV 网络",
+        "description": "OEV (Oracle Extractable Value) 网络是 API3 捕获和重新分配预言机更新价值的解决方案。与传统仅让矿工/验证者受益的 MEV 不同，OEV 网络确保 dApps 及其用户获得由预言机价格变动产生的价值。"
+      },
+      "learnMore": "了解更多关于 OEV 网络"
+    },
+    "timeRange": {
+      "custom": "自定义",
+      "quickSelect": "快捷选择",
+      "customRange": "自定义范围",
+      "start": "开始日期",
+      "end": "结束日期",
+      "selected": "已选择"
+    },
+    "export": {
+      "title": "导出数据",
+      "records": "条记录",
+      "format": "格式",
+      "fields": "字段",
+      "selectAll": "全选",
+      "deselectAll": "取消全选",
+      "preview": "预览",
+      "history": "历史",
+      "previewTitle": "预览（前5行）",
+      "historyTitle": "导出历史",
+      "noHistory": "暂无导出历史",
+      "scheduledExports": "定时导出",
+      "addSchedule": "添加",
+      "noScheduled": "暂无定时导出任务",
+      "exporting": "导出中...",
+      "download": "下载"
+    },
+    "favorites": {
+      "add": "添加收藏",
+      "remove": "移除收藏",
+      "addToFavorites": "收藏",
+      "favorited": "已收藏",
+      "addToGroup": "添加到分组",
+      "ungrouped": "未分组",
+      "manageGroups": "管理分组",
+      "groupManager": "分组管理",
+      "newGroupName": "新分组名称...",
+      "noGroups": "暂无分组"
+    },
+    "quickAccess": {
+      "title": "快速访问",
+      "recent": "最近",
+      "favorites": "收藏",
+      "noRecent": "暂无最近访问",
+      "noFavorites": "暂无收藏",
+      "clearRecent": "清除最近记录",
+      "justNow": "刚刚",
+      "minutesAgo": "{count} 分钟前",
+      "hoursAgo": "{count} 小时前",
+      "daysAgo": "{count} 天前",
+      "marketData": "市场数据",
+      "dapi": "dAPI",
+      "airnode": "Airnode"
+    },
+    "developer": {
+      "title": "开发者工具",
+      "description": "API 集成工具、SDK 下载和技术文档",
+      "tabs": {
+        "apiDocs": "API 文档",
+        "guide": "集成指南",
+        "sdk": "SDK 下载",
+        "testnet": "测试网"
+      },
+      "apiDocs": {
+        "title": "API 接口文档",
+        "description": "完整的 API 接口参考文档，包含所有端点、参数和响应格式",
+        "parameters": "参数",
+        "paramName": "参数名",
+        "type": "类型",
+        "required": "必填",
+        "description": "描述",
+        "responseExample": "响应示例",
+        "codeExample": "代码示例",
+        "authentication": {
+          "title": "认证方式",
+          "description": "所有 API 请求需要在 Header 中包含 API Key 进行认证"
+        },
+        "rateLimits": {
+          "title": "速率限制",
+          "tier": "套餐",
+          "requests": "请求数",
+          "burst": "突发限制",
+          "price": "价格"
+        },
+        "moreResources": "更多资源"
+      },
+      "guide": {
+        "quickStart": {
+          "title": "快速开始",
+          "description": "几分钟内完成 API3 集成"
+        },
+        "scenarios": {
+          "title": "集成场景"
+        },
+        "bestPractices": {
+          "title": "最佳实践"
+        },
+        "troubleshooting": {
+          "title": "故障排除",
+          "problem": "问题",
+          "solution": "解决方案"
+        },
+        "faq": {
+          "title": "常见问题"
+        }
+      },
+      "sdk": {
+        "title": "SDK 下载",
+        "description": "选择适合您技术栈的 SDK，快速集成 API3",
+        "additionalTools": {
+          "title": "附加工具"
+        },
+        "support": {
+          "title": "需要帮助？",
+          "description": "如果您在集成过程中遇到问题，可以通过以下渠道获取支持"
+        }
+      },
+      "testnet": {
+        "title": "网络环境切换",
+        "description": "在主网和测试网之间切换，获取相应的配置信息",
+        "config": {
+          "title": "网络配置"
+        },
+        "testTokens": {
+          "title": "测试代币"
+        },
+        "resources": {
+          "title": "更多资源"
+        }
+      }
     }
   },
   "dapiCoverage": {
@@ -351,6 +752,97 @@
       "exchanges": "交易所",
       "traditionalFinance": "传统金融",
       "others": "其他"
+    }
+  },
+  "analytics": {
+    "title": "分析工具",
+    "subtitle": "高级数据分析与预测工具",
+    "tabs": {
+      "report": "自定义报表",
+      "comparison": "数据对比",
+      "prediction": "趋势预测",
+      "anomaly": "异常检测"
+    },
+    "reportGenerator": {
+      "title": "自定义报表生成器",
+      "subtitle": "选择指标和时间范围创建自定义报表",
+      "reportTitle": "报表标题",
+      "selectMetrics": "选择指标",
+      "addMetric": "添加指标",
+      "timeRange": "时间范围",
+      "chartType": "图表类型",
+      "filters": "筛选条件",
+      "savedTemplates": "已保存模板",
+      "noTemplates": "暂无保存的模板",
+      "saveTemplate": "保存模板",
+      "preview": "预览报表",
+      "exportPDF": "导出 PDF",
+      "exportImage": "导出图片",
+      "previewTitle": "报表预览"
+    },
+    "comparison": {
+      "title": "数据对比分析",
+      "subtitle": "对比不同 dAPI、链或时间段的数据",
+      "comparisonType": "对比类型",
+      "dapi": "dAPI",
+      "chain": "链",
+      "timeframe": "时间段",
+      "source1": "数据源 1",
+      "source2": "数据源 2",
+      "metric": "指标",
+      "compare": "开始对比",
+      "comparisonChart": "对比图表",
+      "summary": "对比摘要",
+      "difference": "差异",
+      "percentChange": "百分比变化",
+      "correlation": "相关性分析",
+      "coefficient": "相关系数",
+      "strength": "强度",
+      "direction": "方向",
+      "differenceChart": "差异分析图",
+      "analysisTitle": "分析洞察",
+      "highDeviation": "检测到数据源之间存在显著差异，可能表明市场效率低下或数据质量问题。",
+      "moderateDeviation": "数据源之间存在中等差异，数值在可接受范围内。",
+      "lowDeviation": "数据源之间差异很小，数据一致且可靠。",
+      "export": "导出结果"
+    },
+    "prediction": {
+      "title": "趋势预测",
+      "subtitle": "历史趋势分析和价格预测",
+      "settings": "设置",
+      "predictionHorizon": "预测周期",
+      "confidenceLevel": "置信水平",
+      "maWindow": "移动平均窗口",
+      "currentPrice": "当前价格",
+      "predictedPrice": "预测价格",
+      "trend": "趋势",
+      "expectedChange": "预期变化",
+      "chartTitle": "历史数据与预测",
+      "predictionDetails": "预测详情",
+      "accuracyMetrics": "准确度指标",
+      "volatility": "年化波动率",
+      "confidenceWidth": "置信区间宽度",
+      "disclaimer": "预测基于历史线性回归，不应作为投资建议。市场条件可能快速变化。"
+    },
+    "anomaly": {
+      "title": "异常检测",
+      "subtitle": "使用 Z-score 和 IQR 方法检测统计异常",
+      "settings": "设置",
+      "sensitivity": "检测灵敏度",
+      "detectionMethod": "检测方法",
+      "export": "导出报告",
+      "totalPoints": "数据点总数",
+      "anomaliesFound": "发现异常",
+      "anomalyRate": "异常率",
+      "mean": "均值",
+      "stdDev": "标准差",
+      "chartTitle": "数据与异常点标注",
+      "anomalyList": "检测到的异常",
+      "noAnomalies": "当前设置下未检测到异常",
+      "severityBreakdown": "严重程度分布",
+      "anomalyDetails": "异常详情",
+      "aboutTitle": "关于异常检测",
+      "aboutDesc": "异常通过统计方法检测。Z-score 测量与均值的偏差，IQR 基于四分位数范围识别离群值。"
     }
   }
 }

@@ -12,11 +12,15 @@ import { type PriceData } from '@/types/oracle';
 export type UmaTabId =
   | 'market'
   | 'network'
+  | 'requests'
   | 'disputes'
   | 'validators'
   | 'staking'
+  | 'governance'
   | 'ecosystem'
-  | 'risk';
+  | 'risk'
+  | 'crosschain'
+  | 'education';
 
 export interface UMAStats {
   activeValidators: number;

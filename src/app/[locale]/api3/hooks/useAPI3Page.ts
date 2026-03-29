@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useAPI3AllData, useDataFreshness } from '@/hooks';
+import { useRefresh, useExport, useAPI3AllData, useDataFreshness, useAPI3OEVStats } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
@@ -38,6 +38,8 @@ export function useAPI3Page() {
     chain: config.defaultChain,
     enabled: true,
   });
+
+  const { oevStats } = useAPI3OEVStats(true);
 
   const lastUpdated = useMemo(() => {
     if (price?.timestamp) {
@@ -87,6 +89,7 @@ export function useAPI3Page() {
     gasFees,
     ohlc,
     qualityHistory,
+    oevStats,
     isLoading,
     isError,
     error: errors[0] || null,

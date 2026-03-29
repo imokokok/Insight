@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 
 import { Activity, Zap, TrendingUp, Clock } from 'lucide-react';
 import {
@@ -42,6 +42,12 @@ interface RealtimeThroughputMonitorProps {
   updateInterval?: number;
 }
 
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: ThroughputDataPoint }>;
+  label?: string;
+}
+
 const generateThroughputData = (points: number = 60): ThroughputDataPoint[] => {
   const data: ThroughputDataPoint[] = [];
   const now = new Date();
@@ -69,26 +75,44 @@ const generateThroughputData = (points: number = 60): ThroughputDataPoint[] => {
   return data;
 };
 
+const CustomTooltip = memo(function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+  const t = useTranslations();
+  if (active && payload && payload.length) {
+    const dataPoint = payload[0].payload;
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-3 min-w-[180px]">
+        <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500">{t('chainlink.network.rps')}</span>
+            <span className="text-xs font-semibold text-blue-600">
+              {formatCompactNumberWithDecimals(dataPoint.rps)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500">{t('chainlink.network.successRate')}</span>
+            <span className="text-xs font-semibold text-emerald-600">{dataPoint.successRate}%</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500">{t('chainlink.network.latency')}</span>
+            <span className="text-xs font-semibold text-amber-600">{dataPoint.avgLatency}ms</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+});
+
 export function RealtimeThroughputMonitor({
   className,
   autoUpdate = true,
   updateInterval = 2000,
 }: RealtimeThroughputMonitorProps) {
   const t = useTranslations();
-  const [data, setData] = useState<ThroughputDataPoint[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<ThroughputDataPoint[]>(() => generateThroughputData(60));
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<'rps' | 'successRate' | 'latency'>('rps');
-
-  const fetchData = useCallback(() => {
-    setIsLoading(true);
-    const newData = generateThroughputData(60);
-    setData(newData);
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   useEffect(() => {
     if (!autoUpdate) return;
@@ -153,46 +177,6 @@ export function RealtimeThroughputMonitor({
       trendValue: Number(trendValue.toFixed(2)),
     };
   }, [data]);
-
-  const CustomTooltip = ({
-    active,
-    payload,
-    label,
-  }: {
-    active?: boolean;
-    payload?: Array<{ payload: ThroughputDataPoint }>;
-    label?: string;
-  }) => {
-    if (active && payload && payload.length) {
-      const dataPoint = payload[0].payload;
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg p-3 min-w-[180px]">
-          <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">{t('chainlink.network.rps')}</span>
-              <span className="text-xs font-semibold text-blue-600">
-                {formatCompactNumberWithDecimals(dataPoint.rps)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">{t('chainlink.network.successRate')}</span>
-              <span className="text-xs font-semibold text-emerald-600">
-                {dataPoint.successRate}%
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">{t('chainlink.network.latency')}</span>
-              <span className="text-xs font-semibold text-purple-600">
-                {dataPoint.avgLatency}ms
-              </span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   const metricButtons = [
     { key: 'rps' as const, label: t('chainlink.network.rps'), color: 'blue' },

@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, Globe, Server, Database, Network, ShieldAlert } from 'lucide-react';
+import { BarChart3, Globe, Server, Database, Network, ShieldAlert, Zap, LineChart } from 'lucide-react';
 
 import { UnifiedSidebar } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
@@ -29,6 +29,11 @@ const navItems = [
     icon: <Database className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
+    id: 'oev' as API3TabId,
+    labelKey: 'api3.menu.oev',
+    icon: <Zap className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
     id: 'ecosystem' as API3TabId,
     labelKey: 'api3.menu.ecosystem',
     icon: <Network className="w-5 h-5" strokeWidth={1.5} />,
@@ -37,6 +42,11 @@ const navItems = [
     id: 'risk' as API3TabId,
     labelKey: 'api3.menu.riskAssessment',
     icon: <ShieldAlert className="w-5 h-5" strokeWidth={1.5} />,
+  },
+  {
+    id: 'analytics' as API3TabId,
+    labelKey: 'api3.menu.analytics',
+    icon: <LineChart className="w-5 h-5" strokeWidth={1.5} />,
   },
 ];
 

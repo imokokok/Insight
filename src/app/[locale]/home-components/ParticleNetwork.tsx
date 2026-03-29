@@ -44,7 +44,7 @@ function usePerformanceDegradation(): PerformanceDegradation {
 
       let fps = 60;
       let frameCount = 0;
-      let lastTime = performance.now();
+      const lastTime = performance.now();
       let fpsCheckComplete = false;
 
       const measureFPS = () => {

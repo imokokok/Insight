@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 
-import { OracleProvider, Blockchain } from '@/lib/oracles';
+import { type OracleProvider, type Blockchain } from '@/lib/oracles';
 import { getQueryHistory, clearQueryHistory, type QueryHistoryItem } from '@/utils/queryHistory';
 
 export interface UsePriceQueryHistoryParams {

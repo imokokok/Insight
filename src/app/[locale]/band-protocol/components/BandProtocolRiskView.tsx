@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 import {
   Shield,
@@ -12,6 +12,8 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import {
   RadarChart,
@@ -21,103 +23,32 @@ import {
   Radar,
   Legend,
   ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
 } from 'recharts';
 
 import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
+import {
+  useBandRiskMetrics,
+  useBandRiskTrend,
+  useBandSecurityAuditEvents,
+} from '@/hooks/oracles/band';
+import type { RiskEvent } from '@/lib/oracles/bandProtocol';
 
-// 历史风险事件
-const historicalRiskEvents: TimelineEvent[] = [
-  {
-    date: '2024-02-20T10:30:00',
-    title: '安全审计完成',
-    description: 'Band Protocol 核心合约通过 CertiK 和 PeckShield 的联合安全审计，未发现重大漏洞。',
-    type: 'success',
-  },
-  {
-    date: '2023-12-15T14:20:00',
-    title: '主网升级 v2.5',
-    description: '完成 BandChain 主网升级，引入新的预言机脚本执行环境和优化的 Gas 费用模型。',
-    type: 'info',
-  },
-  {
-    date: '2023-10-08T09:15:00',
-    title: '验证者节点扩展',
-    description: '验证者节点数量增加至 72 个，分布在 25 个国家和地区，提升网络去中心化程度。',
-    type: 'success',
-  },
-  {
-    date: '2023-08-22T16:45:00',
-    title: '价格延迟事件',
-    description:
-      '由于网络拥堵，部分价格喂送出现 3-5 分钟延迟。团队优化了数据聚合算法以提升响应速度。',
-    type: 'warning',
-  },
-  {
-    date: '2023-06-10T11:30:00',
-    title: '新数据源集成',
-    description: '成功集成 15 个新的机构级数据源，提升价格数据的准确性和抗操纵能力。',
-    type: 'success',
-  },
-  {
-    date: '2023-04-05T08:00:00',
-    title: '质押机制优化',
-    description: '更新验证者质押要求，引入动态惩罚机制以增强网络安全性。',
-    type: 'info',
-  },
-];
-
-// 行业基准对比数据
 const benchmarkData = [
-  { metric: '去中心化', chainlink: 95, pyth: 78, band: 72, api3: 70 },
-  { metric: '安全性', chainlink: 98, pyth: 85, band: 78, api3: 80 },
-  { metric: '可靠性', chainlink: 99.9, pyth: 97.5, band: 94.2, api3: 96.8 },
-  { metric: '透明度', chainlink: 92, pyth: 88, band: 75, api3: 85 },
-  { metric: '历史记录', chainlink: 98, pyth: 75, band: 80, api3: 78 },
+  { metric: 'Decentralization', chainlink: 85, pyth: 68, band: 72, api3: 65 },
+  { metric: 'Security', chainlink: 92, pyth: 82, band: 78, api3: 78 },
+  { metric: 'Reliability', chainlink: 99.5, pyth: 97.0, band: 94.2, api3: 96.5 },
+  { metric: 'Transparency', chainlink: 88, pyth: 85, band: 75, api3: 82 },
+  { metric: 'Track Record', chainlink: 95, pyth: 72, band: 80, api3: 75 },
 ];
 
-// 风险指标
-const riskMetrics = [
-  {
-    id: 'decentralization',
-    name: 'Decentralization Score',
-    value: 72,
-    max: 100,
-    description: 'Based on validator diversity and geographic distribution across 25+ countries',
-    status: 'medium',
-    trend: 'up',
-  },
-  {
-    id: 'security',
-    name: 'Security Rating',
-    value: 78,
-    max: 100,
-    description: 'Based on audit history, bug bounty programs, and incident response',
-    status: 'medium',
-    trend: 'stable',
-  },
-  {
-    id: 'reliability',
-    name: 'Network Reliability',
-    value: 94.2,
-    max: 100,
-    description: 'Uptime and successful response rate over the last 30 days',
-    status: 'low',
-    trend: 'up',
-  },
-  {
-    id: 'transparency',
-    name: 'Transparency Score',
-    value: 75,
-    max: 100,
-    description: 'Based on documentation quality and open-source availability',
-    status: 'medium',
-    trend: 'stable',
-  },
-];
-
-// 风险因素
 const riskFactors = [
   {
     category: 'Smart Contract Risk',
@@ -180,10 +111,35 @@ const riskFactors = [
   },
 ];
 
+function convertRiskEventToTimelineEvent(event: RiskEvent): TimelineEvent {
+  return {
+    date: event.date,
+    title: event.title,
+    description: event.description,
+    type: event.type,
+  };
+}
+
 export function BandProtocolRiskView() {
   const t = useTranslations();
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
+
+  const {
+    riskMetrics,
+    isLoading: isLoadingMetrics,
+    error: metricsError,
+  } = useBandRiskMetrics();
+
+  const { riskTrend, isLoading: isLoadingTrend } = useBandRiskTrend({ days: 30 });
+
+  const { events: securityEvents, isLoading: isLoadingEvents } = useBandSecurityAuditEvents();
+
+  const isLoading = isLoadingMetrics || isLoadingTrend || isLoadingEvents;
+
+  const historicalRiskEvents = useMemo(() => {
+    return securityEvents.map(convertRiskEventToTimelineEvent);
+  }, [securityEvents]);
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -222,12 +178,115 @@ export function BandProtocolRiskView() {
     }
   };
 
-  // 计算综合风险评分
-  const overallScore = riskMetrics.reduce((sum, m) => sum + m.value, 0) / riskMetrics.length;
+  const metricsDisplay = useMemo(() => {
+    if (!riskMetrics) {
+      return [
+        {
+          id: 'decentralization',
+          name: 'Decentralization Score',
+          value: 72,
+          max: 100,
+          description: 'Based on validator diversity and geographic distribution across 25+ countries',
+          status: 'medium',
+          trend: 'up',
+        },
+        {
+          id: 'security',
+          name: 'Security Rating',
+          value: 78,
+          max: 100,
+          description: 'Based on audit history, bug bounty programs, and incident response',
+          status: 'medium',
+          trend: 'stable',
+        },
+        {
+          id: 'reliability',
+          name: 'Network Reliability',
+          value: 94.2,
+          max: 100,
+          description: 'Uptime and successful response rate over the last 30 days',
+          status: 'low',
+          trend: 'up',
+        },
+        {
+          id: 'transparency',
+          name: 'Transparency Score',
+          value: 75,
+          max: 100,
+          description: 'Based on documentation quality and open-source availability',
+          status: 'medium',
+          trend: 'stable',
+        },
+      ];
+    }
+
+    return [
+      {
+        id: 'decentralization',
+        name: 'Decentralization Score',
+        value: riskMetrics.decentralizationScore,
+        max: 100,
+        description: `Gini: ${riskMetrics.giniCoefficient.toFixed(3)} | Nakamoto: ${riskMetrics.nakamotoCoefficient} | Top 10: ${riskMetrics.top10ValidatorsShare.toFixed(1)}%`,
+        status: riskMetrics.decentralizationScore >= 80 ? 'low' : riskMetrics.decentralizationScore >= 60 ? 'medium' : 'high',
+        trend: 'up',
+      },
+      {
+        id: 'security',
+        name: 'Security Rating',
+        value: riskMetrics.securityScore,
+        max: 100,
+        description: 'Based on audit history, bug bounty programs, and incident response',
+        status: riskMetrics.securityScore >= 80 ? 'low' : riskMetrics.securityScore >= 60 ? 'medium' : 'high',
+        trend: 'stable',
+      },
+      {
+        id: 'reliability',
+        name: 'Network Reliability',
+        value: riskMetrics.reliabilityScore,
+        max: 100,
+        description: 'Uptime and successful response rate over the last 30 days',
+        status: riskMetrics.reliabilityScore >= 95 ? 'low' : riskMetrics.reliabilityScore >= 85 ? 'medium' : 'high',
+        trend: 'up',
+      },
+      {
+        id: 'transparency',
+        name: 'Transparency Score',
+        value: riskMetrics.transparencyScore,
+        max: 100,
+        description: 'Based on documentation quality and open-source availability',
+        status: riskMetrics.transparencyScore >= 80 ? 'low' : riskMetrics.transparencyScore >= 60 ? 'medium' : 'high',
+        trend: 'stable',
+      },
+    ];
+  }, [riskMetrics]);
+
+  const overallScore = riskMetrics?.overallScore ?? 
+    metricsDisplay.reduce((sum, m) => sum + m.value, 0) / metricsDisplay.length;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <span className="ml-3 text-gray-600">
+          {t('band.bandProtocol.risk.loading') || 'Loading risk metrics...'}
+        </span>
+      </div>
+    );
+  }
+
+  if (metricsError) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <AlertTriangle className="w-8 h-8 text-amber-500" />
+        <span className="ml-3 text-gray-600">
+          {t('band.bandProtocol.risk.loadError') || 'Failed to load risk metrics'}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
-      {/* 风险指标统计 */}
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -248,14 +307,14 @@ export function BandProtocolRiskView() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {riskMetrics.map((metric) => (
+          {metricsDisplay.map((metric) => (
             <div key={metric.id} className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">{metric.name}</span>
                 {getTrendIcon(metric.trend)}
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-gray-900">{metric.value}</span>
+                <span className="text-3xl font-bold text-gray-900">{metric.value.toFixed(1)}</span>
                 <span className="text-sm text-gray-400">/ {metric.max}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -274,10 +333,89 @@ export function BandProtocolRiskView() {
         </div>
       </section>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 行业基准对比 */}
+      <section>
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {t('band.bandProtocol.risk.trendTitle') || 'Risk Score Trend (30 Days)'}
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {t('band.bandProtocol.risk.trendDesc') || 'Historical risk score changes over the past 30 days'}
+          </p>
+        </div>
+
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={riskTrend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11, fill: '#6b7280' }}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return `${date.getMonth() + 1}/${date.getDate()}`;
+                }}
+              />
+              <YAxis domain={[60, 100]} tick={{ fontSize: 11, fill: '#6b7280' }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                }}
+                labelFormatter={(label) => {
+                  const date = new Date(label);
+                  return date.toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  });
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="score"
+                name={t('band.bandProtocol.risk.overall') || 'Overall'}
+                stroke={chartColors.oracle['band-protocol']}
+                strokeWidth={2}
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="decentralization"
+                name={t('band.bandProtocol.riskAssessment.decentralization') || 'Decentralization'}
+                stroke="#10b981"
+                strokeWidth={1.5}
+                strokeDasharray="4 2"
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="security"
+                name={t('band.bandProtocol.riskAssessment.security') || 'Security'}
+                stroke="#3b82f6"
+                strokeWidth={1.5}
+                strokeDasharray="4 2"
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="reliability"
+                name={t('band.bandProtocol.riskAssessment.stability') || 'Reliability'}
+                stroke="#f59e0b"
+                strokeWidth={1.5}
+                strokeDasharray="4 2"
+                dot={false}
+              />
+              <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      <div className="border-t border-gray-200" />
+
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -290,7 +428,6 @@ export function BandProtocolRiskView() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 雷达图 */}
           <div className="lg:col-span-2">
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -332,7 +469,6 @@ export function BandProtocolRiskView() {
             </div>
           </div>
 
-          {/* 对比表格 */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-700">
               {t('band.bandProtocol.risk.comparison') || 'Detailed Comparison'}
@@ -367,10 +503,8 @@ export function BandProtocolRiskView() {
         </div>
       </section>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 历史风险事件时间线 */}
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -383,7 +517,6 @@ export function BandProtocolRiskView() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 时间线 */}
           <div className="lg:col-span-2">
             <TimelineChart
               events={historicalRiskEvents}
@@ -393,7 +526,6 @@ export function BandProtocolRiskView() {
             />
           </div>
 
-          {/* 事件详情 */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-4">
               {t('band.bandProtocol.risk.eventDetails') || 'Event Details'}
@@ -433,6 +565,17 @@ export function BandProtocolRiskView() {
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed">{selectedEvent.description}</p>
+                {securityEvents.find((e) => e.title === selectedEvent.title)?.source && (
+                  <a
+                    href={securityEvents.find((e) => e.title === selectedEvent.title)?.source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    {t('band.bandProtocol.risk.viewSource') || 'View Source'}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
               </div>
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
@@ -446,10 +589,8 @@ export function BandProtocolRiskView() {
         </div>
       </section>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 风险因素 */}
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -508,10 +649,8 @@ export function BandProtocolRiskView() {
         </div>
       </section>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 免责声明 */}
       <section className="flex items-start gap-4 py-2">
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>

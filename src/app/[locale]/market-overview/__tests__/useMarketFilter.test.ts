@@ -1,5 +1,6 @@
-import { renderHook, act } from '@testing-library/react';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+
+import { renderHook, act } from '@testing-library/react';
 
 import { useMarketFilter, MARKET_SHARE_OPTIONS, CHAINS_OPTIONS } from '../hooks/useMarketFilter';
 
@@ -230,7 +231,8 @@ describe('useMarketFilter', () => {
       ];
 
       const filtered = mockOracleData.filter(
-        (o) => !result.current.filters.marketShareMin || o.share >= result.current.filters.marketShareMin
+        (o) =>
+          !result.current.filters.marketShareMin || o.share >= result.current.filters.marketShareMin
       );
 
       expect(filtered).toHaveLength(2);
@@ -276,9 +278,7 @@ describe('useMarketFilter', () => {
 
       const query = result.current.filters.searchQuery.toLowerCase();
       const filtered = mockAssets.filter(
-        (a) =>
-          a.symbol.toLowerCase().includes(query) ||
-          a.name.toLowerCase().includes(query)
+        (a) => a.symbol.toLowerCase().includes(query) || a.name.toLowerCase().includes(query)
       );
 
       expect(filtered).toHaveLength(1);
