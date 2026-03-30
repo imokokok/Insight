@@ -1056,6 +1056,55 @@
       "prediction": "趋势预测",
       "anomaly": "异常检测"
     },
+    "metrics": {
+      "price": {
+        "name": "价格",
+        "description": "API3 代币当前市场价格"
+      },
+      "volume": {
+        "name": "交易量",
+        "description": "24小时交易总量"
+      },
+      "marketCap": {
+        "name": "市值",
+        "description": "API3 代币总市值"
+      },
+      "responseTime": {
+        "name": "响应时间",
+        "description": "API3 网络平均响应延迟"
+      },
+      "successRate": {
+        "name": "成功率",
+        "description": "数据请求成功率"
+      },
+      "activeAirnodes": {
+        "name": "活跃 Airnodes",
+        "description": "当前活跃的 Airnode 节点数量"
+      },
+      "activeDapis": {
+        "name": "活跃 dAPIs",
+        "description": "当前活跃的 dAPI 数据源数量"
+      },
+      "stakingApr": {
+        "name": "质押 APR",
+        "description": "当前质押年化收益率"
+      },
+      "totalStaked": {
+        "name": "总质押量",
+        "description": "覆盖池总质押代币数量"
+      },
+      "coverageRatio": {
+        "name": "覆盖比率",
+        "description": "覆盖池抵押率"
+      }
+    },
+    "categories": {
+      "market": "市场",
+      "performance": "性能",
+      "network": "网络",
+      "staking": "质押",
+      "risk": "风险"
+    },
     "reportGenerator": {
       "title": "自定义报表生成器",
       "subtitle": "选择指标和时间范围创建自定义报表",
