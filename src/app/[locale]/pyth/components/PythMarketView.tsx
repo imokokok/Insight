@@ -258,41 +258,41 @@ export function PythMarketView({
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-medium text-gray-700">
-              {t('pythNetwork.ema.periods.ema7')}
+              {tPyth('ema.periods.ema7')}
             </h4>
             {emaData.ema7.trend === 'up' ? (
               <div className="flex items-center gap-1 text-emerald-600">
                 <ArrowUpRight className="w-4 h-4" />
-                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.up')}</span>
+                <span className="text-xs font-medium">{tPyth('ema.trend.up')}</span>
               </div>
             ) : emaData.ema7.trend === 'down' ? (
               <div className="flex items-center gap-1 text-red-600">
                 <ArrowDownRight className="w-4 h-4" />
-                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.down')}</span>
+                <span className="text-xs font-medium">{tPyth('ema.trend.down')}</span>
               </div>
             ) : (
               <div className="flex items-center gap-1 text-gray-500">
                 <Minus className="w-4 h-4" />
-                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.neutral')}</span>
+                <span className="text-xs font-medium">{tPyth('ema.trend.neutral')}</span>
               </div>
             )}
           </div>
           <div className="space-y-3">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-xs text-gray-400 mb-1">{t('pythNetwork.ema.emaValue')}</p>
+                <p className="text-xs text-gray-400 mb-1">{tPyth('ema.emaValue')}</p>
                 <p className={`text-xl font-semibold ${emaData.ema7.trend === 'up' ? 'text-emerald-600' : emaData.ema7.trend === 'down' ? 'text-red-600' : 'text-gray-900'}`}>
                   ${emaData.ema7.value.toFixed(4)}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-400 mb-1">{t('pythNetwork.ema.currentPrice')}</p>
+                <p className="text-xs text-gray-400 mb-1">{tPyth('ema.currentPrice')}</p>
                 <p className="text-lg font-medium text-gray-700">${emaData.currentPrice.toFixed(4)}</p>
               </div>
             </div>
             <div className="pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">{t('pythNetwork.ema.deviation')}</span>
+                <span className="text-xs text-gray-500">{tPyth('ema.deviation')}</span>
                 <span className={`text-sm font-medium ${emaData.ema7.deviation >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {emaData.ema7.deviation >= 0 ? '+' : ''}{emaData.ema7.deviation.toFixed(2)}%
                 </span>
@@ -305,41 +305,41 @@ export function PythMarketView({
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-medium text-gray-700">
-              {t('pythNetwork.ema.periods.ema25')}
+              {tPyth('ema.periods.ema25')}
             </h4>
             {emaData.ema25.trend === 'up' ? (
               <div className="flex items-center gap-1 text-emerald-600">
                 <ArrowUpRight className="w-4 h-4" />
-                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.up')}</span>
+                <span className="text-xs font-medium">{tPyth('ema.trend.up')}</span>
               </div>
             ) : emaData.ema25.trend === 'down' ? (
               <div className="flex items-center gap-1 text-red-600">
                 <ArrowDownRight className="w-4 h-4" />
-                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.down')}</span>
+                <span className="text-xs font-medium">{tPyth('ema.trend.down')}</span>
               </div>
             ) : (
               <div className="flex items-center gap-1 text-gray-500">
                 <Minus className="w-4 h-4" />
-                <span className="text-xs font-medium">{t('pythNetwork.ema.trend.neutral')}</span>
+                <span className="text-xs font-medium">{tPyth('ema.trend.neutral')}</span>
               </div>
             )}
           </div>
           <div className="space-y-3">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-xs text-gray-400 mb-1">{t('pythNetwork.ema.emaValue')}</p>
+                <p className="text-xs text-gray-400 mb-1">{tPyth('ema.emaValue')}</p>
                 <p className={`text-xl font-semibold ${emaData.ema25.trend === 'up' ? 'text-emerald-600' : emaData.ema25.trend === 'down' ? 'text-red-600' : 'text-gray-900'}`}>
                   ${emaData.ema25.value.toFixed(4)}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-400 mb-1">{t('pythNetwork.ema.currentPrice')}</p>
+                <p className="text-xs text-gray-400 mb-1">{tPyth('ema.currentPrice')}</p>
                 <p className="text-lg font-medium text-gray-700">${emaData.currentPrice.toFixed(4)}</p>
               </div>
             </div>
             <div className="pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">{t('pythNetwork.ema.deviation')}</span>
+                <span className="text-xs text-gray-500">{tPyth('ema.deviation')}</span>
                 <span className={`text-sm font-medium ${emaData.ema25.deviation >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {emaData.ema25.deviation >= 0 ? '+' : ''}{emaData.ema25.deviation.toFixed(2)}%
                 </span>
@@ -352,28 +352,28 @@ export function PythMarketView({
         <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl border border-violet-200 p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <Activity className="w-5 h-5 text-violet-600" />
-            <h4 className="text-sm font-medium text-violet-900">{t('pythNetwork.ema.title')}</h4>
+            <h4 className="text-sm font-medium text-violet-900">{tPyth('ema.title')}</h4>
           </div>
           <p className="text-xs text-violet-700 leading-relaxed mb-4">
-            {t('pythNetwork.ema.explanation')}
+            {tPyth('ema.explanation')}
           </p>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-violet-400" />
               <span className="text-xs text-violet-600">
-                EMA-7: {t('pythNetwork.ema.calculationMethod')}
+                EMA-7: {tPyth('ema.calculationMethod')}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-violet-500" />
               <span className="text-xs text-violet-600">
-                EMA-25: {t('pythNetwork.ema.calculationMethod')}
+                EMA-25: {tPyth('ema.calculationMethod')}
               </span>
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-violet-200">
             <p className="text-xs text-violet-500">
-              {t('pythNetwork.ema.priceComparison')}
+              {tPyth('ema.priceComparison')}
             </p>
           </div>
         </div>
