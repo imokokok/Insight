@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   Users,
@@ -263,9 +263,8 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {mockReporters.map((reporter, index) => (
-                <>
+                <React.Fragment key={reporter.address}>
                   <tr
-                    key={reporter.address}
                     className="hover:bg-gray-50 cursor-pointer"
                     onClick={() =>
                       setExpandedReporter(
@@ -350,7 +349,7 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>
