@@ -10,47 +10,47 @@ export function ChronicleSidebar({ activeTab, onTabChange, themeColor }: Chronic
   const navItems = [
     {
       id: 'market' as ChronicleTabId,
-      labelKey: 'chronicle.menu.marketData',
+      labelKey: 'menu.marketData',
       icon: <BarChart3 className="w-5 h-5" strokeWidth={1.5} />,
     },
     {
       id: 'makerdao' as ChronicleTabId,
-      labelKey: 'chronicle.menu.makerDAO',
+      labelKey: 'menu.makerDAO',
       icon: <Landmark className="w-5 h-5" strokeWidth={1.5} />,
     },
     {
       id: 'validators' as ChronicleTabId,
-      labelKey: 'chronicle.menu.validators',
+      labelKey: 'menu.validators',
       icon: <Shield className="w-5 h-5" strokeWidth={1.5} />,
     },
     {
       id: 'network' as ChronicleTabId,
-      labelKey: 'chronicle.menu.networkHealth',
+      labelKey: 'menu.networkHealth',
       icon: <Globe className="w-5 h-5" strokeWidth={1.5} />,
     },
     {
       id: 'vault' as ChronicleTabId,
-      labelKey: 'chronicle.menu.vaultStatus',
+      labelKey: 'menu.vaultStatus',
       icon: <Vault className="w-5 h-5" strokeWidth={1.5} />,
     },
     {
       id: 'crossChain' as ChronicleTabId,
-      labelKey: 'chronicle.menu.crossChainAnalysis',
+      labelKey: 'menu.crossChainAnalysis',
       icon: <ArrowLeftRight className="w-5 h-5" strokeWidth={1.5} />,
     },
     {
       id: 'priceDeviation' as ChronicleTabId,
-      labelKey: 'chronicle.menu.priceDeviation',
+      labelKey: 'menu.priceDeviation',
       icon: <TrendingUpDown className="w-5 h-5" strokeWidth={1.5} />,
     },
     {
       id: 'scuttlebutt' as ChronicleTabId,
-      labelKey: 'chronicle.menu.scuttlebutt',
+      labelKey: 'menu.scuttlebutt',
       icon: <Lock className="w-5 h-5" strokeWidth={1.5} />,
     },
     {
       id: 'risk' as ChronicleTabId,
-      labelKey: 'chronicle.menu.riskAssessment',
+      labelKey: 'menu.riskAssessment',
       icon: <ShieldAlert className="w-5 h-5" strokeWidth={1.5} />,
     },
   ];

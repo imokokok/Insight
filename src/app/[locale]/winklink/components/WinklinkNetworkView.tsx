@@ -1,6 +1,6 @@
 'use client';
 
-import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown, Database, Shield, Globe, Zap } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 

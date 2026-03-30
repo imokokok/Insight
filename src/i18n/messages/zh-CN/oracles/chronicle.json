@@ -367,7 +367,8 @@
     "liquidationPenalty": "清算罚金",
     "totalActiveAuctions": "活跃拍卖总数",
     "liquidations30d": "30天清算数",
-    "avgLiquidationPrice": "平均清算价格"
+    "avgLiquidationPrice": "平均清算价格",
+    "systemSurplus": "系统盈余"
   },
   "crossChain": {
     "title": "跨链分析",

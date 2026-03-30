@@ -47,7 +47,9 @@
       "assetCategories": "资产类别",
       "oracleComparison": "预言机对比",
       "benchmark": "基准",
-      "correlation": "相关性"
+      "correlation": "相关性",
+      "yoyComparison": "同比",
+      "momComparison": "环比"
     },
     "filter": {
       "more": "更多"

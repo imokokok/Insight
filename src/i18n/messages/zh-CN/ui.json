@@ -409,5 +409,26 @@
     "r": "刷新数据",
     "e": "导出数据",
     "question": "显示帮助"
+  },
+  "freshness": {
+    "fresh": "数据新鲜",
+    "freshShort": "新鲜",
+    "stale": "数据稍旧",
+    "staleShort": "稍旧",
+    "expired": "数据过期",
+    "expiredShort": "过期",
+    "title": "数据新鲜度",
+    "lastUpdate": "最后更新",
+    "age": "数据年龄",
+    "nextRefresh": "下次刷新",
+    "connection": "连接状态",
+    "refresh": "刷新数据"
+  },
+  "connection": {
+    "connected": "已连接",
+    "connecting": "连接中",
+    "reconnecting": "重新连接中",
+    "disconnected": "已断开",
+    "error": "连接错误"
   }
 }
