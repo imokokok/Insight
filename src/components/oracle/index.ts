@@ -49,7 +49,6 @@ export {
 } from './alerts';
 
 export {
-  OraclePageTemplate,
   TabNavigation,
   type TimeRange,
   FloatingActionButton,
@@ -70,12 +69,6 @@ export {
   type UnifiedSidebarProps,
   type MobileMenuButtonProps,
 } from './UnifiedSidebar';
-
-export {
-  GroupedSidebar,
-  type SidebarGroup,
-  type GroupedSidebarProps,
-} from './GroupedSidebar';
 
 export * from './oracle-panels';
 

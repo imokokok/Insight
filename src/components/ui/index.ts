@@ -26,12 +26,6 @@ export type { RadioProps, RadioOption, RadioGroupProps } from './Radio';
 export { Textarea } from './Textarea';
 export type { TextareaProps } from './Textarea';
 
-export { FormLabel } from './FormLabel';
-export type { FormLabelProps } from './FormLabel';
-
-export { FormError } from './FormError';
-export type { FormErrorProps } from './FormError';
-
 export { Tooltip } from './Tooltip';
 export type { TooltipProps, TooltipPlacement } from './Tooltip';
 
@@ -40,12 +34,6 @@ export type { BadgeProps, BadgeVariant, BadgeSize } from './Badge';
 
 export { Breadcrumb } from './Breadcrumb';
 export type { BreadcrumbProps, BreadcrumbItem } from './Breadcrumb';
-
-export { FadeIn, StaggerContainer, StaggerItem } from './FadeIn';
-export type { FadeInProps, StaggerContainerProps, StaggerItemProps } from './FadeIn';
-
-export { SlideUp, SlideIn } from './SlideUp';
-export type { SlideUpProps, SlideInProps } from './SlideUp';
 
 export { Skeleton } from './Skeleton';
 export type { SkeletonProps } from './Skeleton';
