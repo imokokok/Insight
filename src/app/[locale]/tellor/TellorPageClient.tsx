@@ -2,6 +2,13 @@
 
 import { useState, useMemo } from 'react';
 
+import {
+  LoadingState,
+  ErrorFallback,
+  MobileMenuButton,
+  OracleErrorBoundary,
+} from '@/components/oracle';
+import { MobileSidebar } from '@/components/ui/MobileSidebar';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
@@ -46,6 +53,7 @@ export function TellorPageClient({ locale }: TellorPageClientProps) {
   const [isError, setIsError] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(new Date());
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -58,6 +66,17 @@ export function TellorPageClient({ locale }: TellorPageClientProps) {
   const handleExport = () => {
     console.log('Export data');
   };
+
+  const isInitialLoading = isLoading && !price && !historicalData.length && !networkStats;
+  const hasCriticalError = isError && !price;
+
+  if (isInitialLoading) {
+    return <LoadingState themeColor={config.themeColor} />;
+  }
+
+  if (hasCriticalError) {
+    return <ErrorFallback error={new Error('Failed to load data')} onRetry={handleRefresh} themeColor={config.themeColor} />;
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -104,31 +123,59 @@ export function TellorPageClient({ locale }: TellorPageClientProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TellorHero
-        config={config}
-        price={price}
-        historicalData={historicalData}
-        isLoading={isLoading}
-        isError={isError}
-        isRefreshing={isRefreshing}
-        lastUpdated={lastUpdated}
-        onRefresh={handleRefresh}
-        onExport={handleExport}
-      />
+    <OracleErrorBoundary themeColor={config.themeColor} onReset={handleRefresh}>
+      <div className="min-h-screen bg-insight">
+        <TellorHero
+          config={config}
+          price={price}
+          historicalData={historicalData}
+          isLoading={isLoading}
+          isError={isError}
+          isRefreshing={isRefreshing}
+          lastUpdated={lastUpdated}
+          onRefresh={handleRefresh}
+          onExport={handleExport}
+        />
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <TellorSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-
-          <main className="flex-1">
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              {renderContent()}
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="hidden lg:block w-64 flex-shrink-0">
+              <div className="sticky top-6">
+                <TellorSidebar
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                />
+              </div>
             </div>
-          </main>
+
+            <div className="lg:hidden">
+              <MobileMenuButton
+                isOpen={isMobileMenuOpen}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                themeColor={config.themeColor}
+                label={t('menu.title')}
+              />
+            </div>
+
+            <MobileSidebar
+              isOpen={isMobileMenuOpen}
+              onClose={() => setIsMobileMenuOpen(false)}
+              title={t('navigation.title')}
+            >
+              <TellorSidebar
+                activeTab={activeTab}
+                onTabChange={(tab) => {
+                  setActiveTab(tab);
+                  setIsMobileMenuOpen(false);
+                }}
+              />
+            </MobileSidebar>
+
+            <div className="flex-1 min-w-0">{renderContent()}</div>
+          </div>
         </div>
       </div>
-    </div>
+    </OracleErrorBoundary>
   );
 }
 
