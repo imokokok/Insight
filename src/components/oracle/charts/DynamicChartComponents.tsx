@@ -219,12 +219,6 @@ export const DynamicInteractivePriceChart = createDynamicChart(
   'price'
 );
 
-export const DynamicKPIDashboard = createDynamicChart(
-  () => import('./KPIDashboard').then((mod) => ({ default: mod.KPIDashboard })),
-  400,
-  'kpi'
-);
-
 export const DynamicLatencyPrediction = createDynamicChart(
   () => import('./LatencyPrediction').then((mod) => ({ default: mod.LatencyPrediction })),
   400,
@@ -277,7 +271,6 @@ export type DynamicChartComponent =
   | typeof DynamicMultiValidatorComparison
   | typeof DynamicCrossOracleComparison
   | typeof DynamicInteractivePriceChart
-  | typeof DynamicKPIDashboard
   | typeof DynamicLatencyPrediction
   | typeof DynamicLatencyHistogram
   | typeof DynamicPriceStream;

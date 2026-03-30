@@ -62,7 +62,6 @@ export { MultiValidatorComparison } from './MultiValidatorComparison';
 export type { MultiValidatorComparisonProps } from './MultiValidatorComparison';
 export { CrossOracleComparison } from './CrossOracleComparison';
 export { PriceStream } from './PriceStream';
-export { KPIDashboard } from './KPIDashboard';
 
 // Dynamic Chart Components - Code Splitting for Heavy Components
 export {
@@ -99,7 +98,6 @@ export {
   DynamicMultiValidatorComparison,
   DynamicCrossOracleComparison,
   DynamicInteractivePriceChart,
-  DynamicKPIDashboard,
   DynamicLatencyPrediction,
   DynamicLatencyHistogram,
   DynamicPriceStream,
@@ -138,9 +136,6 @@ export type { InteractivePriceChartProps } from './InteractivePriceChart';
 // Shared Data Visualization Components
 export { SparklineChart } from './SparklineChart';
 export type { SparklineChartProps } from './SparklineChart';
-
-export { HeatmapGrid } from './HeatmapGrid';
-export type { HeatmapGridProps } from './HeatmapGrid';
 
 export { TimelineChart } from './TimelineChart';
 export type { TimelineChartProps, TimelineEvent } from './TimelineChart';
