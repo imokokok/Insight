@@ -48,24 +48,25 @@
         "high": "High"
       },
       "updates": {
-        "priceUpdate": "BAND Price Update: ${{price}} ({{change}})",
-        "newValidator": "New validator joined: {{moniker}} ({{region}})",
-        "feedUpdate": "{{symbol}} data feed updated",
-        "blockHeight": "BandChain Block Height: #{{height}}",
+        "priceUpdate": "BAND Price Update: ${price} ({change})",
+        "newValidator": "New validator joined: {moniker} ({region})",
+        "feedUpdate": "{symbol} data feed updated",
+        "blockHeight": "BandChain Block Height: #{height}",
         "justNow": "Just now",
-        "minutesAgo": "{{count}}m ago",
-        "hoursAgo": "{{count}}h ago"
+        "minutesAgo": "{count}m ago",
+        "hoursAgo": "{count}h ago"
       }
     },
     "time": {
-      "secondsAgo": "{{count}}s ago",
-      "minutesAgo": "{{count}}m ago",
-      "hoursAgo": "{{count}}h ago",
-      "daysAgo": "{{count}}d ago",
+      "secondsAgo": "{count}s ago",
+      "minutesAgo": "{count}m ago",
+      "hoursAgo": "{count}h ago",
+      "daysAgo": "{count}d ago",
       "ended": "Ended",
-      "timeRemaining": "{{days}}d {{hours}}h"
+      "timeRemaining": "{days}d {hours}h"
     },
     "network": {
+      "status": "Network Status",
       "activeValidators": "Active Validators",
       "stakingRatio": "Staking Ratio",
       "blockTime": "Block Time",
@@ -142,7 +143,7 @@
         "oracle": {
           "category": "Oracle Risk",
           "description": "Decentralized validator network with economic incentives and slashing mechanisms.",
-          "detail1": "{{count}} validators across 25+ countries",
+          "detail1": "{count} validators across 25+ countries",
           "detail2": "BFT consensus with 2/3+ threshold",
           "detail3": "Token staking with slashing conditions",
           "detail4": "Data source diversity from 15+ providers"
@@ -158,7 +159,7 @@
         "centralization": {
           "category": "Centralization Risk",
           "description": "Validator set is permissioned, with top validators holding significant stake concentration.",
-          "detail1": "Permissioned validator set ({{count}} active)",
+          "detail1": "Permissioned validator set ({count} active)",
           "detail2": "Top 10 validators control ~45% stake",
           "detail3": "Geographic concentration in Asia (~40%)",
           "detail4": "Ongoing efforts to diversify validator base"
@@ -316,6 +317,7 @@
       "tvlSecured": "TVL Secured"
     },
     "validators": {
+      "refresh": "Refresh",
       "totalValidators": "Total Validators",
       "totalStaked": "Total Staked",
       "votingPower": "Voting Power",
@@ -348,6 +350,7 @@
       "maxValidatorsDesc": "Active set size"
     },
     "dataFeeds": {
+      "dataFeeds": "Data Feeds",
       "totalFeeds": "Total Feeds",
       "total": "Total",
       "active": "Active",
