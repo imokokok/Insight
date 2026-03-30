@@ -146,7 +146,6 @@ export default function MarketOverviewPage() {
 
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
                 <MarketSidebar
-                  stats={marketStats}
                   oracleData={sortedOracleData.map(o => ({
                     name: o.name,
                     share: o.share,
