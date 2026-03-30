@@ -68,6 +68,12 @@
       "other": "其他"
     }
   },
+  "regions": {
+    "northAmerica": "北美",
+    "europe": "欧洲",
+    "asia": "亚洲",
+    "other": "其他"
+  },
   "user": "用户",
   "actions": {
     "refresh": "刷新",
@@ -127,7 +133,12 @@
     "daysAgo": "{days}天前",
     "seconds": "秒",
     "minutes": "分钟",
-    "hours": "小时"
+    "hours": "小时",
+    "00:00": "00:00",
+    "06:00": "06:00",
+    "12:00": "12:00",
+    "18:00": "18:00",
+    "23:59": "23:59"
   },
   "price": {
     "title": "价格"
@@ -241,6 +252,7 @@
     "copy": "复制",
     "copied": "已复制",
     "copyFailed": "复制失败",
+    "clickForDetails": "点击查看详情",
     "breadcrumb": {
       "home": "首页"
     },

@@ -1,4 +1,11 @@
 {
+  "dataTable": {
+    "sort": {
+      "asc": "升序",
+      "desc": "降序",
+      "unsorted": "未排序"
+    }
+  },
   "menu": {
     "marketData": "市场数据",
     "networkHealth": "网络健康度",
@@ -10,6 +17,7 @@
     "dataFeeds": "数据源",
     "dataStreams": "数据流",
     "ccip": "CCIP 跨链",
+    "proofOfReserve": "储备证明",
     "vrf": "VRF",
     "automation": "自动化",
     "functions": "Functions",
@@ -58,6 +66,13 @@
     "stakingAmount": "质押数量",
     "totalStaked": "总质押量",
     "nodeOperators": "节点运营者"
+  },
+  "dataFeedsFilter": {
+    "all": "全部",
+    "crypto": "加密货币",
+    "forex": "外汇",
+    "commodities": "商品",
+    "defi": "DeFi"
   },
   "dataFeeds": {
     "title": "数据源",
@@ -512,7 +527,8 @@
     "totalRequests": "总请求数",
     "avgGas": "平均 Gas",
     "activeChains": "活跃链",
-    "nodeOperators": "节点运营者"
+    "nodeOperators": "节点运营者",
+    "dataFreshness": "数据新鲜度"
   },
   "nodes": {
     "name": "节点名称",
@@ -567,7 +583,9 @@
     "largeNodes": "大型节点",
     "earningsByTier": "按层级收益",
     "nodeDistribution": "节点分布",
-    "earningsTrend": "收益趋势"
+    "earningsTrend": "收益趋势",
+    "earningsAnalysis": "节点收益分析",
+    "performanceTrends": "性能趋势"
   },
   "tradingPair": "交易对",
   "volume24h": "24小时成交量",
@@ -847,7 +865,8 @@
   "common": {
     "keyPerformanceIndicators": "关键性能指标",
     "totalValueLockedEcosystem": "Chainlink 生态系统总锁仓价值",
-    "distributionProjectsNetworks": "各支持网络的项目分布"
+    "distributionProjectsNetworks": "各支持网络的项目分布",
+    "30d": "30天"
   },
   "riskFactors": {
     "smartContract": {

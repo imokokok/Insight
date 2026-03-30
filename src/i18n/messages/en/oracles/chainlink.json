@@ -1,4 +1,11 @@
 {
+  "dataTable": {
+    "sort": {
+      "asc": "Ascending",
+      "desc": "Descending",
+      "unsorted": "Not sorted"
+    }
+  },
   "menu": {
     "marketData": "Market Data",
     "networkHealth": "Network Health",
@@ -55,6 +62,13 @@
     "stakingAmount": "Staking Amount",
     "totalStaked": "Total Staked",
     "nodeOperators": "Node Operators"
+  },
+  "dataFeedsFilter": {
+    "all": "All",
+    "crypto": "Crypto",
+    "forex": "Forex",
+    "commodities": "Commodities",
+    "defi": "DeFi"
   },
   "dataFeeds": {
     "title": "Data Feeds",
@@ -498,7 +512,8 @@
     "totalRequests": "Total Requests",
     "avgGas": "Avg Gas",
     "activeChains": "Active Chains",
-    "nodeOperators": "Node Operators"
+    "nodeOperators": "Node Operators",
+    "dataFreshness": "Data Freshness"
   },
   "nodes": {
     "name": "Node Name",
@@ -553,7 +568,9 @@
     "largeNodes": "Large Nodes",
     "earningsByTier": "Earnings by Tier",
     "nodeDistribution": "Node Distribution",
-    "earningsTrend": "Earnings Trend"
+    "earningsTrend": "Earnings Trend",
+    "earningsAnalysis": "Node Earnings Analysis",
+    "performanceTrends": "Performance Trends"
   },
   "tradingPair": "Trading Pair",
   "volume24h": "24h Volume",
@@ -833,7 +850,8 @@
   "common": {
     "keyPerformanceIndicators": "Key performance indicators",
     "totalValueLockedEcosystem": "Total Value Locked across Chainlink ecosystem",
-    "distributionProjectsNetworks": "Distribution of projects across supported networks"
+    "distributionProjectsNetworks": "Distribution of projects across supported networks",
+    "30d": "30d"
   },
   "riskFactors": {
     "smartContract": {
