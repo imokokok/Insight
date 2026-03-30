@@ -395,33 +395,7 @@ function useErrorTranslations() {
   };
 }
 
-export function GlobalErrorBoundary({ children }: { children: ReactNode }) {
-  const translations = useErrorTranslations();
-  return (
-    <BaseErrorBoundary
-      level="global"
-      fallback={
-        <GlobalErrorFallback error={undefined} onReset={() => {}} translations={translations} />
-      }
-    >
-      {children}
-    </BaseErrorBoundary>
-  );
-}
 
-export function SectionErrorBoundary({ children }: { children: ReactNode }) {
-  const translations = useErrorTranslations();
-  return (
-    <BaseErrorBoundary
-      level="section"
-      fallback={
-        <SectionErrorFallback error={undefined} onReset={() => {}} translations={translations} />
-      }
-    >
-      {children}
-    </BaseErrorBoundary>
-  );
-}
 
 export function ComponentErrorBoundary({ children }: { children: ReactNode }) {
   const translations = useErrorTranslations();

@@ -152,67 +152,7 @@ interface StepProgressProps {
   className?: string;
 }
 
-export function StepProgress({
-  steps,
-  currentStep,
-  variant = 'default',
-  className,
-}: StepProgressProps) {
-  const isVertical = variant === 'vertical';
 
-  return (
-    <div className={cn(isVertical ? 'flex flex-col gap-2' : 'flex items-center', className)}>
-      {steps.map((step, index) => {
-        const isCompleted = index < currentStep;
-        const isCurrent = index === currentStep;
-        const isPending = index > currentStep;
-
-        return (
-          <React.Fragment key={index}>
-            <div className={cn('flex items-center gap-3', isVertical ? 'flex-row' : 'flex-col')}>
-              <div
-                className={cn(
-                  'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
-                  isCompleted && 'bg-emerald-500 text-white',
-                  isCurrent && 'bg-primary-600 text-white ring-4 ring-blue-100',
-                  isPending && 'bg-gray-200 text-gray-500'
-                )}
-              >
-                {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : index + 1}
-              </div>
-              <span
-                className={cn(
-                  'text-sm transition-colors',
-                  isCompleted && 'text-emerald-600',
-                  isCurrent && 'text-primary-600 font-medium',
-                  isPending && 'text-gray-400'
-                )}
-              >
-                {step}
-              </span>
-            </div>
-            {index < steps.length - 1 && !isVertical && (
-              <div
-                className={cn(
-                  'h-0.5 flex-1 mx-2 transition-colors',
-                  isCompleted ? 'bg-emerald-500' : 'bg-gray-200'
-                )}
-              />
-            )}
-            {index < steps.length - 1 && isVertical && (
-              <div
-                className={cn(
-                  'w-0.5 h-6 ml-4 transition-colors',
-                  isCompleted ? 'bg-emerald-500' : 'bg-gray-200'
-                )}
-              />
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
 
 // ============================================
 // 数据加载进度组件
@@ -344,96 +284,7 @@ interface BatchOperationProgressProps {
   className?: string;
 }
 
-export function BatchOperationProgress({
-  isProcessing,
-  completed,
-  total,
-  failed = 0,
-  operationName,
-  onCancel,
-  showDetails = false,
-  items,
-  className,
-}: BatchOperationProgressProps) {
-  const t = useTranslations('loading');
-  const progress = total > 0 ? (completed / total) * 100 : 0;
 
-  if (!isProcessing) return null;
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
-      case 'failed':
-        return <AlertCircle className="w-4 h-4 text-danger-500" />;
-      case 'processing':
-        return <Loader2 className="w-4 h-4 text-primary-500 animate-spin" />;
-      default:
-        return <div className="w-4 h-4 rounded-full border-2 border-gray-200" />;
-    }
-  };
-
-  return (
-    <div
-      className={cn(
-        'fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm',
-        className
-      )}
-    >
-      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">{operationName}</h3>
-          {onCancel && (
-            <button
-              onClick={onCancel}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label={t('cancel')}
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-
-        <div className="mb-4">
-          <ProgressBar progress={completed} total={total} size="lg" animated />
-        </div>
-
-        <div className="flex items-center justify-between text-sm mb-4">
-          <div className="flex items-center gap-4">
-            <span className="text-emerald-600">
-              {t('completed')}: {completed}
-            </span>
-            {failed > 0 && (
-              <span className="text-danger-600">
-                {t('failed')}: {failed}
-              </span>
-            )}
-            <span className="text-gray-500">
-              {t('total')}: {total}
-            </span>
-          </div>
-          <span className="font-medium text-gray-700">{Math.round(progress)}%</span>
-        </div>
-
-        {showDetails && items && items.length > 0 && (
-          <div className="border border-gray-200 rounded-lg overflow-hidden flex-1 overflow-y-auto">
-            <div className="divide-y divide-gray-100">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between px-4 py-2 hover:bg-gray-50"
-                >
-                  <span className="text-sm text-gray-700 truncate flex-1">{item.name}</span>
-                  {getStatusIcon(item.status)}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ============================================
 // 骨架屏加载状态 Hook
@@ -444,75 +295,7 @@ interface UseLoadingProgressOptions {
   onError?: (error: Error) => void;
 }
 
-export function useLoadingProgress(options: UseLoadingProgressOptions = {}) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [total, setTotal] = useState(100);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState<Error | null>(null);
 
-  const startLoading = useCallback((initialTotal?: number, initialMessage?: string) => {
-    setIsLoading(true);
-    setProgress(0);
-    setError(null);
-    if (initialTotal) setTotal(initialTotal);
-    if (initialMessage) setMessage(initialMessage);
-  }, []);
-
-  const updateProgress = useCallback((value: number, currentMessage?: string) => {
-    setProgress(value);
-    if (currentMessage) setMessage(currentMessage);
-  }, []);
-
-  const incrementProgress = useCallback(
-    (increment: number = 1, currentMessage?: string) => {
-      setProgress((prev) => {
-        const newProgress = Math.min(prev + increment, total);
-        return newProgress;
-      });
-      if (currentMessage) setMessage(currentMessage);
-    },
-    [total]
-  );
-
-  const completeLoading = useCallback(() => {
-    setProgress(total);
-    setTimeout(() => {
-      setIsLoading(false);
-      setProgress(0);
-      options.onComplete?.();
-    }, 500);
-  }, [total, options]);
-
-  const failLoading = useCallback(
-    (err: Error) => {
-      setError(err);
-      setIsLoading(false);
-      options.onError?.(err);
-    },
-    [options]
-  );
-
-  const cancelLoading = useCallback(() => {
-    setIsLoading(false);
-    setProgress(0);
-    setMessage('');
-  }, []);
-
-  return {
-    isLoading,
-    progress,
-    total,
-    message,
-    error,
-    startLoading,
-    updateProgress,
-    incrementProgress,
-    completeLoading,
-    failLoading,
-    cancelLoading,
-  };
-}
 
 // ============================================
 // 懒加载占位组件
@@ -524,25 +307,4 @@ interface LazyLoadPlaceholderProps {
   className?: string;
 }
 
-export function LazyLoadPlaceholder({
-  height = 200,
-  children,
-  className,
-}: LazyLoadPlaceholderProps) {
-  return (
-    <div
-      className={cn(
-        'bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center',
-        className
-      )}
-      style={{ height }}
-    >
-      {children || (
-        <div className="flex items-center gap-2 text-gray-400">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span className="text-sm">Loading...</span>
-        </div>
-      )}
-    </div>
-  );
-}
+

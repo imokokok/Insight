@@ -118,13 +118,4 @@ export function useGlobalCacheStatus() {
   return context;
 }
 
-export function useCacheStatusOptimized() {
-  const { status, subscribe } = useGlobalCacheStatus();
-  const [localStatus, setLocalStatus] = useState(status);
 
-  useEffect(() => {
-    return subscribe(setLocalStatus);
-  }, [subscribe]);
-
-  return localStatus;
-}

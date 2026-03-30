@@ -153,14 +153,4 @@ export function RealtimeNotifications({
   );
 }
 
-export function NotificationBadge({ count }: { count: number }) {
-  if (count === 0) return null;
-
-  return (
-    <span className="absolute -top-1 -right-1 bg-danger-500 text-white text-xs  h-5 w-5 flex items-center justify-center font-bold">
-      {count > 9 ? '9+' : count}
-    </span>
-  );
-}
-
 export default RealtimeNotifications;
