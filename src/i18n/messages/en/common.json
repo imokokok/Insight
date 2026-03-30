@@ -140,6 +140,11 @@
     "18:00": "18:00",
     "23:59": "23:59"
   },
+  "timeAgo": {
+    "minutes": "{count}m ago",
+    "hours": "{count}h ago",
+    "days": "{count}d ago"
+  },
   "price": {
     "title": "Price"
   },

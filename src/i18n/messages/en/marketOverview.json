@@ -47,7 +47,9 @@
       "assetCategories": "Asset Categories",
       "oracleComparison": "Oracle Comparison",
       "benchmark": "Benchmark",
-      "correlation": "Correlation"
+      "correlation": "Correlation",
+      "yoyComparison": "YoY",
+      "momComparison": "MoM"
     },
     "filter": {
       "more": "More"

@@ -367,7 +367,8 @@
     "liquidationPenalty": "Liquidation Penalty",
     "totalActiveAuctions": "Total Active Auctions",
     "liquidations30d": "Liquidations (30d)",
-    "avgLiquidationPrice": "Avg Liquidation Price"
+    "avgLiquidationPrice": "Avg Liquidation Price",
+    "systemSurplus": "System Surplus"
   },
   "crossChain": {
     "title": "Cross-Chain Analysis",

@@ -138,24 +138,24 @@ export function ChroniclePriceDeviationView({
     },
     factors: [
       {
-        name: t('chronicle.deviation.marketVolatility'),
+        name: t('chronicle.priceDeviation.marketVolatility'),
         impact: 35,
         description:
-          t('chronicle.deviation.marketVolatilityDesc'),
+          t('chronicle.priceDeviation.marketVolatilityDesc'),
         status: 'medium',
       },
       {
-        name: t('chronicle.deviation.updateDelay'),
+        name: t('chronicle.priceDeviation.updateDelay'),
         impact: 45,
         description:
-          t('chronicle.deviation.updateDelayDesc'),
+          t('chronicle.priceDeviation.updateDelayDesc'),
         status: 'high',
       },
       {
-        name: t('chronicle.deviation.liquidityIssue'),
+        name: t('chronicle.priceDeviation.liquidityIssue'),
         impact: 20,
         description:
-          t('chronicle.deviation.liquidityIssueDesc'),
+          t('chronicle.priceDeviation.liquidityIssueDesc'),
         status: 'low',
       },
     ],
@@ -289,7 +289,7 @@ export function ChroniclePriceDeviationView({
                   {source.lastUpdate}
                 </span>
                 <span>
-                  {source.reliability}% {t('chronicle.deviation.reliability')}
+                  {source.reliability}% {t('chronicle.priceDeviation.reliability')}
                 </span>
               </div>
             </div>
@@ -304,12 +304,12 @@ export function ChroniclePriceDeviationView({
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-medium text-gray-900">
-            {t('chronicle.deviation.historyTitle')}
+            {t('chronicle.priceDeviation.historyTitle')}
           </h3>
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-amber-500" />
-              {t('chronicle.deviation.deviation')}
+              {t('chronicle.priceDeviation.deviation')}
             </span>
           </div>
         </div>

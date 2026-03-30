@@ -140,6 +140,11 @@
     "18:00": "18:00",
     "23:59": "23:59"
   },
+  "timeAgo": {
+    "minutes": "{count}分钟前",
+    "hours": "{count}小时前",
+    "days": "{count}天前"
+  },
   "price": {
     "title": "价格"
   },

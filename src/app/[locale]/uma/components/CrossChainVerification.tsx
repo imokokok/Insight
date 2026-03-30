@@ -470,10 +470,10 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
   const formatTime = (timestamp: number) => {
     const diff = Date.now() - timestamp;
     const minutes = Math.floor(diff / 60000);
-    if (minutes < 60) return t('common.timeAgo.minutes', { count: minutes });
+    if (minutes < 60) return t('timeAgo.minutes', { count: minutes });
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return t('common.timeAgo.hours', { count: hours });
-    return t('common.timeAgo.days', { count: Math.floor(hours / 24) });
+    if (hours < 24) return t('timeAgo.hours', { count: hours });
+    return t('timeAgo.days', { count: Math.floor(hours / 24) });
   };
 
   const getSecurityStatusText = (score: number) => {

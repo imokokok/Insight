@@ -230,6 +230,7 @@
     "avgResponseTime": "平均响应时间",
     "uptime": "正常运行时间",
     "chainStatus": "链状态",
+    "status": "状态",
     "reporters": "报告者",
     "latency": "延迟",
     "hourlyActivity": "每小时活动",

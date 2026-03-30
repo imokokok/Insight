@@ -409,5 +409,26 @@
     "r": "Refresh Data",
     "e": "Export Data",
     "question": "Show Help"
+  },
+  "freshness": {
+    "fresh": "Fresh",
+    "freshShort": "Fresh",
+    "stale": "Stale",
+    "staleShort": "Stale",
+    "expired": "Expired",
+    "expiredShort": "Expired",
+    "title": "Data Freshness",
+    "lastUpdate": "Last Update",
+    "age": "Data Age",
+    "nextRefresh": "Next Refresh",
+    "connection": "Connection",
+    "refresh": "Refresh Data"
+  },
+  "connection": {
+    "connected": "Connected",
+    "connecting": "Connecting",
+    "reconnecting": "Reconnecting",
+    "disconnected": "Disconnected",
+    "error": "Connection Error"
   }
 }
