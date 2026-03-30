@@ -27,12 +27,6 @@ export const GC_TIME_CONFIG = {
   default: 5 * 60 * 1000,
 } as const;
 
-export const REFETCH_INTERVAL_CONFIG = {
-  price: 60 * 1000,
-  history: false,
-  network: 2 * 60 * 1000,
-  default: false,
-} as const;
 
 export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
   const [queryClient] = useState(

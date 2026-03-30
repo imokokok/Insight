@@ -245,47 +245,7 @@ interface EmptyStateQuickStartProps extends Omit<EmptyStateEnhancedProps, 'child
   description?: string;
 }
 
-export function EmptyStateQuickStart({
-  items,
-  title,
-  description,
-  ...props
-}: EmptyStateQuickStartProps) {
-  const t = useTranslations('emptyState');
 
-  return (
-    <EmptyStateEnhanced {...props} type="new" title={title} description={description}>
-      <div className="w-full max-w-2xl">
-        <p className="text-sm font-medium text-gray-700 mb-4">{t('quickStart')}</p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {items.map((item) => (
-            <button
-              key={item.id}
-              onClick={item.onClick}
-              className="flex items-start gap-3 p-4 text-left bg-white border border-gray-200 rounded-lg hover:border-primary-300 hover:shadow-sm transition-all group"
-            >
-              <div className="p-2 bg-primary-50 rounded-lg text-primary-600 group-hover:bg-primary-100 transition-colors">
-                {item.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-900">{item.title}</span>
-                  {item.badge && (
-                    <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-500 mt-1">{item.description}</p>
-              </div>
-              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" />
-            </button>
-          ))}
-        </div>
-      </div>
-    </EmptyStateEnhanced>
-  );
-}
 
 // ============================================
 // 示例数据空状态组件
@@ -305,62 +265,7 @@ interface EmptyStateWithExamplesProps extends Omit<EmptyStateEnhancedProps, 'chi
   description?: string;
 }
 
-export function EmptyStateWithExamples({
-  examples,
-  onLoadExample,
-  title,
-  description,
-  ...props
-}: EmptyStateWithExamplesProps) {
-  const t = useTranslations('emptyState');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  return (
-    <EmptyStateEnhanced {...props} type="data" title={title} description={description}>
-      <div className="w-full max-w-2xl">
-        <p className="text-sm font-medium text-gray-700 mb-4">{t('tryExampleData')}</p>
-        <div className="space-y-2">
-          {examples.map((example) => (
-            <button
-              key={example.id}
-              onClick={() => {
-                setSelectedId(example.id);
-                onLoadExample(example.data);
-              }}
-              disabled={selectedId === example.id}
-              className={cn(
-                'w-full flex items-center gap-4 p-4 text-left border rounded-lg transition-all',
-                selectedId === example.id
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
-              )}
-            >
-              <div
-                className={cn(
-                  'p-2 rounded-lg',
-                  selectedId === example.id
-                    ? 'bg-primary-100 text-primary-600'
-                    : 'bg-gray-100 text-gray-500'
-                )}
-              >
-                <Database className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <span className="font-medium text-gray-900">{example.name}</span>
-                <p className="text-sm text-gray-500">{example.description}</p>
-              </div>
-              {selectedId === example.id ? (
-                <RefreshCw className="w-5 h-5 text-primary-600 animate-spin" />
-              ) : (
-                <ArrowRight className="w-5 h-5 text-gray-400" />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-    </EmptyStateEnhanced>
-  );
-}
 
 // ============================================
 // 错误重试空状态组件
@@ -373,59 +278,7 @@ interface EmptyStateErrorProps extends Omit<EmptyStateEnhancedProps, 'type' | 'c
   showDetails?: boolean;
 }
 
-export function EmptyStateError({
-  error,
-  onRetry,
-  onContactSupport,
-  showDetails = false,
-  ...props
-}: EmptyStateErrorProps) {
-  const t = useTranslations('emptyState');
-  const [isRetrying, setIsRetrying] = useState(false);
 
-  const handleRetry = async () => {
-    setIsRetrying(true);
-    try {
-      await onRetry();
-    } finally {
-      setIsRetrying(false);
-    }
-  };
-
-  const errorMessage = typeof error === 'string' ? error : error?.message;
-
-  return (
-    <EmptyStateEnhanced {...props} type="error">
-      <div className="flex flex-col items-center gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleRetry}
-            disabled={isRetrying}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <RefreshCw className={cn('w-4 h-4', isRetrying && 'animate-spin')} />
-            {isRetrying ? t('retrying') : t('retry')}
-          </button>
-          {onContactSupport && (
-            <button
-              onClick={onContactSupport}
-              className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-            >
-              {t('contactSupport')}
-            </button>
-          )}
-        </div>
-
-        {showDetails && errorMessage && (
-          <div className="mt-4 p-4 bg-danger-50 border border-danger-200 rounded-lg max-w-md">
-            <p className="text-sm text-danger-700 font-medium mb-1">{t('errorDetails')}</p>
-            <p className="text-sm text-danger-600 break-all">{errorMessage}</p>
-          </div>
-        )}
-      </div>
-    </EmptyStateEnhanced>
-  );
-}
 
 // ============================================
 // 搜索无结果空状态组件
@@ -495,28 +348,7 @@ interface EmptyStateOfflineProps extends Omit<EmptyStateEnhancedProps, 'type' | 
   lastSyncedAt?: Date;
 }
 
-export function EmptyStateOffline({ onRetry, lastSyncedAt, ...props }: EmptyStateOfflineProps) {
-  const t = useTranslations('emptyState');
 
-  return (
-    <EmptyStateEnhanced {...props} type="offline">
-      <div className="flex flex-col items-center gap-4">
-        {lastSyncedAt && (
-          <p className="text-sm text-gray-500">
-            {t('lastSynced')}: {lastSyncedAt.toLocaleString()}
-          </p>
-        )}
-        <button
-          onClick={onRetry}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
-        >
-          <RefreshCw className="w-4 h-4" />
-          {t('retryConnection')}
-        </button>
-      </div>
-    </EmptyStateEnhanced>
-  );
-}
 
 // ============================================
 // 预配置的空状态组件
@@ -528,64 +360,14 @@ interface NoDataEmptyStateProps {
   className?: string;
 }
 
-export function NoDataEmptyState({ onRefresh, onCreate, className }: NoDataEmptyStateProps) {
-  const t = useTranslations('emptyState');
 
-  const actions: ActionButton[] = [];
-  if (onCreate) {
-    actions.push({
-      label: t('createNew'),
-      onClick: onCreate,
-      variant: 'primary',
-      icon: <Plus className="w-4 h-4" />,
-    });
-  }
-
-  const secondaryActions: ActionButton[] = [];
-  if (onRefresh) {
-    secondaryActions.push({
-      label: t('refresh'),
-      onClick: onRefresh,
-      variant: 'outline',
-      icon: <RefreshCw className="w-4 h-4" />,
-    });
-  }
-
-  return (
-    <EmptyStateWithActions
-      type="data"
-      actions={actions}
-      secondaryActions={secondaryActions}
-      className={className}
-    />
-  );
-}
 
 interface EmptyFavoritesStateProps {
   onBrowseItems: () => void;
   className?: string;
 }
 
-export function EmptyFavoritesState({ onBrowseItems, className }: EmptyFavoritesStateProps) {
-  const t = useTranslations('emptyState');
 
-  return (
-    <EmptyStateWithActions
-      type="folder"
-      title={t('favorites.title')}
-      description={t('favorites.description')}
-      actions={[
-        {
-          label: t('favorites.browse'),
-          onClick: onBrowseItems,
-          variant: 'primary',
-          icon: <ExternalLink className="w-4 h-4" />,
-        },
-      ]}
-      className={className}
-    />
-  );
-}
 
 interface EmptySearchResultsStateProps {
   searchTerm: string;
@@ -595,23 +377,7 @@ interface EmptySearchResultsStateProps {
   className?: string;
 }
 
-export function EmptySearchResultsState({
-  searchTerm,
-  onClearSearch,
-  popularSearches,
-  onSearchSuggestion,
-  className,
-}: EmptySearchResultsStateProps) {
-  return (
-    <EmptyStateSearch
-      searchTerm={searchTerm}
-      onClearSearch={onClearSearch}
-      suggestions={popularSearches}
-      onSuggestionClick={onSearchSuggestion}
-      className={className}
-    />
-  );
-}
+
 
 // ============================================
 // 引导式空状态组件
@@ -629,65 +395,4 @@ interface GuidedEmptyStateProps extends Omit<EmptyStateEnhancedProps, 'children'
   currentStep?: number;
 }
 
-export function GuidedEmptyState({ steps, currentStep = 0, ...props }: GuidedEmptyStateProps) {
-  return (
-    <EmptyStateEnhanced {...props} type="new">
-      <div className="w-full max-w-lg">
-        <div className="relative">
-          {/* Progress line */}
-          <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gray-200">
-            <div
-              className="absolute top-0 left-0 w-full bg-primary-500 transition-all duration-500"
-              style={{ height: `${(currentStep / (steps.length - 1)) * 100}%` }}
-            />
-          </div>
 
-          {/* Steps */}
-          <div className="space-y-6">
-            {steps.map((step, index) => {
-              const isActive = index === currentStep;
-              const isCompleted = index < currentStep;
-              const isPending = index > currentStep;
-
-              return (
-                <div
-                  key={index}
-                  className={cn(
-                    'relative flex gap-4 transition-opacity duration-300',
-                    isPending && 'opacity-50'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium z-10 flex-shrink-0',
-                      isCompleted && 'bg-emerald-500 text-white',
-                      isActive && 'bg-primary-600 text-white ring-4 ring-blue-100',
-                      isPending && 'bg-gray-200 text-gray-500'
-                    )}
-                  >
-                    {isCompleted ? <Sparkles className="w-4 h-4" /> : index + 1}
-                  </div>
-                  <div className="flex-1 pt-1">
-                    <h4 className={cn('font-medium', isActive ? 'text-gray-900' : 'text-gray-700')}>
-                      {step.title}
-                    </h4>
-                    <p className="text-sm text-gray-500 mt-1">{step.description}</p>
-                    {isActive && step.action && (
-                      <button
-                        onClick={step.action.onClick}
-                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
-                      >
-                        {step.action.label}
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </EmptyStateEnhanced>
-  );
-}
