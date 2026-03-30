@@ -1,38 +1,17 @@
 'use client';
 
-/**
- * 导出历史记录面板
- *
- * 显示导出历史列表，支持重新下载
- */
-
-import { useState } from 'react';
-
 import { motion } from 'framer-motion';
-import {
-  X,
-  Download,
-  Trash2,
-  FileSpreadsheet,
-  FileJson,
-  FileText,
-  Table,
-  CheckCircle,
-  XCircle,
-  Clock,
-} from 'lucide-react';
+import { X, Download, Trash2, FileText, FileJson, Table, FileSpreadsheet } from 'lucide-react';
 
-import { useTranslations, useLocale } from '@/i18n';
-
-import { type ExportFormat } from './types';
+import { useTranslations } from '@/i18n';
 import { useExportHistory } from './useExportHistory';
+import { type ExportDataSource, type ExportHistoryItem, type ExportFormat } from './types';
 
 interface ExportHistoryPanelProps {
   onClose: () => void;
-  dataSource: string;
+  dataSource?: ExportDataSource;
 }
 
-// 格式图标映射
 const formatIcons: Record<ExportFormat, React.ReactNode> = {
   csv: <Table className="w-4 h-4" />,
   json: <FileJson className="w-4 h-4" />,
@@ -40,157 +19,108 @@ const formatIcons: Record<ExportFormat, React.ReactNode> = {
   pdf: <FileText className="w-4 h-4" />,
 };
 
-// 格式颜色映射
-const formatColors: Record<ExportFormat, string> = {
-  csv: 'text-success-600 bg-success-50',
-  json: 'text-primary-600 bg-primary-50',
-  excel: 'text-emerald-600 bg-emerald-50',
-  pdf: 'text-danger-600 bg-danger-50',
-};
+export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelProps) {
+  const t = useTranslations('common');
+  const { history, removeHistoryItem, clearHistory, formatFileSize, isLoading } = useExportHistory();
 
-export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportHistoryPanelProps) {
-  const t = useTranslations('export.history');
-  const locale = useLocale();
-  const isZh = locale === 'zh-CN';
+  const filteredHistory = dataSource
+    ? history.filter((item) => item.dataSource === dataSource)
+    : history;
 
-  const {
-    history,
-    removeHistoryItem,
-    clearHistory,
-    formatFileSize: formatSize,
-  } = useExportHistory();
-  const [filter, setFilter] = useState<ExportFormat | 'all'>('all');
-
-  // 过滤历史记录
-  const filteredHistory = history.filter((item) => {
-    if (filter !== 'all' && item.format !== filter) return false;
-    return true;
-  });
-
-  // 格式化时间
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString(locale, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString();
   };
 
-  // 处理重新下载
-  const handleReDownload = (item: (typeof history)[0]) => {
-    // 重新下载逻辑 - 实际应用中可能需要重新生成文件
-    console.log('Re-downloading:', item.fileName);
+  const handleReDownload = (item: ExportHistoryItem) => {
+    if (item.downloadUrl) {
+      const link = document.createElement('a');
+      link.href = item.downloadUrl;
+      link.download = item.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 300 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 300 }}
-      transition={{ duration: 0.2 }}
-      className="fixed right-0 top-0 h-full w-96 bg-white border-l border-gray-200 shadow-xl z-50 flex flex-col"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="fixed right-4 top-16 z-50 w-96 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden"
     >
-      {/* 头部 */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">
+          {t('exportHistory')}
+        </h3>
         <div className="flex items-center gap-2">
-          <Clock className="w-5 h-5 text-gray-600" />
-          <h2 className="font-semibold text-gray-900">{t('title')}</h2>
-          <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
-            {filteredHistory.length}
-          </span>
-        </div>
-        <button
-          onClick={onClose}
-          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* 过滤器 */}
-      <div className="px-4 py-3 border-b border-gray-100">
-        <div className="flex gap-2">
-          {(['all', 'csv', 'json', 'excel', 'pdf'] as const).map((f) => (
+          {filteredHistory.length > 0 && (
             <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-2 py-1 text-xs font-medium rounded-md transition-colors ${
-                filter === f
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              onClick={clearHistory}
+              className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+              title={t('clearHistory')}
             >
-              {f === 'all' ? t('all') : f.toUpperCase()}
+              <Trash2 className="w-4 h-4" />
             </button>
-          ))}
+          )}
+          <button
+            onClick={onClose}
+            className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* 历史列表 */}
-      <div className="flex-1 overflow-y-auto">
-        {filteredHistory.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <Clock className="w-12 h-12 mb-3 opacity-30" />
-            <p className="text-sm">{t('noHistory')}</p>
+      <div className="max-h-96 overflow-y-auto">
+        {isLoading ? (
+          <div className="p-8 text-center text-gray-500">
+            {t('loading')}
+          </div>
+        ) : filteredHistory.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            {t('noExportHistory')}
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-100">
             {filteredHistory.map((item) => (
-              <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors group">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    {/* 格式图标 */}
-                    <div className={`p-2 rounded-lg ${formatColors[item.format]}`}>
+              <div
+                key={item.id}
+                className="p-3 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2 min-w-0">
+                    <div className="p-1.5 bg-gray-100 rounded text-gray-600">
                       {formatIcons[item.format]}
                     </div>
-
-                    {/* 文件信息 */}
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{item.fileName}</p>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                        <span>{formatTime(item.createdAt)}</span>
-                        <span>·</span>
-                        <span>{formatSize(item.fileSize)}</span>
-                        <span>·</span>
-                        <span>
-                          {item.recordCount} {isZh ? '条记录' : 'records'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 mt-1">
-                        {item.status === 'completed' ? (
-                          <>
-                            <CheckCircle className="w-3 h-3 text-success-500" />
-                            <span className="text-xs text-success-600">{t('completed')}</span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="w-3 h-3 text-danger-500" />
-                            <span className="text-xs text-danger-600">{t('failed')}</span>
-                          </>
-                        )}
-                      </div>
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {item.fileName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formatDate(item.createdAt)}
+                      </p>
                     </div>
                   </div>
-
-                  {/* 操作按钮 */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {item.status === 'completed' && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-gray-400">
+                      {formatFileSize(item.fileSize)}
+                    </span>
+                    {item.downloadUrl && (
                       <button
                         onClick={() => handleReDownload(item)}
-                        className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
-                        title={t('reDownload')}
+                        className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                        title={t('download')}
                       >
-                        <Download className="w-4 h-4" />
+                        <Download className="w-3.5 h-3.5" />
                       </button>
                     )}
                     <button
                       onClick={() => removeHistoryItem(item.id)}
-                      className="p-1.5 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded-md transition-colors"
+                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                       title={t('delete')}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -199,18 +129,6 @@ export function ExportHistoryPanel({ onClose, dataSource: _dataSource }: ExportH
           </div>
         )}
       </div>
-
-      {/* 底部操作 */}
-      {filteredHistory.length > 0 && (
-        <div className="px-4 py-3 border-t border-gray-200">
-          <button
-            onClick={clearHistory}
-            className="w-full px-4 py-2 text-sm font-medium text-danger-600 bg-danger-50 hover:bg-danger-100 transition-colors rounded-md"
-          >
-            {t('clearAll')}
-          </button>
-        </div>
-      )}
     </motion.div>
   );
 }
