@@ -221,6 +221,7 @@
     "healthy": "Healthy",
     "degraded": "Degraded",
     "down": "Down",
+    "chain": "Chain",
     "updateFrequencyHeatmap": "Update Frequency Heatmap",
     "low": "Low",
     "high": "High",

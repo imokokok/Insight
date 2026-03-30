@@ -42,7 +42,57 @@
     "getStarted": "开始使用",
     "viewDocs": "查看文档",
     "learnMore": "了解更多",
-    "lastUpdated": "最后更新"
+    "lastUpdated": "最后更新",
+    "stats": {
+      "price": "当前价格",
+      "tvs": "总保障价值",
+      "dataFeeds": "数据源",
+      "providers": "数据提供者",
+      "staked": "质押金额",
+      "supportedChains": "支持链数",
+      "nodes": "节点数",
+      "responseTime": "响应时间",
+      "uptime": "正常运行时间"
+    },
+    "periods": {
+      "24h": "24小时",
+      "30days": "30天",
+      "thisWeek": "本周",
+      "thisMonth": "本月"
+    },
+    "quickActions": {
+      "priceAlert": "价格提醒",
+      "addMonitor": "添加监控",
+      "apiDocs": "API文档",
+      "switchNetwork": "切换网络"
+    },
+    "gasLevel": {
+      "low": "低",
+      "medium": "中",
+      "high": "高"
+    },
+    "health": "健康度",
+    "supported": "支持",
+    "chainsCount": "{count} 条链",
+    "priceTrend24h": "24小时价格趋势",
+    "timeAgo": {
+      "24hAgo": "24小时前",
+      "now": "现在",
+      "1minAgo": "1分钟前",
+      "3minAgo": "3分钟前",
+      "5minAgo": "5分钟前",
+      "12minAgo": "12分钟前"
+    },
+    "updates": {
+      "price": "价格更新",
+      "provider": "新数据提供者",
+      "feed": "数据源更新",
+      "bridge": "跨链桥更新"
+    },
+    "latestUpdates": "最新更新",
+    "gas": "Gas",
+    "response": "响应",
+    "online": "在线"
   },
   "pullModel": {
     "title": "拉取模式",
@@ -387,7 +437,14 @@
     "step1": "联系 RedStone 团队",
     "step2": "技术评估",
     "step3": "部署和测试",
-    "step4": "上线"
+    "step4": "上线",
+    "fastestChain": "最快链",
+    "uptime": "正常运行时间",
+    "chainList": "链列表",
+    "chainName": "链名称",
+    "latencyComparison": "延迟对比",
+    "active": "活跃",
+    "inactive": "不活跃"
   },
   "ecosystem": {
     "title": "生态系统",
@@ -549,7 +606,8 @@
     "downtimeThreshold": "停机阈值",
     "totalSlashed": "总惩罚",
     "learnMore": "了解更多关于",
-    "eigenLayer": "EigenLayer"
+    "eigenLayer": "EigenLayer",
+    "lastUpdated": "最后更新"
   },
   "arweave": {
     "title": "Arweave 存储",
@@ -682,6 +740,71 @@
       "twap": "TWAP",
       "volatility": "波动率"
     }
+  },
+  "menu": {
+    "title": "菜单"
+  },
+  "navigation": {
+    "title": "导航"
+  },
+  "signature": {
+    "step1Title": "数据接收",
+    "step1Desc": "从提供者接收价格数据",
+    "step2Title": "签名提取",
+    "step2Desc": "从数据包中提取 ECDSA 签名",
+    "step3Title": "公钥恢复",
+    "step3Desc": "从签名中恢复公钥",
+    "step4Title": "阈值验证",
+    "step4Desc": "验证至少 3/5 的签名",
+    "step5Title": "确认",
+    "step5Desc": "数据已验证并接受",
+    "dataPackage": "数据包结构",
+    "dataPackageDesc": "签名价格数据包详情",
+    "verificationFlow": "签名验证流程",
+    "verificationFlowDesc": "RedStone 数据签名验证过程",
+    "pause": "暂停",
+    "play": "播放",
+    "priceData": "价格数据",
+    "verified": "已验证",
+    "symbol": "交易对",
+    "value": "数值",
+    "timestamp": "时间戳",
+    "unix": "Unix",
+    "age": "时长",
+    "dataPoints": "数据点",
+    "providerSignatures": "提供者签名",
+    "signatureAggregation": "签名聚合",
+    "copied": "已复制",
+    "copyHash": "复制哈希",
+    "thresholdVerification": "阈值验证",
+    "signatures": "签名",
+    "passed": "通过",
+    "thresholdNote": "需要至少 3/5 个签名才能验证数据",
+    "trustScore": "信任分数",
+    "trustScoreDesc": "基于声誉的置信度指标",
+    "weightedByReputation": "按提供者声誉加权",
+    "signerMetrics": "签名者指标",
+    "totalSigners": "总签名者",
+    "verifiedSigners": "已验证",
+    "avgReputation": "平均声誉",
+    "anomalyDetection": "异常检测",
+    "anomalyDetected": "检测到异常",
+    "noAnomalies": "无异常",
+    "reviewRequired": "需要审查",
+    "allClear": "一切正常",
+    "priceDeviation": "价格偏差",
+    "timestampDrift": "时间戳漂移",
+    "confidenceMeter": "置信度计",
+    "signatureValidity": "签名有效性",
+    "dataConsistency": "数据一致性",
+    "providerDiversity": "提供者多样性",
+    "timestampFreshness": "时间戳新鲜度"
+  },
+  "stats": {
+    "activeNodes": "活跃节点",
+    "dataFeeds": "数据源",
+    "avgResponse": "平均响应时间",
+    "networkUptime": "网络正常运行时间"
   },
   "common": {
     "loading": "加载中...",

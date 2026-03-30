@@ -4,6 +4,9 @@
     "description": "UMA是一个乐观预言机，为DeFi应用提供数据验证服务"
   },
   "title": "UMA",
+  "menu": {
+    "title": "菜单"
+  },
   "subtitle": "乐观预言机",
   "description": "UMA是一个乐观预言机，为DeFi应用提供数据验证服务",
   "hero": {
