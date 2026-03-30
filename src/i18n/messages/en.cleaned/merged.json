@@ -1,0 +1,2195 @@
+{
+  "disputeResolution": {
+    "reward": "Reward",
+    "type": "Type",
+    "showOverallTrend": "Show Overall Trend",
+    "groupByType": "Group By Type",
+    "filterByType": "Filter By Type",
+    "searchId": "Search ID",
+    "enterDisputeId": "Enter Dispute ID",
+    "clear": "Clear",
+    "transaction": "Transaction",
+    "viewOnChain": "View On Chain",
+    "firstPage": "First Page",
+    "previousPage": "Previous Page",
+    "nextPage": "Next Page",
+    "lastPage": "Last Page",
+    "jumpTo": "Jump To",
+    "page": "Page"
+  },
+  "validatorPanel": {
+    "title": "Validators",
+    "loading": "Loading validators...",
+    "filtered": "(filtered)",
+    "totalStaked": "Total Staked:",
+    "rank": "Rank",
+    "stakeAmount": "Stake Amount",
+    "commissionRate": "Commission Rate",
+    "uptime": "Uptime",
+    "statusLabel": "Status",
+    "all": "All",
+    "status": {
+      "active": "Active",
+      "jailed": "Jailed"
+    },
+    "quickFilter": "Quick Filter",
+    "lowCommission": "Low Commission",
+    "highStake": "High Stake",
+    "highUptime": "High Uptime",
+    "clearSelection": "Clear Selection",
+    "region": {
+      "northAmerica": "North America",
+      "europe": "Europe",
+      "asia": "Asia",
+      "other": "Other"
+    }
+  },
+  "regions": {
+    "northAmerica": "North America",
+    "europe": "Europe",
+    "asia": "Asia"
+  },
+  "user": "User",
+  "actions": {
+    "refresh": "Refresh",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "edit": "Edit",
+    "apply": "Apply",
+    "retry": "Retry",
+    "confirm": "Confirm",
+    "close": "Close",
+    "search": "Search"
+  },
+  "forms": {
+    "exportData": "Export Data",
+    "noDataToExport": "No Data to Export"
+  },
+  "consistency": {
+    "excellent": "Optimal",
+    "good": "Normal",
+    "fair": "Suboptimal",
+    "poor": "Critical"
+  },
+  "time": {
+    "justNow": "Just now"
+  },
+  "price": "Price",
+  "locale": "en-US",
+  "favorite": "Favorite",
+  "favorited": "Favorited",
+  "export": "Export",
+  "clear": "Clear",
+  "marketDataPanel": {
+    "marketCap": "Market Cap",
+    "volume24h": "24h Volume",
+    "circulatingSupply": "Circulating Supply",
+    "ofTotalSupply": "of total supply",
+    "fullyDilutedValuation": "Fully Diluted Valuation",
+    "atCurrentPrice": "at current price",
+    "marketCapRank": "Market Cap Rank",
+    "amongAllCryptocurrencies": "among all cryptocurrencies",
+    "supplyRatio": "Supply Ratio",
+    "loading": "Loading...",
+    "lastUpdated": "Last updated",
+    "24hHigh": "24h High",
+    "24hLow": "24h Low"
+  },
+  "confidenceScore": {
+    "title": "Confidence Score",
+    "subtitle": "Data Quality Assessment",
+    "loading": "Loading..."
+  },
+  "crossChainPanel": {
+    "timeRange24h": "24 Hours",
+    "timeRange7d": "7 Days",
+    "timeRange30d": "30 Days",
+    "vsLastWeek": "vs last week",
+    "requests": "requests",
+    "chainId": "Chain ID",
+    "avgGasCost": "Avg Gas Cost",
+    "supportedTokens": "Supported Tokens",
+    "dailyAvgRequests": "Daily Avg Requests",
+    "monthlyAvgRequests": "Monthly Avg Requests",
+    "loadingCrossChainData": "Loading cross-chain data...",
+    "retry": "Retry",
+    "fetchCrossChainDataFailed": "Failed to fetch cross-chain data",
+    "crossChainRequestStats": "Cross-Chain Request Statistics",
+    "bandProtocolDistribution": "Band Protocol Cross-Chain Request Distribution",
+    "totalRequests24h": "Total Requests (24h)",
+    "totalRequests7d": "Total Requests (7d)",
+    "totalRequests30d": "Total Requests (30d)",
+    "chainRequestDistribution": "Chain Request Distribution",
+    "totalRequests": "Total Requests",
+    "clickBarForDetails": "Click bar for details",
+    "chainOverview": "Chain Overview",
+    "gas": "Gas:",
+    "tokens": "Tokens:",
+    "requestsLabel": "Requests:"
+  },
+  "uma": {
+    "loading": "Loading..."
+  },
+  "home": {
+    "hero": {
+      "title": {
+        "part1": "Oracle Intelligence",
+        "part2": "Driving Data-Driven Decisions"
+      },
+      "description": "Unified oracle analytics platform delivering real-time price monitoring, cross-protocol benchmarking, and comprehensive performance metrics for Chainlink, Pyth, API3, and leading oracle networks. Empowering DeFi protocols, developers, and analysts with actionable insights.",
+      "ctaPrimary": "Explore Platform",
+      "ctaSecondary": "Documentation",
+      "liveData": "Live Data",
+      "searchPlaceholder": "Search trading pairs, oracles, or blockchains...",
+      "recentSearch": "Recent Search",
+      "clear": "Clear",
+      "popular": "Popular",
+      "keyboardHint": "Use ↑↓ to select, ↵ to confirm",
+      "escClose": "ESC to close",
+      "deleteRecord": "Delete this record",
+      "noResults": "No results found. Please try a different keyword.",
+      "token": "Token",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "stats": {
+        "oracles": "10+ Oracles",
+        "dataSources": "100+ Data Sources",
+        "realtime": "Real-time Updates"
+      }
+    },
+    "features": {
+      "sectionBadge": "Core Features",
+      "sectionTitle": "Features",
+      "sectionDescription": "Explore core platform features for comprehensive oracle data analysis",
+      "liveData": "Live Data",
+      "learnMore": "Learn more →"
+    },
+    "loading": "Loading..."
+  },
+  "comparison": {
+    "anomaly": "Anomaly"
+  },
+  "indicators": {
+    "title": "Indicators"
+  },
+  "crossOracleComparison": {
+    "consistencyScore": "Consistency Score",
+    "quickCompare": "Quick Compare",
+    "avgResponseTime": "Avg Response Time",
+    "highDeviation": "High Deviation",
+    "dataSources": "Data Sources",
+    "supportedChains": "Supported Chains",
+    "radar": {
+      "responseTime": "Response Time",
+      "updateFrequency": "Update Frequency",
+      "dataSources": "Data Sources",
+      "supportedChains": "Supported Chains",
+      "reliability": "Reliability"
+    }
+  },
+  "chainComparison": {
+    "title": "Chain Comparison"
+  },
+  "bandCrossChainPriceConsistency": {
+    "title": "Cross-Chain Price Consistency Monitor",
+    "subtitle": "Band Protocol Cross-Chain Price Sync Status",
+    "compareHistory": "Compare History",
+    "selectDate": "Select Date",
+    "selectTime": "Select Time",
+    "dateRange": "Range: Last 30 days",
+    "warningTitle": "Cross-Chain Price Deviation Detected",
+    "warningDesc": "Some chains show deviation from the base price (Cosmos Hub). Please monitor price consistency.",
+    "basePrice": "Base Price",
+    "maxDeviation": "Max Deviation",
+    "avgLatency": "Avg Latency",
+    "deviationStatus": {
+      "good": "Good Consistency",
+      "slight": "Slight Deviation",
+      "large": "Large Deviation"
+    },
+    "latencyStatus": {
+      "timely": "Timely Update",
+      "normal": "Normal Update"
+    },
+    "chain": "Chain",
+    "price": "Price",
+    "deviation": "Deviation",
+    "deviationVisualization": "Deviation Visualization",
+    "latency": "Latency",
+    "status": {
+      "label": "Status",
+      "normal": "Normal",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "baseline": "Baseline",
+    "priceDeviationHeatmap": "Price Deviation Heatmap",
+    "heatmapSubtitle": "Visualize price deviation across chains and tokens",
+    "low": "Low",
+    "high": "High",
+    "token": "Token",
+    "historicalComparison": "Historical Comparison View",
+    "comparisonTime": "Comparison Time",
+    "tradingPair": "Trading Pair",
+    "reference": "Reference",
+    "historicalPrice": "Historical Price",
+    "historicalDeviation": "Historical Deviation",
+    "historicalLatency": "Historical Latency",
+    "currentPrice": "Current Price",
+    "currentDeviation": "Current Deviation",
+    "currentLatency": "Current Latency",
+    "priceChange": "Price Change",
+    "trendSummary": "Trend Summary",
+    "priceUp": "Price Rising",
+    "priceStable": "Price Stable",
+    "priceDown": "Price Falling",
+    "bandMechanismTitle": "Band Protocol Cross-Chain Price Mechanism",
+    "bandMechanism1": "Band Protocol implements cross-chain data transmission based on Cosmos IBC",
+    "bandMechanism2": "Cosmos Hub serves as the primary data source, transmitting price data to other chains via IBC",
+    "bandMechanism3": "Supports EVM chains (Ethereum, Polygon, etc.) to fetch data through Band Bridge",
+    "bandMechanism4": "Price deviation thresholds: <0.1% is normal, 0.1%-0.5% is warning, >0.5% requires attention"
+  },
+  "snapshot": {
+    "title": "Snapshot",
+    "cloudLabel": "Cloud Sync",
+    "saveSnapshot": "Save Snapshot"
+  },
+  "crossChainPriceConsistency": {
+    "title": "Cross-Chain Price Consistency Monitor",
+    "warningTitle": "Cross-Chain Price Deviation Detected",
+    "warningDesc": "Some chains show significant deviation from the base price (Solana). Please monitor price consistency.",
+    "basePrice": "Base Price",
+    "maxDeviation": "Max Deviation",
+    "avgLatency": "Avg Latency",
+    "deviationStatus": {
+      "good": "Good Consistency",
+      "slight": "Slight Deviation",
+      "large": "Large Deviation"
+    },
+    "latencyStatus": {
+      "timely": "Timely Update",
+      "normal": "Normal Update",
+      "high": "High Latency"
+    },
+    "chainComparison": "Chain Price Comparison",
+    "chain": "Chain",
+    "price": "Price",
+    "deviation": "Deviation",
+    "deviationVisualization": "Deviation Visualization",
+    "latency": "Latency",
+    "status": {
+      "label": "Status",
+      "normal": "Normal",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "baseline": "Baseline",
+    "deviationBarChart": "Price Deviation Bar Chart",
+    "belowBaseline": "Below Baseline",
+    "baselineLine": "Baseline",
+    "aboveBaseline": "Above Baseline",
+    "latencyDistribution": "Update Latency Distribution",
+    "deviationThreshold": "Deviation Threshold Guide",
+    "deviationThresholdGood": "Deviation < 0.1%: Good Consistency",
+    "deviationThresholdWarning": "0.1% ≤ Deviation < 0.3%: Slight Deviation",
+    "deviationThresholdCritical": "Deviation ≥ 0.3%: Large Deviation, Attention Needed",
+    "pythMechanismTitle": "Pyth Cross-Chain Price Mechanism",
+    "pythMechanism1": "Solana serves as Pyth's main chain, prices are first published on Solana",
+    "pythMechanism2": "Through Wormhole cross-chain messaging, prices are synced to Ethereum, Arbitrum, Base, Optimism, Polygon and other chains",
+    "pythMechanism3": "Prices across chains should remain highly consistent, deviation typically less than 0.1%",
+    "pythMechanism4": "Large deviations may indicate network congestion or cross-chain message delays"
+  },
+  "confidenceInterval": {
+    "title": "Confidence Interval",
+    "bid": "Bid",
+    "ask": "Ask",
+    "spread": "Spread",
+    "bidLabel": "Bid",
+    "askLabel": "Ask",
+    "width": "Width",
+    "threshold": "Threshold"
+  },
+  "updateFrequency": {
+    "title": "Update Frequency"
+  },
+  "publisherContribution": {
+    "title": "Publisher Contribution",
+    "subtitle": "Data publisher contribution analysis"
+  },
+  "coveragePool": {
+    "title": "Coverage Pool Dashboard",
+    "historicalPayouts": "Historical Payouts"
+  },
+  "confidenceAlert": {
+    "title": "Confidence Interval Real-time Alert",
+    "autoRefresh": "Auto Refresh",
+    "refresh": "Refresh",
+    "currentWidth": "Current Width",
+    "criticalAlerts": "Critical Alerts",
+    "warningAlerts": "Warning Alerts",
+    "unacknowledged": "Unacknowledged",
+    "criticalRule": "Critical: Expansion≥100% or Duration≥20min",
+    "warningRule": "Warning: Expansion≥50% or Duration≥10min",
+    "threshold": "Threshold",
+    "current": "Current",
+    "exceeded": "Exceeded",
+    "normal": "Normal",
+    "alertList": "Alert List",
+    "clearAll": "Clear All",
+    "noAlerts": "No Alerts",
+    "noAlertsDesc": "System is monitoring confidence interval changes",
+    "acknowledge": "Acknowledge",
+    "dismiss": "Dismiss",
+    "currentWidthLabel": "Current Width:",
+    "previousWidthLabel": "Previous Width:",
+    "expansionPercentLabel": "Expansion:",
+    "durationLabel": "Duration:",
+    "thresholdLabel": "Threshold:",
+    "alertStats": "Alert Statistics",
+    "suddenExpansion": "Sudden Expansion",
+    "sustainedHigh": "Sustained High",
+    "lastCheck": "Last Check"
+  },
+  "volatilityAlert": {
+    "title": "Volatility Alert",
+    "currentVolatility": "Current Volatility",
+    "threshold": "Alert Threshold",
+    "exceedsThreshold": "Exceeds Threshold",
+    "historicalEvents": "Historical Similar Volatility Events",
+    "volatility": "Volatility",
+    "riskLevel": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    },
+    "duration": {
+      "1hour": "1 hour",
+      "2hours": "2 hours",
+      "4hours": "4 hours"
+    },
+    "impact": {
+      "priceCorrection2": "Price correction 2%",
+      "priceCorrection3": "Price correction 3%",
+      "priceFluctuation5": "Price fluctuation 5%"
+    }
+  },
+  "requestTypeDistribution": {
+    "title": "Request Type Distribution",
+    "subtitle": "Distribution of request types"
+  },
+  "realtimeUpdate": {
+    "title": "Realtime Update"
+  },
+  "oraclePerformanceRanking": {
+    "title": "Oracle Performance Ranking",
+    "subtitle": "Comprehensive performance evaluation based on multi-dimensional metrics",
+    "weightInfo": "Weights: Response Time 30% | Accuracy 30% | Stability 20% | Data Sources 10% | Supported Chains 10%",
+    "unchanged": "Unchanged",
+    "overallScore": "Overall Score",
+    "dimensionLabels": {
+      "responseTime": "Response Time",
+      "accuracy": "Accuracy",
+      "stability": "Stability",
+      "dataSources": "Data Sources",
+      "supportedChains": "Supported Chains"
+    },
+    "dimensionDescriptions": {
+      "title": "Dimension Descriptions",
+      "responseTime": {
+        "title": "Response Time",
+        "weight": "Weight: 30%",
+        "description": "Average latency of data updates, shorter is better"
+      },
+      "accuracy": {
+        "title": "Accuracy",
+        "weight": "Weight: 30%",
+        "description": "Deviation of price data from benchmark price"
+      },
+      "stability": {
+        "title": "Stability",
+        "weight": "Weight: 20%",
+        "description": "Stability of price fluctuations"
+      },
+      "dataSources": {
+        "title": "Data Sources",
+        "weight": "Weight: 10%",
+        "description": "Number and diversity of data sources"
+      },
+      "supportedChains": {
+        "title": "Supported Chains",
+        "weight": "Weight: 10%",
+        "description": "Number of supported blockchain networks"
+      }
+    }
+  },
+  "integratedProtocols": {
+    "title": "Integrated Protocols"
+  },
+  "dataSourceCoverage": {
+    "title": "Data Source Coverage"
+  },
+  "dataQualityScoreCard": {
+    "title": "Data Quality Score",
+    "subtitle": "Comprehensive data quality assessment",
+    "overallScore": "Overall Score",
+    "networkHealth": "Network Health",
+    "dataIntegrity": "Data Integrity",
+    "responseTime": "Response Time",
+    "validatorActivity": "Validator Activity",
+    "improving": "Improving",
+    "declining": "Declining",
+    "stable": "Stable"
+  },
+  "stakingDistribution": {
+    "title": "Staking Distribution"
+  },
+  "requestTrend": {
+    "title": "Request Trend",
+    "loading": "Loading..."
+  },
+  "priceVolatility": {
+    "title": "Price Volatility Analysis",
+    "timeScale": {
+      "short": "Short (6h)",
+      "mid": "Mid (24h)",
+      "long": "Long (7d)"
+    },
+    "level": {
+      "extremelyLow": "Extremely Low",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "extremelyHigh": "Extremely High"
+    },
+    "tooltip": {
+      "cv": "Coefficient of Variation (CV)",
+      "stdDev": "Standard Deviation",
+      "avgPrice": "Average Price",
+      "priceRange": "Price Range",
+      "volatilityLevel": "Volatility Level"
+    },
+    "shortTermVolatility": "Short-term Volatility",
+    "midTermVolatility": "Mid-term Volatility",
+    "longTermVolatility": "Long-term Volatility",
+    "totalVolatility": "Total Volatility",
+    "avgCV": "Avg CV",
+    "minVolatility": "Min Volatility",
+    "maxVolatility": "Max Volatility",
+    "oracleCount": "Oracle Count",
+    "rollingVolatilityTrend": "Rolling Volatility Trend",
+    "volatilityDecomposition": "Volatility Decomposition",
+    "shortTermProportion": "Short-term Proportion",
+    "midTermProportion": "Mid-term Proportion",
+    "longTermProportion": "Long-term Proportion",
+    "table": {
+      "oracle": "Oracle",
+      "cv": "CV",
+      "stdDev": "Std Dev",
+      "avgPrice": "Avg Price",
+      "priceRange": "Price Range",
+      "volatilityLevel": "Volatility Level"
+    },
+    "explanation": {
+      "title": "Volatility Explanation",
+      "stdDevDesc": "Measures the dispersion of price data",
+      "cvDesc": "Coefficient of Variation, the ratio of standard deviation to mean, used to compare volatility across different price levels",
+      "cvInterpretation": "CV < 0.5: Extremely Low | 0.5-1: Low | 1-2: Medium | 2-3: High | > 3: Extremely High",
+      "rollingWindowDesc": "Rolling Window: Calculates volatility using a sliding window to reflect changes over time",
+      "multiScaleDesc": "Multi-time Scale: Calculates volatility for short-term (6h), mid-term (24h), and long-term (7d) separately",
+      "decompositionDesc": "Volatility Decomposition: Breaks down total volatility into contributions from different time scales"
+    }
+  },
+  "priceDistribution": {
+    "title": "Price Distribution",
+    "legend": {
+      "title": "Legend",
+      "box": "Box",
+      "median": "Median",
+      "whisker": "Whisker",
+      "outlier": "Outlier"
+    },
+    "stats": {
+      "title": "Statistics",
+      "oracle": "Oracle",
+      "median": "Median",
+      "q1": "Q1",
+      "q3": "Q3",
+      "iqr": "IQR",
+      "outliers": "Outliers"
+    }
+  },
+  "priceDeviationHeatmap": {
+    "title": "Price Deviation Heatmap",
+    "timePoints": "Time Points",
+    "oracles": "Oracles",
+    "avgDeviation": "Avg Deviation",
+    "maxDeviation": "Max Deviation",
+    "minDeviation": "Min Deviation",
+    "anomalyDataPoints": "Anomaly Data Points",
+    "time": "Time",
+    "price": "Price",
+    "deviation": "Deviation",
+    "legend": "Deviation Legend",
+    "deviationDistribution": "Deviation Distribution",
+    "oracleDeviationRanking": "Oracle Deviation Ranking",
+    "highDeviationDetected": "High Deviation Data Points Detected",
+    "range": {
+      "extremelyLow": "Extremely Low",
+      "low": "Low",
+      "lower": "Lower",
+      "medium": "Medium",
+      "higher": "Higher",
+      "high": "High",
+      "veryHigh": "Very High",
+      "extremelyHigh": "Extremely High",
+      "anomaly": "Anomaly"
+    }
+  },
+  "priceCorrelation": {
+    "title": "Price Correlation",
+    "legend": {
+      "title": "Correlation Legend",
+      "perfectNegative": "Perfect Negative",
+      "negative": "Negative",
+      "none": "None",
+      "positive": "Positive",
+      "perfectPositive": "Perfect Positive",
+      "lowCorrelation": "Low Correlation",
+      "highCorrelation": "High Correlation"
+    },
+    "oracleCount": "Oracle Count",
+    "highCorrelationPairs": "High Correlation Pairs",
+    "avgCorrelation": "Avg Correlation",
+    "maxCorrelation": "Max Correlation",
+    "minCorrelation": "Min Correlation",
+    "highCorrelationCount": "High Correlation Count",
+    "correlationCoefficient": "Correlation Coefficient",
+    "correlationLevel": "Correlation Level",
+    "correlationDirection": "Correlation Direction",
+    "positiveCorrelation": "Positive Correlation",
+    "negativeCorrelation": "Negative Correlation",
+    "noCorrelation": "No Correlation",
+    "distribution": {
+      "title": "Correlation Distribution",
+      "topPairs": "Top Correlation Pairs"
+    },
+    "explanation": {
+      "title": "Explanation",
+      "description": "Price correlation measures the linear relationship between different oracle price data, ranging from -1 to 1."
+    },
+    "level": {
+      "veryStrong": "Very Strong",
+      "strong": "Strong",
+      "moderate": "Moderate",
+      "weak": "Weak",
+      "veryWeak": "Very Weak"
+    }
+  },
+  "crossChainRisk": {
+    "title": "Cross-Chain Risk"
+  },
+  "concentrationRisk": {
+    "title": "Concentration Risk"
+  },
+  "cdfChart": {
+    "title": "Cumulative Distribution Function",
+    "subtitle": "Shows cumulative probability distribution of latency values"
+  },
+  "oracleCommon": {
+    "performanceGauge": {
+      "levels": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "warning": "Warning",
+        "danger": "Danger"
+      },
+      "timesPerMinute": "times/min"
+    },
+    "dataFreshness": {
+      "title": "Data Freshness",
+      "refresh": "Refresh",
+      "lastUpdated": "Last Updated",
+      "stale": "Stale"
+    },
+    "riskScore": {
+      "levels": {
+        "low": "Low Risk",
+        "medium": "Medium Risk",
+        "high": "High Risk"
+      }
+    },
+    "mitigationMeasures": {
+      "title": "Mitigation Measures",
+      "noMeasures": "No mitigation measures",
+      "effectivenessLabel": "Effectiveness",
+      "types": {
+        "technical": "Technical",
+        "governance": "Governance",
+        "operational": "Operational"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "effectiveness": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      }
+    },
+    "securityTimeline": {
+      "title": "Security Timeline",
+      "noEvents": "No security events",
+      "types": {
+        "upgrade": "Upgrade",
+        "vulnerability": "Vulnerability",
+        "response": "Response",
+        "maintenance": "Maintenance"
+      },
+      "status": {
+        "resolved": "Resolved",
+        "monitoring": "Monitoring"
+      }
+    },
+    "stakingCalculator": {
+      "title": "Staking Calculator",
+      "stakeAmount": "Stake Amount",
+      "stakeAmountPlaceholder": "Enter stake amount",
+      "validatorType": "Validator Type",
+      "validatorTypes": {
+        "institution": "Institution",
+        "independent": "Independent",
+        "community": "Community"
+      },
+      "disputeFrequency": "Dispute Frequency",
+      "disputeFrequencies": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "estimatedRewards": "Estimated Rewards",
+      "daily": "Daily",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "apr": "APR",
+      "annual": "Annual",
+      "rewardComparison": "Reward Comparison",
+      "day": "Day",
+      "monthPerDay": "Month/Day",
+      "yearPerDay": "Year/Day",
+      "disclaimer": "Disclaimer: Estimated rewards are for reference only. Actual rewards may vary based on network conditions and validator performance."
+    },
+    "oraclePageTemplate": {
+      "rank": "Rank"
+    }
+  },
+  "networkHealth": {
+    "status": "Network Status",
+    "dataFreshness": "Data Freshness"
+  },
+  "crossOracle": {
+    "outlier": "Outlier",
+    "highest": "Highest",
+    "lowest": "Lowest",
+    "normal": "Normal",
+    "noData": "No data available",
+    "tryAdjustingFilters": "Try adjusting your filters",
+    "sortBy": "Sort by",
+    "price": "Price",
+    "deviation": "Deviation",
+    "freshness": "Freshness",
+    "showAll": "Show All",
+    "hideOutliers": "Hide Outliers",
+    "source": "Source",
+    "confidence": "Confidence",
+    "significantDeviation": "Significant deviation",
+    "withinNormalRange": "Within normal range",
+    "lastUpdated": "Last Updated",
+    "diffFromAvg": "Diff from Avg",
+    "avg": "avg",
+    "pricePosition": "Price Position",
+    "rankAmongOracles": "Rank among oracles",
+    "closeDetails": "Close Details",
+    "swipeToExpand": "Swipe up on card to expand details"
+  },
+  "settings": {
+    "profile": {
+      "title": "Profile",
+      "subtitle": "Manage your personal information and avatar",
+      "displayNameLabel": "Display Name",
+      "displayNamePlaceholder": "Enter your display name",
+      "emailLabel": "Email Address",
+      "emailNotEditable": "Email address cannot be changed",
+      "saveChanges": "Save Changes",
+      "saveSuccess": "Profile saved successfully",
+      "saveError": "Failed to save, please try again",
+      "passwordManagement": "Password Management",
+      "passwordManagementDesc": "Update your login password",
+      "changePassword": "Change Password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmNewPassword": "Confirm New Password",
+      "confirmNewPasswordPlaceholder": "Enter new password again",
+      "updatePassword": "Update Password",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords do not match",
+      "passwordUpdateSuccess": "Password updated successfully",
+      "passwordUpdateError": "Failed to update password",
+      "cancel": "Cancel",
+      "avatar": {
+        "label": "Avatar",
+        "hint": "Supports JPEG, PNG, GIF, WebP formats, max 5MB",
+        "clickOrDrag": "Click or drag to upload",
+        "dropHere": "Drop to upload",
+        "delete": "Delete Avatar",
+        "cropTitle": "Crop Avatar",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out",
+        "rotate": "Rotate",
+        "apply": "Apply",
+        "uploading": "Uploading...",
+        "uploadSuccess": "Avatar uploaded successfully",
+        "uploadFailed": "Failed to upload avatar",
+        "deleteSuccess": "Avatar deleted successfully",
+        "deleteFailed": "Failed to delete avatar",
+        "invalidType": "Please upload a valid image file (JPEG, PNG, GIF, WebP)",
+        "sizeExceeded": "Image size cannot exceed 5MB"
+      }
+    },
+    "notifications": {
+      "title": "Notification Settings",
+      "subtitle": "Manage how you receive notifications",
+      "emailNotifications": "Email Notifications",
+      "emailNotificationsDesc": "Receive important notifications via email",
+      "browserNotifications": "Browser Notifications",
+      "browserNotificationsDesc": "Display real-time notifications in browser",
+      "browserPermissionDenied": "Browser notification permission denied. Please allow notifications in browser settings.",
+      "permissionDeniedHint": "Notification permission denied, please allow in browser settings",
+      "authorize": "Authorize",
+      "alertNotifications": "Alert Notifications",
+      "alertNotificationsDesc": "Configure notification methods for price alerts",
+      "alertTriggerNotification": "Alert Trigger Notification",
+      "alertTriggerNotificationDesc": "Send notification when price alert is triggered",
+      "priceChangeNotification": "Price Change Notification",
+      "priceChangeNotificationDesc": "Auto-notify when price change exceeds threshold",
+      "enablePriceChangeNotification": "Enable Price Change Notification",
+      "enablePriceChangeNotificationDesc": "Notify when price change exceeds set threshold",
+      "changeThreshold": "Change Threshold (%)",
+      "changeThresholdHint": "Send notification when price changes more than this percentage in a short time",
+      "saveSettings": "Save Settings",
+      "saveSuccess": "Notification settings saved"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "subtitle": "Customize default application behavior",
+      "defaultOracle": "Default Oracle",
+      "defaultOracleHint": "Default oracle to display when opening oracle page",
+      "defaultSymbol": "Default Trading Pair",
+      "defaultSymbolHint": "Default trading pair for price queries",
+      "defaultTimeRange": "Default Time Range",
+      "defaultTimeRangeHint": "Default time range for chart display",
+      "language": "Language",
+      "languageHint": "Application interface language",
+      "defaultCurrency": "Default Currency",
+      "defaultCurrencyHint": "Default currency unit for price display",
+      "selectCurrency": "Select currency",
+      "autoRefreshInterval": "Auto Refresh Interval",
+      "autoRefreshIntervalHint": "Time interval for automatic data refresh",
+      "selectRefreshInterval": "Select refresh interval",
+      "saveSettings": "Save Settings",
+      "saveSuccess": "Preferences saved"
+    },
+    "data": {
+      "title": "Data Management",
+      "subtitle": "Export and manage your data",
+      "exportUserData": "Export User Data",
+      "exportUserDataDesc": "Export your profile, favorites, alerts, and snapshots data",
+      "exportPriceHistory": "Export Price History",
+      "exportPriceHistoryDesc": "Export last 10000 price records",
+      "exportSnapshots": "Export Snapshots",
+      "exportSnapshotsDesc": "Export all your saved price snapshots",
+      "clearData": "Clear Data",
+      "clearDataDesc": "Clear locally stored data",
+      "clearDataWarning": "Clearing local data will delete your preferences and cached data, but will not affect server data.",
+      "clearLocalData": "Clear Local Data",
+      "clearLocalDataConfirm": "Are you sure you want to clear all local data? This will clear your preferences and cached data.",
+      "clearLocalDataSuccess": "Local data cleared",
+      "clearLocalDataError": "Failed to clear, please try again",
+      "exportSuccess": "User data exported",
+      "priceHistoryExportSuccess": "Price history exported",
+      "snapshotsExportSuccess": "Snapshots exported",
+      "exportError": "Export failed, please try again",
+      "dangerZone": "Danger Zone",
+      "dangerZoneDesc": "Irreversible operations, proceed with caution",
+      "deleteAccountWarning": "Deleting your account will permanently remove all your data, including profile, favorites, alerts, and snapshots. This action cannot be undone.",
+      "deleteAccount": "Delete Account",
+      "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone!",
+      "deleteAccountConfirmHint": "Type DELETE to confirm:",
+      "deleteAccountConfirmPlaceholder": "Type DELETE",
+      "confirmDeleteAccount": "Confirm Delete Account",
+      "deleteAccountError": "Failed to delete account, please contact administrator",
+      "cancel": "Cancel",
+      "export": "Export",
+      "note": "Note"
+    }
+  },
+  "comparisonPeriod": "Comparison Period",
+  "comparisonAvg": "Comparison Average",
+  "dataQuality": {
+    "dataQualityAnalysis": "Data Quality Analysis",
+    "oracleDataQualityMetrics": "Oracle Data Quality Metrics",
+    "lastUpdated": "Last Updated",
+    "refreshData": "Refresh Data",
+    "completenessDesc": "Data completeness and continuity assessment",
+    "latencyRange": "Latency Range",
+    "percentage": "Percentage",
+    "sampleCount": "Sample Count",
+    "freshnessTrendDesc": "Data update frequency changes",
+    "excellent": "Excellent",
+    "good": "Good",
+    "warning": "Warning",
+    "critical": "Critical"
+  },
+  "anomalyAlert": {
+    "realtimeAlerts": "Real-time Alerts",
+    "historyTitle": "Anomaly Event History",
+    "configTitle": "Detection Configuration",
+    "notificationTitle": "Oracle Anomaly Alert",
+    "totalAnomalies": "Total Anomalies",
+    "highSeverity": "High Severity",
+    "mediumSeverity": "Medium Severity",
+    "lowSeverity": "Low Severity",
+    "priceSpikeCount": "Price Spikes",
+    "priceDeviationCount": "Price Deviations",
+    "dataDelayCount": "Data Delays",
+    "priceDropCount": "Price Drops",
+    "enableNotifications": "Enable Notifications",
+    "notificationsEnabled": "Notifications Enabled",
+    "config": "Config",
+    "history": "History",
+    "autoRefresh": "Auto Refresh",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "allTypes": "All Types",
+    "allSeverities": "All Severities",
+    "allStatus": "All Status",
+    "unacknowledged": "Unacknowledged",
+    "acknowledged": "Acknowledged",
+    "noAnomalies": "No anomaly events",
+    "acknowledge": "Acknowledge",
+    "resolve": "Resolve",
+    "clear": "Clear",
+    "lastCheck": "Last Check",
+    "currentValue": "Current Value",
+    "expectedValue": "Expected Value",
+    "deviation": "Deviation",
+    "delay": "Delay",
+    "last24Hours": "Last 24 Hours",
+    "last7Days": "Last 7 Days",
+    "avgResolutionTime": "Avg Resolution Time",
+    "typeDistribution": "Type Distribution",
+    "severityDistribution": "Severity Distribution",
+    "priceSpikeThreshold": "Price Spike Threshold",
+    "priceDropThreshold": "Price Drop Threshold",
+    "priceDeviationThreshold": "Price Deviation Threshold",
+    "dataDelayThreshold": "Data Delay Threshold",
+    "checkInterval": "Check Interval",
+    "type_price_spike": "Price Spike",
+    "type_price_deviation": "Price Deviation",
+    "type_data_delay": "Data Delay",
+    "type_price_drop": "Price Drop",
+    "severity_high": "High",
+    "severity_medium": "Medium",
+    "severity_low": "Low"
+  },
+  "charts": {
+    "latency": {
+      "title": "Price Update Latency Trend",
+      "pythNotSupported": "Pyth API does not support historical price queries, using mock data",
+      "fetchError": "Unable to fetch latency data, using mock data",
+      "anomaly": "Latency Anomaly",
+      "refresh": "Refresh Data",
+      "latency": "Latency",
+      "fixedThreshold": "Fixed Threshold",
+      "dynamicThreshold": "Dynamic Threshold",
+      "baselineMA20": "Baseline MA20",
+      "stdDev": "Std Dev σ",
+      "status": "Status",
+      "abnormal": "Abnormal",
+      "normal": "Normal",
+      "exceedsDynamicThreshold": "Exceeds dynamic threshold",
+      "avgLatency": "Avg Latency",
+      "minLatency": "Min Latency",
+      "maxLatency": "Max Latency",
+      "anomalyCount": "Anomaly Count",
+      "ma20Description": "20-point moving average",
+      "volatility": "Volatility",
+      "thresholdAdjustments": "Threshold Adjustments",
+      "times": "times",
+      "updateFrequency": "Updated every 5 min",
+      "p50": "P50 (Median)",
+      "p50Description": "50% of data below this",
+      "p90Description": "90% of data below this",
+      "p99Description": "99% of data below this",
+      "predictionControl": "Time Series Prediction Control",
+      "showPrediction": "Show Prediction",
+      "smaPeriod": "SMA Period",
+      "points": "points",
+      "smaDescription": "Moving average calculation window",
+      "predictionPeriod": "Prediction Period",
+      "predictionDescription": "Number of future prediction data points",
+      "mae": "Mean Absolute Error",
+      "rmse": "Root Mean Square Error",
+      "mape": "Mean Absolute Percentage Error",
+      "predictionNote": "Prediction Note:",
+      "actualLatency": "Actual Latency",
+      "smaPrediction": "SMA Prediction",
+      "histogramTitle": "Latency Distribution Histogram",
+      "latencyRange": "Latency Range (ms)",
+      "frequency": "Frequency",
+      "latencyRangeLabel": "Latency Range",
+      "anomalyDetected": "Latency Anomaly Detected",
+      "dynamicThresholdTitle": "Dynamic Threshold Mechanism",
+      "formula": "Formula: ",
+      "formulaDesc": "Dynamic Threshold = Baseline(MA20) + 2 × Std Dev(σ)",
+      "baselineDesc": "Moving average of last 20 data points, representing current latency baseline",
+      "stdDevLabel": "Std Dev σ",
+      "stdDevDesc": "Measures latency data volatility, 2σ covers ~95% of normal data",
+      "adjustmentFreq": "Adjustment Frequency: ",
+      "aboutTitle": "About Price Update Latency",
+      "aboutDesc": "Price update latency reflects the time from Pyth Network oracle fetching price updates from data sources to on-chain availability. Normal latency should stay below 200ms. When latency spikes abnormally, it may indicate network congestion, slow data source response, or high system load. Monitor anomaly periods and assess impact on applications."
+    },
+    "trend": {
+      "title": "Latency Trend",
+      "subtitle": "Shows latency changes over time",
+      "timeRange": "Time Range",
+      "timeRange1h": "1H",
+      "timeRange6h": "6H",
+      "timeRange24h": "24H",
+      "timeRange7d": "7D",
+      "latency": "Latency",
+      "status": "Status",
+      "abnormal": "Abnormal",
+      "normal": "Normal",
+      "noData": "No data available",
+      "avgLatency": "Avg Latency",
+      "trend": "Trend",
+      "anomalies": "Anomalies",
+      "chartTitle": "Latency Time Series",
+      "chartDesc": "Red areas indicate anomaly periods",
+      "threshold": "Threshold",
+      "avg": "Avg",
+      "latencyLine": "Latency",
+      "anomalyPoint": "Anomaly Point",
+      "anomalyArea": "Anomaly Period",
+      "anomalyAlert": "Latency Anomaly Detected"
+    },
+    "bollinger": {
+      "price": "Price",
+      "upperBand": "Upper Band",
+      "middleBand": "Middle Band",
+      "lowerBand": "Lower Band",
+      "lowerBandArea": "Lower Band Area",
+      "bandwidth": "Bandwidth",
+      "bollingerArea": "Bollinger Area",
+      "currentBandwidth": "Current Bandwidth",
+      "position": "Position",
+      "touchesUpper": "Touches Upper",
+      "touchesLower": "Touches Lower",
+      "times": "times",
+      "squeeze": "Squeeze",
+      "expansion": "Expansion",
+      "bandwidthIndicator": "Bandwidth Indicator"
+    },
+    "movingAverage": {
+      "title": "Moving Average Analysis",
+      "noData": "No data available",
+      "oracle": "Oracle",
+      "ma": "MA",
+      "showEMA": "Show EMA",
+      "bollingerBands": "Bollinger Bands",
+      "currentPrice": "Current Price",
+      "trend": "Trend",
+      "bullish": "Bullish",
+      "bearish": "Bearish",
+      "neutral": "Neutral",
+      "bbPosition": "BB Position",
+      "rollingStdDev": "Rolling Std Dev",
+      "priceAndMA": "Price & Moving Average",
+      "bbUpper": "BB Upper",
+      "bbLower": "BB Lower",
+      "bbMiddle": "BB Middle (MA20)",
+      "price": "Price",
+      "rollingStdDevTitle": "Rolling Std Dev (20 periods)"
+    },
+    "multiValidator": {
+      "title": "Multi-Validator Comparison",
+      "days7": "7 Days",
+      "days30": "30 Days",
+      "days90": "90 Days",
+      "uptime": "Uptime",
+      "staked": "Staked",
+      "commission": "Commission",
+      "validator": "Validator",
+      "avgUptime": "Avg Uptime",
+      "latestStaked": "Latest Staked",
+      "commissionRate": "Commission Rate",
+      "trend": "Trend",
+      "metric": "Metric"
+    },
+    "latencyDistribution": {
+      "histogram": "Histogram",
+      "trend": "Trend"
+    },
+    "dataSourceTrend": {
+      "title": "Data Source Growth Trend",
+      "newSources": "New Sources",
+      "cumulativeSources": "Cumulative Sources",
+      "yearlyNew": "Yearly New",
+      "sources": "Sources",
+      "monthlyAvg": "Monthly Avg",
+      "monthOverMonth": "MoM Growth",
+      "vsLastMonth": "vs Last Month",
+      "currentTotal": "Current Total",
+      "months": {
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Aug",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dec"
+      }
+    },
+    "dataQuality": {
+      "title": "Data Quality Trend Analysis",
+      "accuracy": "Accuracy",
+      "availability": "Availability",
+      "consistency": "Consistency",
+      "responseSpeed": "Response Speed",
+      "heartbeatCompliance": "Heartbeat Compliance",
+      "baseQuality": "Base Quality",
+      "latency": "Latency",
+      "deviation": "Deviation",
+      "outlier": "Outlier",
+      "stale": "Stale",
+      "timeRange": "Time Range",
+      "selectOracle": "Select Oracle",
+      "1hour": "1 Hour",
+      "6hours": "6 Hours",
+      "24hours": "24 Hours",
+      "7days": "7 Days",
+      "showRadarChart": "Show Radar Chart",
+      "showRanking": "Show Ranking",
+      "qualityScoreTrend": "Quality Score Trend",
+      "excellent": "Excellent",
+      "good": "Good",
+      "pass": "Pass",
+      "fail": "Fail",
+      "qualityScore": "Quality Score",
+      "avgQualityScore": "Avg Quality Score",
+      "range": "Range",
+      "trend": "Trend",
+      "improving": "Improving",
+      "declining": "Declining",
+      "stable": "Stable",
+      "avgLatency": "Avg Latency",
+      "outlierRate": "Outlier Rate",
+      "staleRate": "Stale Rate",
+      "heartbeatComplianceShort": "Heartbeat",
+      "qualityRanking": "Quality Ranking",
+      "rank": "Rank",
+      "oracle": "Oracle",
+      "overallScore": "Overall Score",
+      "multiDimensionComparison": "Multi-Dimension Comparison",
+      "dimensionDescription": "Dimension Description",
+      "accuracyDesc": "Price data deviation from reference value",
+      "availabilityDesc": "Ratio of successful data returns",
+      "consistencyDesc": "Stability and continuity of data updates",
+      "responseSpeedDesc": "Response time for data requests",
+      "heartbeatComplianceDesc": "Ratio of data updates meeting expected heartbeat",
+      "baseQualityDesc": "Comprehensive base data quality assessment",
+      "updateLatencyComparison": "Update Latency Comparison",
+      "priceDeviationFromMedian": "Price Deviation from Median",
+      "heartbeatComplianceRate": "Heartbeat Compliance Rate",
+      "target": "Target",
+      "complianceRate": "Compliance Rate",
+      "qualityScoreDescription": "Quality Score Description",
+      "qualityScoreDescTitle": "Quality score is calculated based on the following dimensions:",
+      "updateLatency": "Update Latency",
+      "updateLatencyDesc": "Time from source to available",
+      "priceDeviation": "Price Deviation",
+      "priceDeviationDesc": "Price deviation from median",
+      "outlierDetection": "Outlier Detection",
+      "outlierDetectionDesc": "Identify data points significantly deviating from normal range",
+      "dataStale": "Data Stale",
+      "dataStaleDesc": "Data not updated in time",
+      "heartbeatComplianceDescLong": "Data update frequency meets expectations"
+    },
+    "priceDeviationHistory": {
+      "title": "Price Deviation History",
+      "baseline": "Baseline",
+      "baselineAverage": "Average",
+      "baselineMedian": "Median",
+      "baselineChainlink": "Chainlink",
+      "timeRange": "Time Range",
+      "allData": "All Data",
+      "time": "Time",
+      "warningThreshold": "Warning Threshold",
+      "criticalThreshold": "Critical Threshold",
+      "statsPanel": "Deviation Statistics",
+      "avgDeviation": "Average Deviation",
+      "maxDeviation": "Max Deviation",
+      "maxDeviationTime": "Max Deviation Time",
+      "stdDeviation": "Std Deviation",
+      "trend": "Trend",
+      "trendIncreasing": "Increasing",
+      "trendDecreasing": "Decreasing",
+      "trendStable": "Stable",
+      "deviationDistribution": "Deviation Distribution",
+      "overallStats": "Overall Statistics",
+      "baselineType": "Baseline Type",
+      "dataPoints": "Data Points",
+      "oracleCount": "Oracle Count",
+      "warningCount": "Warning Count"
+    }
+  },
+  "oracle": "Oracle",
+  "priceChart": {
+    "status": {
+      "realtime": "Realtime",
+      "connecting": "Connecting",
+      "reconnecting": "Reconnecting",
+      "disconnected": "Disconnected"
+    },
+    "confidence": "Confidence",
+    "granularity": "Granularity",
+    "indicators": "Indicators",
+    "bollingerBands": "Bollinger Bands",
+    "ma7": "MA7",
+    "ma14": "MA14",
+    "ma30": "MA30",
+    "rsi": "RSI",
+    "macd": "MACD",
+    "volume": "Volume",
+    "timeComparison": "Time Period Comparison",
+    "timePeriod1": "Period 1",
+    "timePeriod2": "Period 2",
+    "to": "to",
+    "startComparison": "Start Comparison",
+    "cancelComparison": "Cancel",
+    "rsiPeriod": "14 Period",
+    "macdPeriod": "12,26,9",
+    "price": "Price",
+    "comparisonPrice": "Comparison Price",
+    "signal": "Signal",
+    "anomalyPoints": "Anomaly Points",
+    "moreOptions": "More Options",
+    "more": "More",
+    "advancedFeatures": "Advanced Features",
+    "timeComparisonDescription": "Compare price trends between two time periods",
+    "anomalyDetection": "Anomaly Detection",
+    "anomalyDetectionDescription": "Detect abnormal price fluctuations",
+    "viewStats": "View Statistics",
+    "viewAnomalyStats": "View Anomaly Statistics",
+    "predictionInterval": "Prediction Interval",
+    "predictionIntervalDescription": "Display price prediction confidence intervals",
+    "confidenceSelection": "Confidence Selection",
+    "export": {
+      "title": "Export",
+      "exportChart": "Export Chart",
+      "exporting": "Exporting...",
+      "exportComplete": "Export Complete",
+      "exportFailed": "Export Failed",
+      "settings": "Export Settings",
+      "settingsDescription": "Customize export options",
+      "range": "Export Range",
+      "currentView": "Current View",
+      "allData": "All Data",
+      "dateRange": "Date Range",
+      "filenameTemplate": "Filename Template",
+      "filenameTemplateHint": "Available variables: {title}, {date}, {time}, {source}",
+      "customFilename": "Custom Filename",
+      "includeMetadata": "Include Metadata",
+      "includeWatermark": "Add Watermark",
+      "cancel": "Cancel",
+      "confirmExport": "Confirm Export",
+      "batchExport": "Batch Export",
+      "batchExportDescription": "Select charts to export",
+      "resolution": "Resolution",
+      "selectResolution": "Select Resolution",
+      "selectCharts": "Select Charts",
+      "selected": "Selected",
+      "preview": "Export Preview",
+      "previewDescription": "Preview export content",
+      "filename": "Filename",
+      "dataRange": "Data Range",
+      "recordCount": "Record Count",
+      "close": "Close"
+    }
+  },
+  "panels": {
+    "title": "Data Panels"
+  },
+  "exporting": "Exporting...",
+  "selectFormat": "Select Format",
+  "selectFields": "Select Fields",
+  "selectAll": "Select All",
+  "deselectAll": "Deselect All",
+  "includeMetadata": "Include Metadata",
+  "includeChart": "Include Chart",
+  "includeStats": "Include Statistics",
+  "dataPreview": "Data Preview",
+  "recordCount": "Record Count",
+  "selectedFields": "Selected Fields",
+  "cancel": "Cancel",
+  "controlPanel": {
+    "title": "Query Configuration",
+    "titleShort": "Filters",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "symbol": "Trading Pair",
+    "selectSymbol": "Select symbol...",
+    "searchSymbol": "Search symbol...",
+    "oracles": "Oracles",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "timeRange": "Time Range",
+    "deviationFilter": "Deviation Filter",
+    "selectDeviation": "Select deviation range...",
+    "advancedOptions": "Advanced Options",
+    "accessibleColors": "Color Blind Friendly Mode",
+    "loading": "Loading...",
+    "query": "Query",
+    "selectOracleHint": "Please select at least one oracle"
+  },
+  "dataTransparency": {
+    "source": "Source",
+    "dataPoints": "Data Points"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to your account",
+      "subtitle": "Welcome back, please enter your login details",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign in",
+      "loggingIn": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "registerNow": "Register now",
+      "orContinueWith": "Or continue with",
+      "error": {
+        "emailNotConfirmed": "Your email address has not been confirmed. Please check your inbox for the confirmation email.",
+        "invalidCredentials": "Invalid email or password. Please try again.",
+        "resendConfirmation": "Resend confirmation email"
+      }
+    },
+    "register": {
+      "title": "Create a new account",
+      "subtitle": "Fill in the information below to get started",
+      "displayNameLabel": "Display name",
+      "displayNameOptional": "(optional)",
+      "displayNamePlaceholder": "Your display name",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "At least 6 characters",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "Enter password again",
+      "termsAgreementPrefix": "I have read and agree to the ",
+      "termsAgreementMiddle": " and ",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "submitting": "Registering...",
+      "submit": "Register",
+      "hasAccount": "Already have an account?",
+      "loginNow": "Sign in now",
+      "success": {
+        "title": "Registration successful!",
+        "goToLogin": "Go to login",
+        "useOtherEmail": "Register with another email"
+      },
+      "error": {
+        "emailRequired": "Please enter your email address",
+        "passwordRequired": "Please enter your password",
+        "passwordMinLength": "Password must be at least 6 characters",
+        "passwordMismatch": "The two passwords do not match"
+      }
+    },
+    "verifyEmail": {
+      "verifying": "Verifying your email...",
+      "success": {
+        "title": "Email verified successfully!",
+        "description": "Your email has been confirmed. You can now sign in to your account.",
+        "goToLogin": "Continue to login"
+      },
+      "error": {
+        "title": "Verification failed",
+        "accessDenied": "The verification link was denied. Please try again.",
+        "expiredToken": "The verification link has expired. Please request a new one.",
+        "invalidToken": "The verification link is invalid. Please check your email for the correct link.",
+        "default": "An error occurred during verification. Please try again.",
+        "resendVerification": "Resend verification email",
+        "registerAgain": "Create a new account"
+      }
+    },
+    "resendVerification": {
+      "title": "Resend verification email",
+      "subtitle": "Enter your email address and we'll send you a new verification link.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "your@email.com",
+      "submit": "Send verification email",
+      "sending": "Sending...",
+      "backToLogin": "Back to login",
+      "success": {
+        "title": "Verification email sent!",
+        "goToLogin": "Go to login",
+        "sendAgain": "Send another email"
+      },
+      "error": {
+        "default": "Failed to send verification email. Please try again."
+      }
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email address and we'll send you a link to reset your password.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "your@email.com",
+      "submit": "Send reset link",
+      "sending": "Sending...",
+      "backToLogin": "Back to login",
+      "success": {
+        "title": "Reset email sent!",
+        "goToLogin": "Go to login",
+        "sendAgain": "Send another email"
+      }
+    },
+    "resetPassword": {
+      "title": "Reset your password",
+      "subtitle": "Enter your new password below.",
+      "passwordLabel": "New password",
+      "passwordPlaceholder": "At least 6 characters",
+      "confirmPasswordLabel": "Confirm new password",
+      "confirmPasswordPlaceholder": "Enter password again",
+      "submit": "Reset password",
+      "resetting": "Resetting...",
+      "validating": "Validating reset link...",
+      "success": {
+        "title": "Password reset successful!",
+        "description": "Your password has been reset. You can now sign in with your new password.",
+        "goToLogin": "Go to login"
+      },
+      "invalidLink": {
+        "title": "Invalid or expired link",
+        "description": "This password reset link is invalid or has expired. Please request a new one.",
+        "requestNew": "Request new reset link"
+      },
+      "error": {
+        "passwordRequired": "Please enter a new password",
+        "passwordMinLength": "Password must be at least 6 characters",
+        "passwordMismatch": "The two passwords do not match",
+        "default": "Failed to reset password. Please try again."
+      }
+    }
+  },
+  "methodology": {
+    "title": "Data Methodology",
+    "subtitle": "Learn about our price aggregation algorithms and risk assessment framework",
+    "aggregation": {
+      "title": "Price Aggregation",
+      "description": "Multi-source data fusion and price calculation",
+      "sectionTitle": "Price Aggregation Algorithms",
+      "intro": "We employ multiple price aggregation algorithms that dynamically select the optimal approach based on data quality and market conditions, ensuring price accuracy and manipulation resistance.",
+      "simpleAverage": {
+        "title": "Simple Average",
+        "description": "Arithmetic mean of all valid data source prices, suitable for scenarios where data sources have similar quality."
+      },
+      "weightedAverage": {
+        "title": "Weighted Average",
+        "description": "Assigns weights based on liquidity, trading volume, and historical accuracy of each data source for more accurate market price reflection."
+      },
+      "median": {
+        "title": "Median",
+        "description": "Takes the middle value of all prices, effectively resisting extreme values and anomalous data."
+      },
+      "trimmedMean": {
+        "title": "Trimmed Mean",
+        "description": "Calculates average after removing highest and lowest percentages, balancing advantages of mean and median."
+      },
+      "weightFactors": "Weight Factors",
+      "factors": {
+        "liquidity": "Liquidity Depth",
+        "volume": "Trading Volume",
+        "reputation": "Data Source Reputation",
+        "freshness": "Data Freshness"
+      }
+    },
+    "riskAssessment": {
+      "title": "Risk Assessment",
+      "description": "Multi-dimensional risk identification and quantification",
+      "sectionTitle": "Risk Assessment Dimensions",
+      "intro": "Our risk assessment framework analyzes oracle data risk from multiple dimensions, helping users identify potential issues and make informed decisions."
+    },
+    "risk": {
+      "centralization": {
+        "title": "Centralization Risk",
+        "description": "Evaluates the decentralization level of data providers; higher concentration means greater risk.",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "freshness": {
+        "title": "Data Freshness Risk",
+        "description": "Evaluates data update frequency and timeliness; stale data may lead to poor decisions.",
+        "fresh": "Fresh",
+        "stale": "Stale",
+        "expired": "Expired"
+      },
+      "deviation": {
+        "title": "Price Deviation Risk",
+        "description": "Monitors price differences between data sources; abnormal deviations may indicate market manipulation or technical issues.",
+        "normal": "Normal",
+        "warning": "Warning",
+        "critical": "Critical"
+      },
+      "liquidity": {
+        "title": "Liquidity Risk",
+        "description": "Evaluates underlying market liquidity conditions; low liquidity may cause price distortion.",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      }
+    },
+    "dataQuality": {
+      "title": "Data Quality",
+      "description": "Comprehensive data quality monitoring system",
+      "sectionTitle": "Data Quality Dimensions",
+      "intro": "We have established a complete data quality management system that continuously monitors and evaluates data quality from multiple dimensions.",
+      "completeness": {
+        "title": "Completeness",
+        "description": "The completeness of data records, including field completeness and time series continuity."
+      },
+      "accuracy": {
+        "title": "Accuracy",
+        "description": "The closeness of data to true values, assessed through multi-source comparison and historical validation."
+      },
+      "consistency": {
+        "title": "Consistency",
+        "description": "Consistency of data across different times and sources; abnormal fluctuations may indicate data issues."
+      },
+      "timeliness": {
+        "title": "Timeliness",
+        "description": "The time delay from data generation to availability, particularly important for high-frequency trading scenarios."
+      }
+    },
+    "confidenceScore": {
+      "title": "Confidence Score",
+      "intro": "We use a comprehensive scoring model to calculate the confidence level of each data point, helping users assess data reliability.",
+      "formula": "Scoring Formula",
+      "freshness": "Data Freshness",
+      "completeness": "Data Completeness",
+      "consistency": "Data Consistency",
+      "reliability": "Source Reliability"
+    },
+    "dataSources": {
+      "title": "Data Sources & Verification",
+      "intro": "Our data comes from multiple tiers of sources, each with different verification requirements and credibility levels.",
+      "primary": "Primary Sources",
+      "primaryDesc": "Directly from top-tier exchanges and official oracle networks, rigorously verified",
+      "secondary": "Secondary Sources",
+      "secondaryDesc": "From reputable data aggregators and verified nodes, reliable quality",
+      "tertiary": "Tertiary Sources",
+      "tertiaryDesc": "From community nodes and supplementary sources, for reference and cross-validation"
+    },
+    "disclaimer": {
+      "title": "Disclaimer",
+      "content": "The methodology provided on this page is for technical reference only. Actual data processing methods may be adjusted based on market conditions and technological developments. We are not responsible for any losses resulting from the use of data from this platform."
+    }
+  },
+  "pageTitle": "Market Overview",
+  "pageDescription": "Comprehensive analysis of oracle market share, TVS trends and chain support",
+  "stats": {
+    "stakingApr": "Staking APR",
+    "volume24h": "24h Volume",
+    "marketCap": "Market Cap",
+    "circulatingSupply": "Circulating Supply",
+    "dataFeeds": "Data Feeds",
+    "responseTime": "Response Time"
+  },
+  "refresh": "Refresh",
+  "ui": {
+    "chart": {
+      "yoyComparison": "YoY",
+      "momComparison": "MoM"
+    },
+    "filter": {
+      "more": "More"
+    }
+  },
+  "risk": {
+    "dataQuality": "Data Quality",
+    "uptime": "Uptime",
+    "lowRisk": "Low Risk",
+    "mediumRisk": "Medium Risk",
+    "mitigationMeasures": "Mitigation Measures"
+  },
+  "asset": "Asset",
+  "change24h": "24h Change",
+  "change7d": "7d Change",
+  "volume24h": "24h Volume",
+  "primaryOracle": "Primary Oracle",
+  "topAssets": "Top Assets",
+  "assetsCount": "assets",
+  "filter": "Filter",
+  "chartHint": "Click chart elements to view details",
+  "navbar": {
+    "home": "Home",
+    "marketOverview": "Market Overview",
+    "priceQuery": "Price Query",
+    "crossOracle": "Cross-Oracle Analysis",
+    "crossChain": "Cross-Chain Comparison",
+    "chainlink": "Chainlink",
+    "bandProtocol": "Band Protocol",
+    "uma": "UMA",
+    "pythNetwork": "Pyth",
+    "api3": "API3",
+    "market": "Market",
+    "dataAnalysis": "Data Analysis",
+    "oracleDetails": "Oracle Details",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "marketOverviewDesc": "Real-time market intelligence with comprehensive oracle TVL, market share, and protocol adoption metrics",
+    "priceQueryDesc": "Instant price lookup across all major oracle networks with historical trend analysis",
+    "crossOracleDesc": "Real-Time Multi-Oracle Price Comparison & Deviation Analytics",
+    "crossChainDesc": "Cross-chain oracle performance benchmarking and reliability analytics",
+    "chainlinkDesc": "Leading decentralized oracle infrastructure securing billions in TVL",
+    "bandProtocolDesc": "Cross-chain data oracle powering Cosmos ecosystem applications",
+    "pythNetworkDesc": "Institutional-grade low-latency financial data feeds",
+    "api3Desc": "First-party oracle network with DAO-governed data feeds",
+    "umaDesc": "Optimistic oracle enabling customizable data verification",
+    "redstone": "Redstone",
+    "redstoneDesc": "Modular oracle stack with EVM+ compatibility",
+    "dia": "DIA",
+    "diaDesc": "Transparent cross-chain oracle with crowd-sourced data validation",
+    "tellor": "Tellor",
+    "tellorDesc": "Decentralized crypto-native oracle for transparency and decentralization",
+    "chronicle": "Chronicle",
+    "chronicleDesc": "MakerDAO native oracle with Scuttlebutt security",
+    "winklink": "WINkLink",
+    "winklinkDesc": "TRON ecosystem oracle for gaming and DeFi",
+    "favorites": "Favorites",
+    "alerts": "Alerts",
+    "settings": "Settings",
+    "login": "Login",
+    "register": "Register",
+    "signOut": "Sign Out"
+  },
+  "footer": {
+    "copyright": "© 2026 Insight. All rights reserved.",
+    "documentation": "Documentation",
+    "github": "GitHub",
+    "contact": "Contact",
+    "api": "API",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "description": "Comprehensive analysis and comparison of mainstream oracle protocols, empowering Web3 developers and analysts to make informed decisions.",
+    "links": {
+      "platform": "Platform",
+      "resources": "Resources",
+      "oracles": "Oracles"
+    }
+  },
+  "title": "WINkLink",
+  "subtitle": "TRON Ecosystem Oracle - Reliable off-chain data for gaming, DeFi, and entertainment",
+  "menu": {
+    "title": "Menu"
+  },
+  "navigation": {
+    "title": "WINkLink Navigation"
+  },
+  "networkStatus": "Network Status",
+  "dataSource": "Data Source",
+  "network": {
+    "dataFeeds": "Data Feeds",
+    "uptime": "Uptime",
+    "hourlyActivity": "Hourly Activity",
+    "performance": "Network Performance",
+    "latency": "Latency"
+  },
+  "ecosystem": {
+    "tvl": "Total Value Locked",
+    "supportedChains": "Supported Chains"
+  },
+  "priceTrend": "Price Trend",
+  "quickStats": "Quick Stats",
+  "tradingPair": "Trading Pair",
+  "liquidity": "Liquidity",
+  "hero": {
+    "now": "Now",
+    "health": "Health",
+    "gas": "Gas",
+    "response": "Response",
+    "online": "Online",
+    "support": "Support",
+    "chains": "Chains",
+    "priceAlert": "Price Alert",
+    "addMonitor": "Add Monitor",
+    "apiDocs": "API Docs",
+    "switchNetwork": "Switch Network",
+    "latestUpdates": "Latest Updates",
+    "minutesAgo": "{count} min ago",
+    "marketCap": "Market Cap",
+    "supportedChains": "Supported Chains",
+    "dataFeeds": "Data Feeds"
+  },
+  "airnodeDeployment": {
+    "totalAirnodes": "Total Airnodes",
+    "globallyDeployedNodes": "Globally Deployed Nodes",
+    "regionDistribution": {
+      "title": "Region Distribution",
+      "subtitle": "By Geographic Location"
+    },
+    "chainDistribution": {
+      "title": "Chain Distribution",
+      "subtitle": "By Blockchain Network"
+    },
+    "providerTypeDistribution": {
+      "title": "Provider Type Distribution",
+      "subtitle": "By Data Provider Type"
+    },
+    "regions": {
+      "northAmerica": "North America",
+      "europe": "Europe",
+      "asia": "Asia",
+      "others": "Others"
+    },
+    "providerTypes": {
+      "exchanges": "Exchanges",
+      "traditionalFinance": "Traditional Finance",
+      "others": "Others"
+    }
+  },
+  "dataTable": {
+    "sort": {
+      "asc": "Ascending",
+      "desc": "Descending",
+      "unsorted": "Not sorted"
+    }
+  },
+  "dataFeedsFilter": {
+    "all": "All",
+    "crypto": "Crypto",
+    "forex": "Forex",
+    "commodities": "Commodities",
+    "defi": "DeFi"
+  },
+  "dataFeeds": {
+    "title": "Data Feeds",
+    "total": "Total Data Feeds",
+    "active": "Active",
+    "name": "Name",
+    "status": "Status",
+    "about": "About Data Feeds",
+    "updateFrequency": "Update Frequency"
+  },
+  "riskAssessment": {
+    "overallRiskScore": "Overall Risk Score",
+    "crossChainRisk": "Cross-Chain Risk",
+    "riskLevel": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    }
+  },
+  "staking": {
+    "totalStaked": "Total Staked",
+    "rewardPool": "Reward Pool",
+    "tiers": "Staking Tiers",
+    "calculator": "Staking Calculator"
+  },
+  "services": {
+    "requests": "Requests",
+    "overview": "Service Overview",
+    "uptime": "Uptime",
+    "usageDistribution": "Service Usage Distribution",
+    "about": "About Chainlink Services",
+    "dataFeedsDesc": "Decentralized price feeds for cryptocurrencies, commodities, forex, and more.",
+    "vrfDesc": "Verifiable Random Function for provably fair and tamper-proof randomness.",
+    "automationDesc": "Reliable smart contract automation for conditional execution.",
+    "ccipDesc": "Cross-Chain Interoperability Protocol for secure cross-chain messaging.",
+    "functionsDesc": "Serverless Web3 platform for fetching data from any API."
+  },
+  "successRate": "Success Rate",
+  "ccip": {
+    "overview": "Cross-Chain Activity Overview",
+    "messages24h": "Messages (24h)",
+    "valueTransferred": "Value Transferred",
+    "avgConfirmTime": "Avg Confirm Time",
+    "activeChains": "Active Chains",
+    "supportedChains": "Supported Chains",
+    "chainName": "Chain",
+    "status": "Status",
+    "messaging": "Messaging",
+    "tokenTransfer": "Token Transfer",
+    "active": "Active",
+    "comingSoon": "Coming Soon",
+    "recentTransactions": "Recent Cross-Chain Transactions",
+    "transactionId": "ID",
+    "sourceChain": "Source",
+    "destChain": "Destination",
+    "type": "Type",
+    "value": "Value",
+    "txStatus": "Status",
+    "rmnStatus": "Risk Management Network (RMN)",
+    "nodesOnline": "Nodes Online",
+    "securityScore": "Security Score",
+    "lastCheck": "Last Check",
+    "anomalies": "Anomalies",
+    "about": "About CCIP",
+    "feature1Title": "Cross-Chain Messaging",
+    "feature1Desc": "Send arbitrary messages between smart contracts on different chains with guaranteed delivery.",
+    "feature2Title": "Token Transfers",
+    "feature2Desc": "Transfer tokens across chains using lock-and-mint or burn-and-mint mechanisms.",
+    "feature3Title": "Risk Management Network",
+    "feature3Desc": "Independent network monitoring cross-chain transactions for anomalies and security threats.",
+    "feature4Title": "Rate Limiting",
+    "feature4Desc": "Built-in rate limiting mechanisms to prevent network congestion and potential attacks.",
+    "feature5Title": "Multi-Chain Support",
+    "feature5Desc": "Support for major EVM chains including Ethereum, Arbitrum, Optimism, Polygon, and more."
+  },
+  "dataStreams": {
+    "title": "Data Streams",
+    "activeStreams": "Active Streams",
+    "status": "Status",
+    "paused": "Paused",
+    "avgLatency": "Avg Latency",
+    "lowLatency": "Low Latency",
+    "lowLatencyDesc": "Sub-second data delivery"
+  },
+  "vrf": {
+    "avgResponseTime": "Avg Response Time",
+    "successRate": "Success Rate",
+    "requestId": "Request ID",
+    "consumer": "Consumer",
+    "status": "Status",
+    "recentRequests": "Recent VRF Requests"
+  },
+  "functions": {
+    "executionStats": "Execution Statistics",
+    "totalCalls": "Total Calls",
+    "successRate": "Success Rate",
+    "avgExecutionTime": "Avg Execution Time",
+    "supportedApis": "Supported APIs",
+    "recentExecutions": "Recent Executions",
+    "requestId": "Request ID",
+    "sourceHash": "Source Hash",
+    "result": "Result",
+    "gasUsed": "Gas Used",
+    "status": "Status",
+    "success": "Success",
+    "failed": "Failed",
+    "secretsManagement": "Secrets Management",
+    "encrypted": "Encrypted",
+    "unencrypted": "Unencrypted",
+    "expiresAt": "Expires",
+    "useCaseDistribution": "Use Case Distribution",
+    "calls": "calls",
+    "features": "Key Features",
+    "feature1Title": "Custom JavaScript",
+    "feature1Desc": "Write custom JavaScript code to fetch and process data from any API endpoint.",
+    "feature2Title": "Decentralized Execution",
+    "feature2Desc": "Functions are executed by multiple independent node operators for security and reliability.",
+    "feature3Title": "Secrets Management",
+    "feature3Desc": "Securely store API keys and credentials with threshold encryption for sensitive data.",
+    "feature4Title": "Low Latency",
+    "feature4Desc": "Optimized execution pipeline ensures fast response times for time-sensitive applications.",
+    "feature5Title": "Any API Support",
+    "feature5Desc": "Connect to any HTTP API, including Web2 services, without traditional oracle limitations.",
+    "feature6Title": "Gas Efficient",
+    "feature6Desc": "Off-chain computation reduces on-chain gas costs while maintaining security guarantees."
+  },
+  "nft": {
+    "loading": "Loading...",
+    "noData": "No NFT data available",
+    "totalCollections": "Total Collections",
+    "trendingCount": "Trending",
+    "avgFloorPrice": "Avg Floor Price",
+    "chainsSupported": "Chains Supported",
+    "collections": "NFT Collections",
+    "name": "Name",
+    "floorPrice": "Floor Price",
+    "change24h": "24h Change",
+    "volume24h": "24h Volume",
+    "chain": "Chain",
+    "noCollections": "No collections available",
+    "byChain": "By Chain",
+    "noChainData": "No chain data available",
+    "floorPriceHistory": "Floor Price History"
+  },
+  "publisher": {
+    "accuracy": "Accuracy",
+    "status": "Status"
+  },
+  "description": "UMA is an optimistic oracle that provides data verification for DeFi applications",
+  "marketDepthLabel": "Market Depth",
+  "reporters": {
+    "overview": "Reporters Overview",
+    "totalReporters": "Total Reporters",
+    "active": "Active",
+    "inactive": "Inactive",
+    "totalStaked": "Total Staked",
+    "avg": "Avg",
+    "avgResponse": "Avg Response",
+    "avgSuccess": "Avg Success",
+    "reports24h": "24h Reports",
+    "avgRewards": "Avg Rewards",
+    "activityRate": "Activity Rate",
+    "topReporters": "Top Reporters",
+    "rank": "Rank",
+    "address": "Address",
+    "staked": "Staked",
+    "reports": "Reports",
+    "accuracy": "Accuracy",
+    "reward": "Reward",
+    "status": "Status",
+    "lastReport": "Last Report",
+    "regionDistribution": "Region Distribution",
+    "viewOnEtherscan": "View on Etherscan",
+    "region": "Region"
+  },
+  "autopay": {
+    "totalFunds": "Total Funds",
+    "activeQueries": "Active Queries",
+    "pendingRewards": "Pending Rewards",
+    "sponsors": "Sponsors",
+    "activeQueriesList": "Active Queries",
+    "currentTip": "Current Tip",
+    "totalReward": "Total Reward",
+    "lastUpdate": "Last Update",
+    "fundingHistory": "Funding History",
+    "tip": "Tip",
+    "claim": "Claim",
+    "howItWorks": "How Autopay Works",
+    "fundQuery": "Fund Query",
+    "fundQueryDesc": "Sponsor deposits TRB to fund data queries",
+    "setParameters": "Set Parameters",
+    "setParametersDesc": "Define data type, frequency, and reward amount",
+    "autoRewards": "Auto Rewards",
+    "autoRewardsDesc": "Reporters automatically receive rewards for valid submissions"
+  },
+  "disputes": {
+    "successRate": "Success Rate",
+    "status": "Status",
+    "votingProgress": "Voting Progress",
+    "reward": "Reward",
+    "pending": "Pending",
+    "resolved": "Resolved",
+    "id": "ID",
+    "recentDisputes": "Recent Disputes"
+  },
+  "queryData": {
+    "whatIsQueryId": "What is Query ID?",
+    "queryIdDescription": "Query ID is a unique identifier for each data request in the Tellor network. It is generated by hashing the query data using keccak256.",
+    "supportedTypes": "Supported Query Types",
+    "queryTool": "Query ID Decoder",
+    "enterQueryData": "Enter Query Data",
+    "decode": "Decode",
+    "decodedResult": "Decoded Result",
+    "popularQueries": "Popular Queries"
+  },
+  "tellorLayer": {
+    "overview": {
+      "chainId": "Chain ID",
+      "consensus": "Consensus",
+      "blockHeight": "Block Height",
+      "validators": "Validators",
+      "dedicatedBlockchain": "Dedicated blockchain for oracle data"
+    },
+    "metrics": {
+      "activeValidators": "Active Validators",
+      "onlineRate": "Online Rate",
+      "throughput": "Throughput",
+      "trbStaked": "TRB Staked",
+      "tps": "TPS"
+    },
+    "bridge": {
+      "title": "Cross-Chain Bridge",
+      "ethToLayer": "ETH → Layer",
+      "layerToEth": "Layer → ETH",
+      "transactions": "Transactions",
+      "pending": "Pending",
+      "avgTime": "Avg Bridge Time",
+      "fee": "Bridge Fee",
+      "activityChart": "Bridge Activity (Last 2h)"
+    },
+    "dataSources": {
+      "title": "Native Data Sources",
+      "queries": "Queries",
+      "reporters": "Reporters"
+    },
+    "comparison": {
+      "title": "Layer vs EVM Chains Comparison",
+      "feature": "Feature",
+      "updateSpeed": "Update Speed",
+      "gasCost": "Gas Cost",
+      "customData": "Custom Data Support",
+      "native": "Native",
+      "limited": "Limited",
+      "consensus": "Consensus",
+      "finality": "Finality",
+      "nearZero": "Near Zero",
+      "variable": "Variable",
+      "instant": "Instant"
+    }
+  },
+  "governance": {
+    "proposals": "Proposals",
+    "activeProposals": "Active Proposals",
+    "participationRate": "Participation Rate",
+    "howToParticipate": "How to Participate"
+  },
+  "lastUpdate": "Last Update Time",
+  "error": {
+    "boundary": {
+      "somethingWrong": "Something went wrong",
+      "global": {
+        "description": "We're sorry, but something unexpected happened. Please try refreshing the page."
+      }
+    }
+  },
+  "clearFilter": "Clear Filter",
+  "priceQuery": {
+    "title": "Price Query",
+    "loading": "Loading...",
+    "loadingData": "Loading data...",
+    "query": "Query",
+    "querying": "Querying...",
+    "noResults": {
+      "description": "This token may not exist or is not currently supported by any oracle",
+      "popularTokens": "Popular Tokens"
+    },
+    "results": {
+      "title": "Price Query Results",
+      "filterPlaceholder": "Filter results...",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "price": "Price",
+      "deviation": "Deviation",
+      "timestamp": "Timestamp",
+      "noMatchingData": "No matching data",
+      "tableLabel": "Price query results table",
+      "sortAscending": "sorted ascending",
+      "sortDescending": "sorted descending",
+      "resultsCount": "results",
+      "showFilters": "Show filters",
+      "hideFilters": "Hide filters",
+      "filterLabel": "Filter results",
+      "qualityScore": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "warning": "Warning"
+      }
+    },
+    "subtitle": "Query real-time price data across multiple oracles and blockchains",
+    "selectors": {
+      "symbol": "Trading Pair",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "timeRange": "Time Range",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "advancedOptions": "Advanced Options",
+      "compareMode": "Compare Mode",
+      "showBaseline": "Show Baseline",
+      "compareTime": "Compare Time",
+      "panelLabel": "Price query selectors",
+      "symbolLabel": "Select trading pair",
+      "oracleLabel": "Select oracles",
+      "blockchainLabel": "Select blockchains",
+      "timeRangeLabel": "Select time range",
+      "compareTimeLabel": "Select comparison time range",
+      "compareModeDesc": "Enable to compare prices between two time periods",
+      "baselineDesc": "Show average price baseline on the chart"
+    },
+    "stats": {
+      "avgPrice": "Average Price",
+      "maxPrice": "Highest Price",
+      "minPrice": "Lowest Price",
+      "priceRange": "Price Range",
+      "standardDeviation": "Standard Deviation",
+      "dataPoints": "Data Points",
+      "consistencyRating": "Consistency Rating",
+      "absoluteValue": "Absolute Value",
+      "queryDuration": "Query Duration",
+      "change24h": "24h Change",
+      "volatility": "Volatility",
+      "collapse": "Collapse",
+      "expand": "View More"
+    },
+    "export": {
+      "header": "Price Query Export",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "price": "Price",
+      "timestamp": "Timestamp",
+      "source": "Source",
+      "change24h": "24h Change",
+      "confidence": "Confidence",
+      "csv": "Export CSV",
+      "json": "Export JSON",
+      "advanced": "Advanced Export"
+    },
+    "history": {
+      "title": "Query History",
+      "empty": "No query history"
+    },
+    "oracles": "oracles",
+    "chains": "chains",
+    "comparison": {
+      "title": "Time Comparison"
+    },
+    "dataSources": {
+      "title": "Data Sources"
+    },
+    "lastUpdated": "Last updated",
+    "chart": {
+      "title": "Price Trend Chart",
+      "exportImage": "Export Image",
+      "realtime": "Realtime",
+      "realtimeUpdate": "Realtime Update",
+      "realtimePrice": "Realtime Price",
+      "lastUpdate": "Last Update",
+      "connectionStatus": {
+        "connected": "Connected",
+        "connecting": "Connecting...",
+        "reconnecting": "Reconnecting...",
+        "disconnected": "Disconnected",
+        "error": "Connection Error"
+      },
+      "stats": {
+        "high24h": "24h High",
+        "low24h": "24h Low",
+        "volume24h": "24h Volume"
+      },
+      "tooltip": {
+        "open": "Open:",
+        "high": "High:",
+        "low": "Low:",
+        "close": "Close:",
+        "price": "Price:",
+        "ma7": "MA7:",
+        "ma14": "MA14:",
+        "ma30": "MA30:",
+        "bollingerBands": "Bollinger Bands",
+        "upperBand": "Upper Band:",
+        "middleBand": "Middle Band:",
+        "lowerBand": "Lower Band:",
+        "predictionUpper": "Prediction Upper:",
+        "predictionLower": "Prediction Lower:",
+        "volume": "Volume:",
+        "rsi": "RSI:",
+        "macd": "MACD",
+        "macdValue": "MACD:",
+        "signal": "Signal:",
+        "histogram": "Histogram:",
+        "deviationFromAvg": "Deviation from Avg"
+      }
+    },
+    "charts": {
+      "priceHistory": "Price History",
+      "current": "Current",
+      "comparison": "Comparison",
+      "show": "Show",
+      "hide": "Hide",
+      "avgPrice": "Average Price",
+      "dataPoints": "Data Points",
+      "timeRange": "Time Range",
+      "currentDataPoint": "Current data point",
+      "navigateLeft": "Left arrow to navigate backward",
+      "navigateRight": "Right arrow to navigate forward",
+      "tableView": "Table View",
+      "showDataTable": "Show data table",
+      "hideDataTable": "Hide data table",
+      "dataTable": "Data Table",
+      "dataTableAriaLabel": "Price data table",
+      "time": "Time"
+    },
+    "quickLinks": {
+      "title": "Quick Links",
+      "crossChain": "Cross-Chain Comparison",
+      "crossChainDesc": "Compare prices of a single oracle across different chains",
+      "crossOracle": "Cross-Oracle Analysis",
+      "crossOracleDesc": "Multi-source oracle price comparison & deviation analysis",
+      "chainlinkDesc": "Decentralized oracle network"
+    }
+  },
+  "liveStatus": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "reconnecting": "Reconnecting",
+    "dataFresh": "Data Fresh",
+    "dataStale": "Data Stale",
+    "dataExpired": "Data Expired"
+  },
+  "health": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "healthScore": "Health"
+  },
+  "metrics": {
+    "price": "Price",
+    "responseTime": "Response Time",
+    "trend24h": "24H Trend",
+    "before24h": "24h ago",
+    "now": "Now",
+    "gas": "Gas",
+    "response": "Response",
+    "online": "Online",
+    "support": "Support",
+    "chains": "Chains"
+  },
+  "livePrice": {
+    "title": "Live Prices"
+  },
+  "chainCoverageHeatmap": {
+    "title": "Oracle Chain Coverage Heatmap",
+    "description": "Shows the support status of each oracle for different blockchains",
+    "coverage": "Coverage",
+    "chainCoverage": "Chain Coverage",
+    "supported": "Supported",
+    "notSupported": "Not Supported"
+  },
+  "freshness": {
+    "fresh": "Fresh",
+    "freshShort": "Fresh",
+    "stale": "Stale",
+    "staleShort": "Stale",
+    "expired": "Expired",
+    "expiredShort": "Expired",
+    "title": "Data Freshness",
+    "lastUpdate": "Last Update",
+    "age": "Data Age",
+    "nextRefresh": "Next Refresh",
+    "connection": "Connection",
+    "refresh": "Refresh Data"
+  },
+  "connection": {
+    "connected": "Connected",
+    "connecting": "Connecting",
+    "reconnecting": "Reconnecting",
+    "disconnected": "Disconnected",
+    "error": "Connection Error"
+  }
+}

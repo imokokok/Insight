@@ -53,7 +53,6 @@ export {
   type TimeRange,
   FloatingActionButton,
   MoreOptionsDropdown,
-  RealtimeUpdateControl,
   LoadingState,
   ErrorFallback,
   PartialDataWarning,
