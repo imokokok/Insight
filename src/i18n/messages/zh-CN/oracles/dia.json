@@ -182,6 +182,7 @@
     "fiat": "法币",
     "nft": "NFT",
     "commodity": "商品",
+    "custom": "自定义",
     "updateFrequency": "更新频率",
     "description": "描述",
     "createdAt": "创建时间",

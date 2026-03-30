@@ -4,6 +4,9 @@
     "description": "UMA is an optimistic oracle that provides data verification for DeFi applications"
   },
   "title": "UMA",
+  "menu": {
+    "title": "Menu"
+  },
   "subtitle": "Optimistic Oracle",
   "description": "UMA is an optimistic oracle that provides data verification for DeFi applications",
   "hero": {

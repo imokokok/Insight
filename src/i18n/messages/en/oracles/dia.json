@@ -182,6 +182,7 @@
     "fiat": "Fiat",
     "nft": "NFT",
     "commodity": "Commodity",
+    "custom": "Custom",
     "updateFrequency": "Update Frequency",
     "description": "Description",
     "createdAt": "Created At",

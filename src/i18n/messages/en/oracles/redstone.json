@@ -42,7 +42,57 @@
     "getStarted": "Get Started",
     "viewDocs": "View Documentation",
     "learnMore": "Learn More",
-    "lastUpdated": "Last updated"
+    "lastUpdated": "Last updated",
+    "stats": {
+      "price": "Current Price",
+      "tvs": "Total Value Secured",
+      "dataFeeds": "Data Feeds",
+      "providers": "Data Providers",
+      "staked": "Total Staked",
+      "supportedChains": "Supported Chains",
+      "nodes": "Nodes",
+      "responseTime": "Response Time",
+      "uptime": "Uptime"
+    },
+    "periods": {
+      "24h": "24h",
+      "30days": "30 days",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month"
+    },
+    "quickActions": {
+      "priceAlert": "Price Alert",
+      "addMonitor": "Add Monitor",
+      "apiDocs": "API Docs",
+      "switchNetwork": "Switch Network"
+    },
+    "gasLevel": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "health": "Health",
+    "supported": "Supported",
+    "chainsCount": "{count} chains",
+    "priceTrend24h": "24h Price Trend",
+    "timeAgo": {
+      "24hAgo": "24h ago",
+      "now": "Now",
+      "1minAgo": "1 min ago",
+      "3minAgo": "3 min ago",
+      "5minAgo": "5 min ago",
+      "12minAgo": "12 min ago"
+    },
+    "updates": {
+      "price": "Price Update",
+      "provider": "New Data Provider",
+      "feed": "Feed Update",
+      "bridge": "Bridge Update"
+    },
+    "latestUpdates": "Latest Updates",
+    "gas": "Gas",
+    "response": "Response",
+    "online": "Online"
   },
   "pullModel": {
     "title": "Pull Model",
@@ -387,7 +437,14 @@
     "step1": "Contact RedStone team",
     "step2": "Technical evaluation",
     "step3": "Deployment and testing",
-    "step4": "Go live"
+    "step4": "Go live",
+    "fastestChain": "Fastest Chain",
+    "uptime": "Uptime",
+    "chainList": "Chain List",
+    "chainName": "Chain Name",
+    "latencyComparison": "Latency Comparison",
+    "active": "Active",
+    "inactive": "Inactive"
   },
   "ecosystem": {
     "title": "Ecosystem",
@@ -550,7 +607,8 @@
     "downtimeThreshold": "Downtime Threshold",
     "totalSlashed": "Total Slashed",
     "learnMore": "Learn more about",
-    "eigenLayer": "EigenLayer"
+    "eigenLayer": "EigenLayer",
+    "lastUpdated": "Last updated"
   },
   "arweave": {
     "title": "Arweave Storage",
@@ -683,6 +741,71 @@
       "twap": "TWAP",
       "volatility": "Volatility"
     }
+  },
+  "menu": {
+    "title": "Menu"
+  },
+  "navigation": {
+    "title": "Navigation"
+  },
+  "signature": {
+    "step1Title": "Data Received",
+    "step1Desc": "Price data received from providers",
+    "step2Title": "Signature Extracted",
+    "step2Desc": "ECDSA signatures extracted from data package",
+    "step3Title": "Public Key Recovery",
+    "step3Desc": "Recover public keys from signatures",
+    "step4Title": "Threshold Verification",
+    "step4Desc": "Verify minimum 3 of 5 signatures",
+    "step5Title": "Confirmation",
+    "step5Desc": "Data verified and accepted",
+    "dataPackage": "Data Package Structure",
+    "dataPackageDesc": "Signed price data package details",
+    "verificationFlow": "Signature Verification Flow",
+    "verificationFlowDesc": "RedStone data signature verification process",
+    "pause": "Pause",
+    "play": "Play",
+    "priceData": "Price Data",
+    "verified": "Verified",
+    "symbol": "Symbol",
+    "value": "Value",
+    "timestamp": "Timestamp",
+    "unix": "Unix",
+    "age": "Age",
+    "dataPoints": "Data Points",
+    "providerSignatures": "Provider Signatures",
+    "signatureAggregation": "Signature Aggregation",
+    "copied": "Copied!",
+    "copyHash": "Copy hash",
+    "thresholdVerification": "Threshold Verification",
+    "signatures": "signatures",
+    "passed": "Passed",
+    "thresholdNote": "At least 3 of 5 signatures required to verify data",
+    "trustScore": "Trust Score",
+    "trustScoreDesc": "Reputation-weighted confidence metrics",
+    "weightedByReputation": "Weighted by provider reputation",
+    "signerMetrics": "Signer Metrics",
+    "totalSigners": "Total Signers",
+    "verifiedSigners": "Verified",
+    "avgReputation": "Avg Reputation",
+    "anomalyDetection": "Anomaly Detection",
+    "anomalyDetected": "Anomaly Detected",
+    "noAnomalies": "No Anomalies",
+    "reviewRequired": "Review required",
+    "allClear": "All clear",
+    "priceDeviation": "Price Deviation",
+    "timestampDrift": "Timestamp Drift",
+    "confidenceMeter": "Confidence Meter",
+    "signatureValidity": "Signature Validity",
+    "dataConsistency": "Data Consistency",
+    "providerDiversity": "Provider Diversity",
+    "timestampFreshness": "Timestamp Freshness"
+  },
+  "stats": {
+    "activeNodes": "Active Nodes",
+    "dataFeeds": "Data Feeds",
+    "avgResponse": "Avg Response Time",
+    "networkUptime": "Network Uptime"
   },
   "common": {
     "loading": "Loading...",
