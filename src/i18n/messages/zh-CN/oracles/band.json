@@ -48,24 +48,25 @@
         "high": "高"
       },
       "updates": {
-        "priceUpdate": "BAND 价格更新：${{price}} ({{change}})",
-        "newValidator": "新验证者加入：{{moniker}} ({{region}})",
-        "feedUpdate": "{{symbol}} 数据喂价更新",
-        "blockHeight": "BandChain 区块高度：#{{height}}",
+        "priceUpdate": "BAND 价格更新：${price} ({change})",
+        "newValidator": "新验证者加入：{moniker} ({region})",
+        "feedUpdate": "{symbol} 数据喂价更新",
+        "blockHeight": "BandChain 区块高度：#{height}",
         "justNow": "刚刚",
-        "minutesAgo": "{{count}}分钟前",
-        "hoursAgo": "{{count}}小时前"
+        "minutesAgo": "{count}分钟前",
+        "hoursAgo": "{count}小时前"
       }
     },
     "time": {
-      "secondsAgo": "{{count}}秒前",
-      "minutesAgo": "{{count}}分钟前",
-      "hoursAgo": "{{count}}小时前",
-      "daysAgo": "{{count}}天前",
+      "secondsAgo": "{count}秒前",
+      "minutesAgo": "{count}分钟前",
+      "hoursAgo": "{count}小时前",
+      "daysAgo": "{count}天前",
       "ended": "已结束",
-      "timeRemaining": "{{days}}天 {{hours}}小时"
+      "timeRemaining": "{days}天 {hours}小时"
     },
     "network": {
+      "status": "网络状态",
       "activeValidators": "活跃验证者",
       "stakingRatio": "质押比例",
       "blockTime": "区块时间",
@@ -142,7 +143,7 @@
         "oracle": {
           "category": "预言机风险",
           "description": "去中心化验证者网络，具有经济激励和惩罚机制。",
-          "detail1": "{{count}} 个验证者分布在25个以上国家",
+          "detail1": "{count} 个验证者分布在25个以上国家",
           "detail2": "BFT 共识，需2/3以上阈值",
           "detail3": "代币质押与惩罚条件",
           "detail4": "来自15个以上提供商的数据源多样性"
@@ -158,7 +159,7 @@
         "centralization": {
           "category": "中心化风险",
           "description": "验证者集合是许可制的，头部验证者持有大量质押份额。",
-          "detail1": "许可制验证者集合（{{count}} 个活跃）",
+          "detail1": "许可制验证者集合（{count} 个活跃）",
           "detail2": "前10名验证者控制约45%质押",
           "detail3": "亚洲地理集中度约40%",
           "detail4": "正在努力分散验证者基础"
@@ -316,6 +317,7 @@
       "tvlSecured": "保障的 TVL"
     },
     "validators": {
+      "refresh": "刷新",
       "totalValidators": "验证者总数",
       "totalStaked": "总质押",
       "votingPower": "投票权",
@@ -348,6 +350,7 @@
       "maxValidatorsDesc": "活跃验证者集合大小"
     },
     "dataFeeds": {
+      "dataFeeds": "数据馈送",
       "totalFeeds": "总数据馈送",
       "total": "总数",
       "active": "活跃",
