@@ -2,18 +2,13 @@
 
 import {
   TrendingUp,
-  TrendingDown,
-  Activity,
   PieChart,
   Zap,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
-import { type MarketStats } from '../types';
-
 interface MarketSidebarProps {
-  stats: MarketStats | null;
   oracleData?: Array<{
     name: string;
     share: number;
@@ -25,34 +20,10 @@ interface MarketSidebarProps {
 }
 
 export default function MarketSidebar({
-  stats,
   oracleData = [],
   loading = false,
 }: MarketSidebarProps) {
   const t = useTranslations('marketOverview.sidebar');
-
-  // 获取趋势图标
-  const getTrendIcon = (value: number) => {
-    if (value > 0) {
-      return <TrendingUp className="w-3.5 h-3.5 text-success-500" />;
-    } else if (value < 0) {
-      return <TrendingDown className="w-3.5 h-3.5 text-danger-500" />;
-    }
-    return <Activity className="w-3.5 h-3.5 text-gray-400" />;
-  };
-
-  // 格式化数值
-  const formatValue = (value: number, prefix = '', suffix = '') => {
-    return `${prefix}${value >= 0 ? '+' : ''}${value.toFixed(2)}${suffix}`;
-  };
-
-  // 格式化大数值
-  const formatLargeValue = (value: number) => {
-    if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
-    return `$${value.toFixed(2)}`;
-  };
 
   // 计算市场集中度 (CR4 - 前4名市场份额之和)
   const marketConcentration = oracleData
