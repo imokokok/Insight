@@ -462,7 +462,7 @@ export function ChainlinkHero({
   onRefresh,
   onExport,
 }: ChainlinkHeroProps) {
-  const t = useTranslations();
+  const t = useTranslations('chainlink');
   const themeColor = '#375bd2'; // Chainlink 主题色
 
   const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;

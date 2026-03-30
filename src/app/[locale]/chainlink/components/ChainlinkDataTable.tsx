@@ -29,7 +29,7 @@ export function ChainlinkDataTable<T>({
   onSort: externalOnSort,
   isLoading,
 }: ChainlinkDataTableProps<T>) {
-  const t = useTranslations();
+  const t = useTranslations('chainlink');
   const [internalSortConfig, setInternalSortConfig] = useState<SortConfig | undefined>();
 
   const sortConfig = externalSortConfig ?? internalSortConfig;

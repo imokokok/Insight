@@ -68,6 +68,12 @@
       "other": "Other"
     }
   },
+  "regions": {
+    "northAmerica": "North America",
+    "europe": "Europe",
+    "asia": "Asia",
+    "other": "Other"
+  },
   "user": "User",
   "actions": {
     "refresh": "Refresh",
@@ -127,7 +133,12 @@
     "daysAgo": "{days}d ago",
     "seconds": "seconds",
     "minutes": "minutes",
-    "hours": "hours"
+    "hours": "hours",
+    "00:00": "00:00",
+    "06:00": "06:00",
+    "12:00": "12:00",
+    "18:00": "18:00",
+    "23:59": "23:59"
   },
   "price": {
     "title": "Price"
@@ -241,6 +252,7 @@
     "copy": "Copy",
     "copied": "Copied",
     "copyFailed": "Copy failed",
+    "clickForDetails": "Click for details",
     "breadcrumb": {
       "home": "Home"
     },

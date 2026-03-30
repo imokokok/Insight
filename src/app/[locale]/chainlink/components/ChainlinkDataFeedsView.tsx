@@ -114,7 +114,7 @@ const getCategories = (t: (key: string) => string) => [
 ];
 
 export function ChainlinkDataFeedsView() {
-  const t = useTranslations();
+  const t = useTranslations('chainlink');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const categories = getCategories(t);
@@ -125,10 +125,10 @@ export function ChainlinkDataFeedsView() {
       : mockDataFeeds.filter((feed) => feed.category === selectedCategory);
 
   const columns: ChainlinkDataTableProps<DataFeed>['columns'] = [
-    { key: 'name', header: t('chainlink.dataFeeds.name'), sortable: true },
+    { key: 'name', header: t('dataFeeds.name'), sortable: true },
     {
       key: 'category',
-      header: t('chainlink.dataFeeds.category'),
+      header: t('dataFeeds.category'),
       sortable: true,
       render: (item) => (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
@@ -136,11 +136,11 @@ export function ChainlinkDataFeedsView() {
         </span>
       ),
     },
-    { key: 'updateFrequency', header: t('chainlink.dataFeeds.frequency'), sortable: true },
-    { key: 'deviationThreshold', header: t('chainlink.dataFeeds.threshold'), sortable: true },
+    { key: 'updateFrequency', header: t('dataFeeds.frequency'), sortable: true },
+    { key: 'deviationThreshold', header: t('dataFeeds.threshold'), sortable: true },
     {
       key: 'status',
-      header: t('chainlink.dataFeeds.status'),
+      header: t('dataFeeds.status'),
       sortable: true,
       render: (item) => (
         <span
@@ -167,13 +167,13 @@ export function ChainlinkDataFeedsView() {
     },
     {
       key: 'totalRequests',
-      header: t('chainlink.dataFeeds.requests'),
+      header: t('dataFeeds.requests'),
       sortable: true,
       render: (item) => `${(item.totalRequests / 1e6).toFixed(1)}M`,
     },
     {
       key: 'reliability',
-      header: t('chainlink.dataFeeds.reliability'),
+      header: t('dataFeeds.reliability'),
       sortable: true,
       render: (item) => `${item.reliability}%`,
     },
@@ -187,7 +187,7 @@ export function ChainlinkDataFeedsView() {
           <Activity className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('chainlink.dataFeeds.total')}
+              {t('dataFeeds.total')}
             </p>
             <p className="text-xl font-semibold text-gray-900">{mockDataFeeds.length}</p>
           </div>
@@ -197,7 +197,7 @@ export function ChainlinkDataFeedsView() {
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('chainlink.dataFeeds.active')}
+              {t('dataFeeds.active')}
             </p>
             <p className="text-xl font-semibold text-emerald-600">
               {mockDataFeeds.filter((f) => f.status === 'active').length}
@@ -209,7 +209,7 @@ export function ChainlinkDataFeedsView() {
           <TrendingUp className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('chainlink.dataFeeds.totalRequests')}
+              {t('dataFeeds.totalRequests')}
             </p>
             <p className="text-xl font-semibold text-gray-900">
               {(mockDataFeeds.reduce((acc, f) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
@@ -221,7 +221,7 @@ export function ChainlinkDataFeedsView() {
           <Clock className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('chainlink.dataFeeds.avgReliability')}
+              {t('dataFeeds.avgReliability')}
             </p>
             <p className="text-xl font-semibold text-gray-900">
               {(
@@ -260,7 +260,7 @@ export function ChainlinkDataFeedsView() {
       {/* Data Table */}
       <div>
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('chainlink.dataFeeds.title')}
+          {t('dataFeeds.title')}
         </h3>
         <ChainlinkDataTable<DataFeed>
           data={filteredFeeds}
@@ -271,35 +271,35 @@ export function ChainlinkDataFeedsView() {
       {/* About Section */}
       <div className="pt-6 border-t border-gray-200">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-          {t('chainlink.dataFeeds.about')}
+          {t('dataFeeds.about')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('chainlink.dataFeeds.updateFrequency')}:
+                {t('dataFeeds.updateFrequency')}:
               </span>{' '}
-              {t('chainlink.dataFeeds.frequencyDesc')}
+              {t('dataFeeds.frequencyDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('chainlink.dataFeeds.deviationThreshold')}:
+                {t('dataFeeds.deviationThreshold')}:
               </span>{' '}
-              {t('chainlink.dataFeeds.thresholdDesc')}
+              {t('dataFeeds.thresholdDesc')}
             </p>
           </div>
           <div>
             <p className="mb-2">
               <span className="font-medium text-gray-900">
-                {t('chainlink.dataFeeds.reliability')}:
+                {t('dataFeeds.reliability')}:
               </span>{' '}
-              {t('chainlink.dataFeeds.reliabilityDesc')}
+              {t('dataFeeds.reliabilityDesc')}
             </p>
             <p>
               <span className="font-medium text-gray-900">
-                {t('chainlink.dataFeeds.decentralization')}:
+                {t('dataFeeds.decentralization')}:
               </span>{' '}
-              {t('chainlink.dataFeeds.decentralizationDesc')}
+              {t('dataFeeds.decentralizationDesc')}
             </p>
           </div>
         </div>
