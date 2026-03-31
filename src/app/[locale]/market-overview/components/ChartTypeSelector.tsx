@@ -6,7 +6,6 @@ import {
   PieChart as PieChartIcon,
   TrendingUp,
   BarChart3,
-  Network,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
@@ -38,11 +37,6 @@ const mainChartTypes: ChartTypeConfig[] = [
     key: 'bar',
     icon: BarChart3,
     translationKey: 'chainSupport',
-  },
-  {
-    key: 'chain',
-    icon: Network,
-    translationKey: 'chainBreakdown',
   },
 ];
 

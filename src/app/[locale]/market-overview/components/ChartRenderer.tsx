@@ -32,7 +32,6 @@ import {
   type TVSTrendData,
   type ChartType,
   type ViewType,
-  type ChainBreakdown,
   type ProtocolDetail,
   type AssetCategory,
   type ComparisonData,
@@ -43,7 +42,6 @@ import {
 
 import AssetCategoryChart from './AssetCategoryChart';
 import BenchmarkComparison from './BenchmarkComparison';
-import ChainBreakdownChart from './ChainBreakdownChart';
 import CorrelationMatrix from './CorrelationMatrix';
 import EmptyState from './EmptyState';
 import OracleComparison from './OracleComparison';
@@ -54,7 +52,6 @@ interface ChartRendererProps {
   viewType: ViewType;
   sortedOracleData: OracleMarketData[];
   trendData: TVSTrendData[];
-  chainBreakdown: ChainBreakdown[];
   protocolDetails: ProtocolDetail[];
   assetCategories: AssetCategory[];
   comparisonData: ComparisonData[];
@@ -100,7 +97,6 @@ export default function ChartRenderer({
   viewType,
   sortedOracleData,
   trendData,
-  chainBreakdown,
   protocolDetails,
   assetCategories,
   comparisonData,
@@ -868,15 +864,6 @@ export default function ChartRenderer({
       return (
         <div key="chart-bar" className="will-change-transform gpu-accelerated animate-fade-in">
           {renderBarChart()}
-        </div>
-      );
-    case 'chain':
-      return (
-        <div key="chart-chain" className="will-change-transform gpu-accelerated animate-fade-in">
-          <ChainBreakdownChart
-            data={chainBreakdown}
-            loading={loadingEnhanced}
-          />
         </div>
       );
     case 'protocol':

@@ -236,7 +236,22 @@
     "oracles": "Oracles",
     "totalChains": "Total Chains",
     "totalTVS": "Total TVS",
-    "avgProtocols": "Avg Protocols"
+    "avgProtocols": "Avg Protocols",
+    "avgTVS": "Avg TVS",
+    "perChain": "per chain",
+    "concentration": "Concentration",
+    "top4Share": "Top 4 Share",
+    "topGainers24h": "Top Gainers 24h",
+    "topLosers24h": "Top Losers 24h",
+    "viewTVS": "TVS Ranking",
+    "viewShare": "Share Distribution",
+    "viewProtocols": "Protocol Count",
+    "viewTrend": "Trend Comparison",
+    "viewDistribution": "TVS Distribution",
+    "chain": "Chain",
+    "chains": "chains",
+    "topOracle": "Top Oracle",
+    "oracleShare": "Oracle Share"
   },
   "assetCategory": {
     "loading": "Loading...",

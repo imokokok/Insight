@@ -30,7 +30,6 @@ export default function MarketOverviewPage() {
     assets,
     trendData,
     marketStats,
-    chainBreakdown,
     protocolDetails,
     assetCategories,
     comparisonData,
@@ -133,7 +132,6 @@ export default function MarketOverviewPage() {
                       loadingComparison={isLoadingComparison}
                       sortedOracleData={sortedOracleData}
                       trendData={trendData}
-                      chainBreakdown={chainBreakdown}
                       protocolDetails={protocolDetails}
                       assetCategories={assetCategories}
                       comparisonData={comparisonData}
