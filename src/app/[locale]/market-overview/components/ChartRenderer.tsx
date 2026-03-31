@@ -201,15 +201,6 @@ export default function ChartRenderer({
         ? sortedOracleData.find((d) => d.name === selectedItem)
         : null;
 
-    // 计算洞察数据
-    const fastestGrowing = [...sortedOracleData].sort(
-      (a, b) => (b.change24h || 0) - (a.change24h || 0)
-    )[0];
-    const largestChange = [...sortedOracleData].sort(
-      (a, b) => Math.abs(b.change24h || 0) - Math.abs(a.change24h || 0)
-    )[0];
-    const cr4 = sortedOracleData.slice(0, 4).reduce((sum, item) => sum + (item.share || 0), 0);
-
     return (
       <div className="flex flex-col h-full">
         <div className="flex-1 flex flex-col md:flex-row">
@@ -344,44 +335,6 @@ export default function ChartRenderer({
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className={`flex justify-between items-start ${isMobile ? 'gap-1' : ''}`}>
-            <div className="flex-1 px-1 md:px-2">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">{t('fastestGrowing')}</p>
-              <p className="text-xs md:text-sm font-medium text-gray-900 truncate">
-                {fastestGrowing?.name}
-              </p>
-              <p className="text-xs text-success-600">
-                +{(fastestGrowing?.change24h || 0).toFixed(1)}%
-              </p>
-            </div>
-            <div
-              className={`bg-gray-200 ${isMobile ? 'h-10 w-px' : 'h-12 w-px'} mx-1 md:mx-2`}
-            ></div>
-            <div className="flex-1 px-1 md:px-2">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">{t('shareChange')}</p>
-              <p className="text-xs md:text-sm font-medium text-gray-900 truncate">
-                {largestChange?.name}
-              </p>
-              <p
-                className={`text-xs ${(largestChange?.change24h || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}
-              >
-                {(largestChange?.change24h || 0) >= 0 ? '+' : ''}
-                {(largestChange?.change24h || 0).toFixed(1)}%
-              </p>
-            </div>
-            <div
-              className={`bg-gray-200 ${isMobile ? 'h-10 w-px' : 'h-12 w-px'} mx-1 md:mx-2`}
-            ></div>
-            <div className="flex-1 px-1 md:px-2">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">
-                {t('marketConcentration')}
-              </p>
-              <p className="text-xs md:text-sm font-medium text-gray-900">{cr4.toFixed(1)}%</p>
-              <p className="text-xs text-gray-400">CR4</p>
-            </div>
-          </div>
-        </div>
       </div>
     );
   };
