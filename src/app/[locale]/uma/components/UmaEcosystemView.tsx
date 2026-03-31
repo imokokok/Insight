@@ -2,7 +2,17 @@
 
 import { useState, useMemo } from 'react';
 
-import { TrendingUp, Layers, Globe, Zap, Shield, Clock, Users, Building2, Loader2 } from 'lucide-react';
+import {
+  TrendingUp,
+  Layers,
+  Globe,
+  Zap,
+  Shield,
+  Clock,
+  Users,
+  Building2,
+  Loader2,
+} from 'lucide-react';
 import {
   AreaChart,
   Area,

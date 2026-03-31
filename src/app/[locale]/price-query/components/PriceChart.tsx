@@ -505,7 +505,7 @@ export function PriceChart({
               {new Date(focusedDataPoint.timestamp).toLocaleString()}
               {seriesNames
                 .map((name) => {
-                  const value = focusedDataPoint[name];
+                  const value = (focusedDataPoint as Record<string, unknown>)[name];
                   if (typeof value === 'number' && !hiddenSeries.has(name)) {
                     return `, ${name}: ${formatPrice(value)}`;
                   }

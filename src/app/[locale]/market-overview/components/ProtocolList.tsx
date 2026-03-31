@@ -28,15 +28,15 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
       result = result.filter(
         (item) =>
           item.name.toLowerCase().includes(query) ||
-          item.chain.toLowerCase().includes(query) ||
-          item.oracle.toLowerCase().includes(query)
+          item.chains.some((chain) => chain.toLowerCase().includes(query)) ||
+          item.primaryOracle.toLowerCase().includes(query)
       );
     }
 
     // 排序
     result.sort((a, b) => {
       if (sortBy === 'tvs') {
-        return b.tvs - a.tvs;
+        return b.tvl - a.tvl;
       }
       return b.change24h - a.change24h;
     });
@@ -109,10 +109,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
         ) : (
           <div className="space-y-2">
             {filteredData.map((protocol) => (
-              <div
-                key={protocol.id}
-                className="p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
-              >
+              <div key={protocol.id} className="p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-primary-100 flex items-center justify-center text-primary-600 font-medium text-sm">
@@ -121,12 +118,14 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                     <div>
                       <div className="font-medium text-gray-900">{protocol.name}</div>
                       <div className="text-xs text-gray-500">
-                        {protocol.chain} • {protocol.oracle}
+                        {protocol.chains[0]}
+                        {protocol.chains.length > 1 ? ` +${protocol.chains.length - 1}` : ''} •{' '}
+                        {protocol.primaryOracle}
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-medium text-gray-900">{formatTVS(protocol.tvs)}</div>
+                    <div className="font-medium text-gray-900">{formatTVS(protocol.tvl)}</div>
                     <div
                       className={`text-xs flex items-center justify-end gap-1 ${
                         protocol.change24h >= 0 ? 'text-success-600' : 'text-danger-600'
@@ -150,9 +149,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
 
       {/* Summary */}
       <div className="mt-4 pt-4 border-t border-gray-100">
-        <p className="text-xs text-gray-500">
-          {t('showing', { count: filteredData.length })}
-        </p>
+        <p className="text-xs text-gray-500">{t('showing', { count: filteredData.length })}</p>
       </div>
     </div>
   );

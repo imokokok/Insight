@@ -249,7 +249,9 @@ export function API3IntegrationGuide() {
                         <Copy className="w-4 h-4 text-gray-400" />
                       )}
                     </button>
-                    <pre className="text-sm text-gray-100 font-mono whitespace-pre-wrap">{step.code}</pre>
+                    <pre className="text-sm text-gray-100 font-mono whitespace-pre-wrap">
+                      {step.code}
+                    </pre>
                   </div>
                 )}
                 {step.link && (
@@ -294,34 +296,39 @@ export function API3IntegrationGuide() {
           ))}
         </div>
 
-        {integrationScenarios.map((scenario) => (
-          activeScenario === scenario.id && (
-            <div key={scenario.id} className="bg-white border border-gray-100 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">{t(scenario.descriptionKey)}</h3>
-              <div className="space-y-2 mb-4">
-                {scenario.steps.map((step, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <ChevronRight className="w-4 h-4 text-emerald-500 mt-0.5" />
-                    <span className="text-sm text-gray-600">{step}</span>
-                  </div>
-                ))}
+        {integrationScenarios.map(
+          (scenario) =>
+            activeScenario === scenario.id && (
+              <div key={scenario.id} className="bg-white border border-gray-100 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-gray-900 mb-2">
+                  {t(scenario.descriptionKey)}
+                </h3>
+                <div className="space-y-2 mb-4">
+                  {scenario.steps.map((step, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <ChevronRight className="w-4 h-4 text-emerald-500 mt-0.5" />
+                      <span className="text-sm text-gray-600">{step}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="relative bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                  <button
+                    onClick={() => handleCopy(scenario.codeExample, `scenario-${scenario.id}`)}
+                    className="absolute top-2 right-2 p-1 rounded hover:bg-gray-700 transition-colors"
+                  >
+                    {copiedCode === `scenario-${scenario.id}` ? (
+                      <Check className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-4 h-4 text-gray-400" />
+                    )}
+                  </button>
+                  <pre className="text-sm text-gray-100 font-mono whitespace-pre-wrap">
+                    {scenario.codeExample}
+                  </pre>
+                </div>
               </div>
-              <div className="relative bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <button
-                  onClick={() => handleCopy(scenario.codeExample, `scenario-${scenario.id}`)}
-                  className="absolute top-2 right-2 p-1 rounded hover:bg-gray-700 transition-colors"
-                >
-                  {copiedCode === `scenario-${scenario.id}` ? (
-                    <Check className="w-4 h-4 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-4 h-4 text-gray-400" />
-                  )}
-                </button>
-                <pre className="text-sm text-gray-100 font-mono whitespace-pre-wrap">{scenario.codeExample}</pre>
-              </div>
-            </div>
-          )
-        ))}
+            )
+        )}
       </section>
 
       <div className="border-t border-gray-200" />

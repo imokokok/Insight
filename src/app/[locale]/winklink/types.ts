@@ -11,7 +11,17 @@ import { type PriceData } from '@/types/oracle';
 
 export type StakingNode = WINkLinkNode;
 
-export type WinklinkTabId = 'market' | 'network' | 'tron' | 'staking' | 'gaming' | 'vrf' | 'cross-chain' | 'accuracy' | 'developer' | 'risk';
+export type WinklinkTabId =
+  | 'market'
+  | 'network'
+  | 'tron'
+  | 'staking'
+  | 'gaming'
+  | 'vrf'
+  | 'cross-chain'
+  | 'accuracy'
+  | 'developer'
+  | 'risk';
 
 export interface WinklinkPageState {
   activeTab: WinklinkTabId;

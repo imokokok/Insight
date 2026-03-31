@@ -6,7 +6,7 @@ import { useQuery, useQueries } from '@tanstack/react-query';
 
 import { RedStoneApiError } from '@/lib/errors';
 import {
-  RedStoneClient,
+  type RedStoneClient,
   type RedStoneProviderInfo,
   type RedStoneMetrics,
   type RedStoneNetworkStats,

@@ -125,26 +125,19 @@ export function TellorRiskView({ risk, isLoading }: TellorRiskViewProps) {
       {/* 总体风险评估 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('risk.overallLevel')}
-          </h3>
+          <h3 className="text-base font-medium text-gray-900 mb-4">{t('risk.overallLevel')}</h3>
           <div className="flex items-center gap-8">
             <div className="relative w-32 h-32">
               <svg className="w-full h-full transform -rotate-90">
+                <circle cx="64" cy="64" r="56" fill="none" stroke="#e5e7eb" strokeWidth="12" />
                 <circle
                   cx="64"
                   cy="64"
                   r="56"
                   fill="none"
-                  stroke="#e5e7eb"
-                  strokeWidth="12"
-                />
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
-                  fill="none"
-                  stroke={overallScore >= 80 ? '#10b981' : overallScore >= 60 ? '#f59e0b' : '#ef4444'}
+                  stroke={
+                    overallScore >= 80 ? '#10b981' : overallScore >= 60 ? '#f59e0b' : '#ef4444'
+                  }
                   strokeWidth="12"
                   strokeDasharray={`${(overallScore / 100) * 351.86} 351.86`}
                   strokeLinecap="round"
@@ -166,16 +159,18 @@ export function TellorRiskView({ risk, isLoading }: TellorRiskViewProps) {
                     overallScore >= 80
                       ? 'bg-emerald-100 text-emerald-800'
                       : overallScore >= 60
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
                   }`}
                 >
-                  {overallScore >= 80 ? t('risk.lowRisk') : overallScore >= 60 ? t('risk.mediumRisk') : t('risk.highRisk')}
+                  {overallScore >= 80
+                    ? t('risk.lowRisk')
+                    : overallScore >= 60
+                      ? t('risk.mediumRisk')
+                      : t('risk.highRisk')}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 mb-4">
-                {t('risk.basedOnMetrics')}
-              </p>
+              <p className="text-sm text-gray-600 mb-4">{t('risk.basedOnMetrics')}</p>
               <div className="flex flex-wrap gap-2">
                 {riskMetrics.map((metric, index) => (
                   <button
@@ -197,9 +192,7 @@ export function TellorRiskView({ risk, isLoading }: TellorRiskViewProps) {
 
         {/* 风险指标详情 */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-base font-medium text-gray-900 mb-4">
-            {t('risk.categories')}
-          </h3>
+          <h3 className="text-base font-medium text-gray-900 mb-4">{t('risk.categories')}</h3>
           <div className="space-y-4">
             {riskMetrics.map((metric, index) => (
               <div
@@ -231,9 +224,7 @@ export function TellorRiskView({ risk, isLoading }: TellorRiskViewProps) {
 
       {/* 安全事件时间线 */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('risk.securityEvents')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('risk.securityEvents')}</h3>
         <div className="space-y-4">
           {securityEvents.map((event, index) => (
             <div key={index} className="flex items-start gap-4">
@@ -266,9 +257,7 @@ export function TellorRiskView({ risk, isLoading }: TellorRiskViewProps) {
 
       {/* 风险缓解措施 */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('risk.mitigationMeasures')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('risk.mitigationMeasures')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {mitigationMeasures.map((measure, index) => {
             const Icon = measure.icon;
@@ -295,9 +284,7 @@ export function TellorRiskView({ risk, isLoading }: TellorRiskViewProps) {
         <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div>
           <h4 className="text-sm font-medium text-amber-800">{t('risk.disclaimer')}</h4>
-          <p className="text-xs text-amber-700 mt-1">
-            {t('risk.disclaimerText')}
-          </p>
+          <p className="text-xs text-amber-700 mt-1">{t('risk.disclaimerText')}</p>
         </div>
       </div>
     </div>

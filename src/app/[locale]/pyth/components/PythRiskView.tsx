@@ -68,9 +68,21 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
   ];
 
   const benchmarkData = [
-    { metric: tPyth('benchmarkMetrics.decentralization'), pyth: 85, chainlink: 95, band: 65, api3: 70 },
+    {
+      metric: tPyth('benchmarkMetrics.decentralization'),
+      pyth: 85,
+      chainlink: 95,
+      band: 65,
+      api3: 70,
+    },
     { metric: tPyth('benchmarkMetrics.security'), pyth: 92, chainlink: 98, band: 72, api3: 80 },
-    { metric: tPyth('benchmarkMetrics.reliability'), pyth: 97.5, chainlink: 99.9, band: 94.2, api3: 96.8 },
+    {
+      metric: tPyth('benchmarkMetrics.reliability'),
+      pyth: 97.5,
+      chainlink: 99.9,
+      band: 94.2,
+      api3: 96.8,
+    },
     { metric: tPyth('benchmarkMetrics.transparency'), pyth: 88, chainlink: 92, band: 70, api3: 85 },
     { metric: tPyth('benchmarkMetrics.trackRecord'), pyth: 75, chainlink: 98, band: 82, api3: 78 },
   ];
@@ -203,12 +215,8 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {tPyth('risk.metrics')}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {tPyth('risk.metricsDesc')}
-            </p>
+            <h2 className="text-lg font-semibold text-gray-900">{tPyth('risk.metrics')}</h2>
+            <p className="text-sm text-gray-500 mt-1">{tPyth('risk.metricsDesc')}</p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
             <Shield className="w-5 h-5 text-emerald-600" />
@@ -251,12 +259,8 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
       {/* 行业基准对比 */}
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {tPyth('risk.benchmark')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {tPyth('risk.benchmarkDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{tPyth('risk.benchmark')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{tPyth('risk.benchmarkDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -304,9 +308,7 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
 
           {/* 对比表格 */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700">
-              {tPyth('risk.comparison')}
-            </h3>
+            <h3 className="text-sm font-medium text-gray-700">{tPyth('risk.comparison')}</h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
                 <div key={item.metric} className="space-y-2">
@@ -343,12 +345,8 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
       {/* 历史风险事件时间线 */}
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {tPyth('risk.timeline')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {tPyth('risk.timelineDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{tPyth('risk.timeline')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{tPyth('risk.timelineDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -401,9 +399,7 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
 
           {/* 事件详情 */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-4">
-              {tPyth('risk.eventDetails')}
-            </h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-4">{tPyth('risk.eventDetails')}</h3>
             {selectedEvent ? (
               <div className="space-y-4 p-4 bg-gray-50 rounded-md">
                 <div className="flex items-start gap-3">
@@ -438,9 +434,7 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">
-                  {tPyth('risk.clickEvent')}
-                </p>
+                <p className="text-sm text-gray-500">{tPyth('risk.clickEvent')}</p>
               </div>
             )}
           </div>
@@ -453,12 +447,8 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
       {/* 风险因素 */}
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {tPyth('risk.factors')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {tPyth('risk.factorsDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{tPyth('risk.factors')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{tPyth('risk.factorsDesc')}</p>
         </div>
 
         <div className="space-y-2">
@@ -515,9 +505,7 @@ export function PythRiskView({ isLoading }: { isLoading?: boolean }) {
       <section className="flex items-start gap-4 py-2">
         <Info className="w-5 h-5 text-violet-600 mt-0.5 flex-shrink-0" />
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">
-            {tPyth('risk.disclaimer')}
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">{tPyth('risk.disclaimer')}</h3>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
             {tPyth('risk.disclaimerText')}
           </p>

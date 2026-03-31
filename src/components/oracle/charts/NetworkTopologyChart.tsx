@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Network,
   Server,
@@ -13,7 +14,6 @@ import {
   Maximize2,
   Activity,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 import { semanticColors, chartColors } from '@/lib/config/colors';
 
@@ -154,10 +154,7 @@ function TopologyNode({
       )}
       <foreignObject x={-12 * scale} y={-12 * scale} width={24 * scale} height={24 * scale}>
         <div className="w-full h-full flex items-center justify-center">
-          <Icon
-            className="w-4 h-4"
-            style={{ color: isSelected ? 'white' : config.color }}
-          />
+          <Icon className="w-4 h-4" style={{ color: isSelected ? 'white' : config.color }} />
         </div>
       </foreignObject>
     </motion.g>
@@ -192,8 +189,8 @@ function TopologyConnection({
   const dx = targetNode.x - sourceNode.x;
   const dy = targetNode.y - sourceNode.y;
   const controlOffset = Math.sqrt(dx * dx + dy * dy) * 0.2;
-  const perpX = -dy / Math.sqrt(dx * dx + dy * dy) * controlOffset;
-  const perpY = dx / Math.sqrt(dx * dx + dy * dy) * controlOffset;
+  const perpX = (-dy / Math.sqrt(dx * dx + dy * dy)) * controlOffset;
+  const perpY = (dx / Math.sqrt(dx * dx + dy * dy)) * controlOffset;
 
   const path = `M ${sourceNode.x} ${sourceNode.y} Q ${midX + perpX} ${midY + perpY} ${targetNode.x} ${targetNode.y}`;
   const particleX = sourceNode.x + (targetNode.x - sourceNode.x) * particlePos;
@@ -235,8 +232,7 @@ export function NetworkTopologyChart({ nodes, connections }: NetworkTopologyChar
   const stats = useMemo(() => {
     const activeNodes = nodes.filter((n) => n.status === 'active').length;
     const healthyConnections = connections.filter((c) => c.status === 'healthy').length;
-    const avgLatency =
-      connections.reduce((acc, c) => acc + c.latency, 0) / connections.length;
+    const avgLatency = connections.reduce((acc, c) => acc + c.latency, 0) / connections.length;
 
     return {
       totalNodes: nodes.length,
@@ -283,9 +279,7 @@ export function NetworkTopologyChart({ nodes, connections }: NetworkTopologyChar
 
   const relatedConnections = useMemo(() => {
     if (!selectedNode) return [];
-    return connections.filter(
-      (c) => c.source === selectedNode.id || c.target === selectedNode.id
-    );
+    return connections.filter((c) => c.source === selectedNode.id || c.target === selectedNode.id);
   }, [selectedNode, connections]);
 
   return (
@@ -297,12 +291,10 @@ export function NetworkTopologyChart({ nodes, connections }: NetworkTopologyChar
               <Network className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                网络拓扑图
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">网络拓扑图</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {stats.activeNodes}/{stats.totalNodes} 节点活跃 |{' '}
-                {stats.healthyConnections}/{stats.totalConnections} 连接健康
+                {stats.activeNodes}/{stats.totalNodes} 节点活跃 | {stats.healthyConnections}/
+                {stats.totalConnections} 连接健康
               </p>
             </div>
           </div>
@@ -412,7 +404,13 @@ export function NetworkTopologyChart({ nodes, connections }: NetworkTopologyChar
                 <span className="text-xs text-gray-600 dark:text-gray-400">健康</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-0.5 bg-amber-500" style={{ background: 'repeating-linear-gradient(90deg, #f59e0b, #f59e0b 2px, transparent 2px, transparent 4px)' }} />
+                <span
+                  className="w-3 h-0.5 bg-amber-500"
+                  style={{
+                    background:
+                      'repeating-linear-gradient(90deg, #f59e0b, #f59e0b 2px, transparent 2px, transparent 4px)',
+                  }}
+                />
                 <span className="text-xs text-gray-600 dark:text-gray-400">降级</span>
               </div>
               <div className="flex items-center gap-2">

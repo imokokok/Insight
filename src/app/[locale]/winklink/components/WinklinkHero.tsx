@@ -334,13 +334,33 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: t('winklink.hero.gasMedium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('winklink.hero.gasMedium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: t('winklink.hero.gasLow'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('winklink.hero.gasLow'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: t('winklink.hero.gasMedium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: t('winklink.hero.gasHigh'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+      return {
+        label: t('winklink.hero.gasMedium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
+    return {
+      label: t('winklink.hero.gasHigh'),
+      color: 'text-red-600',
+      bg: 'bg-red-500',
+      width: '80%',
+    };
   }, [networkStats, t]);
 
   // 只显示前3个链
@@ -450,7 +470,11 @@ function QuickActions({ themeColor }: { themeColor: string }) {
     { icon: <Bell className="w-3.5 h-3.5" />, label: t('winklink.hero.priceAlert'), href: '#' },
     { icon: <Plus className="w-3.5 h-3.5" />, label: t('winklink.hero.addMonitor'), href: '#' },
     { icon: <FileText className="w-3.5 h-3.5" />, label: t('winklink.hero.apiDocs'), href: '#' },
-    { icon: <Layers className="w-3.5 h-3.5" />, label: t('winklink.hero.switchNetwork'), href: '#' },
+    {
+      icon: <Layers className="w-3.5 h-3.5" />,
+      label: t('winklink.hero.switchNetwork'),
+      href: '#',
+    },
   ];
 
   return (
@@ -473,16 +497,34 @@ function LatestUpdates({ themeColor }: { themeColor: string }) {
   const t = useTranslations();
 
   const updates = [
-    { type: 'price', text: t('winklink.hero.updatePrice'), time: t('winklink.hero.minutesAgo', { count: 2 }) },
-    { type: 'node', text: t('winklink.hero.updateNode'), time: t('winklink.hero.minutesAgo', { count: 5 }) },
-    { type: 'feed', text: t('winklink.hero.updateFeed'), time: t('winklink.hero.minutesAgo', { count: 8 }) },
-    { type: 'system', text: t('winklink.hero.updateSystem'), time: t('winklink.hero.minutesAgo', { count: 15 }) },
+    {
+      type: 'price',
+      text: t('winklink.hero.updatePrice'),
+      time: t('winklink.hero.minutesAgo', { count: 2 }),
+    },
+    {
+      type: 'node',
+      text: t('winklink.hero.updateNode'),
+      time: t('winklink.hero.minutesAgo', { count: 5 }),
+    },
+    {
+      type: 'feed',
+      text: t('winklink.hero.updateFeed'),
+      time: t('winklink.hero.minutesAgo', { count: 8 }),
+    },
+    {
+      type: 'system',
+      text: t('winklink.hero.updateSystem'),
+      time: t('winklink.hero.minutesAgo', { count: 15 }),
+    },
   ];
 
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">{t('winklink.hero.latestUpdates')}:</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">
+          {t('winklink.hero.latestUpdates')}:
+        </span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {updates.map((update, index) => (

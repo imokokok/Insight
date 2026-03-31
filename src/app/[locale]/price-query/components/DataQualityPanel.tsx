@@ -54,7 +54,11 @@ interface DataQualityPanelProps {
 type ScoreLevel = 'excellent' | 'good' | 'warning' | 'critical';
 
 const SCORE_CONFIG: Record<ScoreLevel, { color: string; bgColor: string; labelKey: string }> = {
-  excellent: { color: semanticColors.success.main, bgColor: 'bg-success-500', labelKey: 'excellent' },
+  excellent: {
+    color: semanticColors.success.main,
+    bgColor: 'bg-success-500',
+    labelKey: 'excellent',
+  },
   good: { color: semanticColors.info.main, bgColor: 'bg-primary-500', labelKey: 'good' },
   warning: { color: semanticColors.warning.main, bgColor: 'bg-warning-500', labelKey: 'warning' },
   critical: { color: semanticColors.danger.main, bgColor: 'bg-danger-500', labelKey: 'critical' },
@@ -410,7 +414,8 @@ function LatencyDistributionChart({ results }: { results: QueryResult[] }) {
                     {t('dataQuality.sampleCount')}: {item.count}
                   </p>
                   <p className="text-xs text-gray-600 mt-1">
-                    {t('dataQuality.level')}: {t(`dataQuality.${SCORE_CONFIG[item.level].labelKey}`)}
+                    {t('dataQuality.level')}:{' '}
+                    {t(`dataQuality.${SCORE_CONFIG[item.level].labelKey}`)}
                   </p>
                 </div>
               );

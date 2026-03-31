@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import { env } from '@/lib/config/env';
 import { useTranslations } from '@/i18n';
+import { env } from '@/lib/config/env';
 
 import {
   usePerformanceMonitoring,
@@ -105,7 +105,11 @@ export function PerformanceIndicator({
         label: metricLabel,
       } = metricKey
         ? getMetricRatingDisplay(metricKey, value)
-        : { rating: 'good' as const, color: 'text-gray-400', label: t('performanceIndicator.ratings.unknown') };
+        : {
+            rating: 'good' as const,
+            color: 'text-gray-400',
+            label: t('performanceIndicator.ratings.unknown'),
+          };
 
       return {
         label,
@@ -130,9 +134,24 @@ export function PerformanceIndicator({
   };
 
   const metrics: MetricDisplay[] = [
-    getMetricDisplay(t('performanceIndicator.metrics.queryResponse'), queryResponseTime, 'ms', 'queryResponseTime'),
-    getMetricDisplay(t('performanceIndicator.metrics.dataProcessing'), dataProcessingTime, 'ms', 'dataProcessingTime'),
-    getMetricDisplay(t('performanceIndicator.metrics.dataValidation'), validationTime, 'ms', 'validationTime'),
+    getMetricDisplay(
+      t('performanceIndicator.metrics.queryResponse'),
+      queryResponseTime,
+      'ms',
+      'queryResponseTime'
+    ),
+    getMetricDisplay(
+      t('performanceIndicator.metrics.dataProcessing'),
+      dataProcessingTime,
+      'ms',
+      'dataProcessingTime'
+    ),
+    getMetricDisplay(
+      t('performanceIndicator.metrics.dataValidation'),
+      validationTime,
+      'ms',
+      'validationTime'
+    ),
   ];
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -198,7 +217,9 @@ export function PerformanceIndicator({
 
             {cacheStats && (
               <div className="flex flex-col">
-                <span className="text-gray-500 dark:text-gray-400">{t('performanceIndicator.metrics.cacheHitRate')}</span>
+                <span className="text-gray-500 dark:text-gray-400">
+                  {t('performanceIndicator.metrics.cacheHitRate')}
+                </span>
                 <div className="flex items-baseline gap-1">
                   <span
                     className={`font-mono font-medium ${
@@ -220,7 +241,9 @@ export function PerformanceIndicator({
 
             {cacheStats && (
               <div className="flex flex-col">
-                <span className="text-gray-500 dark:text-gray-400">{t('performanceIndicator.metrics.cacheSize')}</span>
+                <span className="text-gray-500 dark:text-gray-400">
+                  {t('performanceIndicator.metrics.cacheSize')}
+                </span>
                 <span className="font-mono font-medium text-gray-700 dark:text-gray-300">
                   {cacheStats.size} / {cacheStats.maxSize}
                 </span>
@@ -233,7 +256,9 @@ export function PerformanceIndicator({
               <span>{t('performanceIndicator.thresholds')}: </span>
               <span className="text-green-500">{t('performanceIndicator.ratings.good')}</span>
               <span> / </span>
-              <span className="text-yellow-500">{t('performanceIndicator.ratings.needsImprovement')}</span>
+              <span className="text-yellow-500">
+                {t('performanceIndicator.ratings.needsImprovement')}
+              </span>
               <span> / </span>
               <span className="text-red-500">{t('performanceIndicator.ratings.poor')}</span>
             </div>

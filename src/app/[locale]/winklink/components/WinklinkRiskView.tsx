@@ -4,8 +4,8 @@ import { Shield, CheckCircle } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
-import { type WinklinkRiskViewProps } from '../types';
 import { RISK_TREND_DATA } from '../constants';
+import { type WinklinkRiskViewProps } from '../types';
 
 export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewProps) {
   const t = useTranslations();
@@ -109,15 +109,12 @@ export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewPro
             <h2 className="text-lg font-semibold text-gray-900">
               {t('winklink.risk.overallRisk')}
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('winklink.risk.metricsDesc')}
-            </p>
+            <p className="text-sm text-gray-500 mt-1">{t('winklink.risk.metricsDesc')}</p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
             <Shield className="w-5 h-5 text-emerald-600" />
             <span className="text-sm font-medium text-emerald-700">
-              {t('winklink.risk.overallScore')}:{' '}
-              {(10 - riskData.overallRisk).toFixed(1)}/10
+              {t('winklink.risk.overallScore')}: {(10 - riskData.overallRisk).toFixed(1)}/10
             </span>
           </div>
         </div>

@@ -26,10 +26,8 @@ import {
   Bar,
 } from 'recharts';
 
-import { type PublisherData } from '../types';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
-import { type TooltipProps } from '@/types/ui/recharts';
 import {
   generateStakeHistory,
   generateAccuracyHistory,
@@ -40,6 +38,9 @@ import {
   type PriceSource,
   type PerformanceMetric,
 } from '@/lib/oracles/pythMockData';
+import { type TooltipProps } from '@/types/ui/recharts';
+
+import { type PublisherData } from '../types';
 
 interface PublisherDetailModalProps {
   publisher: PublisherData;
@@ -140,9 +141,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Activity className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-500">
-                  {t('pyth.publisher.stake')}
-                </span>
+                <span className="text-sm text-gray-500">{t('pyth.publisher.stake')}</span>
               </div>
               <p className="text-2xl font-bold text-gray-900">
                 {((publisher.stake ?? 0) / 1e6).toFixed(1)}M
@@ -153,39 +152,31 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-500">
-                  {t('pyth.publisher.accuracy')}
-                </span>
+                <span className="text-sm text-gray-500">{t('pyth.publisher.accuracy')}</span>
               </div>
               <p className="text-2xl font-bold text-emerald-600">{publisher.accuracy}%</p>
-              <p className="text-xs text-gray-400 mt-1">
-                {t('pyth.publisher.last30Days')}
-              </p>
+              <p className="text-xs text-gray-400 mt-1">{t('pyth.publisher.last30Days')}</p>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Award className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-500">
-                  {t('pyth.publisher.contribution')}
-                </span>
+                <span className="text-sm text-gray-500">{t('pyth.publisher.contribution')}</span>
               </div>
               <p className="text-2xl font-bold text-violet-600">
                 {(publisher.contribution ?? 0).toFixed(2)}%
               </p>
-              <p className="text-xs text-gray-400 mt-1">
-                {t('pyth.publisher.networkShare')}
-              </p>
+              <p className="text-xs text-gray-400 mt-1">{t('pyth.publisher.networkShare')}</p>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-500">
-                  {t('pyth.publisher.status')}
-                </span>
+                <span className="text-sm text-gray-500">{t('pyth.publisher.status')}</span>
               </div>
-              <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md ${statusDisplay.bgColor}`}>
+              <div
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md ${statusDisplay.bgColor}`}
+              >
                 {statusDisplay.icon}
                 <span className={`text-sm font-medium ${statusDisplay.color}`}>
                   {statusDisplay.label}
@@ -203,7 +194,11 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
                 <AreaChart data={stakeHistory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="stakeGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={chartColors.recharts.primary} stopOpacity={0.3} />
+                      <stop
+                        offset="5%"
+                        stopColor={chartColors.recharts.primary}
+                        stopOpacity={0.3}
+                      />
                       <stop offset="95%" stopColor={chartColors.recharts.primary} stopOpacity={0} />
                     </linearGradient>
                   </defs>
@@ -240,7 +235,10 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
             </h3>
             <div style={{ height: 250 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={accuracyHistory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <LineChart
+                  data={accuracyHistory}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
                   <XAxis
                     dataKey="date"
@@ -294,7 +292,10 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
                 </thead>
                 <tbody>
                   {priceSources.map((source) => (
-                    <tr key={source.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                    <tr
+                      key={source.id}
+                      className="border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                    >
                       <td className="py-3 px-4 text-sm font-medium text-gray-900">{source.name}</td>
                       <td className="py-3 px-4 text-sm text-gray-600">{source.category}</td>
                       <td className="py-3 px-4 text-sm text-gray-500">{source.lastUpdate}</td>
@@ -306,7 +307,9 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
                               : 'bg-gray-100 text-gray-600'
                           }`}
                         >
-                          {source.status === 'active' ? t('pyth.publisher.statusActive') : t('pyth.publisher.statusInactive')}
+                          {source.status === 'active'
+                            ? t('pyth.publisher.statusActive')
+                            : t('pyth.publisher.statusInactive')}
                         </span>
                       </td>
                     </tr>
@@ -355,9 +358,7 @@ export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDe
                   <h4 className="text-sm font-semibold text-violet-900">
                     {t('pyth.publisher.info')}
                   </h4>
-                  <p className="text-sm text-violet-700 mt-1">
-                    {t('pyth.publisher.infoDesc')}
-                  </p>
+                  <p className="text-sm text-violet-700 mt-1">{t('pyth.publisher.infoDesc')}</p>
                 </div>
               </div>
             </div>

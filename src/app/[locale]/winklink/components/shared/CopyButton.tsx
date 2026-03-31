@@ -12,7 +12,12 @@ interface CopyButtonProps {
   showTooltip?: boolean;
 }
 
-export function CopyButton({ text, className = '', size = 'md', showTooltip = true }: CopyButtonProps) {
+export function CopyButton({
+  text,
+  className = '',
+  size = 'md',
+  showTooltip = true,
+}: CopyButtonProps) {
   const t = useTranslations();
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);

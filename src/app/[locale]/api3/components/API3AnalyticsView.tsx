@@ -10,15 +10,15 @@ import {
   TrendPrediction,
   AnomalyDetection,
 } from '@/components/oracle/analytics';
-import { useTranslations } from '@/i18n';
 import { useAPI3Historical } from '@/hooks/oracles/api3';
-import { Blockchain } from '@/types/oracle';
 import useAPI3Analytics, {
   type MetricDefinition,
   type DataSource,
   type DataPoint,
   type ReportConfig,
 } from '@/hooks/useAPI3Analytics';
+import { useTranslations } from '@/i18n';
+import { Blockchain } from '@/types/oracle';
 
 type AnalyticsTab = 'report' | 'comparison' | 'prediction' | 'anomaly';
 
@@ -30,16 +30,74 @@ const getTabs = (t: (key: string) => string) => [
 ];
 
 const getAvailableMetrics = (t: (key: string) => string): MetricDefinition[] => [
-  { id: 'price', name: t('api3.analytics.metrics.price.name'), category: t('api3.analytics.categories.market'), unit: 'USD', description: t('api3.analytics.metrics.price.description') },
-  { id: 'volume', name: t('api3.analytics.metrics.volume.name'), category: t('api3.analytics.categories.market'), unit: 'USD', description: t('api3.analytics.metrics.volume.description') },
-  { id: 'marketCap', name: t('api3.analytics.metrics.marketCap.name'), category: t('api3.analytics.categories.market'), unit: 'USD', description: t('api3.analytics.metrics.marketCap.description') },
-  { id: 'responseTime', name: t('api3.analytics.metrics.responseTime.name'), category: t('api3.analytics.categories.performance'), unit: 'ms', description: t('api3.analytics.metrics.responseTime.description') },
-  { id: 'successRate', name: t('api3.analytics.metrics.successRate.name'), category: t('api3.analytics.categories.performance'), unit: '%', description: t('api3.analytics.metrics.successRate.description') },
-  { id: 'activeAirnodes', name: t('api3.analytics.metrics.activeAirnodes.name'), category: t('api3.analytics.categories.network'), description: t('api3.analytics.metrics.activeAirnodes.description') },
-  { id: 'activeDapis', name: t('api3.analytics.metrics.activeDapis.name'), category: t('api3.analytics.categories.network'), description: t('api3.analytics.metrics.activeDapis.description') },
-  { id: 'stakingApr', name: t('api3.analytics.metrics.stakingApr.name'), category: t('api3.analytics.categories.staking'), unit: '%', description: t('api3.analytics.metrics.stakingApr.description') },
-  { id: 'totalStaked', name: t('api3.analytics.metrics.totalStaked.name'), category: t('api3.analytics.categories.staking'), unit: 'API3', description: t('api3.analytics.metrics.totalStaked.description') },
-  { id: 'coverageRatio', name: t('api3.analytics.metrics.coverageRatio.name'), category: t('api3.analytics.categories.risk'), unit: '%', description: t('api3.analytics.metrics.coverageRatio.description') },
+  {
+    id: 'price',
+    name: t('api3.analytics.metrics.price.name'),
+    category: t('api3.analytics.categories.market'),
+    unit: 'USD',
+    description: t('api3.analytics.metrics.price.description'),
+  },
+  {
+    id: 'volume',
+    name: t('api3.analytics.metrics.volume.name'),
+    category: t('api3.analytics.categories.market'),
+    unit: 'USD',
+    description: t('api3.analytics.metrics.volume.description'),
+  },
+  {
+    id: 'marketCap',
+    name: t('api3.analytics.metrics.marketCap.name'),
+    category: t('api3.analytics.categories.market'),
+    unit: 'USD',
+    description: t('api3.analytics.metrics.marketCap.description'),
+  },
+  {
+    id: 'responseTime',
+    name: t('api3.analytics.metrics.responseTime.name'),
+    category: t('api3.analytics.categories.performance'),
+    unit: 'ms',
+    description: t('api3.analytics.metrics.responseTime.description'),
+  },
+  {
+    id: 'successRate',
+    name: t('api3.analytics.metrics.successRate.name'),
+    category: t('api3.analytics.categories.performance'),
+    unit: '%',
+    description: t('api3.analytics.metrics.successRate.description'),
+  },
+  {
+    id: 'activeAirnodes',
+    name: t('api3.analytics.metrics.activeAirnodes.name'),
+    category: t('api3.analytics.categories.network'),
+    description: t('api3.analytics.metrics.activeAirnodes.description'),
+  },
+  {
+    id: 'activeDapis',
+    name: t('api3.analytics.metrics.activeDapis.name'),
+    category: t('api3.analytics.categories.network'),
+    description: t('api3.analytics.metrics.activeDapis.description'),
+  },
+  {
+    id: 'stakingApr',
+    name: t('api3.analytics.metrics.stakingApr.name'),
+    category: t('api3.analytics.categories.staking'),
+    unit: '%',
+    description: t('api3.analytics.metrics.stakingApr.description'),
+  },
+  {
+    id: 'totalStaked',
+    name: t('api3.analytics.metrics.totalStaked.name'),
+    category: t('api3.analytics.categories.staking'),
+    unit: 'API3',
+    description: t('api3.analytics.metrics.totalStaked.description'),
+  },
+  {
+    id: 'coverageRatio',
+    name: t('api3.analytics.metrics.coverageRatio.name'),
+    category: t('api3.analytics.categories.risk'),
+    unit: '%',
+    description: t('api3.analytics.metrics.coverageRatio.description'),
+  },
 ];
 
 export function API3AnalyticsView() {
@@ -48,7 +106,11 @@ export function API3AnalyticsView() {
   const availableMetrics = getAvailableMetrics(t);
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('report');
 
-  const { historicalData: apiHistoricalData, isLoading } = useAPI3Historical({ symbol: 'API3', chain: Blockchain.ETHEREUM, enabled: true });
+  const { historicalData: apiHistoricalData, isLoading } = useAPI3Historical({
+    symbol: 'API3',
+    chain: Blockchain.ETHEREUM,
+    enabled: true,
+  });
 
   const analytics = useAPI3Analytics();
 
@@ -97,16 +159,17 @@ export function API3AnalyticsView() {
     ];
   }, [historicalDataPoints]);
 
-  const timeRange = useMemo(() => ({
-    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    end: new Date(),
-  }), []);
+  const timeRange = useMemo(
+    () => ({
+      start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      end: new Date(),
+    }),
+    []
+  );
 
-  const handleGenerateReport = useCallback((_config: ReportConfig) => {
-  }, []);
+  const handleGenerateReport = useCallback((_config: ReportConfig) => {}, []);
 
-  const handleAnomalyDetected = useCallback((_anomalies: unknown[]) => {
-  }, []);
+  const handleAnomalyDetected = useCallback((_anomalies: unknown[]) => {}, []);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -185,7 +248,7 @@ function generateMockData(correlation: number = 1): DataPoint[] {
     const timestamp = now - i * 24 * 60 * 60 * 1000;
     const change = (Math.random() - 0.5) * 0.1 * correlation;
     basePrice = basePrice * (1 + change);
-    
+
     const anomaly = Math.random() < 0.02;
     const value = anomaly ? basePrice * (1 + (Math.random() - 0.5) * 0.3) : basePrice;
 

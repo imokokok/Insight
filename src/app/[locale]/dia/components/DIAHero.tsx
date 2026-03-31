@@ -194,9 +194,9 @@ function MiniPriceChart({
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <TrendingUpIcon className="w-3.5 h-3.5" />
-              <span>{t('dia.hero.24hTrend')}</span>
-            </div>
+          <TrendingUpIcon className="w-3.5 h-3.5" />
+          <span>{t('dia.hero.24hTrend')}</span>
+        </div>
         <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}
           {priceChange.toFixed(2)}%
@@ -325,13 +325,33 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: t('dia.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('dia.hero.gasLevel.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: t('dia.hero.gasLevel.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('dia.hero.gasLevel.low'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: t('dia.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: t('dia.hero.gasLevel.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+      return {
+        label: t('dia.hero.gasLevel.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
+    return {
+      label: t('dia.hero.gasLevel.high'),
+      color: 'text-red-600',
+      bg: 'bg-red-500',
+      width: '80%',
+    };
   }, [networkStats, t]);
 
   // 只显示前3个链
@@ -492,7 +512,9 @@ export function DIAHero({
     {
       title: t('dia.stats.marketCap'),
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
-      change: config.marketData.change24h ? `${config.marketData.change24h >= 0 ? '+' : ''}${config.marketData.change24h.toFixed(1)}%` : undefined,
+      change: config.marketData.change24h
+        ? `${config.marketData.change24h >= 0 ? '+' : ''}${config.marketData.change24h.toFixed(1)}%`
+        : undefined,
       changeType: (config.marketData.change24h ?? 0) >= 0 ? 'positive' : 'negative',
       icon: <Wallet className="w-5 h-5" />,
       subtitle: config.marketData.change24h ? t('dia.hero.change24h') : undefined,
@@ -512,7 +534,9 @@ export function DIAHero({
       title: t('dia.hero.stakedAmount'),
       value: totalStaked ? formatStakedValue(totalStaked) : '--',
       icon: <Shield className="w-5 h-5" />,
-      subtitle: config.networkData.stakingTokenSymbol ? `${t('dia.hero.stakingToken')}: ${config.networkData.stakingTokenSymbol}` : undefined,
+      subtitle: config.networkData.stakingTokenSymbol
+        ? `${t('dia.hero.stakingToken')}: ${config.networkData.stakingTokenSymbol}`
+        : undefined,
     },
   ];
 
@@ -534,7 +558,9 @@ export function DIAHero({
     },
     {
       title: t('dia.volume24h'),
-      value: config.marketData.volume24h ? `$${(config.marketData.volume24h / 1e6).toFixed(1)}M` : '--',
+      value: config.marketData.volume24h
+        ? `$${(config.marketData.volume24h / 1e6).toFixed(1)}M`
+        : '--',
       icon: <TrendingUp className="w-4 h-4" />,
     },
   ];

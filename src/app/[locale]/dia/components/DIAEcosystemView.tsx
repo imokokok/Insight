@@ -319,7 +319,7 @@ export function DIAEcosystemView() {
     const data: TVLTrendDataPoint[] = [];
     const chainDistribution: Record<string, number> = {
       ethereum: 0.38,
-      arbitrum: 0.20,
+      arbitrum: 0.2,
       polygon: 0.12,
       optimism: 0.12,
       avalanche: 0.07,
@@ -389,7 +389,8 @@ export function DIAEcosystemView() {
 
     const latest = filteredTvlData[filteredTvlData.length - 1];
     const previous = filteredTvlData[0];
-    const change = previous.total > 0 ? ((latest.total - previous.total) / previous.total) * 100 : 0;
+    const change =
+      previous.total > 0 ? ((latest.total - previous.total) / previous.total) * 100 : 0;
 
     const breakdown = Object.entries(chainColors)
       .filter(([chain]) => chain in latest && typeof latest[chain] === 'number')
@@ -568,11 +569,11 @@ export function DIAEcosystemView() {
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-          <h3 className="text-base font-semibold text-gray-900">
-            {t('dia.ecosystem.tvlAnalysis.title')}
-          </h3>
-          <p className="text-sm text-gray-500 mt-0.5">{t('dia.ecosystem.tvlAnalysis.desc')}</p>
-        </div>
+            <h3 className="text-base font-semibold text-gray-900">
+              {t('dia.ecosystem.tvlAnalysis.title')}
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{t('dia.ecosystem.tvlAnalysis.desc')}</p>
+          </div>
           <div className="flex items-center border-b border-gray-200">
             {(['1M', '3M', '6M', '1Y'] as const).map((range) => (
               <TimeRangeButton

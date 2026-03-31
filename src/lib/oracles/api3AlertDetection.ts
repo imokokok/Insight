@@ -76,9 +76,7 @@ export function detectNodeOfflineAlert(
   const responseTimeThreshold = thresholds.find(
     (t) => t.type === 'node_response_time' && t.enabled
   );
-  const nodeOfflineThreshold = thresholds.find(
-    (t) => t.type === 'node_offline' && t.enabled
-  );
+  const nodeOfflineThreshold = thresholds.find((t) => t.type === 'node_offline' && t.enabled);
 
   if (responseTimeThreshold && airnodeStats.avgResponseTime > responseTimeThreshold.threshold) {
     const severity: API3Alert['severity'] =
@@ -157,9 +155,7 @@ export function detectCoveragePoolRiskAlert(
   const alerts: API3Alert[] = [];
   const now = new Date();
 
-  const ratioThreshold = thresholds.find(
-    (t) => t.type === 'coverage_pool_ratio' && t.enabled
-  );
+  const ratioThreshold = thresholds.find((t) => t.type === 'coverage_pool_ratio' && t.enabled);
 
   if (!ratioThreshold) {
     return alerts;
@@ -217,12 +213,10 @@ export function detectAllAlerts(
   const nodeAlerts = detectNodeOfflineAlert(airnodeStats, thresholds);
   const coverageAlerts = detectCoveragePoolRiskAlert(coveragePool, thresholds);
 
-  return [...priceAlerts, ...nodeAlerts, ...coverageAlerts].sort(
-    (a, b) => {
-      const severityOrder = { critical: 0, warning: 1, info: 2 };
-      return severityOrder[a.severity] - severityOrder[b.severity];
-    }
-  );
+  return [...priceAlerts, ...nodeAlerts, ...coverageAlerts].sort((a, b) => {
+    const severityOrder = { critical: 0, warning: 1, info: 2 };
+    return severityOrder[a.severity] - severityOrder[b.severity];
+  });
 }
 
 export function getAlertSeverityColor(severity: API3Alert['severity']): string {

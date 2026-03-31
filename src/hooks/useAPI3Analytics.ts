@@ -144,44 +144,45 @@ export function useAPI3Analytics() {
     [calculateMean, calculateStandardDeviation]
   );
 
-  const detectAnomaliesByIQR = useCallback((data: DataPoint[]): Anomaly[] => {
-    if (data.length < 4) return [];
+  const detectAnomaliesByIQR = useCallback(
+    (data: DataPoint[]): Anomaly[] => {
+      if (data.length < 4) return [];
 
-    const values = data.map((d) => d.value).sort((a, b) => a - b);
-    const q1Index = Math.floor(values.length * 0.25);
-    const q3Index = Math.floor(values.length * 0.75);
-    const q1 = values[q1Index];
-    const q3 = values[q3Index];
-    const iqr = q3 - q1;
+      const values = data.map((d) => d.value).sort((a, b) => a - b);
+      const q1Index = Math.floor(values.length * 0.25);
+      const q3Index = Math.floor(values.length * 0.75);
+      const q1 = values[q1Index];
+      const q3 = values[q3Index];
+      const iqr = q3 - q1;
 
-    const lowerBound = q1 - 1.5 * iqr;
-    const upperBound = q3 + 1.5 * iqr;
+      const lowerBound = q1 - 1.5 * iqr;
+      const upperBound = q3 + 1.5 * iqr;
 
-    const anomalies: Anomaly[] = [];
-    const mean = calculateMean(data.map((d) => d.value));
+      const anomalies: Anomaly[] = [];
+      const mean = calculateMean(data.map((d) => d.value));
 
-    for (let i = 0; i < data.length; i++) {
-      if (data[i].value < lowerBound || data[i].value > upperBound) {
-        const deviation = Math.abs(data[i].value - mean);
-        const distanceFromBound =
-          data[i].value < lowerBound
-            ? lowerBound - data[i].value
-            : data[i].value - upperBound;
-        const severity: 'low' | 'medium' | 'high' =
-          distanceFromBound > iqr * 2 ? 'high' : distanceFromBound > iqr ? 'medium' : 'low';
-        anomalies.push({
-          index: i,
-          timestamp: data[i].timestamp,
-          value: data[i].value,
-          expectedValue: mean,
-          deviation,
-          severity,
-          type: 'iqr',
-        });
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].value < lowerBound || data[i].value > upperBound) {
+          const deviation = Math.abs(data[i].value - mean);
+          const distanceFromBound =
+            data[i].value < lowerBound ? lowerBound - data[i].value : data[i].value - upperBound;
+          const severity: 'low' | 'medium' | 'high' =
+            distanceFromBound > iqr * 2 ? 'high' : distanceFromBound > iqr ? 'medium' : 'low';
+          anomalies.push({
+            index: i,
+            timestamp: data[i].timestamp,
+            value: data[i].value,
+            expectedValue: mean,
+            deviation,
+            severity,
+            type: 'iqr',
+          });
+        }
       }
-    }
-    return anomalies;
-  }, [calculateMean]);
+      return anomalies;
+    },
+    [calculateMean]
+  );
 
   const detectAnomalies = useCallback(
     (data: DataPoint[], sensitivity: 'low' | 'medium' | 'high' = 'medium'): Anomaly[] => {
@@ -246,11 +247,7 @@ export function useAPI3Analytics() {
   }, []);
 
   const predictTrend = useCallback(
-    (
-      data: DataPoint[],
-      days: number,
-      confidenceLevel: number = 0.95
-    ): PredictionResult[] => {
+    (data: DataPoint[], days: number, confidenceLevel: number = 0.95): PredictionResult[] => {
       if (data.length < 2) return [];
 
       const values = data.map((d) => d.value);
@@ -279,16 +276,17 @@ export function useAPI3Analytics() {
       const zScore = confidenceLevel === 0.99 ? 2.576 : confidenceLevel === 0.95 ? 1.96 : 1.645;
       const lastTimestamp = data[data.length - 1].timestamp;
       const avgInterval =
-        data.length > 1
-          ? (lastTimestamp - data[0].timestamp) / (data.length - 1)
-          : 86400000;
+        data.length > 1 ? (lastTimestamp - data[0].timestamp) / (data.length - 1) : 86400000;
 
       const predictions: PredictionResult[] = [];
       for (let i = 1; i <= days; i++) {
         const futureIndex = n - 1 + i;
         const predicted = slope * futureIndex + intercept;
-        const intervalWidth = zScore * standardError * Math.sqrt(1 + 1 / n + Math.pow(futureIndex - xMean, 2) / denominator);
-        
+        const intervalWidth =
+          zScore *
+          standardError *
+          Math.sqrt(1 + 1 / n + Math.pow(futureIndex - xMean, 2) / denominator);
+
         predictions.push({
           timestamp: lastTimestamp + i * avgInterval,
           predicted,
@@ -310,9 +308,7 @@ export function useAPI3Analytics() {
       const tolerance = 0.1;
 
       for (const pred of predicted) {
-        const actualPoint = actual.find(
-          (a) => Math.abs(a.timestamp - pred.timestamp) < 86400000
-        );
+        const actualPoint = actual.find((a) => Math.abs(a.timestamp - pred.timestamp) < 86400000);
         if (actualPoint) {
           const lowerBound = actualPoint.value * (1 - tolerance);
           const upperBound = actualPoint.value * (1 + tolerance);
@@ -324,13 +320,11 @@ export function useAPI3Analytics() {
 
       return predicted.length > 0 ? (correctPredictions / predicted.length) * 100 : 0;
     },
-    []);
+    []
+  );
 
   const compareDataSources = useCallback(
-    (source1: DataSource,
-      source2: DataSource,
-      metric: string
-    ): ComparisonResult => {
+    (source1: DataSource, source2: DataSource, metric: string): ComparisonResult => {
       const values1 = source1.data.map((d) => d.value);
       const values2 = source2.data.map((d) => d.value);
 
@@ -360,45 +354,49 @@ export function useAPI3Analytics() {
     [calculateMean, calculateCorrelation]
   );
 
-  const calculateTrendDirection = useCallback((data: DataPoint[]): 'up' | 'down' | 'stable' => {
-    if (data.length < 2) return 'stable';
+  const calculateTrendDirection = useCallback(
+    (data: DataPoint[]): 'up' | 'down' | 'stable' => {
+      if (data.length < 2) return 'stable';
 
-    const values = data.map((d) => d.value);
-    const firstHalf = values.slice(0, Math.floor(values.length / 2));
-    const secondHalf = values.slice(Math.floor(values.length / 2));
+      const values = data.map((d) => d.value);
+      const firstHalf = values.slice(0, Math.floor(values.length / 2));
+      const secondHalf = values.slice(Math.floor(values.length / 2));
 
-    const firstAvg = calculateMean(firstHalf);
-    const secondAvg = calculateMean(secondHalf);
+      const firstAvg = calculateMean(firstHalf);
+      const secondAvg = calculateMean(secondHalf);
 
-    const changePercent = Math.abs((secondAvg - firstAvg) / firstAvg) * 100;
+      const changePercent = Math.abs((secondAvg - firstAvg) / firstAvg) * 100;
 
-    if (changePercent < 1) return 'stable';
-    return secondAvg > firstAvg ? 'up' : 'down';
-  }, [calculateMean]);
+      if (changePercent < 1) return 'stable';
+      return secondAvg > firstAvg ? 'up' : 'down';
+    },
+    [calculateMean]
+  );
 
-  const calculateVolatility = useCallback((data: DataPoint[]): number => {
-    if (data.length < 2) return 0;
+  const calculateVolatility = useCallback(
+    (data: DataPoint[]): number => {
+      if (data.length < 2) return 0;
 
-    const values = data.map((d) => d.value);
-    const returns: number[] = [];
+      const values = data.map((d) => d.value);
+      const returns: number[] = [];
 
-    for (let i = 1; i < values.length; i++) {
-      if (values[i - 1] !== 0) {
-        returns.push((values[i] - values[i - 1]) / values[i - 1]);
+      for (let i = 1; i < values.length; i++) {
+        if (values[i - 1] !== 0) {
+          returns.push((values[i] - values[i - 1]) / values[i - 1]);
+        }
       }
-    }
 
-    return calculateStandardDeviation(returns) * Math.sqrt(365);
-  }, [calculateStandardDeviation]);
+      return calculateStandardDeviation(returns) * Math.sqrt(365);
+    },
+    [calculateStandardDeviation]
+  );
 
   const generateReportData = useCallback(
     (config: ReportConfig, data: DataPoint[]) => {
       const startTime = config.timeRange.start.getTime();
       const endTime = config.timeRange.end.getTime();
 
-      const filteredData = data.filter(
-        (d) => d.timestamp >= startTime && d.timestamp <= endTime
-      );
+      const filteredData = data.filter((d) => d.timestamp >= startTime && d.timestamp <= endTime);
 
       return {
         config,
@@ -415,7 +413,13 @@ export function useAPI3Analytics() {
         volatility: calculateVolatility(filteredData),
       };
     },
-    [calculateMean, calculateStandardDeviation, detectAnomalies, calculateTrendDirection, calculateVolatility]
+    [
+      calculateMean,
+      calculateStandardDeviation,
+      detectAnomalies,
+      calculateTrendDirection,
+      calculateVolatility,
+    ]
   );
 
   return useMemo(

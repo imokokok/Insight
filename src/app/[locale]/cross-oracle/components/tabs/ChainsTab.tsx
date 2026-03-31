@@ -12,11 +12,7 @@ export function ChainsTab({ t }: ChainsTabProps) {
     <>
       {/* 链覆盖热力图 */}
       <div className="mb-6">
-        <ChainCoverageHeatmap
-          showLabels={true}
-          onCellClick={() => {
-          }}
-        />
+        <ChainCoverageHeatmap showLabels={true} onCellClick={() => {}} />
       </div>
 
       {/* 链选择器示例 */}
@@ -27,8 +23,7 @@ export function ChainsTab({ t }: ChainsTabProps) {
         <div className="max-w-md">
           <ChainSelector
             selectedChains={[]}
-            onChainsChange={() => {
-            }}
+            onChainsChange={() => {}}
             allowMultiSelect={true}
             showOracleCount={true}
             placeholder={t('crossOracle.chainsTab.selectChains')}

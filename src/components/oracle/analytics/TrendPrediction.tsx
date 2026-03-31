@@ -27,9 +27,9 @@ import {
   ReferenceLine,
 } from 'recharts';
 
+import useAPI3Analytics, { type DataPoint, type PredictionResult } from '@/hooks/useAPI3Analytics';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
-import useAPI3Analytics, { type DataPoint, type PredictionResult } from '@/hooks/useAPI3Analytics';
 
 export interface TrendPredictionProps {
   historicalData: DataPoint[];
@@ -38,7 +38,7 @@ export interface TrendPredictionProps {
 }
 
 const confidenceOptions = [
-  { value: 0.90, label: '90%' },
+  { value: 0.9, label: '90%' },
   { value: 0.95, label: '95%' },
   { value: 0.99, label: '99%' },
 ];
@@ -116,7 +116,8 @@ export function TrendPrediction({
 
     const values = historicalData.map((d) => d.value);
     const lastValue = values[values.length - 1];
-    const predictedValue = predictions.length > 0 ? predictions[predictions.length - 1].predicted : null;
+    const predictedValue =
+      predictions.length > 0 ? predictions[predictions.length - 1].predicted : null;
     const change = predictedValue ? ((predictedValue - lastValue) / lastValue) * 100 : null;
 
     return {
@@ -275,7 +276,9 @@ export function TrendPrediction({
                 statistics.change && statistics.change >= 0 ? 'text-emerald-600' : 'text-red-600'
               }`}
             >
-              {statistics.change ? `${statistics.change >= 0 ? '+' : ''}${statistics.change.toFixed(2)}%` : '-'}
+              {statistics.change
+                ? `${statistics.change >= 0 ? '+' : ''}${statistics.change.toFixed(2)}%`
+                : '-'}
             </div>
           </div>
         </div>
@@ -289,7 +292,11 @@ export function TrendPrediction({
           <ResponsiveContainer width="100%" height={350}>
             <ComposedChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#6b7280' }} interval="preserveStartEnd" />
+              <XAxis
+                dataKey="time"
+                tick={{ fontSize: 10, fill: '#6b7280' }}
+                interval="preserveStartEnd"
+              />
               <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} />
               <Tooltip
                 content={({ active, payload, label }) => {
@@ -357,7 +364,11 @@ export function TrendPrediction({
                 name="Predicted"
               />
               <ReferenceLine
-                x={chartData.find((d) => d.actual !== null && d.predicted !== null)?.time || undefined}
+                x={
+                  (chartData as Array<{time: string; actual: number | null; predicted: number | null}>).find(
+                    (d) => d.actual !== null && d.predicted !== null
+                  )?.time || undefined
+                }
                 stroke="#6b7280"
                 strokeDasharray="3 3"
               />

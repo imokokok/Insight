@@ -5,7 +5,11 @@ import { useState } from 'react';
 import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
 import { AirnodeGeoMap, type AirnodeNode } from '@/components/oracle/charts/AirnodeGeoMap';
-import { NetworkTopologyChart, type NetworkNode, type NetworkConnection } from '@/components/oracle/charts/NetworkTopologyChart';
+import {
+  NetworkTopologyChart,
+  type NetworkNode,
+  type NetworkConnection,
+} from '@/components/oracle/charts/NetworkTopologyChart';
 import { useTranslations } from '@/i18n';
 
 import { type API3NetworkViewProps } from '../types';
@@ -110,14 +114,86 @@ const mockAirnodes: AirnodeNode[] = [
 ];
 
 const mockTopologyNodes: NetworkNode[] = [
-  { id: 'source-1', name: 'Binance', type: 'source', status: 'active', x: 100, y: 100, connections: ['airnode-1'], metadata: { provider: 'Binance' } },
-  { id: 'source-2', name: 'Coinbase', type: 'source', status: 'active', x: 100, y: 200, connections: ['airnode-1'], metadata: { provider: 'Coinbase' } },
-  { id: 'source-3', name: 'Kraken', type: 'source', status: 'active', x: 100, y: 300, connections: ['airnode-2'], metadata: { provider: 'Kraken' } },
-  { id: 'airnode-1', name: 'Airnode US-East', type: 'airnode', status: 'active', x: 300, y: 150, connections: ['dapi-eth'], metadata: { responseTime: 45, reliability: 99.9 } },
-  { id: 'airnode-2', name: 'Airnode EU-Frankfurt', type: 'airnode', status: 'active', x: 300, y: 300, connections: ['dapi-eth'], metadata: { responseTime: 38, reliability: 99.95 } },
-  { id: 'dapi-eth', name: 'ETH/USD dAPI', type: 'dapi', status: 'active', x: 500, y: 225, connections: ['chain-eth', 'chain-arb'], metadata: { reliability: 99.98 } },
-  { id: 'chain-eth', name: 'Ethereum', type: 'chain', status: 'active', x: 700, y: 150, connections: [], metadata: { chain: 'Ethereum' } },
-  { id: 'chain-arb', name: 'Arbitrum', type: 'chain', status: 'active', x: 700, y: 300, connections: [], metadata: { chain: 'Arbitrum' } },
+  {
+    id: 'source-1',
+    name: 'Binance',
+    type: 'source',
+    status: 'active',
+    x: 100,
+    y: 100,
+    connections: ['airnode-1'],
+    metadata: { provider: 'Binance' },
+  },
+  {
+    id: 'source-2',
+    name: 'Coinbase',
+    type: 'source',
+    status: 'active',
+    x: 100,
+    y: 200,
+    connections: ['airnode-1'],
+    metadata: { provider: 'Coinbase' },
+  },
+  {
+    id: 'source-3',
+    name: 'Kraken',
+    type: 'source',
+    status: 'active',
+    x: 100,
+    y: 300,
+    connections: ['airnode-2'],
+    metadata: { provider: 'Kraken' },
+  },
+  {
+    id: 'airnode-1',
+    name: 'Airnode US-East',
+    type: 'airnode',
+    status: 'active',
+    x: 300,
+    y: 150,
+    connections: ['dapi-eth'],
+    metadata: { responseTime: 45, reliability: 99.9 },
+  },
+  {
+    id: 'airnode-2',
+    name: 'Airnode EU-Frankfurt',
+    type: 'airnode',
+    status: 'active',
+    x: 300,
+    y: 300,
+    connections: ['dapi-eth'],
+    metadata: { responseTime: 38, reliability: 99.95 },
+  },
+  {
+    id: 'dapi-eth',
+    name: 'ETH/USD dAPI',
+    type: 'dapi',
+    status: 'active',
+    x: 500,
+    y: 225,
+    connections: ['chain-eth', 'chain-arb'],
+    metadata: { reliability: 99.98 },
+  },
+  {
+    id: 'chain-eth',
+    name: 'Ethereum',
+    type: 'chain',
+    status: 'active',
+    x: 700,
+    y: 150,
+    connections: [],
+    metadata: { chain: 'Ethereum' },
+  },
+  {
+    id: 'chain-arb',
+    name: 'Arbitrum',
+    type: 'chain',
+    status: 'active',
+    x: 700,
+    y: 300,
+    connections: [],
+    metadata: { chain: 'Arbitrum' },
+  },
 ];
 
 const mockTopologyConnections: NetworkConnection[] = [
@@ -197,7 +273,9 @@ export function API3NetworkView({ config, networkStats }: API3NetworkViewProps) 
                 {metric.change && (
                   <div
                     className={`flex items-center gap-0.5 text-sm font-medium ${
-                      metric.trend === 'up' ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'
+                      metric.trend === 'up'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-blue-600 dark:text-blue-400'
                     }`}
                   >
                     <TrendIcon className="w-3.5 h-3.5" />
@@ -268,7 +346,9 @@ export function API3NetworkView({ config, networkStats }: API3NetworkViewProps) 
           <div className="space-y-5">
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600 dark:text-gray-400">{t('api3.network.successRate')}</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  {t('api3.network.successRate')}
+                </span>
                 <span className="font-medium text-gray-900 dark:text-white">99.8%</span>
               </div>
               <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
@@ -277,7 +357,9 @@ export function API3NetworkView({ config, networkStats }: API3NetworkViewProps) 
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600 dark:text-gray-400">{t('api3.network.availability')}</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  {t('api3.network.availability')}
+                </span>
                 <span className="font-medium text-gray-900 dark:text-white">99.9%</span>
               </div>
               <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
@@ -286,7 +368,9 @@ export function API3NetworkView({ config, networkStats }: API3NetworkViewProps) 
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600 dark:text-gray-400">{t('api3.network.latency')}</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  {t('api3.network.latency')}
+                </span>
                 <span className="font-medium text-gray-900 dark:text-white">200ms avg</span>
               </div>
               <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">

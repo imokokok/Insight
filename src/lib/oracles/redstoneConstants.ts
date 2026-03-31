@@ -30,7 +30,7 @@ export const SPREAD_PERCENTAGES: Record<string, number> = {
 
 export const REDSTONE_DEFAULT_RISK_METRICS = {
   centralizationRisk: 0.25,
-  liquidityRisk: 0.20,
+  liquidityRisk: 0.2,
   technicalRisk: 0.12,
   overallRisk: 0.19,
 };

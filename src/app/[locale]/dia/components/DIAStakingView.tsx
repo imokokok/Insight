@@ -240,12 +240,7 @@ export function DIAStakingView() {
 
       {/* 质押计算器 */}
       <div className="border-t border-gray-200 pt-8">
-        <StakingCalculator
-          tokenSymbol="DIA"
-          tokenPrice={0.85}
-          minStake={100}
-          maxStake={1000000}
-        />
+        <StakingCalculator tokenSymbol="DIA" tokenPrice={0.85} minStake={100} maxStake={1000000} />
       </div>
     </div>
   );

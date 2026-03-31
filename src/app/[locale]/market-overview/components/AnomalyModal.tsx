@@ -81,7 +81,7 @@ export default function AnomalyModal({
         result.sort((a, b) => levelOrder[a.level] - levelOrder[b.level]);
         break;
       case 'asset':
-        result.sort((a, b) => a.asset.localeCompare(b.asset));
+        result.sort((a, b) => (a.asset || '').localeCompare(b.asset || ''));
         break;
     }
 
@@ -250,10 +250,7 @@ export default function AnomalyModal({
               <p className="text-sm text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 transition-colors"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
@@ -268,25 +265,33 @@ export default function AnomalyModal({
             {stats.critical > 0 && (
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-danger-500" />
-                <span className="text-danger-600 font-medium">{stats.critical} {t('critical')}</span>
+                <span className="text-danger-600 font-medium">
+                  {stats.critical} {t('critical')}
+                </span>
               </div>
             )}
             {stats.high > 0 && (
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-orange-500" />
-                <span className="text-orange-600 font-medium">{stats.high} {t('high')}</span>
+                <span className="text-orange-600 font-medium">
+                  {stats.high} {t('high')}
+                </span>
               </div>
             )}
             {stats.medium > 0 && (
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-warning-500" />
-                <span className="text-warning-600 font-medium">{stats.medium} {t('medium')}</span>
+                <span className="text-warning-600 font-medium">
+                  {stats.medium} {t('medium')}
+                </span>
               </div>
             )}
             {stats.low > 0 && (
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-primary-500" />
-                <span className="text-primary-600 font-medium">{stats.low} {t('low')}</span>
+                <span className="text-primary-600 font-medium">
+                  {stats.low} {t('low')}
+                </span>
               </div>
             )}
           </div>
@@ -372,10 +377,7 @@ export default function AnomalyModal({
           ) : (
             <div className="space-y-3">
               {filteredData.map((anomaly) => (
-                <div
-                  key={anomaly.id}
-                  className={`p-4 border ${getLevelStyle(anomaly.level)}`}
-                >
+                <div key={anomaly.id} className={`p-4 border ${getLevelStyle(anomaly.level)}`}>
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div className="mt-0.5">{getLevelIcon(anomaly.level)}</div>
@@ -412,7 +414,9 @@ export default function AnomalyModal({
                           </span>
                           <span>
                             {t('expectedValue')}:{' '}
-                            <span className="font-medium text-gray-700">{anomaly.expectedValue}</span>
+                            <span className="font-medium text-gray-700">
+                              {anomaly.expectedValue}
+                            </span>
                           </span>
                           <span>
                             {t('duration')}:{' '}
@@ -476,7 +480,9 @@ export default function AnomalyModal({
                       </div>
                       {anomaly.oracle && (
                         <div className="mt-4">
-                          <span className="text-gray-500 block mb-2 text-sm">{t('affectedOracle')}</span>
+                          <span className="text-gray-500 block mb-2 text-sm">
+                            {t('affectedOracle')}
+                          </span>
                           <div className="flex flex-wrap gap-2">
                             <span className="px-2 py-1 bg-white/60 text-sm text-gray-700">
                               {anomaly.oracle}

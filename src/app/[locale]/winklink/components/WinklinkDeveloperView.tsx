@@ -275,9 +275,7 @@ contract VRFConsumer is VRFConsumerBase {
         <h2 className="text-lg font-semibold text-gray-900 mb-2">
           {t('winklink.developer.title')}
         </h2>
-        <p className="text-sm text-gray-500">
-          {t('winklink.developer.subtitle')}
-        </p>
+        <p className="text-sm text-gray-500">{t('winklink.developer.subtitle')}</p>
       </section>
 
       <div className="border-t border-gray-200" />

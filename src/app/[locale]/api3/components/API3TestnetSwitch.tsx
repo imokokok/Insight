@@ -116,7 +116,8 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
             {t('api3.developer.testnet.title') || '网络环境切换'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.developer.testnet.description') || '在主网和测试网之间切换，获取相应的配置信息'}
+            {t('api3.developer.testnet.description') ||
+              '在主网和测试网之间切换，获取相应的配置信息'}
           </p>
         </div>
 
@@ -130,12 +131,18 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
             }`}
           >
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Network className={`w-5 h-5 ${currentNetwork === 'mainnet' ? 'text-emerald-600' : 'text-gray-400'}`} />
-              <span className={`font-medium ${currentNetwork === 'mainnet' ? 'text-emerald-700' : 'text-gray-700'}`}>
+              <Network
+                className={`w-5 h-5 ${currentNetwork === 'mainnet' ? 'text-emerald-600' : 'text-gray-400'}`}
+              />
+              <span
+                className={`font-medium ${currentNetwork === 'mainnet' ? 'text-emerald-700' : 'text-gray-700'}`}
+              >
                 {t('api3.developer.testnet.mainnet')}
               </span>
             </div>
-            <p className="text-xs text-gray-500 text-center">{t('api3.developer.testnet.mainnetDesc')}</p>
+            <p className="text-xs text-gray-500 text-center">
+              {t('api3.developer.testnet.mainnetDesc')}
+            </p>
           </button>
 
           <button
@@ -147,12 +154,18 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
             }`}
           >
             <div className="flex items-center justify-center gap-2 mb-2">
-              <TestTube className={`w-5 h-5 ${currentNetwork === 'testnet' ? 'text-emerald-600' : 'text-gray-400'}`} />
-              <span className={`font-medium ${currentNetwork === 'testnet' ? 'text-emerald-700' : 'text-gray-700'}`}>
+              <TestTube
+                className={`w-5 h-5 ${currentNetwork === 'testnet' ? 'text-emerald-600' : 'text-gray-400'}`}
+              />
+              <span
+                className={`font-medium ${currentNetwork === 'testnet' ? 'text-emerald-700' : 'text-gray-700'}`}
+              >
                 {t('api3.developer.testnet.testnet')}
               </span>
             </div>
-            <p className="text-xs text-gray-500 text-center">{t('api3.developer.testnet.testnetDesc')}</p>
+            <p className="text-xs text-gray-500 text-center">
+              {t('api3.developer.testnet.testnetDesc')}
+            </p>
           </button>
         </div>
 
@@ -185,17 +198,25 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
         <div className="bg-white border border-gray-100 rounded-lg overflow-hidden">
           <div className="divide-y divide-gray-100">
             <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-gray-500">{t('api3.developer.testnet.config.networkName')}</span>
+              <span className="text-sm text-gray-500">
+                {t('api3.developer.testnet.config.networkName')}
+              </span>
               <span className="text-sm font-medium text-gray-900">{selectedConfig.name}</span>
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-gray-500">{t('api3.developer.testnet.config.chainId')}</span>
+              <span className="text-sm text-gray-500">
+                {t('api3.developer.testnet.config.chainId')}
+              </span>
               <span className="text-sm font-mono text-gray-900">{selectedConfig.chainId}</span>
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-gray-500">{t('api3.developer.testnet.config.rpcUrl')}</span>
+              <span className="text-sm text-gray-500">
+                {t('api3.developer.testnet.config.rpcUrl')}
+              </span>
               <div className="flex items-center gap-2">
-                <code className="text-sm font-mono text-gray-900 truncate max-w-[200px]">{selectedConfig.rpcUrl}</code>
+                <code className="text-sm font-mono text-gray-900 truncate max-w-[200px]">
+                  {selectedConfig.rpcUrl}
+                </code>
                 <button
                   onClick={() => handleCopy(selectedConfig.rpcUrl, 'rpc')}
                   className="p-1 hover:bg-gray-100 rounded"
@@ -209,11 +230,17 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
               </div>
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-gray-500">{t('api3.developer.testnet.config.nativeToken')}</span>
-              <span className="text-sm font-medium text-gray-900">{selectedConfig.nativeToken}</span>
+              <span className="text-sm text-gray-500">
+                {t('api3.developer.testnet.config.nativeToken')}
+              </span>
+              <span className="text-sm font-medium text-gray-900">
+                {selectedConfig.nativeToken}
+              </span>
             </div>
             <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-gray-500">{t('api3.developer.testnet.config.api3ServerAddress')}</span>
+              <span className="text-sm text-gray-500">
+                {t('api3.developer.testnet.config.api3ServerAddress')}
+              </span>
               <div className="flex items-center gap-2">
                 <code className="text-sm font-mono text-gray-900 truncate max-w-[200px]">
                   {selectedConfig.api3ServerAddress}

@@ -206,7 +206,9 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
 
         {/* 地域分布 */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-base font-medium text-gray-900 mb-4">{t('reporters.regionDistribution')}</h3>
+          <h3 className="text-base font-medium text-gray-900 mb-4">
+            {t('reporters.regionDistribution')}
+          </h3>
           <div className="space-y-3">
             {regionDistribution.map((region, index) => (
               <div key={index} className="flex items-center gap-3">
@@ -279,11 +281,16 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-900">{reporter.address}</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {reporter.address}
+                        </span>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`https://etherscan.io/address/${reporter.address}`, '_blank');
+                            window.open(
+                              `https://etherscan.io/address/${reporter.address}`,
+                              '_blank'
+                            );
                           }}
                           className="text-gray-400 hover:text-cyan-600 transition-colors"
                           title={t('reporters.viewOnEtherscan')}
@@ -299,7 +306,9 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
                       {reporter.totalReports.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-emerald-600 font-medium">{reporter.accuracy}%</span>
+                      <span className="text-sm text-emerald-600 font-medium">
+                        {reporter.accuracy}%
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {reporter.rewards.toLocaleString()} TRB
@@ -312,7 +321,9 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        {reporter.status === 'active' ? t('reporters.active') : t('reporters.inactive')}
+                        {reporter.status === 'active'
+                          ? t('reporters.active')
+                          : t('reporters.inactive')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -332,15 +343,25 @@ export function TellorReportersView({ isLoading }: TellorReportersViewProps) {
                             <p className="text-sm font-medium text-gray-900">{reporter.region}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">{t('reporters.lastReport')}</p>
-                            <p className="text-sm font-medium text-gray-900">{reporter.lastReport}</p>
+                            <p className="text-xs text-gray-500 mb-1">
+                              {t('reporters.lastReport')}
+                            </p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {reporter.lastReport}
+                            </p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">{t('reporters.reports24h')}</p>
-                            <p className="text-sm font-medium text-gray-900">{reporter.reports24h}</p>
+                            <p className="text-xs text-gray-500 mb-1">
+                              {t('reporters.reports24h')}
+                            </p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {reporter.reports24h}
+                            </p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">{t('reporters.activityRate')}</p>
+                            <p className="text-xs text-gray-500 mb-1">
+                              {t('reporters.activityRate')}
+                            </p>
                             <p className="text-sm font-medium text-emerald-600">
                               {((reporter.reports24h / 24) * 100).toFixed(1)}%
                             </p>

@@ -80,7 +80,7 @@ export function StakingCalculator({
       return { daily: 0, weekly: 0, monthly: 0, yearly: 0, total: 0 };
     }
 
-    const dailyRate = (selectedTier.apr / 100) / 365;
+    const dailyRate = selectedTier.apr / 100 / 365;
     const daily = numericAmount * dailyRate;
     const weekly = daily * 7;
     const monthly = daily * 30;
@@ -90,7 +90,7 @@ export function StakingCalculator({
     if (compoundEnabled) {
       total = numericAmount * Math.pow(1 + dailyRate, selectedTier.duration);
     } else {
-      total = numericAmount + (daily * selectedTier.duration);
+      total = numericAmount + daily * selectedTier.duration;
     }
 
     return { daily, weekly, monthly, yearly, total };
@@ -101,14 +101,14 @@ export function StakingCalculator({
 
     const data: ProjectionPoint[] = [];
     const months = Math.ceil(selectedTier.duration / 30);
-    const dailyRate = (selectedTier.apr / 100) / 365;
+    const dailyRate = selectedTier.apr / 100 / 365;
 
     let currentStaked = numericAmount;
     let totalRewards = 0;
 
     for (let month = 0; month <= months; month++) {
       const daysElapsed = month * 30;
-      
+
       if (compoundEnabled) {
         currentStaked = numericAmount * Math.pow(1 + dailyRate, daysElapsed);
         totalRewards = currentStaked - numericAmount;
@@ -130,7 +130,7 @@ export function StakingCalculator({
 
   const handleCalculate = useCallback(() => {
     if (!isValidAmount) return;
-    
+
     setIsCalculating(true);
     setTimeout(() => {
       onCalculate?.(numericAmount, selectedTier);
@@ -151,16 +151,16 @@ export function StakingCalculator({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">
-            Staking Calculator
-          </h3>
+          <h3 className="text-base font-semibold text-gray-900">Staking Calculator</h3>
           <p className="text-sm text-gray-500 mt-0.5">
             Estimate your {tokenSymbol} staking rewards
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <Info className="w-4 h-4" />
-          <span>1 {tokenSymbol} = ${tokenPrice.toFixed(4)}</span>
+          <span>
+            1 {tokenSymbol} = ${tokenPrice.toFixed(4)}
+          </span>
         </div>
       </div>
 
@@ -205,9 +205,7 @@ export function StakingCalculator({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lock Period
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Lock Period</label>
             <div className="grid grid-cols-2 gap-2">
               {STAKING_TIERS.map((tier) => (
                 <button
@@ -221,13 +219,9 @@ export function StakingCalculator({
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-gray-900">{tier.label}</span>
-                    <span className="text-sm font-semibold text-emerald-600">
-                      {tier.apr}% APR
-                    </span>
+                    <span className="text-sm font-semibold text-emerald-600">{tier.apr}% APR</span>
                   </div>
-                  <div className="mt-1 text-xs text-gray-500">
-                    {tier.multiplier}x Multiplier
-                  </div>
+                  <div className="mt-1 text-xs text-gray-500">{tier.multiplier}x Multiplier</div>
                 </button>
               ))}
             </div>
@@ -271,18 +265,14 @@ export function StakingCalculator({
                 <p className="text-lg font-semibold text-gray-900">
                   {rewards.daily.toFixed(4)} {tokenSymbol}
                 </p>
-                <p className="text-xs text-gray-500">
-                  ${(rewards.daily * tokenPrice).toFixed(2)}
-                </p>
+                <p className="text-xs text-gray-500">${(rewards.daily * tokenPrice).toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Weekly</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {rewards.weekly.toFixed(4)} {tokenSymbol}
                 </p>
-                <p className="text-xs text-gray-500">
-                  ${(rewards.weekly * tokenPrice).toFixed(2)}
-                </p>
+                <p className="text-xs text-gray-500">${(rewards.weekly * tokenPrice).toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Monthly</p>
@@ -310,7 +300,9 @@ export function StakingCalculator({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Initial Stake</span>
-                <span className="font-medium">{numericAmount.toLocaleString()} {tokenSymbol}</span>
+                <span className="font-medium">
+                  {numericAmount.toLocaleString()} {tokenSymbol}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">APR</span>
@@ -365,7 +357,8 @@ export function StakingCalculator({
                       fontSize: '12px',
                     }}
                     formatter={(value: number, name: string) => {
-                      const label = name === 'total' ? 'Total' : name === 'rewards' ? 'Rewards' : 'Staked';
+                      const label =
+                        name === 'total' ? 'Total' : name === 'rewards' ? 'Rewards' : 'Staked';
                       return [`${value.toFixed(2)} ${tokenSymbol}`, label];
                     }}
                     labelFormatter={(label) => `Month ${label}`}
@@ -397,8 +390,8 @@ export function StakingCalculator({
         <div className="text-sm text-amber-700">
           <p className="font-medium">Disclaimer</p>
           <p className="mt-0.5">
-            Calculated rewards are estimates based on current APR and may vary. 
-            Actual rewards depend on network conditions, total staked amount, and protocol parameters.
+            Calculated rewards are estimates based on current APR and may vary. Actual rewards
+            depend on network conditions, total staked amount, and protocol parameters.
           </p>
         </div>
       </div>

@@ -67,7 +67,15 @@ interface ChronicleValidatorDetailProps {
   themeColor: string;
 }
 
-function MiniChart({ data, color, height = 40 }: { data: number[]; color: string; height?: number }) {
+function MiniChart({
+  data,
+  color,
+  height = 40,
+}: {
+  data: number[];
+  color: string;
+  height?: number;
+}) {
   if (!data || data.length === 0) return null;
 
   const max = Math.max(...data);
@@ -96,7 +104,17 @@ function MiniChart({ data, color, height = 40 }: { data: number[]; color: string
   );
 }
 
-function ProgressBar({ value, max, color, showLabel = true }: { value: number; max: number; color: string; showLabel?: boolean }) {
+function ProgressBar({
+  value,
+  max,
+  color,
+  showLabel = true,
+}: {
+  value: number;
+  max: number;
+  color: string;
+  showLabel?: boolean;
+}) {
   const percentage = Math.min((value / max) * 100, 100);
 
   return (
@@ -134,17 +152,24 @@ function formatDate(timestamp: number): string {
   });
 }
 
-export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColor }: ChronicleValidatorDetailProps) {
+export function ChronicleValidatorDetail({
+  validator,
+  isOpen,
+  onClose,
+  themeColor,
+}: ChronicleValidatorDetailProps) {
   const t = useTranslations();
 
   const stats = useMemo(() => {
     if (!validator) return null;
     return {
       avgResponseTime: Math.round(
-        validator.responseTimeHistory.reduce((a, b) => a + b, 0) / validator.responseTimeHistory.length
+        validator.responseTimeHistory.reduce((a, b) => a + b, 0) /
+          validator.responseTimeHistory.length
       ),
       avgSuccessRate: (
-        validator.successRateHistory.reduce((a, b) => a + b, 0) / validator.successRateHistory.length
+        validator.successRateHistory.reduce((a, b) => a + b, 0) /
+        validator.successRateHistory.length
       ).toFixed(1),
       totalEarnings: validator.earningsHistory.reduce((a, b) => a + b.amount, 0),
       pendingUnlocks: validator.unlockSchedule
@@ -283,9 +308,7 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Server className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-500">
-                    {t('chronicle.validators.address')}
-                  </span>
+                  <span className="text-sm text-gray-500">{t('chronicle.validators.address')}</span>
                 </div>
                 <p className="text-sm font-medium text-gray-900 font-mono">{validator.address}</p>
               </div>
@@ -306,7 +329,9 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                     {t('chronicle.validators.joinedAt')}
                   </span>
                 </div>
-                <p className="text-sm font-medium text-gray-900">{formatDate(validator.joinedAt)}</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {formatDate(validator.joinedAt)}
+                </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
@@ -337,7 +362,9 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                       {t('chronicle.validators.responseTimeTrend')}
                     </span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{validator.responseTime}ms</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {validator.responseTime}ms
+                  </span>
                 </div>
                 <MiniChart data={validator.responseTimeHistory} color="#3b82f6" height={50} />
                 <p className="text-xs text-gray-400 mt-2">
@@ -353,7 +380,9 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                       {t('chronicle.validators.successRateTrend')}
                     </span>
                   </div>
-                  <span className="text-sm font-medium text-emerald-600">{validator.successRate}%</span>
+                  <span className="text-sm font-medium text-emerald-600">
+                    {validator.successRate}%
+                  </span>
                 </div>
                 <MiniChart data={validator.successRateHistory} color="#10b981" height={50} />
                 <p className="text-xs text-gray-400 mt-2">
@@ -379,7 +408,11 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                   <span
                     className={cn(
                       'text-xs font-medium flex items-center gap-0.5',
-                      validator.reputation >= 95 ? 'text-emerald-600' : validator.reputation >= 90 ? 'text-amber-600' : 'text-gray-600'
+                      validator.reputation >= 95
+                        ? 'text-emerald-600'
+                        : validator.reputation >= 90
+                          ? 'text-amber-600'
+                          : 'text-gray-600'
                     )}
                   >
                     {validator.reputation >= 95 ? (
@@ -387,7 +420,11 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                     ) : (
                       <TrendingDown className="w-3 h-3" />
                     )}
-                    {validator.reputation >= 95 ? '优秀' : validator.reputation >= 90 ? '良好' : '一般'}
+                    {validator.reputation >= 95
+                      ? '优秀'
+                      : validator.reputation >= 90
+                        ? '良好'
+                        : '一般'}
                   </span>
                 </div>
               </div>
@@ -441,7 +478,9 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                     {validator.earningsHistory.slice(-5).map((earning, index) => (
                       <div key={index} className="flex items-center justify-between text-sm">
                         <span className="text-gray-500">{earning.date}</span>
-                        <span className="font-medium text-emerald-600">+{earning.amount.toLocaleString()}</span>
+                        <span className="font-medium text-emerald-600">
+                          +{earning.amount.toLocaleString()}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -480,7 +519,9 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                           <span
                             className={cn(
                               'text-xs px-2 py-0.5 rounded',
-                              unlock.status === 'completed' ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-700'
+                              unlock.status === 'completed'
+                                ? 'bg-gray-200 text-gray-600'
+                                : 'bg-blue-100 text-blue-700'
                             )}
                           >
                             {unlock.status === 'completed' ? '已完成' : '待解锁'}
@@ -490,7 +531,8 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                     ))}
                   </div>
                   <p className="text-xs text-gray-400 mt-3">
-                    {t('chronicle.validators.pendingUnlocks')}: {(stats?.pendingUnlocks ?? 0).toLocaleString()} MKR
+                    {t('chronicle.validators.pendingUnlocks')}:{' '}
+                    {(stats?.pendingUnlocks ?? 0).toLocaleString()} MKR
                   </p>
                 </div>
 
@@ -538,7 +580,9 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-gray-900">{validator.votingParticipation}%</span>
+                  <span className="text-2xl font-bold text-gray-900">
+                    {validator.votingParticipation}%
+                  </span>
                 </div>
                 <ProgressBar
                   value={validator.votingParticipation}
@@ -556,7 +600,9 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-purple-600">{validator.consensusContribution}%</span>
+                  <span className="text-2xl font-bold text-purple-600">
+                    {validator.consensusContribution}%
+                  </span>
                 </div>
                 <ProgressBar
                   value={validator.consensusContribution}
@@ -608,7 +654,10 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                   {validator.recentVotes.map((vote) => {
                     const voteDisplay = getVoteDisplay(vote.vote);
                     return (
-                      <tr key={vote.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                      <tr
+                        key={vote.id}
+                        className="border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                      >
                         <td className="py-3 px-4 text-sm text-gray-900">{vote.proposal}</td>
                         <td className="py-3 px-4 text-center">
                           <span
@@ -622,8 +671,12 @@ export function ChronicleValidatorDetail({ validator, isOpen, onClose, themeColo
                             {voteDisplay.label}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-right text-sm text-gray-600">{vote.weight}%</td>
-                        <td className="py-3 px-4 text-right text-sm text-gray-500">{formatTime(vote.timestamp)}</td>
+                        <td className="py-3 px-4 text-right text-sm text-gray-600">
+                          {vote.weight}%
+                        </td>
+                        <td className="py-3 px-4 text-right text-sm text-gray-500">
+                          {formatTime(vote.timestamp)}
+                        </td>
                       </tr>
                     );
                   })}

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
-import type { GasFeeData } from '@/types/comparison';
+import { CACHE_CONFIG } from '@/lib/config/cacheConfig';
 import type { OHLCVDataPoint } from '@/lib/indicators';
 import { API3Client } from '@/lib/oracles/api3';
 import type {
@@ -24,14 +24,14 @@ import type {
   API3Alert,
   AlertThreshold,
 } from '@/lib/oracles/api3';
-import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
-import { CACHE_CONFIG } from '@/lib/config/cacheConfig';
 import { api3OfflineStorage } from '@/lib/oracles/api3OfflineStorage';
-import { 
-  api3RequestManager, 
+import {
+  api3RequestManager,
   REQUEST_PRIORITIES,
-  type RequestPriority 
+  type RequestPriority,
 } from '@/lib/oracles/api3RequestManager';
+import type { GasFeeData } from '@/types/comparison';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 const api3Client = new API3Client();
 
@@ -76,7 +76,10 @@ interface CacheStatus {
   isOffline: boolean;
 }
 
-export function useCacheStatus(dataType: API3DataType, params?: Record<string, unknown>): CacheStatus {
+export function useCacheStatus(
+  dataType: API3DataType,
+  params?: Record<string, unknown>
+): CacheStatus {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<CacheStatus>({
     isStale: false,
@@ -94,7 +97,7 @@ export function useCacheStatus(dataType: API3DataType, params?: Record<string, u
 
     const checkStatus = () => {
       checkCountRef.current++;
-      
+
       if (checkCountRef.current % 2 !== 0) {
         return;
       }
@@ -119,8 +122,8 @@ export function useCacheStatus(dataType: API3DataType, params?: Record<string, u
     checkStatus();
     const interval = setInterval(checkStatus, 10000);
 
-    const handleOnline = () => setStatus(prev => ({ ...prev, isOffline: false }));
-    const handleOffline = () => setStatus(prev => ({ ...prev, isOffline: true }));
+    const handleOnline = () => setStatus((prev) => ({ ...prev, isOffline: false }));
+    const handleOffline = () => setStatus((prev) => ({ ...prev, isOffline: true }));
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -151,10 +154,16 @@ export function useAPI3Price(options: UseAPI3PriceOptions) {
     queryFn: async () => {
       try {
         const result = await api3Client.getPrice(symbol, chain);
-        await api3OfflineStorage.setData(`price-${symbol}-${chain || 'default'}`, result, config.gcTime);
+        await api3OfflineStorage.setData(
+          `price-${symbol}-${chain || 'default'}`,
+          result,
+          config.gcTime
+        );
         return result;
       } catch (error) {
-        const cachedData = await api3OfflineStorage.getData<PriceData>(`price-${symbol}-${chain || 'default'}`);
+        const cachedData = await api3OfflineStorage.getData<PriceData>(
+          `price-${symbol}-${chain || 'default'}`
+        );
         if (cachedData) {
           return cachedData;
         }
@@ -299,10 +308,16 @@ export function useAPI3Historical(options: UseAPI3HistoricalOptions) {
     queryFn: async () => {
       try {
         const result = await api3Client.getHistoricalPrices(symbol, chain, period);
-        await api3OfflineStorage.setData(`historical-${symbol}-${chain || 'default'}-${period}`, result, config.gcTime);
+        await api3OfflineStorage.setData(
+          `historical-${symbol}-${chain || 'default'}-${period}`,
+          result,
+          config.gcTime
+        );
         return result;
       } catch (error) {
-        const cachedData = await api3OfflineStorage.getData<PriceData[]>(`historical-${symbol}-${chain || 'default'}-${period}`);
+        const cachedData = await api3OfflineStorage.getData<PriceData[]>(
+          `historical-${symbol}-${chain || 'default'}-${period}`
+        );
         if (cachedData) {
           return cachedData;
         }
@@ -708,10 +723,16 @@ export function useAPI3OHLC(options: UseAPI3OHLCOptions) {
     queryFn: async () => {
       try {
         const result = await api3Client.getOHLCPrices(symbol, chain, period);
-        await api3OfflineStorage.setData(`ohlc-${symbol}-${chain || 'default'}-${period}`, result, config.gcTime);
+        await api3OfflineStorage.setData(
+          `ohlc-${symbol}-${chain || 'default'}-${period}`,
+          result,
+          config.gcTime
+        );
         return result;
       } catch (error) {
-        const cachedData = await api3OfflineStorage.getData<OHLCVDataPoint[]>(`ohlc-${symbol}-${chain || 'default'}-${period}`);
+        const cachedData = await api3OfflineStorage.getData<OHLCVDataPoint[]>(
+          `ohlc-${symbol}-${chain || 'default'}-${period}`
+        );
         if (cachedData) {
           return cachedData;
         }
@@ -791,14 +812,16 @@ export function useAPI3CrossOracle(enabled = true) {
         await api3OfflineStorage.setData('crossOracle', result, config.gcTime);
         return result;
       } catch (error) {
-        const cachedData = await api3OfflineStorage.getData<{
-          oracle: OracleProvider;
-          responseTime: number;
-          accuracy: number;
-          availability: number;
-          costEfficiency: number;
-          updateFrequency: number;
-        }[]>('crossOracle');
+        const cachedData = await api3OfflineStorage.getData<
+          {
+            oracle: OracleProvider;
+            responseTime: number;
+            accuracy: number;
+            availability: number;
+            costEfficiency: number;
+            updateFrequency: number;
+          }[]
+        >('crossOracle');
         if (cachedData) {
           return cachedData;
         }
@@ -957,15 +980,10 @@ export function useAPI3AllData(options: UseAPI3AllDataOptions): UseAPI3AllDataRe
   const isError = errors.length > 0;
 
   const refetchAll = useCallback(async () => {
-    const criticalRequests = [
-      priceQuery.refetch(),
-    ];
-    
-    const highPriorityRequests = [
-      stakingQuery.refetch(),
-      dapiCoverageQuery.refetch(),
-    ];
-    
+    const criticalRequests = [priceQuery.refetch()];
+
+    const highPriorityRequests = [stakingQuery.refetch(), dapiCoverageQuery.refetch()];
+
     const normalPriorityRequests = [
       historicalQuery.refetch(),
       airnodeStatsQuery.refetch(),
@@ -974,7 +992,7 @@ export function useAPI3AllData(options: UseAPI3AllDataOptions): UseAPI3AllDataRe
       qualityQuery.refetch(),
       deviationsQuery.refetch(),
     ];
-    
+
     const lowPriorityRequests = [
       sourceTraceQuery.refetch(),
       coverageEventsQuery.refetch(),
@@ -1005,14 +1023,15 @@ export function useAPI3AllData(options: UseAPI3AllDataOptions): UseAPI3AllDataRe
     crossOracleQuery,
   ]);
 
-  const cacheStatus = useMemo(() => ({
-    isOffline: priceQuery.isOffline,
-    lastUpdated: priceQuery.lastUpdated,
-  }), [priceQuery.isOffline, priceQuery.lastUpdated]);
+  const cacheStatus = useMemo(
+    () => ({
+      isOffline: priceQuery.isOffline,
+      lastUpdated: priceQuery.lastUpdated,
+    }),
+    [priceQuery.isOffline, priceQuery.lastUpdated]
+  );
 
-  const queueStats = useMemo(() => 
-    api3RequestManager.getQueueStats(), 
-  []);
+  const queueStats = useMemo(() => api3RequestManager.getQueueStats(), []);
 
   return {
     price: priceQuery.price,
@@ -1085,10 +1104,16 @@ export function useAPI3OEVAuctions(limit?: number, enabled = true) {
     queryFn: async () => {
       try {
         const result = await api3Client.getOEVAuctions(limit);
-        await api3OfflineStorage.setData(`oevAuctions-${limit || 'default'}`, result, config.gcTime);
+        await api3OfflineStorage.setData(
+          `oevAuctions-${limit || 'default'}`,
+          result,
+          config.gcTime
+        );
         return result;
       } catch (error) {
-        const cachedData = await api3OfflineStorage.getData<OEVAuction[]>(`oevAuctions-${limit || 'default'}`);
+        const cachedData = await api3OfflineStorage.getData<OEVAuction[]>(
+          `oevAuctions-${limit || 'default'}`
+        );
         if (cachedData) {
           return cachedData;
         }
@@ -1123,7 +1148,8 @@ export function useAPI3CoveragePoolDetails(enabled = true) {
         await api3OfflineStorage.setData('coveragePoolDetails', result, config.gcTime);
         return result;
       } catch (error) {
-        const cachedData = await api3OfflineStorage.getData<CoveragePoolDetails>('coveragePoolDetails');
+        const cachedData =
+          await api3OfflineStorage.getData<CoveragePoolDetails>('coveragePoolDetails');
         if (cachedData) {
           return cachedData;
         }
@@ -1155,10 +1181,16 @@ export function useAPI3CoveragePoolClaims(status?: string, enabled = true) {
     queryFn: async () => {
       try {
         const result = await api3Client.getCoveragePoolClaims(status);
-        await api3OfflineStorage.setData(`coveragePoolClaims-${status || 'all'}`, result, config.gcTime);
+        await api3OfflineStorage.setData(
+          `coveragePoolClaims-${status || 'all'}`,
+          result,
+          config.gcTime
+        );
         return result;
       } catch (error) {
-        const cachedData = await api3OfflineStorage.getData<CoveragePoolClaim[]>(`coveragePoolClaims-${status || 'all'}`);
+        const cachedData = await api3OfflineStorage.getData<CoveragePoolClaim[]>(
+          `coveragePoolClaims-${status || 'all'}`
+        );
         if (cachedData) {
           return cachedData;
         }
@@ -1190,10 +1222,16 @@ export function useAPI3StakerRewards(address?: string, enabled = true) {
     queryFn: async () => {
       try {
         const result = await api3Client.getStakerRewards(address);
-        await api3OfflineStorage.setData(`stakerRewards-${address || 'all'}`, result, config.gcTime);
+        await api3OfflineStorage.setData(
+          `stakerRewards-${address || 'all'}`,
+          result,
+          config.gcTime
+        );
         return result;
       } catch (error) {
-        const cachedData = await api3OfflineStorage.getData<StakerReward[]>(`stakerRewards-${address || 'all'}`);
+        const cachedData = await api3OfflineStorage.getData<StakerReward[]>(
+          `stakerRewards-${address || 'all'}`
+        );
         if (cachedData) {
           return cachedData;
         }
@@ -1251,9 +1289,12 @@ export function useAPI3CacheActions() {
     await queryClient.invalidateQueries({ queryKey: ['api3'] });
   }, [queryClient]);
 
-  const invalidateType = useCallback(async (type: API3DataType) => {
-    await queryClient.invalidateQueries({ queryKey: ['api3', type] });
-  }, [queryClient]);
+  const invalidateType = useCallback(
+    async (type: API3DataType) => {
+      await queryClient.invalidateQueries({ queryKey: ['api3', type] });
+    },
+    [queryClient]
+  );
 
   const clearOfflineCache = useCallback(async () => {
     await api3OfflineStorage.clearAll();

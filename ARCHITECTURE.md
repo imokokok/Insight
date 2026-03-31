@@ -81,17 +81,17 @@ The Insight Oracle Data Analytics Platform is a modern web application built on 
 
 ### 1.2 Main Components and Interactions
 
-| Component            | Technology                      | Purpose                                |
-| -------------------- | ------------------------------- | -------------------------------------- |
-| Frontend             | Next.js 16, React 19            | User interface with SSR/SSG            |
-| State Management     | React Query, Zustand            | Server state & Client UI state         |
-| Real-time            | WebSocket, Supabase Realtime    | Live price updates                     |
-| API                  | Next.js API Routes + Middleware | Backend endpoints with unified handler |
-| Oracle Clients       | Custom TypeScript clients + DI  | Oracle provider integration            |
-| Database             | Supabase PostgreSQL             | Data persistence                       |
-| Authentication       | Supabase Auth                   | User management                        |
-| Error Handling       | Custom Error Classes + Middleware | Unified error handling               |
-| Services Layer       | Market Data & Oracle Services   | Business logic & data processing       |
+| Component        | Technology                        | Purpose                                |
+| ---------------- | --------------------------------- | -------------------------------------- |
+| Frontend         | Next.js 16, React 19              | User interface with SSR/SSG            |
+| State Management | React Query, Zustand              | Server state & Client UI state         |
+| Real-time        | WebSocket, Supabase Realtime      | Live price updates                     |
+| API              | Next.js API Routes + Middleware   | Backend endpoints with unified handler |
+| Oracle Clients   | Custom TypeScript clients + DI    | Oracle provider integration            |
+| Database         | Supabase PostgreSQL               | Data persistence                       |
+| Authentication   | Supabase Auth                     | User management                        |
+| Error Handling   | Custom Error Classes + Middleware | Unified error handling                 |
+| Services Layer   | Market Data & Oracle Services     | Business logic & data processing       |
 
 ### 1.3 Data Flow
 
@@ -998,13 +998,13 @@ export class UMAClient extends BaseOracleClient {
 
 ### 7.3 Additional Oracle Implementations
 
-| Client | File | Description |
-|--------|------|-------------|
-| RedStone | `redstone.ts` | RedStone oracle data streams |
-| DIA | `dia.ts`, `diaDataService.ts` | DIA oracle data feeds |
-| Tellor | `tellor.ts`, `tellorClientSingleton.ts` | Tellor oracle data |
-| Chronicle | `chronicle.ts` | Chronicle oracle |
-| WINkLink | `winklink.ts` | WINkLink oracle |
+| Client    | File                                    | Description                  |
+| --------- | --------------------------------------- | ---------------------------- |
+| RedStone  | `redstone.ts`                           | RedStone oracle data streams |
+| DIA       | `dia.ts`, `diaDataService.ts`           | DIA oracle data feeds        |
+| Tellor    | `tellor.ts`, `tellorClientSingleton.ts` | Tellor oracle data           |
+| Chronicle | `chronicle.ts`                          | Chronicle oracle             |
+| WINkLink  | `winklink.ts`                           | WINkLink oracle              |
 
 ### 7.4 Pyth Hermes Client Integration
 
@@ -1072,26 +1072,26 @@ The database is hosted on Supabase with the following schema:
 
 #### user_snapshots
 
-| Column           | Type        | Description               |
-| ---------------- | ----------- | ------------------------- |
-| id               | UUID        | Primary key               |
-| user_id          | UUID        | Foreign key to auth.users |
-| symbol           | TEXT        | Trading pair              |
-| name             | TEXT        | Snapshot name             |
-| selected_oracles | TEXT[]      | Selected oracle providers |
-| price_data       | JSONB       | Snapshot price data       |
-| stats            | JSONB       | Statistical data          |
-| is_public        | BOOLEAN     | Public sharing flag       |
+| Column           | Type    | Description               |
+| ---------------- | ------- | ------------------------- |
+| id               | UUID    | Primary key               |
+| user_id          | UUID    | Foreign key to auth.users |
+| symbol           | TEXT    | Trading pair              |
+| name             | TEXT    | Snapshot name             |
+| selected_oracles | TEXT[]  | Selected oracle providers |
+| price_data       | JSONB   | Snapshot price data       |
+| stats            | JSONB   | Statistical data          |
+| is_public        | BOOLEAN | Public sharing flag       |
 
 #### user_favorites
 
-| Column      | Type        | Description                               |
-| ----------- | ----------- | ----------------------------------------- |
-| id          | UUID        | Primary key                               |
-| user_id     | UUID        | Foreign key to auth.users                 |
-| name        | TEXT        | Favorite name                             |
-| config_type | TEXT        | Type: oracle_config, symbol, chain_config |
-| config_data | JSONB       | Configuration data                        |
+| Column      | Type  | Description                               |
+| ----------- | ----- | ----------------------------------------- |
+| id          | UUID  | Primary key                               |
+| user_id     | UUID  | Foreign key to auth.users                 |
+| name        | TEXT  | Favorite name                             |
+| config_type | TEXT  | Type: oracle_config, symbol, chain_config |
+| config_data | JSONB | Configuration data                        |
 
 #### price_alerts
 
@@ -1109,15 +1109,15 @@ The database is hosted on Supabase with the following schema:
 
 #### alert_events
 
-| Column          | Type          | Description                 |
-| --------------- | ------------- | --------------------------- |
-| id              | UUID          | Primary key                 |
-| alert_id        | UUID          | Foreign key to price_alerts |
-| user_id         | UUID          | Foreign key to auth.users   |
-| triggered_at    | TIMESTAMPTZ   | Trigger timestamp           |
-| price           | DECIMAL(20,8) | Price at trigger            |
-| condition_met   | TEXT          | Condition description       |
-| acknowledged    | BOOLEAN       | Acknowledgment status       |
+| Column        | Type          | Description                 |
+| ------------- | ------------- | --------------------------- |
+| id            | UUID          | Primary key                 |
+| alert_id      | UUID          | Foreign key to price_alerts |
+| user_id       | UUID          | Foreign key to auth.users   |
+| triggered_at  | TIMESTAMPTZ   | Trigger timestamp           |
+| price         | DECIMAL(20,8) | Price at trigger            |
+| condition_met | TEXT          | Condition description       |
+| acknowledged  | BOOLEAN       | Acknowledgment status       |
 
 ### 8.3 Row Level Security (RLS) Policies
 
@@ -1304,15 +1304,15 @@ export class InternalError extends AppError {
 
 ### 11.4 Error Codes
 
-| Code | Status | Description |
-|------|--------|-------------|
-| VALIDATION_ERROR | 400 | Request validation failed |
-| NOT_FOUND | 404 | Resource not found |
-| AUTHENTICATION_ERROR | 401 | Authentication required |
-| AUTHORIZATION_ERROR | 403 | Insufficient permissions |
-| CONFLICT | 409 | Resource conflict |
-| RATE_LIMIT_EXCEEDED | 429 | Rate limit exceeded |
-| INTERNAL_ERROR | 500 | Internal server error |
+| Code                 | Status | Description               |
+| -------------------- | ------ | ------------------------- |
+| VALIDATION_ERROR     | 400    | Request validation failed |
+| NOT_FOUND            | 404    | Resource not found        |
+| AUTHENTICATION_ERROR | 401    | Authentication required   |
+| AUTHORIZATION_ERROR  | 403    | Insufficient permissions  |
+| CONFLICT             | 409    | Resource conflict         |
+| RATE_LIMIT_EXCEEDED  | 429    | Rate limit exceeded       |
+| INTERNAL_ERROR       | 500    | Internal server error     |
 
 ---
 
@@ -1375,27 +1375,27 @@ export function isOutlier(value: number, threshold: number): boolean;
 
 ## Technology Stack Summary
 
-| Category             | Technology          | Version |
-| -------------------- | ------------------- | ------- |
-| Framework            | Next.js             | 16.1.6  |
-| UI Library           | React               | 19.2.3  |
-| Language             | TypeScript          | 5.x     |
-| Styling              | Tailwind CSS        | 4.x     |
-| Charts               | Recharts            | 3.8.0   |
-| State Management     | React Query         | 5.90.21 |
-| Client State         | Zustand             | 5.0.11  |
-| Database             | Supabase PostgreSQL | -       |
-| Auth                 | Supabase Auth       | 2.98.0  |
-| Real-time            | Supabase Realtime   | -       |
-| Oracle Clients       | Pyth Hermes Client  | 2.0.0   |
-| Animations           | Framer Motion       | 12.36.0 |
-| Icons                | Lucide React        | 0.577.0 |
-| PDF Export           | jsPDF               | 4.2.0   |
-| Internationalization | next-intl           | 4.8.3   |
-| Monitoring           | Sentry              | 10.43.0 |
-| Virtualization       | @tanstack/react-virtual | 3.13.21 |
-| HTTP Client          | Axios               | 1.13.6  |
-| Testing              | Jest, Playwright    | 30.3.0, 1.58.2 |
+| Category             | Technology              | Version        |
+| -------------------- | ----------------------- | -------------- |
+| Framework            | Next.js                 | 16.1.6         |
+| UI Library           | React                   | 19.2.3         |
+| Language             | TypeScript              | 5.x            |
+| Styling              | Tailwind CSS            | 4.x            |
+| Charts               | Recharts                | 3.8.0          |
+| State Management     | React Query             | 5.90.21        |
+| Client State         | Zustand                 | 5.0.11         |
+| Database             | Supabase PostgreSQL     | -              |
+| Auth                 | Supabase Auth           | 2.98.0         |
+| Real-time            | Supabase Realtime       | -              |
+| Oracle Clients       | Pyth Hermes Client      | 2.0.0          |
+| Animations           | Framer Motion           | 12.36.0        |
+| Icons                | Lucide React            | 0.577.0        |
+| PDF Export           | jsPDF                   | 4.2.0          |
+| Internationalization | next-intl               | 4.8.3          |
+| Monitoring           | Sentry                  | 10.43.0        |
+| Virtualization       | @tanstack/react-virtual | 3.13.21        |
+| HTTP Client          | Axios                   | 1.13.6         |
+| Testing              | Jest, Playwright        | 30.3.0, 1.58.2 |
 
 ---
 
@@ -1459,15 +1459,15 @@ NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your_analytics_id
 
 ## Scripts
 
-| Script        | Command                 | Description                   |
-| ------------- | ----------------------- | ----------------------------- |
-| Development   | `npm run dev`           | Start development server      |
-| Build         | `npm run build`         | Build for production          |
-| Start         | `npm run start`         | Start production server       |
-| Lint          | `npm run lint`          | Run ESLint                    |
-| Typecheck     | `npm run typecheck`     | Run TypeScript checking       |
-| Test          | `npm run test`          | Run Jest tests                |
-| Test Watch    | `npm run test:watch`     | Run tests in watch mode       |
-| Test Coverage | `npm run test:coverage` | Generate test coverage report |
-| Format        | `npm run format`        | Format code with Prettier     |
+| Script        | Command                 | Description                    |
+| ------------- | ----------------------- | ------------------------------ |
+| Development   | `npm run dev`           | Start development server       |
+| Build         | `npm run build`         | Build for production           |
+| Start         | `npm run start`         | Start production server        |
+| Lint          | `npm run lint`          | Run ESLint                     |
+| Typecheck     | `npm run typecheck`     | Run TypeScript checking        |
+| Test          | `npm run test`          | Run Jest tests                 |
+| Test Watch    | `npm run test:watch`    | Run tests in watch mode        |
+| Test Coverage | `npm run test:coverage` | Generate test coverage report  |
+| Format        | `npm run format`        | Format code with Prettier      |
 | Validate      | `npm run validate`      | Run lint, typecheck, and tests |

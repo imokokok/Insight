@@ -1,13 +1,25 @@
 'use client';
 
 import { useMemo } from 'react';
-import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+
+import {
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Zap,
+  Server,
+  Clock,
+  Shield,
+  ArrowUpRight,
+  ArrowDownRight,
+  Minus,
+} from 'lucide-react';
 
 import { PriceChart, ConfidenceIntervalChart } from '@/components/oracle';
-import { chartColors } from '@/lib/config/colors';
 import { useTranslations } from '@/i18n';
-import { PythClient } from '@/lib/oracles/pythNetwork';
+import { chartColors } from '@/lib/config/colors';
 import { calculateEMA } from '@/lib/indicators';
+import { PythClient } from '@/lib/oracles/pythNetwork';
 
 import { type PythMarketViewProps } from '../types';
 
@@ -38,9 +50,7 @@ export function PythMarketView({
 
   const historicalConfidenceData = useMemo(() => {
     if (historicalData && historicalData.length > 0) {
-      return historicalData
-        .filter((d) => d.confidence !== undefined)
-        .map((d) => d.confidence!);
+      return historicalData.filter((d) => d.confidence !== undefined).map((d) => d.confidence!);
     }
     const baseConfidence = 85;
     return Array.from({ length: 20 }, () =>
@@ -49,9 +59,13 @@ export function PythMarketView({
   }, [historicalData]);
 
   const emaData = useMemo(() => {
-    const prices = historicalData && historicalData.length > 0
-      ? historicalData.map((d) => d.price)
-      : Array.from({ length: 50 }, (_, i) => (price?.price ?? 0.45) * (1 + (Math.random() - 0.5) * 0.02));
+    const prices =
+      historicalData && historicalData.length > 0
+        ? historicalData.map((d) => d.price)
+        : Array.from(
+            { length: 50 },
+            (_, i) => (price?.price ?? 0.45) * (1 + (Math.random() - 0.5) * 0.02)
+          );
 
     const ema7Values = calculateEMA(prices, 7);
     const ema25Values = calculateEMA(prices, 25);
@@ -213,7 +227,11 @@ export function PythMarketView({
                 { name: tPyth('dataSources.pythNetwork'), status: 'active', latency: '150ms' },
                 { name: tPyth('dataSources.solanaMainnet'), status: 'active', latency: '200ms' },
                 { name: tPyth('dataSources.ethereumMainnet'), status: 'active', latency: '250ms' },
-                { name: tPyth('dataSources.publisherConsensus'), status: 'active', latency: '180ms' },
+                {
+                  name: tPyth('dataSources.publisherConsensus'),
+                  status: 'active',
+                  latency: '180ms',
+                },
               ].map((source, index) => (
                 <div
                   key={index}
@@ -239,7 +257,9 @@ export function PythMarketView({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium text-gray-900">{tPyth('confidenceIntervalTrend')}</h3>
+            <h3 className="text-base font-medium text-gray-900">
+              {tPyth('confidenceIntervalTrend')}
+            </h3>
           </div>
           <ConfidenceIntervalChart
             price={price?.price ?? 0.45}
@@ -257,9 +277,7 @@ export function PythMarketView({
         {/* EMA-7 卡片 */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium text-gray-700">
-              {tPyth('ema.periods.ema7')}
-            </h4>
+            <h4 className="text-sm font-medium text-gray-700">{tPyth('ema.periods.ema7')}</h4>
             {emaData.ema7.trend === 'up' ? (
               <div className="flex items-center gap-1 text-emerald-600">
                 <ArrowUpRight className="w-4 h-4" />
@@ -281,20 +299,27 @@ export function PythMarketView({
             <div className="flex items-end justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-1">{tPyth('ema.emaValue')}</p>
-                <p className={`text-xl font-semibold ${emaData.ema7.trend === 'up' ? 'text-emerald-600' : emaData.ema7.trend === 'down' ? 'text-red-600' : 'text-gray-900'}`}>
+                <p
+                  className={`text-xl font-semibold ${emaData.ema7.trend === 'up' ? 'text-emerald-600' : emaData.ema7.trend === 'down' ? 'text-red-600' : 'text-gray-900'}`}
+                >
                   ${emaData.ema7.value.toFixed(4)}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-400 mb-1">{tPyth('ema.currentPrice')}</p>
-                <p className="text-lg font-medium text-gray-700">${emaData.currentPrice.toFixed(4)}</p>
+                <p className="text-lg font-medium text-gray-700">
+                  ${emaData.currentPrice.toFixed(4)}
+                </p>
               </div>
             </div>
             <div className="pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">{tPyth('ema.deviation')}</span>
-                <span className={`text-sm font-medium ${emaData.ema7.deviation >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {emaData.ema7.deviation >= 0 ? '+' : ''}{emaData.ema7.deviation.toFixed(2)}%
+                <span
+                  className={`text-sm font-medium ${emaData.ema7.deviation >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+                >
+                  {emaData.ema7.deviation >= 0 ? '+' : ''}
+                  {emaData.ema7.deviation.toFixed(2)}%
                 </span>
               </div>
             </div>
@@ -304,9 +329,7 @@ export function PythMarketView({
         {/* EMA-25 卡片 */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium text-gray-700">
-              {tPyth('ema.periods.ema25')}
-            </h4>
+            <h4 className="text-sm font-medium text-gray-700">{tPyth('ema.periods.ema25')}</h4>
             {emaData.ema25.trend === 'up' ? (
               <div className="flex items-center gap-1 text-emerald-600">
                 <ArrowUpRight className="w-4 h-4" />
@@ -328,20 +351,27 @@ export function PythMarketView({
             <div className="flex items-end justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-1">{tPyth('ema.emaValue')}</p>
-                <p className={`text-xl font-semibold ${emaData.ema25.trend === 'up' ? 'text-emerald-600' : emaData.ema25.trend === 'down' ? 'text-red-600' : 'text-gray-900'}`}>
+                <p
+                  className={`text-xl font-semibold ${emaData.ema25.trend === 'up' ? 'text-emerald-600' : emaData.ema25.trend === 'down' ? 'text-red-600' : 'text-gray-900'}`}
+                >
                   ${emaData.ema25.value.toFixed(4)}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-400 mb-1">{tPyth('ema.currentPrice')}</p>
-                <p className="text-lg font-medium text-gray-700">${emaData.currentPrice.toFixed(4)}</p>
+                <p className="text-lg font-medium text-gray-700">
+                  ${emaData.currentPrice.toFixed(4)}
+                </p>
               </div>
             </div>
             <div className="pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">{tPyth('ema.deviation')}</span>
-                <span className={`text-sm font-medium ${emaData.ema25.deviation >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {emaData.ema25.deviation >= 0 ? '+' : ''}{emaData.ema25.deviation.toFixed(2)}%
+                <span
+                  className={`text-sm font-medium ${emaData.ema25.deviation >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+                >
+                  {emaData.ema25.deviation >= 0 ? '+' : ''}
+                  {emaData.ema25.deviation.toFixed(2)}%
                 </span>
               </div>
             </div>
@@ -354,9 +384,7 @@ export function PythMarketView({
             <Activity className="w-5 h-5 text-violet-600" />
             <h4 className="text-sm font-medium text-violet-900">{tPyth('ema.title')}</h4>
           </div>
-          <p className="text-xs text-violet-700 leading-relaxed mb-4">
-            {tPyth('ema.explanation')}
-          </p>
+          <p className="text-xs text-violet-700 leading-relaxed mb-4">{tPyth('ema.explanation')}</p>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-violet-400" />
@@ -372,9 +400,7 @@ export function PythMarketView({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-violet-200">
-            <p className="text-xs text-violet-500">
-              {tPyth('ema.priceComparison')}
-            </p>
+            <p className="text-xs text-violet-500">{tPyth('ema.priceComparison')}</p>
           </div>
         </div>
       </div>
@@ -384,9 +410,7 @@ export function PythMarketView({
 
       {/* 核心交易对信息 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {tPyth('tradingPair')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{tPyth('tradingPair')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('pyth.tradingPairName')}</p>
@@ -414,13 +438,17 @@ export function PythMarketView({
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('pyth.stats.liquidity')}</p>
-            <p className="text-2xl font-semibold text-gray-900">{t('pyth.market.liquidityValue')}</p>
+            <p className="text-2xl font-semibold text-gray-900">
+              {t('pyth.market.liquidityValue')}
+            </p>
             <p className="text-sm text-emerald-600 mt-1">{t('pyth.market.liquidityChange')}</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('pyth.stats.marketDepth')}</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-semibold text-gray-900">{t('pyth.market.depthValue')}</span>
+              <span className="text-2xl font-semibold text-gray-900">
+                {t('pyth.market.depthValue')}
+              </span>
               <span className="text-sm text-gray-400">{t('pyth.market.depthTotal')}</span>
             </div>
             <p className="text-xs text-gray-400 mt-1">{t('pyth.depthScore')}</p>

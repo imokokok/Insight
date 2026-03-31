@@ -11,8 +11,8 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
-import { Skeleton } from '@/components/ui';
 import { RiskAssessmentDashboard } from '@/components/oracle/charts/RiskAssessmentDashboard';
+import { Skeleton } from '@/components/ui';
 import { useDIANetworkStats, useDIADataSourceVerification } from '@/hooks';
 import { useTranslations } from '@/i18n';
 
@@ -219,10 +219,7 @@ export function DIARiskView() {
 
       {/* 实时风险评估仪表板 */}
       <div className="border-t border-gray-200 pt-8">
-        <RiskAssessmentDashboard
-          symbol="DIA"
-          refreshInterval={60000}
-        />
+        <RiskAssessmentDashboard symbol="DIA" refreshInterval={60000} />
       </div>
     </div>
   );

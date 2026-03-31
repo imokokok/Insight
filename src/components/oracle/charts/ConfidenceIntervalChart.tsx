@@ -154,20 +154,14 @@ function ConfidenceBar({
       </div>
 
       <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
-        <span>Spread: ${(spread).toFixed(4)}</span>
+        <span>Spread: ${spread.toFixed(4)}</span>
         <span>Width: {((spread / price) * 100).toFixed(4)}%</span>
       </div>
     </div>
   );
 }
 
-function ConfidenceScoreBar({
-  score,
-  themeColor,
-}: {
-  score: number;
-  themeColor: string;
-}) {
+function ConfidenceScoreBar({ score, themeColor }: { score: number; themeColor: string }) {
   const level = getConfidenceLevel(score);
 
   return (
@@ -271,9 +265,7 @@ function HistoricalTrendChart({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          历史置信度趋势
-        </span>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">历史置信度趋势</span>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500 dark:text-gray-400">平均: {avgConfidence}</span>
           <span className={`text-sm font-bold ${trendColor}`}>{trendIcon}</span>
@@ -364,9 +356,7 @@ export function ConfidenceIntervalChart({
     if (historicalConfidence.length === 0) {
       return Array.from({ length: 20 }, (_, i) => ({
         index: i + 1,
-        confidence: Math.round(
-          confidenceScore + (Math.random() - 0.5) * 20
-        ),
+        confidence: Math.round(confidenceScore + (Math.random() - 0.5) * 20),
         timestamp: `T-${20 - i}`,
       }));
     }
@@ -455,7 +445,8 @@ export function ConfidenceIntervalChart({
                 关于 Pyth 置信区间
               </h5>
               <p className="text-xs text-purple-700 dark:text-purple-300">
-                Pyth 预言机提供置信区间来表示价格的不确定性。区间越窄表示价格越确定，越宽表示波动性越大或数据源分歧越大。
+                Pyth
+                预言机提供置信区间来表示价格的不确定性。区间越窄表示价格越确定，越宽表示波动性越大或数据源分歧越大。
                 置信度评分基于区间宽度计算，分数越高表示价格数据越可靠。
               </p>
             </div>

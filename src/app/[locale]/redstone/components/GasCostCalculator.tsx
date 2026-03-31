@@ -240,16 +240,13 @@ export function GasCostCalculator() {
             <h3 className="text-sm font-semibold text-gray-900">
               {t('redstone.gasCalculator.title')}
             </h3>
-            <p className="text-xs text-gray-500">
-              {t('redstone.gasCalculator.subtitle')}
-            </p>
+            <p className="text-xs text-gray-500">{t('redstone.gasCalculator.subtitle')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="px-3 py-1 bg-emerald-100 rounded-full">
             <span className="text-sm font-semibold text-emerald-600">
-              {calculations.savingsPercent.toFixed(0)}%{' '}
-              {t('redstone.gasCalculator.savings')}
+              {calculations.savingsPercent.toFixed(0)}% {t('redstone.gasCalculator.savings')}
             </span>
           </div>
           {isExpanded ? (
@@ -515,15 +512,11 @@ export function GasCostCalculator() {
                   </div>
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-gray-500">
-                        {t('redstone.gasCalculator.chain')}:
-                      </span>
+                      <span className="text-gray-500">{t('redstone.gasCalculator.chain')}:</span>
                       <span className="text-gray-700">{case_.chain}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-gray-500">
-                        {t('redstone.gasCalculator.feeds')}:
-                      </span>
+                      <span className="text-gray-500">{t('redstone.gasCalculator.feeds')}:</span>
                       <span className="text-gray-700">{case_.feedsCount}</span>
                     </div>
                     <div className="flex justify-between text-xs">

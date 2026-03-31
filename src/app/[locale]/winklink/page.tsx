@@ -84,15 +84,18 @@ function ErrorBanner({
               {t('winklink.error.partialDataLoadFailed')}
             </p>
             <p className="text-xs text-amber-600 mt-1">
-              {t('winklink.error.failedSources')}: {failedSources.map((s) => sourceLabels[s] || s).join(', ')}
+              {t('winklink.error.failedSources')}:{' '}
+              {failedSources.map((s) => sourceLabels[s] || s).join(', ')}
             </p>
             <p className="text-xs text-amber-500 mt-0.5">
               {t('winklink.error.lastSuccessfulUpdate')}:{' '}
               {formatLastUpdated(
                 Object.entries(dataStates)
                   .filter(([key]) => !failedSources.includes(key))
-                  .sort((a, b) => (b[1].lastUpdated?.getTime() || 0) - (a[1].lastUpdated?.getTime() || 0))[0]?.[1]
-                  .lastUpdated
+                  .sort(
+                    (a, b) =>
+                      (b[1].lastUpdated?.getTime() || 0) - (a[1].lastUpdated?.getTime() || 0)
+                  )[0]?.[1].lastUpdated
               )}
             </p>
           </div>
@@ -119,11 +122,8 @@ function ErrorBanner({
   );
 }
 
-function LoadingIndicator({
-  loadingSources,
-}: {
-  loadingSources: string[];
-}) {
+function LoadingIndicator({ loadingSources }: { loadingSources: string[] }) {
+  const t = useTranslations();
   const sourceLabels: Record<string, string> = {
     price: t('winklink.hero.sourcePrice'),
     historical: t('winklink.hero.sourceHistorical'),
@@ -157,7 +157,8 @@ function LoadingIndicator({
           </svg>
         </div>
         <span className="text-xs text-blue-700">
-          {t('winklink.error.loading')}: {loadingSources.map((s) => sourceLabels[s] || s).join(', ')}
+          {t('winklink.error.loading')}:{' '}
+          {loadingSources.map((s) => sourceLabels[s] || s).join(', ')}
         </span>
       </div>
     </div>

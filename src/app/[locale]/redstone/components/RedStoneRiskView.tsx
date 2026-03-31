@@ -42,13 +42,15 @@ const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2024-01-15T14:30:00',
     title: 'Data Stream Protocol Upgrade',
-    description: 'Released RedStone Core v2.0 with more efficient data compression and lower gas costs.',
+    description:
+      'Released RedStone Core v2.0 with more efficient data compression and lower gas costs.',
     type: 'info',
   },
   {
     date: '2023-12-08T09:20:00',
     title: 'Node Network Expansion',
-    description: 'Node operators exceeded 150, covering 30+ countries and regions, significantly improving decentralization.',
+    description:
+      'Node operators exceeded 150, covering 30+ countries and regions, significantly improving decentralization.',
     type: 'success',
   },
   {
@@ -61,13 +63,15 @@ const historicalRiskEvents: TimelineEvent[] = [
   {
     date: '2023-08-14T11:30:00',
     title: 'Mainnet Launch Milestone',
-    description: 'RedStone officially launched on Ethereum mainnet, providing decentralized data feeds for DeFi protocols.',
+    description:
+      'RedStone officially launched on Ethereum mainnet, providing decentralized data feeds for DeFi protocols.',
     type: 'success',
   },
   {
     date: '2023-06-03T08:00:00',
     title: 'Testnet Vulnerability Fix',
-    description: 'White hat hackers reported a low-severity vulnerability through the Bug Bounty program, which was fixed during the testnet phase.',
+    description:
+      'White hat hackers reported a low-severity vulnerability through the Bug Bounty program, which was fixed during the testnet phase.',
     type: 'info',
   },
 ];
@@ -169,8 +173,10 @@ const riskFactors = [
 export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
   const t = useTranslations();
   const client = useRedStoneClient();
-  const { riskMetrics: apiRiskMetrics, isLoading: riskLoading } =
-    useRedStoneRiskMetrics(client, !isLoading);
+  const { riskMetrics: apiRiskMetrics, isLoading: riskLoading } = useRedStoneRiskMetrics(
+    client,
+    !isLoading
+  );
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
 
@@ -280,12 +286,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t('redstone.risk.metrics')}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('redstone.risk.metricsDesc')}
-            </p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('redstone.risk.metrics')}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t('redstone.risk.metricsDesc')}</p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
             <Shield className="w-5 h-5 text-emerald-600" />
@@ -326,12 +328,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
 
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('redstone.risk.benchmark')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('redstone.risk.benchmarkDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('redstone.risk.benchmark')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('redstone.risk.benchmarkDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -377,9 +375,7 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700">
-              {t('redstone.risk.comparison')}
-            </h3>
+            <h3 className="text-sm font-medium text-gray-700">{t('redstone.risk.comparison')}</h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
                 <div key={item.metric} className="space-y-2">
@@ -414,15 +410,9 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
 
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('redstone.risk.timeline')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('redstone.risk.timelineDesc')}
-          </p>
-          <p className="text-xs text-gray-400 mt-2 italic">
-            {t('redstone.risk.note')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('redstone.risk.timeline')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('redstone.risk.timelineDesc')}</p>
+          <p className="text-xs text-gray-400 mt-2 italic">{t('redstone.risk.note')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -478,9 +468,7 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">
-                  {t('redstone.risk.clickEvent')}
-                </p>
+                <p className="text-sm text-gray-500">{t('redstone.risk.clickEvent')}</p>
               </div>
             )}
           </div>
@@ -491,12 +479,8 @@ export function RedStoneRiskView({ isLoading }: RedStoneRiskViewProps) {
 
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('redstone.risk.factors')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('redstone.risk.factorsDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('redstone.risk.factors')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('redstone.risk.factorsDesc')}</p>
         </div>
 
         <div className="space-y-2">

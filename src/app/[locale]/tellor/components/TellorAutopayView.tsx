@@ -129,14 +129,13 @@ export function TellorAutopayView({ isLoading }: TellorAutopayViewProps) {
         {/* 活跃查询 */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-base font-medium text-gray-900">{t('autopay.activeQueriesList')}</h3>
+            <h3 className="text-base font-medium text-gray-900">
+              {t('autopay.activeQueriesList')}
+            </h3>
           </div>
           <div className="divide-y divide-gray-200">
             {mockQueries.map((query, index) => (
-              <div
-                key={index}
-                className="px-6 py-4 hover:bg-gray-50 transition-colors"
-              >
+              <div key={index} className="px-6 py-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-cyan-600">{query.id}</span>

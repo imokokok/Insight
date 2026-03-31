@@ -20,8 +20,6 @@ interface ChainData {
 
 type Category = 'all' | 'layer1' | 'defi' | 'stablecoin';
 
-
-
 // 加密货币到logo文件的映射
 const cryptoLogoMap: Record<string, string> = {
   BTC: '/logos/cryptos/btc.svg',
@@ -495,12 +493,8 @@ export default function CrossChainPriceMonitor() {
               <Globe className="w-5 h-5 text-primary-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {t('title')}
-              </h2>
-              <p className="text-sm text-gray-500">
-                {t('description')}
-              </p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
+              <p className="text-sm text-gray-500">{t('description')}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -530,18 +524,14 @@ export default function CrossChainPriceMonitor() {
           <div className="bg-gray-50/80 p-4 rounded-lg flex flex-col justify-center h-24">
             <div className="flex items-center gap-2 mb-1">
               <Globe className="w-4 h-4 text-emerald-600" />
-              <span className="text-sm text-gray-500">
-                {t('stats.chainsMonitored')}
-              </span>
+              <span className="text-sm text-gray-500">{t('stats.chainsMonitored')}</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">{currentData.length}</div>
           </div>
           <div className="bg-gray-50/80 p-4 rounded-lg flex flex-col justify-center h-24">
             <div className="flex items-center gap-2 mb-1">
               <Activity className="w-4 h-4 text-purple-600" />
-              <span className="text-sm text-gray-500">
-                {t('stats.consistencyRate')}
-              </span>
+              <span className="text-sm text-gray-500">{t('stats.consistencyRate')}</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">{consistencyRate.toFixed(1)}%</div>
           </div>
@@ -594,21 +584,15 @@ export default function CrossChainPriceMonitor() {
         <div className="mt-6 flex items-center justify-center gap-8 text-sm">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm shadow-emerald-200" />
-            <span className="text-gray-600 font-medium">
-              {t('legend.highConsistency')}
-            </span>
+            <span className="text-gray-600 font-medium">{t('legend.highConsistency')}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-amber-500 shadow-sm shadow-amber-200" />
-            <span className="text-gray-600 font-medium">
-              {t('legend.mediumConsistency')}
-            </span>
+            <span className="text-gray-600 font-medium">{t('legend.mediumConsistency')}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-danger-500 shadow-sm shadow-red-200" />
-            <span className="text-gray-600 font-medium">
-              {t('legend.lowConsistency')}
-            </span>
+            <span className="text-gray-600 font-medium">{t('legend.lowConsistency')}</span>
           </div>
         </div>
       </div>

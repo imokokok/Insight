@@ -414,9 +414,7 @@ export function WinklinkGamingView({ gaming, isLoading }: WinklinkGamingViewProp
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">
-                {t('winklink.gaming.vrfTitle')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('winklink.gaming.vrfTitle')}:</span>{' '}
               {t('winklink.gaming.vrfDesc')}
             </p>
             <p>

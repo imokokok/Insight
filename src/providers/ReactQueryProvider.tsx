@@ -27,7 +27,6 @@ export const GC_TIME_CONFIG = {
   default: 5 * 60 * 1000,
 } as const;
 
-
 export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
   const [queryClient] = useState(
     () =>

@@ -22,8 +22,8 @@ import {
 import { PriceChart } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
 
-import { type WinklinkMarketViewProps } from '../types';
 import { RELIABILITY_THRESHOLDS } from '../constants';
+import { type WinklinkMarketViewProps } from '../types';
 
 interface DataSourceDetail {
   name: string;
@@ -223,14 +223,20 @@ export function WinklinkMarketView({
             <h3 className="text-base font-medium text-gray-900">{t('winklink.priceTrend')}</h3>
           </div>
           <div className="flex-1">
-            <PriceChart
-              client={config.client}
-              symbol={config.symbol}
-              chain={config.defaultChain}
-              height={300}
-              showToolbar={true}
-              defaultPrice={config.marketData.change24hValue}
-            />
+            {config.client ? (
+              <PriceChart
+                client={config.client}
+                symbol={config.symbol}
+                chain={config.defaultChain}
+                height={300}
+                showToolbar={true}
+                defaultPrice={config.marketData.change24hValue}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+                <p className="text-gray-500">{t('common.noData')}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -325,7 +331,9 @@ export function WinklinkMarketView({
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
-                      <span className={`text-xs font-medium ${getReliabilityColor(source.reliability)}`}>
+                      <span
+                        className={`text-xs font-medium ${getReliabilityColor(source.reliability)}`}
+                      >
                         {source.reliability}%
                       </span>
                     </div>
@@ -351,12 +359,12 @@ export function WinklinkMarketView({
 
           <div className="space-y-5">
             <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Building2 className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700">
-                    {t('winklink.dataProviders')}
-                  </span>
-                </div>
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-700">
+                  {t('winklink.dataProviders')}
+                </span>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {dataSources.map((source, index) => (
                   <div
@@ -364,10 +372,16 @@ export function WinklinkMarketView({
                     className={`flex items-center justify-between px-3 py-2 rounded-lg ${getStatusBgColor(source.status)}`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(source.status)}`} />
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(source.status)}`}
+                      />
                       <span className="text-sm text-gray-700">{source.name}</span>
                     </div>
-                    <span className="text-xs text-gray-400">{source.type === 'exchange' ? t('winklink.market.exchange') : t('winklink.market.aggregator')}</span>
+                    <span className="text-xs text-gray-400">
+                      {source.type === 'exchange'
+                        ? t('winklink.market.exchange')
+                        : t('winklink.market.aggregator')}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -454,7 +468,9 @@ export function WinklinkMarketView({
                           style={{ width: `${source.reliability}%` }}
                         />
                       </div>
-                      <span className={`text-xs font-medium w-12 text-right ${getReliabilityColor(source.reliability)}`}>
+                      <span
+                        className={`text-xs font-medium w-12 text-right ${getReliabilityColor(source.reliability)}`}
+                      >
                         {source.reliability}%
                       </span>
                     </div>
@@ -472,7 +488,10 @@ export function WinklinkMarketView({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {dataSources.map((source, index) => (
-                  <div key={index} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg"
+                  >
                     <span className="text-sm text-gray-600">{source.name}</span>
                     <span className="text-xs text-gray-400">{source.lastUpdate}</span>
                   </div>
@@ -528,17 +547,13 @@ export function WinklinkMarketView({
                 <span className="text-sm font-medium text-emerald-600">96/100</span>
               </div>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              {t('winklink.qualityNote')}
-            </p>
+            <p className="text-xs text-gray-400 mt-2">{t('winklink.qualityNote')}</p>
           </div>
         </div>
       </div>
 
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('winklink.tradingPair')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('winklink.tradingPair')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-xs text-gray-400 mb-1">WIN/USDT</p>

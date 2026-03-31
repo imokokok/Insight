@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 import { RedStoneClient } from '@/lib/oracles/redstone';
 
@@ -14,9 +14,7 @@ export function RedStoneClientProvider({ children }: { children: ReactNode }) {
   const client = useMemo(() => new RedStoneClient(), []);
 
   return (
-    <RedStoneClientContext.Provider value={{ client }}>
-      {children}
-    </RedStoneClientContext.Provider>
+    <RedStoneClientContext.Provider value={{ client }}>{children}</RedStoneClientContext.Provider>
   );
 }
 

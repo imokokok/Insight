@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Database,
   Server,
@@ -13,7 +14,6 @@ import {
   Zap,
   Activity,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 import { chartColors, semanticColors } from '@/lib/config/colors';
 

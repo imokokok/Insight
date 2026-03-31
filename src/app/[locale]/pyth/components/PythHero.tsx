@@ -494,8 +494,6 @@ export function PythHero({
     return Math.round(uptimeScore + responseScore + feedScore);
   }, [networkStats]);
 
-
-
   return (
     <div className="bg-white border-b border-gray-200">
       {/* 顶部状态栏 */}

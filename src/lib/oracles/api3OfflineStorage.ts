@@ -1,4 +1,5 @@
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+
 import { CACHE_CONFIG } from '@/lib/config/cacheConfig';
 import { API3Client } from '@/lib/oracles/api3';
 
@@ -52,7 +53,11 @@ const STORAGE_ERRORS = {
   UNKNOWN: 'unknown' as const,
 };
 
-function createStorageError(type: StorageError['type'], message: string, originalError?: unknown): StorageError {
+function createStorageError(
+  type: StorageError['type'],
+  message: string,
+  originalError?: unknown
+): StorageError {
   return {
     type,
     message,
@@ -97,7 +102,7 @@ export class API3OfflineStorage {
 
   private notifyErrorListeners(error: StorageError): void {
     this.lastError = error;
-    this.errorListeners.forEach(callback => {
+    this.errorListeners.forEach((callback) => {
       try {
         callback(error);
       } catch (e) {
@@ -106,15 +111,19 @@ export class API3OfflineStorage {
     });
   }
 
-  private handleError(type: StorageError['type'], message: string, originalError?: unknown): StorageError {
+  private handleError(
+    type: StorageError['type'],
+    message: string,
+    originalError?: unknown
+  ): StorageError {
     const error = createStorageError(type, message, originalError);
     logStorageError(error);
     this.notifyErrorListeners(error);
-    
+
     if (type === STORAGE_ERRORS.QUOTA_EXCEEDED) {
       this.quotaExceeded = true;
     }
-    
+
     return error;
   }
 
@@ -189,32 +198,48 @@ export class API3OfflineStorage {
       this.quotaExceeded = false;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       if (errorMessage.includes('QuotaExceededError') || errorMessage.includes('quota')) {
-        this.handleError(STORAGE_ERRORS.QUOTA_EXCEEDED, 'Storage quota exceeded. Consider clearing old data.', error);
+        this.handleError(
+          STORAGE_ERRORS.QUOTA_EXCEEDED,
+          'Storage quota exceeded. Consider clearing old data.',
+          error
+        );
         await this.handleQuotaExceeded();
         try {
           await this.db.put('cache', entry as CachedDataEntry<unknown>, key);
         } catch (retryError) {
-          this.handleError(STORAGE_ERRORS.WRITE_FAILED, `Failed to write data for key: ${key} after quota handling`, retryError);
+          this.handleError(
+            STORAGE_ERRORS.WRITE_FAILED,
+            `Failed to write data for key: ${key} after quota handling`,
+            retryError
+          );
         }
       } else {
-        this.handleError(STORAGE_ERRORS.WRITE_FAILED, `Failed to write data for key: ${key}`, error);
+        this.handleError(
+          STORAGE_ERRORS.WRITE_FAILED,
+          `Failed to write data for key: ${key}`,
+          error
+        );
       }
     }
   }
 
   private async handleQuotaExceeded(): Promise<void> {
     if (!this.db) return;
-    
+
     const tx = this.db.transaction('cache', 'readwrite');
     const store = tx.objectStore('cache');
-    
+
     try {
       await store.clear();
       await tx.done;
     } catch (error) {
-      this.handleError(STORAGE_ERRORS.WRITE_FAILED, 'Failed to clear cache during quota handling', error);
+      this.handleError(
+        STORAGE_ERRORS.WRITE_FAILED,
+        'Failed to clear cache during quota handling',
+        error
+      );
     }
   }
 
@@ -332,7 +357,10 @@ export class API3OfflineStorage {
     };
   }
 
-  async precacheCriticalData(): Promise<{ success: string[]; failed: { type: string; error: string }[] }> {
+  async precacheCriticalData(): Promise<{
+    success: string[];
+    failed: { type: string; error: string }[];
+  }> {
     await this.init();
     if (!this.db) {
       this.handleError(STORAGE_ERRORS.WRITE_FAILED, 'Database not initialized for precaching');
@@ -348,32 +376,47 @@ export class API3OfflineStorage {
       const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'API3/USD'];
       for (const symbol of symbols) {
         precachePromises.push(
-          this.precachePriceData(symbol).then(() => {
-            success.push(`price-${symbol}`);
-          }).catch((error) => {
-            failed.push({ type: `price-${symbol}`, error: error instanceof Error ? error.message : String(error) });
-          })
+          this.precachePriceData(symbol)
+            .then(() => {
+              success.push(`price-${symbol}`);
+            })
+            .catch((error) => {
+              failed.push({
+                type: `price-${symbol}`,
+                error: error instanceof Error ? error.message : String(error),
+              });
+            })
         );
       }
     }
 
     if (criticalTypes.includes('alerts' as never)) {
       precachePromises.push(
-        this.precacheAlerts().then(() => {
-          success.push('alerts');
-        }).catch((error) => {
-          failed.push({ type: 'alerts', error: error instanceof Error ? error.message : String(error) });
-        })
+        this.precacheAlerts()
+          .then(() => {
+            success.push('alerts');
+          })
+          .catch((error) => {
+            failed.push({
+              type: 'alerts',
+              error: error instanceof Error ? error.message : String(error),
+            });
+          })
       );
     }
 
     if (criticalTypes.includes('airnodeStats' as never)) {
       precachePromises.push(
-        this.precacheAirnodeStats().then(() => {
-          success.push('airnodeStats');
-        }).catch((error) => {
-          failed.push({ type: 'airnodeStats', error: error instanceof Error ? error.message : String(error) });
-        })
+        this.precacheAirnodeStats()
+          .then(() => {
+            success.push('airnodeStats');
+          })
+          .catch((error) => {
+            failed.push({
+              type: 'airnodeStats',
+              error: error instanceof Error ? error.message : String(error),
+            });
+          })
       );
     }
 

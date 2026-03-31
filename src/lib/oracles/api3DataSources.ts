@@ -140,13 +140,18 @@ export function getAPI3BaseUrl(source: 'market' | 'dao'): string {
   return source === 'market' ? API3_DATA_SOURCES.market.baseUrl : API3_DATA_SOURCES.dao.baseUrl;
 }
 
-export function getAPI3Endpoint(source: 'market' | 'dao', endpoint: keyof API3MarketEndpoints | keyof API3DAOEndpoints): string {
+export function getAPI3Endpoint(
+  source: 'market' | 'dao',
+  endpoint: keyof API3MarketEndpoints | keyof API3DAOEndpoints
+): string {
   const config = source === 'market' ? API3_DATA_SOURCES.market : API3_DATA_SOURCES.dao;
   const endpoints = config.endpoints as unknown as Record<string, string>;
   return `${config.baseUrl}${endpoints[endpoint] || ''}`;
 }
 
-export function getAPI3Contract(chain: keyof API3DataSourceConfig['contracts']): API3Contracts | Partial<API3Contracts> {
+export function getAPI3Contract(
+  chain: keyof API3DataSourceConfig['contracts']
+): API3Contracts | Partial<API3Contracts> {
   return API3_DATA_SOURCES.contracts[chain] || API3_DATA_SOURCES.contracts.mainnet;
 }
 

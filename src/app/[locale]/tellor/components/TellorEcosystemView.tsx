@@ -119,7 +119,9 @@ export function TellorEcosystemView({ ecosystem, isLoading }: TellorEcosystemVie
                   : 'hover:bg-gray-50'
               }`}
             >
-              <span className="text-sm font-medium text-gray-900">{t('ecosystem.allCategories')}</span>
+              <span className="text-sm font-medium text-gray-900">
+                {t('ecosystem.allCategories')}
+              </span>
               <span className="text-xs text-gray-500">{protocols.length} protocols</span>
             </button>
             {categories.map((category, index) => (
@@ -136,7 +138,9 @@ export function TellorEcosystemView({ ecosystem, isLoading }: TellorEcosystemVie
                   <div
                     className="w-2 h-2 rounded-full"
                     style={{
-                      backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#6b7280'][index],
+                      backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#6b7280'][
+                        index
+                      ],
                     }}
                   />
                   <span className="text-sm text-gray-700">{category.name}</span>
@@ -147,7 +151,9 @@ export function TellorEcosystemView({ ecosystem, isLoading }: TellorEcosystemVie
                       className="h-full rounded-full"
                       style={{
                         width: `${category.percentage}%`,
-                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#6b7280'][index],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#6b7280'][
+                          index
+                        ],
                       }}
                     />
                   </div>
@@ -203,15 +209,25 @@ export function TellorEcosystemView({ ecosystem, isLoading }: TellorEcosystemVie
 
       {/* 生态系统增长 */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('ecosystem.growthTrend')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('ecosystem.growthTrend')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: t('ecosystem.growth.newProjects'), value: '+5', subtext: t('ecosystem.projectAnalysis.thisMonth') },
+            {
+              label: t('ecosystem.growth.newProjects'),
+              value: '+5',
+              subtext: t('ecosystem.projectAnalysis.thisMonth'),
+            },
             { label: t('ecosystem.growth.tvlGrowth'), value: '+18%', subtext: '30d change' },
-            { label: t('ecosystem.growth.integrations'), value: '+12', subtext: t('ecosystem.projectAnalysis.thisMonth') },
-            { label: t('ecosystem.growth.communityGrowth'), value: '+2.3K', subtext: 'New members' },
+            {
+              label: t('ecosystem.growth.integrations'),
+              value: '+12',
+              subtext: t('ecosystem.projectAnalysis.thisMonth'),
+            },
+            {
+              label: t('ecosystem.growth.communityGrowth'),
+              value: '+2.3K',
+              subtext: 'New members',
+            },
           ].map((item, index) => (
             <div key={index} className="p-4 rounded-lg bg-gray-50">
               <p className="text-xs text-gray-500 mb-1">{item.label}</p>

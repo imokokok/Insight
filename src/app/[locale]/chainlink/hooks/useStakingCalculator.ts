@@ -45,11 +45,7 @@ export const SCENARIOS: Record<ScenarioType, ScenarioConfig> = {
 export function useStakingCalculator(
   options: UseStakingCalculatorOptions = {}
 ): UseStakingCalculatorReturn {
-  const {
-    initialAmount = '10000',
-    initialScenario = 'moderate',
-    initialPeriod = 12,
-  } = options;
+  const { initialAmount = '10000', initialScenario = 'moderate', initialPeriod = 12 } = options;
 
   const [stakeAmount, setStakeAmount] = useState<string>(initialAmount);
   const [selectedScenario, setSelectedScenario] = useState<ScenarioType>(initialScenario);

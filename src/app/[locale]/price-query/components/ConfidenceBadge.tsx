@@ -17,9 +17,20 @@ export function ConfidenceBadge({ score }: ConfidenceBadgeProps) {
   const normalizedScore = Math.min(100, Math.max(0, score * 100));
 
   const getRating = (s: number): { label: string; color: string } => {
-    if (s >= 90) return { label: t('priceQuery.results.qualityScore.excellent'), color: 'bg-success-100 text-success-700' };
-    if (s >= 70) return { label: t('priceQuery.results.qualityScore.good'), color: 'bg-primary-100 text-primary-700' };
-    return { label: t('priceQuery.results.qualityScore.warning'), color: 'bg-warning-100 text-orange-700' };
+    if (s >= 90)
+      return {
+        label: t('priceQuery.results.qualityScore.excellent'),
+        color: 'bg-success-100 text-success-700',
+      };
+    if (s >= 70)
+      return {
+        label: t('priceQuery.results.qualityScore.good'),
+        color: 'bg-primary-100 text-primary-700',
+      };
+    return {
+      label: t('priceQuery.results.qualityScore.warning'),
+      color: 'bg-warning-100 text-orange-700',
+    };
   };
 
   const rating = getRating(normalizedScore);

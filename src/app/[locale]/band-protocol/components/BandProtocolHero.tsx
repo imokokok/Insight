@@ -344,13 +344,33 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: t('band.bandProtocol.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('band.bandProtocol.hero.gasLevel.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: t('band.bandProtocol.hero.gasLevel.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('band.bandProtocol.hero.gasLevel.low'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: t('band.bandProtocol.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: t('band.bandProtocol.hero.gasLevel.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+      return {
+        label: t('band.bandProtocol.hero.gasLevel.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
+    return {
+      label: t('band.bandProtocol.hero.gasLevel.high'),
+      color: 'text-red-600',
+      bg: 'bg-red-500',
+      width: '80%',
+    };
   }, [networkStats, t]);
 
   const displayChains = chains.slice(0, 3);
@@ -446,25 +466,33 @@ function QuickActions({ themeColor }: { themeColor: string }) {
   const t = useTranslations();
 
   const actions = [
-    { 
-      icon: <ExternalLink className="w-3.5 h-3.5" />, 
-      label: t('band.bandProtocol.quickActions.blockExplorer'), 
+    {
+      icon: <ExternalLink className="w-3.5 h-3.5" />,
+      label: t('band.bandProtocol.quickActions.blockExplorer'),
       href: 'https://cosmoscan.io/',
-      isExternal: true 
+      isExternal: true,
     },
-    { 
-      icon: <FileText className="w-3.5 h-3.5" />, 
-      label: t('band.bandProtocol.quickActions.apiDocs'), 
+    {
+      icon: <FileText className="w-3.5 h-3.5" />,
+      label: t('band.bandProtocol.quickActions.apiDocs'),
       href: 'https://docs.bandchain.org/',
-      isExternal: true 
+      isExternal: true,
     },
-    { icon: <Bell className="w-3.5 h-3.5" />, label: t('band.bandProtocol.quickActions.priceAlert'), href: '#' },
-    { icon: <Plus className="w-3.5 h-3.5" />, label: t('band.bandProtocol.quickActions.addMonitor'), href: '#' },
+    {
+      icon: <Bell className="w-3.5 h-3.5" />,
+      label: t('band.bandProtocol.quickActions.priceAlert'),
+      href: '#',
+    },
+    {
+      icon: <Plus className="w-3.5 h-3.5" />,
+      label: t('band.bandProtocol.quickActions.addMonitor'),
+      href: '#',
+    },
   ];
 
   return (
     <div className="flex flex-wrap gap-1.5">
-      {actions.map((action, index) => (
+      {actions.map((action, index) =>
         action.isExternal ? (
           <a
             key={index}
@@ -485,7 +513,7 @@ function QuickActions({ themeColor }: { themeColor: string }) {
             <span>{action.label}</span>
           </button>
         )
-      ))}
+      )}
     </div>
   );
 }
@@ -495,16 +523,37 @@ function LatestUpdates() {
   const t = useTranslations();
 
   const updates = [
-    { type: 'price', text: t('band.bandProtocol.hero.updates.priceUpdate', { price: '1.24', change: '+3.2%' }), time: t('band.bandProtocol.hero.updates.minutesAgo', { count: 2 }) },
-    { type: 'validator', text: t('band.bandProtocol.hero.updates.newValidator', { moniker: 'BandVal...8x9y', region: 'Asia-Pacific' }), time: t('band.bandProtocol.hero.updates.minutesAgo', { count: 5 }) },
-    { type: 'feed', text: t('band.bandProtocol.hero.updates.feedUpdate', { symbol: 'BTC/USD' }), time: t('band.bandProtocol.hero.updates.minutesAgo', { count: 8 }) },
-    { type: 'system', text: t('band.bandProtocol.hero.updates.blockHeight', { height: '12,458,923' }), time: t('band.bandProtocol.hero.updates.justNow') },
+    {
+      type: 'price',
+      text: t('band.bandProtocol.hero.updates.priceUpdate', { price: '1.24', change: '+3.2%' }),
+      time: t('band.bandProtocol.hero.updates.minutesAgo', { count: 2 }),
+    },
+    {
+      type: 'validator',
+      text: t('band.bandProtocol.hero.updates.newValidator', {
+        moniker: 'BandVal...8x9y',
+        region: 'Asia-Pacific',
+      }),
+      time: t('band.bandProtocol.hero.updates.minutesAgo', { count: 5 }),
+    },
+    {
+      type: 'feed',
+      text: t('band.bandProtocol.hero.updates.feedUpdate', { symbol: 'BTC/USD' }),
+      time: t('band.bandProtocol.hero.updates.minutesAgo', { count: 8 }),
+    },
+    {
+      type: 'system',
+      text: t('band.bandProtocol.hero.updates.blockHeight', { height: '12,458,923' }),
+      time: t('band.bandProtocol.hero.updates.justNow'),
+    },
   ];
 
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">{t('band.bandProtocol.hero.latestUpdates')}</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">
+          {t('band.bandProtocol.hero.latestUpdates')}
+        </span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {updates.map((update, index) => (

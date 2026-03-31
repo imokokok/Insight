@@ -455,9 +455,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
             <h3 className="text-base font-semibold text-gray-900">
               {t('ecosystem.projectAnalysis.projectsByChain')}
             </h3>
-            <p className="text-sm text-gray-500 mt-0.5">
-              {t('ecosystem.distributionByNetwork')}
-            </p>
+            <p className="text-sm text-gray-500 mt-0.5">{t('ecosystem.distributionByNetwork')}</p>
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -504,18 +502,14 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
         {/* 核心指标 - Clean layout without colored backgrounds */}
         <section>
           <div className="mb-4">
-            <h3 className="text-base font-semibold text-gray-900">
-              {t('ecosystem.growth.title')}
-            </h3>
+            <h3 className="text-base font-semibold text-gray-900">{t('ecosystem.growth.title')}</h3>
             <p className="text-sm text-gray-500 mt-0.5">{t('ecosystem.keyIndicators')}</p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Layers className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.newProjects')}
-                </span>
+                <span className="text-sm text-gray-600">{t('ecosystem.growth.newProjects')}</span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">42</p>
@@ -525,9 +519,7 @@ export function API3EcosystemView({ isLoading }: API3EcosystemViewProps) {
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Zap className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.integrations')}
-                </span>
+                <span className="text-sm text-gray-600">{t('ecosystem.growth.integrations')}</span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">186</p>

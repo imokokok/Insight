@@ -1,6 +1,16 @@
 'use client';
 
-import { BarChart3, Landmark, Shield, Globe, Lock, ShieldAlert, Vault, ArrowLeftRight, TrendingUpDown } from 'lucide-react';
+import {
+  BarChart3,
+  Landmark,
+  Shield,
+  Globe,
+  Lock,
+  ShieldAlert,
+  Vault,
+  ArrowLeftRight,
+  TrendingUpDown,
+} from 'lucide-react';
 
 import { UnifiedSidebar } from '@/components/oracle';
 

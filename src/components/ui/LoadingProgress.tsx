@@ -250,6 +250,3 @@ export function DataLoadingProgress({
     </div>
   );
 }
-
-
-

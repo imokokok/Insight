@@ -106,13 +106,13 @@ src/app/api/
 
 ### 中间件概览
 
-| 中间件 | 文件位置 | 功能 |
-|--------|----------|------|
-| authMiddleware | `src/lib/api/middleware/authMiddleware.ts` | JWT 认证、角色验证 |
-| errorMiddleware | `src/lib/api/middleware/errorMiddleware.ts` | 统一错误处理 |
-| rateLimitMiddleware | `src/lib/api/middleware/rateLimitMiddleware.ts` | 请求限流 |
-| validationMiddleware | `src/lib/api/middleware/validationMiddleware.ts` | 输入验证 |
-| loggingMiddleware | `src/lib/api/middleware/loggingMiddleware.ts` | 请求日志 |
+| 中间件               | 文件位置                                         | 功能               |
+| -------------------- | ------------------------------------------------ | ------------------ |
+| authMiddleware       | `src/lib/api/middleware/authMiddleware.ts`       | JWT 认证、角色验证 |
+| errorMiddleware      | `src/lib/api/middleware/errorMiddleware.ts`      | 统一错误处理       |
+| rateLimitMiddleware  | `src/lib/api/middleware/rateLimitMiddleware.ts`  | 请求限流           |
+| validationMiddleware | `src/lib/api/middleware/validationMiddleware.ts` | 输入验证           |
+| loggingMiddleware    | `src/lib/api/middleware/loggingMiddleware.ts`    | 请求日志           |
 
 ### 中间件导出
 
@@ -143,10 +143,7 @@ export {
   type ErrorMiddlewareOptions,
 } from './errorMiddleware';
 
-export {
-  createRateLimitMiddleware,
-  type RateLimitMiddlewareOptions,
-} from './rateLimitMiddleware';
+export { createRateLimitMiddleware, type RateLimitMiddlewareOptions } from './rateLimitMiddleware';
 ```
 
 ### 1. 认证中间件 (authMiddleware)
@@ -387,7 +384,7 @@ export const apiRateLimit = createRateLimitMiddleware({
 - 基于内存的限流存储
 - 自定义 keyGenerator（默认基于 IP 和路径）
 - 预设限流配置（strict、moderate、lenient、api）
-- 限流响应头（Retry-After、X-RateLimit-*）
+- 限流响应头（Retry-After、X-RateLimit-\*）
 
 ### 4. 验证中间件 (validationMiddleware)
 
@@ -400,7 +397,9 @@ export interface ValidationMiddlewareOptions {
 }
 
 export function createValidationMiddleware(options: ValidationMiddlewareOptions) {
-  return async (request: NextRequest): Promise<{ success: true } | { success: false; response: NextResponse }> => {
+  return async (
+    request: NextRequest
+  ): Promise<{ success: true } | { success: false; response: NextResponse }> => {
     if (options.body && request.method !== 'GET') {
       const body = await request.json().catch(() => null);
       const result = options.body.safeParse(body);
@@ -488,11 +487,14 @@ export function createLoggingMiddleware(options: LoggingMiddlewareOptions = {}) 
       const duration = Date.now() - start;
 
       if (logError) {
-        logger.error(`Error: ${error instanceof Error ? error.message : String(error)} (${duration}ms)`, {
-          requestId,
-          duration,
-          error: error instanceof Error ? error.stack : String(error),
-        });
+        logger.error(
+          `Error: ${error instanceof Error ? error.message : String(error)} (${duration}ms)`,
+          {
+            requestId,
+            duration,
+            error: error instanceof Error ? error.stack : String(error),
+          }
+        );
       }
 
       throw error;
@@ -653,10 +655,7 @@ export function createJsonResponse<T>(
   });
 }
 
-export function createCachedJsonResponse<T>(
-  data: T,
-  cacheConfig: CacheConfig
-): NextResponse {
+export function createCachedJsonResponse<T>(data: T, cacheConfig: CacheConfig): NextResponse {
   const response = ApiResponseBuilder.success(data);
 
   return NextResponse.json(response, {
@@ -761,17 +760,17 @@ DELETE /api/alerts/123           # 删除特定警报
 
 ### 2. 状态码使用
 
-| 状态码 | 用途 |
-|--------|------|
-| 200 OK | 成功 |
-| 201 Created | 创建成功 |
-| 204 No Content | 删除成功 |
-| 400 Bad Request | 请求参数错误 |
-| 401 Unauthorized | 未认证 |
-| 403 Forbidden | 无权限 |
-| 404 Not Found | 资源不存在 |
-| 429 Too Many Requests | 速率限制 |
-| 500 Internal Server Error | 服务器错误 |
+| 状态码                    | 用途         |
+| ------------------------- | ------------ |
+| 200 OK                    | 成功         |
+| 201 Created               | 创建成功     |
+| 204 No Content            | 删除成功     |
+| 400 Bad Request           | 请求参数错误 |
+| 401 Unauthorized          | 未认证       |
+| 403 Forbidden             | 无权限       |
+| 404 Not Found             | 资源不存在   |
+| 429 Too Many Requests     | 速率限制     |
+| 500 Internal Server Error | 服务器错误   |
 
 ### 3. 缓存策略
 

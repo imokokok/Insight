@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
+
 import { safeDivide } from '../utils/helpers';
 
 interface VRFStats {
@@ -219,16 +220,12 @@ export function ChainlinkVRFView() {
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('vrf.requestStats')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.requestStats')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Dice5 className="w-4 h-4 text-purple-600" />
-              <span className="text-xs text-gray-500">
-                {t('vrf.requests24h')}
-              </span>
+              <span className="text-xs text-gray-500">{t('vrf.requests24h')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {formatNumber(mockVRFStats.requests24h)}
@@ -237,18 +234,14 @@ export function ChainlinkVRFView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs text-gray-500">
-                {t('vrf.successRate')}
-              </span>
+              <span className="text-xs text-gray-500">{t('vrf.successRate')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">{mockVRFStats.successRate}%</div>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-gray-500">
-                {t('vrf.avgResponseTime')}
-              </span>
+              <span className="text-xs text-gray-500">{t('vrf.avgResponseTime')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {mockVRFStats.avgResponseTime}s
@@ -274,9 +267,7 @@ export function ChainlinkVRFView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-gray-500">
-                {t('vrf.activeSubscriptions')}
-              </span>
+              <span className="text-xs text-gray-500">{t('vrf.activeSubscriptions')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {formatNumber(mockVRFStats.activeSubscriptions)}
@@ -285,9 +276,7 @@ export function ChainlinkVRFView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Wallet className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs text-gray-500">
-                {t('vrf.totalFunded')}
-              </span>
+              <span className="text-xs text-gray-500">{t('vrf.totalFunded')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {formatCurrency(mockVRFStats.totalFunded)}
@@ -299,7 +288,9 @@ export function ChainlinkVRFView() {
               <span className="text-xs text-gray-500">{t('vrf.avgBalance')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
-              {formatCurrency(safeDivide(mockVRFStats.totalFunded, mockVRFStats.activeSubscriptions))}
+              {formatCurrency(
+                safeDivide(mockVRFStats.totalFunded, mockVRFStats.activeSubscriptions)
+              )}
             </div>
           </div>
         </div>
@@ -309,9 +300,7 @@ export function ChainlinkVRFView() {
             <div className="col-span-2">{t('vrf.subscriptionId')}</div>
             <div className="col-span-3">{t('vrf.owner')}</div>
             <div className="col-span-3 text-right">{t('vrf.balance')}</div>
-            <div className="col-span-4 text-right">
-              {t('vrf.consumers')}
-            </div>
+            <div className="col-span-4 text-right">{t('vrf.consumers')}</div>
           </div>
           {mockSubscriptions.map((sub, index) => (
             <div
@@ -342,9 +331,7 @@ export function ChainlinkVRFView() {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('vrf.recentRequests')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.recentRequests')}</h3>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
             <div className="col-span-3">{t('vrf.requestId')}</div>
@@ -393,9 +380,7 @@ export function ChainlinkVRFView() {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('vrf.useCaseDistribution')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.useCaseDistribution')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {useCaseDistribution.map((useCase) => (
             <div
@@ -422,9 +407,7 @@ export function ChainlinkVRFView() {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('vrf.v2_5Features')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.v2_5Features')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
           <div className="flex items-start gap-3">
             <Wallet className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -456,9 +439,7 @@ export function ChainlinkVRFView() {
               <span className="text-sm font-medium text-gray-900 block mb-1">
                 {t('vrf.feature3Title')}
               </span>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {t('vrf.feature3Desc')}
-              </p>
+              <p className="text-xs text-gray-600 leading-relaxed">{t('vrf.feature3Desc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">

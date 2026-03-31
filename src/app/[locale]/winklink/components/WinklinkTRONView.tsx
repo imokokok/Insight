@@ -254,9 +254,7 @@ export function WinklinkTRONView({ tronIntegration, isLoading }: WinklinkTRONVie
               {t('winklink.tron.performanceDesc')}
             </p>
             <p>
-              <span className="font-medium text-gray-900">
-                {t('winklink.tron.ecosystem')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('winklink.tron.ecosystem')}:</span>{' '}
               {t('winklink.tron.ecosystemDesc')}
             </p>
           </div>

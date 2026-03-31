@@ -19,7 +19,12 @@ import { useTranslations } from '@/i18n';
 
 import { type TellorGovernanceViewProps } from '../types';
 
-export function TellorGovernanceView({ proposals: governanceProposals, votingWeights, stats: governanceStats, isLoading }: TellorGovernanceViewProps) {
+export function TellorGovernanceView({
+  proposals: governanceProposals,
+  votingWeights,
+  stats: governanceStats,
+  isLoading,
+}: TellorGovernanceViewProps) {
   const t = useTranslations('tellor');
   const [selectedProposal, setSelectedProposal] = useState<string | null>(null);
 
@@ -95,9 +100,7 @@ export function TellorGovernanceView({ proposals: governanceProposals, votingWei
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
-                {stat.change && (
-                  <span className="text-xs text-emerald-600">{stat.change}</span>
-                )}
+                {stat.change && <span className="text-xs text-emerald-600">{stat.change}</span>}
               </div>
             </div>
           );
@@ -149,9 +152,7 @@ export function TellorGovernanceView({ proposals: governanceProposals, votingWei
                         className="h-full bg-emerald-500 rounded-full"
                         style={{
                           width: `${
-                            (proposal.forVotes /
-                              (proposal.forVotes + proposal.againstVotes)) *
-                            100
+                            (proposal.forVotes / (proposal.forVotes + proposal.againstVotes)) * 100
                           }%`,
                         }}
                       />

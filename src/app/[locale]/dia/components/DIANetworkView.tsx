@@ -160,9 +160,7 @@ export function DIANetworkView({ config, networkStats, isLoading }: DIANetworkVi
 
       {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('dia.network.overview')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('dia.network.overview')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (
             <div key={index}>

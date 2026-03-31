@@ -8,6 +8,7 @@ import { Search, ArrowUpDown, Activity, Award, TrendingUp, Shield, Eye } from 'l
 import { useTranslations } from '@/i18n';
 
 import { type PythPublishersViewProps, type PublisherData } from '../types';
+
 import { PublisherDetailModal } from './PublisherDetailModal';
 
 type SortField = 'stake' | 'accuracy' | 'name';
@@ -82,17 +83,13 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
       <div className="flex flex-wrap items-center gap-6 py-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-500">
-            {t('pyth.publishers.total')}
-          </span>
+          <span className="text-sm text-gray-500">{t('pyth.publishers.total')}</span>
           <span className="text-lg font-semibold text-gray-900">{publishers.length}</span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-500">
-            {t('pyth.publishers.totalStaked')}
-          </span>
+          <span className="text-sm text-gray-500">{t('pyth.publishers.totalStaked')}</span>
           <span className="text-lg font-semibold text-gray-900">
             {(totalStake / 1e9).toFixed(2)}B PYTH
           </span>
@@ -100,17 +97,13 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-500">
-            {t('pyth.publishers.avgAccuracy')}
-          </span>
+          <span className="text-sm text-gray-500">{t('pyth.publishers.avgAccuracy')}</span>
           <span className="text-lg font-semibold text-emerald-600">{avgAccuracy}%</span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-500">
-            {t('pyth.publishers.topPublisher')}
-          </span>
+          <span className="text-sm text-gray-500">{t('pyth.publishers.topPublisher')}</span>
           <span className="text-lg font-semibold text-gray-900">{topPublisher?.name || '-'}</span>
         </div>
       </div>
@@ -172,20 +165,20 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
               <thead className="sticky top-0 z-10">
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.publishers.rank')}
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.publishers.name')}
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.publishers.stake')}
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.publishers.contribution')}
-                </th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
-                  {t('pyth.publishers.accuracy')}
-                </th>
+                    {t('pyth.publishers.rank')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.publishers.name')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.publishers.stake')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.publishers.contribution')}
+                  </th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
+                    {t('pyth.publishers.accuracy')}
+                  </th>
                 </tr>
               </thead>
               <tbody
@@ -334,9 +327,7 @@ export function PythPublishersView({ publishers, isLoading }: PythPublishersView
       {/* 空状态 */}
       {filteredPublishers.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-sm text-gray-500">
-            {t('pyth.publishers.noResults')}
-          </p>
+          <p className="text-sm text-gray-500">{t('pyth.publishers.noResults')}</p>
         </div>
       )}
 

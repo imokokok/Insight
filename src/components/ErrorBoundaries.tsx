@@ -395,8 +395,6 @@ function useErrorTranslations() {
   };
 }
 
-
-
 export function ComponentErrorBoundary({ children }: { children: ReactNode }) {
   const translations = useErrorTranslations();
   return (

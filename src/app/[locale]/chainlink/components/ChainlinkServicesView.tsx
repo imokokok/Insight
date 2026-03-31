@@ -59,9 +59,7 @@ export function ChainlinkServicesView() {
     <div className="space-y-8">
       {/* 服务概览列表 */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('services.overview')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('services.overview')}</h3>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           {/* 表头 */}
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -151,26 +149,20 @@ export function ChainlinkServicesView() {
 
       {/* 服务说明 */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('services.about')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('services.about')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
           <div className="flex items-start gap-3">
             <Activity className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">Data Feeds</span>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.dataFeedsDesc')}
-              </p>
+              <p className="text-xs text-gray-600 leading-relaxed">{t('services.dataFeedsDesc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <Zap className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">VRF</span>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.vrfDesc')}
-              </p>
+              <p className="text-xs text-gray-600 leading-relaxed">{t('services.vrfDesc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -186,18 +178,14 @@ export function ChainlinkServicesView() {
             <TrendingUp className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">CCIP</span>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.ccipDesc')}
-              </p>
+              <p className="text-xs text-gray-600 leading-relaxed">{t('services.ccipDesc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <BarChart3 className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
             <div>
               <span className="text-sm font-medium text-gray-900 block mb-1">Functions</span>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {t('services.functionsDesc')}
-              </p>
+              <p className="text-xs text-gray-600 leading-relaxed">{t('services.functionsDesc')}</p>
             </div>
           </div>
         </div>

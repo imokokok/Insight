@@ -1,4 +1,3 @@
-import type { DataFeed, NodeData, StakingPoolStats, RewardHistory, SlashingEvent, UnlockQueue, OperatorStake } from '../types';
 import {
   mockDataFeeds,
   mockCCIPStats,
@@ -35,6 +34,16 @@ import {
   type ServiceData,
   type ServiceUsageDataPoint,
 } from '../data/mockData';
+
+import type {
+  DataFeed,
+  NodeData,
+  StakingPoolStats,
+  RewardHistory,
+  SlashingEvent,
+  UnlockQueue,
+  OperatorStake,
+} from '../types';
 
 export interface IChainlinkService {
   getDataFeeds(): Promise<DataFeed[]>;

@@ -10,10 +10,7 @@ import {
   type PublisherData,
   type ValidatorData,
 } from '@/app/[locale]/pyth/types';
-import {
-  getPythDataService,
-  type CrossChainResult,
-} from '@/lib/oracles/pythDataService';
+import { getPythDataService, type CrossChainResult } from '@/lib/oracles/pythDataService';
 import { PythClient } from '@/lib/oracles/pythNetwork';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 

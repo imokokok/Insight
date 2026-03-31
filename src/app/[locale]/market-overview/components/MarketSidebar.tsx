@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  TrendingUp,
-  PieChart,
-  Zap,
-} from 'lucide-react';
+import { TrendingUp, PieChart, Zap } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
@@ -19,21 +15,14 @@ interface MarketSidebarProps {
   loading?: boolean;
 }
 
-export default function MarketSidebar({
-  oracleData = [],
-  loading = false,
-}: MarketSidebarProps) {
+export default function MarketSidebar({ oracleData = [], loading = false }: MarketSidebarProps) {
   const t = useTranslations('marketOverview.sidebar');
 
   // 计算市场集中度 (CR4 - 前4名市场份额之和)
-  const marketConcentration = oracleData
-    .slice(0, 4)
-    .reduce((sum, oracle) => sum + oracle.share, 0);
+  const marketConcentration = oracleData.slice(0, 4).reduce((sum, oracle) => sum + oracle.share, 0);
 
   // 获取增长最快的3个预言机
-  const topGainers = [...oracleData]
-    .sort((a, b) => b.change24h - a.change24h)
-    .slice(0, 3);
+  const topGainers = [...oracleData].sort((a, b) => b.change24h - a.change24h).slice(0, 3);
 
   // 判断市场集中度等级
   const getConcentrationLevel = (cr4: number) => {
@@ -90,7 +79,9 @@ export default function MarketSidebar({
                           />
                           <span className="text-gray-700">{oracle.name}</span>
                         </div>
-                        <span className="font-medium text-gray-900">{oracle.share.toFixed(1)}%</span>
+                        <span className="font-medium text-gray-900">
+                          {oracle.share.toFixed(1)}%
+                        </span>
                       </div>
                     ))}
                   </div>

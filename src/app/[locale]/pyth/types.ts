@@ -1,8 +1,19 @@
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
-import { type Publisher, type GenericValidator, type PublisherStatus } from '@/types/oracle/publisher';
+import {
+  type Publisher,
+  type GenericValidator,
+  type PublisherStatus,
+} from '@/types/oracle/publisher';
 
-export type PythTabId = 'market' | 'network' | 'publishers' | 'validators' | 'price-feeds' | 'risk' | 'cross-chain';
+export type PythTabId =
+  | 'market'
+  | 'network'
+  | 'publishers'
+  | 'validators'
+  | 'price-feeds'
+  | 'risk'
+  | 'cross-chain';
 
 export interface NetworkStats {
   activeNodes: number;

@@ -90,7 +90,11 @@ function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               )}
             >
-              {mode === 'both' ? t('uma.market.all') : mode === 'bids' ? t('uma.market.bids') : t('uma.market.asks')}
+              {mode === 'both'
+                ? t('uma.market.all')
+                : mode === 'bids'
+                  ? t('uma.market.bids')
+                  : t('uma.market.asks')}
             </button>
           ))}
         </div>
@@ -173,7 +177,9 @@ function LiquidityDistribution({ currentPrice }: { currentPrice: number }) {
     <div className="bg-white rounded-xl border border-gray-200 p-4">
       <div className="flex items-center gap-2 mb-4">
         <Layers className="w-4 h-4 text-gray-600" />
-        <h4 className="text-sm font-medium text-gray-900">{t('uma.market.liquidityDistribution')}</h4>
+        <h4 className="text-sm font-medium text-gray-900">
+          {t('uma.market.liquidityDistribution')}
+        </h4>
       </div>
 
       <div className="space-y-1">
@@ -274,7 +280,9 @@ function LargeTransactionMonitor() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Eye className="w-4 h-4 text-gray-600" />
-          <h4 className="text-sm font-medium text-gray-900">{t('uma.market.largeTransactionMonitor')}</h4>
+          <h4 className="text-sm font-medium text-gray-900">
+            {t('uma.market.largeTransactionMonitor')}
+          </h4>
         </div>
         <span className="text-xs text-gray-500">{'>'}$50K</span>
       </div>
@@ -300,7 +308,8 @@ function LargeTransactionMonitor() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  {tx.type === 'buy' ? t('uma.market.buy') : t('uma.market.sell')} {tx.amount.toLocaleString()} UMA
+                  {tx.type === 'buy' ? t('uma.market.buy') : t('uma.market.sell')}{' '}
+                  {tx.amount.toLocaleString()} UMA
                 </p>
                 <p className="text-xs text-gray-500">
                   ${tx.price.toFixed(2)} · {tx.time}
@@ -343,7 +352,11 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
                   : 'bg-gray-100 text-gray-700'
             )}
           >
-            {rsiValue > 70 ? t('uma.market.overbought') : rsiValue < 30 ? t('uma.market.oversold') : t('uma.market.neutral')}
+            {rsiValue > 70
+              ? t('uma.market.overbought')
+              : rsiValue < 30
+                ? t('uma.market.oversold')
+                : t('uma.market.neutral')}
           </span>
         </div>
         <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -404,7 +417,9 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-sm font-medium text-gray-900">{t('uma.market.bollingerBands')}</h4>
-          <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">{t('uma.market.normal')}</span>
+          <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">
+            {t('uma.market.normal')}
+          </span>
         </div>
         <div className="space-y-2">
           <div className="flex justify-between text-xs">
@@ -431,7 +446,9 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-sm font-medium text-gray-900">{t('uma.market.volume')}</h4>
-          <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">{t('uma.market.active')}</span>
+          <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">
+            {t('uma.market.active')}
+          </span>
         </div>
         <div className="space-y-2">
           <div className="flex justify-between text-xs">
@@ -471,10 +488,14 @@ function MarketSentimentAnalysis() {
 
   const getSentimentLabel = (index: number) => {
     const t = useTranslations();
-    if (index <= 25) return { label: t('uma.market.extremeFear'), color: 'text-red-600', bg: 'bg-red-100' };
-    if (index <= 45) return { label: t('uma.market.fear'), color: 'text-orange-600', bg: 'bg-orange-100' };
-    if (index <= 55) return { label: t('uma.market.neutral'), color: 'text-gray-600', bg: 'bg-gray-100' };
-    if (index <= 75) return { label: t('uma.market.greed'), color: 'text-emerald-600', bg: 'bg-emerald-100' };
+    if (index <= 25)
+      return { label: t('uma.market.extremeFear'), color: 'text-red-600', bg: 'bg-red-100' };
+    if (index <= 45)
+      return { label: t('uma.market.fear'), color: 'text-orange-600', bg: 'bg-orange-100' };
+    if (index <= 55)
+      return { label: t('uma.market.neutral'), color: 'text-gray-600', bg: 'bg-gray-100' };
+    if (index <= 75)
+      return { label: t('uma.market.greed'), color: 'text-emerald-600', bg: 'bg-emerald-100' };
     return { label: t('uma.market.extremeGreed'), color: 'text-green-600', bg: 'bg-green-100' };
   };
 
@@ -486,7 +507,9 @@ function MarketSentimentAnalysis() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Brain className="w-4 h-4 text-gray-600" />
-          <h4 className="text-sm font-medium text-gray-900">{t('uma.market.marketSentimentAnalysis')}</h4>
+          <h4 className="text-sm font-medium text-gray-900">
+            {t('uma.market.marketSentimentAnalysis')}
+          </h4>
         </div>
         <div className="flex gap-1">
           <button
@@ -532,8 +555,12 @@ function MarketSentimentAnalysis() {
               </div>
             </div>
             <div className="flex justify-between mt-1 text-xs text-gray-500">
-              <span>{t('uma.market.short')} {longShortRatio.short}%</span>
-              <span>{t('uma.market.long')} {longShortRatio.long}%</span>
+              <span>
+                {t('uma.market.short')} {longShortRatio.short}%
+              </span>
+              <span>
+                {t('uma.market.long')} {longShortRatio.long}%
+              </span>
             </div>
           </div>
 
@@ -586,7 +613,9 @@ function MarketSentimentAnalysis() {
                   <MessageCircle className="w-4 h-4 text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 capitalize">{platform}</span>
                 </div>
-                <span className="text-xs text-gray-500">{data.mentions} {t('uma.market.discussions')}</span>
+                <span className="text-xs text-gray-500">
+                  {data.mentions} {t('uma.market.discussions')}
+                </span>
               </div>
               <div className="flex gap-1 h-2 rounded-full overflow-hidden">
                 <div className="bg-emerald-400" style={{ width: `${data.positive}%` }} />
@@ -594,9 +623,15 @@ function MarketSentimentAnalysis() {
                 <div className="bg-red-400" style={{ width: `${data.negative}%` }} />
               </div>
               <div className="flex justify-between mt-1 text-xs text-gray-500">
-                <span className="text-emerald-600">{t('uma.market.positive')} {data.positive}%</span>
-                <span className="text-gray-500">{t('uma.market.neutral')} {data.neutral}%</span>
-                <span className="text-red-600">{t('uma.market.negative')} {data.negative}%</span>
+                <span className="text-emerald-600">
+                  {t('uma.market.positive')} {data.positive}%
+                </span>
+                <span className="text-gray-500">
+                  {t('uma.market.neutral')} {data.neutral}%
+                </span>
+                <span className="text-red-600">
+                  {t('uma.market.negative')} {data.negative}%
+                </span>
               </div>
             </div>
           ))}
@@ -790,14 +825,20 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
             <h3 className="text-base font-medium text-gray-900">{t('uma.priceTrend')}</h3>
           </div>
           <div className="flex-1">
-            <PriceChart
-              client={config.client}
-              symbol={config.symbol}
-              chain={config.defaultChain}
-              height={300}
-              showToolbar={true}
-              defaultPrice={config.marketData.change24hValue}
-            />
+            {config.client ? (
+              <PriceChart
+                client={config.client}
+                symbol={config.symbol}
+                chain={config.defaultChain}
+                height={300}
+                showToolbar={true}
+                defaultPrice={config.marketData.change24hValue}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+                <p className="text-gray-500">{t('common.noData')}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -889,9 +930,7 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
       </div>
 
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('uma.market.tradingPair')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('uma.market.tradingPair')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-xs text-gray-400 mb-1">UMA/USDC</p>
@@ -936,7 +975,9 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Activity className="w-5 h-5 text-gray-600" />
-          <h3 className="text-base font-medium text-gray-900">{t('uma.market.technicalIndicators')}</h3>
+          <h3 className="text-base font-medium text-gray-900">
+            {t('uma.market.technicalIndicators')}
+          </h3>
         </div>
         <TechnicalIndicators currentPrice={currentPrice} />
       </div>

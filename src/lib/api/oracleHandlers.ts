@@ -218,3 +218,23 @@ export function priceDataToRecord(
     confidence: data.confidence ?? null,
   };
 }
+
+// 兼容旧版 API 的导出
+export async function handleGetPrice(params: OracleQueryParams) {
+  const data = await fetchPriceFromOracle(params);
+  return createPriceResponse(data);
+}
+
+export async function handleGetHistoricalPrices(params: OracleQueryParams) {
+  const data = await fetchHistoricalFromOracle(params);
+  return createHistoryResponse(data);
+}
+
+export async function handleBatchPrices(requests: BatchPriceRequest[]) {
+  const results = await fetchBatchPrices(requests);
+  return createCachedJsonResponse({ results });
+}
+
+export function createUnexpectedErrorResponse(error: unknown) {
+  return handleOracleError(error);
+}

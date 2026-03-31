@@ -127,7 +127,9 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('pyth.network.successRate')}</span>
-                <span className="font-medium text-gray-900">{t('pyth.network.successRateValue')}</span>
+                <span className="font-medium text-gray-900">
+                  {t('pyth.network.successRateValue')}
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '99.9%' }} />
@@ -136,7 +138,9 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('pyth.network.availability')}</span>
-                <span className="font-medium text-gray-900">{t('pyth.network.availabilityValue')}</span>
+                <span className="font-medium text-gray-900">
+                  {t('pyth.network.availabilityValue')}
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div className="bg-violet-500 h-1.5 rounded-full" style={{ width: '99.99%' }} />
@@ -160,9 +164,7 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
 
       {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('pyth.network.overview')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('pyth.network.overview')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {overviewStats.map((stat, index) => (
             <div key={index}>

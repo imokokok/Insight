@@ -19,6 +19,7 @@ import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
+
 import { safeGetLastElement } from '../utils/helpers';
 
 interface ThroughputDataPoint {

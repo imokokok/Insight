@@ -15,10 +15,10 @@ import {
 
 import { useTranslations } from '@/i18n';
 
-import { type ChainBreakdownData } from '../types';
+import { type ChainBreakdown } from '../types';
 
 interface ChainBreakdownChartProps {
-  data: ChainBreakdownData[];
+  data: ChainBreakdown[];
   loading?: boolean;
 }
 
@@ -39,7 +39,7 @@ export default function ChainBreakdownChart({ data, loading = false }: ChainBrea
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const item = payload[0].payload as ChainBreakdownData;
+      const item = payload[0].payload as ChainBreakdown;
       return (
         <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
           <p className="font-semibold text-gray-900 mb-2">{label}</p>
@@ -54,11 +54,7 @@ export default function ChainBreakdownChart({ data, loading = false }: ChainBrea
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-gray-500">{t('protocols')}:</span>
-              <span className="font-medium text-gray-900">{item.protocolCount}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('oracles')}:</span>
-              <span className="font-medium text-gray-900">{item.oracleCount}</span>
+              <span className="font-medium text-gray-900">{item.protocols}</span>
             </div>
           </div>
         </div>
@@ -120,10 +116,7 @@ export default function ChainBreakdownChart({ data, loading = false }: ChainBrea
               onMouseLeave={() => setHoveredIndex(null)}
             >
               {sortedData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={hoveredIndex === index ? '#3b82f6' : '#60a5fa'}
-                />
+                <Cell key={`cell-${index}`} fill={hoveredIndex === index ? '#3b82f6' : '#60a5fa'} />
               ))}
             </Bar>
           </BarChart>
@@ -146,7 +139,7 @@ export default function ChainBreakdownChart({ data, loading = false }: ChainBrea
           <div>
             <div className="text-xs text-gray-500 mb-1">{t('avgProtocols')}</div>
             <div className="text-lg font-semibold text-gray-900">
-              {Math.round(data.reduce((sum, item) => sum + item.protocolCount, 0) / data.length)}
+              {Math.round(data.reduce((sum, item) => sum + item.protocols, 0) / data.length)}
             </div>
           </div>
         </div>

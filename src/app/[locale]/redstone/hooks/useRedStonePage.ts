@@ -39,14 +39,16 @@ export function useRedStonePage() {
     client: redstoneClient,
   });
 
-  const { providers, isLoading: providersLoading, error: providersError } = useRedStoneProviders(
-    redstoneClient,
-    true
-  );
-  const { metrics, isLoading: metricsLoading, error: metricsError } = useRedStoneMetrics(
-    redstoneClient,
-    true
-  );
+  const {
+    providers,
+    isLoading: providersLoading,
+    error: providersError,
+  } = useRedStoneProviders(redstoneClient, true);
+  const {
+    metrics,
+    isLoading: metricsLoading,
+    error: metricsError,
+  } = useRedStoneMetrics(redstoneClient, true);
 
   const isLoading = allDataLoading || providersLoading || metricsLoading;
 

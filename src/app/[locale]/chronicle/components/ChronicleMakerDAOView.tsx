@@ -94,13 +94,21 @@ export function ChronicleMakerDAOView({ makerDAO, isLoading }: ChronicleMakerDAO
   // Categories with translations
   const categories = [
     { id: 'all', label: t('chronicle.makerdao.allAssets'), count: mockAssets.length },
-    { id: 'crypto', label: t('chronicle.assetType.crypto'), count: mockAssets.filter((f) => f.type === 'crypto').length },
+    {
+      id: 'crypto',
+      label: t('chronicle.assetType.crypto'),
+      count: mockAssets.filter((f) => f.type === 'crypto').length,
+    },
     {
       id: 'stablecoin',
       label: t('chronicle.assetType.stablecoin'),
       count: mockAssets.filter((f) => f.type === 'stablecoin').length,
     },
-    { id: 'rwa', label: t('chronicle.assetType.rwa'), count: mockAssets.filter((f) => f.type === 'rwa').length },
+    {
+      id: 'rwa',
+      label: t('chronicle.assetType.rwa'),
+      count: mockAssets.filter((f) => f.type === 'rwa').length,
+    },
   ];
 
   const getAssetTypeColor = (type: string) => {
@@ -167,7 +175,8 @@ export function ChronicleMakerDAOView({ makerDAO, isLoading }: ChronicleMakerDAO
       key: 'debtCeiling',
       header: t('chronicle.makerdao.debtCeiling'),
       sortable: true,
-      render: (item: AssetData) => (item.debtCeiling > 0 ? formatCompactCurrency(item.debtCeiling) : '-'),
+      render: (item: AssetData) =>
+        item.debtCeiling > 0 ? formatCompactCurrency(item.debtCeiling) : '-',
     },
   ];
 

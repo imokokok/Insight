@@ -47,14 +47,24 @@ export function BandProtocolMarketView({
       status: 'healthy',
       icon: Server,
     },
-    { label: t('band.bandProtocol.dataFeeds.dataFeeds'), value: '180+', status: 'healthy', icon: Zap },
+    {
+      label: t('band.bandProtocol.dataFeeds.dataFeeds'),
+      value: '180+',
+      status: 'healthy',
+      icon: Zap,
+    },
     {
       label: t('band.bandProtocol.stats.responseTime'),
       value: '150ms',
       status: 'healthy',
       icon: Clock,
     },
-    { label: t('band.bandProtocol.stats.successRate'), value: '99.85%', status: 'healthy', icon: Shield },
+    {
+      label: t('band.bandProtocol.stats.successRate'),
+      value: '99.85%',
+      status: 'healthy',
+      icon: Shield,
+    },
   ];
 
   return (
@@ -64,17 +74,25 @@ export function BandProtocolMarketView({
         {/* 左侧价格趋势图表 - 占2列 */}
         <div className="lg:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium text-gray-900">{t('band.bandProtocol.market.priceTrend')}</h3>
+            <h3 className="text-base font-medium text-gray-900">
+              {t('band.bandProtocol.market.priceTrend')}
+            </h3>
           </div>
           <div className="flex-1">
-            <PriceChart
-              client={config.client}
-              symbol={config.symbol}
-              chain={config.defaultChain}
-              height={300}
-              showToolbar={true}
-              defaultPrice={config.marketData.change24hValue}
-            />
+            {config.client ? (
+              <PriceChart
+                client={config.client}
+                symbol={config.symbol}
+                chain={config.defaultChain}
+                height={300}
+                showToolbar={true}
+                defaultPrice={config.marketData.change24hValue}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+                <p className="text-gray-500">{t('common.noData')}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -152,10 +170,26 @@ export function BandProtocolMarketView({
             </h3>
             <div className="flex-1 flex flex-col">
               {[
-                { name: t('band.bandProtocol.dataSource.bandProtocolMarket'), status: 'active', latency: '85ms' },
-                { name: t('band.bandProtocol.dataSource.cosmosHub'), status: 'active', latency: '150ms' },
-                { name: t('band.bandProtocol.dataSource.secondaryFeed'), status: 'active', latency: '120ms' },
-                { name: t('band.bandProtocol.dataSource.backupNode'), status: 'syncing', latency: '200ms' },
+                {
+                  name: t('band.bandProtocol.dataSource.bandProtocolMarket'),
+                  status: 'active',
+                  latency: '85ms',
+                },
+                {
+                  name: t('band.bandProtocol.dataSource.cosmosHub'),
+                  status: 'active',
+                  latency: '150ms',
+                },
+                {
+                  name: t('band.bandProtocol.dataSource.secondaryFeed'),
+                  status: 'active',
+                  latency: '120ms',
+                },
+                {
+                  name: t('band.bandProtocol.dataSource.backupNode'),
+                  status: 'syncing',
+                  latency: '200ms',
+                },
               ].map((source, index) => (
                 <div
                   key={index}

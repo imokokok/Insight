@@ -2,7 +2,18 @@
 
 import { useMemo } from 'react';
 
-import { Activity, Globe, Database, Clock, Zap, Server, TrendingUp, TrendingDown, Shield, Users } from 'lucide-react';
+import {
+  Activity,
+  Globe,
+  Database,
+  Clock,
+  Zap,
+  Server,
+  TrendingUp,
+  TrendingDown,
+  Shield,
+  Users,
+} from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 import { Blockchain } from '@/types/oracle';
@@ -29,7 +40,10 @@ function generateChainStatuses(): ChainStatus[] {
 
   return chains.map((chain, index) => ({
     chain,
-    status: ['healthy', 'healthy', 'healthy', 'healthy', 'degraded'][index] as 'healthy' | 'degraded' | 'down',
+    status: ['healthy', 'healthy', 'healthy', 'healthy', 'degraded'][index] as
+      | 'healthy'
+      | 'degraded'
+      | 'down',
     blockHeight: 18500000 + Math.floor(Math.random() * 10000),
     avgLatency: [120, 85, 95, 110, 100][index],
     reporterCount: [28, 22, 18, 15, 12][index],
@@ -144,7 +158,7 @@ export function TellorNetworkView({ config }: TellorNetworkViewProps) {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('network.latency')}
-              </th>
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('network.performance')}
                 </th>
@@ -227,7 +241,9 @@ export function TellorNetworkView({ config }: TellorNetworkViewProps) {
               </div>
               <div className="flex items-center gap-2 w-32">
                 <Zap className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-xs text-gray-500">{activity.updates} {t('network.updates')}</span>
+                <span className="text-xs text-gray-500">
+                  {activity.updates} {t('network.updates')}
+                </span>
               </div>
             </div>
           ))}

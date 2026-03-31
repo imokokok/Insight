@@ -16,18 +16,14 @@ export default function ProfessionalCTA() {
           <div className="relative z-10 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 mb-6">
               <Sparkles className="w-4 h-4 text-white" />
-              <span className="text-sm font-medium text-white">
-                {t('badge')}
-              </span>
+              <span className="text-sm font-medium text-white">{t('badge')}</span>
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 max-w-2xl mx-auto leading-tight">
               {t('title')}
             </h2>
 
-            <p className="text-lg text-gray-300 mb-10 max-w-xl mx-auto">
-              {t('description')}
-            </p>
+            <p className="text-lg text-gray-300 mb-10 max-w-xl mx-auto">{t('description')}</p>
 
             <Link
               href="/market-overview"

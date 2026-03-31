@@ -202,13 +202,9 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
       const nodeCount = regionNodes.length;
       const percentage = nodes.length > 0 ? (nodeCount / nodes.length) * 100 : 0;
       const avgUptime =
-        nodeCount > 0
-          ? regionNodes.reduce((acc, n) => acc + n.uptime, 0) / nodeCount
-          : 0;
+        nodeCount > 0 ? regionNodes.reduce((acc, n) => acc + n.uptime, 0) / nodeCount : 0;
       const avgResponseTime =
-        nodeCount > 0
-          ? regionNodes.reduce((acc, n) => acc + n.responseTime, 0) / nodeCount
-          : 0;
+        nodeCount > 0 ? regionNodes.reduce((acc, n) => acc + n.responseTime, 0) / nodeCount : 0;
       const totalStaked = regionNodes.reduce((acc, n) => acc + n.stakedAmount, 0);
 
       return {
@@ -233,7 +229,10 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
     const percentages = activeRegions.map((r) => r.percentage);
     const maxPercentage = Math.max(...percentages, 0);
     const idealPercentage = 100 / regionCount;
-    const balanceScore = maxPercentage > 0 ? Math.max(0, (1 - Math.abs(maxPercentage - idealPercentage) / 100) * 40) : 0;
+    const balanceScore =
+      maxPercentage > 0
+        ? Math.max(0, (1 - Math.abs(maxPercentage - idealPercentage) / 100) * 40)
+        : 0;
 
     const avgUptime =
       activeRegions.length > 0
@@ -348,7 +347,9 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
           <section className="space-y-4 border-t border-gray-100 pt-6">
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">{t('winklink.staking.nodeDistribution')}</h3>
+              <h3 className="text-sm font-medium text-gray-900">
+                {t('winklink.staking.nodeDistribution')}
+              </h3>
             </div>
             <div className="space-y-3">
               {geographicData.map((region) => (
@@ -389,7 +390,9 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
           <section className="space-y-4 border-t border-gray-100 pt-6">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">{t('winklink.staking.decentralizationScore')}</h3>
+              <h3 className="text-sm font-medium text-gray-900">
+                {t('winklink.staking.decentralizationScore')}
+              </h3>
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -410,33 +413,38 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
               </div>
               <div className="text-xs text-gray-500 space-y-1">
                 <p>
-                  <span className="font-medium text-gray-700">{t('winklink.staking.regionCoverage')}:</span>{' '}
-                  {(geographicData.filter((r) => r.nodeCount > 0).length / 5) * 100}% (40 {t('winklink.staking.points')})
+                  <span className="font-medium text-gray-700">
+                    {t('winklink.staking.regionCoverage')}:
+                  </span>{' '}
+                  {(geographicData.filter((r) => r.nodeCount > 0).length / 5) * 100}% (40{' '}
+                  {t('winklink.staking.points')})
                 </p>
                 <p>
-                  <span className="font-medium text-gray-700">{t('winklink.staking.distributionBalance')}:</span>{' '}
+                  <span className="font-medium text-gray-700">
+                    {t('winklink.staking.distributionBalance')}:
+                  </span>{' '}
                   {decentralizationScore > 0 ? '~' : 0}
                   {Math.max(
                     0,
                     decentralizationScore -
                       (geographicData.filter((r) => r.nodeCount > 0).length / 5) * 40 -
-                      ((geographicData.filter((r) => r.nodeCount > 0).reduce(
-                        (acc, r) => acc + r.avgUptime,
-                        0
-                      ) /
+                      (geographicData
+                        .filter((r) => r.nodeCount > 0)
+                        .reduce((acc, r) => acc + r.avgUptime, 0) /
                         Math.max(1, geographicData.filter((r) => r.nodeCount > 0).length) /
                         100) *
-                        20)
+                        20
                   ).toFixed(0)}
                   % (40 {t('winklink.staking.points')})
                 </p>
                 <p>
-                  <span className="font-medium text-gray-700">{t('winklink.staking.networkHealth')}:</span>{' '}
+                  <span className="font-medium text-gray-700">
+                    {t('winklink.staking.networkHealth')}:
+                  </span>{' '}
                   {(
-                    (geographicData.filter((r) => r.nodeCount > 0).reduce(
-                      (acc, r) => acc + r.avgUptime,
-                      0
-                    ) /
+                    (geographicData
+                      .filter((r) => r.nodeCount > 0)
+                      .reduce((acc, r) => acc + r.avgUptime, 0) /
                       Math.max(1, geographicData.filter((r) => r.nodeCount > 0).length) /
                       100) *
                     100
@@ -450,17 +458,16 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
           <section className="space-y-4 border-t border-gray-100 pt-6">
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">{t('winklink.staking.regionalPerformance')}</h3>
+              <h3 className="text-sm font-medium text-gray-900">
+                {t('winklink.staking.regionalPerformance')}
+              </h3>
             </div>
             <div className="space-y-2">
               {geographicData
                 .filter((r) => r.nodeCount > 0)
                 .sort((a, b) => b.nodeCount - a.nodeCount)
                 .map((region) => (
-                  <div
-                    key={region.region}
-                    className="bg-gray-50 rounded-lg p-3 space-y-2"
-                  >
+                  <div key={region.region} className="bg-gray-50 rounded-lg p-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <MapPin className={`w-3 h-3 ${regionTextColors[region.region]}`} />
@@ -475,7 +482,9 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
                       </div>
                       <div>
                         <p className="text-gray-500">{t('winklink.staking.response')}</p>
-                        <p className="font-medium text-gray-900">{region.avgResponseTime.toFixed(0)}ms</p>
+                        <p className="font-medium text-gray-900">
+                          {region.avgResponseTime.toFixed(0)}ms
+                        </p>
                       </div>
                       <div>
                         <p className="text-gray-500">{t('winklink.staking.staked')}</p>

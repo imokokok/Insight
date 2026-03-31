@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
-import { cn } from '@/lib/utils';
 import {
   type SupportedChain,
   type CrossChainMessage,
@@ -34,6 +33,7 @@ import {
   type SecurityRecommendation,
   CHAIN_CONFIGS,
 } from '@/lib/oracles/uma/crossChainTypes';
+import { cn } from '@/lib/utils';
 
 const generateMockMessages = (): CrossChainMessage[] => {
   const chains: SupportedChain[] = ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base'];
@@ -260,9 +260,7 @@ function ChainNode({
       onClick={onClick}
       className={cn(
         'relative flex flex-col items-center p-3 transition-all duration-200 border',
-        isActive
-          ? 'border-gray-900 bg-gray-50'
-          : 'border-gray-200 bg-white hover:border-gray-300'
+        isActive ? 'border-gray-900 bg-gray-50' : 'border-gray-200 bg-white hover:border-gray-300'
       )}
     >
       <div
@@ -314,18 +312,46 @@ function MessageFlowAnimation({
   );
 }
 
-function MessageStatusBadge({ status, t }: { status: CrossChainMessage['status']; t: ReturnType<typeof useTranslations> }) {
+function MessageStatusBadge({
+  status,
+  t,
+}: {
+  status: CrossChainMessage['status'];
+  t: ReturnType<typeof useTranslations>;
+}) {
   const config = {
-    pending: { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', label: t('uma.crossChain.pending') },
-    validating: { icon: RefreshCw, color: 'text-blue-600', bg: 'bg-blue-50', label: t('uma.crossChain.processing') },
-    confirmed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: t('uma.crossChain.confirmed') },
-    failed: { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50', label: t('uma.crossChain.failed') },
+    pending: {
+      icon: Clock,
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
+      label: t('uma.crossChain.pending'),
+    },
+    validating: {
+      icon: RefreshCw,
+      color: 'text-blue-600',
+      bg: 'bg-blue-50',
+      label: t('uma.crossChain.processing'),
+    },
+    confirmed: {
+      icon: CheckCircle,
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50',
+      label: t('uma.crossChain.confirmed'),
+    },
+    failed: {
+      icon: AlertCircle,
+      color: 'text-red-600',
+      bg: 'bg-red-50',
+      label: t('uma.crossChain.failed'),
+    },
   };
 
   const { icon: Icon, color, bg, label } = config[status];
 
   return (
-    <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium', bg, color)}>
+    <span
+      className={cn('inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium', bg, color)}
+    >
       <Icon className={cn('w-3 h-3', status === 'validating' && 'animate-spin')} />
       {label}
     </span>
@@ -370,7 +396,13 @@ function SecurityScoreRing({ score }: { score: number }) {
   );
 }
 
-function SeverityBadge({ severity, t }: { severity: RiskPoint['severity']; t: ReturnType<typeof useTranslations> }) {
+function SeverityBadge({
+  severity,
+  t,
+}: {
+  severity: RiskPoint['severity'];
+  t: ReturnType<typeof useTranslations>;
+}) {
   const config = {
     low: { color: 'text-blue-600', bg: 'bg-blue-50', label: t('uma.risk.statusLow') },
     medium: { color: 'text-amber-600', bg: 'bg-amber-50', label: t('uma.risk.statusMedium') },
@@ -380,17 +412,15 @@ function SeverityBadge({ severity, t }: { severity: RiskPoint['severity']; t: Re
 
   const { color, bg, label } = config[severity];
 
-  return (
-    <span className={cn('px-2 py-0.5 text-xs font-medium', bg, color)}>
-      {label}
-    </span>
-  );
+  return <span className={cn('px-2 py-0.5 text-xs font-medium', bg, color)}>{label}</span>;
 }
 
 export function CrossChainVerification({ isLoading = false }: { isLoading?: boolean }) {
   const t = useTranslations();
   const [selectedChain, setSelectedChain] = useState<SupportedChain | null>(null);
-  const [activeSection, setActiveSection] = useState<'messages' | 'monitoring' | 'security'>('messages');
+  const [activeSection, setActiveSection] = useState<'messages' | 'monitoring' | 'security'>(
+    'messages'
+  );
   const [messages, setMessages] = useState<CrossChainMessage[]>([]);
   const [validators, setValidators] = useState<ValidatorStatus[]>([]);
   const [bridgeHealth, setBridgeHealth] = useState<BridgeHealthStatus[]>([]);
@@ -510,7 +540,9 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
       {activeSection === 'messages' && (
         <>
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.supportedChains')}</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">
+              {t('uma.crossChain.supportedChains')}
+            </h4>
             <div className="flex flex-wrap gap-3">
               {chains.map((chain) => (
                 <ChainNode
@@ -528,8 +560,12 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
 
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-gray-900">{t('uma.crossChain.activeMessages')}</h4>
-              <span className="text-xs text-gray-500">{filteredMessages.length} {t('uma.crossChain.messagesCount')}</span>
+              <h4 className="text-sm font-medium text-gray-900">
+                {t('uma.crossChain.activeMessages')}
+              </h4>
+              <span className="text-xs text-gray-500">
+                {filteredMessages.length} {t('uma.crossChain.messagesCount')}
+              </span>
             </div>
             <div className="space-y-3">
               {filteredMessages.map((message) => (
@@ -553,7 +589,8 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
                         {CHAIN_CONFIGS[message.targetChain].icon}
                       </span>
                       <span className="text-sm text-gray-600">
-                        {CHAIN_CONFIGS[message.sourceChain].name} → {CHAIN_CONFIGS[message.targetChain].name}
+                        {CHAIN_CONFIGS[message.sourceChain].name} →{' '}
+                        {CHAIN_CONFIGS[message.targetChain].name}
                       </span>
                     </div>
                     <MessageStatusBadge status={message.status} t={t} />
@@ -578,7 +615,9 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.messageLatencyStats')}</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">
+              {t('uma.crossChain.messageLatencyStats')}
+            </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
                 <p className="text-xs text-gray-500">{t('uma.crossChain.avgLatency')}</p>
@@ -591,7 +630,14 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
               <div>
                 <p className="text-xs text-gray-500">{t('uma.crossChain.successRate')}</p>
                 <p className="text-xl font-semibold text-emerald-600">
-                  {transactionStats ? ((transactionStats.successfulTransactions / transactionStats.totalTransactions) * 100).toFixed(1) : 0}%
+                  {transactionStats
+                    ? (
+                        (transactionStats.successfulTransactions /
+                          transactionStats.totalTransactions) *
+                        100
+                      ).toFixed(1)
+                    : 0}
+                  %
                 </p>
               </div>
               <div>
@@ -608,7 +654,9 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
       {activeSection === 'monitoring' && (
         <>
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.validatorStatusByChain')}</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">
+              {t('uma.crossChain.validatorStatusByChain')}
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {validators.map((validator) => (
                 <div key={validator.chainId} className="border border-gray-200 p-4">
@@ -644,11 +692,15 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">{t('uma.networkHealth.responseTime')}</span>
-                      <span className="font-medium text-gray-900">{validator.avgResponseTime}ms</span>
+                      <span className="font-medium text-gray-900">
+                        {validator.avgResponseTime}ms
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">{t('uma.stats.validatorUptime')}</span>
-                      <span className="font-medium text-emerald-600">{validator.uptime.toFixed(1)}%</span>
+                      <span className="font-medium text-emerald-600">
+                        {validator.uptime.toFixed(1)}%
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -659,16 +711,28 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.bridgeHealthStatus')}</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">
+              {t('uma.crossChain.bridgeHealthStatus')}
+            </h4>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.crossChain.route')}</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.disputes.status')}</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.networkHealth.responseTime')}</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.crossChain.successRate')}</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.crossChain.pending')}</th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">
+                      {t('uma.crossChain.route')}
+                    </th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">
+                      {t('uma.disputes.status')}
+                    </th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">
+                      {t('uma.networkHealth.responseTime')}
+                    </th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">
+                      {t('uma.crossChain.successRate')}
+                    </th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">
+                      {t('uma.crossChain.pending')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -715,7 +779,9 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.pendingQueue')}</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">
+              {t('uma.crossChain.pendingQueue')}
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {pendingQueue.map((queue) => (
                 <div key={queue.chain} className="border border-gray-200 p-3">
@@ -749,7 +815,9 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.transactionStats')}</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">
+              {t('uma.crossChain.transactionStats')}
+            </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
                 <p className="text-xs text-gray-500">{t('uma.crossChain.totalTransactions')}</p>
@@ -761,7 +829,11 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
                 <p className="text-xs text-gray-500">{t('uma.crossChain.successRate')}</p>
                 <p className="text-xl font-semibold text-emerald-600">
                   {transactionStats
-                    ? ((transactionStats.successfulTransactions / transactionStats.totalTransactions) * 100).toFixed(2)
+                    ? (
+                        (transactionStats.successfulTransactions /
+                          transactionStats.totalTransactions) *
+                        100
+                      ).toFixed(2)
                     : 0}
                   %
                 </p>
@@ -775,7 +847,9 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
                   <span
                     className={cn(
                       'text-xs font-medium',
-                      (transactionStats?.volumeChange ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'
+                      (transactionStats?.volumeChange ?? 0) >= 0
+                        ? 'text-emerald-600'
+                        : 'text-red-600'
                     )}
                   >
                     {(transactionStats?.volumeChange ?? 0) >= 0 ? '+' : ''}
@@ -801,7 +875,9 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-900">{t('uma.crossChain.overallSecurityScore')}</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {t('uma.crossChain.overallSecurityScore')}
+                </span>
               </div>
               <p className="text-sm text-gray-500">
                 {securityScore && getSecurityStatusText(securityScore.overall)}
@@ -812,7 +888,9 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.securityComponents')}</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">
+              {t('uma.crossChain.securityComponents')}
+            </h4>
             <div className="space-y-3">
               {securityScore?.components.map((component, index) => (
                 <div key={index} className="flex items-center justify-between">
@@ -858,8 +936,12 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
 
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-gray-900">{t('uma.crossChain.activeRiskPoints')}</h4>
-              <span className="text-xs text-gray-500">{activeRisks.length} {t('uma.crossChain.activeCount')}</span>
+              <h4 className="text-sm font-medium text-gray-900">
+                {t('uma.crossChain.activeRiskPoints')}
+              </h4>
+              <span className="text-xs text-gray-500">
+                {activeRisks.length} {t('uma.crossChain.activeCount')}
+              </span>
             </div>
             <div className="space-y-3">
               {activeRisks.map((risk) => (
@@ -897,7 +979,9 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.securityEventHistory')}</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">
+              {t('uma.crossChain.securityEventHistory')}
+            </h4>
             <div className="space-y-2">
               {securityEvents.slice(0, 5).map((event) => (
                 <div
@@ -935,7 +1019,9 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
           <div className="border-t border-gray-200" />
 
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('uma.crossChain.securityRecommendations')}</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">
+              {t('uma.crossChain.securityRecommendations')}
+            </h4>
             <div className="space-y-3">
               {recommendations.map((rec) => (
                 <div key={rec.id} className="flex items-start gap-3 p-3 border border-gray-200">
@@ -958,7 +1044,8 @@ export function CrossChainVerification({ isLoading = false }: { isLoading?: bool
                     </div>
                     <p className="text-xs text-gray-600 mb-1">{rec.description}</p>
                     <p className="text-xs text-gray-500">
-                      <span className="font-medium">{t('uma.crossChain.action')}:</span> {rec.action}
+                      <span className="font-medium">{t('uma.crossChain.action')}:</span>{' '}
+                      {rec.action}
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />

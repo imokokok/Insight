@@ -31,9 +31,9 @@ import {
   Bar,
 } from 'recharts';
 
+import useAPI3Analytics, { type DataPoint, type Anomaly } from '@/hooks/useAPI3Analytics';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
-import useAPI3Analytics, { type DataPoint, type Anomaly } from '@/hooks/useAPI3Analytics';
 
 export interface AnomalyDetectionProps {
   data: DataPoint[];
@@ -53,13 +53,20 @@ export function AnomalyDetection({
   onAnomalyDetected,
 }: AnomalyDetectionProps) {
   const t = useTranslations();
-  const { detectAnomalies, detectAnomaliesByZScore, detectAnomaliesByIQR, calculateMean, calculateStandardDeviation } =
-    useAPI3Analytics();
+  const {
+    detectAnomalies,
+    detectAnomaliesByZScore,
+    detectAnomaliesByIQR,
+    calculateMean,
+    calculateStandardDeviation,
+  } = useAPI3Analytics();
 
   const [sensitivity, setSensitivity] = useState(initialSensitivity);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<'combined' | 'zscore' | 'iqr'>('combined');
-  const [selectedSeverity, setSelectedSeverity] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [selectedSeverity, setSelectedSeverity] = useState<'all' | 'low' | 'medium' | 'high'>(
+    'all'
+  );
   const [selectedAnomaly, setSelectedAnomaly] = useState<Anomaly | null>(null);
 
   const anomalies = useMemo(() => {
@@ -68,7 +75,10 @@ export function AnomalyDetection({
     let detected: Anomaly[];
     switch (selectedMethod) {
       case 'zscore':
-        detected = detectAnomaliesByZScore(data, sensitivity === 'low' ? 3.5 : sensitivity === 'medium' ? 2.5 : 1.5);
+        detected = detectAnomaliesByZScore(
+          data,
+          sensitivity === 'low' ? 3.5 : sensitivity === 'medium' ? 2.5 : 1.5
+        );
         break;
       case 'iqr':
         detected = detectAnomaliesByIQR(data);
@@ -78,7 +88,14 @@ export function AnomalyDetection({
     }
 
     return detected;
-  }, [data, sensitivity, selectedMethod, detectAnomalies, detectAnomaliesByZScore, detectAnomaliesByIQR]);
+  }, [
+    data,
+    sensitivity,
+    selectedMethod,
+    detectAnomalies,
+    detectAnomaliesByZScore,
+    detectAnomaliesByIQR,
+  ]);
 
   useEffect(() => {
     if (anomalies.length > 0 && onAnomalyDetected) {
@@ -303,7 +320,9 @@ export function AnomalyDetection({
             <div className="text-xs text-gray-500 mb-1">
               {t('api3.analytics.anomaly.anomalyRate') || 'Anomaly Rate'}
             </div>
-            <div className="text-xl font-bold text-gray-900">{statistics.anomalyRate.toFixed(2)}%</div>
+            <div className="text-xl font-bold text-gray-900">
+              {statistics.anomalyRate.toFixed(2)}%
+            </div>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -361,7 +380,9 @@ export function AnomalyDetection({
                   return (
                     <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
                       <p className="text-xs text-gray-500 mb-1">{data.time}</p>
-                      <p className="text-sm font-medium text-gray-900">Value: ${data.value.toFixed(2)}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        Value: ${data.value.toFixed(2)}
+                      </p>
                       {data.isAnomaly && (
                         <p className={`text-xs mt-1 ${getSeverityBgColor(data.anomalySeverity)}`}>
                           Anomaly ({data.anomalySeverity})
@@ -420,7 +441,9 @@ export function AnomalyDetection({
             </h3>
             <select
               value={selectedSeverity}
-              onChange={(e) => setSelectedSeverity(e.target.value as 'all' | 'low' | 'medium' | 'high')}
+              onChange={(e) =>
+                setSelectedSeverity(e.target.value as 'all' | 'low' | 'medium' | 'high')
+              }
               className="text-sm border border-gray-300 rounded-md px-2 py-1"
             >
               <option value="all">All Severities</option>
@@ -459,7 +482,8 @@ export function AnomalyDetection({
                     </span>
                   </div>
                   <div className="mt-1 text-xs text-gray-500">
-                    Deviation: ${anomaly.deviation.toFixed(2)} | Expected: ${anomaly.expectedValue.toFixed(2)}
+                    Deviation: ${anomaly.deviation.toFixed(2)} | Expected: $
+                    {anomaly.expectedValue.toFixed(2)}
                   </div>
                 </button>
               ))}
@@ -468,7 +492,8 @@ export function AnomalyDetection({
             <div className="text-center py-8 text-gray-500">
               <Info className="w-8 h-8 mx-auto mb-2 text-gray-300" />
               <p className="text-sm">
-                {t('api3.analytics.anomaly.noAnomalies') || 'No anomalies detected with current settings'}
+                {t('api3.analytics.anomaly.noAnomalies') ||
+                  'No anomalies detected with current settings'}
               </p>
             </div>
           )}

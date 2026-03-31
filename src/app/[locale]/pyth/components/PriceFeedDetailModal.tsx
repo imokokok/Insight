@@ -29,8 +29,8 @@ import {
 
 import { ConfidenceIntervalChart } from '@/components/oracle/charts/ConfidenceIntervalChart';
 import { useTranslations, useLocale } from '@/i18n';
-import { chartColors } from '@/lib/config/colors';
 import { isChineseLocale } from '@/i18n/routing';
+import { chartColors } from '@/lib/config/colors';
 import { PYTH_PRICE_FEED_IDS } from '@/lib/oracles/pythConstants';
 import {
   getPythDataService,
@@ -403,9 +403,7 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-500">
-                  {t('pyth.priceFeeds.currentPrice')}
-                </span>
+                <span className="text-sm text-gray-500">{t('pyth.priceFeeds.currentPrice')}</span>
               </div>
               <p
                 className={cn(
@@ -458,30 +456,22 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                 </span>
               </div>
               <p className="text-2xl font-bold text-gray-900">{priceFeed.updateFrequency}</p>
-              <p className="text-xs text-gray-400 mt-1">
-                {t('pyth.priceFeeds.realTime')}
-              </p>
+              <p className="text-xs text-gray-400 mt-1">{t('pyth.priceFeeds.realTime')}</p>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-500">
-                  {t('pyth.priceFeeds.reliability')}
-                </span>
+                <span className="text-sm text-gray-500">{t('pyth.priceFeeds.reliability')}</span>
               </div>
               <p className="text-2xl font-bold text-emerald-600">{priceFeed.reliability}%</p>
-              <p className="text-xs text-gray-400 mt-1">
-                {t('pyth.priceFeeds.last30Days')}
-              </p>
+              <p className="text-xs text-gray-400 mt-1">{t('pyth.priceFeeds.last30Days')}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-violet-50 p-4 rounded-lg">
-              <p className="text-sm text-violet-600 mb-1">
-                {t('pyth.priceFeeds.category')}
-              </p>
+              <p className="text-sm text-violet-600 mb-1">{t('pyth.priceFeeds.category')}</p>
               <p className="text-base font-semibold text-violet-900">
                 {getCategoryLabel(priceFeed.category)}
               </p>
@@ -495,17 +485,13 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
               </p>
             </div>
             <div className="bg-emerald-50 p-4 rounded-lg">
-              <p className="text-sm text-emerald-600 mb-1">
-                {t('pyth.priceFeeds.totalRequests')}
-              </p>
+              <p className="text-sm text-emerald-600 mb-1">{t('pyth.priceFeeds.totalRequests')}</p>
               <p className="text-base font-semibold text-emerald-900">
                 {(priceFeed.totalRequests / 1e6).toFixed(1)}M
               </p>
             </div>
             <div className={`p-4 rounded-lg ${statusDisplay.bgColor}`}>
-              <p className={`text-sm mb-1 ${statusDisplay.color}`}>
-                {t('pyth.priceFeeds.status')}
-              </p>
+              <p className={`text-sm mb-1 ${statusDisplay.color}`}>{t('pyth.priceFeeds.status')}</p>
               <div className="flex items-center gap-1.5">
                 {statusDisplay.icon}
                 <span className={`text-base font-semibold ${statusDisplay.color}`}>
@@ -631,7 +617,9 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
                               : 'bg-gray-100 text-gray-600'
                           }`}
                         >
-                          {publisher.status === 'active' ? t('pyth.priceFeeds.statusActive') : t('pyth.priceFeeds.statusInactive')}
+                          {publisher.status === 'active'
+                            ? t('pyth.priceFeeds.statusActive')
+                            : t('pyth.priceFeeds.statusInactive')}
                         </span>
                       </td>
                     </tr>

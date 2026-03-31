@@ -8,7 +8,10 @@ import { useTranslations, useLocale } from '@/i18n';
 
 import { type BandProtocolIBCViewProps } from '../types';
 
-function formatTimeAgo(timestamp: number, t: (key: string, params?: Record<string, string | number | Date>) => string): string {
+function formatTimeAgo(
+  timestamp: number,
+  t: (key: string, params?: Record<string, string | number | Date>) => string
+): string {
   const now = Date.now();
   const diff = now - timestamp;
   const minutes = Math.floor(diff / 60000);
@@ -138,7 +141,9 @@ export function BandProtocolIBCView({
                     title={`${trend.transfers.toLocaleString()} transfers`}
                   />
                   {index % 2 === 0 && (
-                    <span className="text-xs text-gray-400">{formatDate(trend.timestamp, locale)}</span>
+                    <span className="text-xs text-gray-400">
+                      {formatDate(trend.timestamp, locale)}
+                    </span>
                   )}
                 </div>
               );

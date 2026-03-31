@@ -42,7 +42,9 @@ function generatePriceStreamData(basePrice: number, symbol: string): PriceStream
       volume: Math.floor(seededRandom(seed + 100) * 10000) + 1000,
       change: change,
       changePercent: (change / basePrice) * 100,
-      source: ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism'][Math.floor(seededRandom(seed + 200) * 4)],
+      source: ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism'][
+        Math.floor(seededRandom(seed + 200) * 4)
+      ],
     });
   }
   return data;
@@ -176,14 +178,20 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
             <h3 className="text-base font-medium text-gray-900">{t('priceTrend')}</h3>
           </div>
           <div className="flex-1">
-            <PriceChart
-              client={config.client}
-              symbol={config.symbol}
-              chain={config.defaultChain}
-              height={300}
-              showToolbar={true}
-              defaultPrice={config.marketData.change24hValue}
-            />
+            {config.client ? (
+              <PriceChart
+                client={config.client}
+                symbol={config.symbol}
+                chain={config.defaultChain}
+                height={300}
+                showToolbar={true}
+                defaultPrice={config.marketData.change24hValue}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+                <p className="text-gray-500">{t('common.noData')}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -226,9 +234,7 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
 
           {/* 网络状态 - 内联布局 */}
           <div className="flex-1 flex flex-col">
-            <h3 className="text-base font-medium text-gray-900 mb-4">
-              {t('networkStatus')}
-            </h3>
+            <h3 className="text-base font-medium text-gray-900 mb-4">{t('networkStatus')}</h3>
             <div className="flex-1 flex flex-col gap-3">
               {networkStatus.map((item, index) => {
                 const Icon = item.icon;
@@ -279,9 +285,7 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
 
       {/* 核心交易对信息 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('market.tradingPair')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('market.tradingPair')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-xs text-gray-400 mb-1">TRB/USDC</p>

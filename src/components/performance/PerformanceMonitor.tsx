@@ -287,5 +287,3 @@ export function PerformanceMonitor({
     </div>
   );
 }
-
-

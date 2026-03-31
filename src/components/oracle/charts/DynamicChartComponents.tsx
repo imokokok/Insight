@@ -1,15 +1,17 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { ChartSkeleton } from '@/components/ui';
 import type { ComponentType } from 'react';
+
+import dynamic from 'next/dynamic';
+
+import { ChartSkeleton } from '@/components/ui';
 
 // Dynamic Chart Components - Code Splitting for Heavy Components
 
 const createDynamicChart = <T extends object>(
-  importFn: () => Promise<{ default: ComponentType<T> } | { [key: string]: ComponentType<T> }>,
+  importFn: () => Promise<{ default: ComponentType<T> }>,
   height: number = 400,
-  variant: string = 'default'
+  variant: 'price' | 'line' | 'area' | 'bar' = 'line'
 ): ComponentType<T> => {
   return dynamic(importFn, {
     ssr: false,
@@ -70,7 +72,8 @@ export const DynamicRequestTrendChart = createDynamicChart(
 );
 
 export const DynamicConfidenceIntervalChart = createDynamicChart(
-  () => import('./ConfidenceIntervalChart').then((mod) => ({ default: mod.ConfidenceIntervalChart })),
+  () =>
+    import('./ConfidenceIntervalChart').then((mod) => ({ default: mod.ConfidenceIntervalChart })),
   400,
   'confidence'
 );
@@ -82,13 +85,17 @@ export const DynamicCDFChart = createDynamicChart(
 );
 
 export const DynamicStakingDistributionChart = createDynamicChart(
-  () => import('./StakingDistributionChart').then((mod) => ({ default: mod.StakingDistributionChart })),
+  () =>
+    import('./StakingDistributionChart').then((mod) => ({ default: mod.StakingDistributionChart })),
   400,
   'staking'
 );
 
 export const DynamicPriceDeviationHistoryChart = createDynamicChart(
-  () => import('./PriceDeviationHistoryChart').then((mod) => ({ default: mod.PriceDeviationHistoryChart })),
+  () =>
+    import('./PriceDeviationHistoryChart').then((mod) => ({
+      default: mod.PriceDeviationHistoryChart,
+    })),
   400,
   'deviation'
 );
@@ -112,7 +119,8 @@ export const DynamicDataQualityTrend = createDynamicChart(
 );
 
 export const DynamicPriceDistributionBoxPlot = createDynamicChart(
-  () => import('./PriceDistributionBoxPlot').then((mod) => ({ default: mod.PriceDistributionBoxPlot })),
+  () =>
+    import('./PriceDistributionBoxPlot').then((mod) => ({ default: mod.PriceDistributionBoxPlot })),
   400,
   'boxPlot'
 );
@@ -136,13 +144,19 @@ export const DynamicUpdateFrequencyHeatmap = createDynamicChart(
 );
 
 export const DynamicValidatorPerformanceHeatmap = createDynamicChart(
-  () => import('./ValidatorPerformanceHeatmap').then((mod) => ({ default: mod.ValidatorPerformanceHeatmap })),
+  () =>
+    import('./ValidatorPerformanceHeatmap').then((mod) => ({
+      default: mod.ValidatorPerformanceHeatmap,
+    })),
   400,
   'heatmap'
 );
 
 export const DynamicLatencyDistributionHistogram = createDynamicChart(
-  () => import('./LatencyDistributionHistogram').then((mod) => ({ default: mod.LatencyDistributionHistogram })),
+  () =>
+    import('./LatencyDistributionHistogram').then((mod) => ({
+      default: mod.LatencyDistributionHistogram,
+    })),
   400,
   'histogram'
 );
@@ -154,7 +168,10 @@ export const DynamicValidatorGeographicMap = createDynamicChart(
 );
 
 export const DynamicCrossChainPriceComparison = createDynamicChart(
-  () => import('./CrossChainPriceComparison').then((mod) => ({ default: mod.CrossChainPriceComparison })),
+  () =>
+    import('./CrossChainPriceComparison').then((mod) => ({
+      default: mod.CrossChainPriceComparison,
+    })),
   400,
   'comparison'
 );
@@ -202,7 +219,8 @@ export const DynamicValidatorComparison = createDynamicChart(
 );
 
 export const DynamicMultiValidatorComparison = createDynamicChart(
-  () => import('./MultiValidatorComparison').then((mod) => ({ default: mod.MultiValidatorComparison })),
+  () =>
+    import('./MultiValidatorComparison').then((mod) => ({ default: mod.MultiValidatorComparison })),
   400,
   'comparison'
 );
@@ -236,5 +254,3 @@ export const DynamicPriceStream = createDynamicChart(
   400,
   'stream'
 );
-
-

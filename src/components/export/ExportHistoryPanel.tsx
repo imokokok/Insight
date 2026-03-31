@@ -4,8 +4,9 @@ import { motion } from 'framer-motion';
 import { X, Download, Trash2, FileText, FileJson, Table, FileSpreadsheet } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
-import { useExportHistory } from './useExportHistory';
+
 import { type ExportDataSource, type ExportHistoryItem, type ExportFormat } from './types';
+import { useExportHistory } from './useExportHistory';
 
 interface ExportHistoryPanelProps {
   onClose: () => void;
@@ -21,7 +22,8 @@ const formatIcons: Record<ExportFormat, React.ReactNode> = {
 
 export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelProps) {
   const t = useTranslations('common');
-  const { history, removeHistoryItem, clearHistory, formatFileSize, isLoading } = useExportHistory();
+  const { history, removeHistoryItem, clearHistory, formatFileSize, isLoading } =
+    useExportHistory();
 
   const filteredHistory = dataSource
     ? history.filter((item) => item.dataSource === dataSource)
@@ -50,9 +52,7 @@ export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelPr
       className="fixed right-4 top-16 z-50 w-96 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden"
     >
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">
-          {t('exportHistory')}
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900">{t('exportHistory')}</h3>
         <div className="flex items-center gap-2">
           {filteredHistory.length > 0 && (
             <button
@@ -74,38 +74,25 @@ export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelPr
 
       <div className="max-h-96 overflow-y-auto">
         {isLoading ? (
-          <div className="p-8 text-center text-gray-500">
-            {t('loading')}
-          </div>
+          <div className="p-8 text-center text-gray-500">{t('loading')}</div>
         ) : filteredHistory.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            {t('noExportHistory')}
-          </div>
+          <div className="p-8 text-center text-gray-500">{t('noExportHistory')}</div>
         ) : (
           <div className="divide-y divide-gray-100">
             {filteredHistory.map((item) => (
-              <div
-                key={item.id}
-                className="p-3 hover:bg-gray-50 transition-colors"
-              >
+              <div key={item.id} className="p-3 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 min-w-0">
                     <div className="p-1.5 bg-gray-100 rounded text-gray-600">
                       {formatIcons[item.format]}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {item.fileName}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatDate(item.createdAt)}
-                      </p>
+                      <p className="text-sm font-medium text-gray-900 truncate">{item.fileName}</p>
+                      <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-gray-400">
-                      {formatFileSize(item.fileSize)}
-                    </span>
+                    <span className="text-xs text-gray-400">{formatFileSize(item.fileSize)}</span>
                     {item.downloadUrl && (
                       <button
                         onClick={() => handleReDownload(item)}

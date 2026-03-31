@@ -63,7 +63,11 @@ const getDeviationFilters = (
   t: (key: string) => string
 ): { value: DeviationFilter; label: string; threshold: string }[] => [
   { value: 'all', label: t('crossOracle.groups.all') || 'All', threshold: '' },
-  { value: 'excellent', label: t('crossOracle.consistency.excellent') || 'Low', threshold: '<0.1%' },
+  {
+    value: 'excellent',
+    label: t('crossOracle.consistency.excellent') || 'Low',
+    threshold: '<0.1%',
+  },
   { value: 'good', label: t('crossOracle.consistency.good') || 'Medium', threshold: '0.1-0.5%' },
   { value: 'poor', label: t('crossOracle.consistency.poor') || 'High', threshold: '>0.5%' },
 ];

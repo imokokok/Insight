@@ -246,9 +246,7 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <p className="text-xs text-gray-500 mb-1">
-              {t('uma.disputes.avgResolutionTime')}
-            </p>
+            <p className="text-xs text-gray-500 mb-1">{t('uma.disputes.avgResolutionTime')}</p>
             <p className="text-lg font-semibold text-gray-900">
               {networkStats?.avgResolutionTime ? `${networkStats.avgResolutionTime}h` : '24h'}
             </p>
@@ -258,9 +256,7 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
             <p className="text-lg font-semibold text-red-600">{rejectedDisputes}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">
-              {t('uma.disputes.avgStake')}
-            </p>
+            <p className="text-xs text-gray-500 mb-1">{t('uma.disputes.avgStake')}</p>
             <p className="text-lg font-semibold text-gray-900">
               $
               {disputes.length > 0

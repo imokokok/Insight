@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import { useRealtimeAlerts } from '@/hooks';
-import { useConnectionStatus } from '@/stores/realtimeStore';
 import { useTranslations } from '@/i18n';
+import { useConnectionStatus } from '@/stores/realtimeStore';
 
 export interface NotificationData {
   id: string;

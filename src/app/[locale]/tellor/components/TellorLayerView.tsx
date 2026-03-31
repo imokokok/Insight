@@ -111,7 +111,7 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
   const t = useTranslations('tellor');
 
   const maxBridgeValue = useMemo(() => {
-    const allValues = bridgeActivityData.flatMap(d => [d.ethToLayer, d.layerToEth]);
+    const allValues = bridgeActivityData.flatMap((d) => [d.ethToLayer, d.layerToEth]);
     return Math.max(...allValues);
   }, []);
 
@@ -155,7 +155,9 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
             <div className="p-1.5 rounded-lg bg-cyan-50">
               <Users className="w-4 h-4 text-cyan-600" />
             </div>
-            <span className="text-xs text-gray-500">{t('tellorLayer.metrics.activeValidators')}</span>
+            <span className="text-xs text-gray-500">
+              {t('tellorLayer.metrics.activeValidators')}
+            </span>
           </div>
           <p className="text-2xl font-bold text-gray-900">{mockMetrics.activeValidators}</p>
           <p className="text-xs text-emerald-600 mt-1">+3 {t('hero.thisWeek')}</p>
@@ -187,14 +189,18 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
             </div>
             <span className="text-xs text-gray-500">{t('tellorLayer.metrics.trbStaked')}</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{(mockMetrics.trbStaked / 1e6).toFixed(2)}M</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {(mockMetrics.trbStaked / 1e6).toFixed(2)}M
+          </p>
           <p className="text-xs text-emerald-600 mt-1">+12%</p>
         </div>
       </div>
 
       {/* Bridge Statistics */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-base font-medium text-gray-900 mb-4">{t('tellorLayer.bridge.title')}</h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('tellorLayer.bridge.title')}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-gray-50">
@@ -207,7 +213,8 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
                   ${(mockBridgeStats.ethToLayer.volume / 1e6).toFixed(2)}M
                 </span>
                 <span className="text-xs text-gray-500">
-                  {mockBridgeStats.ethToLayer.transactions} {t('tellorLayer.bridge.transactions').toLowerCase()}
+                  {mockBridgeStats.ethToLayer.transactions}{' '}
+                  {t('tellorLayer.bridge.transactions').toLowerCase()}
                 </span>
               </div>
               <p className="text-xs text-amber-600 mt-1">
@@ -224,7 +231,8 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
                   ${(mockBridgeStats.layerToEth.volume / 1e6).toFixed(2)}M
                 </span>
                 <span className="text-xs text-gray-500">
-                  {mockBridgeStats.layerToEth.transactions} {t('tellorLayer.bridge.transactions').toLowerCase()}
+                  {mockBridgeStats.layerToEth.transactions}{' '}
+                  {t('tellorLayer.bridge.transactions').toLowerCase()}
                 </span>
               </div>
               <p className="text-xs text-amber-600 mt-1">
@@ -279,7 +287,9 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
 
       {/* Native Data Sources */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-base font-medium text-gray-900 mb-4">{t('tellorLayer.dataSources.title')}</h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('tellorLayer.dataSources.title')}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {mockDataSources.map((source, index) => (
             <div
@@ -308,7 +318,9 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
 
       {/* Comparison with EVM Chains */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-base font-medium text-gray-900 mb-4">{t('tellorLayer.comparison.title')}</h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('tellorLayer.comparison.title')}
+        </h3>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -327,10 +339,22 @@ export function TellorLayerView({ isLoading }: TellorLayerViewProps) {
             <tbody className="divide-y divide-gray-200">
               {[
                 { feature: t('tellorLayer.comparison.updateSpeed'), layer: '~2s', evm: '~12s' },
-                { feature: t('tellorLayer.comparison.gasCost'), layer: t('tellorLayer.comparison.nearZero'), evm: t('tellorLayer.comparison.variable') },
-                { feature: t('tellorLayer.comparison.customData'), layer: t('tellorLayer.comparison.native'), evm: t('tellorLayer.comparison.limited') },
+                {
+                  feature: t('tellorLayer.comparison.gasCost'),
+                  layer: t('tellorLayer.comparison.nearZero'),
+                  evm: t('tellorLayer.comparison.variable'),
+                },
+                {
+                  feature: t('tellorLayer.comparison.customData'),
+                  layer: t('tellorLayer.comparison.native'),
+                  evm: t('tellorLayer.comparison.limited'),
+                },
                 { feature: t('tellorLayer.comparison.consensus'), layer: 'PoS', evm: 'PoW/PoS' },
-                { feature: t('tellorLayer.comparison.finality'), layer: t('tellorLayer.comparison.instant'), evm: '~6 min' },
+                {
+                  feature: t('tellorLayer.comparison.finality'),
+                  layer: t('tellorLayer.comparison.instant'),
+                  evm: '~6 min',
+                },
               ].map((row, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm text-gray-900">{row.feature}</td>

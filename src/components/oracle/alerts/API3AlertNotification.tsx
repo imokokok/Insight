@@ -250,12 +250,7 @@ export function API3AlertToast({ alert, onClose }: { alert: API3Alert; onClose: 
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       )}
     >
-      <div
-        className={cn(
-          'rounded-lg border shadow-lg p-4',
-          getAlertSeverityColor(alert.severity)
-        )}
-      >
+      <div className={cn('rounded-lg border shadow-lg p-4', getAlertSeverityColor(alert.severity))}>
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             <Bell className="w-5 h-5" />

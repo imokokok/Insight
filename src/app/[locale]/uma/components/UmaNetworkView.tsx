@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+
 import {
   Users,
   Clock,
@@ -80,8 +81,18 @@ const generateTopologyNodes = (): TopologyNode[] => {
       y,
       status,
       connections: i % 2 === 0 ? [`validator-${(i + 1) % validatorCount}`] : [],
-      uptime: status === 'healthy' ? 99.5 + Math.random() * 0.5 : status === 'warning' ? 95 + Math.random() * 4 : 85 + Math.random() * 10,
-      latency: status === 'healthy' ? 50 + Math.random() * 50 : status === 'warning' ? 100 + Math.random() * 100 : 200 + Math.random() * 200,
+      uptime:
+        status === 'healthy'
+          ? 99.5 + Math.random() * 0.5
+          : status === 'warning'
+            ? 95 + Math.random() * 4
+            : 85 + Math.random() * 10,
+      latency:
+        status === 'healthy'
+          ? 50 + Math.random() * 50
+          : status === 'warning'
+            ? 100 + Math.random() * 100
+            : 200 + Math.random() * 200,
     });
   }
 
@@ -92,7 +103,7 @@ const generateTopologyNodes = (): TopologyNode[] => {
     x: centerX,
     y: centerY,
     status: 'healthy',
-    connections: validators.slice(0, 4).map(v => v.id),
+    connections: validators.slice(0, 4).map((v) => v.id),
     uptime: 99.9,
     latency: 45,
   });
@@ -153,8 +164,8 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
     setPerformance(generatePerformanceData());
   }, []);
 
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.2, 2));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.2, 0.5));
+  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.2, 2));
+  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.2, 0.5));
   const handleResetView = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -409,9 +420,9 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
             </defs>
 
             <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-              {topologyNodes.map(node =>
-                node.connections.map(connId => {
-                  const target = topologyNodes.find(n => n.id === connId);
+              {topologyNodes.map((node) =>
+                node.connections.map((connId) => {
+                  const target = topologyNodes.find((n) => n.id === connId);
                   if (!target) return null;
                   return (
                     <line
@@ -429,7 +440,7 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
                 })
               )}
 
-              {topologyNodes.map(node => {
+              {topologyNodes.map((node) => {
                 const colors = getNodeColor(node.status);
                 const Icon = getNodeIcon(node.type);
                 const isSelected = selectedNode?.id === node.id;
@@ -438,7 +449,7 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
                   <g
                     key={node.id}
                     transform={`translate(${node.x}, ${node.y})`}
-                    onClick={e => {
+                    onClick={(e) => {
                       e.stopPropagation();
                       setSelectedNode(node);
                     }}
@@ -454,7 +465,13 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
                     />
 
                     {node.status === 'warning' && (
-                      <circle r={node.type === 'relayer' ? 32 : 24} fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="4,2">
+                      <circle
+                        r={node.type === 'relayer' ? 32 : 24}
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="2"
+                        strokeDasharray="4,2"
+                      >
                         <animateTransform
                           attributeName="transform"
                           type="rotate"
@@ -467,7 +484,13 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
                     )}
 
                     {node.status === 'critical' && (
-                      <circle r={node.type === 'relayer' ? 32 : 24} fill="none" stroke="#ef4444" strokeWidth="2" strokeDasharray="4,2">
+                      <circle
+                        r={node.type === 'relayer' ? 32 : 24}
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="2"
+                        strokeDasharray="4,2"
+                      >
                         <animateTransform
                           attributeName="transform"
                           type="rotate"
@@ -488,7 +511,7 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
                 );
               })}
 
-              {topologyNodes.map(node => (
+              {topologyNodes.map((node) => (
                 <text
                   key={`label-${node.id}`}
                   x={node.x}
@@ -581,8 +604,12 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 border border-gray-200 rounded-lg">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-gray-600">{t('uma.network.networkLoad') || 'Network Load'}</span>
-                <span className="text-sm font-medium text-gray-900">{performance.networkLoad.toFixed(1)}%</span>
+                <span className="text-sm text-gray-600">
+                  {t('uma.network.networkLoad') || 'Network Load'}
+                </span>
+                <span className="text-sm font-medium text-gray-900">
+                  {performance.networkLoad.toFixed(1)}%
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div
@@ -616,7 +643,9 @@ export function UmaNetworkView({ config, networkStats, isLoading }: UmaNetworkVi
                         ? 'bg-amber-500'
                         : 'bg-blue-500'
                   }`}
-                  style={{ width: `${Math.min((performance.pendingTransactions / 5000) * 100, 100)}%` }}
+                  style={{
+                    width: `${Math.min((performance.pendingTransactions / 5000) * 100, 100)}%`,
+                  }}
                 />
               </div>
             </div>

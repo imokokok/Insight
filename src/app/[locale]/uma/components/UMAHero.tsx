@@ -29,10 +29,10 @@ import {
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
 import { DataFreshnessIndicator } from '@/components/ui/DataFreshnessIndicator';
+import { useUMARealtime } from '@/hooks/useUMARealtime';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
-import { useUMARealtime } from '@/hooks/useUMARealtime';
 
 export interface UMAHeroProps {
   config: OracleConfig;
@@ -107,11 +107,15 @@ function DataSourceBadge({
     >
       <span className="relative flex h-2 w-2">
         {config.animate && (
-          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.dot} opacity-75`} />
+          <span
+            className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.dot} opacity-75`}
+          />
         )}
         <span className={`relative inline-flex rounded-full h-2 w-2 ${config.dot}`} />
       </span>
-      <span>{t('uma.market.dataSourceLabel')}: {config.label}</span>
+      <span>
+        {t('uma.market.dataSourceLabel')}: {config.label}
+      </span>
     </div>
   );
 }
@@ -380,12 +384,27 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: t('uma.staking.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('uma.staking.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: t('uma.staking.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('uma.staking.low'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: t('uma.staking.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('uma.staking.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     return { label: t('uma.staking.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
   }, [networkStats, t]);
 
@@ -477,7 +496,13 @@ function UnifiedInfoSection({
   );
 }
 
-function QuickActions({ themeColor, t }: { themeColor: string; t: ReturnType<typeof useTranslations> }) {
+function QuickActions({
+  themeColor,
+  t,
+}: {
+  themeColor: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
   const actions = [
     { icon: <Bell className="w-3.5 h-3.5" />, label: t('uma.hero.priceAlert') },
     { icon: <Plus className="w-3.5 h-3.5" />, label: t('uma.hero.addMonitor') },
@@ -503,15 +528,29 @@ function QuickActions({ themeColor, t }: { themeColor: string; t: ReturnType<typ
 function LatestUpdates({ t }: { t: ReturnType<typeof useTranslations> }) {
   const defaultUpdates = [
     { type: 'price' as const, text: t('uma.hero.priceUpdate'), time: `2${t('uma.hero.hoursAgo')}` },
-    { type: 'node' as const, text: t('uma.hero.newNodeJoined'), time: `5${t('uma.hero.hoursAgo')}` },
-    { type: 'feed' as const, text: t('uma.hero.dataFeedUpdate'), time: `8${t('uma.hero.hoursAgo')}` },
-    { type: 'system' as const, text: t('uma.hero.systemMaintenanceComplete'), time: `15${t('uma.hero.hoursAgo')}` },
+    {
+      type: 'node' as const,
+      text: t('uma.hero.newNodeJoined'),
+      time: `5${t('uma.hero.hoursAgo')}`,
+    },
+    {
+      type: 'feed' as const,
+      text: t('uma.hero.dataFeedUpdate'),
+      time: `8${t('uma.hero.hoursAgo')}`,
+    },
+    {
+      type: 'system' as const,
+      text: t('uma.hero.systemMaintenanceComplete'),
+      time: `15${t('uma.hero.hoursAgo')}`,
+    },
   ];
 
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">{t('uma.hero.latestUpdates')}:</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">
+          {t('uma.hero.latestUpdates')}:
+        </span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {defaultUpdates.map((update, index) => (
@@ -566,7 +605,8 @@ export function UMAHero({
   const realtimePrice = realtime.price.priceData;
   const realtimeLastUpdate = realtime.price.lastUpdate;
 
-  const currentPrice = realtimePrice?.price ?? price?.price ?? config.marketData.change24hValue ?? 4.5;
+  const currentPrice =
+    realtimePrice?.price ?? price?.price ?? config.marketData.change24hValue ?? 4.5;
   const priceChange24h = realtimePrice?.change24h ?? config.marketData.change24h ?? 0;
   const isPositive = priceChange24h >= 0;
   const marketCap = config.marketData.marketCap ?? 0;
@@ -667,7 +707,13 @@ export function UMAHero({
     return Math.round(uptimeScore + responseScore + feedScore);
   }, [networkStats, config]);
 
-  const connectionStatus = isRealtimeConnected ? 'connected' : realtime.isConnecting ? 'connecting' : realtime.isReconnecting ? 'reconnecting' : 'disconnected';
+  const connectionStatus = isRealtimeConnected
+    ? 'connected'
+    : realtime.isConnecting
+      ? 'connecting'
+      : realtime.isReconnecting
+        ? 'reconnecting'
+        : 'disconnected';
 
   return (
     <div className="bg-white border-b border-gray-200">
@@ -777,7 +823,6 @@ export function UMAHero({
                 t={t}
               />
             </div>
-
           </div>
         </div>
       </div>

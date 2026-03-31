@@ -236,12 +236,8 @@ export function ChainlinkProofOfReserveView() {
     <div className="space-y-8">
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('chainlink.por.overview')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('chainlink.por.overviewDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('chainlink.por.overview')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('chainlink.por.overviewDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -250,14 +246,10 @@ export function ChainlinkProofOfReserveView() {
               <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
                 <Shield className="w-5 h-5 text-blue-600" />
               </div>
-              <span className="text-sm text-gray-500">
-                {t('chainlink.por.monitoredAssets')}
-              </span>
+              <span className="text-sm text-gray-500">{t('chainlink.por.monitoredAssets')}</span>
             </div>
             <div className="text-3xl font-bold text-gray-900">{porStats.monitoredAssets}</div>
-            <div className="text-sm text-gray-400 mt-1">
-              {t('chainlink.por.activeFeeds')}
-            </div>
+            <div className="text-sm text-gray-400 mt-1">{t('chainlink.por.activeFeeds')}</div>
           </div>
 
           <div className="bg-white rounded-lg border border-gray-200 p-5">
@@ -265,16 +257,12 @@ export function ChainlinkProofOfReserveView() {
               <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
                 <FileCheck className="w-5 h-5 text-emerald-600" />
               </div>
-              <span className="text-sm text-gray-500">
-                {t('chainlink.por.totalAttestedValue')}
-              </span>
+              <span className="text-sm text-gray-500">{t('chainlink.por.totalAttestedValue')}</span>
             </div>
             <div className="text-3xl font-bold text-gray-900">
               {formatValue(porStats.totalAttestedValue)}
             </div>
-            <div className="text-sm text-gray-400 mt-1">
-              {t('chainlink.por.acrossProtocols')}
-            </div>
+            <div className="text-sm text-gray-400 mt-1">{t('chainlink.por.acrossProtocols')}</div>
           </div>
 
           <div className="bg-white rounded-lg border border-gray-200 p-5">
@@ -282,14 +270,10 @@ export function ChainlinkProofOfReserveView() {
               <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
                 <Clock className="w-5 h-5 text-purple-600" />
               </div>
-              <span className="text-sm text-gray-500">
-                {t('chainlink.por.auditFrequency')}
-              </span>
+              <span className="text-sm text-gray-500">{t('chainlink.por.auditFrequency')}</span>
             </div>
             <div className="text-3xl font-bold text-gray-900">{porStats.auditFrequency}</div>
-            <div className="text-sm text-gray-400 mt-1">
-              {t('chainlink.por.automatedChecks')}
-            </div>
+            <div className="text-sm text-gray-400 mt-1">{t('chainlink.por.automatedChecks')}</div>
           </div>
 
           <div className="bg-white rounded-lg border border-gray-200 p-5">
@@ -302,9 +286,7 @@ export function ChainlinkProofOfReserveView() {
               </span>
             </div>
             <div className="text-3xl font-bold text-gray-900">{porStats.integratedProtocols}</div>
-            <div className="text-sm text-gray-400 mt-1">
-              {t('chainlink.por.defiProtocols')}
-            </div>
+            <div className="text-sm text-gray-400 mt-1">{t('chainlink.por.defiProtocols')}</div>
           </div>
         </div>
       </section>
@@ -316,9 +298,7 @@ export function ChainlinkProofOfReserveView() {
           <h2 className="text-lg font-semibold text-gray-900">
             {t('chainlink.por.reserveAssets')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('chainlink.por.reserveAssetsDesc')}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">{t('chainlink.por.reserveAssetsDesc')}</p>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -409,9 +389,7 @@ export function ChainlinkProofOfReserveView() {
           <h2 className="text-lg font-semibold text-gray-900">
             {t('chainlink.por.healthMetrics')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('chainlink.por.healthMetricsDesc')}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">{t('chainlink.por.healthMetricsDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -450,7 +428,7 @@ export function ChainlinkProofOfReserveView() {
                       border: '1px solid #e5e7eb',
                       borderRadius: '6px',
                     }}
-                    formatter={(value: number) => [`${value.toFixed(2)}%`, 'Coverage']}
+                    formatter={(value) => [`${Number(value).toFixed(2)}%`, 'Coverage']}
                   />
                   <Area
                     type="monotone"
@@ -479,23 +457,17 @@ export function ChainlinkProofOfReserveView() {
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
-                    {t('chainlink.por.avgCoverage')}
-                  </span>
+                  <span className="text-sm text-gray-500">{t('chainlink.por.avgCoverage')}</span>
                   <span className={`font-semibold ${getCoverageColor(avgCoverage)}`}>
                     {avgCoverage.toFixed(2)}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
-                    {t('chainlink.por.healthyAssets')}
-                  </span>
+                  <span className="text-sm text-gray-500">{t('chainlink.por.healthyAssets')}</span>
                   <span className="font-semibold text-emerald-600">{healthyCount}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
-                    {t('chainlink.por.warningAssets')}
-                  </span>
+                  <span className="text-sm text-gray-500">{t('chainlink.por.warningAssets')}</span>
                   <span className="font-semibold text-amber-600">{warningCount}</span>
                 </div>
                 <div className="pt-3 border-t border-gray-100">
@@ -545,12 +517,8 @@ export function ChainlinkProofOfReserveView() {
 
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('chainlink.por.auditLog')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('chainlink.por.auditLogDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('chainlink.por.auditLog')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('chainlink.por.auditLogDesc')}</p>
         </div>
 
         <div className="space-y-3">
@@ -579,7 +547,9 @@ export function ChainlinkProofOfReserveView() {
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${audit.status === 'passed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}
                       >
-                        {audit.status === 'passed' ? t('chainlink.por.passed') : t('chainlink.por.issuesFound')}
+                        {audit.status === 'passed'
+                          ? t('chainlink.por.passed')
+                          : t('chainlink.por.issuesFound')}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500 mt-0.5">
@@ -629,9 +599,7 @@ export function ChainlinkProofOfReserveView() {
       <section className="flex items-start gap-4 py-2">
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('chainlink.por.about')}
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">{t('chainlink.por.about')}</h3>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
             {t('chainlink.por.aboutDesc') ||
               'Chainlink Proof of Reserve provides real-time, transparent verification of off-chain and cross-chain reserves. It enables automated auditing and helps ensure that on-chain assets are fully backed by real-world collateral.'}

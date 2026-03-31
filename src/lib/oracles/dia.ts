@@ -146,13 +146,13 @@ export class DIAClient extends BaseOracleClient {
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const diaService = getDIADataService();
-      
+
       const livePrice = await diaService.getAssetPrice(symbol, chain);
-      
+
       if (livePrice) {
         return this.fetchPriceWithDatabase(symbol, chain, () => livePrice);
       }
-      
+
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       return this.fetchPriceWithDatabase(symbol, chain, () =>
@@ -173,13 +173,18 @@ export class DIAClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       const diaService = getDIADataService();
-      
+
       const liveHistoricalPrices = await diaService.getHistoricalPrices(symbol, chain, period);
-      
+
       if (liveHistoricalPrices && liveHistoricalPrices.length > 0) {
-        return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () => liveHistoricalPrices);
+        return this.fetchHistoricalPricesWithDatabase(
+          symbol,
+          chain,
+          period,
+          () => liveHistoricalPrices
+        );
       }
-      
+
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>

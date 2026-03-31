@@ -140,17 +140,14 @@ export function AirnodeGeoMap({ nodes, onNodeClick }: AirnodeGeoMapProps) {
     [onNodeClick, selectedNode]
   );
 
-  const handleMarkerMouseEnter = useCallback(
-    (event: React.MouseEvent, node: AirnodeNode) => {
-      setTooltip({
-        show: true,
-        x: event.clientX + 10,
-        y: event.clientY - 10,
-        content: `${node.name}\n${node.region} | ${node.status.toUpperCase()}\n响应时间: ${node.responseTime}ms | 成功率: ${node.successRate.toFixed(1)}%\n质押: ${formatNumber(node.stakedAmount, true)} API3`,
-      });
-    },
-    []
-  );
+  const handleMarkerMouseEnter = useCallback((event: React.MouseEvent, node: AirnodeNode) => {
+    setTooltip({
+      show: true,
+      x: event.clientX + 10,
+      y: event.clientY - 10,
+      content: `${node.name}\n${node.region} | ${node.status.toUpperCase()}\n响应时间: ${node.responseTime}ms | 成功率: ${node.successRate.toFixed(1)}%\n质押: ${formatNumber(node.stakedAmount, true)} API3`,
+    });
+  }, []);
 
   const handleMarkerMouseMove = useCallback((event: React.MouseEvent) => {
     setTooltip((prev) => ({
@@ -227,10 +224,14 @@ export function AirnodeGeoMap({ nodes, onNodeClick }: AirnodeGeoMapProps) {
             }}
             className="w-full h-[500px]"
           >
-            <ZoomableGroup zoom={zoom} center={center} onMoveEnd={({ coordinates, zoom: z }) => {
-              setCenter(coordinates as [number, number]);
-              setZoom(z);
-            }}>
+            <ZoomableGroup
+              zoom={zoom}
+              center={center}
+              onMoveEnd={({ coordinates, zoom: z }) => {
+                setCenter(coordinates as [number, number]);
+                setZoom(z);
+              }}
+            >
               <Geographies geography={geoUrl}>
                 {({ geographies }) =>
                   geographies.map((geo) => (
@@ -263,7 +264,9 @@ export function AirnodeGeoMap({ nodes, onNodeClick }: AirnodeGeoMapProps) {
                       className="cursor-pointer transition-all duration-200"
                       style={{ opacity: isHighlighted ? 1 : 0.2 }}
                       onClick={() => handleNodeClick(node)}
-                      onMouseEnter={(e) => handleMarkerMouseEnter(e as unknown as React.MouseEvent, node)}
+                      onMouseEnter={(e) =>
+                        handleMarkerMouseEnter(e as unknown as React.MouseEvent, node)
+                      }
                       onMouseMove={handleMarkerMouseMove}
                       onMouseLeave={handleMarkerMouseLeave}
                     >
@@ -393,7 +396,10 @@ export function AirnodeGeoMap({ nodes, onNodeClick }: AirnodeGeoMapProps) {
                   <p className="text-xs text-gray-500 dark:text-gray-400">活跃率</p>
                   <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
                     {nodes.length > 0
-                      ? ((nodes.filter((n) => n.status === 'active').length / nodes.length) * 100).toFixed(1)
+                      ? (
+                          (nodes.filter((n) => n.status === 'active').length / nodes.length) *
+                          100
+                        ).toFixed(1)
                       : 0}
                     %
                   </p>

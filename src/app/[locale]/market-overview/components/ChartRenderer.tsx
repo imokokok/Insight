@@ -294,7 +294,9 @@ export default function ChartRenderer({
                     <p className="text-xl md:text-2xl font-bold text-gray-900">
                       ${totalTVS.toFixed(1)}B
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">{sortedOracleData.length} {t('oracles')}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {sortedOracleData.length} {t('oracles')}
+                    </p>
                   </>
                 )}
               </div>
@@ -372,7 +374,9 @@ export default function ChartRenderer({
               className={`bg-gray-200 ${isMobile ? 'h-10 w-px' : 'h-12 w-px'} mx-1 md:mx-2`}
             ></div>
             <div className="flex-1 px-1 md:px-2">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">{t('marketConcentration')}</p>
+              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">
+                {t('marketConcentration')}
+              </p>
               <p className="text-xs md:text-sm font-medium text-gray-900">{cr4.toFixed(1)}%</p>
               <p className="text-xs text-gray-400">CR4</p>
             </div>
@@ -918,7 +922,6 @@ export default function ChartRenderer({
           <ChainBreakdownChart
             data={chainBreakdown}
             loading={loadingEnhanced}
-            viewType={viewType}
           />
         </div>
       );
@@ -934,7 +937,6 @@ export default function ChartRenderer({
           <AssetCategoryChart
             data={assetCategories}
             loading={loadingEnhanced}
-            viewType={viewType}
           />
         </div>
       );
@@ -965,8 +967,6 @@ export default function ChartRenderer({
           <CorrelationMatrix
             data={correlationData}
             loading={loadingComparison}
-            onCellClick={(primary, secondary) => setLinkedOracle({ primary, secondary })}
-            linkedOracle={linkedOracle}
           />
         </div>
       );

@@ -146,7 +146,7 @@ export default function MarketOverviewPage() {
 
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
                 <MarketSidebar
-                  oracleData={sortedOracleData.map(o => ({
+                  oracleData={sortedOracleData.map((o) => ({
                     name: o.name,
                     share: o.share,
                     change24h: o.change24h,
@@ -176,7 +176,24 @@ export default function MarketOverviewPage() {
         </div>
       </div>
 
-      <AnomalyModal selectedAnomaly={selectedAnomaly} onClose={() => setSelectedAnomaly(null)} />
+      <AnomalyModal
+        isOpen={!!selectedAnomaly}
+        onClose={() => setSelectedAnomaly(null)}
+        data={selectedAnomaly ? [{
+          id: selectedAnomaly.dataKey,
+          type: 'price_spike',
+          level: 'medium',
+          title: 'Price Anomaly',
+          description: `Price change detected for ${selectedAnomaly.dataKey}`,
+          timestamp: new Date(selectedAnomaly.date).getTime(),
+          asset: selectedAnomaly.dataKey,
+          value: selectedAnomaly.value,
+          expectedValue: selectedAnomaly.prevValue,
+          deviation: selectedAnomaly.changeRate,
+          duration: 0,
+          acknowledged: false,
+        }] : []}
+      />
     </div>
   );
 }

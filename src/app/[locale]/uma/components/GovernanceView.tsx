@@ -38,7 +38,15 @@ interface GovernanceViewProps {
 
 type TabId = 'active' | 'history' | 'guide';
 
-function CountdownTimer({ endBlock, currentBlock, t }: { endBlock: number; currentBlock: number; t: ReturnType<typeof useTranslations> }) {
+function CountdownTimer({
+  endBlock,
+  currentBlock,
+  t,
+}: {
+  endBlock: number;
+  currentBlock: number;
+  t: ReturnType<typeof useTranslations>;
+}) {
   const blocksRemaining = endBlock - currentBlock;
   const secondsRemaining = blocksRemaining * 12;
   const [timeLeft, setTimeLeft] = useState(secondsRemaining);
@@ -112,7 +120,11 @@ function ProposalCard({
 
       {proposal.status === 'active' && (
         <div className="mb-4">
-          <CountdownTimer endBlock={proposal.endBlock} currentBlock={proposal.startBlock + 1000} t={t} />
+          <CountdownTimer
+            endBlock={proposal.endBlock}
+            currentBlock={proposal.startBlock + 1000}
+            t={t}
+          />
         </div>
       )}
 
@@ -158,7 +170,9 @@ function ProposalCard({
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5" />
-            <span>{t('uma.governance.quorumLabel')}: {quorumPercentage.toFixed(0)}%</span>
+            <span>
+              {t('uma.governance.quorumLabel')}: {quorumPercentage.toFixed(0)}%
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <span
@@ -166,7 +180,11 @@ function ProposalCard({
                 quorumPercentage >= 100 ? 'bg-emerald-500' : 'bg-amber-500'
               }`}
             />
-            <span>{quorumPercentage >= 100 ? t('uma.governance.reached') : t('uma.governance.notReached')}</span>
+            <span>
+              {quorumPercentage >= 100
+                ? t('uma.governance.reached')
+                : t('uma.governance.notReached')}
+            </span>
           </div>
         </div>
         <button
@@ -181,14 +199,22 @@ function ProposalCard({
   );
 }
 
-function VotingWeightChart({ weights, t }: { weights: VotingWeightDistribution[]; t: ReturnType<typeof useTranslations> }) {
+function VotingWeightChart({
+  weights,
+  t,
+}: {
+  weights: VotingWeightDistribution[];
+  t: ReturnType<typeof useTranslations>;
+}) {
   const [viewMode, setViewMode] = useState<'bar' | 'pie'>('bar');
   const totalPower = weights.reduce((sum, w) => sum + w.votingPower, 0);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">{t('uma.governance.votingWeightDistribution')}</h4>
+        <h4 className="text-sm font-medium text-gray-700">
+          {t('uma.governance.votingWeightDistribution')}
+        </h4>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
           <button
             onClick={() => setViewMode('bar')}
@@ -349,7 +375,9 @@ function GovernanceGuide({ t }: { t: ReturnType<typeof useTranslations> }) {
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
         <BookOpen className="w-5 h-5 text-gray-400" />
-        <h3 className="text-base font-semibold text-gray-900">{t('uma.governance.governanceGuide')}</h3>
+        <h3 className="text-base font-semibold text-gray-900">
+          {t('uma.governance.governanceGuide')}
+        </h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -375,18 +403,24 @@ function GovernanceGuide({ t }: { t: ReturnType<typeof useTranslations> }) {
         <div className="flex items-start gap-3">
           <HelpCircle className="w-5 h-5 text-blue-600 mt-0.5" />
           <div>
-            <h4 className="font-semibold text-gray-900 mb-2">{t('uma.governance.commonQuestions')}</h4>
+            <h4 className="font-semibold text-gray-900 mb-2">
+              {t('uma.governance.commonQuestions')}
+            </h4>
             <div className="space-y-3 text-sm text-gray-600">
               <div>
                 <p className="font-medium text-gray-700">{t('uma.governance.canModifyVote')}</p>
                 <p>{t('uma.governance.cannotModifyVote')}</p>
               </div>
               <div>
-                <p className="font-medium text-gray-700">{t('uma.governance.tokensRequiredToPropose')}</p>
+                <p className="font-medium text-gray-700">
+                  {t('uma.governance.tokensRequiredToPropose')}
+                </p>
                 <p>{t('uma.governance.need100UmaToPropose')}</p>
               </div>
               <div>
-                <p className="font-medium text-gray-700">{t('uma.governance.votingRewardDistribution')}</p>
+                <p className="font-medium text-gray-700">
+                  {t('uma.governance.votingRewardDistribution')}
+                </p>
                 <p>{t('uma.governance.votingRewardsByWeight')}</p>
               </div>
             </div>
@@ -432,7 +466,8 @@ function generateMockProposals(): GovernanceProposal[] {
     {
       id: 'prop-003',
       title: 'Treasury Fund Allocation',
-      description: 'Proposal to allocate 500,000 UMA from treasury for ecosystem development fund to support UMA-based projects.',
+      description:
+        'Proposal to allocate 500,000 UMA from treasury for ecosystem development fund to support UMA-based projects.',
       status: 'passed',
       proposer: '0x9876543210fedcba9876543210fedcba98765432',
       startBlock: 17950000,
@@ -446,7 +481,8 @@ function generateMockProposals(): GovernanceProposal[] {
     {
       id: 'prop-004',
       title: 'Adjust Dispute Fee Structure',
-      description: 'Modify dispute fee structure to lower participation threshold for small disputes while maintaining deterrence against malicious disputes.',
+      description:
+        'Modify dispute fee structure to lower participation threshold for small disputes while maintaining deterrence against malicious disputes.',
       status: 'rejected',
       proposer: '0xfedcba9876543210fedcba9876543210fedcba98',
       startBlock: 17900000,
@@ -460,7 +496,8 @@ function generateMockProposals(): GovernanceProposal[] {
     {
       id: 'prop-005',
       title: 'Community Governance Tool Development',
-      description: 'Fund development of community governance dashboard providing better proposal tracking and voting analysis tools.',
+      description:
+        'Fund development of community governance dashboard providing better proposal tracking and voting analysis tools.',
       status: 'pending',
       proposer: '0x1111222233334444555566667777888899990000',
       startBlock: 18020000,
@@ -572,7 +609,11 @@ export function GovernanceView({
       icon: <Clock className="w-4 h-4" />,
       count: historicalProposals.length,
     },
-    { id: 'guide' as TabId, label: t('uma.governance.guideTab'), icon: <BookOpen className="w-4 h-4" /> },
+    {
+      id: 'guide' as TabId,
+      label: t('uma.governance.guideTab'),
+      icon: <BookOpen className="w-4 h-4" />,
+    },
   ];
 
   return (
@@ -581,7 +622,9 @@ export function GovernanceView({
         <h2 className="text-lg font-semibold text-gray-900">{t('uma.governance.title')}</h2>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <AlertCircle className="w-4 h-4" />
-          <span>{stats.activeProposals} {t('uma.governance.activeProposals')}</span>
+          <span>
+            {stats.activeProposals} {t('uma.governance.activeProposals')}
+          </span>
         </div>
       </div>
 
@@ -698,7 +741,9 @@ export function GovernanceView({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">{t('uma.governance.proposalDetails')}</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {t('uma.governance.proposalDetails')}
+              </h3>
               <button
                 onClick={() => setSelectedProposal(null)}
                 className="text-gray-400 hover:text-gray-600"
@@ -782,7 +827,9 @@ export function GovernanceView({
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">{t('uma.governance.totalVotingWeight')}</p>
+                  <p className="text-xs text-gray-500 mb-1">
+                    {t('uma.governance.totalVotingWeight')}
+                  </p>
                   <p className="text-sm text-gray-900">
                     {formatNumber(selectedProposal.votingPower, true)}
                   </p>

@@ -20,10 +20,18 @@ interface StatRowProps {
   columns?: number;
 }
 
-export function StatRow({ stats, className = '', layout = 'horizontal', columns = 4 }: StatRowProps) {
+export function StatRow({
+  stats,
+  className = '',
+  layout = 'horizontal',
+  columns = 4,
+}: StatRowProps) {
   if (layout === 'grid') {
     return (
-      <div className={cn('grid gap-3', className)} style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+      <div
+        className={cn('grid gap-3', className)}
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      >
         {stats.map((stat, index) => (
           <StatCard key={index} stat={stat} />
         ))}

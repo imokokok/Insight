@@ -1,4 +1,11 @@
-export type StatusType = 'active' | 'inactive' | 'degraded' | 'excellent' | 'good' | 'warning' | 'error';
+export type StatusType =
+  | 'active'
+  | 'inactive'
+  | 'degraded'
+  | 'excellent'
+  | 'good'
+  | 'warning'
+  | 'error';
 
 const statusColors: Record<StatusType, { text: string; bg: string; dot: string }> = {
   active: {

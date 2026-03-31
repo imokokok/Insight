@@ -108,7 +108,13 @@ export function ChronicleScuttlebuttView({
           className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border ${getSeverityColor(item.severity)}`}
         >
           {getSeverityIcon(item.severity)}
-          <span className="capitalize">{item.severity === 'critical' ? t('chronicle.severity.critical') : item.severity === 'warning' ? t('chronicle.severity.warning') : t('chronicle.severity.info')}</span>
+          <span className="capitalize">
+            {item.severity === 'critical'
+              ? t('chronicle.severity.critical')
+              : item.severity === 'warning'
+                ? t('chronicle.severity.warning')
+                : t('chronicle.severity.info')}
+          </span>
         </span>
       ),
     },
@@ -118,8 +124,14 @@ export function ChronicleScuttlebuttView({
       sortable: true,
       render: (item: HistoricalEvent) => (
         <div>
-          <p className="font-medium text-gray-900">{t(`chronicle.scuttlebutt.events.${item.event}`)}</p>
-          {item.resolution && <p className="text-xs text-emerald-600 mt-0.5">{t(`chronicle.scuttlebutt.resolutions.${item.resolution}`)}</p>}
+          <p className="font-medium text-gray-900">
+            {t(`chronicle.scuttlebutt.events.${item.event}`)}
+          </p>
+          {item.resolution && (
+            <p className="text-xs text-emerald-600 mt-0.5">
+              {t(`chronicle.scuttlebutt.resolutions.${item.resolution}`)}
+            </p>
+          )}
         </div>
       ),
     },
@@ -150,7 +162,11 @@ export function ChronicleScuttlebuttView({
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.securityLevel')}</p>
             <p className="text-xl font-semibold text-gray-900 capitalize">
-              {securityLevel === 'high' ? t('chronicle.securityLevel.high') : securityLevel === 'medium' ? t('chronicle.securityLevel.medium') : t('chronicle.securityLevel.low')}
+              {securityLevel === 'high'
+                ? t('chronicle.securityLevel.high')
+                : securityLevel === 'medium'
+                  ? t('chronicle.securityLevel.medium')
+                  : t('chronicle.securityLevel.low')}
             </p>
           </div>
         </div>
@@ -177,7 +193,11 @@ export function ChronicleScuttlebuttView({
           <div>
             <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.verificationStatus')}</p>
             <p className="text-xl font-semibold text-gray-900 capitalize">
-              {verificationStatus === 'verified' ? t('chronicle.verificationStatus.verified') : verificationStatus === 'pending' ? t('chronicle.verificationStatus.pending') : t('chronicle.verificationStatus.failed')}
+              {verificationStatus === 'verified'
+                ? t('chronicle.verificationStatus.verified')
+                : verificationStatus === 'pending'
+                  ? t('chronicle.verificationStatus.pending')
+                  : t('chronicle.verificationStatus.failed')}
             </p>
           </div>
         </div>

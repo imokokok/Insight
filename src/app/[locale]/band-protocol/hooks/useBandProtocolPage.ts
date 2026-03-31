@@ -2,7 +2,20 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { useRefresh, useExport, useBandProtocolAllData, useBandIBCConnections, useBandIBCTransferStats, useBandIBCTransferTrends, useBandStakingInfo, useBandStakingDistribution, useBandGovernanceProposals, useBandGovernanceParams, useBandDataSources, useBandOracleScripts } from '@/hooks';
+import {
+  useRefresh,
+  useExport,
+  useBandProtocolAllData,
+  useBandIBCConnections,
+  useBandIBCTransferStats,
+  useBandIBCTransferTrends,
+  useBandStakingInfo,
+  useBandStakingDistribution,
+  useBandGovernanceProposals,
+  useBandGovernanceParams,
+  useBandDataSources,
+  useBandOracleScripts,
+} from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
@@ -39,8 +52,19 @@ export function useBandProtocolPage() {
   const { stakingDistribution } = useBandStakingDistribution(true);
   const { proposals: governanceProposals } = useBandGovernanceProposals({ enabled: true });
   const { governanceParams } = useBandGovernanceParams(true);
-  const { dataSources, total: dataSourcesTotal, error: dataSourcesError, isLoading: dataSourcesLoading, refetch: refetchDataSources } = useBandDataSources({ getAllDataSources: true });
-  const { oracleScripts, error: oracleScriptsError, isLoading: oracleScriptsLoading, refetch: refetchOracleScripts } = useBandOracleScripts(true);
+  const {
+    dataSources,
+    total: dataSourcesTotal,
+    error: dataSourcesError,
+    isLoading: dataSourcesLoading,
+    refetch: refetchDataSources,
+  } = useBandDataSources({ getAllDataSources: true });
+  const {
+    oracleScripts,
+    error: oracleScriptsError,
+    isLoading: oracleScriptsLoading,
+    refetch: refetchOracleScripts,
+  } = useBandOracleScripts(true);
 
   const { exportData } = useExport({
     data: {
@@ -64,7 +88,9 @@ export function useBandProtocolPage() {
   const aggregatedError = useMemo(() => {
     if (errors.length === 0) return null;
     if (errors.length === 1) return errors[0];
-    return new Error(`${errors.length} errors occurred: ${errors.map(e => e.message).join('; ')}`);
+    return new Error(
+      `${errors.length} errors occurred: ${errors.map((e) => e.message).join('; ')}`
+    );
   }, [errors]);
 
   const handleTabChange = useCallback((tab: BandProtocolTabId) => {

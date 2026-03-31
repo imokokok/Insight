@@ -454,10 +454,7 @@ export class DIADataService {
         return [];
       }
 
-      const result = this.generateSimulatedHistoricalPrices(
-        currentPriceData,
-        periodHours
-      );
+      const result = this.generateSimulatedHistoricalPrices(currentPriceData, periodHours);
 
       this.setCache(cacheKey, result, CACHE_TTL.HISTORICAL);
       return result;
@@ -492,9 +489,10 @@ export class DIADataService {
     for (let i = dataPoints - 2; i >= 0; i--) {
       const randomShock = this.boxMullerRandom();
       const dt = 1;
-      const logReturn = (drift - 0.5 * hourlyVolatility * hourlyVolatility) * dt 
-        + hourlyVolatility * Math.sqrt(dt) * randomShock;
-      
+      const logReturn =
+        (drift - 0.5 * hourlyVolatility * hourlyVolatility) * dt +
+        hourlyVolatility * Math.sqrt(dt) * randomShock;
+
       priceHistory[i] = priceHistory[i + 1] * Math.exp(-logReturn);
     }
 
@@ -585,10 +583,4 @@ export function resetDIADataService(): void {
   instance.clearCache();
 }
 
-export type {
-  DIAAssetQuotation,
-  DIANFTQuotation,
-  DIASupply,
-  DIADigitalAsset,
-  RetryConfig,
-};
+export type { DIAAssetQuotation, DIANFTQuotation, DIASupply, DIADigitalAsset, RetryConfig };

@@ -87,9 +87,7 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
           <div className="flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-red-500" />
             <div>
-              <p className="text-sm font-medium text-red-800">
-                {t('pyth.priceFeeds.error')}
-              </p>
+              <p className="text-sm font-medium text-red-800">{t('pyth.priceFeeds.error')}</p>
               <p className="text-xs text-red-600">{error.message}</p>
             </div>
           </div>
@@ -199,9 +197,7 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
             </div>
           ) : filteredFeeds.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-gray-500">
-                {t('pyth.priceFeeds.noData')}
-              </p>
+              <p className="text-gray-500">{t('pyth.priceFeeds.noData')}</p>
             </div>
           ) : (
             <table className="w-full">
@@ -306,15 +302,11 @@ export function PythPriceFeedsView({ isLoading: externalLoading }: { isLoading?:
           </div>
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">
-                {t('pyth.priceFeeds.reliability')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('pyth.priceFeeds.reliability')}:</span>{' '}
               {t('pyth.priceFeeds.reliabilityDesc')}
             </p>
             <p>
-              <span className="font-medium text-gray-900">
-                {t('pyth.priceFeeds.firstParty')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('pyth.priceFeeds.firstParty')}:</span>{' '}
               {t('pyth.priceFeeds.firstPartyDesc')}
             </p>
           </div>

@@ -61,7 +61,13 @@ export default function UmaPage() {
   }
 
   if (hasCriticalError) {
-    return <ErrorFallback error={error} onRetry={refresh} themeColor={config.themeColor} />;
+    return (
+      <ErrorFallback
+        error={error instanceof Error ? error : new Error(String(error))}
+        onRetry={refresh}
+        themeColor={config.themeColor}
+      />
+    );
   }
 
   const renderContent = () => {

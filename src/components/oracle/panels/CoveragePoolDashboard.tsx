@@ -19,12 +19,8 @@ import {
 import GaugeChart from '@/components/GaugeChart';
 import { ProgressRing } from '@/components/oracle/charts/ProgressRing';
 import { useTranslations } from '@/i18n';
-import type {
-  CoveragePoolDetails,
-  CoveragePoolClaim,
-  StakerReward,
-} from '@/lib/oracles/api3';
 import { chartColors } from '@/lib/config/colors';
+import type { CoveragePoolDetails, CoveragePoolClaim, StakerReward } from '@/lib/oracles/api3';
 
 interface CoveragePoolDashboardProps {
   coveragePoolDetails?: CoveragePoolDetails | null;
@@ -143,9 +139,9 @@ export function CoveragePoolDashboard({
   const filteredClaims = useMemo(() => {
     let filtered = claims;
     if (claimFilter !== 'all') {
-      filtered = claims.filter(claim => claim.type === claimFilter);
+      filtered = claims.filter((claim) => claim.type === claimFilter);
     }
-    
+
     return [...filtered].sort((a, b) => {
       const multiplier = sortDirection === 'asc' ? 1 : -1;
       if (sortField === 'amount') {
@@ -157,7 +153,7 @@ export function CoveragePoolDashboard({
 
   const toggleSort = (field: 'amount' | 'submittedAt') => {
     if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortField(field);
       setSortDirection('desc');
@@ -169,7 +165,7 @@ export function CoveragePoolDashboard({
       <div className="space-y-6 animate-pulse">
         <div className="h-48 bg-gray-100 rounded-lg" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <div key={i} className="h-32 bg-gray-100 rounded-lg" />
           ))}
         </div>
@@ -190,11 +186,14 @@ export function CoveragePoolDashboard({
             {t('api3.coveragePool.title') || 'Coverage Pool Dashboard'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.coveragePool.subtitle') || 'Real-time monitoring of coverage pool health and claims'}
+            {t('api3.coveragePool.subtitle') ||
+              'Real-time monitoring of coverage pool health and claims'}
           </p>
         </div>
         {healthConfig && (
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${healthConfig.bgColor} ${healthConfig.borderColor}`}>
+          <div
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${healthConfig.bgColor} ${healthConfig.borderColor}`}
+          >
             <span className={healthConfig.color}>{healthConfig.icon}</span>
             <span className={`text-sm font-medium ${healthConfig.color}`}>
               {healthConfig.label}
@@ -259,9 +258,7 @@ export function CoveragePoolDashboard({
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-gray-500">
                 <Users className="w-4 h-4" />
-                <span className="text-xs">
-                  {t('api3.coveragePool.stakerCount') || 'Stakers'}
-                </span>
+                <span className="text-xs">{t('api3.coveragePool.stakerCount') || 'Stakers'}</span>
               </div>
               <p className="text-xl font-bold text-gray-900">
                 {formatNumber(coveragePoolDetails?.stakerCount || 0)}
@@ -324,7 +321,11 @@ export function CoveragePoolDashboard({
               </div>
               <div className="text-center">
                 <ProgressRing
-                  value={coveragePoolDetails?.stakerCount ? Math.min(coveragePoolDetails.stakerCount / 50, 100) : 0}
+                  value={
+                    coveragePoolDetails?.stakerCount
+                      ? Math.min(coveragePoolDetails.stakerCount / 50, 100)
+                      : 0
+                  }
                   max={100}
                   size={80}
                   strokeWidth={6}
@@ -354,9 +355,15 @@ export function CoveragePoolDashboard({
             >
               <option value="all">{t('api3.coveragePool.allClaims') || 'All Claims'}</option>
               <option value="pending">{t('api3.coveragePool.filterPending') || 'Pending'}</option>
-              <option value="processing">{t('api3.coveragePool.filterProcessing') || 'Processing'}</option>
-              <option value="approved">{t('api3.coveragePool.filterApproved') || 'Approved'}</option>
-              <option value="rejected">{t('api3.coveragePool.filterRejected') || 'Rejected'}</option>
+              <option value="processing">
+                {t('api3.coveragePool.filterProcessing') || 'Processing'}
+              </option>
+              <option value="approved">
+                {t('api3.coveragePool.filterApproved') || 'Approved'}
+              </option>
+              <option value="rejected">
+                {t('api3.coveragePool.filterRejected') || 'Rejected'}
+              </option>
             </select>
           </div>
         </div>
@@ -377,9 +384,12 @@ export function CoveragePoolDashboard({
                 >
                   <div className="flex items-center gap-1">
                     {t('api3.coveragePool.claimAmount') || 'Amount'}
-                    {sortField === 'amount' && (
-                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortField === 'amount' &&
+                      (sortDirection === 'asc' ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </th>
                 <th className="text-left text-xs font-medium text-gray-500 pb-3">
@@ -391,9 +401,12 @@ export function CoveragePoolDashboard({
                 >
                   <div className="flex items-center gap-1">
                     {t('api3.coveragePool.claimDate') || 'Date'}
-                    {sortField === 'submittedAt' && (
-                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortField === 'submittedAt' &&
+                      (sortDirection === 'asc' ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </th>
                 <th className="text-left text-xs font-medium text-gray-500 pb-3">
@@ -406,11 +419,11 @@ export function CoveragePoolDashboard({
                 const statusConfig = getClaimStatusConfig(claim.type);
                 return (
                   <tr key={claim.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-3 text-sm font-mono text-gray-600">
-                      {claim.id}
-                    </td>
+                    <td className="py-3 text-sm font-mono text-gray-600">{claim.id}</td>
                     <td className="py-3">
-                      <span className={`inline-flex px-2 py-1 rounded-md text-xs font-medium ${statusConfig.bgColor} ${statusConfig.color}`}>
+                      <span
+                        className={`inline-flex px-2 py-1 rounded-md text-xs font-medium ${statusConfig.bgColor} ${statusConfig.color}`}
+                      >
                         {statusConfig.label}
                       </span>
                     </td>

@@ -282,7 +282,3 @@ export function EmptyStateSearch({
     </EmptyStateEnhanced>
   );
 }
-
-
-
-

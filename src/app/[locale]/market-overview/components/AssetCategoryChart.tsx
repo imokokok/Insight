@@ -2,20 +2,14 @@
 
 import { useState } from 'react';
 
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 import { useTranslations } from '@/i18n';
 
-import { type AssetCategoryData } from '../types';
+import { type AssetCategory } from '../types';
 
 interface AssetCategoryChartProps {
-  data: AssetCategoryData[];
+  data: AssetCategory[];
   loading?: boolean;
 }
 
@@ -49,14 +43,14 @@ export default function AssetCategoryChart({ data, loading = false }: AssetCateg
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
-      const item = payload[0].payload as AssetCategoryData;
+      const item = payload[0].payload as AssetCategory;
       return (
         <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
           <p className="font-semibold text-gray-900 mb-2">{getCategoryLabel(item.category)}</p>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between gap-4">
               <span className="text-gray-500">{t('tvs')}:</span>
-              <span className="font-medium text-gray-900">{formatTVS(item.tvs)}</span>
+              <span className="font-medium text-gray-900">{formatTVS(item.value)}</span>
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-gray-500">{t('share')}:</span>
@@ -64,11 +58,7 @@ export default function AssetCategoryChart({ data, loading = false }: AssetCateg
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-gray-500">{t('assets')}:</span>
-              <span className="font-medium text-gray-900">{item.assetCount}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('protocols')}:</span>
-              <span className="font-medium text-gray-900">{item.protocolCount}</span>
+              <span className="font-medium text-gray-900">{item.assets.length}</span>
             </div>
           </div>
         </div>

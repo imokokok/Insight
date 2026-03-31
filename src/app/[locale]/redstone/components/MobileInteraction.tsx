@@ -281,7 +281,9 @@ export function SwipeableTabNavigation({
                   >
                     <span className="w-6 text-center text-xs text-gray-400">{index + 1}</span>
                     <span className="flex-1 font-medium">{tab.label}</span>
-                    {tab.id === activeTab && <span className="text-xs text-red-500">{t('mobileInteraction.current')}</span>}
+                    {tab.id === activeTab && (
+                      <span className="text-xs text-red-500">{t('mobileInteraction.current')}</span>
+                    )}
                   </button>
                 ))}
               </div>

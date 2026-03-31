@@ -1,12 +1,13 @@
 import { API3_DATA_SOURCES } from './api3DataSources';
+
 import type { API3Alert } from './api3';
 
-export type WebSocketEventType = 
-  | 'price_update' 
-  | 'alert' 
-  | 'dapi_update' 
-  | 'oev_auction' 
-  | 'coverage_pool' 
+export type WebSocketEventType =
+  | 'price_update'
+  | 'alert'
+  | 'dapi_update'
+  | 'oev_auction'
+  | 'coverage_pool'
   | 'network_status';
 
 export interface WebSocketMessage {
@@ -172,7 +173,7 @@ export class API3WebSocketClient {
     this.stopPingInterval();
     this.stopQueueCleanup();
     this.clearReconnectTimer();
-    
+
     if (this.ws) {
       this.ws.close();
       this.ws = null;
@@ -203,7 +204,7 @@ export class API3WebSocketClient {
 
     if (id) {
       const subs = this.subscriptions.get(channel)!;
-      const index = subs.findIndex(s => s.id === id);
+      const index = subs.findIndex((s) => s.id === id);
       if (index !== -1) {
         subs.splice(index, 1);
       }
@@ -264,9 +265,9 @@ export class API3WebSocketClient {
   private handleMessage(message: WebSocketMessage): void {
     const { channel, data } = message;
     const subs = this.subscriptions.get(channel);
-    
+
     if (subs) {
-      subs.forEach(sub => {
+      subs.forEach((sub) => {
         try {
           sub.callback(data);
         } catch (error) {
@@ -277,22 +278,28 @@ export class API3WebSocketClient {
   }
 
   private sendSubscribe(channel: string): void {
-    this.send({
-      type: 'subscribe',
-      channel,
-    }, channel);
+    this.send(
+      {
+        type: 'subscribe',
+        channel,
+      },
+      channel
+    );
   }
 
   private sendUnsubscribe(channel: string): void {
-    this.send({
-      type: 'unsubscribe',
-      channel,
-    }, channel);
+    this.send(
+      {
+        type: 'unsubscribe',
+        channel,
+      },
+      channel
+    );
   }
 
   private send(data: unknown, channel: string = ''): void {
     const message = JSON.stringify(data);
-    
+
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(message);
     } else {
@@ -302,19 +309,19 @@ export class API3WebSocketClient {
 
   private addToQueue(data: unknown, channel: string): void {
     this.cleanupExpiredMessages();
-    
+
     if (this.messageQueue.length >= this.maxQueueSize) {
       this.messageQueue.shift();
       this.droppedMessages++;
       console.warn('[API3WebSocket] Message queue full, dropping oldest message');
     }
-    
+
     this.messageQueue.push({
       data,
       timestamp: Date.now(),
       channel,
     });
-    
+
     this.status.queueSize = this.messageQueue.length;
     this.notifyStatusListeners();
   }
@@ -322,11 +329,11 @@ export class API3WebSocketClient {
   private cleanupExpiredMessages(): void {
     const now = Date.now();
     const initialLength = this.messageQueue.length;
-    
-    this.messageQueue = this.messageQueue.filter(msg => {
+
+    this.messageQueue = this.messageQueue.filter((msg) => {
       return now - msg.timestamp < MESSAGE_TTL;
     });
-    
+
     const removed = initialLength - this.messageQueue.length;
     if (removed > 0) {
       this.droppedMessages += removed;
@@ -349,24 +356,22 @@ export class API3WebSocketClient {
 
   private flushMessageQueue(): void {
     this.cleanupExpiredMessages();
-    
+
     while (this.messageQueue.length > 0 && this.ws?.readyState === WebSocket.OPEN) {
       const queued = this.messageQueue.shift();
       if (queued) {
         this.ws.send(JSON.stringify(queued.data));
       }
     }
-    
+
     this.status.queueSize = this.messageQueue.length;
     this.notifyStatusListeners();
   }
 
   getQueueStats(): QueueStats {
     const now = Date.now();
-    const oldestTimestamp = this.messageQueue.length > 0 
-      ? this.messageQueue[0].timestamp 
-      : now;
-    
+    const oldestTimestamp = this.messageQueue.length > 0 ? this.messageQueue[0].timestamp : now;
+
     return {
       size: this.messageQueue.length,
       maxSize: this.maxQueueSize,
@@ -411,7 +416,7 @@ export class API3WebSocketClient {
     }
 
     this.clearReconnectTimer();
-    
+
     const delay = this.reconnectInterval * Math.pow(2, this.reconnectAttempts);
     this.reconnectAttempts++;
     this.status.reconnectAttempts = this.reconnectAttempts;
@@ -430,7 +435,7 @@ export class API3WebSocketClient {
   }
 
   private notifyStatusListeners(): void {
-    this.statusListeners.forEach(listener => {
+    this.statusListeners.forEach((listener) => {
       try {
         listener(this.getStatus());
       } catch (error) {

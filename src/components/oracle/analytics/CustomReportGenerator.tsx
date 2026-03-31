@@ -35,13 +35,9 @@ import {
   Scatter,
 } from 'recharts';
 
+import { type MetricDefinition, type ReportConfig, type DataPoint } from '@/hooks/useAPI3Analytics';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
-import {
-  type MetricDefinition,
-  type ReportConfig,
-  type DataPoint,
-} from '@/hooks/useAPI3Analytics';
 
 export interface CustomReportGeneratorProps {
   availableMetrics: MetricDefinition[];
@@ -118,11 +114,9 @@ export function CustomReportGenerator({
     setSavedTemplates((prev) => [...prev, config]);
   }, [title, selectedMetrics, timeRange, chartType, filters]);
 
-  const handleExportPDF = useCallback(() => {
-  }, []);
+  const handleExportPDF = useCallback(() => {}, []);
 
-  const handleExportImage = useCallback(() => {
-  }, []);
+  const handleExportImage = useCallback(() => {}, []);
 
   const previewData = useMemo(() => {
     if (!showPreview || data.length === 0) return [];
@@ -351,7 +345,9 @@ export function CustomReportGenerator({
                 <input
                   type="date"
                   value={timeRange.start.toISOString().split('T')[0]}
-                  onChange={(e) => setTimeRange((prev) => ({ ...prev, start: new Date(e.target.value) }))}
+                  onChange={(e) =>
+                    setTimeRange((prev) => ({ ...prev, start: new Date(e.target.value) }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 />
               </div>
@@ -360,7 +356,9 @@ export function CustomReportGenerator({
                 <input
                   type="date"
                   value={timeRange.end.toISOString().split('T')[0]}
-                  onChange={(e) => setTimeRange((prev) => ({ ...prev, end: new Date(e.target.value) }))}
+                  onChange={(e) =>
+                    setTimeRange((prev) => ({ ...prev, end: new Date(e.target.value) }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 />
               </div>

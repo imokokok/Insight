@@ -2,16 +2,7 @@
 
 import { useState } from 'react';
 
-import {
-  Download,
-  ExternalLink,
-  Copy,
-  Check,
-  FileText,
-  Github,
-  Box,
-  Info,
-} from 'lucide-react';
+import { Download, ExternalLink, Copy, Check, FileText, Github, Box, Info } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
@@ -171,7 +162,10 @@ export function API3SdkDownloads() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {sdks.map((sdk) => (
-            <div key={sdk.id} className="bg-white border border-gray-100 rounded-lg p-4 hover:border-emerald-200 transition-colors">
+            <div
+              key={sdk.id}
+              className="bg-white border border-gray-100 rounded-lg p-4 hover:border-emerald-200 transition-colors"
+            >
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2">
@@ -260,12 +254,16 @@ export function API3SdkDownloads() {
             <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-3">
               <FileText className="w-5 h-5 text-emerald-600" />
             </div>
-            <h3 className="text-sm font-medium text-gray-900">{t('api3.developer.sdk.additionalTools.hardhatPlugin.title')}</h3>
+            <h3 className="text-sm font-medium text-gray-900">
+              {t('api3.developer.sdk.additionalTools.hardhatPlugin.title')}
+            </h3>
             <p className="text-xs text-gray-500 mt-1">
               {t('api3.developer.sdk.additionalTools.hardhatPlugin.description')}
             </p>
             <div className="mt-3 bg-gray-900 rounded p-2">
-              <code className="text-xs text-gray-100 font-mono">npm install @api3/hardhat-plugin</code>
+              <code className="text-xs text-gray-100 font-mono">
+                npm install @api3/hardhat-plugin
+              </code>
             </div>
           </div>
 
@@ -273,12 +271,16 @@ export function API3SdkDownloads() {
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-3">
               <Box className="w-5 h-5 text-blue-600" />
             </div>
-            <h3 className="text-sm font-medium text-gray-900">{t('api3.developer.sdk.additionalTools.foundry.title')}</h3>
+            <h3 className="text-sm font-medium text-gray-900">
+              {t('api3.developer.sdk.additionalTools.foundry.title')}
+            </h3>
             <p className="text-xs text-gray-500 mt-1">
               {t('api3.developer.sdk.additionalTools.foundry.description')}
             </p>
             <div className="mt-3 bg-gray-900 rounded p-2">
-              <code className="text-xs text-gray-100 font-mono">forge install api3dao/contracts</code>
+              <code className="text-xs text-gray-100 font-mono">
+                forge install api3dao/contracts
+              </code>
             </div>
           </div>
 
@@ -286,7 +288,9 @@ export function API3SdkDownloads() {
             <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center mb-3">
               <Github className="w-5 h-5 text-purple-600" />
             </div>
-            <h3 className="text-sm font-medium text-gray-900">{t('api3.developer.sdk.additionalTools.examples.title')}</h3>
+            <h3 className="text-sm font-medium text-gray-900">
+              {t('api3.developer.sdk.additionalTools.examples.title')}
+            </h3>
             <p className="text-xs text-gray-500 mt-1">
               {t('api3.developer.sdk.additionalTools.examples.description')}
             </p>
@@ -296,7 +300,8 @@ export function API3SdkDownloads() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 mt-3"
             >
-              {t('api3.developer.sdk.additionalTools.examples.viewExamples')} <ExternalLink className="w-3.5 h-3.5" />
+              {t('api3.developer.sdk.additionalTools.examples.viewExamples')}{' '}
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>

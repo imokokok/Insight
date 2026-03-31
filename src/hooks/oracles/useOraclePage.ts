@@ -2,15 +2,11 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 
+import type { NetworkStats, PublisherData, ValidatorData } from '@/app/[locale]/pyth/types';
 import { useRefresh, useExport } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig, type OracleConfig } from '@/lib/config/oracles';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
-import type {
-  NetworkStats,
-  PublisherData,
-  ValidatorData,
-} from '@/app/[locale]/pyth/types';
 
 import { useChainlinkAllData } from './chainlink';
 import { usePythAllData } from './pyth';

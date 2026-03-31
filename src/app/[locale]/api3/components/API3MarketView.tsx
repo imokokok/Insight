@@ -57,14 +57,20 @@ export function API3MarketView({
             <h3 className="text-base font-medium text-gray-900">{t('api3.priceTrend')}</h3>
           </div>
           <div className="flex-1">
-            <PriceChart
-              client={config.client}
-              symbol={config.symbol}
-              chain={config.defaultChain}
-              height={300}
-              showToolbar={true}
-              defaultPrice={config.marketData.change24hValue}
-            />
+            {config.client ? (
+              <PriceChart
+                client={config.client}
+                symbol={config.symbol}
+                chain={config.defaultChain}
+                height={300}
+                showToolbar={true}
+                defaultPrice={config.marketData.change24hValue}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+                <p className="text-gray-500">{t('common.noData')}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -163,9 +169,7 @@ export function API3MarketView({
 
       {/* 核心交易对信息 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('api3.tradingPair')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('api3.tradingPair')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('api3.tradingPairName')}</p>

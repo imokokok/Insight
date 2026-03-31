@@ -27,14 +27,26 @@ import {
 } from 'recharts';
 
 import { useTranslations } from '@/i18n';
-import { formatCurrency, formatNumber } from '@/lib/utils/format';
 import { chartColors } from '@/lib/config/colors';
+import { formatCurrency, formatNumber } from '@/lib/utils/format';
 
 import { type RedStoneMarketViewProps } from '../types';
 
 const PRICE_FEEDS = [
-  { symbol: 'ETH/USD', price: 3452.18, change24h: 2.34, volume24h: 15234567890, source: 'RedStone' },
-  { symbol: 'BTC/USD', price: 67234.56, change24h: -1.23, volume24h: 28456789012, source: 'RedStone' },
+  {
+    symbol: 'ETH/USD',
+    price: 3452.18,
+    change24h: 2.34,
+    volume24h: 15234567890,
+    source: 'RedStone',
+  },
+  {
+    symbol: 'BTC/USD',
+    price: 67234.56,
+    change24h: -1.23,
+    volume24h: 28456789012,
+    source: 'RedStone',
+  },
   { symbol: 'LINK/USD', price: 18.45, change24h: 5.67, volume24h: 456789012, source: 'RedStone' },
   { symbol: 'UNI/USD', price: 9.87, change24h: -3.45, volume24h: 234567890, source: 'RedStone' },
   { symbol: 'AAVE/USD', price: 112.34, change24h: 1.89, volume24h: 345678901, source: 'RedStone' },
@@ -66,7 +78,7 @@ export function RedStoneMarketView({
   const [selectedFeed, setSelectedFeed] = useState<string | null>(null);
 
   const filteredFeeds = useMemo(() => {
-    let feeds = PRICE_FEEDS.filter(
+    const feeds = PRICE_FEEDS.filter(
       (feed) =>
         feed.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
         feed.source.toLowerCase().includes(searchQuery.toLowerCase())
@@ -197,7 +209,7 @@ export function RedStoneMarketView({
                   border: '1px solid #e5e7eb',
                   borderRadius: '6px',
                 }}
-                formatter={(value: number) => [formatCurrency(value), t('redstone.market.price')]}
+                formatter={(value) => [formatCurrency(Number(value)), t('redstone.market.price')]}
               />
               <Area
                 type="monotone"
@@ -215,7 +227,9 @@ export function RedStoneMarketView({
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">{t('redstone.market.priceFeeds')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {t('redstone.market.priceFeeds')}
+            </h3>
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -305,7 +319,10 @@ export function RedStoneMarketView({
                       ) : (
                         <TrendingDown className="w-3 h-3" />
                       )}
-                      <span>{feed.change24h >= 0 ? '+' : ''}{feed.change24h.toFixed(2)}%</span>
+                      <span>
+                        {feed.change24h >= 0 ? '+' : ''}
+                        {feed.change24h.toFixed(2)}%
+                      </span>
                     </div>
                   </td>
                   <td className="py-3 px-4 text-right">
