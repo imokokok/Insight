@@ -179,7 +179,6 @@ export default function ChartContainer({
   }, [setZoomRange]);
 
   const handleExport = useCallback(() => {
-    console.log('Export chart data');
   }, []);
 
   const showChartToolbar = CHARTS_WITH_TYPE_SUPPORT.includes(activeChart);

@@ -10,10 +10,12 @@ Complete API documentation for the Insight Oracle Data Analytics Platform. All e
 - [Favorites Endpoints](#favorites-endpoints)
 - [Snapshots Endpoints](#snapshots-endpoints)
 - [Authentication Endpoints](#authentication-endpoints)
+- [Health Endpoints](#health-endpoints)
 - [Cron Endpoints](#cron-endpoints)
 - [Error Codes](#error-codes)
 - [Rate Limiting](#rate-limiting)
 - [Caching](#caching)
+- [API Versioning](#api-versioning)
 
 ---
 
@@ -83,9 +85,7 @@ Retrieve current price or historical prices from oracle providers.
 
 ```json
 {
-  "provider": "chainlink",
-  "symbol": "BTC/USD",
-  "chain": "ethereum",
+  "success": true,
   "data": {
     "provider": "chainlink",
     "symbol": "BTC/USD",
@@ -96,7 +96,9 @@ Retrieve current price or historical prices from oracle providers.
     "confidence": 0.98,
     "source": "aggregated"
   },
-  "timestamp": 1710374400000,
+  "meta": {
+    "timestamp": 1710374400000
+  },
   "source": "fresh"
 }
 ```
@@ -105,10 +107,7 @@ Retrieve current price or historical prices from oracle providers.
 
 ```json
 {
-  "provider": "chainlink",
-  "symbol": "BTC/USD",
-  "chain": "ethereum",
-  "period": 7,
+  "success": true,
   "data": [
     {
       "provider": "chainlink",
@@ -120,8 +119,9 @@ Retrieve current price or historical prices from oracle providers.
       "confidence": 0.98
     }
   ],
-  "count": 168,
-  "timestamp": 1710374400000,
+  "meta": {
+    "timestamp": 1710374400000
+  },
   "source": "cache"
 }
 ```
@@ -196,38 +196,44 @@ Batch request for multiple prices in a single API call.
 
 ```json
 {
-  "timestamp": 1710374400000,
-  "results": [
-    {
-      "request": {
-        "provider": "chainlink",
-        "symbol": "BTC/USD",
-        "chain": "ethereum"
+  "success": true,
+  "data": {
+    "timestamp": 1710374400000,
+    "results": [
+      {
+        "request": {
+          "provider": "chainlink",
+          "symbol": "BTC/USD",
+          "chain": "ethereum"
+        },
+        "status": "fulfilled",
+        "data": {
+          "provider": "chainlink",
+          "symbol": "BTC/USD",
+          "chain": "ethereum",
+          "price": 67432.15,
+          "timestamp": 1710374400000,
+          "decimals": 8
+        },
+        "source": "fresh",
+        "error": null
       },
-      "status": "fulfilled",
-      "data": {
-        "provider": "chainlink",
-        "symbol": "BTC/USD",
-        "chain": "ethereum",
-        "price": 67432.15,
-        "timestamp": 1710374400000,
-        "decimals": 8
-      },
-      "source": "fresh",
-      "error": null
-    },
-    {
-      "request": {
-        "provider": "band-protocol",
-        "symbol": "ETH/USD",
-        "chain": "polygon"
-      },
-      "status": "rejected",
-      "data": null,
-      "source": null,
-      "error": "Failed to fetch price from band-protocol"
-    }
-  ]
+      {
+        "request": {
+          "provider": "band-protocol",
+          "symbol": "ETH/USD",
+          "chain": "polygon"
+        },
+        "status": "rejected",
+        "data": null,
+        "source": null,
+        "error": "Failed to fetch price from band-protocol"
+      }
+    ]
+  },
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -257,7 +263,8 @@ Retrieve all alerts for the authenticated user.
 
 ```json
 {
-  "alerts": [
+  "success": true,
+  "data": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "user_id": "user-uuid",
@@ -272,7 +279,9 @@ Retrieve all alerts for the authenticated user.
       "updated_at": "2024-03-14T10:00:00Z"
     }
   ],
-  "count": 1
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -315,7 +324,8 @@ Create a new price alert.
 
 ```json
 {
-  "alert": {
+  "success": true,
+  "data": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "user_id": "user-uuid",
     "symbol": "BTC/USD",
@@ -328,7 +338,9 @@ Create a new price alert.
     "created_at": "2024-03-14T10:00:00Z",
     "updated_at": "2024-03-14T10:00:00Z"
   },
-  "message": "Alert created successfully"
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -348,6 +360,68 @@ curl -X POST "https://api.insight.example.com/api/alerts" \
 
 ---
 
+### POST /api/alerts/batch
+
+Batch operations on multiple alerts (enable, disable, delete).
+
+**Request Body:**
+
+```json
+{
+  "action": "enable",
+  "alertIds": [
+    "550e8400-e29b-41d4-a716-446655440000",
+    "660e8400-e29b-41d4-a716-446655440001"
+  ]
+}
+```
+
+**Actions:**
+
+| Action   | Description                    |
+| -------- | ------------------------------ |
+| `enable` | Activate the specified alerts  |
+| `disable`| Deactivate the specified alerts |
+| `delete` | Delete the specified alerts    |
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Batch enable completed",
+    "results": {
+      "processed": 2,
+      "succeeded": 2,
+      "failed": 0,
+      "successIds": [
+        "550e8400-e29b-41d4-a716-446655440000",
+        "660e8400-e29b-41d4-a716-446655440001"
+      ],
+      "failedIds": []
+    }
+  },
+  "meta": {
+    "timestamp": 1710374400000
+  }
+}
+```
+
+**Example Request:**
+
+```bash
+curl -X POST "https://api.insight.example.com/api/alerts/batch" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "disable",
+    "alertIds": ["550e8400-e29b-41d4-a716-446655440000"]
+  }'
+```
+
+---
+
 ### GET /api/alerts/[id]
 
 Retrieve a specific alert by ID.
@@ -362,7 +436,8 @@ Retrieve a specific alert by ID.
 
 ```json
 {
-  "alert": {
+  "success": true,
+  "data": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "user_id": "user-uuid",
     "symbol": "BTC/USD",
@@ -374,6 +449,9 @@ Retrieve a specific alert by ID.
     "last_triggered_at": null,
     "created_at": "2024-03-14T10:00:00Z",
     "updated_at": "2024-03-14T10:00:00Z"
+  },
+  "meta": {
+    "timestamp": 1710374400000
   }
 }
 ```
@@ -411,7 +489,8 @@ Update an existing alert.
 
 ```json
 {
-  "alert": {
+  "success": true,
+  "data": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "user_id": "user-uuid",
     "symbol": "BTC/USD",
@@ -424,7 +503,9 @@ Update an existing alert.
     "created_at": "2024-03-14T10:00:00Z",
     "updated_at": "2024-03-14T12:00:00Z"
   },
-  "message": "Alert updated successfully"
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -453,7 +534,13 @@ Delete an alert.
 
 ```json
 {
-  "message": "Alert deleted successfully"
+  "success": true,
+  "data": {
+    "message": "Alert deleted successfully"
+  },
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -481,7 +568,8 @@ Retrieve alert events for the authenticated user.
 
 ```json
 {
-  "events": [
+  "success": true,
+  "data": [
     {
       "id": "event-uuid",
       "alert_id": "alert-uuid",
@@ -493,7 +581,9 @@ Retrieve alert events for the authenticated user.
       "acknowledged_at": null
     }
   ],
-  "count": 1
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -520,17 +610,22 @@ Acknowledge an alert event.
 
 ```json
 {
-  "event": {
-    "id": "event-uuid",
-    "alert_id": "alert-uuid",
-    "user_id": "user-uuid",
-    "triggered_at": "2024-03-14T10:00:00Z",
-    "price": 70150.5,
-    "condition_met": "above",
-    "acknowledged": true,
-    "acknowledged_at": "2024-03-14T10:05:00Z"
+  "success": true,
+  "data": {
+    "event": {
+      "id": "event-uuid",
+      "alert_id": "alert-uuid",
+      "user_id": "user-uuid",
+      "triggered_at": "2024-03-14T10:00:00Z",
+      "price": 70150.5,
+      "condition_met": "above",
+      "acknowledged": true,
+      "acknowledged_at": "2024-03-14T10:05:00Z"
+    }
   },
-  "message": "Event acknowledged successfully"
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -567,7 +662,8 @@ Retrieve all favorites for the authenticated user.
 
 ```json
 {
-  "favorites": [
+  "success": true,
+  "data": [
     {
       "id": "favorite-uuid",
       "user_id": "user-uuid",
@@ -580,7 +676,9 @@ Retrieve all favorites for the authenticated user.
       "created_at": "2024-03-14T10:00:00Z"
     }
   ],
-  "count": 1
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -614,7 +712,8 @@ Create a new favorite.
 
 ```json
 {
-  "favorite": {
+  "success": true,
+  "data": {
     "id": "favorite-uuid",
     "user_id": "user-uuid",
     "name": "My ETH Watchlist",
@@ -625,7 +724,9 @@ Create a new favorite.
     },
     "created_at": "2024-03-14T10:00:00Z"
   },
-  "message": "Favorite added successfully"
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -658,7 +759,8 @@ Retrieve a specific favorite by ID.
 
 ```json
 {
-  "favorite": {
+  "success": true,
+  "data": {
     "id": "favorite-uuid",
     "user_id": "user-uuid",
     "name": "My BTC Watchlist",
@@ -668,6 +770,9 @@ Retrieve a specific favorite by ID.
       "symbol": "BTC/USD"
     },
     "created_at": "2024-03-14T10:00:00Z"
+  },
+  "meta": {
+    "timestamp": 1710374400000
   }
 }
 ```
@@ -677,58 +782,6 @@ Retrieve a specific favorite by ID.
 ```bash
 curl -X GET "https://api.insight.example.com/api/favorites/favorite-uuid" \
   -H "Authorization: Bearer YOUR_TOKEN"
-```
-
----
-
-### PUT /api/favorites/[id]
-
-Update an existing favorite.
-
-**Path Parameters:**
-
-| Parameter | Type   | Required | Description   |
-| --------- | ------ | -------- | ------------- |
-| `id`      | string | Yes      | Favorite UUID |
-
-**Request Body (all fields optional):**
-
-```json
-{
-  "name": "Updated Watchlist",
-  "config_data": {
-    "selectedOracles": ["chainlink", "pyth", "api3"],
-    "symbol": "BTC/USD"
-  }
-}
-```
-
-**Response:**
-
-```json
-{
-  "favorite": {
-    "id": "favorite-uuid",
-    "user_id": "user-uuid",
-    "name": "Updated Watchlist",
-    "config_type": "oracle_config",
-    "config_data": {
-      "selectedOracles": ["chainlink", "pyth", "api3"],
-      "symbol": "BTC/USD"
-    },
-    "created_at": "2024-03-14T10:00:00Z"
-  },
-  "message": "Favorite updated successfully"
-}
-```
-
-**Example Request:**
-
-```bash
-curl -X PUT "https://api.insight.example.com/api/favorites/favorite-uuid" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Updated Watchlist"}'
 ```
 
 ---
@@ -747,7 +800,13 @@ Delete a favorite.
 
 ```json
 {
-  "message": "Favorite deleted successfully"
+  "success": true,
+  "data": {
+    "message": "Favorite deleted successfully"
+  },
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -770,7 +829,8 @@ Retrieve all snapshots for the authenticated user.
 
 ```json
 {
-  "snapshots": [
+  "success": true,
+  "data": [
     {
       "id": "snapshot-uuid",
       "user_id": "user-uuid",
@@ -800,7 +860,9 @@ Retrieve all snapshots for the authenticated user.
       "updated_at": "2024-03-14T10:00:00Z"
     }
   ],
-  "count": 1
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -851,7 +913,8 @@ Create a new snapshot.
 
 ```json
 {
-  "snapshot": {
+  "success": true,
+  "data": {
     "id": "snapshot-uuid",
     "user_id": "user-uuid",
     "symbol": "BTC/USD",
@@ -863,7 +926,9 @@ Create a new snapshot.
     "created_at": "2024-03-14T10:00:00Z",
     "updated_at": "2024-03-14T10:00:00Z"
   },
-  "message": "Snapshot created successfully"
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -903,7 +968,8 @@ Retrieve a specific snapshot by ID.
 
 ```json
 {
-  "snapshot": {
+  "success": true,
+  "data": {
     "id": "snapshot-uuid",
     "user_id": "user-uuid",
     "symbol": "BTC/USD",
@@ -914,6 +980,9 @@ Retrieve a specific snapshot by ID.
     "is_public": false,
     "created_at": "2024-03-14T10:00:00Z",
     "updated_at": "2024-03-14T10:00:00Z"
+  },
+  "meta": {
+    "timestamp": 1710374400000
   }
 }
 ```
@@ -950,7 +1019,8 @@ Update an existing snapshot.
 
 ```json
 {
-  "snapshot": {
+  "success": true,
+  "data": {
     "id": "snapshot-uuid",
     "user_id": "user-uuid",
     "symbol": "BTC/USD",
@@ -962,7 +1032,9 @@ Update an existing snapshot.
     "created_at": "2024-03-14T10:00:00Z",
     "updated_at": "2024-03-14T12:00:00Z"
   },
-  "message": "Snapshot updated successfully"
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -991,7 +1063,13 @@ Delete a snapshot.
 
 ```json
 {
-  "message": "Snapshot deleted successfully"
+  "success": true,
+  "data": {
+    "message": "Snapshot deleted successfully"
+  },
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -1018,19 +1096,25 @@ Share a snapshot publicly.
 
 ```json
 {
-  "message": "Snapshot shared successfully",
-  "share_url": "https://insight.example.com/snapshots/snapshot-uuid",
-  "snapshot": {
-    "id": "snapshot-uuid",
-    "user_id": "user-uuid",
-    "symbol": "BTC/USD",
-    "name": "Shared Snapshot",
-    "selected_oracles": ["chainlink"],
-    "price_data": [],
-    "stats": {},
-    "is_public": true,
-    "created_at": "2024-03-14T10:00:00Z",
-    "updated_at": "2024-03-14T12:00:00Z"
+  "success": true,
+  "data": {
+    "message": "Snapshot shared successfully",
+    "share_url": "https://insight.example.com/snapshots/snapshot-uuid",
+    "snapshot": {
+      "id": "snapshot-uuid",
+      "user_id": "user-uuid",
+      "symbol": "BTC/USD",
+      "name": "Shared Snapshot",
+      "selected_oracles": ["chainlink"],
+      "price_data": [],
+      "stats": {},
+      "is_public": true,
+      "created_at": "2024-03-14T10:00:00Z",
+      "updated_at": "2024-03-14T12:00:00Z"
+    }
+  },
+  "meta": {
+    "timestamp": 1710374400000
   }
 }
 ```
@@ -1082,21 +1166,27 @@ Retrieve the authenticated user's profile.
 
 ```json
 {
-  "profile": {
-    "id": "user-uuid",
-    "display_name": "John Doe",
-    "preferences": {
-      "default_oracle": "chainlink",
-      "default_symbol": "BTC/USD",
-      "theme": "system"
-    },
-    "notification_settings": {
-      "email_alerts": true,
-      "push_notifications": false,
-      "alert_frequency": "immediate"
-    },
-    "created_at": "2024-03-14T10:00:00Z",
-    "updated_at": "2024-03-14T10:00:00Z"
+  "success": true,
+  "data": {
+    "profile": {
+      "id": "user-uuid",
+      "display_name": "John Doe",
+      "preferences": {
+        "default_oracle": "chainlink",
+        "default_symbol": "BTC/USD",
+        "theme": "system"
+      },
+      "notification_settings": {
+        "email_alerts": true,
+        "push_notifications": false,
+        "alert_frequency": "immediate"
+      },
+      "created_at": "2024-03-14T10:00:00Z",
+      "updated_at": "2024-03-14T10:00:00Z"
+    }
+  },
+  "meta": {
+    "timestamp": 1710374400000
   }
 }
 ```
@@ -1136,18 +1226,23 @@ Update the authenticated user's profile.
 
 ```json
 {
-  "profile": {
-    "id": "user-uuid",
-    "display_name": "Jane Doe",
-    "preferences": {
-      "default_oracle": "api3",
-      "default_symbol": "ETH/USD",
-      "theme": "dark"
-    },
-    "created_at": "2024-03-14T10:00:00Z",
-    "updated_at": "2024-03-14T12:00:00Z"
+  "success": true,
+  "data": {
+    "profile": {
+      "id": "user-uuid",
+      "display_name": "Jane Doe",
+      "preferences": {
+        "default_oracle": "api3",
+        "default_symbol": "ETH/USD",
+        "theme": "dark"
+      },
+      "created_at": "2024-03-14T10:00:00Z",
+      "updated_at": "2024-03-14T12:00:00Z"
+    }
   },
-  "message": "Profile updated successfully"
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -1158,6 +1253,70 @@ curl -X PUT "https://api.insight.example.com/api/auth/profile" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"display_name": "Jane Doe"}'
+```
+
+---
+
+## Health Endpoints
+
+### GET /api/health
+
+Health check endpoint. Does not require authentication.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "timestamp": "2024-03-14T10:00:00.000Z",
+    "version": "0.1.0",
+    "uptime": 3600.5,
+    "checks": {
+      "database": {
+        "status": "ok",
+        "latency": 45
+      },
+      "memory": {
+        "status": "ok",
+        "used": 52428800,
+        "total": 67108864,
+        "percentage": 78.12
+      },
+      "environment": {
+        "status": "ok",
+        "nodeEnv": "production",
+        "hasRequiredEnvVars": true
+      }
+    }
+  },
+  "meta": {
+    "timestamp": 1710374400000
+  }
+}
+```
+
+**Status Values:**
+
+| Status      | HTTP Code | Description                           |
+| ----------- | --------- | ------------------------------------- |
+| `healthy`   | 200       | All systems operational               |
+| `degraded`  | 200       | Some systems have warnings            |
+| `unhealthy` | 503       | Critical systems failing              |
+
+**Health Check Details:**
+
+| Check        | Status Values                    | Description                |
+| ------------ | -------------------------------- | -------------------------- |
+| `database`   | `ok`, `error`                    | Database connectivity      |
+| `memory`     | `ok`, `warning`, `error`         | Memory usage levels        |
+| `environment`| `ok`, `error`                    | Environment configuration  |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.insight.example.com/api/health"
 ```
 
 ---
@@ -1181,8 +1340,14 @@ Authorization: Bearer <CRON_SECRET>
 ```json
 {
   "success": true,
-  "deletedCount": 1500,
-  "timestamp": "2024-03-14T00:00:00.000Z"
+  "data": {
+    "success": true,
+    "deletedCount": 1500,
+    "timestamp": "2024-03-14T00:00:00.000Z"
+  },
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -1195,64 +1360,82 @@ curl -X GET "https://api.insight.example.com/api/cron/cleanup" \
 
 ---
 
-### POST /api/cron/cleanup
-
-Alternative POST method for cleanup endpoint (same functionality as GET).
-
----
-
 ## Error Codes
 
 All error responses follow a consistent format:
 
 ```json
 {
+  "success": false,
   "error": {
     "code": "ERROR_CODE",
     "message": "Human-readable error message",
-    "retryable": true
+    "retryable": true,
+    "details": {},
+    "i18nKey": "errors.errorCode"
+  },
+  "meta": {
+    "timestamp": 1710374400000,
+    "requestId": "req-uuid"
   }
 }
 ```
 
 ### Error Code Reference
 
-| Code                   | HTTP Status | Description                         | Retryable |
-| ---------------------- | ----------- | ----------------------------------- | --------- |
-| `MISSING_PARAMS`       | 400         | Required parameters missing         | No        |
-| `INVALID_PARAMS`       | 400         | Invalid parameter value             | No        |
-| `INVALID_PROVIDER`     | 400         | Unknown oracle provider             | No        |
-| `BAD_REQUEST`          | 400         | Malformed request body              | No        |
-| `UNAUTHORIZED`         | 401         | Missing or invalid authentication   | No        |
-| `FORBIDDEN`            | 403         | Insufficient permissions            | No        |
-| `NOT_FOUND`            | 404         | Resource not found                  | No        |
-| `CLIENT_NOT_FOUND`     | 500         | Oracle client initialization failed | No        |
-| `ORACLE_FETCH_FAILED`  | 500         | Failed to fetch data from oracle    | Yes       |
-| `BATCH_REQUEST_FAILED` | 500         | Batch request processing failed     | Yes       |
-| `INTERNAL_ERROR`       | 500         | Unexpected server error             | Yes       |
+| Code                     | HTTP Status | Description                           | Retryable |
+| ------------------------ | ----------- | ------------------------------------- | --------- |
+| `VALIDATION_ERROR`       | 400         | Request validation failed             | No        |
+| `NOT_FOUND`              | 404         | Resource not found                    | No        |
+| `AUTHENTICATION_ERROR`   | 401         | Missing or invalid authentication     | No        |
+| `AUTHORIZATION_ERROR`    | 403         | Insufficient permissions              | No        |
+| `CONFLICT`               | 409         | Resource conflict (e.g., duplicate)  | No        |
+| `RATE_LIMIT_EXCEEDED`    | 429         | Rate limit exceeded                   | Yes       |
+| `INTERNAL_ERROR`         | 500         | Unexpected server error               | Yes       |
 
 ### Error Response Examples
 
-**Missing Parameters:**
+**Validation Error:**
 
 ```json
 {
+  "success": false,
   "error": {
-    "code": "MISSING_PARAMS",
-    "message": "Missing required parameters: provider, symbol",
-    "retryable": false
+    "code": "VALIDATION_ERROR",
+    "message": "Missing required fields: action, alertIds",
+    "retryable": false,
+    "details": {
+      "field": "alertIds",
+      "constraints": {
+        "isArray": true,
+        "isNotEmpty": true
+      }
+    },
+    "i18nKey": "errors.validation"
+  },
+  "meta": {
+    "timestamp": 1710374400000
   }
 }
 ```
 
-**Invalid Provider:**
+**Not Found:**
 
 ```json
 {
+  "success": false,
   "error": {
-    "code": "INVALID_PROVIDER",
-    "message": "Invalid provider: invalid-oracle. Valid providers: chainlink, band-protocol, uma, pyth, api3",
-    "retryable": false
+    "code": "NOT_FOUND",
+    "message": "Alert not found",
+    "retryable": false,
+    "details": {
+      "resource": "alert",
+      "identifier": "550e8400-e29b-41d4-a716-446655440000"
+    },
+    "i18nKey": "errors.notFound"
+  },
+  "meta": {
+    "timestamp": 1710374400000
   }
 }
 ```
@@ -1261,15 +1444,19 @@ All error responses follow a consistent format:
 
 ```json
 {
-  "error": "Unauthorized"
-}
-```
-
-**Not Found:**
-
-```json
-{
-  "error": "Alert not found"
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Unauthorized",
+    "retryable": false,
+    "details": {
+      "reason": "missing_token"
+    },
+    "i18nKey": "errors.authentication"
+  },
+  "meta": {
+    "timestamp": 1710374400000
+  }
 }
 ```
 
@@ -1277,16 +1464,24 @@ All error responses follow a consistent format:
 
 ## Rate Limiting
 
-API endpoints are rate-limited to ensure fair usage:
+API endpoints are rate-limited to ensure fair usage using a sliding window algorithm.
 
-| Endpoint Type   | Rate Limit   | Window   |
-| --------------- | ------------ | -------- |
-| Price queries   | 100 requests | 1 minute |
-| Batch requests  | 20 requests  | 1 minute |
-| User operations | 60 requests  | 1 minute |
-| Cron endpoints  | 10 requests  | 1 minute |
+### Rate Limit Presets
 
-Rate limit headers are included in responses:
+| Preset      | Rate Limit  | Window   | Use Case                    |
+| ----------- | ----------- | -------- | --------------------------- |
+| `strict`    | 20 requests | 60 seconds | Sensitive endpoints       |
+| `moderate`  | 60 requests | 60 seconds | User operations           |
+| `api`       | 100 requests| 60 seconds | Default API endpoints     |
+| `lenient`   | 200 requests| 60 seconds | Batch/aggregation requests |
+
+### Default Rate Limits
+
+The default rate limit is **100 requests per 60 seconds** for most API endpoints.
+
+### Rate Limit Headers
+
+All responses include rate limit information in headers:
 
 ```
 X-RateLimit-Limit: 100
@@ -1294,29 +1489,141 @@ X-RateLimit-Remaining: 95
 X-RateLimit-Reset: 1710374460
 ```
 
+### Rate Limit Exceeded Response
+
+When rate limit is exceeded, the API returns:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Too many requests, please try again later",
+    "retryable": true,
+    "details": {
+      "retryAfter": 30
+    },
+    "i18nKey": "errors.rateLimit"
+  },
+  "meta": {
+    "timestamp": 1710374400000
+  }
+}
+```
+
+With headers:
+
+```
+Retry-After: 30
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1710374460
+```
+
 ---
 
 ## Caching
 
-Oracle price data is cached for performance:
+Oracle price data is cached for performance using a stale-while-revalidate strategy.
 
-| Data Type         | Cache Duration | Stale-While-Revalidate |
-| ----------------- | -------------- | ---------------------- |
-| Current Price     | 30 seconds     | 60 seconds             |
-| Historical Prices | 5 minutes      | 10 minutes             |
+### Cache Configuration
 
-Cache headers are included in responses:
+| Data Type          | staleTime | gcTime  | Description                           |
+| ------------------ | --------- | ------- | ------------------------------------- |
+| Price Data         | 30s       | 60s     | Current price from oracles            |
+| Historical Prices  | 5min      | 10min   | Historical price data                 |
+| Alert Data         | 15s       | 30s     | User alerts and events                |
+| Airnode Stats      | 60s       | 2min    | API3 Airnode statistics               |
+| DAPI Coverage      | 5min      | 10min   | Decentralized API coverage data       |
+| OHLC Data          | 5min      | 10min   | Open/High/Low/Close candle data       |
+| Quality History    | 5min      | 10min   | Historical quality metrics            |
+
+### Cache Headers
+
+Responses include cache information:
 
 ```
 Cache-Control: public, s-maxage=30, stale-while-revalidate=60
 ```
 
+### Cache Configuration Reference
+
+```typescript
+const CACHE_CONFIG = {
+  price: {
+    staleTime: 30000,    // 30 seconds
+    gcTime: 60000,       // 60 seconds
+  },
+  historical: {
+    staleTime: 300000,   // 5 minutes
+    gcTime: 600000,      // 10 minutes
+  },
+  alerts: {
+    staleTime: 15000,    // 15 seconds
+    gcTime: 30000,       // 30 seconds
+  },
+  // ... more configurations
+};
+```
+
+### Data Source Indicator
+
 The `source` field in responses indicates data origin:
 
-| Source  | Description                       |
-| ------- | --------------------------------- |
-| `fresh` | Data fetched directly from oracle |
-| `cache` | Data served from cache            |
+| Source   | Description                            |
+| -------- | -------------------------------------- |
+| `fresh`  | Data fetched directly from oracle      |
+| `cache`  | Data served from cache                 |
+
+---
+
+## API Versioning
+
+The API uses URL-based versioning. The current version is `v1`.
+
+### Version Header
+
+All responses include version information:
+
+```
+X-API-Version: v1
+```
+
+### Versioned Endpoints
+
+API versions are specified in the URL path:
+
+```
+/api/v1/oracles
+/api/v1/alerts
+```
+
+### Version Deprecation
+
+When a version is deprecated, additional headers are included:
+
+```
+X-API-Version: v1
+X-API-Deprecated: true
+X-API-Deprecation-Date: 2024-12-01T00:00:00.000Z
+X-API-Sunset-Date: 2025-06-01T00:00:00.000Z
+Link: <https://api.insight.example.com/api/v2>; rel="successor-version"
+```
+
+### Supported Versions
+
+| Version | Status      | Deprecation Date |
+| ------- | ----------- | ---------------- |
+| `v1`    | Current     | -                |
+
+### Migration
+
+When a version is deprecated:
+
+1. A `Deprecation-Date` header indicates when support will end
+2. A `Sunset-Date` header indicates the final date of support
+3. A `Link` header with `rel="successor-version"` points to the new version
+4. After the sunset date, requests to the deprecated version will return `410 Gone`
 
 ---
 
@@ -1373,13 +1680,38 @@ interface UserPreferences {
 }
 ```
 
----
+### ApiSuccessResponse
 
-## Versioning
+```typescript
+interface ApiSuccessResponse<T = unknown> {
+  success: true;
+  data: T;
+  meta?: {
+    timestamp: number;
+    requestId?: string;
+    [key: string]: unknown;
+  };
+}
+```
 
-The API is versioned through the URL path. The current version is `v1` (implicit in all endpoints).
+### ApiErrorResponse
 
-Breaking changes will be introduced in new versions while maintaining backward compatibility for existing versions.
+```typescript
+interface ApiErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    retryable: boolean;
+    details?: Record<string, unknown>;
+    i18nKey?: string;
+  };
+  meta?: {
+    timestamp: number;
+    requestId?: string;
+  };
+}
+```
 
 ---
 

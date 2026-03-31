@@ -16,18 +16,18 @@ Insight 平台支持多种区块链预言机提供商，采用统一的抽象层
 
 ### 支持的预言机
 
-| 预言机        | 标识符          | 主要链                      | 特点           |
-| ------------- | --------------- | --------------------------- | -------------- |
-| Chainlink     | `chainlink`     | Ethereum, Arbitrum, Polygon | 市场领导者     |
-| Pyth Network  | `pyth`          | Solana, Ethereum            | 低延迟金融数据 |
-| Band Protocol | `band_protocol` | Cosmos, Ethereum            | 跨链数据       |
-| API3          | `api3`          | Ethereum, Polygon           | 第一方预言机   |
-| UMA           | `uma`           | Ethereum                    | 乐观预言机     |
-| RedStone      | `redstone`      | Arbitrum, Ethereum          | 高效数据推送   |
-| DIA           | `dia`           | 多链                        | 透明数据源     |
-| Tellor        | `tellor`        | Ethereum                    | 去中心化报告   |
-| Chronicle     | `chronicle`     | Ethereum                    | MakerDAO 生态  |
-| WINkLink      | `winklink`      | Tron                        | 波场生态       |
+| 预言机        | 标识符          | 文件位置                      | 主要链                      | 特点           |
+| ------------- | --------------- | ---------------------------- | --------------------------- | -------------- |
+| Chainlink     | `chainlink`     | `src/lib/oracles/chainlink.ts` | Ethereum, Arbitrum, Polygon | 市场领导者     |
+| Band Protocol | `band_protocol` | `src/lib/oracles/bandProtocol.ts` | Cosmos, Ethereum            | 跨链数据       |
+| Pyth Network  | `pyth`          | `src/lib/oracles/pythNetwork.ts` | Solana, Ethereum            | 低延迟金融数据 |
+| API3          | `api3`          | `src/lib/oracles/api3.ts` | Ethereum, Polygon           | 第一方预言机   |
+| UMA           | `uma`           | `src/lib/oracles/uma/` (完整模块) | Ethereum                    | 乐观预言机     |
+| RedStone      | `redstone`      | `src/lib/oracles/redstone.ts` | Arbitrum, Ethereum          | 高效数据推送   |
+| DIA           | `dia`           | `src/lib/oracles/dia.ts` | 多链                        | 透明数据源     |
+| Tellor        | `tellor`        | `src/lib/oracles/tellor.ts` | Ethereum                    | 去中心化报告   |
+| Chronicle     | `chronicle`     | `src/lib/oracles/chronicle.ts` | Ethereum                    | MakerDAO 生态  |
+| WINkLink      | `winklink`      | `src/lib/oracles/winklink.ts` | Tron                        | 波场生态       |
 
 ## 架构图
 
@@ -53,13 +53,17 @@ graph TB
         I[BandProtocolClient]
         J[API3Client]
         K[UMAClient]
-        L[Other Clients...]
+        L[RedStoneClient]
+        M[DiAClient]
+        N[TellorClient]
+        O[ChronicleClient]
+        P[WINkLinkClient]
     end
 
     subgraph DataSources["数据源"]
-        M[Supabase DB]
-        N[External APIs]
-        O[Mock Data]
+        Q[Supabase DB]
+        R[External APIs]
+        S[Mock Data]
     end
 
     A --> B
@@ -73,9 +77,13 @@ graph TB
     E --> J
     E --> K
     E --> L
-    G --> M
-    G --> N
-    G --> O
+    E --> M
+    E --> N
+    E --> O
+    E --> P
+    G --> Q
+    G --> R
+    G --> S
 ```
 
 ### 类层次结构
@@ -120,8 +128,22 @@ classDiagram
         +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
     }
 
+    class BandProtocolClient {
+        +name: OracleProvider.BAND_PROTOCOL
+        +supportedChains: Blockchain[]
+        +getPrice(symbol, chain): Promise~PriceData~
+        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
+    }
+
     class PythClient {
         +name: OracleProvider.PYTH
+        +supportedChains: Blockchain[]
+        +getPrice(symbol, chain): Promise~PriceData~
+        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
+    }
+
+    class API3Client {
+        +name: OracleProvider.API3
         +supportedChains: Blockchain[]
         +getPrice(symbol, chain): Promise~PriceData~
         +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
@@ -134,10 +156,52 @@ classDiagram
         +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
     }
 
+    class RedStoneClient {
+        +name: OracleProvider.REDSTONE
+        +supportedChains: Blockchain[]
+        +getPrice(symbol, chain): Promise~PriceData~
+        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
+    }
+
+    class DIAClient {
+        +name: OracleProvider.DIA
+        +supportedChains: Blockchain[]
+        +getPrice(symbol, chain): Promise~PriceData~
+        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
+    }
+
+    class TellorClient {
+        +name: OracleProvider.TELLOR
+        +supportedChains: Blockchain[]
+        +getPrice(symbol, chain): Promise~PriceData~
+        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
+    }
+
+    class ChronicleClient {
+        +name: OracleProvider.CHRONICLE
+        +supportedChains: Blockchain[]
+        +getPrice(symbol, chain): Promise~PriceData~
+        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
+    }
+
+    class WINkLinkClient {
+        +name: OracleProvider.WINKLINK
+        +supportedChains: Blockchain[]
+        +getPrice(symbol, chain): Promise~PriceData~
+        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
+    }
+
     IOracleClient <|.. BaseOracleClient
     BaseOracleClient <|-- ChainlinkClient
+    BaseOracleClient <|-- BandProtocolClient
     BaseOracleClient <|-- PythClient
+    BaseOracleClient <|-- API3Client
     BaseOracleClient <|-- UMAClient
+    BaseOracleClient <|-- RedStoneClient
+    BaseOracleClient <|-- DIAClient
+    BaseOracleClient <|-- TellorClient
+    BaseOracleClient <|-- ChronicleClient
+    BaseOracleClient <|-- WINkLinkClient
     OracleClientFactory ..> BaseOracleClient : creates
 ```
 
@@ -165,7 +229,6 @@ export abstract class BaseOracleClient {
     this.config = { ...DEFAULT_CLIENT_CONFIG, ...config };
   }
 
-  // 通用错误创建方法
   protected createError(message: string, code?: string): OracleError {
     return {
       message,
@@ -174,7 +237,6 @@ export abstract class BaseOracleClient {
     };
   }
 
-  // Mock 数据生成（用于开发和测试）
   protected generateMockPrice(
     symbol: string,
     basePrice: number,
@@ -184,7 +246,6 @@ export abstract class BaseOracleClient {
     // 实现细节...
   }
 
-  // 带数据库缓存的数据获取
   protected async fetchPriceWithDatabase(
     symbol: string,
     chain: Blockchain | undefined,
@@ -221,16 +282,6 @@ export class OracleClientFactory {
   }
 
   static getClient(provider: OracleProvider): BaseOracleClient {
-    // 支持依赖注入
-    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
-      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
-      const client = factory.getClient(provider);
-      if (client instanceof BaseOracleClient) {
-        return client;
-      }
-    }
-
-    // 单例模式
     if (!this.instances.has(provider)) {
       this.instances.set(provider, this.createClient(provider));
     }
@@ -267,7 +318,20 @@ export class OracleClientFactory {
         return new BandProtocolClient(this.config);
       case OracleProvider.UMA:
         return new UMAClient(this.config);
-      // ... 其他预言机
+      case OracleProvider.PYTH:
+        return new PythClient(this.config);
+      case OracleProvider.API3:
+        return new API3Client(this.config);
+      case OracleProvider.REDSTONE:
+        return new RedStoneClient(this.config);
+      case OracleProvider.DIA:
+        return new DIAClient(this.config);
+      case OracleProvider.TELLOR:
+        return new TellorClient(this.config);
+      case OracleProvider.CHRONICLE:
+        return new ChronicleClient(this.config);
+      case OracleProvider.WINKLINK:
+        return new WINkLinkClient(this.config);
       default:
         throw new ValidationError(`Unknown oracle provider: ${provider}`);
     }
@@ -279,7 +343,6 @@ export class OracleClientFactory {
 
 - **单例管理**：每个预言机只有一个实例，节省资源
 - **延迟初始化**：首次使用时才创建实例
-- **依赖注入支持**：可通过 DI 容器替换实现
 - **统一配置**：所有客户端共享配置
 
 ### 3. 接口定义
@@ -299,17 +362,9 @@ export interface IOracleClientFactory {
   hasClient(provider: OracleProvider): boolean;
   clearInstances(): void;
 }
-
-export interface IMockOracleClient extends IOracleClient {
-  setMockPrice(symbol: string, price: PriceData): void;
-  setMockHistoricalPrices(symbol: string, prices: PriceData[]): void;
-  setMockError(symbol: string, error: OracleError): void;
-  clearMocks(): void;
-  getCallHistory(): MockCallHistory[];
-}
 ```
 
-### 4. 具体实现示例：ChainlinkClient
+### 4. ChainlinkClient 实现
 
 ```typescript
 // src/lib/oracles/chainlink.ts
@@ -348,11 +403,126 @@ export class ChainlinkClient extends BaseOracleClient {
       BTC: 45000,
       ETH: 3000,
       LINK: 15,
-      // ...
     };
     return prices[symbol] || 100;
   }
 }
+```
+
+### 5. UMA 客户端（完整模块）
+
+UMA 是一个独立模块，包含完整的预言机实现：
+
+```
+src/lib/oracles/uma/
+├── client.ts           # UMA 预言机客户端
+├── components.tsx      # React 组件
+├── crossChainTypes.ts  # 跨链类型定义
+├── dataRequestTypes.ts # 数据请求类型
+├── governanceTypes.ts  # 治理类型
+├── index.ts           # 导出入口
+├── mockDataConfig.ts   # Mock 数据配置
+└── types.ts           # 类型定义
+```
+
+```typescript
+// src/lib/oracles/uma/client.ts
+import { BaseOracleClient } from '../base';
+import { OracleProvider, Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
+
+export class UMAClient extends BaseOracleClient {
+  name = OracleProvider.UMA;
+  supportedChains = [
+    Blockchain.ETHEREUM,
+    Blockchain.ARBITRUM,
+    Blockchain.POLYGON,
+  ];
+
+  async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+    return this.fetchPriceWithDatabase(symbol, chain, () => {
+      const basePrice = this.getBasePrice(symbol);
+      return this.generateMockPrice(symbol, basePrice, chain);
+    });
+  }
+
+  async getHistoricalPrices(
+    symbol: string,
+    chain?: Blockchain,
+    period: number = 24
+  ): Promise<PriceData[]> {
+    return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () => {
+      const basePrice = this.getBasePrice(symbol);
+      return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
+    });
+  }
+
+  private getBasePrice(symbol: string): number {
+    const prices: Record<string, number> = {
+      BTC: 45000,
+      ETH: 3000,
+    };
+    return prices[symbol] || 100;
+  }
+}
+```
+
+### 6. API3 客户端特性
+
+API3 客户端包含多个专门文件：
+
+```
+src/lib/oracles/
+├── api3.ts                    # 主客户端
+├── api3AlertDetection.ts      # 警报检测
+├── api3DataAggregator.ts     # 数据聚合
+├── api3DataSources.ts         # 数据源管理
+├── api3IncrementalUpdate.ts   # 增量更新
+├── api3MockDataAnnotations.ts # Mock 数据注解
+├── api3OfflineStorage.ts      # 离线存储
+├── api3OnChainService.ts      # 链上服务
+├── api3RequestManager.ts      # 请求管理
+└── api3WebSocket.ts           # WebSocket 支持
+```
+
+### 7. Pyth Network 客户端特性
+
+```
+src/lib/oracles/
+├── pythNetwork.ts        # 主客户端
+├── pythConstants.ts      # 常量定义
+├── pythDataService.ts    # 数据服务
+├── pythHermesClient.ts   # Hermes 客户端
+└── pythMockData.ts       # Mock 数据
+```
+
+### 8. RedStone 客户端特性
+
+```
+src/lib/oracles/
+├── redstone.ts           # 主客户端
+├── redstoneConstants.ts  # 常量定义
+```
+
+### 9. Tellor 客户端特性
+
+Tellor 客户端包含多个专门文件：
+
+```
+src/lib/oracles/
+├── tellor.ts                  # 主客户端
+├── tellorClientSingleton.ts   # 单例模式
+├── tellorDataVerification.ts  # 数据验证
+├── tellorOnChainService.ts    # 链上服务
+└── tellorQueryUtils.ts        # 查询工具
+```
+
+### 10. DIA 客户端特性
+
+```
+src/lib/oracles/
+├── dia.ts              # 主客户端
+└── diaDataService.ts  # 数据服务
 ```
 
 ## 数据流
@@ -392,7 +562,7 @@ sequenceDiagram
 // src/lib/oracles/storage.ts
 export interface OracleStorageConfig {
   useDatabase: boolean;
-  cacheDuration: number; // 毫秒
+  cacheDuration: number;
 }
 
 export async function getPriceFromDatabase(
@@ -444,13 +614,10 @@ export class NewOracleClient extends BaseOracleClient {
   supportedChains = [
     Blockchain.ETHEREUM,
     Blockchain.POLYGON,
-    // 添加支持的链
   ];
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     return this.fetchPriceWithDatabase(symbol, chain, () => {
-      // 实现实际的价格获取逻辑
-      // 或调用 generateMockPrice 生成模拟数据
       const basePrice = this.getBasePrice(symbol);
       return this.generateMockPrice(symbol, basePrice, chain);
     });
@@ -468,7 +635,6 @@ export class NewOracleClient extends BaseOracleClient {
   }
 
   private getBasePrice(symbol: string): number {
-    // 定义基础价格
     const prices: Record<string, number> = {
       BTC: 45000,
       ETH: 3000,
@@ -486,10 +652,9 @@ import { NewOracleClient } from './newOracle';
 
 private static createClient(provider: OracleProvider): BaseOracleClient {
   switch (provider) {
-    // ... 现有 case
     case OracleProvider.NEW_ORACLE:
       return new NewOracleClient(this.config);
-    // ...
+    // ... 现有 case
   }
 }
 ```
@@ -499,7 +664,6 @@ private static createClient(provider: OracleProvider): BaseOracleClient {
 ```typescript
 // src/types/oracle.ts
 export const enum OracleProvider {
-  // ... 现有值
   NEW_ORACLE = 'new_oracle',
 }
 ```
@@ -509,7 +673,6 @@ export const enum OracleProvider {
 ```typescript
 // src/lib/oracles/colors.ts
 export const ORACLE_COLORS: Record<OracleProvider, OracleColorScheme> = {
-  // ... 现有配置
   [OracleProvider.NEW_ORACLE]: {
     primary: '#FF6B6B',
     secondary: '#FF8787',
@@ -547,7 +710,7 @@ export default function NewOraclePage() {
 5. **添加测试**：为新客户端编写单元测试
 6. **文档化**：更新相关文档和类型定义
 
-### 测试新预言机
+### 测试预言机
 
 ```typescript
 // src/lib/oracles/__tests__/newOracle.test.ts
@@ -580,7 +743,7 @@ describe('NewOracleClient', () => {
 
   it('should fetch historical prices', async () => {
     const prices = await client.getHistoricalPrices('ETH', Blockchain.ETHEREUM, 24);
-    expect(prices).toHaveLength(96); // 24 hours * 4 data points per hour
+    expect(prices.length).toBeGreaterThan(0);
     expect(prices[0].symbol).toBe('ETH');
   });
 });
@@ -596,12 +759,10 @@ describe('NewOracleClient', () => {
 
 - **数据库缓存**：自动缓存价格数据到 Supabase
 - **React Query 缓存**：前端数据缓存和重新验证
-- **内存缓存**：考虑添加 Redis 层
 
 ### 3. 批量获取
 
 ```typescript
-// 批量获取多个资产的价格
 async function getMultiplePrices(
   provider: OracleProvider,
   symbols: string[]
@@ -649,7 +810,6 @@ export class PriceFetchError extends AppError {
 ### 重试策略
 
 ```typescript
-// React Query 配置
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

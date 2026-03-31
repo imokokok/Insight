@@ -119,11 +119,9 @@ export function CustomReportGenerator({
   }, [title, selectedMetrics, timeRange, chartType, filters]);
 
   const handleExportPDF = useCallback(() => {
-    console.log('Exporting to PDF...');
   }, []);
 
   const handleExportImage = useCallback(() => {
-    console.log('Exporting to image...');
   }, []);
 
   const previewData = useMemo(() => {

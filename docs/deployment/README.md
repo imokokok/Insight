@@ -11,7 +11,7 @@
 
 ## 环境要求
 
-- Node.js 18.17.0+
+- Node.js 20+
 - npm 9.0.0+
 - PostgreSQL 14+ (如果使用 Supabase)
 
@@ -19,9 +19,7 @@
 
 ### 一键部署
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-org/insight)
-
-### 手动部署
+使用 Vercel CLI 或 Git 集成进行部署：
 
 ```bash
 # 1. 安装 Vercel CLI
@@ -30,11 +28,29 @@ npm i -g vercel
 # 2. 登录
 vercel login
 
-# 3. 部署
+# 3. 部署预览
 vercel
 
 # 4. 生产部署
 vercel --prod
+```
+
+### 手动部署
+
+项目支持直接部署到 Vercel：
+
+```bash
+# 安装依赖
+npm install
+
+# 本地开发
+npm run dev
+
+# 构建生产版本
+npm run build
+
+# 启动生产服务器
+npm run start
 ```
 
 ### 配置环境变量
@@ -97,3 +113,18 @@ services:
 | --------------- | ------------- | ------ |
 | NEXTAUTH_SECRET | NextAuth 密钥 | -      |
 | NEXTAUTH_URL    | NextAuth URL  | http   |
+
+---
+
+## 性能监控集成
+
+部署时可自动启用以下监控服务：
+
+- **@vercel/analytics**: 流量和转化分析
+- **@vercel/speed-insights**: 性能指标追踪
+- **@sentry/nextjs**: 错误追踪和性能监控
+
+所有监控服务均通过环境变量 `NEXT_PUBLIC_APP_ENV` 控制：
+
+- `development`: 开发模式，启用详细日志
+- `production`: 生产模式，上报真实数据

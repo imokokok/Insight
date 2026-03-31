@@ -97,23 +97,70 @@ graph TB
 
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── [locale]/          # 国际化路由
-│   ├── api/               # API Routes
-│   └── ...
-├── components/            # React 组件
-│   ├── oracle/           # 预言机组件
-│   ├── charts/           # 图表组件
-│   └── ui/               # 基础 UI
-├── hooks/                # 自定义 Hooks
-│   ├── queries/          # React Query hooks
-│   └── realtime/         # 实时数据 hooks
-├── lib/                  # 核心库
-│   ├── oracles/         # 预言机客户端
-│   ├── api/             # API 层
-│   └── errors/          # 错误处理
-├── types/               # TypeScript 类型
-└── i18n/                # 国际化
+├── app/                         # Next.js App Router
+│   ├── [locale]/               # 国际化路由（动态路由参数）
+│   │   ├── chainlink/          # Chainlink 预言机页面
+│   │   ├── band-protocol/      # Band Protocol 页面
+│   │   ├── pyth/               # Pyth Network 页面
+│   │   ├── api3/               # API3 页面
+│   │   ├── redstone/           # RedStone 页面
+│   │   ├── dia/                # DIA 页面
+│   │   ├── tellor/             # Tellor 页面
+│   │   ├── chronicle/           # Chronicle 页面
+│   │   ├── uma/                # UMA 页面
+│   │   ├── cross-chain/        # 跨链对比页面
+│   │   ├── cross-oracle/       # 预言机对比页面
+│   │   ├── market-overview/    # 市场概览页面
+│   │   ├── price-query/        # 价格查询页面
+│   │   ├── alerts/             # 警报页面
+│   │   ├── favorites/          # 收藏页面
+│   │   ├── settings/           # 设置页面
+│   │   ├── login/              # 登录页面
+│   │   ├── register/           # 注册页面
+│   │   └── snapshot/           # 快照页面
+│   └── api/                    # API Routes
+├── components/                  # React 组件
+│   ├── oracle/                 # 预言机组件
+│   ├── charts/                 # 图表组件
+│   └── ui/                    # 基础 UI
+├── hooks/                      # 自定义 Hooks
+│   ├── queries/               # React Query hooks
+│   └── realtime/              # 实时数据 hooks
+├── lib/                       # 核心库
+│   ├── oracles/              # 预言机客户端实现
+│   │   ├── chainlink.ts      # Chainlink 客户端
+│   │   ├── bandProtocol.ts   # Band Protocol 客户端
+│   │   ├── pythNetwork.ts    # Pyth Network 客户端
+│   │   ├── api3.ts           # API3 客户端
+│   │   ├── redstone.ts       # RedStone 客户端
+│   │   ├── dia.ts            # DIA 客户端
+│   │   ├── tellor.ts         # Tellor 客户端
+│   │   ├── chronicle.ts      # Chronicle 客户端
+│   │   ├── winklink.ts       # WINkLink 客户端
+│   │   ├── uma/              # UMA 客户端（完整模块）
+│   │   ├── base.ts           # 抽象基类
+│   │   ├── factory.ts         # 工厂模式
+│   │   ├── interfaces.ts     # 接口定义
+│   │   └── colors.ts         # 颜色配置
+│   ├── api/                  # API 层
+│   │   ├── client/           # API 客户端
+│   │   ├── middleware/       # 中间件
+│   │   │   ├── authMiddleware.ts      # 认证中间件
+│   │   │   ├── errorMiddleware.ts     # 错误处理中间件
+│   │   │   ├── rateLimitMiddleware.ts # 限流中间件
+│   │   │   ├── validationMiddleware.ts # 验证中间件
+│   │   │   └── loggingMiddleware.ts   # 日志中间件
+│   │   ├── versioning/      # API 版本控制
+│   │   └── response/         # 响应格式化
+│   └── errors/               # 错误处理
+├── stores/                    # Zustand 状态管理
+│   ├── authStore.ts          # 认证状态
+│   ├── uiStore.ts            # UI 状态
+│   ├── realtimeStore.ts      # 实时数据状态
+│   ├── crossChainStore.ts    # 跨链状态
+│   └── selectors.ts          # 状态选择器
+├── types/                    # TypeScript 类型
+└── i18n/                     # 国际化
 ```
 
 ## 扩展阅读

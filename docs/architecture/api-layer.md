@@ -26,8 +26,8 @@ graph TB
 
     subgraph ErrorHandling["错误处理"]
         F[AppError]
-        G[ErrorHandler]
-        H[ErrorBoundary]
+        G[ErrorMiddleware]
+        H[ErrorResponse]
     end
 
     D --> F
@@ -42,6 +42,38 @@ graph TB
 3. **完整错误处理**：分层错误处理和日志记录
 4. **输入验证**：所有输入都经过严格验证
 5. **缓存策略**：合理的 HTTP 缓存头设置
+
+## 目录结构
+
+```
+src/lib/api/
+├── client/                 # API 客户端
+│   ├── ApiClient.ts       # API 客户端实现
+│   ├── ApiError.ts        # API 错误类
+│   ├── index.ts           # 导出入口
+│   └── types.ts           # 类型定义
+├── middleware/            # 中间件
+│   ├── authMiddleware.ts       # 认证中间件
+│   ├── errorMiddleware.ts      # 错误处理中间件
+│   ├── rateLimitMiddleware.ts  # 限流中间件
+│   ├── validationMiddleware.ts # 验证中间件
+│   ├── loggingMiddleware.ts   # 日志中间件
+│   └── index.ts               # 导出入口
+├── versioning/            # API 版本控制
+│   ├── constants.ts       # 版本常量
+│   ├── middleware.ts      # 版本中间件
+│   └── index.ts           # 导出入口
+├── response/               # 响应格式化
+│   ├── ApiResponse.ts     # 响应构建器
+│   └── index.ts           # 导出入口
+├── validation/            # 验证逻辑
+│   ├── schemas.ts         # Zod 验证模式
+│   ├── validators.ts      # 自定义验证器
+│   └── index.ts           # 导出入口
+├── handler.ts            # 路由处理函数
+├── oracleHandlers.ts     # 预言机相关处理
+└── utils.ts              # 工具函数
+```
 
 ## 路由结构
 
@@ -70,232 +102,399 @@ src/app/api/
     └── route.ts              # GET /api/health
 ```
 
-### 路由实现示例
-
-```typescript
-// src/app/api/oracles/[provider]/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { OracleClientFactory } from '@/lib/oracles/factory';
-import { validateProvider } from '@/lib/api/validation';
-import { createCachedJsonResponse, createErrorResponse } from '@/lib/api/response';
-import { withErrorHandler, withAuth, withRateLimit } from '@/lib/api/middleware';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-
-// GET /api/oracles/[provider]?symbol=BTC&chain=ethereum
-export const GET = withErrorHandler(
-  withRateLimit(
-    async (request: NextRequest, { params }: { params: { provider: string } }) => {
-      // 1. 验证 provider
-      const validationError = validateProvider(params.provider);
-      if (validationError) {
-        return validationError;
-      }
-
-      // 2. 获取查询参数
-      const searchParams = request.nextUrl.searchParams;
-      const symbol = searchParams.get('symbol');
-      const chain = searchParams.get('chain') as Blockchain | undefined;
-
-      // 3. 验证必需参数
-      if (!symbol) {
-        return createErrorResponse('MISSING_PARAMS', 'Symbol is required', 400);
-      }
-
-      // 4. 获取数据
-      const client = OracleClientFactory.getClient(params.provider as OracleProvider);
-      const price = await client.getPrice(symbol, chain);
-
-      // 5. 返回缓存响应
-      return createCachedJsonResponse(price, {
-        maxAge: 30,
-        staleWhileRevalidate: 60,
-      });
-    },
-    { limit: 100, window: 60 } // 每分钟 100 次请求
-  )
-);
-```
-
-### 多方法路由
-
-```typescript
-// src/app/api/alerts/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, withErrorHandler } from '@/lib/api/middleware';
-import { validateAlertConfig } from '@/lib/api/validation';
-import { createJsonResponse, createErrorResponse } from '@/lib/api/response';
-import { supabase } from '@/lib/supabase/client';
-
-// GET /api/alerts - 获取用户的所有警报
-export const GET = withErrorHandler(
-  withAuth(async (request: NextRequest, { user }) => {
-    const { data, error } = await supabase
-      .from('alerts')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      throw new DatabaseError('Failed to fetch alerts', { cause: error });
-    }
-
-    return createJsonResponse({ data, count: data?.length || 0 });
-  })
-);
-
-// POST /api/alerts - 创建新警报
-export const POST = withErrorHandler(
-  withAuth(async (request: NextRequest, { user }) => {
-    // 1. 解析请求体
-    const body = await request.json();
-
-    // 2. 验证输入
-    const validation = validateAlertConfig(body);
-    if (!validation.valid) {
-      return createErrorResponse('VALIDATION_ERROR', validation.errors.join(', '), 400);
-    }
-
-    // 3. 创建警报
-    const { data, error } = await supabase
-      .from('alerts')
-      .insert({
-        ...body,
-        user_id: user.id,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (error) {
-      throw new DatabaseError('Failed to create alert', { cause: error });
-    }
-
-    return createJsonResponse(data, { status: 201 });
-  })
-);
-```
-
 ## 中间件设计
 
-### 中间件组合
+### 中间件概览
+
+| 中间件 | 文件位置 | 功能 |
+|--------|----------|------|
+| authMiddleware | `src/lib/api/middleware/authMiddleware.ts` | JWT 认证、角色验证 |
+| errorMiddleware | `src/lib/api/middleware/errorMiddleware.ts` | 统一错误处理 |
+| rateLimitMiddleware | `src/lib/api/middleware/rateLimitMiddleware.ts` | 请求限流 |
+| validationMiddleware | `src/lib/api/middleware/validationMiddleware.ts` | 输入验证 |
+| loggingMiddleware | `src/lib/api/middleware/loggingMiddleware.ts` | 请求日志 |
+
+### 中间件导出
 
 ```typescript
 // src/lib/api/middleware/index.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { createErrorResponse } from '../response';
-import { AppError } from '@/lib/errors';
+export {
+  createAuthMiddleware,
+  getUserId,
+  type AuthContext,
+  type AuthMiddlewareOptions,
+} from './authMiddleware';
 
-// 中间件类型定义
-type Middleware<T = {}> = (
-  handler: (req: NextRequest, context: T) => Promise<NextResponse>
-) => (req: NextRequest, context: T) => Promise<NextResponse>;
+export {
+  createValidationMiddleware,
+  validate,
+  type ValidationMiddlewareOptions,
+} from './validationMiddleware';
 
-// 错误处理中间件
-export function withErrorHandler<T>(
-  handler: (req: NextRequest, context: T) => Promise<NextResponse>
-): (req: NextRequest, context: T) => Promise<NextResponse> {
-  return async (req: NextRequest, context: T) => {
-    try {
-      return await handler(req, context);
-    } catch (error) {
-      console.error('API Error:', error);
+export {
+  createLoggingMiddleware,
+  logResponse,
+  type LoggingMiddlewareOptions,
+} from './loggingMiddleware';
 
-      if (error instanceof AppError) {
-        return createErrorResponse(error.code, error.message, error.statusCode, error.details);
+export {
+  createErrorMiddleware,
+  defaultErrorMiddleware,
+  type ErrorMiddlewareOptions,
+} from './errorMiddleware';
+
+export {
+  createRateLimitMiddleware,
+  type RateLimitMiddlewareOptions,
+} from './rateLimitMiddleware';
+```
+
+### 1. 认证中间件 (authMiddleware)
+
+```typescript
+// src/lib/api/middleware/authMiddleware.ts
+export interface AuthContext {
+  userId: string;
+  email?: string;
+  role?: string;
+}
+
+export interface AuthMiddlewareOptions {
+  required?: boolean;
+  roles?: string[];
+}
+
+export type AuthMiddlewareResult =
+  | { success: true; context: AuthContext }
+  | { success: false; response: NextResponse };
+
+export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
+  const { required = true, roles = [] } = options;
+
+  return async (request: NextRequest): Promise<AuthMiddlewareResult> => {
+    const authContext = await extractAuthContext(request);
+
+    if (!authContext) {
+      if (required) {
+        return {
+          success: false,
+          response: NextResponse.json(
+            ApiResponseBuilder.error('UNAUTHORIZED', 'Authentication required', {
+              i18nKey: 'errors.authentication',
+            }),
+            { status: 401 }
+          ),
+        };
       }
-
-      // 未知错误
-      return createErrorResponse('INTERNAL_ERROR', 'An unexpected error occurred', 500);
+      return { success: true, context: { userId: '' } };
     }
+
+    if (roles.length > 0) {
+      const userRole = authContext.role;
+      if (!userRole || !roles.includes(userRole)) {
+        return {
+          success: false,
+          response: NextResponse.json(
+            ApiResponseBuilder.error('FORBIDDEN', 'Insufficient permissions', {
+              i18nKey: 'errors.authorization',
+              details: { requiredRoles: roles },
+            }),
+            { status: 403 }
+          ),
+        };
+      }
+    }
+
+    return { success: true, context: authContext };
   };
 }
 
-// 认证中间件
-interface AuthContext {
-  user: {
-    id: string;
-    email: string;
-  };
+export const requireAuth = createAuthMiddleware({ required: true });
+export const optionalAuth = createAuthMiddleware({ required: false });
+
+export function requireRoles(...roles: string[]) {
+  return createAuthMiddleware({ required: true, roles });
 }
 
-export function withAuth<T>(
-  handler: (req: NextRequest, context: T & AuthContext) => Promise<NextResponse>
-): Middleware<T> {
-  return (handler) => async (req: NextRequest, context: T) => {
-    const authHeader = req.headers.get('authorization');
+export async function getUserId(request: NextRequest): Promise<string | null> {
+  const authContext = await extractAuthContext(request);
+  return authContext?.userId ?? null;
+}
+```
 
-    if (!authHeader?.startsWith('Bearer ')) {
-      return createErrorResponse('UNAUTHORIZED', 'Missing or invalid authorization header', 401);
+**核心功能：**
+
+- `extractAuthContext` - 从请求头提取认证信息
+- `createAuthMiddleware` - 创建认证中间件
+- `requireAuth` - 必须认证
+- `optionalAuth` - 可选认证
+- `requireRoles` - 角色验证
+
+### 2. 错误处理中间件 (errorMiddleware)
+
+```typescript
+// src/lib/api/middleware/errorMiddleware.ts
+export interface ErrorMiddlewareOptions {
+  includeStackTrace?: boolean;
+  logErrors?: boolean;
+}
+
+export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
+  const { includeStackTrace = false, logErrors = true } = options;
+
+  return async (error: unknown, requestId?: string): Promise<NextResponse> => {
+    if (logErrors) {
+      if (isAppError(error)) {
+        logger.error(`AppError: ${error.code} - ${error.message}`, error as Error, {
+          statusCode: error.statusCode,
+          details: error.details,
+          requestId,
+        });
+      } else if (error instanceof Error) {
+        logger.error('Unhandled error', error, { requestId });
+      }
     }
 
-    const token = authHeader.substring(7);
-    const user = await verifyToken(token);
-
-    if (!user) {
-      return createErrorResponse('UNAUTHORIZED', 'Invalid or expired token', 401);
+    if (isAppError(error)) {
+      const response = errorToResponse(error);
+      if (requestId) {
+        const body = await response.json();
+        return NextResponse.json(
+          { ...body, meta: { ...body.meta, requestId } },
+          { status: response.status, headers: response.headers }
+        );
+      }
+      return response;
     }
 
-    return handler(req, { ...context, user });
-  };
-}
-
-// 速率限制中间件
-interface RateLimitConfig {
-  limit: number; // 请求次数限制
-  window: number; // 时间窗口（秒）
-}
-
-export function withRateLimit<T>(
-  handler: (req: NextRequest, context: T) => Promise<NextResponse>,
-  config: RateLimitConfig
-): (req: NextRequest, context: T) => Promise<NextResponse> {
-  return async (req: NextRequest, context: T) => {
-    const ip = req.ip || 'unknown';
-    const key = `rate_limit:${ip}:${req.nextUrl.pathname}`;
-
-    const { count, resetTime } = await checkRateLimit(key, config);
-
-    if (count > config.limit) {
-      return createErrorResponse(
-        'RATE_LIMIT_EXCEEDED',
-        'Too many requests, please try again later',
-        429,
-        { resetTime }
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      return NextResponse.json(
+        ApiResponseBuilder.error('BAD_REQUEST', 'Invalid JSON in request body', { requestId }),
+        { status: 400 }
       );
     }
 
-    const response = await handler(req, context);
+    if (error instanceof Error) {
+      const isNetworkError =
+        error.message.includes('fetch') ||
+        error.message.includes('network') ||
+        error.message.includes('timeout');
 
-    // 添加速率限制头
-    response.headers.set('X-RateLimit-Limit', config.limit.toString());
-    response.headers.set('X-RateLimit-Remaining', (config.limit - count).toString());
-    response.headers.set('X-RateLimit-Reset', resetTime.toString());
+      const response = ApiResponseBuilder.error('INTERNAL_ERROR', error.message, {
+        retryable: isNetworkError,
+        requestId,
+      });
 
-    return response;
+      return NextResponse.json(response, { status: 500 });
+    }
+
+    return NextResponse.json(
+      ApiResponseBuilder.error('INTERNAL_ERROR', 'An unexpected error occurred', {
+        retryable: true,
+        requestId,
+      }),
+      { status: 500 }
+    );
   };
 }
 
-// 日志中间件
-export function withLogging<T>(
-  handler: (req: NextRequest, context: T) => Promise<NextResponse>
-): (req: NextRequest, context: T) => Promise<NextResponse> {
-  return async (req: NextRequest, context: T) => {
-    const start = Date.now();
-    const requestId = generateRequestId();
+export const defaultErrorMiddleware = createErrorMiddleware();
+export const developmentErrorMiddleware = createErrorMiddleware({
+  includeStackTrace: true,
+  logErrors: true,
+});
+```
 
-    console.log(`[${requestId}] ${req.method} ${req.url} - Started`);
+**核心功能：**
+
+- 自动错误分类（AppError、SyntaxError、NetworkError）
+- 错误日志记录
+- 错误响应格式化
+- 请求 ID 追踪
+
+### 3. 限流中间件 (rateLimitMiddleware)
+
+```typescript
+// src/lib/api/middleware/rateLimitMiddleware.ts
+export interface RateLimitMiddlewareOptions {
+  windowMs?: number;
+  maxRequests?: number;
+  keyGenerator?: (request: NextRequest) => string;
+  skipSuccessfulRequests?: boolean;
+  skipFailedRequests?: boolean;
+  handler?: (request: NextRequest, retryAfter: number) => NextResponse;
+  preset?: 'strict' | 'moderate' | 'lenient' | 'api';
+}
+
+export type RateLimitMiddlewareResult =
+  | { success: true; remaining: number; resetTime: number }
+  | { success: false; response: NextResponse };
+
+export function createRateLimitMiddleware(options: RateLimitMiddlewareOptions = {}) {
+  const {
+    windowMs = 60000,
+    maxRequests = 100,
+    keyGenerator = defaultKeyGenerator,
+    handler = defaultRateLimitHandler,
+  } = options;
+
+  return async (request: NextRequest): Promise<RateLimitMiddlewareResult> => {
+    const key = keyGenerator(request);
+    const now = Date.now();
+    const resetTime = now + windowMs;
+
+    const entry = rateLimitStore.get(key);
+
+    if (!entry || entry.resetTime < now) {
+      rateLimitStore.set(key, { count: 1, resetTime });
+      return { success: true, remaining: maxRequests - 1, resetTime };
+    }
+
+    if (entry.count >= maxRequests) {
+      const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
+      return { success: false, response: handler(request, retryAfter) };
+    }
+
+    entry.count++;
+    return { success: true, remaining: maxRequests - entry.count, resetTime };
+  };
+}
+
+// 预设限流配置
+export const strictRateLimit = createRateLimitMiddleware({
+  windowMs: 60000,
+  maxRequests: 20,
+});
+
+export const moderateRateLimit = createRateLimitMiddleware({
+  windowMs: 60000,
+  maxRequests: 60,
+});
+
+export const lenientRateLimit = createRateLimitMiddleware({
+  windowMs: 60000,
+  maxRequests: 200,
+});
+
+export const apiRateLimit = createRateLimitMiddleware({
+  windowMs: 60000,
+  maxRequests: 100,
+});
+```
+
+**核心功能：**
+
+- 基于内存的限流存储
+- 自定义 keyGenerator（默认基于 IP 和路径）
+- 预设限流配置（strict、moderate、lenient、api）
+- 限流响应头（Retry-After、X-RateLimit-*）
+
+### 4. 验证中间件 (validationMiddleware)
+
+```typescript
+// src/lib/api/middleware/validationMiddleware.ts
+export interface ValidationMiddlewareOptions {
+  body?: z.Schema;
+  query?: z.Schema;
+  params?: z.Schema;
+}
+
+export function createValidationMiddleware(options: ValidationMiddlewareOptions) {
+  return async (request: NextRequest): Promise<{ success: true } | { success: false; response: NextResponse }> => {
+    if (options.body && request.method !== 'GET') {
+      const body = await request.json().catch(() => null);
+      const result = options.body.safeParse(body);
+      if (!result.success) {
+        return {
+          success: false,
+          response: NextResponse.json(
+            ApiResponseBuilder.error('VALIDATION_ERROR', 'Invalid request body', {
+              details: result.error.errors,
+            }),
+            { status: 400 }
+          ),
+        };
+      }
+    }
+
+    if (options.query) {
+      const query = Object.fromEntries(request.nextUrl.searchParams);
+      const result = options.query.safeParse(query);
+      if (!result.success) {
+        return {
+          success: false,
+          response: NextResponse.json(
+            ApiResponseBuilder.error('VALIDATION_ERROR', 'Invalid query parameters', {
+              details: result.error.errors,
+            }),
+            { status: 400 }
+          ),
+        };
+      }
+    }
+
+    return { success: true };
+  };
+}
+
+export function validate(schema: z.Schema) {
+  return createValidationMiddleware({ body: schema });
+}
+```
+
+### 5. 日志中间件 (loggingMiddleware)
+
+```typescript
+// src/lib/api/middleware/loggingMiddleware.ts
+export interface LoggingMiddlewareOptions {
+  logRequest?: boolean;
+  logResponse?: boolean;
+  logError?: boolean;
+}
+
+export function createLoggingMiddleware(options: LoggingMiddlewareOptions = {}) {
+  const { logRequest = true, logResponse = true, logError = true } = options;
+
+  return async (
+    request: NextRequest,
+    handler: (request: NextRequest) => Promise<NextResponse>
+  ): Promise<NextResponse> => {
+    const requestId = request.headers.get('x-request-id') || generateRequestId();
+    const start = Date.now();
+
+    if (logRequest) {
+      logger.info(`Request: ${request.method} ${request.url}`, {
+        requestId,
+        method: request.method,
+        path: request.nextUrl.pathname,
+      });
+    }
 
     try {
-      const response = await handler(req, context);
+      const response = await handler(request);
       const duration = Date.now() - start;
 
-      console.log(`[${requestId}] ${req.method} ${req.url} - ${response.status} (${duration}ms)`);
+      if (logResponse) {
+        logger.info(`Response: ${response.status} (${duration}ms)`, {
+          requestId,
+          status: response.status,
+          duration,
+        });
+      }
 
-      response.headers.set('X-Request-Id', requestId);
+      response.headers.set('x-request-id', requestId);
       return response;
     } catch (error) {
       const duration = Date.now() - start;
-      console.error(`[${requestId}] ${req.method} ${req.url} - Error (${duration}ms)`, error);
+
+      if (logError) {
+        logger.error(`Error: ${error instanceof Error ? error.message : String(error)} (${duration}ms)`, {
+          requestId,
+          duration,
+          error: error instanceof Error ? error.stack : String(error),
+        });
+      }
+
       throw error;
     }
   };
@@ -316,6 +515,16 @@ export const GET = withErrorHandler(
     )
   )
 );
+```
+
+## API 版本控制
+
+```typescript
+// src/lib/api/versioning/middleware.ts
+export function withVersionHeaders(response: NextResponse, version: string): NextResponse {
+  response.headers.set('X-API-Version', version);
+  return response;
+}
 ```
 
 ## 错误处理
@@ -353,20 +562,8 @@ export abstract class AppError extends Error {
 
     Error.captureStackTrace(this, this.constructor);
   }
-
-  toJSON() {
-    return {
-      name: this.name,
-      message: this.message,
-      code: this.code,
-      statusCode: this.statusCode,
-      isOperational: this.isOperational,
-      details: this.details,
-    };
-  }
 }
 
-// 具体错误类
 export class ValidationError extends AppError {
   constructor(message: string, details?: Record<string, unknown>) {
     super({
@@ -398,16 +595,6 @@ export class UnauthorizedError extends AppError {
   }
 }
 
-export class ForbiddenError extends AppError {
-  constructor(message: string = 'Forbidden') {
-    super({
-      message,
-      code: 'FORBIDDEN',
-      statusCode: 403,
-    });
-  }
-}
-
 export class DatabaseError extends AppError {
   constructor(message: string, options?: { cause?: Error }) {
     super({
@@ -419,327 +606,78 @@ export class DatabaseError extends AppError {
     });
   }
 }
-
-export class PriceFetchError extends AppError {
-  constructor(
-    message: string,
-    details: {
-      provider: OracleProvider;
-      symbol: string;
-      chain?: Blockchain;
-      retryable: boolean;
-    },
-    cause?: Error
-  ) {
-    super({
-      message,
-      code: 'PRICE_FETCH_ERROR',
-      statusCode: 502,
-      details,
-      cause,
-    });
-  }
-}
-```
-
-### 全局错误处理
-
-```typescript
-// src/app/api/error-handler.ts
-import { NextResponse } from 'next/server';
-import { AppError } from '@/lib/errors';
-
-export function handleApiError(error: unknown): NextResponse {
-  // 记录错误到监控系统（如 Sentry）
-  if (process.env.NODE_ENV === 'production') {
-    // Sentry.captureException(error);
-  }
-
-  if (error instanceof AppError) {
-    return NextResponse.json(
-      {
-        error: {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-        },
-      },
-      { status: error.statusCode }
-    );
-  }
-
-  // 未知错误
-  console.error('Unhandled API error:', error);
-
-  return NextResponse.json(
-    {
-      error: {
-        code: 'INTERNAL_ERROR',
-        message:
-          process.env.NODE_ENV === 'development' ? String(error) : 'An unexpected error occurred',
-      },
-    },
-    { status: 500 }
-  );
-}
-```
-
-## 验证逻辑
-
-### 验证函数
-
-```typescript
-// src/lib/api/validation/index.ts
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import { NextResponse } from 'next/server';
-import { createErrorResponse } from '../response';
-
-// Provider 验证
-export function validateProvider(provider: string): NextResponse | null {
-  const validProviders = Object.values(OracleProvider);
-
-  if (!validProviders.includes(provider as OracleProvider)) {
-    return createErrorResponse(
-      'INVALID_PROVIDER',
-      `Invalid provider. Must be one of: ${validProviders.join(', ')}`,
-      400
-    );
-  }
-
-  return null;
-}
-
-// Symbol 验证
-export function validateSymbol(symbol: string): { valid: boolean; error?: string } {
-  if (!symbol || typeof symbol !== 'string') {
-    return { valid: false, error: 'Symbol is required' };
-  }
-
-  if (symbol.length < 1 || symbol.length > 20) {
-    return { valid: false, error: 'Symbol must be between 1 and 20 characters' };
-  }
-
-  if (!/^[A-Z0-9]+$/.test(symbol.toUpperCase())) {
-    return { valid: false, error: 'Symbol must contain only uppercase letters and numbers' };
-  }
-
-  return { valid: true };
-}
-
-// Chain 验证
-export function validateChain(chain: string): { valid: boolean; error?: string } {
-  const validChains = Object.values(Blockchain);
-
-  if (!validChains.includes(chain as Blockchain)) {
-    return {
-      valid: false,
-      error: `Invalid chain. Must be one of: ${validChains.join(', ')}`,
-    };
-  }
-
-  return { valid: true };
-}
-
-// Alert 配置验证
-interface AlertConfigValidation {
-  valid: boolean;
-  errors: string[];
-}
-
-export function validateAlertConfig(config: unknown): AlertConfigValidation {
-  const errors: string[] = [];
-
-  if (typeof config !== 'object' || config === null) {
-    return { valid: false, errors: ['Config must be an object'] };
-  }
-
-  const c = config as Record<string, unknown>;
-
-  // 验证 symbol
-  if (!c.symbol || typeof c.symbol !== 'string') {
-    errors.push('symbol is required and must be a string');
-  }
-
-  // 验证 provider
-  const providerValidation = validateProvider(c.provider as string);
-  if (providerValidation) {
-    errors.push('Invalid provider');
-  }
-
-  // 验证 conditionType
-  const validConditionTypes = ['above', 'below', 'change_percent'];
-  if (!validConditionTypes.includes(c.conditionType as string)) {
-    errors.push(`conditionType must be one of: ${validConditionTypes.join(', ')}`);
-  }
-
-  // 验证 targetValue
-  if (typeof c.targetValue !== 'number' || c.targetValue <= 0) {
-    errors.push('targetValue must be a positive number');
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors,
-  };
-}
-
-// 请求体验证（使用 Zod）
-import { z } from 'zod';
-
-const PriceQuerySchema = z.object({
-  symbol: z.string().min(1).max(20).toUpperCase(),
-  chain: z.enum(Object.values(Blockchain) as [string, ...string[]]).optional(),
-  period: z.coerce.number().int().min(1).max(365).default(24),
-});
-
-export type PriceQueryInput = z.infer<typeof PriceQuerySchema>;
-
-export function validatePriceQuery(input: unknown): {
-  valid: boolean;
-  data?: PriceQueryInput;
-  errors?: string[];
-} {
-  const result = PriceQuerySchema.safeParse(input);
-
-  if (result.success) {
-    return { valid: true, data: result.data };
-  }
-
-  return {
-    valid: false,
-    errors: result.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`),
-  };
-}
 ```
 
 ## 响应处理
 
-### 响应辅助函数
+### ApiResponseBuilder
 
 ```typescript
-// src/lib/api/response/index.ts
-import { NextResponse } from 'next/server';
+// src/lib/api/response/ApiResponse.ts
+export class ApiResponseBuilder {
+  static success<T>(data: T, meta?: Record<string, unknown>): ApiResponse<T> {
+    return {
+      data,
+      meta: {
+        timestamp: Date.now(),
+        ...meta,
+      },
+    };
+  }
 
-interface ApiResponse<T = unknown> {
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: Record<string, unknown>;
-  };
-  meta?: {
-    timestamp: number;
-    requestId?: string;
-  };
+  static error(
+    code: string,
+    message: string,
+    details?: Record<string, unknown>
+  ): ApiResponse<null> {
+    return {
+      error: {
+        code,
+        message,
+        details,
+      },
+      meta: {
+        timestamp: Date.now(),
+      },
+    };
+  }
 }
 
-interface CacheConfig {
-  maxAge: number; // 秒
-  staleWhileRevalidate?: number; // 秒
-  private?: boolean;
-}
-
-// 成功响应
 export function createJsonResponse<T>(
   data: T,
-  options?: {
-    status?: number;
-    headers?: Record<string, string>;
-  }
+  options?: { status?: number; headers?: Record<string, string> }
 ): NextResponse {
-  const response: ApiResponse<T> = {
-    data,
-    meta: {
-      timestamp: Date.now(),
-    },
-  };
-
-  return NextResponse.json(response, {
+  return NextResponse.json(ApiResponseBuilder.success(data), {
     status: options?.status || 200,
     headers: options?.headers,
   });
 }
 
-// 带缓存的成功响应
 export function createCachedJsonResponse<T>(
   data: T,
-  cacheConfig: CacheConfig,
-  options?: {
-    status?: number;
-  }
+  cacheConfig: CacheConfig
 ): NextResponse {
-  const response: ApiResponse<T> = {
-    data,
-    meta: {
-      timestamp: Date.now(),
-    },
-  };
-
-  const cacheControl = cacheConfig.private
-    ? `private, max-age=${cacheConfig.maxAge}${
-        cacheConfig.staleWhileRevalidate
-          ? `, stale-while-revalidate=${cacheConfig.staleWhileRevalidate}`
-          : ''
-      }`
-    : `public, max-age=${cacheConfig.maxAge}${
-        cacheConfig.staleWhileRevalidate
-          ? `, stale-while-revalidate=${cacheConfig.staleWhileRevalidate}`
-          : ''
-      }`;
+  const response = ApiResponseBuilder.success(data);
 
   return NextResponse.json(response, {
-    status: options?.status || 200,
+    status: 200,
     headers: {
-      'Cache-Control': cacheControl,
+      'Cache-Control': `public, max-age=${cacheConfig.maxAge}${
+        cacheConfig.staleWhileRevalidate
+          ? `, stale-while-revalidate=${cacheConfig.staleWhileRevalidate}`
+          : ''
+      }`,
     },
   });
 }
 
-// 错误响应
-export function createErrorResponse(
-  code: string,
-  message: string,
-  status: number = 500,
-  details?: Record<string, unknown>
-): NextResponse {
-  const response: ApiResponse = {
-    error: {
-      code,
-      message,
-      details,
-    },
-    meta: {
-      timestamp: Date.now(),
-    },
-  };
-
-  return NextResponse.json(response, { status });
-}
-
-// 分页响应
-interface PaginatedData<T> {
-  items: T[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-  };
-}
-
 export function createPaginatedResponse<T>(
   items: T[],
-  pagination: {
-    page: number;
-    pageSize: number;
-    totalItems: number;
-  }
+  pagination: { page: number; pageSize: number; totalItems: number }
 ): NextResponse {
   const totalPages = Math.ceil(pagination.totalItems / pagination.pageSize);
 
-  const response: ApiResponse<PaginatedData<T>> = {
+  return NextResponse.json({
     data: {
       items,
       pagination: {
@@ -754,9 +692,7 @@ export function createPaginatedResponse<T>(
     meta: {
       timestamp: Date.now(),
     },
-  };
-
-  return NextResponse.json(response);
+  });
 }
 ```
 
@@ -769,10 +705,7 @@ export function createPaginatedResponse<T>(
     "provider": "chainlink",
     "symbol": "BTC",
     "price": 45000.50,
-    "timestamp": 1704067200000,
-    "confidence": 0.98,
-    "change24h": 1200.50,
-    "change24hPercent": 2.74
+    "timestamp": 1704067200000
   },
   "meta": {
     "timestamp": 1704067200000
@@ -784,9 +717,7 @@ export function createPaginatedResponse<T>(
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "Symbol is required",
-    "details": {
-      "field": "symbol"
-    }
+    "details": { "field": "symbol" }
   },
   "meta": {
     "timestamp": 1704067200000
@@ -812,208 +743,65 @@ export function createPaginatedResponse<T>(
 }
 ```
 
-## API 客户端
-
-### 前端 API 客户端
-
-```typescript
-// src/lib/api/client/ApiClient.ts
-import { ApiError } from './ApiError';
-
-interface RequestConfig extends RequestInit {
-  timeout?: number;
-  retries?: number;
-}
-
-export class ApiClient {
-  private baseUrl: string;
-  private defaultConfig: RequestConfig;
-
-  constructor(baseUrl: string = '/api', defaultConfig: RequestConfig = {}) {
-    this.baseUrl = baseUrl;
-    this.defaultConfig = {
-      timeout: 10000,
-      retries: 3,
-      ...defaultConfig,
-    };
-  }
-
-  async get<T>(path: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>('GET', path, undefined, config);
-  }
-
-  async post<T>(path: string, body: unknown, config?: RequestConfig): Promise<T> {
-    return this.request<T>('POST', path, body, config);
-  }
-
-  async put<T>(path: string, body: unknown, config?: RequestConfig): Promise<T> {
-    return this.request<T>('PUT', path, body, config);
-  }
-
-  async delete<T>(path: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>('DELETE', path, undefined, config);
-  }
-
-  private async request<T>(
-    method: string,
-    path: string,
-    body?: unknown,
-    config?: RequestConfig
-  ): Promise<T> {
-    const url = `${this.baseUrl}${path}`;
-    const mergedConfig = { ...this.defaultConfig, ...config };
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...mergedConfig.headers,
-    };
-
-    // 添加认证头
-    const token = getAuthToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    let lastError: Error | undefined;
-
-    for (let attempt = 0; attempt < (mergedConfig.retries || 1); attempt++) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), mergedConfig.timeout);
-
-        const response = await fetch(url, {
-          method,
-          headers,
-          body: body ? JSON.stringify(body) : undefined,
-          signal: controller.signal,
-          ...mergedConfig,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
-          throw new ApiError(
-            errorData?.error?.message || `API request failed: ${response.statusText}`,
-            response.status,
-            errorData?.error?.code,
-            errorData?.error?.details
-          );
-        }
-
-        const result = await response.json();
-        return result.data as T;
-      } catch (error) {
-        lastError = error as Error;
-
-        // 不重试客户端错误（4xx）
-        if (error instanceof ApiError && error.statusCode < 500) {
-          throw error;
-        }
-
-        // 指数退避
-        if (attempt < (mergedConfig.retries || 1) - 1) {
-          await delay(Math.min(1000 * 2 ** attempt, 10000));
-        }
-      }
-    }
-
-    throw lastError;
-  }
-}
-
-// 创建默认实例
-export const apiClient = new ApiClient();
-
-// 使用示例
-export async function fetchOraclePrice(provider: string, symbol: string): Promise<PriceData> {
-  return apiClient.get<PriceData>(`/oracles/${provider}?symbol=${encodeURIComponent(symbol)}`);
-}
-```
-
 ## 最佳实践
 
 ### 1. 路由设计
 
 ```typescript
 // ✅ 使用 RESTful 命名
-/api/oracles              # 获取所有预言机
-/api/oracles/chainlink    # 获取 Chainlink 数据
-/api/alerts               # 获取/创建警报
-/api/alerts/123           # 获取/更新/删除特定警报
+GET    /api/oracles              # 获取所有预言机
+GET    /api/oracles/chainlink    # 获取 Chainlink 数据
+POST   /api/alerts               # 创建警报
+DELETE /api/alerts/123           # 删除特定警报
 
 // ❌ 避免使用动词
-/getOracles               # 不推荐
-/createAlert              # 不推荐
+/getOracles                    # 不推荐
+/createAlert                   # 不推荐
 ```
 
-### 2. HTTP 方法使用
+### 2. 状态码使用
 
-```typescript
-GET    /api/resource      # 获取资源列表
-GET    /api/resource/:id  # 获取单个资源
-POST   /api/resource      # 创建资源
-PUT    /api/resource/:id  # 完整更新资源
-PATCH  /api/resource/:id  # 部分更新资源
-DELETE /api/resource/:id  # 删除资源
-```
+| 状态码 | 用途 |
+|--------|------|
+| 200 OK | 成功 |
+| 201 Created | 创建成功 |
+| 204 No Content | 删除成功 |
+| 400 Bad Request | 请求参数错误 |
+| 401 Unauthorized | 未认证 |
+| 403 Forbidden | 无权限 |
+| 404 Not Found | 资源不存在 |
+| 429 Too Many Requests | 速率限制 |
+| 500 Internal Server Error | 服务器错误 |
 
-### 3. 状态码使用
-
-```typescript
-200 OK                    # 成功
-201 Created               # 创建成功
-204 No Content            # 删除成功
-400 Bad Request           # 请求参数错误
-401 Unauthorized          # 未认证
-403 Forbidden             # 无权限
-404 Not Found             # 资源不存在
-429 Too Many Requests     # 速率限制
-500 Internal Server Error # 服务器错误
-502 Bad Gateway           # 上游服务错误
-```
-
-### 4. 缓存策略
+### 3. 缓存策略
 
 ```typescript
 // 静态数据 - 长时间缓存
 return createCachedJsonResponse(data, {
-  maxAge: 3600, // 1 小时
-  staleWhileRevalidate: 86400, // 24 小时
+  maxAge: 3600,
+  staleWhileRevalidate: 86400,
 });
 
 // 动态数据 - 短时间缓存
 return createCachedJsonResponse(data, {
-  maxAge: 30, // 30 秒
-  staleWhileRevalidate: 60, // 1 分钟
-});
-
-// 用户数据 - 私有缓存
-return createCachedJsonResponse(data, {
-  maxAge: 300, // 5 分钟
-  private: true,
+  maxAge: 30,
+  staleWhileRevalidate: 60,
 });
 ```
 
-### 5. 安全性
+### 4. 安全性
 
 ```typescript
-// 始终验证输入
+// ✅ 始终验证输入
 const validation = validatePriceQuery({ symbol, chain });
 if (!validation.valid) {
   return createErrorResponse('VALIDATION_ERROR', validation.errors.join(', '), 400);
 }
 
-// 使用参数化查询防止 SQL 注入
+// ✅ 使用参数化查询
 const { data, error } = await supabase
   .from('prices')
   .select('*')
   .eq('symbol', symbol) // 参数化
   .single();
-
-// 限制返回字段
-const { data } = await supabase
-  .from('users')
-  .select('id, email, name') // 只选择需要的字段
-  .eq('id', userId);
 ```

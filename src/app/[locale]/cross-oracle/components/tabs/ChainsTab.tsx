@@ -14,8 +14,7 @@ export function ChainsTab({ t }: ChainsTabProps) {
       <div className="mb-6">
         <ChainCoverageHeatmap
           showLabels={true}
-          onCellClick={(provider, chain) => {
-            console.log(`Selected: ${provider} - ${chain}`);
+          onCellClick={() => {
           }}
         />
       </div>
@@ -28,8 +27,7 @@ export function ChainsTab({ t }: ChainsTabProps) {
         <div className="max-w-md">
           <ChainSelector
             selectedChains={[]}
-            onChainsChange={(chains) => {
-              console.log('Selected chains:', chains);
+            onChainsChange={() => {
             }}
             allowMultiSelect={true}
             showOracleCount={true}

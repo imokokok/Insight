@@ -102,12 +102,10 @@ export function API3AnalyticsView() {
     end: new Date(),
   }), []);
 
-  const handleGenerateReport = useCallback((config: ReportConfig) => {
-    console.log('Generating report with config:', config);
+  const handleGenerateReport = useCallback((_config: ReportConfig) => {
   }, []);
 
-  const handleAnomalyDetected = useCallback((anomalies: unknown[]) => {
-    console.log('Anomalies detected:', anomalies);
+  const handleAnomalyDetected = useCallback((_anomalies: unknown[]) => {
   }, []);
 
   const renderContent = () => {

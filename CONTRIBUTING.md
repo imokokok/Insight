@@ -18,8 +18,8 @@ Thank you for your interest in contributing to Insight! This document provides g
 
 ### Prerequisites
 
-- **Node.js**: Version 18.x or higher
-- **npm**: Version 9.x or higher (comes with Node.js)
+- **Node.js**: Version 20.x or higher
+- **npm**: Version 10.x or higher (comes with Node.js)
 - **yarn**: Optional, but supported as an alternative to npm
 - **Supabase Account**: Required for database and authentication features
 - **Git**: Version control system
@@ -83,69 +83,79 @@ The application will be available at `http://localhost:3000`.
 insight/
 ├── src/
 │   ├── app/                    # Next.js App Router pages and API routes
+│   │   ├── [locale]/           # Internationalized pages (next-intl)
+│   │   │   ├── alerts/         # Alerts page
+│   │   │   ├── api3/           # API3 oracle page
+│   │   │   ├── band-protocol/  # Band Protocol oracle page
+│   │   │   ├── chainlink/      # Chainlink oracle page
+│   │   │   ├── cross-chain/    # Cross-chain analysis page
+│   │   │   ├── cross-oracle/   # Cross-oracle comparison page
+│   │   │   ├── dia/            # DIA oracle page
+│   │   │   ├── favorites/      # User favorites page
+│   │   │   ├── home/           # Homepage
+│   │   │   ├── login/          # Login page
+│   │   │   ├── market-overview/# Market overview page
+│   │   │   ├── price-query/    # Price query page
+│   │   │   ├── pyth/           # Pyth oracle page
+│   │   │   ├── redstone/       # RedStone oracle page
+│   │   │   ├── register/       # Registration page
+│   │   │   ├── settings/        # User settings page
+│   │   │   ├── snapshot/       # Shared snapshots page
+│   │   │   ├── tellor/         # Tellor oracle page
+│   │   │   ├── chronicle/      # Chronicle oracle page
+│   │   │   ├── uma/            # UMA oracle page
+│   │   │   └── winklink/       # WINkLink oracle page
 │   │   ├── api/                # API endpoints
 │   │   │   ├── alerts/         # Price alerts API
 │   │   │   ├── auth/           # Authentication callbacks
 │   │   │   ├── favorites/      # User favorites API
 │   │   │   ├── oracles/        # Oracle data API
-│   │   │   └── snapshots/      # User snapshots API
-│   │   ├── alerts/             # Alerts page
-│   │   ├── api3/               # API3 oracle page
-│   │   ├── band-protocol/      # Band Protocol oracle page
-│   │   ├── chainlink/          # Chainlink oracle page
-│   │   ├── cross-chain/        # Cross-chain analysis page
-│   │   ├── cross-oracle/       # Cross-oracle comparison page
-│   │   ├── favorites/          # User favorites page
-│   │   ├── home-components/    # Homepage components
-│   │   ├── login/              # Login page
-│   │   ├── market-overview/    # Market overview page
-│   │   ├── price-query/        # Price query page
-│   │   ├── pyth-network/       # Pyth oracle page
-│   │   ├── register/           # Registration page
-│   │   ├── settings/           # User settings page
-│   │   ├── snapshot/           # Shared snapshots page
-│   │   └── uma/                # UMA oracle page
+│   │   │   ├── snapshots/      # User snapshots API
+│   │   │   └── health/         # Health check API
+│   │   └── layout.tsx          # Root layout
 │   ├── components/             # React components
 │   │   ├── alerts/             # Alert components
 │   │   ├── charts/             # Chart components
-│   │   ├── favorites/          # Favorite components
+│   │   ├── export/             # Export components
+│   │   ├── favorites/           # Favorite components
 │   │   ├── navigation/         # Navigation components
 │   │   ├── oracle/             # Oracle-specific components
-│   │   ├── realtime/           # Real-time connection components
-│   │   ├── settings/           # Settings components
-│   │   └── ui/                 # Reusable UI components
+│   │   ├── ui/                 # Reusable UI components
+│   │   └── ...
 │   ├── contexts/               # React contexts
-│   │   ├── AuthContext.tsx     # Authentication context
-│   │   ├── RealtimeContext.tsx # Real-time updates context
 │   │   └── TimeRangeContext.tsx# Time range selection context
 │   ├── hooks/                  # Custom React hooks
-│   │   ├── api3/               # API3-specific hooks
-│   │   ├── chart/              # Chart-related hooks
-│   │   └── __tests__/          # Hook tests
+│   │   └── ...
 │   ├── i18n/                   # Internationalization
 │   │   ├── en.json             # English translations
 │   │   └── zh-CN.json          # Chinese translations
 │   ├── lib/                    # Core libraries
 │   │   ├── alerts/             # Alert detection logic
 │   │   ├── analytics/          # Analytics utilities
-│   │   ├── api/                # API utilities
+│   │   ├── api/                # API utilities (client, middleware, versioning, validation, response)
 │   │   ├── config/             # Configuration files
-│   │   ├── constants/          # Application constants
-│   │   ├── export/             # Data export utilities
-│   │   ├── i18n/               # i18n provider
-│   │   ├── monitoring/         # Performance monitoring
-│   │   ├── oracles/            # Oracle client implementations
-│   │   ├── realtime/           # Real-time communication
-│   │   ├── services/           # External services
+│   │   ├── errors/             # Error handling (AppError, BusinessErrors)
+│   │   ├── monitoring/         # Performance monitoring (webVitals)
+│   │   ├── oracles/            # Oracle client implementations (10+ oracles)
+│   │   │   ├── base.ts         # BaseOracleClient abstract class
+│   │   │   ├── chainlink.ts    # Chainlink client
+│   │   │   ├── factory.ts      # Oracle factory
+│   │   │   ├── pythNetwork.ts  # Pyth client
+│   │   │   ├── api3.ts         # API3 client
+│   │   │   └── ...
+│   │   ├── realtime/           # Real-time communication (WebSocket)
+│   │   ├── services/           # External services (marketData, oracle)
 │   │   ├── snapshots/          # Snapshot management
 │   │   ├── supabase/           # Supabase client and utilities
 │   │   ├── types/              # TypeScript type definitions
 │   │   └── utils/              # Utility functions
 │   ├── providers/              # React providers
-│   │   ├── ReactQueryProvider.tsx
-│   │   └── SWRProvider.tsx
+│   │   └── ReactQueryProvider.tsx
 │   └── stores/                 # Zustand stores
-│       └── crossChainStore.ts
+│       ├── authStore.ts        # Authentication state
+│       ├── uiStore.ts          # UI state
+│       ├── realtimeStore.ts     # Real-time state
+│       └── crossChainStore.ts   # Cross-chain data state
 ├── supabase/
 │   └── migrations/             # Database migrations
 │       └── 001_initial_schema.sql
@@ -286,7 +296,7 @@ The project uses Jest with the following setup:
 
 - Test environment: `jsdom`
 - Module mapper: `@/*` maps to `src/*`
-- Coverage threshold: 50% for all metrics
+- Coverage threshold: 70% for all metrics (branches, functions, lines, statements)
 
 ### Run Tests
 
@@ -299,6 +309,12 @@ npm run test:watch
 
 # Run tests with coverage report
 npm run test:coverage
+
+# Run e2e tests
+npm run test:e2e
+
+# Run e2e tests with UI
+npm run test:e2e:ui
 ```
 
 ### Test File Location
