@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 
 import {
   Search,
@@ -16,8 +16,6 @@ import {
   Play,
   Lightbulb,
   RefreshCw,
-  Plus,
-  ExternalLink,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
@@ -227,60 +225,6 @@ export function EmptyStateWithActions({
 }
 
 // ============================================
-// 快速开始空状态组件
-// ============================================
-
-export interface QuickStartItem {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  onClick: () => void;
-  badge?: string;
-}
-
-interface EmptyStateQuickStartProps extends Omit<EmptyStateEnhancedProps, 'children'> {
-  items: QuickStartItem[];
-  title?: string;
-  description?: string;
-}
-
-
-
-// ============================================
-// 示例数据空状态组件
-// ============================================
-
-export interface ExampleDataItem {
-  id: string;
-  name: string;
-  description: string;
-  data: unknown;
-}
-
-interface EmptyStateWithExamplesProps extends Omit<EmptyStateEnhancedProps, 'children'> {
-  examples: ExampleDataItem[];
-  onLoadExample: (data: unknown) => void;
-  title?: string;
-  description?: string;
-}
-
-
-
-// ============================================
-// 错误重试空状态组件
-// ============================================
-
-interface EmptyStateErrorProps extends Omit<EmptyStateEnhancedProps, 'type' | 'children'> {
-  error?: Error | string;
-  onRetry: () => void;
-  onContactSupport?: () => void;
-  showDetails?: boolean;
-}
-
-
-
-// ============================================
 // 搜索无结果空状态组件
 // ============================================
 
@@ -339,60 +283,6 @@ export function EmptyStateSearch({
   );
 }
 
-// ============================================
-// 离线空状态组件
-// ============================================
 
-interface EmptyStateOfflineProps extends Omit<EmptyStateEnhancedProps, 'type' | 'children'> {
-  onRetry: () => void;
-  lastSyncedAt?: Date;
-}
-
-
-
-// ============================================
-// 预配置的空状态组件
-// ============================================
-
-interface NoDataEmptyStateProps {
-  onRefresh?: () => void;
-  onCreate?: () => void;
-  className?: string;
-}
-
-
-
-interface EmptyFavoritesStateProps {
-  onBrowseItems: () => void;
-  className?: string;
-}
-
-
-
-interface EmptySearchResultsStateProps {
-  searchTerm: string;
-  onClearSearch: () => void;
-  popularSearches?: string[];
-  onSearchSuggestion?: (term: string) => void;
-  className?: string;
-}
-
-
-
-// ============================================
-// 引导式空状态组件
-// ============================================
-
-interface GuidedEmptyStateProps extends Omit<EmptyStateEnhancedProps, 'children'> {
-  steps: Array<{
-    title: string;
-    description: string;
-    action?: {
-      label: string;
-      onClick: () => void;
-    };
-  }>;
-  currentStep?: number;
-}
 
 

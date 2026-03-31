@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import { env } from '@/lib/config/env';
+import { useTranslations } from '@/i18n';
 
 import {
   usePerformanceMonitoring,
@@ -35,6 +36,7 @@ export function PerformanceIndicator({
   validationTime,
   className = '',
 }: PerformanceIndicatorProps) {
+  const t = useTranslations();
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
@@ -93,7 +95,7 @@ export function PerformanceIndicator({
           unit,
           rating: 'good',
           color: 'text-gray-400',
-          ratingLabel: '无数据',
+          ratingLabel: t('performanceIndicator.ratings.noData'),
         };
       }
 
@@ -103,7 +105,7 @@ export function PerformanceIndicator({
         label: metricLabel,
       } = metricKey
         ? getMetricRatingDisplay(metricKey, value)
-        : { rating: 'good' as const, color: 'text-gray-400', label: '未知' };
+        : { rating: 'good' as const, color: 'text-gray-400', label: t('performanceIndicator.ratings.unknown') };
 
       return {
         label,
@@ -128,9 +130,9 @@ export function PerformanceIndicator({
   };
 
   const metrics: MetricDisplay[] = [
-    getMetricDisplay('查询响应', queryResponseTime, 'ms', 'queryResponseTime'),
-    getMetricDisplay('数据处理', dataProcessingTime, 'ms', 'dataProcessingTime'),
-    getMetricDisplay('数据验证', validationTime, 'ms', 'validationTime'),
+    getMetricDisplay(t('performanceIndicator.metrics.queryResponse'), queryResponseTime, 'ms', 'queryResponseTime'),
+    getMetricDisplay(t('performanceIndicator.metrics.dataProcessing'), dataProcessingTime, 'ms', 'dataProcessingTime'),
+    getMetricDisplay(t('performanceIndicator.metrics.dataValidation'), validationTime, 'ms', 'validationTime'),
   ];
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -153,7 +155,7 @@ export function PerformanceIndicator({
           onKeyDown={handleKeyDown}
           className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           aria-expanded={isExpanded}
-          aria-label="性能指标面板"
+          aria-label={t('performanceIndicator.panelLabel')}
         >
           <svg
             className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
@@ -163,7 +165,7 @@ export function PerformanceIndicator({
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-          <span className="font-mono">性能监控</span>
+          <span className="font-mono">{t('performanceIndicator.title')}</span>
         </button>
 
         <button
@@ -175,7 +177,7 @@ export function PerformanceIndicator({
               : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
           }`}
         >
-          {debugMode ? '调试: 开' : '调试: 关'}
+          {debugMode ? t('performanceIndicator.debugOn') : t('performanceIndicator.debugOff')}
         </button>
       </div>
 
@@ -196,7 +198,7 @@ export function PerformanceIndicator({
 
             {cacheStats && (
               <div className="flex flex-col">
-                <span className="text-gray-500 dark:text-gray-400">缓存命中率</span>
+                <span className="text-gray-500 dark:text-gray-400">{t('performanceIndicator.metrics.cacheHitRate')}</span>
                 <div className="flex items-baseline gap-1">
                   <span
                     className={`font-mono font-medium ${
@@ -218,7 +220,7 @@ export function PerformanceIndicator({
 
             {cacheStats && (
               <div className="flex flex-col">
-                <span className="text-gray-500 dark:text-gray-400">缓存大小</span>
+                <span className="text-gray-500 dark:text-gray-400">{t('performanceIndicator.metrics.cacheSize')}</span>
                 <span className="font-mono font-medium text-gray-700 dark:text-gray-300">
                   {cacheStats.size} / {cacheStats.maxSize}
                 </span>
@@ -228,18 +230,15 @@ export function PerformanceIndicator({
 
           <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
             <div className="text-xs text-gray-400">
-              <span>性能阈值参考: </span>
-              <span className="text-green-500">良好</span>
+              <span>{t('performanceIndicator.thresholds')}: </span>
+              <span className="text-green-500">{t('performanceIndicator.ratings.good')}</span>
               <span> / </span>
-              <span className="text-yellow-500">需改进</span>
+              <span className="text-yellow-500">{t('performanceIndicator.ratings.needsImprovement')}</span>
               <span> / </span>
-              <span className="text-red-500">较差</span>
+              <span className="text-red-500">{t('performanceIndicator.ratings.poor')}</span>
             </div>
             <div className="mt-1 text-xs text-gray-400 grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <span>查询: &lt;2s / &lt;5s</span>
-              <span>处理: &lt;100ms / &lt;500ms</span>
-              <span>验证: &lt;50ms / &lt;200ms</span>
-              <span>缓存: &gt;70% / &gt;30%</span>
+              {t('performanceIndicator.reference')}
             </div>
           </div>
         </div>

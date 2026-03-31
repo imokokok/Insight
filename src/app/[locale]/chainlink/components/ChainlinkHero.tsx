@@ -481,6 +481,7 @@ export function ChainlinkHero({
   }, [historicalData, currentPrice]);
 
   const tMetrics = useTranslations('ui.oracleMetrics');
+  const t = useTranslations('chainlink.nodeAnalytics');
 
   // 核心统计指标 - 增加到5个
   const primaryStats: StatItem[] = [
@@ -499,7 +500,7 @@ export function ChainlinkHero({
       change: '+12.5%',
       changeType: 'positive',
       icon: <Shield className="w-4 h-4" />,
-      subtitle: '30天',
+      subtitle: t('subtitle.30d'),
     },
     {
       title: tMetrics('activeValidators'),
@@ -507,7 +508,7 @@ export function ChainlinkHero({
       change: '+5.2%',
       changeType: 'positive',
       icon: <Database className="w-4 h-4" />,
-      subtitle: '本月',
+      subtitle: t('subtitle.thisMonth'),
     },
     {
       title: tMetrics('dataFeeds'),
@@ -515,7 +516,7 @@ export function ChainlinkHero({
       change: '+8.3%',
       changeType: 'positive',
       icon: <Zap className="w-4 h-4" />,
-      subtitle: '本月',
+      subtitle: t('subtitle.thisMonth'),
     },
     {
       title: tMetrics('stakingAmount'),
@@ -523,7 +524,7 @@ export function ChainlinkHero({
       change: '+3.7%',
       changeType: 'positive',
       icon: <Wallet className="w-4 h-4" />,
-      subtitle: '30天',
+      subtitle: t('subtitle.30d'),
     },
   ];
 

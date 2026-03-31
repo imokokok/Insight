@@ -885,5 +885,10 @@
     "minutes": "分钟",
     "hours": "小时",
     "days": "天"
+  },
+  "mobile": {
+    "selectTab": "选择视图",
+    "current": "当前",
+    "refreshing": "刷新中..."
   }
 }

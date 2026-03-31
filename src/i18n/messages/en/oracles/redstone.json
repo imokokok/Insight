@@ -886,5 +886,10 @@
     "minutes": "minutes",
     "hours": "hours",
     "days": "days"
+  },
+  "mobile": {
+    "selectTab": "Select View",
+    "current": "Current",
+    "refreshing": "Refreshing..."
   }
 }

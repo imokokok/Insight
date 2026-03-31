@@ -101,11 +101,7 @@ export {
   DynamicLatencyPrediction,
   DynamicLatencyHistogram,
   DynamicPriceStream,
-  // Preload utilities
-  preloadChart,
-  preloadCharts,
 } from './DynamicChartComponents';
-export type { DynamicChartComponent } from './DynamicChartComponents';
 
 // Chart Interaction Components
 export { ChartGuide, useChartGuide } from './ChartGuide';

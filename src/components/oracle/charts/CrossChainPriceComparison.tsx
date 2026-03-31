@@ -7,6 +7,7 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { chainNames, chainColors } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { type Blockchain } from '@/types/oracle';
+import { useTranslations } from '@/i18n';
 
 interface ChainPriceData {
   chain: Blockchain;
@@ -28,6 +29,8 @@ export function CrossChainPriceComparison({
   className,
   highlightBest = true,
 }: CrossChainPriceComparisonProps) {
+  const t = useTranslations();
+
   // 计算统计数据
   const stats = useMemo(() => {
     if (!priceData || priceData.length === 0) return null;
@@ -65,7 +68,7 @@ export function CrossChainPriceComparison({
     return (
       <div className={cn('bg-white rounded-lg border border-gray-200 p-6', className)}>
         <div className="text-center text-gray-400 py-8">
-          <p>暂无跨链价格数据</p>
+          <p>{t('crossChainPriceComparison.noData')}</p>
         </div>
       </div>
     );
@@ -80,7 +83,7 @@ export function CrossChainPriceComparison({
         color: 'text-red-500',
         bgColor: 'bg-red-50',
         icon: TrendingUp,
-        label: '偏高',
+        label: t('crossChainPriceComparison.high'),
       };
     }
     if (deviation < -1) {
@@ -88,14 +91,14 @@ export function CrossChainPriceComparison({
         color: 'text-emerald-500',
         bgColor: 'bg-emerald-50',
         icon: TrendingDown,
-        label: '偏低',
+        label: t('crossChainPriceComparison.low'),
       };
     }
     return {
       color: 'text-gray-500',
       bgColor: 'bg-gray-50',
       icon: Minus,
-      label: '正常',
+      label: t('crossChainPriceComparison.normal'),
     };
   };
 
@@ -105,14 +108,14 @@ export function CrossChainPriceComparison({
       <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">{symbol} 跨链价格对比</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('crossChainPriceComparison.title', { symbol })}</h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              跨链价格差异: {priceRangePercent.toFixed(2)}%
+              {t('crossChainPriceComparison.priceDiff', { percent: priceRangePercent.toFixed(2) })}
             </p>
           </div>
           <div className="text-right">
             <div className="text-lg font-bold text-gray-900">{formatPrice(avgPrice)}</div>
-            <div className="text-xs text-gray-500">平均价格</div>
+            <div className="text-xs text-gray-500">{t('crossChainPriceComparison.avgPrice')}</div>
           </div>
         </div>
       </div>
@@ -155,12 +158,12 @@ export function CrossChainPriceComparison({
                       </span>
                       {isCheapest && (
                         <span className="px-1.5 py-0.5 text-[10px] font-medium bg-emerald-100 text-emerald-700 rounded">
-                          最低
+                          {t('crossChainPriceComparison.low')}
                         </span>
                       )}
                       {isMostExpensive && (
                         <span className="px-1.5 py-0.5 text-[10px] font-medium bg-red-100 text-red-700 rounded">
-                          最高
+                          {t('crossChainPriceComparison.high')}
                         </span>
                       )}
                     </div>
@@ -178,7 +181,7 @@ export function CrossChainPriceComparison({
                       </span>
                       {data.confidence && (
                         <span className="text-xs text-gray-400">
-                          置信度: {(data.confidence * 100).toFixed(0)}%
+                          {t('crossChainPriceComparison.confidence', { percent: (data.confidence * 100).toFixed(0) })}
                         </span>
                       )}
                     </div>
@@ -203,19 +206,19 @@ export function CrossChainPriceComparison({
       <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <div className="text-xs text-gray-500">最高价格</div>
+            <div className="text-xs text-gray-500">{t('crossChainPriceComparison.highestPrice')}</div>
             <div className="text-sm font-semibold text-red-600">
               {formatPrice(mostExpensive.price)}
             </div>
             <div className="text-[10px] text-gray-400">{chainNames[mostExpensive.chain]}</div>
           </div>
           <div>
-            <div className="text-xs text-gray-500">平均价格</div>
+            <div className="text-xs text-gray-500">{t('crossChainPriceComparison.avgPrice')}</div>
             <div className="text-sm font-semibold text-gray-900">{formatPrice(avgPrice)}</div>
-            <div className="text-[10px] text-gray-400">所有链</div>
+            <div className="text-[10px] text-gray-400">{t('crossChainPriceComparison.allChains')}</div>
           </div>
           <div>
-            <div className="text-xs text-gray-500">最低价格</div>
+            <div className="text-xs text-gray-500">{t('crossChainPriceComparison.lowestPrice')}</div>
             <div className="text-sm font-semibold text-emerald-600">
               {formatPrice(cheapest.price)}
             </div>

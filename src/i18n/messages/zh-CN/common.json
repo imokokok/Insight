@@ -1,4 +1,7 @@
 {
+  "arbitrageHeatmap": {
+    "searchPlaceholder": "搜索交易对..."
+  },
   "multiSourceAggregation": "多源聚合",
   "cryptographicVerification": "加密验证",
   "anomalyDetection": "异常检测",
@@ -437,6 +440,19 @@
   "crossChainRisk": {
     "title": "跨链风险"
   },
+  "crossChainPriceComparison": {
+    "title": "{symbol} 跨链价格对比",
+    "priceDiff": "跨链价格差异: {percent}%",
+    "avgPrice": "平均价格",
+    "highestPrice": "最高价格",
+    "lowestPrice": "最低价格",
+    "allChains": "所有链",
+    "confidence": "置信度: {percent}%",
+    "high": "偏高",
+    "low": "偏低",
+    "normal": "正常",
+    "noData": "暂无跨链价格数据"
+  },
   "concentrationRisk": {
     "title": "集中度风险"
   },
@@ -532,6 +548,50 @@
     "oraclePageTemplate": {
       "rank": "排名"
     }
+  },
+  "realtimeNotifications": {
+    "connection": {
+      "title": "实时连接",
+      "message": "已成功连接到实时数据流"
+    },
+    "priceAlert": {
+      "title": "价格告警",
+      "message": "价格已达到 {price}"
+    }
+  },
+  "performanceIndicator": {
+    "title": "性能监控",
+    "panelLabel": "性能指标面板",
+    "debugOn": "调试: 开",
+    "debugOff": "调试: 关",
+    "metrics": {
+      "queryResponse": "查询响应",
+      "dataProcessing": "数据处理",
+      "dataValidation": "数据验证",
+      "cacheHitRate": "缓存命中率",
+      "cacheSize": "缓存大小"
+    },
+    "thresholds": "性能阈值参考",
+    "ratings": {
+      "good": "良好",
+      "needsImprovement": "需改进",
+      "poor": "较差",
+      "unknown": "未知",
+      "noData": "无数据"
+    },
+    "reference": "查询: <2s / <5s | 处理: <100ms / <500ms | 验证: <50ms / <200ms | 缓存: >70% / >30%"
+  },
+  "errorFallback": {
+    "title": "页面加载出错",
+    "description": "抱歉，加载此页面时遇到了问题。请尝试刷新页面或返回首页。",
+    "errorDetails": "错误详情 (仅开发模式可见):",
+    "componentStack": "组件堆栈",
+    "retry": "重试",
+    "goHome": "返回首页",
+    "contactSupport": "如果问题持续存在，请联系技术支持"
+  },
+  "mobileInteraction": {
+    "current": "当前"
   },
   "networkHealth": {
     "status": {

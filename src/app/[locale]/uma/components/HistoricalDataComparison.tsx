@@ -72,17 +72,17 @@ export interface HistoricalDataComparisonProps {
   isLoading?: boolean;
 }
 
-const TIME_RANGE_CONFIG: Record<
-  TimeRangeOption,
-  { label: string; days: number; description: string }
-> = {
-  '24h': { label: '24小时', days: 1, description: '最近24小时数据' },
-  '7d': { label: '7天', days: 7, description: '最近7天数据' },
-  '30d': { label: '30天', days: 30, description: '最近30天数据' },
-  '90d': { label: '90天', days: 90, description: '最近90天数据' },
-  '1y': { label: '1年', days: 365, description: '最近1年数据' },
-  custom: { label: '自定义', days: 0, description: '自定义时间范围' },
-};
+function useTimeRangeConfig() {
+  const t = useTranslations();
+  return {
+    '24h': { label: t('uma.market.timeRange.24h'), days: 1, description: t('uma.market.timeRange.24h') },
+    '7d': { label: t('uma.market.timeRange.7d'), days: 7, description: t('uma.market.timeRange.7d') },
+    '30d': { label: t('uma.market.timeRange.30d'), days: 30, description: t('uma.market.timeRange.30d') },
+    '90d': { label: t('uma.market.timeRange.90d'), days: 90, description: t('uma.market.timeRange.90d') },
+    '1y': { label: t('uma.market.timeRange.1y'), days: 365, description: t('uma.market.timeRange.1y') },
+    custom: { label: t('uma.market.timeRange.custom'), days: 0, description: t('uma.market.timeRange.custom') },
+  } as const;
+}
 
 const CHART_COLORS = {
   price: chartColors.recharts.primary,
@@ -415,7 +415,7 @@ function ComparisonChart({
               dataKey="volume"
               fill={CHART_COLORS.volume}
               fillOpacity={0.6}
-              name="交易量"
+              name={t('uma.market.volumeLabel')}
               radius={[4, 4, 0, 0]}
             />
           )}
@@ -429,12 +429,12 @@ function ComparisonChart({
               fillOpacity={0.2}
               name={
                 chartType === 'price'
-                  ? '价格'
+                  ? t('uma.market.priceLabel')
                   : chartType === 'tvl'
-                    ? 'TVL'
+                    ? t('uma.market.tvlLabel')
                     : chartType === 'validators'
-                      ? '验证者数量'
-                      : '争议数量'
+                      ? t('uma.market.validatorsLabel')
+                      : t('uma.market.disputesLabel')
               }
             />
           )}
@@ -468,13 +468,13 @@ function ComparisonChart({
                 y={trendAnalysis.supportLevel}
                 stroke={semanticColors.success.DEFAULT}
                 strokeDasharray="3 3"
-                label={{ value: '支撑', position: 'right', fontSize: 10 }}
+                label={{ value: t('uma.market.support'), position: 'right', fontSize: 10 }}
               />
               <ReferenceLine
                 y={trendAnalysis.resistanceLevel}
                 stroke={semanticColors.danger.DEFAULT}
                 strokeDasharray="3 3"
-                label={{ value: '阻力', position: 'right', fontSize: 10 }}
+                label={{ value: t('uma.market.resistance'), position: 'right', fontSize: 10 }}
               />
             </>
           )}
@@ -485,31 +485,32 @@ function ComparisonChart({
 }
 
 function TrendIndicator({ trendAnalysis }: { trendAnalysis: TrendAnalysis }) {
+  const t = useTranslations();
   const directionConfig = {
     up: {
       icon: <TrendingUp className="w-5 h-5" />,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
-      label: '上升趋势',
+      label: t('uma.market.trend.up'),
     },
     down: {
       icon: <TrendingDown className="w-5 h-5" />,
       color: 'text-red-600',
       bgColor: 'bg-red-50',
-      label: '下降趋势',
+      label: t('uma.market.trend.down'),
     },
     stable: {
       icon: <Minus className="w-5 h-5" />,
       color: 'text-gray-600',
       bgColor: 'bg-gray-100',
-      label: '横盘整理',
+      label: t('uma.market.trend.stable'),
     },
   };
 
   const trendConfig = {
-    bullish: { label: '看涨', color: 'text-emerald-600', bgColor: 'bg-emerald-100' },
-    bearish: { label: '看跌', color: 'text-red-600', bgColor: 'bg-red-100' },
-    neutral: { label: '中性', color: 'text-gray-600', bgColor: 'bg-gray-100' },
+    bullish: { label: t('uma.market.bullish'), color: 'text-emerald-600', bgColor: 'bg-emerald-100' },
+    bearish: { label: t('uma.market.bearish'), color: 'text-red-600', bgColor: 'bg-red-100' },
+    neutral: { label: t('uma.market.neutral'), color: 'text-gray-600', bgColor: 'bg-gray-100' },
   };
 
   const config = directionConfig[trendAnalysis.direction];
@@ -519,7 +520,7 @@ function TrendIndicator({ trendAnalysis }: { trendAnalysis: TrendAnalysis }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">趋势方向</p>
+          <p className="text-xs text-gray-500 mb-1">{t('uma.market.trendDirection')}</p>
           <div className={`flex items-center gap-2 ${config.color}`}>
             {config.icon}
             <span className="font-semibold">{config.label}</span>
@@ -527,7 +528,7 @@ function TrendIndicator({ trendAnalysis }: { trendAnalysis: TrendAnalysis }) {
         </div>
 
         <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">趋势强度</p>
+          <p className="text-xs text-gray-500 mb-1">{t('uma.market.trendStrength')}</p>
           <div className="flex items-center gap-2">
             <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
@@ -548,14 +549,14 @@ function TrendIndicator({ trendAnalysis }: { trendAnalysis: TrendAnalysis }) {
         </div>
 
         <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">支撑位</p>
+          <p className="text-xs text-gray-500 mb-1">{t('uma.market.support')}</p>
           <p className="text-lg font-semibold text-emerald-600">
             ${trendAnalysis.supportLevel.toFixed(2)}
           </p>
         </div>
 
         <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">阻力位</p>
+          <p className="text-xs text-gray-500 mb-1">{t('uma.market.resistance')}</p>
           <p className="text-lg font-semibold text-red-600">
             ${trendAnalysis.resistanceLevel.toFixed(2)}
           </p>
@@ -566,7 +567,7 @@ function TrendIndicator({ trendAnalysis }: { trendAnalysis: TrendAnalysis }) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-900">趋势预测</span>
+            <span className="text-sm font-medium text-blue-900">{t('uma.market.trendPrediction')}</span>
           </div>
           <span className={`px-2 py-0.5 text-xs font-medium rounded ${predictionConfig.bgColor}`}>
             {predictionConfig.label}
@@ -575,13 +576,13 @@ function TrendIndicator({ trendAnalysis }: { trendAnalysis: TrendAnalysis }) {
 
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <p className="text-xs text-blue-600 mb-1">预测价格</p>
+            <p className="text-xs text-blue-600 mb-1">{t('uma.market.predictedPrice')}</p>
             <p className="text-lg font-semibold text-blue-900">
               ${trendAnalysis.prediction.nextValue.toFixed(2)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-blue-600 mb-1">置信度</p>
+            <p className="text-xs text-blue-600 mb-1">{t('uma.market.confidence')}</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 h-2 bg-blue-200 rounded-full overflow-hidden">
                 <div
@@ -595,7 +596,7 @@ function TrendIndicator({ trendAnalysis }: { trendAnalysis: TrendAnalysis }) {
             </div>
           </div>
           <div>
-            <p className="text-xs text-blue-600 mb-1">移动平均</p>
+            <p className="text-xs text-blue-600 mb-1">{t('uma.market.movingAverage')}</p>
             <div className="flex items-center gap-2 text-xs text-blue-700">
               <span>MA7: ${trendAnalysis.movingAverages.ma7.toFixed(2)}</span>
               <span>MA30: ${trendAnalysis.movingAverages.ma30.toFixed(2)}</span>
@@ -614,8 +615,10 @@ function DataExporter({
   data: HistoricalDataPoint[];
   timeRange: TimeRangeOption;
 }) {
+  const t = useTranslations();
+
   const exportToCSV = useCallback(() => {
-    const headers = ['日期', '价格($)', '交易量($)', 'TVL($)', '验证者数量', '争议数量', '争议成功率(%)'];
+    const headers = [t('uma.market.date'), t('uma.market.price') + '($)', t('uma.market.volumeLabel') + '($)', 'TVL($)', t('uma.market.validatorsLabel'), t('uma.market.disputesLabel'), t('uma.market.disputeSuccessRateLabel') + '(%)'];
     const rows = data.map((d) => [
       d.date,
       d.price,
@@ -634,7 +637,7 @@ function DataExporter({
     link.download = `uma-historical-data-${timeRange}-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [data, timeRange]);
+  }, [data, timeRange, t]);
 
   const exportToJSON = useCallback(() => {
     const jsonContent = JSON.stringify(
@@ -723,13 +726,15 @@ export function HistoricalDataComparison({
     );
   }
 
+  const timeRangeConfig = useTimeRangeConfig();
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">历史数据对比分析</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('uma.market.historicalDataComparison')}</h3>
           <p className="text-sm text-gray-500 mt-1">
-            {TIME_RANGE_CONFIG[selectedRange].description} · {historicalData.length} 个数据点
+            {timeRangeConfig[selectedRange].description} · {t('uma.market.dataPoints', { count: historicalData.length })}
           </p>
         </div>
         <DataExporter data={historicalData} timeRange={selectedRange} />
@@ -753,7 +758,7 @@ export function HistoricalDataComparison({
             onChange={(e) => setShowMA(e.target.checked)}
             className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
           />
-          <span className="text-sm text-gray-600">显示移动平均线</span>
+          <span className="text-sm text-gray-600">{t('uma.market.showMovingAverage')}</span>
         </label>
       </div>
 
@@ -770,7 +775,7 @@ export function HistoricalDataComparison({
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="w-4 h-4 text-gray-400" />
           <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-            趋势分析与预测
+            {t('uma.market.trendAnalysisAndPrediction')}
           </h4>
         </div>
         <TrendIndicator trendAnalysis={trendAnalysis} />
@@ -780,10 +785,9 @@ export function HistoricalDataComparison({
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-sm font-medium text-amber-800 mb-1">免责声明</h4>
+            <h4 className="text-sm font-medium text-amber-800 mb-1">{t('uma.market.disclaimer')}</h4>
             <p className="text-xs text-amber-700">
-              以上趋势分析和预测仅供参考，不构成投资建议。历史数据不能保证未来表现。
-              请结合多方信息进行独立判断，投资有风险，决策需谨慎。
+              {t('uma.market.disclaimerText')}
             </p>
           </div>
         </div>
