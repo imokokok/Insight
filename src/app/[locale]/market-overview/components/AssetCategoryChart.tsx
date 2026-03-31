@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 import { useTranslations } from '@/i18n';
+import { type TooltipProps } from '@/types/ui/recharts';
 
 import { type AssetCategory } from '../types';
 
@@ -41,9 +42,9 @@ export default function AssetCategoryChart({ data, loading = false }: AssetCateg
   };
 
   // 自定义Tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: TooltipProps<AssetCategory>) => {
     if (active && payload && payload.length) {
-      const item = payload[0].payload as AssetCategory;
+      const item = payload[0].payload;
       return (
         <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
           <p className="font-semibold text-gray-900 mb-2">{getCategoryLabel(item.category)}</p>

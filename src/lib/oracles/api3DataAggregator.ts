@@ -1,5 +1,4 @@
 import { API3_DATA_SOURCES, getAPI3Endpoint, isMockDataEnabled } from './api3DataSources';
-import { api3OnChainService } from './api3OnChainService';
 import {
   generateHourlyActivity,
   getMockCoveragePoolDetails,
@@ -11,15 +10,7 @@ import {
   getMockPriceDeviations,
   getMockStakingData,
 } from './api3MockData';
-
-export type {
-  AggregatedMarketData,
-  AggregatedNetworkData,
-  AggregatedOEVData,
-  ChainData,
-  DAPIMarketData,
-  OEVAuctionData,
-} from './api3MockData';
+import { api3OnChainService } from './api3OnChainService';
 
 import type {
   StakingData,
@@ -30,13 +21,21 @@ import type {
   DAPIPriceDeviation,
   DataSourceInfo,
 } from './api3';
-
 import type {
   AggregatedMarketData,
   AggregatedNetworkData,
   AggregatedOEVData,
   DAPIMarketData,
   ChainData,
+} from './api3MockData';
+
+export type {
+  AggregatedMarketData,
+  AggregatedNetworkData,
+  AggregatedOEVData,
+  ChainData,
+  DAPIMarketData,
+  OEVAuctionData,
 } from './api3MockData';
 
 export interface SanitizedData<T = unknown> {

@@ -19,13 +19,15 @@ import { oracleNames } from '../constants';
 
 import { ChartTooltip } from './ChartTooltip';
 
+import type { ChartDataPoint } from '../types';
+
 interface FullscreenChartProps {
   isOpen: boolean;
   onClose: () => void;
   selectedSymbol: string;
   selectedOracles: OracleProvider[];
   oracleChartColors: Record<OracleProvider, string>;
-  getChartData: () => any[];
+  getChartData: () => ChartDataPoint[];
   zoomLevel: number;
   handleZoomIn: () => void;
   handleZoomOut: () => void;

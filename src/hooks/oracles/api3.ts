@@ -25,14 +25,11 @@ import type {
   AlertThreshold,
 } from '@/lib/oracles/api3';
 import { api3OfflineStorage } from '@/lib/oracles/api3OfflineStorage';
-import {
-  api3RequestManager,
-  REQUEST_PRIORITIES,
-} from '@/lib/oracles/api3RequestManager';
-
-type RequestPriority = 'critical' | 'high' | 'normal' | 'low';
+import { api3RequestManager, REQUEST_PRIORITIES } from '@/lib/oracles/api3RequestManager';
 import type { GasFeeData } from '@/types/comparison';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
+
+type RequestPriority = 'critical' | 'high' | 'normal' | 'low';
 
 const api3Client = new API3Client();
 

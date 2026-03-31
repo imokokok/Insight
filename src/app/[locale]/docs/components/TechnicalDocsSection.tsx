@@ -1,17 +1,10 @@
 'use client';
 
-import {
-  Code,
-  BookOpen,
-  Server,
-  Database,
-  ArrowRight,
-  FileText,
-  Layers,
-  Zap,
-} from 'lucide-react';
-import { useTranslations } from '@/i18n';
 import Link from 'next/link';
+
+import { Code, BookOpen, Server, Database, ArrowRight, FileText, Layers, Zap } from 'lucide-react';
+
+import { useTranslations } from '@/i18n';
 
 export default function TechnicalDocsSection() {
   const t = useTranslations();
@@ -54,13 +47,9 @@ export default function TechnicalDocsSection() {
           <div className="p-2 bg-green-100 rounded-lg">
             <Code className="w-5 h-5 text-green-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            {t('docs.technical.title')}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('docs.technical.title')}</h2>
         </div>
-        <p className="text-gray-600 leading-relaxed">
-          {t('docs.technical.description')}
-        </p>
+        <p className="text-gray-600 leading-relaxed">{t('docs.technical.description')}</p>
       </div>
 
       {/* Technical Docs Grid */}
@@ -75,9 +64,7 @@ export default function TechnicalDocsSection() {
                 {doc.icon}
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {doc.title}
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{doc.title}</h3>
                 <p className="text-sm text-gray-600 mb-3">{doc.description}</p>
 
                 {/* Tags */}
@@ -110,14 +97,9 @@ export default function TechnicalDocsSection() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-yellow-400" />
-            <h3 className="text-white font-semibold">
-              {t('docs.technical.apiPreview.title')}
-            </h3>
+            <h3 className="text-white font-semibold">{t('docs.technical.apiPreview.title')}</h3>
           </div>
-          <Link
-            href="/api"
-            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-          >
+          <Link href="/api" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
             {t('docs.technical.apiPreview.viewAll')}
           </Link>
         </div>

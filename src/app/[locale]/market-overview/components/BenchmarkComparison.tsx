@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 
 import { useTranslations } from '@/i18n';
+import { type TooltipProps } from '@/types/ui/recharts';
 
 import { type BenchmarkData } from '../types';
 
@@ -34,13 +35,13 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
   };
 
   // 自定义Tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
           <p className="font-semibold text-gray-900 mb-2">{label}</p>
           <div className="space-y-1">
-            {payload.map((entry: any, index: number) => (
+            {payload.map((entry, index: number) => (
               <div key={index} className="flex items-center gap-2 text-sm">
                 <div className="w-3 h-3 rounded" style={{ backgroundColor: entry.color }} />
                 <span className="text-gray-600">{entry.name}:</span>

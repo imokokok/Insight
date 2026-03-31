@@ -34,6 +34,7 @@ import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { getOracleColor } from '@/lib/oracles/colors';
 import { type OracleProvider } from '@/types/oracle';
+import { type LegendPayloadItem } from '@/types/ui/recharts';
 
 import { DifferenceBadge } from './DifferenceBadge';
 import { type OracleComparisonItem, type OracleComparisonResult } from './types';
@@ -631,7 +632,7 @@ export function OracleComparisonView({
                   wrapperStyle={{ fontSize: 12, cursor: 'pointer' }}
                   role="group"
                   aria-label={t('radarLegendLabel', { defaultValue: '预言机图例，点击可高亮' })}
-                  onClick={(e: any) => {
+                  onClick={(e: LegendPayloadItem) => {
                     const oracleName = e?.value;
                     if (oracleName) {
                       setHoveredOracle(hoveredOracle === oracleName ? null : oracleName);
@@ -643,7 +644,7 @@ export function OracleComparisonView({
                       );
                     }
                   }}
-                  onMouseEnter={(e: any) => {
+                  onMouseEnter={(e: LegendPayloadItem) => {
                     if (e?.value) {
                       setHoveredOracle(e.value);
                     }

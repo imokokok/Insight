@@ -1,15 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Rocket,
-  Layers,
-  Code,
-  Wrench,
-  ChevronRight,
-  Menu,
-  X,
-} from 'lucide-react';
+
+import { Rocket, Layers, Code, Wrench, ChevronRight, Menu, X } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
 
 interface NavItem {
@@ -121,17 +115,11 @@ export default function DocsNavigation() {
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  <span
-                    className={
-                      activeSection === item.id ? 'text-blue-600' : 'text-gray-400'
-                    }
-                  >
+                  <span className={activeSection === item.id ? 'text-blue-600' : 'text-gray-400'}>
                     {item.icon}
                   </span>
                   {item.label}
-                  {activeSection === item.id && (
-                    <ChevronRight className="w-4 h-4 ml-auto" />
-                  )}
+                  {activeSection === item.id && <ChevronRight className="w-4 h-4 ml-auto" />}
                 </button>
               </li>
             ))}

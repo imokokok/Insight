@@ -47,6 +47,10 @@ import EmptyState from './EmptyState';
 import OracleComparison from './OracleComparison';
 import ProtocolList from './ProtocolList';
 
+interface ComparisonTooltipData {
+  [key: string]: number | string | undefined;
+}
+
 interface ChartRendererProps {
   activeChart: ChartType;
   viewType: ViewType;
@@ -330,7 +334,6 @@ export default function ChartRenderer({
             )}
           </div>
         </div>
-
       </div>
     );
   };
@@ -380,7 +383,7 @@ export default function ChartRenderer({
         ? ORACLE_KEYS.filter((key) => topOracles.includes(key))
         : ORACLE_KEYS;
 
-    const ComparisonTooltip = ({ active, payload, label }: TooltipProps<any>) => {
+    const ComparisonTooltip = ({ active, payload, label }: TooltipProps<ComparisonTooltipData>) => {
       if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
@@ -875,10 +878,7 @@ export default function ChartRenderer({
     case 'asset':
       return (
         <div key="chart-asset" className="will-change-transform gpu-accelerated animate-fade-in">
-          <AssetCategoryChart
-            data={assetCategories}
-            loading={loadingEnhanced}
-          />
+          <AssetCategoryChart data={assetCategories} loading={loadingEnhanced} />
         </div>
       );
     case 'comparison':
@@ -905,10 +905,7 @@ export default function ChartRenderer({
           key="chart-correlation"
           className="will-change-transform gpu-accelerated animate-fade-in"
         >
-          <CorrelationMatrix
-            data={correlationData}
-            loading={loadingComparison}
-          />
+          <CorrelationMatrix data={correlationData} loading={loadingComparison} />
         </div>
       );
     default:

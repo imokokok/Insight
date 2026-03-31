@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import {
   Layers,
   Search,
@@ -11,8 +13,8 @@ import {
   Clock,
   Shield,
 } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import Link from 'next/link';
 
 export default function FeaturesGuideSection() {
   const t = useTranslations();
@@ -71,13 +73,9 @@ export default function FeaturesGuideSection() {
           <div className="p-2 bg-purple-100 rounded-lg">
             <Layers className="w-5 h-5 text-purple-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            {t('docs.features.title')}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('docs.features.title')}</h2>
         </div>
-        <p className="text-gray-600 leading-relaxed">
-          {t('docs.features.description')}
-        </p>
+        <p className="text-gray-600 leading-relaxed">{t('docs.features.description')}</p>
       </div>
 
       {/* Features Grid */}
@@ -92,9 +90,7 @@ export default function FeaturesGuideSection() {
                 {feature.icon}
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {feature.title}
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
                 <p className="text-sm text-gray-600">{feature.description}</p>
               </div>
             </div>
@@ -128,9 +124,7 @@ export default function FeaturesGuideSection() {
             <p className="text-sm font-medium text-gray-900">
               {t('docs.features.info.realtime.title')}
             </p>
-            <p className="text-xs text-gray-600">
-              {t('docs.features.info.realtime.description')}
-            </p>
+            <p className="text-xs text-gray-600">{t('docs.features.info.realtime.description')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
@@ -139,9 +133,7 @@ export default function FeaturesGuideSection() {
             <p className="text-sm font-medium text-gray-900">
               {t('docs.features.info.accurate.title')}
             </p>
-            <p className="text-xs text-gray-600">
-              {t('docs.features.info.accurate.description')}
-            </p>
+            <p className="text-xs text-gray-600">{t('docs.features.info.accurate.description')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg">

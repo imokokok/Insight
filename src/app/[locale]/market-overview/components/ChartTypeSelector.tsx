@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect } from 'react';
 
-import {
-  PieChart as PieChartIcon,
-  TrendingUp,
-  BarChart3,
-} from 'lucide-react';
+import { PieChart as PieChartIcon, TrendingUp, BarChart3 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';

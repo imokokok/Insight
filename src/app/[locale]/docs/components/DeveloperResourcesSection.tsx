@@ -1,5 +1,9 @@
 'use client';
 
+import { useState } from 'react';
+
+import Link from 'next/link';
+
 import {
   Wrench,
   Code2,
@@ -10,9 +14,8 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
-import Link from 'next/link';
-import { useState } from 'react';
 
 export default function DeveloperResourcesSection() {
   const t = useTranslations();
@@ -78,13 +81,9 @@ ${t('docs.developer.codeExample.consoleLog')} // 3456.78`;
           <div className="p-2 bg-amber-100 rounded-lg">
             <Wrench className="w-5 h-5 text-amber-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            {t('docs.developer.title')}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('docs.developer.title')}</h2>
         </div>
-        <p className="text-gray-600 leading-relaxed">
-          {t('docs.developer.description')}
-        </p>
+        <p className="text-gray-600 leading-relaxed">{t('docs.developer.description')}</p>
       </div>
 
       {/* Resources Grid */}
@@ -97,9 +96,7 @@ ${t('docs.developer.codeExample.consoleLog')} // 3456.78`;
             <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 mb-4">
               {resource.icon}
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {resource.title}
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{resource.title}</h3>
             <p className="text-sm text-gray-600 mb-4">{resource.description}</p>
             <Link
               href={resource.href}
@@ -121,9 +118,7 @@ ${t('docs.developer.codeExample.consoleLog')} // 3456.78`;
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Code2 className="w-5 h-5 text-blue-400" />
-            <h3 className="text-white font-semibold">
-              {t('docs.developer.codeExample.title')}
-            </h3>
+            <h3 className="text-white font-semibold">{t('docs.developer.codeExample.title')}</h3>
           </div>
           <button
             onClick={handleCopy}

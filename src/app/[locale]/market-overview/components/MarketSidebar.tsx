@@ -69,9 +69,7 @@ export default function MarketSidebar({ oracleData = [], loading = false }: Mark
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-500">{t('concentrationLevel')}</span>
-                <span className={`font-medium ${concentration.color}`}>
-                  {concentration.label}
-                </span>
+                <span className={`font-medium ${concentration.color}`}>{concentration.label}</span>
               </div>
             </div>
             <div className="space-y-1.5">
@@ -84,9 +82,7 @@ export default function MarketSidebar({ oracleData = [], loading = false }: Mark
                     />
                     <span className="text-gray-700">{oracle.name}</span>
                   </div>
-                  <span className="font-medium text-gray-900">
-                    {oracle.share.toFixed(1)}%
-                  </span>
+                  <span className="font-medium text-gray-900">{oracle.share.toFixed(1)}%</span>
                 </div>
               ))}
             </div>
@@ -103,10 +99,7 @@ export default function MarketSidebar({ oracleData = [], loading = false }: Mark
             </div>
             <div className="space-y-2">
               {topGainers.map((oracle, index) => (
-                <div
-                  key={oracle.name}
-                  className="flex items-center justify-between"
-                >
+                <div key={oracle.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-400 w-4">{index + 1}</span>
                     <div
@@ -137,10 +130,7 @@ export default function MarketSidebar({ oracleData = [], loading = false }: Mark
             </div>
             <div className="space-y-2">
               {topChainSupporters.map((oracle, index) => (
-                <div
-                  key={oracle.name}
-                  className="flex items-center justify-between"
-                >
+                <div key={oracle.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-400 w-4">{index + 1}</span>
                     <div

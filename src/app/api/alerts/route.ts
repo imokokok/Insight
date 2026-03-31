@@ -4,6 +4,8 @@ import { getUserId } from '@/lib/api/utils';
 import { type AlertConditionType } from '@/lib/supabase/database.types';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
+import { validateBodySchema, type CreateAlertRequestType } from '@/lib/validation';
+import { CreateAlertRequestSchema, AlertListResponseSchema } from '@/lib/validation/schemas';
 
 const logger = createLogger('api-alerts');
 
@@ -21,10 +23,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch alerts' }, { status: 500 });
     }
 
-    return NextResponse.json({
+    const response = {
       alerts,
       count: alerts.length,
-    });
+    };
+
+    const validatedResponse = AlertListResponseSchema.safeParse(response);
+    if (!validatedResponse.success) {
+      logger.error('Alert response validation failed', validatedResponse.error);
+      return NextResponse.json({ error: 'Invalid response format' }, { status: 500 });
+    }
+
+    return NextResponse.json(validatedResponse.data);
   } catch (error) {
     logger.error(
       'Error fetching alerts',
@@ -41,23 +51,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, symbol, chain, condition_type, target_value, provider, is_active } = body;
+    const validation = await validateBodySchema(CreateAlertRequestSchema)(request);
 
-    if (!name || !symbol || !condition_type || target_value === undefined) {
-      return NextResponse.json(
-        { error: 'Missing required fields: name, symbol, condition_type, target_value' },
-        { status: 400 }
-      );
+    if (!validation.success) {
+      return validation.response;
     }
 
-    const validConditionTypes: AlertConditionType[] = ['above', 'below', 'change_percent'];
-    if (!validConditionTypes.includes(condition_type)) {
-      return NextResponse.json(
-        { error: `Invalid condition_type. Must be one of: ${validConditionTypes.join(', ')}` },
-        { status: 400 }
-      );
-    }
+    const { name, symbol, chain, condition_type, target_value, provider, is_active } =
+      validation.data!;
 
     const queries = getServerQueries();
     const alert = await queries.createAlert(userId, {
