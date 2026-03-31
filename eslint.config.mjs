@@ -19,7 +19,7 @@ const eslintConfig = defineConfig([
       'prettier/prettier': 'error',
 
       // TypeScript 规则
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
@@ -92,6 +92,9 @@ const eslintConfig = defineConfig([
       'no-var': 'error',
       'prefer-const': 'error',
       eqeqeq: ['error', 'always', { null: 'ignore' }],
+      complexity: ['error', 50],
+      'max-lines': ['error', { max: 2000, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['error', { max: 500 }],
     },
   },
   // Override default ignores of eslint-config-next.

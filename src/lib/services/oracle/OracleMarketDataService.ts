@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { createLogger } from '@/lib/utils/logger';
+
 import {
   CACHE_CONFIG,
   COLORS,
@@ -17,12 +18,7 @@ import {
 
 const logger = createLogger('OracleMarketDataService');
 
-export type {
-  ChainSupportDataItem,
-  MarketShareDataItem,
-  TimeRangeKey,
-  TvsTrendDataPoint,
-};
+export type { ChainSupportDataItem, MarketShareDataItem, TimeRangeKey, TvsTrendDataPoint };
 
 export interface MarketShareStats {
   totalTVS: string;

@@ -177,20 +177,26 @@ export default function MarketOverviewPage() {
       <AnomalyModal
         isOpen={!!selectedAnomaly}
         onClose={() => setSelectedAnomaly(null)}
-        data={selectedAnomaly ? [{
-          id: selectedAnomaly.dataKey,
-          type: 'price_spike',
-          level: 'medium',
-          title: 'Price Anomaly',
-          description: `Price change detected for ${selectedAnomaly.dataKey}`,
-          timestamp: new Date(selectedAnomaly.date).getTime(),
-          asset: selectedAnomaly.dataKey,
-          value: selectedAnomaly.value,
-          expectedValue: selectedAnomaly.prevValue,
-          deviation: selectedAnomaly.changeRate,
-          duration: 0,
-          acknowledged: false,
-        }] : []}
+        data={
+          selectedAnomaly
+            ? [
+                {
+                  id: selectedAnomaly.dataKey,
+                  type: 'price_spike',
+                  level: 'medium',
+                  title: 'Price Anomaly',
+                  description: `Price change detected for ${selectedAnomaly.dataKey}`,
+                  timestamp: new Date(selectedAnomaly.date).getTime(),
+                  asset: selectedAnomaly.dataKey,
+                  value: selectedAnomaly.value,
+                  expectedValue: selectedAnomaly.prevValue,
+                  deviation: selectedAnomaly.changeRate,
+                  duration: 0,
+                  acknowledged: false,
+                },
+              ]
+            : []
+        }
       />
     </div>
   );

@@ -161,7 +161,11 @@ export function API3DapiView(props: API3DapiViewProps) {
       return sourceTraceQuery.sourceTrace.map((src) => ({
         id: src.id,
         name: src.name,
-        type: (src.type === 'exchange' ? 'exchange' : src.type === 'traditional_finance' ? 'api' : 'aggregator') as DataSourceInfo['type'],
+        type: (src.type === 'exchange'
+          ? 'exchange'
+          : src.type === 'traditional_finance'
+            ? 'api'
+            : 'aggregator') as DataSourceInfo['type'],
         reliability: (src as unknown as { accuracy?: number }).accuracy ?? 0,
         latency: (src as unknown as { responseSpeed?: number }).responseSpeed ?? 0,
         status: 'active' as const,

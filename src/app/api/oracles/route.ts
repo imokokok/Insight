@@ -2,45 +2,47 @@ import { type NextRequest } from 'next/server';
 
 import { createApiHandler } from '@/lib/api/handler';
 import {
-  validateRequiredParams,
-  validateProvider,
-  validatePeriod,
   handleGetPrice,
   handleGetHistoricalPrices,
   handleBatchPrices,
-  type BatchPriceRequest,
 } from '@/lib/api/oracleHandlers';
-import { ValidationError } from '@/lib/errors';
+import {
+  validateQuerySchema,
+  validateBodySchema,
+  type BatchPriceRequestType,
+} from '@/lib/validation';
+import {
+  PriceQueryRequestSchema,
+  BatchPriceRequestSchema,
+  HistoricalPriceRequestSchema,
+} from '@/lib/validation/schemas';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 export const GET = createApiHandler(
   async (request: NextRequest) => {
+    const validation = await validateQuerySchema(PriceQueryRequestSchema)(request);
+
+    if (!validation.success) {
+      return validation.response;
+    }
+
+    const { provider, symbol, chain } = validation.data!;
     const searchParams = request.nextUrl.searchParams;
-    const provider = searchParams.get('provider');
-    const symbol = searchParams.get('symbol');
-    const chain = searchParams.get('chain') as Blockchain | null;
     const period = searchParams.get('period');
 
-    const validationError = validateRequiredParams({
-      provider: provider as OracleProvider,
-      symbol: symbol ?? undefined,
-    });
-    if (validationError) return validationError;
-
-    const providerError = validateProvider(provider!);
-    if (providerError) return providerError;
-
     const periodNum = period ? parseInt(period, 10) : undefined;
-    const periodError = validatePeriod(periodNum);
-    if (periodError) return periodError;
-
-    const chainValue = chain ? (chain as Blockchain) : undefined;
 
     if (periodNum) {
+      const historicalValidation = await validateQuerySchema(HistoricalPriceRequestSchema)(request);
+
+      if (!historicalValidation.success) {
+        return historicalValidation.response;
+      }
+
       return handleGetHistoricalPrices({
         provider: provider as OracleProvider,
         symbol: symbol!,
-        chain: chainValue,
+        chain: chain as Blockchain | undefined,
         period: periodNum,
       });
     }
@@ -48,7 +50,7 @@ export const GET = createApiHandler(
     return handleGetPrice({
       provider: provider as OracleProvider,
       symbol: symbol!,
-      chain: chainValue,
+      chain: chain as Blockchain | undefined,
     });
   },
   {
@@ -61,17 +63,15 @@ export const GET = createApiHandler(
 
 export const POST = createApiHandler(
   async (request: NextRequest) => {
-    const body = await request.json();
-    const { requests } = body;
+    const validation = await validateBodySchema(BatchPriceRequestSchema)(request);
 
-    if (!Array.isArray(requests)) {
-      throw new ValidationError('Invalid request body. Expected { requests: [...] }', {
-        field: 'requests',
-        expected: 'array',
-      });
+    if (!validation.success) {
+      return validation.response;
     }
 
-    return handleBatchPrices(requests as BatchPriceRequest[]);
+    const { requests } = validation.data!;
+
+    return handleBatchPrices(requests as BatchPriceRequestType['requests']);
   },
   {
     middlewares: {

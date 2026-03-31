@@ -2,6 +2,12 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 
+declare global {
+  interface Navigator {
+    deviceMemory?: number;
+  }
+}
+
 interface Particle {
   x: number;
   y: number;
@@ -39,7 +45,7 @@ function usePerformanceDegradation(): PerformanceDegradation {
     const checkPerformance = () => {
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      const deviceMemory = (navigator as any).deviceMemory;
+      const deviceMemory = navigator.deviceMemory;
       const isLowMemory = deviceMemory && deviceMemory < 4;
 
       let fps = 60;

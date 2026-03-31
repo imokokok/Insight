@@ -24,7 +24,8 @@
     "i18n:types": "node scripts/generate-i18n-types.js",
     "i18n:check": "node scripts/check-i18n.js",
     "i18n:validate": "node scripts/check-i18n.js --json",
-    "naming:check": "node scripts/check-naming-convention.js"
+    "naming:check": "node scripts/check-naming-convention.js",
+    "prepare": "husky"
   },
   "performanceBudget": {
     "webVitals": {
@@ -114,6 +115,7 @@
     "tailwind-merge": "^3.5.0",
     "viem": "^2.47.6",
     "web-vitals": "^5.1.0",
+    "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
@@ -135,14 +137,34 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
     "html2canvas": "^1.4.1",
+    "husky": "^9.1.7",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
+    "lint-staged": "^16.4.0",
     "playwright": "^1.40.0",
     "prettier": "^3.8.1",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,jsonc}": [
+      "prettier --write"
+    ],
+    "*.md": [
+      "prettier --write"
+    ],
+    "*.{css,scss,sass}": [
+      "prettier --write"
+    ],
+    "*.{yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "overrides": {
     "d3-color": "^3.1.0",

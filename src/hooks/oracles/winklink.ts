@@ -2,7 +2,7 @@
 
 import { useMemo, useCallback, useState, useEffect } from 'react';
 
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useQuery, useQueries, type UseQueryResult } from '@tanstack/react-query';
 
 import { WINkLinkClient } from '@/lib/oracles';
 import type {
@@ -236,15 +236,14 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
   }, []);
 
   const createDataSourceState = <T>(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    result: any,
+    result: UseQueryResult<T, Error>,
     key: string,
     refetchFn: () => Promise<void>
   ): DataSourceState<T> => ({
-    data: result.data as T | null,
+    data: result.data ?? null,
     isLoading: result.isLoading,
     isError: result.isError,
-    error: result.error as Error | null,
+    error: result.error,
     lastUpdated: dataLastUpdated[key],
     refetch: refetchFn,
   });

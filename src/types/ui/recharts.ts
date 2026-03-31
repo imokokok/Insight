@@ -44,3 +44,21 @@ export interface ChartDataPoint {
   value?: number;
   [key: string]: string | number | undefined;
 }
+
+export interface LegendPayloadItem {
+  value: string;
+  type?: string;
+  id?: string;
+  dataKey?: string;
+  color?: string;
+  payload?: {
+    stroke?: string;
+    strokeWidth?: number;
+    fill?: string;
+    name?: string;
+  };
+}
+
+export type LegendClickEventHandler = (event: LegendPayloadItem) => void;
+
+export type LegendMouseEventHandler = (event: LegendPayloadItem) => void;

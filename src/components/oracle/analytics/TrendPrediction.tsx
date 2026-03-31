@@ -365,9 +365,13 @@ export function TrendPrediction({
               />
               <ReferenceLine
                 x={
-                  (chartData as Array<{time: string; actual: number | null; predicted: number | null}>).find(
-                    (d) => d.actual !== null && d.predicted !== null
-                  )?.time || undefined
+                  (
+                    chartData as Array<{
+                      time: string;
+                      actual: number | null;
+                      predicted: number | null;
+                    }>
+                  ).find((d) => d.actual !== null && d.predicted !== null)?.time || undefined
                 }
                 stroke="#6b7280"
                 strokeDasharray="3 3"

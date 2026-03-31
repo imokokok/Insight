@@ -1,5 +1,5 @@
-export const defineRouting = (config: any) => config;
-export const createNavigation = (config: any) => ({
+export const defineRouting = <T extends Record<string, unknown>>(config: T): T => config;
+export const createNavigation = <T extends Record<string, unknown>>(config: T) => ({
   Link: ({ children }: { children: React.ReactNode }) => children,
   redirect: (path: string) => path,
   usePathname: () => '/',

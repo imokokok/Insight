@@ -59,11 +59,9 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
     const oracle = data.find((d) => d.oracle === oracleName);
     return {
       subject: oracleName,
-      A: oracle?.metrics.tvs ? (oracle.metrics.tvs.normalizedValue) : 0,
-      B: oracle?.metrics.chains ? (oracle.metrics.chains.normalizedValue) : 0,
-      C: oracle?.metrics.protocols
-        ? (oracle.metrics.protocols.normalizedValue)
-        : 0,
+      A: oracle?.metrics.tvs ? oracle.metrics.tvs.normalizedValue : 0,
+      B: oracle?.metrics.chains ? oracle.metrics.chains.normalizedValue : 0,
+      C: oracle?.metrics.protocols ? oracle.metrics.protocols.normalizedValue : 0,
       fullMark: 100,
     };
   });
@@ -150,7 +148,8 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
               <YAxis
                 tickFormatter={(value) => formatTVS(value)}
                 tick={{ fill: '#4b5563', fontSize: 12 }}
-                stroke="#9ca3af" />
+                stroke="#9ca3af"
+              />
               <Tooltip
                 formatter={(value) => [formatTVS(Number(value)), 'TVS']}
                 contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb' }}

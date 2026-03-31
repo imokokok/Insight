@@ -88,7 +88,8 @@ describe('riskUtils', () => {
     });
 
     it('should return gray for unknown risk', () => {
-      expect(getRiskColor('unknown' as any)).toBe('#6B7280');
+      // @ts-expect-error - Testing invalid risk level
+      expect(getRiskColor('unknown')).toBe('#6B7280');
     });
   });
 

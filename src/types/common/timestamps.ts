@@ -8,6 +8,20 @@ export interface TimeRangeValue {
   end: number;
 }
 
+export type TimeRangePreset = '1H' | '6H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
+
+export interface TimeRange {
+  preset?: TimeRangePreset;
+  custom?: TimeRangeValue;
+}
+
+export type DurationUnit = 'ms' | 's' | 'm' | 'h' | 'd' | 'w' | 'M' | 'y';
+
+export interface Duration {
+  value: number;
+  unit: DurationUnit;
+}
+
 export function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleString('zh-CN', {
     year: 'numeric',
