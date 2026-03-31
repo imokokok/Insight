@@ -224,7 +224,8 @@
     "top4Oracles": "前4名预言机",
     "topGainers": "增长最快 (24h)",
     "topChainSupporters": "链支持排行",
-    "chains": "链"
+    "chains": "链",
+    "avgChainsPerOracle": "平均链数"
   },
   "chainBreakdown": {
     "loading": "加载中...",

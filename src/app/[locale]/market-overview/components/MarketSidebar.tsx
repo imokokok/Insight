@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, PieChart, Zap } from 'lucide-react';
+import { TrendingUp, PieChart, Zap, Link2, BarChart3, Globe } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
@@ -23,6 +23,13 @@ export default function MarketSidebar({ oracleData = [], loading = false }: Mark
 
   // 获取增长最快的3个预言机
   const topGainers = [...oracleData].sort((a, b) => b.change24h - a.change24h).slice(0, 3);
+
+  // 获取链支持最多的3个预言机
+  const topChainSupporters = [...oracleData].sort((a, b) => b.chains - a.chains).slice(0, 3);
+
+  // 计算统计数据
+  const totalChains = oracleData.reduce((sum, o) => sum + o.chains, 0);
+  const avgChains = oracleData.length > 0 ? totalChains / oracleData.length : 0;
 
   // 判断市场集中度等级
   const getConcentrationLevel = (cr4: number) => {
@@ -116,6 +123,67 @@ export default function MarketSidebar({ oracleData = [], loading = false }: Mark
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200" />
+
+          {/* Chain Support Ranking Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-primary-600" />
+              <span className="font-medium text-gray-900">{t('topChainSupporters')}</span>
+            </div>
+            <div className="space-y-2">
+              {topChainSupporters.map((oracle, index) => (
+                <div
+                  key={oracle.name}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 w-4">{index + 1}</span>
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: oracle.color }}
+                    />
+                    <span className="text-sm text-gray-700">{oracle.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Link2 className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-900">
+                      {oracle.chains} {t('chains')}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200" />
+
+          {/* Market Insights Summary */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-success-600" />
+              <span className="font-medium text-gray-900">{t('marketInsights')}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Globe className="w-3.5 h-3.5 text-gray-400" />
+                  <span className="text-xs text-gray-500">{t('totalChains')}</span>
+                </div>
+                <span className="text-lg font-semibold text-gray-900">{totalChains}</span>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Link2 className="w-3.5 h-3.5 text-gray-400" />
+                  <span className="text-xs text-gray-500">{t('avgChainsPerOracle')}</span>
+                </div>
+                <span className="text-lg font-semibold text-gray-900">{avgChains.toFixed(1)}</span>
+              </div>
             </div>
           </div>
         </div>
