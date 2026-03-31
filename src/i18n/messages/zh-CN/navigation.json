@@ -1,6 +1,7 @@
 {
   "navbar": {
     "home": "首页",
+    "documentation": "文档",
     "marketOverview": "市场概览",
     "priceQuery": "价格数据查询",
     "crossOracle": "多预言机对比",

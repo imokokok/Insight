@@ -188,7 +188,7 @@ export class API3OnChainService {
   private requestId = 0;
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 60000;
-  private endpointHealth: Record<number, boolean> = {};
+  private endpointHealth: Record<string, boolean> = {};
 
   constructor() {
     this.rpcEndpoints = RPC_ENDPOINTS;

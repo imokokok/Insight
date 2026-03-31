@@ -26,7 +26,8 @@ export function useAPI3LatencyDistribution(
   const { enabled = true, refreshInterval = 120000 } = options;
 
   const fetcher = useCallback(async (): Promise<number[]> => {
-    return api3Client.getLatencyDistribution();
+    const result = await api3Client.getLatencyDistribution();
+    return result.data;
   }, []);
 
   const { data, error, isLoading, refetch } = useQuery<number[], Error>({

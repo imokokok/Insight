@@ -307,7 +307,7 @@ export class ChronicleClient extends BaseOracleClient {
     return `${symbol}:${chain || 'default'}`;
   }
 
-  private isCacheValid<T>(entry: ChronicleCacheEntry<T> | null): boolean {
+  private isCacheValid<T>(entry: ChronicleCacheEntry<T> | null | undefined): boolean {
     if (!entry) return false;
     return Date.now() < entry.expiresAt;
   }
@@ -424,7 +424,7 @@ export class ChronicleClient extends BaseOracleClient {
 
       return result;
     } catch (error) {
-      logger.error(`Failed to fetch price for ${symbol}:`, error);
+      logger.error(`Failed to fetch price for ${symbol}:`, error as Error);
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from Chronicle',
         'CHRONICLE_ERROR'
@@ -460,7 +460,7 @@ export class ChronicleClient extends BaseOracleClient {
 
       return result;
     } catch (error) {
-      logger.error(`Failed to fetch historical prices for ${symbol}:`, error);
+      logger.error(`Failed to fetch historical prices for ${symbol}:`, error as Error);
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch historical prices from Chronicle',
         'CHRONICLE_HISTORICAL_ERROR'
@@ -717,7 +717,7 @@ export class ChronicleClient extends BaseOracleClient {
 
       return stats;
     } catch (error) {
-      logger.error('Failed to fetch network stats:', error);
+      logger.error('Failed to fetch network stats:', error as Error);
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch network stats',
         'CHRONICLE_NETWORK_ERROR'
@@ -752,7 +752,7 @@ export class ChronicleClient extends BaseOracleClient {
 
       return data;
     } catch (error) {
-      logger.error('Failed to fetch staking data:', error);
+      logger.error('Failed to fetch staking data:', error as Error);
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch staking data',
         'CHRONICLE_STAKING_ERROR'

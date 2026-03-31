@@ -1,6 +1,7 @@
 {
   "navbar": {
     "home": "Home",
+    "documentation": "Documentation",
     "marketOverview": "Market Overview",
     "priceQuery": "Price Query",
     "crossOracle": "Cross-Oracle Analysis",

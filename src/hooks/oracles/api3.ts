@@ -28,8 +28,9 @@ import { api3OfflineStorage } from '@/lib/oracles/api3OfflineStorage';
 import {
   api3RequestManager,
   REQUEST_PRIORITIES,
-  type RequestPriority,
 } from '@/lib/oracles/api3RequestManager';
+
+type RequestPriority = 'critical' | 'high' | 'normal' | 'low';
 import type { GasFeeData } from '@/types/comparison';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
@@ -499,8 +500,8 @@ export function useAPI3Latency(enabled = true) {
     queryFn: async () => {
       try {
         const result = await api3Client.getLatencyDistribution();
-        await api3OfflineStorage.setData('latency', result, config.gcTime);
-        return result;
+        await api3OfflineStorage.setData('latency', result.data, config.gcTime);
+        return result.data;
       } catch (error) {
         const cachedData = await api3OfflineStorage.getData<number[]>('latency');
         if (cachedData) {
@@ -645,8 +646,8 @@ export function useAPI3CoverageEvents(enabled = true) {
     queryFn: async () => {
       try {
         const result = await api3Client.getCoveragePoolEvents();
-        await api3OfflineStorage.setData('coverageEvents', result, config.gcTime);
-        return result;
+        await api3OfflineStorage.setData('coverageEvents', result.data, config.gcTime);
+        return result.data;
       } catch (error) {
         const cachedData = await api3OfflineStorage.getData<CoveragePoolEvent[]>('coverageEvents');
         if (cachedData) {
@@ -723,12 +724,13 @@ export function useAPI3OHLC(options: UseAPI3OHLCOptions) {
     queryFn: async () => {
       try {
         const result = await api3Client.getOHLCPrices(symbol, chain, period);
+        const ohlcData = 'data' in result ? result.data : result;
         await api3OfflineStorage.setData(
           `ohlc-${symbol}-${chain || 'default'}-${period}`,
-          result,
+          ohlcData,
           config.gcTime
         );
-        return result;
+        return ohlcData;
       } catch (error) {
         const cachedData = await api3OfflineStorage.getData<OHLCVDataPoint[]>(
           `ohlc-${symbol}-${chain || 'default'}-${period}`
@@ -764,8 +766,8 @@ export function useAPI3QualityHistory(enabled = true) {
     queryFn: async () => {
       try {
         const result = await api3Client.getQualityHistory();
-        await api3OfflineStorage.setData('qualityHistory', result, config.gcTime);
-        return result;
+        await api3OfflineStorage.setData('qualityHistory', result.data, config.gcTime);
+        return result.data;
       } catch (error) {
         const cachedData = await api3OfflineStorage.getData<QualityDataPoint[]>('qualityHistory');
         if (cachedData) {
@@ -881,6 +883,12 @@ interface UseAPI3AllDataReturn {
   cacheStatus: {
     isOffline: boolean;
     lastUpdated: number | null;
+  };
+  queueStats: {
+    queueLength: number;
+    pendingCount: number;
+    currentConcurrent: number;
+    maxConcurrent: number;
   };
 }
 

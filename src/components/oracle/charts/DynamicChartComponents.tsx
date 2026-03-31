@@ -1,19 +1,17 @@
 'use client';
 
-import type { ComponentType } from 'react';
-
 import dynamic from 'next/dynamic';
 
 import { ChartSkeleton } from '@/components/ui';
 
 // Dynamic Chart Components - Code Splitting for Heavy Components
 
-const createDynamicChart = <T extends object>(
-  importFn: () => Promise<{ default: ComponentType<T> }>,
+const createDynamicChart = (
+  importFn: () => Promise<unknown>,
   height: number = 400,
   variant: 'price' | 'line' | 'area' | 'bar' = 'line'
-): ComponentType<T> => {
-  return dynamic(importFn, {
+) => {
+  return dynamic(importFn as () => Promise<{ default: React.ComponentType<unknown> }>, {
     ssr: false,
     loading: ({ error }) => {
       if (error) {
@@ -25,7 +23,7 @@ const createDynamicChart = <T extends object>(
       }
       return <ChartSkeleton height={height} variant={variant} />;
     },
-  }) as ComponentType<T>;
+  });
 };
 
 // Core dynamic chart components
@@ -38,57 +36,57 @@ export const DynamicPriceChart = createDynamicChart(
 export const DynamicPriceVolatilityChart = createDynamicChart(
   () => import('./PriceVolatilityChart').then((mod) => ({ default: mod.PriceVolatilityChart })),
   400,
-  'volatility'
+  'line'
 );
 
 export const DynamicMovingAverageChart = createDynamicChart(
   () => import('./MovingAverageChart').then((mod) => ({ default: mod.MovingAverageChart })),
   400,
-  'movingAverage'
+  'line'
 );
 
 export const DynamicCrossChainTrendChart = createDynamicChart(
   () => import('./CrossChainTrendChart').then((mod) => ({ default: mod.CrossChainTrendChart })),
   400,
-  'crossChain'
+  'line'
 );
 
 export const DynamicGasFeeTrendChart = createDynamicChart(
   () => import('./GasFeeTrendChart').then((mod) => ({ default: mod.GasFeeTrendChart })),
   400,
-  'gasFee'
+  'line'
 );
 
 export const DynamicLatencyTrendChart = createDynamicChart(
   () => import('./LatencyTrendChart').then((mod) => ({ default: mod.LatencyTrendChart })),
   400,
-  'latency'
+  'line'
 );
 
 export const DynamicRequestTrendChart = createDynamicChart(
   () => import('./RequestTrendChart').then((mod) => ({ default: mod.RequestTrendChart })),
   400,
-  'request'
+  'line'
 );
 
 export const DynamicConfidenceIntervalChart = createDynamicChart(
   () =>
     import('./ConfidenceIntervalChart').then((mod) => ({ default: mod.ConfidenceIntervalChart })),
   400,
-  'confidence'
+  'line'
 );
 
 export const DynamicCDFChart = createDynamicChart(
   () => import('./CDFChart').then((mod) => ({ default: mod.CDFChart })),
   400,
-  'cdf'
+  'line'
 );
 
 export const DynamicStakingDistributionChart = createDynamicChart(
   () =>
     import('./StakingDistributionChart').then((mod) => ({ default: mod.StakingDistributionChart })),
   400,
-  'staking'
+  'line'
 );
 
 export const DynamicPriceDeviationHistoryChart = createDynamicChart(
@@ -97,50 +95,50 @@ export const DynamicPriceDeviationHistoryChart = createDynamicChart(
       default: mod.PriceDeviationHistoryChart,
     })),
   400,
-  'deviation'
+  'line'
 );
 
 export const DynamicValidatorHistoryChart = createDynamicChart(
   () => import('./ValidatorHistoryChart').then((mod) => ({ default: mod.ValidatorHistoryChart })),
   400,
-  'validator'
+  'line'
 );
 
 export const DynamicDataSourceTrend = createDynamicChart(
   () => import('./DataSourceTrend').then((mod) => ({ default: mod.DataSourceTrend })),
   400,
-  'dataSource'
+  'line'
 );
 
 export const DynamicDataQualityTrend = createDynamicChart(
   () => import('./DataQualityTrend').then((mod) => ({ default: mod.DataQualityTrend })),
   400,
-  'dataQuality'
+  'line'
 );
 
 export const DynamicPriceDistributionBoxPlot = createDynamicChart(
   () =>
     import('./PriceDistributionBoxPlot').then((mod) => ({ default: mod.PriceDistributionBoxPlot })),
   400,
-  'boxPlot'
+  'line'
 );
 
 export const DynamicPriceDeviationHeatmap = createDynamicChart(
   () => import('./PriceDeviationHeatmap').then((mod) => ({ default: mod.PriceDeviationHeatmap })),
   400,
-  'heatmap'
+  'line'
 );
 
 export const DynamicPriceCorrelationMatrix = createDynamicChart(
   () => import('./PriceCorrelationMatrix').then((mod) => ({ default: mod.PriceCorrelationMatrix })),
   400,
-  'correlation'
+  'line'
 );
 
 export const DynamicUpdateFrequencyHeatmap = createDynamicChart(
   () => import('./UpdateFrequencyHeatmap').then((mod) => ({ default: mod.UpdateFrequencyHeatmap })),
   400,
-  'heatmap'
+  'line'
 );
 
 export const DynamicValidatorPerformanceHeatmap = createDynamicChart(
@@ -149,7 +147,7 @@ export const DynamicValidatorPerformanceHeatmap = createDynamicChart(
       default: mod.ValidatorPerformanceHeatmap,
     })),
   400,
-  'heatmap'
+  'line'
 );
 
 export const DynamicLatencyDistributionHistogram = createDynamicChart(
@@ -158,13 +156,13 @@ export const DynamicLatencyDistributionHistogram = createDynamicChart(
       default: mod.LatencyDistributionHistogram,
     })),
   400,
-  'histogram'
+  'line'
 );
 
 export const DynamicValidatorGeographicMap = createDynamicChart(
   () => import('./ValidatorGeographicMap').then((mod) => ({ default: mod.ValidatorGeographicMap })),
   400,
-  'map'
+  'line'
 );
 
 export const DynamicCrossChainPriceComparison = createDynamicChart(
@@ -173,62 +171,62 @@ export const DynamicCrossChainPriceComparison = createDynamicChart(
       default: mod.CrossChainPriceComparison,
     })),
   400,
-  'comparison'
+  'line'
 );
 
 export const DynamicChainCoverageHeatmap = createDynamicChart(
   () => import('./ChainCoverageHeatmap').then((mod) => ({ default: mod.ChainCoverageHeatmap })),
   400,
-  'heatmap'
+  'line'
 );
 
 export const DynamicConcentrationRisk = createDynamicChart(
   () => import('./ConcentrationRisk').then((mod) => ({ default: mod.ConcentrationRisk })),
   400,
-  'risk'
+  'line'
 );
 
 export const DynamicCrossChainRisk = createDynamicChart(
   () => import('./CrossChainRisk').then((mod) => ({ default: mod.CrossChainRisk })),
   400,
-  'risk'
+  'line'
 );
 
 export const DynamicPriceDeviationRisk = createDynamicChart(
   () => import('./PriceDeviationRisk').then((mod) => ({ default: mod.PriceDeviationRisk })),
   400,
-  'risk'
+  'line'
 );
 
 export const DynamicCorrelationAnalysis = createDynamicChart(
   () => import('./CorrelationAnalysis').then((mod) => ({ default: mod.CorrelationAnalysis })),
   400,
-  'correlation'
+  'line'
 );
 
 export const DynamicChainComparison = createDynamicChart(
   () => import('./ChainComparison').then((mod) => ({ default: mod.ChainComparison })),
   400,
-  'comparison'
+  'line'
 );
 
 export const DynamicValidatorComparison = createDynamicChart(
   () => import('./ValidatorComparison').then((mod) => ({ default: mod.ValidatorComparison })),
   400,
-  'comparison'
+  'line'
 );
 
 export const DynamicMultiValidatorComparison = createDynamicChart(
   () =>
     import('./MultiValidatorComparison').then((mod) => ({ default: mod.MultiValidatorComparison })),
   400,
-  'comparison'
+  'line'
 );
 
 export const DynamicCrossOracleComparison = createDynamicChart(
   () => import('./CrossOracleComparison').then((mod) => ({ default: mod.CrossOracleComparison })),
   600,
-  'comparison'
+  'line'
 );
 
 export const DynamicInteractivePriceChart = createDynamicChart(
@@ -240,17 +238,17 @@ export const DynamicInteractivePriceChart = createDynamicChart(
 export const DynamicLatencyPrediction = createDynamicChart(
   () => import('./LatencyPrediction').then((mod) => ({ default: mod.LatencyPrediction })),
   400,
-  'prediction'
+  'line'
 );
 
 export const DynamicLatencyHistogram = createDynamicChart(
   () => import('./LatencyHistogram').then((mod) => ({ default: mod.LatencyHistogram })),
   400,
-  'histogram'
+  'line'
 );
 
 export const DynamicPriceStream = createDynamicChart(
   () => import('./PriceStream').then((mod) => ({ default: mod.PriceStream })),
   400,
-  'stream'
+  'line'
 );

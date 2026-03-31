@@ -200,6 +200,7 @@ export function priceRecordToPriceData(record: PriceRecord): PriceData {
     symbol: record.symbol,
     price: record.price,
     timestamp: normalizeTimestamp(record.timestamp),
+    provider: record.source as OracleProvider,
     source: record.source as OracleProvider,
     confidence: record.confidence ?? undefined,
   };
@@ -210,9 +211,10 @@ export function priceDataToRecord(
   chain?: Blockchain
 ): Omit<PriceRecord, 'id' | 'created_at'> {
   return {
+    provider: data.provider,
     symbol: data.symbol,
     price: data.price,
-    timestamp: normalizeTimestamp(data.timestamp),
+    timestamp: String(normalizeTimestamp(data.timestamp)),
     source: data.source,
     chain: chain || null,
     confidence: data.confidence ?? null,
@@ -232,7 +234,7 @@ export async function handleGetHistoricalPrices(params: OracleQueryParams) {
 
 export async function handleBatchPrices(requests: BatchPriceRequest[]) {
   const results = await fetchBatchPrices(requests);
-  return createCachedJsonResponse({ results });
+  return createCachedJsonResponse({ results }, { header: 'public, max-age=60' });
 }
 
 export function createUnexpectedErrorResponse(error: unknown) {
