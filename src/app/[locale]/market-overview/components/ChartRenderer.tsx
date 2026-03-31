@@ -205,14 +205,14 @@ export default function ChartRenderer({
       <div className="flex flex-col h-full">
         <div className="flex-1 flex flex-col md:flex-row">
           <div className="flex-1 relative">
-            <PieChart width={isMobile ? 300 : 400} height={isMobile ? 280 : 350}>
+            <PieChart width={isMobile ? 340 : 520} height={isMobile ? 320 : 440}>
               <Pie
                 data={sortedOracleData}
                 cx="50%"
-                cy="45%"
+                cy="50%"
                 labelLine={false}
-                outerRadius={isMobile ? 100 : 140}
-                innerRadius={isMobile ? 60 : 85}
+                outerRadius={isMobile ? 120 : 190}
+                innerRadius={isMobile ? 70 : 110}
                 fill={chartColors.pie.default}
                 dataKey="share"
                 paddingAngle={2}
@@ -224,7 +224,7 @@ export default function ChartRenderer({
                 }}
                 label={(props) => {
                   const share = typeof props.value === 'number' ? props.value : 0;
-                  if (share < (isMobile ? 10 : 8)) return null;
+                  if (share < (isMobile ? 8 : 5)) return null;
                   return `${share}%`;
                 }}
               >
@@ -264,7 +264,7 @@ export default function ChartRenderer({
             </PieChart>
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center mt-[-20px]">
+              <div className="text-center">
                 {activeItem ? (
                   <>
                     <p className="text-xs text-gray-500 mb-1">{activeItem.name}</p>
@@ -632,7 +632,8 @@ export default function ChartRenderer({
       <BarChart
         data={CHAIN_SUPPORT_DATA}
         layout="vertical"
-        margin={{ left: 20, right: 30, top: 10, bottom: 10 }}
+        margin={{ left: 20, right: 30, top: 20, bottom: 20 }}
+        barCategoryGap={20}
       >
         <CartesianGrid
           strokeDasharray="3 3"
@@ -642,7 +643,7 @@ export default function ChartRenderer({
         <XAxis
           type="number"
           stroke={chartColors.lineChart.axis}
-          fontSize={12}
+          fontSize={13}
           tickLine={false}
           axisLine={{ stroke: chartColors.lineChart.axis, strokeWidth: 1 }}
         />
@@ -650,13 +651,13 @@ export default function ChartRenderer({
           dataKey="name"
           type="category"
           stroke={chartColors.lineChart.axis}
-          fontSize={11}
-          width={90}
+          fontSize={12}
+          width={100}
           tickLine={false}
           axisLine={false}
         />
         <RechartsTooltip content={<ChainSupportTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
-        <Bar dataKey="chains" name="Supported Chains" radius={[0, 4, 4, 0]} barSize={24}>
+        <Bar dataKey="chains" name="Supported Chains" radius={[0, 6, 6, 0]} barSize={32}>
           {CHAIN_SUPPORT_DATA.map((entry, index) => {
             const isHighlighted = isCellHighlighted(entry.name);
             return (

@@ -224,7 +224,8 @@
     "top4Oracles": "Top 4 Oracles",
     "topGainers": "Top Gainers (24h)",
     "topChainSupporters": "Chain Support Rank",
-    "chains": "Chains"
+    "chains": "Chains",
+    "avgChainsPerOracle": "Avg Chains"
   },
   "chainBreakdown": {
     "loading": "Loading...",

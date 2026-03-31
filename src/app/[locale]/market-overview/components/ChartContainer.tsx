@@ -488,8 +488,12 @@ export default function ChartContainer({
             viewType === 'table' && !['chain', 'protocol', 'asset'].includes(activeChart)
               ? 'h-[320px]'
               : isMobile
-                ? 'h-[300px]'
-                : 'h-[360px]'
+                ? 'h-[340px]'
+                : activeChart === 'pie'
+                  ? 'h-[460px]'
+                  : activeChart === 'bar'
+                    ? 'h-[460px]'
+                    : 'h-[380px]'
           )}
         >
           {renderChart()}
