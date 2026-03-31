@@ -236,7 +236,22 @@
     "oracles": "预言机数",
     "totalChains": "总链数",
     "totalTVS": "总TVS",
-    "avgProtocols": "平均协议数"
+    "avgProtocols": "平均协议数",
+    "avgTVS": "平均TVS",
+    "perChain": "每链",
+    "concentration": "市场集中度",
+    "top4Share": "前4名份额",
+    "topGainers24h": "24h涨幅榜",
+    "topLosers24h": "24h跌幅榜",
+    "viewTVS": "TVS排行",
+    "viewShare": "份额分布",
+    "viewProtocols": "协议数量",
+    "viewTrend": "趋势对比",
+    "viewDistribution": "TVS分布",
+    "chain": "链",
+    "chains": "条链",
+    "topOracle": "主导预言机",
+    "oracleShare": "预言机份额"
   },
   "assetCategory": {
     "loading": "加载中...",

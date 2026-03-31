@@ -249,7 +249,7 @@ export default function ProfessionalHero() {
   };
 
   return (
-    <section className="relative min-h-screen flex flex-col overflow-hidden">
+    <section className="relative min-h-screen flex flex-col">
       <HeroBackground enableParticles={true} enableDataFlow={false} />
 
       {/* Main Content - Centered Layout */}
@@ -335,7 +335,8 @@ export default function ProfessionalHero() {
                 onCompositionStart={() => setIsComposing(true)}
                 onCompositionEnd={() => setIsComposing(false)}
                 placeholder={t('home.hero.searchPlaceholder')}
-                className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 min-w-0"
+                className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 min-w-0"
+                style={{ outline: 'none', boxShadow: 'none' }}
               />
               {searchQuery && (
                 <button
@@ -358,7 +359,7 @@ export default function ProfessionalHero() {
 
               {/* Dropdown */}
               {isDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 text-left">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[200] animate-in fade-in slide-in-from-top-2 duration-200 text-left">
                   {searchQuery.trim() && dropdownItems.length === 0 ? (
                     <div className="px-4 py-6 text-center text-gray-500 text-sm">
                       {t('home.hero.noResults')}

@@ -22,7 +22,6 @@ import {
   type ViewType,
   type TVSTrendData,
   type OracleMarketData,
-  type ChainBreakdown,
   type ProtocolDetail,
   type AssetCategory,
   type ComparisonData,
@@ -91,7 +90,6 @@ interface ChartContainerProps {
   loadingComparison: boolean;
   sortedOracleData: OracleMarketData[];
   trendData: TVSTrendData[];
-  chainBreakdown: ChainBreakdown[];
   protocolDetails: ProtocolDetail[];
   assetCategories: AssetCategory[];
   comparisonData: ComparisonData[];
@@ -132,7 +130,6 @@ export default function ChartContainer({
   loadingComparison,
   sortedOracleData,
   trendData,
-  chainBreakdown,
   protocolDetails,
   assetCategories,
   comparisonData,
@@ -195,7 +192,6 @@ export default function ChartContainer({
       viewType,
       sortedOracleData,
       trendData,
-      chainBreakdown,
       protocolDetails,
       assetCategories,
       comparisonData,
