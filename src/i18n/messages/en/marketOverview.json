@@ -51,11 +51,18 @@
       "benchmark": "Benchmark",
       "correlation": "Correlation",
       "yoyComparison": "YoY",
-      "momComparison": "MoM"
+      "momComparison": "MoM",
+      "toggleConfidence": "Toggle Confidence Interval",
+      "reset": "Reset",
+      "export": "Export"
     },
     "filter": {
       "more": "More"
     }
+  },
+  "chartTypes": {
+    "line": "Line",
+    "area": "Area"
   },
   "chart": {
     "current": "Current",

@@ -51,11 +51,18 @@
       "benchmark": "基准",
       "correlation": "相关性",
       "yoyComparison": "同比",
-      "momComparison": "环比"
+      "momComparison": "环比",
+      "toggleConfidence": "切换置信区间",
+      "reset": "重置",
+      "export": "导出"
     },
     "filter": {
       "more": "更多"
     }
+  },
+  "chartTypes": {
+    "line": "折线图",
+    "area": "面积图"
   },
   "chart": {
     "current": "当期",
