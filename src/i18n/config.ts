@@ -47,4 +47,5 @@ export const messageFilesConfig: MessageFileConfig[] = [
   { name: 'settings', directory: 'features' },
   { name: 'auth', directory: 'features' },
   { name: 'methodology', directory: 'features' },
+  { name: 'docs' },
 ];

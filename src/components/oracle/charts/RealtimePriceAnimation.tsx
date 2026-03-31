@@ -207,7 +207,7 @@ export function RealtimePriceAnimation({
     };
   }, []);
 
-  const priceString = formatNumber(displayPrice, false, decimals);
+  const priceString = displayPrice.toFixed(decimals);
   const digits = priceString.split('');
 
   const trendColor =
@@ -277,7 +277,7 @@ export function RealtimePriceAnimation({
                   <TrendArrow trend={trend} size="sm" />
                   <span>
                     {priceChange >= 0 ? '+' : ''}
-                    {formatNumber(Math.abs(priceChange), false, decimals)}
+                    {Math.abs(priceChange).toFixed(decimals)}
                   </span>
                 </motion.div>
                 <span

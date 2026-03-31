@@ -486,8 +486,8 @@ export class PythDataService {
       const result = await withRetry(
         async () => {
           const priceUpdates = await this.hermesClient.getPriceUpdatesAtTimestamp(
-            [priceId],
-            Math.floor(timestamp / 1000)
+            Math.floor(timestamp / 1000),
+            [priceId]
           );
 
           if (!priceUpdates.parsed || priceUpdates.parsed.length === 0) {

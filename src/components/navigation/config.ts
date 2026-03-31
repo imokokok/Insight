@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Landmark,
   Gamepad2,
+  BookOpen,
 } from 'lucide-react';
 
 import { oracleColors } from '@/lib/constants';
@@ -133,6 +134,11 @@ export const navigationConfig: NavStructure = [
         description: 'navbar.winklinkDesc',
       },
     ],
+  },
+  {
+    href: '/docs',
+    label: 'navbar.documentation',
+    icon: BookOpen,
   },
 ];
 

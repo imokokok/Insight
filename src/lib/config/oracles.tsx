@@ -892,7 +892,7 @@ export function createOracleClient(provider: OracleProvider): BaseOracleClient {
   switch (provider) {
     case OracleProvider.CHAINLINK:
       return new ChainlinkClient();
-    case OracleProvider.BAND:
+    case OracleProvider.BAND_PROTOCOL:
       return new BandProtocolClient();
     case OracleProvider.UMA:
       return new UMAClient();

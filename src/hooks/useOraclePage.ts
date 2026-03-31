@@ -66,7 +66,7 @@ export function useOraclePage(options: UseOraclePageOptions): OraclePageData {
   const chain = customChain || config.defaultChain;
 
   const fetchData = useCallback(async () => {
-    if (!enabled) return;
+    if (!enabled || !config.client) return;
 
     setIsLoading(true);
     setIsError(false);

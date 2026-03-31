@@ -369,11 +369,12 @@ export function NFTFloorPriceHistory({
                   borderRadius: '6px',
                   fontSize: '12px',
                 }}
-                formatter={(value: number, name: string) => {
+                formatter={(value, name) => {
+                  const numValue = Number(value);
                   if (name === 'floorPrice') {
-                    return [`Ξ ${value.toFixed(4)}`, 'Floor Price'];
+                    return [`Ξ ${numValue.toFixed(4)}`, 'Floor Price'];
                   }
-                  return [`$${value.toLocaleString()}`, 'USD Value'];
+                  return [`$${numValue.toLocaleString()}`, 'USD Value'];
                 }}
               />
               <Area
@@ -413,7 +414,7 @@ export function NFTFloorPriceHistory({
                     borderRadius: '6px',
                     fontSize: '12px',
                   }}
-                  formatter={(value: number) => [`Ξ ${value.toFixed(2)}`, 'Volume']}
+                  formatter={(value) => [`Ξ ${Number(value).toFixed(2)}`, 'Volume']}
                 />
                 <Bar dataKey="volume" radius={[4, 4, 0, 0]}>
                   {volumeData.map((entry, index) => (

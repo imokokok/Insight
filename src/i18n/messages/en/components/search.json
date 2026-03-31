@@ -97,12 +97,8 @@
       "chartsDesc": "Interactive price charts"
     },
     "docs": {
-      "methodology": "Methodology",
-      "methodologyDesc": "Data and methodology documentation",
       "apiReference": "API Reference",
-      "apiReferenceDesc": "API reference documentation",
-      "help": "Help",
-      "helpDesc": "Help and support center"
+      "apiReferenceDesc": "API reference documentation"
     },
     "shortcuts": {
       "navigate": "to navigate",

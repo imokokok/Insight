@@ -1,0 +1,167 @@
+{
+  "docs": {
+    "hero": {
+      "title": "文档中心",
+      "subtitle": "了解如何使用 Insight 预言机数据平台进行实时价格监控、跨预言机对比和深度数据分析。",
+      "searchPlaceholder": "搜索文档...",
+      "quickLinks": "快速链接"
+    },
+    "nav": {
+      "title": "文档",
+      "quickstart": "快速入门",
+      "features": "功能指南",
+      "technical": "技术文档",
+      "developer": "开发者资源",
+      "api": "API 参考"
+    },
+    "quickstart": {
+      "title": "快速入门",
+      "description": "开始使用 Insight 平台，探索主流预言机协议的实时价格数据。",
+      "overview": {
+        "title": "平台概览",
+        "description": "Insight 是一个专业的预言机数据分析平台，支持 Chainlink、Pyth、API3、Band Protocol、UMA、DIA、RedStone、Tellor、Chronicle、WINkLink 等主流预言机协议。",
+        "point1": "支持 10+ 主流预言机协议",
+        "point2": "实时价格监控与对比",
+        "point3": "跨链价格一致性分析"
+      },
+      "steps": {
+        "title": "开始使用",
+        "register": {
+          "title": "创建账户",
+          "description": "注册账户后可使用收藏、告警、数据导出等个性化功能。支持邮箱注册和 OAuth（Google、GitHub）登录。"
+        },
+        "search": {
+          "title": "查询价格",
+          "description": "在价格查询页面输入交易对（如 ETH/USD），查看多个预言机的实时价格数据。"
+        },
+        "analyze": {
+          "title": "分析对比",
+          "description": "使用跨预言机对比功能，分析不同预言机之间的价格差异和趋势。"
+        }
+      },
+      "cta": {
+        "primary": "开始价格查询",
+        "secondary": "查看市场概览"
+      }
+    },
+    "features": {
+      "title": "核心功能",
+      "description": "Insight 平台提供以下核心功能，帮助您全面了解预言机数据。",
+      "learnMore": "进入功能页面",
+      "priceQuery": {
+        "title": "价格查询",
+        "description": "查询任意交易对在多个预言机上的实时价格，支持历史数据查看和技术指标分析。",
+        "highlight1": "多预言机价格对比",
+        "highlight2": "历史价格趋势图表",
+        "highlight3": "RSI、MACD、布林带等技术指标"
+      },
+      "crossOracle": {
+        "title": "跨预言机对比",
+        "description": "对比同一交易对在不同预言机上的价格差异，评估预言机可靠性。",
+        "highlight1": "并排价格对比表格",
+        "highlight2": "价格偏差统计分析",
+        "highlight3": "预言机可靠性评分"
+      },
+      "crossChain": {
+        "title": "跨链分析",
+        "description": "分析同一资产在不同区块链上的价格一致性，发现套利机会。",
+        "highlight1": "多链价格热力图",
+        "highlight2": "价格偏差监控",
+        "highlight3": "相关性分析"
+      },
+      "alerts": {
+        "title": "价格告警",
+        "description": "设置自定义价格告警，当价格达到阈值时通过多种渠道接收通知。",
+        "highlight1": "支持多种触发条件",
+        "highlight2": "邮件和应用内通知",
+        "highlight3": "告警历史记录"
+      },
+      "info": {
+        "realtime": {
+          "title": "实时数据",
+          "description": "WebSocket 实时推送价格更新"
+        },
+        "accurate": {
+          "title": "数据导出",
+          "description": "支持 CSV、JSON、PDF、PNG 格式"
+        },
+        "comprehensive": {
+          "title": "收藏与快照",
+          "description": "保存配置和分享快照"
+        }
+      }
+    },
+    "technical": {
+      "title": "技术文档",
+      "description": "了解 Insight 平台的技术实现细节。",
+      "readMore": "查看详情",
+      "methodology": {
+        "title": "数据方法论",
+        "description": "了解价格聚合算法、风险评估模型和数据质量指标的计算方法。",
+        "tag1": "价格聚合",
+        "tag2": "风险模型"
+      },
+      "api": {
+        "title": "API 接口",
+        "description": "通过 REST API 和 WebSocket 获取预言机数据，集成到您的应用中。",
+        "tag1": "REST API",
+        "tag2": "WebSocket"
+      },
+      "architecture": {
+        "title": "系统架构",
+        "description": "基于 Next.js 16 + React 19 构建，使用 Supabase 进行数据存储和认证。",
+        "tag1": "Next.js 16",
+        "tag2": "Supabase"
+      },
+      "dataSources": {
+        "title": "数据源",
+        "description": "集成 10+ 主流预言机协议，覆盖以太坊、BSC、Polygon 等多条链。",
+        "tag1": "预言机协议",
+        "tag2": "多链支持"
+      },
+      "apiPreview": {
+        "title": "API 示例",
+        "description": "获取 Chainlink ETH/USD 价格数据",
+        "viewAll": "查看全部 API",
+        "endpoint": "/api/oracles/chainlink",
+        "method": "GET"
+      }
+    },
+    "developer": {
+      "title": "开发者资源",
+      "description": "为开发者提供的集成指南和技术支持。",
+      "learnMore": "了解更多",
+      "integration": {
+        "title": "集成指南",
+        "description": "了解如何将 Insight 数据集成到您的 DeFi 应用或数据分析工具中。"
+      },
+      "examples": {
+        "title": "代码示例",
+        "description": "查看使用 JavaScript/TypeScript 调用 Insight API 的示例代码。"
+      },
+      "faq": {
+        "title": "常见问题",
+        "description": "开发者常见问题解答。",
+        "q1": {
+          "question": "如何获取 API 密钥？",
+          "answer": "登录后在设置页面的数据管理面板中可以生成和管理 API 密钥。"
+        },
+        "q2": {
+          "question": "支持哪些预言机协议？",
+          "answer": "目前支持 Chainlink、Pyth、API3、Band Protocol、UMA、DIA、RedStone、Tellor、Chronicle、WINkLink 等主流预言机。"
+        },
+        "q3": {
+          "question": "数据更新频率是多少？",
+          "answer": "价格数据通过 WebSocket 实时推送，具体更新频率取决于各预言机协议的更新机制。"
+        }
+      },
+      "codeExample": {
+        "title": "代码示例",
+        "comment": "获取 Chainlink 价格数据",
+        "consoleLog": "console.log(data.price);"
+      },
+      "copy": "复制",
+      "copied": "已复制！"
+    }
+  }
+}

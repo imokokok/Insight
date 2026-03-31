@@ -30,7 +30,7 @@ export function useDataFreshness(
 
     if (ageInMinutes < maxFreshTime) {
       return {
-        status: 'fresh',
+        status: 'fresh' as DataFreshnessStatus,
         ageInMinutes,
         message: '数据新鲜',
         shouldRefresh: false,
@@ -39,7 +39,7 @@ export function useDataFreshness(
 
     if (ageInMinutes < maxStaleTime) {
       return {
-        status: 'stale',
+        status: 'stale' as DataFreshnessStatus,
         ageInMinutes,
         message: '数据即将过期',
         shouldRefresh: false,
@@ -47,7 +47,7 @@ export function useDataFreshness(
     }
 
     return {
-      status: 'expired',
+      status: 'expired' as DataFreshnessStatus,
       ageInMinutes,
       message: '数据已过期',
       shouldRefresh: true,

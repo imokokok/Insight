@@ -97,12 +97,8 @@
       "chartsDesc": "交互式价格图表"
     },
     "docs": {
-      "methodology": "方法论",
-      "methodologyDesc": "数据和方法论说明",
       "apiReference": "API 文档",
-      "apiReferenceDesc": "API 参考文档",
-      "help": "帮助",
-      "helpDesc": "帮助和支持中心"
+      "apiReferenceDesc": "API 参考文档"
     },
     "shortcuts": {
       "navigate": "导航",

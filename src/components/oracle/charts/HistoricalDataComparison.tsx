@@ -137,7 +137,7 @@ export function HistoricalDataComparison({
     const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
 
     return sortedTimestamps.map((timestamp) => {
-      const point: Record<string, number | string> = {
+      const point: Record<string, number | string | null> = {
         timestamp,
         time: new Date(timestamp * 1000).toLocaleString(),
       };

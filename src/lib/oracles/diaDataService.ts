@@ -44,7 +44,7 @@ const DIA_CHAIN_MAPPING: Record<Blockchain, string> = {
   [Blockchain.STARKEX]: 'StarkEx',
 };
 
-const DIA_ASSET_ADDRESSES: Record<string, Record<Blockchain, string>> = {
+const DIA_ASSET_ADDRESSES: Record<string, Partial<Record<Blockchain, string>>> = {
   DIA: {
     [Blockchain.ETHEREUM]: '0x84cA8bc7997272c7CfB4D0Cd3D55cd942B3c9419',
     [Blockchain.ARBITRUM]: '0x84cA8bc7997272c7CfB4D0Cd3D55cd942B3c9419',
@@ -509,7 +509,7 @@ export class DIADataService {
         price,
         timestamp,
         decimals: currentPriceData.decimals,
-        confidence: currentPriceData.confidence * 0.95,
+        confidence: currentPriceData.confidence ? currentPriceData.confidence * 0.95 : undefined,
         change24h,
         change24hPercent,
         chain: currentPriceData.chain,

@@ -18,8 +18,6 @@ import {
   Bell,
   Settings,
   FileText,
-  BookOpen,
-  HelpCircle,
 } from 'lucide-react';
 
 import { providerNames, chainNames, symbols } from '@/lib/constants';
@@ -289,16 +287,6 @@ export function getFeatureSearchResults(locale: string): SearchResult[] {
 export function getDocumentationSearchResults(locale: string): SearchResult[] {
   return [
     {
-      id: 'doc-methodology',
-      title: 'search.docs.methodology',
-      description: 'search.docs.methodologyDesc',
-      type: 'documentation',
-      href: `/${locale}/methodology`,
-      icon: BookOpen,
-      keywords: ['methodology', 'method', '方法', '方法论'],
-      priority: 5,
-    },
-    {
       id: 'doc-api',
       title: 'search.docs.apiReference',
       description: 'search.docs.apiReferenceDesc',
@@ -307,16 +295,6 @@ export function getDocumentationSearchResults(locale: string): SearchResult[] {
       icon: FileText,
       keywords: ['api', 'reference', '文档', '接口'],
       priority: 5,
-    },
-    {
-      id: 'doc-help',
-      title: 'search.docs.help',
-      description: 'search.docs.helpDesc',
-      type: 'documentation',
-      href: `/${locale}/methodology`,
-      icon: HelpCircle,
-      keywords: ['help', 'support', '帮助', '支持'],
-      priority: 4,
     },
   ];
 }

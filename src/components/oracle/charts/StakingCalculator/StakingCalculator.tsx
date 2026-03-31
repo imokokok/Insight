@@ -356,10 +356,10 @@ export function StakingCalculator({
                       borderRadius: '6px',
                       fontSize: '12px',
                     }}
-                    formatter={(value: number, name: string) => {
+                    formatter={(value, name) => {
                       const label =
                         name === 'total' ? 'Total' : name === 'rewards' ? 'Rewards' : 'Staked';
-                      return [`${value.toFixed(2)} ${tokenSymbol}`, label];
+                      return [`${Number(value).toFixed(2)} ${tokenSymbol}`, label];
                     }}
                     labelFormatter={(label) => `Month ${label}`}
                   />

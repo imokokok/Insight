@@ -466,7 +466,7 @@ export function RiskAssessmentDashboard({
                       borderRadius: '6px',
                       fontSize: '12px',
                     }}
-                    formatter={(value: number) => [value.toFixed(1), 'Risk Score']}
+                    formatter={(value) => [Number(value).toFixed(1), 'Risk Score']}
                   />
                   <Line
                     type="monotone"
