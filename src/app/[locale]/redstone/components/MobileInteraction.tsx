@@ -256,7 +256,7 @@ export function SwipeableTabNavigation({
             >
               <div className="flex items-center justify-between p-4 border-b border-gray-100">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {t('redstone.mobile.selectTab') || '选择视图'}
+                  {t('redstone.mobile.selectTab')}
                 </h3>
                 <button
                   onClick={() => setShowTabList(false)}
@@ -281,7 +281,7 @@ export function SwipeableTabNavigation({
                   >
                     <span className="w-6 text-center text-xs text-gray-400">{index + 1}</span>
                     <span className="flex-1 font-medium">{tab.label}</span>
-                    {tab.id === activeTab && <span className="text-xs text-red-500">当前</span>}
+                    {tab.id === activeTab && <span className="text-xs text-red-500">{t('mobileInteraction.current')}</span>}
                   </button>
                 ))}
               </div>
@@ -362,7 +362,7 @@ export function PullToRefresh({ children, onRefresh, disabled = false }: PullToR
         <div className="absolute top-0 left-0 right-0 h-16 flex items-center justify-center bg-gradient-to-b from-white to-transparent pointer-events-none">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <RefreshCw className="w-4 h-4 animate-spin" />
-            {t('redstone.mobile.refreshing') || '刷新中...'}
+            {t('redstone.mobile.refreshing')}
           </div>
         </div>
       )}

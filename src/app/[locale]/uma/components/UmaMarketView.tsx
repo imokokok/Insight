@@ -332,7 +332,7 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-medium text-gray-900">RSI 指标</h4>
+          <h4 className="text-sm font-medium text-gray-900">{t('uma.market.rsiIndicator')}</h4>
           <span
             className={cn(
               'text-xs px-2 py-0.5 rounded',
@@ -343,7 +343,7 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
                   : 'bg-gray-100 text-gray-700'
             )}
           >
-            {rsiValue > 70 ? '超买' : rsiValue < 30 ? '超卖' : '中性'}
+            {rsiValue > 70 ? t('uma.market.overbought') : rsiValue < 30 ? t('uma.market.oversold') : t('uma.market.neutral')}
           </span>
         </div>
         <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -358,15 +358,15 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
           <div className="absolute top-0 h-full w-px bg-emerald-400" style={{ left: '30%' }} />
         </div>
         <div className="flex justify-between mt-2 text-xs text-gray-500">
-          <span>超卖</span>
+          <span>{t('uma.market.oversold')}</span>
           <span className="font-semibold text-gray-900">{rsiValue}</span>
-          <span>超买</span>
+          <span>{t('uma.market.overbought')}</span>
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-medium text-gray-900">MACD 指标</h4>
+          <h4 className="text-sm font-medium text-gray-900">{t('uma.market.macdIndicator')}</h4>
           <span
             className={cn(
               'text-xs px-2 py-0.5 rounded',
@@ -375,7 +375,7 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
                 : 'bg-red-100 text-red-700'
             )}
           >
-            {macdValue.histogram > 0 ? '看涨' : '看跌'}
+            {macdValue.histogram > 0 ? t('uma.market.bullish') : t('uma.market.bearish')}
           </span>
         </div>
         <div className="space-y-2">
@@ -384,11 +384,11 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
             <span className="font-mono text-gray-900">{macdValue.macd.toFixed(3)}</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-500">信号线</span>
+            <span className="text-gray-500">{t('uma.market.signalLine')}</span>
             <span className="font-mono text-gray-900">{macdValue.signal.toFixed(3)}</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-500">柱状图</span>
+            <span className="text-gray-500">{t('uma.market.histogram')}</span>
             <span
               className={cn(
                 'font-mono',
@@ -403,26 +403,26 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
 
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-medium text-gray-900">布林带</h4>
-          <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">正常</span>
+          <h4 className="text-sm font-medium text-gray-900">{t('uma.market.bollingerBands')}</h4>
+          <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">{t('uma.market.normal')}</span>
         </div>
         <div className="space-y-2">
           <div className="flex justify-between text-xs">
-            <span className="text-gray-500">上轨</span>
+            <span className="text-gray-500">{t('uma.market.upperBand')}</span>
             <span className="font-mono text-red-600">${bollingerBands.upper.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-500">中轨</span>
+            <span className="text-gray-500">{t('uma.market.middleBand')}</span>
             <span className="font-mono text-gray-900">${bollingerBands.middle.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-500">下轨</span>
+            <span className="text-gray-500">{t('uma.market.lowerBand')}</span>
             <span className="font-mono text-emerald-600">${bollingerBands.lower.toFixed(2)}</span>
           </div>
         </div>
         <div className="mt-2 pt-2 border-t border-gray-100">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-500">带宽</span>
+            <span className="text-gray-500">{t('uma.market.bandwidth')}</span>
             <span className="text-gray-900">10.0%</span>
           </div>
         </div>
@@ -430,27 +430,27 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
 
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-medium text-gray-900">成交量</h4>
-          <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">活跃</span>
+          <h4 className="text-sm font-medium text-gray-900">{t('uma.market.volume')}</h4>
+          <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">{t('uma.market.active')}</span>
         </div>
         <div className="space-y-2">
           <div className="flex justify-between text-xs">
-            <span className="text-gray-500">24h成交量</span>
+            <span className="text-gray-500">{t('uma.market.volume24hLabel')}</span>
             <span className="font-mono text-gray-900">$8.2M</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-500">平均成交量</span>
+            <span className="text-gray-500">{t('uma.market.avgVolume')}</span>
             <span className="font-mono text-gray-900">$6.5M</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-500">成交量比率</span>
+            <span className="text-gray-500">{t('uma.market.volumeRatio')}</span>
             <span className="font-mono text-emerald-600">1.26x</span>
           </div>
         </div>
         <div className="mt-2 pt-2 border-t border-gray-100">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-500">状态</span>
-            <span className="text-emerald-600">高于平均</span>
+            <span className="text-gray-500">{t('uma.market.status')}</span>
+            <span className="text-emerald-600">{t('uma.market.aboveAverage')}</span>
           </div>
         </div>
       </div>
@@ -470,13 +470,15 @@ function MarketSentimentAnalysis() {
   };
 
   const getSentimentLabel = (index: number) => {
-    if (index <= 25) return { label: '极度恐惧', color: 'text-red-600', bg: 'bg-red-100' };
-    if (index <= 45) return { label: '恐惧', color: 'text-orange-600', bg: 'bg-orange-100' };
-    if (index <= 55) return { label: '中性', color: 'text-gray-600', bg: 'bg-gray-100' };
-    if (index <= 75) return { label: '贪婪', color: 'text-emerald-600', bg: 'bg-emerald-100' };
-    return { label: '极度贪婪', color: 'text-green-600', bg: 'bg-green-100' };
+    const t = useTranslations();
+    if (index <= 25) return { label: t('uma.market.extremeFear'), color: 'text-red-600', bg: 'bg-red-100' };
+    if (index <= 45) return { label: t('uma.market.fear'), color: 'text-orange-600', bg: 'bg-orange-100' };
+    if (index <= 55) return { label: t('uma.market.neutral'), color: 'text-gray-600', bg: 'bg-gray-100' };
+    if (index <= 75) return { label: t('uma.market.greed'), color: 'text-emerald-600', bg: 'bg-emerald-100' };
+    return { label: t('uma.market.extremeGreed'), color: 'text-green-600', bg: 'bg-green-100' };
   };
 
+  const t = useTranslations();
   const sentimentInfo = getSentimentLabel(fearGreedIndex);
 
   return (
@@ -484,7 +486,7 @@ function MarketSentimentAnalysis() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Brain className="w-4 h-4 text-gray-600" />
-          <h4 className="text-sm font-medium text-gray-900">市场情绪分析</h4>
+          <h4 className="text-sm font-medium text-gray-900">{t('uma.market.marketSentimentAnalysis')}</h4>
         </div>
         <div className="flex gap-1">
           <button
@@ -496,7 +498,7 @@ function MarketSentimentAnalysis() {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             )}
           >
-            市场情绪
+            {t('uma.market.marketSentiment')}
           </button>
           <button
             onClick={() => setActiveTab('social')}
@@ -507,7 +509,7 @@ function MarketSentimentAnalysis() {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             )}
           >
-            社交媒体
+            {t('uma.market.socialMedia')}
           </button>
         </div>
       </div>
@@ -516,7 +518,7 @@ function MarketSentimentAnalysis() {
         <div className="space-y-6">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">多空比例</span>
+              <span className="text-sm text-gray-600">{t('uma.market.longShortRatio')}</span>
               <span className="text-xs text-gray-500">24h</span>
             </div>
             <div className="flex items-center gap-2">
@@ -530,14 +532,14 @@ function MarketSentimentAnalysis() {
               </div>
             </div>
             <div className="flex justify-between mt-1 text-xs text-gray-500">
-              <span>做空 {longShortRatio.short}%</span>
-              <span>做多 {longShortRatio.long}%</span>
+              <span>{t('uma.market.short')} {longShortRatio.short}%</span>
+              <span>{t('uma.market.long')} {longShortRatio.long}%</span>
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">恐惧贪婪指数</span>
+              <span className="text-sm text-gray-600">{t('uma.market.fearGreedIndex')}</span>
               <span
                 className={cn('text-xs px-2 py-0.5 rounded', sentimentInfo.bg, sentimentInfo.color)}
               >
@@ -553,7 +555,7 @@ function MarketSentimentAnalysis() {
             <div className="flex justify-between mt-2">
               <span className="text-2xl font-bold text-gray-900">{fearGreedIndex}</span>
               <div className="text-right">
-                <p className="text-xs text-gray-500">昨日</p>
+                <p className="text-xs text-gray-500">{t('uma.market.yesterday')}</p>
                 <p className="text-sm font-semibold text-gray-700">52</p>
               </div>
             </div>
@@ -561,7 +563,7 @@ function MarketSentimentAnalysis() {
 
           <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-100">
             <div>
-              <p className="text-xs text-gray-500 mb-1">清算热度</p>
+              <p className="text-xs text-gray-500 mb-1">{t('uma.market.liquidationHeat')}</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div className="h-full bg-amber-500 rounded-full" style={{ width: '35%' }} />
@@ -570,7 +572,7 @@ function MarketSentimentAnalysis() {
               </div>
             </div>
             <div>
-              <p className="text-xs text-gray-500 mb-1">资金费率</p>
+              <p className="text-xs text-gray-500 mb-1">{t('uma.market.fundingRate')}</p>
               <p className="text-sm font-semibold text-emerald-600">+0.0125%</p>
             </div>
           </div>
@@ -584,7 +586,7 @@ function MarketSentimentAnalysis() {
                   <MessageCircle className="w-4 h-4 text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 capitalize">{platform}</span>
                 </div>
-                <span className="text-xs text-gray-500">{data.mentions} 条讨论</span>
+                <span className="text-xs text-gray-500">{data.mentions} {t('uma.market.discussions')}</span>
               </div>
               <div className="flex gap-1 h-2 rounded-full overflow-hidden">
                 <div className="bg-emerald-400" style={{ width: `${data.positive}%` }} />
@@ -592,9 +594,9 @@ function MarketSentimentAnalysis() {
                 <div className="bg-red-400" style={{ width: `${data.negative}%` }} />
               </div>
               <div className="flex justify-between mt-1 text-xs text-gray-500">
-                <span className="text-emerald-600">积极 {data.positive}%</span>
-                <span className="text-gray-500">中性 {data.neutral}%</span>
-                <span className="text-red-600">消极 {data.negative}%</span>
+                <span className="text-emerald-600">{t('uma.market.positive')} {data.positive}%</span>
+                <span className="text-gray-500">{t('uma.market.neutral')} {data.neutral}%</span>
+                <span className="text-red-600">{t('uma.market.negative')} {data.negative}%</span>
               </div>
             </div>
           ))}
@@ -628,11 +630,13 @@ function MarketDepthChart({ currentPrice }: { currentPrice: number }) {
     ...depthData.asks.map((d) => d.depth)
   );
 
+  const t = useTranslations();
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4">
       <div className="flex items-center gap-2 mb-4">
         <BarChart3 className="w-4 h-4 text-gray-600" />
-        <h4 className="text-sm font-medium text-gray-900">买卖盘深度图</h4>
+        <h4 className="text-sm font-medium text-gray-900">{t('uma.market.orderBookDepth')}</h4>
       </div>
 
       <div className="relative h-40">
@@ -711,9 +715,9 @@ function MarketDepthChart({ currentPrice }: { currentPrice: number }) {
       </div>
 
       <div className="flex justify-between mt-2 text-xs text-gray-500">
-        <span>买盘深度</span>
-        <span>当前价格</span>
-        <span>卖盘深度</span>
+        <span>{t('uma.market.bidDepth')}</span>
+        <span>{t('uma.market.currentPrice')}</span>
+        <span>{t('uma.market.askDepth')}</span>
       </div>
     </div>
   );
@@ -886,7 +890,7 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
 
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('uma.tradingPair') || '主要交易对'}
+          {t('uma.market.tradingPair')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
@@ -932,7 +936,7 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Activity className="w-5 h-5 text-gray-600" />
-          <h3 className="text-base font-medium text-gray-900">技术指标</h3>
+          <h3 className="text-base font-medium text-gray-900">{t('uma.market.technicalIndicators')}</h3>
         </div>
         <TechnicalIndicators currentPrice={currentPrice} />
       </div>
@@ -940,7 +944,7 @@ export function UmaMarketView({ config, price, networkStats }: UmaMarketViewProp
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Layers className="w-5 h-5 text-gray-600" />
-          <h3 className="text-base font-medium text-gray-900">市场深度数据</h3>
+          <h3 className="text-base font-medium text-gray-900">{t('uma.market.marketDepthData')}</h3>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <MarketDepthChart currentPrice={currentPrice} />

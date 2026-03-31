@@ -326,7 +326,7 @@ function PairSelector({
                   setSearchQuery(e.target.value);
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="搜索交易对..."
+                placeholder={t('arbitrageHeatmap.searchPlaceholder')}
                 className="
                   w-full pl-8 pr-3 py-1.5 text-sm rounded
                   focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500

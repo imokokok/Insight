@@ -44,6 +44,7 @@ export interface DeviationFactor {
   impact: number;
   description: string;
   status: 'low' | 'medium' | 'high';
+  type?: 'market' | 'update' | 'liquidity' | 'other';
 }
 
 export interface DeviationImpact {
@@ -384,9 +385,10 @@ export function ChroniclePriceDeviationView({
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${getStatusColor(factor.status)}`}>
-                    {factor.name.includes('市场') && <BarChart3 className="w-4 h-4" />}
-                    {factor.name.includes('更新') && <Clock className="w-4 h-4" />}
-                    {factor.name.includes('流动') && <Droplets className="w-4 h-4" />}
+                    {factor.type === 'market' && <BarChart3 className="w-4 h-4" />}
+                    {factor.type === 'update' && <Clock className="w-4 h-4" />}
+                    {factor.type === 'liquidity' && <Droplets className="w-4 h-4" />}
+                    {(!factor.type || factor.type === 'other') && <Info className="w-4 h-4" />}
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">{factor.name}</p>

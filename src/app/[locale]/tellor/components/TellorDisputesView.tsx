@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   Shield,
@@ -241,9 +241,8 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredDisputes.map((dispute) => (
-                <>
+                <React.Fragment key={dispute.id}>
                   <tr
-                    key={dispute.id}
                     className="hover:bg-gray-50 cursor-pointer"
                     onClick={() =>
                       setExpandedDispute(
@@ -340,7 +339,7 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>

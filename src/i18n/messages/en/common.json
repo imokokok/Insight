@@ -1,4 +1,7 @@
 {
+  "arbitrageHeatmap": {
+    "searchPlaceholder": "Search trading pairs..."
+  },
   "multiSourceAggregation": "Multi-Source Aggregation",
   "cryptographicVerification": "Cryptographic Verification",
   "anomalyDetection": "Anomaly Detection",
@@ -437,6 +440,19 @@
   "crossChainRisk": {
     "title": "Cross-Chain Risk"
   },
+  "crossChainPriceComparison": {
+    "title": "{symbol} Cross-Chain Price Comparison",
+    "priceDiff": "Cross-Chain Price Difference: {percent}%",
+    "avgPrice": "Average Price",
+    "highestPrice": "Highest Price",
+    "lowestPrice": "Lowest Price",
+    "allChains": "All Chains",
+    "confidence": "Confidence: {percent}%",
+    "high": "High",
+    "low": "Low",
+    "normal": "Normal",
+    "noData": "No cross-chain price data available"
+  },
   "concentrationRisk": {
     "title": "Concentration Risk"
   },
@@ -532,6 +548,50 @@
     "oraclePageTemplate": {
       "rank": "Rank"
     }
+  },
+  "realtimeNotifications": {
+    "connection": {
+      "title": "Real-time Connection",
+      "message": "Successfully connected to real-time data stream"
+    },
+    "priceAlert": {
+      "title": "Price Alert",
+      "message": "Price has reached {price}"
+    }
+  },
+  "performanceIndicator": {
+    "title": "Performance Monitor",
+    "panelLabel": "Performance Panel",
+    "debugOn": "Debug: On",
+    "debugOff": "Debug: Off",
+    "metrics": {
+      "queryResponse": "Query Response",
+      "dataProcessing": "Data Processing",
+      "dataValidation": "Data Validation",
+      "cacheHitRate": "Cache Hit Rate",
+      "cacheSize": "Cache Size"
+    },
+    "thresholds": "Thresholds",
+    "ratings": {
+      "good": "Good",
+      "needsImprovement": "Needs Improvement",
+      "poor": "Poor",
+      "unknown": "Unknown",
+      "noData": "No Data"
+    },
+    "reference": "Reference: <2s / <5s | Processing: <100ms / <500ms | Validation: <50ms / <200ms | Cache: >70% / >30%"
+  },
+  "errorFallback": {
+    "title": "Page Load Error",
+    "description": "Sorry, we encountered a problem loading this page. Please try refreshing or return to the home page.",
+    "errorDetails": "Error Details (Development Mode Only):",
+    "componentStack": "Component Stack",
+    "retry": "Retry",
+    "goHome": "Go Home",
+    "contactSupport": "If the problem persists, please contact technical support"
+  },
+  "mobileInteraction": {
+    "current": "Current"
   },
   "networkHealth": {
     "status": {

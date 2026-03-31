@@ -102,11 +102,11 @@ export default function RegisterPage() {
               <div className="flex items-start gap-3">
                 <Mail className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-primary-800">
-                  <p className="font-medium mb-1">下一步：</p>
+                  <p className="font-medium mb-1">{t('auth.register.success.nextSteps')}：</p>
                   <ol className="list-decimal list-inside space-y-1 text-primary-700">
-                    <li>检查您的收件箱</li>
-                    <li>点击邮件中的确认链接</li>
-                    <li>返回登录页面登录</li>
+                    <li>{t('auth.register.success.checkInbox')}</li>
+                    <li>{t('auth.register.success.clickLink')}</li>
+                    <li>{t('auth.register.success.goBackLogin')}</li>
                   </ol>
                 </div>
               </div>

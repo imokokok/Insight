@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
@@ -142,19 +142,6 @@ export function CircularProgress({
 }
 
 // ============================================
-// 步骤进度组件
-// ============================================
-
-interface StepProgressProps {
-  steps: string[];
-  currentStep: number;
-  variant?: 'default' | 'vertical';
-  className?: string;
-}
-
-
-
-// ============================================
 // 数据加载进度组件
 // ============================================
 
@@ -264,47 +251,5 @@ export function DataLoadingProgress({
   );
 }
 
-// ============================================
-// 批量操作进度组件
-// ============================================
-
-interface BatchOperationProgressProps {
-  isProcessing: boolean;
-  completed: number;
-  total: number;
-  failed?: number;
-  operationName: string;
-  onCancel?: () => void;
-  showDetails?: boolean;
-  items?: Array<{
-    id: string;
-    name: string;
-    status: 'pending' | 'processing' | 'completed' | 'failed';
-  }>;
-  className?: string;
-}
-
-
-
-// ============================================
-// 骨架屏加载状态 Hook
-// ============================================
-
-interface UseLoadingProgressOptions {
-  onComplete?: () => void;
-  onError?: (error: Error) => void;
-}
-
-
-
-// ============================================
-// 懒加载占位组件
-// ============================================
-
-interface LazyLoadPlaceholderProps {
-  height?: string | number;
-  children?: React.ReactNode;
-  className?: string;
-}
 
 

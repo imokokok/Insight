@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import { useRealtimeAlerts } from '@/hooks';
 import { useConnectionStatus } from '@/stores/realtimeStore';
+import { useTranslations } from '@/i18n';
 
 export interface NotificationData {
   id: string;
@@ -32,6 +33,7 @@ export function RealtimeNotifications({
   showConnectionStatus = true,
   position = 'top-right',
 }: RealtimeNotificationsProps) {
+  const t = useTranslations();
   const connectionStatus = useConnectionStatus();
   const { alerts } = useRealtimeAlerts({ enabled: showAlerts });
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
@@ -71,11 +73,11 @@ export function RealtimeNotifications({
     if (showConnectionStatus && connectionStatus === 'connected') {
       addNotification({
         type: 'connection',
-        title: '实时连接',
-        message: '已成功连接到实时数据流',
+        title: t('realtimeNotifications.connection.title'),
+        message: t('realtimeNotifications.connection.message'),
       });
     }
-  }, [connectionStatus, showConnectionStatus, addNotification]);
+  }, [connectionStatus, showConnectionStatus, addNotification, t]);
 
   useEffect(() => {
     if (showAlerts && alerts.length > 0) {
@@ -83,13 +85,13 @@ export function RealtimeNotifications({
       if (latestAlert.isNew) {
         addNotification({
           type: 'alert_triggered',
-          title: '价格告警',
-          message: `价格已达到 ${latestAlert.price}`,
+          title: t('realtimeNotifications.priceAlert.title'),
+          message: t('realtimeNotifications.priceAlert.message', { price: latestAlert.price }),
           data: latestAlert,
         });
       }
     }
-  }, [alerts, showAlerts, addNotification]);
+  }, [alerts, showAlerts, addNotification, t]);
 
   const positionClasses = {
     'top-right': 'top-4 right-4',

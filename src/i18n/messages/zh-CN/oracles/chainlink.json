@@ -65,7 +65,11 @@
     "reputation": "声誉",
     "stakingAmount": "质押数量",
     "totalStaked": "总质押量",
-    "nodeOperators": "节点运营者"
+    "nodeOperators": "节点运营者",
+    "subtitle": {
+      "30d": "30天",
+      "thisMonth": "本月"
+    }
   },
   "dataFeedsFilter": {
     "all": "全部",
