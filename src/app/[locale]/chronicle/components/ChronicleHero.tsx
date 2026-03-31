@@ -109,7 +109,15 @@ function Sparkline({
 }
 
 // 增强版核心统计组件 - 5个指标，响应式网格布局
-function EnhancedCoreStats({ stats, themeColor, t }: { stats: StatItem[]; themeColor: string; t: (key: string) => string }) {
+function EnhancedCoreStats({
+  stats,
+  themeColor,
+  t,
+}: {
+  stats: StatItem[];
+  themeColor: string;
+  t: (key: string) => string;
+}) {
   const displayStats = stats.slice(0, 5);
 
   return (
@@ -329,13 +337,33 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: t('chronicle.securityLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('chronicle.securityLevel.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: t('chronicle.securityLevel.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('chronicle.securityLevel.low'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: t('chronicle.securityLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: t('chronicle.securityLevel.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+      return {
+        label: t('chronicle.securityLevel.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
+    return {
+      label: t('chronicle.securityLevel.high'),
+      color: 'text-red-600',
+      bg: 'bg-red-500',
+      width: '80%',
+    };
   }, [networkStats, t]);
 
   const displayChains = chains.slice(0, 3);
@@ -464,27 +492,42 @@ export function ChronicleHero({
     if (historicalData.length > 0) {
       return historicalData.slice(-24).map((d) => d.price);
     }
-    return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + deterministicVariation(i, 1, 0.05)));
+    return Array.from(
+      { length: 24 },
+      (_, i) => currentPrice * (1 + deterministicVariation(i, 1, 0.05))
+    );
   }, [historicalData, currentPrice]);
 
   const marketCapSparkline = useMemo(() => {
     const baseMarketCap = config.marketData.marketCap / 1e6;
-    return Array.from({ length: 24 }, (_, i) => baseMarketCap * (1 + deterministicVariation(i, 2, 0.025)));
+    return Array.from(
+      { length: 24 },
+      (_, i) => baseMarketCap * (1 + deterministicVariation(i, 2, 0.025))
+    );
   }, [config.marketData.marketCap]);
 
   const validatorSparkline = useMemo(() => {
     const baseValidators = networkStats?.activeValidators ?? 45;
-    return Array.from({ length: 24 }, (_, i) => baseValidators + Math.floor(Math.abs(deterministicVariation(i, 3, 2.5))));
+    return Array.from(
+      { length: 24 },
+      (_, i) => baseValidators + Math.floor(Math.abs(deterministicVariation(i, 3, 2.5)))
+    );
   }, [networkStats?.activeValidators]);
 
   const dataFeedSparkline = useMemo(() => {
     const baseFeeds = networkStats?.dataFeeds ?? config.networkData.dataFeeds;
-    return Array.from({ length: 24 }, (_, i) => baseFeeds + Math.floor(Math.abs(deterministicVariation(i, 4, 1.5))));
+    return Array.from(
+      { length: 24 },
+      (_, i) => baseFeeds + Math.floor(Math.abs(deterministicVariation(i, 4, 1.5)))
+    );
   }, [networkStats?.dataFeeds, config.networkData.dataFeeds]);
 
   const stakingSparkline = useMemo(() => {
     const baseStaking = config.marketData.circulatingSupply / 1e6;
-    return Array.from({ length: 24 }, (_, i) => baseStaking * (1 + deterministicVariation(i, 5, 0.015)));
+    return Array.from(
+      { length: 24 },
+      (_, i) => baseStaking * (1 + deterministicVariation(i, 5, 0.015))
+    );
   }, [config.marketData.circulatingSupply]);
 
   // 核心统计指标 (Primary stats) - 5个关键指标

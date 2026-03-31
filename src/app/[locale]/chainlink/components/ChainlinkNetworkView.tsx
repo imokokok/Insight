@@ -131,11 +131,15 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.successRate')}</span>
-                <span className="font-medium text-gray-900">{networkData.successRate || '99.97'}%</span>
+                <span className="font-medium text-gray-900">
+                  {networkData.successRate || '99.97'}%
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">{t('chainlink.network.activeNodes')}</span>
-                <span className="font-medium">{networkData.activeNodes?.toLocaleString() || '1,240'}</span>
+                <span className="font-medium">
+                  {networkData.activeNodes?.toLocaleString() || '1,240'}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">{t('chainlink.network.dataSources')}</span>
@@ -150,25 +154,40 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
                 <span className="font-medium">{networkData.consumerContracts || '4,521'}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${networkData.successRate || 99.97}%` }} />
+                <div
+                  className="bg-emerald-500 h-1.5 rounded-full"
+                  style={{ width: `${networkData.successRate || 99.97}%` }}
+                />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.avgResponse')}</span>
-                <span className="font-medium text-gray-900">{networkData.avgResponseTime || 245}ms</span>
+                <span className="font-medium text-gray-900">
+                  {networkData.avgResponseTime || 245}ms
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${Math.min((networkData.avgResponseTime || 245) / 350 * 100, 100)}%` }} />
+                <div
+                  className="bg-blue-500 h-1.5 rounded-full"
+                  style={{
+                    width: `${Math.min(((networkData.avgResponseTime || 245) / 350) * 100, 100)}%`,
+                  }}
+                />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.dataFreshness')}</span>
-                <span className="font-medium text-gray-900">&lt; {networkData.dataFreshness || 1}min</span>
+                <span className="font-medium text-gray-900">
+                  &lt; {networkData.dataFreshness || 1}min
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${Math.max(100 - (networkData.dataFreshness || 1) * 5, 0)}%` }} />
+                <div
+                  className="bg-amber-500 h-1.5 rounded-full"
+                  style={{ width: `${Math.max(100 - (networkData.dataFreshness || 1) * 5, 0)}%` }}
+                />
               </div>
             </div>
           </div>

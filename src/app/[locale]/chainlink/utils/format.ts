@@ -43,10 +43,7 @@ export interface TimeAgoTranslations {
   daysAgo: (count: number) => string;
 }
 
-export function formatTimeAgo(
-  date: Date,
-  translations?: TimeAgoTranslations
-): string {
+export function formatTimeAgo(date: Date, translations?: TimeAgoTranslations): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
 
   if (seconds < 60) {

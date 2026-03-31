@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+
 import {
   Globe,
   Clock,
@@ -13,8 +14,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
 import { usePythCrossChain } from '@/hooks/oracles/pyth';
+import { useTranslations } from '@/i18n';
 
 import { type PythCrossChainViewProps, type ChainPriceData } from '../types';
 
@@ -78,7 +79,12 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
     return {
       connected: onlineCount,
       total: totalChains,
-      status: onlineCount === totalChains ? 'healthy' : onlineCount > totalChains * 0.8 ? 'degraded' : 'critical',
+      status:
+        onlineCount === totalChains
+          ? 'healthy'
+          : onlineCount > totalChains * 0.8
+            ? 'degraded'
+            : 'critical',
       lastGuardianUpdate: new Date(Date.now() - Math.floor(Math.random() * 300000)),
     };
   }, [chainData]);
@@ -249,8 +255,12 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <div className={`w-2 h-2 rounded-full ${getDeviationColor(data.deviation)}`} />
-                        <span className={`text-sm font-medium ${getDeviationTextColor(data.deviation)}`}>
+                        <div
+                          className={`w-2 h-2 rounded-full ${getDeviationColor(data.deviation)}`}
+                        />
+                        <span
+                          className={`text-sm font-medium ${getDeviationTextColor(data.deviation)}`}
+                        >
                           {data.deviation >= 0 ? '+' : ''}
                           {data.deviation.toFixed(3)}%
                         </span>
@@ -278,7 +288,11 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
                     </td>
                     <td className="py-3 px-4 text-right">
                       <span className="text-xs text-gray-400">
-                        {timeAgo < 60 ? tPyth('crossChain.timeAgo.seconds', { seconds: timeAgo }) : tPyth('crossChain.timeAgo.minutes', { minutes: Math.floor(timeAgo / 60) })}
+                        {timeAgo < 60
+                          ? tPyth('crossChain.timeAgo.seconds', { seconds: timeAgo })
+                          : tPyth('crossChain.timeAgo.minutes', {
+                              minutes: Math.floor(timeAgo / 60),
+                            })}
                       </span>
                     </td>
                   </tr>
@@ -433,7 +447,9 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
                           style={{ width: `${Math.min((data.latency / 350) * 100, 100)}%` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500 w-16 text-right">{data.latency}ms</span>
+                      <span className="text-xs text-gray-500 w-16 text-right">
+                        {data.latency}ms
+                      </span>
                     </div>
                   );
                 })}
@@ -452,47 +468,35 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-500">
-                {tPyth('crossChain.overallScore')}
-              </span>
+              <span className="text-sm text-gray-500">{tPyth('crossChain.overallScore')}</span>
               <span className="text-2xl font-bold text-emerald-600">98.5</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '98.5%' }} />
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              {tPyth('crossChain.excellent')}
-            </p>
+            <p className="text-xs text-gray-400 mt-2">{tPyth('crossChain.excellent')}</p>
           </div>
 
           <div className="p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-500">
-                {tPyth('crossChain.updateSync')}
-              </span>
+              <span className="text-sm text-gray-500">{tPyth('crossChain.updateSync')}</span>
               <span className="text-2xl font-bold text-violet-600">99.2%</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div className="bg-violet-500 h-2 rounded-full" style={{ width: '99.2%' }} />
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              {tPyth('crossChain.chainsSynced')}
-            </p>
+            <p className="text-xs text-gray-400 mt-2">{tPyth('crossChain.chainsSynced')}</p>
           </div>
 
           <div className="p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-500">
-                {tPyth('crossChain.arbOpportunity')}
-              </span>
+              <span className="text-sm text-gray-500">{tPyth('crossChain.arbOpportunity')}</span>
               <span className="text-2xl font-bold text-amber-600">0.12%</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div className="bg-amber-500 h-2 rounded-full" style={{ width: '24%' }} />
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              {tPyth('crossChain.lowArb')}
-            </p>
+            <p className="text-xs text-gray-400 mt-2">{tPyth('crossChain.lowArb')}</p>
           </div>
         </div>
       </div>

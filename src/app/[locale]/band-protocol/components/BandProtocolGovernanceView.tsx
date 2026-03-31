@@ -2,16 +2,7 @@
 
 import { useState, useMemo } from 'react';
 
-import {
-  Scale,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Vote,
-  Info,
-  X,
-} from 'lucide-react';
+import { Scale, Clock, CheckCircle, XCircle, AlertCircle, Vote, Info, X } from 'lucide-react';
 
 import { useTranslations, useLocale } from '@/i18n';
 import { type GovernanceProposal, type ProposalStatus } from '@/lib/oracles/bandProtocol';
@@ -36,14 +27,17 @@ function formatDate(timestamp: number, locale: string = 'en-US'): string {
   });
 }
 
-function formatTimeRemaining(endTime: number, t: (key: string, params?: Record<string, string | number | Date>) => string): string {
+function formatTimeRemaining(
+  endTime: number,
+  t: (key: string, params?: Record<string, string | number | Date>) => string
+): string {
   const now = Date.now();
   const diff = endTime - now;
   if (diff <= 0) return t('band.bandProtocol.time.ended');
-  
+
   const days = Math.floor(diff / (24 * 60 * 60 * 1000));
   const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-  
+
   return t('band.bandProtocol.time.timeRemaining', { days, hours });
 }
 
@@ -89,8 +83,9 @@ interface ProposalDetailModalProps {
 function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalProps) {
   const t = useTranslations();
   const locale = useLocale();
-  
-  const totalVotes = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain + proposal.votes.noWithVeto;
+
+  const totalVotes =
+    proposal.votes.yes + proposal.votes.no + proposal.votes.abstain + proposal.votes.noWithVeto;
   const yesPercentage = totalVotes > 0 ? (proposal.votes.yes / totalVotes) * 100 : 0;
   const noPercentage = totalVotes > 0 ? (proposal.votes.no / totalVotes) * 100 : 0;
   const abstainPercentage = totalVotes > 0 ? (proposal.votes.abstain / totalVotes) * 100 : 0;
@@ -103,10 +98,7 @@ function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalProps) {
           <h2 className="text-lg font-semibold text-gray-900">
             {t('band.bandProtocol.governance.proposalDetails')}
           </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
@@ -115,7 +107,9 @@ function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalProps) {
           <div>
             <div className="flex items-center gap-2 mb-2">
               {getStatusIcon(proposal.status)}
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(proposal.status)}`}>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(proposal.status)}`}
+              >
                 {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
               </span>
             </div>
@@ -138,18 +132,26 @@ function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalProps) {
               <p className="text-sm font-medium text-gray-900">{proposal.type}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-xs text-gray-500 mb-1">{t('band.bandProtocol.governance.totalDeposit')}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('band.bandProtocol.governance.totalDeposit')}
+              </p>
               <p className="text-sm font-medium text-gray-900">{proposal.totalDeposit} BAND</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-xs text-gray-500 mb-1">{t('band.bandProtocol.governance.proposer')}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('band.bandProtocol.governance.proposer')}
+              </p>
               <p className="text-sm font-medium text-gray-900 font-mono truncate">
                 {proposal.proposer.slice(0, 20)}...
               </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-xs text-gray-500 mb-1">{t('band.bandProtocol.governance.votingEnds')}</p>
-              <p className="text-sm font-medium text-gray-900">{formatDate(proposal.votingEndTime, locale)}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('band.bandProtocol.governance.votingEnds')}
+              </p>
+              <p className="text-sm font-medium text-gray-900">
+                {formatDate(proposal.votingEndTime, locale)}
+              </p>
             </div>
           </div>
 
@@ -205,7 +207,9 @@ function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalProps) {
 
               <div>
                 <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-gray-600">{t('band.bandProtocol.governance.noWithVeto')}</span>
+                  <span className="text-gray-600">
+                    {t('band.bandProtocol.governance.noWithVeto')}
+                  </span>
                   <span className="font-medium text-gray-900">
                     {formatNumber(proposal.votes.noWithVeto)} ({vetoPercentage.toFixed(1)}%)
                   </span>
@@ -222,8 +226,12 @@ function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalProps) {
 
           <div className="bg-purple-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">{t('band.bandProtocol.governance.totalVotes')}</span>
-              <span className="text-lg font-semibold text-purple-600">{formatNumber(totalVotes)} BAND</span>
+              <span className="text-sm text-gray-600">
+                {t('band.bandProtocol.governance.totalVotes')}
+              </span>
+              <span className="text-lg font-semibold text-purple-600">
+                {formatNumber(totalVotes)} BAND
+              </span>
             </div>
           </div>
         </div>
@@ -345,28 +353,48 @@ export function BandProtocolGovernanceView({
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">{t('band.bandProtocol.governance.minDeposit')}</p>
-              <p className="text-sm font-semibold text-gray-900">{governanceParams.minDeposit} BAND</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('band.bandProtocol.governance.minDeposit')}
+              </p>
+              <p className="text-sm font-semibold text-gray-900">
+                {governanceParams.minDeposit} BAND
+              </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">{t('band.bandProtocol.governance.depositPeriod')}</p>
-              <p className="text-sm font-semibold text-gray-900">{governanceParams.maxDepositPeriod} days</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('band.bandProtocol.governance.depositPeriod')}
+              </p>
+              <p className="text-sm font-semibold text-gray-900">
+                {governanceParams.maxDepositPeriod} days
+              </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">{t('band.bandProtocol.governance.votingPeriod')}</p>
-              <p className="text-sm font-semibold text-gray-900">{governanceParams.votingPeriod} days</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('band.bandProtocol.governance.votingPeriod')}
+              </p>
+              <p className="text-sm font-semibold text-gray-900">
+                {governanceParams.votingPeriod} days
+              </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">{t('band.bandProtocol.governance.quorum')}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('band.bandProtocol.governance.quorum')}
+              </p>
               <p className="text-sm font-semibold text-gray-900">{governanceParams.quorum}%</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">{t('band.bandProtocol.governance.threshold')}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('band.bandProtocol.governance.threshold')}
+              </p>
               <p className="text-sm font-semibold text-gray-900">{governanceParams.threshold}%</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">{t('band.bandProtocol.governance.vetoThreshold')}</p>
-              <p className="text-sm font-semibold text-gray-900">{governanceParams.vetoThreshold}%</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('band.bandProtocol.governance.vetoThreshold')}
+              </p>
+              <p className="text-sm font-semibold text-gray-900">
+                {governanceParams.vetoThreshold}%
+              </p>
             </div>
           </div>
         </div>
@@ -403,7 +431,11 @@ export function BandProtocolGovernanceView({
             </div>
           ) : (
             filteredProposals.map((proposal) => {
-              const totalVotes = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain + proposal.votes.noWithVeto;
+              const totalVotes =
+                proposal.votes.yes +
+                proposal.votes.no +
+                proposal.votes.abstain +
+                proposal.votes.noWithVeto;
               const yesPercentage = totalVotes > 0 ? (proposal.votes.yes / totalVotes) * 100 : 0;
 
               return (
@@ -415,7 +447,9 @@ export function BandProtocolGovernanceView({
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(proposal.status)}
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(proposal.status)}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(proposal.status)}`}
+                      >
                         {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
                       </span>
                       <span className="text-xs text-gray-400">#{proposal.id}</span>
@@ -426,10 +460,14 @@ export function BandProtocolGovernanceView({
                   <h4 className="text-sm font-medium text-gray-900 mb-2">{proposal.title}</h4>
 
                   <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
-                    <span>{t('band.bandProtocol.governance.proposer')}: {proposal.proposer.slice(0, 16)}...</span>
+                    <span>
+                      {t('band.bandProtocol.governance.proposer')}: {proposal.proposer.slice(0, 16)}
+                      ...
+                    </span>
                     {proposal.status === 'voting' && (
                       <span className="text-blue-600 font-medium">
-                        {t('band.bandProtocol.governance.timeRemaining')}: {formatTimeRemaining(proposal.votingEndTime, t)}
+                        {t('band.bandProtocol.governance.timeRemaining')}:{' '}
+                        {formatTimeRemaining(proposal.votingEndTime, t)}
                       </span>
                     )}
                   </div>

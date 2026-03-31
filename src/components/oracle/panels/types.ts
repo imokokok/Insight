@@ -48,4 +48,8 @@ export interface NetworkDataConfig {
   stakingTokenSymbol?: string;
   bandProtocolMetrics?: BandProtocolMetrics;
   solanaNetworkMetrics?: SolanaNetworkMetrics;
+  successRate?: number;
+  dataSources?: number;
+  consumerContracts?: number;
+  dataFreshness?: number;
 }

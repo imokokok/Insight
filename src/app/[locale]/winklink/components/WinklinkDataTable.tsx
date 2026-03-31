@@ -151,9 +151,7 @@ export function WinklinkDataTable<T extends Record<string, unknown> | object>({
                 const cellValue = getPropertySafely(item, column.key);
                 return (
                   <td key={column.key} className="px-4 py-3 text-sm text-gray-900">
-                    {column.render
-                      ? column.render(item)
-                      : String(cellValue ?? '-')}
+                    {column.render ? column.render(item) : String(cellValue ?? '-')}
                   </td>
                 );
               })}

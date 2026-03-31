@@ -226,7 +226,8 @@ export function NodeGeographicDistribution({ className }: NodeGeographicDistribu
         <div className="pt-3 border-t border-gray-100">
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>
-              {t('chainlink.network.lastUpdated')}: {t('chainlink.por.timeAgo.minutesAgo', { count: 2 })}
+              {t('chainlink.network.lastUpdated')}:{' '}
+              {t('chainlink.por.timeAgo.minutesAgo', { count: 2 })}
             </span>
             <div className="flex items-center gap-4">
               {regionData.map((region) => (

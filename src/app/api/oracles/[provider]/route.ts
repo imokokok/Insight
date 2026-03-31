@@ -36,17 +36,18 @@ export async function GET(
     const providerError = validateProvider(provider);
     if (providerError) return providerError;
 
-    const periodResult = validatePeriod(period);
-    if (!periodResult.valid) return periodResult.error!;
+    const periodNum = period ? parseInt(period, 10) : undefined;
+    const periodError = validatePeriod(periodNum);
+    if (periodError) return periodError;
 
     const chainValue = chain ? (chain as Blockchain) : undefined;
 
-    if (periodResult.value) {
+    if (periodNum) {
       return handleGetHistoricalPrices({
         provider: provider as OracleProvider,
         symbol,
         chain: chainValue,
-        period: periodResult.value,
+        period: periodNum,
       });
     }
 
@@ -60,6 +61,6 @@ export async function GET(
       'Unexpected error in GET /api/oracles/[provider]',
       error instanceof Error ? error : new Error(String(error))
     );
-    return createUnexpectedErrorResponse();
+    return createUnexpectedErrorResponse(error);
   }
 }

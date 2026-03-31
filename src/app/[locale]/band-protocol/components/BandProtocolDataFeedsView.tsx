@@ -21,17 +21,37 @@ import { type BandProtocolDataFeedsViewProps } from '../types';
 
 const ITEMS_PER_PAGE = 20;
 
-const getCategoryConfig = (t: (key: string) => string): Record<DataSourceCategory, { label: string; color: string }> => ({
+const getCategoryConfig = (
+  t: (key: string) => string
+): Record<DataSourceCategory, { label: string; color: string }> => ({
   crypto: { label: t('band.bandProtocol.categories.crypto'), color: 'bg-blue-100 text-blue-700' },
-  stablecoin: { label: t('band.bandProtocol.categories.stablecoin'), color: 'bg-emerald-100 text-emerald-700' },
+  stablecoin: {
+    label: t('band.bandProtocol.categories.stablecoin'),
+    color: 'bg-emerald-100 text-emerald-700',
+  },
   forex: { label: t('band.bandProtocol.categories.forex'), color: 'bg-cyan-100 text-cyan-700' },
-  commodities: { label: t('band.bandProtocol.categories.commodities'), color: 'bg-amber-100 text-amber-700' },
-  equities: { label: t('band.bandProtocol.categories.equities'), color: 'bg-pink-100 text-pink-700' },
-  sports: { label: t('band.bandProtocol.categories.sports'), color: 'bg-purple-100 text-purple-700' },
-  random: { label: t('band.bandProtocol.categories.random'), color: 'bg-indigo-100 text-indigo-700' },
+  commodities: {
+    label: t('band.bandProtocol.categories.commodities'),
+    color: 'bg-amber-100 text-amber-700',
+  },
+  equities: {
+    label: t('band.bandProtocol.categories.equities'),
+    color: 'bg-pink-100 text-pink-700',
+  },
+  sports: {
+    label: t('band.bandProtocol.categories.sports'),
+    color: 'bg-purple-100 text-purple-700',
+  },
+  random: {
+    label: t('band.bandProtocol.categories.random'),
+    color: 'bg-indigo-100 text-indigo-700',
+  },
 });
 
-function formatTimeAgo(timestamp: number, t: (key: string, params?: Record<string, string | number | Date>) => string): string {
+function formatTimeAgo(
+  timestamp: number,
+  t: (key: string, params?: Record<string, string | number | Date>) => string
+): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
   if (seconds < 60) return t('band.bandProtocol.time.secondsAgo', { count: seconds });
   const minutes = Math.floor(seconds / 60);
@@ -52,7 +72,13 @@ function formatNumber(num: number): string {
   return num.toLocaleString();
 }
 
-export function BandProtocolDataFeedsView({ dataSources, total, isLoading, error: propError, onRefresh }: BandProtocolDataFeedsViewProps) {
+export function BandProtocolDataFeedsView({
+  dataSources,
+  total,
+  isLoading,
+  error: propError,
+  onRefresh,
+}: BandProtocolDataFeedsViewProps) {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<DataSourceCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -316,94 +342,97 @@ export function BandProtocolDataFeedsView({ dataSources, total, isLoading, error
                 {paginatedFeeds.map((feed) => {
                   const categoryConfig = getCategoryConfig(t);
                   return (
-                  <tr key={feed.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <div>
-                        <span className="text-sm font-medium text-gray-900">{feed.name}</span>
-                        <p className="text-xs text-gray-500">{feed.description}</p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
-                          categoryConfig[feed.category]?.color || 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        {categoryConfig[feed.category]?.label || feed.category}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {feed.price !== undefined ? (
-                        <span className="text-sm font-medium text-gray-900">
-                          $
-                          {feed.price.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 4,
-                          })}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-gray-400">{t('band.bandProtocol.common.na')}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {feed.change24h !== undefined && feed.price !== undefined ? (
+                    <tr key={feed.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div>
+                          <span className="text-sm font-medium text-gray-900">{feed.name}</span>
+                          <p className="text-xs text-gray-500">{feed.description}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
                         <span
-                          className={`text-sm font-medium ${
-                            feed.change24h >= 0 ? 'text-emerald-600' : 'text-red-600'
+                          className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
+                            categoryConfig[feed.category]?.color || 'bg-gray-100 text-gray-700'
                           }`}
                         >
-                          {feed.change24h >= 0 ? '+' : ''}
-                          {((feed.change24h / feed.price) * 100).toFixed(2)}%
+                          {categoryConfig[feed.category]?.label || feed.category}
                         </span>
-                      ) : (
-                        <span className="text-sm text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="text-sm text-gray-900">{feed.updateFrequency}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="text-sm text-gray-900">{feed.deviationThreshold}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="text-sm text-gray-900">
-                        {formatNumber(feed.totalRequests)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span
-                        className={`text-sm font-medium ${
-                          feed.reliability >= 99.95
-                            ? 'text-emerald-600'
-                            : feed.reliability >= 99.9
-                              ? 'text-blue-600'
-                              : 'text-amber-600'
-                        }`}
-                      >
-                        {feed.reliability.toFixed(2)}%
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span
-                        className={`inline-flex items-center gap-1.5 text-sm font-medium ${
-                          feed.status === 'active' ? 'text-emerald-600' : 'text-red-600'
-                        }`}
-                      >
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {feed.price !== undefined ? (
+                          <span className="text-sm font-medium text-gray-900">
+                            $
+                            {feed.price.toLocaleString(undefined, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 4,
+                            })}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400">
+                            {t('band.bandProtocol.common.na')}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {feed.change24h !== undefined && feed.price !== undefined ? (
+                          <span
+                            className={`text-sm font-medium ${
+                              feed.change24h >= 0 ? 'text-emerald-600' : 'text-red-600'
+                            }`}
+                          >
+                            {feed.change24h >= 0 ? '+' : ''}
+                            {((feed.change24h / feed.price) * 100).toFixed(2)}%
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-sm text-gray-900">{feed.updateFrequency}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-sm text-gray-900">{feed.deviationThreshold}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-sm text-gray-900">
+                          {formatNumber(feed.totalRequests)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            feed.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
+                          className={`text-sm font-medium ${
+                            feed.reliability >= 99.95
+                              ? 'text-emerald-600'
+                              : feed.reliability >= 99.9
+                                ? 'text-blue-600'
+                                : 'text-amber-600'
                           }`}
-                        />
-                        {feed.status.charAt(0).toUpperCase() + feed.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="text-sm text-gray-500">
-                        {formatTimeAgo(feed.lastUpdated, t)}
-                      </span>
-                    </td>
-                  </tr>
-                )})}
+                        >
+                          {feed.reliability.toFixed(2)}%
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+                            feed.status === 'active' ? 'text-emerald-600' : 'text-red-600'
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              feed.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
+                            }`}
+                          />
+                          {feed.status.charAt(0).toUpperCase() + feed.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-sm text-gray-500">
+                          {formatTimeAgo(feed.lastUpdated, t)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -414,8 +443,9 @@ export function BandProtocolDataFeedsView({ dataSources, total, isLoading, error
         <div className="flex items-center justify-between border-t border-gray-200 pt-4">
           <div className="text-sm text-gray-500">
             {t('band.bandProtocol.dataFeeds.showing')} {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{' '}
-            {Math.min(currentPage * ITEMS_PER_PAGE, filteredFeeds.length)} {t('band.bandProtocol.dataFeeds.of')}{' '}
-            {filteredFeeds.length} {t('band.bandProtocol.dataFeeds.feeds')}
+            {Math.min(currentPage * ITEMS_PER_PAGE, filteredFeeds.length)}{' '}
+            {t('band.bandProtocol.dataFeeds.of')} {filteredFeeds.length}{' '}
+            {t('band.bandProtocol.dataFeeds.feeds')}
           </div>
           <div className="flex items-center gap-2">
             <button

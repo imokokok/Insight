@@ -112,7 +112,9 @@ export function ChainlinkDataTable<T>({
                           {sortConfig.direction === 'asc' ? '↑' : '↓'}
                         </span>
                         <span id={sortDescriptionId} className="sr-only">
-                          {sortDirection === 'asc' ? t('dataTable.sort.asc') : t('dataTable.sort.desc')}
+                          {sortDirection === 'asc'
+                            ? t('dataTable.sort.asc')
+                            : t('dataTable.sort.desc')}
                         </span>
                       </>
                     )}
@@ -130,9 +132,7 @@ export function ChainlinkDataTable<T>({
             >
               {columns.map((column) => (
                 <td key={String(column.key)} className="px-4 py-3 text-sm text-gray-900">
-                  {column.render
-                    ? column.render(item)
-                    : String(item[column.key] ?? '-')}
+                  {column.render ? column.render(item) : String(item[column.key] ?? '-')}
                 </td>
               ))}
             </tr>

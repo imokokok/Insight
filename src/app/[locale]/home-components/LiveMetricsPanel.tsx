@@ -254,8 +254,8 @@ export default function LiveMetricsPanel() {
 
               <div className="mt-3">
                 <div className="text-xs font-medium mb-1" style={{ color: baseColors.gray[500] }}>
-                {t(`metrics.${metric.id}`)}
-              </div>
+                  {t(`metrics.${metric.id}`)}
+                </div>
 
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>

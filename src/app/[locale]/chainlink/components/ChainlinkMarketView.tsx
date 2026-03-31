@@ -62,14 +62,20 @@ export function ChainlinkMarketView({ config, price, isLoading }: ChainlinkMarke
             <h3 className="text-base font-medium text-gray-900">{t('chainlink.priceTrend')}</h3>
           </div>
           <div className="flex-1">
-            <PriceChart
-              client={config.client}
-              symbol={config.symbol}
-              chain={config.defaultChain}
-              height={300}
-              showToolbar={true}
-              defaultPrice={config.marketData.change24hValue}
-            />
+            {config.client ? (
+              <PriceChart
+                client={config.client}
+                symbol={config.symbol}
+                chain={config.defaultChain}
+                height={300}
+                showToolbar={true}
+                defaultPrice={config.marketData.change24hValue}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+                <p className="text-gray-500">{t('common.noData')}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -174,9 +180,7 @@ export function ChainlinkMarketView({ config, price, isLoading }: ChainlinkMarke
 
       {/* 核心交易对信息 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chainlink.tradingPair')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('chainlink.tradingPair')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-xs text-gray-400 mb-1">LINK/USDC</p>
@@ -199,12 +203,16 @@ export function ChainlinkMarketView({ config, price, isLoading }: ChainlinkMarke
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('chainlink.volume24h')}</p>
-            <p className="text-2xl font-semibold text-gray-900">${(config.marketData.volume24h / 1e6).toFixed(1)}M</p>
+            <p className="text-2xl font-semibold text-gray-900">
+              ${(config.marketData.volume24h / 1e6).toFixed(1)}M
+            </p>
             <p className="text-sm text-emerald-600 mt-1">+12.5%</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('chainlink.liquidity')}</p>
-            <p className="text-2xl font-semibold text-gray-900">${(config.marketData.marketCap / 1e9 * 0.003).toFixed(1)}M</p>
+            <p className="text-2xl font-semibold text-gray-900">
+              ${((config.marketData.marketCap / 1e9) * 0.003).toFixed(1)}M
+            </p>
             <p className="text-sm text-emerald-600 mt-1">+5.2%</p>
           </div>
           <div>

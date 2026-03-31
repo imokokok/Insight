@@ -1,17 +1,6 @@
-export {
-  formatNumber,
-  formatCurrency,
-  formatGas,
-  formatTimeAgo,
-  formatDate,
-} from './format';
+export { formatNumber, formatCurrency, formatGas, formatTimeAgo, formatDate } from './format';
 
-export {
-  safeDivide,
-  safeArrayAccess,
-  safeGetLastElement,
-  safeGetFirstElement,
-} from './helpers';
+export { safeDivide, safeArrayAccess, safeGetLastElement, safeGetFirstElement } from './helpers';
 
 export {
   type StatusLevel,

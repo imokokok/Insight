@@ -365,7 +365,11 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
         <span
           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}
         >
-          {item.status === 'active' ? t('chronicle.status.active') : item.status === 'completed' ? t('chronicle.vault.completed') : t('chronicle.vault.pending')}
+          {item.status === 'active'
+            ? t('chronicle.status.active')
+            : item.status === 'completed'
+              ? t('chronicle.vault.completed')
+              : t('chronicle.vault.pending')}
         </span>
       ),
     },
@@ -493,7 +497,9 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
             <div key={index} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-gray-900">{vault.type}</span>
-                <span className="text-sm text-gray-500">{vault.totalVaults} {t('chronicle.vault.vaultCount')}</span>
+                <span className="text-sm text-gray-500">
+                  {vault.totalVaults} {t('chronicle.vault.vaultCount')}
+                </span>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
@@ -559,7 +565,8 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
             <div className="flex items-center gap-1 text-amber-600">
               <AlertTriangle className="w-4 h-4" />
               <span className="text-sm font-medium">
-                {mockAuctions.filter((a) => a.status === 'active').length} {t('chronicle.status.active')}
+                {mockAuctions.filter((a) => a.status === 'active').length}{' '}
+                {t('chronicle.status.active')}
               </span>
             </div>
           </div>

@@ -20,7 +20,10 @@ import {
 
 import { API3AlertBadgeCompact, API3AlertStatusIndicator } from '@/components/oracle/alerts';
 import { QuickAccessPanel } from '@/components/oracle/data-display/QuickAccessPanel';
-import { EnhancedDataExport, type ExportableData } from '@/components/oracle/forms/EnhancedDataExport';
+import {
+  EnhancedDataExport,
+  type ExportableData,
+} from '@/components/oracle/forms/EnhancedDataExport';
 import { OptimizedImage } from '@/components/performance/OptimizedImage';
 import { LiveStatusBar } from '@/components/ui';
 import { useTranslations } from '@/i18n';
@@ -357,12 +360,27 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: t('api3.hero.gasMedium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('api3.hero.gasMedium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: t('api3.hero.gasLow'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('api3.hero.gasLow'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: t('api3.hero.gasMedium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('api3.hero.gasMedium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     return { label: t('api3.hero.gasHigh'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
   }, [networkStats, t]);
 

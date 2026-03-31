@@ -402,7 +402,10 @@ export function useUMARealtimeValidators(
   useEffect(() => {
     if (!enabled || !sharedContext) return;
 
-    const unsubscribe = sharedContext.subscribe<UMAValidatorUpdate>('uma:validators', handleMessage);
+    const unsubscribe = sharedContext.subscribe<UMAValidatorUpdate>(
+      'uma:validators',
+      handleMessage
+    );
     return () => {
       unsubscribe?.();
     };
@@ -521,7 +524,10 @@ export function useUMARealtimeRequests(
   useEffect(() => {
     if (!enabled || !sharedContext) return;
 
-    const unsubscribe = sharedContext.subscribe<UMADataRequestUpdate>('uma:requests', handleMessage);
+    const unsubscribe = sharedContext.subscribe<UMADataRequestUpdate>(
+      'uma:requests',
+      handleMessage
+    );
     return () => {
       unsubscribe?.();
     };

@@ -96,7 +96,9 @@ export function TimelineChart({
   if (events.length === 0) {
     return (
       <div className={`flex items-center justify-center p-8 bg-gray-50 rounded-lg ${className}`}>
-        <span className="text-sm text-gray-500">{t('common.noEvents') || 'No events available'}</span>
+        <span className="text-sm text-gray-500">
+          {t('common.noEvents') || 'No events available'}
+        </span>
       </div>
     );
   }
@@ -172,7 +174,9 @@ export function TimelineChart({
 
                 {/* Expand indicator */}
                 {!compact && !isExpanded && (
-                  <p className="mt-1 text-xs text-gray-400">{t('common.clickForDetails') || 'Click for details'}</p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    {t('common.clickForDetails') || 'Click for details'}
+                  </p>
                 )}
               </div>
             </div>

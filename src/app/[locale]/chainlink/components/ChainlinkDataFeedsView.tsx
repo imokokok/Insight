@@ -110,7 +110,11 @@ const getCategories = (t: (key: string) => string) => [
     label: t('dataFeedsFilter.commodities'),
     count: mockDataFeeds.filter((f) => f.category === 'commodities').length,
   },
-  { id: 'defi', label: t('dataFeedsFilter.defi'), count: mockDataFeeds.filter((f) => f.category === 'defi').length },
+  {
+    id: 'defi',
+    label: t('dataFeedsFilter.defi'),
+    count: mockDataFeeds.filter((f) => f.category === 'defi').length,
+  },
 ];
 
 export function ChainlinkDataFeedsView() {
@@ -186,9 +190,7 @@ export function ChainlinkDataFeedsView() {
         <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('dataFeeds.total')}
-            </p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('dataFeeds.total')}</p>
             <p className="text-xl font-semibold text-gray-900">{mockDataFeeds.length}</p>
           </div>
         </div>
@@ -262,10 +264,7 @@ export function ChainlinkDataFeedsView() {
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('dataFeeds.title')}
         </h3>
-        <ChainlinkDataTable<DataFeed>
-          data={filteredFeeds}
-          columns={columns}
-        />
+        <ChainlinkDataTable<DataFeed> data={filteredFeeds} columns={columns} />
       </div>
 
       {/* About Section */}
@@ -276,9 +275,7 @@ export function ChainlinkDataFeedsView() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">
-                {t('dataFeeds.updateFrequency')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('dataFeeds.updateFrequency')}:</span>{' '}
               {t('dataFeeds.frequencyDesc')}
             </p>
             <p>
@@ -290,15 +287,11 @@ export function ChainlinkDataFeedsView() {
           </div>
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">
-                {t('dataFeeds.reliability')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('dataFeeds.reliability')}:</span>{' '}
               {t('dataFeeds.reliabilityDesc')}
             </p>
             <p>
-              <span className="font-medium text-gray-900">
-                {t('dataFeeds.decentralization')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('dataFeeds.decentralization')}:</span>{' '}
               {t('dataFeeds.decentralizationDesc')}
             </p>
           </div>

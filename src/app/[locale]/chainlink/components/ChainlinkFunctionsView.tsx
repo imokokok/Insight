@@ -229,9 +229,7 @@ export function ChainlinkFunctionsView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Terminal className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-gray-500">
-                {t('functions.totalCalls')}
-              </span>
+              <span className="text-xs text-gray-500">{t('functions.totalCalls')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {formatNumber(mockFunctionsStats.totalCalls)}
@@ -240,9 +238,7 @@ export function ChainlinkFunctionsView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs text-gray-500">
-                {t('functions.successRate')}
-              </span>
+              <span className="text-xs text-gray-500">{t('functions.successRate')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {mockFunctionsStats.successRate}%
@@ -251,9 +247,7 @@ export function ChainlinkFunctionsView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-4 h-4 text-purple-600" />
-              <span className="text-xs text-gray-500">
-                {t('functions.avgExecutionTime')}
-              </span>
+              <span className="text-xs text-gray-500">{t('functions.avgExecutionTime')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {mockFunctionsStats.avgExecutionTime}s
@@ -262,9 +256,7 @@ export function ChainlinkFunctionsView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Globe className="w-4 h-4 text-amber-600" />
-              <span className="text-xs text-gray-500">
-                {t('functions.supportedApis')}
-              </span>
+              <span className="text-xs text-gray-500">{t('functions.supportedApis')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {mockFunctionsStats.supportedApis}
@@ -393,9 +385,7 @@ export function ChainlinkFunctionsView() {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('functions.features')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('functions.features')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
           <div className="flex items-start gap-3">
             <Code className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />

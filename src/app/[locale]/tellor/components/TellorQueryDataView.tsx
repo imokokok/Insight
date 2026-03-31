@@ -112,7 +112,9 @@ export function TellorQueryDataView({ isLoading }: TellorQueryDataViewProps) {
           {decodedResult && (
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-gray-900">{t('queryData.decodedResult')}</h4>
+                <h4 className="text-sm font-medium text-gray-900">
+                  {t('queryData.decodedResult')}
+                </h4>
                 <button
                   onClick={() => copyToClipboard(decodedResult)}
                   className="text-gray-400 hover:text-cyan-600 transition-colors"
@@ -134,7 +136,9 @@ export function TellorQueryDataView({ isLoading }: TellorQueryDataViewProps) {
 
       {/* Supported Query Types */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-base font-medium text-gray-900 mb-4">{t('queryData.supportedTypes')}</h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          {t('queryData.supportedTypes')}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {supportedTypes.map((type, index) => (
             <div
@@ -190,13 +194,9 @@ export function TellorQueryDataView({ isLoading }: TellorQueryDataViewProps) {
           <Info className="w-5 h-5 text-cyan-600 flex-shrink-0 mt-0.5" />
           <div>
             <h4 className="text-sm font-medium text-cyan-900">{t('queryData.whatIsQueryId')}</h4>
-            <p className="text-xs text-cyan-700 mt-1">
-              {t('queryData.queryIdDescription')}
-            </p>
+            <p className="text-xs text-cyan-700 mt-1">{t('queryData.queryIdDescription')}</p>
             <div className="mt-3 p-3 bg-white/50 rounded-lg">
-              <p className="text-xs text-cyan-800 font-mono">
-                Query ID = keccak256(Query Data)
-              </p>
+              <p className="text-xs text-cyan-800 font-mono">Query ID = keccak256(Query Data)</p>
             </div>
           </div>
         </div>

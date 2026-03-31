@@ -3,13 +3,12 @@ import { RedStoneApiError, type RedStoneErrorCode } from '@/lib/errors';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
+import { BaseOracleClient } from './base';
 import {
   REDSTONE_SUPPORTED_CHAINS,
   SPREAD_PERCENTAGES,
   type RedStoneChainInfo,
 } from './redstoneConstants';
-
-import { BaseOracleClient } from './base';
 
 import type { OracleClientConfig } from './base';
 
@@ -125,10 +124,7 @@ interface RetryOptions {
   onRetry?: (attempt: number, error: Error) => void;
 }
 
-async function withRetry<T>(
-  operation: () => Promise<T>,
-  options: RetryOptions = {}
-): Promise<T> {
+async function withRetry<T>(operation: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const { maxAttempts = 3, baseDelay = 1000, operationName = 'operation', onRetry } = options;
   let lastError: Error | undefined;
   let delay = baseDelay;
@@ -205,7 +201,7 @@ export class RedStoneClient extends BaseOracleClient {
   private generateConfidenceInterval(price: number, symbol: string): ConfidenceInterval {
     const baseSpread = SPREAD_PERCENTAGES[symbol.toUpperCase()] || 0.05;
     const minute = Math.floor(Date.now() / 60000);
-    const hash = (minute * 2654435761) % 1000 / 1000;
+    const hash = ((minute * 2654435761) % 1000) / 1000;
     const deterministicFactor = 0.8 + hash * 0.4;
     const spreadPercentage = baseSpread * deterministicFactor;
 
@@ -285,11 +281,10 @@ export class RedStoneClient extends BaseOracleClient {
             try {
               data = await response.json();
             } catch {
-              throw new RedStoneApiError(
-                'Failed to parse API response as JSON',
-                'PARSE_ERROR',
-                { symbol, attemptCount }
-              );
+              throw new RedStoneApiError('Failed to parse API response as JSON', 'PARSE_ERROR', {
+                symbol,
+                attemptCount,
+              });
             }
 
             if (!Array.isArray(data) || data.length === 0) {
@@ -510,7 +505,7 @@ export class RedStoneClient extends BaseOracleClient {
         modularFee: 0.0002,
         dataFreshnessScore: 97,
         providerCount: 18,
-        avgProviderReputation: 0.90,
+        avgProviderReputation: 0.9,
       };
     }
   }
@@ -667,7 +662,7 @@ export class RedStoneClient extends BaseOracleClient {
   async getRiskMetrics(): Promise<RedStoneRiskMetrics> {
     return {
       centralizationRisk: 0.25,
-      liquidityRisk: 0.20,
+      liquidityRisk: 0.2,
       technicalRisk: 0.12,
       overallRisk: 0.19,
     };

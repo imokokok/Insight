@@ -87,7 +87,10 @@ const getStatusIcon = (status: 'accurate' | 'warning' | 'error') => {
   }
 };
 
-const getStatusLabel = (status: 'accurate' | 'warning' | 'error', t: (key: string) => string): string => {
+const getStatusLabel = (
+  status: 'accurate' | 'warning' | 'error',
+  t: (key: string) => string
+): string => {
   switch (status) {
     case 'accurate':
       return t('winklink.accuracy.statusAccurate');
@@ -563,9 +566,7 @@ export function WinklinkAccuracyView({
             <h3 className="text-base font-medium text-gray-900">
               {t('winklink.accuracy.dataAccuracyMetrics')}
             </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('winklink.accuracy.dataAccuracyDesc')}
-            </p>
+            <p className="text-sm text-gray-500 mt-1">{t('winklink.accuracy.dataAccuracyDesc')}</p>
           </div>
         </div>
 

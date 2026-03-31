@@ -18,6 +18,7 @@ import {
 
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
+
 import { safeDivide, safeGetLastElement, safeGetFirstElement } from '../utils/helpers';
 
 // TVL Trend Data (12 months)
@@ -254,13 +255,9 @@ export function ChainlinkEcosystemView() {
             <h3 className="text-base font-semibold text-gray-900">
               {t('ecosystem.tvlAnalysis.title')}
             </h3>
-            <p className="text-sm text-gray-500 mt-0.5">
-              {t('common.totalValueLockedEcosystem')}
-            </p>
+            <p className="text-sm text-gray-500 mt-0.5">{t('common.totalValueLockedEcosystem')}</p>
           </div>
-          <div className="flex items-center border-b border-gray-200">
-            {timeRangeButtons}
-          </div>
+          <div className="flex items-center border-b border-gray-200">{timeRangeButtons}</div>
         </div>
 
         {/* TVL Stats - Clean text layout */}
@@ -510,18 +507,14 @@ export function ChainlinkEcosystemView() {
         {/* 核心指标 - Clean layout without colored backgrounds */}
         <section>
           <div className="mb-4">
-            <h3 className="text-base font-semibold text-gray-900">
-              {t('ecosystem.growth.title')}
-            </h3>
+            <h3 className="text-base font-semibold text-gray-900">{t('ecosystem.growth.title')}</h3>
             <p className="text-sm text-gray-500 mt-0.5">{t('common.keyPerformanceIndicators')}</p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Layers className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.newProjects')}
-                </span>
+                <span className="text-sm text-gray-600">{t('ecosystem.growth.newProjects')}</span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">156</p>
@@ -531,9 +524,7 @@ export function ChainlinkEcosystemView() {
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Zap className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">
-                  {t('ecosystem.growth.integrations')}
-                </span>
+                <span className="text-sm text-gray-600">{t('ecosystem.growth.integrations')}</span>
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold text-gray-900">892</p>

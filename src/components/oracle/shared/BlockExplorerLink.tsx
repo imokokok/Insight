@@ -15,7 +15,8 @@ export function BlockExplorerLink({
   showIcon = true,
   explorerUrl = 'https://cosmoscan.io',
 }: BlockExplorerLinkProps) {
-  const blockHeightNum = typeof blockHeight === 'string' ? parseInt(blockHeight.replace(/,/g, '')) : blockHeight;
+  const blockHeightNum =
+    typeof blockHeight === 'string' ? parseInt(blockHeight.replace(/,/g, '')) : blockHeight;
   const href = `${explorerUrl}/blocks/${blockHeightNum}`;
 
   return (

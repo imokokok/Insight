@@ -13,18 +13,18 @@ import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';
 import { OracleProvider } from '@/types/oracle';
-import { type NetworkStats, type TellorTabId } from './types';
 
+import { TellorDisputesView } from './components/TellorDisputesView';
+import { TellorEcosystemView } from './components/TellorEcosystemView';
+import { TellorGovernanceView } from './components/TellorGovernanceView';
 import { TellorHero } from './components/TellorHero';
-import { TellorSidebar } from './components/TellorSidebar';
 import { TellorMarketView } from './components/TellorMarketView';
 import { TellorNetworkView } from './components/TellorNetworkView';
 import { TellorReportersView } from './components/TellorReportersView';
-import { TellorDisputesView } from './components/TellorDisputesView';
-import { TellorStakingView } from './components/TellorStakingView';
-import { TellorEcosystemView } from './components/TellorEcosystemView';
 import { TellorRiskView } from './components/TellorRiskView';
-import { TellorGovernanceView } from './components/TellorGovernanceView';
+import { TellorSidebar } from './components/TellorSidebar';
+import { TellorStakingView } from './components/TellorStakingView';
+import { type NetworkStats, type TellorTabId } from './types';
 
 interface TellorPageClientProps {
   locale: string;
@@ -63,8 +63,7 @@ export function TellorPageClient({ locale }: TellorPageClientProps) {
     }, 1000);
   };
 
-  const handleExport = () => {
-  };
+  const handleExport = () => {};
 
   const isInitialLoading = isLoading && !price && !historicalData.length && !networkStats;
   const hasCriticalError = isError && !price;
@@ -74,7 +73,13 @@ export function TellorPageClient({ locale }: TellorPageClientProps) {
   }
 
   if (hasCriticalError) {
-    return <ErrorFallback error={new Error('Failed to load data')} onRetry={handleRefresh} themeColor={config.themeColor} />;
+    return (
+      <ErrorFallback
+        error={new Error('Failed to load data')}
+        onRetry={handleRefresh}
+        themeColor={config.themeColor}
+      />
+    );
   }
 
   const renderContent = () => {
@@ -108,7 +113,14 @@ export function TellorPageClient({ locale }: TellorPageClientProps) {
       case 'risk':
         return <TellorRiskView risk={null} isLoading={isLoading} />;
       case 'governance':
-        return <TellorGovernanceView proposals={[]} votingWeights={[]} stats={undefined} isLoading={isLoading} />;
+        return (
+          <TellorGovernanceView
+            proposals={[]}
+            votingWeights={[]}
+            stats={undefined}
+            isLoading={isLoading}
+          />
+        );
       default:
         return (
           <TellorMarketView
@@ -140,10 +152,7 @@ export function TellorPageClient({ locale }: TellorPageClientProps) {
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="hidden lg:block w-64 flex-shrink-0">
               <div className="sticky top-6">
-                <TellorSidebar
-                  activeTab={activeTab}
-                  onTabChange={setActiveTab}
-                />
+                <TellorSidebar activeTab={activeTab} onTabChange={setActiveTab} />
               </div>
             </div>
 

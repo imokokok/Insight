@@ -219,9 +219,7 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
                       <>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <Database className="w-3.5 h-3.5" />
-                          <span>
-                            {t('redstone.pullModel.periodicUpdates')}
-                          </span>
+                          <span>{t('redstone.pullModel.periodicUpdates')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <DollarSign className="w-3.5 h-3.5" />
@@ -229,9 +227,7 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <Clock className="w-3.5 h-3.5" />
-                          <span>
-                            {t('redstone.pullModel.staleData')}
-                          </span>
+                          <span>{t('redstone.pullModel.staleData')}</span>
                         </div>
                       </>
                     ) : (
@@ -313,9 +309,7 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
               <h3 className="text-sm font-semibold text-gray-900">
                 {t('redstone.pullModel.dataFreshness')}
               </h3>
-              <p className="text-xs text-gray-500">
-                {t('redstone.pullModel.dataFreshnessDesc')}
-              </p>
+              <p className="text-xs text-gray-500">{t('redstone.pullModel.dataFreshnessDesc')}</p>
             </div>
           </div>
           {expandedSection === 'freshness' ? (
@@ -349,9 +343,7 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
                   </span>
                 </div>
                 <p className="text-lg font-semibold text-emerald-600">98.5/100</p>
-                <p className="text-xs text-emerald-500">
-                  {t('redstone.pullModel.excellent')}
-                </p>
+                <p className="text-xs text-emerald-500">{t('redstone.pullModel.excellent')}</p>
               </div>
 
               <div className="p-4 bg-gray-50 rounded-lg">
@@ -362,9 +354,7 @@ export function RedStonePullModelView({ isLoading }: RedStonePullModelViewProps)
                   </span>
                 </div>
                 <p className="text-lg font-semibold text-gray-900">45ms</p>
-                <p className="text-xs text-gray-500">
-                  {t('redstone.pullModel.lastHour')}
-                </p>
+                <p className="text-xs text-gray-500">{t('redstone.pullModel.lastHour')}</p>
               </div>
             </div>
 

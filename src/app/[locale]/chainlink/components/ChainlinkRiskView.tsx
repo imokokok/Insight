@@ -212,12 +212,8 @@ export function ChainlinkRiskView() {
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t('chainlink.risk.metrics')}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('chainlink.risk.metricsDesc')}
-            </p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('chainlink.risk.metrics')}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t('chainlink.risk.metricsDesc')}</p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
             <Shield className="w-5 h-5 text-emerald-600" />
@@ -262,12 +258,8 @@ export function ChainlinkRiskView() {
       {/* 行业基准对比 */}
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('chainlink.risk.benchmark')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('chainlink.risk.benchmarkDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('chainlink.risk.benchmark')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('chainlink.risk.benchmarkDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -319,9 +311,7 @@ export function ChainlinkRiskView() {
 
           {/* 对比表格 */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700">
-              {t('chainlink.risk.comparison')}
-            </h3>
+            <h3 className="text-sm font-medium text-gray-700">{t('chainlink.risk.comparison')}</h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
                 <div key={item.metric} className="space-y-2">
@@ -358,12 +348,8 @@ export function ChainlinkRiskView() {
       {/* 历史风险事件时间线 */}
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('chainlink.risk.timeline')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('chainlink.risk.timelineDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('chainlink.risk.timeline')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('chainlink.risk.timelineDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -425,9 +411,7 @@ export function ChainlinkRiskView() {
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">
-                  {t('chainlink.risk.clickEvent')}
-                </p>
+                <p className="text-sm text-gray-500">{t('chainlink.risk.clickEvent')}</p>
               </div>
             )}
           </div>
@@ -440,12 +424,8 @@ export function ChainlinkRiskView() {
       {/* 风险因素 */}
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('chainlink.risk.factors')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('chainlink.risk.factorsDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('chainlink.risk.factors')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('chainlink.risk.factorsDesc')}</p>
         </div>
 
         <div className="space-y-2">

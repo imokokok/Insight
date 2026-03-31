@@ -72,14 +72,20 @@ export function ChronicleMarketView({
             <h3 className="text-base font-medium text-gray-900">{t('chronicle.priceTrend')}</h3>
           </div>
           <div className="flex-1">
-            <PriceChart
-              client={config.client}
-              symbol={config.symbol}
-              chain={config.defaultChain}
-              height={300}
-              showToolbar={true}
-              defaultPrice={config.marketData.change24hValue}
-            />
+            {config.client ? (
+              <PriceChart
+                client={config.client}
+                symbol={config.symbol}
+                chain={config.defaultChain}
+                height={300}
+                showToolbar={true}
+                defaultPrice={config.marketData.change24hValue}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+                <p className="text-gray-500">{t('common.noData')}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -149,10 +155,26 @@ export function ChronicleMarketView({
             </h3>
             <div className="flex-1 flex flex-col">
               {[
-                { name: t('chronicle.dataSources.chronicleOracle'), status: 'active', latency: '120ms' },
-                { name: t('chronicle.dataSources.ethereumMainnet'), status: 'active', latency: '245ms' },
-                { name: t('chronicle.dataSources.makerdaoFeed'), status: 'active', latency: '180ms' },
-                { name: t('chronicle.dataSources.backupNode'), status: 'syncing', latency: '320ms' },
+                {
+                  name: t('chronicle.dataSources.chronicleOracle'),
+                  status: 'active',
+                  latency: '120ms',
+                },
+                {
+                  name: t('chronicle.dataSources.ethereumMainnet'),
+                  status: 'active',
+                  latency: '245ms',
+                },
+                {
+                  name: t('chronicle.dataSources.makerdaoFeed'),
+                  status: 'active',
+                  latency: '180ms',
+                },
+                {
+                  name: t('chronicle.dataSources.backupNode'),
+                  status: 'syncing',
+                  latency: '320ms',
+                },
               ].map((source, index) => (
                 <div
                   key={index}
@@ -179,9 +201,7 @@ export function ChronicleMarketView({
 
       {/* 核心交易对信息 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('chronicle.tradingPair')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('chronicle.tradingPair')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-xs text-gray-400 mb-1">CHRONICLE/USDC</p>

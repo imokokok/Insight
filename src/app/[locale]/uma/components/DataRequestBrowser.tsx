@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+
 import {
   Database,
   Clock,
@@ -16,7 +17,6 @@ import {
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
-
 import {
   type DataRequest,
   type DataRequestStats,
@@ -145,14 +145,18 @@ function formatTimeAgo(timestamp: number): string {
   return `${days}d ago`;
 }
 
-function formatTimeRemaining(expirationTime: number, t: ReturnType<typeof useTranslations>): string {
+function formatTimeRemaining(
+  expirationTime: number,
+  t: ReturnType<typeof useTranslations>
+): string {
   const seconds = Math.floor((expirationTime - Date.now()) / 1000);
   if (seconds <= 0) return t('uma.dataRequest.expired');
   if (seconds < 60) return t('uma.common.timeRemaining.seconds', { count: seconds });
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return t('uma.common.timeRemaining.minutes', { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return t('uma.common.timeRemaining.hoursMinutes', { hours, minutes: minutes % 60 });
+  if (hours < 24)
+    return t('uma.common.timeRemaining.hoursMinutes', { hours, minutes: minutes % 60 });
   const days = Math.floor(hours / 24);
   return t('uma.common.timeRemaining.daysHours', { days, hours: hours % 24 });
 }
@@ -226,9 +230,7 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Database className="w-5 h-5 text-gray-400" />
-            <h3 className="text-lg font-semibold text-gray-900">
-              {t('uma.dataRequest.title')}
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('uma.dataRequest.title')}</h3>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-gray-400">
@@ -247,23 +249,33 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{t('uma.dataRequest.total')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('uma.dataRequest.total')}
+            </p>
             <p className="text-2xl font-semibold text-gray-900">{stats.total}</p>
           </div>
           <div className="bg-amber-50 rounded-lg p-3">
-            <p className="text-xs text-amber-600 uppercase tracking-wider">{t('uma.crossChain.pending')}</p>
+            <p className="text-xs text-amber-600 uppercase tracking-wider">
+              {t('uma.crossChain.pending')}
+            </p>
             <p className="text-2xl font-semibold text-amber-700">{stats.pending}</p>
           </div>
           <div className="bg-emerald-50 rounded-lg p-3">
-            <p className="text-xs text-emerald-600 uppercase tracking-wider">{t('uma.dataRequest.validated')}</p>
+            <p className="text-xs text-emerald-600 uppercase tracking-wider">
+              {t('uma.dataRequest.validated')}
+            </p>
             <p className="text-2xl font-semibold text-emerald-700">{stats.validated}</p>
           </div>
           <div className="bg-red-50 rounded-lg p-3">
-            <p className="text-xs text-red-600 uppercase tracking-wider">{t('uma.disputes.rejected')}</p>
+            <p className="text-xs text-red-600 uppercase tracking-wider">
+              {t('uma.disputes.rejected')}
+            </p>
             <p className="text-2xl font-semibold text-red-700">{stats.disputed}</p>
           </div>
           <div className="bg-blue-50 rounded-lg p-3">
-            <p className="text-xs text-blue-600 uppercase tracking-wider">{t('uma.dataRequest.finalized')}</p>
+            <p className="text-xs text-blue-600 uppercase tracking-wider">
+              {t('uma.dataRequest.finalized')}
+            </p>
             <p className="text-2xl font-semibold text-blue-700">{stats.finalized}</p>
           </div>
         </div>
@@ -368,7 +380,8 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
                             {formatTimeAgo(request.timestamp)}
                           </span>
                           <span className="text-xs text-gray-400">
-                            {t('uma.dataRequest.expires')}: {formatTimeRemaining(request.expirationTime, t)}
+                            {t('uma.dataRequest.expires')}:{' '}
+                            {formatTimeRemaining(request.expirationTime, t)}
                           </span>
                         </div>
                       </td>
@@ -389,9 +402,7 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
         {filteredRequests.length === 0 && (
           <div className="text-center py-12">
             <Database className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">
-              {t('uma.dataRequest.noResults')}
-            </p>
+            <p className="text-gray-500">{t('uma.dataRequest.noResults')}</p>
           </div>
         )}
       </div>
@@ -428,7 +439,9 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('uma.dataRequest.type')}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                      {t('uma.dataRequest.type')}
+                    </p>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${DATA_REQUEST_TYPE_STYLES[selectedRequest.type].bgColor} ${DATA_REQUEST_TYPE_STYLES[selectedRequest.type].color} ${DATA_REQUEST_TYPE_STYLES[selectedRequest.type].borderColor} border`}
                     >
@@ -439,7 +452,9 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('uma.disputes.status')}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                      {t('uma.disputes.status')}
+                    </p>
                     <span
                       className={`inline-flex items-center gap-1.5 text-sm ${DATA_REQUEST_STATUS_STYLES[selectedRequest.status].color}`}
                     >
@@ -450,7 +465,9 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('uma.dataRequest.chain')}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                      {t('uma.dataRequest.chain')}
+                    </p>
                     <p className="text-sm text-gray-900">{selectedRequest.chain}</p>
                   </div>
                 </div>
@@ -458,17 +475,23 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex items-center gap-2 mb-3">
                     <FileText className="w-4 h-4 text-gray-400" />
-                    <h4 className="text-sm font-medium text-gray-700">{t('uma.dataRequest.requestData')}</h4>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      {t('uma.dataRequest.requestData')}
+                    </h4>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">{t('uma.dataRequest.ancillaryData')}</p>
+                      <p className="text-xs text-gray-500 mb-1">
+                        {t('uma.dataRequest.ancillaryData')}
+                      </p>
                       <p className="text-sm text-gray-900">
                         {selectedRequest.ancillaryData || 'N/A'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">{t('uma.dataRequest.proposedValue')}</p>
+                      <p className="text-xs text-gray-500 mb-1">
+                        {t('uma.dataRequest.proposedValue')}
+                      </p>
                       <p className="text-sm font-semibold text-gray-900">
                         {selectedRequest.proposedValue}
                       </p>
@@ -479,7 +502,9 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Wallet className="w-4 h-4 text-gray-400" />
-                    <h4 className="text-sm font-medium text-gray-700">{t('uma.dataRequest.participants')}</h4>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      {t('uma.dataRequest.participants')}
+                    </h4>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
@@ -506,7 +531,9 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Timer className="w-4 h-4 text-gray-400" />
-                    <h4 className="text-sm font-medium text-gray-700">{t('uma.dataRequest.timing')}</h4>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      {t('uma.dataRequest.timing')}
+                    </h4>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -516,7 +543,9 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">{t('uma.dataRequest.expiration')}</p>
+                      <p className="text-xs text-gray-500 mb-1">
+                        {t('uma.dataRequest.expiration')}
+                      </p>
                       <p className="text-sm text-gray-900">
                         {new Date(selectedRequest.expirationTime).toLocaleString()}
                       </p>
@@ -527,13 +556,17 @@ export function DataRequestBrowser({ className }: DataRequestBrowserProps) {
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Link2 className="w-4 h-4 text-gray-400" />
-                    <h4 className="text-sm font-medium text-gray-700">{t('uma.dataRequest.bond')}</h4>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      {t('uma.dataRequest.bond')}
+                    </h4>
                   </div>
                   <div className="bg-blue-50 rounded-lg p-4">
                     <p className="text-2xl font-bold text-blue-700">
                       ${selectedRequest.bondAmount.toLocaleString()}
                     </p>
-                    <p className="text-xs text-blue-600 mt-1">{t('uma.dataRequest.stakedBondAmount')}</p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      {t('uma.dataRequest.stakedBondAmount')}
+                    </p>
                   </div>
                 </div>
               </div>

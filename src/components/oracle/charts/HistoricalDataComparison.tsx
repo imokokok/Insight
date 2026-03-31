@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 
+import { motion } from 'framer-motion';
 import {
   Download,
   ZoomIn,
@@ -24,7 +25,6 @@ import {
   ReferenceLine,
   Brush,
 } from 'recharts';
-import { motion } from 'framer-motion';
 
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
@@ -102,13 +102,8 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
         {payload.map((item, index) => (
           <div key={index} className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: item.color }}
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">
-                {item.name}
-              </span>
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+              <span className="text-sm text-gray-700 dark:text-gray-300">{item.name}</span>
             </div>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               {formatValue(item.value, 4)}
@@ -125,8 +120,12 @@ export function HistoricalDataComparison({
   timeRange,
   onTimeRangeChange,
 }: HistoricalDataComparisonProps) {
-  const [zoomDomain, setZoomDomain] = useState<{ startIndex: number; endIndex: number } | null>(null);
-  const [selectedSeries, setSelectedSeries] = useState<Set<string>>(new Set(dataSeries.map((s) => s.id)));
+  const [zoomDomain, setZoomDomain] = useState<{ startIndex: number; endIndex: number } | null>(
+    null
+  );
+  const [selectedSeries, setSelectedSeries] = useState<Set<string>>(
+    new Set(dataSeries.map((s) => s.id))
+  );
   const [showBrush, setShowBrush] = useState(false);
 
   const mergedData = useMemo(() => {
@@ -187,10 +186,7 @@ export function HistoricalDataComparison({
     const csvContent = [
       ['Timestamp', ...dataSeries.map((s) => s.name)].join(','),
       ...mergedData.map((row) =>
-        [
-          row.time,
-          ...dataSeries.map((s) => (row[s.id] as number)?.toString() ?? ''),
-        ].join(',')
+        [row.time, ...dataSeries.map((s) => (row[s.id] as number)?.toString() ?? '')].join(',')
       ),
     ].join('\n');
 
@@ -226,9 +222,7 @@ export function HistoricalDataComparison({
               <Layers className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                历史数据对比
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">历史数据对比</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {dataSeries.length} 个数据系列 | {mergedData.length} 个数据点
               </p>
@@ -288,10 +282,7 @@ export function HistoricalDataComparison({
           <div className="lg:col-span-3">
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={mergedData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
+                <LineChart data={mergedData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke={chartColors.recharts.grid}
@@ -311,11 +302,7 @@ export function HistoricalDataComparison({
                     tickFormatter={(value) => formatValue(value, 2)}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend
-                    wrapperStyle={{ paddingTop: 20 }}
-                    iconType="circle"
-                    iconSize={8}
-                  />
+                  <Legend wrapperStyle={{ paddingTop: 20 }} iconType="circle" iconSize={8} />
                   {showBrush && (
                     <Brush
                       dataKey="time"
@@ -344,9 +331,7 @@ export function HistoricalDataComparison({
           </div>
 
           <div className="lg:col-span-1">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-              数据系列
-            </h4>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">数据系列</h4>
             <div className="space-y-2">
               {dataSeries.map((series, index) => {
                 const stat = stats.find((s) => s.id === series.id);
@@ -365,10 +350,7 @@ export function HistoricalDataComparison({
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: color }}
-                        />
+                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
                         <span className="text-sm font-medium text-gray-900 dark:text-white">
                           {series.name}
                         </span>

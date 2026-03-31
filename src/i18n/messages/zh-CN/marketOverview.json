@@ -350,5 +350,10 @@
     "change": "变化"
   },
   "oracle": "预言机",
-  "chartHint": "点击图表元素查看详情"
+  "chartHint": "点击图表元素查看详情",
+  "common": {
+    "confidenceInterval": {
+      "threshold": "阈值: {threshold}"
+    }
+  }
 }

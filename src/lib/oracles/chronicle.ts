@@ -1022,20 +1022,84 @@ export class ChronicleClient extends BaseOracleClient {
     ];
 
     const latencies: ChainLatencyData[] = [
-      { chain: 'Ethereum', avgBlockTime: 12, finalityTime: 900, gasPrice: 35, gasPriceUnit: 'Gwei' },
-      { chain: 'Arbitrum', avgBlockTime: 0.25, finalityTime: 600, gasPrice: 0.1, gasPriceUnit: 'Gwei' },
-      { chain: 'Optimism', avgBlockTime: 2, finalityTime: 300, gasPrice: 0.001, gasPriceUnit: 'ETH' },
-      { chain: 'Polygon', avgBlockTime: 2.1, finalityTime: 120, gasPrice: 30, gasPriceUnit: 'Gwei' },
+      {
+        chain: 'Ethereum',
+        avgBlockTime: 12,
+        finalityTime: 900,
+        gasPrice: 35,
+        gasPriceUnit: 'Gwei',
+      },
+      {
+        chain: 'Arbitrum',
+        avgBlockTime: 0.25,
+        finalityTime: 600,
+        gasPrice: 0.1,
+        gasPriceUnit: 'Gwei',
+      },
+      {
+        chain: 'Optimism',
+        avgBlockTime: 2,
+        finalityTime: 300,
+        gasPrice: 0.001,
+        gasPriceUnit: 'ETH',
+      },
+      {
+        chain: 'Polygon',
+        avgBlockTime: 2.1,
+        finalityTime: 120,
+        gasPrice: 30,
+        gasPriceUnit: 'Gwei',
+      },
       { chain: 'Base', avgBlockTime: 2, finalityTime: 300, gasPrice: 0.001, gasPriceUnit: 'ETH' },
       { chain: 'Avalanche', avgBlockTime: 2, finalityTime: 1, gasPrice: 25, gasPriceUnit: 'nAVAX' },
     ];
 
     const bridges: BridgeStatusData[] = [
-      { bridge: 'Arbitrum Bridge', sourceChain: 'Ethereum', targetChain: 'Arbitrum', totalTransactions: 1250000, avgDelay: 10, status: 'healthy', lastUpdate: '1m ago' },
-      { bridge: 'Optimism Bridge', sourceChain: 'Ethereum', targetChain: 'Optimism', totalTransactions: 980000, avgDelay: 20, status: 'healthy', lastUpdate: '30s ago' },
-      { bridge: 'Polygon PoS', sourceChain: 'Ethereum', targetChain: 'Polygon', totalTransactions: 2100000, avgDelay: 180, status: 'healthy', lastUpdate: '2m ago' },
-      { bridge: 'Base Bridge', sourceChain: 'Ethereum', targetChain: 'Base', totalTransactions: 450000, avgDelay: 20, status: 'healthy', lastUpdate: '1m ago' },
-      { bridge: 'Avalanche Bridge', sourceChain: 'Ethereum', targetChain: 'Avalanche', totalTransactions: 720000, avgDelay: 300, status: 'degraded', lastUpdate: '5m ago' },
+      {
+        bridge: 'Arbitrum Bridge',
+        sourceChain: 'Ethereum',
+        targetChain: 'Arbitrum',
+        totalTransactions: 1250000,
+        avgDelay: 10,
+        status: 'healthy',
+        lastUpdate: '1m ago',
+      },
+      {
+        bridge: 'Optimism Bridge',
+        sourceChain: 'Ethereum',
+        targetChain: 'Optimism',
+        totalTransactions: 980000,
+        avgDelay: 20,
+        status: 'healthy',
+        lastUpdate: '30s ago',
+      },
+      {
+        bridge: 'Polygon PoS',
+        sourceChain: 'Ethereum',
+        targetChain: 'Polygon',
+        totalTransactions: 2100000,
+        avgDelay: 180,
+        status: 'healthy',
+        lastUpdate: '2m ago',
+      },
+      {
+        bridge: 'Base Bridge',
+        sourceChain: 'Ethereum',
+        targetChain: 'Base',
+        totalTransactions: 450000,
+        avgDelay: 20,
+        status: 'healthy',
+        lastUpdate: '1m ago',
+      },
+      {
+        bridge: 'Avalanche Bridge',
+        sourceChain: 'Ethereum',
+        targetChain: 'Avalanche',
+        totalTransactions: 720000,
+        avgDelay: 300,
+        status: 'degraded',
+        lastUpdate: '5m ago',
+      },
     ];
 
     const medianPrice = prices.reduce((sum, p) => sum + p.price, 0) / prices.length;

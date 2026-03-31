@@ -323,7 +323,8 @@ export function NodePerformanceTrends({ nodes }: NodePerformanceTrendsProps) {
                         />
                         <div className="flex justify-between text-xs mt-1">
                           <span className="text-gray-400">
-                            {t('chainlink.nodes.min')}: {Math.min(...trends.successRateTrend).toFixed(2)}%
+                            {t('chainlink.nodes.min')}:{' '}
+                            {Math.min(...trends.successRateTrend).toFixed(2)}%
                           </span>
                           <span className="text-emerald-600 font-medium">
                             {t('chainlink.nodes.avg')}:{' '}
@@ -350,7 +351,8 @@ export function NodePerformanceTrends({ nodes }: NodePerformanceTrendsProps) {
                         />
                         <div className="flex justify-between text-xs mt-1">
                           <span className="text-gray-400">
-                            {t('chainlink.nodes.min')}: {Math.min(...trends.responseTimeTrend).toFixed(0)}ms
+                            {t('chainlink.nodes.min')}:{' '}
+                            {Math.min(...trends.responseTimeTrend).toFixed(0)}ms
                           </span>
                           <span className="text-blue-600 font-medium">
                             {t('chainlink.nodes.avg')}:{' '}

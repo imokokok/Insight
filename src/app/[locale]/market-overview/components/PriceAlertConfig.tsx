@@ -58,6 +58,7 @@ export default function PriceAlertConfig({
         type: formData.type,
         price: priceValue,
         note: formData.note,
+        channels: ['email'],
       });
     } else {
       onAdd({
@@ -66,6 +67,7 @@ export default function PriceAlertConfig({
         price: priceValue,
         note: formData.note,
         enabled: true,
+        channels: ['email'],
       });
     }
     resetForm();
@@ -142,13 +144,13 @@ export default function PriceAlertConfig({
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {t('asset')}
-                </label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('asset')}</label>
                 <input
                   type="text"
                   value={formData.asset}
-                  onChange={(e) => setFormData({ ...formData, asset: e.target.value.toUpperCase() })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, asset: e.target.value.toUpperCase() })
+                  }
                   placeholder={t('assetPlaceholder')}
                   className="w-full px-3 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
@@ -159,7 +161,9 @@ export default function PriceAlertConfig({
                 </label>
                 <select
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as PriceAlert['type'] })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, type: e.target.value as PriceAlert['type'] })
+                  }
                   className="w-full px-3 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="above">{t('priceAbove')}</option>

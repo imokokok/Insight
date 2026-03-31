@@ -22,10 +22,19 @@ import {
 } from 'lucide-react';
 
 import type { API3Alert, AlertThreshold } from '@/lib/oracles/api3';
-import { formatAlertTime, getAlertSeverityColor, getAlertSeverityBgColor } from '@/lib/oracles/api3AlertDetection';
+import {
+  formatAlertTime,
+  getAlertSeverityColor,
+  getAlertSeverityBgColor,
+} from '@/lib/oracles/api3AlertDetection';
 import { cn } from '@/lib/utils';
 
-type AlertFilterType = 'all' | 'price_deviation' | 'node_offline' | 'coverage_pool_risk' | 'security_event';
+type AlertFilterType =
+  | 'all'
+  | 'price_deviation'
+  | 'node_offline'
+  | 'coverage_pool_risk'
+  | 'security_event';
 type AlertFilterSeverity = 'all' | 'info' | 'warning' | 'critical';
 type AlertFilterStatus = 'all' | 'unread' | 'resolved' | 'unresolved';
 
@@ -269,7 +278,10 @@ export function API3AlertPanel({
                 >
                   批量解决
                 </button>
-                <button onClick={clearSelection} className="text-xs text-gray-500 hover:text-gray-700">
+                <button
+                  onClick={clearSelection}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
                   取消选择
                 </button>
               </>
@@ -373,7 +385,11 @@ function AlertPanelItem({
                     alert.severity === 'info' && 'bg-blue-100 text-blue-700'
                   )}
                 >
-                  {alert.severity === 'critical' ? '严重' : alert.severity === 'warning' ? '警告' : '信息'}
+                  {alert.severity === 'critical'
+                    ? '严重'
+                    : alert.severity === 'warning'
+                      ? '警告'
+                      : '信息'}
                 </span>
                 {alert.isResolved && (
                   <span className="flex-shrink-0 px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">
@@ -441,7 +457,9 @@ function AlertPanelItem({
                 {alert.metadata.threshold !== undefined && (
                   <div>
                     <span className="text-gray-500">阈值:</span>
-                    <span className="ml-1 font-medium text-gray-900">{alert.metadata.threshold}%</span>
+                    <span className="ml-1 font-medium text-gray-900">
+                      {alert.metadata.threshold}%
+                    </span>
                   </div>
                 )}
                 {alert.metadata.currentValue !== undefined && (

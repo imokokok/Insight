@@ -5,6 +5,7 @@ import { type ErrorInfo } from 'react';
 import Link from 'next/link';
 
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+
 import { useTranslations } from '@/i18n';
 
 interface ErrorFallbackProps {
@@ -28,23 +29,27 @@ export function ErrorFallback({ error, errorInfo, onReset }: ErrorFallbackProps)
         </div>
 
         {/* Error Title */}
-        <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">{t('errorFallback.title')}</h2>
+        <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">
+          {t('errorFallback.title')}
+        </h2>
 
         {/* Error Description */}
-        <p className="text-sm text-gray-500 text-center mb-6">
-          {t('errorFallback.description')}
-        </p>
+        <p className="text-sm text-gray-500 text-center mb-6">{t('errorFallback.description')}</p>
 
         {/* Error Details in Development Mode */}
         {isDevelopment && error && (
           <div className="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200 overflow-auto">
-            <p className="text-xs font-medium text-gray-700 mb-2">{t('errorFallback.errorDetails')}</p>
+            <p className="text-xs font-medium text-gray-700 mb-2">
+              {t('errorFallback.errorDetails')}
+            </p>
             <pre className="text-xs text-red-600 whitespace-pre-wrap break-all">
               {error.message}
             </pre>
             {errorInfo && (
               <details className="mt-2">
-                <summary className="text-xs text-gray-500 cursor-pointer">{t('errorFallback.componentStack')}</summary>
+                <summary className="text-xs text-gray-500 cursor-pointer">
+                  {t('errorFallback.componentStack')}
+                </summary>
                 <pre className="mt-2 text-xs text-gray-600 whitespace-pre-wrap">
                   {errorInfo.componentStack}
                 </pre>

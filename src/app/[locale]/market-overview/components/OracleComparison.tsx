@@ -20,10 +20,10 @@ import {
 
 import { useTranslations } from '@/i18n';
 
-import { type OracleComparisonData } from '../types';
+import { type ComparisonData } from '../types';
 
 interface OracleComparisonProps {
-  data: OracleComparisonData[];
+  data: ComparisonData[];
   loading?: boolean;
 }
 
@@ -56,12 +56,14 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
 
   // 准备雷达图数据
   const radarData = selectedOracles.map((oracleName) => {
-    const oracle = data.find((d) => d.name === oracleName);
+    const oracle = data.find((d) => d.oracle === oracleName);
     return {
       subject: oracleName,
-      A: oracle?.tvs ? (oracle.tvs / Math.max(...data.map((d) => d.tvs))) * 100 : 0,
-      B: oracle?.chains ? (oracle.chains / Math.max(...data.map((d) => d.chains))) * 100 : 0,
-      C: oracle?.protocols ? (oracle.protocols / Math.max(...data.map((d) => d.protocols))) * 100 : 0,
+      A: oracle?.metrics.tvs ? (oracle.metrics.tvs.normalizedValue) : 0,
+      B: oracle?.metrics.chains ? (oracle.metrics.chains.normalizedValue) : 0,
+      C: oracle?.metrics.protocols
+        ? (oracle.metrics.protocols.normalizedValue)
+        : 0,
       fullMark: 100,
     };
   });
@@ -95,16 +97,16 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
         <div className="flex flex-wrap gap-2">
           {data.map((oracle) => (
             <button
-              key={oracle.name}
-              onClick={() => toggleOracle(oracle.name)}
-              disabled={!selectedOracles.includes(oracle.name) && selectedOracles.length >= 4}
+              key={oracle.oracle}
+              onClick={() => toggleOracle(oracle.oracle)}
+              disabled={!selectedOracles.includes(oracle.oracle) && selectedOracles.length >= 4}
               className={`px-3 py-1.5 text-sm transition-colors ${
-                selectedOracles.includes(oracle.name)
+                selectedOracles.includes(oracle.oracle)
                   ? 'bg-primary-100 text-primary-700 border border-primary-300'
                   : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200 disabled:opacity-50'
               }`}
             >
-              {oracle.name}
+              {oracle.oracle}
             </button>
           ))}
         </div>
@@ -144,17 +146,16 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="name" tick={{ fill: '#4b5563', fontSize: 12 }} stroke="#9ca3af" />
+              <XAxis dataKey="oracle" tick={{ fill: '#4b5563', fontSize: 12 }} stroke="#9ca3af" />
               <YAxis
                 tickFormatter={(value) => formatTVS(value)}
                 tick={{ fill: '#4b5563', fontSize: 12 }}
-                stroke="#9ca3af"
-              />
+                stroke="#9ca3af" />
               <Tooltip
-                formatter={(value: number) => [formatTVS(value), 'TVS']}
+                formatter={(value) => [formatTVS(Number(value)), 'TVS']}
                 contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb' }}
               />
-              <Bar dataKey="tvs" fill="#3b82f6" />
+              <Bar dataKey="metrics.tvs.value" fill="#3b82f6" />
             </BarChart>
           </ResponsiveContainer>
         ) : (

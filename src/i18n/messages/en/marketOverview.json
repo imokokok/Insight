@@ -350,5 +350,10 @@
     "change": "Change"
   },
   "oracle": "Oracle",
-  "chartHint": "Click chart elements to view details"
+  "chartHint": "Click chart elements for details",
+  "common": {
+    "confidenceInterval": {
+      "threshold": "Threshold: {threshold}"
+    }
+  }
 }

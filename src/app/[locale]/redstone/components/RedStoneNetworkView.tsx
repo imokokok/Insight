@@ -129,9 +129,7 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
           <div className="space-y-5">
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">
-                  {t('redstone.network.successRate')}
-                </span>
+                <span className="text-gray-600">{t('redstone.network.successRate')}</span>
                 <span className="font-medium text-gray-900">99.9%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -140,9 +138,7 @@ export function RedStoneNetworkView({ networkStats, isLoading }: RedStoneNetwork
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">
-                  {t('redstone.network.availability')}
-                </span>
+                <span className="text-gray-600">{t('redstone.network.availability')}</span>
                 <span className="font-medium text-gray-900">99.99%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">

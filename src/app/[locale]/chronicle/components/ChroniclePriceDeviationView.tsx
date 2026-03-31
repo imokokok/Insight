@@ -141,22 +141,19 @@ export function ChroniclePriceDeviationView({
       {
         name: t('chronicle.priceDeviation.marketVolatility'),
         impact: 35,
-        description:
-          t('chronicle.priceDeviation.marketVolatilityDesc'),
+        description: t('chronicle.priceDeviation.marketVolatilityDesc'),
         status: 'medium',
       },
       {
         name: t('chronicle.priceDeviation.updateDelay'),
         impact: 45,
-        description:
-          t('chronicle.priceDeviation.updateDelayDesc'),
+        description: t('chronicle.priceDeviation.updateDelayDesc'),
         status: 'high',
       },
       {
         name: t('chronicle.priceDeviation.liquidityIssue'),
         impact: 20,
-        description:
-          t('chronicle.priceDeviation.liquidityIssueDesc'),
+        description: t('chronicle.priceDeviation.liquidityIssueDesc'),
         status: 'low',
       },
     ],
@@ -252,9 +249,7 @@ export function ChroniclePriceDeviationView({
             <p className="text-2xl font-bold text-gray-900">
               ${data.chroniclePrice.toLocaleString()}
             </p>
-            <p className="text-xs text-gray-500">
-              {t('chronicle.priceDeviation.chroniclePrice')}
-            </p>
+            <p className="text-xs text-gray-500">{t('chronicle.priceDeviation.chroniclePrice')}</p>
           </div>
         </div>
 
@@ -340,25 +335,19 @@ export function ChroniclePriceDeviationView({
       {/* 偏差统计 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="p-4 rounded-lg bg-gray-50">
-          <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.priceDeviation.maxDeviation')}
-          </p>
+          <p className="text-sm text-gray-500 mb-1">{t('chronicle.priceDeviation.maxDeviation')}</p>
           <p className={`text-2xl font-semibold ${getDeviationColor(data.stats.maxDeviation)}`}>
             {data.stats.maxDeviation}%
           </p>
         </div>
         <div className="p-4 rounded-lg bg-gray-50">
-          <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.priceDeviation.avgDeviation')}
-          </p>
+          <p className="text-sm text-gray-500 mb-1">{t('chronicle.priceDeviation.avgDeviation')}</p>
           <p className={`text-2xl font-semibold ${getDeviationColor(data.stats.avgDeviation)}`}>
             {data.stats.avgDeviation}%
           </p>
         </div>
         <div className="p-4 rounded-lg bg-gray-50">
-          <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.priceDeviation.minDeviation')}
-          </p>
+          <p className="text-sm text-gray-500 mb-1">{t('chronicle.priceDeviation.minDeviation')}</p>
           <p className={`text-2xl font-semibold ${getDeviationColor(data.stats.minDeviation)}`}>
             {data.stats.minDeviation}%
           </p>
@@ -440,9 +429,7 @@ export function ChroniclePriceDeviationView({
                 <p className="text-2xl font-semibold text-gray-900">{data.impact.affectedVaults}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-500">
-              {t('chronicle.priceDeviation.vaultsDesc')}
-            </p>
+            <p className="text-xs text-gray-500">{t('chronicle.priceDeviation.vaultsDesc')}</p>
           </div>
 
           {/* 清算风险评估 */}
@@ -458,7 +445,11 @@ export function ChroniclePriceDeviationView({
                 <p
                   className={`text-xl font-semibold capitalize ${getRiskColor(data.impact.liquidationRisk)}`}
                 >
-                  {data.impact.liquidationRisk === 'low' ? t('chronicle.risk.lowRisk') : data.impact.liquidationRisk === 'medium' ? t('chronicle.risk.mediumRisk') : t('chronicle.risk.highRisk')}
+                  {data.impact.liquidationRisk === 'low'
+                    ? t('chronicle.risk.lowRisk')
+                    : data.impact.liquidationRisk === 'medium'
+                      ? t('chronicle.risk.mediumRisk')
+                      : t('chronicle.risk.highRisk')}
                 </p>
               </div>
             </div>
@@ -490,9 +481,7 @@ export function ChroniclePriceDeviationView({
                 </p>
               </div>
             </div>
-            <p className="text-xs text-gray-500">
-              {t('chronicle.priceDeviation.arbitrageDesc')}
-            </p>
+            <p className="text-xs text-gray-500">{t('chronicle.priceDeviation.arbitrageDesc')}</p>
           </div>
 
           {/* 潜在收益 */}
@@ -516,9 +505,7 @@ export function ChroniclePriceDeviationView({
                 </p>
               </div>
             </div>
-            <p className="text-xs text-gray-500">
-              {t('chronicle.priceDeviation.profitDesc')}
-            </p>
+            <p className="text-xs text-gray-500">{t('chronicle.priceDeviation.profitDesc')}</p>
           </div>
         </div>
       </div>
@@ -537,13 +524,9 @@ export function ChroniclePriceDeviationView({
               <CheckCircle className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">
-                {t('chronicle.priceDeviation.normalRange')}
-              </p>
+              <p className="text-sm text-gray-600">{t('chronicle.priceDeviation.normalRange')}</p>
               <p className="text-2xl font-semibold text-emerald-600">68%</p>
-              <p className="text-xs text-gray-500">
-                {t('chronicle.priceDeviation.timeSpent')}
-              </p>
+              <p className="text-xs text-gray-500">{t('chronicle.priceDeviation.timeSpent')}</p>
             </div>
           </div>
           <div className="flex items-center gap-4 p-4 rounded-lg bg-amber-50">
@@ -551,13 +534,9 @@ export function ChroniclePriceDeviationView({
               <AlertCircle className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">
-                {t('chronicle.priceDeviation.moderateRange')}
-              </p>
+              <p className="text-sm text-gray-600">{t('chronicle.priceDeviation.moderateRange')}</p>
               <p className="text-2xl font-semibold text-amber-600">27%</p>
-              <p className="text-xs text-gray-500">
-                {t('chronicle.priceDeviation.timeSpent')}
-              </p>
+              <p className="text-xs text-gray-500">{t('chronicle.priceDeviation.timeSpent')}</p>
             </div>
           </div>
           <div className="flex items-center gap-4 p-4 rounded-lg bg-red-50">
@@ -565,13 +544,9 @@ export function ChroniclePriceDeviationView({
               <AlertTriangle className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">
-                {t('chronicle.priceDeviation.highRange')}
-              </p>
+              <p className="text-sm text-gray-600">{t('chronicle.priceDeviation.highRange')}</p>
               <p className="text-2xl font-semibold text-red-600">5%</p>
-              <p className="text-xs text-gray-500">
-                {t('chronicle.priceDeviation.timeSpent')}
-              </p>
+              <p className="text-xs text-gray-500">{t('chronicle.priceDeviation.timeSpent')}</p>
             </div>
           </div>
         </div>
@@ -624,9 +599,7 @@ export function ChroniclePriceDeviationView({
           <p className="text-sm font-medium text-gray-900 mb-1">
             {t('chronicle.priceDeviation.infoTitle')}
           </p>
-          <p className="text-xs text-gray-600">
-            {t('chronicle.priceDeviation.infoDesc')}
-          </p>
+          <p className="text-xs text-gray-600">{t('chronicle.priceDeviation.infoDesc')}</p>
         </div>
       </div>
     </div>

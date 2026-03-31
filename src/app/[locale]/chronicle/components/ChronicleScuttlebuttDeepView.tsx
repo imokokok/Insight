@@ -442,11 +442,7 @@ export function ChronicleScuttlebuttDeepView({
       header: t('chronicle.scuttlebutt.expiry'),
       render: (item: IdentityStatus) => {
         const days = Math.ceil((item.expiryDate - Date.now()) / 86400000);
-        return (
-          <span className={days < 30 ? 'text-amber-600' : 'text-gray-600'}>
-            {days} days
-          </span>
-        );
+        return <span className={days < 30 ? 'text-amber-600' : 'text-gray-600'}>{days} days</span>;
       },
     },
   ];
@@ -456,9 +452,7 @@ export function ChronicleScuttlebuttDeepView({
       key: 'validator',
       header: t('chronicle.scuttlebutt.validator'),
       sortable: true,
-      render: (item: SlashingRecord) => (
-        <span className="font-medium">{item.validator}</span>
-      ),
+      render: (item: SlashingRecord) => <span className="font-medium">{item.validator}</span>,
     },
     {
       key: 'reason',
@@ -506,32 +500,26 @@ export function ChronicleScuttlebuttDeepView({
         {/* 共识状态概览 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500 mb-1">
-              {t('chronicle.scuttlebutt.consensusTime')}
-            </p>
+            <p className="text-sm text-gray-500 mb-1">{t('chronicle.scuttlebutt.consensusTime')}</p>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-gray-900">{consensus.consensusTime}</span>
+              <span className="text-2xl font-semibold text-gray-900">
+                {consensus.consensusTime}
+              </span>
               <span className="text-sm text-gray-400">s</span>
             </div>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500 mb-1">
-              {t('chronicle.scuttlebutt.totalVotes')}
-            </p>
+            <p className="text-sm text-gray-500 mb-1">{t('chronicle.scuttlebutt.totalVotes')}</p>
             <span className="text-2xl font-semibold text-gray-900">{consensus.totalVotes}</span>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500 mb-1">
-              {t('chronicle.scuttlebutt.approvalRate')}
-            </p>
+            <p className="text-sm text-gray-500 mb-1">{t('chronicle.scuttlebutt.approvalRate')}</p>
             <span className="text-2xl font-semibold text-emerald-600">
               {Math.round((consensus.approvedVotes / consensus.totalVotes) * 100)}%
             </span>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500 mb-1">
-              {t('chronicle.scuttlebutt.forkStatus')}
-            </p>
+            <p className="text-sm text-gray-500 mb-1">{t('chronicle.scuttlebutt.forkStatus')}</p>
             <span
               className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-sm font-medium ${getForkStatusColor(consensus.forkStatus)}`}
             >
@@ -612,9 +600,7 @@ export function ChronicleScuttlebuttDeepView({
               <Lock className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">
-                {t('chronicle.scuttlebutt.activeKeys')}
-              </p>
+              <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.activeKeys')}</p>
               <p className="text-xl font-semibold text-gray-900">12</p>
             </div>
           </div>
@@ -623,9 +609,7 @@ export function ChronicleScuttlebuttDeepView({
               <Clock className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">
-                {t('chronicle.scuttlebutt.pendingRotation')}
-              </p>
+              <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.pendingRotation')}</p>
               <p className="text-xl font-semibold text-gray-900">2</p>
             </div>
           </div>
@@ -634,9 +618,7 @@ export function ChronicleScuttlebuttDeepView({
               <Shield className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">
-                {t('chronicle.scuttlebutt.lastKeyAudit')}
-              </p>
+              <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.lastKeyAudit')}</p>
               <p className="text-lg font-semibold text-gray-900">3 days ago</p>
             </div>
           </div>
@@ -649,15 +631,25 @@ export function ChronicleScuttlebuttDeepView({
             {t('chronicle.scuttlebutt.signatureProcess')}
           </h4>
           <div className="flex flex-wrap items-center gap-2 text-sm text-blue-800">
-            <span className="bg-white px-2 py-1 rounded border border-blue-200">1. Data Request</span>
+            <span className="bg-white px-2 py-1 rounded border border-blue-200">
+              1. Data Request
+            </span>
             <span className="text-blue-400">→</span>
-            <span className="bg-white px-2 py-1 rounded border border-blue-200">2. Sign with Private Key</span>
+            <span className="bg-white px-2 py-1 rounded border border-blue-200">
+              2. Sign with Private Key
+            </span>
             <span className="text-blue-400">→</span>
-            <span className="bg-white px-2 py-1 rounded border border-blue-200">3. Broadcast Signature</span>
+            <span className="bg-white px-2 py-1 rounded border border-blue-200">
+              3. Broadcast Signature
+            </span>
             <span className="text-blue-400">→</span>
-            <span className="bg-white px-2 py-1 rounded border border-blue-200">4. Verify with Public Key</span>
+            <span className="bg-white px-2 py-1 rounded border border-blue-200">
+              4. Verify with Public Key
+            </span>
             <span className="text-blue-400">→</span>
-            <span className="bg-white px-2 py-1 rounded border border-blue-200">5. Consensus Check</span>
+            <span className="bg-white px-2 py-1 rounded border border-blue-200">
+              5. Consensus Check
+            </span>
           </div>
         </div>
 
@@ -700,9 +692,7 @@ export function ChronicleScuttlebuttDeepView({
                 {t('chronicle.scuttlebutt.totalStaked')}
               </p>
             </div>
-            <p className="text-3xl font-bold text-blue-900">
-              {(totalStaked / 1000).toFixed(0)}K
-            </p>
+            <p className="text-3xl font-bold text-blue-900">{(totalStaked / 1000).toFixed(0)}K</p>
             <p className="text-sm text-blue-600 mt-1">CHRON</p>
           </div>
 
@@ -793,7 +783,9 @@ export function ChronicleScuttlebuttDeepView({
                   </p>
                 </div>
                 {alert.resolved && (
-                  <span className="text-xs bg-white/50 px-2 py-0.5 rounded">{t('chronicle.scuttlebutt.resolved')}</span>
+                  <span className="text-xs bg-white/50 px-2 py-0.5 rounded">
+                    {t('chronicle.scuttlebutt.resolved')}
+                  </span>
                 )}
               </div>
             ))}
@@ -854,11 +846,15 @@ export function ChronicleScuttlebuttDeepView({
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <p className="text-2xl font-semibold text-gray-900">5</p>
-              <p className="text-xs text-gray-500">{t('chronicle.scuttlebutt.connectedPartitions')}</p>
+              <p className="text-xs text-gray-500">
+                {t('chronicle.scuttlebutt.connectedPartitions')}
+              </p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-semibold text-gray-900">100%</p>
-              <p className="text-xs text-gray-500">{t('chronicle.scuttlebutt.networkConnectivity')}</p>
+              <p className="text-xs text-gray-500">
+                {t('chronicle.scuttlebutt.networkConnectivity')}
+              </p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-semibold text-gray-900">0</p>

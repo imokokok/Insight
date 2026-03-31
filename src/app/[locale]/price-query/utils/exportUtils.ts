@@ -278,9 +278,17 @@ export async function exportToPDF(
   let yPos = 48;
   doc.text(`${translations.symbol}: ${selectedSymbol}`, 14, yPos);
   yPos += 6;
-  doc.text(`${translations.oracles}: ${selectedOracles.map((o) => providerNames[o]).join(', ')}`, 14, yPos);
+  doc.text(
+    `${translations.oracles}: ${selectedOracles.map((o) => providerNames[o]).join(', ')}`,
+    14,
+    yPos
+  );
   yPos += 6;
-  doc.text(`${translations.chains}: ${selectedChains.map((c) => chainNames[c]).join(', ')}`, 14, yPos);
+  doc.text(
+    `${translations.chains}: ${selectedChains.map((c) => chainNames[c]).join(', ')}`,
+    14,
+    yPos
+  );
   yPos += 6;
   doc.text(`${translations.timeRange}: ${selectedTimeRange}${translations.hours}`, 14, yPos);
 

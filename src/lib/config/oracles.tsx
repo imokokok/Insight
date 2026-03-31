@@ -14,7 +14,7 @@ import {
   TellorClient,
   ChronicleClient,
   WINkLinkClient,
-  BaseOracleClient,
+  type BaseOracleClient,
 } from '@/lib/oracles';
 import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
 

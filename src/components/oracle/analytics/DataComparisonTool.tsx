@@ -24,15 +24,16 @@ import {
   BarChart,
   Bar,
   ReferenceLine,
+  Cell,
 } from 'recharts';
 
-import { useTranslations } from '@/i18n';
-import { chartColors } from '@/lib/config/colors';
 import useAPI3Analytics, {
   type DataSource,
   type TimeRange,
   type ComparisonResult,
 } from '@/hooks/useAPI3Analytics';
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
 
 export interface DataComparisonToolProps {
   dataSources: DataSource[];
@@ -387,7 +388,9 @@ export function DataComparisonTool({
                     <span className="text-sm text-gray-600">
                       {t('api3.analytics.comparison.coefficient') || 'Coefficient'}
                     </span>
-                    <span className={`text-sm font-medium ${getCorrelationColor(correlationData.strength)}`}>
+                    <span
+                      className={`text-sm font-medium ${getCorrelationColor(correlationData.strength)}`}
+                    >
                       {correlationData.coefficient.toFixed(4)}
                     </span>
                   </div>
@@ -397,7 +400,9 @@ export function DataComparisonTool({
                     </span>
                     <div className="flex items-center gap-1">
                       {getTrendIcon(correlationData.direction)}
-                      <span className={`text-sm font-medium ${getCorrelationColor(correlationData.strength)}`}>
+                      <span
+                        className={`text-sm font-medium ${getCorrelationColor(correlationData.strength)}`}
+                      >
                         {correlationData.strength.replace('_', ' ')}
                       </span>
                     </div>
@@ -429,9 +434,7 @@ export function DataComparisonTool({
               <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} />
               <Tooltip />
               <ReferenceLine y={0} stroke="#6b7280" />
-              <Bar
-                dataKey="difference"
-              >
+              <Bar dataKey="difference">
                 {chartData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}

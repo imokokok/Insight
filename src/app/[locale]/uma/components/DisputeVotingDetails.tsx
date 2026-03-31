@@ -83,7 +83,13 @@ interface DisputeVotingDetailsProps {
   isLoading?: boolean;
 }
 
-function CountdownTimer({ remainingTime, t }: { remainingTime: number; t: ReturnType<typeof useTranslations> }) {
+function CountdownTimer({
+  remainingTime,
+  t,
+}: {
+  remainingTime: number;
+  t: ReturnType<typeof useTranslations>;
+}) {
   const [timeLeft, setTimeLeft] = useState(remainingTime);
 
   useEffect(() => {
@@ -115,11 +121,19 @@ function CountdownTimer({ remainingTime, t }: { remainingTime: number; t: Return
   );
 }
 
-function VotingProgressBar({ data, t }: { data: VotingProgressData; t: ReturnType<typeof useTranslations> }) {
+function VotingProgressBar({
+  data,
+  t,
+}: {
+  data: VotingProgressData;
+  t: ReturnType<typeof useTranslations>;
+}) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">{t('uma.disputeVoting.votingProgress')}</h4>
+        <h4 className="text-sm font-medium text-gray-700">
+          {t('uma.disputeVoting.votingProgress')}
+        </h4>
         <CountdownTimer remainingTime={data.remainingTime} t={t} />
       </div>
 
@@ -168,7 +182,9 @@ function VotingProgressBar({ data, t }: { data: VotingProgressData; t: ReturnTyp
               }`}
             />
             <span className="text-xs text-gray-500">
-              {data.quorumReached ? t('uma.disputeVoting.quorumReachedLabel') : t('uma.disputeVoting.quorumNotReached')}
+              {data.quorumReached
+                ? t('uma.disputeVoting.quorumReachedLabel')
+                : t('uma.disputeVoting.quorumNotReached')}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -178,17 +194,27 @@ function VotingProgressBar({ data, t }: { data: VotingProgressData; t: ReturnTyp
               }`}
             />
             <span className="text-xs text-gray-500">
-              {data.thresholdReached ? t('uma.disputeVoting.thresholdReached') : t('uma.disputeVoting.thresholdNotReached')}
+              {data.thresholdReached
+                ? t('uma.disputeVoting.thresholdReached')
+                : t('uma.disputeVoting.thresholdNotReached')}
             </span>
           </div>
         </div>
-        <span className="text-xs text-gray-400">{t('uma.disputeVoting.totalVotes')}: {formatNumber(data.totalVotes, true)}</span>
+        <span className="text-xs text-gray-400">
+          {t('uma.disputeVoting.totalVotes')}: {formatNumber(data.totalVotes, true)}
+        </span>
       </div>
     </div>
   );
 }
 
-function WeightDistributionChart({ distributions, t }: { distributions: WeightDistribution[]; t: ReturnType<typeof useTranslations> }) {
+function WeightDistributionChart({
+  distributions,
+  t,
+}: {
+  distributions: WeightDistribution[];
+  t: ReturnType<typeof useTranslations>;
+}) {
   const [viewMode, setViewMode] = useState<'pie' | 'bar'>('bar');
 
   const totalWeight = distributions.reduce((sum, d) => sum + d.totalWeight, 0);
@@ -202,7 +228,9 @@ function WeightDistributionChart({ distributions, t }: { distributions: WeightDi
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">{t('uma.disputeVoting.weightDistribution')}</h4>
+        <h4 className="text-sm font-medium text-gray-700">
+          {t('uma.disputeVoting.weightDistribution')}
+        </h4>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
           <button
             onClick={() => setViewMode('bar')}
@@ -360,8 +388,12 @@ function HistoricalDisputesList({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">{t('uma.disputeVoting.historicalCases')}</h4>
-        <span className="text-xs text-gray-400">{disputes.length} {t('uma.disputeVoting.recentResolved')}</span>
+        <h4 className="text-sm font-medium text-gray-700">
+          {t('uma.disputeVoting.historicalCases')}
+        </h4>
+        <span className="text-xs text-gray-400">
+          {disputes.length} {t('uma.disputeVoting.recentResolved')}
+        </span>
       </div>
 
       <div className="space-y-2">
@@ -380,7 +412,9 @@ function HistoricalDisputesList({
                       : 'bg-red-100 text-red-700'
                   }`}
                 >
-                  {dispute.result === 'resolved' ? t('uma.disputeVoting.passed') : t('uma.disputeVoting.rejected')}
+                  {dispute.result === 'resolved'
+                    ? t('uma.disputeVoting.passed')
+                    : t('uma.disputeVoting.rejected')}
                 </span>
                 <span className="text-xs text-gray-500">{typeLabels[dispute.type]}</span>
               </div>
@@ -403,8 +437,12 @@ function HistoricalDisputesList({
               <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
             </div>
             <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-              <span>{t('uma.disputeVoting.stakeAmountLabel')}: ${dispute.stakeAmount.toLocaleString()}</span>
-              <span>{t('uma.disputeVoting.totalVotesLabel')}: {formatNumber(dispute.totalVotes, true)}</span>
+              <span>
+                {t('uma.disputeVoting.stakeAmountLabel')}: ${dispute.stakeAmount.toLocaleString()}
+              </span>
+              <span>
+                {t('uma.disputeVoting.totalVotesLabel')}: {formatNumber(dispute.totalVotes, true)}
+              </span>
             </div>
           </button>
         ))}
@@ -413,7 +451,13 @@ function HistoricalDisputesList({
   );
 }
 
-function PredictionPanel({ prediction, t }: { prediction: PredictionResult; t: ReturnType<typeof useTranslations> }) {
+function PredictionPanel({
+  prediction,
+  t,
+}: {
+  prediction: PredictionResult;
+  t: ReturnType<typeof useTranslations>;
+}) {
   const outcomeConfig = {
     support: {
       label: t('uma.disputeVoting.predictPass'),
@@ -443,7 +487,9 @@ function PredictionPanel({ prediction, t }: { prediction: PredictionResult; t: R
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">{t('uma.disputeVoting.outcomePrediction')}</h4>
+        <h4 className="text-sm font-medium text-gray-700">
+          {t('uma.disputeVoting.outcomePrediction')}
+        </h4>
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <span>{t('uma.disputeVoting.accuracy')}</span>
           <span className="font-semibold text-gray-700">{prediction.confidence}%</span>
@@ -474,7 +520,9 @@ function PredictionPanel({ prediction, t }: { prediction: PredictionResult; t: R
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs text-gray-600 font-medium">{t('uma.disputeVoting.influencingFactors')}:</p>
+          <p className="text-xs text-gray-600 font-medium">
+            {t('uma.disputeVoting.influencingFactors')}:
+          </p>
           {prediction.factors.slice(0, 4).map((factor, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -615,7 +663,10 @@ function calculateVotingProgress(votes: DisputeVote[], dispute: DisputeData): Vo
   };
 }
 
-function calculateWeightDistribution(votes: DisputeVote[], t: ReturnType<typeof useTranslations>): WeightDistribution[] {
+function calculateWeightDistribution(
+  votes: DisputeVote[],
+  t: ReturnType<typeof useTranslations>
+): WeightDistribution[] {
   const totalWeight = votes.reduce((sum, v) => sum + v.weight, 0);
 
   const typeConfig = {
@@ -795,8 +846,12 @@ export function DisputeVotingDetails({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">{t('uma.disputeVoting.votingDetails')}</h3>
-        <span className="text-sm text-gray-500">{t('uma.disputeVoting.disputeId')}: {dispute.id.slice(0, 8)}...</span>
+        <h3 className="text-lg font-semibold text-gray-900">
+          {t('uma.disputeVoting.votingDetails')}
+        </h3>
+        <span className="text-sm text-gray-500">
+          {t('uma.disputeVoting.disputeId')}: {dispute.id.slice(0, 8)}...
+        </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -813,7 +868,11 @@ export function DisputeVotingDetails({
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <HistoricalDisputesList disputes={historicalDisputes} onSelect={setSelectedHistorical} t={t} />
+          <HistoricalDisputesList
+            disputes={historicalDisputes}
+            onSelect={setSelectedHistorical}
+            t={t}
+          />
         </div>
       </div>
 
@@ -821,7 +880,9 @@ export function DisputeVotingDetails({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-gray-900">{t('uma.disputeVoting.disputeDetails')}</h4>
+              <h4 className="font-semibold text-gray-900">
+                {t('uma.disputeVoting.disputeDetails')}
+              </h4>
               <button
                 onClick={() => setSelectedHistorical(null)}
                 className="text-gray-400 hover:text-gray-600"
@@ -850,23 +911,31 @@ export function DisputeVotingDetails({
                       : 'bg-red-100 text-red-700'
                   }`}
                 >
-                  {selectedHistorical.result === 'resolved' ? t('uma.disputeVoting.passed') : t('uma.disputeVoting.rejected')}
+                  {selectedHistorical.result === 'resolved'
+                    ? t('uma.disputeVoting.passed')
+                    : t('uma.disputeVoting.rejected')}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">{t('uma.disputeVoting.supportRateLabel')}</span>
+                <span className="text-sm text-gray-500">
+                  {t('uma.disputeVoting.supportRateLabel')}
+                </span>
                 <span className="text-sm font-semibold text-gray-900">
                   {selectedHistorical.supportPercentage.toFixed(1)}%
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">{t('uma.disputeVoting.totalVotesLabel')}</span>
+                <span className="text-sm text-gray-500">
+                  {t('uma.disputeVoting.totalVotesLabel')}
+                </span>
                 <span className="text-sm font-semibold text-gray-900">
                   {formatNumber(selectedHistorical.totalVotes, true)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">{t('uma.disputeVoting.stakeAmountLabel')}</span>
+                <span className="text-sm text-gray-500">
+                  {t('uma.disputeVoting.stakeAmountLabel')}
+                </span>
                 <span className="text-sm font-semibold text-gray-900">
                   ${selectedHistorical.stakeAmount.toLocaleString()}
                 </span>

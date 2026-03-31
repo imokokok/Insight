@@ -147,7 +147,8 @@ export function ChronicleValidatorsView({
       header: t('chronicle.validators.status'),
       sortable: true,
       render: (item: ValidatorData) => {
-        const statusKey = item.status === 'active' ? 'active' : item.status === 'inactive' ? 'inactive' : 'jailed';
+        const statusKey =
+          item.status === 'active' ? 'active' : item.status === 'inactive' ? 'inactive' : 'jailed';
         return (
           <span
             className={`inline-flex items-center gap-1.5 text-sm font-medium ${

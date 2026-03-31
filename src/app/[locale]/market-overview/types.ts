@@ -299,6 +299,16 @@ export interface CorrelationRiskResult {
 }
 
 /**
+ * 风险警报
+ */
+export interface RiskAlert {
+  id: string;
+  level: RiskLevel;
+  message: string;
+  timestamp: number;
+}
+
+/**
  * 综合风险指标
  */
 export interface RiskMetrics {
@@ -311,6 +321,22 @@ export interface RiskMetrics {
     level: RiskLevel;
     timestamp: number;
   };
+  // 扩展属性
+  lowRiskCount?: number;
+  mediumRiskCount?: number;
+  highRiskCount?: number;
+  criticalRiskCount?: number;
+  overallRiskLevel?: RiskLevel;
+  riskScore?: number;
+  riskTrend?: 'up' | 'down' | 'stable';
+  totalAssets?: number;
+  volatilityIndex?: number;
+  volatilityChange?: number;
+  maxDrawdown?: number;
+  sharpeRatio?: number;
+  var95?: number;
+  recentAlerts?: RiskAlert[];
+  lastUpdated?: number;
 }
 
 // ==================== 异常检测数据类型 ====================
@@ -348,6 +374,7 @@ export interface AnomalyData {
   deviation: number;
   duration: number;
   acknowledged: boolean;
+  confidence?: number;
 }
 
 /**
@@ -394,12 +421,14 @@ export interface ScheduledExport {
 export interface PriceAlert {
   id: string;
   asset: string;
-  type: 'above' | 'below';
+  type: 'above' | 'below' | 'percent_change';
   price: number;
   enabled: boolean;
   channels: ('email' | 'webhook' | 'push')[];
-  createdAt: string;
-  updatedAt: string;
+  createdAt: number;
+  updatedAt?: number;
+  note?: string;
+  triggered?: boolean;
 }
 
 export type RefreshStatus = 'idle' | 'refreshing' | 'success' | 'error';

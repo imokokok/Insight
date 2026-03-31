@@ -1,3 +1,4 @@
+import type { DataSourceInfo as ChartDataSourceInfo } from '@/components/oracle/charts/DapiDataFlowVisualization';
 import { type OracleConfig } from '@/lib/config/oracles';
 import type {
   AirnodeNetworkStats,
@@ -9,9 +10,16 @@ import type {
   OEVNetworkStats,
 } from '@/lib/oracles/api3';
 import { type PriceData, type Blockchain } from '@/types/oracle';
-import type { DataSourceInfo as ChartDataSourceInfo } from '@/components/oracle/charts/DapiDataFlowVisualization';
 
-export type API3TabId = 'market' | 'network' | 'airnode' | 'dapi' | 'ecosystem' | 'risk' | 'oev' | 'analytics';
+export type API3TabId =
+  | 'market'
+  | 'network'
+  | 'airnode'
+  | 'dapi'
+  | 'ecosystem'
+  | 'risk'
+  | 'oev'
+  | 'analytics';
 
 export interface NetworkStats {
   activeNodes: number;

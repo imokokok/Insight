@@ -484,13 +484,13 @@ useEffect(() => {
 
 ### Web Vitals 指标
 
-| 指标 | 目标    | 警告阈值 | 说明                     |
-| ---- | ------- | -------- | ------------------------ |
-| LCP  | < 2.5s  | 4.0s     | Largest Contentful Paint |
+| 指标 | 目标    | 警告阈值 | 说明                      |
+| ---- | ------- | -------- | ------------------------- |
+| LCP  | < 2.5s  | 4.0s     | Largest Contentful Paint  |
 | INP  | < 200ms | 500ms    | Interaction to Next Paint |
-| CLS  | < 0.1   | 0.25     | Cumulative Layout Shift  |
-| FCP  | < 1.8s  | 3.0s     | First Contentful Paint   |
-| TTFB | < 800ms | 1.8s     | Time to First Byte       |
+| CLS  | < 0.1   | 0.25     | Cumulative Layout Shift   |
+| FCP  | < 1.8s  | 3.0s     | First Contentful Paint    |
+| TTFB | < 800ms | 1.8s     | Time to First Byte        |
 
 ### JavaScript 包大小
 
@@ -502,11 +502,11 @@ useEffect(() => {
 
 ### 资源限制
 
-| 类型             | 最大数量 |
-| ---------------- | -------- |
-| 总资源数         | 50       |
-| 第三方脚本       | 10       |
-| 字体文件         | 5        |
+| 类型       | 最大数量 |
+| ---------- | -------- |
+| 总资源数   | 50       |
+| 第三方脚本 | 10       |
+| 字体文件   | 5        |
 
 ---
 

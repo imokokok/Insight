@@ -190,9 +190,23 @@ export function DelegationAnalysis() {
   }, [selectedValidatorData, t]);
 
   const getRiskLevel = (score: number) => {
-    if (score <= 30) return { level: t('uma.staking.delegation.lowRisk'), color: 'text-emerald-600', bgColor: 'bg-emerald-50' };
-    if (score <= 60) return { level: t('uma.staking.delegation.mediumRisk'), color: 'text-amber-600', bgColor: 'bg-amber-50' };
-    return { level: t('uma.staking.delegation.highRisk'), color: 'text-red-600', bgColor: 'bg-red-50' };
+    if (score <= 30)
+      return {
+        level: t('uma.staking.delegation.lowRisk'),
+        color: 'text-emerald-600',
+        bgColor: 'bg-emerald-50',
+      };
+    if (score <= 60)
+      return {
+        level: t('uma.staking.delegation.mediumRisk'),
+        color: 'text-amber-600',
+        bgColor: 'bg-amber-50',
+      };
+    return {
+      level: t('uma.staking.delegation.highRisk'),
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+    };
   };
 
   const getRiskIcon = (score: number) => {
@@ -212,7 +226,11 @@ export function DelegationAnalysis() {
 
   const tabs = [
     { id: 'calculator' as const, label: t('uma.staking.delegation.calculator'), icon: Calculator },
-    { id: 'recommendations' as const, label: t('uma.staking.delegation.recommendations'), icon: Star },
+    {
+      id: 'recommendations' as const,
+      label: t('uma.staking.delegation.recommendations'),
+      icon: Star,
+    },
     { id: 'risk' as const, label: t('uma.staking.delegation.riskAssessment'), icon: Shield },
     { id: 'history' as const, label: t('uma.staking.delegation.history'), icon: Clock },
   ];
@@ -221,7 +239,9 @@ export function DelegationAnalysis() {
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
         <BarChart3 className="w-5 h-5 text-red-500" />
-        <h3 className="text-base font-semibold text-gray-900">{t('uma.staking.delegation.title')}</h3>
+        <h3 className="text-base font-semibold text-gray-900">
+          {t('uma.staking.delegation.title')}
+        </h3>
       </div>
 
       <div className="flex gap-2 border-b border-gray-200">
@@ -326,7 +346,9 @@ export function DelegationAnalysis() {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1.5 mb-1">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
-                <p className="text-xs text-gray-500 uppercase tracking-wider">{t('uma.staking.delegation.dailyReward')}</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider">
+                  {t('uma.staking.delegation.dailyReward')}
+                </p>
               </div>
               <p className="text-xl font-bold text-gray-900">
                 ${delegationRewards.daily.toFixed(2)}
@@ -335,7 +357,9 @@ export function DelegationAnalysis() {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1.5 mb-1">
                 <DollarSign className="w-4 h-4 text-gray-400" />
-                <p className="text-xs text-gray-500 uppercase tracking-wider">{t('uma.staking.delegation.monthlyReward')}</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider">
+                  {t('uma.staking.delegation.monthlyReward')}
+                </p>
               </div>
               <p className="text-xl font-bold text-gray-900">
                 ${delegationRewards.monthly.toFixed(2)}
@@ -344,7 +368,9 @@ export function DelegationAnalysis() {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1.5 mb-1">
                 <TrendingUp className="w-4 h-4 text-red-500" />
-                <p className="text-xs text-gray-500 uppercase tracking-wider">{t('uma.staking.delegation.yearlyReward')}</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider">
+                  {t('uma.staking.delegation.yearlyReward')}
+                </p>
               </div>
               <p className="text-xl font-bold text-emerald-600">
                 ${delegationRewards.yearly.toFixed(2)}
@@ -353,7 +379,9 @@ export function DelegationAnalysis() {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1.5 mb-1">
                 <BarChart3 className="w-4 h-4 text-red-500" />
-                <p className="text-xs text-red-500 uppercase tracking-wider">{t('uma.staking.delegation.apy')}</p>
+                <p className="text-xs text-red-500 uppercase tracking-wider">
+                  {t('uma.staking.delegation.apy')}
+                </p>
               </div>
               <p className="text-xl font-bold text-red-600">{delegationRewards.apy.toFixed(2)}%</p>
             </div>
@@ -400,7 +428,9 @@ export function DelegationAnalysis() {
                     <p className="font-semibold text-emerald-600">{validator.apy}%</p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-xs">{t('uma.staking.delegation.performance')}</p>
+                    <p className="text-gray-500 text-xs">
+                      {t('uma.staking.delegation.performance')}
+                    </p>
                     <p className="font-semibold text-gray-900">{validator.performance}%</p>
                   </div>
                   <div>
@@ -436,7 +466,9 @@ export function DelegationAnalysis() {
             <div className="flex items-center gap-3">
               {getRiskIcon(selectedValidatorData.riskScore)}
               <div>
-                <p className="text-sm text-gray-500">{t('uma.staking.delegation.overallRiskScore')}</p>
+                <p className="text-sm text-gray-500">
+                  {t('uma.staking.delegation.overallRiskScore')}
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {selectedValidatorData.riskScore}
                   <span className="text-sm font-normal text-gray-500">/100</span>
@@ -455,7 +487,9 @@ export function DelegationAnalysis() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">{t('uma.staking.delegation.riskFactorsAnalysis')}</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">
+              {t('uma.staking.delegation.riskFactorsAnalysis')}
+            </h4>
             <div className="space-y-3">
               {riskFactors.map((factor) => (
                 <div key={factor.name} className="border border-gray-200 rounded-lg p-3">
@@ -484,7 +518,9 @@ export function DelegationAnalysis() {
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
               <div>
-                <h4 className="text-sm font-semibold text-amber-900 mb-1">{t('uma.staking.delegation.riskConsiderations')}</h4>
+                <h4 className="text-sm font-semibold text-amber-900 mb-1">
+                  {t('uma.staking.delegation.riskConsiderations')}
+                </h4>
                 <ul className="text-sm text-amber-800 space-y-1">
                   <li>• {t('uma.staking.delegation.riskConsideration1')}</li>
                   <li>• {t('uma.staking.delegation.riskConsideration2')}</li>
@@ -501,7 +537,9 @@ export function DelegationAnalysis() {
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
             <div className="text-center">
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('uma.staking.delegation.totalDelegated')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                {t('uma.staking.delegation.totalDelegated')}
+              </p>
               <p className="text-lg font-bold text-gray-900">
                 $
                 {mockDelegationHistory
@@ -510,7 +548,9 @@ export function DelegationAnalysis() {
               </p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('uma.staking.delegation.totalRewards')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                {t('uma.staking.delegation.totalRewards')}
+              </p>
               <p className="text-lg font-bold text-emerald-600">
                 ${mockDelegationHistory.reduce((sum, d) => sum + d.rewards, 0).toFixed(2)}
               </p>
@@ -574,7 +614,9 @@ export function DelegationAnalysis() {
                         style={{ width: `${(delegation.riskScore / 100) * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs text-gray-500">{t('uma.staking.delegation.riskScore')}: {delegation.riskScore}/100</span>
+                    <span className="text-xs text-gray-500">
+                      {t('uma.staking.delegation.riskScore')}: {delegation.riskScore}/100
+                    </span>
                   </div>
                   <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
                     {t('uma.staking.delegation.active')}

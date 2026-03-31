@@ -34,7 +34,7 @@ const getApiEndpoints = (t: (key: string) => string) => [
         ],
         response: {
           symbol: 'BTC/USD',
-          price: 67432.50,
+          price: 67432.5,
           timestamp: 1711708800000,
           source: 'api3',
         },
@@ -46,7 +46,7 @@ const getApiEndpoints = (t: (key: string) => string) => [
         params: [],
         response: {
           prices: [
-            { symbol: 'BTC/USD', price: 67432.50, timestamp: 1711708800000 },
+            { symbol: 'BTC/USD', price: 67432.5, timestamp: 1711708800000 },
             { symbol: 'ETH/USD', price: 3456.78, timestamp: 1711708800000 },
           ],
         },
@@ -59,13 +59,18 @@ const getApiEndpoints = (t: (key: string) => string) => [
           { name: 'symbol', type: 'string', required: true, description: '交易对符号' },
           { name: 'from', type: 'timestamp', required: true, description: '开始时间戳' },
           { name: 'to', type: 'timestamp', required: true, description: '结束时间戳' },
-          { name: 'interval', type: 'string', required: false, description: '时间间隔 (1h, 1d, 1w)' },
+          {
+            name: 'interval',
+            type: 'string',
+            required: false,
+            description: '时间间隔 (1h, 1d, 1w)',
+          },
         ],
         response: {
           symbol: 'BTC/USD',
           data: [
-            { timestamp: 1711708800000, price: 67432.50, volume: 1234567 },
-            { timestamp: 1711795200000, price: 68100.00, volume: 1345678 },
+            { timestamp: 1711708800000, price: 67432.5, volume: 1234567 },
+            { timestamp: 1711795200000, price: 68100.0, volume: 1345678 },
           ],
         },
       },
@@ -81,7 +86,12 @@ const getApiEndpoints = (t: (key: string) => string) => [
         path: '/v1/dao/proposals',
         description: '获取所有提案列表',
         params: [
-          { name: 'status', type: 'string', required: false, description: '提案状态 (active, executed, defeated)' },
+          {
+            name: 'status',
+            type: 'string',
+            required: false,
+            description: '提案状态 (active, executed, defeated)',
+          },
           { name: 'limit', type: 'number', required: false, description: '返回数量限制' },
         ],
         response: {
@@ -113,14 +123,12 @@ const getApiEndpoints = (t: (key: string) => string) => [
         method: 'GET',
         path: '/v1/dao/staking/rewards/{address}',
         description: '获取指定地址的质押奖励',
-        params: [
-          { name: 'address', type: 'string', required: true, description: '钱包地址' },
-        ],
+        params: [{ name: 'address', type: 'string', required: true, description: '钱包地址' }],
         response: {
           address: '0x1234...5678',
           stakedAmount: 10000,
-          pendingRewards: 125.50,
-          claimedRewards: 1500.00,
+          pendingRewards: 125.5,
+          claimedRewards: 1500.0,
           apr: 12.5,
         },
       },
@@ -137,7 +145,12 @@ const getApiEndpoints = (t: (key: string) => string) => [
         description: '获取所有dAPI数据源列表',
         params: [
           { name: 'chain', type: 'string', required: false, description: '区块链网络' },
-          { name: 'category', type: 'string', required: false, description: '资产类别 (crypto, forex, commodities)' },
+          {
+            name: 'category',
+            type: 'string',
+            required: false,
+            description: '资产类别 (crypto, forex, commodities)',
+          },
         ],
         response: {
           feeds: [
@@ -258,7 +271,9 @@ export function API3ApiDocs({ locale }: API3ApiDocsProps) {
   const apiEndpoints = getApiEndpoints(t);
   const [expandedApi, setExpandedApi] = useState<string>('market');
   const [expandedEndpoint, setExpandedEndpoint] = useState<string | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<'javascript' | 'python' | 'curl'>('javascript');
+  const [selectedLanguage, setSelectedLanguage] = useState<'javascript' | 'python' | 'curl'>(
+    'javascript'
+  );
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const handleCopy = async (code: string, id: string) => {
@@ -275,13 +290,17 @@ export function API3ApiDocs({ locale }: API3ApiDocsProps) {
             {t('api3.developer.apiDocs.title') || 'API 接口文档'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.developer.apiDocs.description') || '完整的 API 接口参考文档，包含所有端点、参数和响应格式'}
+            {t('api3.developer.apiDocs.description') ||
+              '完整的 API 接口参考文档，包含所有端点、参数和响应格式'}
           </p>
         </div>
 
         <div className="space-y-4">
           {apiEndpoints.map((api) => (
-            <div key={api.id} className="bg-white border border-gray-100 rounded-lg overflow-hidden">
+            <div
+              key={api.id}
+              className="bg-white border border-gray-100 rounded-lg overflow-hidden"
+            >
               <button
                 onClick={() => setExpandedApi(expandedApi === api.id ? '' : api.id)}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -307,11 +326,13 @@ export function API3ApiDocs({ locale }: API3ApiDocsProps) {
                   {api.endpoints.map((endpoint) => (
                     <div key={endpoint.path} className="p-4">
                       <button
-                        onClick={() => setExpandedEndpoint(
-                          expandedEndpoint === `${api.id}-${endpoint.path}`
-                            ? null
-                            : `${api.id}-${endpoint.path}`
-                        )}
+                        onClick={() =>
+                          setExpandedEndpoint(
+                            expandedEndpoint === `${api.id}-${endpoint.path}`
+                              ? null
+                              : `${api.id}-${endpoint.path}`
+                          )
+                        }
                         className="w-full flex items-center gap-3 mb-2"
                       >
                         <span
@@ -356,17 +377,28 @@ export function API3ApiDocs({ locale }: API3ApiDocsProps) {
                                   </thead>
                                   <tbody>
                                     {endpoint.params.map((param) => (
-                                      <tr key={param.name} className="border-b border-gray-100 last:border-0">
-                                        <td className="px-3 py-2 font-mono text-gray-900">{param.name}</td>
+                                      <tr
+                                        key={param.name}
+                                        className="border-b border-gray-100 last:border-0"
+                                      >
+                                        <td className="px-3 py-2 font-mono text-gray-900">
+                                          {param.name}
+                                        </td>
                                         <td className="px-3 py-2 text-gray-600">{param.type}</td>
                                         <td className="px-3 py-2">
                                           {param.required ? (
-                                            <span className="text-red-500 text-xs">{t('api3.developer.apiDocs.yes')}</span>
+                                            <span className="text-red-500 text-xs">
+                                              {t('api3.developer.apiDocs.yes')}
+                                            </span>
                                           ) : (
-                                            <span className="text-gray-400 text-xs">{t('api3.developer.apiDocs.no')}</span>
+                                            <span className="text-gray-400 text-xs">
+                                              {t('api3.developer.apiDocs.no')}
+                                            </span>
                                           )}
                                         </td>
-                                        <td className="px-3 py-2 text-gray-600">{param.description}</td>
+                                        <td className="px-3 py-2 text-gray-600">
+                                          {param.description}
+                                        </td>
                                       </tr>
                                     ))}
                                   </tbody>
@@ -381,10 +413,12 @@ export function API3ApiDocs({ locale }: API3ApiDocsProps) {
                             </h4>
                             <div className="relative bg-gray-900 rounded-lg p-4 overflow-x-auto">
                               <button
-                                onClick={() => handleCopy(
-                                  JSON.stringify(endpoint.response, null, 2),
-                                  `response-${endpoint.path}`
-                                )}
+                                onClick={() =>
+                                  handleCopy(
+                                    JSON.stringify(endpoint.response, null, 2),
+                                    `response-${endpoint.path}`
+                                  )
+                                }
                                 className="absolute top-2 right-2 p-1.5 rounded hover:bg-gray-700 transition-colors"
                               >
                                 {copiedCode === `response-${endpoint.path}` ? (
@@ -420,10 +454,14 @@ export function API3ApiDocs({ locale }: API3ApiDocsProps) {
                             </div>
                             <div className="relative bg-gray-900 rounded-lg p-4 overflow-x-auto">
                               <button
-                                onClick={() => handleCopy(
-                                  codeExamples[selectedLanguage][`${endpoint.method} ${endpoint.path}`] || '',
-                                  `code-${endpoint.path}`
-                                )}
+                                onClick={() =>
+                                  handleCopy(
+                                    codeExamples[selectedLanguage][
+                                      `${endpoint.method} ${endpoint.path}`
+                                    ] || '',
+                                    `code-${endpoint.path}`
+                                  )
+                                }
                                 className="absolute top-2 right-2 p-1.5 rounded hover:bg-gray-700 transition-colors"
                               >
                                 {copiedCode === `code-${endpoint.path}` ? (
@@ -433,7 +471,9 @@ export function API3ApiDocs({ locale }: API3ApiDocsProps) {
                                 )}
                               </button>
                               <pre className="text-sm text-gray-100 font-mono whitespace-pre-wrap">
-                                {codeExamples[selectedLanguage][`${endpoint.method} ${endpoint.path}`] || '// Example not available'}
+                                {codeExamples[selectedLanguage][
+                                  `${endpoint.method} ${endpoint.path}`
+                                ] || '// Example not available'}
                               </pre>
                             </div>
                           </div>
@@ -468,7 +508,7 @@ export function API3ApiDocs({ locale }: API3ApiDocsProps) {
           </div>
           <div className="bg-gray-900 rounded-lg p-4">
             <pre className="text-sm text-gray-100 font-mono">
-{`Authorization: Bearer YOUR_API_KEY
+              {`Authorization: Bearer YOUR_API_KEY
 Content-Type: application/json`}
             </pre>
           </div>

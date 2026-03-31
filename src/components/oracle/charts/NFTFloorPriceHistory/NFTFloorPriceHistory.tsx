@@ -91,54 +91,60 @@ export function NFTFloorPriceHistory({
 
   const diaService = useMemo(() => getDIADataService(), []);
 
-  const generateMockHistoricalData = useCallback((basePrice: number, periodDays: number): FloorPricePoint[] => {
-    const data: FloorPricePoint[] = [];
-    const now = Date.now();
-    const pointsPerDay = 4;
-    const totalPoints = periodDays * pointsPerDay;
+  const generateMockHistoricalData = useCallback(
+    (basePrice: number, periodDays: number): FloorPricePoint[] => {
+      const data: FloorPricePoint[] = [];
+      const now = Date.now();
+      const pointsPerDay = 4;
+      const totalPoints = periodDays * pointsPerDay;
 
-    for (let i = totalPoints; i >= 0; i--) {
-      const timestamp = now - i * (24 * 60 * 60 * 1000 / pointsPerDay);
-      const randomVariation = (Math.random() - 0.5) * 0.1;
-      const trendFactor = Math.sin(i / 10) * 0.05;
-      const price = basePrice * (1 + randomVariation + trendFactor);
+      for (let i = totalPoints; i >= 0; i--) {
+        const timestamp = now - i * ((24 * 60 * 60 * 1000) / pointsPerDay);
+        const randomVariation = (Math.random() - 0.5) * 0.1;
+        const trendFactor = Math.sin(i / 10) * 0.05;
+        const price = basePrice * (1 + randomVariation + trendFactor);
 
-      data.push({
-        timestamp,
-        date: new Date(timestamp).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-        }),
-        floorPrice: price,
-        floorPriceUSD: price * 1800,
-      });
-    }
+        data.push({
+          timestamp,
+          date: new Date(timestamp).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+          }),
+          floorPrice: price,
+          floorPriceUSD: price * 1800,
+        });
+      }
 
-    return data;
-  }, []);
+      return data;
+    },
+    []
+  );
 
-  const generateMockVolumeData = useCallback((baseVolume: number, periodDays: number): VolumePoint[] => {
-    const data: VolumePoint[] = [];
-    const now = Date.now();
+  const generateMockVolumeData = useCallback(
+    (baseVolume: number, periodDays: number): VolumePoint[] => {
+      const data: VolumePoint[] = [];
+      const now = Date.now();
 
-    for (let i = periodDays; i >= 0; i--) {
-      const timestamp = now - i * 24 * 60 * 60 * 1000;
-      const randomVariation = Math.random() * 0.8 + 0.6;
-      const volume = baseVolume * randomVariation;
-      const isHighVolume = volume > baseVolume * 0.9;
+      for (let i = periodDays; i >= 0; i--) {
+        const timestamp = now - i * 24 * 60 * 60 * 1000;
+        const randomVariation = Math.random() * 0.8 + 0.6;
+        const volume = baseVolume * randomVariation;
+        const isHighVolume = volume > baseVolume * 0.9;
 
-      data.push({
-        date: new Date(timestamp).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-        }),
-        volume,
-        color: isHighVolume ? '#10b981' : '#6b7280',
-      });
-    }
+        data.push({
+          date: new Date(timestamp).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+          }),
+          volume,
+          color: isHighVolume ? '#10b981' : '#6b7280',
+        });
+      }
 
-    return data;
-  }, []);
+      return data;
+    },
+    []
+  );
 
   const fetchData = async () => {
     setIsRefreshing(true);
@@ -251,9 +257,7 @@ export function NFTFloorPriceHistory({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">
-            Floor Price History
-          </h3>
+          <h3 className="text-base font-semibold text-gray-900">Floor Price History</h3>
           <p className="text-sm text-gray-500 mt-0.5">
             {collection.name} • {DIA_CHAIN_NAMES[collection.chain] || collection.chain}
           </p>
@@ -296,7 +300,9 @@ export function NFTFloorPriceHistory({
         </div>
         <div className="p-4 bg-white rounded-lg border border-gray-200">
           <p className="text-xs text-gray-500 uppercase tracking-wide">24h Change</p>
-          <p className={`text-xl font-semibold mt-1 ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+          <p
+            className={`text-xl font-semibold mt-1 ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}
+          >
             <span className="flex items-center gap-1">
               {isPositive ? (
                 <TrendingUp className="w-4 h-4" />
@@ -325,16 +331,22 @@ export function NFTFloorPriceHistory({
       </div>
 
       <div>
-        <h4 className="text-sm font-medium text-gray-900 mb-4">
-          Floor Price Trend
-        </h4>
+        <h4 className="text-sm font-medium text-gray-900 mb-4">Floor Price Trend</h4>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={historicalData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
               <defs>
                 <linearGradient id="floorPriceGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={CHAIN_COLORS[collection.chain] || '#6b7280'} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={CHAIN_COLORS[collection.chain] || '#6b7280'} stopOpacity={0} />
+                  <stop
+                    offset="5%"
+                    stopColor={CHAIN_COLORS[collection.chain] || '#6b7280'}
+                    stopOpacity={0.3}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={CHAIN_COLORS[collection.chain] || '#6b7280'}
+                    stopOpacity={0}
+                  />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -378,9 +390,7 @@ export function NFTFloorPriceHistory({
 
       {showVolume && volumeData.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-gray-900 mb-4">
-            Daily Volume
-          </h4>
+          <h4 className="text-sm font-medium text-gray-900 mb-4">Daily Volume</h4>
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={volumeData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
@@ -420,9 +430,7 @@ export function NFTFloorPriceHistory({
         <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
           <div className="text-center">
             <p className="text-xs text-gray-500">Period Low</p>
-            <p className="text-sm font-semibold text-red-600 mt-1">
-              Ξ {stats.minPrice.toFixed(4)}
-            </p>
+            <p className="text-sm font-semibold text-red-600 mt-1">Ξ {stats.minPrice.toFixed(4)}</p>
           </div>
           <div className="text-center">
             <p className="text-xs text-gray-500">Period High</p>
@@ -441,7 +449,10 @@ export function NFTFloorPriceHistory({
 
       <div className="flex items-center gap-2 text-xs text-gray-500">
         <Info className="w-3.5 h-3.5" />
-        <span>Data sourced from DIA Oracle. Last updated: {new Date(floorPriceData.timestamp).toLocaleString()}</span>
+        <span>
+          Data sourced from DIA Oracle. Last updated:{' '}
+          {new Date(floorPriceData.timestamp).toLocaleString()}
+        </span>
       </div>
     </div>
   );

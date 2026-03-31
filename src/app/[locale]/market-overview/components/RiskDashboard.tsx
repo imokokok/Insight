@@ -39,7 +39,7 @@ export default function RiskDashboard({ data, loading = false }: RiskDashboardPr
   };
 
   // 获取风险等级样式
-  const getRiskLevelStyle = (level: string) => {
+  const getRiskLevelStyle = (level: string | undefined) => {
     switch (level) {
       case 'low':
         return 'bg-success-100 text-success-700 border-success-200';
@@ -55,24 +55,25 @@ export default function RiskDashboard({ data, loading = false }: RiskDashboardPr
   };
 
   // 获取风险等级标签
-  const getRiskLevelLabel = (level: string) => {
+  const getRiskLevelLabel = (level: string | undefined) => {
     const labels: Record<string, string> = {
       low: t('lowRisk'),
       medium: t('mediumRisk'),
       high: t('highRisk'),
       critical: t('criticalRisk'),
     };
-    return labels[level] || level;
+    return (level && labels[level]) || level || '-';
   };
 
   // 获取趋势图标
-  const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
+  const getTrendIcon = (trend: 'stable' | 'up' | 'down' | undefined) => {
     switch (trend) {
       case 'up':
         return <TrendingUp className="w-4 h-4 text-success-500" />;
       case 'down':
         return <TrendingDown className="w-4 h-4 text-danger-500" />;
       case 'stable':
+      default:
         return <Activity className="w-4 h-4 text-gray-400" />;
     }
   };

@@ -7,16 +7,17 @@ import {
   useState,
   useCallback,
   useRef,
-  ReactNode,
+  type ReactNode,
 } from 'react';
+
+import { createLogger } from '@/lib/utils/logger';
 
 import {
   useWebSocket,
-  WebSocketMessage,
-  PerformanceMetrics,
-  WebSocketStatus,
+  type WebSocketMessage,
+  type PerformanceMetrics,
+  type WebSocketStatus,
 } from './websocket';
-import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('UMAWebSocketContext');
 
@@ -54,10 +55,7 @@ interface SubscriptionEntry {
 }
 
 interface ChannelSubscriptionManager {
-  subscribe<T>(
-    channel: string,
-    handler: (message: WebSocketMessage<T>) => void
-  ): () => void;
+  subscribe<T>(channel: string, handler: (message: WebSocketMessage<T>) => void): () => void;
   getActiveChannels(): string[];
 }
 
@@ -67,9 +65,7 @@ function useChannelSubscriptionManager(
     handler: (message: WebSocketMessage<T>) => void
   ) => (() => void) | undefined
 ): ChannelSubscriptionManager {
-  const subscriptionsRef = useRef<Map<string, Map<number, SubscriptionEntry>>>(
-    new Map()
-  );
+  const subscriptionsRef = useRef<Map<string, Map<number, SubscriptionEntry>>>(new Map());
   const subscriptionIdRef = useRef(0);
 
   const subscribe = useCallback(
@@ -81,9 +77,7 @@ function useChannelSubscriptionManager(
       }
 
       const channelSubs = subscriptionsRef.current.get(channel)!;
-      const typedHandler = handler as (
-        message: WebSocketMessage<unknown>
-      ) => void;
+      const typedHandler = handler as (message: WebSocketMessage<unknown>) => void;
       channelSubs.set(id, { handler: typedHandler, id });
 
       const unsubscribe = subscribeFn(channel, (message) => {
@@ -117,17 +111,21 @@ function useChannelSubscriptionManager(
 }
 
 export function UMAWebSocketProvider({ children }: { children: ReactNode }) {
-  const [performanceMetrics, setPerformanceMetrics] =
-    useState<PerformanceMetrics | null>(null);
+  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics | null>(null);
 
-  const { status, subscribe: wsSubscribe, isConnected, isConnecting, isReconnecting } =
-    useWebSocket({
-      url: WS_URL,
-      channels: [...UMA_CHANNELS],
-      autoConnect: true,
-      useMock: true,
-      onPerformanceMetrics: setPerformanceMetrics,
-    });
+  const {
+    status,
+    subscribe: wsSubscribe,
+    isConnected,
+    isConnecting,
+    isReconnecting,
+  } = useWebSocket({
+    url: WS_URL,
+    channels: [...UMA_CHANNELS],
+    autoConnect: true,
+    useMock: true,
+    onPerformanceMetrics: setPerformanceMetrics,
+  });
 
   const { subscribe } = useChannelSubscriptionManager(wsSubscribe);
 
@@ -141,9 +139,7 @@ export function UMAWebSocketProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <UMAWebSocketContext.Provider value={contextValue}>
-      {children}
-    </UMAWebSocketContext.Provider>
+    <UMAWebSocketContext.Provider value={contextValue}>{children}</UMAWebSocketContext.Provider>
   );
 }
 

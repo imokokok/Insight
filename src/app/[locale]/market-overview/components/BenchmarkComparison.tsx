@@ -42,14 +42,9 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
           <div className="space-y-1">
             {payload.map((entry: any, index: number) => (
               <div key={index} className="flex items-center gap-2 text-sm">
-                <div
-                  className="w-3 h-3 rounded"
-                  style={{ backgroundColor: entry.color }}
-                />
+                <div className="w-3 h-3 rounded" style={{ backgroundColor: entry.color }} />
                 <span className="text-gray-600">{entry.name}:</span>
-                <span className="font-medium text-gray-900">
-                  {formatPercent(entry.value)}
-                </span>
+                <span className="font-medium text-gray-900">{formatPercent(entry.value)}</span>
               </div>
             ))}
           </div>
@@ -109,11 +104,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis
-              dataKey="date"
-              tick={{ fill: '#4b5563', fontSize: 12 }}
-              stroke="#9ca3af"
-            />
+            <XAxis dataKey="date" tick={{ fill: '#4b5563', fontSize: 12 }} stroke="#9ca3af" />
             <YAxis
               tickFormatter={(value) => formatPercent(value)}
               tick={{ fill: '#4b5563', fontSize: 12 }}

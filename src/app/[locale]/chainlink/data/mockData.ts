@@ -1,4 +1,12 @@
-import type { DataFeed, NodeData, StakingPoolStats, RewardHistory, SlashingEvent, UnlockQueue, OperatorStake } from '../types';
+import type {
+  DataFeed,
+  NodeData,
+  StakingPoolStats,
+  RewardHistory,
+  SlashingEvent,
+  UnlockQueue,
+  OperatorStake,
+} from '../types';
 
 export const mockDataFeeds: DataFeed[] = [
   {

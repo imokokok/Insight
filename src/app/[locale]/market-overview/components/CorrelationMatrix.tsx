@@ -50,7 +50,9 @@ export default function CorrelationMatrix({ data, loading = false }: Correlation
     );
   }
 
-  if (!data.assets || data.assets.length === 0) {
+  const assets = data.oracles;
+
+  if (!assets || assets.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center">
@@ -102,7 +104,7 @@ export default function CorrelationMatrix({ data, loading = false }: Correlation
           {/* Header Row */}
           <div className="flex">
             <div className="w-20 h-10" /> {/* Empty corner */}
-            {data.assets.map((asset) => (
+            {assets.map((asset) => (
               <div
                 key={asset}
                 className="w-16 h-10 flex items-center justify-center text-xs font-medium text-gray-600"
@@ -113,12 +115,12 @@ export default function CorrelationMatrix({ data, loading = false }: Correlation
           </div>
 
           {/* Data Rows */}
-          {data.assets.map((rowAsset, rowIndex) => (
+          {assets.map((rowAsset, rowIndex) => (
             <div key={rowAsset} className="flex">
               <div className="w-20 h-10 flex items-center justify-center text-xs font-medium text-gray-600">
                 {rowAsset}
               </div>
-              {data.assets.map((colAsset, colIndex) => {
+              {assets.map((colAsset, colIndex) => {
                 const value = data.matrix[rowIndex]?.[colIndex] ?? 0;
                 return (
                   <div

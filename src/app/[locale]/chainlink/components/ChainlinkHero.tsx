@@ -463,6 +463,7 @@ export function ChainlinkHero({
   onExport,
 }: ChainlinkHeroProps) {
   const t = useTranslations('chainlink');
+  const tMetrics = useTranslations('ui.oracleMetrics');
   const themeColor = '#375bd2'; // Chainlink 主题色
 
   const currentPrice = price?.price ?? config.marketData.change24hValue ?? 0;
@@ -479,9 +480,6 @@ export function ChainlinkHero({
       return currentPrice * (1 + Math.sin(seed) * 0.5 * 0.1);
     });
   }, [historicalData, currentPrice]);
-
-  const tMetrics = useTranslations('ui.oracleMetrics');
-  const t = useTranslations('chainlink.nodeAnalytics');
 
   // 核心统计指标 - 增加到5个
   const primaryStats: StatItem[] = [

@@ -252,16 +252,12 @@ export function ChainlinkCCIPView() {
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('ccip.overview')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('ccip.overview')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <ArrowRightLeft className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-gray-500">
-                {t('ccip.messages24h')}
-              </span>
+              <span className="text-xs text-gray-500">{t('ccip.messages24h')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {formatNumber(mockCCIPStats.messages24h)}
@@ -270,9 +266,7 @@ export function ChainlinkCCIPView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs text-gray-500">
-                {t('ccip.valueTransferred')}
-              </span>
+              <span className="text-xs text-gray-500">{t('ccip.valueTransferred')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {formatCurrency(mockCCIPStats.valueTransferred24h)}
@@ -281,9 +275,7 @@ export function ChainlinkCCIPView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-4 h-4 text-purple-600" />
-              <span className="text-xs text-gray-500">
-                {t('ccip.avgConfirmTime')}
-              </span>
+              <span className="text-xs text-gray-500">{t('ccip.avgConfirmTime')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">
               {mockCCIPStats.avgConfirmTime}m
@@ -292,9 +284,7 @@ export function ChainlinkCCIPView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Globe className="w-4 h-4 text-amber-600" />
-              <span className="text-xs text-gray-500">
-                {t('ccip.activeChains')}
-              </span>
+              <span className="text-xs text-gray-500">{t('ccip.activeChains')}</span>
             </div>
             <div className="text-xl font-semibold text-gray-900">{mockCCIPStats.activeChains}</div>
           </div>
@@ -302,17 +292,13 @@ export function ChainlinkCCIPView() {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('ccip.supportedChains')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('ccip.supportedChains')}</h3>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
             <div className="col-span-4">{t('ccip.chainName')}</div>
             <div className="col-span-2 text-center">{t('ccip.status')}</div>
             <div className="col-span-3 text-center">{t('ccip.messaging')}</div>
-            <div className="col-span-3 text-center">
-              {t('ccip.tokenTransfer')}
-            </div>
+            <div className="col-span-3 text-center">{t('ccip.tokenTransfer')}</div>
           </div>
           {mockSupportedChains.map((chain, index) => (
             <div
@@ -335,9 +321,7 @@ export function ChainlinkCCIPView() {
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {chain.status === 'active'
-                  ? t('ccip.active')
-                  : t('ccip.comingSoon')}
+                  {chain.status === 'active' ? t('ccip.active') : t('ccip.comingSoon')}
                 </span>
               </div>
               <div className="col-span-3 text-center">
@@ -360,9 +344,7 @@ export function ChainlinkCCIPView() {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('ccip.recentTransactions')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('ccip.recentTransactions')}</h3>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
             <div className="col-span-3">{t('ccip.transactionId')}</div>
@@ -420,16 +402,12 @@ export function ChainlinkCCIPView() {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('ccip.rmnStatus')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('ccip.rmnStatus')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Shield className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-gray-500">
-                {t('ccip.nodesOnline')}
-              </span>
+              <span className="text-xs text-gray-500">{t('ccip.nodesOnline')}</span>
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-xl font-semibold text-gray-900">
@@ -441,9 +419,7 @@ export function ChainlinkCCIPView() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs text-gray-500">
-                {t('ccip.securityScore')}
-              </span>
+              <span className="text-xs text-gray-500">{t('ccip.securityScore')}</span>
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-xl font-semibold text-gray-900">
@@ -477,9 +453,7 @@ export function ChainlinkCCIPView() {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('ccip.about')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('ccip.about')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
           <div className="flex items-start gap-3">
             <ArrowRightLeft className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -511,9 +485,7 @@ export function ChainlinkCCIPView() {
               <span className="text-sm font-medium text-gray-900 block mb-1">
                 {t('ccip.feature3Title')}
               </span>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {t('ccip.feature3Desc')}
-              </p>
+              <p className="text-xs text-gray-600 leading-relaxed">{t('ccip.feature3Desc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">

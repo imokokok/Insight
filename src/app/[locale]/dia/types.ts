@@ -1,6 +1,6 @@
 import { type OracleConfig } from '@/lib/config/oracles';
-import { type PriceData } from '@/types/oracle';
 import { type DIANetworkStats } from '@/lib/oracles/dia';
+import { type PriceData } from '@/types/oracle';
 
 export type DIATabId =
   | 'market'

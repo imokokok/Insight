@@ -1,8 +1,4 @@
-import type {
-  DisputeType,
-  ValidatorData,
-  UMANetworkStats,
-} from './types';
+import type { DisputeType, ValidatorData, UMANetworkStats } from './types';
 
 export class SeededRandom {
   private seed: number;
@@ -189,7 +185,9 @@ export const UMA_MOCK_CONFIG = {
   disputeTypes: (): DisputeType[] => ['price', 'state', 'liquidation', 'other'],
 };
 
-export function generateMockDisputes(seed: number = UMA_MOCK_CONFIG.seed): import('./types').DisputeData[] {
+export function generateMockDisputes(
+  seed: number = UMA_MOCK_CONFIG.seed
+): import('./types').DisputeData[] {
   const rng = new SeededRandom(seed);
   const disputes: import('./types').DisputeData[] = [];
   const now = Date.now();
@@ -242,7 +240,9 @@ export function generateMockTrend<T extends string>(
   return trends;
 }
 
-export function generateMockEarningsTrends(seed: number = UMA_MOCK_CONFIG.seed): { day: string; daily: number; cumulative: number }[] {
+export function generateMockEarningsTrends(
+  seed: number = UMA_MOCK_CONFIG.seed
+): { day: string; daily: number; cumulative: number }[] {
   const rng = new SeededRandom(seed);
   const trends: { day: string; daily: number; cumulative: number }[] = [];
   let cumulative = 0;
@@ -263,7 +263,9 @@ export function generateMockEarningsTrends(seed: number = UMA_MOCK_CONFIG.seed):
   return trends;
 }
 
-export function generateMockDisputeTrends(seed: number = UMA_MOCK_CONFIG.seed): { date: string; filed: number; resolved: number }[] {
+export function generateMockDisputeTrends(
+  seed: number = UMA_MOCK_CONFIG.seed
+): { date: string; filed: number; resolved: number }[] {
   const rng = new SeededRandom(seed);
   const trends = [];
   const now = new Date();

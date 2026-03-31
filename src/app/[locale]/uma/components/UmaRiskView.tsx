@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import {
   Shield,
   AlertTriangle,
@@ -64,7 +65,7 @@ interface MitigationRecommendation {
 const generateRiskTrend = (): RiskTrend[] => {
   const trends: RiskTrend[] = [];
   const baseDate = new Date();
-  
+
   for (let i = 29; i >= 0; i--) {
     const date = new Date(baseDate);
     date.setDate(date.getDate() - i);
@@ -75,7 +76,7 @@ const generateRiskTrend = (): RiskTrend[] => {
       events: i === 5 ? ['Smart contract upgrade'] : i === 15 ? ['Validator set change'] : [],
     });
   }
-  
+
   return trends;
 };
 
@@ -126,7 +127,8 @@ const detailedRiskAnalysis: RiskAnalysis[] = [
       { name: 'Bug Bounty Program', value: 'Active', status: 'low' },
       { name: 'Code Complexity', value: 'Medium', status: 'medium' },
     ],
-    description: 'Smart contracts have undergone comprehensive security audits with active bug bounty programs.',
+    description:
+      'Smart contracts have undergone comprehensive security audits with active bug bounty programs.',
   },
   {
     category: 'Economic Model Risk',
@@ -175,7 +177,8 @@ const mitigationRecommendations: MitigationRecommendation[] = [
     category: 'Governance',
     priority: 'high',
     title: 'Increase Voter Participation',
-    description: 'Implement delegation incentives and improve governance UX to boost participation rates.',
+    description:
+      'Implement delegation incentives and improve governance UX to boost participation rates.',
     actions: [
       'Launch delegation rewards program',
       'Simplify voting interface',
@@ -253,9 +256,9 @@ export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRi
   useEffect(() => {
     setRiskTrend(generateRiskTrend());
     setRiskEvents(generateRiskEvents());
-    
+
     const trend = generateRiskTrend();
-    const lastScores = trend.slice(-7).map(t => t.score);
+    const lastScores = trend.slice(-7).map((t) => t.score);
     const avgScore = lastScores.reduce((a, b) => a + b, 0) / lastScores.length;
     const trendDirection = lastScores[lastScores.length - 1] - lastScores[0];
     setPredictionScore(Math.min(100, Math.max(0, avgScore + trendDirection * 0.5)));
@@ -374,8 +377,8 @@ export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRi
   const circumference = 2 * Math.PI * radius;
   const strokeDasharray = `${riskScore}, 100`;
 
-  const maxTrendScore = Math.max(...riskTrend.map(t => t.score));
-  const minTrendScore = Math.min(...riskTrend.map(t => t.score));
+  const maxTrendScore = Math.max(...riskTrend.map((t) => t.score));
+  const minTrendScore = Math.min(...riskTrend.map((t) => t.score));
 
   return (
     <div className="space-y-8">
@@ -473,7 +476,9 @@ export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRi
                 <div className="grid grid-cols-2 gap-2">
                   {analysis.factors.slice(0, 4).map((factor, idx) => (
                     <div key={idx} className="flex items-center gap-1.5">
-                      <div className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(factor.status)}`} />
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(factor.status)}`}
+                      />
                       <span className="text-xs text-gray-600">{factor.name}</span>
                     </div>
                   ))}
@@ -549,7 +554,10 @@ export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRi
                       <g key={i}>
                         <circle
                           cx={(i / (riskTrend.length - 1)) * 600}
-                          cy={150 - ((t.score - minTrendScore) / (maxTrendScore - minTrendScore + 10)) * 130}
+                          cy={
+                            150 -
+                            ((t.score - minTrendScore) / (maxTrendScore - minTrendScore + 10)) * 130
+                          }
                           r="4"
                           fill="#f59e0b"
                           stroke="white"
@@ -564,8 +572,12 @@ export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRi
             )}
           </svg>
 
-          <div className="absolute left-4 top-2 text-xs text-gray-400">{maxTrendScore.toFixed(0)}</div>
-          <div className="absolute left-4 bottom-2 text-xs text-gray-400">{minTrendScore.toFixed(0)}</div>
+          <div className="absolute left-4 top-2 text-xs text-gray-400">
+            {maxTrendScore.toFixed(0)}
+          </div>
+          <div className="absolute left-4 bottom-2 text-xs text-gray-400">
+            {minTrendScore.toFixed(0)}
+          </div>
 
           <div className="absolute bottom-2 right-4 flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1">
@@ -588,7 +600,9 @@ export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRi
                   {t('uma.risk.prediction') || 'Risk Prediction'}
                 </span>
               </div>
-              <p className="text-xs text-gray-500">{t('uma.risk.disputeSuccessRateDescription', { rate: '0' })}</p>
+              <p className="text-xs text-gray-500">
+                {t('uma.risk.disputeSuccessRateDescription', { rate: '0' })}
+              </p>
             </div>
             <div className="text-right">
               <p className={`text-2xl font-bold ${getScoreColor(predictionScore)}`}>
@@ -634,7 +648,10 @@ export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRi
                             : 'bg-gray-100 text-gray-700'
                       }`}
                     >
-                      {t(`uma.risk.status${event.impact.charAt(0).toUpperCase() + event.impact.slice(1)}`)} {t('uma.crossChain.activeCount')}
+                      {t(
+                        `uma.risk.status${event.impact.charAt(0).toUpperCase() + event.impact.slice(1)}`
+                      )}{' '}
+                      {t('uma.crossChain.activeCount')}
                     </span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded ${
@@ -645,7 +662,9 @@ export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRi
                             : 'bg-red-100 text-red-700'
                       }`}
                     >
-                      {t(`uma.disputeVoting.${event.type === 'resolved' ? 'passed' : event.type === 'warning' ? 'statusInProgress' : 'statusRejected'}`)}
+                      {t(
+                        `uma.disputeVoting.${event.type === 'resolved' ? 'passed' : event.type === 'warning' ? 'statusInProgress' : 'statusRejected'}`
+                      )}
                     </span>
                   </div>
                 </div>

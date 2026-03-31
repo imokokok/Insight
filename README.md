@@ -75,15 +75,15 @@ Insight is a professional oracle data analytics platform that provides comprehen
 
 Create a `.env.local` file in the root directory with the following variables:
 
-| Variable                                    | Description                                   | Required |
-| ------------------------------------------- | --------------------------------------------- | -------- |
-| `NEXT_PUBLIC_SUPABASE_URL`                  | Supabase project URL                          | Yes      |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Supabase anonymous key                        | Yes      |
-| `NEXT_PUBLIC_APP_URL`                       | Application base URL                          | No       |
-| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL                          | No       |
-| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features (default: true)    | No       |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics                       | No       |
-| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring (Speed Insights)| No       |
+| Variable                                    | Description                                    | Required |
+| ------------------------------------------- | ---------------------------------------------- | -------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                  | Supabase project URL                           | Yes      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Supabase anonymous key                         | Yes      |
+| `NEXT_PUBLIC_APP_URL`                       | Application base URL                           | No       |
+| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL                           | No       |
+| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features (default: true)      | No       |
+| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics                        | No       |
+| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring (Speed Insights) | No       |
 
 Example `.env.local`:
 
@@ -99,30 +99,30 @@ NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING=true
 
 ## Available Scripts
 
-| Command                   | Description                              |
-| ------------------------- | ---------------------------------------- |
-| `npm run dev`             | Start development server                 |
-| `npm run build`           | Build for production                      |
-| `npm run start`           | Start production server                  |
-| `npm run lint`            | Run ESLint                               |
-| `npm run lint:fix`        | Run ESLint with auto-fix                 |
-| `npm run format`          | Format code with Prettier                |
-| `npm run format:check`    | Check code formatting with Prettier      |
-| `npm run typecheck`       | Run TypeScript type checking             |
-| `npm run validate`        | Run lint, typecheck, and tests           |
-| `npm run test`            | Run Jest tests                           |
-| `npm run test:watch`      | Run tests in watch mode                  |
-| `npm run test:coverage`   | Run tests with coverage report           |
-| `npm run test:e2e`        | Run Playwright E2E tests                 |
-| `npm run test:e2e:ui`     | Run Playwright E2E tests with UI          |
-| `npm run clean:dev`       | Clean .next and start dev server         |
-| `npm run clean:start`     | Clean .next, build and start server      |
-| `npm run perf:test`       | Run performance tests                    |
-| `npm run perf:quick`     | Run quick performance check              |
-| `npm run i18n:types`      | Generate i18n types                      |
-| `npm run i18n:check`      | Check i18n translations                  |
-| `npm run i18n:validate`   | Validate i18n translations                |
-| `npm run naming:check`    | Check naming conventions                 |
+| Command                 | Description                         |
+| ----------------------- | ----------------------------------- |
+| `npm run dev`           | Start development server            |
+| `npm run build`         | Build for production                |
+| `npm run start`         | Start production server             |
+| `npm run lint`          | Run ESLint                          |
+| `npm run lint:fix`      | Run ESLint with auto-fix            |
+| `npm run format`        | Format code with Prettier           |
+| `npm run format:check`  | Check code formatting with Prettier |
+| `npm run typecheck`     | Run TypeScript type checking        |
+| `npm run validate`      | Run lint, typecheck, and tests      |
+| `npm run test`          | Run Jest tests                      |
+| `npm run test:watch`    | Run tests in watch mode             |
+| `npm run test:coverage` | Run tests with coverage report      |
+| `npm run test:e2e`      | Run Playwright E2E tests            |
+| `npm run test:e2e:ui`   | Run Playwright E2E tests with UI    |
+| `npm run clean:dev`     | Clean .next and start dev server    |
+| `npm run clean:start`   | Clean .next, build and start server |
+| `npm run perf:test`     | Run performance tests               |
+| `npm run perf:quick`    | Run quick performance check         |
+| `npm run i18n:types`    | Generate i18n types                 |
+| `npm run i18n:check`    | Check i18n translations             |
+| `npm run i18n:validate` | Validate i18n translations          |
+| `npm run naming:check`  | Check naming conventions            |
 
 ## Project Structure
 

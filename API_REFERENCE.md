@@ -369,20 +369,17 @@ Batch operations on multiple alerts (enable, disable, delete).
 ```json
 {
   "action": "enable",
-  "alertIds": [
-    "550e8400-e29b-41d4-a716-446655440000",
-    "660e8400-e29b-41d4-a716-446655440001"
-  ]
+  "alertIds": ["550e8400-e29b-41d4-a716-446655440000", "660e8400-e29b-41d4-a716-446655440001"]
 }
 ```
 
 **Actions:**
 
-| Action   | Description                    |
-| -------- | ------------------------------ |
-| `enable` | Activate the specified alerts  |
-| `disable`| Deactivate the specified alerts |
-| `delete` | Delete the specified alerts    |
+| Action    | Description                     |
+| --------- | ------------------------------- |
+| `enable`  | Activate the specified alerts   |
+| `disable` | Deactivate the specified alerts |
+| `delete`  | Delete the specified alerts     |
 
 **Response:**
 
@@ -1299,19 +1296,19 @@ Health check endpoint. Does not require authentication.
 
 **Status Values:**
 
-| Status      | HTTP Code | Description                           |
-| ----------- | --------- | ------------------------------------- |
-| `healthy`   | 200       | All systems operational               |
-| `degraded`  | 200       | Some systems have warnings            |
-| `unhealthy` | 503       | Critical systems failing              |
+| Status      | HTTP Code | Description                |
+| ----------- | --------- | -------------------------- |
+| `healthy`   | 200       | All systems operational    |
+| `degraded`  | 200       | Some systems have warnings |
+| `unhealthy` | 503       | Critical systems failing   |
 
 **Health Check Details:**
 
-| Check        | Status Values                    | Description                |
-| ------------ | -------------------------------- | -------------------------- |
-| `database`   | `ok`, `error`                    | Database connectivity      |
-| `memory`     | `ok`, `warning`, `error`         | Memory usage levels        |
-| `environment`| `ok`, `error`                    | Environment configuration  |
+| Check         | Status Values            | Description               |
+| ------------- | ------------------------ | ------------------------- |
+| `database`    | `ok`, `error`            | Database connectivity     |
+| `memory`      | `ok`, `warning`, `error` | Memory usage levels       |
+| `environment` | `ok`, `error`            | Environment configuration |
 
 **Example Request:**
 
@@ -1383,15 +1380,15 @@ All error responses follow a consistent format:
 
 ### Error Code Reference
 
-| Code                     | HTTP Status | Description                           | Retryable |
-| ------------------------ | ----------- | ------------------------------------- | --------- |
-| `VALIDATION_ERROR`       | 400         | Request validation failed             | No        |
-| `NOT_FOUND`              | 404         | Resource not found                    | No        |
-| `AUTHENTICATION_ERROR`   | 401         | Missing or invalid authentication     | No        |
-| `AUTHORIZATION_ERROR`    | 403         | Insufficient permissions              | No        |
-| `CONFLICT`               | 409         | Resource conflict (e.g., duplicate)  | No        |
-| `RATE_LIMIT_EXCEEDED`    | 429         | Rate limit exceeded                   | Yes       |
-| `INTERNAL_ERROR`         | 500         | Unexpected server error               | Yes       |
+| Code                   | HTTP Status | Description                         | Retryable |
+| ---------------------- | ----------- | ----------------------------------- | --------- |
+| `VALIDATION_ERROR`     | 400         | Request validation failed           | No        |
+| `NOT_FOUND`            | 404         | Resource not found                  | No        |
+| `AUTHENTICATION_ERROR` | 401         | Missing or invalid authentication   | No        |
+| `AUTHORIZATION_ERROR`  | 403         | Insufficient permissions            | No        |
+| `CONFLICT`             | 409         | Resource conflict (e.g., duplicate) | No        |
+| `RATE_LIMIT_EXCEEDED`  | 429         | Rate limit exceeded                 | Yes       |
+| `INTERNAL_ERROR`       | 500         | Unexpected server error             | Yes       |
 
 ### Error Response Examples
 
@@ -1468,12 +1465,12 @@ API endpoints are rate-limited to ensure fair usage using a sliding window algor
 
 ### Rate Limit Presets
 
-| Preset      | Rate Limit  | Window   | Use Case                    |
-| ----------- | ----------- | -------- | --------------------------- |
-| `strict`    | 20 requests | 60 seconds | Sensitive endpoints       |
-| `moderate`  | 60 requests | 60 seconds | User operations           |
-| `api`       | 100 requests| 60 seconds | Default API endpoints     |
-| `lenient`   | 200 requests| 60 seconds | Batch/aggregation requests |
+| Preset     | Rate Limit   | Window     | Use Case                   |
+| ---------- | ------------ | ---------- | -------------------------- |
+| `strict`   | 20 requests  | 60 seconds | Sensitive endpoints        |
+| `moderate` | 60 requests  | 60 seconds | User operations            |
+| `api`      | 100 requests | 60 seconds | Default API endpoints      |
+| `lenient`  | 200 requests | 60 seconds | Batch/aggregation requests |
 
 ### Default Rate Limits
 
@@ -1528,15 +1525,15 @@ Oracle price data is cached for performance using a stale-while-revalidate strat
 
 ### Cache Configuration
 
-| Data Type          | staleTime | gcTime  | Description                           |
-| ------------------ | --------- | ------- | ------------------------------------- |
-| Price Data         | 30s       | 60s     | Current price from oracles            |
-| Historical Prices  | 5min      | 10min   | Historical price data                 |
-| Alert Data         | 15s       | 30s     | User alerts and events                |
-| Airnode Stats      | 60s       | 2min    | API3 Airnode statistics               |
-| DAPI Coverage      | 5min      | 10min   | Decentralized API coverage data       |
-| OHLC Data          | 5min      | 10min   | Open/High/Low/Close candle data       |
-| Quality History    | 5min      | 10min   | Historical quality metrics            |
+| Data Type         | staleTime | gcTime | Description                     |
+| ----------------- | --------- | ------ | ------------------------------- |
+| Price Data        | 30s       | 60s    | Current price from oracles      |
+| Historical Prices | 5min      | 10min  | Historical price data           |
+| Alert Data        | 15s       | 30s    | User alerts and events          |
+| Airnode Stats     | 60s       | 2min   | API3 Airnode statistics         |
+| DAPI Coverage     | 5min      | 10min  | Decentralized API coverage data |
+| OHLC Data         | 5min      | 10min  | Open/High/Low/Close candle data |
+| Quality History   | 5min      | 10min  | Historical quality metrics      |
 
 ### Cache Headers
 
@@ -1551,16 +1548,16 @@ Cache-Control: public, s-maxage=30, stale-while-revalidate=60
 ```typescript
 const CACHE_CONFIG = {
   price: {
-    staleTime: 30000,    // 30 seconds
-    gcTime: 60000,       // 60 seconds
+    staleTime: 30000, // 30 seconds
+    gcTime: 60000, // 60 seconds
   },
   historical: {
-    staleTime: 300000,   // 5 minutes
-    gcTime: 600000,      // 10 minutes
+    staleTime: 300000, // 5 minutes
+    gcTime: 600000, // 10 minutes
   },
   alerts: {
-    staleTime: 15000,    // 15 seconds
-    gcTime: 30000,       // 30 seconds
+    staleTime: 15000, // 15 seconds
+    gcTime: 30000, // 30 seconds
   },
   // ... more configurations
 };
@@ -1570,10 +1567,10 @@ const CACHE_CONFIG = {
 
 The `source` field in responses indicates data origin:
 
-| Source   | Description                            |
-| -------- | -------------------------------------- |
-| `fresh`  | Data fetched directly from oracle      |
-| `cache`  | Data served from cache                 |
+| Source  | Description                       |
+| ------- | --------------------------------- |
+| `fresh` | Data fetched directly from oracle |
+| `cache` | Data served from cache            |
 
 ---
 
@@ -1612,9 +1609,9 @@ Link: <https://api.insight.example.com/api/v2>; rel="successor-version"
 
 ### Supported Versions
 
-| Version | Status      | Deprecation Date |
-| ------- | ----------- | ---------------- |
-| `v1`    | Current     | -                |
+| Version | Status  | Deprecation Date |
+| ------- | ------- | ---------------- |
+| `v1`    | Current | -                |
 
 ### Migration
 

@@ -32,17 +32,19 @@ import {
 } from 'recharts';
 
 import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
-import { useTranslations, useLocale } from '@/i18n';
-import { chartColors } from '@/lib/config/colors';
-import { RISK_BENCHMARKS } from '@/lib/config/riskBenchmarks';
 import {
   useBandRiskMetrics,
   useBandRiskTrend,
   useBandSecurityAuditEvents,
 } from '@/hooks/oracles/band';
+import { useTranslations, useLocale } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
+import { RISK_BENCHMARKS } from '@/lib/config/riskBenchmarks';
 import type { RiskEvent } from '@/lib/oracles/bandProtocol';
 
-function getRiskFactors(t: (key: string, params?: Record<string, string | number | Date>) => string) {
+function getRiskFactors(
+  t: (key: string, params?: Record<string, string | number | Date>) => string
+) {
   return [
     {
       category: t('band.bandProtocol.risk.riskFactors.smartContract.category'),
@@ -117,11 +119,7 @@ export function BandProtocolRiskView() {
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
 
-  const {
-    riskMetrics,
-    isLoading: isLoadingMetrics,
-    error: metricsError,
-  } = useBandRiskMetrics();
+  const { riskMetrics, isLoading: isLoadingMetrics, error: metricsError } = useBandRiskMetrics();
 
   const { riskTrend, isLoading: isLoadingTrend } = useBandRiskTrend({ days: 30 });
 
@@ -219,7 +217,12 @@ export function BandProtocolRiskView() {
         value: riskMetrics.decentralizationScore,
         max: 100,
         description: `Gini: ${riskMetrics.giniCoefficient.toFixed(3)} | Nakamoto: ${riskMetrics.nakamotoCoefficient} | Top 10: ${riskMetrics.top10ValidatorsShare.toFixed(1)}%`,
-        status: riskMetrics.decentralizationScore >= 80 ? 'low' : riskMetrics.decentralizationScore >= 60 ? 'medium' : 'high',
+        status:
+          riskMetrics.decentralizationScore >= 80
+            ? 'low'
+            : riskMetrics.decentralizationScore >= 60
+              ? 'medium'
+              : 'high',
         trend: 'up',
       },
       {
@@ -228,7 +231,12 @@ export function BandProtocolRiskView() {
         value: riskMetrics.securityScore,
         max: 100,
         description: t('band.bandProtocol.risk.metricsDisplay.security.description'),
-        status: riskMetrics.securityScore >= 80 ? 'low' : riskMetrics.securityScore >= 60 ? 'medium' : 'high',
+        status:
+          riskMetrics.securityScore >= 80
+            ? 'low'
+            : riskMetrics.securityScore >= 60
+              ? 'medium'
+              : 'high',
         trend: 'stable',
       },
       {
@@ -237,7 +245,12 @@ export function BandProtocolRiskView() {
         value: riskMetrics.reliabilityScore,
         max: 100,
         description: t('band.bandProtocol.risk.metricsDisplay.reliability.description'),
-        status: riskMetrics.reliabilityScore >= 95 ? 'low' : riskMetrics.reliabilityScore >= 85 ? 'medium' : 'high',
+        status:
+          riskMetrics.reliabilityScore >= 95
+            ? 'low'
+            : riskMetrics.reliabilityScore >= 85
+              ? 'medium'
+              : 'high',
         trend: 'up',
       },
       {
@@ -246,22 +259,26 @@ export function BandProtocolRiskView() {
         value: riskMetrics.transparencyScore,
         max: 100,
         description: t('band.bandProtocol.risk.metricsDisplay.transparency.description'),
-        status: riskMetrics.transparencyScore >= 80 ? 'low' : riskMetrics.transparencyScore >= 60 ? 'medium' : 'high',
+        status:
+          riskMetrics.transparencyScore >= 80
+            ? 'low'
+            : riskMetrics.transparencyScore >= 60
+              ? 'medium'
+              : 'high',
         trend: 'stable',
       },
     ];
   }, [riskMetrics, t]);
 
-  const overallScore = riskMetrics?.overallScore ?? 
+  const overallScore =
+    riskMetrics?.overallScore ??
     metricsDisplay.reduce((sum, m) => sum + m.value, 0) / metricsDisplay.length;
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-        <span className="ml-3 text-gray-600">
-          {t('band.bandProtocol.risk.loading')}
-        </span>
+        <span className="ml-3 text-gray-600">{t('band.bandProtocol.risk.loading')}</span>
       </div>
     );
   }
@@ -270,9 +287,7 @@ export function BandProtocolRiskView() {
     return (
       <div className="flex items-center justify-center py-16">
         <AlertTriangle className="w-8 h-8 text-amber-500" />
-        <span className="ml-3 text-gray-600">
-          {t('band.bandProtocol.risk.loadError')}
-        </span>
+        <span className="ml-3 text-gray-600">{t('band.bandProtocol.risk.loadError')}</span>
       </div>
     );
   }
@@ -332,9 +347,7 @@ export function BandProtocolRiskView() {
           <h2 className="text-lg font-semibold text-gray-900">
             {t('band.bandProtocol.risk.trendTitle')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('band.bandProtocol.risk.trendDesc')}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">{t('band.bandProtocol.risk.trendDesc')}</p>
         </div>
 
         <div className="h-72">
@@ -572,9 +585,7 @@ export function BandProtocolRiskView() {
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">
-                  {t('band.bandProtocol.risk.clickEvent')}
-                </p>
+                <p className="text-sm text-gray-500">{t('band.bandProtocol.risk.clickEvent')}</p>
               </div>
             )}
           </div>

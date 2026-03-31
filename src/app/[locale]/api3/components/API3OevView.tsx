@@ -36,6 +36,25 @@ import { chartColors } from '@/lib/config/colors';
 
 import { type API3OevViewProps } from '../types';
 
+interface TimeRangeButtonProps {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}
+
+function TimeRangeButton({ active, onClick, children }: TimeRangeButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+        active ? 'bg-emerald-50 text-emerald-700' : 'text-gray-500 hover:text-gray-700'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 const oevTrendData = [
   { date: '03-23', value: 420000, auctions: 24 },
   { date: '03-24', value: 380000, auctions: 18 },
@@ -92,6 +111,7 @@ const getStatusColor = (status: string): string => {
 export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
   const t = useTranslations();
   const [selectedTab, setSelectedTab] = useState<'auctions' | 'participants'>('auctions');
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | '90d'>('30d');
   const { auctions } = useAPI3OEVAuctions(10);
 
   const statsCards = [
@@ -171,12 +191,8 @@ export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t('api3.oev.trendAnalysis')}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('api3.oev.trendDesc')}
-            </p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('api3.oev.trendAnalysis')}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t('api3.oev.trendDesc')}</p>
           </div>
           <div className="flex items-center gap-2">
             {(['24h', '7d', '30d', '90d'] as const).map((range) => (
@@ -289,52 +305,54 @@ export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {isLoading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <tr key={i}>
-                        {Array.from({ length: 6 }).map((_, j) => (
-                          <td key={j} className="px-4 py-3">
-                            <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                  {isLoading
+                    ? Array.from({ length: 5 }).map((_, i) => (
+                        <tr key={i}>
+                          {Array.from({ length: 6 }).map((_, j) => (
+                            <td key={j} className="px-4 py-3">
+                              <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    : displayAuctions.slice(0, 8).map((auction) => (
+                        <tr key={auction.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-medium text-gray-900">
+                              {auction.dappName}
+                            </span>
                           </td>
-                        ))}
-                      </tr>
-                    ))
-                  ) : (
-                    displayAuctions.slice(0, 8).map((auction) => (
-                      <tr key={auction.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3">
-                          <span className="text-sm font-medium text-gray-900">{auction.dappName}</span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-sm text-gray-600">{auction.dapiName}</span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-sm font-medium text-emerald-600">
-                            {formatCurrency(auction.auctionAmount)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-sm text-gray-500 font-mono">{auction.winner}</span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(auction.status)}`}
-                          >
-                            {getStatusIcon(auction.status)}
-                            {auction.status.charAt(0).toUpperCase() + auction.status.slice(1)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-sm text-gray-500">
-                            {new Date(auction.timestamp).toLocaleTimeString('zh-CN', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                          <td className="px-4 py-3">
+                            <span className="text-sm text-gray-600">{auction.dapiName}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-medium text-emerald-600">
+                              {formatCurrency(auction.auctionAmount)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-sm text-gray-500 font-mono">
+                              {auction.winner}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(auction.status)}`}
+                            >
+                              {getStatusIcon(auction.status)}
+                              {auction.status.charAt(0).toUpperCase() + auction.status.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-sm text-gray-500">
+                              {new Date(auction.timestamp).toLocaleTimeString('zh-CN', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
                 </tbody>
               </table>
             </div>
@@ -345,51 +363,51 @@ export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white border border-gray-100 rounded-lg p-4">
               <h3 className="text-sm font-medium text-gray-700 mb-4">
-              {t('api3.oev.participants.leaderboard')}
-            </h3>
+                {t('api3.oev.participants.leaderboard')}
+              </h3>
               <div className="space-y-3">
-                {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="h-12 bg-gray-100 rounded animate-pulse" />
-                  ))
-                ) : (
-                  oevStats?.participantList.map((participant, index) => (
-                    <div
-                      key={participant.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            index === 0
-                              ? 'bg-amber-100 text-amber-700'
-                              : index === 1
-                                ? 'bg-gray-200 text-gray-700'
-                                : index === 2
-                                  ? 'bg-orange-100 text-orange-700'
-                                  : 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {index + 1}
+                {isLoading
+                  ? Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="h-12 bg-gray-100 rounded animate-pulse" />
+                    ))
+                  : oevStats?.participantList.map((participant, index) => (
+                      <div
+                        key={participant.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                              index === 0
+                                ? 'bg-amber-100 text-amber-700'
+                                : index === 1
+                                  ? 'bg-gray-200 text-gray-700'
+                                  : index === 2
+                                    ? 'bg-orange-100 text-orange-700'
+                                    : 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            {index + 1}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{participant.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {participant.type === 'searcher'
+                                ? t('api3.oev.participants.searcher')
+                                : t('api3.oev.participants.dapp')}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{participant.name}</p>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-emerald-600">
+                            {formatCurrency(participant.totalVolume)}
+                          </p>
                           <p className="text-xs text-gray-500">
-                            {participant.type === 'searcher' ? t('api3.oev.participants.searcher') : t('api3.oev.participants.dapp')}
+                            {participant.auctionsWon} {t('api3.oev.wins') || 'wins'}
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-emerald-600">
-                          {formatCurrency(participant.totalVolume)}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {participant.auctionsWon} {t('api3.oev.wins') || 'wins'}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
+                    ))}
               </div>
             </div>
 
@@ -432,12 +450,8 @@ export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
 
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.oev.auctionProcess')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('api3.oev.auctionDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('api3.oev.auctionProcess')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('api3.oev.auctionDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -492,7 +506,7 @@ export function API3OevView({ oevStats, isLoading }: API3OevViewProps) {
           </h3>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
             {t('api3.oev.info.description') ||
-              'OEV (Oracle Extractable Value) Network is API3\'s solution for capturing and redistributing value from oracle updates. Unlike traditional MEV that benefits only miners/validators, OEV Network ensures that dApps and their users receive the value generated by oracle price movements.'}
+              "OEV (Oracle Extractable Value) Network is API3's solution for capturing and redistributing value from oracle updates. Unlike traditional MEV that benefits only miners/validators, OEV Network ensures that dApps and their users receive the value generated by oracle price movements."}
           </p>
           <a
             href="https://docs.api3.org/oev-network/"

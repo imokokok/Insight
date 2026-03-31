@@ -28,17 +28,18 @@ export function API3DeveloperView() {
   const renderContent = () => {
     switch (activeTab) {
       case 'api-docs':
-        return <API3ApiDocs locale={typeof window !== 'undefined' ? document.documentElement.lang : 'en'} />;
+        return (
+          <API3ApiDocs
+            locale={typeof window !== 'undefined' ? document.documentElement.lang : 'en'}
+          />
+        );
       case 'guide':
         return <API3IntegrationGuide />;
       case 'sdk':
         return <API3SdkDownloads />;
       case 'testnet':
         return (
-          <API3TestnetSwitch
-            currentNetwork={currentNetwork}
-            onNetworkChange={setCurrentNetwork}
-          />
+          <API3TestnetSwitch currentNetwork={currentNetwork} onNetworkChange={setCurrentNetwork} />
         );
       default:
         return null;
@@ -48,12 +49,8 @@ export function API3DeveloperView() {
   return (
     <div className="space-y-6">
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">
-          {t('api3.developerView.title')}
-        </h2>
-        <p className="text-sm text-gray-500 mt-1">
-          {t('api3.developerView.description')}
-        </p>
+        <h2 className="text-lg font-semibold text-gray-900">{t('api3.developerView.title')}</h2>
+        <p className="text-sm text-gray-500 mt-1">{t('api3.developerView.description')}</p>
       </div>
 
       <div className="border-b border-gray-200">

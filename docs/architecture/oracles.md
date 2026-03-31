@@ -16,18 +16,18 @@ Insight 平台支持多种区块链预言机提供商，采用统一的抽象层
 
 ### 支持的预言机
 
-| 预言机        | 标识符          | 文件位置                      | 主要链                      | 特点           |
-| ------------- | --------------- | ---------------------------- | --------------------------- | -------------- |
-| Chainlink     | `chainlink`     | `src/lib/oracles/chainlink.ts` | Ethereum, Arbitrum, Polygon | 市场领导者     |
-| Band Protocol | `band_protocol` | `src/lib/oracles/bandProtocol.ts` | Cosmos, Ethereum            | 跨链数据       |
-| Pyth Network  | `pyth`          | `src/lib/oracles/pythNetwork.ts` | Solana, Ethereum            | 低延迟金融数据 |
-| API3          | `api3`          | `src/lib/oracles/api3.ts` | Ethereum, Polygon           | 第一方预言机   |
+| 预言机        | 标识符           | 文件位置                          | 主要链                      | 特点           |
+| ------------- | ---------------- | --------------------------------- | --------------------------- | -------------- |
+| Chainlink     | `chainlink`      | `src/lib/oracles/chainlink.ts`    | Ethereum, Arbitrum, Polygon | 市场领导者     |
+| Band Protocol | `band-protocol`  | `src/lib/oracles/bandProtocol.ts` | Cosmos, Ethereum            | 跨链数据       |
+| Pyth Network  | `pyth`          | `src/lib/oracles/pythNetwork.ts`  | Solana, Ethereum            | 低延迟金融数据 |
+| API3          | `api3`          | `src/lib/oracles/api3.ts`         | Ethereum, Polygon           | 第一方预言机   |
 | UMA           | `uma`           | `src/lib/oracles/uma/` (完整模块) | Ethereum                    | 乐观预言机     |
-| RedStone      | `redstone`      | `src/lib/oracles/redstone.ts` | Arbitrum, Ethereum          | 高效数据推送   |
-| DIA           | `dia`           | `src/lib/oracles/dia.ts` | 多链                        | 透明数据源     |
-| Tellor        | `tellor`        | `src/lib/oracles/tellor.ts` | Ethereum                    | 去中心化报告   |
-| Chronicle     | `chronicle`     | `src/lib/oracles/chronicle.ts` | Ethereum                    | MakerDAO 生态  |
-| WINkLink      | `winklink`      | `src/lib/oracles/winklink.ts` | Tron                        | 波场生态       |
+| RedStone      | `redstone`      | `src/lib/oracles/redstone.ts`     | Arbitrum, Ethereum          | 高效数据推送   |
+| DIA           | `dia`           | `src/lib/oracles/dia.ts`          | 多链                        | 透明数据源     |
+| Tellor        | `tellor`        | `src/lib/oracles/tellor.ts`       | Ethereum                    | 去中心化报告   |
+| Chronicle     | `chronicle`     | `src/lib/oracles/chronicle.ts`    | Ethereum                    | MakerDAO 生态  |
+| WINkLink      | `winklink`      | `src/lib/oracles/winklink.ts`     | Tron                        | 波场生态       |
 
 ## 架构图
 
@@ -129,7 +129,7 @@ classDiagram
     }
 
     class BandProtocolClient {
-        +name: OracleProvider.BAND_PROTOCOL
+        +name: OracleProvider.BAND
         +supportedChains: Blockchain[]
         +getPrice(symbol, chain): Promise~PriceData~
         +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
@@ -291,7 +291,7 @@ export class OracleClientFactory {
   static getAllClients(): Record<OracleProvider, BaseOracleClient> {
     const providers = [
       OracleProvider.CHAINLINK,
-      OracleProvider.BAND_PROTOCOL,
+      OracleProvider.BAND,
       OracleProvider.UMA,
       OracleProvider.PYTH,
       OracleProvider.API3,
@@ -314,7 +314,7 @@ export class OracleClientFactory {
     switch (provider) {
       case OracleProvider.CHAINLINK:
         return new ChainlinkClient(this.config);
-      case OracleProvider.BAND_PROTOCOL:
+      case OracleProvider.BAND:
         return new BandProtocolClient(this.config);
       case OracleProvider.UMA:
         return new UMAClient(this.config);
@@ -433,11 +433,7 @@ import type { PriceData } from '@/types/oracle';
 
 export class UMAClient extends BaseOracleClient {
   name = OracleProvider.UMA;
-  supportedChains = [
-    Blockchain.ETHEREUM,
-    Blockchain.ARBITRUM,
-    Blockchain.POLYGON,
-  ];
+  supportedChains = [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON];
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     return this.fetchPriceWithDatabase(symbol, chain, () => {
@@ -611,10 +607,7 @@ import type { PriceData } from '@/types/oracle';
 
 export class NewOracleClient extends BaseOracleClient {
   name = OracleProvider.NEW_ORACLE;
-  supportedChains = [
-    Blockchain.ETHEREUM,
-    Blockchain.POLYGON,
-  ];
+  supportedChains = [Blockchain.ETHEREUM, Blockchain.POLYGON];
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     return this.fetchPriceWithDatabase(symbol, chain, () => {

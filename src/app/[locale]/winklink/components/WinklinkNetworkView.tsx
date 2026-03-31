@@ -1,6 +1,17 @@
 'use client';
 
-import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown, Database, Shield, Globe, Zap } from 'lucide-react';
+import {
+  Activity,
+  Server,
+  Clock,
+  CheckCircle,
+  TrendingUp,
+  TrendingDown,
+  Database,
+  Shield,
+  Globe,
+  Zap,
+} from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
@@ -11,7 +22,12 @@ export function WinklinkNetworkView({ config, networkStats }: WinklinkNetworkVie
 
   const networkData = networkStats || config.networkData;
 
-  const networkStatsList: NetworkStat[] = [
+  const networkStatsList: Array<{
+    label: string;
+    value: string;
+    change?: string;
+    icon: React.ReactNode;
+  }> = [
     {
       label: t('winklink.network.activeNodes'),
       value: '50+',

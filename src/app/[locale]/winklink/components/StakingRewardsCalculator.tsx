@@ -215,7 +215,9 @@ export function StakingRewardsCalculator({ winPrice }: StakingRewardsCalculatorP
         <div className="text-xs text-gray-400 leading-relaxed space-y-1">
           <p>{t('winklink.staking.calculatorDisclaimer')}</p>
           <p className="flex items-center gap-1">
-            <span className={`w-1.5 h-1.5 rounded-full ${isPriceLoading ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${isPriceLoading ? 'bg-amber-400' : 'bg-emerald-400'}`}
+            />
             {isPriceLoading
               ? t('winklink.staking.priceLoadingMsg')
               : t('winklink.staking.priceFromApi', { price: effectivePrice.toFixed(8) })}

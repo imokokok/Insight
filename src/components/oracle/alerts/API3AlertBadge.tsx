@@ -5,7 +5,11 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Bell, X, CheckCircle, AlertTriangle, AlertCircle, Info, ChevronRight } from 'lucide-react';
 
 import type { API3Alert } from '@/lib/oracles/api3';
-import { formatAlertTime, getAlertSeverityColor, getAlertSeverityBgColor } from '@/lib/oracles/api3AlertDetection';
+import {
+  formatAlertTime,
+  getAlertSeverityColor,
+  getAlertSeverityBgColor,
+} from '@/lib/oracles/api3AlertDetection';
 import { cn } from '@/lib/utils';
 
 interface API3AlertBadgeProps {
@@ -195,7 +199,12 @@ function AlertBadgeItem({ alert, onMarkRead, onResolve, onClose }: AlertBadgeIte
               {alert.title}
             </p>
             {!alert.isRead && (
-              <span className={cn('flex-shrink-0 w-2 h-2 rounded-full', getAlertSeverityBgColor(alert.severity))} />
+              <span
+                className={cn(
+                  'flex-shrink-0 w-2 h-2 rounded-full',
+                  getAlertSeverityBgColor(alert.severity)
+                )}
+              />
             )}
           </div>
           <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{alert.message}</p>

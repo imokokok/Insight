@@ -375,12 +375,27 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: t('hero.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('hero.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: t('hero.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('hero.low'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: t('hero.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('hero.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     return { label: t('hero.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
   }, [networkStats, t]);
 
@@ -496,7 +511,11 @@ function QuickActions({
     { icon: <Bell className="w-3.5 h-3.5" />, label: t('hero.priceAlert'), onClick: undefined },
     { icon: <Plus className="w-3.5 h-3.5" />, label: t('hero.addMonitor'), onClick: undefined },
     { icon: <FileText className="w-3.5 h-3.5" />, label: t('hero.apiDocs'), onClick: undefined },
-    { icon: <Layers className="w-3.5 h-3.5" />, label: t('hero.switchNetwork'), onClick: undefined },
+    {
+      icon: <Layers className="w-3.5 h-3.5" />,
+      label: t('hero.switchNetwork'),
+      onClick: undefined,
+    },
   ];
 
   const displayActions = actions || defaultActions;
@@ -527,8 +546,16 @@ function LatestUpdates({
 }) {
   const t = useTranslations('tellor');
   const defaultUpdates = [
-    { type: 'price' as const, text: 'TRB价格更新: $35.42 (+2.3%)', time: `2${t('hero.minutesAgo')}` },
-    { type: 'node' as const, text: '新报告者加入: 0x7a8b...3c4d', time: `5${t('hero.minutesAgo')}` },
+    {
+      type: 'price' as const,
+      text: 'TRB价格更新: $35.42 (+2.3%)',
+      time: `2${t('hero.minutesAgo')}`,
+    },
+    {
+      type: 'node' as const,
+      text: '新报告者加入: 0x7a8b...3c4d',
+      time: `5${t('hero.minutesAgo')}`,
+    },
     { type: 'feed' as const, text: '数据喂价更新', time: `8${t('hero.minutesAgo')}` },
     { type: 'system' as const, text: '系统维护完成', time: `15${t('hero.minutesAgo')}` },
   ];
@@ -538,7 +565,9 @@ function LatestUpdates({
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">{t('hero.latestUpdates')}:</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">
+          {t('hero.latestUpdates')}:
+        </span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {displayUpdates.map((update, index) => (

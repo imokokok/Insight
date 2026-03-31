@@ -337,12 +337,8 @@ export function RiskAssessmentDashboard({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">
-            Risk Assessment Dashboard
-          </h3>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Real-time risk monitoring for {symbol}
-          </p>
+          <h3 className="text-base font-semibold text-gray-900">Risk Assessment Dashboard</h3>
+          <p className="text-sm text-gray-500 mt-0.5">Real-time risk monitoring for {symbol}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
@@ -385,19 +381,14 @@ export function RiskAssessmentDashboard({
                 }}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Risk score (0-100, lower is better)
-            </p>
+            <p className="text-xs text-gray-500 mt-2">Risk score (0-100, lower is better)</p>
           </div>
 
           <div className="mt-4 h-48">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#e5e7eb" />
-                <PolarAngleAxis
-                  dataKey="factor"
-                  tick={{ fontSize: 9, fill: '#6b7280' }}
-                />
+                <PolarAngleAxis dataKey="factor" tick={{ fontSize: 9, fill: '#6b7280' }} />
                 <PolarRadiusAxis
                   angle={30}
                   domain={[0, 100]}
@@ -439,8 +430,8 @@ export function RiskAssessmentDashboard({
                               factor.status === 'good'
                                 ? '#10b981'
                                 : factor.status === 'warning'
-                                ? '#f59e0b'
-                                : '#ef4444',
+                                  ? '#f59e0b'
+                                  : '#ef4444',
                           }}
                         />
                       </div>
@@ -449,18 +440,14 @@ export function RiskAssessmentDashboard({
                       </span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1 ml-6">
-                    {factor.description}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1 ml-6">{factor.description}</p>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h4 className="text-sm font-medium text-gray-900 mb-4">
-              Risk Score Trend (24h)
-            </h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-4">Risk Score Trend (24h)</h4>
             <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={riskHistory} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
@@ -471,11 +458,7 @@ export function RiskAssessmentDashboard({
                     tick={{ fontSize: 10 }}
                     interval="preserveStartEnd"
                   />
-                  <YAxis
-                    stroke="#9ca3af"
-                    tick={{ fontSize: 10 }}
-                    domain={[0, 100]}
-                  />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} domain={[0, 100]} />
                   <RechartsTooltip
                     contentStyle={{
                       backgroundColor: 'white',
@@ -513,8 +496,8 @@ export function RiskAssessmentDashboard({
                   alert.type === 'critical'
                     ? 'bg-red-50'
                     : alert.type === 'warning'
-                    ? 'bg-amber-50'
-                    : 'bg-blue-50'
+                      ? 'bg-amber-50'
+                      : 'bg-blue-50'
                 }`}
               >
                 {alert.type === 'critical' ? (

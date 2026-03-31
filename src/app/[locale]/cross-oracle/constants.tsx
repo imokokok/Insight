@@ -521,9 +521,7 @@ export const exportToJSON = (
   validPrices: number[],
   t?: (key: string) => string | Record<string, string>
 ) => {
-  const fieldNames = t
-    ? (t('crossOracle.export.jsonFields') as Record<string, string>)
-    : null;
+  const fieldNames = t ? (t('crossOracle.export.jsonFields') as Record<string, string>) : null;
   const exportData = priceData.map((data) => {
     let deviationPercent: number | null = null;
     if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {

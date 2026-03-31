@@ -2,7 +2,14 @@
 
 import { useState, useMemo, useCallback } from 'react';
 
-import { AlertTriangle, AlertCircle, ArrowUpDown, CheckCircle2, RefreshCw, XCircle } from 'lucide-react';
+import {
+  AlertTriangle,
+  AlertCircle,
+  ArrowUpDown,
+  CheckCircle2,
+  RefreshCw,
+  XCircle,
+} from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';

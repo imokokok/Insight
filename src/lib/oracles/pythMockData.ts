@@ -101,8 +101,16 @@ export function generatePriceSources(): PriceSource[] {
  */
 export function generatePerformanceMetrics(): PerformanceMetric[] {
   return [
-    { label: '数据提交次数', value: Math.floor(Math.random() * 10000 + 5000), change: Math.random() * 10 - 5 },
-    { label: '平均响应时间', value: Math.floor(Math.random() * 100 + 50), change: -(Math.random() * 5) },
+    {
+      label: '数据提交次数',
+      value: Math.floor(Math.random() * 10000 + 5000),
+      change: Math.random() * 10 - 5,
+    },
+    {
+      label: '平均响应时间',
+      value: Math.floor(Math.random() * 100 + 50),
+      change: -(Math.random() * 5),
+    },
     { label: '成功率', value: 99 + Math.random() * 0.9, change: Math.random() * 0.5 },
     { label: '活跃天数', value: Math.floor(Math.random() * 300 + 100), change: 1 },
   ];

@@ -22,8 +22,8 @@ import {
 
 import { useTranslations } from '@/i18n';
 
-import { type WinklinkVRFViewProps, type VRFRequest, type VRFUseCase } from '../types';
 import { BASE_TIMESTAMP } from '../constants';
+import { type WinklinkVRFViewProps, type VRFRequest, type VRFUseCase } from '../types';
 
 import { WinklinkDataTable } from './WinklinkDataTable';
 
@@ -62,8 +62,7 @@ const VRF_USE_CASES: VRFUseCase[] = [
     id: '4',
     name: 'Tournament Seeding',
     category: 'Esports',
-    description:
-      'Fair tournament bracket generation and matchmaking with verifiable randomness',
+    description: 'Fair tournament bracket generation and matchmaking with verifiable randomness',
     usageCount: 320000,
     reliability: 99.92,
     avgLatency: 100,
@@ -542,7 +541,8 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
                   <p className="text-sm text-red-600 mt-2">{verificationResult.error}</p>
                   <div className="mt-3 pt-3 border-t border-red-100">
                     <p className="text-xs text-gray-500">
-                      <span className="font-medium text-gray-700">{t('winklink.vrf.tip')}:</span> {t('winklink.vrf.invalidRequestIdHint')}
+                      <span className="font-medium text-gray-700">{t('winklink.vrf.tip')}:</span>{' '}
+                      {t('winklink.vrf.invalidRequestIdHint')}
                     </p>
                   </div>
                 </div>
@@ -588,13 +588,15 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
         </div>
         <WinklinkDataTable
           data={vrfData.recentRequests as Record<string, unknown>[]}
-          columns={requestColumns as unknown as Array<{
-            key: string;
-            header: string;
-            width?: string;
-            sortable?: boolean;
-            render?: (item: Record<string, unknown>) => React.ReactNode;
-          }>}
+          columns={
+            requestColumns as unknown as Array<{
+              key: string;
+              header: string;
+              width?: string;
+              sortable?: boolean;
+              render?: (item: Record<string, unknown>) => React.ReactNode;
+            }>
+          }
           isLoading={isLoading}
         />
       </div>
@@ -649,9 +651,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">
-                {t('winklink.vrf.whatIsVrf')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('winklink.vrf.whatIsVrf')}:</span>{' '}
               {t('winklink.vrf.whatIsVrfDesc')}
             </p>
             <p>
@@ -663,15 +663,11 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
           </div>
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">
-                {t('winklink.vrf.verifiability')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('winklink.vrf.verifiability')}:</span>{' '}
               {t('winklink.vrf.verifiabilityDesc')}
             </p>
             <p>
-              <span className="font-medium text-gray-900">
-                {t('winklink.vrf.tamperProof')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('winklink.vrf.tamperProof')}:</span>{' '}
               {t('winklink.vrf.tamperProofDesc')}
             </p>
           </div>

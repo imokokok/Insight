@@ -178,8 +178,7 @@ export default function ChartContainer({
     setZoomRange(null);
   }, [setZoomRange]);
 
-  const handleExport = useCallback(() => {
-  }, []);
+  const handleExport = useCallback(() => {}, []);
 
   const showChartToolbar = CHARTS_WITH_TYPE_SUPPORT.includes(activeChart);
   const useResponsiveContainer = CHARTS_WITH_RESPONSIVE_CONTAINER.includes(activeChart);

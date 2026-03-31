@@ -364,29 +364,21 @@ export function DIADataFeedsView() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-600">
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">
-                {t('dia.dataFeeds.confidence')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('dia.dataFeeds.confidence')}:</span>{' '}
               {t('dia.dataFeeds.confidenceDesc')}
             </p>
             <p>
-              <span className="font-medium text-gray-900">
-                {t('dia.dataFeeds.multiChain')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('dia.dataFeeds.multiChain')}:</span>{' '}
               {t('dia.dataFeeds.multiChainDesc')}
             </p>
           </div>
           <div>
             <p className="mb-2">
-              <span className="font-medium text-gray-900">
-                {t('dia.dataFeeds.transparency')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('dia.dataFeeds.transparency')}:</span>{' '}
               {t('dia.dataFeeds.transparencyDesc')}
             </p>
             <p>
-              <span className="font-medium text-gray-900">
-                {t('dia.dataFeeds.customFeeds')}:
-              </span>{' '}
+              <span className="font-medium text-gray-900">{t('dia.dataFeeds.customFeeds')}:</span>{' '}
               {t('dia.dataFeeds.customFeedsDesc')}
             </p>
           </div>

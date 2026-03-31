@@ -110,7 +110,7 @@ export function getDataConfidence(dataType: keyof MockDataStatus): number {
 export function formatMockDataWarning(dataType: keyof MockDataStatus): string | null {
   const status = MOCK_DATA_STATUS[dataType];
   if (!status.isMock) return null;
-  
+
   return `⚠️ ${dataType} data is simulated (${status.reason})`;
 }
 
@@ -121,9 +121,9 @@ export function getOverallMockDataStatus(): {
   mockPercentage: number;
 } {
   const total = Object.keys(MOCK_DATA_STATUS).length;
-  const mock = Object.values(MOCK_DATA_STATUS).filter(s => s.isMock).length;
+  const mock = Object.values(MOCK_DATA_STATUS).filter((s) => s.isMock).length;
   const real = total - mock;
-  
+
   return {
     total,
     mock,

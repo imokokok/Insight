@@ -2,9 +2,13 @@
 
 import { useState } from 'react';
 
-import { useTranslations } from '@/i18n';
-import type { TrendPeriod, CrossChainTrend, CrossChainComparison } from '@/lib/oracles/bandProtocol';
 import { useBandCrossChainTrend, useBandCrossChainComparison } from '@/hooks/oracles/band';
+import { useTranslations } from '@/i18n';
+import type {
+  TrendPeriod,
+  CrossChainTrend,
+  CrossChainComparison,
+} from '@/lib/oracles/bandProtocol';
 
 import { type BandProtocolCrossChainViewProps } from '../types';
 
@@ -51,9 +55,15 @@ function TrendChart({ data, isLoading }: { data: CrossChainTrend[]; isLoading: b
             >
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                 <div>{item.date}</div>
-                <div>{t('band.bandProtocol.crossChain.requests')}: {item.requestCount.toLocaleString()}</div>
-                <div>{t('band.bandProtocol.crossChain.successRate')}: {successRate.toFixed(1)}%</div>
-                <div>{t('band.bandProtocol.crossChain.latency')}: {item.avgLatency}ms</div>
+                <div>
+                  {t('band.bandProtocol.crossChain.requests')}: {item.requestCount.toLocaleString()}
+                </div>
+                <div>
+                  {t('band.bandProtocol.crossChain.successRate')}: {successRate.toFixed(1)}%
+                </div>
+                <div>
+                  {t('band.bandProtocol.crossChain.latency')}: {item.avgLatency}ms
+                </div>
               </div>
             </div>
             {index % Math.ceil(data.length / 7) === 0 && (
@@ -132,9 +142,7 @@ function ComparisonCard({
         <p className="text-sm text-gray-500 mb-1">
           {t('band.bandProtocol.crossChain.requestChange')}
         </p>
-        <p className="text-xl font-bold text-gray-900">
-          {formatChange(comparison.changePercent)}
-        </p>
+        <p className="text-xl font-bold text-gray-900">{formatChange(comparison.changePercent)}</p>
       </div>
       <div className="bg-gray-50 rounded-lg p-4">
         <p className="text-sm text-gray-500 mb-1">

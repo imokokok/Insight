@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import {
   ArrowUpDown,
   ArrowUp,
@@ -377,15 +378,19 @@ export function ChronicleCrossChainView({
                   <td className="py-3 px-4 text-center">
                     <div className="flex items-center justify-center gap-1">
                       {item.status === 'active' ? (
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  ) : item.status === 'warning' ? (
-                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-red-500" />
-                  )}
-                  <span className="text-sm text-gray-600 capitalize">
-                    {item.status === 'active' ? t('chronicle.status.active') : item.status === 'warning' ? t('chronicle.warning') : t('chronicle.status.inactive')}
-                  </span>
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                      ) : item.status === 'warning' ? (
+                        <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-red-500" />
+                      )}
+                      <span className="text-sm text-gray-600 capitalize">
+                        {item.status === 'active'
+                          ? t('chronicle.status.active')
+                          : item.status === 'warning'
+                            ? t('chronicle.warning')
+                            : t('chronicle.status.inactive')}
+                      </span>
                     </div>
                   </td>
                 </tr>
@@ -491,15 +496,11 @@ export function ChronicleCrossChainView({
                 </div>
                 <div className="flex items-center gap-6 text-sm">
                   <div className="text-right">
-                    <p className="text-gray-500">
-                      {t('chronicle.crossChain.blockTime')}
-                    </p>
+                    <p className="text-gray-500">{t('chronicle.crossChain.blockTime')}</p>
                     <p className="font-medium text-gray-900">{item.avgBlockTime}s</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-gray-500">
-                      {t('chronicle.crossChain.finality')}
-                    </p>
+                    <p className="text-gray-500">{t('chronicle.crossChain.finality')}</p>
                     <p className="font-medium text-gray-900">{item.finalityTime}s</p>
                   </div>
                 </div>
@@ -577,17 +578,13 @@ export function ChronicleCrossChainView({
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">
-                    {t('chronicle.crossChain.totalTxns')}
-                  </p>
+                  <p className="text-gray-500">{t('chronicle.crossChain.totalTxns')}</p>
                   <p className="font-medium text-gray-900">
                     {bridge.totalTransactions.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500">
-                    {t('chronicle.crossChain.avgDelay')}
-                  </p>
+                  <p className="text-gray-500">{t('chronicle.crossChain.avgDelay')}</p>
                   <p className="font-medium text-gray-900">{bridge.avgDelay}s</p>
                 </div>
               </div>
@@ -606,33 +603,25 @@ export function ChronicleCrossChainView({
       {/* 统计摘要 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-4 bg-gray-50 rounded-lg">
         <div>
-          <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.crossChain.activeChains')}
-          </p>
+          <p className="text-sm text-gray-500 mb-1">{t('chronicle.crossChain.activeChains')}</p>
           <p className="text-2xl font-semibold text-gray-900">
             {data.prices.filter((p) => p.status === 'active').length}
           </p>
         </div>
         <div>
-          <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.crossChain.maxDeviation')}
-          </p>
+          <p className="text-sm text-gray-500 mb-1">{t('chronicle.crossChain.maxDeviation')}</p>
           <p className="text-2xl font-semibold text-gray-900">
             {Math.max(...data.prices.map((p) => Math.abs(p.deviation))).toFixed(3)}%
           </p>
         </div>
         <div>
-          <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.crossChain.activeBridges')}
-          </p>
+          <p className="text-sm text-gray-500 mb-1">{t('chronicle.crossChain.activeBridges')}</p>
           <p className="text-2xl font-semibold text-gray-900">
             {data.bridges.filter((b) => b.status === 'healthy').length}
           </p>
         </div>
         <div>
-          <p className="text-sm text-gray-500 mb-1">
-            {t('chronicle.crossChain.totalBridgeTxns')}
-          </p>
+          <p className="text-sm text-gray-500 mb-1">{t('chronicle.crossChain.totalBridgeTxns')}</p>
           <p className="text-2xl font-semibold text-gray-900">
             {data.bridges.reduce((sum, b) => sum + b.totalTransactions, 0).toLocaleString()}
           </p>

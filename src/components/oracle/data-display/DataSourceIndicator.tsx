@@ -80,14 +80,14 @@ export function DataSourceIndicator({
   if (compact) {
     return (
       <div className={`inline-flex items-center gap-2 ${className}`}>
-        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getSourceColor(info.source)}`}>
+        <div
+          className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getSourceColor(info.source)}`}
+        >
           <span className={`w-1.5 h-1.5 rounded-full ${getSourceDotColor(info.source)}`} />
           {getSourceLabel(info.source)}
         </div>
         {info.blockHeight && (
-          <span className="text-xs text-gray-500">
-            #{formatBlockHeight(info.blockHeight)}
-          </span>
+          <span className="text-xs text-gray-500">#{formatBlockHeight(info.blockHeight)}</span>
         )}
       </div>
     );
@@ -100,7 +100,9 @@ export function DataSourceIndicator({
           <Database className="w-4 h-4 text-gray-500" />
           <span className="text-sm font-medium text-gray-700">{t('tellor.dataSource')}</span>
         </div>
-        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getSourceColor(info.source)}`}>
+        <div
+          className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getSourceColor(info.source)}`}
+        >
           <span className={`w-1.5 h-1.5 rounded-full ${getSourceDotColor(info.source)}`} />
           {getSourceLabel(info.source)}
         </div>
@@ -114,7 +116,9 @@ export function DataSourceIndicator({
               {showLabels && <span>{t('tellor.tellorLayer.overview.blockHeight')}</span>}
             </div>
             <div className="flex items-center gap-1">
-              <span className="font-medium text-gray-900">#{formatBlockHeight(info.blockHeight)}</span>
+              <span className="font-medium text-gray-900">
+                #{formatBlockHeight(info.blockHeight)}
+              </span>
               {links.blockUrl && (
                 <a
                   href={links.blockUrl}

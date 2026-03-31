@@ -156,7 +156,9 @@ export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
 
         {/* 质押计算器 */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-base font-medium text-gray-900 mb-4">{t('staking.calculator.title')}</h3>
+          <h3 className="text-base font-medium text-gray-900 mb-4">
+            {t('staking.calculator.title')}
+          </h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-gray-600 mb-2">
@@ -188,7 +190,9 @@ export function TellorStakingView({ isLoading }: TellorStakingViewProps) {
             </div>
             <div className="p-4 bg-cyan-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">{t('staking.calculator.estimatedReward')}</span>
+                <span className="text-sm text-gray-600">
+                  {t('staking.calculator.estimatedReward')}
+                </span>
                 <span className="text-lg font-semibold text-cyan-600">
                   {estimatedReward.toFixed(2)} TRB
                 </span>

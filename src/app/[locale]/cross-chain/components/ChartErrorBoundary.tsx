@@ -147,9 +147,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-lg font-semibold text-gray-900">
-              {t('crossChain.chartError')}
-            </h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('crossChain.chartError')}</h3>
               {chartName && (
                 <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
                   {chartName}
@@ -240,9 +238,7 @@ function ChartErrorFallback({ error, errorInfo, chartName, onReset }: ChartError
         </div>
 
         <div className="mt-4 pt-4 border-t border-red-200">
-          <p className="text-xs text-gray-500">
-            {t('crossChain.errorBoundaryTip')}
-          </p>
+          <p className="text-xs text-gray-500">{t('crossChain.errorBoundaryTip')}</p>
         </div>
       </div>
     </div>

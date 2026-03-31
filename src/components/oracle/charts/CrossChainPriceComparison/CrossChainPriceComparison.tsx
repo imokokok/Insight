@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useMemo } from 'react';
 
-import { TrendingUp, TrendingDown, AlertTriangle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -74,12 +81,7 @@ interface PricePoint {
 
 export function CrossChainPriceComparison({
   symbol,
-  chains = [
-    Blockchain.ETHEREUM,
-    Blockchain.ARBITRUM,
-    Blockchain.POLYGON,
-    Blockchain.BASE,
-  ],
+  chains = [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON, Blockchain.BASE],
   priceThreshold = 0.5,
   onArbitrageOpportunity,
 }: CrossChainPriceComparisonProps) {
@@ -118,14 +120,17 @@ export function CrossChainPriceComparison({
 
             const historical = await diaService.getHistoricalPrices(symbol, chain, 24);
             if (historical && historical.length > 0) {
-              historicalResults.set(chain, historical.map((p) => ({
-                timestamp: p.timestamp,
-                time: new Date(p.timestamp).toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                }),
-                [DIA_CHAIN_NAMES[chain] || chain]: p.price,
-              })));
+              historicalResults.set(
+                chain,
+                historical.map((p) => ({
+                  timestamp: p.timestamp,
+                  time: new Date(p.timestamp).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }),
+                  [DIA_CHAIN_NAMES[chain] || chain]: p.price,
+                }))
+              );
             }
           } catch (err) {
             console.warn(`Failed to fetch data for ${symbol} on ${chain}:`, err);
@@ -272,9 +277,7 @@ export function CrossChainPriceComparison({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">
-            Cross-Chain Price Comparison
-          </h3>
+          <h3 className="text-base font-semibold text-gray-900">Cross-Chain Price Comparison</h3>
           <p className="text-sm text-gray-500 mt-0.5">
             {symbol} prices across {priceData?.length || 0} chains
           </p>
@@ -292,9 +295,7 @@ export function CrossChainPriceComparison({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-4 bg-white rounded-lg border border-gray-200">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Avg Price</p>
-          <p className="text-xl font-semibold text-gray-900 mt-1">
-            ${avgPrice.toFixed(4)}
-          </p>
+          <p className="text-xl font-semibold text-gray-900 mt-1">${avgPrice.toFixed(4)}</p>
         </div>
         <div className="p-4 bg-white rounded-lg border border-gray-200">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Lowest</p>
@@ -304,13 +305,13 @@ export function CrossChainPriceComparison({
         </div>
         <div className="p-4 bg-white rounded-lg border border-gray-200">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Highest</p>
-          <p className="text-xl font-semibold text-red-600 mt-1">
-            ${priceRange.max.toFixed(4)}
-          </p>
+          <p className="text-xl font-semibold text-red-600 mt-1">${priceRange.max.toFixed(4)}</p>
         </div>
         <div className="p-4 bg-white rounded-lg border border-gray-200">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Spread</p>
-          <p className={`text-xl font-semibold mt-1 ${priceRange.spread > priceThreshold ? 'text-amber-600' : 'text-gray-900'}`}>
+          <p
+            className={`text-xl font-semibold mt-1 ${priceRange.spread > priceThreshold ? 'text-amber-600' : 'text-gray-900'}`}
+          >
             {priceRange.spread.toFixed(3)}%
           </p>
         </div>
@@ -325,7 +326,7 @@ export function CrossChainPriceComparison({
         </div>
       )}
 
-      {(!priceData || priceData.length === 0) ? (
+      {!priceData || priceData.length === 0 ? (
         <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
           <p>No cross-chain price data available</p>
           <button
@@ -376,9 +377,7 @@ export function CrossChainPriceComparison({
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className="font-medium text-gray-900">
-                        ${data.price.toFixed(4)}
-                      </span>
+                      <span className="font-medium text-gray-900">${data.price.toFixed(4)}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span
@@ -432,9 +431,7 @@ export function CrossChainPriceComparison({
 
       {historicalData.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-gray-900 mb-4">
-            Price Trend by Chain
-          </h4>
+          <h4 className="text-sm font-medium text-gray-900 mb-4">Price Trend by Chain</h4>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={historicalData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
@@ -458,7 +455,7 @@ export function CrossChainPriceComparison({
                     borderRadius: '6px',
                     fontSize: '12px',
                   }}
-                  formatter={(value: number) => [`$${value.toFixed(4)}`, '']}
+                  formatter={(value) => [`$${Number(value).toFixed(4)}`, '']}
                 />
                 <Legend />
                 {chains.map((chain) => {

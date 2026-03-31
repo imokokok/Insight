@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+
 import { Layers, TrendingUp, DollarSign, Link2, ChevronRight } from 'lucide-react';
 
+import { NFTFloorPriceHistory } from '@/components/oracle/charts/NFTFloorPriceHistory';
 import { ErrorFallback } from '@/components/oracle/shared/ErrorFallback';
 import { LoadingState } from '@/components/oracle/shared/LoadingState';
-import { NFTFloorPriceHistory } from '@/components/oracle/charts/NFTFloorPriceHistory';
 import { useDIANFTData } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { Blockchain } from '@/types/oracle';
@@ -264,11 +265,7 @@ export function DIANFTView() {
               {t('common.close')}
             </button>
           </div>
-          <NFTFloorPriceHistory
-            collection={selectedCollection}
-            days={14}
-            showVolume={true}
-          />
+          <NFTFloorPriceHistory collection={selectedCollection} days={14} showVolume={true} />
         </div>
       )}
 

@@ -3,19 +3,6 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import {
-  ComposedChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  Legend,
-  ResponsiveContainer,
-  Area,
-  Bar,
-  ReferenceLine,
-} from 'recharts';
-import {
   Calendar,
   Download,
   TrendingUp,
@@ -30,11 +17,24 @@ import {
   AlertTriangle,
   ChevronDown,
 } from 'lucide-react';
+import {
+  ComposedChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer,
+  Area,
+  Bar,
+  ReferenceLine,
+} from 'recharts';
 
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
-import { formatNumber } from '@/lib/utils/format';
 import { type UMANetworkStats } from '@/lib/oracles/uma/types';
+import { formatNumber } from '@/lib/utils/format';
 
 export type TimeRangeOption = '24h' | '7d' | '30d' | '90d' | '1y' | 'custom';
 
@@ -75,12 +75,36 @@ export interface HistoricalDataComparisonProps {
 function useTimeRangeConfig() {
   const t = useTranslations();
   return {
-    '24h': { label: t('uma.market.timeRange.24h'), days: 1, description: t('uma.market.timeRange.24h') },
-    '7d': { label: t('uma.market.timeRange.7d'), days: 7, description: t('uma.market.timeRange.7d') },
-    '30d': { label: t('uma.market.timeRange.30d'), days: 30, description: t('uma.market.timeRange.30d') },
-    '90d': { label: t('uma.market.timeRange.90d'), days: 90, description: t('uma.market.timeRange.90d') },
-    '1y': { label: t('uma.market.timeRange.1y'), days: 365, description: t('uma.market.timeRange.1y') },
-    custom: { label: t('uma.market.timeRange.custom'), days: 0, description: t('uma.market.timeRange.custom') },
+    '24h': {
+      label: t('uma.market.timeRange.24h'),
+      days: 1,
+      description: t('uma.market.timeRange.24h'),
+    },
+    '7d': {
+      label: t('uma.market.timeRange.7d'),
+      days: 7,
+      description: t('uma.market.timeRange.7d'),
+    },
+    '30d': {
+      label: t('uma.market.timeRange.30d'),
+      days: 30,
+      description: t('uma.market.timeRange.30d'),
+    },
+    '90d': {
+      label: t('uma.market.timeRange.90d'),
+      days: 90,
+      description: t('uma.market.timeRange.90d'),
+    },
+    '1y': {
+      label: t('uma.market.timeRange.1y'),
+      days: 365,
+      description: t('uma.market.timeRange.1y'),
+    },
+    custom: {
+      label: t('uma.market.timeRange.custom'),
+      days: 0,
+      description: t('uma.market.timeRange.custom'),
+    },
   } as const;
 }
 
@@ -125,9 +149,10 @@ function generateHistoricalData(
     const validators = Math.round(baseValidators * (1 + validatorsVariation));
 
     const disputesVariation = Math.sin(i * 0.2) * 0.2 + (Math.random() - 0.5) * 0.15;
-    const disputes = Math.round(baseDisputes * (1 + disputesVariation) / (days / 30));
+    const disputes = Math.round((baseDisputes * (1 + disputesVariation)) / (days / 30));
 
-    const disputeSuccessRate = (networkStats?.disputeSuccessRate || 78) + (Math.random() - 0.5) * 10;
+    const disputeSuccessRate =
+      (networkStats?.disputeSuccessRate || 78) + (Math.random() - 0.5) * 10;
 
     data.push({
       timestamp,
@@ -219,6 +244,7 @@ function TimeRangeSelector({
   onCustomDateChange: (range: { start: Date | null; end: Date | null }) => void;
 }) {
   const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const timeRangeConfig = useTimeRangeConfig();
 
   const ranges: TimeRangeOption[] = ['24h', '7d', '30d', '90d', '1y', 'custom'];
 
@@ -242,7 +268,7 @@ function TimeRangeSelector({
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            {TIME_RANGE_CONFIG[range].label}
+            {timeRangeConfig[range].label}
           </button>
         ))}
       </div>
@@ -285,6 +311,7 @@ function ChartTypeSelector({
   selectedType: 'price' | 'volume' | 'tvl' | 'validators' | 'disputes';
   onTypeChange: (type: 'price' | 'volume' | 'tvl' | 'validators' | 'disputes') => void;
 }) {
+  const t = useTranslations();
   const types: Array<{
     type: 'price' | 'volume' | 'tvl' | 'validators' | 'disputes';
     label: string;
@@ -508,7 +535,11 @@ function TrendIndicator({ trendAnalysis }: { trendAnalysis: TrendAnalysis }) {
   };
 
   const trendConfig = {
-    bullish: { label: t('uma.market.bullish'), color: 'text-emerald-600', bgColor: 'bg-emerald-100' },
+    bullish: {
+      label: t('uma.market.bullish'),
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-100',
+    },
     bearish: { label: t('uma.market.bearish'), color: 'text-red-600', bgColor: 'bg-red-100' },
     neutral: { label: t('uma.market.neutral'), color: 'text-gray-600', bgColor: 'bg-gray-100' },
   };
@@ -567,7 +598,9 @@ function TrendIndicator({ trendAnalysis }: { trendAnalysis: TrendAnalysis }) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-900">{t('uma.market.trendPrediction')}</span>
+            <span className="text-sm font-medium text-blue-900">
+              {t('uma.market.trendPrediction')}
+            </span>
           </div>
           <span className={`px-2 py-0.5 text-xs font-medium rounded ${predictionConfig.bgColor}`}>
             {predictionConfig.label}
@@ -618,7 +651,15 @@ function DataExporter({
   const t = useTranslations();
 
   const exportToCSV = useCallback(() => {
-    const headers = [t('uma.market.date'), t('uma.market.price') + '($)', t('uma.market.volumeLabel') + '($)', 'TVL($)', t('uma.market.validatorsLabel'), t('uma.market.disputesLabel'), t('uma.market.disputeSuccessRateLabel') + '(%)'];
+    const headers = [
+      t('uma.market.date'),
+      t('uma.market.price') + '($)',
+      t('uma.market.volumeLabel') + '($)',
+      'TVL($)',
+      t('uma.market.validatorsLabel'),
+      t('uma.market.disputesLabel'),
+      t('uma.market.disputeSuccessRateLabel') + '(%)',
+    ];
     const rows = data.map((d) => [
       d.date,
       d.price,
@@ -690,9 +731,9 @@ export function HistoricalDataComparison({
     start: null,
     end: null,
   });
-  const [chartType, setChartType] = useState<'price' | 'volume' | 'tvl' | 'validators' | 'disputes'>(
-    'price'
-  );
+  const [chartType, setChartType] = useState<
+    'price' | 'volume' | 'tvl' | 'validators' | 'disputes'
+  >('price');
   const [showMA, setShowMA] = useState(true);
 
   const days = useMemo(() => {
@@ -701,7 +742,8 @@ export function HistoricalDataComparison({
         (customDateRange.end.getTime() - customDateRange.start.getTime()) / (1000 * 60 * 60 * 24)
       );
     }
-    return TIME_RANGE_CONFIG[selectedRange].days;
+    const config = useTimeRangeConfig();
+    return config[selectedRange].days;
   }, [selectedRange, customDateRange]);
 
   const historicalData = useMemo(() => {
@@ -732,9 +774,12 @@ export function HistoricalDataComparison({
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{t('uma.market.historicalDataComparison')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {t('uma.market.historicalDataComparison')}
+          </h3>
           <p className="text-sm text-gray-500 mt-1">
-            {timeRangeConfig[selectedRange].description} · {t('uma.market.dataPoints', { count: historicalData.length })}
+            {timeRangeConfig[selectedRange].description} ·{' '}
+            {t('uma.market.dataPoints', { count: historicalData.length })}
           </p>
         </div>
         <DataExporter data={historicalData} timeRange={selectedRange} />
@@ -785,10 +830,10 @@ export function HistoricalDataComparison({
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-sm font-medium text-amber-800 mb-1">{t('uma.market.disclaimer')}</h4>
-            <p className="text-xs text-amber-700">
-              {t('uma.market.disclaimerText')}
-            </p>
+            <h4 className="text-sm font-medium text-amber-800 mb-1">
+              {t('uma.market.disclaimer')}
+            </h4>
+            <p className="text-xs text-amber-700">{t('uma.market.disclaimerText')}</p>
           </div>
         </div>
       </div>

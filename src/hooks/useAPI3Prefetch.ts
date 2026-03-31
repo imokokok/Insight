@@ -1,10 +1,12 @@
 'use client';
 
 import { useCallback, useRef } from 'react';
+
 import { useQueryClient } from '@tanstack/react-query';
+
+import { CACHE_CONFIG } from '@/lib/config/cacheConfig';
 import { API3Client } from '@/lib/oracles/api3';
 import { api3OfflineStorage } from '@/lib/oracles/api3OfflineStorage';
-import { CACHE_CONFIG } from '@/lib/config/cacheConfig';
 import type { Blockchain } from '@/types/oracle';
 
 type PrefetchDataType =
@@ -52,7 +54,11 @@ export function useAPI3Prefetch() {
   };
 
   const prefetch = useCallback(
-    async (dataType: PrefetchDataType, params?: Record<string, unknown>, options?: PrefetchOptions): Promise<void> => {
+    async (
+      dataType: PrefetchDataType,
+      params?: Record<string, unknown>,
+      options?: PrefetchOptions
+    ): Promise<void> => {
       const queryKey = getQueryKey(dataType, params);
       const keyString = queryKey.join('/');
 
@@ -72,7 +78,10 @@ export function useAPI3Prefetch() {
 
             switch (dataType) {
               case 'price':
-                result = await api3Client.getPrice(params?.symbol as string, params?.chain as Blockchain);
+                result = await api3Client.getPrice(
+                  params?.symbol as string,
+                  params?.chain as Blockchain
+                );
                 break;
               case 'historical':
                 result = await api3Client.getHistoricalPrices(
@@ -146,9 +155,7 @@ export function useAPI3Prefetch() {
             }
 
             if (config) {
-              const cacheKey = params
-                ? `${dataType}-${Object.values(params).join('-')}`
-                : dataType;
+              const cacheKey = params ? `${dataType}-${Object.values(params).join('-')}` : dataType;
               await api3OfflineStorage.setData(cacheKey, result, config.gcTime);
             }
 
@@ -168,14 +175,18 @@ export function useAPI3Prefetch() {
     async (symbol?: string, chain?: Blockchain): Promise<void> => {
       const prefetchPromises: Promise<void>[] = [];
 
-      const highPriorityData: Array<{ type: PrefetchDataType; params?: Record<string, unknown> }> = [
-        { type: 'alerts' },
-        { type: 'airnodeStats' },
-        { type: 'price', params: { symbol: symbol || 'BTC/USD', chain } },
-        { type: 'deviations' },
-      ];
+      const highPriorityData: Array<{ type: PrefetchDataType; params?: Record<string, unknown> }> =
+        [
+          { type: 'alerts' },
+          { type: 'airnodeStats' },
+          { type: 'price', params: { symbol: symbol || 'BTC/USD', chain } },
+          { type: 'deviations' },
+        ];
 
-      const mediumPriorityData: Array<{ type: PrefetchDataType; params?: Record<string, unknown> }> = [
+      const mediumPriorityData: Array<{
+        type: PrefetchDataType;
+        params?: Record<string, unknown>;
+      }> = [
         { type: 'dapiCoverage' },
         { type: 'staking' },
         { type: 'oevStats' },

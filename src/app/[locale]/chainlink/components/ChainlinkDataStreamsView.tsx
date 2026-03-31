@@ -270,9 +270,7 @@ export function ChainlinkDataStreamsView() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">
-          {t('dataStreams.title')}
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('dataStreams.title')}</h2>
         <button
           onClick={() => setIsLive(!isLive)}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -304,9 +302,7 @@ export function ChainlinkDataStreamsView() {
           <div className="text-2xl font-bold text-gray-900">
             {stats.activeStreams.toLocaleString()}
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {t('dataStreams.totalFeeds')}
-          </div>
+          <div className="text-xs text-gray-500 mt-1">{t('dataStreams.totalFeeds')}</div>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -319,9 +315,7 @@ export function ChainlinkDataStreamsView() {
           <div className="text-2xl font-bold text-gray-900">
             {stats.updateFrequency.toLocaleString()}
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {t('dataStreams.updatesPerMin')}
-          </div>
+          <div className="text-xs text-gray-500 mt-1">{t('dataStreams.updatesPerMin')}</div>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -348,28 +342,20 @@ export function ChainlinkDataStreamsView() {
           <div className="text-2xl font-bold text-gray-900">
             {stats.throughput.toLocaleString()}
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {t('dataStreams.msgsPerSec')}
-          </div>
+          <div className="text-xs text-gray-500 mt-1">{t('dataStreams.msgsPerSec')}</div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {t('dataStreams.dataFeeds')}
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('dataStreams.dataFeeds')}</h3>
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
               <div className="col-span-3">{t('dataStreams.pair')}</div>
               <div className="col-span-2 text-right">{t('dataStreams.price')}</div>
               <div className="col-span-2 text-right">{t('dataStreams.latency')}</div>
-              <div className="col-span-2 text-right">
-                {t('dataStreams.threshold')}
-              </div>
-              <div className="col-span-2 text-right">
-                {t('dataStreams.subscribers')}
-              </div>
+              <div className="col-span-2 text-right">{t('dataStreams.threshold')}</div>
+              <div className="col-span-2 text-right">{t('dataStreams.subscribers')}</div>
               <div className="col-span-1 text-center">{t('dataStreams.status')}</div>
             </div>
             {feeds.map((feed, index) => (
@@ -553,9 +539,7 @@ export function ChainlinkDataStreamsView() {
 
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('dataStreams.pushEvents')}
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">{t('dataStreams.pushEvents')}</h3>
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <RefreshCw className="w-3.5 h-3.5" />
             {t('dataStreams.realtime')}
@@ -623,9 +607,7 @@ export function ChainlinkDataStreamsView() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('dataStreams.about')}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('dataStreams.about')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
           <div className="flex items-start gap-3">
             <Activity className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />

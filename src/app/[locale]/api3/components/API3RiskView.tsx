@@ -26,13 +26,13 @@ import {
 
 import { TimelineChart, type TimelineEvent } from '@/components/oracle/charts/TimelineChart';
 import { CoveragePoolDashboard } from '@/components/oracle/panels/CoveragePoolDashboard';
-import { useTranslations } from '@/i18n';
-import { chartColors } from '@/lib/config/colors';
 import {
   useAPI3CoveragePoolDetails,
   useAPI3CoveragePoolClaims,
   useAPI3StakerRewards,
 } from '@/hooks/oracles/api3';
+import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
 
 import { type API3RiskViewProps } from '../types';
 
@@ -78,10 +78,28 @@ const historicalRiskEventKeys = [
 
 // 行业基准对比数据
 const getBenchmarkData = (t: (key: string) => string) => [
-  { metric: t('api3.riskView.benchmark.decentralization'), api3: 85, pyth: 78, band: 65, chainlink: 95 },
+  {
+    metric: t('api3.riskView.benchmark.decentralization'),
+    api3: 85,
+    pyth: 78,
+    band: 65,
+    chainlink: 95,
+  },
   { metric: t('api3.riskView.benchmark.security'), api3: 88, pyth: 85, band: 72, chainlink: 98 },
-  { metric: t('api3.riskView.benchmark.reliability'), api3: 97.5, pyth: 97.5, band: 94.2, chainlink: 99.9 },
-  { metric: t('api3.riskView.benchmark.transparency'), api3: 92, pyth: 88, band: 70, chainlink: 92 },
+  {
+    metric: t('api3.riskView.benchmark.reliability'),
+    api3: 97.5,
+    pyth: 97.5,
+    band: 94.2,
+    chainlink: 99.9,
+  },
+  {
+    metric: t('api3.riskView.benchmark.transparency'),
+    api3: 92,
+    pyth: 88,
+    band: 70,
+    chainlink: 92,
+  },
   { metric: t('api3.riskView.benchmark.trackRecord'), api3: 75, pyth: 75, band: 82, chainlink: 98 },
 ];
 
@@ -201,7 +219,7 @@ export function API3RiskView({
 
   const benchmarkData = getBenchmarkData(t);
 
-  const translatedRiskEvents: TimelineEvent[] = historicalRiskEventKeys.map(event => ({
+  const translatedRiskEvents: TimelineEvent[] = historicalRiskEventKeys.map((event) => ({
     date: event.date,
     type: event.type,
     title: t(event.titleKey),
@@ -267,12 +285,8 @@ export function API3RiskView({
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t('api3.risk.metrics')}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('api3.risk.metricsDesc')}
-            </p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('api3.risk.metrics')}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t('api3.risk.metricsDesc')}</p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
             <Shield className="w-5 h-5 text-emerald-600" />
@@ -315,12 +329,8 @@ export function API3RiskView({
       {/* 行业基准对比 */}
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.risk.benchmark')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('api3.risk.benchmarkDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('api3.risk.benchmark')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('api3.risk.benchmarkDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -368,9 +378,7 @@ export function API3RiskView({
 
           {/* 对比表格 */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700">
-              {t('api3.risk.comparison')}
-            </h3>
+            <h3 className="text-sm font-medium text-gray-700">{t('api3.risk.comparison')}</h3>
             <div className="space-y-3">
               {benchmarkData.map((item) => (
                 <div key={item.metric} className="space-y-2">
@@ -407,12 +415,8 @@ export function API3RiskView({
       {/* 历史风险事件时间线 */}
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.risk.timeline')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('api3.risk.timelineDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('api3.risk.timeline')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('api3.risk.timelineDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -470,9 +474,7 @@ export function API3RiskView({
             ) : (
               <div className="text-center py-12 bg-gray-50 rounded-md">
                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">
-                  {t('api3.risk.clickEvent')}
-                </p>
+                <p className="text-sm text-gray-500">{t('api3.risk.clickEvent')}</p>
               </div>
             )}
           </div>
@@ -485,12 +487,8 @@ export function API3RiskView({
       {/* 风险因素 */}
       <section>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.risk.factors')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('api3.risk.factorsDesc')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('api3.risk.factors')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('api3.risk.factorsDesc')}</p>
         </div>
 
         <div className="space-y-2">
@@ -521,7 +519,9 @@ export function API3RiskView({
               </button>
               {expandedFactor === index && (
                 <div className="pb-4 px-2">
-                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">{t(factor.descriptionKey)}</p>
+                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                    {t(factor.descriptionKey)}
+                  </p>
                   <ul className="space-y-2">
                     {factor.detailKeys.map((detailKey, detailIndex) => (
                       <li
@@ -547,9 +547,7 @@ export function API3RiskView({
       <section className="flex items-start gap-4 py-2">
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('api3.risk.disclaimer')}
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">{t('api3.risk.disclaimer')}</h3>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
             {t('api3.risk.disclaimerText')}
           </p>

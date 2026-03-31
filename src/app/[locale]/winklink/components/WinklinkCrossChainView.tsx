@@ -70,7 +70,13 @@ const defaultMetrics: CrossChainMetric = {
 
 const defaultChainDistribution: ChainDistribution[] = [
   { chain: 'tron', chainName: 'TRON', requestCount: 89456, percentage: 57.1, color: 'bg-pink-500' },
-  { chain: 'bnb', chainName: 'BNB Chain', requestCount: 52341, percentage: 33.4, color: 'bg-amber-500' },
+  {
+    chain: 'bnb',
+    chainName: 'BNB Chain',
+    requestCount: 52341,
+    percentage: 33.4,
+    color: 'bg-amber-500',
+  },
   { chain: 'bttc', chainName: 'BTTC', requestCount: 14992, percentage: 9.5, color: 'bg-blue-500' },
 ];
 
@@ -251,9 +257,7 @@ export function WinklinkCrossChainView({
           </div>
           <div className="mt-6 pt-4 border-t border-gray-100">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">
-                {t('winklink.crossChain.totalRequests')}
-              </span>
+              <span className="text-gray-500">{t('winklink.crossChain.totalRequests')}</span>
               <span className="font-medium text-gray-900">
                 {chainDistribution.reduce((sum, c) => sum + c.requestCount, 0).toLocaleString()}
               </span>
@@ -283,9 +287,7 @@ export function WinklinkCrossChainView({
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">
-                      {t('winklink.crossChain.latency')}
-                    </p>
+                    <p className="text-xs text-gray-500 mb-1">{t('winklink.crossChain.latency')}</p>
                     <p className="text-lg font-semibold text-gray-900">{route.latency}s</p>
                   </div>
                   <div>
@@ -358,9 +360,7 @@ export function WinklinkCrossChainView({
                 style={{ width: `${metrics.successRate}%` }}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-3">
-              {t('winklink.crossChain.overallDesc')}
-            </p>
+            <p className="text-xs text-gray-500 mt-3">{t('winklink.crossChain.overallDesc')}</p>
           </div>
 
           <div className="space-y-4">

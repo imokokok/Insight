@@ -53,9 +53,7 @@ export function UnifiedSidebar({
               aria-current={isActive ? 'page' : undefined}
             >
               <span style={{ color: isActive ? themeColor : '#9ca3af' }}>{item.icon}</span>
-              <span>
-                {label}
-              </span>
+              <span>{label}</span>
             </button>
           );
         })}

@@ -4,15 +4,22 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 
 import { Activity, CheckCircle2, Clock, TrendingUp, AlertTriangle } from 'lucide-react';
 
-import { DapiDataFlowVisualization, type DataSourceInfo } from '@/components/oracle/charts/DapiDataFlowVisualization';
+import {
+  DapiDataFlowVisualization,
+  type DataSourceInfo,
+} from '@/components/oracle/charts/DapiDataFlowVisualization';
+import {
+  HistoricalDataComparison,
+  type DataSeries,
+  type TimeRange,
+} from '@/components/oracle/charts/HistoricalDataComparison';
 import { RealtimePriceAnimation } from '@/components/oracle/charts/RealtimePriceAnimation';
-import { HistoricalDataComparison, type DataSeries, type TimeRange } from '@/components/oracle/charts/HistoricalDataComparison';
+import { useAPI3Price, useAPI3Historical, useAPI3SourceTrace } from '@/hooks/oracles/api3';
 import { useTranslations } from '@/i18n';
+import { isMockData, getMockDataAnnotation } from '@/lib/oracles/api3MockDataAnnotations';
 
 import { ChainlinkDataTable } from '../../chainlink/components/ChainlinkDataTable';
 import { type DapiFeed, type API3DapiViewProps } from '../types';
-import { useAPI3Price, useAPI3Historical, useAPI3SourceTrace } from '@/hooks/oracles/api3';
-import { isMockData, getMockDataAnnotation } from '@/lib/oracles/api3MockDataAnnotations';
 
 const DEFAULT_DAPI_FEEDS: DapiFeed[] = [
   {
@@ -68,16 +75,43 @@ const DEFAULT_DAPI_FEEDS: DapiFeed[] = [
 ];
 
 const DEFAULT_DATA_SOURCES: DataSourceInfo[] = [
-  { id: 'src-1', name: 'Binance', type: 'exchange', reliability: 99.9, latency: 15, status: 'active', lastUpdate: new Date() },
-  { id: 'src-2', name: 'Coinbase Pro', type: 'exchange', reliability: 99.8, latency: 18, status: 'active', lastUpdate: new Date() },
-  { id: 'src-3', name: 'Kraken', type: 'exchange', reliability: 99.85, latency: 20, status: 'active', lastUpdate: new Date() },
+  {
+    id: 'src-1',
+    name: 'Binance',
+    type: 'exchange',
+    reliability: 99.9,
+    latency: 15,
+    status: 'active',
+    lastUpdate: new Date(),
+  },
+  {
+    id: 'src-2',
+    name: 'Coinbase Pro',
+    type: 'exchange',
+    reliability: 99.8,
+    latency: 18,
+    status: 'active',
+    lastUpdate: new Date(),
+  },
+  {
+    id: 'src-3',
+    name: 'Kraken',
+    type: 'exchange',
+    reliability: 99.85,
+    latency: 20,
+    status: 'active',
+    lastUpdate: new Date(),
+  },
 ];
 
-function generateHistoricalData(basePrice: number, points: number): { timestamp: number; value: number }[] {
+function generateHistoricalData(
+  basePrice: number,
+  points: number
+): { timestamp: number; value: number }[] {
   const data = [];
   let price = basePrice;
   const now = Math.floor(Date.now() / 1000);
-  
+
   for (let i = points; i >= 0; i--) {
     const change = (Math.random() - 0.5) * basePrice * 0.02;
     price = Math.max(price + change, basePrice * 0.8);
@@ -87,7 +121,7 @@ function generateHistoricalData(basePrice: number, points: number): { timestamp:
       value: price,
     });
   }
-  
+
   return data;
 }
 
@@ -107,24 +141,29 @@ export function API3DapiView(props: API3DapiViewProps) {
   const chain = props.chain;
 
   const priceQuery = useAPI3Price({ symbol, chain, enabled: !!props.useRealData });
-  const historicalQuery = useAPI3Historical({ symbol, chain, period: 7, enabled: !!props.useRealData });
+  const historicalQuery = useAPI3Historical({
+    symbol,
+    chain,
+    period: 7,
+    enabled: !!props.useRealData,
+  });
   const sourceTraceQuery = useAPI3SourceTrace(!!props.useRealData);
 
   const dapiFeeds = useMemo(() => {
     return props.dapiFeeds || DEFAULT_DAPI_FEEDS;
   }, [props.dapiFeeds]);
 
-  const dataSources = useMemo(() => {
+  const dataSources = useMemo((): DataSourceInfo[] => {
     if (props.dataSources) {
       return props.dataSources;
     }
     if (props.useRealData && sourceTraceQuery.sourceTrace) {
-      return sourceTraceQuery.sourceTrace.map((src: DataSourceInfo) => ({
+      return sourceTraceQuery.sourceTrace.map((src) => ({
         id: src.id,
         name: src.name,
-        type: src.type as 'exchange' | 'aggregator' | 'traditional_finance',
-        reliability: src.accuracy,
-        latency: src.responseSpeed,
+        type: (src.type === 'exchange' ? 'exchange' : src.type === 'traditional_finance' ? 'api' : 'aggregator') as DataSourceInfo['type'],
+        reliability: (src as unknown as { accuracy?: number }).accuracy ?? 0,
+        latency: (src as unknown as { responseSpeed?: number }).responseSpeed ?? 0,
         status: 'active' as const,
         lastUpdate: new Date(),
       }));
@@ -132,13 +171,32 @@ export function API3DapiView(props: API3DapiViewProps) {
     return DEFAULT_DATA_SOURCES;
   }, [props.dataSources, props.useRealData, sourceTraceQuery.sourceTrace]);
 
-  const categories = useMemo(() => [
-    { id: 'all', label: t('api3.dapi.categoryLabels.all'), count: dapiFeeds.length },
-    { id: 'crypto', label: t('api3.dapi.categoryLabels.crypto'), count: dapiFeeds.filter((f: DapiFeed) => f.category === 'crypto').length },
-    { id: 'forex', label: t('api3.dapi.categoryLabels.forex'), count: dapiFeeds.filter((f: DapiFeed) => f.category === 'forex').length },
-    { id: 'commodities', label: t('api3.dapi.categoryLabels.commodities'), count: dapiFeeds.filter((f: DapiFeed) => f.category === 'commodities').length },
-    { id: 'stocks', label: t('api3.dapi.categoryLabels.stocks'), count: dapiFeeds.filter((f: DapiFeed) => f.category === 'stocks').length },
-  ], [dapiFeeds, t]);
+  const categories = useMemo(
+    () => [
+      { id: 'all', label: t('api3.dapi.categoryLabels.all'), count: dapiFeeds.length },
+      {
+        id: 'crypto',
+        label: t('api3.dapi.categoryLabels.crypto'),
+        count: dapiFeeds.filter((f: DapiFeed) => f.category === 'crypto').length,
+      },
+      {
+        id: 'forex',
+        label: t('api3.dapi.categoryLabels.forex'),
+        count: dapiFeeds.filter((f: DapiFeed) => f.category === 'forex').length,
+      },
+      {
+        id: 'commodities',
+        label: t('api3.dapi.categoryLabels.commodities'),
+        count: dapiFeeds.filter((f: DapiFeed) => f.category === 'commodities').length,
+      },
+      {
+        id: 'stocks',
+        label: t('api3.dapi.categoryLabels.stocks'),
+        count: dapiFeeds.filter((f: DapiFeed) => f.category === 'stocks').length,
+      },
+    ],
+    [dapiFeeds, t]
+  );
 
   const historicalSeries = useMemo((): DataSeries[] => {
     if (props.useRealData && historicalQuery.historicalData) {
@@ -147,7 +205,7 @@ export function API3DapiView(props: API3DapiViewProps) {
           id: 'api3',
           name: symbol,
           color: '#10b981',
-          data: historicalQuery.historicalData.map(d => ({
+          data: historicalQuery.historicalData.map((d) => ({
             timestamp: Math.floor(d.timestamp / 1000),
             value: d.price,
           })),
@@ -203,16 +261,18 @@ export function API3DapiView(props: API3DapiViewProps) {
       const data = Array.from({ length: 20 }, () => 2400 + Math.random() * 100);
       setSparklineData(data);
     } else if (historicalQuery.historicalData) {
-      const data = historicalQuery.historicalData.slice(-20).map(d => d.price);
+      const data = historicalQuery.historicalData.slice(-20).map((d) => d.price);
       setSparklineData(data);
     }
   }, [props.useRealData, historicalQuery.historicalData]);
 
-  const filteredFeeds = useMemo(() =>
-    selectedCategory === 'all'
-      ? dapiFeeds
-      : dapiFeeds.filter((feed: DapiFeed) => feed.category === selectedCategory),
-    [selectedCategory, dapiFeeds]);
+  const filteredFeeds = useMemo(
+    () =>
+      selectedCategory === 'all'
+        ? dapiFeeds
+        : dapiFeeds.filter((feed: DapiFeed) => feed.category === selectedCategory),
+    [selectedCategory, dapiFeeds]
+  );
 
   const columns = [
     { key: 'name', header: t('api3.dapi.name'), sortable: true },
@@ -277,7 +337,8 @@ export function API3DapiView(props: API3DapiViewProps) {
     },
   ];
 
-  const trend = currentPrice > previousPrice ? 'up' : currentPrice < previousPrice ? 'down' : 'stable';
+  const trend =
+    currentPrice > previousPrice ? 'up' : currentPrice < previousPrice ? 'down' : 'stable';
   const isLoading = props.useRealData && (priceQuery.isLoading || historicalQuery.isLoading);
   const hasError = props.useRealData && (priceQuery.error || historicalQuery.error);
   const showMockWarning = !props.useRealData || isMockData('dataSources');
@@ -287,18 +348,14 @@ export function API3DapiView(props: API3DapiViewProps) {
       {showMockWarning && (
         <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300">
           <AlertTriangle className="w-4 h-4" />
-          <span>
-            {t('api3.dapi.mockDataWarning')}
-          </span>
+          <span>{t('api3.dapi.mockDataWarning')}</span>
         </div>
       )}
 
       {hasError && (
         <div className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
           <AlertTriangle className="w-4 h-4" />
-          <span>
-            {t('api3.dapi.dataError')}
-          </span>
+          <span>{t('api3.dapi.dataError')}</span>
         </div>
       )}
 
@@ -312,7 +369,7 @@ export function API3DapiView(props: API3DapiViewProps) {
           showSparkline={true}
           sparklineData={sparklineData}
         />
-        
+
         <div className="flex flex-wrap items-center gap-6 md:gap-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
           <div className="flex items-center gap-3">
             <Activity className="w-5 h-5 text-gray-400" />
@@ -320,7 +377,9 @@ export function API3DapiView(props: API3DapiViewProps) {
               <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 {t('api3.dapi.total')}
               </p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">{dapiFeeds.length}</p>
+              <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                {dapiFeeds.length}
+              </p>
             </div>
           </div>
           <div className="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-700" />
@@ -343,7 +402,10 @@ export function API3DapiView(props: API3DapiViewProps) {
                 {t('api3.dapi.totalRequests')}
               </p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                {(dapiFeeds.reduce((acc: number, f: DapiFeed) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
+                {(
+                  dapiFeeds.reduce((acc: number, f: DapiFeed) => acc + f.totalRequests, 0) / 1e6
+                ).toFixed(1)}
+                M
               </p>
             </div>
           </div>
@@ -356,7 +418,8 @@ export function API3DapiView(props: API3DapiViewProps) {
               </p>
               <p className="text-xl font-semibold text-gray-900 dark:text-white">
                 {(
-                  dapiFeeds.reduce((acc: number, f: DapiFeed) => acc + f.reliability, 0) / dapiFeeds.length
+                  dapiFeeds.reduce((acc: number, f: DapiFeed) => acc + f.reliability, 0) /
+                  dapiFeeds.length
                 ).toFixed(2)}
                 %
               </p>
@@ -391,7 +454,9 @@ export function API3DapiView(props: API3DapiViewProps) {
             {category.label}
             <span
               className={`text-xs ${
-                selectedCategory === category.id ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'
+                selectedCategory === category.id
+                  ? 'text-gray-600 dark:text-gray-300'
+                  : 'text-gray-400 dark:text-gray-500'
               }`}
             >
               {category.count}

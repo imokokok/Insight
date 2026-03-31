@@ -1,5 +1,6 @@
 import { API3_DATA_SOURCES, getAPI3Endpoint, isMockDataEnabled } from './api3DataSources';
 import { api3OnChainService } from './api3OnChainService';
+
 import type {
   StakingData,
   CoveragePoolDetails,
@@ -267,7 +268,7 @@ export class API3DataAggregator {
 
       const collateralizationRatio = onChainData.collateralizationRatio;
       const targetCollateralization = 150;
-      
+
       let healthStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
       if (collateralizationRatio < targetCollateralization * 0.8) {
         healthStatus = 'critical';
@@ -339,7 +340,7 @@ export class API3DataAggregator {
     }
 
     if (schema) {
-      return Object.keys(schema).every(key => key in data);
+      return Object.keys(schema).every((key) => key in data);
     }
 
     return Object.keys(data as object).length > 0;
@@ -368,7 +369,7 @@ export class API3DataAggregator {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.deepSanitize(item)).filter(item => item !== null);
+      return obj.map((item) => this.deepSanitize(item)).filter((item) => item !== null);
     }
 
     if (typeof obj === 'object') {
@@ -390,7 +391,20 @@ export class API3DataAggregator {
     options: FetchOptions = {}
   ): Promise<T> {
     const { timeout = 10000, retries = 3, retryDelay = 1000 } = options;
-    const url = getAPI3Endpoint(source, endpoint as 'dapis' | 'airnodes' | 'chains' | 'staking' | 'coverage' | 'governance' | 'token' | 'stats' | 'beacons' | 'templates');
+    const url = getAPI3Endpoint(
+      source,
+      endpoint as
+        | 'dapis'
+        | 'airnodes'
+        | 'chains'
+        | 'staking'
+        | 'coverage'
+        | 'governance'
+        | 'token'
+        | 'stats'
+        | 'beacons'
+        | 'templates'
+    );
 
     const cacheKey = `api-${url}`;
     const pendingRequest = this.requestQueue.get(cacheKey);
@@ -423,7 +437,7 @@ export class API3DataAggregator {
         const response = await fetch(url, {
           signal: controller.signal,
           headers: {
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
         });
 
@@ -436,7 +450,7 @@ export class API3DataAggregator {
         return await response.json();
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        
+
         if (attempt < options.retries - 1) {
           await this.delay(options.retryDelay * Math.pow(2, attempt));
         }
@@ -447,7 +461,7 @@ export class API3DataAggregator {
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private getFromCache<T>(key: string): T | null {
@@ -465,8 +479,8 @@ export class API3DataAggregator {
 
   private generateHourlyActivity(): number[] {
     return [
-      1200, 1100, 950, 800, 750, 900, 1400, 2100, 2800, 3200, 3500, 3800,
-      3600, 3400, 3100, 3300, 3500, 3700, 3400, 2900, 2400, 1900, 1500, 1300,
+      1200, 1100, 950, 800, 750, 900, 1400, 2100, 2800, 3200, 3500, 3800, 3600, 3400, 3100, 3300,
+      3500, 3700, 3400, 2900, 2400, 1900, 1500, 1300,
     ];
   }
 
@@ -514,8 +528,30 @@ export class API3DataAggregator {
 
   private getMockDAPIData(): DAPIMarketData[] {
     return [
-      { id: 'btc-usd', name: 'BTC/USD', symbol: 'BTC', price: 68050.25, change24h: 1250.50, change24hPercent: 1.87, chain: 'ethereum', updateFrequency: 60, lastUpdated: new Date(), status: 'active' },
-      { id: 'eth-usd', name: 'ETH/USD', symbol: 'ETH', price: 3505.80, change24h: 85.20, change24hPercent: 2.49, chain: 'ethereum', updateFrequency: 60, lastUpdated: new Date(), status: 'active' },
+      {
+        id: 'btc-usd',
+        name: 'BTC/USD',
+        symbol: 'BTC',
+        price: 68050.25,
+        change24h: 1250.5,
+        change24hPercent: 1.87,
+        chain: 'ethereum',
+        updateFrequency: 60,
+        lastUpdated: new Date(),
+        status: 'active',
+      },
+      {
+        id: 'eth-usd',
+        name: 'ETH/USD',
+        symbol: 'ETH',
+        price: 3505.8,
+        change24h: 85.2,
+        change24hPercent: 2.49,
+        chain: 'ethereum',
+        updateFrequency: 60,
+        lastUpdated: new Date(),
+        status: 'active',
+      },
     ];
   }
 
@@ -605,17 +641,67 @@ export class API3DataAggregator {
 
   private getMockPriceDeviations(): DAPIPriceDeviation[] {
     return [
-      { symbol: 'BTC/USD', dapiPrice: 68050.25, marketPrice: 68120.5, deviation: 0.1, trend: 'shrinking', status: 'normal' },
-      { symbol: 'ETH/USD', dapiPrice: 3505.8, marketPrice: 3498.2, deviation: 0.22, trend: 'stable', status: 'normal' },
-      { symbol: 'SOL/USD', dapiPrice: 180.45, marketPrice: 182.3, deviation: 1.02, trend: 'expanding', status: 'warning' },
-      { symbol: 'UNI/USD', dapiPrice: 9.45, marketPrice: 9.12, deviation: 3.62, trend: 'expanding', status: 'critical' },
+      {
+        symbol: 'BTC/USD',
+        dapiPrice: 68050.25,
+        marketPrice: 68120.5,
+        deviation: 0.1,
+        trend: 'shrinking',
+        status: 'normal',
+      },
+      {
+        symbol: 'ETH/USD',
+        dapiPrice: 3505.8,
+        marketPrice: 3498.2,
+        deviation: 0.22,
+        trend: 'stable',
+        status: 'normal',
+      },
+      {
+        symbol: 'SOL/USD',
+        dapiPrice: 180.45,
+        marketPrice: 182.3,
+        deviation: 1.02,
+        trend: 'expanding',
+        status: 'warning',
+      },
+      {
+        symbol: 'UNI/USD',
+        dapiPrice: 9.45,
+        marketPrice: 9.12,
+        deviation: 3.62,
+        trend: 'expanding',
+        status: 'critical',
+      },
     ];
   }
 
   private getMockDataSources(): DataSourceInfo[] {
     return [
-      { id: 'src-001', name: 'Binance Oracle', type: 'exchange', credibilityScore: 95, accuracy: 99.8, responseSpeed: 120, availability: 99.9, airnodeAddress: '0x1a2B3c4D5e6F7g8H9i0J1k2L3m4N5o6P7q8R9s0T', dapiContract: '0xa1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0', chain: 'Ethereum' },
-      { id: 'src-002', name: 'Coinbase Prime', type: 'exchange', credibilityScore: 98, accuracy: 99.9, responseSpeed: 95, availability: 99.95, airnodeAddress: '0x2b3C4d5E6f7G8h9I0j1K2l3M4n5O6p7Q8r9S0t1U', dapiContract: '0xb2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9t0U1', chain: 'Arbitrum' },
+      {
+        id: 'src-001',
+        name: 'Binance Oracle',
+        type: 'exchange',
+        credibilityScore: 95,
+        accuracy: 99.8,
+        responseSpeed: 120,
+        availability: 99.9,
+        airnodeAddress: '0x1a2B3c4D5e6F7g8H9i0J1k2L3m4N5o6P7q8R9s0T',
+        dapiContract: '0xa1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0',
+        chain: 'Ethereum',
+      },
+      {
+        id: 'src-002',
+        name: 'Coinbase Prime',
+        type: 'exchange',
+        credibilityScore: 98,
+        accuracy: 99.9,
+        responseSpeed: 95,
+        availability: 99.95,
+        airnodeAddress: '0x2b3C4d5E6f7G8h9I0j1K2l3M4n5O6p7Q8r9S0t1U',
+        dapiContract: '0xb2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9t0U1',
+        chain: 'Arbitrum',
+      },
     ];
   }
 

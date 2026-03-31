@@ -25,12 +25,18 @@ export interface DataSourceState<T = unknown> {
 }
 
 export type WinklinkDataStates = Record<string, DataSourceState<unknown>> & {
-  price: DataSourceState<ReturnType<WINkLinkClient['getPrice']> extends Promise<infer T> ? T : never>;
-  historical: DataSourceState<ReturnType<WINkLinkClient['getHistoricalPrices']> extends Promise<infer T> ? T : never>;
+  price: DataSourceState<
+    ReturnType<WINkLinkClient['getPrice']> extends Promise<infer T> ? T : never
+  >;
+  historical: DataSourceState<
+    ReturnType<WINkLinkClient['getHistoricalPrices']> extends Promise<infer T> ? T : never
+  >;
   tron: DataSourceState<TRONEcosystem>;
   staking: DataSourceState<NodeStakingData>;
   gaming: DataSourceState<WINkLinkGamingData>;
-  network: DataSourceState<ReturnType<WINkLinkClient['getNetworkStats']> extends Promise<infer T> ? T : never>;
+  network: DataSourceState<
+    ReturnType<WINkLinkClient['getNetworkStats']> extends Promise<infer T> ? T : never
+  >;
   risk: DataSourceState<WINkLinkRiskMetrics>;
 };
 

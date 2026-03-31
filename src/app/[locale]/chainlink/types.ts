@@ -27,6 +27,10 @@ export interface NetworkStats {
   status?: string;
   totalStaked?: number;
   updateFrequency?: number;
+  successRate?: number;
+  dataSources?: number;
+  consumerContracts?: number;
+  dataFreshness?: number;
 }
 
 export interface ChainlinkPageState {

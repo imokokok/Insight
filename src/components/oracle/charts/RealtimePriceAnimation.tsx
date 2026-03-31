@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 
-import { TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import { TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
 
 import { semanticColors } from '@/lib/config/colors';
 import { formatNumber } from '@/lib/utils/format';
@@ -45,12 +45,7 @@ function AnimatedDigit({
 }
 
 function PriceFlash({ trend }: { trend: 'up' | 'down' | 'stable' }) {
-  const color =
-    trend === 'up'
-      ? 'bg-emerald-500'
-      : trend === 'down'
-        ? 'bg-red-500'
-        : 'bg-gray-400';
+  const color = trend === 'up' ? 'bg-emerald-500' : trend === 'down' ? 'bg-red-500' : 'bg-gray-400';
 
   return (
     <motion.div
@@ -62,7 +57,13 @@ function PriceFlash({ trend }: { trend: 'up' | 'down' | 'stable' }) {
   );
 }
 
-function TrendArrow({ trend, size = 'md' }: { trend: 'up' | 'down' | 'stable'; size?: 'sm' | 'md' | 'lg' }) {
+function TrendArrow({
+  trend,
+  size = 'md',
+}: {
+  trend: 'up' | 'down' | 'stable';
+  size?: 'sm' | 'md' | 'lg';
+}) {
   const sizeClasses = {
     sm: 'w-3 h-3',
     md: 'w-5 h-5',
@@ -97,11 +98,13 @@ function MiniSparkline({ data, trend }: { data: number[]; trend: 'up' | 'down' |
   const range = max - min || 1;
   const height = 24;
   const width = 80;
-  const points = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * width;
-    const y = height - ((v - min) / range) * height;
-    return `${x},${y}`;
-  }).join(' ');
+  const points = data
+    .map((v, i) => {
+      const x = (i / (data.length - 1)) * width;
+      const y = height - ((v - min) / range) * height;
+      return `${x},${y}`;
+    })
+    .join(' ');
 
   const color =
     trend === 'up'
@@ -227,9 +230,7 @@ export function RealtimePriceAnimation({
         animate={controls}
         className={`relative overflow-hidden rounded-xl p-6 ${bgColor} border border-gray-200 dark:border-gray-700`}
       >
-        <AnimatePresence>
-          {isAnimating && <PriceFlash trend={trend} />}
-        </AnimatePresence>
+        <AnimatePresence>{isAnimating && <PriceFlash trend={trend} />}</AnimatePresence>
 
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-4">

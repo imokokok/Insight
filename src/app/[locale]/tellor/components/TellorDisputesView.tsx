@@ -245,9 +245,7 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
                   <tr
                     className="hover:bg-gray-50 cursor-pointer"
                     onClick={() =>
-                      setExpandedDispute(
-                        expandedDispute === dispute.id ? null : dispute.id
-                      )
+                      setExpandedDispute(expandedDispute === dispute.id ? null : dispute.id)
                     }
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -320,7 +318,9 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
                             <p className="text-sm font-medium text-gray-900">{dispute.timestamp}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">{t('disputes.votingProgress')}</p>
+                            <p className="text-xs text-gray-500 mb-1">
+                              {t('disputes.votingProgress')}
+                            </p>
                             <div className="flex items-center gap-2">
                               <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
                                 <div
@@ -331,7 +331,12 @@ export function TellorDisputesView({ isLoading }: TellorDisputesViewProps) {
                                 />
                               </div>
                               <span className="text-xs text-gray-500">
-                                {((dispute.votes.for / (dispute.votes.for + dispute.votes.against)) * 100).toFixed(0)}%
+                                {(
+                                  (dispute.votes.for /
+                                    (dispute.votes.for + dispute.votes.against)) *
+                                  100
+                                ).toFixed(0)}
+                                %
                               </span>
                             </div>
                           </div>

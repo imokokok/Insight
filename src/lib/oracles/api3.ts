@@ -1,21 +1,21 @@
 import type { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
-import type { GasFeeData } from '@/types/comparison';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import type { OHLCVDataPoint } from '@/lib/indicators';
+import type { GasFeeData } from '@/types/comparison';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
+import { api3DataAggregator } from './api3DataAggregator';
+import { isMockDataEnabled } from './api3DataSources';
+import {
+  MOCK_DATA_STATUS,
+  type MockDataAnnotation,
+  type MockDataStatus,
+} from './api3MockDataAnnotations';
+import { api3OnChainService } from './api3OnChainService';
 import { BaseOracleClient } from './base';
 
 import type { OracleClientConfig } from './base';
-import { isMockDataEnabled } from './api3DataSources';
-import { api3DataAggregator } from './api3DataAggregator';
-import { api3OnChainService } from './api3OnChainService';
-import { 
-  MOCK_DATA_STATUS, 
-  type MockDataAnnotation,
-  type MockDataStatus 
-} from './api3MockDataAnnotations';
 
 export interface AnnotatedData<T> {
   data: T;
@@ -1041,7 +1041,13 @@ export class API3Client extends BaseOracleClient {
     const recentAuctions: OEVAuction[] = [];
     const dapps = ['Aave', 'Compound', 'Uniswap', 'SushiSwap', 'Curve'];
     const dapis = ['ETH/USD', 'BTC/USD', 'USDC/USD', 'DAI/USD', 'WBTC/USD'];
-    const statuses: Array<'pending' | 'completed' | 'cancelled'> = ['completed', 'completed', 'completed', 'pending', 'cancelled'];
+    const statuses: Array<'pending' | 'completed' | 'cancelled'> = [
+      'completed',
+      'completed',
+      'completed',
+      'pending',
+      'cancelled',
+    ];
 
     for (let i = 0; i < 10; i++) {
       recentAuctions.push({
@@ -1052,7 +1058,10 @@ export class API3Client extends BaseOracleClient {
         winner: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`,
         timestamp: new Date(Date.now() - i * 3600000 * 2),
         status: statuses[i % statuses.length],
-        transactionHash: i % 3 !== 2 ? `0x${Math.random().toString(16).slice(2)}${Math.random().toString(16).slice(2)}` : undefined,
+        transactionHash:
+          i % 3 !== 2
+            ? `0x${Math.random().toString(16).slice(2)}${Math.random().toString(16).slice(2)}`
+            : undefined,
       });
     }
 
@@ -1074,8 +1083,22 @@ export class API3Client extends BaseOracleClient {
   async getOEVAuctions(limit: number = 20): Promise<OEVAuction[]> {
     const auctions: OEVAuction[] = [];
     const dapps = ['Aave', 'Compound', 'Uniswap', 'SushiSwap', 'Curve', 'Balancer', 'Yearn'];
-    const dapis = ['ETH/USD', 'BTC/USD', 'USDC/USD', 'DAI/USD', 'WBTC/USD', 'LINK/USD', 'MATIC/USD'];
-    const statuses: Array<'pending' | 'completed' | 'cancelled'> = ['completed', 'completed', 'completed', 'pending', 'cancelled'];
+    const dapis = [
+      'ETH/USD',
+      'BTC/USD',
+      'USDC/USD',
+      'DAI/USD',
+      'WBTC/USD',
+      'LINK/USD',
+      'MATIC/USD',
+    ];
+    const statuses: Array<'pending' | 'completed' | 'cancelled'> = [
+      'completed',
+      'completed',
+      'completed',
+      'pending',
+      'cancelled',
+    ];
 
     for (let i = 0; i < limit; i++) {
       const status = statuses[i % statuses.length];
@@ -1087,7 +1110,10 @@ export class API3Client extends BaseOracleClient {
         winner: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`,
         timestamp: new Date(Date.now() - i * 1800000),
         status,
-        transactionHash: status !== 'pending' ? `0x${Math.random().toString(16).slice(2)}${Math.random().toString(16).slice(2)}` : undefined,
+        transactionHash:
+          status !== 'pending'
+            ? `0x${Math.random().toString(16).slice(2)}${Math.random().toString(16).slice(2)}`
+            : undefined,
       });
     }
 
@@ -1180,7 +1206,12 @@ export class API3Client extends BaseOracleClient {
   async getAlertHistory(limit: number = 20): Promise<API3Alert[]> {
     const now = Date.now();
     const alerts: API3Alert[] = [];
-    const types: API3Alert['type'][] = ['price_deviation', 'node_offline', 'coverage_pool_risk', 'security_event'];
+    const types: API3Alert['type'][] = [
+      'price_deviation',
+      'node_offline',
+      'coverage_pool_risk',
+      'security_event',
+    ];
     const severities: API3Alert['severity'][] = ['info', 'warning', 'critical'];
     const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD', 'LINK/USD', 'UNI/USD'];
 
@@ -1257,7 +1288,7 @@ export class API3Client extends BaseOracleClient {
   private getMockCoveragePoolDetails(): CoveragePoolDetails {
     const collateralizationRatio = 156.8;
     const targetCollateralization = 150;
-    
+
     let healthStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
     if (collateralizationRatio < targetCollateralization * 0.8) {
       healthStatus = 'critical';
@@ -1289,7 +1320,11 @@ export class API3Client extends BaseOracleClient {
     return titles[type];
   }
 
-  private generateAlertMessage(type: API3Alert['type'], symbol: string, severity: API3Alert['severity']): string {
+  private generateAlertMessage(
+    type: API3Alert['type'],
+    symbol: string,
+    severity: API3Alert['severity']
+  ): string {
     const messages: Record<API3Alert['type'], Record<API3Alert['severity'], string>> = {
       price_deviation: {
         info: `${symbol} 价格偏差轻微，持续监控中`,
@@ -1322,7 +1357,8 @@ export class API3Client extends BaseOracleClient {
         type: 'pending',
         amount: 50000,
         requester: '0x1a2B3c4D5e6F7g8H9i0J1k2L3m4N5o6P7q8R9s0T',
-        reason: 'Price deviation claim for BTC/USD feed on Arbitrum - deviation exceeded 2% threshold',
+        reason:
+          'Price deviation claim for BTC/USD feed on Arbitrum - deviation exceeded 2% threshold',
         submittedAt: new Date(Date.now() - 86400000 * 2),
         votingDeadline: new Date(Date.now() + 86400000),
         votesFor: 1250000,
@@ -1389,7 +1425,7 @@ export class API3Client extends BaseOracleClient {
     ];
 
     if (status && status !== 'all') {
-      return allClaims.filter(claim => claim.type === status);
+      return allClaims.filter((claim) => claim.type === status);
     }
     return allClaims;
   }
@@ -1400,7 +1436,7 @@ export class API3Client extends BaseOracleClient {
         stakerAddress: '0x1a2B3c4D5e6F7g8H9i0J1k2L3m4N5o6P7q8R9s0T',
         stakedAmount: 15000,
         pendingRewards: 156.25,
-        claimedRewards: 2340.50,
+        claimedRewards: 2340.5,
         apr: 12.5,
         stakeDate: new Date(Date.now() - 86400000 * 180),
         lockEndDate: new Date(Date.now() + 86400000 * 30),
@@ -1409,7 +1445,7 @@ export class API3Client extends BaseOracleClient {
         stakerAddress: '0x2b3C4d5E6f7G8h9I0j1K2l3M4n5O6p7Q8r9S0t1U',
         stakedAmount: 8500,
         pendingRewards: 88.54,
-        claimedRewards: 1325.80,
+        claimedRewards: 1325.8,
         apr: 12.5,
         stakeDate: new Date(Date.now() - 86400000 * 150),
       },
@@ -1433,8 +1469,8 @@ export class API3Client extends BaseOracleClient {
       {
         stakerAddress: '0x5e6F7g8H9i0J1k2L3m4N5o6P7q8R9s0T1u2V3w4X',
         stakedAmount: 12000,
-        pendingRewards: 125.00,
-        claimedRewards: 1872.40,
+        pendingRewards: 125.0,
+        claimedRewards: 1872.4,
         apr: 12.5,
         stakeDate: new Date(Date.now() - 86400000 * 160),
       },
@@ -1442,7 +1478,7 @@ export class API3Client extends BaseOracleClient {
         stakerAddress: '0x6f7G8h9I0j1K2l3M4n5O6p7Q8r9S0t1U2v3W4x5Y',
         stakedAmount: 3200,
         pendingRewards: 33.33,
-        claimedRewards: 499.50,
+        claimedRewards: 499.5,
         apr: 12.5,
         stakeDate: new Date(Date.now() - 86400000 * 90),
       },
@@ -1450,7 +1486,7 @@ export class API3Client extends BaseOracleClient {
         stakerAddress: '0x7g8H9i0J1k2L3m4N5o6P7q8R9s0T1u2V3w4X5y6Z',
         stakedAmount: 45000,
         pendingRewards: 468.75,
-        claimedRewards: 7021.50,
+        claimedRewards: 7021.5,
         apr: 12.5,
         stakeDate: new Date(Date.now() - 86400000 * 220),
         lockEndDate: new Date(Date.now() + 86400000 * 45),
@@ -1466,8 +1502,8 @@ export class API3Client extends BaseOracleClient {
     ];
 
     if (address) {
-      return allStakers.filter(staker => 
-        staker.stakerAddress.toLowerCase() === address.toLowerCase()
+      return allStakers.filter(
+        (staker) => staker.stakerAddress.toLowerCase() === address.toLowerCase()
       );
     }
     return allStakers;

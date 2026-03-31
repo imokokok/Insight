@@ -722,7 +722,7 @@ import { ChainlinkClient, BandProtocolClient, PythClient, OracleProvider } from 
 
 const clients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
-  [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
+  [OracleProvider.BAND]: new BandProtocolClient(),
   [OracleProvider.PYTH]: new PythClient(),
 };
 

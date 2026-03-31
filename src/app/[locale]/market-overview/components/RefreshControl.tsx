@@ -96,9 +96,7 @@ export default function RefreshControl({
         className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
       >
         <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-        <span className="hidden sm:inline">
-          {isRefreshing ? t('refreshing') : t('refresh')}
-        </span>
+        <span className="hidden sm:inline">{isRefreshing ? t('refreshing') : t('refresh')}</span>
       </button>
 
       <div className="flex items-center gap-1 px-1">

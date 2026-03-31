@@ -1,6 +1,17 @@
 'use client';
 
-import { BarChart3, Globe, Shield, ArrowLeftRight, Database, ShieldAlert, Radio, Code, Lock, Scale } from 'lucide-react';
+import {
+  BarChart3,
+  Globe,
+  Shield,
+  ArrowLeftRight,
+  Database,
+  ShieldAlert,
+  Radio,
+  Code,
+  Lock,
+  Scale,
+} from 'lucide-react';
 
 import { UnifiedSidebar, type SidebarItem } from '@/components/oracle/UnifiedSidebar';
 import { useTranslations } from '@/i18n';

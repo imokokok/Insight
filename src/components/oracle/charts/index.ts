@@ -152,7 +152,16 @@ export { RealtimePriceAnimation } from './RealtimePriceAnimation';
 export type { RealtimePriceAnimationProps } from './RealtimePriceAnimation';
 
 export { HistoricalDataComparison } from './HistoricalDataComparison';
-export type { HistoricalDataComparisonProps, DataSeries, TimeRange, DataPoint } from './HistoricalDataComparison';
+export type {
+  HistoricalDataComparisonProps,
+  DataSeries,
+  TimeRange,
+  DataPoint,
+} from './HistoricalDataComparison';
 
 export { NetworkTopologyChart } from './NetworkTopologyChart';
-export type { NetworkTopologyChartProps, NetworkNode, NetworkConnection } from './NetworkTopologyChart';
+export type {
+  NetworkTopologyChartProps,
+  NetworkNode,
+  NetworkConnection,
+} from './NetworkTopologyChart';

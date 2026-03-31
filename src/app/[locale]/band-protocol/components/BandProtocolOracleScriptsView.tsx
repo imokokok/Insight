@@ -23,10 +23,18 @@ import { type BandProtocolOracleScriptsViewProps } from '../types';
 
 const ITEMS_PER_PAGE = 10;
 
-const getCategoryConfig = (t: (key: string) => string): Record<OracleScriptCategory, { label: string; color: string }> => ({
+const getCategoryConfig = (
+  t: (key: string) => string
+): Record<OracleScriptCategory, { label: string; color: string }> => ({
   price: { label: t('band.bandProtocol.categories.price'), color: 'bg-blue-100 text-blue-700' },
-  sports: { label: t('band.bandProtocol.categories.sports'), color: 'bg-emerald-100 text-emerald-700' },
-  random: { label: t('band.bandProtocol.categories.random'), color: 'bg-purple-100 text-purple-700' },
+  sports: {
+    label: t('band.bandProtocol.categories.sports'),
+    color: 'bg-emerald-100 text-emerald-700',
+  },
+  random: {
+    label: t('band.bandProtocol.categories.random'),
+    color: 'bg-purple-100 text-purple-700',
+  },
   custom: { label: t('band.bandProtocol.categories.custom'), color: 'bg-amber-100 text-amber-700' },
 });
 
@@ -150,7 +158,12 @@ function ScriptDetailModal({ script, onClose }: ScriptDetailModalProps) {
   );
 }
 
-export function BandProtocolOracleScriptsView({ oracleScripts, isLoading, error: propError, onRefresh }: BandProtocolOracleScriptsViewProps) {
+export function BandProtocolOracleScriptsView({
+  oracleScripts,
+  isLoading,
+  error: propError,
+  onRefresh,
+}: BandProtocolOracleScriptsViewProps) {
   const t = useTranslations();
 
   const [searchQuery, setSearchQuery] = useState('');

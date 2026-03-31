@@ -23,7 +23,7 @@ class SeededRandom {
   }
 }
 
-let globalSeed = 12345;
+const globalSeed = 12345;
 const seededRandom = new SeededRandom(globalSeed);
 const dataCache = new Map<string, unknown>();
 
@@ -816,8 +816,7 @@ export class BandProtocolClient extends BaseOracleClient {
         operatorAddress: `bandvaloper1${this.generateRandomAddress()}`,
         moniker: validatorNames[i],
         identity: this.generateRandomHex(16),
-        website:
-          i < 10 ? `https://${validatorNames[i].toLowerCase().replace(/\s+/g, '')}.com` : '',
+        website: i < 10 ? `https://${validatorNames[i].toLowerCase().replace(/\s+/g, '')}.com` : '',
         details: `Professional validator ${validatorNames[i]} securing Band Protocol network`,
         tokens: Number(tokens.toFixed(2)),
         delegatorShares: Number(tokens.toFixed(2)),
@@ -1823,8 +1822,7 @@ export class BandProtocolClient extends BaseOracleClient {
 
     const nakamotoCoefficient = this.calculateNakamotoCoefficient(sortedValidators, totalStake);
 
-    const avgUptime =
-      validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length;
+    const avgUptime = validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length;
     const avgCommission =
       validators.reduce((sum, v) => sum + v.commissionRate, 0) / validators.length;
 
@@ -1843,7 +1841,10 @@ export class BandProtocolClient extends BaseOracleClient {
     const transparencyScore = 75 + seededRandom.next() * 10;
 
     const overallScore =
-      (decentralizationScore * 0.3 + securityScore * 0.3 + reliabilityScore * 0.25 + transparencyScore * 0.15);
+      decentralizationScore * 0.3 +
+      securityScore * 0.3 +
+      reliabilityScore * 0.25 +
+      transparencyScore * 0.15;
 
     const result = {
       decentralizationScore: Number(decentralizationScore.toFixed(1)),
@@ -2041,61 +2042,71 @@ export class BandProtocolClient extends BaseOracleClient {
     const proposalTemplates = [
       {
         title: 'Upgrade BandChain to v3.0',
-        description: 'Proposal to upgrade BandChain mainnet to version 3.0, introducing enhanced oracle script execution environment and improved gas optimization.',
+        description:
+          'Proposal to upgrade BandChain mainnet to version 3.0, introducing enhanced oracle script execution environment and improved gas optimization.',
         type: 'Software Upgrade',
         status: 'voting' as ProposalStatus,
       },
       {
         title: 'Increase Validator Set Size',
-        description: 'Proposal to increase the active validator set from 72 to 100 validators to improve network decentralization.',
+        description:
+          'Proposal to increase the active validator set from 72 to 100 validators to improve network decentralization.',
         type: 'Parameter Change',
         status: 'voting' as ProposalStatus,
       },
       {
         title: 'Community Pool Spending for Marketing',
-        description: 'Proposal to allocate 500,000 BAND from the community pool for marketing and ecosystem development initiatives.',
+        description:
+          'Proposal to allocate 500,000 BAND from the community pool for marketing and ecosystem development initiatives.',
         type: 'Community Pool Spend',
         status: 'passed' as ProposalStatus,
       },
       {
         title: 'Reduce Minimum Deposit Amount',
-        description: 'Proposal to reduce the minimum deposit for governance proposals from 512 BAND to 256 BAND to lower barriers to participation.',
+        description:
+          'Proposal to reduce the minimum deposit for governance proposals from 512 BAND to 256 BAND to lower barriers to participation.',
         type: 'Parameter Change',
         status: 'voting' as ProposalStatus,
       },
       {
         title: 'Add New Oracle Scripts',
-        description: 'Proposal to add 10 new oracle scripts for emerging DeFi protocols and NFT price feeds.',
+        description:
+          'Proposal to add 10 new oracle scripts for emerging DeFi protocols and NFT price feeds.',
         type: 'Oracle Script Addition',
         status: 'passed' as ProposalStatus,
       },
       {
         title: 'Adjust Staking Parameters',
-        description: 'Proposal to adjust staking parameters including unbonding period and slashing rates.',
+        description:
+          'Proposal to adjust staking parameters including unbonding period and slashing rates.',
         type: 'Parameter Change',
         status: 'rejected' as ProposalStatus,
       },
       {
         title: 'Fund Developer Grant Program',
-        description: 'Proposal to establish a developer grant program with 1,000,000 BAND allocation for ecosystem growth.',
+        description:
+          'Proposal to establish a developer grant program with 1,000,000 BAND allocation for ecosystem growth.',
         type: 'Community Pool Spend',
         status: 'passed' as ProposalStatus,
       },
       {
         title: 'Enable IBC Relayer Incentives',
-        description: 'Proposal to implement incentive mechanisms for IBC relayers to improve cross-chain connectivity.',
+        description:
+          'Proposal to implement incentive mechanisms for IBC relayers to improve cross-chain connectivity.',
         type: 'Parameter Change',
         status: 'deposit' as ProposalStatus,
       },
       {
         title: 'Security Audit Funding',
-        description: 'Proposal to fund comprehensive security audit by leading firms for BandChain core contracts.',
+        description:
+          'Proposal to fund comprehensive security audit by leading firms for BandChain core contracts.',
         type: 'Community Pool Spend',
         status: 'passed' as ProposalStatus,
       },
       {
         title: 'Update Oracle Script Standards',
-        description: 'Proposal to update standards and requirements for oracle script development and deployment.',
+        description:
+          'Proposal to update standards and requirements for oracle script development and deployment.',
         type: 'Software Upgrade',
         status: 'failed' as ProposalStatus,
       },
@@ -2108,9 +2119,12 @@ export class BandProtocolClient extends BaseOracleClient {
       const votingEndTime = depositEndTime + 7 * 24 * 60 * 60 * 1000;
 
       const totalVotes = 50000000 + Math.floor(seededRandom.next() * 50000000);
-      const yesRatio = template.status === 'passed' ? 0.7 + seededRandom.next() * 0.2 : 
-                       template.status === 'rejected' ? 0.2 + seededRandom.next() * 0.2 :
-                       0.4 + seededRandom.next() * 0.2;
+      const yesRatio =
+        template.status === 'passed'
+          ? 0.7 + seededRandom.next() * 0.2
+          : template.status === 'rejected'
+            ? 0.2 + seededRandom.next() * 0.2
+            : 0.4 + seededRandom.next() * 0.2;
 
       proposals.push({
         id: i + 1,

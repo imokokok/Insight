@@ -191,10 +191,7 @@ export function ChainlinkNodesView() {
               {t('chainlink.nodes.activeNodes')}
             </h2>
           </div>
-          <ChainlinkDataTable<NodeData>
-            data={mockNodes}
-            columns={columns}
-          />
+          <ChainlinkDataTable<NodeData> data={mockNodes} columns={columns} />
         </div>
 
         {/* 右侧边栏 */}

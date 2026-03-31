@@ -342,13 +342,33 @@ function UnifiedInfoSection({
 
   const gasLevel = useMemo(() => {
     if (!networkStats)
-      return { label: t('redstone.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
+      return {
+        label: t('redstone.hero.gasLevel.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
     const { avgResponseTime } = networkStats;
     if (avgResponseTime < 150)
-      return { label: t('redstone.hero.gasLevel.low'), color: 'text-emerald-600', bg: 'bg-emerald-500', width: '30%' };
+      return {
+        label: t('redstone.hero.gasLevel.low'),
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500',
+        width: '30%',
+      };
     if (avgResponseTime < 300)
-      return { label: t('redstone.hero.gasLevel.medium'), color: 'text-yellow-600', bg: 'bg-yellow-500', width: '50%' };
-    return { label: t('redstone.hero.gasLevel.high'), color: 'text-red-600', bg: 'bg-red-500', width: '80%' };
+      return {
+        label: t('redstone.hero.gasLevel.medium'),
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-500',
+        width: '50%',
+      };
+    return {
+      label: t('redstone.hero.gasLevel.high'),
+      color: 'text-red-600',
+      bg: 'bg-red-500',
+      width: '80%',
+    };
   }, [networkStats, t]);
 
   // 只显示前3个链
@@ -455,10 +475,26 @@ function QuickActions() {
   const t = useTranslations();
 
   const actions = [
-    { icon: <Bell className="w-3.5 h-3.5" />, label: t('redstone.hero.quickActions.priceAlert'), href: '#' },
-    { icon: <Plus className="w-3.5 h-3.5" />, label: t('redstone.hero.quickActions.addMonitor'), href: '#' },
-    { icon: <FileText className="w-3.5 h-3.5" />, label: t('redstone.hero.quickActions.apiDocs'), href: '#' },
-    { icon: <Layers className="w-3.5 h-3.5" />, label: t('redstone.hero.quickActions.switchNetwork'), href: '#' },
+    {
+      icon: <Bell className="w-3.5 h-3.5" />,
+      label: t('redstone.hero.quickActions.priceAlert'),
+      href: '#',
+    },
+    {
+      icon: <Plus className="w-3.5 h-3.5" />,
+      label: t('redstone.hero.quickActions.addMonitor'),
+      href: '#',
+    },
+    {
+      icon: <FileText className="w-3.5 h-3.5" />,
+      label: t('redstone.hero.quickActions.apiDocs'),
+      href: '#',
+    },
+    {
+      icon: <Layers className="w-3.5 h-3.5" />,
+      label: t('redstone.hero.quickActions.switchNetwork'),
+      href: '#',
+    },
   ];
 
   return (
@@ -481,16 +517,34 @@ function LatestUpdates() {
   const t = useTranslations();
 
   const updates = [
-    { type: 'price', text: t('redstone.hero.updates.price'), time: t('redstone.hero.timeAgo.1minAgo') },
-    { type: 'provider', text: t('redstone.hero.updates.provider'), time: t('redstone.hero.timeAgo.3minAgo') },
-    { type: 'feed', text: t('redstone.hero.updates.feed'), time: t('redstone.hero.timeAgo.5minAgo') },
-    { type: 'bridge', text: t('redstone.hero.updates.bridge'), time: t('redstone.hero.timeAgo.12minAgo') },
+    {
+      type: 'price',
+      text: t('redstone.hero.updates.price'),
+      time: t('redstone.hero.timeAgo.1minAgo'),
+    },
+    {
+      type: 'provider',
+      text: t('redstone.hero.updates.provider'),
+      time: t('redstone.hero.timeAgo.3minAgo'),
+    },
+    {
+      type: 'feed',
+      text: t('redstone.hero.updates.feed'),
+      time: t('redstone.hero.timeAgo.5minAgo'),
+    },
+    {
+      type: 'bridge',
+      text: t('redstone.hero.updates.bridge'),
+      time: t('redstone.hero.timeAgo.12minAgo'),
+    },
   ];
 
   return (
     <div className="bg-gray-50 border-t border-gray-200 py-2 px-4">
       <div className="max-w-[1600px] mx-auto flex items-center gap-4 overflow-hidden">
-        <span className="text-xs font-medium text-gray-500 flex-shrink-0">{t('redstone.hero.latestUpdates')}</span>
+        <span className="text-xs font-medium text-gray-500 flex-shrink-0">
+          {t('redstone.hero.latestUpdates')}
+        </span>
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-6 animate-marquee whitespace-nowrap">
             {updates.map((update, index) => (

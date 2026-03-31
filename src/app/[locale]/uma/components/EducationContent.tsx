@@ -56,10 +56,7 @@ function Accordion({ items }: { items: AccordionItem[] }) {
   return (
     <div className="space-y-2">
       {items.map((item, index) => (
-        <div
-          key={index}
-          className="border border-gray-200 rounded-lg overflow-hidden"
-        >
+        <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
           <button
             onClick={() => setOpenIndex(openIndex === index ? null : index)}
             className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
@@ -83,7 +80,15 @@ function Accordion({ items }: { items: AccordionItem[] }) {
   );
 }
 
-function UseCaseCard({ useCase, index, t }: { useCase: UseCase; index: number; t: ReturnType<typeof useTranslations> }) {
+function UseCaseCard({
+  useCase,
+  index,
+  t,
+}: {
+  useCase: UseCase;
+  index: number;
+  t: ReturnType<typeof useTranslations>;
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -122,7 +127,9 @@ function UseCaseCard({ useCase, index, t }: { useCase: UseCase; index: number; t
       {isExpanded && (
         <div className="px-4 pb-4 pt-0 border-t border-gray-100 bg-gray-50/50">
           <div className="pt-3">
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{t('uma.ecosystem.features')}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
+              {t('uma.ecosystem.features')}
+            </p>
             <div className="flex flex-wrap gap-2">
               {useCase.features.map((feature, idx) => (
                 <span
@@ -140,7 +147,13 @@ function UseCaseCard({ useCase, index, t }: { useCase: UseCase; index: number; t
   );
 }
 
-function BestPracticeCard({ practice, t }: { practice: BestPractice; t: ReturnType<typeof useTranslations> }) {
+function BestPracticeCard({
+  practice,
+  t,
+}: {
+  practice: BestPractice;
+  t: ReturnType<typeof useTranslations>;
+}) {
   return (
     <div className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start gap-3 mb-4">
@@ -192,7 +205,9 @@ function BestPracticeCard({ practice, t }: { practice: BestPractice; t: ReturnTy
 
 export function EducationContent({ isLoading = false }: { isLoading?: boolean }) {
   const t = useTranslations();
-  const [activeSection, setActiveSection] = useState<'intro' | 'cases' | 'faq' | 'practices'>('intro');
+  const [activeSection, setActiveSection] = useState<'intro' | 'cases' | 'faq' | 'practices'>(
+    'intro'
+  );
 
   if (isLoading) {
     return (
@@ -205,10 +220,18 @@ export function EducationContent({ isLoading = false }: { isLoading?: boolean })
   }
 
   const sections = [
-    { id: 'intro' as const, label: t('uma.education.intro'), icon: <BookOpen className="w-4 h-4" /> },
+    {
+      id: 'intro' as const,
+      label: t('uma.education.intro'),
+      icon: <BookOpen className="w-4 h-4" />,
+    },
     { id: 'cases' as const, label: t('uma.education.cases'), icon: <Zap className="w-4 h-4" /> },
     { id: 'faq' as const, label: t('uma.education.faq'), icon: <Users className="w-4 h-4" /> },
-    { id: 'practices' as const, label: t('uma.education.practices'), icon: <Award className="w-4 h-4" /> },
+    {
+      id: 'practices' as const,
+      label: t('uma.education.practices'),
+      icon: <Award className="w-4 h-4" />,
+    },
   ];
 
   const faqItems: AccordionItem[] = [
@@ -384,7 +407,9 @@ export function EducationContent({ isLoading = false }: { isLoading?: boolean })
                 <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
                   <Zap className="w-4 h-4 text-red-600" />
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900">{t('uma.education.whatIsUma')}</h3>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  {t('uma.education.whatIsUma')}
+                </h3>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">
                 {t('uma.education.whatIsUmaDesc')}
@@ -396,7 +421,9 @@ export function EducationContent({ isLoading = false }: { isLoading?: boolean })
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                   <Shield className="w-4 h-4 text-emerald-600" />
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900">{t('uma.education.coreValueProposition')}</h3>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  {t('uma.education.coreValueProposition')}
+                </h3>
               </div>
               <ul className="space-y-2">
                 {[
@@ -419,26 +446,30 @@ export function EducationContent({ isLoading = false }: { isLoading?: boolean })
               <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-blue-600" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-900">{t('uma.education.techArchitecture')}</h3>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {t('uma.education.techArchitecture')}
+              </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-xs font-semibold text-gray-700 mb-2">{t('uma.education.optimisticOracleLayer')}</h4>
+                <h4 className="text-xs font-semibold text-gray-700 mb-2">
+                  {t('uma.education.optimisticOracleLayer')}
+                </h4>
                 <p className="text-xs text-gray-500">
                   {t('uma.education.optimisticOracleLayerDesc')}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-xs font-semibold text-gray-700 mb-2">{t('uma.education.governanceLayer')}</h4>
-                <p className="text-xs text-gray-500">
-                  {t('uma.education.governanceLayerDesc')}
-                </p>
+                <h4 className="text-xs font-semibold text-gray-700 mb-2">
+                  {t('uma.education.governanceLayer')}
+                </h4>
+                <p className="text-xs text-gray-500">{t('uma.education.governanceLayerDesc')}</p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-xs font-semibold text-gray-700 mb-2">{t('uma.education.applicationLayer')}</h4>
-                <p className="text-xs text-gray-500">
-                  {t('uma.education.applicationLayerDesc')}
-                </p>
+                <h4 className="text-xs font-semibold text-gray-700 mb-2">
+                  {t('uma.education.applicationLayer')}
+                </h4>
+                <p className="text-xs text-gray-500">{t('uma.education.applicationLayerDesc')}</p>
               </div>
             </div>
           </div>
@@ -448,13 +479,17 @@ export function EducationContent({ isLoading = false }: { isLoading?: boolean })
               <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
                 <Users className="w-4 h-4 text-purple-600" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-900">{t('uma.education.comparisonWithOthers')}</h3>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {t('uma.education.comparisonWithOthers')}
+              </h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 px-3 font-medium text-gray-700">{t('uma.education.feature')}</th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">
+                      {t('uma.education.feature')}
+                    </th>
                     <th className="text-left py-2 px-3 font-medium text-gray-700">UMA</th>
                     <th className="text-left py-2 px-3 font-medium text-gray-700">Chainlink</th>
                     <th className="text-left py-2 px-3 font-medium text-gray-700">Band Protocol</th>
@@ -462,11 +497,36 @@ export function EducationContent({ isLoading = false }: { isLoading?: boolean })
                 </thead>
                 <tbody>
                   {[
-                    [t('uma.education.verificationMode'), t('uma.education.optimisticVerification'), t('uma.education.activeVerification'), t('uma.education.activeVerification')],
-                    [t('uma.education.dataType'), t('uma.education.anyType'), t('uma.education.mainlyPrice'), t('uma.education.mainlyPrice')],
-                    [t('uma.education.verificationCost'), t('uma.education.veryLow'), t('uma.education.medium'), t('uma.education.medium')],
-                    [t('uma.education.disputeMechanism'), t('uma.education.builtIn'), t('uma.education.none'), t('uma.education.limited')],
-                    [t('uma.education.participationThreshold'), t('uma.education.lowThreshold'), t('uma.education.highThreshold'), t('uma.education.medium')],
+                    [
+                      t('uma.education.verificationMode'),
+                      t('uma.education.optimisticVerification'),
+                      t('uma.education.activeVerification'),
+                      t('uma.education.activeVerification'),
+                    ],
+                    [
+                      t('uma.education.dataType'),
+                      t('uma.education.anyType'),
+                      t('uma.education.mainlyPrice'),
+                      t('uma.education.mainlyPrice'),
+                    ],
+                    [
+                      t('uma.education.verificationCost'),
+                      t('uma.education.veryLow'),
+                      t('uma.education.medium'),
+                      t('uma.education.medium'),
+                    ],
+                    [
+                      t('uma.education.disputeMechanism'),
+                      t('uma.education.builtIn'),
+                      t('uma.education.none'),
+                      t('uma.education.limited'),
+                    ],
+                    [
+                      t('uma.education.participationThreshold'),
+                      t('uma.education.lowThreshold'),
+                      t('uma.education.highThreshold'),
+                      t('uma.education.medium'),
+                    ],
                   ].map((row, idx) => (
                     <tr key={idx} className="border-b border-gray-100 last:border-0">
                       {row.map((cell, cellIdx) => (
@@ -492,9 +552,7 @@ export function EducationContent({ isLoading = false }: { isLoading?: boolean })
       {activeSection === 'cases' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-500">
-              {t('uma.education.usedByProjects')}
-            </p>
+            <p className="text-sm text-gray-500">{t('uma.education.usedByProjects')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {useCases.map((useCase, index) => (
@@ -508,10 +566,10 @@ export function EducationContent({ isLoading = false }: { isLoading?: boolean })
                 <ArrowRight className="w-4 h-4 text-red-600" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-1">{t('uma.education.wantToIntegrate')}</h4>
-                <p className="text-xs text-gray-600">
-                  {t('uma.education.integrationDesc')}
-                </p>
+                <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                  {t('uma.education.wantToIntegrate')}
+                </h4>
+                <p className="text-xs text-gray-600">{t('uma.education.integrationDesc')}</p>
                 <a
                   href="https://docs.umaproject.org/developers"
                   target="_blank"
@@ -549,7 +607,9 @@ export function EducationContent({ isLoading = false }: { isLoading?: boolean })
               <Award className="w-4 h-4 text-amber-600" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">{t('uma.education.bestPracticesTitle')}</h3>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {t('uma.education.bestPracticesTitle')}
+              </h3>
               <p className="text-xs text-gray-500">{t('uma.education.bestPracticesSubtitle')}</p>
             </div>
           </div>
@@ -563,10 +623,10 @@ export function EducationContent({ isLoading = false }: { isLoading?: boolean })
             <div className="flex items-start gap-3">
               <Clock className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-1">{t('uma.education.continuousLearning')}</h4>
-                <p className="text-xs text-gray-600">
-                  {t('uma.education.continuousLearningDesc')}
-                </p>
+                <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                  {t('uma.education.continuousLearning')}
+                </h4>
+                <p className="text-xs text-gray-600">{t('uma.education.continuousLearningDesc')}</p>
               </div>
             </div>
           </div>

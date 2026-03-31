@@ -1,11 +1,20 @@
-import type { PriceData } from '@/types/oracle';
-import type { AirnodeNetworkStats } from '@/lib/oracles/api3';
 import { CACHE_CONFIG } from '@/lib/config/cacheConfig';
+import type { AirnodeNetworkStats } from '@/lib/oracles/api3';
 import { API3Client } from '@/lib/oracles/api3';
+import type { PriceData } from '@/types/oracle';
+
 import { API3OfflineStorage } from './api3OfflineStorage';
 
 export interface UpdateRequest {
-  type: 'price' | 'historical' | 'airnodeStats' | 'dapiCoverage' | 'staking' | 'oev' | 'alerts' | 'coveragePool';
+  type:
+    | 'price'
+    | 'historical'
+    | 'airnodeStats'
+    | 'dapiCoverage'
+    | 'staking'
+    | 'oev'
+    | 'alerts'
+    | 'coveragePool';
   symbol?: string;
   chain?: string;
   lastTimestamp?: number;
@@ -31,7 +40,10 @@ export class API3IncrementalUpdateService {
     this.offlineStorage = offlineStorage || new API3OfflineStorage();
   }
 
-  async updatePriceData(symbol: string, chain?: string): Promise<IncrementalUpdateResult<PriceData>> {
+  async updatePriceData(
+    symbol: string,
+    chain?: string
+  ): Promise<IncrementalUpdateResult<PriceData>> {
     const cacheKey = `price-${symbol}-${chain || 'default'}`;
     const lastUpdate = this.lastUpdateTimestamp.get(cacheKey) || 0;
     const now = Date.now();
@@ -107,9 +119,9 @@ export class API3IncrementalUpdateService {
 
     const cachedData = await this.offlineStorage.getData<PriceData[]>(cacheKey);
     if (cachedData && cachedData.length > 0) {
-      const latestCachedTimestamp = Math.max(...cachedData.map(p => p.timestamp));
+      const latestCachedTimestamp = Math.max(...cachedData.map((p) => p.timestamp));
       if (latestCachedTimestamp > lastTimestamp) {
-        const newEntries = cachedData.filter(p => p.timestamp > lastTimestamp);
+        const newEntries = cachedData.filter((p) => p.timestamp > lastTimestamp);
         if (newEntries.length > 0) {
           return {
             data: newEntries,
@@ -189,7 +201,9 @@ export class API3IncrementalUpdateService {
     }
   }
 
-  async batchUpdate(updates: UpdateRequest[]): Promise<Map<string, IncrementalUpdateResult<unknown>>> {
+  async batchUpdate(
+    updates: UpdateRequest[]
+  ): Promise<Map<string, IncrementalUpdateResult<unknown>>> {
     const results = new Map<string, IncrementalUpdateResult<unknown>>();
     const config = CACHE_CONFIG.incremental;
 
@@ -375,7 +389,7 @@ export class API3IncrementalUpdateService {
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   getLastUpdateTime(cacheKey: string): number | undefined {

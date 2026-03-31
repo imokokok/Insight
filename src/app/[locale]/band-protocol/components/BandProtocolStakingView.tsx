@@ -279,9 +279,7 @@ export function BandProtocolStakingView({
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">
-                {t('band.bandProtocol.staking.apy')}
-              </span>
+              <span className="text-sm text-gray-600">{t('band.bandProtocol.staking.apy')}</span>
               <span className="text-lg font-semibold text-purple-600">
                 {rewardCalculation.apy.toFixed(2)}%
               </span>

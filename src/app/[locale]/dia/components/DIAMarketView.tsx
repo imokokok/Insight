@@ -3,7 +3,7 @@
 import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield } from 'lucide-react';
 
 import { PriceChart } from '@/components/oracle';
-import { CrossChainPriceComparison } from '@/components/oracle/charts/CrossChainPriceComparison';
+import { CrossChainPriceComparison } from '@/components/oracle/charts/CrossChainPriceComparison/CrossChainPriceComparison';
 import { useTranslations } from '@/i18n';
 import { Blockchain } from '@/types/oracle';
 
@@ -58,14 +58,20 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
             <h3 className="text-base font-medium text-gray-900">{t('dia.priceTrend')}</h3>
           </div>
           <div className="flex-1">
-            <PriceChart
-              client={config.client}
-              symbol={config.symbol}
-              chain={config.defaultChain}
-              height={300}
-              showToolbar={true}
-              defaultPrice={config.marketData.change24hValue}
-            />
+            {config.client ? (
+              <PriceChart
+                client={config.client}
+                symbol={config.symbol}
+                chain={config.defaultChain}
+                height={300}
+                showToolbar={true}
+                defaultPrice={config.marketData.change24hValue}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+                <p className="text-gray-500">{t('common.noData')}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -137,11 +143,11 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
             <h3 className="text-base font-medium text-gray-900 mb-4">{t('dia.dataSources')}</h3>
             <div className="flex-1 flex flex-col">
               {[
-            { name: t('dia.dataSource.diaPrimary'), status: 'active', latency: '85ms' },
-            { name: t('dia.dataSource.ethereumNode'), status: 'active', latency: '150ms' },
-            { name: t('dia.dataSource.backupFeed'), status: 'active', latency: '120ms' },
-            { name: t('dia.dataSource.archiveNode'), status: 'syncing', latency: '280ms' },
-          ].map((source, index) => (
+                { name: t('dia.dataSource.diaPrimary'), status: 'active', latency: '85ms' },
+                { name: t('dia.dataSource.ethereumNode'), status: 'active', latency: '150ms' },
+                { name: t('dia.dataSource.backupFeed'), status: 'active', latency: '120ms' },
+                { name: t('dia.dataSource.archiveNode'), status: 'syncing', latency: '280ms' },
+              ].map((source, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0"
@@ -164,9 +170,7 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
 
       {/* 核心交易对信息 */}
       <div>
-        <h3 className="text-base font-medium text-gray-900 mb-4">
-          {t('dia.tradingPair')}
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-4">{t('dia.tradingPair')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('dia.tradingPairDiaUsdc')}</p>
@@ -190,21 +194,28 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('dia.volume24h')}</p>
             <p className="text-2xl font-semibold text-gray-900">
-              ${config.marketData.volume24h ? `${(config.marketData.volume24h / 1e6).toFixed(1)}M` : '--'}
+              $
+              {config.marketData.volume24h
+                ? `${(config.marketData.volume24h / 1e6).toFixed(1)}M`
+                : '--'}
             </p>
             <p className="text-sm text-gray-400 mt-1">--</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('dia.liquidity')}</p>
             <p className="text-2xl font-semibold text-gray-900">
-              {config.marketData.liquidity ? `$${(config.marketData.liquidity / 1e6).toFixed(1)}M` : '--'}
+              {config.marketData.liquidity
+                ? `$${(config.marketData.liquidity / 1e6).toFixed(1)}M`
+                : '--'}
             </p>
             <p className="text-sm text-gray-400 mt-1">--</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">{t('dia.marketDepth')}</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-semibold text-gray-900">{t('dia.depthScoreValue')}</span>
+              <span className="text-2xl font-semibold text-gray-900">
+                {t('dia.depthScoreValue')}
+              </span>
               <span className="text-sm text-gray-400">{t('dia.depthScoreTotal')}</span>
             </div>
             <p className="text-xs text-gray-400 mt-1">{t('dia.depthScore')}</p>
@@ -216,12 +227,7 @@ export function DIAMarketView({ config, price, historicalData, isLoading }: DIAM
       <div className="border-t border-gray-200 pt-8">
         <CrossChainPriceComparison
           symbol={config.symbol || 'DIA'}
-          chains={[
-            Blockchain.ETHEREUM,
-            Blockchain.ARBITRUM,
-            Blockchain.POLYGON,
-            Blockchain.BASE,
-          ]}
+          chains={[Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON, Blockchain.BASE]}
           priceThreshold={0.5}
         />
       </div>

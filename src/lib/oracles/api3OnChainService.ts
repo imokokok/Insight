@@ -1,4 +1,5 @@
 import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
+
 import { getAPI3Contract } from './api3DataSources';
 
 export interface TokenData {
@@ -99,14 +100,33 @@ const API3_POOL_ABI = [
 
 const RPC_ENDPOINTS: Record<number, string[]> = {
   1: ['https://eth.llamarpc.com', 'https://ethereum.publicnode.com', 'https://rpc.ankr.com/eth'],
-  42161: ['https://arb1.arbitrum.io/rpc', 'https://arbitrum.publicnode.com', 'https://rpc.ankr.com/arbitrum'],
-  137: ['https://polygon-rpc.com', 'https://polygon.publicnode.com', 'https://rpc.ankr.com/polygon'],
+  42161: [
+    'https://arb1.arbitrum.io/rpc',
+    'https://arbitrum.publicnode.com',
+    'https://rpc.ankr.com/arbitrum',
+  ],
+  137: [
+    'https://polygon-rpc.com',
+    'https://polygon.publicnode.com',
+    'https://rpc.ankr.com/polygon',
+  ],
   8453: ['https://mainnet.base.org', 'https://base.publicnode.com', 'https://rpc.ankr.com/base'],
-  43114: ['https://api.avax.network/ext/bc/C/rpc', 'https://avalanche.publicnode.com', 'https://rpc.ankr.com/avalanche'],
-  56: ['https://bsc-dataseed.binance.org', 'https://bsc.publicnode.com', 'https://rpc.ankr.com/bsc'],
+  43114: [
+    'https://api.avax.network/ext/bc/C/rpc',
+    'https://avalanche.publicnode.com',
+    'https://rpc.ankr.com/avalanche',
+  ],
+  56: [
+    'https://bsc-dataseed.binance.org',
+    'https://bsc.publicnode.com',
+    'https://rpc.ankr.com/bsc',
+  ],
 };
 
-function encodeTokenCall(functionName: 'totalSupply' | 'balanceOf', args?: readonly [`0x${string}`]): `0x${string}` {
+function encodeTokenCall(
+  functionName: 'totalSupply' | 'balanceOf',
+  args?: readonly [`0x${string}`]
+): `0x${string}` {
   if (functionName === 'balanceOf' && args) {
     return viemEncodeFunctionData({
       abi: API3_TOKEN_ABI,
@@ -120,7 +140,15 @@ function encodeTokenCall(functionName: 'totalSupply' | 'balanceOf', args?: reado
   });
 }
 
-function encodePoolCall(functionName: 'totalStaked' | 'stakerCount' | 'getStakerDetails' | 'unstakeAmount' | 'effectiveStake', args?: readonly [`0x${string}`]): `0x${string}` {
+function encodePoolCall(
+  functionName:
+    | 'totalStaked'
+    | 'stakerCount'
+    | 'getStakerDetails'
+    | 'unstakeAmount'
+    | 'effectiveStake',
+  args?: readonly [`0x${string}`]
+): `0x${string}` {
   if (functionName === 'getStakerDetails' && args) {
     return viemEncodeFunctionData({
       abi: API3_POOL_ABI,
@@ -166,7 +194,11 @@ export class API3OnChainService {
     this.rpcEndpoints = RPC_ENDPOINTS;
   }
 
-  private async rpcCallWithFallback<T>(chainId: number, method: string, params: unknown[]): Promise<T> {
+  private async rpcCallWithFallback<T>(
+    chainId: number,
+    method: string,
+    params: unknown[]
+  ): Promise<T> {
     const endpoints = this.rpcEndpoints[chainId];
     if (!endpoints || endpoints.length === 0) {
       throw new Error(`No RPC endpoints for chain ${chainId}`);
@@ -243,7 +275,10 @@ export class API3OnChainService {
     if (cached) return cached;
 
     try {
-      const contracts = getAPI3Contract('mainnet') as { api3Pool: `0x${string}`; api3Token: `0x${string}` };
+      const contracts = getAPI3Contract('mainnet') as {
+        api3Pool: `0x${string}`;
+        api3Token: `0x${string}`;
+      };
       const poolAddress = contracts.api3Pool;
 
       const totalStakedData = await this.ethCall(
@@ -325,7 +360,7 @@ export class API3OnChainService {
     try {
       const contracts = getAPI3Contract('mainnet') as {
         api3Token: `0x${string}`;
-        api3Pool: `0x${string}`
+        api3Pool: `0x${string}`;
       };
       const tokenAddress = contracts.api3Token;
       const poolAddress = contracts.api3Pool;
@@ -364,7 +399,7 @@ export class API3OnChainService {
 
   private calculateAPR(totalStaked: bigint): number {
     const yearlyRewards = BigInt(25000000);
-    const apr = Number(yearlyRewards) / Number(totalStaked) * 100;
+    const apr = (Number(yearlyRewards) / Number(totalStaked)) * 100;
     return Math.min(Math.max(apr, 0), 100);
   }
 
@@ -408,7 +443,11 @@ export class API3OnChainService {
     return BigInt(result);
   }
 
-  getEndpointStatus(chainId: number): { current: number; total: number; health: Record<number, boolean> } {
+  getEndpointStatus(chainId: number): {
+    current: number;
+    total: number;
+    health: Record<number, boolean>;
+  } {
     const endpoints = this.rpcEndpoints[chainId] || [];
     return {
       current: this.currentEndpointIndex[chainId] || 0,
