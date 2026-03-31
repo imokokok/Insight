@@ -66,16 +66,12 @@ function usePerformanceDegradation(): PerformanceDegradation {
               reducedParticleCount: 0,
             });
           } else if (isLowMemory) {
-            console.log(
-              `[ParticleNetwork] 性能降级: 低内存设备 (${deviceMemory}GB < 4GB)，减少粒子数量`
-            );
             setDegradation({
               shouldDegrade: true,
               reason: 'low-memory',
               reducedParticleCount: Math.floor(defaultProps.particleCount * 0.3),
             });
           } else if (isLowFPS) {
-            console.log(`[ParticleNetwork] 性能降级: 低FPS设备 (${fps}fps < 30fps)，减少粒子数量`);
             setDegradation({
               shouldDegrade: true,
               reason: 'low-fps',

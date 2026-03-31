@@ -22,7 +22,7 @@ Before deploying, ensure you have the following:
 
 ### Required
 
-- **Node.js**: Version 18.x or higher
+- **Node.js**: Version 20.x or higher
 - **npm** or **yarn**: Package manager
 - **Supabase Account**: For database and authentication
   - Sign up at [supabase.com](https://supabase.com)
@@ -38,8 +38,8 @@ Before deploying, ensure you have the following:
 ### Local Development Requirements
 
 ```bash
-node --version  # Should be 18.x or higher
-npm --version   # npm 9.x or higher recommended
+node --version  # Should be 20.x or higher
+npm --version   # npm 10.x or higher recommended
 ```
 
 ---

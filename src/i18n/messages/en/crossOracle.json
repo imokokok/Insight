@@ -277,6 +277,20 @@
       "movingAverage": "Moving Average Analysis",
       "dataQuality": "Data Quality Trend"
     },
+    "analysisTab": {
+      "movingAverage": "Moving Average Analysis",
+      "dataQuality": "Data Quality Trend",
+      "performanceComparison": "Performance Comparison Analysis",
+      "selectOracle": "Select oracle to view latency data",
+      "allOracles": "All Oracles",
+      "selectOraclePlaceholder": "Select Oracle",
+      "summary": "Oracle Performance Summary",
+      "responseTime": "Response Time",
+      "accuracy": "Accuracy",
+      "stability": "Stability",
+      "advancedAnalysis": "Advanced Analysis",
+      "tooltip": "{name} - Response Time: {responseTime}ms, Accuracy: {accuracy}%, Stability: {stability}%"
+    },
     "performanceTab": {
       "performanceComparison": "Performance Comparison Analysis",
       "selectOracle": "Select oracle to view latency data",

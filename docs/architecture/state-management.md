@@ -28,22 +28,341 @@ graph TB
         end
 
         subgraph ClientState["客户端状态 - Zustand"]
-            D[UI 状态]
-            E[用户偏好]
-            F[全局设置]
+            D[authStore - 认证状态]
+            E[uiStore - UI 状态]
+            F[realtimeStore - 实时数据状态]
+            G[crossChainStore - 跨链状态]
         end
 
         subgraph LocalState["本地状态 - React Hooks"]
-            G[表单输入]
-            H[组件展开状态]
-            I[临时数据]
+            H[表单输入]
+            I[组件展开状态]
+            J[临时数据]
         end
     end
 
-    A --> J[组件渲染]
-    B --> J
-    D --> J
-    G --> J
+    A --> K[组件渲染]
+    B --> K
+    D --> K
+    E --> K
+    F --> K
+    G --> K
+    H --> K
+```
+
+## Zustand Stores
+
+Insight 包含以下四个 Zustand Store：
+
+| Store | 文件位置 | 用途 |
+|-------|----------|------|
+| authStore | `src/stores/authStore.ts` | 用户认证状态管理 |
+| uiStore | `src/stores/uiStore.ts` | UI 状态管理 |
+| realtimeStore | `src/stores/realtimeStore.ts` | 实时数据状态管理 |
+| crossChainStore | `src/stores/crossChainStore.ts` | 跨链数据状态管理 |
+
+## authStore
+
+认证状态管理，处理用户登录、注册、OAuth 认证等。
+
+```typescript
+// src/stores/authStore.ts
+interface AuthState {
+  user: User | null;
+  session: Session | null;
+  profile: UserProfile | null;
+  loading: boolean;
+  error: AuthError | Error | null;
+  initialized: boolean;
+  subscription: Subscription | null;
+}
+
+interface AuthActions {
+  initialize: () => Promise<void>;
+  cleanup: () => void;
+  signUp: (email: string, password: string, displayName?: string) => Promise<{ error: AuthError | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signInWithOAuth: (provider: Provider) => Promise<{ error: AuthError | null }>;
+  signOut: () => Promise<{ error: AuthError | null }>;
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  refreshProfile: () => Promise<void>;
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
+  setProfile: (profile: UserProfile | null) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: AuthError | Error | null) => void;
+  clearError: () => void;
+}
+```
+
+**导出的 Hooks：**
+
+```typescript
+export const useUser = () => useAuthStore((state) => state.user);
+export const useSession = () => useAuthStore((state) => state.session);
+export const useProfile = () => useAuthStore((state) => state.profile);
+export const useAuthLoading = () => useAuthStore((state) => state.loading);
+export const useAuthError = () => useAuthStore((state) => state.error);
+export const useAuthInitialized = () => useAuthStore((state) => state.initialized);
+export const useIsAuthenticated = () => useAuthStore((state) => !!state.user);
+export const useAuthActions = () => {
+  const initialize = useAuthStore((state) => state.initialize);
+  const cleanup = useAuthStore((state) => state.cleanup);
+  const signUp = useAuthStore((state) => state.signUp);
+  const signIn = useAuthStore((state) => state.signIn);
+  const signInWithOAuth = useAuthStore((state) => state.signInWithOAuth);
+  const signOut = useAuthStore((state) => state.signOut);
+  const resetPassword = useAuthStore((state) => state.resetPassword);
+  const refreshProfile = useAuthStore((state) => state.refreshProfile);
+  const clearError = useAuthStore((state) => state.clearError);
+
+  return useMemo(
+    () => ({
+      initialize,
+      cleanup,
+      signUp,
+      signIn,
+      signInWithOAuth,
+      signOut,
+      resetPassword,
+      refreshProfile,
+      clearError,
+    }),
+    [initialize, cleanup, signUp, signIn, signInWithOAuth, signOut, resetPassword, refreshProfile, clearError]
+  );
+};
+```
+
+## uiStore
+
+UI 状态管理，处理侧边栏、模态框、Toast 通知、主题等。
+
+```typescript
+// src/stores/uiStore.ts
+interface UIState {
+  sidebarOpen: boolean;
+  sidebarCollapsed: boolean;
+  activeModal: string | null;
+  modalData: Record<string, unknown> | null;
+  toasts: Toast[];
+  theme: 'light' | 'dark' | 'system';
+}
+
+interface Toast {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  message: string;
+  duration?: number;
+}
+
+interface UIActions {
+  toggleSidebar: () => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+  openModal: (modalId: string, data?: Record<string, unknown>) => void;
+  closeModal: () => void;
+  addToast: (toast: Omit<Toast, 'id'>) => void;
+  removeToast: (id: string) => void;
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+}
+```
+
+**主要功能：**
+
+- **Sidebar 管理**：`toggleSidebar`、`setSidebarCollapsed`
+- **Modal 管理**：`openModal`、`closeModal`
+- **Toast 通知**：`addToast`、`removeToast`（自动 5 秒后移除）
+- **主题切换**：`setTheme`
+
+## realtimeStore
+
+实时数据状态管理，处理 Supabase Realtime 连接和订阅。
+
+```typescript
+// src/stores/realtimeStore.ts
+interface RealtimeState {
+  connectionStatus: ConnectionStatus;
+  activeSubscriptions: string[];
+  lastPriceUpdate: PriceUpdatePayload | null;
+  lastAlertEvent: AlertEventPayload | null;
+  lastSnapshotChange: SnapshotChangePayload | null;
+  lastFavoriteChange: FavoriteChangePayload | null;
+  priceUpdateCount: number;
+  alertEventCount: number;
+  reconnectAttempts: number;
+  userId: string | null;
+  _initialized: boolean;
+}
+
+interface RealtimeActions {
+  setConnectionStatus: (status: ConnectionStatus) => void;
+  setActiveSubscriptions: (subscriptions: string[]) => void;
+  subscribeToPriceUpdates: (
+    callback?: (payload: PriceUpdatePayload) => void,
+    filters?: { provider?: string; symbol?: string; chain?: string }
+  ) => () => void;
+  subscribeToAlertEvents: (
+    userId: string,
+    callback?: (payload: AlertEventPayload) => void
+  ) => () => void;
+  subscribeToSnapshotChanges: (
+    userId: string,
+    callback?: (payload: SnapshotChangePayload) => void
+  ) => () => void;
+  subscribeToFavoriteChanges: (
+    userId: string,
+    callback?: (payload: FavoriteChangePayload) => void
+  ) => () => void;
+  reconnect: () => void;
+  reset: () => void;
+  _initialize: () => void;
+  setUserId: (userId: string | null) => void;
+}
+```
+
+**导出的 Hooks：**
+
+```typescript
+export const useConnectionStatus = () => useRealtimeStore((state) => state.connectionStatus);
+export const useActiveSubscriptions = () => useRealtimeStore((state) => state.activeSubscriptions);
+export const useLastPriceUpdate = () => useRealtimeStore((state) => state.lastPriceUpdate);
+export const useLastAlertEvent = () => useRealtimeStore((state) => state.lastAlertEvent);
+export const useLastSnapshotChange = () => useRealtimeStore((state) => state.lastSnapshotChange);
+export const useLastFavoriteChange = () => useRealtimeStore((state) => state.lastFavoriteChange);
+export const usePriceUpdateCount = () => useRealtimeStore((state) => state.priceUpdateCount);
+export const useAlertEventCount = () => useRealtimeStore((state) => state.alertEventCount);
+export const useReconnectAttempts = () => useRealtimeStore((state) => state.reconnectAttempts);
+export const useIsConnected = () =>
+  useRealtimeStore((state) => state.connectionStatus === 'connected');
+export const useRealtimeActions = () =>
+  useRealtimeStore(
+    useShallow((state) => ({
+      setConnectionStatus: state.setConnectionStatus,
+      setActiveSubscriptions: state.setActiveSubscriptions,
+      subscribeToPriceUpdates: state.subscribeToPriceUpdates,
+      subscribeToAlertEvents: state.subscribeToAlertEvents,
+      subscribeToSnapshotChanges: state.subscribeToSnapshotChanges,
+      subscribeToFavoriteChanges: state.subscribeToFavoriteChanges,
+      reconnect: state.reconnect,
+      reset: state.reset,
+      _initialize: state._initialize,
+      setUserId: state.setUserId,
+    }))
+  );
+```
+
+**支持的实时订阅：**
+
+- `subscribeToPriceUpdates` - 价格更新
+- `subscribeToAlertEvents` - 警报事件
+- `subscribeToSnapshotChanges` - 快照变化
+- `subscribeToFavoriteChanges` - 收藏变化
+
+## crossChainStore
+
+跨链数据状态管理，处理预言机、符号、链、时间范围等状态。
+
+```typescript
+// src/stores/crossChainStore.ts
+interface CrossChainState {
+  selectedProvider: OracleProvider;
+  selectedSymbol: string;
+  visibleChains: Blockchain[];
+  timeRange: TimeRange;
+  loading: boolean;
+  error: string | null;
+}
+
+interface CrossChainActions {
+  setSelectedProvider: (provider: OracleProvider) => void;
+  setSelectedSymbol: (symbol: string) => void;
+  toggleChain: (chain: Blockchain) => void;
+  setTimeRange: (range: TimeRange) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  reset: () => void;
+}
+
+const initialState = {
+  selectedProvider: OracleProvider.CHAINLINK,
+  selectedSymbol: 'BTC',
+  visibleChains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM],
+  timeRange: '24H' as TimeRange,
+  loading: false,
+  error: null,
+};
+```
+
+**使用 Immer 中间件和持久化：**
+
+```typescript
+export const useCrossChainStore = create<CrossChainState>()(
+  devtools(
+    persist(
+      immer((set, get) => ({
+        ...initialState,
+
+        setSelectedProvider: (provider) =>
+          set(
+            (state) => {
+              state.selectedProvider = provider;
+            },
+            false,
+            'setSelectedProvider'
+          ),
+
+        toggleChain: (chain) =>
+          set(
+            (state) => {
+              const index = state.visibleChains.indexOf(chain);
+              if (index > -1) {
+                state.visibleChains.splice(index, 1);
+              } else {
+                state.visibleChains.push(chain);
+              }
+            },
+            false,
+            'toggleChain'
+          ),
+
+        // ... 其他 actions
+      })),
+      {
+        name: 'cross-chain-store',
+        partialize: (state) => ({
+          selectedProvider: state.selectedProvider,
+          selectedSymbol: state.selectedSymbol,
+          visibleChains: state.visibleChains,
+          timeRange: state.timeRange,
+        }),
+      }
+    ),
+    { name: 'CrossChainStore' }
+  )
+);
+```
+
+## 选择器模式
+
+```typescript
+// src/stores/selectors.ts
+import { useCrossChainStore } from './crossChainStore';
+
+export const useSelectedProvider = () =>
+  useCrossChainStore((state) => state.selectedProvider);
+
+export const useVisibleChains = () =>
+  useCrossChainStore((state) => state.visibleChains);
+
+export const useIsChainVisible = (chain: Blockchain) =>
+  useCrossChainStore((state) => state.visibleChains.includes(chain));
+
+export const useCrossChainActions = () =>
+  useCrossChainStore((state) => ({
+    setSelectedProvider: state.setSelectedProvider,
+    setSelectedSymbol: state.setSelectedSymbol,
+    toggleChain: state.toggleChain,
+    reset: state.reset,
+  }));
 ```
 
 ## 状态分层
@@ -85,8 +404,6 @@ sequenceDiagram
 
 ### Query Keys 管理
 
-采用层级化的 Query Keys 设计，确保缓存的有效管理和精确失效。
-
 ```typescript
 // src/lib/queries/queryKeys.ts
 export const queryKeys = {
@@ -121,12 +438,6 @@ export const queryKeys = {
 
 ```typescript
 // src/hooks/queries/useOraclePrices.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/queryKeys';
-import { OracleClientFactory } from '@/lib/oracles/factory';
-import type { PriceData } from '@/types/oracle';
-
-// 获取单个价格
 export function useOraclePrice(provider: OracleProvider, symbol: string, chain?: Blockchain) {
   return useQuery({
     queryKey: queryKeys.oracles.price(provider, symbol, chain),
@@ -134,15 +445,14 @@ export function useOraclePrice(provider: OracleProvider, symbol: string, chain?:
       const client = OracleClientFactory.getClient(provider);
       return client.getPrice(symbol, chain);
     },
-    staleTime: 30 * 1000, // 30 秒后数据过期
-    gcTime: 5 * 60 * 1000, // 5 分钟后垃圾回收
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
     retry: 3,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
     refetchOnWindowFocus: false,
   });
 }
 
-// 获取历史价格
 export function usePriceHistory(
   provider: OracleProvider,
   symbol: string,
@@ -155,477 +465,9 @@ export function usePriceHistory(
       const client = OracleClientFactory.getClient(provider);
       return client.getHistoricalPrices(symbol, chain, period);
     },
-    staleTime: 5 * 60 * 1000, // 5 分钟
-    gcTime: 30 * 60 * 1000, // 30 分钟
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
-}
-
-// 获取多个价格（并行查询）
-export function useMultiplePrices(provider: OracleProvider, symbols: string[], chain?: Blockchain) {
-  return useQueries({
-    queries: symbols.map((symbol) => ({
-      queryKey: queryKeys.oracles.price(provider, symbol, chain),
-      queryFn: async () => {
-        const client = OracleClientFactory.getClient(provider);
-        return client.getPrice(symbol, chain);
-      },
-      staleTime: 30 * 1000,
-    })),
-  });
-}
-
-// 刷新价格 Mutation
-export function useRefreshPrice() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      provider,
-      symbol,
-      chain,
-    }: {
-      provider: OracleProvider;
-      symbol: string;
-      chain?: Blockchain;
-    }) => {
-      const client = OracleClientFactory.getClient(provider);
-      return client.getPrice(symbol, chain);
-    },
-    onSuccess: (_, variables) => {
-      // 精确失效缓存
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.oracles.price(variables.provider, variables.symbol, variables.chain),
-      });
-    },
-  });
-}
-```
-
-### 乐观更新
-
-```typescript
-// src/hooks/queries/useFavorites.ts
-export function useToggleFavorite() {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
-  return useMutation({
-    mutationFn: async ({ symbol, action }: { symbol: string; action: 'add' | 'remove' }) => {
-      const response = await fetch('/api/favorites', {
-        method: action === 'add' ? 'POST' : 'DELETE',
-        body: JSON.stringify({ symbol }),
-      });
-      return response.json();
-    },
-    // 乐观更新
-    onMutate: async ({ symbol, action }) => {
-      // 取消正在进行的重新获取
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.user.favorites,
-      });
-
-      // 保存当前状态
-      const previousFavorites = queryClient.getQueryData<string[]>(queryKeys.user.favorites);
-
-      // 乐观更新缓存
-      queryClient.setQueryData<string[]>(queryKeys.user.favorites, (old = []) => {
-        if (action === 'add') {
-          return [...old, symbol];
-        } else {
-          return old.filter((s) => s !== symbol);
-        }
-      });
-
-      // 返回上下文用于回滚
-      return { previousFavorites };
-    },
-    // 错误时回滚
-    onError: (err, variables, context) => {
-      if (context?.previousFavorites) {
-        queryClient.setQueryData(queryKeys.user.favorites, context.previousFavorites);
-      }
-    },
-    // 完成后重新获取确保同步
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.user.favorites,
-      });
-    },
-  });
-}
-```
-
-### 无限查询
-
-```typescript
-// src/hooks/queries/useAlertHistory.ts
-export function useAlertHistory() {
-  return useInfiniteQuery({
-    queryKey: queryKeys.alerts.events,
-    queryFn: async ({ pageParam = 0 }) => {
-      const response = await fetch(`/api/alerts/events?page=${pageParam}`);
-      return response.json();
-    },
-    getNextPageParam: (lastPage, pages) => {
-      if (lastPage.hasMore) {
-        return pages.length;
-      }
-      return undefined;
-    },
-    initialPageParam: 0,
-  });
-}
-```
-
-### 预取策略
-
-```typescript
-// src/hooks/usePrefetch.ts
-export function usePrefetchOnHover() {
-  const queryClient = useQueryClient();
-
-  const prefetchPrice = useCallback(
-    (provider: OracleProvider, symbol: string, chain?: Blockchain) => {
-      queryClient.prefetchQuery({
-        queryKey: queryKeys.oracles.price(provider, symbol, chain),
-        queryFn: async () => {
-          const client = OracleClientFactory.getClient(provider);
-          return client.getPrice(symbol, chain);
-        },
-        staleTime: 60 * 1000,
-      });
-    },
-    [queryClient]
-  );
-
-  return { prefetchPrice };
-}
-
-// 在组件中使用
-function PriceCard({ symbol, provider }: PriceCardProps) {
-  const { prefetchPrice } = usePrefetchOnHover();
-
-  return (
-    <div
-      onMouseEnter={() => prefetchPrice(provider, symbol)}
-      // ...
-    >
-      {symbol}
-    </div>
-  );
-}
-```
-
-## Zustand Store
-
-### Store 设计原则
-
-1. **单一职责**：每个 Store 只管理一个领域的状态
-2. **不可变更新**：使用展开运算符或 Immer 进行更新
-3. **选择器优化**：使用细粒度选择器避免不必要的重渲染
-4. **持久化**：重要状态使用持久化中间件
-
-### Cross-Chain Store
-
-```typescript
-// src/stores/crossChainStore.ts
-import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-
-interface CrossChainState {
-  // State
-  selectedProvider: OracleProvider;
-  selectedSymbol: string;
-  visibleChains: Blockchain[];
-  timeRange: TimeRange;
-  loading: boolean;
-  error: string | null;
-
-  // Computed (通过 selectors 实现)
-  hasSelectedChains: () => boolean;
-  selectedChainCount: () => number;
-
-  // Actions
-  setSelectedProvider: (provider: OracleProvider) => void;
-  setSelectedSymbol: (symbol: string) => void;
-  toggleChain: (chain: Blockchain) => void;
-  setTimeRange: (range: TimeRange) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-  reset: () => void;
-}
-
-const initialState = {
-  selectedProvider: OracleProvider.CHAINLINK,
-  selectedSymbol: 'BTC',
-  visibleChains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM],
-  timeRange: '24H' as TimeRange,
-  loading: false,
-  error: null,
-};
-
-export const useCrossChainStore = create<CrossChainState>()(
-  devtools(
-    persist(
-      immer((set, get) => ({
-        ...initialState,
-
-        // Computed
-        hasSelectedChains: () => get().visibleChains.length > 0,
-        selectedChainCount: () => get().visibleChains.length,
-
-        // Actions
-        setSelectedProvider: (provider) =>
-          set(
-            (state) => {
-              state.selectedProvider = provider;
-            },
-            false,
-            'setSelectedProvider'
-          ),
-
-        setSelectedSymbol: (symbol) =>
-          set(
-            (state) => {
-              state.selectedSymbol = symbol;
-            },
-            false,
-            'setSelectedSymbol'
-          ),
-
-        toggleChain: (chain) =>
-          set(
-            (state) => {
-              const index = state.visibleChains.indexOf(chain);
-              if (index > -1) {
-                state.visibleChains.splice(index, 1);
-              } else {
-                state.visibleChains.push(chain);
-              }
-            },
-            false,
-            'toggleChain'
-          ),
-
-        setTimeRange: (range) =>
-          set(
-            (state) => {
-              state.timeRange = range;
-            },
-            false,
-            'setTimeRange'
-          ),
-
-        setLoading: (loading) =>
-          set(
-            (state) => {
-              state.loading = loading;
-            },
-            false,
-            'setLoading'
-          ),
-
-        setError: (error) =>
-          set(
-            (state) => {
-              state.error = error;
-            },
-            false,
-            'setError'
-          ),
-
-        reset: () => set(initialState, false, 'reset'),
-      })),
-      {
-        name: 'cross-chain-store',
-        // 只持久化部分状态
-        partialize: (state) => ({
-          selectedProvider: state.selectedProvider,
-          selectedSymbol: state.selectedSymbol,
-          visibleChains: state.visibleChains,
-          timeRange: state.timeRange,
-        }),
-      }
-    ),
-    { name: 'CrossChainStore' }
-  )
-);
-```
-
-### UI State Store
-
-```typescript
-// src/stores/uiStore.ts
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-
-interface UIState {
-  // Sidebar
-  sidebarOpen: boolean;
-  sidebarCollapsed: boolean;
-
-  // Modal
-  activeModal: string | null;
-  modalData: Record<string, unknown> | null;
-
-  // Toast
-  toasts: Toast[];
-
-  // Theme
-  theme: 'light' | 'dark' | 'system';
-
-  // Actions
-  toggleSidebar: () => void;
-  setSidebarCollapsed: (collapsed: boolean) => void;
-  openModal: (modalId: string, data?: Record<string, unknown>) => void;
-  closeModal: () => void;
-  addToast: (toast: Omit<Toast, 'id'>) => void;
-  removeToast: (id: string) => void;
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
-}
-
-interface Toast {
-  id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
-  message: string;
-  duration?: number;
-}
-
-export const useUIStore = create<UIState>()(
-  devtools(
-    immer((set, get) => ({
-      sidebarOpen: false,
-      sidebarCollapsed: false,
-      activeModal: null,
-      modalData: null,
-      toasts: [],
-      theme: 'system',
-
-      toggleSidebar: () =>
-        set(
-          (state) => {
-            state.sidebarOpen = !state.sidebarOpen;
-          },
-          false,
-          'toggleSidebar'
-        ),
-
-      setSidebarCollapsed: (collapsed) =>
-        set(
-          (state) => {
-            state.sidebarCollapsed = collapsed;
-          },
-          false,
-          'setSidebarCollapsed'
-        ),
-
-      openModal: (modalId, data) =>
-        set(
-          (state) => {
-            state.activeModal = modalId;
-            state.modalData = data || null;
-          },
-          false,
-          'openModal'
-        ),
-
-      closeModal: () =>
-        set(
-          (state) => {
-            state.activeModal = null;
-            state.modalData = null;
-          },
-          false,
-          'closeModal'
-        ),
-
-      addToast: (toast) =>
-        set(
-          (state) => {
-            const id = Math.random().toString(36).substring(7);
-            state.toasts.push({ ...toast, id });
-
-            // 自动移除
-            setTimeout(() => {
-              get().removeToast(id);
-            }, toast.duration || 5000);
-          },
-          false,
-          'addToast'
-        ),
-
-      removeToast: (id) =>
-        set(
-          (state) => {
-            const index = state.toasts.findIndex((t) => t.id === id);
-            if (index > -1) {
-              state.toasts.splice(index, 1);
-            }
-          },
-          false,
-          'removeToast'
-        ),
-
-      setTheme: (theme) =>
-        set(
-          (state) => {
-            state.theme = theme;
-          },
-          false,
-          'setTheme'
-        ),
-    })),
-    { name: 'UIStore' }
-  )
-);
-```
-
-### 选择器模式
-
-```typescript
-// src/stores/selectors.ts
-import { useCrossChainStore } from './crossChainStore';
-import { useCallback } from 'react';
-
-// 基础选择器
-export const useSelectedProvider = () =>
-  useCrossChainStore((state) => state.selectedProvider);
-
-export const useVisibleChains = () =>
-  useCrossChainStore((state) => state.visibleChains);
-
-// 派生选择器
-export const useIsChainVisible = (chain: Blockchain) =>
-  useCrossChainStore((state) => state.visibleChains.includes(chain));
-
-// Action 选择器
-export const useCrossChainActions = () =>
-  useCrossChainStore((state) => ({
-    setSelectedProvider: state.setSelectedProvider,
-    setSelectedSymbol: state.setSelectedSymbol,
-    toggleChain: state.toggleChain,
-    reset: state.reset,
-  }));
-
-// 在组件中使用
-function ChainSelector() {
-  // 只订阅需要的状态，避免不必要的重渲染
-  const visibleChains = useVisibleChains();
-  const { toggleChain } = useCrossChainActions();
-
-  return (
-    <div>
-      {visibleChains.map((chain) => (
-        <ChainButton
-          key={chain}
-          chain={chain}
-          onToggle={() => toggleChain(chain)}
-        />
-      ))}
-    </div>
-  );
 }
 ```
 
@@ -654,189 +496,7 @@ function GoodComponent() {
 }
 ```
 
-### 2. Query Key 设计
-
-```typescript
-// ✅ 使用数组形式的 Query Keys
-const queryKeys = {
-  price: (provider: OracleProvider, symbol: string, chain?: Blockchain) =>
-    ['oracles', provider, 'price', symbol, chain] as const,
-};
-
-// ✅ 在相关操作后精确失效
-queryClient.invalidateQueries({
-  queryKey: ['oracles', provider], // 失效该预言机的所有查询
-});
-
-queryClient.invalidateQueries({
-  queryKey: queryKeys.price(provider, symbol), // 只失效特定价格查询
-});
-```
-
-### 3. Store 分割
-
-```typescript
-// ✅ 按领域分割 Store
-// stores/userStore.ts - 用户相关状态
-// stores/uiStore.ts - UI 状态
-// stores/marketStore.ts - 市场数据状态
-
-// ❌ 避免单一巨大的 Store
-// stores/appStore.ts - 包含所有状态（不推荐）
-```
-
-### 4. 派生状态计算
-
-```typescript
-// ✅ 使用 selectors 计算派生状态
-const useFilteredPrices = () => {
-  const prices = useCrossChainStore((state) => state.prices);
-  const filter = useCrossChainStore((state) => state.filter);
-
-  return useMemo(() => {
-    return prices.filter((price) => price.symbol.toLowerCase().includes(filter.toLowerCase()));
-  }, [prices, filter]);
-};
-```
-
-### 5. 错误处理
-
-```typescript
-// src/hooks/queries/useOracleData.ts
-export function useOracleData(provider: OracleProvider) {
-  const { addToast } = useUIStore();
-
-  return useQuery({
-    queryKey: queryKeys.oracles.detail(provider),
-    queryFn: async () => {
-      try {
-        return await fetchOracleData(provider);
-      } catch (error) {
-        // 显示错误提示
-        addToast({
-          type: 'error',
-          message: `Failed to load ${provider} data`,
-        });
-        throw error;
-      }
-    },
-    retry: 3,
-  });
-}
-```
-
-### 6. 加载状态管理
-
-```typescript
-// src/components/LoadingState.tsx
-export function DataContainer() {
-  const { data, isLoading, isError, error } = useOracleData();
-
-  if (isLoading) {
-    return <SkeletonLoader />;
-  }
-
-  if (isError) {
-    return <ErrorFallback error={error} />;
-  }
-
-  return <DataView data={data} />;
-}
-```
-
-### 7. 乐观更新模式
-
-```typescript
-// 完整的乐观更新示例
-const useUpdatePreference = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: updatePreferenceAPI,
-    onMutate: async (newPreference) => {
-      // 取消正在进行的查询
-      await queryClient.cancelQueries({ queryKey: ['preferences'] });
-
-      // 保存之前的状态
-      const previousPreference = queryClient.getQueryData(['preferences']);
-
-      // 乐观更新
-      queryClient.setQueryData(['preferences'], newPreference);
-
-      // 返回上下文
-      return { previousPreference };
-    },
-    onError: (err, newPreference, context) => {
-      // 回滚
-      queryClient.setQueryData(['preferences'], context?.previousPreference);
-    },
-    onSettled: () => {
-      // 重新获取确保同步
-      queryClient.invalidateQueries({ queryKey: ['preferences'] });
-    },
-  });
-};
-```
-
-### 8. 状态同步
-
-```typescript
-// 当服务端状态变化时同步到客户端状态
-function useSyncServerState() {
-  const { data: serverPreferences } = useUserPreferences();
-  const setPreferences = useUserStore((state) => state.setPreferences);
-
-  useEffect(() => {
-    if (serverPreferences) {
-      setPreferences(serverPreferences);
-    }
-  }, [serverPreferences, setPreferences]);
-}
-```
-
-## 调试工具
-
-### React Query DevTools
-
-```typescript
-// src/providers/ReactQueryProvider.tsx
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-
-export function ReactQueryProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
-    </QueryClientProvider>
-  );
-}
-```
-
-### Zustand DevTools
-
-```typescript
-// 使用 Redux DevTools 扩展
-const useStore = create(
-  devtools(
-    (set) => ({ ... }),
-    { name: 'StoreName' }
-  )
-);
-```
-
-## 性能优化
-
-### 1. 细粒度订阅
-
-```typescript
-// ✅ 只订阅需要的字段
-const price = useCrossChainStore((state) => state.price);
-
-// ❌ 避免订阅整个 Store
-const state = useCrossChainStore(); // 会导致任何变化都触发重渲染
-```
-
-### 2. 使用 Immer
+### 2. 使用 Immer 进行不可变更新
 
 ```typescript
 // ✅ 使用 Immer 进行不可变更新
@@ -857,11 +517,73 @@ set((state) => ({
 }));
 ```
 
-### 3. 查询去重
+### 3. 使用细粒度订阅
 
 ```typescript
-// React Query 自动去重相同 Query Key 的请求
-// 以下两个组件会共享同一个请求
+// ✅ 只订阅需要的字段
+const price = useCrossChainStore((state) => state.price);
+
+// ❌ 避免订阅整个 Store
+const state = useCrossChainStore();
+```
+
+### 4. 乐观更新模式
+
+```typescript
+const useUpdatePreference = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updatePreferenceAPI,
+    onMutate: async (newPreference) => {
+      await queryClient.cancelQueries({ queryKey: ['preferences'] });
+      const previousPreference = queryClient.getQueryData(['preferences']);
+      queryClient.setQueryData(['preferences'], newPreference);
+      return { previousPreference };
+    },
+    onError: (err, newPreference, context) => {
+      queryClient.setQueryData(['preferences'], context?.previousPreference);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['preferences'] });
+    },
+  });
+};
+```
+
+## 调试工具
+
+### Zustand DevTools
+
+```typescript
+const useStore = create(
+  devtools(
+    (set) => ({ ... }),
+    { name: 'StoreName' }
+  )
+);
+```
+
+### React Query DevTools
+
+```typescript
+export function ReactQueryProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
+    </QueryClientProvider>
+  );
+}
+```
+
+## 性能优化
+
+### 1. 查询去重
+
+React Query 自动去重相同 Query Key 的请求。
+
+```typescript
 function ComponentA() {
   const { data } = useOraclePrice('chainlink', 'BTC');
   return <div>{data?.price}</div>;
@@ -873,9 +595,23 @@ function ComponentB() {
 }
 ```
 
+### 2. 使用 useShallow 优化选择器
+
+```typescript
+export const useRealtimeActions = () =>
+  useRealtimeStore(
+    useShallow((state) => ({
+      setConnectionStatus: state.setConnectionStatus,
+      reconnect: state.reconnect,
+      // ...
+    }))
+  );
+```
+
 ## 总结
 
 - **服务端状态**：使用 React Query，享受缓存、重试、去重等特性
 - **客户端状态**：使用 Zustand，简单、轻量、TypeScript 友好
 - **状态分离**：清晰区分服务端和客户端状态，避免混合
-- **性能优化**：使用细粒度订阅、选择器和不可变更新
+- **四个核心 Store**：authStore、uiStore、realtimeStore、crossChainStore
+- **性能优化**：使用细粒度订阅、选择器和 Immer 不可变更新

@@ -21,25 +21,26 @@ Insight is a professional oracle data analytics platform that provides comprehen
 
 ### Frontend
 
-- **Framework**: Next.js 16 (App Router)
-- **UI Library**: React 19
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS 4
-- **State Management**: React Query, SWR, Zustand
-- **Charts**: Recharts
-- **Animations**: Framer Motion
-- **Internationalization**: next-intl
+- **Framework**: Next.js 16.1.6 (App Router)
+- **UI Library**: React 19.2.3
+- **Language**: TypeScript 5.x
+- **Styling**: Tailwind CSS 4.x
+- **State Management**: React Query 5.90.21, Zustand 5.0.11
+- **Charts**: Recharts 3.8.0
+- **Animations**: Framer Motion 12.36.0
+- **Internationalization**: next-intl 4.8.3
 
 ### Backend
 
 - **API**: Next.js API Routes
-- **Database**: Supabase (PostgreSQL with Row Level Security)
+- **Database**: Supabase 2.98.0 (PostgreSQL with Row Level Security)
 - **Authentication**: Supabase Auth with OAuth support
 - **Real-time**: WebSocket, Supabase Realtime
+- **Error Tracking**: Sentry 10.43.0
 
 ### Oracle Clients
 
-- Pyth Hermes Client (`@pythnetwork/hermes-client`)
+- Pyth Hermes Client (`@pythnetwork/hermes-client` 2.0.0)
 - Custom oracle clients for all supported providers
 
 ## Prerequisites
@@ -74,15 +75,15 @@ Insight is a professional oracle data analytics platform that provides comprehen
 
 Create a `.env.local` file in the root directory with the following variables:
 
-| Variable                                    | Description                               | Required |
-| ------------------------------------------- | ----------------------------------------- | -------- |
-| `NEXT_PUBLIC_SUPABASE_URL`                  | Supabase project URL                      | Yes      |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Supabase anonymous key                    | Yes      |
-| `NEXT_PUBLIC_APP_URL`                       | Application base URL                      | No       |
-| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL                      | No       |
-| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features (default: true) | No       |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics                   | No       |
-| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring             | No       |
+| Variable                                    | Description                                   | Required |
+| ------------------------------------------- | --------------------------------------------- | -------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                  | Supabase project URL                          | Yes      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Supabase anonymous key                        | Yes      |
+| `NEXT_PUBLIC_APP_URL`                       | Application base URL                          | No       |
+| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL                          | No       |
+| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features (default: true)    | No       |
+| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics                       | No       |
+| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring (Speed Insights)| No       |
 
 Example `.env.local`:
 
@@ -98,15 +99,30 @@ NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING=true
 
 ## Available Scripts
 
-| Command                 | Description                    |
-| ----------------------- | ------------------------------ |
-| `npm run dev`           | Start development server       |
-| `npm run build`         | Build for production           |
-| `npm run start`         | Start production server        |
-| `npm run lint`          | Run ESLint                     |
-| `npm run test`          | Run tests                      |
-| `npm run test:watch`    | Run tests in watch mode        |
-| `npm run test:coverage` | Run tests with coverage report |
+| Command                   | Description                              |
+| ------------------------- | ---------------------------------------- |
+| `npm run dev`             | Start development server                 |
+| `npm run build`           | Build for production                      |
+| `npm run start`           | Start production server                  |
+| `npm run lint`            | Run ESLint                               |
+| `npm run lint:fix`        | Run ESLint with auto-fix                 |
+| `npm run format`          | Format code with Prettier                |
+| `npm run format:check`    | Check code formatting with Prettier      |
+| `npm run typecheck`       | Run TypeScript type checking             |
+| `npm run validate`        | Run lint, typecheck, and tests           |
+| `npm run test`            | Run Jest tests                           |
+| `npm run test:watch`      | Run tests in watch mode                  |
+| `npm run test:coverage`   | Run tests with coverage report           |
+| `npm run test:e2e`        | Run Playwright E2E tests                 |
+| `npm run test:e2e:ui`     | Run Playwright E2E tests with UI          |
+| `npm run clean:dev`       | Clean .next and start dev server         |
+| `npm run clean:start`     | Clean .next, build and start server      |
+| `npm run perf:test`       | Run performance tests                    |
+| `npm run perf:quick`     | Run quick performance check              |
+| `npm run i18n:types`      | Generate i18n types                      |
+| `npm run i18n:check`      | Check i18n translations                  |
+| `npm run i18n:validate`   | Validate i18n translations                |
+| `npm run naming:check`    | Check naming conventions                 |
 
 ## Project Structure
 
@@ -114,15 +130,7 @@ NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING=true
 insight/
 ├── src/
 │   ├── app/                    # Next.js App Router pages and API routes
-│   │   ├── api/                # API endpoints
-│   │   │   ├── alerts/         # Price alerts API
-│   │   │   ├── auth/           # Authentication callbacks
-│   │   │   ├── favorites/      # User favorites API
-│   │   │   ├── oracles/        # Oracle data API
-│   │   │   ├── snapshots/      # User snapshots API
-│   │   │   ├── cron/           # Scheduled tasks
-│   │   │   └── health/         # Health check endpoint
-│   │   ├── [locale]/           # Localized pages
+│   │   ├── [locale]/           # Localized pages (next-intl)
 │   │   │   ├── alerts/         # Alerts management page
 │   │   │   ├── api3/           # API3 oracle page
 │   │   │   ├── band-protocol/  # Band Protocol oracle page
@@ -145,6 +153,19 @@ insight/
 │   │   │   ├── tellor/         # Tellor oracle page
 │   │   │   ├── uma/            # UMA oracle page
 │   │   │   └── winklink/       # WINkLink oracle page
+│   │   ├── api/                # API endpoints
+│   │   │   ├── alerts/         # Price alerts API
+│   │   │   │   ├── batch/      # Batch alert operations
+│   │   │   │   ├── events/     # Alert events API
+│   │   │   │   └── [id]/       # Individual alert endpoints
+│   │   │   ├── auth/           # Authentication callbacks
+│   │   │   ├── favorites/      # User favorites API
+│   │   │   ├── oracles/        # Oracle data API
+│   │   │   │   └── [provider]/ # Provider-specific endpoints
+│   │   │   ├── snapshots/      # User snapshots API
+│   │   │   │   └── [id]/       # Individual snapshot endpoints
+│   │   │   ├── cron/           # Scheduled tasks
+│   │   │   └── health/         # Health check endpoint
 │   │   ├── error.tsx           # Error boundary
 │   │   ├── global-error.tsx    # Global error handler
 │   │   ├── layout.tsx          # Root layout
@@ -323,12 +344,14 @@ All tables have Row Level Security (RLS) enabled for data protection.
 - `POST /api/snapshots` - Create snapshot
 - `GET /api/snapshots/[id]` - Get specific snapshot
 - `DELETE /api/snapshots/[id]` - Delete snapshot
-- `GET /api/snapshots/[id]/share` - Get shareable snapshot
+- `POST /api/snapshots/[id]/share` - Share snapshot
 
 ### Oracles
 
 - `GET /api/oracles` - List all oracle providers
-- `GET /api/oracles/[provider]` - Get oracle data
+- `POST /api/oracles` - Create oracle configuration
+- `GET /api/oracles/[provider]` - Get specific oracle data
+- `PUT /api/oracles/[provider]` - Update oracle configuration
 
 ### System
 

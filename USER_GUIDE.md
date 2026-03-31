@@ -45,7 +45,7 @@ OAuth registration automatically creates your account and links it to your socia
 
 ### Logging In
 
-1. Navigate to the [Login Page](/login)
+1. Navigate to the [Login Page](/[locale]/login)
 2. Enter your registered email address
 3. Enter your password
 4. Optionally check "Remember me" to stay logged in
@@ -253,7 +253,7 @@ Export market data in multiple formats:
 
 ## Price Query
 
-Access the Price Query page at `/price-query` for detailed price analysis.
+Access the Price Query page at `/[locale]/price-query` for detailed price analysis.
 
 ### Selectors Panel
 
@@ -415,7 +415,7 @@ Access previous queries:
 
 ## Cross-Oracle Comparison
 
-Access at `/cross-oracle` for multi-oracle price analysis.
+Access at `/[locale]/cross-oracle` for multi-oracle price analysis.
 
 ### Filter Panel
 
@@ -682,7 +682,7 @@ Each oracle has a dedicated page with specialized analytics.
 - **Risk**: Risk assessment metrics
 - **Ecosystem**: Integration overview
 
-### Band Protocol (`/band-protocol`)
+### Band Protocol (`/[locale]/band-protocol`)
 
 #### Features
 
@@ -748,7 +748,7 @@ Each oracle has a dedicated page with specialized analytics.
 - **Validators**: Validator network
 - **Disputes**: Dispute resolution panel
 
-### RedStone (`/redstone`)
+### RedStone (`/[locale]/redstone`)
 
 #### Features
 
@@ -780,7 +780,7 @@ Each oracle has a dedicated page with specialized analytics.
 - **NFT Data**: NFT floor price tracking
 - **Methodology**: Data sourcing transparency
 
-### Tellor (`/tellor`)
+### Tellor (`/[locale]/tellor`)
 
 #### Features
 
@@ -796,7 +796,7 @@ Each oracle has a dedicated page with specialized analytics.
 - **Mining**: Staking and rewards
 - **Disputes**: Dispute resolution panel
 
-### Chronicle (`/chronicle`)
+### Chronicle (`/[locale]/chronicle`)
 
 #### Features
 
@@ -812,7 +812,7 @@ Each oracle has a dedicated page with specialized analytics.
 - **MakerDAO**: MakerDAO ecosystem integration
 - **Network**: Scuttlebutt protocol status
 
-### WINkLink (`/winklink`)
+### WINkLink (`/[locale]/winklink`)
 
 #### Features
 
@@ -935,7 +935,7 @@ Configure in Settings:
 
 ## Favorites
 
-Access at `/favorites` to manage saved configurations.
+Access at `/[locale]/favorites` to manage saved configurations.
 
 ### Adding Favorites
 

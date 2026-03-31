@@ -39,6 +39,8 @@
   },
   "ui": {
     "chart": {
+      "chart": "Chart",
+      "table": "Table",
       "marketShare": "Market Share",
       "tvsTrend": "TVS Trend",
       "chainSupport": "Chain Support",

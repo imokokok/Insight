@@ -64,7 +64,6 @@ export function TellorPageClient({ locale }: TellorPageClientProps) {
   };
 
   const handleExport = () => {
-    console.log('Export data');
   };
 
   const isInitialLoading = isLoading && !price && !historicalData.length && !networkStats;

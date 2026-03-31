@@ -48,7 +48,7 @@ graph TB
 ### 组件分层
 
 ```
-components/
+src/components/
 ├── oracle/              # 预言机领域组件
 │   ├── charts/         # 图表组件
 │   ├── panels/         # 面板组件
@@ -73,19 +73,17 @@ components/
 ### Server Components
 
 ```typescript
-// app/[locale]/chainlink/page.tsx
+// src/app/[locale]/chainlink/page.tsx
 import { OracleClientFactory } from '@/lib/oracles/factory';
 import { OracleProvider } from '@/types/oracle';
 import { ChainlinkHero } from './components/ChainlinkHero';
 import { MarketDataPanel } from '@/components/oracle/panels';
 
-// Server Component - 无需 'use client'
 export default async function ChainlinkPage({
   params: { locale },
 }: {
   params: { locale: string };
 }) {
-  // 服务端数据获取
   const client = OracleClientFactory.getClient(OracleProvider.CHAINLINK);
   const initialData = await client.getPrice('BTC');
 
@@ -181,7 +179,6 @@ interface MarketDataContextValue {
 
 const MarketDataContext = createContext<MarketDataContextValue | null>(null);
 
-// 根组件
 export function MarketDataPanel({
   provider,
   symbol,
@@ -198,7 +195,6 @@ export function MarketDataPanel({
   );
 }
 
-// 子组件
 export function MarketDataHeader() {
   const { symbol, data } = useContext(MarketDataContext)!;
 
@@ -221,61 +217,6 @@ export function MarketDataStats() {
     </div>
   );
 }
-
-// 使用
-<MarketDataPanel provider={OracleProvider.CHAINLINK} symbol="BTC">
-  <MarketDataHeader />
-  <MarketDataStats />
-</MarketDataPanel>
-```
-
-### 高阶组件 (HOC)
-
-```typescript
-// components/withErrorBoundary.tsx
-import { Component, ErrorInfo, ReactNode } from 'react';
-
-interface WithErrorBoundaryOptions {
-  fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
-}
-
-export function withErrorBoundary<P extends object>(
-  WrappedComponent: React.ComponentType<P>,
-  options: WithErrorBoundaryOptions = {}
-) {
-  return class ErrorBoundary extends Component<P> {
-    state = { hasError: false, error: null as Error | null };
-
-    static getDerivedStateFromError(error: Error) {
-      return { hasError: true, error };
-    }
-
-    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-      options.onError?.(error, errorInfo);
-    }
-
-    render() {
-      if (this.state.hasError) {
-        return (
-          options.fallback || (
-            <ErrorFallback
-              error={this.state.error}
-              onReset={() => this.setState({ hasError: false, error: null })}
-            />
-          )
-        );
-      }
-
-      return <WrappedComponent {...this.props} />;
-    }
-  };
-}
-
-// 使用
-const SafePriceChart = withErrorBoundary(PriceChart, {
-  fallback: <ChartErrorFallback />,
-});
 ```
 
 ## 页面结构
@@ -299,7 +240,6 @@ export function OraclePageTemplate({
 }: OraclePageTemplateProps) {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
       <section className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center gap-4">
@@ -312,15 +252,11 @@ export function OraclePageTemplate({
         </div>
       </section>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Sidebar */}
           <aside className="lg:col-span-1">
             <OracleSidebar provider={provider} />
           </aside>
-
-          {/* Content */}
           <div className="lg:col-span-2 space-y-6">
             {children}
           </div>
@@ -334,7 +270,7 @@ export function OraclePageTemplate({
 ### 具体页面实现
 
 ```typescript
-// app/[locale]/chainlink/page.tsx
+// src/app/[locale]/chainlink/page.tsx
 import { OraclePageTemplate } from '@/components/oracle/shared';
 import { MarketDataPanel } from '@/components/oracle/panels';
 import { PriceChart } from '@/components/oracle/charts';
@@ -364,7 +300,7 @@ export default function ChainlinkPage() {
 ### 布局组件
 
 ```typescript
-// app/[locale]/layout.tsx
+// src/app/[locale]/layout.tsx
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
@@ -397,44 +333,97 @@ export default async function LocaleLayout({
 
 ### 路由结构
 
+所有页面都使用 `[locale]/` 路由模式实现国际化：
+
 ```
-app/
-├── [locale]/                    # 国际化路由组
-│   ├── page.tsx                # 首页
-│   ├── layout.tsx              # 根布局
-│   ├── chainlink/
-│   │   └── page.tsx            # /[locale]/chainlink
-│   ├── pyth/
-│   │   └── page.tsx            # /[locale]/pyth
-│   ├── cross-oracle/
-│   │   └── page.tsx            # /[locale]/cross-oracle
-│   ├── cross-chain/
-│   │   └── page.tsx            # /[locale]/cross-chain
-│   ├── market-overview/
-│   │   └── page.tsx            # /[locale]/market-overview
-│   ├── price-query/
-│   │   └── page.tsx            # /[locale]/price-query
-│   ├── alerts/
-│   │   └── page.tsx            # /[locale]/alerts
-│   ├── favorites/
-│   │   └── page.tsx            # /[locale]/favorites
-│   ├── settings/
-│   │   └── page.tsx            # /[locale]/settings
-│   ├── login/
-│   │   └── page.tsx            # /[locale]/login
-│   └── register/
-│       └── page.tsx            # /[locale]/register
-├── api/                         # API 路由
+src/app/
+├── [locale]/                         # 国际化路由组
+│   ├── page.tsx                     # 首页 /
+│   ├── layout.tsx                   # 国际化布局
+│   │
+│   ├── chainlink/                   # Chainlink 预言机
+│   │   └── page.tsx                 # /[locale]/chainlink
+│   │
+│   ├── band-protocol/              # Band Protocol
+│   │   └── page.tsx                # /[locale]/band-protocol
+│   │
+│   ├── pyth/                       # Pyth Network
+│   │   └── page.tsx                # /[locale]/pyth
+│   │
+│   ├── api3/                       # API3
+│   │   └── page.tsx                # /[locale]/api3
+│   │
+│   ├── redstone/                   # RedStone
+│   │   └── page.tsx                # /[locale]/redstone
+│   │
+│   ├── dia/                        # DIA
+│   │   └── page.tsx                # /[locale]/dia
+│   │
+│   ├── tellor/                     # Tellor
+│   │   └── page.tsx                # /[locale]/tellor
+│   │
+│   ├── chronicle/                   # Chronicle
+│   │   └── page.tsx                # /[locale]/chronicle
+│   │
+│   ├── uma/                        # UMA
+│   │   └── page.tsx                # /[locale]/uma
+│   │
+│   ├── cross-chain/                # 跨链对比
+│   │   └── page.tsx                # /[locale]/cross-chain
+│   │
+│   ├── cross-oracle/               # 预言机对比
+│   │   └── page.tsx                # /[locale]/cross-oracle
+│   │
+│   ├── market-overview/            # 市场概览
+│   │   └── page.tsx                # /[locale]/market-overview
+│   │
+│   ├── price-query/                # 价格查询
+│   │   └── page.tsx                # /[locale]/price-query
+│   │
+│   ├── alerts/                     # 警报
+│   │   └── page.tsx                # /[locale]/alerts
+│   │
+│   ├── favorites/                  # 收藏
+│   │   └── page.tsx                # /[locale]/favorites
+│   │
+│   ├── settings/                   # 设置
+│   │   └── page.tsx                # /[locale]/settings
+│   │
+│   ├── login/                      # 登录
+│   │   └── page.tsx                # /[locale]/login
+│   │
+│   ├── register/                   # 注册
+│   │   └── page.tsx                # /[locale]/register
+│   │
+│   ├── methodology/                # 方法论
+│   │   └── page.tsx                # /[locale]/methodology
+│   │
+│   ├── snapshot/                   # 快照
+│   │   └── [id]/
+│   │       └── page.tsx            # /[locale]/snapshot/[id]
+│   │
+│   └── auth/                       # 认证相关
+│       ├── forgot-password/
+│       │   └── page.tsx           # /[locale]/auth/forgot-password
+│       ├── resend-verification/
+│       │   └── page.tsx           # /[locale]/auth/resend-verification
+│       ├── reset-password/
+│       │   └── page.tsx           # /[locale]/auth/reset-password
+│       └── verify-email/
+│           └── page.tsx           # /[locale]/auth/verify-email
+│
+├── api/                            # API 路由
 │   └── ...
-├── error.tsx                    # 全局错误页面
-├── not-found.tsx               # 404 页面
-└── layout.tsx                  # 根布局
+│
+├── error.tsx                       # 全局错误页面
+├── not-found.tsx                  # 404 页面
+└── layout.tsx                     # 根布局
 ```
 
 ### 动态路由
 
 ```typescript
-// app/[locale]/snapshot/[id]/page.tsx
+// src/app/[locale]/snapshot/[id]/page.tsx
 interface SnapshotPageProps {
   params: {
     locale: string;
@@ -445,7 +434,6 @@ interface SnapshotPageProps {
 export default async function SnapshotPage({ params }: SnapshotPageProps) {
   const { id } = params;
 
-  // 获取快照数据
   const snapshot = await getSnapshot(id);
 
   if (!snapshot) {
@@ -459,7 +447,6 @@ export default async function SnapshotPage({ params }: SnapshotPageProps) {
   );
 }
 
-// 生成静态参数
 export async function generateStaticParams() {
   const snapshots = await getPopularSnapshots();
 
@@ -468,7 +455,6 @@ export async function generateStaticParams() {
   }));
 }
 
-// 元数据
 export async function generateMetadata({ params }: SnapshotPageProps) {
   const snapshot = await getSnapshot(params.id);
 
@@ -479,65 +465,21 @@ export async function generateMetadata({ params }: SnapshotPageProps) {
 }
 ```
 
-### 路由拦截
-
-```typescript
-// app/[locale]/(.)snapshot/[id]/page.tsx
-// 拦截 /snapshot/[id] 路由，在模态框中显示
-
-'use client';
-
-import { useRouter } from 'next/navigation';
-import { Modal } from '@/components/ui/Modal';
-
-export default function SnapshotModal({ params }: { params: { id: string } }) {
-  const router = useRouter();
-
-  return (
-    <Modal onClose={() => router.back()}>
-      <SnapshotContent id={params.id} />
-    </Modal>
-  );
-}
-```
-
-### 路由组
-
-```typescript
-// (marketing)/layout.tsx - 营销页面布局
-// (app)/layout.tsx - 应用页面布局
-
-// app/(marketing)/
-//   layout.tsx
-//   page.tsx           # 首页
-//   about/
-//     page.tsx
-
-// app/(app)/
-//   layout.tsx
-//   dashboard/
-//     page.tsx
-//   settings/
-//     page.tsx
-```
-
 ## 性能优化
 
 ### 代码分割
 
 ```typescript
-// 动态导入组件
 import dynamic from 'next/dynamic';
 
 const PriceChart = dynamic(
   () => import('@/components/oracle/charts/PriceChart'),
   {
     loading: () => <ChartSkeleton />,
-    ssr: false, // 禁用服务端渲染
+    ssr: false,
   }
 );
 
-// 预加载
 const HeavyComponent = dynamic(
   () => import('@/components/HeavyComponent'),
   { loading: () => <Loading /> }
@@ -545,7 +487,6 @@ const HeavyComponent = dynamic(
 
 function Dashboard() {
   const handleMouseEnter = () => {
-    // 预加载组件
     import('@/components/HeavyComponent');
   };
 
@@ -557,116 +498,15 @@ function Dashboard() {
 }
 ```
 
-### 图片优化
-
-```typescript
-import Image from 'next/image';
-
-function OracleLogo({ provider }: { provider: OracleProvider }) {
-  return (
-    <Image
-      src={`/logos/oracles/${provider}.svg`}
-      alt={`${provider} logo`}
-      width={64}
-      height={64}
-      priority // 优先加载
-      className="rounded-full"
-    />
-  );
-}
-```
-
-### 字体优化
-
-```typescript
-// app/layout.tsx
-import { Inter } from 'next/font/google';
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en" className={inter.variable}>
-      <body className="font-sans">{children}</body>
-    </html>
-  );
-}
-```
-
-### 列表虚拟化
-
-```typescript
-// components/performance/VirtualList.tsx
-import { useVirtualizer } from '@tanstack/react-virtual';
-
-interface VirtualListProps<T> {
-  data: T[];
-  renderItem: (item: T, index: number) => React.ReactNode;
-  estimateSize: number;
-}
-
-export function VirtualList<T>({
-  data,
-  renderItem,
-  estimateSize,
-}: VirtualListProps<T>) {
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  const virtualizer = useVirtualizer({
-    count: data.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => estimateSize,
-  });
-
-  return (
-    <div ref={parentRef} className="h-96 overflow-auto">
-      <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
-      >
-        {virtualizer.getVirtualItems().map((virtualItem) => (
-          <div
-            key={virtualItem.key}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: `${virtualItem.size}px`,
-              transform: `translateY(${virtualItem.start}px)`,
-            }}
-          >
-            {renderItem(data[virtualItem.index], virtualItem.index)}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-```
-
 ### 数据预取
 
 ```typescript
-// 服务端预取
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { getQueryClient } from '@/lib/queries/client';
 
 export default async function OraclePage() {
   const queryClient = getQueryClient();
 
-  // 预取数据
   await queryClient.prefetchQuery({
     queryKey: ['oracles', 'chainlink', 'price', 'BTC'],
     queryFn: () => fetchPrice('chainlink', 'BTC'),
@@ -683,7 +523,6 @@ export default async function OraclePage() {
 ### 组件级优化
 
 ```typescript
-// 使用 React.memo 避免不必要的重渲染
 import { memo, useMemo, useCallback } from 'react';
 
 interface PriceListProps {
@@ -695,12 +534,10 @@ export const PriceList = memo(function PriceList({
   prices,
   onSelect,
 }: PriceListProps) {
-  // 缓存计算结果
   const sortedPrices = useMemo(() => {
     return [...prices].sort((a, b) => b.price - a.price);
   }, [prices]);
 
-  // 缓存回调函数
   const handleSelect = useCallback(
     (price: PriceData) => {
       onSelect(price);
@@ -722,65 +559,11 @@ export const PriceList = memo(function PriceList({
 });
 ```
 
-### 懒加载图片
-
-```typescript
-// components/performance/LazyImage.tsx
-import { useState, useEffect, useRef } from 'react';
-
-interface LazyImageProps {
-  src: string;
-  alt: string;
-  className?: string;
-}
-
-export function LazyImage({ src, alt, className }: LazyImageProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '50px' }
-    );
-
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={imgRef} className={className}>
-      {isInView && (
-        <img
-          src={src}
-          alt={alt}
-          className={`transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          onLoad={() => setIsLoaded(true)}
-        />
-      )}
-      {!isLoaded && <ImageSkeleton />}
-    </div>
-  );
-}
-```
-
 ## 最佳实践
 
 ### 1. 组件设计
 
 ```typescript
-// ✅ 单一职责
 function PriceCard({ price }: { price: PriceData }) {
   return (
     <Card>
@@ -791,7 +574,6 @@ function PriceCard({ price }: { price: PriceData }) {
   );
 }
 
-// ✅ 组合优于继承
 function Card({ children, className }: CardProps) {
   return (
     <div className={`rounded-lg border p-4 ${className}`}>
@@ -799,29 +581,11 @@ function Card({ children, className }: CardProps) {
     </div>
   );
 }
-
-// ✅ 受控组件
-function SearchInput({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <input
-      type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  );
-}
 ```
 
 ### 2. 状态管理
 
 ```typescript
-// ✅ 状态提升
 function Parent() {
   const [count, setCount] = useState(0);
 
@@ -833,7 +597,6 @@ function Parent() {
   );
 }
 
-// ✅ 使用 Context 避免 prop drilling
 const ThemeContext = createContext<Theme>('light');
 
 function App() {
@@ -848,26 +611,6 @@ function App() {
 ### 3. 错误处理
 
 ```typescript
-// ✅ 错误边界
-class ErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean }
-> {
-  state = { hasError: false };
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <ErrorFallback />;
-    }
-    return this.props.children;
-  }
-}
-
-// ✅ 优雅降级
 function Chart({ data }: { data?: ChartData[] }) {
   if (!data || data.length === 0) {
     return <EmptyState message="No data available" />;
@@ -877,64 +620,9 @@ function Chart({ data }: { data?: ChartData[] }) {
 }
 ```
 
-### 4. 可访问性
+### 4. 样式管理
 
 ```typescript
-// ✅ 语义化 HTML
-function Navigation() {
-  return (
-    <nav aria-label="Main navigation">
-      <ul role="menubar">
-        <li role="none">
-          <a href="/" role="menuitem">
-            Home
-          </a>
-        </li>
-      </ul>
-    </nav>
-  );
-}
-
-// ✅ ARIA 属性
-function Toggle({
-  pressed,
-  onChange,
-}: {
-  pressed: boolean;
-  onChange: (pressed: boolean) => void;
-}) {
-  return (
-    <button
-      aria-pressed={pressed}
-      onClick={() => onChange(!pressed)}
-    >
-      {pressed ? 'On' : 'Off'}
-    </button>
-  );
-}
-
-// ✅ 键盘导航
-function Dropdown() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
-  };
-
-  return (
-    <div onKeyDown={handleKeyDown}>
-      {/* ... */}
-    </div>
-  );
-}
-```
-
-### 5. 样式管理
-
-```typescript
-// ✅ 使用 Tailwind 的工具类
 function Button({
   variant = 'primary',
   size = 'medium',
@@ -956,20 +644,6 @@ function Button({
     </button>
   );
 }
-
-// ✅ CSS 变量
-function ThemeProvider({ children }: { children: ReactNode }) {
-  return (
-    <div
-      style={{
-        '--primary-color': '#3b82f6',
-        '--secondary-color': '#64748b',
-      } as CSSProperties}
-    >
-      {children}
-    </div>
-  );
-}
 ```
 
 ## 开发工具
@@ -983,22 +657,16 @@ function ThemeProvider({ children }: { children: ReactNode }) {
 ### Next.js 分析
 
 ```bash
-# 构建分析
 ANALYZE=true npm run build
-
-# 性能追踪
 next build --profile
 ```
 
 ### 性能监控
 
 ```typescript
-// lib/performance.ts
 export function reportWebVitals(metric: NextWebVitalsMetric) {
-  // 发送到分析服务
   console.log(metric);
 }
 
-// app/layout.tsx
 export { reportWebVitals } from '@/lib/performance';
 ```

@@ -18,11 +18,12 @@
 
 Insight 平台提供全面的性能监控解决方案，包括：
 
-- **Web Vitals 监控**: 自动收集 Core Web Vitals 指标
+- **Web Vitals 监控**: 自动收集 Core Web Vitals 指标 (LCP, INP, CLS, FCP, TTFB)
 - **自定义性能追踪**: 追踪业务关键操作的性能
 - **资源监控**: 监控网络请求和资源加载
 - **内存监控**: 追踪 JavaScript 堆内存使用
 - **实时监控面板**: 可视化展示性能指标
+- **集成监控服务**: 支持 Vercel Analytics、Speed Insights 和 Sentry
 
 ---
 
@@ -30,64 +31,46 @@ Insight 平台提供全面的性能监控解决方案，包括：
 
 ### 1. 自动收集
 
-项目已自动集成 Web Vitals 收集，无需额外配置：
+项目已自动集成 Web Vitals 收集，通过 `src/lib/monitoring/webVitals.ts` 实现：
 
 ```typescript
-// 在 layout.tsx 或 _app.tsx 中
-import { useWebVitalsMonitor } from '@/hooks';
+import { initWebVitals, onMetric, reportCustomMetric } from '@/lib/monitoring/webVitals';
 
-function App() {
-  const { metrics, score } = useWebVitalsMonitor();
+// 初始化 Web Vitals 监控
+initWebVitals();
 
-  useEffect(() => {
-    // 自动上报到分析服务
-    if (score < 90) {
-      reportToAnalytics('performance-degraded', { score, metrics });
-    }
-  }, [score, metrics]);
+// 订阅指标
+const unsubscribe = onMetric((metric) => {
+  console.log(`${metric.name}: ${metric.value}ms (${metric.rating})`);
+});
 
-  return <MainContent />;
-}
+// 上报自定义指标
+reportCustomMetric('custom-metric', 150);
 ```
 
-### 2. 手动收集特定指标
+### 2. 指标阈值
+
+项目定义了精确的性能阈值：
 
 ```typescript
-import { useWebVitalsOptimizer } from '@/hooks';
-
-function Dashboard() {
-  const { metrics, getRating } = useWebVitalsOptimizer();
-
-  return (
-    <div>
-      <h2>Web Vitals</h2>
-      <div>
-        <span>FCP: {metrics.fcp?.toFixed(0)}ms</span>
-        <Badge
-          rating={getRating('FCP', metrics.fcp || 0)}
-        />
-      </div>
-      <div>
-        <span>LCP: {metrics.lcp?.toFixed(0)}ms</span>
-        <Badge
-          rating={getRating('LCP', metrics.lcp || 0)}
-        />
-      </div>
-    </div>
-  );
-}
+export const PERFORMANCE_THRESHOLDS = {
+  LCP: { good: 2500, poor: 4000 },
+  INP: { good: 200, poor: 500 },
+  CLS: { good: 0.1, poor: 0.25 },
+  FCP: { good: 1800, poor: 3000 },
+  TTFB: { good: 800, poor: 1800 },
+};
 ```
 
-### 3. 指标阈值
+### 3. 指标阈值表
 
 | 指标 | 良好    | 需改进  | 差      |
 | ---- | ------- | ------- | ------- |
-| FCP  | ≤ 1.8s  | ≤ 3.0s  | > 3.0s  |
 | LCP  | ≤ 2.5s  | ≤ 4.0s  | > 4.0s  |
-| FID  | ≤ 100ms | ≤ 300ms | > 300ms |
+| INP  | ≤ 200ms | ≤ 500ms | > 500ms |
 | CLS  | ≤ 0.1   | ≤ 0.25  | > 0.25  |
+| FCP  | ≤ 1.8s  | ≤ 3.0s  | > 3.0s  |
 | TTFB | ≤ 800ms | ≤ 1.8s  | > 1.8s  |
-| TBT  | ≤ 200ms | ≤ 600ms | > 600ms |
 
 ---
 
@@ -436,7 +419,7 @@ interface PerformanceReport {
   webVitals: {
     fcp?: number;
     lcp?: number;
-    fid?: number;
+    inp?: number;
     cls?: number;
     ttfb?: number;
   };
@@ -520,11 +503,13 @@ function PerformanceAlerts() {
 }
 ```
 
-### 2. 集成第三方监控
+### 2. 集成 Sentry
+
+项目已集成 @sentry/nextjs，可自动上报性能数据：
 
 ```typescript
-import { usePerformanceOptimizer } from '@/hooks';
 import * as Sentry from '@sentry/nextjs';
+import { usePerformanceOptimizer } from '@/hooks';
 
 function SentryIntegration() {
   const { webVitals, getReport } = usePerformanceOptimizer();
@@ -575,6 +560,40 @@ function CustomMonitoring() {
 
 ---
 
+## 集成监控服务
+
+### Vercel Analytics
+
+项目已集成 @vercel/analytics，自动追踪页面访问和转化：
+
+```typescript
+import { track } from '@vercel/analytics';
+
+// 追踪自定义事件
+track('web-vital', {
+  name: 'LCP',
+  value: 1500,
+  rating: 'good',
+});
+```
+
+### Vercel Speed Insights
+
+项目已集成 @vercel/speed-insights，自动收集性能数据。
+
+### Sentry
+
+项目已集成 @sentry/nextjs，支持错误追踪和性能监控：
+
+```typescript
+import * as Sentry from '@sentry/nextjs';
+
+// 上报自定义指标
+Sentry.metrics.distribution('custom-metric', 150);
+```
+
+---
+
 ## 最佳实践
 
 ### 1. 监控范围
@@ -601,30 +620,28 @@ function App() {
 
 ### 3. 性能预算
 
+项目配置的 performanceBudget 如下：
+
 ```typescript
 const PERFORMANCE_BUDGET = {
-  fcp: 1800,
-  lcp: 2500,
-  fid: 100,
-  cls: 0.1,
-  ttfb: 800,
+  webVitals: {
+    LCP: { target: 2500, warning: 4000 },
+    INP: { target: 200, warning: 500 },
+    CLS: { target: 0.1, warning: 0.25 },
+    FCP: { target: 1800, warning: 3000 },
+    TTFB: { target: 800, warning: 1800 },
+  },
+  bundle: {
+    javascript: { target: 300, warning: 500 },
+    css: { target: 100, warning: 150 },
+    images: { target: 500, warning: 1000 },
+  },
+  resources: {
+    maxResourceCount: 50,
+    maxThirdPartyScripts: 10,
+    maxFonts: 5,
+  },
 };
-
-function checkBudget(metrics) {
-  const violations = [];
-
-  for (const [metric, budget] of Object.entries(PERFORMANCE_BUDGET)) {
-    if (metrics[metric] > budget) {
-      violations.push({
-        metric,
-        actual: metrics[metric],
-        budget,
-      });
-    }
-  }
-
-  return violations;
-}
 ```
 
 ### 4. 用户感知
@@ -658,10 +675,11 @@ function UserFacingPerformanceAlert() {
 
 Insight 平台提供全面的性能监控能力：
 
-1. **自动监控**: Web Vitals 自动收集
+1. **自动监控**: Web Vitals 自动收集 (LCP, INP, CLS, FCP, TTFB)
 2. **自定义追踪**: 灵活的性能追踪 API
 3. **实时监控**: 可视化监控面板
 4. **告警机制**: 可配置的告警规则
 5. **报告导出**: 详细的性能报告
+6. **第三方集成**: Vercel Analytics、Speed Insights、Sentry
 
 通过合理使用这些工具，可以持续优化应用性能，提升用户体验。

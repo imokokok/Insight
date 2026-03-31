@@ -39,6 +39,8 @@
   },
   "ui": {
     "chart": {
+      "chart": "图表",
+      "table": "表格",
       "marketShare": "市场份额",
       "tvsTrend": "TVS趋势",
       "chainSupport": "链支持",
