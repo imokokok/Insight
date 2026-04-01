@@ -473,6 +473,10 @@
     "crossOracle": "跨预言机分析"
   },
   "subtitle": "去中心化预言机网络领导者",
+  "timeRange": {
+    "30d": "30天",
+    "thisMonth": "本月"
+  },
   "network": {
     "allRegions": "全部地区",
     "northAmerica": "北美",

@@ -9,7 +9,7 @@ import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useLastUpdated } from './useLastUpdated';
 
-const chainlinkClient = new ChainlinkClient();
+const chainlinkClient = new ChainlinkClient({ useRealData: true });
 
 type ChainlinkDataType = 'price' | 'historical' | 'network';
 

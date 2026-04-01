@@ -34,35 +34,25 @@ export async function middleware(request: NextRequest) {
   const cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }> =
     [];
 
-  // Check if Supabase credentials are available
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  let session = null;
-
-  if (supabaseUrl && supabaseKey) {
-    try {
-      const supabase = createServerClient(supabaseUrl, supabaseKey, {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookies) {
-            cookies.forEach(({ name, value }) => request.cookies.set(name, value));
-            cookies.forEach((cookie) => cookiesToSet.push(cookie));
-          },
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
         },
-      });
-
-      const { data } = await supabase.auth.getSession();
-      session = data.session;
-    } catch (error) {
-      console.warn('Supabase session check failed:', error);
+        setAll(cookies) {
+          cookies.forEach(({ name, value }) => request.cookies.set(name, value));
+          cookies.forEach((cookie) => cookiesToSet.push(cookie));
+        },
+      },
     }
-  } else {
-    // Supabase not configured, skip auth checks
-    console.warn('Supabase credentials not found, skipping auth checks');
-  }
+  );
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   const pathnameWithoutLocale = pathname.replace(localeReplacePattern, '') || '/';
 

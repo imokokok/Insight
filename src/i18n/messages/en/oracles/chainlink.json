@@ -457,7 +457,11 @@
     "1Y": "1Y",
     "ALL": "ALL"
   },
-  "subtitle": "Leading Decentralized Oracle Network",
+  "subtitle": "Decentralized Oracle Network Leader",
+  "timeRange": {
+    "30d": "30 Days",
+    "thisMonth": "This Month"
+  },
   "network": {
     "allRegions": "All Regions",
     "northAmerica": "North America",
