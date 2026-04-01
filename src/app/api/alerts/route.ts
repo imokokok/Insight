@@ -1,12 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { getUserId } from '@/lib/api/utils';
+import { sanitizeObject } from '@/lib/security';
 import { type AlertConditionType } from '@/lib/supabase/database.types';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
-import { CreateAlertRequestSchema, AlertListResponseSchema } from '@/lib/validation/schemas';
 import { validateBodySchema } from '@/lib/validation';
-import { sanitizeObject } from '@/lib/security';
+import { CreateAlertRequestSchema, AlertListResponseSchema } from '@/lib/validation/schemas';
 
 const logger = createLogger('api-alerts');
 

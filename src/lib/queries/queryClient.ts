@@ -11,13 +11,13 @@ import {
   type UseQueryOptions,
 } from '@tanstack/react-query';
 
-import { isAppError } from '@/lib/errors';
-import { createLogger } from '@/lib/utils/logger';
 import {
   DEFAULT_QUERY_OPTIONS,
   QUERY_CONFIG_BY_TYPE,
   type QueryConfigType,
 } from '@/lib/config/queryConfig';
+import { isAppError } from '@/lib/errors';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('QueryClient');
 

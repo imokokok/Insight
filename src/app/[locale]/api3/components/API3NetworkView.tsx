@@ -208,7 +208,7 @@ const mockTopologyConnections: NetworkConnection[] = [
 
 export function API3NetworkView({ config, networkStats }: API3NetworkViewProps) {
   const t = useTranslations();
-  const [selectedAirnode, setSelectedAirnode] = useState<AirnodeNode | null>(null);
+  const [, setSelectedAirnode] = useState<AirnodeNode | null>(null);
 
   const networkData = networkStats || config.networkData;
 

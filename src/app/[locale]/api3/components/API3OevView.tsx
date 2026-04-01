@@ -32,7 +32,6 @@ import {
 
 import { useAPI3OEVAuctions } from '@/hooks/oracles/api3';
 import { useTranslations } from '@/i18n';
-import { chartColors } from '@/lib/config/colors';
 
 import { type API3OevViewProps } from '../types';
 

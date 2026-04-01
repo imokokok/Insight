@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 
 import {
-  WebSocketManager,
+  type WebSocketManager,
   type WebSocketStatus,
   type WebSocketMessage,
   type ConnectionStats,

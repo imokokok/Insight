@@ -3,8 +3,8 @@
  * 提供连接复用、重连机制、性能监控等功能
  */
 
-import { createLogger } from '@/lib/utils/logger';
 import { WEBSOCKET_CONFIG } from '@/lib/config/queryConfig';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('WebSocketManager');
 

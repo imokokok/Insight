@@ -20,7 +20,7 @@ interface SdkInfo {
   status: 'stable' | 'beta' | 'alpha';
 }
 
-const getSdks = (t: (key: string) => string): SdkInfo[] => [
+const getSdks = (_t: (key: string) => string): SdkInfo[] => [
   {
     id: 'javascript',
     name: '@api3/contracts',

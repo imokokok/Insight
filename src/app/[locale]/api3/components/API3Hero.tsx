@@ -711,11 +711,7 @@ export function API3Hero({
             </div>
 
             <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex-1">
-              <MiniPriceChart
-                historicalData={historicalData}
-                currentPrice={price}
-                t={t}
-              />
+              <MiniPriceChart historicalData={historicalData} currentPrice={price} t={t} />
             </div>
 
             <QuickAccessPanel defaultCollapsed />

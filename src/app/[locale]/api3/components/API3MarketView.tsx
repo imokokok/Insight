@@ -7,13 +7,7 @@ import { useTranslations } from '@/i18n';
 
 import { type API3MarketViewProps } from '../types';
 
-export function API3MarketView({
-  config,
-  price,
-  historicalData,
-  stakingApr,
-  isLoading,
-}: API3MarketViewProps) {
+export function API3MarketView({ config, price, stakingApr }: API3MarketViewProps) {
   const t = useTranslations();
 
   const stats = [

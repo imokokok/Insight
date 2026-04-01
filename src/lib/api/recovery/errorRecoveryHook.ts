@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-import { createLogger } from '@/lib/utils/logger';
 import { captureException, addBreadcrumb } from '@/lib/monitoring';
+import { createLogger } from '@/lib/utils/logger';
 
 import {
   EnhancedRetryManager,

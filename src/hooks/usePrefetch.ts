@@ -5,16 +5,17 @@
 
 import { useCallback, useRef, useEffect, useState } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { createLogger } from '@/lib/utils/logger';
+import { useQueryClient } from '@tanstack/react-query';
+
 import {
   PREFETCH_CONFIG,
   QUERY_CONFIG_BY_TYPE,
   type QueryConfigType,
 } from '@/lib/config/queryConfig';
 import { createPrefetchOptions } from '@/lib/queries/queryClient';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('Prefetch');
 

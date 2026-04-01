@@ -6,7 +6,6 @@ import {
   Shield,
   AlertTriangle,
   CheckCircle,
-  Award,
   Info,
   ChevronDown,
   ChevronUp,
@@ -207,12 +206,7 @@ const riskFactors = [
   },
 ];
 
-export function API3RiskView({
-  staking,
-  airnodeStats,
-  dapiCoverage,
-  isLoading,
-}: API3RiskViewProps) {
+export function API3RiskView({ isLoading }: API3RiskViewProps) {
   const t = useTranslations();
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [expandedFactor, setExpandedFactor] = useState<number | null>(null);
