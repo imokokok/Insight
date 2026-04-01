@@ -2,12 +2,11 @@
 
 /**
  * @fileoverview 查询结果展示组件
- * @description 展示价格查询的结果，包括统计、图表和表格
+ * @description 展示价格查询的结果，包括统计、图表和详情
  */
 
 import { TrendingUp } from 'lucide-react';
 
-import { type TimeComparisonConfig, type TimePeriod } from '@/components/comparison/types';
 import { ChartSkeleton, EmptyStateEnhanced, ProgressBar, SegmentedControl } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { type OracleProvider, type Blockchain } from '@/lib/oracles';
@@ -17,13 +16,9 @@ import { type QueryError } from '../hooks/usePriceQuery';
 
 import {
   StatsGrid,
-  PriceResultsTable,
   PriceChart,
-  QuickLinks,
-  DataQualityPanel,
   DataSourceSection,
   UnifiedExportSection,
-  TimeComparisonSection,
   ErrorBanner,
 } from './index';
 
@@ -36,48 +31,24 @@ interface ChartDataPoint {
 interface QueryResultsProps {
   isLoading: boolean;
   queryResults: QueryResult[];
-  filteredQueryResults: QueryResult[];
   historicalData: Partial<Record<string, PriceData[]>>;
-  isCompareMode: boolean;
-  compareQueryResults: QueryResult[];
-  compareHistoricalData: Partial<Record<string, PriceData[]>>;
-  showBaseline: boolean;
   avgPrice: number;
-  compareAvgPrice: number;
   maxPrice: number;
   minPrice: number;
-  compareMaxPrice: number;
-  compareMinPrice: number;
   priceRange: number;
-  comparePriceRange: number;
   standardDeviation: number;
   standardDeviationPercent: number;
   avgChange24hPercent?: number;
-  compareAvgChange24hPercent?: number;
   validPrices: number[];
-  compareValidPrices: number[];
   chartData: ChartDataPoint[];
-  compareChartData: ChartDataPoint[];
   queryDuration: number | null;
   queryProgress: { completed: number; total: number };
   currentQueryTarget: { oracle: OracleProvider | null; chain: Blockchain | null };
-  filterText: string;
-  setFilterText: (text: string) => void;
-  sortField: 'oracle' | 'blockchain' | 'price' | 'timestamp';
-  sortDirection: 'asc' | 'desc';
-  onSort: (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => void;
-  selectedRow: string | null;
-  onRowSelect: (row: string | null) => void;
-  hiddenSeries: Set<string>;
-  onToggleSeries: (seriesName: string) => void;
   selectedTimeRange: number;
   selectedSymbol: string;
   setSelectedSymbol: (symbol: string) => void;
   onRefresh: () => void;
   chartContainerRef: React.RefObject<HTMLDivElement | null>;
-  timeComparisonConfig: TimeComparisonConfig;
-  onTimeConfigChange: (config: TimeComparisonConfig) => void;
-  filterInputRef?: React.RefObject<HTMLInputElement | null>;
   queryErrors: QueryError[];
   onRetryDataSource: (provider: OracleProvider, chain: Blockchain) => void;
   onRetryAllErrors: () => void;
@@ -93,48 +64,24 @@ interface QueryResultsProps {
 export function QueryResults({
   isLoading,
   queryResults,
-  filteredQueryResults,
   historicalData,
-  isCompareMode,
-  compareQueryResults,
-  compareHistoricalData,
-  showBaseline,
   avgPrice,
-  compareAvgPrice,
   maxPrice,
   minPrice,
-  compareMaxPrice,
-  compareMinPrice,
   priceRange,
-  comparePriceRange,
   standardDeviation,
   standardDeviationPercent,
   avgChange24hPercent,
-  compareAvgChange24hPercent,
   validPrices,
-  compareValidPrices,
   chartData,
-  compareChartData,
   queryDuration,
   queryProgress,
   currentQueryTarget,
-  filterText,
-  setFilterText,
-  sortField,
-  sortDirection,
-  onSort,
-  selectedRow,
-  onRowSelect,
-  hiddenSeries,
-  onToggleSeries,
   selectedTimeRange,
   selectedSymbol,
   setSelectedSymbol,
   onRefresh,
   chartContainerRef,
-  timeComparisonConfig,
-  onTimeConfigChange,
-  filterInputRef,
   queryErrors,
   onRetryDataSource,
   onRetryAllErrors,
@@ -202,6 +149,10 @@ export function QueryResults({
     );
   }
 
+  // 获取当前价格数据（单条数据）
+  const currentResult = queryResults[0];
+  const currentPrice = currentResult?.priceData;
+
   return (
     <div className="space-y-6">
       {/* 错误提示横幅 */}
@@ -226,17 +177,7 @@ export function QueryResults({
         queryDuration={queryDuration}
         avgChange24hPercent={avgChange24hPercent}
         prices={validPrices}
-        compareMode={isCompareMode}
-        compareAvgPrice={compareAvgPrice}
-        compareMaxPrice={compareMaxPrice}
-        compareMinPrice={compareMinPrice}
-        comparePriceRange={comparePriceRange}
-        compareAvgChange24hPercent={compareAvgChange24hPercent}
-        comparePrices={compareValidPrices}
       />
-
-      {/* 数据质量面板 */}
-      <DataQualityPanel results={queryResults} historicalData={historicalData} />
 
       {/* 数据源和导出区域 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -264,59 +205,53 @@ export function QueryResults({
         />
       </div>
 
-      {/* 图表和表格区域 - 2xl以上使用3:2比例布局 */}
-      <div className="grid grid-cols-1 2xl:grid-cols-5 gap-6">
-        {/* 价格图表 - 占3/5 */}
-        <div ref={chartContainerRef} className="min-w-0 2xl:col-span-3 order-1 2xl:order-1">
-          <PriceChart
-            chartData={chartData}
-            queryResults={queryResults}
-            hiddenSeries={hiddenSeries}
-            onToggleSeries={onToggleSeries}
-            selectedTimeRange={selectedTimeRange}
-            selectedRow={selectedRow}
-            compareMode={isCompareMode}
-            compareChartData={compareChartData}
-            compareQueryResults={compareQueryResults}
-            showBaseline={showBaseline}
-            avgPrice={avgPrice}
-          />
-        </div>
-
-        {/* 价格结果表格 - 占2/5 */}
-        <div className="2xl:col-span-2 order-2 2xl:order-2">
-          <PriceResultsTable
-            results={queryResults}
-            filteredResults={filteredQueryResults}
-            filterText={filterText}
-            setFilterText={setFilterText}
-            sortField={sortField}
-            sortDirection={sortDirection}
-            onSort={onSort}
-            avgPrice={avgPrice}
-            selectedRow={selectedRow}
-            onRowSelect={onRowSelect}
-            historicalData={historicalData}
-            filterInputRef={filterInputRef}
-          />
-        </div>
+      {/* 价格图表 */}
+      <div ref={chartContainerRef}>
+        <PriceChart
+          chartData={chartData}
+          queryResults={queryResults}
+          selectedTimeRange={selectedTimeRange}
+          avgPrice={avgPrice}
+        />
       </div>
 
-      {/* 时间对比区域 */}
-      {isCompareMode && chartData.length > 0 && compareChartData.length > 0 && (
-        <TimeComparisonSection
-          chartData={chartData}
-          compareChartData={compareChartData}
-          queryResults={queryResults}
-          compareQueryResults={compareQueryResults}
-          timeConfig={timeComparisonConfig}
-          onTimeConfigChange={onTimeConfigChange}
-          hiddenSeries={hiddenSeries}
-        />
+      {/* 价格详情卡片 */}
+      {currentPrice && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            {t('priceQuery.currentPriceDetails')}
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 mb-1">{t('priceQuery.price')}</p>
+              <p className="text-lg font-semibold text-gray-900">
+                ${currentPrice.price.toLocaleString()}
+              </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 mb-1">{t('priceQuery.change24h')}</p>
+              <p className={`text-lg font-semibold ${
+                (currentPrice.change24hPercent || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {(currentPrice.change24hPercent || 0) >= 0 ? '+' : ''}
+                {(currentPrice.change24hPercent || 0).toFixed(2)}%
+              </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 mb-1">{t('priceQuery.volume24h')}</p>
+              <p className="text-lg font-semibold text-gray-900">
+                ${(currentPrice.volume24h || 0).toLocaleString()}
+              </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 mb-1">{t('priceQuery.lastUpdated')}</p>
+              <p className="text-sm font-medium text-gray-900">
+                {new Date(currentPrice.timestamp).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
       )}
-
-      {/* 快速链接 */}
-      <QuickLinks />
     </div>
   );
 }

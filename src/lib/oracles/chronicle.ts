@@ -4,7 +4,11 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 import { BaseOracleClient } from './base';
-import { getChroniclePriceFeed, CHRONICLE_RPC_CONFIG } from './chronicleDataSources';
+import {
+  getChroniclePriceFeed,
+  CHRONICLE_RPC_CONFIG,
+  CHRONICLE_PRICE_FEEDS,
+} from './chronicleDataSources';
 import {
   getChroniclePriceFromChain,
   getChroniclePriceWithRead,
@@ -1331,6 +1335,39 @@ export class ChronicleClient extends BaseOracleClient {
       bridges,
       medianPrice: Number(medianPrice.toFixed(2)),
     };
+  }
+
+  getSupportedSymbols(): string[] {
+    return Object.keys(CHRONICLE_PRICE_FEEDS);
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const feeds = CHRONICLE_PRICE_FEEDS[symbol.toUpperCase()];
+    if (!feeds) {
+      return false;
+    }
+    if (chain !== undefined) {
+      const chainId = this.getChainId(chain);
+      return feeds[chainId] !== undefined;
+    }
+    return true;
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    const feeds = CHRONICLE_PRICE_FEEDS[symbol.toUpperCase()];
+    if (!feeds) {
+      return [];
+    }
+    const chainIds = Object.keys(feeds).map(Number);
+    const chainMap: Record<number, Blockchain> = {
+      1: Blockchain.ETHEREUM,
+      42161: Blockchain.ARBITRUM,
+      10: Blockchain.OPTIMISM,
+      137: Blockchain.POLYGON,
+      8453: Blockchain.BASE,
+      43114: Blockchain.AVALANCHE,
+    };
+    return chainIds.map((id) => chainMap[id]).filter(Boolean) as Blockchain[];
   }
 
   async getPriceDeviation(symbol: string): Promise<DeviationData> {

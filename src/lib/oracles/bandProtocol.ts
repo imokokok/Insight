@@ -10,8 +10,9 @@ import {
   generateNetworkStats,
   generateCrossChainStats,
   generateCrossChainTrend,
-  generateHistoricalBandPrices
+  generateHistoricalBandPrices,
 } from './bandProtocol/mockData';
+import { EventType, EVENT_TYPE_VALUES } from './bandProtocol/types';
 import {
   calculateTechnicalIndicators,
   seededRandom,
@@ -19,6 +20,7 @@ import {
   dataCache,
 } from './bandProtocol/utils';
 import { BaseOracleClient } from './base';
+import { bandProtocolSymbols } from './supportedSymbols';
 
 import type {
   BandProtocolMarketData,
@@ -51,7 +53,6 @@ import type {
   PriceFeed,
   IBCRelayer,
 } from './bandProtocol/types';
-import { EventType, EVENT_TYPE_VALUES } from './bandProtocol/types';
 import type { OracleClientConfig } from './base';
 
 export * from './bandProtocol/types';
@@ -1455,5 +1456,29 @@ export class BandProtocolClient extends BaseOracleClient {
   // Method to toggle real data mode
   setUseRealData(useRealData: boolean): void {
     this.useRealData = useRealData;
+  }
+
+  getSupportedSymbols(): string[] {
+    return [...bandProtocolSymbols];
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const isSymbolInList = bandProtocolSymbols.includes(
+      symbol.toUpperCase() as (typeof bandProtocolSymbols)[number]
+    );
+    if (!isSymbolInList) {
+      return false;
+    }
+    if (chain !== undefined) {
+      return this.supportedChains.includes(chain);
+    }
+    return true;
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    if (!this.isSymbolSupported(symbol)) {
+      return [];
+    }
+    return this.supportedChains;
   }
 }

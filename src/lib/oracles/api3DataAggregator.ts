@@ -126,7 +126,11 @@ export class API3DataAggregator {
       primarySourceInfo = createDataSourceInfo(strategy.primarySource, primaryStart);
     } catch (error) {
       primaryError = error instanceof Error ? error : new Error(String(error));
-      primarySourceInfo = createDataSourceInfo(strategy.primarySource, startTime, primaryError.message);
+      primarySourceInfo = createDataSourceInfo(
+        strategy.primarySource,
+        startTime,
+        primaryError.message
+      );
       console.warn(
         `[API3] Primary data fetch failed for ${strategy.dataType} (${strategy.primarySource}):`,
         primaryError.message
@@ -141,7 +145,11 @@ export class API3DataAggregator {
         fallbackSourceInfo = createDataSourceInfo(strategy.fallbackSource, fallbackStart);
       } catch (error) {
         fallbackError = error instanceof Error ? error : new Error(String(error));
-        fallbackSourceInfo = createDataSourceInfo(strategy.fallbackSource, startTime, fallbackError.message);
+        fallbackSourceInfo = createDataSourceInfo(
+          strategy.fallbackSource,
+          startTime,
+          fallbackError.message
+        );
         console.warn(
           `[API3] Fallback data fetch failed for ${strategy.dataType} (${strategy.fallbackSource}):`,
           fallbackError.message

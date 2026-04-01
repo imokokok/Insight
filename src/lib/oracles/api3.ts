@@ -22,6 +22,7 @@ import { api3DataAggregator } from './api3DataAggregator';
 import { isMockDataEnabled } from './api3DataSources';
 import { MOCK_DATA_STATUS } from './api3MockDataAnnotations';
 import { BaseOracleClient } from './base';
+import { api3Symbols } from './supportedSymbols';
 
 import type {
   AnnotatedData,
@@ -478,5 +479,29 @@ export class API3Client extends BaseOracleClient {
 
   async getStakerRewards(address?: string): Promise<StakerReward[]> {
     return getStakerRewards(address);
+  }
+
+  getSupportedSymbols(): string[] {
+    return [...api3Symbols];
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const isSymbolInList = api3Symbols.includes(
+      symbol.toUpperCase() as (typeof api3Symbols)[number]
+    );
+    if (!isSymbolInList) {
+      return false;
+    }
+    if (chain !== undefined) {
+      return this.supportedChains.includes(chain);
+    }
+    return true;
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    if (!this.isSymbolSupported(symbol)) {
+      return [];
+    }
+    return this.supportedChains;
   }
 }

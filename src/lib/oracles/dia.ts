@@ -4,6 +4,7 @@ import type { PriceData } from '@/types/oracle';
 
 import { BaseOracleClient } from './base';
 import { getDIADataService } from './diaDataService';
+import { diaSymbols } from './supportedSymbols';
 
 import type { OracleClientConfig } from './base';
 
@@ -519,5 +520,27 @@ export class DIAClient extends BaseOracleClient {
       dataFeedsUsed: integration.dataFeedsUsed,
       website: integration.website,
     }));
+  }
+
+  getSupportedSymbols(): string[] {
+    return [...diaSymbols];
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const isSymbolInList = diaSymbols.includes(symbol.toUpperCase() as (typeof diaSymbols)[number]);
+    if (!isSymbolInList) {
+      return false;
+    }
+    if (chain !== undefined) {
+      return this.supportedChains.includes(chain);
+    }
+    return true;
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    if (!this.isSymbolSupported(symbol)) {
+      return [];
+    }
+    return this.supportedChains;
   }
 }

@@ -3,6 +3,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 import { BaseOracleClient } from '../base';
+import { umaSymbols } from '../supportedSymbols';
 import { isUMASupportedOnChain } from '../umaDataSources';
 import { umaOnChainService, type UMATokenData } from '../umaOnChainService';
 
@@ -925,7 +926,7 @@ export class UMAClient extends BaseOracleClient {
   }
 
   getSupportedSymbols(): string[] {
-    return ['UMA'];
+    return [...umaSymbols];
   }
 
   getSupportedChainIds(symbol: string): number[] {

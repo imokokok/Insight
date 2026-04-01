@@ -3,6 +3,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 import { BaseOracleClient } from './base';
+import { winklinkSymbols } from './supportedSymbols';
 import { getWINkLinkRealDataService } from './winklinkRealDataService';
 
 import type { OracleClientConfig } from './base';
@@ -176,7 +177,7 @@ export class WINkLinkClient extends BaseOracleClient {
       if (USE_REAL_DATA) {
         const realDataService = getWINkLinkRealDataService();
         const realPrice = await realDataService.getPriceFromContract(symbol);
-        
+
         if (realPrice) {
           return realPrice;
         }
@@ -220,7 +221,7 @@ export class WINkLinkClient extends BaseOracleClient {
       try {
         const realDataService = getWINkLinkRealDataService();
         const networkStats = await realDataService.getTRONNetworkStats();
-        
+
         if (networkStats) {
           const now = Date.now();
           return {
@@ -313,7 +314,7 @@ export class WINkLinkClient extends BaseOracleClient {
       try {
         const realDataService = getWINkLinkRealDataService();
         const stakingInfo = await realDataService.getStakingInfo();
-        
+
         if (stakingInfo) {
           return {
             totalStaked: stakingInfo.totalStaked,
@@ -382,7 +383,7 @@ export class WINkLinkClient extends BaseOracleClient {
       try {
         const realDataService = getWINkLinkRealDataService();
         const gamingInfo = await realDataService.getGamingInfo();
-        
+
         if (gamingInfo) {
           return {
             totalGamingVolume: gamingInfo.totalGamingVolume,
@@ -453,7 +454,7 @@ export class WINkLinkClient extends BaseOracleClient {
       try {
         const realDataService = getWINkLinkRealDataService();
         const networkStats = await realDataService.getWINkLinkNetworkStats();
-        
+
         if (networkStats) {
           return networkStats;
         }
@@ -500,7 +501,7 @@ export class WINkLinkClient extends BaseOracleClient {
       try {
         const realDataService = getWINkLinkRealDataService();
         const riskMetrics = await realDataService.getRiskMetrics();
-        
+
         if (riskMetrics) {
           return riskMetrics;
         }
@@ -535,5 +536,29 @@ export class WINkLinkClient extends BaseOracleClient {
   isSupported(symbol: string): boolean {
     const realDataService = getWINkLinkRealDataService();
     return realDataService.isSupported(symbol);
+  }
+
+  getSupportedSymbols(): string[] {
+    return [...winklinkSymbols];
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const isSymbolInList = winklinkSymbols.includes(
+      symbol.toUpperCase() as (typeof winklinkSymbols)[number]
+    );
+    if (!isSymbolInList) {
+      return false;
+    }
+    if (chain !== undefined) {
+      return this.supportedChains.includes(chain);
+    }
+    return true;
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    if (!this.isSymbolSupported(symbol)) {
+      return [];
+    }
+    return this.supportedChains;
   }
 }

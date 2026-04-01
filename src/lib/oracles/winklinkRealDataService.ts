@@ -6,7 +6,8 @@ const logger = createLogger('WINkLinkRealDataService');
 
 // TRON RPC 端点
 const TRON_RPC_URL = process.env.NEXT_PUBLIC_TRON_RPC_URL || 'https://api.trongrid.io';
-const TRON_SOLIDITY_RPC = process.env.NEXT_PUBLIC_TRON_SOLIDITY_RPC || 'https://api.trongrid.io/walletsolidity';
+const TRON_SOLIDITY_RPC =
+  process.env.NEXT_PUBLIC_TRON_SOLIDITY_RPC || 'https://api.trongrid.io/walletsolidity';
 const TRONGRID_API_KEY = process.env.NEXT_PUBLIC_TRONGRID_API_KEY || '';
 
 // WINkLink Price Feed 合约地址 (Mainnet)
@@ -287,22 +288,25 @@ export class WINkLinkRealDataService {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    
+
     if (TRONGRID_API_KEY) {
       headers['TRON-PRO-API-KEY'] = TRONGRID_API_KEY;
     }
-    
+
     return headers;
   }
 
   /**
    * 调用 TRON 合约方法
    */
-  private async callContractMethod(contractAddress: string, method: string): Promise<string | null> {
+  private async callContractMethod(
+    contractAddress: string,
+    method: string
+  ): Promise<string | null> {
     try {
       // 构建函数选择器
       const functionSelector = this.getFunctionSelector(method);
-      
+
       const response = await fetch(`${TRON_SOLIDITY_RPC}/triggerconstantcontract`, {
         method: 'POST',
         headers: this.getHeaders(),
@@ -320,7 +324,7 @@ export class WINkLinkRealDataService {
       }
 
       const data = await response.json();
-      
+
       if (data.result && data.result.result) {
         // 解析返回值
         const hexValue = data.constant_result?.[0];
@@ -344,11 +348,11 @@ export class WINkLinkRealDataService {
    */
   private getFunctionSelector(method: string): string {
     const selectors: Record<string, string> = {
-      'latestAnswer': 'latestAnswer()',
-      'latestTimestamp': 'latestTimestamp()',
-      'latestRound': 'latestRound()',
-      'decimals': 'decimals()',
-      'description': 'description()',
+      latestAnswer: 'latestAnswer()',
+      latestTimestamp: 'latestTimestamp()',
+      latestRound: 'latestRound()',
+      decimals: 'decimals()',
+      description: 'description()',
     };
     return selectors[method] || `${method}()`;
   }
@@ -458,7 +462,7 @@ export class WINkLinkRealDataService {
 
       // 获取 TRON 网络状态作为参考
       const tronStats = await this.getTRONNetworkStats();
-      
+
       // 基于 TRON 网络状态计算 WINkLink 网络统计
       // 这些都是基于真实数据的估算
       const stats: NetworkStats = {
@@ -491,9 +495,8 @@ export class WINkLinkRealDataService {
   private generateHourlyActivity(): number[] {
     // 基于 TRON 网络的真实活动模式
     return [
-      2800, 2600, 2400, 2200, 2000, 2200, 2600, 3800, 
-      5200, 6800, 8200, 9200, 8800, 8400, 8000, 8200, 
-      8600, 9000, 8400, 6800, 5400, 4200, 3400, 3000
+      2800, 2600, 2400, 2200, 2000, 2200, 2600, 3800, 5200, 6800, 8200, 9200, 8800, 8400, 8000,
+      8200, 8600, 9000, 8400, 6800, 5400, 4200, 3400, 3000,
     ];
   }
 
@@ -510,7 +513,7 @@ export class WINkLinkRealDataService {
     try {
       // WIN 代币合约地址
       const WIN_CONTRACT = 'TNDSHKGBmgRx9mDYA9CnxPx55nu672yQw2';
-      
+
       // 尝试获取 WIN 代币总供应量
       let totalSupply = 0;
       try {
@@ -525,7 +528,7 @@ export class WINkLinkRealDataService {
             visible: true,
           }),
         });
-        
+
         if (supplyResponse.ok) {
           const supplyData = await supplyResponse.json();
           if (supplyData.constant_result?.[0]) {
@@ -711,7 +714,7 @@ export class WINkLinkRealDataService {
     try {
       // 获取 TRON 网络统计
       const tronStats = await this.getTRONNetworkStats();
-      
+
       // 基于真实数据计算风险指标
       const now = Date.now();
       const metrics: RiskMetrics = {
@@ -742,7 +745,13 @@ export class WINkLinkRealDataService {
   /**
    * 获取质押层级配置
    */
-  getStakingTiers(): Array<{ tier: string; minStake: number; maxStake: number; apr: number; nodeCount: number }> {
+  getStakingTiers(): Array<{
+    tier: string;
+    minStake: number;
+    maxStake: number;
+    apr: number;
+    nodeCount: number;
+  }> {
     return [
       { tier: 'bronze', minStake: 10000, maxStake: 50000, apr: 10, nodeCount: 35 },
       { tier: 'silver', minStake: 50000, maxStake: 200000, apr: 12, nodeCount: 28 },

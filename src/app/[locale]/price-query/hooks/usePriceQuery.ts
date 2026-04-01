@@ -19,10 +19,10 @@ import { usePriceQueryState, type TimeComparisonConfig } from './usePriceQuerySt
 import type { AnomalyInfo } from '../utils/priceValidator';
 
 export interface UsePriceQueryReturn {
-  selectedOracles: OracleProvider[];
-  setSelectedOracles: (oracles: OracleProvider[]) => void;
-  selectedChains: Blockchain[];
-  setSelectedChains: (chains: Blockchain[]) => void;
+  selectedOracle: OracleProvider | null;
+  setSelectedOracle: (oracle: OracleProvider | null) => void;
+  selectedChain: Blockchain | null;
+  setSelectedChain: (chain: Blockchain | null) => void;
   selectedSymbol: string;
   setSelectedSymbol: (symbol: string) => void;
   selectedTimeRange: number;
@@ -116,15 +116,15 @@ export function usePriceQuery(): UsePriceQueryReturn {
   const state = usePriceQueryState();
 
   const data = usePriceQueryData({
-    selectedOraclesRef: state.selectedOraclesRef,
-    selectedChainsRef: state.selectedChainsRef,
+    selectedOracleRef: state.selectedOracleRef,
+    selectedChainRef: state.selectedChainRef,
     selectedSymbolRef: state.selectedSymbolRef,
     selectedTimeRangeRef: state.selectedTimeRangeRef,
     isCompareModeRef: state.isCompareModeRef,
     compareTimeRangeRef: state.compareTimeRangeRef,
     urlParamsParsed: state.urlParamsParsed,
-    selectedOracles: state.selectedOracles,
-    selectedChains: state.selectedChains,
+    selectedOracle: state.selectedOracle,
+    selectedChain: state.selectedChain,
     selectedSymbol: state.selectedSymbol,
     selectedTimeRange: state.selectedTimeRange,
   });
@@ -142,19 +142,108 @@ export function usePriceQuery(): UsePriceQueryReturn {
   const exportHook = usePriceQueryExport({
     queryResults: data.queryResults,
     selectedSymbol: state.selectedSymbol,
-    selectedOracles: state.selectedOracles,
-    selectedChains: state.selectedChains,
+    selectedOracles: state.selectedOracle ? [state.selectedOracle] : [],
+    selectedChains: state.selectedChain ? [state.selectedChain] : [],
   });
 
   const history = usePriceQueryHistory({
-    setSelectedOracles: state.setSelectedOracles,
-    setSelectedChains: state.setSelectedChains,
+    setSelectedOracle: state.setSelectedOracle,
+    setSelectedChain: state.setSelectedChain,
     setSelectedSymbol: state.setSelectedSymbol,
     setSelectedTimeRange: state.setSelectedTimeRange,
   });
 
-  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
+  const [showExportConfig, setShowExportConfig] = useState(false);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
+  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
+
+  const handleExportCSV = useCallback(() => {
+    exportHook.exportToCSV();
+  }, [exportHook]);
+
+  const handleExportJSON = useCallback(() => {
+    exportHook.exportToJSON();
+  }, [exportHook]);
+
+  const generateFilename = useCallback(
+    (extension: string) => {
+      return exportHook.generateFilename(extension);
+    },
+    [exportHook]
+  );
+
+  const stats = useMemo(() => {
+    const validPrices = data.queryResults
+      .filter((r) => r.priceData && typeof r.priceData.price === 'number')
+      .map((r) => r.priceData!.price);
+
+    const avgPrice =
+      validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
+
+    const avgChange24hPercent =
+      data.queryResults.length > 0
+        ? data.queryResults.reduce((sum, r) => {
+            const change = r.priceData?.change24hPercent;
+            return change !== undefined ? sum + change : sum;
+          }, 0) /
+          data.queryResults.filter((r) => r.priceData?.change24hPercent !== undefined).length
+        : undefined;
+
+    const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
+    const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+    const priceRange = maxPrice - minPrice;
+
+    const variance =
+      validPrices.length > 0
+        ? validPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) /
+          validPrices.length
+        : 0;
+    const standardDeviation = Math.sqrt(variance);
+    const standardDeviationPercent = avgPrice > 0 ? (standardDeviation / avgPrice) * 100 : 0;
+
+    const compareValidPrices = data.compareQueryResults
+      .filter((r) => r.priceData && typeof r.priceData.price === 'number')
+      .map((r) => r.priceData!.price);
+
+    const compareAvgPrice =
+      compareValidPrices.length > 0
+        ? compareValidPrices.reduce((a, b) => a + b, 0) / compareValidPrices.length
+        : 0;
+
+    const compareAvgChange24hPercent =
+      data.compareQueryResults.length > 0
+        ? data.compareQueryResults.reduce((sum, r) => {
+            const change = r.priceData?.change24hPercent;
+            return change !== undefined ? sum + change : sum;
+          }, 0) /
+          data.compareQueryResults.filter((r) => r.priceData?.change24hPercent !== undefined).length
+        : undefined;
+
+    const compareMaxPrice =
+      compareValidPrices.length > 0 ? Math.max(...compareValidPrices) : 0;
+    const compareMinPrice =
+      compareValidPrices.length > 0 ? Math.min(...compareValidPrices) : 0;
+    const comparePriceRange = compareMaxPrice - compareMinPrice;
+
+    return {
+      validPrices,
+      avgPrice,
+      avgChange24hPercent,
+      maxPrice,
+      minPrice,
+      priceRange,
+      variance,
+      standardDeviation,
+      standardDeviationPercent,
+      compareValidPrices,
+      compareAvgPrice,
+      compareAvgChange24hPercent,
+      compareMaxPrice,
+      compareMinPrice,
+      comparePriceRange,
+    };
+  }, [data.queryResults, data.compareQueryResults]);
 
   const sortedQueryResults = useMemo(() => {
     return [...data.queryResults].sort((a, b) => {
@@ -162,16 +251,18 @@ export function usePriceQuery(): UsePriceQueryReturn {
 
       switch (state.sortField) {
         case 'oracle':
-          comparison = providerNames[a.provider].localeCompare(providerNames[b.provider]);
+          comparison = a.provider.localeCompare(b.provider);
           break;
         case 'blockchain':
-          comparison = chainNames[a.chain].localeCompare(chainNames[b.chain]);
+          comparison = a.chain.localeCompare(b.chain);
           break;
         case 'price':
-          comparison = a.priceData.price - b.priceData.price;
+          comparison = (a.priceData?.price ?? 0) - (b.priceData?.price ?? 0);
           break;
         case 'timestamp':
-          comparison = a.priceData.timestamp - b.priceData.timestamp;
+          comparison =
+            new Date(a.priceData?.timestamp ?? 0).getTime() -
+            new Date(b.priceData?.timestamp ?? 0).getTime();
           break;
       }
 
@@ -180,107 +271,23 @@ export function usePriceQuery(): UsePriceQueryReturn {
   }, [data.queryResults, state.sortField, state.sortDirection]);
 
   const filteredQueryResults = useMemo(() => {
-    if (!state.filterText.trim()) return sortedQueryResults;
-    const lowerFilter = state.filterText.toLowerCase();
-    return sortedQueryResults.filter((result) => {
-      const oracleName = providerNames[result.provider].toLowerCase();
-      const chainName = chainNames[result.chain].toLowerCase();
-      const oracleTranslation = t(`navbar.${oracleI18nKeys[result.provider]}`).toLowerCase();
-      const chainTranslation = t(`blockchain.${result.chain.toLowerCase()}`).toLowerCase();
-      return (
-        oracleName.includes(lowerFilter) ||
-        chainName.includes(lowerFilter) ||
-        oracleTranslation.includes(lowerFilter) ||
-        chainTranslation.includes(lowerFilter)
-      );
-    });
-  }, [sortedQueryResults, state.filterText, t]);
+    if (!state.filterText) return sortedQueryResults;
 
-  const validPrices = useMemo(() => {
-    return data.queryResults.map((r) => r.priceData.price).filter((p) => p > 0);
-  }, [data.queryResults]);
-
-  const avgPrice = useMemo(() => {
-    return validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
-  }, [validPrices]);
-
-  const avgChange24hPercent = useMemo(() => {
-    const changes = data.queryResults
-      .map((r) => r.priceData.change24hPercent)
-      .filter((c): c is number => c !== undefined);
-    return changes.length > 0 ? changes.reduce((a, b) => a + b, 0) / changes.length : undefined;
-  }, [data.queryResults]);
-
-  const maxPrice = useMemo(() => {
-    return validPrices.length > 0 ? Math.max(...validPrices) : 0;
-  }, [validPrices]);
-
-  const minPrice = useMemo(() => {
-    return validPrices.length > 0 ? Math.min(...validPrices) : 0;
-  }, [validPrices]);
-
-  const compareValidPrices = useMemo(() => {
-    return data.compareQueryResults.map((r) => r.priceData.price).filter((p) => p > 0);
-  }, [data.compareQueryResults]);
-
-  const compareAvgPrice = useMemo(() => {
-    return compareValidPrices.length > 0
-      ? compareValidPrices.reduce((a, b) => a + b, 0) / compareValidPrices.length
-      : 0;
-  }, [compareValidPrices]);
-
-  const compareAvgChange24hPercent = useMemo(() => {
-    const changes = data.compareQueryResults
-      .map((r) => r.priceData.change24hPercent)
-      .filter((c): c is number => c !== undefined);
-    return changes.length > 0 ? changes.reduce((a, b) => a + b, 0) / changes.length : undefined;
-  }, [data.compareQueryResults]);
-
-  const compareMaxPrice = useMemo(() => {
-    return compareValidPrices.length > 0 ? Math.max(...compareValidPrices) : 0;
-  }, [compareValidPrices]);
-
-  const compareMinPrice = useMemo(() => {
-    return compareValidPrices.length > 0 ? Math.min(...compareValidPrices) : 0;
-  }, [compareValidPrices]);
-
-  const comparePriceRange = useMemo(() => {
-    return compareMaxPrice - compareMinPrice;
-  }, [compareMaxPrice, compareMinPrice]);
-
-  const priceRange = useMemo(() => {
-    return maxPrice - minPrice;
-  }, [maxPrice, minPrice]);
-
-  const calculateVariance = (prices: number[], mean: number): number => {
-    if (prices.length < 2) return 0;
-    const sumSquaredDiff = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0);
-    return sumSquaredDiff / prices.length;
-  };
-
-  const calculateStandardDeviation = (variance: number): number => {
-    return Math.sqrt(variance);
-  };
-
-  const variance = useMemo(() => {
-    return calculateVariance(validPrices, avgPrice);
-  }, [validPrices, avgPrice]);
-
-  const standardDeviation = useMemo(() => {
-    return calculateStandardDeviation(variance);
-  }, [variance]);
-
-  const standardDeviationPercent = useMemo(() => {
-    return avgPrice > 0 ? (standardDeviation / avgPrice) * 100 : 0;
-  }, [standardDeviation, avgPrice]);
+    const filter = state.filterText.toLowerCase();
+    return sortedQueryResults.filter(
+      (result) =>
+        result.provider.toLowerCase().includes(filter) ||
+        result.chain.toLowerCase().includes(filter)
+    );
+  }, [sortedQueryResults, state.filterText]);
 
   const currentFavoriteConfig: FavoriteConfig = useMemo(
     () => ({
       symbol: state.selectedSymbol,
-      selectedOracles: state.selectedOracles.map((o) => o as string),
-      chains: state.selectedChains.map((c) => c as string),
+      selectedOracles: state.selectedOracle ? [state.selectedOracle as string] : [],
+      chains: state.selectedChain ? [state.selectedChain as string] : [],
     }),
-    [state.selectedSymbol, state.selectedOracles, state.selectedChains]
+    [state.selectedSymbol, state.selectedOracle, state.selectedChain]
   );
 
   const handleApplyFavorite = useCallback(
@@ -288,39 +295,22 @@ export function usePriceQuery(): UsePriceQueryReturn {
       if (config.symbol) {
         state.setSelectedSymbol(config.symbol);
       }
-      if (config.selectedOracles) {
-        state.setSelectedOracles(config.selectedOracles as OracleProvider[]);
+      if (config.selectedOracles && config.selectedOracles.length > 0) {
+        state.setSelectedOracle(config.selectedOracles[0] as OracleProvider);
       }
-      if (config.chains) {
-        state.setSelectedChains(config.chains as Blockchain[]);
+      if (config.chains && config.chains.length > 0) {
+        state.setSelectedChain(config.chains[0] as Blockchain);
       }
       setShowFavoritesDropdown(false);
     },
-    [state.setSelectedSymbol, state.setSelectedOracles, state.setSelectedChains]
+    [state.setSelectedSymbol, state.setSelectedOracle, state.setSelectedChain]
   );
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        favoritesDropdownRef.current &&
-        !favoritesDropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowFavoritesDropdown(false);
-      }
-    };
-    if (showFavoritesDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showFavoritesDropdown]);
-
   return {
-    selectedOracles: state.selectedOracles,
-    setSelectedOracles: state.setSelectedOracles,
-    selectedChains: state.selectedChains,
-    setSelectedChains: state.setSelectedChains,
+    selectedOracle: state.selectedOracle,
+    setSelectedOracle: state.setSelectedOracle,
+    selectedChain: state.selectedChain,
+    setSelectedChain: state.setSelectedChain,
     selectedSymbol: state.selectedSymbol,
     setSelectedSymbol: state.setSelectedSymbol,
     selectedTimeRange: state.selectedTimeRange,
@@ -337,6 +327,10 @@ export function usePriceQuery(): UsePriceQueryReturn {
     queryDuration: data.queryDuration,
     queryProgress: data.queryProgress,
     currentQueryTarget: data.currentQueryTarget,
+    queryErrors: data.queryErrors,
+    clearErrors: data.clearErrors,
+    retryDataSource: data.retryDataSource,
+    retryAllErrors: data.retryAllErrors,
     showHistory: history.showHistory,
     setShowHistory: history.setShowHistory,
     historyItems: history.historyItems,
@@ -350,40 +344,17 @@ export function usePriceQuery(): UsePriceQueryReturn {
     compareQueryResults: data.compareQueryResults,
     showBaseline: state.showBaseline,
     setShowBaseline: state.setShowBaseline,
-    showExportConfig: exportHook.showExportConfig,
-    setShowExportConfig: exportHook.setShowExportConfig,
-    chartContainerRef: chart.chartContainerRef,
+    showExportConfig,
+    setShowExportConfig,
+    chartContainerRef,
     timeComparisonConfig: state.timeComparisonConfig,
     setTimeComparisonConfig: state.setTimeComparisonConfig,
     urlParamsParsed: state.urlParamsParsed,
-    chartData: chart.chartData,
-    compareChartData: chart.compareChartData,
-    sortedQueryResults,
-    filteredQueryResults,
-    validPrices,
-    avgPrice,
-    avgChange24hPercent,
-    maxPrice,
-    minPrice,
-    priceRange,
-    compareValidPrices,
-    compareAvgPrice,
-    compareAvgChange24hPercent,
-    compareMaxPrice,
-    compareMinPrice,
-    comparePriceRange,
-    variance,
-    standardDeviation,
-    standardDeviationPercent,
-    supportedChainsBySelectedOracles: data.supportedChainsBySelectedOracles,
-    toggleSeries: state.toggleSeries,
-    handleSort: state.handleSort,
-    fetchQueryData: data.fetchQueryData,
-    handleHistorySelect: history.handleHistorySelect,
-    handleClearHistory: history.handleClearHistory,
-    generateFilename: exportHook.generateFilename,
-    handleExportCSV: exportHook.handleExportCSV,
-    handleExportJSON: exportHook.handleExportJSON,
+    primaryDataFetchTime: data.primaryDataFetchTime,
+    compareDataFetchTime: data.compareDataFetchTime,
+    validationWarnings: data.validationWarnings,
+    dataAnomalies: data.dataAnomalies,
+    hasDataQualityIssues: data.hasDataQualityIssues,
     user,
     symbolFavorites,
     currentFavoriteConfig,
@@ -391,14 +362,35 @@ export function usePriceQuery(): UsePriceQueryReturn {
     setShowFavoritesDropdown,
     favoritesDropdownRef,
     handleApplyFavorite,
-    queryErrors: data.queryErrors,
-    clearErrors: data.clearErrors,
-    retryDataSource: data.retryDataSource,
-    retryAllErrors: data.retryAllErrors,
-    primaryDataFetchTime: data.primaryDataFetchTime,
-    compareDataFetchTime: data.compareDataFetchTime,
-    validationWarnings: data.validationWarnings,
-    dataAnomalies: data.dataAnomalies,
-    hasDataQualityIssues: data.hasDataQualityIssues,
+
+    chartData: chart.chartData,
+    compareChartData: chart.compareChartData,
+    sortedQueryResults,
+    filteredQueryResults,
+    validPrices: stats.validPrices,
+    avgPrice: stats.avgPrice,
+    avgChange24hPercent: stats.avgChange24hPercent,
+    maxPrice: stats.maxPrice,
+    minPrice: stats.minPrice,
+    priceRange: stats.priceRange,
+    compareValidPrices: stats.compareValidPrices,
+    compareAvgPrice: stats.compareAvgPrice,
+    compareAvgChange24hPercent: stats.compareAvgChange24hPercent,
+    compareMaxPrice: stats.compareMaxPrice,
+    compareMinPrice: stats.compareMinPrice,
+    comparePriceRange: stats.comparePriceRange,
+    variance: stats.variance,
+    standardDeviation: stats.standardDeviation,
+    standardDeviationPercent: stats.standardDeviationPercent,
+    supportedChainsBySelectedOracles: data.supportedChainsBySelectedOracles,
+
+    toggleSeries: state.toggleSeries,
+    handleSort: state.handleSort,
+    fetchQueryData: data.fetchQueryData,
+    handleHistorySelect: history.handleHistorySelect,
+    handleClearHistory: history.handleClearHistory,
+    generateFilename,
+    handleExportCSV,
+    handleExportJSON,
   };
 }

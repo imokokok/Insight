@@ -608,5 +608,3 @@ export function generateHistoricalBandPrices(
   dataCache.set(cacheKey, result);
   return result;
 }
-
-

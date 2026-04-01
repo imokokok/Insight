@@ -273,7 +273,12 @@
       "timeRangeLabel": "选择时间范围",
       "compareTimeLabel": "选择对比时间范围",
       "compareModeDesc": "启用后可对比两个时间段的价格",
-      "baselineDesc": "在图表上显示平均价格基准线"
+      "baselineDesc": "在图表上显示平均价格基准线",
+      "symbolNotSupported": "该币种暂不被支持",
+      "singleOracleNotSupport": "{oracle} 不支持 {symbol}",
+      "multipleOraclesNotSupport": "以下预言机不支持 {symbol}: {oracles}",
+      "selectOracle": "选择预言机",
+      "selectBlockchain": "选择区块链"
     },
     "query": "查询",
     "querying": "正在查询...",
@@ -295,6 +300,7 @@
       "price": "价格",
       "deviation": "偏离度",
       "timestamp": "时间戳",
+      "dataSource": "数据来源",
       "noMatchingData": "没有匹配的数据",
       "showing": "显示 {filtered} / {total} 条结果",
       "tableLabel": "价格查询结果表格",
@@ -311,7 +317,26 @@
         "timestamp": "时间戳",
         "change24h": "24小时涨跌",
         "freshness": "数据新鲜度",
-        "confidence": "置信度"
+        "confidence": "置信度",
+        "dataSource": "数据来源"
+      },
+      "dataSources": {
+        "real": "实时",
+        "mock": "模拟",
+        "api": "API",
+        "fallback": "回退"
+      },
+      "oracleFeatures": {
+        "chainlink": "多链",
+        "band": "跨链",
+        "uma": "Optimistic",
+        "pyth": "低延迟",
+        "api3": "第一方",
+        "redstone": "模块化",
+        "dia": "开源",
+        "tellor": "去中心化",
+        "chronicle": "MakerDAO",
+        "winklink": "TRON生态"
       },
       "qualityScore": {
         "excellent": "优秀",

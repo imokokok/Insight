@@ -3,6 +3,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
 import { BaseOracleClient } from './base';
+import { pythSymbols } from './supportedSymbols';
 
 import type { OracleClientConfig } from './base';
 
@@ -108,5 +109,29 @@ export class PythClient extends BaseOracleClient {
         'PYTH_HISTORICAL_ERROR'
       );
     }
+  }
+
+  getSupportedSymbols(): string[] {
+    return [...pythSymbols];
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const isSymbolInList = pythSymbols.includes(
+      symbol.toUpperCase() as (typeof pythSymbols)[number]
+    );
+    if (!isSymbolInList) {
+      return false;
+    }
+    if (chain !== undefined) {
+      return this.supportedChains.includes(chain);
+    }
+    return true;
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    if (!this.isSymbolSupported(symbol)) {
+      return [];
+    }
+    return this.supportedChains;
   }
 }
