@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import {
   AppError,
   isAppError,
-  errorToResponse,
   ValidationError,
   AuthenticationError,
   AuthorizationError,

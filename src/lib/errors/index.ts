@@ -113,6 +113,7 @@ export {
   handleError,
   isAppError,
   isOperationalError,
+  isRetryableError,
   type ErrorResponse,
 } from './errorToResponse';
 
@@ -200,20 +201,10 @@ export function shouldShowErrorToUser(error: unknown): boolean {
 
 /**
  * 检查错误是否应该重试
+ * isRetryableError 已经从 errorToResponse.ts 导出
+ * 这里保留 shouldRetryError 作为别名以兼容旧代码
  */
-export function shouldRetryError(error: unknown): boolean {
-  if (isAppError(error)) {
-    return (error as AppErrorType).shouldRetry();
-  }
-  // 网络错误通常可以重试
-  if (error instanceof Error) {
-    const retryablePatterns = ['network', 'timeout', 'ECONNREFUSED', 'ETIMEDOUT', 'fetch', 'abort'];
-    return retryablePatterns.some((pattern) =>
-      error.message.toLowerCase().includes(pattern.toLowerCase())
-    );
-  }
-  return false;
-}
+export { isRetryableError as shouldRetryError } from './errorToResponse';
 
 /**
  * 将未知错误转换为 AppError
