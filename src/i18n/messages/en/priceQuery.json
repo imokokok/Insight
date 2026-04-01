@@ -273,7 +273,12 @@
       "timeRangeLabel": "Select time range",
       "compareTimeLabel": "Select comparison time range",
       "compareModeDesc": "Enable to compare prices between two time periods",
-      "baselineDesc": "Show average price baseline on the chart"
+      "baselineDesc": "Show average price baseline on the chart",
+      "symbolNotSupported": "This symbol is not supported",
+      "singleOracleNotSupport": "{oracle} does not support {symbol}",
+      "multipleOraclesNotSupport": "The following oracles do not support {symbol}: {oracles}",
+      "selectOracle": "Select Oracle",
+      "selectBlockchain": "Select Blockchain"
     },
     "query": "Query",
     "querying": "Querying...",
@@ -295,6 +300,7 @@
       "price": "Price",
       "deviation": "Deviation",
       "timestamp": "Timestamp",
+      "dataSource": "Data Source",
       "noMatchingData": "No matching data",
       "showing": "Showing {filtered} / {total} results",
       "tableLabel": "Price query results table",
@@ -311,7 +317,26 @@
         "timestamp": "Timestamp",
         "change24h": "24h Change",
         "freshness": "Freshness",
-        "confidence": "Confidence"
+        "confidence": "Confidence",
+        "dataSource": "Data Source"
+      },
+      "dataSources": {
+        "real": "Real-time",
+        "mock": "Mock",
+        "api": "API",
+        "fallback": "Fallback"
+      },
+      "oracleFeatures": {
+        "chainlink": "Multi-chain",
+        "band": "Cross-chain",
+        "uma": "Optimistic",
+        "pyth": "Low-latency",
+        "api3": "First-party",
+        "redstone": "Modular",
+        "dia": "Open-source",
+        "tellor": "Decentralized",
+        "chronicle": "MakerDAO",
+        "winklink": "TRON Eco"
       },
       "qualityScore": {
         "excellent": "Excellent",

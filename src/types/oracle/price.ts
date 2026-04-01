@@ -23,6 +23,13 @@ export interface PriceData extends PriceDataBase {
   change24h?: number;
   change24hPercent?: number;
   confidenceInterval?: ConfidenceInterval;
+  dataSource?: 'real' | 'mock' | 'api' | 'fallback';
+}
+
+export interface OracleSymbolSupport {
+  symbol: string;
+  supportedOracles: OracleProvider[];
+  supportedChains: Partial<Record<OracleProvider, Blockchain[]>>;
 }
 
 export interface PriceDataPoint extends PriceDataBase {

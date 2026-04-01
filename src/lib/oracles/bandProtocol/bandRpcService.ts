@@ -592,11 +592,7 @@ class BandRpcService {
       return response.data.result;
     } catch (error) {
       if (error instanceof AxiosError) {
-        logger.error(
-          `RPC call failed: ${method}`,
-          error,
-          { status: error.response?.status }
-        );
+        logger.error(`RPC call failed: ${method}`, error, { status: error.response?.status });
         throw new Error(`Failed to call ${method}: ${error.message}`);
       }
       throw error;
@@ -622,11 +618,7 @@ class BandRpcService {
       return response.data;
     } catch (error) {
       if (error instanceof AxiosError) {
-        logger.error(
-          `REST call failed: ${endpoint}`,
-          error,
-          { status: error.response?.status }
-        );
+        logger.error(`REST call failed: ${endpoint}`, error, { status: error.response?.status });
         throw new Error(`Failed to call ${endpoint}: ${error.message}`);
       }
       throw error;
@@ -643,7 +635,10 @@ class BandRpcService {
       );
       return parseInt(result.sync_info.latest_block_height, 10);
     } catch (error) {
-      logger.error('Failed to get latest block height', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get latest block height',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -667,7 +662,10 @@ class BandRpcService {
         chainId: block.block.header.chain_id,
       };
     } catch (error) {
-      logger.error('Failed to get block info', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get block info',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -689,7 +687,10 @@ class BandRpcService {
         chainId: '', // Not available in this endpoint
       }));
     } catch (error) {
-      logger.error('Failed to get blocks', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get blocks',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -701,7 +702,10 @@ class BandRpcService {
       const minHeight = Math.max(1, latestHeight - limit + 1);
       return this.getBlocks(minHeight, latestHeight);
     } catch (error) {
-      logger.error('Failed to get latest blocks', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get latest blocks',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -727,7 +731,11 @@ class BandRpcService {
         })),
       };
     } catch (error) {
-      logger.error('Failed to get transaction', error instanceof Error ? error : new Error(String(error)), { hash });
+      logger.error(
+        'Failed to get transaction',
+        error instanceof Error ? error : new Error(String(error)),
+        { hash }
+      );
       throw error;
     }
   }
@@ -765,7 +773,11 @@ class BandRpcService {
         total: parseInt(result.pagination.total, 10),
       };
     } catch (error) {
-      logger.error('Failed to search transactions', error instanceof Error ? error : new Error(String(error)), { query });
+      logger.error(
+        'Failed to search transactions',
+        error instanceof Error ? error : new Error(String(error)),
+        { query }
+      );
       throw error;
     }
   }
@@ -781,7 +793,10 @@ class BandRpcService {
       );
       return transactions.slice(0, limit);
     } catch (error) {
-      logger.error('Failed to get latest transactions', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get latest transactions',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -811,7 +826,10 @@ class BandRpcService {
         rank: index + 1,
       }));
     } catch (error) {
-      logger.error('Failed to get validators', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get validators',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -833,7 +851,11 @@ class BandRpcService {
         balance: parseFloat(d.balance.amount) / 1e6,
       }));
     } catch (error) {
-      logger.error('Failed to get validator delegations', error instanceof Error ? error : new Error(String(error)), { validatorAddress });
+      logger.error(
+        'Failed to get validator delegations',
+        error instanceof Error ? error : new Error(String(error)),
+        { validatorAddress }
+      );
       throw error;
     }
   }
@@ -854,7 +876,11 @@ class BandRpcService {
         balance: parseFloat(d.balance.amount) / 1e6,
       }));
     } catch (error) {
-      logger.error('Failed to get delegator delegations', error instanceof Error ? error : new Error(String(error)), { delegatorAddress });
+      logger.error(
+        'Failed to get delegator delegations',
+        error instanceof Error ? error : new Error(String(error)),
+        { delegatorAddress }
+      );
       throw error;
     }
   }
@@ -874,7 +900,11 @@ class BandRpcService {
         })),
       }));
     } catch (error) {
-      logger.error('Failed to get delegator rewards', error instanceof Error ? error : new Error(String(error)), { delegatorAddress });
+      logger.error(
+        'Failed to get delegator rewards',
+        error instanceof Error ? error : new Error(String(error)),
+        { delegatorAddress }
+      );
       throw error;
     }
   }
@@ -922,7 +952,10 @@ class BandRpcService {
         timestamp: Date.now(),
       };
     } catch (error) {
-      logger.error('Failed to get network stats', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get network stats',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -962,7 +995,10 @@ class BandRpcService {
         timestamp: Date.now(),
       };
     } catch (error) {
-      logger.error('Failed to get market data', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get market data',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -992,7 +1028,10 @@ class BandRpcService {
         totalRequests: Math.floor(Math.random() * 1000000) + 10000,
       }));
     } catch (error) {
-      logger.error('Failed to get data sources', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get data sources',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -1018,16 +1057,16 @@ class BandRpcService {
         lastUpdated: Date.now() - Math.floor(Math.random() * 86400000),
       }));
     } catch (error) {
-      logger.error('Failed to get oracle scripts', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get oracle scripts',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
 
   // Get oracle requests
-  async getOracleRequests(
-    limit: number = 100,
-    status?: string
-  ): Promise<OracleRequestInfo[]> {
+  async getOracleRequests(limit: number = 100, status?: string): Promise<OracleRequestInfo[]> {
     try {
       let endpoint = `/oracle/v1/requests?pagination.limit=${limit}`;
       if (status) {
@@ -1050,7 +1089,10 @@ class BandRpcService {
         status: req.status,
       }));
     } catch (error) {
-      logger.error('Failed to get oracle requests', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get oracle requests',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -1101,7 +1143,10 @@ class BandRpcService {
         };
       });
     } catch (error) {
-      logger.error('Failed to get proposals', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get proposals',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -1122,7 +1167,11 @@ class BandRpcService {
         weight: v.options[0]?.weight || '1',
       }));
     } catch (error) {
-      logger.error('Failed to get proposal votes', error instanceof Error ? error : new Error(String(error)), { proposalId });
+      logger.error(
+        'Failed to get proposal votes',
+        error instanceof Error ? error : new Error(String(error)),
+        { proposalId }
+      );
       throw error;
     }
   }
@@ -1147,7 +1196,11 @@ class BandRpcService {
         })),
       };
     } catch (error) {
-      logger.error('Failed to get account info', error instanceof Error ? error : new Error(String(error)), { address });
+      logger.error(
+        'Failed to get account info',
+        error instanceof Error ? error : new Error(String(error)),
+        { address }
+      );
       throw error;
     }
   }
@@ -1164,7 +1217,11 @@ class BandRpcService {
         amount: parseFloat(b.amount) / 1e6,
       }));
     } catch (error) {
-      logger.error('Failed to get account balance', error instanceof Error ? error : new Error(String(error)), { address });
+      logger.error(
+        'Failed to get account balance',
+        error instanceof Error ? error : new Error(String(error)),
+        { address }
+      );
       throw error;
     }
   }
@@ -1189,7 +1246,10 @@ class BandRpcService {
         version: ch.version,
       }));
     } catch (error) {
-      logger.error('Failed to get IBC channels', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get IBC channels',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }
@@ -1210,7 +1270,10 @@ class BandRpcService {
         versions: conn.versions,
       }));
     } catch (error) {
-      logger.error('Failed to get IBC connections', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to get IBC connections',
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   }

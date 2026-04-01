@@ -48,6 +48,7 @@ export abstract class BaseOracleClient {
     chain?: Blockchain,
     period?: number
   ): Promise<PriceData[]>;
+  abstract getSupportedSymbols(): string[];
 
   defaultUpdateIntervalMinutes: number = 1;
   chainUpdateIntervals: Partial<Record<Blockchain, number>> = {};
@@ -56,6 +57,28 @@ export abstract class BaseOracleClient {
 
   constructor(config?: OracleClientConfig) {
     this.config = { ...DEFAULT_CLIENT_CONFIG, ...config };
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const supportedSymbols = this.getSupportedSymbols();
+    const isSymbolInList = supportedSymbols.includes(symbol);
+
+    if (!isSymbolInList) {
+      return false;
+    }
+
+    if (chain !== undefined) {
+      return this.supportedChains.includes(chain);
+    }
+
+    return true;
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    if (!this.isSymbolSupported(symbol)) {
+      return [];
+    }
+    return this.supportedChains;
   }
 
   getUpdateInterval(chain?: Blockchain): number {

@@ -3,6 +3,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 import { BaseOracleClient } from './base';
+import { tellorSymbols } from './supportedSymbols';
 import { tellorOnChainService } from './tellorOnChainService';
 
 import type { OracleClientConfig } from './base';
@@ -1067,5 +1068,29 @@ export class TellorClient extends BaseOracleClient {
         chainActivity: [],
       };
     }
+  }
+
+  getSupportedSymbols(): string[] {
+    return [...tellorSymbols];
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const isSymbolInList = tellorSymbols.includes(
+      symbol.toUpperCase() as (typeof tellorSymbols)[number]
+    );
+    if (!isSymbolInList) {
+      return false;
+    }
+    if (chain !== undefined) {
+      return this.supportedChains.includes(chain);
+    }
+    return true;
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    if (!this.isSymbolSupported(symbol)) {
+      return [];
+    }
+    return this.supportedChains;
   }
 }

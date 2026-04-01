@@ -1,7 +1,7 @@
 import { container, SERVICE_TOKENS } from '@/lib/di';
 import { OracleClientError, ValidationError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider } from '@/types/oracle';
+import { type Blockchain, OracleProvider } from '@/types/oracle';
 
 import { API3Client } from './api3';
 import { BandProtocolClient } from './bandProtocol';
@@ -129,6 +129,78 @@ export class OracleClientFactory {
 
   static isUsingDI(): boolean {
     return container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
+  }
+
+  static getSupportedSymbols(provider: OracleProvider): string[] {
+    try {
+      const client = this.getClient(provider);
+      return client.getSupportedSymbols();
+    } catch (error) {
+      logger.error(`Failed to get supported symbols for provider ${provider}`, { error });
+      return [];
+    }
+  }
+
+  static isSymbolSupported(provider: OracleProvider, symbol: string, chain?: Blockchain): boolean {
+    if (!symbol || symbol.trim() === '') {
+      return false;
+    }
+
+    try {
+      const client = this.getClient(provider);
+      return client.isSymbolSupported(symbol, chain);
+    } catch (error) {
+      logger.error(`Failed to check symbol support for ${symbol} on provider ${provider}`, {
+        error,
+        symbol,
+        chain,
+      });
+      return false;
+    }
+  }
+
+  static getSupportedChainsForSymbol(provider: OracleProvider, symbol: string): Blockchain[] {
+    if (!symbol || symbol.trim() === '') {
+      return [];
+    }
+
+    try {
+      const client = this.getClient(provider);
+      return client.getSupportedChainsForSymbol(symbol);
+    } catch (error) {
+      logger.error(`Failed to get supported chains for symbol ${symbol} on provider ${provider}`, {
+        error,
+        symbol,
+      });
+      return [];
+    }
+  }
+
+  static getAllSupportedSymbols(): Record<OracleProvider, string[]> {
+    const result: Partial<Record<OracleProvider, string[]>> = {};
+    const providers = [
+      OracleProvider.CHAINLINK,
+      OracleProvider.BAND_PROTOCOL,
+      OracleProvider.UMA,
+      OracleProvider.PYTH,
+      OracleProvider.API3,
+      OracleProvider.REDSTONE,
+      OracleProvider.DIA,
+      OracleProvider.TELLOR,
+      OracleProvider.CHRONICLE,
+      OracleProvider.WINKLINK,
+    ];
+
+    for (const provider of providers) {
+      try {
+        result[provider] = this.getSupportedSymbols(provider);
+      } catch (error) {
+        logger.error(`Failed to get supported symbols for provider ${provider}`, { error });
+        result[provider] = [];
+      }
+    }
+
+    return result as Record<OracleProvider, string[]>;
   }
 
   private static createClient(provider: OracleProvider): BaseOracleClient {

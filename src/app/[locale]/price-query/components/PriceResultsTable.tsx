@@ -1,11 +1,22 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, Filter, X } from 'lucide-react';
+import {
+  Search,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Filter,
+  X,
+  Wifi,
+  Database,
+  Cloud,
+  AlertCircle,
+} from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
-import { OracleProvider, Blockchain } from '@/lib/oracles';
+import type { OracleProvider } from '@/lib/oracles';
 
 import { type QueryResult, type PriceData, oracleI18nKeys } from '../constants';
 
@@ -144,6 +155,54 @@ export function PriceResultsTable({
     onRowSelect(selectedRow === key ? null : key);
   };
 
+  // 获取数据来源配置
+  const getDataSourceConfig = (dataSource?: 'real' | 'mock' | 'api' | 'fallback') => {
+    switch (dataSource) {
+      case 'real':
+        return {
+          label: t('priceQuery.results.dataSources.real'),
+          color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+          icon: <Wifi className="w-3 h-3" aria-hidden="true" />,
+        };
+      case 'mock':
+        return {
+          label: t('priceQuery.results.dataSources.mock'),
+          color: 'text-gray-600 bg-gray-50 border-gray-200',
+          icon: <Database className="w-3 h-3" aria-hidden="true" />,
+        };
+      case 'api':
+        return {
+          label: t('priceQuery.results.dataSources.api'),
+          color: 'text-blue-600 bg-blue-50 border-blue-200',
+          icon: <Cloud className="w-3 h-3" aria-hidden="true" />,
+        };
+      case 'fallback':
+        return {
+          label: t('priceQuery.results.dataSources.fallback'),
+          color: 'text-amber-600 bg-amber-50 border-amber-200',
+          icon: <AlertCircle className="w-3 h-3" aria-hidden="true" />,
+        };
+      default:
+        return {
+          label: t('priceQuery.results.dataSources.mock'),
+          color: 'text-gray-600 bg-gray-50 border-gray-200',
+          icon: <Database className="w-3 h-3" aria-hidden="true" />,
+        };
+    }
+  };
+
+  // 获取预言机特性标签
+  const getOracleFeature = (provider: OracleProvider): string | null => {
+    const featureKey = provider.toLowerCase().replace('_', '');
+    const key = `priceQuery.results.oracleFeatures.${featureKey}`;
+    const translation = t(key);
+    // 如果翻译返回的是 key 本身，说明没有对应的翻译
+    if (translation === key) {
+      return null;
+    }
+    return translation;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
@@ -274,6 +333,13 @@ export function PriceResultsTable({
               </th>
               <th
                 scope="col"
+                className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                role="columnheader"
+              >
+                {t('priceQuery.results.dataSource')}
+              </th>
+              <th
+                scope="col"
                 className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider"
                 role="columnheader"
               >
@@ -302,7 +368,7 @@ export function PriceResultsTable({
           <tbody className="divide-y divide-gray-100">
             {filteredResults.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-500">
                   {t('priceQuery.results.noMatchingData')}
                 </td>
               </tr>
@@ -311,6 +377,8 @@ export function PriceResultsTable({
                 const rowKey = getRowKey(result);
                 const isSelected = selectedRow === rowKey;
                 const deviation = getPriceDeviation(result.priceData.price);
+                const dataSourceConfig = getDataSourceConfig(result.priceData.dataSource);
+                const oracleFeature = getOracleFeature(result.provider);
 
                 return (
                   <tr
@@ -358,6 +426,11 @@ export function PriceResultsTable({
                         <span className="font-medium text-gray-900">
                           {t(`navbar.${oracleI18nKeys[result.provider]}`)}
                         </span>
+                        {oracleFeature && (
+                          <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-gray-500 bg-gray-100 rounded">
+                            {oracleFeature}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-3" role="gridcell">
@@ -373,6 +446,17 @@ export function PriceResultsTable({
                           maximumFractionDigits: 4,
                         })}
                       </span>
+                    </td>
+                    <td className="px-4 py-3" role="gridcell">
+                      <div className="flex justify-center">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded border ${dataSourceConfig.color}`}
+                          title={dataSourceConfig.label}
+                        >
+                          {dataSourceConfig.icon}
+                          <span className="hidden sm:inline">{dataSourceConfig.label}</span>
+                        </span>
+                      </div>
                     </td>
                     <td
                       className={`px-4 py-3 text-right relative border-l-[3px] ${deviation.indicatorColor} ${

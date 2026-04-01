@@ -51,15 +51,15 @@ const oracleClients = {
 };
 
 export interface UsePriceQueryDataParams {
-  selectedOraclesRef: React.MutableRefObject<OracleProvider[]>;
-  selectedChainsRef: React.MutableRefObject<Blockchain[]>;
+  selectedOracleRef: React.MutableRefObject<OracleProvider | null>;
+  selectedChainRef: React.MutableRefObject<Blockchain | null>;
   selectedSymbolRef: React.MutableRefObject<string>;
   selectedTimeRangeRef: React.MutableRefObject<number>;
   isCompareModeRef: React.MutableRefObject<boolean>;
   compareTimeRangeRef: React.MutableRefObject<number>;
   urlParamsParsed: boolean;
-  selectedOracles: OracleProvider[];
-  selectedChains: Blockchain[];
+  selectedOracle: OracleProvider | null;
+  selectedChain: Blockchain | null;
   selectedSymbol: string;
   selectedTimeRange: number;
 }
@@ -93,15 +93,15 @@ export interface UsePriceQueryDataReturn {
 
 export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQueryDataReturn {
   const {
-    selectedOraclesRef,
-    selectedChainsRef,
+    selectedOracleRef,
+    selectedChainRef,
     selectedSymbolRef,
     selectedTimeRangeRef,
     isCompareModeRef,
     compareTimeRangeRef,
     urlParamsParsed,
-    selectedOracles,
-    selectedChains,
+    selectedOracle,
+    selectedChain,
     selectedSymbol,
     selectedTimeRange,
   } = params;
@@ -152,8 +152,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   } = usePerformanceMonitoring();
 
   const fetchQueryData = useCallback(async () => {
-    const currentSelectedOracles = selectedOraclesRef.current;
-    const currentSelectedChains = selectedChainsRef.current;
+    const currentSelectedOracle = selectedOracleRef.current;
+    const currentSelectedChain = selectedChainRef.current;
     const currentSelectedSymbol = selectedSymbolRef.current;
     const currentSelectedTimeRange = selectedTimeRangeRef.current;
     const currentIsCompareMode = isCompareModeRef.current;
@@ -225,13 +225,11 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     };
 
     let totalQueries = 0;
-    for (const provider of currentSelectedOracles) {
-      const client = oracleClients[provider];
+    if (currentSelectedOracle && currentSelectedChain) {
+      const client = oracleClients[currentSelectedOracle];
       const supportedChains = client.supportedChains;
-      for (const chain of currentSelectedChains) {
-        if (supportedChains.includes(chain)) {
-          totalQueries++;
-        }
+      if (supportedChains.includes(currentSelectedChain)) {
+        totalQueries = 1;
       }
     }
 
@@ -249,29 +247,27 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     const primaryTasks: QueryTask[] = [];
     const compareTasks: QueryTask[] = [];
 
-    for (const provider of currentSelectedOracles) {
-      const client = oracleClients[provider];
+    if (currentSelectedOracle && currentSelectedChain) {
+      const client = oracleClients[currentSelectedOracle];
       const supportedChains = client.supportedChains;
 
-      for (const chain of currentSelectedChains) {
-        if (supportedChains.includes(chain)) {
-          primaryTasks.push({
-            provider,
-            chain,
-            client,
-            timeRange: currentSelectedTimeRange,
-            isCompare: false,
-          });
+      if (supportedChains.includes(currentSelectedChain)) {
+        primaryTasks.push({
+          provider: currentSelectedOracle,
+          chain: currentSelectedChain,
+          client,
+          timeRange: currentSelectedTimeRange,
+          isCompare: false,
+        });
 
-          if (currentIsCompareMode) {
-            compareTasks.push({
-              provider,
-              chain,
-              client,
-              timeRange: currentCompareTimeRange,
-              isCompare: true,
-            });
-          }
+        if (currentIsCompareMode) {
+          compareTasks.push({
+            provider: currentSelectedOracle,
+            chain: currentSelectedChain,
+            client,
+            timeRange: currentCompareTimeRange,
+            isCompare: true,
+          });
         }
       }
     }
@@ -420,10 +416,10 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         setCompareHistoricalData({});
       }
 
-      if (results.length > 0) {
+      if (results.length > 0 && currentSelectedOracle && currentSelectedChain) {
         saveQueryHistory({
-          oracles: currentSelectedOracles,
-          chains: currentSelectedChains,
+          oracles: [currentSelectedOracle],
+          chains: [currentSelectedChain],
           symbol: currentSelectedSymbol,
           timeRange: currentSelectedTimeRange,
         });
@@ -436,8 +432,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     } finally {
       if (isMounted.current) {
         const queryResponseTime = endQueryMeasure({
-          oraclesCount: currentSelectedOracles.length,
-          chainsCount: currentSelectedChains.length,
+          oraclesCount: currentSelectedOracle ? 1 : 0,
+          chainsCount: currentSelectedChain ? 1 : 0,
         });
 
         setIsLoading(false);
@@ -453,8 +449,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       }
     }
   }, [
-    selectedOraclesRef,
-    selectedChainsRef,
+    selectedOracleRef,
+    selectedChainRef,
     selectedSymbolRef,
     selectedTimeRangeRef,
     isCompareModeRef,
@@ -540,8 +536,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     if (!urlParamsParsed) return;
 
     const paramsSignature = JSON.stringify({
-      oracles: selectedOracles,
-      chains: selectedChains,
+      oracle: selectedOracle,
+      chain: selectedChain,
       symbol: selectedSymbol,
       timeRange: selectedTimeRange,
     });
@@ -552,8 +548,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     }
   }, [
     urlParamsParsed,
-    selectedOracles,
-    selectedChains,
+    selectedOracle,
+    selectedChain,
     selectedSymbol,
     selectedTimeRange,
     fetchQueryData,
@@ -569,14 +565,12 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   }, []);
 
   const supportedChainsBySelectedOracles = useMemo(() => {
-    if (selectedOracles.length === 0) return new Set<Blockchain>();
+    if (!selectedOracle) return new Set<Blockchain>();
     const supported = new Set<Blockchain>();
-    selectedOracles.forEach((oracle) => {
-      const client = oracleClients[oracle];
-      client.supportedChains.forEach((chain) => supported.add(chain));
-    });
+    const client = oracleClients[selectedOracle];
+    client.supportedChains.forEach((chain) => supported.add(chain));
     return supported;
-  }, [selectedOracles]);
+  }, [selectedOracle]);
 
   return {
     queryResults,

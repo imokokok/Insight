@@ -1,21 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 import { ChevronDown, ChevronUp, Search, RefreshCw } from 'lucide-react';
 
-import { SegmentedControl, MultiSelect, type SelectorOption } from '@/components/ui';
+import { SegmentedControl, DropdownSelect, type SelectorOption } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/lib/oracles';
 
 import { symbols, oracleColors, chainColors, TIME_RANGES, oracleI18nKeys } from '../constants';
+import { useOracleSymbols } from '../hooks/useOracleSymbols';
 
 interface SelectorsProps {
-  selectedOracles: OracleProvider[];
-  setSelectedOracles: (oracles: OracleProvider[]) => void;
-  selectedChains: Blockchain[];
-  setSelectedChains: (chains: Blockchain[]) => void;
+  selectedOracle: OracleProvider | null;
+  setSelectedOracle: (oracle: OracleProvider | null) => void;
+  selectedChain: Blockchain | null;
+  setSelectedChain: (chain: Blockchain | null) => void;
   selectedSymbol: string;
   setSelectedSymbol: (symbol: string) => void;
   selectedTimeRange: number;
@@ -23,12 +24,6 @@ interface SelectorsProps {
   isLoading: boolean;
   onQuery: () => void;
   supportedChainsBySelectedOracles: Set<Blockchain>;
-  isCompareMode?: boolean;
-  setIsCompareMode?: (mode: boolean) => void;
-  compareTimeRange?: number;
-  setCompareTimeRange?: (timeRange: number) => void;
-  showBaseline?: boolean;
-  setShowBaseline?: (show: boolean) => void;
 }
 
 /**
@@ -38,10 +33,10 @@ interface SelectorsProps {
  * @returns 选择器面板 JSX 元素
  */
 export function Selectors({
-  selectedOracles,
-  setSelectedOracles,
-  selectedChains,
-  setSelectedChains,
+  selectedOracle,
+  setSelectedOracle,
+  selectedChain,
+  setSelectedChain,
   selectedSymbol,
   setSelectedSymbol,
   selectedTimeRange,
@@ -49,20 +44,41 @@ export function Selectors({
   isLoading,
   onQuery,
   supportedChainsBySelectedOracles,
-  isCompareMode = false,
-  setIsCompareMode,
-  compareTimeRange = 24,
-  setCompareTimeRange,
-  showBaseline = false,
-  setShowBaseline,
 }: SelectorsProps) {
   const t = useTranslations();
-  const [showAdvanced, setShowAdvanced] = useState(true);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const symbolOptions: SelectorOption<string>[] = symbols.slice(0, 12).map((symbol) => ({
-    value: symbol,
-    label: symbol,
-  }));
+  // 使用 useOracleSymbols Hook 获取预言机相关的币种和链信息
+  const {
+    supportedSymbols,
+    isSymbolSupported,
+    getSupportedChainsForSymbol,
+  } = useOracleSymbols(selectedOracle ? [selectedOracle] : []);
+
+  // 币种选项生成逻辑：
+  // - 当选择了预言机时，只显示该预言机支持的币种
+  // - 当没有选择预言机时，显示所有币种
+  const symbolOptions: SelectorOption<string>[] = useMemo(() => {
+    // 如果没有选择预言机，显示所有币种
+    if (!selectedOracle) {
+      return symbols.slice(0, 12).map((symbol) => ({
+        value: symbol,
+        label: symbol,
+      }));
+    }
+
+    // 如果选择了预言机，只显示该预言机支持的币种
+    return supportedSymbols.slice(0, 12).map((symbol) => ({
+      value: symbol,
+      label: symbol,
+    }));
+  }, [selectedOracle, supportedSymbols]);
+
+  // 检查当前选中的币种是否被选中预言机支持
+  const isCurrentSymbolSupported = useMemo(() => {
+    if (!selectedOracle) return true;
+    return isSymbolSupported(selectedSymbol);
+  }, [selectedOracle, selectedSymbol, isSymbolSupported]);
 
   const oracleOptions: SelectorOption<OracleProvider>[] = getOracleProvidersSortedByMarketCap().map(
     (oracle) => ({
@@ -78,20 +94,42 @@ export function Selectors({
     })
   );
 
-  // 只显示被选中预言机支持的链（如果选择了预言机）
-  const supportedChains =
-    selectedOracles.length > 0
-      ? BLOCKCHAIN_VALUES.filter((chain) => supportedChainsBySelectedOracles.has(chain))
-      : BLOCKCHAIN_VALUES;
+  // 链选项生成逻辑：根据选中的预言机和币种动态过滤
+  const chainOptions: SelectorOption<Blockchain>[] = useMemo(() => {
+    let availableChains: Blockchain[];
 
-  const chainOptions: SelectorOption<Blockchain>[] = supportedChains.map((chain) => ({
-    value: chain,
-    label: t(`blockchain.${chain.toLowerCase()}`),
-    color: chainColors[chain],
-    icon: (
-      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: chainColors[chain] }} />
-    ),
-  }));
+    if (!selectedOracle) {
+      // 没有选择预言机时，显示所有链
+      availableChains = BLOCKCHAIN_VALUES;
+    } else if (isCurrentSymbolSupported && selectedSymbol) {
+      // 如果币种被预言机支持，使用该币种在该预言机上支持的链
+      availableChains = getSupportedChainsForSymbol(selectedSymbol);
+    } else {
+      // 否则使用选中预言机支持的所有链
+      availableChains = BLOCKCHAIN_VALUES.filter((chain) =>
+        supportedChainsBySelectedOracles.has(chain)
+      );
+    }
+
+    return availableChains.map((chain) => ({
+      value: chain,
+      label: t(`blockchain.${chain.toLowerCase()}`),
+      color: chainColors[chain],
+      icon: (
+        <span
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ backgroundColor: chainColors[chain] }}
+        />
+      ),
+    }));
+  }, [
+    selectedOracle,
+    selectedSymbol,
+    isCurrentSymbolSupported,
+    getSupportedChainsForSymbol,
+    supportedChainsBySelectedOracles,
+    t,
+  ]);
 
   const timeRangeOptions: SelectorOption<number>[] = TIME_RANGES.map((range) => ({
     value: range.value,
@@ -126,7 +164,19 @@ export function Selectors({
       </div>
 
       <div className="p-4">
-        <section className="py-3 first:pt-0" aria-labelledby="symbol-label">
+        <section className="py-3 first:pt-0" aria-labelledby="oracle-label">
+          <label className="block text-xs font-medium text-gray-700 mb-2">
+            {t('priceQuery.selectors.oracle')}
+          </label>
+          <DropdownSelect
+            options={oracleOptions}
+            value={selectedOracle}
+            onChange={(value) => setSelectedOracle(value as OracleProvider)}
+            placeholder={t('priceQuery.selectors.selectOracle')}
+          />
+        </section>
+
+        <section className="py-3 border-t border-gray-100" aria-labelledby="symbol-label">
           <SegmentedControl
             options={symbolOptions}
             value={selectedSymbol}
@@ -136,30 +186,15 @@ export function Selectors({
           />
         </section>
 
-        <section className="py-3 border-t border-gray-100" aria-labelledby="oracle-label">
-          <MultiSelect
-            options={oracleOptions}
-            value={selectedOracles}
-            onChange={(values) => setSelectedOracles(values as OracleProvider[])}
-            label={t('priceQuery.selectors.oracle')}
-            aria-label={t('priceQuery.selectors.oracleLabel')}
-            showSelectAll
-            selectAllLabel={t('priceQuery.selectors.selectAll')}
-            deselectAllLabel={t('priceQuery.selectors.deselectAll')}
-          />
-        </section>
-
         <section className="py-3 border-t border-gray-100" aria-labelledby="blockchain-label">
-          <MultiSelect
+          <label className="block text-xs font-medium text-gray-700 mb-2">
+            {t('priceQuery.selectors.blockchain')}
+          </label>
+          <DropdownSelect
             options={chainOptions}
-            value={selectedChains}
-            onChange={(values) => setSelectedChains(values as Blockchain[])}
-            label={t('priceQuery.selectors.blockchain')}
-            aria-label={t('priceQuery.selectors.blockchainLabel')}
-            showSelectAll
-            selectAllLabel={t('priceQuery.selectors.selectAll')}
-            deselectAllLabel={t('priceQuery.selectors.deselectAll')}
-            maxVisible={20}
+            value={selectedChain}
+            onChange={(value) => setSelectedChain(value as Blockchain)}
+            placeholder={t('priceQuery.selectors.selectBlockchain')}
           />
         </section>
 
@@ -172,79 +207,6 @@ export function Selectors({
             aria-label={t('priceQuery.selectors.timeRangeLabel')}
           />
         </section>
-
-        <div className="border-t border-gray-100 pt-3">
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors py-2 px-3 rounded-md hover:bg-gray-50/80 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            aria-expanded={showAdvanced}
-            aria-controls="advanced-options-panel"
-            id="advanced-options-toggle"
-          >
-            <span className="text-[11px] font-semibold uppercase tracking-wider">
-              {t('priceQuery.selectors.advancedOptions')}
-            </span>
-            {showAdvanced ? (
-              <ChevronUp className="w-4 h-4 text-gray-400" aria-hidden="true" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-gray-400" aria-hidden="true" />
-            )}
-          </button>
-
-          <div
-            id="advanced-options-panel"
-            role="region"
-            aria-labelledby="advanced-options-toggle"
-            className={`overflow-hidden transition-all duration-300 ease-in-out ${showAdvanced ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}
-          >
-            <div className="space-y-2 p-3 bg-gray-50/50 rounded-lg border border-gray-100">
-              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
-                <input
-                  type="checkbox"
-                  checked={isCompareMode}
-                  onChange={(e) => setIsCompareMode?.(e.target.checked)}
-                  aria-describedby="compare-mode-desc"
-                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-4 h-4"
-                />
-                <span className="text-xs font-medium text-gray-700">
-                  {t('priceQuery.selectors.compareMode')}
-                </span>
-              </label>
-              <span id="compare-mode-desc" className="sr-only">
-                {t('priceQuery.selectors.compareModeDesc')}
-              </span>
-
-              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
-                <input
-                  type="checkbox"
-                  checked={showBaseline}
-                  onChange={(e) => setShowBaseline?.(e.target.checked)}
-                  aria-describedby="baseline-desc"
-                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4"
-                />
-                <span className="text-xs font-medium text-gray-700">
-                  {t('priceQuery.selectors.showBaseline')}
-                </span>
-              </label>
-              <span id="baseline-desc" className="sr-only">
-                {t('priceQuery.selectors.baselineDesc')}
-              </span>
-
-              {isCompareMode && (
-                <div className="pt-2 border-t border-gray-200 mt-2">
-                  <SegmentedControl
-                    options={timeRangeOptions}
-                    value={compareTimeRange}
-                    onChange={(value) => setCompareTimeRange?.(value as number)}
-                    label={t('priceQuery.selectors.compareTime')}
-                    aria-label={t('priceQuery.selectors.compareTimeLabel')}
-                    size="sm"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

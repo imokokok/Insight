@@ -25,10 +25,10 @@ export interface TimeComparisonConfig {
 }
 
 export interface UsePriceQueryStateReturn {
-  selectedOracles: OracleProvider[];
-  setSelectedOracles: (oracles: OracleProvider[]) => void;
-  selectedChains: Blockchain[];
-  setSelectedChains: (chains: Blockchain[]) => void;
+  selectedOracle: OracleProvider | null;
+  setSelectedOracle: (oracle: OracleProvider | null) => void;
+  selectedChain: Blockchain | null;
+  setSelectedChain: (chain: Blockchain | null) => void;
   selectedSymbol: string;
   setSelectedSymbol: (symbol: string) => void;
   selectedTimeRange: number;
@@ -52,8 +52,8 @@ export interface UsePriceQueryStateReturn {
   setSelectedRow: (row: string | null) => void;
   toggleSeries: (seriesName: string) => void;
   handleSort: (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => void;
-  selectedOraclesRef: React.MutableRefObject<OracleProvider[]>;
-  selectedChainsRef: React.MutableRefObject<Blockchain[]>;
+  selectedOracleRef: React.MutableRefObject<OracleProvider | null>;
+  selectedChainRef: React.MutableRefObject<Blockchain | null>;
   selectedSymbolRef: React.MutableRefObject<string>;
   selectedTimeRangeRef: React.MutableRefObject<number>;
   isCompareModeRef: React.MutableRefObject<boolean>;
@@ -63,10 +63,10 @@ export interface UsePriceQueryStateReturn {
 export function usePriceQueryState(): UsePriceQueryStateReturn {
   const { preferences, isLoading: isPrefsLoading } = usePreferences();
 
-  const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
-    OracleProvider.CHAINLINK,
-  ]);
-  const [selectedChains, setSelectedChains] = useState<Blockchain[]>([Blockchain.ETHEREUM]);
+  const [selectedOracle, setSelectedOracle] = useState<OracleProvider | null>(
+    OracleProvider.CHAINLINK
+  );
+  const [selectedChain, setSelectedChain] = useState<Blockchain | null>(Blockchain.ETHEREUM);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC');
   const [selectedTimeRange, setSelectedTimeRange] = useState<number>(24);
   const [filterText, setFilterText] = useState<string>('');
@@ -103,8 +103,8 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     };
   });
 
-  const selectedOraclesRef = useRef<OracleProvider[]>(selectedOracles);
-  const selectedChainsRef = useRef<Blockchain[]>(selectedChains);
+  const selectedOracleRef = useRef<OracleProvider | null>(selectedOracle);
+  const selectedChainRef = useRef<Blockchain | null>(selectedChain);
   const selectedSymbolRef = useRef<string>(selectedSymbol);
   const selectedTimeRangeRef = useRef<number>(selectedTimeRange);
   const isCompareModeRef = useRef<boolean>(isCompareMode);
@@ -138,7 +138,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     const defaultTimeRange = timeRangeMapping[preferences.defaultTimeRange] || 24;
     const defaultSymbol = preferences.defaultSymbol.split('/')[0] || 'BTC';
 
-    setSelectedOracles([defaultOracle]);
+    setSelectedOracle(defaultOracle);
     setSelectedSymbol(defaultSymbol);
     setSelectedTimeRange(defaultTimeRange);
   }, [preferences, isPrefsLoading]);
@@ -154,11 +154,11 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     if (!hasUrlParams) {
       applyPreferences();
     } else {
-      setSelectedOracles((prev) =>
-        config.oracles && config.oracles.length > 0 ? config.oracles : prev
+      setSelectedOracle((prev) =>
+        config.oracles && config.oracles.length > 0 ? config.oracles[0] : prev
       );
-      setSelectedChains((prev) =>
-        config.chains && config.chains.length > 0 ? config.chains : prev
+      setSelectedChain((prev) =>
+        config.chains && config.chains.length > 0 ? config.chains[0] : prev
       );
       setSelectedSymbol((prev) => (config.symbol ? config.symbol : prev));
       setSelectedTimeRange((prev) => (config.timeRange ? config.timeRange : prev));
@@ -167,15 +167,15 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
   }, [applyPreferences]);
 
   useEffect(() => {
-    selectedOraclesRef.current = selectedOracles;
-    selectedChainsRef.current = selectedChains;
+    selectedOracleRef.current = selectedOracle;
+    selectedChainRef.current = selectedChain;
     selectedSymbolRef.current = selectedSymbol;
     selectedTimeRangeRef.current = selectedTimeRange;
     isCompareModeRef.current = isCompareMode;
     compareTimeRangeRef.current = compareTimeRange;
   }, [
-    selectedOracles,
-    selectedChains,
+    selectedOracle,
+    selectedChain,
     selectedSymbol,
     selectedTimeRange,
     isCompareMode,
@@ -185,13 +185,13 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
   useEffect(() => {
     if (!urlParamsParsed) return;
     const config: QueryConfig = {
-      oracles: selectedOracles,
-      chains: selectedChains,
+      oracles: selectedOracle ? [selectedOracle] : [],
+      chains: selectedChain ? [selectedChain] : [],
       symbol: selectedSymbol,
       timeRange: selectedTimeRange,
     };
     updateUrlParams(config);
-  }, [selectedOracles, selectedChains, selectedSymbol, selectedTimeRange, urlParamsParsed]);
+  }, [selectedOracle, selectedChain, selectedSymbol, selectedTimeRange, urlParamsParsed]);
 
   const toggleSeries = useCallback((seriesName: string) => {
     setHiddenSeries((prev) => {
@@ -218,10 +218,10 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
   }, []);
 
   return {
-    selectedOracles,
-    setSelectedOracles,
-    selectedChains,
-    setSelectedChains,
+    selectedOracle,
+    setSelectedOracle,
+    selectedChain,
+    setSelectedChain,
     selectedSymbol,
     setSelectedSymbol,
     selectedTimeRange,
@@ -245,8 +245,8 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     setSelectedRow,
     toggleSeries,
     handleSort,
-    selectedOraclesRef,
-    selectedChainsRef,
+    selectedOracleRef,
+    selectedChainRef,
     selectedSymbolRef,
     selectedTimeRangeRef,
     isCompareModeRef,

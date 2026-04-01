@@ -9,6 +9,7 @@ import {
   SPREAD_PERCENTAGES,
   type RedStoneChainInfo,
 } from './redstoneConstants';
+import { redstoneSymbols } from './supportedSymbols';
 
 import type { OracleClientConfig } from './base';
 
@@ -1145,6 +1146,30 @@ export class RedStoneClient extends BaseOracleClient {
 
   clearCache(): void {
     this.cache.clear();
+  }
+
+  getSupportedSymbols(): string[] {
+    return [...redstoneSymbols];
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const isSymbolInList = redstoneSymbols.includes(
+      symbol.toUpperCase() as (typeof redstoneSymbols)[number]
+    );
+    if (!isSymbolInList) {
+      return false;
+    }
+    if (chain !== undefined) {
+      return this.supportedChains.includes(chain);
+    }
+    return true;
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    if (!this.isSymbolSupported(symbol)) {
+      return [];
+    }
+    return this.supportedChains;
   }
 }
 

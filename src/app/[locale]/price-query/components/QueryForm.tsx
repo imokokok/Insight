@@ -5,10 +5,10 @@ import { type OracleProvider, type Blockchain } from '@/lib/oracles';
 import { Selectors } from './Selectors';
 
 interface QueryFormProps {
-  selectedOracles: OracleProvider[];
-  setSelectedOracles: (oracles: OracleProvider[]) => void;
-  selectedChains: Blockchain[];
-  setSelectedChains: (chains: Blockchain[]) => void;
+  selectedOracle: OracleProvider | null;
+  setSelectedOracle: (oracle: OracleProvider | null) => void;
+  selectedChain: Blockchain | null;
+  setSelectedChain: (chain: Blockchain | null) => void;
   selectedSymbol: string;
   setSelectedSymbol: (symbol: string) => void;
   selectedTimeRange: number;
@@ -16,19 +16,13 @@ interface QueryFormProps {
   isLoading: boolean;
   onQuery: () => void;
   supportedChainsBySelectedOracles: Set<Blockchain>;
-  isCompareMode: boolean;
-  setIsCompareMode: (mode: boolean) => void;
-  compareTimeRange: number;
-  setCompareTimeRange: (timeRange: number) => void;
-  showBaseline: boolean;
-  setShowBaseline: (show: boolean) => void;
 }
 
 export function QueryForm({
-  selectedOracles,
-  setSelectedOracles,
-  selectedChains,
-  setSelectedChains,
+  selectedOracle,
+  setSelectedOracle,
+  selectedChain,
+  setSelectedChain,
   selectedSymbol,
   setSelectedSymbol,
   selectedTimeRange,
@@ -36,20 +30,14 @@ export function QueryForm({
   isLoading,
   onQuery,
   supportedChainsBySelectedOracles,
-  isCompareMode,
-  setIsCompareMode,
-  compareTimeRange,
-  setCompareTimeRange,
-  showBaseline,
-  setShowBaseline,
 }: QueryFormProps) {
   return (
     <div className="xl:sticky xl:top-4">
       <Selectors
-        selectedOracles={selectedOracles}
-        setSelectedOracles={setSelectedOracles}
-        selectedChains={selectedChains}
-        setSelectedChains={setSelectedChains}
+        selectedOracle={selectedOracle}
+        setSelectedOracle={setSelectedOracle}
+        selectedChain={selectedChain}
+        setSelectedChain={setSelectedChain}
         selectedSymbol={selectedSymbol}
         setSelectedSymbol={setSelectedSymbol}
         selectedTimeRange={selectedTimeRange}
@@ -57,12 +45,6 @@ export function QueryForm({
         isLoading={isLoading}
         onQuery={onQuery}
         supportedChainsBySelectedOracles={supportedChainsBySelectedOracles}
-        isCompareMode={isCompareMode}
-        setIsCompareMode={setIsCompareMode}
-        compareTimeRange={compareTimeRange}
-        setCompareTimeRange={setCompareTimeRange}
-        showBaseline={showBaseline}
-        setShowBaseline={setShowBaseline}
       />
     </div>
   );

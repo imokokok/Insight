@@ -2,7 +2,7 @@
 
 /**
  * @fileoverview 价格查询页面 - 专业的区块链预言机价格数据分析平台
- * @description 提供多预言机、多链的价格查询、对比和分析功能
+ * @description 提供单一预言机、单一链的价格查询功能
  */
 
 import { useRef, useCallback } from 'react';
@@ -18,11 +18,13 @@ import { exportToCSV, exportToJSON, exportToPDF } from './utils/exportUtils';
 export default function PriceQueryPage() {
   const t = useTranslations();
   const filterInputRef = useRef<HTMLInputElement>(null);
+  const priceQuery = usePriceQuery();
+
   const {
-    selectedOracles,
-    setSelectedOracles,
-    selectedChains,
-    setSelectedChains,
+    selectedOracle,
+    setSelectedOracle,
+    selectedChain,
+    setSelectedChain,
     selectedSymbol,
     setSelectedSymbol,
     selectedTimeRange,
@@ -30,52 +32,25 @@ export default function PriceQueryPage() {
     queryResults,
     historicalData,
     isLoading,
-    filterText,
-    setFilterText,
-    sortField,
-    sortDirection,
-    hiddenSeries,
     queryDuration,
     queryProgress,
     currentQueryTarget,
     showHistory,
     setShowHistory,
     historyItems,
-    selectedRow,
-    setSelectedRow,
-    isCompareMode,
-    setIsCompareMode,
-    compareTimeRange,
-    setCompareTimeRange,
-    compareHistoricalData,
-    compareQueryResults,
-    showBaseline,
-    setShowBaseline,
     showExportConfig,
     setShowExportConfig,
     chartContainerRef,
-    timeComparisonConfig,
-    setTimeComparisonConfig,
     chartData,
-    compareChartData,
-    filteredQueryResults,
     validPrices,
     avgPrice,
     avgChange24hPercent,
     maxPrice,
     minPrice,
     priceRange,
-    compareValidPrices,
-    compareAvgPrice,
-    compareAvgChange24hPercent,
-    compareMaxPrice,
-    compareMinPrice,
-    comparePriceRange,
     standardDeviation,
     standardDeviationPercent,
     supportedChainsBySelectedOracles,
-    toggleSeries,
-    handleSort,
     fetchQueryData,
     handleHistorySelect,
     handleClearHistory,
@@ -91,7 +66,7 @@ export default function PriceQueryPage() {
     clearErrors,
     retryDataSource,
     retryAllErrors,
-  } = usePriceQuery();
+  } = priceQuery;
 
   // Debounced search focus handler
   const debouncedSearchFocus = useCallback(() => {
@@ -167,15 +142,15 @@ export default function PriceQueryPage() {
         exportToCSV(queryResults, config, selectedSymbol, csvTranslations);
         break;
       case 'json':
-        exportToJSON(queryResults, config, selectedSymbol, selectedOracles, selectedChains);
+        exportToJSON(queryResults, config, selectedSymbol, selectedOracle ? [selectedOracle] : [], selectedChain ? [selectedChain] : []);
         break;
       case 'pdf':
         await exportToPDF(
           queryResults,
           config,
           selectedSymbol,
-          selectedOracles,
-          selectedChains,
+          selectedOracle ? [selectedOracle] : [],
+          selectedChain ? [selectedChain] : [],
           selectedTimeRange,
           stats,
           chartContainerRef,
@@ -207,12 +182,12 @@ export default function PriceQueryPage() {
           onExportCSV={handleExportCSV}
           onExportJSON={handleExportJSON}
           onOpenExportConfig={() => setShowExportConfig(true)}
-          selectedOracles={selectedOracles}
-          selectedChains={selectedChains}
+          selectedOracle={selectedOracle}
+          selectedChain={selectedChain}
           selectedSymbol={selectedSymbol}
           selectedTimeRange={selectedTimeRange}
-          setSelectedOracles={setSelectedOracles}
-          setSelectedChains={setSelectedChains}
+          setSelectedOracle={setSelectedOracle}
+          setSelectedChain={setSelectedChain}
           setSelectedSymbol={setSelectedSymbol}
           setSelectedTimeRange={setSelectedTimeRange}
           symbolFavorites={symbolFavorites}
@@ -222,23 +197,18 @@ export default function PriceQueryPage() {
           favoritesDropdownRef={favoritesDropdownRef}
           handleApplyFavorite={handleApplyFavorite}
         />
-
-        {/* Live Status Bar */}
-        <LiveStatusBar
-          isConnected={!isLoading}
-          lastUpdate={historyItems.length > 0 ? new Date(historyItems[0].timestamp) : undefined}
-        />
+        <LiveStatusBar />
       </div>
 
-      {/* 主内容区域 - 左右分栏布局 */}
+      {/* 主内容区域 */}
       <div className="flex flex-col xl:flex-row gap-6">
-        {/* 左侧：查询选择器面板 */}
+        {/* 左侧查询表单 */}
         <aside className="xl:w-[400px] xl:flex-shrink-0">
           <QueryForm
-            selectedOracles={selectedOracles}
-            setSelectedOracles={setSelectedOracles}
-            selectedChains={selectedChains}
-            setSelectedChains={setSelectedChains}
+            selectedOracle={selectedOracle}
+            setSelectedOracle={setSelectedOracle}
+            selectedChain={selectedChain}
+            setSelectedChain={setSelectedChain}
             selectedSymbol={selectedSymbol}
             setSelectedSymbol={setSelectedSymbol}
             selectedTimeRange={selectedTimeRange}
@@ -246,62 +216,32 @@ export default function PriceQueryPage() {
             isLoading={isLoading}
             onQuery={fetchQueryData}
             supportedChainsBySelectedOracles={supportedChainsBySelectedOracles}
-            isCompareMode={isCompareMode}
-            setIsCompareMode={setIsCompareMode}
-            compareTimeRange={compareTimeRange}
-            setCompareTimeRange={setCompareTimeRange}
-            showBaseline={showBaseline}
-            setShowBaseline={setShowBaseline}
           />
         </aside>
 
-        {/* 右侧：查询结果展示区域 */}
+        {/* 右侧结果展示 */}
         <main className="flex-1 min-w-0">
           <QueryResults
-            isLoading={isLoading}
             queryResults={queryResults}
-            filteredQueryResults={filteredQueryResults}
             historicalData={historicalData}
-            isCompareMode={isCompareMode}
-            compareQueryResults={compareQueryResults}
-            compareHistoricalData={compareHistoricalData}
-            showBaseline={showBaseline}
-            avgPrice={avgPrice}
-            compareAvgPrice={compareAvgPrice}
-            maxPrice={maxPrice}
-            minPrice={minPrice}
-            compareMaxPrice={compareMaxPrice}
-            compareMinPrice={compareMinPrice}
-            priceRange={priceRange}
-            comparePriceRange={comparePriceRange}
-            standardDeviation={standardDeviation}
-            standardDeviationPercent={standardDeviationPercent}
-            avgChange24hPercent={avgChange24hPercent}
-            compareAvgChange24hPercent={compareAvgChange24hPercent}
-            validPrices={validPrices}
-            compareValidPrices={compareValidPrices}
-            chartData={chartData}
-            compareChartData={compareChartData}
+            isLoading={isLoading}
             queryDuration={queryDuration}
             queryProgress={queryProgress}
             currentQueryTarget={currentQueryTarget}
-            filterText={filterText}
-            setFilterText={setFilterText}
-            sortField={sortField}
-            sortDirection={sortDirection}
-            onSort={handleSort}
-            selectedRow={selectedRow}
-            onRowSelect={setSelectedRow}
-            hiddenSeries={hiddenSeries}
-            onToggleSeries={toggleSeries}
             selectedTimeRange={selectedTimeRange}
             selectedSymbol={selectedSymbol}
             setSelectedSymbol={setSelectedSymbol}
             onRefresh={fetchQueryData}
             chartContainerRef={chartContainerRef}
-            timeComparisonConfig={timeComparisonConfig}
-            onTimeConfigChange={setTimeComparisonConfig}
-            filterInputRef={filterInputRef}
+            chartData={chartData}
+            validPrices={validPrices}
+            avgPrice={avgPrice}
+            avgChange24hPercent={avgChange24hPercent}
+            maxPrice={maxPrice}
+            minPrice={minPrice}
+            priceRange={priceRange}
+            standardDeviation={standardDeviation}
+            standardDeviationPercent={standardDeviationPercent}
             queryErrors={queryErrors}
             onRetryDataSource={retryDataSource}
             onRetryAllErrors={retryAllErrors}
@@ -317,8 +257,8 @@ export default function PriceQueryPage() {
         onExport={handleExportWithConfig}
         queryResults={queryResults}
         selectedSymbol={selectedSymbol}
-        selectedOracles={selectedOracles}
-        selectedChains={selectedChains}
+        selectedOracles={selectedOracle ? [selectedOracle] : []}
+        selectedChains={selectedChain ? [selectedChain] : []}
         selectedTimeRange={selectedTimeRange}
         chartRef={chartContainerRef}
       />
