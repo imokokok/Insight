@@ -30,7 +30,9 @@ export function safeBlockchainCast(value: unknown, fallback?: Blockchain): Block
 }
 
 /**
- * 获取预言机支持的所有链
+ * Gets all chains supported by an oracle provider
+ * @param provider - The oracle provider
+ * @returns Array of supported blockchains
  */
 export function getSupportedChainsForOracle(provider: OracleProvider): Blockchain[] {
   const config = oracleConfigs[provider];
@@ -38,7 +40,10 @@ export function getSupportedChainsForOracle(provider: OracleProvider): Blockchai
 }
 
 /**
- * 计算预言机的链覆盖率
+ * Calculates chain coverage percentage for an oracle provider
+ * @param provider - The oracle provider
+ * @param totalChains - Optional array of total chains to calculate against
+ * @returns Coverage percentage (0-100)
  */
 export function calculateChainCoverage(
   provider: OracleProvider,
@@ -51,7 +56,10 @@ export function calculateChainCoverage(
 }
 
 /**
- * 获取两个预言机共同支持的链
+ * Gets chains commonly supported by two oracle providers
+ * @param provider1 - First oracle provider
+ * @param provider2 - Second oracle provider
+ * @returns Array of common supported blockchains
  */
 export function getCommonChainsBetweenOracles(
   provider1: OracleProvider,
@@ -63,7 +71,9 @@ export function getCommonChainsBetweenOracles(
 }
 
 /**
- * 获取多个预言机共同支持的链
+ * Gets chains commonly supported by multiple oracle providers
+ * @param providers - Array of oracle providers
+ * @returns Array of common supported blockchains
  */
 export function getCommonChainsForOracles(providers: OracleProvider[]): Blockchain[] {
   if (providers.length === 0) return [];
@@ -78,7 +88,9 @@ export function getCommonChainsForOracles(providers: OracleProvider[]): Blockcha
 }
 
 /**
- * 获取支持特定链的所有预言机
+ * Gets all oracle providers that support a specific chain
+ * @param chain - The blockchain to check
+ * @returns Array of supporting oracle providers
  */
 export function getOraclesSupportingChain(chain: Blockchain): OracleProvider[] {
   return [...ORACLE_PROVIDER_VALUES].filter((provider) => {
@@ -88,7 +100,8 @@ export function getOraclesSupportingChain(chain: Blockchain): OracleProvider[] {
 }
 
 /**
- * 获取链支持数量统计
+ * Gets statistics on chain support across all oracles
+ * @returns Record mapping each blockchain to number of supporting oracles
  */
 export function getChainSupportStats(): Record<Blockchain, number> {
   const stats: Record<Blockchain, number> = {} as Record<Blockchain, number>;
@@ -101,7 +114,8 @@ export function getChainSupportStats(): Record<Blockchain, number> {
 }
 
 /**
- * 按支持预言机数量排序链
+ * Gets chains sorted by number of supporting oracles (descending)
+ * @returns Array of blockchains sorted by oracle support count
  */
 export function getChainsSortedByOracleSupport(): Blockchain[] {
   const stats = getChainSupportStats();
@@ -109,7 +123,8 @@ export function getChainsSortedByOracleSupport(): Blockchain[] {
 }
 
 /**
- * 获取链覆盖热力图数据
+ * Gets heatmap data for chain coverage across all oracle providers
+ * @returns Object containing providers, chains, and coverage matrix
  */
 export function getChainCoverageHeatmapData(): {
   providers: OracleProvider[];
@@ -135,7 +150,10 @@ export function getChainCoverageHeatmapData(): {
 }
 
 /**
- * 检查链是否被支持
+ * Checks if a chain is supported by a specific oracle provider
+ * @param chain - The blockchain to check
+ * @param provider - The oracle provider
+ * @returns Boolean indicating support status
  */
 export function isChainSupportedByOracle(chain: Blockchain, provider: OracleProvider): boolean {
   const config = oracleConfigs[provider];
@@ -143,7 +161,9 @@ export function isChainSupportedByOracle(chain: Blockchain, provider: OracleProv
 }
 
 /**
- * 获取链的默认预言机（支持该链的第一个预言机）
+ * Gets the default oracle provider for a chain (first supporting provider)
+ * @param chain - The blockchain
+ * @returns Default oracle provider or null if none supports the chain
  */
 export function getDefaultOracleForChain(chain: Blockchain): OracleProvider | null {
   const oracles = getOraclesSupportingChain(chain);
@@ -151,14 +171,17 @@ export function getDefaultOracleForChain(chain: Blockchain): OracleProvider | nu
 }
 
 /**
- * 获取链的推荐预言机列表（按市值排序）
+ * Gets recommended oracle providers for a chain
+ * @param chain - The blockchain
+ * @returns Array of recommended oracle providers
  */
 export function getRecommendedOraclesForChain(chain: Blockchain): OracleProvider[] {
   return getOraclesSupportingChain(chain);
 }
 
 /**
- * 获取链分类统计
+ * Gets chain category statistics
+ * @returns Record mapping category names to chain counts
  */
 export function getChainCategoryStats(): Record<string, number> {
   const stats: Record<string, number> = {
@@ -177,7 +200,9 @@ export function getChainCategoryStats(): Record<string, number> {
 }
 
 /**
- * 格式化链名称
+ * Formats blockchain name for display (capitalizes each word)
+ * @param chain - The blockchain enum value
+ * @returns Formatted chain name
  */
 export function formatChainName(chain: Blockchain): string {
   return chain
@@ -187,7 +212,9 @@ export function formatChainName(chain: Blockchain): string {
 }
 
 /**
- * 获取链的简短名称
+ * Gets the short ticker symbol for a blockchain
+ * @param chain - The blockchain enum value
+ * @returns Short ticker symbol (e.g., ETH, BTC, SOL)
  */
 export function getChainShortName(chain: Blockchain): string {
   const shortNames: Record<Blockchain, string> = {

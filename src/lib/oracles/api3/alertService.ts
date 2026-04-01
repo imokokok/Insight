@@ -1,15 +1,28 @@
 import type { API3Alert, AlertThreshold } from './types';
 
+/**
+ * Generates alert title based on alert type and symbol
+ * @param type - The type of alert
+ * @param symbol - The trading pair symbol (e.g., BTC/USD)
+ * @returns Localized alert title
+ */
 function generateAlertTitle(type: API3Alert['type'], symbol: string): string {
   const titles: Record<API3Alert['type'], string> = {
-    price_deviation: `${symbol} 价格偏差警告`,
-    node_offline: 'Airnode 节点异常',
-    coverage_pool_risk: '覆盖池风险警告',
-    security_event: '安全事件通知',
+    price_deviation: `${symbol} Price Deviation Alert`,
+    node_offline: 'Airnode Node Anomaly',
+    coverage_pool_risk: 'Coverage Pool Risk Alert',
+    security_event: 'Security Event Notification',
   };
   return titles[type];
 }
 
+/**
+ * Generates alert message based on type, symbol, and severity
+ * @param type - The type of alert
+ * @param symbol - The trading pair symbol
+ * @param severity - The severity level of the alert
+ * @returns Localized alert message
+ */
 function generateAlertMessage(
   type: API3Alert['type'],
   symbol: string,
@@ -17,29 +30,33 @@ function generateAlertMessage(
 ): string {
   const messages: Record<API3Alert['type'], Record<API3Alert['severity'], string>> = {
     price_deviation: {
-      info: `${symbol} 价格偏差轻微，持续监控中`,
-      warning: `${symbol} dAPI 价格与市场价格偏差超过阈值，建议关注`,
-      critical: `${symbol} 价格偏差严重，需要立即处理`,
+      info: `${symbol} price deviation is minor, monitoring continues`,
+      warning: `${symbol} dAPI price deviation from market price exceeds threshold, attention recommended`,
+      critical: `${symbol} price deviation is severe, immediate action required`,
     },
     node_offline: {
-      info: '部分节点响应时间增加',
-      warning: '多个 Airnode 节点响应延迟',
-      critical: '关键 Airnode 节点离线',
+      info: 'Some nodes experiencing increased response times',
+      warning: 'Multiple Airnode nodes experiencing response delays',
+      critical: 'Critical Airnode nodes are offline',
     },
     coverage_pool_risk: {
-      info: '覆盖池抵押率接近阈值',
-      warning: '覆盖池抵押率低于推荐值',
-      critical: '覆盖池抵押率严重不足',
+      info: 'Coverage pool collateralization ratio approaching threshold',
+      warning: 'Coverage pool collateralization ratio below recommended value',
+      critical: 'Coverage pool collateralization ratio critically low',
     },
     security_event: {
-      info: '检测到潜在安全风险',
-      warning: '发现异常交易活动',
-      critical: '安全事件需要立即处理',
+      info: 'Potential security risks detected',
+      warning: 'Abnormal transaction activity detected',
+      critical: 'Security event requires immediate attention',
     },
   };
   return messages[type][severity];
 }
 
+/**
+ * Retrieves active alerts for API3
+ * @returns Array of active API3 alerts
+ */
 export async function getActiveAlerts(): Promise<API3Alert[]> {
   const now = Date.now();
   return [
@@ -47,8 +64,9 @@ export async function getActiveAlerts(): Promise<API3Alert[]> {
       id: 'alert-001',
       type: 'price_deviation',
       severity: 'critical',
-      title: 'UNI/USD 价格偏差过高',
-      message: 'UNI/USD dAPI 价格与市场价格偏差达到 3.62%，超过临界阈值 3%',
+      title: 'UNI/USD Price Deviation Too High',
+      message:
+        'UNI/USD dAPI price deviation from market price reached 3.62%, exceeding critical threshold of 3%',
       timestamp: new Date(now - 300000),
       isRead: false,
       isResolved: false,
@@ -63,8 +81,9 @@ export async function getActiveAlerts(): Promise<API3Alert[]> {
       id: 'alert-002',
       type: 'price_deviation',
       severity: 'warning',
-      title: 'AVAX/USD 价格偏差警告',
-      message: 'AVAX/USD dAPI 价格与市场价格偏差达到 1.52%，建议关注',
+      title: 'AVAX/USD Price Deviation Warning',
+      message:
+        'AVAX/USD dAPI price deviation from market price reached 1.52%, attention recommended',
       timestamp: new Date(now - 600000),
       isRead: false,
       isResolved: false,
@@ -79,8 +98,9 @@ export async function getActiveAlerts(): Promise<API3Alert[]> {
       id: 'alert-003',
       type: 'price_deviation',
       severity: 'warning',
-      title: 'LINK/USD 价格偏差警告',
-      message: 'LINK/USD dAPI 价格与市场价格偏差达到 1.44%，呈扩大趋势',
+      title: 'LINK/USD Price Deviation Warning',
+      message:
+        'LINK/USD dAPI price deviation from market price reached 1.44%, showing expanding trend',
       timestamp: new Date(now - 900000),
       isRead: true,
       isResolved: false,
@@ -95,8 +115,8 @@ export async function getActiveAlerts(): Promise<API3Alert[]> {
       id: 'alert-004',
       type: 'node_offline',
       severity: 'warning',
-      title: 'Airnode 节点响应延迟',
-      message: '亚太地区部分 Airnode 节点响应时间超过 500ms',
+      title: 'Airnode Response Delay',
+      message: 'Some Airnode nodes in Asia-Pacific region experiencing response times over 500ms',
       timestamp: new Date(now - 1800000),
       isRead: true,
       isResolved: false,
@@ -110,8 +130,9 @@ export async function getActiveAlerts(): Promise<API3Alert[]> {
       id: 'alert-005',
       type: 'coverage_pool_risk',
       severity: 'info',
-      title: '覆盖池抵押率下降',
-      message: '覆盖池抵押率从 38% 下降至 34%，建议增加质押',
+      title: 'Coverage Pool Collateralization Ratio Decreased',
+      message:
+        'Coverage pool collateralization ratio decreased from 38% to 34%, additional staking recommended',
       timestamp: new Date(now - 3600000),
       isRead: true,
       isResolved: true,
@@ -123,6 +144,11 @@ export async function getActiveAlerts(): Promise<API3Alert[]> {
   ];
 }
 
+/**
+ * Retrieves historical alerts with pagination
+ * @param limit - Maximum number of alerts to retrieve (default: 20)
+ * @returns Array of historical API3 alerts sorted by timestamp
+ */
 export async function getAlertHistory(limit: number = 20): Promise<API3Alert[]> {
   const now = Date.now();
   const alerts: API3Alert[] = [];
@@ -163,6 +189,10 @@ export async function getAlertHistory(limit: number = 20): Promise<API3Alert[]> 
   return alerts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
 
+/**
+ * Retrieves configured alert thresholds
+ * @returns Array of alert threshold configurations
+ */
 export async function getAlertThresholds(): Promise<AlertThreshold[]> {
   return [
     {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, memo, useCallback } from 'react';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -10,7 +10,7 @@ import { formatNumber } from '@/lib/utils/format';
 
 import { type SortField, type SortDirection, type FilterStatus, statusConfig } from './config';
 
-export function SortButton({
+export const SortButton = memo(function SortButton({
   field,
   currentField,
   currentDirection,
@@ -24,10 +24,11 @@ export function SortButton({
   label: string;
 }) {
   const isActive = field === currentField;
+  const handleClick = useCallback(() => onSort(field), [onSort, field]);
 
   return (
     <button
-      onClick={() => onSort(field)}
+      onClick={handleClick}
       className={`flex items-center gap-1 px-3 py-1.5  text-xs font-medium transition-all ${
         isActive ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
       }`}
@@ -45,9 +46,9 @@ export function SortButton({
       )}
     </button>
   );
-}
+});
 
-export function FilterButton({
+export const FilterButton = memo(function FilterButton({
   status,
   currentStatus,
   onFilter,
@@ -61,10 +62,11 @@ export function FilterButton({
   count?: number;
 }) {
   const isActive = status === currentStatus;
+  const handleClick = useCallback(() => onFilter(status), [onFilter, status]);
 
   return (
     <button
-      onClick={() => onFilter(status)}
+      onClick={handleClick}
       className={`flex items-center gap-2 px-3 py-1.5  text-xs font-medium transition-all ${
         isActive
           ? 'bg-primary-600 text-white'
@@ -81,9 +83,9 @@ export function FilterButton({
       )}
     </button>
   );
-}
+});
 
-export function ValidatorRow({
+export const ValidatorRow = memo(function ValidatorRow({
   validator,
   onClick,
   isSelected,
@@ -201,9 +203,9 @@ export function ValidatorRow({
       </td>
     </tr>
   );
-}
+});
 
-export function ValidatorCard({
+export const ValidatorCard = memo(function ValidatorCard({
   validator,
   onClick,
   isSelected,
@@ -317,9 +319,9 @@ export function ValidatorCard({
       </div>
     </div>
   );
-}
+});
 
-export function MobileValidatorList({
+export const MobileValidatorList = memo(function MobileValidatorList({
   validators,
   onValidatorClick,
   selectedValidatorAddresses,
@@ -333,12 +335,28 @@ export function MobileValidatorList({
   const parentRef = useRef<HTMLDivElement>(null);
   const rowHeight = 140;
 
+  const handleCardClick = useCallback(
+    (validator: ValidatorInfo) => {
+      onValidatorClick(validator);
+    },
+    [onValidatorClick]
+  );
+
+  const handleCardToggleSelect = useCallback(
+    (e: React.MouseEvent, address: string) => {
+      onToggleSelect(e, address);
+    },
+    [onToggleSelect]
+  );
+
   const virtualizer = useVirtualizer({
     count: validators.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => rowHeight,
     overscan: 3,
   });
+
+  const virtualItems = virtualizer.getVirtualItems();
 
   if (validators.length === 0) {
     return (
@@ -363,7 +381,7 @@ export function MobileValidatorList({
   return (
     <div ref={parentRef} className="overflow-auto max-h-[600px] relative">
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
-        {virtualizer.getVirtualItems().map((virtualRow) => {
+        {virtualItems.map((virtualRow) => {
           const validator = validators[virtualRow.index];
           return (
             <div
@@ -376,9 +394,9 @@ export function MobileValidatorList({
             >
               <ValidatorCard
                 validator={validator}
-                onClick={() => onValidatorClick(validator)}
+                onClick={() => handleCardClick(validator)}
                 isSelected={selectedValidatorAddresses.has(validator.operatorAddress)}
-                onToggleSelect={(e) => onToggleSelect(e, validator.operatorAddress)}
+                onToggleSelect={(e) => handleCardToggleSelect(e, validator.operatorAddress)}
               />
             </div>
           );
@@ -386,9 +404,9 @@ export function MobileValidatorList({
       </div>
     </div>
   );
-}
+});
 
-export function DesktopValidatorTable({
+export const DesktopValidatorTable = memo(function DesktopValidatorTable({
   validators,
   onValidatorClick,
   selectedValidatorAddresses,
@@ -408,6 +426,9 @@ export function DesktopValidatorTable({
     estimateSize: () => rowHeight,
     overscan: 5,
   });
+
+  const virtualItems = virtualizer.getVirtualItems();
+  const totalSize = virtualizer.getTotalSize();
 
   return (
     <div className="overflow-x-auto">
@@ -440,8 +461,8 @@ export function DesktopValidatorTable({
               <tr style={{ display: 'none' }}></tr>
             ) : (
               <tr style={{ display: 'block' }}>
-                <td style={{ display: 'block', padding: 0, height: virtualizer.getTotalSize() }}>
-                  {virtualizer.getVirtualItems().map((virtualRow) => {
+                <td style={{ display: 'block', padding: 0, height: totalSize }}>
+                  {virtualItems.map((virtualRow) => {
                     const validator = validators[virtualRow.index];
                     return (
                       <tr
@@ -490,4 +511,4 @@ export function DesktopValidatorTable({
       )}
     </div>
   );
-}
+});

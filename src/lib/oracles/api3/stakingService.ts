@@ -1,5 +1,10 @@
 import type { StakerReward } from './types';
 
+/**
+ * Retrieves staker rewards data
+ * @param address - Optional staker address to filter results
+ * @returns Array of staker reward information
+ */
 export async function getStakerRewards(address?: string): Promise<StakerReward[]> {
   const allStakers: StakerReward[] = [
     {

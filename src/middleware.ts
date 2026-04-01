@@ -4,13 +4,13 @@ import { createServerClient } from '@supabase/ssr';
 import createMiddleware from 'next-intl/middleware';
 
 import { routing, getValidLocale } from '@/i18n/routing';
+import { generateCSRFToken, setCSRFCookie, CSRF_TOKEN_HEADER } from '@/lib/security/csrf';
 
 const protectedRoutes = ['/dashboard', '/settings', '/profile'];
 const authRoutes = ['/login', '/register', '/forgot-password', '/auth'];
 
 const intlMiddleware = createMiddleware(routing);
 
-// 动态生成 locale 正则表达式
 const localePattern = new RegExp(`^/(${routing.locales.join('|')})(/|$)`);
 const localeReplacePattern = new RegExp(`^/(${routing.locales.join('|')})`);
 
@@ -75,6 +75,33 @@ export async function middleware(request: NextRequest) {
   cookiesToSet.forEach(({ name, value, options }) => {
     intlResponse.cookies.set(name, value, options);
   });
+
+  intlResponse.headers.set('X-Frame-Options', 'DENY');
+  intlResponse.headers.set('X-Content-Type-Options', 'nosniff');
+  intlResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  intlResponse.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()'
+  );
+  intlResponse.headers.set('X-DNS-Prefetch-Control', 'on');
+  intlResponse.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  intlResponse.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.vercel-scripts.com https://*.sentry.io; " +
+      "style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data: https: blob:; " +
+      "font-src 'self'; " +
+      "connect-src 'self' https: wss: https://*.supabase.co https://*.sentry.io; " +
+      "frame-ancestors 'none'; " +
+      "base-uri 'self'; " +
+      "form-action 'self';"
+  );
+  intlResponse.headers.set('X-XSS-Protection', '1; mode=block');
+
+  const csrfToken = request.cookies.get('csrf-token')?.value || generateCSRFToken();
+  setCSRFCookie(intlResponse, csrfToken);
+  intlResponse.headers.set(CSRF_TOKEN_HEADER, csrfToken);
 
   return intlResponse;
 }

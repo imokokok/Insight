@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, memo, useCallback } from 'react';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -84,27 +84,40 @@ const mockPublishers: Publisher[] = [
   },
 ];
 
-function StatusBadge({ status }: { status: PublisherStatus }) {
+const StatusBadge = memo(function StatusBadge({ status }: { status: PublisherStatus }) {
   const t = useTranslations();
-  const config = {
-    active: { bg: 'bg-success-100', text: 'text-success-700', label: t('publisher.status.active') },
-    inactive: { bg: 'bg-gray-100', text: 'text-gray-700', label: t('publisher.status.inactive') },
-    degraded: {
-      bg: 'bg-warning-100',
-      text: 'text-warning-700',
-      label: t('publisher.status.degraded'),
-    },
-  };
+  const config = useMemo(
+    () => ({
+      active: {
+        bg: 'bg-success-100',
+        text: 'text-success-700',
+        label: t('publisher.status.active'),
+      },
+      inactive: { bg: 'bg-gray-100', text: 'text-gray-700', label: t('publisher.status.inactive') },
+      degraded: {
+        bg: 'bg-warning-100',
+        text: 'text-warning-700',
+        label: t('publisher.status.degraded'),
+      },
+    }),
+    [t]
+  );
 
   const { bg, text, label } = config[status];
 
   return <span className={`px-2 py-0.5  text-xs font-medium ${bg} ${text}`}>{label}</span>;
-}
+});
 
-function ReliabilityStars({ score }: { score: number }) {
-  const fullStars = Math.floor(score / 20);
-  const hasHalfStar = score % 20 >= 10;
-  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+const ReliabilityStars = memo(function ReliabilityStars({ score }: { score: number }) {
+  const { fullStars, hasHalfStar, emptyStars } = useMemo(() => {
+    const full = Math.floor(score / 20);
+    const hasHalf = score % 20 >= 10;
+    return {
+      fullStars: full,
+      hasHalfStar: hasHalf,
+      emptyStars: 5 - full - (hasHalf ? 1 : 0),
+    };
+  }, [score]);
 
   return (
     <div className="flex items-center gap-0.5">
@@ -140,7 +153,7 @@ function ReliabilityStars({ score }: { score: number }) {
       ))}
     </div>
   );
-}
+});
 
 function formatTimeAgo(timestamp: number): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -151,7 +164,7 @@ function formatTimeAgo(timestamp: number): string {
   return `${hours}h ago`;
 }
 
-export function PublisherList({
+export const PublisherList = memo(function PublisherList({
   publishers = mockPublishers,
   selectedPublisherId,
   onPublisherSelect,
@@ -208,14 +221,16 @@ export function PublisherList({
     onAnomalyDetected?.(anomalyDetection.anomalyCount, anomalyDetection.anomalyDetails);
   }, [anomalyDetection, onAnomalyDetected]);
 
-  const filteredPublishers = publishers.filter((pub) => {
-    if (filter === 'all') return true;
-    return pub.status === filter;
-  });
+  const filteredPublishers = useMemo(() => {
+    return publishers.filter((pub) => {
+      if (filter === 'all') return true;
+      return pub.status === filter;
+    });
+  }, [publishers, filter]);
 
-  const sortedPublishers = [...filteredPublishers].sort(
-    (a, b) => b.reliabilityScore - a.reliabilityScore
-  );
+  const sortedPublishers = useMemo(() => {
+    return [...filteredPublishers].sort((a, b) => b.reliabilityScore - a.reliabilityScore);
+  }, [filteredPublishers]);
 
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -226,21 +241,29 @@ export function PublisherList({
     overscan: 3,
   });
 
+  const virtualItems = virtualizer.getVirtualItems();
+  const totalSize = virtualizer.getTotalSize();
+
+  const handleFilterChange = useCallback((value: string) => {
+    setFilter(value);
+  }, []);
+
+  const dropdownOptions = useMemo(
+    () => [
+      { value: 'all', label: t('publisher.allPublishers') },
+      { value: 'active', label: t('publisher.activeOnly') },
+      { value: 'degraded', label: t('publisher.degraded') },
+      { value: 'inactive', label: t('publisher.inactive') },
+    ],
+    [t]
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <label className="text-sm text-gray-600">{t('publisher.filterByStatus')}:</label>
-          <DropdownSelect
-            options={[
-              { value: 'all', label: t('publisher.allPublishers') },
-              { value: 'active', label: t('publisher.activeOnly') },
-              { value: 'degraded', label: t('publisher.degraded') },
-              { value: 'inactive', label: t('publisher.inactive') },
-            ]}
-            value={filter}
-            onChange={(value) => setFilter(value)}
-          />
+          <DropdownSelect options={dropdownOptions} value={filter} onChange={handleFilterChange} />
         </div>
         <div className="text-sm text-gray-500">
           {t('publisher.publisherCount', { count: filteredPublishers.length })}
@@ -251,12 +274,12 @@ export function PublisherList({
         <div ref={parentRef} className="h-[500px] overflow-auto space-y-2">
           <div
             style={{
-              height: `${virtualizer.getTotalSize()}px`,
+              height: `${totalSize}px`,
               width: '100%',
               position: 'relative',
             }}
           >
-            {virtualizer.getVirtualItems().map((virtualItem) => {
+            {virtualItems.map((virtualItem) => {
               const publisher = sortedPublishers[virtualItem.index];
               const anomalyInfo = anomalyDetection.anomalyDetails[publisher.id];
               const hasAnomaly = anomalyInfo && anomalyInfo.anomalyTypes.length > 0;
@@ -355,4 +378,4 @@ export function PublisherList({
       )}
     </div>
   );
-}
+});

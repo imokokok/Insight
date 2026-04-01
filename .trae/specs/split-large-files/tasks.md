@@ -15,5 +15,6 @@
   - [x] SubTask 3.2: 运行 lint 检查确保代码质量
 
 # Task Dependencies
+
 - [Task 2] 可与 [Task 1] 并行执行
 - [Task 3] 依赖于 [Task 1] 和 [Task 2] 完成

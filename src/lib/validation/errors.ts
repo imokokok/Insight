@@ -1,6 +1,6 @@
 import { type ZodError } from 'zod';
 
-import { AppError, type AppErrorDetails } from '@/lib/errors/AppError';
+import { AppError, type AppErrorDetails, ErrorCodes, HttpStatusCodes } from '@/lib/errors/AppError';
 
 export interface ValidationErrorDetails extends AppErrorDetails {
   errors?: Array<{ field: string; message: string }>;
@@ -12,7 +12,15 @@ export class ZodValidationError extends AppError {
     public readonly zodError: ZodError,
     details?: ValidationErrorDetails
   ) {
-    super(message, 'VALIDATION_ERROR', 400, details);
+    super({
+      message,
+      code: ErrorCodes.VALIDATION_ERROR,
+      statusCode: HttpStatusCodes.BAD_REQUEST,
+      category: 'validation',
+      severity: 'low',
+      details,
+      i18nKey: 'errors.validation',
+    });
     this.name = 'ZodValidationError';
   }
 

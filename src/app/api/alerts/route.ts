@@ -4,8 +4,9 @@ import { getUserId } from '@/lib/api/utils';
 import { type AlertConditionType } from '@/lib/supabase/database.types';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
-import { validateBodySchema, type CreateAlertRequestType } from '@/lib/validation';
 import { CreateAlertRequestSchema, AlertListResponseSchema } from '@/lib/validation/schemas';
+import { validateBodySchema } from '@/lib/validation';
+import { sanitizeObject } from '@/lib/security';
 
 const logger = createLogger('api-alerts');
 
@@ -57,8 +58,18 @@ export async function POST(request: NextRequest) {
       return validation.response;
     }
 
+    const sanitizedData = sanitizeObject(validation.data!);
+
     const { name, symbol, chain, condition_type, target_value, provider, is_active } =
-      validation.data!;
+      sanitizedData as {
+        name: string;
+        symbol: string;
+        chain?: string;
+        condition_type: AlertConditionType;
+        target_value: number;
+        provider?: string;
+        is_active?: boolean;
+      };
 
     const queries = getServerQueries();
     const alert = await queries.createAlert(userId, {

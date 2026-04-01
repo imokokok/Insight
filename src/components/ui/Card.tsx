@@ -4,11 +4,19 @@ import { type ReactNode, forwardRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * Props for the Card component
+ */
 export interface CardProps {
+  /** Card content */
   children: ReactNode;
+  /** Additional CSS classes */
   className?: string;
+  /** Visual style variant */
   variant?: 'default' | 'elevated' | 'bordered' | 'filled' | 'interactive';
+  /** Size variant */
   size?: 'sm' | 'md' | 'lg';
+  /** Click handler for interactive cards */
   onClick?: () => void;
 }
 
@@ -46,8 +54,13 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
 
 Card.displayName = 'Card';
 
+/**
+ * Props for the CardHeader component
+ */
 export interface CardHeaderProps {
+  /** Header content */
   children: ReactNode;
+  /** Additional CSS classes */
   className?: string;
 }
 
@@ -67,8 +80,13 @@ export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
 
 CardHeader.displayName = 'CardHeader';
 
+/**
+ * Props for the CardTitle component
+ */
 export interface CardTitleProps {
+  /** Title content */
   children: ReactNode;
+  /** Additional CSS classes */
   className?: string;
 }
 
@@ -84,8 +102,13 @@ export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
 
 CardTitle.displayName = 'CardTitle';
 
+/**
+ * Props for the CardDescription component
+ */
 export interface CardDescriptionProps {
+  /** Description content */
   children: ReactNode;
+  /** Additional CSS classes */
   className?: string;
 }
 
@@ -101,8 +124,13 @@ export const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionP
 
 CardDescription.displayName = 'CardDescription';
 
+/**
+ * Props for the CardContent component
+ */
 export interface CardContentProps {
+  /** Content to render */
   children: ReactNode;
+  /** Additional CSS classes */
   className?: string;
 }
 
@@ -118,8 +146,13 @@ export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
 
 CardContent.displayName = 'CardContent';
 
+/**
+ * Props for the CardFooter component
+ */
 export interface CardFooterProps {
+  /** Footer content */
   children: ReactNode;
+  /** Additional CSS classes */
   className?: string;
 }
 
@@ -142,12 +175,21 @@ export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
 
 CardFooter.displayName = 'CardFooter';
 
+/**
+ * Props for the StatCard component
+ */
 export interface StatCardProps {
+  /** Card title */
   title: string;
+  /** Main value to display */
   value: string | number;
+  /** Change indicator text */
   change?: string;
+  /** Type of change for styling */
   changeType?: 'positive' | 'negative' | 'neutral';
+  /** Optional icon to display */
   icon?: ReactNode;
+  /** Additional CSS classes */
   className?: string;
 }
 

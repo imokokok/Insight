@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 
 import { TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
 
@@ -453,4 +453,8 @@ export function EnhancedStatCard({
   return cardContent;
 }
 
-export default EnhancedStatCard;
+const MemoizedEnhancedStatCard = memo(EnhancedStatCard);
+MemoizedEnhancedStatCard.displayName = 'EnhancedStatCard';
+
+export default MemoizedEnhancedStatCard;
+export { MemoizedEnhancedStatCard as EnhancedStatCard };

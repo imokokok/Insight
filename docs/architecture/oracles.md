@@ -16,10 +16,10 @@ Insight 平台支持多种区块链预言机提供商，采用统一的抽象层
 
 ### 支持的预言机
 
-| 预言机        | 标识符           | 文件位置                          | 主要链                      | 特点           |
-| ------------- | ---------------- | --------------------------------- | --------------------------- | -------------- |
-| Chainlink     | `chainlink`      | `src/lib/oracles/chainlink.ts`    | Ethereum, Arbitrum, Polygon | 市场领导者     |
-| Band Protocol | `band-protocol`  | `src/lib/oracles/bandProtocol.ts` | Cosmos, Ethereum            | 跨链数据       |
+| 预言机        | 标识符          | 文件位置                          | 主要链                      | 特点           |
+| ------------- | --------------- | --------------------------------- | --------------------------- | -------------- |
+| Chainlink     | `chainlink`     | `src/lib/oracles/chainlink.ts`    | Ethereum, Arbitrum, Polygon | 市场领导者     |
+| Band Protocol | `band-protocol` | `src/lib/oracles/bandProtocol.ts` | Cosmos, Ethereum            | 跨链数据       |
 | Pyth Network  | `pyth`          | `src/lib/oracles/pythNetwork.ts`  | Solana, Ethereum            | 低延迟金融数据 |
 | API3          | `api3`          | `src/lib/oracles/api3.ts`         | Ethereum, Polygon           | 第一方预言机   |
 | UMA           | `uma`           | `src/lib/oracles/uma/` (完整模块) | Ethereum                    | 乐观预言机     |

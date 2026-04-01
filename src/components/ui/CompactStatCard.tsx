@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, useMemo, memo } from 'react';
 
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
@@ -138,4 +138,8 @@ export const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
 
 CompactStatCard.displayName = 'CompactStatCard';
 
-export default CompactStatCard;
+const MemoizedCompactStatCard = memo(CompactStatCard);
+MemoizedCompactStatCard.displayName = 'CompactStatCard';
+
+export default MemoizedCompactStatCard;
+export { MemoizedCompactStatCard as CompactStatCard };
