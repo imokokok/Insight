@@ -85,7 +85,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.KAVA,
       Blockchain.POLKADOT,
     ],
-    client: new ChainlinkClient(),
+    client: new ChainlinkClient({ useRealData: true }),
     iconBgColor: 'bg-primary-600',
     themeColor: '#375bd2',
     icon: <Image src="/logos/oracles/chainlink.svg" alt="Chainlink" width={48} height={48} />,
@@ -893,7 +893,7 @@ export function getOracleViews(provider: OracleProvider): OracleViewConfig[] {
 export function createOracleClient(provider: OracleProvider): BaseOracleClient {
   switch (provider) {
     case OracleProvider.CHAINLINK:
-      return new ChainlinkClient();
+      return new ChainlinkClient({ useRealData: true });
     case OracleProvider.BAND_PROTOCOL:
       return new BandProtocolClient();
     case OracleProvider.UMA:
