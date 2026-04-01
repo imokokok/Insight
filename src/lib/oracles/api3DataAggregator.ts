@@ -1,8 +1,6 @@
 import { getAPI3Endpoint, isMockDataEnabled } from './api3DataSources';
 import {
   getDataStrategy,
-  shouldUseOnChain,
-  shouldUseAPI,
   calculateConfidence,
   createDataSourceInfo,
   type DataStrategy,
@@ -88,11 +86,15 @@ export class API3DataAggregator {
 
   /**
    * 根据策略获取数据 - 核心方法
+   * @param strategy 数据获取策略配置
+   * @param fetchPrimary 主数据获取函数（根据策略决定是链上还是API）
+   * @param fetchFallback 备用数据获取函数
+   * @param cacheKey 缓存键
    */
   private async fetchWithStrategy<T>(
     strategy: DataStrategy,
-    fetchOnChain: () => Promise<T>,
-    fetchAPI: () => Promise<T>,
+    fetchPrimary: () => Promise<T>,
+    fetchFallback: () => Promise<T>,
     cacheKey: string
   ): Promise<DataWithMetadata<T>> {
     const startTime = Date.now();
@@ -117,59 +119,33 @@ export class API3DataAggregator {
     let primarySourceInfo: StrategyDataSourceInfo | undefined;
     let fallbackSourceInfo: StrategyDataSourceInfo | undefined;
 
-    // 根据策略决定获取顺序
-    const useOnChain = shouldUseOnChain(strategy);
-    const useAPI = shouldUseAPI(strategy);
-
     // 首先尝试主数据源
-    if (strategy.primarySource === 'on-chain' && useOnChain) {
-      try {
-        const chainStart = Date.now();
-        primaryResult = await fetchOnChain();
-        primarySourceInfo = createDataSourceInfo('on-chain', chainStart);
-      } catch (error) {
-        primaryError = error instanceof Error ? error : new Error(String(error));
-        primarySourceInfo = createDataSourceInfo('on-chain', startTime, primaryError.message);
-        console.warn(
-          `[API3] On-chain data fetch failed for ${strategy.dataType}:`,
-          primaryError.message
-        );
-      }
-    } else if (strategy.primarySource === 'api' && useAPI) {
-      try {
-        const apiStart = Date.now();
-        primaryResult = await fetchAPI();
-        primarySourceInfo = createDataSourceInfo('api', apiStart);
-      } catch (error) {
-        primaryError = error instanceof Error ? error : new Error(String(error));
-        primarySourceInfo = createDataSourceInfo('api', startTime, primaryError.message);
-        console.warn(
-          `[API3] API data fetch failed for ${strategy.dataType}:`,
-          primaryError.message
-        );
-      }
+    try {
+      const primaryStart = Date.now();
+      primaryResult = await fetchPrimary();
+      primarySourceInfo = createDataSourceInfo(strategy.primarySource, primaryStart);
+    } catch (error) {
+      primaryError = error instanceof Error ? error : new Error(String(error));
+      primarySourceInfo = createDataSourceInfo(strategy.primarySource, startTime, primaryError.message);
+      console.warn(
+        `[API3] Primary data fetch failed for ${strategy.dataType} (${strategy.primarySource}):`,
+        primaryError.message
+      );
     }
 
     // 如果主数据源失败且有备用数据源，尝试备用
     if (primaryError && strategy.fallbackSource) {
-      if (strategy.fallbackSource === 'on-chain' && useOnChain) {
-        try {
-          const chainStart = Date.now();
-          fallbackResult = await fetchOnChain();
-          fallbackSourceInfo = createDataSourceInfo('on-chain', chainStart);
-        } catch (error) {
-          fallbackError = error instanceof Error ? error : new Error(String(error));
-          fallbackSourceInfo = createDataSourceInfo('on-chain', startTime, fallbackError.message);
-        }
-      } else if (strategy.fallbackSource === 'api' && useAPI) {
-        try {
-          const apiStart = Date.now();
-          fallbackResult = await fetchAPI();
-          fallbackSourceInfo = createDataSourceInfo('api', apiStart);
-        } catch (error) {
-          fallbackError = error instanceof Error ? error : new Error(String(error));
-          fallbackSourceInfo = createDataSourceInfo('api', startTime, fallbackError.message);
-        }
+      try {
+        const fallbackStart = Date.now();
+        fallbackResult = await fetchFallback();
+        fallbackSourceInfo = createDataSourceInfo(strategy.fallbackSource, fallbackStart);
+      } catch (error) {
+        fallbackError = error instanceof Error ? error : new Error(String(error));
+        fallbackSourceInfo = createDataSourceInfo(strategy.fallbackSource, startTime, fallbackError.message);
+        console.warn(
+          `[API3] Fallback data fetch failed for ${strategy.dataType} (${strategy.fallbackSource}):`,
+          fallbackError.message
+        );
       }
     }
 
@@ -249,12 +225,7 @@ export class API3DataAggregator {
 
     return this.fetchWithStrategy(
       strategy,
-      // On-chain fetcher (fallback)
-      async () => {
-        // 链上无法直接获取完整的 market 数据，返回简化版本
-        return getMockMarketData();
-      },
-      // API fetcher (primary)
+      // Primary: API fetcher (根据策略 api-primary)
       async () => {
         const [dapisResponse, chainsResponse, beaconsResponse] = await Promise.all([
           this.fetchFromAPI<unknown[]>('market', 'dapis', { timeout: 15000 }),
@@ -268,6 +239,10 @@ export class API3DataAggregator {
           lastUpdated: new Date(),
         };
       },
+      // Fallback: 链上无法直接获取完整的 market 数据，返回简化版本
+      async () => {
+        return getMockMarketData();
+      },
       cacheKey
     );
   }
@@ -278,17 +253,7 @@ export class API3DataAggregator {
 
     return this.fetchWithStrategy(
       strategy,
-      // On-chain fetcher
-      async () => {
-        const onChainStaking = await api3OnChainService.getStakingData();
-
-        return this.buildNetworkData({
-          totalStaked: Number(onChainStaking.totalStaked) / 1e18,
-          activeAirnodes: 156, // 链上无法获取，使用默认值
-          totalDapis: 168,
-        });
-      },
-      // API fetcher
+      // Primary: API fetcher (根据策略 api-primary)
       async () => {
         const [airnodesData, dapisData, onChainStaking] = await Promise.all([
           this.fetchFromAPI<unknown[]>('market', 'airnodes', { timeout: 15000 }).catch(() => []),
@@ -307,6 +272,16 @@ export class API3DataAggregator {
           totalDapis: dapiArray.length || 168,
           airnodeArray,
           dapiArray,
+        });
+      },
+      // Fallback: 链上获取（部分数据链上无法获取，使用默认值）
+      async () => {
+        const onChainStaking = await api3OnChainService.getStakingData();
+
+        return this.buildNetworkData({
+          totalStaked: Number(onChainStaking.totalStaked) / 1e18,
+          activeAirnodes: 156, // 链上无法获取，使用默认值
+          totalDapis: 168,
         });
       },
       cacheKey
@@ -433,11 +408,7 @@ export class API3DataAggregator {
 
     return this.fetchWithStrategy(
       strategy,
-      // On-chain fetcher - OEV 数据无法从链上获取
-      async () => {
-        throw new Error('OEV data not available on-chain');
-      },
-      // API fetcher
+      // Primary: API fetcher (根据策略 api-only)
       async () => {
         const oevStatsRaw = await this.fetchFromAPI<unknown>('dao', 'stats', {
           timeout: 15000,
@@ -467,6 +438,10 @@ export class API3DataAggregator {
           lastUpdated: new Date(),
         };
       },
+      // Fallback: OEV 数据无法从链上获取
+      async () => {
+        throw new Error('OEV data not available on-chain');
+      },
       cacheKey
     );
   }
@@ -477,7 +452,7 @@ export class API3DataAggregator {
 
     return this.fetchWithStrategy(
       strategy,
-      // On-chain fetcher (primary)
+      // Primary: On-chain fetcher (根据策略 on-chain-only)
       async () => {
         const [onChainData, coverageData] = await Promise.all([
           api3OnChainService.getStakingData(),
@@ -495,9 +470,8 @@ export class API3DataAggregator {
           },
         };
       },
-      // API fetcher (fallback)
+      // Fallback: API 没有直接的 staking 端点，返回 mock
       async () => {
-        // API 没有直接的 staking 端点，返回 mock
         return getMockStakingData();
       },
       cacheKey
@@ -551,12 +525,7 @@ export class API3DataAggregator {
 
     return this.fetchWithStrategy(
       strategy,
-      // On-chain fetcher (fallback)
-      async () => {
-        // 链上无法直接获取价格偏差，返回 mock
-        return getMockPriceDeviations();
-      },
-      // API fetcher (primary)
+      // Primary: API fetcher (根据策略 api-primary)
       async () => {
         const dapisData = await this.fetchFromAPI<unknown[]>('market', 'dapis', {
           timeout: 15000,
@@ -631,6 +600,10 @@ export class API3DataAggregator {
 
         return deviations;
       },
+      // Fallback: 链上无法直接获取价格偏差，返回 mock
+      async () => {
+        return getMockPriceDeviations();
+      },
       cacheKey
     );
   }
@@ -641,11 +614,7 @@ export class API3DataAggregator {
 
     return this.fetchWithStrategy(
       strategy,
-      // On-chain fetcher (fallback)
-      async () => {
-        return getMockDataSources();
-      },
-      // API fetcher (primary)
+      // Primary: API fetcher (根据策略 api-primary)
       async () => {
         const airnodesData = await this.fetchFromAPI<unknown[]>('market', 'airnodes', {
           timeout: 15000,
@@ -687,6 +656,10 @@ export class API3DataAggregator {
           });
 
         return dataSources;
+      },
+      // Fallback: 链上无法直接获取数据源信息，返回 mock
+      async () => {
+        return getMockDataSources();
       },
       cacheKey
     );
