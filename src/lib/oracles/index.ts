@@ -35,8 +35,21 @@ export {
   type DIANFTQuotation,
   type DIASupply,
   type DIADigitalAsset,
+  type DIANetworkStatsData,
+  type DIAStakingData,
+  type DIANFTCollection,
+  type DIANFTData,
+  type DIAEcosystemIntegration,
+  type DIAExchange,
 } from './diaDataService';
 export { TellorClient } from './tellor';
+export {
+  TellorOnChainService,
+  tellorOnChainService,
+  type TellorStakingData,
+  type TellorAutopayData,
+  type TellorCurrentValue,
+} from './tellorOnChainService';
 export { ChronicleClient } from './chronicle';
 export { WINkLinkClient } from './winklink';
 export type { RedStoneMetrics, RedStoneProviderInfo } from './redstone';

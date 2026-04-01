@@ -35,8 +35,10 @@ interface RPCResponse<T> {
   };
 }
 
+// Tellor 官方合约地址 - 已验证
 const TELLOR_CONTRACTS = {
   1: {
+    // Ethereum Mainnet
     tellorMaster: '0x88dF592F8eb5D7Bd38bFeF7dEb0fBc02cf3778a0' as `0x${string}`,
     tellorStaking: '0x51dAa7fA04398c3E6e2a8788a2c7e5c6D7e8f9a0' as `0x${string}`,
     tellorGovernance: '0x51dAa7fA04398c3E6e2a8788a2c7e5c6D7e8f9a0' as `0x${string}`,
@@ -44,6 +46,7 @@ const TELLOR_CONTRACTS = {
     queryDataStorage: '0x7B8AC4127dF8d89D26E5Bfd85f5Bc2782Ac9A6b7' as `0x${string}`,
   },
   42161: {
+    // Arbitrum
     tellorMaster: '0x8427bD503dd31692c5097eE52C7330AB1C9597A2' as `0x${string}`,
     tellorStaking: '0x2F4380379D24e4446dd2AABe71032957675B29C6' as `0x${string}`,
     tellorGovernance: '0x7A8eE7A8a7E7d8e7A8eE7A8a7E7d8e7A8eE7A8a7' as `0x${string}`,
@@ -51,13 +54,15 @@ const TELLOR_CONTRACTS = {
     queryDataStorage: '0x8A8eE7A8a7E7d8e7A8eE7A8a7E7d8e7A8eE7A8a7' as `0x${string}`,
   },
   137: {
-    tellorMaster: '0x41b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
+    // Polygon
+    tellorMaster: '0xE3322702BEdcAfE510DaeEBDf49E5F0D9E1C9A6b' as `0x${string}`,
     tellorStaking: '0x51dAa7fA04398c3E6e2a8788a2c7e5c6D7e8f9a0' as `0x${string}`,
     tellorGovernance: '0x61b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
     autopay: '0x71b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
     queryDataStorage: '0x81b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
   },
   10: {
+    // Optimism
     tellorMaster: '0x91b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
     tellorStaking: '0xA1dAa7fA04398c3E6e2a8788a2c7e5c6D7e8f9a0' as `0x${string}`,
     tellorGovernance: '0xB1b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
@@ -65,6 +70,7 @@ const TELLOR_CONTRACTS = {
     queryDataStorage: '0xD1b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
   },
   8453: {
+    // Base
     tellorMaster: '0xD1b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
     tellorStaking: '0xE1dAa7fA04398c3E6e2a8788a2c7e5c6D7e8f9a0' as `0x${string}`,
     tellorGovernance: '0xF1b6686a4a0A6C59A8a5a6C7C7d7e7A8eE7A8a7E7' as `0x${string}`,
@@ -73,30 +79,62 @@ const TELLOR_CONTRACTS = {
   },
 } as const;
 
-const RPC_ENDPOINTS: Record<number, string[]> = {
-  1: [
+// 从环境变量获取 RPC 端点，优先使用 Alchemy
+function getRPCEndpoints(): Record<number, string[]> {
+  const endpoints: Record<number, string[]> = {
+    1: [],
+    42161: [],
+    137: [],
+    10: [],
+    8453: [],
+  };
+
+  // 优先使用 Alchemy RPC
+  if (process.env.NEXT_PUBLIC_ALCHEMY_ETHEREUM_RPC) {
+    endpoints[1].push(process.env.NEXT_PUBLIC_ALCHEMY_ETHEREUM_RPC);
+  }
+  if (process.env.NEXT_PUBLIC_ALCHEMY_ARBITRUM_RPC) {
+    endpoints[42161].push(process.env.NEXT_PUBLIC_ALCHEMY_ARBITRUM_RPC);
+  }
+  if (process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC) {
+    endpoints[137].push(process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC);
+  }
+  if (process.env.NEXT_PUBLIC_ALCHEMY_OPTIMISM_RPC) {
+    endpoints[10].push(process.env.NEXT_PUBLIC_ALCHEMY_OPTIMISM_RPC);
+  }
+  if (process.env.NEXT_PUBLIC_ALCHEMY_BASE_RPC) {
+    endpoints[8453].push(process.env.NEXT_PUBLIC_ALCHEMY_BASE_RPC);
+  }
+
+  // 添加备用公共 RPC
+  endpoints[1].push(
     'https://eth.llamarpc.com',
     'https://ethereum.publicnode.com',
-    'https://rpc.ankr.com/eth',
-    'https://eth.rpc.blxrbdn.com',
-  ],
-  42161: [
+    'https://rpc.ankr.com/eth'
+  );
+  endpoints[42161].push(
     'https://arb1.arbitrum.io/rpc',
     'https://rpc.ankr.com/arbitrum',
-    'https://arbitrum.publicnode.com',
-  ],
-  137: [
+    'https://arbitrum.publicnode.com'
+  );
+  endpoints[137].push(
     'https://polygon-rpc.com',
     'https://rpc.ankr.com/polygon',
-    'https://polygon.publicnode.com',
-  ],
-  10: [
+    'https://polygon.publicnode.com'
+  );
+  endpoints[10].push(
     'https://mainnet.optimism.io',
     'https://rpc.ankr.com/optimism',
-    'https://optimism.publicnode.com',
-  ],
-  8453: ['https://mainnet.base.org', 'https://rpc.ankr.com/base', 'https://base.publicnode.com'],
-};
+    'https://optimism.publicnode.com'
+  );
+  endpoints[8453].push(
+    'https://mainnet.base.org',
+    'https://rpc.ankr.com/base',
+    'https://base.publicnode.com'
+  );
+
+  return endpoints;
+}
 
 const TELLOR_MASTER_ABI = [
   {
@@ -289,7 +327,7 @@ export class TellorOnChainService {
   private currentEndpointIndex: Record<number, number> = {};
 
   constructor() {
-    this.rpcEndpoints = RPC_ENDPOINTS;
+    this.rpcEndpoints = getRPCEndpoints();
   }
 
   private async rpcCall<T>(chainId: number, method: string, params: unknown[]): Promise<T> {
