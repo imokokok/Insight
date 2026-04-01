@@ -7,8 +7,14 @@
 // 中间件
 export * from './middleware';
 
-// 响应处理
-export * from './response';
+// 响应处理 - 注意：类型定义在 types/errorTypes.ts 中更完整
+export {
+  ApiResponseBuilder,
+  ApiResponseHandler,
+  CacheConfig,
+  withCacheHeaders,
+  createCachedJsonResponse,
+} from './response';
 
 // 客户端
 export * from './client';
@@ -19,7 +25,7 @@ export * from './retry';
 // 恢复策略
 export * from './recovery';
 
-// 类型定义
+// 类型定义 - 这是主要的类型定义来源
 export * from './types';
 
 // 验证

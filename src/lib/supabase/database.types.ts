@@ -132,6 +132,7 @@ export interface Database {
           config_type: 'oracle_config' | 'symbol' | 'chain_config';
           config_data: Json;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
@@ -140,6 +141,7 @@ export interface Database {
           config_type: 'oracle_config' | 'symbol' | 'chain_config';
           config_data: Json;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -148,6 +150,7 @@ export interface Database {
           config_type?: 'oracle_config' | 'symbol' | 'chain_config';
           config_data?: Json;
           created_at?: string;
+          updated_at?: string;
         };
         Relationships: [
           {
@@ -222,6 +225,7 @@ export interface Database {
           condition_met: string;
           acknowledged: boolean;
           acknowledged_at: string | null;
+          created_at: string;
         };
         Insert: {
           id?: string;
@@ -232,6 +236,7 @@ export interface Database {
           condition_met: string;
           acknowledged?: boolean;
           acknowledged_at?: string | null;
+          created_at?: string;
         };
         Update: {
           id?: string;
@@ -242,6 +247,7 @@ export interface Database {
           condition_met?: string;
           acknowledged?: boolean;
           acknowledged_at?: string | null;
+          created_at?: string;
         };
         Relationships: [
           {

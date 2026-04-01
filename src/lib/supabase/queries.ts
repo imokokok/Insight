@@ -198,6 +198,10 @@ export class DatabaseQueries {
   async savePriceRecord(record: PriceRecordInsert): Promise<PriceRecord | null> {
     const timestamp = new Date(normalizeTimestamp(record.timestamp)).toISOString();
 
+    // 计算 ttl 时间戳（默认 1 小时后）
+    const ttlInterval = record.ttl || '1h';
+    const ttl = this.calculateTtlTimestamp(ttlInterval);
+
     const { data, error } = await this.client
       .from('price_records')
       .insert({
@@ -208,7 +212,7 @@ export class DatabaseQueries {
         timestamp,
         confidence: record.confidence || null,
         source: record.source || null,
-        ttl: record.ttl || '1h',
+        ttl,
       })
       .select()
       .single();
@@ -235,7 +239,7 @@ export class DatabaseQueries {
       timestamp: new Date(normalizeTimestamp(record.timestamp)).toISOString(),
       confidence: record.confidence || null,
       source: record.source || null,
-      ttl: record.ttl || '1h',
+      ttl: this.calculateTtlTimestamp(record.ttl || '1h'),
     }));
 
     const { data, error } = await this.client
@@ -345,6 +349,37 @@ export class DatabaseQueries {
     }
 
     return 1;
+  }
+
+  /**
+   * 将 ttl 字符串转换为 ISO 时间戳
+   * 支持格式: '1h' (1小时), '30m' (30分钟), '1d' (1天), '60s' (60秒)
+   * 或者直接返回 ISO 字符串
+   */
+  private calculateTtlTimestamp(ttl: string): string {
+    // 如果已经是 ISO 格式，直接返回
+    if (ttl.includes('T') || ttl.includes('-')) {
+      return ttl;
+    }
+
+    const now = new Date();
+    const match = ttl.match(/^(\d+)([smhd])$/);
+
+    if (match) {
+      const value = parseInt(match[1], 10);
+      const unit = match[2];
+      const multiplier: Record<string, number> = {
+        s: 1000,
+        m: 60 * 1000,
+        h: 60 * 60 * 1000,
+        d: 24 * 60 * 60 * 1000,
+      };
+      const ms = value * multiplier[unit];
+      return new Date(now.getTime() + ms).toISOString();
+    }
+
+    // 默认 1 小时
+    return new Date(now.getTime() + 60 * 60 * 1000).toISOString();
   }
 
   async saveSnapshot(
