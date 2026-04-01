@@ -132,25 +132,31 @@ export class OracleClientFactory {
   }
 
   private static createClient(provider: OracleProvider): BaseOracleClient {
+    const useRealChainlinkData = process.env.NEXT_PUBLIC_USE_REAL_CHAINLINK_DATA === 'true';
+    const useRealUMData = process.env.NEXT_PUBLIC_USE_REAL_UMA_DATA === 'true';
+    const useRealTellorData = process.env.NEXT_PUBLIC_USE_REAL_TELLOR_DATA === 'true';
+    const useRealChronicleData = process.env.NEXT_PUBLIC_USE_REAL_CHRONICLE_DATA === 'true';
+    const useRealAPI3Data = process.env.NEXT_PUBLIC_USE_REAL_API3_DATA === 'true';
+
     switch (provider) {
       case OracleProvider.CHAINLINK:
-        return new ChainlinkClient(this.config);
+        return new ChainlinkClient({ ...this.config, useRealData: useRealChainlinkData });
       case OracleProvider.BAND_PROTOCOL:
         return new BandProtocolClient(this.config);
       case OracleProvider.UMA:
-        return new UMAClient(this.config);
+        return new UMAClient({ ...this.config, useRealData: useRealUMData });
       case OracleProvider.PYTH:
         return new PythClient(this.config);
       case OracleProvider.API3:
-        return new API3Client(this.config);
+        return new API3Client({ ...this.config, useRealData: useRealAPI3Data });
       case OracleProvider.REDSTONE:
         return new RedStoneClient(this.config);
       case OracleProvider.DIA:
         return new DIAClient(this.config);
       case OracleProvider.TELLOR:
-        return new TellorClient(this.config);
+        return new TellorClient({ ...this.config, useRealData: useRealTellorData });
       case OracleProvider.CHRONICLE:
-        return new ChronicleClient(this.config);
+        return new ChronicleClient({ ...this.config, useRealData: useRealChronicleData });
       case OracleProvider.WINKLINK:
         return new WINkLinkClient(this.config);
       default:
