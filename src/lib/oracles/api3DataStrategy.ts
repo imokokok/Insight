@@ -148,32 +148,38 @@ export const API3_DATA_STRATEGIES: Record<string, DataStrategy> = {
  * 根据数据类型获取策略
  */
 export function getDataStrategy(dataType: string): DataStrategy {
-  return API3_DATA_STRATEGIES[dataType] || {
-    dataType,
-    priority: 'api-primary',
-    primarySource: 'api',
-    freshnessThreshold: 300000,
-    enableCache: true,
-    cacheTTL: 120000,
-  };
+  return (
+    API3_DATA_STRATEGIES[dataType] || {
+      dataType,
+      priority: 'api-primary',
+      primarySource: 'api',
+      freshnessThreshold: 300000,
+      enableCache: true,
+      cacheTTL: 120000,
+    }
+  );
 }
 
 /**
  * 判断是否应该使用链上数据源
  */
 export function shouldUseOnChain(strategy: DataStrategy): boolean {
-  return strategy.priority === 'on-chain-only' ||
-         strategy.priority === 'on-chain-primary' ||
-         strategy.primarySource === 'on-chain';
+  return (
+    strategy.priority === 'on-chain-only' ||
+    strategy.priority === 'on-chain-primary' ||
+    strategy.primarySource === 'on-chain'
+  );
 }
 
 /**
  * 判断是否应该使用 API 数据源
  */
 export function shouldUseAPI(strategy: DataStrategy): boolean {
-  return strategy.priority === 'api-only' ||
-         strategy.priority === 'api-primary' ||
-         strategy.primarySource === 'api';
+  return (
+    strategy.priority === 'api-only' ||
+    strategy.priority === 'api-primary' ||
+    strategy.primarySource === 'api'
+  );
 }
 
 /**

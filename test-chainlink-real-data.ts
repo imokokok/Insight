@@ -35,7 +35,7 @@ async function testRealData() {
     console.log('4. 批量获取价格...');
     const prices = await chainlinkOnChainService.getPrices(['ETH', 'BTC', 'LINK'], 1);
     console.log('✅ 批量价格:');
-    prices.forEach(p => {
+    prices.forEach((p) => {
       console.log(`   ${p.symbol}: $${p.price.toFixed(p.symbol === 'LINK' ? 4 : 2)}`);
     });
     console.log();
@@ -46,7 +46,10 @@ async function testRealData() {
     console.log('✅ LINK 代币:');
     console.log('   名称:', tokenData.name);
     console.log('   符号:', tokenData.symbol);
-    console.log('   总供应量:', `${(Number(tokenData.totalSupply) / 1e18).toLocaleString()} ${tokenData.symbol}`);
+    console.log(
+      '   总供应量:',
+      `${(Number(tokenData.totalSupply) / 1e18).toLocaleString()} ${tokenData.symbol}`
+    );
     console.log();
 
     // 测试 6: 获取 Feed 元数据
@@ -59,7 +62,6 @@ async function testRealData() {
     console.log();
 
     console.log('=== 所有测试通过! Chainlink 真实数据获取正常工作 ===');
-
   } catch (error) {
     console.error('❌ 测试失败:', error);
     throw error;

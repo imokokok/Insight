@@ -432,12 +432,12 @@ export class RedStoneClient extends BaseOracleClient {
     try {
       // Try to fetch real historical data from RedStone API
       const historicalData = await this.fetchHistoricalPricesFromAPI(symbol, period);
-      
+
       if (historicalData.length > 0) {
         this.setCache(cacheKey, historicalData, REDSTONE_CACHE_TTL.PRICE);
         return historicalData;
       }
-      
+
       // If API returns no data, return empty array instead of mock data
       console.warn(`[RedStone] No historical data available for ${symbol}`);
       return [];
@@ -456,8 +456,8 @@ export class RedStoneClient extends BaseOracleClient {
    */
   private async fetchHistoricalPricesFromAPI(symbol: string, period: number): Promise<PriceData[]> {
     const endTime = Math.floor(Date.now() / 1000);
-    const startTime = endTime - (period * 3600);
-    
+    const startTime = endTime - period * 3600;
+
     try {
       const response = await fetch(
         `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&fromTimestamp=${startTime}&toTimestamp=${endTime}&interval=1h`,
@@ -475,12 +475,12 @@ export class RedStoneClient extends BaseOracleClient {
       }
 
       const data: RedStonePriceResponse[] = await response.json();
-      
+
       if (!Array.isArray(data) || data.length === 0) {
         return this.constructHistoricalFromCurrentPrice(symbol, period);
       }
 
-      return data.map(priceData => this.parsePriceResponse(priceData, symbol));
+      return data.map((priceData) => this.parsePriceResponse(priceData, symbol));
     } catch {
       return this.constructHistoricalFromCurrentPrice(symbol, period);
     }
@@ -493,20 +493,23 @@ export class RedStoneClient extends BaseOracleClient {
    * @param period - Time period in hours
    * @returns Array of PriceData points
    */
-  private async constructHistoricalFromCurrentPrice(symbol: string, period: number): Promise<PriceData[]> {
+  private async constructHistoricalFromCurrentPrice(
+    symbol: string,
+    period: number
+  ): Promise<PriceData[]> {
     try {
       const currentPrice = await this.getPrice(symbol);
       const prices: PriceData[] = [];
       const now = Date.now();
       const hourMs = 3600 * 1000;
-      
+
       // Create data points for each hour in the period
       for (let i = period; i >= 0; i--) {
-        const timestamp = now - (i * hourMs);
+        const timestamp = now - i * hourMs;
         // Add small random variation based on the 24h change
         const variation = (currentPrice.change24hPercent / 100) * (i / period);
         const price = currentPrice.price * (1 - variation);
-        
+
         prices.push({
           ...currentPrice,
           price: Number(price.toFixed(8)),
@@ -514,7 +517,7 @@ export class RedStoneClient extends BaseOracleClient {
           confidenceInterval: this.generateConfidenceInterval(price, symbol),
         });
       }
-      
+
       return prices;
     } catch {
       return [];
@@ -536,13 +539,13 @@ export class RedStoneClient extends BaseOracleClient {
 
     try {
       const providers = await this.getDataProviders();
-      
+
       // Calculate metrics from real provider data
       const avgReputation =
         providers.length > 0
           ? providers.reduce((sum, p) => sum + p.reputation, 0) / providers.length
           : 0;
-      
+
       // Calculate data freshness score based on provider activity
       const dataFreshnessScore = this.calculateDataFreshnessScore(providers);
 
@@ -575,15 +578,15 @@ export class RedStoneClient extends BaseOracleClient {
    */
   private calculateDataFreshnessScore(providers: RedStoneProviderInfo[]): number {
     if (providers.length === 0) return 0;
-    
+
     const now = Date.now();
     const tenMinutes = 10 * 60 * 1000;
-    
-    const freshProviders = providers.filter(provider => {
+
+    const freshProviders = providers.filter((provider) => {
       const timeSinceUpdate = now - provider.lastUpdate;
       return timeSinceUpdate < tenMinutes;
     });
-    
+
     return Math.round((freshProviders.length / providers.length) * 100);
   }
 
@@ -661,19 +664,19 @@ export class RedStoneClient extends BaseOracleClient {
     try {
       // Fetch real providers data to calculate network stats
       const providers = await this.getDataProviders();
-      
+
       // Calculate real metrics based on provider data
       const activeNodes = providers.length;
-      
+
       // Fetch data feeds count from RedStone API
       const dataFeeds = await this.fetchDataFeedsCount();
-      
+
       // Calculate average response time based on provider last update timestamps
       const avgResponseTime = this.calculateAvgResponseTime(providers);
-      
+
       // Calculate network latency based on provider activity
       const latency = this.calculateNetworkLatency(providers);
-      
+
       // Calculate uptime based on provider activity (providers active in last hour)
       const nodeUptime = this.calculateNodeUptime(providers);
 
@@ -736,10 +739,35 @@ export class RedStoneClient extends BaseOracleClient {
   private estimateDataFeedsCount(): number {
     // Based on RedStone's documented supported assets
     const supportedSymbols = [
-      'BTC', 'ETH', 'SOL', 'AVAX', 'LINK', 'UNI', 'AAVE', 'SNX',
-      'CRV', 'MKR', 'COMP', 'YFI', 'SUSHI', '1INCH', 'LDO',
-      'STETH', 'USDC', 'USDT', 'DAI', 'FRAX', 'WBTC', 'WETH',
-      'MATIC', 'BNB', 'FTM', 'OP', 'ARB', 'BASE', 'MNT'
+      'BTC',
+      'ETH',
+      'SOL',
+      'AVAX',
+      'LINK',
+      'UNI',
+      'AAVE',
+      'SNX',
+      'CRV',
+      'MKR',
+      'COMP',
+      'YFI',
+      'SUSHI',
+      '1INCH',
+      'LDO',
+      'STETH',
+      'USDC',
+      'USDT',
+      'DAI',
+      'FRAX',
+      'WBTC',
+      'WETH',
+      'MATIC',
+      'BNB',
+      'FTM',
+      'OP',
+      'ARB',
+      'BASE',
+      'MNT',
     ];
     return supportedSymbols.length;
   }
@@ -751,14 +779,14 @@ export class RedStoneClient extends BaseOracleClient {
    */
   private calculateAvgResponseTime(providers: RedStoneProviderInfo[]): number {
     if (providers.length === 0) return 0;
-    
+
     const now = Date.now();
-    const responseTimes = providers.map(provider => {
+    const responseTimes = providers.map((provider) => {
       const timeSinceUpdate = now - provider.lastUpdate;
       // Convert to a reasonable response time metric (lower is better)
       return Math.max(50, Math.min(5000, timeSinceUpdate / 10));
     });
-    
+
     const avg = responseTimes.reduce((sum, rt) => sum + rt, 0) / responseTimes.length;
     return Math.round(avg);
   }
@@ -770,14 +798,14 @@ export class RedStoneClient extends BaseOracleClient {
    */
   private calculateNetworkLatency(providers: RedStoneProviderInfo[]): number {
     if (providers.length === 0) return 0;
-    
+
     const now = Date.now();
-    const latencies = providers.map(provider => {
+    const latencies = providers.map((provider) => {
       const timeSinceUpdate = now - provider.lastUpdate;
       // Latency is proportional to time since last update
       return Math.max(10, Math.min(1000, timeSinceUpdate / 100));
     });
-    
+
     const avg = latencies.reduce((sum, l) => sum + l, 0) / latencies.length;
     return Math.round(avg);
   }
@@ -790,15 +818,15 @@ export class RedStoneClient extends BaseOracleClient {
    */
   private calculateNodeUptime(providers: RedStoneProviderInfo[]): number {
     if (providers.length === 0) return 0;
-    
+
     const now = Date.now();
     const oneHour = 60 * 60 * 1000;
-    
-    const activeProviders = providers.filter(provider => {
+
+    const activeProviders = providers.filter((provider) => {
       const timeSinceUpdate = now - provider.lastUpdate;
       return timeSinceUpdate < oneHour;
     });
-    
+
     const uptime = (activeProviders.length / providers.length) * 100;
     return Number(uptime.toFixed(2));
   }
@@ -819,7 +847,7 @@ export class RedStoneClient extends BaseOracleClient {
       // Build ecosystem data based on real supported chains and providers
       const chains = await this.getSupportedChains();
       const providers = await this.getDataProviders();
-      
+
       // Create integrations based on active chains
       const integrations = this.buildEcosystemIntegrations(chains, providers);
 
@@ -849,13 +877,13 @@ export class RedStoneClient extends BaseOracleClient {
     providers: RedStoneProviderInfo[]
   ): Array<{ name: string; description: string }> {
     const integrations: Array<{ name: string; description: string }> = [];
-    
+
     // Add chain-based integrations
     for (const chain of chains) {
       if (chain.status === 'active') {
         const chainName = chain.chain;
         const providerCount = providers.length;
-        
+
         switch (chainName) {
           case 'Ethereum':
             integrations.push({
@@ -932,7 +960,7 @@ export class RedStoneClient extends BaseOracleClient {
         }
       }
     }
-    
+
     // Add provider-based integration summary
     if (providers.length > 0) {
       const avgReputation = providers.reduce((sum, p) => sum + p.reputation, 0) / providers.length;
@@ -941,7 +969,7 @@ export class RedStoneClient extends BaseOracleClient {
         description: `${providers.length} active providers with ${(avgReputation * 100).toFixed(1)}% avg reputation`,
       });
     }
-    
+
     return integrations;
   }
 
@@ -954,19 +982,19 @@ export class RedStoneClient extends BaseOracleClient {
     try {
       const providers = await this.getDataProviders();
       const networkStats = await this.getNetworkStats();
-      
+
       // Calculate centralization risk based on provider concentration
       const centralizationRisk = this.calculateCentralizationRisk(providers);
-      
+
       // Calculate liquidity risk based on data feeds and provider activity
       const liquidityRisk = this.calculateLiquidityRisk(providers, networkStats);
-      
+
       // Calculate technical risk based on network performance
       const technicalRisk = this.calculateTechnicalRisk(networkStats);
-      
+
       // Calculate overall risk as weighted average
-      const overallRisk = (centralizationRisk * 0.4) + (liquidityRisk * 0.35) + (technicalRisk * 0.25);
-      
+      const overallRisk = centralizationRisk * 0.4 + liquidityRisk * 0.35 + technicalRisk * 0.25;
+
       return {
         centralizationRisk: Number(centralizationRisk.toFixed(4)),
         liquidityRisk: Number(liquidityRisk.toFixed(4)),
@@ -994,22 +1022,22 @@ export class RedStoneClient extends BaseOracleClient {
   private calculateCentralizationRisk(providers: RedStoneProviderInfo[]): number {
     if (providers.length === 0) return 1; // Max risk if no providers
     if (providers.length === 1) return 0.8; // High risk with single provider
-    
+
     // Calculate market share based on data points contributed
     const totalDataPoints = providers.reduce((sum, p) => sum + p.dataPoints, 0);
     if (totalDataPoints === 0) return 0.5;
-    
+
     // Calculate HHI
     let hhi = 0;
     for (const provider of providers) {
       const marketShare = provider.dataPoints / totalDataPoints;
       hhi += marketShare * marketShare;
     }
-    
+
     // Normalize HHI to 0-1 range (HHI ranges from 1/n to 1)
     const minHHI = 1 / providers.length;
     const normalizedHHI = (hhi - minHHI) / (1 - minHHI);
-    
+
     return Math.min(1, Math.max(0, normalizedHHI));
   }
 
@@ -1024,14 +1052,14 @@ export class RedStoneClient extends BaseOracleClient {
     networkStats: RedStoneNetworkStats
   ): number {
     if (providers.length === 0) return 1;
-    
+
     // Risk factors
-    const providerCountRisk = Math.max(0, 1 - (providers.length / 20)); // Normalize to 20 providers
-    const dataFeedRisk = Math.max(0, 1 - (networkStats.dataFeeds / 100)); // Normalize to 100 feeds
-    const uptimeRisk = Math.max(0, 1 - (networkStats.nodeUptime / 100)); // Invert uptime
-    
+    const providerCountRisk = Math.max(0, 1 - providers.length / 20); // Normalize to 20 providers
+    const dataFeedRisk = Math.max(0, 1 - networkStats.dataFeeds / 100); // Normalize to 100 feeds
+    const uptimeRisk = Math.max(0, 1 - networkStats.nodeUptime / 100); // Invert uptime
+
     // Weighted combination
-    return (providerCountRisk * 0.4) + (dataFeedRisk * 0.35) + (uptimeRisk * 0.25);
+    return providerCountRisk * 0.4 + dataFeedRisk * 0.35 + uptimeRisk * 0.25;
   }
 
   /**
@@ -1042,15 +1070,15 @@ export class RedStoneClient extends BaseOracleClient {
   private calculateTechnicalRisk(networkStats: RedStoneNetworkStats): number {
     // Latency risk (higher latency = higher risk)
     const latencyRisk = Math.min(1, networkStats.latency / 1000);
-    
+
     // Response time risk
     const responseTimeRisk = Math.min(1, networkStats.avgResponseTime / 5000);
-    
+
     // Uptime risk (inverse of uptime)
-    const uptimeRisk = Math.max(0, 1 - (networkStats.nodeUptime / 100));
-    
+    const uptimeRisk = Math.max(0, 1 - networkStats.nodeUptime / 100);
+
     // Weighted combination
-    return (latencyRisk * 0.4) + (responseTimeRisk * 0.35) + (uptimeRisk * 0.25);
+    return latencyRisk * 0.4 + responseTimeRisk * 0.35 + uptimeRisk * 0.25;
   }
 
   async getSupportedChains(): Promise<RedStoneChainInfo[]> {

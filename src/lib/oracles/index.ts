@@ -51,6 +51,29 @@ export {
   type TellorCurrentValue,
 } from './tellorOnChainService';
 export { ChronicleClient } from './chronicle';
+export {
+  getChroniclePriceFromChain,
+  getChroniclePriceWithRead,
+  getMakerDAOVaultData,
+  formatChroniclePrice,
+  formatMakerDAORay,
+  formatMakerDAOWad,
+  isRealDataAvailable as isChronicleRealDataAvailable,
+} from './chronicleOnChainService';
+export {
+  CHRONICLE_PRICE_FEEDS,
+  CHRONICLE_RPC_CONFIG,
+  CHRONICLE_ORACLE_ABI,
+  MAKER_DSS_ABI,
+  getChroniclePriceFeed,
+  getChronicleRPCConfig,
+  getMakerDSSContracts,
+  getSupportedSymbols as getChronicleSupportedSymbols,
+  isPriceFeedSupported as isChroniclePriceFeedSupported,
+  type ChroniclePriceFeed,
+  type ChronicleContracts,
+  type ChronicleRPCConfig,
+} from './chronicleDataSources';
 export { WINkLinkClient } from './winklink';
 export type { RedStoneMetrics, RedStoneProviderInfo } from './redstone';
 export type {

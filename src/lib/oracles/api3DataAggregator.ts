@@ -1,15 +1,5 @@
 import { getAPI3Endpoint, isMockDataEnabled } from './api3DataSources';
 import {
-  generateHourlyActivity,
-  getMockCoveragePoolDetails,
-  getMockDAPIData,
-  getMockDataSources,
-  getMockMarketData,
-  getMockPriceDeviations,
-  getMockStakingData,
-} from './api3MockData';
-import { api3OnChainService } from './api3OnChainService';
-import {
   getDataStrategy,
   shouldUseOnChain,
   shouldUseAPI,
@@ -19,6 +9,16 @@ import {
   type DataSourceInfo as StrategyDataSourceInfo,
   type ConfidenceLevel,
 } from './api3DataStrategy';
+import {
+  generateHourlyActivity,
+  getMockCoveragePoolDetails,
+  getMockDAPIData,
+  getMockDataSources,
+  getMockMarketData,
+  getMockPriceDeviations,
+  getMockStakingData,
+} from './api3MockData';
+import { api3OnChainService } from './api3OnChainService';
 
 import type {
   StakingData,
@@ -130,7 +130,10 @@ export class API3DataAggregator {
       } catch (error) {
         primaryError = error instanceof Error ? error : new Error(String(error));
         primarySourceInfo = createDataSourceInfo('on-chain', startTime, primaryError.message);
-        console.warn(`[API3] On-chain data fetch failed for ${strategy.dataType}:`, primaryError.message);
+        console.warn(
+          `[API3] On-chain data fetch failed for ${strategy.dataType}:`,
+          primaryError.message
+        );
       }
     } else if (strategy.primarySource === 'api' && useAPI) {
       try {
@@ -140,7 +143,10 @@ export class API3DataAggregator {
       } catch (error) {
         primaryError = error instanceof Error ? error : new Error(String(error));
         primarySourceInfo = createDataSourceInfo('api', startTime, primaryError.message);
-        console.warn(`[API3] API data fetch failed for ${strategy.dataType}:`, primaryError.message);
+        console.warn(
+          `[API3] API data fetch failed for ${strategy.dataType}:`,
+          primaryError.message
+        );
       }
     }
 
@@ -287,7 +293,9 @@ export class API3DataAggregator {
         const [airnodesData, dapisData, onChainStaking] = await Promise.all([
           this.fetchFromAPI<unknown[]>('market', 'airnodes', { timeout: 15000 }).catch(() => []),
           this.fetchFromAPI<unknown[]>('market', 'dapis', { timeout: 15000 }).catch(() => []),
-          api3OnChainService.getStakingData().catch(() => ({ totalStaked: BigInt(0), stakerCount: 0 })),
+          api3OnChainService
+            .getStakingData()
+            .catch(() => ({ totalStaked: BigInt(0), stakerCount: 0 })),
         ]);
 
         const airnodeArray = Array.isArray(airnodesData) ? airnodesData : [];
@@ -328,7 +336,10 @@ export class API3DataAggregator {
     const byAssetType = { crypto: 0, forex: 0, commodities: 0, stocks: 0 };
     (dapiArray as Array<Record<string, unknown>>).forEach((dapi) => {
       const name = String(dapi.name || dapi.dapiName || '').toUpperCase();
-      if (name.includes('USD') && (name.includes('EUR') || name.includes('GBP') || name.includes('JPY'))) {
+      if (
+        name.includes('USD') &&
+        (name.includes('EUR') || name.includes('GBP') || name.includes('JPY'))
+      ) {
         byAssetType.forex++;
       } else if (name.includes('GOLD') || name.includes('SILVER') || name.includes('OIL')) {
         byAssetType.commodities++;
@@ -385,7 +396,7 @@ export class API3DataAggregator {
         total: activeAirnodes,
         byRegion: {
           northAmerica: Math.floor(activeAirnodes * 0.37),
-          europe: Math.floor(activeAirnodes * 0.30),
+          europe: Math.floor(activeAirnodes * 0.3),
           asia: Math.floor(activeAirnodes * 0.24),
           others: Math.floor(activeAirnodes * 0.09),
         },
@@ -428,19 +439,27 @@ export class API3DataAggregator {
       },
       // API fetcher
       async () => {
-        const oevStatsRaw = await this.fetchFromAPI<unknown>('dao', 'stats', { timeout: 15000 }).catch(() => ({}));
-        const oevStats = typeof oevStatsRaw === 'object' && oevStatsRaw !== null
-          ? oevStatsRaw as Record<string, unknown>
-          : {};
+        const oevStatsRaw = await this.fetchFromAPI<unknown>('dao', 'stats', {
+          timeout: 15000,
+        }).catch(() => ({}));
+        const oevStats =
+          typeof oevStatsRaw === 'object' && oevStatsRaw !== null
+            ? (oevStatsRaw as Record<string, unknown>)
+            : {};
 
         return {
           stats: {
-            totalOevCaptured: typeof oevStats?.totalOevCaptured === 'number' ? oevStats.totalOevCaptured : 12450000,
-            activeAuctions: typeof oevStats?.activeAuctions === 'number' ? oevStats.activeAuctions : 12,
-            totalParticipants: typeof oevStats?.totalParticipants === 'number' ? oevStats.totalParticipants : 89,
+            totalOevCaptured:
+              typeof oevStats?.totalOevCaptured === 'number' ? oevStats.totalOevCaptured : 12450000,
+            activeAuctions:
+              typeof oevStats?.activeAuctions === 'number' ? oevStats.activeAuctions : 12,
+            totalParticipants:
+              typeof oevStats?.totalParticipants === 'number' ? oevStats.totalParticipants : 89,
             totalDapps: typeof oevStats?.totalDapps === 'number' ? oevStats.totalDapps : 34,
-            avgAuctionValue: typeof oevStats?.avgAuctionValue === 'number' ? oevStats.avgAuctionValue : 18500,
-            last24hVolume: typeof oevStats?.last24hVolume === 'number' ? oevStats.last24hVolume : 892000,
+            avgAuctionValue:
+              typeof oevStats?.avgAuctionValue === 'number' ? oevStats.avgAuctionValue : 18500,
+            last24hVolume:
+              typeof oevStats?.last24hVolume === 'number' ? oevStats.last24hVolume : 892000,
             participantList: [],
             recentAuctions: [],
           },
@@ -539,7 +558,9 @@ export class API3DataAggregator {
       },
       // API fetcher (primary)
       async () => {
-        const dapisData = await this.fetchFromAPI<unknown[]>('market', 'dapis', { timeout: 15000 }).catch(() => []);
+        const dapisData = await this.fetchFromAPI<unknown[]>('market', 'dapis', {
+          timeout: 15000,
+        }).catch(() => []);
 
         if (!Array.isArray(dapisData) || dapisData.length === 0) {
           throw new Error('No dAPI data available');
@@ -547,8 +568,10 @@ export class API3DataAggregator {
 
         const deviations: DAPIPriceDeviation[] = (dapisData as Array<Record<string, unknown>>)
           .filter((dapi) => {
-            return (dapi.price !== undefined && dapi.marketPrice !== undefined) ||
-                   (dapi.value !== undefined && dapi.marketValue !== undefined);
+            return (
+              (dapi.price !== undefined && dapi.marketPrice !== undefined) ||
+              (dapi.value !== undefined && dapi.marketValue !== undefined)
+            );
           })
           .slice(0, 20)
           .map((dapi) => {
@@ -624,7 +647,9 @@ export class API3DataAggregator {
       },
       // API fetcher (primary)
       async () => {
-        const airnodesData = await this.fetchFromAPI<unknown[]>('market', 'airnodes', { timeout: 15000 }).catch(() => []);
+        const airnodesData = await this.fetchFromAPI<unknown[]>('market', 'airnodes', {
+          timeout: 15000,
+        }).catch(() => []);
 
         if (!Array.isArray(airnodesData) || airnodesData.length === 0) {
           throw new Error('No airnode data available');
@@ -636,7 +661,8 @@ export class API3DataAggregator {
             const name = String(airnode.name || airnode.provider || `Airnode ${index + 1}`);
             const type = this.inferDataSourceType(name);
             const uptime = typeof airnode.uptime === 'number' ? airnode.uptime : 99.5;
-            const responseTime = typeof airnode.responseTime === 'number' ? airnode.responseTime : 150;
+            const responseTime =
+              typeof airnode.responseTime === 'number' ? airnode.responseTime : 150;
 
             return {
               id: String(airnode.id || `src-${String(index + 1).padStart(3, '0')}`),
@@ -646,8 +672,16 @@ export class API3DataAggregator {
               accuracy: uptime,
               responseSpeed: responseTime,
               availability: uptime,
-              airnodeAddress: String(airnode.address || airnode.airnodeAddress || '0x0000000000000000000000000000000000000000'),
-              dapiContract: String(airnode.dapiContract || airnode.proxyAddress || '0x0000000000000000000000000000000000000000'),
+              airnodeAddress: String(
+                airnode.address ||
+                  airnode.airnodeAddress ||
+                  '0x0000000000000000000000000000000000000000'
+              ),
+              dapiContract: String(
+                airnode.dapiContract ||
+                  airnode.proxyAddress ||
+                  '0x0000000000000000000000000000000000000000'
+              ),
               chain: String(airnode.chain || airnode.network || 'Ethereum'),
             };
           });
@@ -662,13 +696,31 @@ export class API3DataAggregator {
 
   private inferDataSourceType(name: string): 'exchange' | 'traditional_finance' | 'other' {
     const lowerName = name.toLowerCase();
-    const exchangeKeywords = ['binance', 'coinbase', 'kraken', 'okx', 'bybit', 'kucoin', 'huobi', 'gate', 'mexc'];
-    const tradFiKeywords = ['bloomberg', 'reuters', 'goldman', 'morgan', 'jpmorgan', 'barclays', 'hsbc'];
+    const exchangeKeywords = [
+      'binance',
+      'coinbase',
+      'kraken',
+      'okx',
+      'bybit',
+      'kucoin',
+      'huobi',
+      'gate',
+      'mexc',
+    ];
+    const tradFiKeywords = [
+      'bloomberg',
+      'reuters',
+      'goldman',
+      'morgan',
+      'jpmorgan',
+      'barclays',
+      'hsbc',
+    ];
 
-    if (exchangeKeywords.some(kw => lowerName.includes(kw))) {
+    if (exchangeKeywords.some((kw) => lowerName.includes(kw))) {
       return 'exchange';
     }
-    if (tradFiKeywords.some(kw => lowerName.includes(kw))) {
+    if (tradFiKeywords.some((kw) => lowerName.includes(kw))) {
       return 'traditional_finance';
     }
     return 'other';
@@ -768,7 +820,12 @@ export class API3DataAggregator {
     return null;
   }
 
-  private setCache<T>(key: string, data: T, ttl: number = this.defaultTTL, metadata?: DataWithMetadata<T>['metadata']): void {
+  private setCache<T>(
+    key: string,
+    data: T,
+    ttl: number = this.defaultTTL,
+    metadata?: DataWithMetadata<T>['metadata']
+  ): void {
     this.cache.set(key, { data, timestamp: Date.now(), ttl, metadata });
   }
 
@@ -807,8 +864,8 @@ export class API3DataAggregator {
       } else if (typeof item.heartbeat === 'number') {
         updateFrequency = item.heartbeat;
       } else if (beacons && Array.isArray(beacons)) {
-        const beacon = (beacons as Array<Record<string, unknown>>).find((b) =>
-          String(b.dapiName || b.name) === name
+        const beacon = (beacons as Array<Record<string, unknown>>).find(
+          (b) => String(b.dapiName || b.name) === name
         );
         if (beacon && typeof (beacon as Record<string, unknown>).heartbeat === 'number') {
           updateFrequency = (beacon as Record<string, unknown>).heartbeat as number;
