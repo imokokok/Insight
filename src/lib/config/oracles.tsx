@@ -185,7 +185,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.SEI,
       Blockchain.KAVA,
     ],
-    client: new BandProtocolClient(),
+    client: new BandProtocolClient({ useRealData: true, fallbackToMock: true }),
     iconBgColor: 'bg-purple-600',
     themeColor: '#7c3aed',
     icon: <Image src="/logos/oracles/band.svg" alt="Band Protocol" width={48} height={48} />,

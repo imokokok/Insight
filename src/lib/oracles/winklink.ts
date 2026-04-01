@@ -3,8 +3,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 import { BaseOracleClient } from './base';
+import { getWINkLinkRealDataService } from './winklinkRealDataService';
 
 import type { OracleClientConfig } from './base';
+
+// 是否使用真实数据
+const USE_REAL_DATA = process.env.NEXT_PUBLIC_USE_REAL_WINKLINK_DATA === 'true';
 
 export interface TRONNetworkStats {
   totalTransactions: number;
@@ -168,8 +172,18 @@ export class WINkLinkClient extends BaseOracleClient {
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      // 如果启用真实数据，尝试从 WINkLink 合约获取
+      if (USE_REAL_DATA) {
+        const realDataService = getWINkLinkRealDataService();
+        const realPrice = await realDataService.getPriceFromContract(symbol);
+        
+        if (realPrice) {
+          return realPrice;
+        }
+      }
 
+      // 回退到模拟数据
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.fetchPriceWithDatabase(symbol, chain, () =>
         this.generateMockPrice(symbol, basePrice, chain)
       );
@@ -187,8 +201,8 @@ export class WINkLinkClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
+      // WINkLink 不支持历史价格查询，使用模拟数据
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
         this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
       );
@@ -201,6 +215,58 @@ export class WINkLinkClient extends BaseOracleClient {
   }
 
   async getTRONEcosystem(): Promise<TRONEcosystem> {
+    // 如果启用真实数据，尝试获取真实网络统计
+    if (USE_REAL_DATA) {
+      try {
+        const realDataService = getWINkLinkRealDataService();
+        const networkStats = await realDataService.getTRONNetworkStats();
+        
+        if (networkStats) {
+          const now = Date.now();
+          return {
+            networkStats: {
+              totalTransactions: networkStats.totalTransactions,
+              tps: networkStats.tps,
+              blockHeight: networkStats.blockHeight,
+              blockTime: networkStats.blockTime,
+              totalAccounts: networkStats.totalAccounts,
+              dailyActiveUsers: 2500000, // 估算值
+              energyConsumption: 4500000000, // 估算值
+              bandwidthConsumption: 2800000000, // 估算值
+            },
+            integratedDApps: [
+              {
+                id: 'dapp-001',
+                name: 'WINk',
+                category: 'gaming',
+                users: 850000,
+                volume24h: 15000000,
+                contractAddress: 'TND...abc',
+                integrationDate: now - 86400000 * 365,
+                status: 'active',
+              },
+              {
+                id: 'dapp-002',
+                name: 'SunSwap',
+                category: 'defi',
+                users: 420000,
+                volume24h: 8500000,
+                contractAddress: 'TND...def',
+                integrationDate: now - 86400000 * 180,
+                status: 'active',
+              },
+            ],
+            totalValueLocked: 450000000,
+            dailyTransactions: 2500000,
+            integrationCoverage: 0.85,
+          };
+        }
+      } catch {
+        // 获取失败时使用模拟数据
+      }
+    }
+
+    // 模拟数据
     const now = Date.now();
     return {
       networkStats: {
@@ -242,6 +308,29 @@ export class WINkLinkClient extends BaseOracleClient {
   }
 
   async getNodeStaking(): Promise<NodeStakingData> {
+    // 如果启用真实数据，尝试获取真实质押数据
+    if (USE_REAL_DATA) {
+      try {
+        const realDataService = getWINkLinkRealDataService();
+        const stakingInfo = await realDataService.getStakingInfo();
+        
+        if (stakingInfo) {
+          return {
+            totalStaked: stakingInfo.totalStaked,
+            totalNodes: stakingInfo.totalNodes,
+            activeNodes: stakingInfo.activeNodes,
+            averageApr: stakingInfo.averageApr,
+            rewardPool: stakingInfo.rewardPool,
+            stakingTiers: realDataService.getStakingTiers(),
+            nodes: stakingInfo.nodes,
+          };
+        }
+      } catch {
+        // 获取失败时使用模拟数据
+      }
+    }
+
+    // 模拟数据
     return {
       totalStaked: 45000000,
       totalNodes: 85,
@@ -288,6 +377,27 @@ export class WINkLinkClient extends BaseOracleClient {
   }
 
   async getGamingData(): Promise<WINkLinkGamingData> {
+    // 如果启用真实数据，尝试获取真实游戏数据
+    if (USE_REAL_DATA) {
+      try {
+        const realDataService = getWINkLinkRealDataService();
+        const gamingInfo = await realDataService.getGamingInfo();
+        
+        if (gamingInfo) {
+          return {
+            totalGamingVolume: gamingInfo.totalGamingVolume,
+            activeGames: gamingInfo.activeGames,
+            dailyRandomRequests: gamingInfo.dailyRandomRequests,
+            dataSources: gamingInfo.dataSources,
+            randomNumberServices: gamingInfo.randomNumberServices,
+          };
+        }
+      } catch {
+        // 获取失败时使用模拟数据
+      }
+    }
+
+    // 模拟数据
     return {
       totalGamingVolume: 850000000,
       activeGames: 125,
@@ -338,6 +448,21 @@ export class WINkLinkClient extends BaseOracleClient {
   }
 
   async getNetworkStats(): Promise<WINkLinkNetworkStats> {
+    // 如果启用真实数据，尝试获取真实网络统计
+    if (USE_REAL_DATA) {
+      try {
+        const realDataService = getWINkLinkRealDataService();
+        const networkStats = await realDataService.getWINkLinkNetworkStats();
+        
+        if (networkStats) {
+          return networkStats;
+        }
+      } catch {
+        // 获取失败时使用模拟数据
+      }
+    }
+
+    // 模拟数据
     return {
       activeNodes: 85,
       nodeUptime: 99.92,
@@ -370,6 +495,21 @@ export class WINkLinkClient extends BaseOracleClient {
   }
 
   async getRiskMetrics(): Promise<WINkLinkRiskMetrics> {
+    // 如果启用真实数据，尝试获取真实风险指标
+    if (USE_REAL_DATA) {
+      try {
+        const realDataService = getWINkLinkRealDataService();
+        const riskMetrics = await realDataService.getRiskMetrics();
+        
+        if (riskMetrics) {
+          return riskMetrics;
+        }
+      } catch {
+        // 获取失败时使用模拟数据
+      }
+    }
+
+    // 模拟数据
     return {
       overallRisk: 2.5,
       decentralization: 85,
@@ -379,5 +519,21 @@ export class WINkLinkClient extends BaseOracleClient {
       deviation: 0.1,
       lastUpdate: Date.now(),
     };
+  }
+
+  /**
+   * 获取支持的 Price Feed 列表
+   */
+  getSupportedPriceFeeds(): Array<{ symbol: string; address: string }> {
+    const realDataService = getWINkLinkRealDataService();
+    return realDataService.getSupportedPriceFeeds();
+  }
+
+  /**
+   * 检查是否支持某个交易对
+   */
+  isSupported(symbol: string): boolean {
+    const realDataService = getWINkLinkRealDataService();
+    return realDataService.isSupported(symbol);
   }
 }

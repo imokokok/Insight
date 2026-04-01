@@ -4,7 +4,7 @@ import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 
 import { useFavorites, type FavoriteConfig } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import type { PriceData, type OracleProvider, type Blockchain } from '@/lib/oracles';
+import type { PriceData, OracleProvider, Blockchain } from '@/lib/oracles';
 import { useUser } from '@/stores/authStore';
 import type { QueryHistoryItem } from '@/utils/queryHistory';
 
