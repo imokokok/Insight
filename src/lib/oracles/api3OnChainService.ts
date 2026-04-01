@@ -98,30 +98,45 @@ const API3_POOL_ABI = [
   },
 ] as const;
 
-const RPC_ENDPOINTS: Record<number, string[]> = {
-  1: ['https://eth.llamarpc.com', 'https://ethereum.publicnode.com', 'https://rpc.ankr.com/eth'],
-  42161: [
-    'https://arb1.arbitrum.io/rpc',
-    'https://arbitrum.publicnode.com',
-    'https://rpc.ankr.com/arbitrum',
-  ],
-  137: [
-    'https://polygon-rpc.com',
-    'https://polygon.publicnode.com',
-    'https://rpc.ankr.com/polygon',
-  ],
-  8453: ['https://mainnet.base.org', 'https://base.publicnode.com', 'https://rpc.ankr.com/base'],
-  43114: [
-    'https://api.avax.network/ext/bc/C/rpc',
-    'https://avalanche.publicnode.com',
-    'https://rpc.ankr.com/avalanche',
-  ],
-  56: [
-    'https://bsc-dataseed.binance.org',
-    'https://bsc.publicnode.com',
-    'https://rpc.ankr.com/bsc',
-  ],
-};
+function getRpcEndpoints(): Record<number, string[]> {
+  const ethereumRpc = process.env.NEXT_PUBLIC_ALCHEMY_ETHEREUM_RPC;
+  const arbitrumRpc = process.env.NEXT_PUBLIC_ALCHEMY_ARBITRUM_RPC;
+  const polygonRpc = process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC;
+  const baseRpc = process.env.NEXT_PUBLIC_ALCHEMY_BASE_RPC;
+
+  return {
+    1: ethereumRpc
+      ? [ethereumRpc, 'https://eth.llamarpc.com', 'https://ethereum.publicnode.com']
+      : ['https://eth.llamarpc.com', 'https://ethereum.publicnode.com', 'https://rpc.ankr.com/eth'],
+    42161: arbitrumRpc
+      ? [arbitrumRpc, 'https://arb1.arbitrum.io/rpc', 'https://arbitrum.publicnode.com']
+      : [
+          'https://arb1.arbitrum.io/rpc',
+          'https://arbitrum.publicnode.com',
+          'https://rpc.ankr.com/arbitrum',
+        ],
+    137: polygonRpc
+      ? [polygonRpc, 'https://polygon-rpc.com', 'https://polygon.publicnode.com']
+      : [
+          'https://polygon-rpc.com',
+          'https://polygon.publicnode.com',
+          'https://rpc.ankr.com/polygon',
+        ],
+    8453: baseRpc
+      ? [baseRpc, 'https://mainnet.base.org', 'https://base.publicnode.com']
+      : ['https://mainnet.base.org', 'https://base.publicnode.com', 'https://rpc.ankr.com/base'],
+    43114: [
+      'https://api.avax.network/ext/bc/C/rpc',
+      'https://avalanche.publicnode.com',
+      'https://rpc.ankr.com/avalanche',
+    ],
+    56: [
+      'https://bsc-dataseed.binance.org',
+      'https://bsc.publicnode.com',
+      'https://rpc.ankr.com/bsc',
+    ],
+  };
+}
 
 function encodeTokenCall(
   functionName: 'totalSupply' | 'balanceOf',
@@ -191,7 +206,7 @@ export class API3OnChainService {
   private endpointHealth: Record<string, boolean> = {};
 
   constructor() {
-    this.rpcEndpoints = RPC_ENDPOINTS;
+    this.rpcEndpoints = getRpcEndpoints();
   }
 
   private async rpcCallWithFallback<T>(
