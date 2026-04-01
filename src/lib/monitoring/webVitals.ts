@@ -46,7 +46,7 @@ const getRating = (name: string, value: number): 'good' | 'needs-improvement' | 
 
 const sendToAnalytics = (metric: WebVitalMetric) => {
   if (env.app.isDevelopment) {
-    console.log('[WebVital]', metric.name, metric.value.toFixed(2), metric.rating);
+    // WebVital logging disabled in development
     return;
   }
 

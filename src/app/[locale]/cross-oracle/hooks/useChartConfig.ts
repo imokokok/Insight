@@ -5,6 +5,11 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
+import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
+import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
+import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
+import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
+import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import { chartColors } from '@/lib/config/colors';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
@@ -119,8 +124,7 @@ export function useChartConfig({
 
   // 生成热力图数据
   const heatmapData = useMemo(() => {
-    const data: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[] =
-      [];
+    const data: PriceDeviationDataPoint[] = [];
 
     selectedOracles.forEach((oracle) => {
       const history = historicalData[oracle] || [];
@@ -192,8 +196,8 @@ export function useChartConfig({
       // 计算响应时间（模拟）
       const responseTime = 150 + index * 50;
 
-      // 计算准确率（基于数据完整性）
-      const accuracy = prices.length > 0 ? Math.min(95 + Math.random() * 5, 99.9) : 0;
+      // 计算准确率（基于数据完整性）- 使用确定性值
+      const accuracy = prices.length > 0 ? Math.min(95 + ((index * 7) % 5), 99.9) : 0;
 
       // 计算稳定性（基于价格波动）
       const stability =

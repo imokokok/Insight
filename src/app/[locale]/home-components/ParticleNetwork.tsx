@@ -65,7 +65,6 @@ function usePerformanceDegradation(): PerformanceDegradation {
           const isLowFPS = fps < 30;
 
           if (prefersReducedMotion) {
-            console.log('[ParticleNetwork] 性能降级: 用户偏好减少动画 (prefers-reduced-motion)');
             setDegradation({
               shouldDegrade: true,
               reason: 'prefers-reduced-motion',
@@ -84,9 +83,6 @@ function usePerformanceDegradation(): PerformanceDegradation {
               reducedParticleCount: Math.floor(defaultProps.particleCount * 0.3),
             });
           } else {
-            console.log(
-              `[ParticleNetwork] 性能检测: 设备性能良好 (内存: ${deviceMemory || '未知'}GB, FPS: ${fps})`
-            );
             setDegradation({
               shouldDegrade: false,
               reason: '',

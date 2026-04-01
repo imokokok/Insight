@@ -204,6 +204,7 @@ npm run naming:check
 ```
 
 命名规范要求：
+
 - **组件文件**: PascalCase (如 `PriceChart.tsx`)
 - **工具文件**: camelCase (如 `formatDate.ts`)
 - **类型文件**: PascalCase (如 `OracleTypes.ts`)

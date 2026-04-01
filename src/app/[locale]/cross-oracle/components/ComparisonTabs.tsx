@@ -1,5 +1,10 @@
 'use client';
 
+import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
+import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
+import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
+import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
+import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import {
   type OracleProvider,
   type PriceData,
@@ -7,7 +12,12 @@ import {
   type OracleSnapshot,
 } from '@/types/oracle';
 
-import { type TimeRange, type QualityTrendData, type DeviationFilter } from '../types';
+import {
+  type TimeRange,
+  type QualityTrendData,
+  type DeviationFilter,
+  type ChartDataPoint,
+} from '../types';
 
 import { ControlPanel } from './ControlPanel';
 import { type TabId, TabNavigation } from './TabNavigation';
@@ -56,12 +66,12 @@ interface ComparisonTabsProps {
     variance: { min: number; max: number };
   };
   oracleChartColors: Record<OracleProvider, string>;
-  getChartData: () => import('../types').ChartDataPoint[];
-  heatmapData: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[];
-  boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
-  volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
-  correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
-  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
+  getChartData: () => ChartDataPoint[];
+  heatmapData: PriceDeviationDataPoint[];
+  boxPlotData: OraclePriceData[];
+  volatilityData: OraclePriceHistory[];
+  correlationData: OraclePriceSeries[];
+  performanceData: OraclePerformanceData[];
   maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
   qualityTrendData: QualityTrendData[];
   qualityScoreData: {

@@ -27,16 +27,12 @@ interface Breadcrumb {
 }
 
 export const captureException = (error: Error, context?: Record<string, unknown>) => {
-  console.error('[Error]', error, context);
-
   if (typeof window !== 'undefined') {
     Sentry.captureException(error, { extra: context });
   }
 };
 
 export const captureMessage = (message: string, level: 'info' | 'warning' | 'error' = 'info') => {
-  console.log(`[${level.toUpperCase()}]`, message);
-
   if (typeof window !== 'undefined') {
     Sentry.captureMessage(message, level);
   }

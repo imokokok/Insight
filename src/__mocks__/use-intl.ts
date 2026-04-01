@@ -8,7 +8,9 @@ export const useIntl = () => ({
 
 export const IntlProvider = ({ children }: { children: React.ReactNode }) => children;
 
-export default {
+const useIntlMock = {
   useIntl,
   IntlProvider,
 };
+
+export default useIntlMock;

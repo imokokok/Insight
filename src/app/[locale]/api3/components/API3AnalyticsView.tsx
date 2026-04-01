@@ -160,7 +160,7 @@ export function API3AnalyticsView() {
   const timeRange = useMemo(
     () => ({
       start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      end: new Date(),
+      end: new Date(Date.now()),
     }),
     []
   );

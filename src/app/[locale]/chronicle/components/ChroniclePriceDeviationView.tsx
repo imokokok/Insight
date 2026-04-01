@@ -18,6 +18,9 @@ import {
 
 import { useTranslations } from '@/i18n';
 
+// Fixed base timestamp for deterministic mock data
+const BASE_TIMESTAMP = 1704067200000; // 2024-01-01 00:00:00 UTC
+
 export interface DeviationDataSource {
   name: string;
   price: number;
@@ -105,31 +108,31 @@ export function ChroniclePriceDeviationView({
       },
     ],
     history: [
-      { timestamp: Date.now() - 86400000, deviation: 0.05 },
-      { timestamp: Date.now() - 82800000, deviation: 0.12 },
-      { timestamp: Date.now() - 79200000, deviation: 0.08 },
-      { timestamp: Date.now() - 75600000, deviation: 0.15 },
-      { timestamp: Date.now() - 72000000, deviation: 0.22 },
-      { timestamp: Date.now() - 68400000, deviation: 0.18 },
-      { timestamp: Date.now() - 64800000, deviation: 0.11 },
-      { timestamp: Date.now() - 61200000, deviation: 0.06 },
-      { timestamp: Date.now() - 57600000, deviation: 0.09 },
-      { timestamp: Date.now() - 54000000, deviation: 0.14 },
-      { timestamp: Date.now() - 50400000, deviation: 0.19 },
-      { timestamp: Date.now() - 46800000, deviation: 0.25 },
-      { timestamp: Date.now() - 43200000, deviation: 0.21 },
-      { timestamp: Date.now() - 39600000, deviation: 0.16 },
-      { timestamp: Date.now() - 36000000, deviation: 0.12 },
-      { timestamp: Date.now() - 32400000, deviation: 0.08 },
-      { timestamp: Date.now() - 28800000, deviation: 0.05 },
-      { timestamp: Date.now() - 25200000, deviation: 0.07 },
-      { timestamp: Date.now() - 21600000, deviation: 0.11 },
-      { timestamp: Date.now() - 18000000, deviation: 0.09 },
-      { timestamp: Date.now() - 14400000, deviation: 0.06 },
-      { timestamp: Date.now() - 10800000, deviation: 0.04 },
-      { timestamp: Date.now() - 7200000, deviation: 0.03 },
-      { timestamp: Date.now() - 3600000, deviation: 0.05 },
-      { timestamp: Date.now(), deviation: 0.04 },
+      { timestamp: BASE_TIMESTAMP - 86400000, deviation: 0.05 },
+      { timestamp: BASE_TIMESTAMP - 82800000, deviation: 0.12 },
+      { timestamp: BASE_TIMESTAMP - 79200000, deviation: 0.08 },
+      { timestamp: BASE_TIMESTAMP - 75600000, deviation: 0.15 },
+      { timestamp: BASE_TIMESTAMP - 72000000, deviation: 0.22 },
+      { timestamp: BASE_TIMESTAMP - 68400000, deviation: 0.18 },
+      { timestamp: BASE_TIMESTAMP - 64800000, deviation: 0.11 },
+      { timestamp: BASE_TIMESTAMP - 61200000, deviation: 0.06 },
+      { timestamp: BASE_TIMESTAMP - 57600000, deviation: 0.09 },
+      { timestamp: BASE_TIMESTAMP - 54000000, deviation: 0.14 },
+      { timestamp: BASE_TIMESTAMP - 50400000, deviation: 0.19 },
+      { timestamp: BASE_TIMESTAMP - 46800000, deviation: 0.25 },
+      { timestamp: BASE_TIMESTAMP - 43200000, deviation: 0.21 },
+      { timestamp: BASE_TIMESTAMP - 39600000, deviation: 0.16 },
+      { timestamp: BASE_TIMESTAMP - 36000000, deviation: 0.12 },
+      { timestamp: BASE_TIMESTAMP - 32400000, deviation: 0.08 },
+      { timestamp: BASE_TIMESTAMP - 28800000, deviation: 0.05 },
+      { timestamp: BASE_TIMESTAMP - 25200000, deviation: 0.07 },
+      { timestamp: BASE_TIMESTAMP - 21600000, deviation: 0.11 },
+      { timestamp: BASE_TIMESTAMP - 18000000, deviation: 0.09 },
+      { timestamp: BASE_TIMESTAMP - 14400000, deviation: 0.06 },
+      { timestamp: BASE_TIMESTAMP - 10800000, deviation: 0.04 },
+      { timestamp: BASE_TIMESTAMP - 7200000, deviation: 0.03 },
+      { timestamp: BASE_TIMESTAMP - 3600000, deviation: 0.05 },
+      { timestamp: BASE_TIMESTAMP, deviation: 0.04 },
     ],
     stats: {
       maxDeviation: 0.25,

@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 export function useLastUpdated() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const dateRef = useRef<Date | null>(null);
 
   const updateLastUpdated = useCallback(() => {
-    setLastUpdated(new Date());
+    dateRef.current = new Date();
+    setLastUpdated(dateRef.current);
   }, []);
 
   return {

@@ -1,4 +1,18 @@
-import { type OracleProvider, type PriceData, type SnapshotStats } from '@/types/oracle';
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+
+import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
+import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
+import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
+import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
+import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
+import type { FavoriteConfig } from '@/hooks/useFavorites';
+import type { UserFavorite } from '@/lib/supabase/queries';
+import {
+  type OracleProvider,
+  type PriceData,
+  type SnapshotStats,
+  type OracleSnapshot,
+} from '@/types/oracle';
 
 import {
   type SortColumn,
@@ -6,6 +20,7 @@ import {
   type TimeRange,
   type DeviationFilter,
   type RefreshInterval,
+  type HistoryMinMax,
 } from './constants';
 
 import type { TabId } from './components/TabNavigation';
@@ -54,11 +69,9 @@ export interface UseCrossOraclePageReturn {
   filterPanelRef: React.RefObject<HTMLDivElement | null>;
   isChartFullscreen: boolean;
   setIsChartFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
-  historyMinMax: import('./constants').HistoryMinMax;
-  selectedSnapshot: import('@/types/oracle').OracleSnapshot | null;
-  setSelectedSnapshot: React.Dispatch<
-    React.SetStateAction<import('@/types/oracle').OracleSnapshot | null>
-  >;
+  historyMinMax: HistoryMinMax;
+  selectedSnapshot: OracleSnapshot | null;
+  setSelectedSnapshot: React.Dispatch<React.SetStateAction<OracleSnapshot | null>>;
   showComparison: boolean;
   setShowComparison: React.Dispatch<React.SetStateAction<boolean>>;
   selectedRowIndex: number | null;
@@ -79,10 +92,10 @@ export interface UseCrossOraclePageReturn {
   setSelectedPerformanceOracle: React.Dispatch<React.SetStateAction<OracleProvider | null>>;
   getOracleLatencyData: (oracle: OracleProvider | null) => number[];
   t: (key: string, params?: Record<string, string | number>) => string;
-  router: ReturnType<typeof import('next/navigation').useRouter>;
-  user: ReturnType<typeof import('@/stores/authStore').useUser>;
-  oracleFavorites: ReturnType<typeof import('@/hooks/useFavorites').useFavorites>['favorites'];
-  currentFavoriteConfig: import('@/hooks/useFavorites').FavoriteConfig;
+  router: AppRouterInstance;
+  user: { id: string } | null;
+  oracleFavorites: UserFavorite[];
+  currentFavoriteConfig: FavoriteConfig;
   validPrices: number[];
   avgPrice: number;
   weightedAvgPrice: number;
@@ -104,12 +117,12 @@ export interface UseCrossOraclePageReturn {
   };
   oracleChartColors: Record<OracleProvider, string>;
   getChartData: () => ChartDataPoint[];
-  heatmapData: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[];
-  boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
-  volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
-  correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
+  heatmapData: PriceDeviationDataPoint[];
+  boxPlotData: OraclePriceData[];
+  volatilityData: OraclePriceHistory[];
+  correlationData: OraclePriceSeries[];
   latencyData: number[];
-  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
+  performanceData: OraclePerformanceData[];
   maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
   gasFeeData: {
     oracle: OracleProvider;
@@ -142,7 +155,7 @@ export interface UseCrossOraclePageReturn {
   handleClearFilters: () => void;
   getFilterSummary: () => string[];
   toggleOracle: (oracle: OracleProvider) => void;
-  handleApplyFavorite: (config: import('@/hooks/useFavorites').FavoriteConfig) => void;
+  handleApplyFavorite: (config: FavoriteConfig) => void;
   handleExportCSV: () => void;
   handleExportJSON: () => void;
   scrollToOutlier: () => void;
@@ -162,6 +175,8 @@ export interface UseCrossOraclePageReturn {
   onDeviationFilterChange: (filter: DeviationFilter) => void;
   onAccessibleColorsChange: (value: boolean) => void;
 }
+
+export type { QualityTrendData };
 
 export interface PriceStatsResult {
   validPrices: number[];
@@ -193,12 +208,12 @@ export interface ChartDataPoint {
 export interface ChartDataResult {
   oracleChartColors: Record<OracleProvider, string>;
   getChartData: () => ChartDataPoint[];
-  heatmapData: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[];
-  boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
-  volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
-  correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
+  heatmapData: PriceDeviationDataPoint[];
+  boxPlotData: OraclePriceData[];
+  volatilityData: OraclePriceHistory[];
+  correlationData: OraclePriceSeries[];
   latencyData: number[];
-  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
+  performanceData: OraclePerformanceData[];
 }
 
 export interface QualityTrendDataPoint {

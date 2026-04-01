@@ -1,8 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { type TechnicalIndicatorsResult, type QualityTrendDataPoint } from './types';
+
+// Fixed base timestamp for deterministic mock data
+const BASE_TIMESTAMP = 1704067200000; // 2024-01-01 00:00:00 UTC
 
 export function useTechnicalIndicators(
   historicalData: Partial<Record<OracleProvider, PriceData[]>>,
@@ -21,24 +24,26 @@ export function useTechnicalIndicators(
   }, [historicalData, selectedOracles]);
 
   const gasFeeData = useMemo(() => {
-    return selectedOracles.map((oracle) => ({
+    return selectedOracles.map((oracle, index) => ({
       oracle,
       chain: 'Ethereum',
-      updateCost: 45000 + Math.random() * 20000,
-      updateFrequency: 300 + Math.random() * 600,
-      avgGasPrice: 20 + Math.random() * 30,
-      lastUpdate: Date.now() - Math.random() * 3600000,
+      // Deterministic mock values based on index
+      updateCost: 45000 + ((index * 123) % 20000),
+      updateFrequency: 300 + ((index * 456) % 600),
+      avgGasPrice: 20 + ((index * 789) % 30),
+      lastUpdate: BASE_TIMESTAMP - ((index * 111) % 3600000),
     }));
   }, [selectedOracles]);
 
   const atrData = useMemo(() => {
     return selectedOracles.map((oracle) => ({
       oracle,
-      prices: (historicalData[oracle] || []).map((d) => ({
+      prices: (historicalData[oracle] || []).map((d, idx) => ({
         timestamp: d.timestamp,
         price: d.price,
-        high: d.price * (1 + Math.random() * 0.002),
-        low: d.price * (1 - Math.random() * 0.002),
+        // Deterministic mock values based on index
+        high: d.price * (1 + ((idx * 13) % 100) * 0.00002),
+        low: d.price * (1 - ((idx * 17) % 100) * 0.00002),
         close: d.price,
       })),
     }));
@@ -75,11 +80,13 @@ export function useTechnicalIndicators(
 
         data.push({
           timestamp: point.timestamp,
-          updateLatency: Math.random() * 500 + 100,
+          // Deterministic mock values based on index
+          updateLatency: ((i * 73) % 500) + 100,
           deviationFromMedian: Math.abs((point.price - median) / median),
           isOutlier: Math.abs((point.price - median) / median) > 0.005,
-          isStale: Math.random() > 0.95,
-          heartbeatCompliance: 0.95 + Math.random() * 0.05,
+          // Deterministic mock values based on index
+          isStale: (i * 31) % 100 > 95,
+          heartbeatCompliance: 0.95 + ((i * 17) % 100) * 0.0005,
         });
       }
 
@@ -94,7 +101,7 @@ export function useTechnicalIndicators(
     const successCount = priceData.filter((d) => d.price > 0).length;
     const totalCount = selectedOracles.length;
     const latestTimestamp =
-      priceData.length > 0 ? Math.max(...priceData.map((d) => d.timestamp)) : Date.now();
+      priceData.length > 0 ? Math.max(...priceData.map((d) => d.timestamp)) : BASE_TIMESTAMP;
     const avgAccuracy =
       performanceData.length > 0
         ? performanceData.reduce((sum, d) => sum + d.accuracy, 0) / performanceData.length

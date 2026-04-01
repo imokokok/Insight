@@ -3,14 +3,10 @@ import { NextResponse } from 'next/server';
 import { type ZodError } from 'zod';
 
 import {
-  type AppError,
-  isAppError,
-  errorToResponse as baseErrorToResponse,
-} from '@/lib/errors';
-import {
   createErrorResponse as createStandardErrorResponse,
   ErrorCode,
 } from '@/lib/api/types/errorTypes';
+import { type AppError, isAppError, errorToResponse as baseErrorToResponse } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 
 import { ZodValidationError, isZodValidationError } from './errors';
@@ -65,9 +61,7 @@ export function handleValidationError(
 ): NextResponse {
   // 统一转换为 ZodValidationError
   const zodValidationError =
-    error instanceof ZodValidationError
-      ? error
-      : ZodValidationError.fromZodError(error);
+    error instanceof ZodValidationError ? error : ZodValidationError.fromZodError(error);
 
   const errors = zodValidationError.details?.errors || [];
 
@@ -146,13 +140,9 @@ export function createValidationErrorResponse(
   message: string,
   value?: unknown
 ): NextResponse {
-  const standardResponse = createStandardErrorResponse(
-    ErrorCode.VALIDATION_ERROR,
-    message,
-    {
-      details: { errors: [{ field, message }], value },
-    }
-  );
+  const standardResponse = createStandardErrorResponse(ErrorCode.VALIDATION_ERROR, message, {
+    details: { errors: [{ field, message }], value },
+  });
 
   return NextResponse.json(standardResponse, { status: 400 });
 }
@@ -160,19 +150,12 @@ export function createValidationErrorResponse(
 /**
  * 创建未找到错误响应
  */
-export function createNotFoundErrorResponse(
-  resource: string,
-  id?: string
-): NextResponse {
+export function createNotFoundErrorResponse(resource: string, id?: string): NextResponse {
   const message = id ? `${resource} with id "${id}" not found` : `${resource} not found`;
 
-  const standardResponse = createStandardErrorResponse(
-    ErrorCode.NOT_FOUND,
-    message,
-    {
-      details: { resource, id },
-    }
-  );
+  const standardResponse = createStandardErrorResponse(ErrorCode.NOT_FOUND, message, {
+    details: { resource, id },
+  });
 
   return NextResponse.json(standardResponse, { status: 404 });
 }
@@ -180,13 +163,8 @@ export function createNotFoundErrorResponse(
 /**
  * 创建未授权错误响应
  */
-export function createUnauthorizedErrorResponse(
-  message: string = 'Unauthorized'
-): NextResponse {
-  const standardResponse = createStandardErrorResponse(
-    ErrorCode.UNAUTHORIZED,
-    message
-  );
+export function createUnauthorizedErrorResponse(message: string = 'Unauthorized'): NextResponse {
+  const standardResponse = createStandardErrorResponse(ErrorCode.UNAUTHORIZED, message);
 
   return NextResponse.json(standardResponse, { status: 401 });
 }
@@ -194,13 +172,8 @@ export function createUnauthorizedErrorResponse(
 /**
  * 创建禁止访问错误响应
  */
-export function createForbiddenErrorResponse(
-  message: string = 'Forbidden'
-): NextResponse {
-  const standardResponse = createStandardErrorResponse(
-    ErrorCode.FORBIDDEN,
-    message
-  );
+export function createForbiddenErrorResponse(message: string = 'Forbidden'): NextResponse {
+  const standardResponse = createStandardErrorResponse(ErrorCode.FORBIDDEN, message);
 
   return NextResponse.json(standardResponse, { status: 403 });
 }

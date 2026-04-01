@@ -333,14 +333,6 @@ class Logger {
     const prefix = `[${entry.timestamp}] [${entry.level.toUpperCase().padEnd(5)}] [${entry.module}]`;
     const { level, message, data, error } = entry;
 
-    const consoleMethod = {
-      debug: console.debug,
-      info: console.info,
-      warn: console.warn,
-      error: console.error,
-      fatal: console.error,
-    }[level];
-
     const styles = {
       debug: 'color: #6b7280',
       info: 'color: #3b82f6',
@@ -349,16 +341,19 @@ class Logger {
       fatal: 'color: #dc2626; font-weight: bold',
     }[level];
 
+    // eslint-disable-next-line no-console
+    const logFn = console[level === 'fatal' ? 'error' : level].bind(console);
+
     if (level === 'error' || level === 'fatal') {
       if (error) {
-        consoleMethod(`%c${prefix}`, styles, message, { error, ...data });
+        logFn(`%c${prefix}`, styles, message, { error, ...data });
       } else {
-        consoleMethod(`%c${prefix}`, styles, message, data);
+        logFn(`%c${prefix}`, styles, message, data);
       }
     } else if (data) {
-      consoleMethod(`%c${prefix}`, styles, message, data);
+      logFn(`%c${prefix}`, styles, message, data);
     } else {
-      consoleMethod(`%c${prefix}`, styles, message);
+      logFn(`%c${prefix}`, styles, message);
     }
   }
 
@@ -408,8 +403,10 @@ class Logger {
 
     // 批量输出到控制台
     if (this.config.enableConsole) {
+      // eslint-disable-next-line no-console
       console.group(`[Logger] Batch flush (${entries.length} entries)`);
       entries.forEach((entry) => this.outputToConsole(entry));
+      // eslint-disable-next-line no-console
       console.groupEnd();
     }
 

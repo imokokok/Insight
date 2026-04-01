@@ -191,7 +191,8 @@ function MiniPriceChart({
       return historicalData.slice(-20).map((d) => d.price);
     }
     const basePrice = currentPrice?.price || 100;
-    return Array.from({ length: 20 }, (_, i) => basePrice * (1 + (Math.random() - 0.5) * 0.1));
+    // Generate deterministic mock data based on index
+    return Array.from({ length: 20 }, (_, i) => basePrice * (1 + Math.sin(i * 0.5) * 0.05));
   }, [historicalData, currentPrice]);
 
   const priceChange = useMemo(() => {

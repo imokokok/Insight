@@ -26,6 +26,7 @@ const navItems = [
   {
     id: 'nft-data' as DIATabId,
     labelKey: 'dia.menu.nftData',
+    // eslint-disable-next-line jsx-a11y/alt-text
     icon: <Image className="w-5 h-5" strokeWidth={1.5} />,
   },
   {

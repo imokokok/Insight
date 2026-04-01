@@ -1,5 +1,7 @@
 import { type ReactNode } from 'react';
 
+import Image from 'next/image';
+
 import { type MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
 import { type NetworkDataConfig } from '@/components/oracle/panels/NetworkHealthPanel';
 import { chartColors } from '@/lib/config/colors';
@@ -86,7 +88,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new ChainlinkClient(),
     iconBgColor: 'bg-primary-600',
     themeColor: '#375bd2',
-    icon: <img src="/logos/oracles/chainlink.svg" alt="Chainlink" className="w-12 h-12" />,
+    icon: <Image src="/logos/oracles/chainlink.svg" alt="Chainlink" width={48} height={48} />,
     marketData: {
       symbol: 'LINK',
       tokenName: 'Chainlink',
@@ -186,7 +188,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new BandProtocolClient(),
     iconBgColor: 'bg-purple-600',
     themeColor: '#7c3aed',
-    icon: <img src="/logos/oracles/band.svg" alt="Band Protocol" className="w-12 h-12" />,
+    icon: <Image src="/logos/oracles/band.svg" alt="Band Protocol" width={48} height={48} />,
     marketData: {
       symbol: 'BAND',
       tokenName: 'Band Protocol',
@@ -267,7 +269,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new UMAClient(),
     iconBgColor: `bg-[${chartColors.marketOverview.uma}]`,
     themeColor: '#dc2626',
-    icon: <img src="/logos/oracles/uma.svg" alt="UMA" className="w-12 h-12" />,
+    icon: <Image src="/logos/oracles/uma.svg" alt="UMA" width={48} height={48} />,
     marketData: {
       symbol: 'UMA',
       tokenName: 'UMA',
@@ -342,7 +344,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new PythClient(),
     iconBgColor: `bg-[${chartColors.marketOverview.pyth}]`,
     themeColor: '#8b5cf6',
-    icon: <img src="/logos/oracles/pyth.svg" alt="Pyth" className="w-12 h-12" />,
+    icon: <Image src="/logos/oracles/pyth.svg" alt="Pyth" width={48} height={48} />,
     marketData: {
       symbol: 'PYTH',
       tokenName: 'Pyth',
@@ -429,7 +431,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new API3Client(),
     iconBgColor: `bg-[${chartColors.marketOverview.api3}]`,
     themeColor: '#10b981',
-    icon: <img src="/logos/oracles/api3.svg" alt="API3" className="w-12 h-12" />,
+    icon: <Image src="/logos/oracles/api3.svg" alt="API3" width={48} height={48} />,
     marketData: {
       symbol: 'API3',
       tokenName: 'API3',
@@ -507,7 +509,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new RedStoneClient(),
     iconBgColor: `bg-[${chartColors.oracle.redstone}]`,
     themeColor: '#ef4444',
-    icon: <img src="/logos/oracles/redstone.svg" alt="RedStone" className="w-12 h-12" />,
+    icon: <Image src="/logos/oracles/redstone.svg" alt="RedStone" width={48} height={48} />,
     marketData: {
       symbol: 'REDSTONE',
       tokenName: 'RedStone',
@@ -582,7 +584,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new DIAClient(),
     iconBgColor: 'bg-indigo-600',
     themeColor: '#6366f1',
-    icon: <img src="/logos/oracles/dia.svg" alt="DIA" className="w-12 h-12" />,
+    icon: <Image src="/logos/oracles/dia.svg" alt="DIA" width={48} height={48} />,
     marketData: {
       symbol: 'DIA',
       tokenName: 'DIA',
@@ -654,7 +656,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new TellorClient(),
     iconBgColor: `bg-[${chartColors.oracle.tellor}]`,
     themeColor: '#06b6d4',
-    icon: <img src="/logos/oracles/tellor.svg" alt="Tellor" className="w-12 h-12" />,
+    icon: <Image src="/logos/oracles/tellor.svg" alt="Tellor" width={48} height={48} />,
     marketData: {
       symbol: 'TRB',
       tokenName: 'Tellor',
@@ -725,7 +727,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new ChronicleClient(),
     iconBgColor: `bg-[${chartColors.oracle.chronicle}]`,
     themeColor: '#f59e0b',
-    icon: <img src="/logos/oracles/chronicle.svg" alt="Chronicle" className="w-12 h-12" />,
+    icon: <Image src="/logos/oracles/chronicle.svg" alt="Chronicle" width={48} height={48} />,
     marketData: {
       symbol: 'CHRONICLE',
       tokenName: 'Chronicle',
@@ -785,7 +787,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new WINkLinkClient(),
     iconBgColor: `bg-[${chartColors.oracle.winklink}]`,
     themeColor: '#ec4899',
-    icon: <img src="/logos/oracles/winklink.svg" alt="WINkLink" className="w-12 h-12" />,
+    icon: <Image src="/logos/oracles/winklink.svg" alt="WINkLink" width={48} height={48} />,
     marketData: {
       symbol: 'WINKLINK',
       tokenName: 'WINkLink',

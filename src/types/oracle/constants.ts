@@ -1,3 +1,5 @@
+import type { Blockchain } from './enums';
+
 export const enum TimeRange {
   '1H' = 3600,
   '6H' = 21600,
@@ -35,7 +37,7 @@ export interface LoadingState {
 
 export interface FilterState {
   timeRange?: TimeRange;
-  chain?: import('./enums').Blockchain;
+  chain?: Blockchain;
   symbol?: string;
   status?: DataStatus;
 }

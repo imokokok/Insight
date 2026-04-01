@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import Image from 'next/image';
+
 import { User, Mail, Save, Key, Loader2, CheckCircle } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
@@ -24,7 +26,13 @@ const AvatarUploader = ({
   <div className="flex items-center gap-4">
     <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
       {currentAvatarUrl ? (
-        <img src={currentAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+        <Image
+          src={currentAvatarUrl}
+          alt="Avatar"
+          width={64}
+          height={64}
+          className="w-full h-full object-cover"
+        />
       ) : (
         <User className="w-8 h-8 text-gray-500" />
       )}

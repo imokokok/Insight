@@ -1,4 +1,26 @@
 export { ChainlinkClient } from './chainlink';
+export {
+  ChainlinkOnChainService,
+  chainlinkOnChainService,
+  type ChainlinkPriceData,
+  type ChainlinkTokenData,
+} from './chainlinkOnChainService';
+export {
+  CHAINLINK_PRICE_FEEDS,
+  CHAINLINK_CONTRACTS,
+  CHAINLINK_RPC_CONFIG,
+  CHAINLINK_AGGREGATOR_ABI,
+  CHAINLINK_TOKEN_ABI,
+  getChainlinkPriceFeed,
+  getChainlinkContracts,
+  getChainlinkRPCConfig,
+  getSupportedSymbols,
+  getSupportedChainIds,
+  isPriceFeedSupported,
+  type ChainlinkPriceFeed,
+  type ChainlinkContracts,
+  type ChainlinkRPCConfig,
+} from './chainlinkDataSources';
 export { BandProtocolClient } from './bandProtocol';
 export { UMAClient } from './uma';
 export { PythClient } from './pythNetwork';

@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { useTranslations } from '@/i18n';
 
 import { type ChainlinkHeaderProps } from '../types';
@@ -25,7 +27,7 @@ export function ChainlinkHeader({
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <img src="/logos/oracles/chainlink.svg" alt="Chainlink" className="w-6 h-6" />
+              <Image src="/logos/oracles/chainlink.svg" alt="Chainlink" width={24} height={24} />
             </div>
             <div>
               <h1 className="text-lg font-semibold text-gray-900">{t('chainlink.title')}</h1>

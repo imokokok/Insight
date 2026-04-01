@@ -15,6 +15,7 @@ import {
   Code,
   Shield,
 } from 'lucide-react';
+// Note: All icons are used in navItems array
 
 import { UnifiedSidebar } from '@/components/oracle';
 import { useTranslations } from '@/i18n';

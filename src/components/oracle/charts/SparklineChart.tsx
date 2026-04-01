@@ -65,7 +65,7 @@ export function SparklineChart({
     );
   }
 
-  const gradientId = `sparkline-gradient-${Math.random().toString(36).substr(2, 9)}`;
+  const gradientId = useMemo(() => `sparkline-gradient-${Date.now()}`, []);
 
   return (
     <svg

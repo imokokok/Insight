@@ -23,7 +23,7 @@ import {
   API3AnalyticsView,
 } from './components';
 import { useAPI3Page } from './hooks/useAPI3Page';
-import { type API3TabId } from './types';
+// API3TabId type is used implicitly via activeTab
 
 export default function API3Page() {
   const {

@@ -1,11 +1,11 @@
 import { exportColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
 
+import type { jsPDF } from 'jspdf';
+
 // 动态导入 jsPDF，避免 SSR 问题
-let jsPDFModule: typeof import('jspdf').default | null = null;
-let jsPDFAutoTable:
-  | ((doc: import('jspdf').default, options: Record<string, unknown>) => void)
-  | null = null;
+let jsPDFModule: typeof jsPDF | null = null;
+let jsPDFAutoTable: ((doc: jsPDF, options: Record<string, unknown>) => void) | null = null;
 
 async function getJsPDF() {
   if (!jsPDFModule) {

@@ -2,9 +2,14 @@
 
 import React, { createContext, useContext, type ReactNode } from 'react';
 
+import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
+import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
+import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
+import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
+import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import { type OracleProvider } from '@/types/oracle';
 
-import { type TimeRange } from '../constants';
+import { type TimeRange, type QualityTrendData } from '../constants';
 
 interface ChartConfigContextValue {
   // 选中的预言机
@@ -33,13 +38,13 @@ interface ChartConfigContextValue {
   }[];
 
   // 图表数据
-  heatmapData: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[];
-  boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
-  volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
-  correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
-  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
+  heatmapData: PriceDeviationDataPoint[];
+  boxPlotData: OraclePriceData[];
+  volatilityData: OraclePriceHistory[];
+  correlationData: OraclePriceSeries[];
+  performanceData: OraclePerformanceData[];
   maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
-  qualityTrendData: import('../types').QualityTrendData[];
+  qualityTrendData: QualityTrendData[];
 
   // 操作方法
   setTimeRange: (range: TimeRange) => void;

@@ -1,5 +1,7 @@
 'use client';
 
+import { useCallback } from 'react';
+
 import {
   Shield,
   CheckCircle,
@@ -342,14 +344,15 @@ export function ChronicleScuttlebuttDeepView({
     }
   };
 
-  const formatTime = (timestamp: number) => {
-    const diff = Date.now() - timestamp;
+  const formatTime = useCallback((timestamp: number) => {
+    const now = typeof window !== 'undefined' ? Date.now() : 0;
+    const diff = now - timestamp;
     const minutes = Math.floor(diff / 60000);
     if (minutes < 60) return `${minutes}m ago`;
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
-  };
+  }, []);
 
   const voteColumns = [
     {

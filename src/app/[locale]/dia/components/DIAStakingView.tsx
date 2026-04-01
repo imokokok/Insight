@@ -15,6 +15,9 @@ import { StakingCalculator } from '@/components/oracle/charts/StakingCalculator'
 import { useDIAStaking, useDIAStakingDetails } from '@/hooks';
 import { useTranslations } from '@/i18n';
 
+// Fixed base timestamp for deterministic mock data
+const BASE_TIMESTAMP = 1704067200000; // 2024-01-01 00:00:00 UTC
+
 export function DIAStakingView() {
   const t = useTranslations();
   const { staking, isLoading: stakingLoading } = useDIAStaking();
@@ -31,14 +34,14 @@ export function DIAStakingView() {
     365: 25.0,
   };
 
-  // 历史 APR 数据
+  // 历史 APR 数据 - 使用固定时间戳
   const historicalApr = stakingDetails?.historicalApr ?? [
-    { timestamp: Date.now() - 90 * 24 * 60 * 60 * 1000, apr: 15.2 },
-    { timestamp: Date.now() - 60 * 24 * 60 * 60 * 1000, apr: 16.8 },
-    { timestamp: Date.now() - 30 * 24 * 60 * 60 * 1000, apr: 18.5 },
-    { timestamp: Date.now() - 14 * 24 * 60 * 60 * 1000, apr: 19.2 },
-    { timestamp: Date.now() - 7 * 24 * 60 * 60 * 1000, apr: 20.5 },
-    { timestamp: Date.now(), apr: staking?.stakingApr ?? 21.0 },
+    { timestamp: BASE_TIMESTAMP - 90 * 24 * 60 * 60 * 1000, apr: 15.2 },
+    { timestamp: BASE_TIMESTAMP - 60 * 24 * 60 * 60 * 1000, apr: 16.8 },
+    { timestamp: BASE_TIMESTAMP - 30 * 24 * 60 * 60 * 1000, apr: 18.5 },
+    { timestamp: BASE_TIMESTAMP - 14 * 24 * 60 * 60 * 1000, apr: 19.2 },
+    { timestamp: BASE_TIMESTAMP - 7 * 24 * 60 * 60 * 1000, apr: 20.5 },
+    { timestamp: BASE_TIMESTAMP, apr: staking?.stakingApr ?? 21.0 },
   ];
 
   // 格式化历史数据用于图表

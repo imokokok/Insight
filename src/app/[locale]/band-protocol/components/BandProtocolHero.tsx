@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import {
   TrendingUp,
@@ -13,7 +13,6 @@ import {
   Shield,
   Bell,
   FileText,
-  Layers,
   RefreshCw,
   ExternalLink,
   Plus,

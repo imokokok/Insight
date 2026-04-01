@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 
-import { createLogger } from '@/lib/utils/logger';
 import {
   createErrorResponse as createStandardErrorResponse,
   ErrorCode,
 } from '@/lib/api/types/errorTypes';
+import { createLogger } from '@/lib/utils/logger';
 
 import { AppError } from './AppError';
 
@@ -33,13 +33,9 @@ export function errorToResponse(error: unknown): NextResponse {
     });
 
     // 使用标准的错误响应创建函数
-    const standardResponse = createStandardErrorResponse(
-      error.code as ErrorCode,
-      error.message,
-      {
-        details: error.details,
-      }
-    );
+    const standardResponse = createStandardErrorResponse(error.code as ErrorCode, error.message, {
+      details: error.details,
+    });
 
     return NextResponse.json(standardResponse, { status: error.statusCode });
   }
@@ -48,10 +44,7 @@ export function errorToResponse(error: unknown): NextResponse {
   if (error instanceof Error) {
     logger.error(`Unhandled Error: ${error.message}`, error);
 
-    const standardResponse = createStandardErrorResponse(
-      ErrorCode.INTERNAL_ERROR,
-      error.message
-    );
+    const standardResponse = createStandardErrorResponse(ErrorCode.INTERNAL_ERROR, error.message);
 
     return NextResponse.json(standardResponse, { status: 500 });
   }

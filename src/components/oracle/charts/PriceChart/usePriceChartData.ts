@@ -35,7 +35,7 @@ import {
   convertHistoricalPricePoints,
   generateDataWithGranularity,
 } from './priceChartUtils';
-import { useChartState } from './useChartState';
+import { useChartState, type AnomalyPoint } from './useChartState';
 
 const logger = createLogger('usePriceChartData');
 
@@ -76,8 +76,8 @@ interface UsePriceChartDataReturn {
       period2End: string;
     }>
   >;
-  anomalies: import('./useChartState').AnomalyPoint[];
-  setAnomalies: React.Dispatch<React.SetStateAction<import('./useChartState').AnomalyPoint[]>>;
+  anomalies: AnomalyPoint[];
+  setAnomalies: React.Dispatch<React.SetStateAction<AnomalyPoint[]>>;
   isRefreshing: boolean;
   setIsRefreshing: React.Dispatch<React.SetStateAction<boolean>>;
   chartOpacity: number;
@@ -93,7 +93,7 @@ interface UsePriceChartDataReturn {
   priceRange: { min: number; max: number };
   volumeRange: { min: number; max: number };
   priceChange: { value: number; percent: number };
-  detectedAnomalies: import('./useChartState').AnomalyPoint[];
+  detectedAnomalies: AnomalyPoint[];
   isBandClient: boolean;
   isUMAClient: boolean;
   umaRealtimePrice: { confidence: number } | null;

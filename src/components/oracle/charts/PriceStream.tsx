@@ -164,7 +164,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
       });
 
       updateCountRef.current++;
-      latencySumRef.current += Math.random() * 50 + 10; // Simulated latency for now
+      latencySumRef.current += (Date.now() % 50) + 10; // Simulated latency for now
       confidenceWidthSumRef.current += confidenceWidth;
 
       const currentTime = Date.now();
