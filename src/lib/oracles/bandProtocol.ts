@@ -2,6 +2,7 @@ import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
+import { bandRpcService } from './bandProtocol/bandRpcService';
 import {
   generateAllDataSources,
   generateBandMarketData,
@@ -9,9 +10,7 @@ import {
   generateNetworkStats,
   generateCrossChainStats,
   generateCrossChainTrend,
-  generateHistoricalBandPrices,
-  generateRandomAddress,
-  generateRandomHex,
+  generateHistoricalBandPrices
 } from './bandProtocol/mockData';
 import {
   calculateTechnicalIndicators,
@@ -34,8 +33,6 @@ import type {
   BandCrossChainSnapshot,
   CrossChainPriceComparison,
   ChainEvent,
-  EventType,
-  EVENT_TYPE_VALUES,
   OracleScript,
   IBCConnection,
   IBCTransferStats,
@@ -54,6 +51,7 @@ import type {
   PriceFeed,
   IBCRelayer,
 } from './bandProtocol/types';
+import { EventType, EVENT_TYPE_VALUES } from './bandProtocol/types';
 import type { OracleClientConfig } from './base';
 
 export * from './bandProtocol/types';
@@ -62,6 +60,12 @@ export {
   calculateStandardDeviation,
   calculateTechnicalIndicators,
 } from './bandProtocol/utils';
+
+export interface BandProtocolClientConfig extends OracleClientConfig {
+  useRealData?: boolean;
+  rpcUrl?: string;
+  restUrl?: string;
+}
 
 export class BandProtocolClient extends BaseOracleClient {
   name = OracleProvider.BAND_PROTOCOL;
@@ -77,12 +81,17 @@ export class BandProtocolClient extends BaseOracleClient {
 
   defaultUpdateIntervalMinutes = 30;
 
-  constructor(config?: OracleClientConfig) {
+  private useRealData: boolean;
+
+  constructor(config?: BandProtocolClientConfig) {
     super(config);
+    this.useRealData = config?.useRealData ?? true; // Default to real data
   }
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
+      // For price data, we still use the base prices as Band RPC doesn't provide real-time prices
+      // In production, you might want to integrate with CoinGecko or other price API
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
       return this.fetchPriceWithDatabase(symbol, chain, () =>
@@ -119,6 +128,20 @@ export class BandProtocolClient extends BaseOracleClient {
 
   async getDataSourceList(page: number = 1, limit: number = 20): Promise<DataSourceListResponse> {
     try {
+      if (this.useRealData) {
+        const allDataSources = await bandRpcService.getDataSources(page * limit);
+        const start = (page - 1) * limit;
+        const end = start + limit;
+        const paginatedSources = allDataSources.slice(start, end);
+
+        return {
+          dataSources: paginatedSources,
+          total: allDataSources.length,
+          hasMore: end < allDataSources.length,
+        };
+      }
+
+      // Fallback to mock data
       const allDataSources = await this.generateAllDataSources();
       const start = (page - 1) * limit;
       const end = start + limit;
@@ -130,6 +153,20 @@ export class BandProtocolClient extends BaseOracleClient {
         hasMore: end < allDataSources.length,
       };
     } catch (error) {
+      // If real data fails, fall back to mock data
+      if (this.useRealData && this.config.fallbackToMock) {
+        const allDataSources = await this.generateAllDataSources();
+        const start = (page - 1) * limit;
+        const end = start + limit;
+        const paginatedSources = allDataSources.slice(start, end);
+
+        return {
+          dataSources: paginatedSources,
+          total: allDataSources.length,
+          hasMore: end < allDataSources.length,
+        };
+      }
+
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch data sources',
         'DATA_SOURCES_ERROR'
@@ -139,8 +176,8 @@ export class BandProtocolClient extends BaseOracleClient {
 
   async getPriceFeeds(): Promise<PriceFeed[]> {
     try {
-      const dataSources = await this.generateAllDataSources();
-      return dataSources
+      const dataSources = await this.getDataSourceList(1, 100);
+      return dataSources.dataSources
         .filter((ds) => ds.price !== undefined)
         .map((ds) => ({
           symbol: ds.symbol,
@@ -168,26 +205,62 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getBandMarketData(): Promise<BandProtocolMarketData> {
-    return generateBandMarketData();
+    try {
+      if (this.useRealData) {
+        return await bandRpcService.getMarketData();
+      }
+      return generateBandMarketData();
+    } catch (error) {
+      if (this.useRealData && this.config.fallbackToMock) {
+        return generateBandMarketData();
+      }
+      throw error;
+    }
   }
 
   async getValidators(limit: number = 50): Promise<ValidatorInfo[]> {
-    return generateValidators(
-      limit,
-      () => this.generateRandomAddress(),
-      (length) => this.generateRandomHex(length)
-    );
+    try {
+      if (this.useRealData) {
+        return await bandRpcService.getValidators(limit);
+      }
+      return generateValidators(
+        limit,
+        () => this.generateRandomAddress(),
+        (length) => this.generateRandomHex(length)
+      );
+    } catch (error) {
+      if (this.useRealData && this.config.fallbackToMock) {
+        return generateValidators(
+          limit,
+          () => this.generateRandomAddress(),
+          (length) => this.generateRandomHex(length)
+        );
+      }
+      throw error;
+    }
   }
 
   async getNetworkStats(): Promise<BandNetworkStats> {
-    return generateNetworkStats();
+    try {
+      if (this.useRealData) {
+        return await bandRpcService.getNetworkStats();
+      }
+      return generateNetworkStats();
+    } catch (error) {
+      if (this.useRealData && this.config.fallbackToMock) {
+        return generateNetworkStats();
+      }
+      throw error;
+    }
   }
 
   async getCrossChainStats(): Promise<CrossChainStats> {
+    // Cross-chain stats are not available via RPC, use mock data
     return generateCrossChainStats();
   }
 
   async getCrossChainTrend(period: TrendPeriod = '7d'): Promise<CrossChainTrend[]> {
+    // Cross-chain trends are not available via RPC, use mock data
     return generateCrossChainTrend(period);
   }
 
@@ -255,6 +328,7 @@ export class BandProtocolClient extends BaseOracleClient {
   async getHistoricalBandPrices(
     period: '1d' | '7d' | '30d' | '90d' | '1y' = '30d'
   ): Promise<HistoricalPricePoint[]> {
+    // Historical prices are not available via RPC, use mock data
     return generateHistoricalBandPrices(period, calculateTechnicalIndicators);
   }
 
@@ -280,6 +354,7 @@ export class BandProtocolClient extends BaseOracleClient {
     validatorAddress: string,
     period: HistoryPeriod = 30
   ): Promise<ValidatorHistory[]> {
+    // Validator history is not available via RPC, use mock data
     const cacheKey = `validatorHistory_${validatorAddress}_${period}`;
     const cached = dataCache.get(cacheKey);
     if (cached) {
@@ -323,6 +398,7 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getCrossChainSnapshot(timestamp: number): Promise<BandCrossChainSnapshot> {
+    // Cross-chain snapshot is not available via RPC, use mock data
     const cacheKey = `crossChainSnapshot_${timestamp}`;
     const cached = dataCache.get(cacheKey);
     if (cached) {
@@ -419,9 +495,9 @@ export class BandProtocolClient extends BaseOracleClient {
         { name: 'Fantom', chainId: '250' },
       ];
 
-      chains.forEach((chain) => {
+      for (const chain of chains) {
         const current = currentData.get(chain.name);
-        if (!current) return;
+        if (!current) continue;
 
         const historicalPrice = snapshot.prices.get(`${chain.name}:BTC/USD`) || current.price;
         const historicalDeviation = snapshot.deviations.get(`${chain.name}:BTC/USD`) || 0;
@@ -456,7 +532,7 @@ export class BandProtocolClient extends BaseOracleClient {
           latencyChange,
           trend,
         });
-      });
+      }
 
       return comparisons;
     } catch (error) {
@@ -468,6 +544,7 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getChainEvents(limit: number = 20, type?: EventType): Promise<ChainEvent[]> {
+    // Chain events are not available via RPC, use mock data
     const cacheKey = `chainEvents_${limit}_${type || 'all'}`;
     const cached = dataCache.get(cacheKey);
     if (cached) {
@@ -552,6 +629,20 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getOracleScripts(): Promise<OracleScript[]> {
+    try {
+      if (this.useRealData) {
+        return await bandRpcService.getOracleScripts();
+      }
+      return this.generateMockOracleScripts();
+    } catch (error) {
+      if (this.useRealData && this.config.fallbackToMock) {
+        return this.generateMockOracleScripts();
+      }
+      throw error;
+    }
+  }
+
+  private generateMockOracleScripts(): OracleScript[] {
     const cacheKey = 'oracleScripts';
     const cached = dataCache.get(cacheKey);
     if (cached) {
@@ -673,6 +764,11 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getIBCConnections(): Promise<IBCConnection[]> {
+    // IBC connections are not available via RPC, use mock data
+    return this.generateMockIBCConnections();
+  }
+
+  private generateMockIBCConnections(): IBCConnection[] {
     const cacheKey = 'ibcConnections';
     const cached = dataCache.get(cacheKey);
     if (cached) {
@@ -827,6 +923,7 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getIBCTransferTrends(days: number = 7): Promise<IBCTransferTrend[]> {
+    // IBC transfer trends are not available via RPC, use mock data
     const cacheKey = `ibcTransferTrends_${days}`;
     const cached = dataCache.get(cacheKey);
     if (cached) {
@@ -858,6 +955,23 @@ export class BandProtocolClient extends BaseOracleClient {
 
   async getStakingInfo(): Promise<StakingInfo> {
     try {
+      if (this.useRealData) {
+        const networkStats = await this.getNetworkStats();
+        const marketData = await this.getBandMarketData();
+
+        return {
+          totalStaked: networkStats.bondedTokens,
+          stakingRatio: networkStats.stakingRatio,
+          stakingAPR: marketData.stakingApr,
+          unbondingPeriod: 21,
+          minStake: 100,
+          slashingRate: 0.05,
+          communityPool: networkStats.communityPool,
+          inflation: networkStats.inflationRate,
+        };
+      }
+
+      // Fallback to mock data
       const networkStats = await this.getNetworkStats();
       const marketData = await this.getBandMarketData();
 
@@ -933,190 +1047,86 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   async getRiskMetrics(): Promise<RiskMetrics> {
-    const cacheKey = 'riskMetrics';
-    const cached = dataCache.get(cacheKey);
-    if (cached) {
-      return cached as RiskMetrics;
+    try {
+      if (this.useRealData) {
+        const validators = await this.getValidators(50);
+        const networkStats = await this.getNetworkStats();
+
+        const totalStake = validators.reduce((sum, v) => sum + v.tokens, 0);
+        const sortedValidators = [...validators].sort((a, b) => b.tokens - a.tokens);
+
+        const stakes = sortedValidators.map((v) => v.tokens);
+        const giniCoefficient = this.calculateGiniCoefficient(stakes);
+
+        const top10Stake = sortedValidators.slice(0, 10).reduce((sum, v) => sum + v.tokens, 0);
+        const top10ValidatorsShare = (top10Stake / totalStake) * 100;
+
+        const nakamotoCoefficient = this.calculateNakamotoCoefficient(sortedValidators, totalStake);
+
+        const avgUptime = validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length;
+
+        const decentralizationScore = Math.max(
+          0,
+          Math.min(100, 100 - giniCoefficient * 100 - (top10ValidatorsShare - 33) * 0.5)
+        );
+
+        const securityScore = Math.max(
+          0,
+          Math.min(
+            100,
+            70 + networkStats.activeValidators * 0.3 + (100 - top10ValidatorsShare) * 0.3
+          )
+        );
+
+        const reliabilityScore = Math.max(0, Math.min(100, avgUptime));
+
+        const transparencyScore = 75 + seededRandom.next() * 10;
+
+        const overallScore =
+          decentralizationScore * 0.3 +
+          securityScore * 0.3 +
+          reliabilityScore * 0.25 +
+          transparencyScore * 0.15;
+
+        return {
+          decentralizationScore: Number(decentralizationScore.toFixed(1)),
+          securityScore: Number(securityScore.toFixed(1)),
+          reliabilityScore: Number(reliabilityScore.toFixed(1)),
+          transparencyScore: Number(transparencyScore.toFixed(1)),
+          overallScore: Number(overallScore.toFixed(1)),
+          giniCoefficient: Number(giniCoefficient.toFixed(3)),
+          nakamotoCoefficient,
+          top10ValidatorsShare: Number(top10ValidatorsShare.toFixed(1)),
+        };
+      }
+
+      // Fallback to mock calculation
+      return this.calculateMockRiskMetrics();
+    } catch (error) {
+      if (this.useRealData && this.config.fallbackToMock) {
+        return this.calculateMockRiskMetrics();
+      }
+      throw error;
     }
+  }
 
+  private calculateMockRiskMetrics(): RiskMetrics {
     seededRandom.reset(globalSeed + 13);
-    const validators = await this.getValidators(50);
-    const networkStats = await this.getNetworkStats();
 
-    const totalStake = validators.reduce((sum, v) => sum + v.tokens, 0);
-    const sortedValidators = [...validators].sort((a, b) => b.tokens - a.tokens);
+    const giniCoefficient = 0.3 + seededRandom.next() * 0.2;
+    const nakamotoCoefficient = 5 + Math.floor(seededRandom.next() * 5);
+    const top10ValidatorsShare = 40 + seededRandom.next() * 15;
 
-    const stakes = sortedValidators.map((v) => v.tokens);
-    const giniCoefficient = this.calculateGiniCoefficient(stakes);
-
-    const top10Stake = sortedValidators.slice(0, 10).reduce((sum, v) => sum + v.tokens, 0);
-    const top10ValidatorsShare = (top10Stake / totalStake) * 100;
-
-    const nakamotoCoefficient = this.calculateNakamotoCoefficient(sortedValidators, totalStake);
-
-    const avgUptime = validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length;
-    const avgCommission =
-      validators.reduce((sum, v) => sum + v.commissionRate, 0) / validators.length;
-
-    const decentralizationScore = Math.max(
-      0,
-      Math.min(100, 100 - giniCoefficient * 100 - (top10ValidatorsShare - 33) * 0.5)
-    );
-
-    const securityScore = Math.max(
-      0,
-      Math.min(100, 70 + networkStats.activeValidators * 0.3 + (100 - top10ValidatorsShare) * 0.3)
-    );
-
-    const reliabilityScore = Math.max(0, Math.min(100, avgUptime));
-
-    const transparencyScore = 75 + seededRandom.next() * 10;
-
-    const overallScore =
-      decentralizationScore * 0.3 +
-      securityScore * 0.3 +
-      reliabilityScore * 0.25 +
-      transparencyScore * 0.15;
-
-    const result = {
-      decentralizationScore: Number(decentralizationScore.toFixed(1)),
-      securityScore: Number(securityScore.toFixed(1)),
-      reliabilityScore: Number(reliabilityScore.toFixed(1)),
-      transparencyScore: Number(transparencyScore.toFixed(1)),
-      overallScore: Number(overallScore.toFixed(1)),
+    return {
+      decentralizationScore: Number((70 + seededRandom.next() * 15).toFixed(1)),
+      securityScore: Number((75 + seededRandom.next() * 15).toFixed(1)),
+      reliabilityScore: Number((90 + seededRandom.next() * 8).toFixed(1)),
+      transparencyScore: Number((70 + seededRandom.next() * 15).toFixed(1)),
+      overallScore: Number((75 + seededRandom.next() * 12).toFixed(1)),
       giniCoefficient: Number(giniCoefficient.toFixed(3)),
       nakamotoCoefficient,
       top10ValidatorsShare: Number(top10ValidatorsShare.toFixed(1)),
     };
-
-    dataCache.set(cacheKey, result);
-    return result;
-  }
-
-  async getRiskTrendData(days: number = 30): Promise<RiskTrendData[]> {
-    const cacheKey = `riskTrendData_${days}`;
-    const cached = dataCache.get(cacheKey);
-    if (cached) {
-      return cached as RiskTrendData[];
-    }
-
-    seededRandom.reset(globalSeed + 14);
-    const trends: RiskTrendData[] = [];
-    const now = new Date();
-
-    const baseDecentralization = 72;
-    const baseSecurity = 78;
-    const baseReliability = 94;
-
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-
-      const dayVariation = Math.sin(i / 5) * 3 + (seededRandom.next() - 0.5) * 4;
-      const decentralization = Math.max(60, Math.min(85, baseDecentralization + dayVariation));
-      const security = Math.max(70, Math.min(90, baseSecurity + dayVariation * 0.8));
-      const reliability = Math.max(90, Math.min(99, baseReliability + dayVariation * 0.3));
-
-      const score = decentralization * 0.3 + security * 0.3 + reliability * 0.25 + 75 * 0.15;
-
-      trends.push({
-        date: dateStr,
-        score: Number(score.toFixed(1)),
-        decentralization: Number(decentralization.toFixed(1)),
-        security: Number(security.toFixed(1)),
-        reliability: Number(reliability.toFixed(1)),
-      });
-    }
-
-    dataCache.set(cacheKey, trends);
-    return trends;
-  }
-
-  async getSecurityAuditEvents(): Promise<RiskEvent[]> {
-    try {
-      const events: RiskEvent[] = [
-        {
-          id: 'audit-2024-q1',
-          date: '2024-02-20T10:30:00',
-          title: 'Security Audit Completed',
-          description:
-            'Band Protocol core contracts passed joint security audit by CertiK and PeckShield with no critical vulnerabilities found.',
-          type: 'success',
-          source: 'https://www.certik.com/projects/bandprotocol',
-        },
-        {
-          id: 'upgrade-2023-v25',
-          date: '2023-12-15T14:20:00',
-          title: 'Mainnet Upgrade v2.5',
-          description:
-            'Completed BandChain mainnet upgrade, introducing new oracle script execution environment and optimized gas fee model.',
-          type: 'info',
-          source: 'https://docs.bandchain.org/',
-        },
-        {
-          id: 'validator-expansion-2023',
-          date: '2023-10-08T09:15:00',
-          title: 'Validator Node Expansion',
-          description:
-            'Validator nodes increased to 72, distributed across 25 countries and regions, improving network decentralization.',
-          type: 'success',
-          source: 'https://docs.bandchain.org/',
-        },
-        {
-          id: 'latency-2023',
-          date: '2023-08-22T16:45:00',
-          title: 'Price Delay Incident',
-          description:
-            'Due to network congestion, some price feeds experienced 3-5 minute delays. Team optimized data aggregation algorithm to improve response speed.',
-          type: 'warning',
-          source: 'https://docs.bandchain.org/',
-        },
-        {
-          id: 'datasource-2023',
-          date: '2023-06-10T11:30:00',
-          title: 'New Data Source Integration',
-          description:
-            'Successfully integrated 15 new institutional-grade data sources, improving price data accuracy and manipulation resistance.',
-          type: 'success',
-          source: 'https://docs.bandchain.org/',
-        },
-        {
-          id: 'staking-2023',
-          date: '2023-04-05T08:00:00',
-          title: 'Staking Mechanism Optimization',
-          description:
-            'Updated validator staking requirements, introducing dynamic slashing mechanism to enhance network security.',
-          type: 'info',
-          source: 'https://docs.bandchain.org/',
-        },
-        {
-          id: 'audit-2023',
-          date: '2023-01-15T10:00:00',
-          title: 'Annual Security Review',
-          description:
-            'Completed comprehensive security review covering smart contracts, validator infrastructure, and cross-chain bridges.',
-          type: 'success',
-          source: 'https://www.certik.com/projects/bandprotocol',
-        },
-        {
-          id: 'ibc-upgrade-2022',
-          date: '2022-11-20T14:00:00',
-          title: 'IBC Protocol Upgrade',
-          description:
-            'Upgraded IBC protocol to latest version, improving cross-chain communication reliability and adding new features.',
-          type: 'info',
-          source: 'https://docs.bandchain.org/',
-        },
-      ];
-
-      return events;
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch security audit events',
-        'SECURITY_AUDIT_EVENTS_ERROR'
-      );
-    }
   }
 
   private calculateGiniCoefficient(values: number[]): number {
@@ -1160,7 +1170,143 @@ export class BandProtocolClient extends BaseOracleClient {
     return count;
   }
 
+  async getRiskTrendData(days: number = 30): Promise<RiskTrendData[]> {
+    // Risk trend data is not available via RPC, use mock data
+    const cacheKey = `riskTrendData_${days}`;
+    const cached = dataCache.get(cacheKey);
+    if (cached) {
+      return cached as RiskTrendData[];
+    }
+
+    seededRandom.reset(globalSeed + 14);
+    const trends: RiskTrendData[] = [];
+    const now = new Date();
+
+    const baseDecentralization = 72;
+    const baseSecurity = 78;
+    const baseReliability = 94;
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+
+      const dayVariation = Math.sin(i / 5) * 3 + (seededRandom.next() - 0.5) * 4;
+      const decentralization = Math.max(60, Math.min(85, baseDecentralization + dayVariation));
+      const security = Math.max(70, Math.min(90, baseSecurity + dayVariation * 0.8));
+      const reliability = Math.max(90, Math.min(99, baseReliability + dayVariation * 0.3));
+
+      const score = decentralization * 0.3 + security * 0.3 + reliability * 0.25 + 75 * 0.15;
+
+      trends.push({
+        date: dateStr,
+        score: Number(score.toFixed(1)),
+        decentralization: Number(decentralization.toFixed(1)),
+        security: Number(security.toFixed(1)),
+        reliability: Number(reliability.toFixed(1)),
+      });
+    }
+
+    dataCache.set(cacheKey, trends);
+    return trends;
+  }
+
+  async getSecurityAuditEvents(): Promise<RiskEvent[]> {
+    // Security audit events are not available via RPC, use mock data
+    const events: RiskEvent[] = [
+      {
+        id: 'audit-2024-q1',
+        date: '2024-02-20T10:30:00',
+        title: 'Security Audit Completed',
+        description:
+          'Band Protocol core contracts passed joint security audit by CertiK and PeckShield with no critical vulnerabilities found.',
+        type: 'success',
+        source: 'https://www.certik.com/projects/bandprotocol',
+      },
+      {
+        id: 'upgrade-2023-v25',
+        date: '2023-12-15T14:20:00',
+        title: 'Mainnet Upgrade v2.5',
+        description:
+          'Completed BandChain mainnet upgrade, introducing new oracle script execution environment and optimized gas fee model.',
+        type: 'info',
+        source: 'https://docs.bandchain.org/',
+      },
+      {
+        id: 'validator-expansion-2023',
+        date: '2023-10-08T09:15:00',
+        title: 'Validator Node Expansion',
+        description:
+          'Validator nodes increased to 72, distributed across 25 countries and regions, improving network decentralization.',
+        type: 'success',
+        source: 'https://docs.bandchain.org/',
+      },
+      {
+        id: 'latency-2023',
+        date: '2023-08-22T16:45:00',
+        title: 'Price Delay Incident',
+        description:
+          'Due to network congestion, some price feeds experienced 3-5 minute delays. Team optimized data aggregation algorithm to improve response speed.',
+        type: 'warning',
+        source: 'https://docs.bandchain.org/',
+      },
+      {
+        id: 'datasource-2023',
+        date: '2023-06-10T11:30:00',
+        title: 'New Data Source Integration',
+        description:
+          'Successfully integrated 15 new institutional-grade data sources, improving price data accuracy and manipulation resistance.',
+        type: 'success',
+        source: 'https://docs.bandchain.org/',
+      },
+      {
+        id: 'staking-2023',
+        date: '2023-04-05T08:00:00',
+        title: 'Staking Mechanism Optimization',
+        description:
+          'Updated validator staking requirements, introducing dynamic slashing mechanism to enhance network security.',
+        type: 'info',
+        source: 'https://docs.bandchain.org/',
+      },
+      {
+        id: 'audit-2023',
+        date: '2023-01-15T10:00:00',
+        title: 'Annual Security Review',
+        description:
+          'Completed comprehensive security review covering smart contracts, validator infrastructure, and cross-chain bridges.',
+        type: 'success',
+        source: 'https://www.certik.com/projects/bandprotocol',
+      },
+      {
+        id: 'ibc-upgrade-2022',
+        date: '2022-11-20T14:00:00',
+        title: 'IBC Protocol Upgrade',
+        description:
+          'Upgraded IBC protocol to latest version, improving cross-chain communication reliability and adding new features.',
+        type: 'info',
+        source: 'https://docs.bandchain.org/',
+      },
+    ];
+
+    return events;
+  }
+
   async getGovernanceProposals(status?: ProposalStatus): Promise<GovernanceProposal[]> {
+    try {
+      if (this.useRealData) {
+        const proposals = await bandRpcService.getProposals(status);
+        return status ? proposals.filter((p) => p.status === status) : proposals;
+      }
+      return this.generateMockProposals(status);
+    } catch (error) {
+      if (this.useRealData && this.config.fallbackToMock) {
+        return this.generateMockProposals(status);
+      }
+      throw error;
+    }
+  }
+
+  private generateMockProposals(status?: ProposalStatus): GovernanceProposal[] {
     const cacheKey = `governanceProposals_${status || 'all'}`;
     const cached = dataCache.get(cacheKey);
     if (cached) {
@@ -1299,5 +1445,15 @@ export class BandProtocolClient extends BaseOracleClient {
         'GOVERNANCE_PARAMS_ERROR'
       );
     }
+  }
+
+  // Method to check if using real data
+  isUsingRealData(): boolean {
+    return this.useRealData;
+  }
+
+  // Method to toggle real data mode
+  setUseRealData(useRealData: boolean): void {
+    this.useRealData = useRealData;
   }
 }

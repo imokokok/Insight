@@ -609,4 +609,4 @@ export function generateHistoricalBandPrices(
   return result;
 }
 
-export { generateRandomAddress, generateRandomHex };
+
