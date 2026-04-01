@@ -3,6 +3,13 @@
  * @description 统一导出所有类型定义，确保类型系统清晰一致
  */
 
+import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
+import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
+import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
+import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
+import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
+import type { FavoriteConfig } from '@/hooks/useFavorites';
+import type { UserFavorite } from '@/lib/supabase/queries';
 import {
   type OracleProvider,
   type PriceData,
@@ -140,12 +147,12 @@ export interface FilterSortResult {
 export interface ChartConfigResult {
   oracleChartColors: Record<OracleProvider, string>;
   getChartData: () => ChartDataPoint[];
-  heatmapData: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[];
-  boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
-  volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
-  correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
+  heatmapData: PriceDeviationDataPoint[];
+  boxPlotData: OraclePriceData[];
+  volatilityData: OraclePriceHistory[];
+  correlationData: OraclePriceSeries[];
   latencyData: number[];
-  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
+  performanceData: OraclePerformanceData[];
 }
 
 // 旧版 ChartDataResult（兼容 useChartData.ts）
@@ -285,12 +292,12 @@ export interface HeaderSectionProps {
   showFavoritesDropdown: boolean;
   setShowFavoritesDropdown: (show: boolean) => void;
   favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
-  user: ReturnType<typeof import('@/stores/authStore').useUser>;
-  oracleFavorites: ReturnType<typeof import('@/hooks/useFavorites').useFavorites>['favorites'];
-  currentFavoriteConfig: import('@/hooks/useFavorites').FavoriteConfig;
+  user: { id: string } | null;
+  oracleFavorites: UserFavorite[];
+  currentFavoriteConfig: FavoriteConfig;
   handleClearFilters: () => void;
   getFilterSummary: () => string[];
-  handleApplyFavorite: (config: import('@/hooks/useFavorites').FavoriteConfig) => void;
+  handleApplyFavorite: (config: FavoriteConfig) => void;
   fetchPriceData: () => Promise<void>;
   t: (key: string, params?: Record<string, string | number>) => string;
 }
@@ -376,11 +383,11 @@ export interface ComparisonTabsProps {
   historyMinMax: HistoryMinMax;
   oracleChartColors: Record<OracleProvider, string>;
   getChartData: () => ChartDataPoint[];
-  heatmapData: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[];
-  boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
-  volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
-  correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
-  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[];
+  heatmapData: PriceDeviationDataPoint[];
+  boxPlotData: OraclePriceData[];
+  volatilityData: OraclePriceHistory[];
+  correlationData: OraclePriceSeries[];
+  performanceData: OraclePerformanceData[];
   maData: MovingAverageData[];
   qualityTrendData: QualityTrendData[];
   qualityScoreData: QualityScoreData;

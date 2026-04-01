@@ -10,7 +10,7 @@ export const useFormatter = () => ({
   list: () => '',
 });
 
-export default {
+const nextIntl = {
   useTranslations,
   useLocale,
   useMessages,
@@ -18,3 +18,5 @@ export default {
   useNow,
   useFormatter,
 };
+
+export default nextIntl;

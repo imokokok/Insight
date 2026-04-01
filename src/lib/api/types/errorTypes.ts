@@ -437,7 +437,7 @@ export function createPaginatedResponse<T>(
   };
 }
 
-export default {
+const errorTypes = {
   isRetryableError,
   classifyError,
   getSuggestedAction,
@@ -446,3 +446,5 @@ export default {
   createSuccessResponse,
   createPaginatedResponse,
 };
+
+export default errorTypes;

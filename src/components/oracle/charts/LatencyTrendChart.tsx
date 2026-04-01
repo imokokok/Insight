@@ -120,12 +120,14 @@ function LatencyTrendChartBase({
 
           const baseLatency = 80;
           const timeFactor = hour >= 9 && hour <= 17 ? 1.2 : 0.9;
-          const randomVariance = (Math.random() - 0.5) * 60;
+          const seed1 = ((i * 9301 + 49297) % 233280) / 233280;
+          const randomVariance = (seed1 - 0.5) * 60;
 
           let latency = baseLatency * timeFactor + randomVariance;
 
-          if (Math.random() > 0.92) {
-            latency += 100 + Math.random() * 100;
+          const seed2 = (((i + 1) * 9301 + 49297) % 233280) / 233280;
+          if (seed2 > 0.92) {
+            latency += 100 + seed2 * 100;
           }
 
           latency = Math.max(20, Math.round(latency));

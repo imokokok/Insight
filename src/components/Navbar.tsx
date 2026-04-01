@@ -165,9 +165,11 @@ export default function Navbar() {
                     >
                       <div className="w-7 h-7 bg-primary-600 flex items-center justify-center text-white text-xs font-medium overflow-hidden rounded">
                         {profile?.avatar_url ? (
-                          <img
+                          <Image
                             src={profile.avatar_url}
                             alt={profile?.display_name || 'User'}
+                            width={28}
+                            height={28}
                             className="w-full h-full object-cover"
                           />
                         ) : (

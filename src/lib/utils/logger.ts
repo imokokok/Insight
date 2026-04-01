@@ -79,19 +79,15 @@ function outputToConsole(entry: LogEntry): void {
   const prefix = formatConsoleOutput(entry);
   const { level, message, data, error } = entry;
 
-  const consoleMethod = {
-    debug: console.debug,
-    info: console.info,
-    warn: console.warn,
-    error: console.error,
-  }[level];
+  // eslint-disable-next-line no-console
+  const logFn = console[level].bind(console);
 
   if (level === 'error' && error) {
-    consoleMethod(prefix, message, { error, ...data });
+    logFn(prefix, message, { error, ...data });
   } else if (data) {
-    consoleMethod(prefix, message, data);
+    logFn(prefix, message, data);
   } else {
-    consoleMethod(prefix, message);
+    logFn(prefix, message);
   }
 }
 

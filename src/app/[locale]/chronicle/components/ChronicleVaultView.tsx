@@ -600,11 +600,12 @@ export function ChronicleVaultView({ vaultData, isLoading }: ChronicleVaultViewP
                   : warningLevel === 'medium'
                     ? 'text-amber-700'
                     : 'text-emerald-700';
+              // Deterministic mock values based on vault index and warning level
               const warningCount =
                 warningLevel === 'high'
-                  ? Math.floor(Math.random() * 5) + 1
+                  ? (index % 5) + 1
                   : warningLevel === 'medium'
-                    ? Math.floor(Math.random() * 10) + 5
+                    ? (index % 10) + 5
                     : 0;
 
               return (

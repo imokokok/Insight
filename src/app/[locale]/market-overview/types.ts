@@ -1,3 +1,7 @@
+import type { RefreshInterval } from '@/lib/constants';
+import type { PriceAlert, AlertHistory, AlertCheckResult } from '@/lib/realtime/priceAlerts';
+import type { WebSocketStatus, WebSocketMessage } from '@/lib/realtime/websocket';
+
 export interface OracleMarketData {
   name: string;
   share: number;
@@ -463,8 +467,8 @@ export interface UseMarketOverviewDataReturn {
   setHoveredItem: (item: string | null) => void;
   selectedItem: string | null;
   setSelectedItem: (item: string | null) => void;
-  refreshInterval: import('@/lib/constants').RefreshInterval;
-  setRefreshInterval: (interval: import('@/lib/constants').RefreshInterval) => void;
+  refreshInterval: RefreshInterval;
+  setRefreshInterval: (interval: RefreshInterval) => void;
 
   refreshStatus: RefreshStatus;
   showRefreshSuccess: boolean;
@@ -486,26 +490,21 @@ export interface UseMarketOverviewDataReturn {
   totalChains: number;
   totalProtocols: number;
 
-  wsStatus: import('@/lib/realtime/websocket').WebSocketStatus;
-  wsLastMessage: import('@/lib/realtime/websocket').WebSocketMessage<unknown> | null;
+  wsStatus: WebSocketStatus;
+  wsLastMessage: WebSocketMessage<unknown> | null;
   wsLastUpdated: Date | null;
   wsReconnect: () => void;
   wsMessageCount: number;
   wsConnectedChannels: string[];
 
-  priceAlerts: import('@/lib/realtime/priceAlerts').PriceAlert[];
-  alertHistory: import('@/lib/realtime/priceAlerts').AlertHistory[];
-  addPriceAlert: (
-    alert: Omit<
-      import('@/lib/realtime/priceAlerts').PriceAlert,
-      'id' | 'createdAt' | 'triggeredCount'
-    >
-  ) => void;
+  priceAlerts: PriceAlert[];
+  alertHistory: AlertHistory[];
+  addPriceAlert: (alert: Omit<PriceAlert, 'id' | 'createdAt' | 'triggeredCount'>) => void;
   removePriceAlert: (id: string) => void;
   togglePriceAlert: (id: string) => void;
   acknowledgeAlertHistory: (historyId: string) => void;
   clearAlertHistory: () => void;
   requestNotificationPermission: () => Promise<boolean>;
   hasNotificationPermission: boolean;
-  triggeredAlerts: import('@/lib/realtime/priceAlerts').AlertCheckResult[];
+  triggeredAlerts: AlertCheckResult[];
 }

@@ -7,10 +7,11 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { useFavorites } from '@/hooks';
+import { useFavorites, type FavoriteConfig } from '@/hooks';
 import { useTranslations } from '@/i18n';
+import type { UserFavorite } from '@/lib/supabase/queries';
 import { useUser } from '@/stores/authStore';
-import type { PriceData, SnapshotStats } from '@/types/oracle';
+import type { PriceData, SnapshotStats, OracleSnapshot } from '@/types/oracle';
 import { OracleProvider, saveSnapshot } from '@/types/oracle';
 
 import { type TimeRange, type DeviationFilter, symbols } from '../constants';
@@ -60,9 +61,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const [zoomLevel, setZoomLevel] = useState(1);
 
   // 快照状态
-  const [selectedSnapshot, setSelectedSnapshot] = useState<
-    import('@/types/oracle').OracleSnapshot | null
-  >(null);
+  const [selectedSnapshot, setSelectedSnapshot] = useState<OracleSnapshot | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [selectedPerformanceOracle, setSelectedPerformanceOracle] = useState<OracleProvider | null>(
     null
@@ -185,7 +184,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     []
   );
 
-  const handleSelectSnapshot = useCallback((snapshot: import('@/types/oracle').OracleSnapshot) => {
+  const handleSelectSnapshot = useCallback((snapshot: OracleSnapshot) => {
     setSelectedSnapshot(snapshot);
     setShowComparison(true);
   }, []);
@@ -316,22 +315,20 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
       };
     });
 
-    const qualityTrendData: import('../types').QualityTrendData[] = selectedOracles.map(
-      (oracle) => {
-        const history = historicalData[oracle] || [];
-        return {
-          oracle,
-          data: history.map((h: PriceData, i: number) => ({
-            timestamp: h.timestamp,
-            updateLatency: i > 0 ? h.timestamp - (history[i - 1]?.timestamp || 0) : 0,
-            deviationFromMedian: 0,
-            isOutlier: false,
-            isStale: false,
-            heartbeatCompliance: 100,
-          })),
-        };
-      }
-    );
+    const qualityTrendData: QualityTrendData[] = selectedOracles.map((oracle) => {
+      const history = historicalData[oracle] || [];
+      return {
+        oracle,
+        data: history.map((h: PriceData, i: number) => ({
+          timestamp: h.timestamp,
+          updateLatency: i > 0 ? h.timestamp - (history[i - 1]?.timestamp || 0) : 0,
+          deviationFromMedian: 0,
+          isOutlier: false,
+          isStale: false,
+          heartbeatCompliance: 100,
+        })),
+      };
+    });
 
     return { maData, qualityTrendData };
   }, [historicalData, selectedOracles]);

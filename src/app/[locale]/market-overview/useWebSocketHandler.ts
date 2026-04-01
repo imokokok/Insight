@@ -6,6 +6,8 @@ import {
   usePriceAlerts,
   type AlertCheckResult,
   type PriceDataForAlert,
+  type PriceAlert,
+  type AlertHistory,
 } from '@/lib/realtime/priceAlerts';
 import {
   useWebSocket,
@@ -22,14 +24,9 @@ export interface UseWebSocketHandlerReturn {
   wsReconnect: () => void;
   wsMessageCount: number;
   wsConnectedChannels: string[];
-  priceAlerts: import('@/lib/realtime/priceAlerts').PriceAlert[];
-  alertHistory: import('@/lib/realtime/priceAlerts').AlertHistory[];
-  addPriceAlert: (
-    alert: Omit<
-      import('@/lib/realtime/priceAlerts').PriceAlert,
-      'id' | 'createdAt' | 'triggeredCount'
-    >
-  ) => void;
+  priceAlerts: PriceAlert[];
+  alertHistory: AlertHistory[];
+  addPriceAlert: (alert: Omit<PriceAlert, 'id' | 'createdAt' | 'triggeredCount'>) => void;
   removePriceAlert: (id: string) => void;
   togglePriceAlert: (id: string) => void;
   acknowledgeAlertHistory: (historyId: string) => void;

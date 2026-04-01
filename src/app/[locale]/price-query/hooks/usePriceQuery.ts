@@ -4,8 +4,9 @@ import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 
 import { useFavorites, type FavoriteConfig } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { type OracleProvider, type Blockchain } from '@/lib/oracles';
+import type { PriceData, type OracleProvider, type Blockchain } from '@/lib/oracles';
 import { useUser } from '@/stores/authStore';
+import type { QueryHistoryItem } from '@/utils/queryHistory';
 
 import { type QueryResult, providerNames, chainNames, oracleI18nKeys } from '../constants';
 
@@ -14,6 +15,8 @@ import { usePriceQueryData, type QueryError } from './usePriceQueryData';
 import { usePriceQueryExport } from './usePriceQueryExport';
 import { usePriceQueryHistory } from './usePriceQueryHistory';
 import { usePriceQueryState, type TimeComparisonConfig } from './usePriceQueryState';
+
+import type { AnomalyInfo } from '../utils/priceValidator';
 
 export interface UsePriceQueryReturn {
   selectedOracles: OracleProvider[];
@@ -25,7 +28,7 @@ export interface UsePriceQueryReturn {
   selectedTimeRange: number;
   setSelectedTimeRange: (timeRange: number) => void;
   queryResults: QueryResult[];
-  historicalData: Partial<Record<string, import('@/lib/oracles').PriceData[]>>;
+  historicalData: Partial<Record<string, PriceData[]>>;
   isLoading: boolean;
   filterText: string;
   setFilterText: (text: string) => void;
@@ -42,14 +45,14 @@ export interface UsePriceQueryReturn {
   retryAllErrors: () => Promise<void>;
   showHistory: boolean;
   setShowHistory: (show: boolean) => void;
-  historyItems: import('@/utils/queryHistory').QueryHistoryItem[];
+  historyItems: QueryHistoryItem[];
   selectedRow: string | null;
   setSelectedRow: (row: string | null) => void;
   isCompareMode: boolean;
   setIsCompareMode: (mode: boolean) => void;
   compareTimeRange: number;
   setCompareTimeRange: (timeRange: number) => void;
-  compareHistoricalData: Partial<Record<string, import('@/lib/oracles').PriceData[]>>;
+  compareHistoricalData: Partial<Record<string, PriceData[]>>;
   compareQueryResults: QueryResult[];
   showBaseline: boolean;
   setShowBaseline: (show: boolean) => void;
@@ -62,7 +65,7 @@ export interface UsePriceQueryReturn {
   primaryDataFetchTime: Date | null;
   compareDataFetchTime: Date | null;
   validationWarnings: string[];
-  dataAnomalies: import('../utils/priceValidator').AnomalyInfo[];
+  dataAnomalies: AnomalyInfo[];
   hasDataQualityIssues: boolean;
   user: ReturnType<typeof useUser>;
   symbolFavorites: ReturnType<typeof useFavorites>['favorites'];
@@ -96,7 +99,7 @@ export interface UsePriceQueryReturn {
   toggleSeries: (seriesName: string) => void;
   handleSort: (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => void;
   fetchQueryData: () => Promise<void>;
-  handleHistorySelect: (item: import('@/utils/queryHistory').QueryHistoryItem) => void;
+  handleHistorySelect: (item: QueryHistoryItem) => void;
   handleClearHistory: () => void;
   generateFilename: (extension: string) => string;
   handleExportCSV: () => void;

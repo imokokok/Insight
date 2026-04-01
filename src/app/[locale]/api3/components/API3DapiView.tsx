@@ -131,11 +131,11 @@ export function API3DapiView(props: API3DapiViewProps) {
   const [currentPrice, setCurrentPrice] = useState(2456.78);
   const [previousPrice, setPreviousPrice] = useState(2450.12);
   const [sparklineData, setSparklineData] = useState<number[]>([]);
-  const [timeRange, setTimeRange] = useState<TimeRange>({
+  const [timeRange, setTimeRange] = useState<TimeRange>(() => ({
     start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    end: new Date(),
+    end: new Date(Date.now()),
     label: '7d',
-  });
+  }));
 
   const symbol = props.symbol || 'ETH/USD';
   const chain = props.chain;

@@ -315,7 +315,8 @@ export function DIAEcosystemView() {
       return [];
     }
 
-    const now = new Date();
+    // Fixed base date for deterministic mock data
+    const baseDate = new Date(2024, 0, 1);
     const data: TVLTrendDataPoint[] = [];
     const chainDistribution: Record<string, number> = {
       ethereum: 0.38,
@@ -327,18 +328,20 @@ export function DIAEcosystemView() {
     };
 
     for (let i = 11; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const date = new Date(baseDate.getFullYear(), baseDate.getMonth() - i, 1);
       const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
       const growthFactor = 1 - i * 0.06;
-      const volatility = 0.95 + Math.random() * 0.1;
+      // Deterministic volatility based on index
+      const volatility = 0.95 + ((i * 17) % 100) * 0.001;
       const monthTotal = currentTVL * growthFactor * volatility;
 
       const chainValues: Record<string, number> = {};
       let total = 0;
 
-      Object.entries(chainDistribution).forEach(([chain, ratio]) => {
-        const chainVolatility = 0.9 + Math.random() * 0.2;
+      Object.entries(chainDistribution).forEach(([chain, ratio], chainIdx) => {
+        // Deterministic chain volatility based on indices
+        const chainVolatility = 0.9 + (((i + chainIdx) * 23) % 100) * 0.002;
         chainValues[chain] = Number((monthTotal * ratio * chainVolatility).toFixed(2));
         total += chainValues[chain];
       });

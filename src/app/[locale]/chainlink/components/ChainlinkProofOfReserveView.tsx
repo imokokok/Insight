@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 
 import {
   Shield,
@@ -16,8 +16,6 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -25,6 +23,7 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  Line,
 } from 'recharts';
 
 import { useTranslations } from '@/i18n';

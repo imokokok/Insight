@@ -1,5 +1,10 @@
 import { useMemo, useCallback } from 'react';
 
+import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
+import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
+import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
+import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
+import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import { lttbDownsample } from '@/lib/utils/lttb';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
@@ -78,59 +83,54 @@ export function useChartData(
     });
   }, [historicalData, selectedOracles, timeRange]);
 
-  const heatmapData =
-    useMemo((): import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[] => {
-      const result: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[] =
-        [];
-      const chartDataPoints = getChartData();
-      chartDataPoints.forEach((point) => {
-        const avgPriceVal = point.avgPrice as number | undefined;
-        if (!avgPriceVal) return;
-        selectedOracles.forEach((oracle) => {
-          const price = point[oracleNames[oracle]] as number | undefined;
-          if (price !== undefined) {
-            const deviationPercent = ((price - avgPriceVal) / avgPriceVal) * 100;
-            result.push({
-              timestamp: point.rawTimestamp as number,
-              oracleName: oracleNames[oracle],
-              deviationPercent,
-              price,
-            });
-          }
-        });
+  const heatmapData = useMemo((): PriceDeviationDataPoint[] => {
+    const result: PriceDeviationDataPoint[] = [];
+    const chartDataPoints = getChartData();
+    chartDataPoints.forEach((point) => {
+      const avgPriceVal = point.avgPrice as number | undefined;
+      if (!avgPriceVal) return;
+      selectedOracles.forEach((oracle) => {
+        const price = point[oracleNames[oracle]] as number | undefined;
+        if (price !== undefined) {
+          const deviationPercent = ((price - avgPriceVal) / avgPriceVal) * 100;
+          result.push({
+            timestamp: point.rawTimestamp as number,
+            oracleName: oracleNames[oracle],
+            deviationPercent,
+            price,
+          });
+        }
       });
-      return result;
-    }, [historicalData, selectedOracles, avgPrice, getChartData]);
+    });
+    return result;
+  }, [historicalData, selectedOracles, avgPrice, getChartData]);
 
-  const boxPlotData =
-    useMemo((): import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[] => {
-      return selectedOracles.map((oracle) => ({
-        oracleId: oracle,
-        prices: (historicalData[oracle] || []).map((d) => d.price),
-      }));
-    }, [historicalData, selectedOracles]);
+  const boxPlotData = useMemo((): OraclePriceData[] => {
+    return selectedOracles.map((oracle) => ({
+      oracleId: oracle,
+      prices: (historicalData[oracle] || []).map((d) => d.price),
+    }));
+  }, [historicalData, selectedOracles]);
 
-  const volatilityData =
-    useMemo((): import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[] => {
-      return selectedOracles.map((oracle) => ({
-        oracle,
-        prices: (historicalData[oracle] || []).map((d) => ({
-          timestamp: d.timestamp,
-          price: d.price,
-        })),
-      }));
-    }, [historicalData, selectedOracles]);
+  const volatilityData = useMemo((): OraclePriceHistory[] => {
+    return selectedOracles.map((oracle) => ({
+      oracle,
+      prices: (historicalData[oracle] || []).map((d) => ({
+        timestamp: d.timestamp,
+        price: d.price,
+      })),
+    }));
+  }, [historicalData, selectedOracles]);
 
-  const correlationData =
-    useMemo((): import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[] => {
-      return selectedOracles.map((oracle) => ({
-        oracleId: oracle,
-        data: (historicalData[oracle] || []).map((d) => ({
-          timestamp: d.timestamp,
-          price: d.price,
-        })),
-      }));
-    }, [historicalData, selectedOracles]);
+  const correlationData = useMemo((): OraclePriceSeries[] => {
+    return selectedOracles.map((oracle) => ({
+      oracleId: oracle,
+      data: (historicalData[oracle] || []).map((d) => ({
+        timestamp: d.timestamp,
+        price: d.price,
+      })),
+    }));
+  }, [historicalData, selectedOracles]);
 
   const latencyData = useMemo((): number[] => {
     const latencies: number[] = [];
@@ -148,48 +148,47 @@ export function useChartData(
       : [150, 180, 200, 220, 250, 280, 300, 320, 350, 400, 450, 500];
   }, [historicalData, selectedOracles]);
 
-  const performanceData =
-    useMemo((): import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[] => {
-      return selectedOracles.map((oracle) => {
-        const history = historicalData[oracle] || [];
-        const prices = history.map((d) => d.price);
-        const mean = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
-        const variance =
-          prices.length > 1
-            ? prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length
-            : 0;
-        const stdDev = Math.sqrt(variance);
-        const stability = mean > 0 ? Math.max(0, 100 - (stdDev / mean) * 1000) : 50;
+  const performanceData = useMemo((): OraclePerformanceData[] => {
+    return selectedOracles.map((oracle) => {
+      const history = historicalData[oracle] || [];
+      const prices = history.map((d) => d.price);
+      const mean = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+      const variance =
+        prices.length > 1
+          ? prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length
+          : 0;
+      const stdDev = Math.sqrt(variance);
+      const stability = mean > 0 ? Math.max(0, 100 - (stdDev / mean) * 1000) : 50;
 
-        const latencies: number[] = [];
-        for (let i = 1; i < history.length; i++) {
-          const timeDiff = history[i].timestamp - history[i - 1].timestamp;
-          if (timeDiff > 0 && timeDiff < 3600000) {
-            latencies.push(timeDiff);
-          }
+      const latencies: number[] = [];
+      for (let i = 1; i < history.length; i++) {
+        const timeDiff = history[i].timestamp - history[i - 1].timestamp;
+        if (timeDiff > 0 && timeDiff < 3600000) {
+          latencies.push(timeDiff);
         }
-        const avgLatency =
-          latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 200;
+      }
+      const avgLatency =
+        latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 200;
 
-        const avgPriceVal =
-          validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
-        const currentPrice = prices.length > 0 ? prices[prices.length - 1] : 0;
-        const priceDeviation =
-          avgPriceVal > 0 ? Math.abs((currentPrice - avgPriceVal) / avgPriceVal) : 0;
-        const accuracy = Math.max(90, Math.min(99.9, 100 - priceDeviation * 100));
+      const avgPriceVal =
+        validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
+      const currentPrice = prices.length > 0 ? prices[prices.length - 1] : 0;
+      const priceDeviation =
+        avgPriceVal > 0 ? Math.abs((currentPrice - avgPriceVal) / avgPriceVal) : 0;
+      const accuracy = Math.max(90, Math.min(99.9, 100 - priceDeviation * 100));
 
-        return {
-          provider: oracle,
-          name: oracleNames[oracle],
-          responseTime: Math.round(avgLatency),
-          accuracy: accuracy,
-          stability: Math.min(100, Math.max(0, stability)),
-          dataSources: 0,
-          supportedChains: 0,
-          color: oracleChartColors[oracle],
-        };
-      });
-    }, [historicalData, selectedOracles, validPrices, oracleChartColors]);
+      return {
+        provider: oracle,
+        name: oracleNames[oracle],
+        responseTime: Math.round(avgLatency),
+        accuracy: accuracy,
+        stability: Math.min(100, Math.max(0, stability)),
+        dataSources: 0,
+        supportedChains: 0,
+        color: oracleChartColors[oracle],
+      };
+    });
+  }, [historicalData, selectedOracles, validPrices, oracleChartColors]);
 
   return {
     oracleChartColors,

@@ -37,6 +37,7 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
       case 'defi':
         return <Coins className="w-4 h-4" />;
       case 'nft':
+        // eslint-disable-next-line jsx-a11y/alt-text
         return <Image className="w-4 h-4" />;
       case 'social':
         return <MessageSquare className="w-4 h-4" />;

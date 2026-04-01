@@ -15,6 +15,7 @@
 // ============================================================================
 
 import type { OracleProvider } from '../oracle';
+import type { TrendDirection } from '../oracle/constants';
 
 export interface TabConfig {
   id: string;
@@ -29,7 +30,7 @@ export interface TabConfig {
 export interface PageConfig {
   title: string;
   description?: string;
-  provider: import('../oracle/enums').OracleProvider;
+  provider: OracleProvider;
   tabs: TabConfig[];
   refreshInterval?: number;
 }
@@ -71,7 +72,7 @@ export interface StatsSummary {
   value: number | string;
   change?: number;
   changePercent?: number;
-  trend?: import('../oracle/constants').TrendDirection;
+  trend?: TrendDirection;
 }
 
 // ============================================================================

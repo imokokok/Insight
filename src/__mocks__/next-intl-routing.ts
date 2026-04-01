@@ -1,5 +1,5 @@
 export const defineRouting = <T extends Record<string, unknown>>(_config: T): T => _config;
-export const createNavigation = <T extends Record<string, unknown>>(config: T) => ({
+export const createNavigation = <T extends Record<string, unknown>>(_config: T) => ({
   Link: ({ children }: { children: React.ReactNode }) => children,
   redirect: (path: string) => path,
   usePathname: () => '/',
@@ -13,9 +13,11 @@ export const createNavigation = <T extends Record<string, unknown>>(config: T) =
 export const locales = ['en', 'zh-CN'];
 export const defaultLocale = 'en';
 
-export default {
+const nextIntlRouting = {
   defineRouting,
   createNavigation,
   locales,
   defaultLocale,
 };
+
+export default nextIntlRouting;

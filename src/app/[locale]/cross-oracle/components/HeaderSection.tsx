@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 
 import { FavoriteButton } from '@/components/favorites';
 import { type FavoriteConfig } from '@/hooks';
+import type { UserFavorite } from '@/lib/supabase/queries';
 import { type OracleProvider } from '@/types/oracle';
 
 import { oracleNames } from '../constants';
@@ -16,8 +17,8 @@ interface HeaderSectionProps {
   showFavoritesDropdown: boolean;
   setShowFavoritesDropdown: (show: boolean) => void;
   favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
-  user: ReturnType<typeof import('@/stores/authStore').useUser>;
-  oracleFavorites: ReturnType<typeof import('@/hooks/useFavorites').useFavorites>['favorites'];
+  user: { id: string } | null;
+  oracleFavorites: UserFavorite[];
   currentFavoriteConfig: FavoriteConfig;
   handleApplyFavorite: (config: FavoriteConfig) => void;
   fetchPriceData: () => Promise<void>;

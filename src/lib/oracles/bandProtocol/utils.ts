@@ -1,3 +1,5 @@
+import type { TechnicalIndicators } from './types';
+
 export class SeededRandom {
   private seed: number;
 
@@ -55,9 +57,7 @@ export function calculateStandardDeviation(prices: number[]): {
   };
 }
 
-export function calculateTechnicalIndicators(
-  prices: number[]
-): import('./types').TechnicalIndicators {
+export function calculateTechnicalIndicators(prices: number[]): TechnicalIndicators {
   const ma7 = calculateMovingAverage(prices, 7);
   const ma20 = calculateMovingAverage(prices, 20);
 

@@ -1,3 +1,6 @@
+import type { TrendDirection, DataStatus } from './constants';
+import type { OracleProvider, Blockchain } from './enums';
+
 export interface ConfidenceInterval {
   bid: number;
   ask: number;
@@ -11,8 +14,8 @@ export interface PriceDataBase {
 }
 
 export interface PriceData extends PriceDataBase {
-  provider: import('./enums').OracleProvider;
-  chain?: import('./enums').Blockchain;
+  provider: OracleProvider;
+  chain?: Blockchain;
   decimals?: number;
   confidence?: number;
   source?: string;
@@ -50,8 +53,8 @@ export interface PriceDeviation {
   marketPrice?: number;
   deviation: number;
   deviationPercent: number;
-  trend: import('./constants').TrendDirection;
-  status: import('./constants').DataStatus;
+  trend: TrendDirection;
+  status: DataStatus;
 }
 
 export interface PriceDataForAlert extends PriceDataBase {

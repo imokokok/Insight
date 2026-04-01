@@ -1,0 +1,397 @@
+{
+  "summary": {
+    "totalErrors": 359,
+    "totalWarnings": 923,
+    "totalFiles": 1135,
+    "filesWithIssues": 409
+  },
+  "errorTypes": [
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "count": 720,
+      "type": "warning"
+    },
+    {
+      "rule": "react-hooks/purity",
+      "count": 104,
+      "type": "error"
+    },
+    {
+      "rule": "@typescript-eslint/consistent-type-imports",
+      "count": 94,
+      "type": "warning"
+    },
+    {
+      "rule": "react-hooks/exhaustive-deps",
+      "count": 60,
+      "type": "warning"
+    },
+    {
+      "rule": "max-lines-per-function",
+      "count": 54,
+      "type": "error"
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "count": 54,
+      "type": "error"
+    },
+    {
+      "rule": "react-hooks/preserve-manual-memoization",
+      "count": 27,
+      "type": "error"
+    },
+    {
+      "rule": "react-hooks/rules-of-hooks",
+      "count": 24,
+      "type": "error"
+    },
+    {
+      "rule": "react-hooks/static-components",
+      "count": 23,
+      "type": "error"
+    },
+    {
+      "rule": "react-hooks/refs",
+      "count": 22,
+      "type": "error"
+    },
+    {
+      "rule": "prettier/prettier",
+      "count": 17,
+      "type": "error"
+    },
+    {
+      "rule": "@next/next/no-img-element",
+      "count": 14,
+      "type": "warning"
+    },
+    {
+      "rule": "no-console",
+      "count": 14,
+      "type": "warning"
+    },
+    {
+      "rule": "@next/next/no-html-link-for-pages",
+      "count": 10,
+      "type": "error"
+    },
+    {
+      "rule": "react-hooks/immutability",
+      "count": 7,
+      "type": "error"
+    },
+    {
+      "rule": "complexity",
+      "count": 7,
+      "type": "error"
+    },
+    {
+      "rule": "react-hooks/incompatible-library",
+      "count": 6,
+      "type": "warning"
+    },
+    {
+      "rule": "import/no-anonymous-default-export",
+      "count": 5,
+      "type": "warning"
+    },
+    {
+      "rule": "jsx-a11y/role-has-required-aria-props",
+      "count": 5,
+      "type": "warning"
+    },
+    {
+      "rule": "jsx-a11y/alt-text",
+      "count": 3,
+      "type": "warning"
+    },
+    {
+      "rule": "import/order",
+      "count": 3,
+      "type": "error"
+    },
+    {
+      "rule": "unknown",
+      "count": 3,
+      "type": "error"
+    },
+    {
+      "rule": "react/no-unescaped-entities",
+      "count": 2,
+      "type": "error"
+    },
+    {
+      "rule": "jsx-a11y/role-supports-aria-props",
+      "count": 1,
+      "type": "warning"
+    },
+    {
+      "rule": "@next/next/google-font-preconnect",
+      "count": 1,
+      "type": "warning"
+    },
+    {
+      "rule": "react/no-children-prop",
+      "count": 1,
+      "type": "error"
+    },
+    {
+      "rule": "max-lines",
+      "count": 1,
+      "type": "error"
+    }
+  ],
+  "topFiles": [
+    {
+      "path": "src/app/[locale]/chronicle/components/ChroniclePriceDeviationView.tsx",
+      "errors": 26,
+      "warnings": 2
+    },
+    {
+      "path": "src/app/[locale]/cross-oracle/types.ts",
+      "errors": 0,
+      "warnings": 19
+    },
+    {
+      "path": "src/lib/oracles/bandProtocol/mockData.ts",
+      "errors": 0,
+      "warnings": 17
+    },
+    {
+      "path": "src/app/[locale]/cross-oracle/types/index.ts",
+      "errors": 0,
+      "warnings": 14
+    },
+    {
+      "path": "src/components/oracle/charts/DataQualityTrend.tsx",
+      "errors": 4,
+      "warnings": 10
+    },
+    {
+      "path": "src/lib/validation/errorHandler.ts",
+      "errors": 14,
+      "warnings": 0
+    },
+    {
+      "path": "src/app/[locale]/uma/components/CrossChainVerification.tsx",
+      "errors": 7,
+      "warnings": 6
+    },
+    {
+      "path": "src/components/oracle/panels/ChainlinkRiskPanel.tsx",
+      "errors": 4,
+      "warnings": 9
+    },
+    {
+      "path": "src/hooks/oracles/winklink.ts",
+      "errors": 9,
+      "warnings": 4
+    },
+    {
+      "path": "src/lib/api/middleware/enhancedErrorMiddleware.ts",
+      "errors": 0,
+      "warnings": 13
+    },
+    {
+      "path": "src/app/[locale]/redstone/components/SignatureVerification.tsx",
+      "errors": 9,
+      "warnings": 3
+    },
+    {
+      "path": "src/components/oracle/analytics/AnomalyDetection.tsx",
+      "errors": 1,
+      "warnings": 11
+    },
+    {
+      "path": "src/hooks/oracles/dia.ts",
+      "errors": 11,
+      "warnings": 1
+    },
+    {
+      "path": "src/app/[locale]/home-components/OracleMarketOverview.tsx",
+      "errors": 1,
+      "warnings": 10
+    },
+    {
+      "path": "src/app/[locale]/redstone/components/DataFreshnessMonitor.tsx",
+      "errors": 9,
+      "warnings": 2
+    },
+    {
+      "path": "src/app/[locale]/tellor/components/TellorHero.tsx",
+      "errors": 2,
+      "warnings": 9
+    },
+    {
+      "path": "src/components/comparison/OracleComparisonView.tsx",
+      "errors": 2,
+      "warnings": 9
+    },
+    {
+      "path": "src/lib/config/oracles.tsx",
+      "errors": 0,
+      "warnings": 11
+    },
+    {
+      "path": "src/app/[locale]/cross-oracle/page.tsx",
+      "errors": 0,
+      "warnings": 10
+    },
+    {
+      "path": "src/app/[locale]/cross-oracle/useTechnicalIndicators.ts",
+      "errors": 9,
+      "warnings": 1
+    },
+    {
+      "path": "src/app/[locale]/price-query/components/QueryHeader.tsx",
+      "errors": 0,
+      "warnings": 10
+    },
+    {
+      "path": "src/app/[locale]/cross-chain/useCrossChainData.ts",
+      "errors": 1,
+      "warnings": 8
+    },
+    {
+      "path": "src/app/[locale]/cross-oracle/hooks/useCrossOraclePage.ts",
+      "errors": 1,
+      "warnings": 8
+    },
+    {
+      "path": "src/components/oracle/panels/BandRiskAssessmentPanel.tsx",
+      "errors": 0,
+      "warnings": 9
+    },
+    {
+      "path": "src/app/[locale]/chainlink/components/ChainlinkAutomationView.tsx",
+      "errors": 1,
+      "warnings": 7
+    },
+    {
+      "path": "src/app/[locale]/chronicle/components/ChronicleHero.tsx",
+      "errors": 1,
+      "warnings": 7
+    },
+    {
+      "path": "src/app/[locale]/cross-chain/page.tsx",
+      "errors": 1,
+      "warnings": 7
+    },
+    {
+      "path": "src/app/[locale]/market-overview/types.ts",
+      "errors": 0,
+      "warnings": 8
+    },
+    {
+      "path": "src/app/[locale]/redstone/components/GasCostCalculator.tsx",
+      "errors": 0,
+      "warnings": 8
+    },
+    {
+      "path": "src/app/[locale]/redstone/components/RedStoneMarketView.tsx",
+      "errors": 0,
+      "warnings": 8
+    },
+    {
+      "path": "src/app/[locale]/redstone/components/RedStoneTokenView.tsx",
+      "errors": 3,
+      "warnings": 5
+    },
+    {
+      "path": "src/app/[locale]/tellor/components/TellorLayerView.tsx",
+      "errors": 0,
+      "warnings": 8
+    },
+    {
+      "path": "src/app/[locale]/uma/components/UmaRiskView.tsx",
+      "errors": 6,
+      "warnings": 2
+    },
+    {
+      "path": "src/components/oracle/charts/CrossOracleComparison/useCrossOraclePrices.ts",
+      "errors": 6,
+      "warnings": 2
+    },
+    {
+      "path": "src/components/oracle/charts/EnhancedTooltip/EnhancedTooltip.tsx",
+      "errors": 2,
+      "warnings": 6
+    },
+    {
+      "path": "src/app/[locale]/cross-oracle/useChartData.ts",
+      "errors": 0,
+      "warnings": 7
+    },
+    {
+      "path": "src/app/[locale]/price-query/hooks/usePriceQuery.ts",
+      "errors": 1,
+      "warnings": 6
+    },
+    {
+      "path": "src/app/[locale]/pyth/components/PublisherDetailModal.tsx",
+      "errors": 0,
+      "warnings": 7
+    },
+    {
+      "path": "src/app/[locale]/pyth/components/PythHero.tsx",
+      "errors": 2,
+      "warnings": 5
+    },
+    {
+      "path": "src/app/[locale]/redstone/components/RedStoneAVSView.tsx",
+      "errors": 2,
+      "warnings": 5
+    },
+    {
+      "path": "src/app/[locale]/tellor/TellorPageClient.tsx",
+      "errors": 1,
+      "warnings": 6
+    },
+    {
+      "path": "src/app/[locale]/uma/components/HistoricalDataComparison.tsx",
+      "errors": 3,
+      "warnings": 4
+    },
+    {
+      "path": "src/app/[locale]/winklink/components/WinklinkHero.tsx",
+      "errors": 2,
+      "warnings": 5
+    },
+    {
+      "path": "src/components/oracle/alerts/API3AlertPanel.tsx",
+      "errors": 0,
+      "warnings": 7
+    },
+    {
+      "path": "src/components/oracle/analytics/CustomReportGenerator.tsx",
+      "errors": 1,
+      "warnings": 6
+    },
+    {
+      "path": "src/components/oracle/forms/ComparisonReportExporter.tsx",
+      "errors": 0,
+      "warnings": 7
+    },
+    {
+      "path": "src/components/oracle/panels/DisputeVotingPanel.tsx",
+      "errors": 1,
+      "warnings": 6
+    },
+    {
+      "path": "src/app/[locale]/band-protocol/components/BandProtocolHero.tsx",
+      "errors": 0,
+      "warnings": 6
+    },
+    {
+      "path": "src/app/[locale]/band-protocol/components/BandProtocolValidatorsView.tsx",
+      "errors": 6,
+      "warnings": 0
+    },
+    {
+      "path": "src/app/[locale]/cross-oracle/components/ComparisonTabs.tsx",
+      "errors": 0,
+      "warnings": 6
+    }
+  ]
+}

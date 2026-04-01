@@ -403,6 +403,7 @@ export function AdvancedDataExport({
                     className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                   />
                   <span className="text-sm text-gray-700 flex items-center gap-1">
+                    {/* eslint-disable-next-line jsx-a11y/alt-text */}
                     <Image className="w-4 h-4" aria-hidden="true" />
                     {t('redstone.export.includeChart') || '包含图表'}
                   </span>

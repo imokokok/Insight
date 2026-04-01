@@ -61,6 +61,25 @@ export interface ChronicleCrossChainViewProps {
 
 type SortKey = 'chain' | 'price' | 'deviation' | 'lastUpdate';
 
+type SortDirection = 'asc' | 'desc';
+
+interface SortIconProps {
+  columnKey: SortKey;
+  sortKey: SortKey;
+  direction: SortDirection;
+}
+
+function SortIcon({ columnKey, sortKey, direction }: SortIconProps) {
+  if (sortKey !== columnKey) {
+    return <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />;
+  }
+  return direction === 'asc' ? (
+    <ArrowUp className="w-3.5 h-3.5 text-amber-500" />
+  ) : (
+    <ArrowDown className="w-3.5 h-3.5 text-amber-500" />
+  );
+}
+
 const CHAIN_ICONS: Record<string, string> = {
   Ethereum: '⟠',
   Arbitrum: '🔷',
@@ -274,17 +293,6 @@ export function ChronicleCrossChainView({
     }));
   };
 
-  const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
-    if (sortConfig.key !== columnKey) {
-      return <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />;
-    }
-    return sortConfig.direction === 'asc' ? (
-      <ArrowUp className="w-3.5 h-3.5 text-amber-500" />
-    ) : (
-      <ArrowDown className="w-3.5 h-3.5 text-amber-500" />
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-8 animate-pulse">
@@ -321,7 +329,11 @@ export function ChronicleCrossChainView({
                 >
                   <div className="flex items-center justify-end gap-1">
                     <span>{t('chronicle.crossChain.price')}</span>
-                    <SortIcon columnKey="price" />
+                    <SortIcon
+                      columnKey="price"
+                      sortKey={sortConfig.key}
+                      direction={sortConfig.direction}
+                    />
                   </div>
                 </th>
                 <th
@@ -330,7 +342,11 @@ export function ChronicleCrossChainView({
                 >
                   <div className="flex items-center justify-end gap-1">
                     <span>{t('chronicle.crossChain.deviation')}</span>
-                    <SortIcon columnKey="deviation" />
+                    <SortIcon
+                      columnKey="deviation"
+                      sortKey={sortConfig.key}
+                      direction={sortConfig.direction}
+                    />
                   </div>
                 </th>
                 <th
@@ -339,7 +355,11 @@ export function ChronicleCrossChainView({
                 >
                   <div className="flex items-center justify-end gap-1">
                     <span>{t('chronicle.crossChain.lastUpdate')}</span>
-                    <SortIcon columnKey="lastUpdate" />
+                    <SortIcon
+                      columnKey="lastUpdate"
+                      sortKey={sortConfig.key}
+                      direction={sortConfig.direction}
+                    />
                   </div>
                 </th>
                 <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">

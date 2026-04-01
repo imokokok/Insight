@@ -75,9 +75,7 @@ export function usePerformanceTracker(operationName: string) {
         });
       }
 
-      if (env.app.isDevelopment) {
-        console.log(`[Performance] ${operationName}: ${duration.toFixed(2)}ms`);
-      }
+      // Performance logging disabled in development to avoid console noise
 
       return duration;
     },
@@ -126,11 +124,7 @@ export function useComponentPerformance(componentName: string, enabled = true) {
         });
       }
 
-      if (env.app.isDevelopment) {
-        console.log(
-          `[Component] ${componentName}: ${renderCountRef.current} renders, ${updateCountRef.current} updates, mounted for ${mountDuration.toFixed(0)}ms`
-        );
-      }
+      // Component performance logging disabled in development
     };
   }, [componentName, enabled]);
 
@@ -302,9 +296,7 @@ export function useLongTaskMonitor(threshold = 50) {
           });
         }
 
-        if (env.app.isDevelopment) {
-          console.warn(`[Long Task] ${entry.duration.toFixed(0)}ms - ${entry.name}`);
-        }
+        // Long task warnings disabled in development
       });
     });
 

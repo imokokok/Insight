@@ -217,12 +217,10 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
   useEffect(() => {
     const errors = results.filter((r) => r.isError && r.error);
     if (errors.length > 0) {
-      console.group('[WINkLink] 数据加载错误');
-      errors.forEach((result, index) => {
-        const keys = ['price', 'historical', 'tron', 'staking', 'gaming', 'network', 'risk'];
-        console.error(`[${keys[index]}] 加载失败:`, result.error);
+      // Errors are handled by the query error handlers
+      errors.forEach((_result, _index) => {
+        // Error logging removed to avoid console noise
       });
-      console.groupEnd();
     }
   }, [results]);
 

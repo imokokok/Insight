@@ -226,9 +226,13 @@ function MiniPriceChart({
     if (historicalData.length >= 20) {
       return historicalData.slice(-20).map((d) => d.price);
     }
-    // 生成模拟数据
+    // 生成模拟数据 - 使用确定性算法
     const basePrice = currentPrice?.price || 100;
-    return Array.from({ length: 20 }, (_, i) => basePrice * (1 + (Math.random() - 0.5) * 0.1));
+    return Array.from({ length: 20 }, (_, i) => {
+      const seed = (i * 9301 + 49297) % 233280;
+      const random = seed / 233280;
+      return basePrice * (1 + (random - 0.5) * 0.1);
+    });
   }, [historicalData, currentPrice]);
 
   const priceChange = useMemo(() => {
@@ -619,7 +623,11 @@ export function TellorHero({
     if (historicalData.length > 0) {
       return historicalData.slice(-24).map((d) => d.price);
     }
-    return Array.from({ length: 24 }, (_, i) => currentPrice * (1 + (Math.random() - 0.5) * 0.1));
+    return Array.from({ length: 24 }, (_, i) => {
+      const seed = (i * 9301 + 49297) % 233280;
+      const random = seed / 233280;
+      return currentPrice * (1 + (random - 0.5) * 0.1);
+    });
   }, [historicalData, currentPrice]);
 
   // 核心统计指标 (Primary Stats) - 增加到5个

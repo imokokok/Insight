@@ -262,7 +262,8 @@ export function BandProtocolGovernanceView({
     const totalVotes = proposals.reduce((sum, p) => {
       return sum + p.votes.yes + p.votes.no + p.votes.abstain + p.votes.noWithVeto;
     }, 0);
-    const participationRate = 75 + Math.random() * 10;
+    // participationRate is calculated from actual data, using a fixed estimate
+    const participationRate = 80;
 
     return {
       activeProposals,

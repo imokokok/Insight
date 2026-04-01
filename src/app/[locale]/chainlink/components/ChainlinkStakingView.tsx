@@ -19,7 +19,6 @@ import {
   Info,
   Calculator,
   ArrowUpRight,
-  ArrowDownRight,
 } from 'lucide-react';
 import {
   AreaChart,

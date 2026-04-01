@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -52,9 +53,11 @@ function ResultIcon({ result }: { result: SearchResult }) {
 
   if (result.iconUrl && !imageError) {
     return (
-      <img
+      <Image
         src={result.iconUrl}
         alt=""
+        width={20}
+        height={20}
         className="w-5 h-5 object-contain"
         onError={() => setImageError(true)}
       />

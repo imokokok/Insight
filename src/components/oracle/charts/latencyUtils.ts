@@ -174,15 +174,15 @@ export function generateMockLatencyData(threshold: number): LatencyDataPoint[] {
     const hour = timestamp.getHours();
 
     let latency: number;
-    const random = Math.random();
+    const seed = ((i * 9301 + 49297) % 233280) / 233280;
 
-    if (random > 0.92) {
-      latency = baseLatency + 150 + Math.random() * 100;
-    } else if (random > 0.85) {
-      latency = baseLatency + 80 + Math.random() * 50;
+    if (seed > 0.92) {
+      latency = baseLatency + 150 + seed * 100;
+    } else if (seed > 0.85) {
+      latency = baseLatency + 80 + seed * 50;
     } else {
       const timeFactor = hour >= 9 && hour <= 17 ? 1.2 : 0.9;
-      latency = baseLatency + (Math.random() - 0.5) * normalVariance * timeFactor;
+      latency = baseLatency + (seed - 0.5) * normalVariance * timeFactor;
     }
 
     latency = Math.max(20, latency);

@@ -11,7 +11,7 @@ export const getFormatter = () =>
     list: () => '',
   });
 
-export default {
+const nextIntlServer = {
   getTranslations,
   getLocale,
   getMessages,
@@ -19,3 +19,5 @@ export default {
   getNow,
   getFormatter,
 };
+
+export default nextIntlServer;
