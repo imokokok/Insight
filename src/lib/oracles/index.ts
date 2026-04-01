@@ -23,6 +23,29 @@ export {
 } from './chainlinkDataSources';
 export { BandProtocolClient } from './bandProtocol';
 export { UMAClient } from './uma';
+export {
+  UMAOnChainService,
+  umaOnChainService,
+  type UMATokenData,
+  type UMAAssertionData,
+  type UMANetworkStats as UMAOnChainNetworkStats,
+} from './umaOnChainService';
+export {
+  UMA_CONTRACTS,
+  UMA_PRICE_FEEDS,
+  UMA_RPC_CONFIG,
+  OPTIMISTIC_ORACLE_V3_ABI,
+  UMA_TOKEN_ABI,
+  getUMAContract,
+  getOptimisticOracleV3Address,
+  getVotingTokenAddress,
+  getUMARPCConfig,
+  getSupportedUMAChainIds,
+  isUMASupportedOnChain,
+  type UMAContract,
+  type UMAPriceFeed,
+  type UMARPCConfig,
+} from './umaDataSources';
 export { PythClient } from './pythNetwork';
 export { API3Client } from './api3';
 export { RedStoneClient } from './redstone';
