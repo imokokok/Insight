@@ -1,17 +1,27 @@
 'use client';
 
-import { type ReactNode, type ButtonHTMLAttributes, forwardRef } from 'react';
+import { type ReactNode, type ButtonHTMLAttributes, forwardRef, memo } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * Props for the Button component
+ * @extends ButtonHTMLAttributes<HTMLButtonElement>
+ */
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Button content */
   children: ReactNode;
+  /** Visual style variant */
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  /** Size variant */
   size?: 'sm' | 'md' | 'lg' | 'icon';
+  /** Whether the button is in loading state */
   isLoading?: boolean;
+  /** Icon to display on the left side */
   leftIcon?: ReactNode;
+  /** Icon to display on the right side */
   rightIcon?: ReactNode;
 }
 
@@ -69,11 +79,23 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
+const MemoizedButton = memo(Button);
+MemoizedButton.displayName = 'Button';
+
+/**
+ * Props for the IconButton component
+ * @extends ButtonHTMLAttributes<HTMLButtonElement>
+ */
 export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Icon to display */
   icon: ReactNode;
+  /** Accessible label for the button */
   'aria-label': string;
+  /** Visual style variant */
   variant?: 'primary' | 'secondary' | 'ghost';
+  /** Size variant */
   size?: 'sm' | 'md' | 'lg';
+  /** Whether the button is in loading state */
   isLoading?: boolean;
 }
 
@@ -114,3 +136,8 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
 );
 
 IconButton.displayName = 'IconButton';
+
+const MemoizedIconButton = memo(IconButton);
+MemoizedIconButton.displayName = 'IconButton';
+
+export { MemoizedButton as Button, MemoizedIconButton as IconButton };

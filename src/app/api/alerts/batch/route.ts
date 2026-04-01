@@ -3,6 +3,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getUserId } from '@/lib/api/utils';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
+import { sanitizeObject } from '@/lib/security';
+import { BatchOperationSchema, validateAndSanitize } from '@/lib/security/validation';
 
 const logger = createLogger('api-alerts-batch');
 
@@ -14,22 +16,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { action, alertIds } = body;
 
-    if (!action || !alertIds || !Array.isArray(alertIds) || alertIds.length === 0) {
+    const validatedData = validateAndSanitize(BatchOperationSchema, body);
+
+    if (!validatedData) {
       return NextResponse.json(
-        { error: 'Missing required fields: action, alertIds (array)' },
+        { error: 'Invalid request data. Check action and alertIds fields.' },
         { status: 400 }
       );
     }
 
-    const validActions = ['enable', 'disable', 'delete'];
-    if (!validActions.includes(action)) {
-      return NextResponse.json(
-        { error: `Invalid action. Must be one of: ${validActions.join(', ')}` },
-        { status: 400 }
-      );
-    }
+    const sanitizedData = sanitizeObject(validatedData);
+    const { action, alertIds } = sanitizedData;
 
     const queries = getServerQueries();
     const results = {
@@ -37,20 +35,17 @@ export async function POST(request: NextRequest) {
       failed: [] as string[],
     };
 
-    // Verify all alerts belong to the user
     const userAlerts = await queries.getAlerts(userId);
     if (!userAlerts) {
       return NextResponse.json({ error: 'Failed to fetch user alerts' }, { status: 500 });
     }
 
     const userAlertIds = new Set(userAlerts.map((a) => a.id));
-    const validAlertIds = alertIds.filter((id) => userAlertIds.has(id));
-    const invalidAlertIds = alertIds.filter((id) => !userAlertIds.has(id));
+    const validAlertIds = alertIds.filter((id: string) => userAlertIds.has(id));
+    const invalidAlertIds = alertIds.filter((id: string) => !userAlertIds.has(id));
 
-    // Add invalid IDs to failed list
-    invalidAlertIds.forEach((id) => results.failed.push(id));
+    invalidAlertIds.forEach((id: string) => results.failed.push(id));
 
-    // Process batch action
     if (action === 'enable' || action === 'disable') {
       const isActive = action === 'enable';
 

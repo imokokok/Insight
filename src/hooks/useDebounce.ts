@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 
 /**
- * 防抖 Hook
- * @param value 需要防抖的值
- * @param delay 延迟时间（毫秒）
- * @returns 防抖后的值
+ * Debounce hook for delaying value updates
+ * @param value - The value to debounce
+ * @param delay - Delay time in milliseconds
+ * @returns Debounced value
  */
 export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -25,10 +25,10 @@ export function useDebounce<T>(value: T, delay: number): T {
 }
 
 /**
- * 防抖回调 Hook
- * @param callback 需要防抖的回调函数
- * @param delay 延迟时间（毫秒）
- * @returns 防抖后的回调函数
+ * Debounced callback hook for delaying function execution
+ * @param callback - The callback function to debounce
+ * @param delay - Delay time in milliseconds
+ * @returns Debounced callback function
  */
 export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,

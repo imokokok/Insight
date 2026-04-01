@@ -97,3 +97,20 @@ export type {
   DropdownSelectProps,
   MultiSelectProps,
 } from './selectors';
+
+// Error handling components
+export {
+  ErrorBoundary,
+  GlobalErrorBoundary,
+  PageErrorBoundary,
+  SectionErrorBoundary,
+  ComponentErrorBoundary,
+} from '../error-boundary';
+export type {
+  ErrorBoundaryProps,
+  ErrorBoundaryLevel,
+  ErrorFallbackRenderProps,
+} from '../error-boundary';
+
+export { ErrorDisplay } from '../error-display';
+export type { ErrorDisplayProps, ErrorDisplayType, ErrorDisplayVariant } from '../error-display';

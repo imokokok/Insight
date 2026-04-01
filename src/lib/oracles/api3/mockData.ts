@@ -8,6 +8,10 @@ import type {
   CoveragePoolDetails,
 } from './types';
 
+/**
+ * Retrieves mock Airnode network statistics
+ * @returns Mock Airnode network statistics data
+ */
 export function getMockAirnodeNetworkStats(): AirnodeNetworkStats {
   return {
     activeAirnodes: 156,
@@ -26,6 +30,10 @@ export function getMockAirnodeNetworkStats(): AirnodeNetworkStats {
   };
 }
 
+/**
+ * Retrieves mock dAPI coverage data
+ * @returns Mock dAPI coverage statistics by asset type, chain, and update frequency
+ */
 export function getMockDapiCoverage(): DAPICoverage {
   return {
     totalDapis: 168,
@@ -48,6 +56,10 @@ export function getMockDapiCoverage(): DAPICoverage {
   };
 }
 
+/**
+ * Retrieves mock staking data
+ * @returns Mock staking statistics including APR, staker count, and coverage pool info
+ */
 export function getMockStakingData(): StakingData {
   return {
     totalStaked: 25000000,
@@ -61,6 +73,10 @@ export function getMockStakingData(): StakingData {
   };
 }
 
+/**
+ * Retrieves mock first-party oracle data
+ * @returns Mock first-party oracle deployment statistics and advantages
+ */
 export async function getMockFirstPartyOracleData(): Promise<FirstPartyOracleData> {
   return {
     airnodeDeployments: {
@@ -91,6 +107,10 @@ export async function getMockFirstPartyOracleData(): Promise<FirstPartyOracleDat
   };
 }
 
+/**
+ * Retrieves mock dAPI price deviation data
+ * @returns Array of mock price deviations for various trading pairs
+ */
 export function getMockDapiPriceDeviations(): DAPIPriceDeviation[] {
   return [
     {
@@ -176,6 +196,10 @@ export function getMockDapiPriceDeviations(): DAPIPriceDeviation[] {
   ];
 }
 
+/**
+ * Retrieves mock data source traceability information
+ * @returns Array of mock data source details including credibility scores and performance metrics
+ */
 export function getMockDataSourceTraceability(): DataSourceInfo[] {
   return [
     {
@@ -253,6 +277,10 @@ export function getMockDataSourceTraceability(): DataSourceInfo[] {
   ];
 }
 
+/**
+ * Retrieves mock coverage pool details
+ * @returns Mock coverage pool statistics including TVL, collateralization ratio, and health status
+ */
 export function getMockCoveragePoolDetails(): CoveragePoolDetails {
   const collateralizationRatio = 156.8;
   const targetCollateralization = 150;

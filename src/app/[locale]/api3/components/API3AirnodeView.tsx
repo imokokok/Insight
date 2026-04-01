@@ -99,7 +99,7 @@ const regionStats = [
   { region: 'Asia', count: 2, percentage: 25 },
 ];
 
-export function API3AirnodeView({ airnodeStats, firstParty, isLoading }: API3AirnodeViewProps) {
+export function API3AirnodeView({}: API3AirnodeViewProps) {
   const t = useTranslations();
 
   const columns = [

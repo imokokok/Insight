@@ -3,6 +3,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getUserId } from '@/lib/api/utils';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
+import { sanitizeObject } from '@/lib/security';
+import { CreateSnapshotRequestSchema, validateAndSanitize } from '@/lib/security/validation';
 
 const logger = createLogger('api-snapshots');
 
@@ -41,14 +43,21 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, symbol, selected_oracles, price_data, stats, is_public } = body;
 
-    if (!symbol || !selected_oracles || !price_data || !stats) {
+    const validatedData = validateAndSanitize(CreateSnapshotRequestSchema, body);
+
+    if (!validatedData) {
       return NextResponse.json(
-        { error: 'Missing required fields: symbol, selected_oracles, price_data, stats' },
+        {
+          error:
+            'Invalid request data. Check symbol, selected_oracles, price_data, and stats fields.',
+        },
         { status: 400 }
       );
     }
+
+    const sanitizedData = sanitizeObject(validatedData);
+    const { name, symbol, selected_oracles, price_data, stats, is_public } = sanitizedData;
 
     const queries = getServerQueries();
     const snapshot = await queries.saveSnapshot(userId, {

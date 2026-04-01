@@ -3,7 +3,6 @@
 import { useState } from 'react';
 
 import {
-  Code,
   Copy,
   Check,
   ChevronDown,
@@ -266,7 +265,7 @@ const rateLimits = [
   { tier: 'Enterprise', requests: '10,000/minute', burst: '1,000/second', price: 'Custom' },
 ];
 
-export function API3ApiDocs({ locale }: API3ApiDocsProps) {
+export function API3ApiDocs(_props: API3ApiDocsProps) {
   const t = useTranslations();
   const apiEndpoints = getApiEndpoints(t);
   const [expandedApi, setExpandedApi] = useState<string>('market');

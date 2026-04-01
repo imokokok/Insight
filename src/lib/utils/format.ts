@@ -1,7 +1,18 @@
+/**
+ * Checks if a value is a finite number
+ * @param value - The value to check
+ * @returns Boolean indicating if value is a finite number
+ */
 function isFiniteNumber(value: number): boolean {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+/**
+ * Formats a number as currency (USD)
+ * @param value - The numeric value to format
+ * @param compact - Whether to use compact notation (e.g., $1.2M)
+ * @returns Formatted currency string
+ */
 export function formatCurrency(value: number, compact: boolean = false): string {
   if (!isFiniteNumber(value)) {
     return '—';
@@ -21,6 +32,12 @@ export function formatCurrency(value: number, compact: boolean = false): string 
   }).format(value);
 }
 
+/**
+ * Formats a number with locale-specific separators
+ * @param value - The numeric value to format
+ * @param compact - Whether to use compact notation (e.g., 1.2M)
+ * @returns Formatted number string
+ */
 export function formatNumber(value: number, compact: boolean = false): string {
   if (!isFiniteNumber(value)) {
     return '—';
@@ -36,6 +53,11 @@ export function formatNumber(value: number, compact: boolean = false): string {
   }).format(value);
 }
 
+/**
+ * Formats a number in compact notation with suffix (K, M, B)
+ * @param value - The numeric value to format
+ * @returns Compact formatted string (e.g., 1.2K, 3.4M)
+ */
 export function formatCompactNumber(value: number): string {
   if (!isFiniteNumber(value)) return '—';
   if (value === 0) return '0';
@@ -49,6 +71,12 @@ export function formatCompactNumber(value: number): string {
   return value.toLocaleString();
 }
 
+/**
+ * Formats a number in compact notation with custom decimal places
+ * @param value - The numeric value to format
+ * @param decimals - Number of decimal places (default: 1)
+ * @returns Compact formatted string with specified precision
+ */
 export function formatCompactNumberWithDecimals(value: number, decimals: number = 1): string {
   if (!isFiniteNumber(value)) return '—';
   if (value === 0) return '0';
@@ -62,6 +90,12 @@ export function formatCompactNumberWithDecimals(value: number, decimals: number 
   return value.toString();
 }
 
+/**
+ * Formats a number as compact currency with custom decimal places
+ * @param value - The numeric value to format
+ * @param decimals - Number of decimal places (default: 2)
+ * @returns Compact currency string with $ prefix (e.g., $1.2M)
+ */
 export function formatCompactCurrency(value: number, decimals: number = 2): string {
   if (!isFiniteNumber(value)) return '—';
   if (value === 0) return '$0';

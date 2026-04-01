@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react';
 
 import { useTranslations } from '@/i18n';
 import { type BandProtocolClient, type ValidatorInfo } from '@/lib/oracles/bandProtocol';
@@ -26,7 +26,7 @@ import {
   DesktopValidatorTable,
 } from './ValidatorRow';
 
-export function ValidatorPanel({
+export const ValidatorPanel = memo(function ValidatorPanel({
   client,
   limit = 20,
   autoUpdate = true,
@@ -167,21 +167,24 @@ export function ValidatorPanel({
     setFilteredValidators(result);
   }, [validators, sortField, sortDirection, filterStatus, quickFilter]);
 
-  const handleSort = (field: SortField) => {
-    if (field === sortField) {
-      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
+  const handleSort = useCallback(
+    (field: SortField) => {
+      if (field === sortField) {
+        setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+      } else {
+        setSortField(field);
+        setSortDirection('asc');
+      }
+    },
+    [sortField]
+  );
 
-  const handleValidatorClick = (validator: ValidatorInfo) => {
+  const handleValidatorClick = useCallback((validator: ValidatorInfo) => {
     setSelectedValidator(validator);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleToggleSelect = (e: React.MouseEvent, address: string) => {
+  const handleToggleSelect = useCallback((e: React.MouseEvent, address: string) => {
     e.stopPropagation();
     setSelectedValidatorAddresses((prev) => {
       const newSet = new Set(prev);
@@ -192,16 +195,28 @@ export function ValidatorPanel({
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleClearSelection = () => {
+  const handleClearSelection = useCallback(() => {
     setSelectedValidatorAddresses(new Set());
-  };
+  }, []);
 
-  const handleSegmentClick = (validator: ValidatorInfo) => {
+  const handleSegmentClick = useCallback((validator: ValidatorInfo) => {
     setSelectedValidator(validator);
     setIsModalOpen(true);
-  };
+  }, []);
+
+  const handleSetFilterStatus = useCallback((status: FilterStatus) => {
+    setFilterStatus(status);
+  }, []);
+
+  const handleSetQuickFilter = useCallback((filter: QuickFilter) => {
+    setQuickFilter(filter);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
 
   const activeCount = validators.filter((v) => !v.jailed).length;
   const jailedCount = validators.filter((v) => v.jailed).length;
@@ -313,21 +328,21 @@ export function ValidatorPanel({
             <FilterButton
               status="all"
               currentStatus={filterStatus}
-              onFilter={setFilterStatus}
+              onFilter={handleSetFilterStatus}
               label={t('validatorPanel.all')}
               count={validators.length}
             />
             <FilterButton
               status="active"
               currentStatus={filterStatus}
-              onFilter={setFilterStatus}
+              onFilter={handleSetFilterStatus}
               label={t('validatorPanel.status.active')}
               count={activeCount}
             />
             <FilterButton
               status="jailed"
               currentStatus={filterStatus}
-              onFilter={setFilterStatus}
+              onFilter={handleSetFilterStatus}
               label={t('validatorPanel.status.jailed')}
               count={jailedCount}
             />
@@ -338,7 +353,7 @@ export function ValidatorPanel({
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-purple-600 mr-1">{t('validatorPanel.quickFilter')}:</span>
             <button
-              onClick={() => setQuickFilter('all')}
+              onClick={() => handleSetQuickFilter('all')}
               className={`px-3 py-1.5 text-xs font-medium border transition-all ${
                 quickFilter === 'all'
                   ? 'bg-purple-600 text-white border-purple-600'
@@ -348,7 +363,7 @@ export function ValidatorPanel({
               {t('validatorPanel.all')}
             </button>
             <button
-              onClick={() => setQuickFilter('lowCommission')}
+              onClick={() => handleSetQuickFilter('lowCommission')}
               className={`px-3 py-1.5 text-xs font-medium border transition-all ${
                 quickFilter === 'lowCommission'
                   ? 'bg-purple-600 text-white border-purple-600'
@@ -358,7 +373,7 @@ export function ValidatorPanel({
               {t('validatorPanel.lowCommission')}
             </button>
             <button
-              onClick={() => setQuickFilter('highStake')}
+              onClick={() => handleSetQuickFilter('highStake')}
               className={`px-3 py-1.5 text-xs font-medium border transition-all ${
                 quickFilter === 'highStake'
                   ? 'bg-purple-600 text-white border-purple-600'
@@ -368,7 +383,7 @@ export function ValidatorPanel({
               {t('validatorPanel.highStake')}
             </button>
             <button
-              onClick={() => setQuickFilter('highUptime')}
+              onClick={() => handleSetQuickFilter('highUptime')}
               className={`px-3 py-1.5 text-xs font-medium border transition-all ${
                 quickFilter === 'highUptime'
                   ? 'bg-purple-600 text-white border-purple-600'
@@ -423,11 +438,11 @@ export function ValidatorPanel({
       <ValidatorDetailModal
         validator={selectedValidator}
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
         client={client}
       />
     </div>
   );
-}
+});
 
 export type { ValidatorPanelProps, SortField, SortDirection, FilterStatus };

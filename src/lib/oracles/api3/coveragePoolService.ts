@@ -2,6 +2,10 @@ import { MOCK_DATA_STATUS } from '../api3MockDataAnnotations';
 
 import type { AnnotatedData, CoveragePoolEvent, CoveragePoolClaim } from './types';
 
+/**
+ * Retrieves coverage pool events with data annotation
+ * @returns Annotated coverage pool events
+ */
 export async function getCoveragePoolEvents(): Promise<AnnotatedData<CoveragePoolEvent[]>> {
   const events: CoveragePoolEvent[] = [];
   const baseTime = Date.now();
@@ -157,6 +161,11 @@ export async function getCoveragePoolEvents(): Promise<AnnotatedData<CoveragePoo
   };
 }
 
+/**
+ * Retrieves coverage pool claims with optional status filter
+ * @param status - Optional status filter ('pending', 'approved', 'rejected', 'processing', or 'all')
+ * @returns Array of coverage pool claims
+ */
 export async function getCoveragePoolClaims(status?: string): Promise<CoveragePoolClaim[]> {
   const allClaims: CoveragePoolClaim[] = [
     {

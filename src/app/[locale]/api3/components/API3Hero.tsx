@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 
 import {
   TrendingUp,
@@ -185,12 +185,10 @@ function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColo
 function MiniPriceChart({
   historicalData,
   currentPrice,
-  themeColor,
   t,
 }: {
   historicalData: PriceData[];
   currentPrice: PriceData | null;
-  themeColor: string;
   t: (key: string) => string;
 }) {
   const chartData = useMemo(() => {
@@ -716,7 +714,6 @@ export function API3Hero({
               <MiniPriceChart
                 historicalData={historicalData}
                 currentPrice={price}
-                themeColor={themeColor}
                 t={t}
               />
             </div>

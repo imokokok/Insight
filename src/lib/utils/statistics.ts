@@ -1,5 +1,5 @@
 /**
- * 统计工具函数 - 用于计算 CDF、分位数等统计指标
+ * Statistical utility functions for calculating CDF, quantiles, and other statistical metrics
  */
 
 export interface CDFPoint {
@@ -29,15 +29,15 @@ export interface QuantileResult {
 }
 
 /**
- * 计算累积分布函数 (CDF)
- * CDF(x) = P(X <= x) = 小于等于x的数据点数量 / 总数据点数量
+ * Calculates the Cumulative Distribution Function (CDF)
+ * CDF(x) = P(X <= x) = Number of data points <= x / Total number of data points
  *
- * @param data 输入数据数组
- * @param steps CDF曲线的采样点数（默认100）
- * @returns CDF计算结果
+ * @param data - Input data array
+ * @param steps - Number of sampling points for the CDF curve (default: 100)
+ * @returns CDF calculation result
  */
 export function calculateCDF(data: number[], steps: number = 100): CDFResult {
-  // 过滤无效数据 (NaN 和 Infinity)
+  // Filter out invalid data (NaN and Infinity)
   const validData = data.filter(Number.isFinite);
 
   if (validData.length === 0) {
@@ -59,36 +59,36 @@ export function calculateCDF(data: number[], steps: number = 100): CDFResult {
   const max = sortedData[sortedData.length - 1];
   const totalCount = sortedData.length;
 
-  // 计算均值
+  // Calculate mean
   const mean = sortedData.reduce((sum, val) => sum + val, 0) / totalCount;
 
-  // 计算标准差
+  // Calculate standard deviation
   const variance = sortedData.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / totalCount;
   const stdDev = Math.sqrt(variance);
 
-  // 计算分位数
+  // Calculate quantiles
   const p50 = calculatePercentile(sortedData, 50);
   const p95 = calculatePercentile(sortedData, 95);
   const p99 = calculatePercentile(sortedData, 99);
 
-  // 生成CDF点
+  // Generate CDF points
   const points: CDFPoint[] = [];
   const range = max - min;
 
   if (range === 0) {
-    // 所有值相同的情况
+    // All values are identical
     points.push({
       value: min,
       probability: 1,
       count: totalCount,
     });
   } else {
-    // 使用双指针优化循环
+    // Use two-pointer optimization for the loop
     let dataIndex = 0;
     for (let i = 0; i <= steps; i++) {
       const value = min + (range * i) / steps;
 
-      // 移动指针直到找到大于当前 value 的位置
+      // Move pointer until finding a position greater than the current value
       while (dataIndex < totalCount && sortedData[dataIndex] <= value) {
         dataIndex++;
       }
@@ -117,11 +117,11 @@ export function calculateCDF(data: number[], steps: number = 100): CDFResult {
 }
 
 /**
- * 计算指定分位数的值
+ * Calculates the value at a specified percentile
  *
- * @param sortedData 已排序的数据数组
- * @param percentile 分位数 (0-100)
- * @returns 分位数值
+ * @param sortedData - Sorted data array
+ * @param percentile - Percentile value (0-100)
+ * @returns Percentile value
  */
 export function calculatePercentile(sortedData: number[], percentile: number): number {
   if (sortedData.length === 0) return NaN;
@@ -141,10 +141,10 @@ export function calculatePercentile(sortedData: number[], percentile: number): n
 }
 
 /**
- * 计算常用分位数
+ * Calculates common quantiles
  *
- * @param data 输入数据数组
- * @returns 包含 P50, P90, P95, P99, P99.9 的结果
+ * @param data - Input data array
+ * @returns Object containing P50, P90, P95, P99, P99.9 values
  */
 export function calculateQuantiles(data: number[]): QuantileResult {
   if (data.length === 0) {
@@ -163,11 +163,11 @@ export function calculateQuantiles(data: number[]): QuantileResult {
 }
 
 /**
- * 计算直方图数据
+ * Calculates histogram data
  *
- * @param data 输入数据数组
- * @param binCount 分箱数量（默认20）
- * @returns 直方图数据点数组
+ * @param data - Input data array
+ * @param binCount - Number of bins (default: 20)
+ * @returns Array of histogram data points
  */
 export function calculateHistogram(
   data: number[],
@@ -197,7 +197,7 @@ export function calculateHistogram(
   for (let i = 0; i < binCount; i++) {
     const binMin = min + i * binSize;
     const binMax = min + (i + 1) * binSize;
-    // 使用 Number.EPSILON 处理边界值问题
+    // Use Number.EPSILON to handle boundary value issues
     const count = data.filter(
       (v) =>
         v >= binMin - Number.EPSILON &&

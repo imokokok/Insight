@@ -12,14 +12,13 @@ import {
   CheckCircle,
   AlertTriangle,
   Lightbulb,
-  Code,
   Copy,
   Check,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
-const getQuickStartSteps = (t: (key: string) => string) => [
+const getQuickStartSteps = () => [
   {
     step: 1,
     titleKey: 'api3.developer.guide.quickStart.step1.title',
@@ -55,7 +54,7 @@ const value = await serverV1.readDataFeedValue(dapiId);`,
   },
 ];
 
-const getIntegrationScenarios = (t: (key: string) => string) => [
+const getIntegrationScenarios = () => [
   {
     id: 'defi-lending',
     titleKey: 'api3.developer.guide.scenarios.defiLending.title',
@@ -132,7 +131,7 @@ contract CrossChainPriceFeed {
   },
 ];
 
-const getBestPractices = (t: (key: string) => string) => [
+const getBestPractices = () => [
   {
     titleKey: 'api3.developer.guide.bestPractices.useLatestData.title',
     descriptionKey: 'api3.developer.guide.bestPractices.useLatestData.description',
@@ -155,7 +154,7 @@ const getBestPractices = (t: (key: string) => string) => [
   },
 ];
 
-const getTroubleshooting = (t: (key: string) => string) => [
+const getTroubleshooting = () => [
   {
     problemKey: 'api3.developer.guide.troubleshooting.readFailed.problem',
     solutionKey: 'api3.developer.guide.troubleshooting.readFailed.solution',
@@ -174,7 +173,7 @@ const getTroubleshooting = (t: (key: string) => string) => [
   },
 ];
 
-const getFaqItems = (t: (key: string) => string) => [
+const getFaqItems = () => [
   {
     questionKey: 'api3.developer.guide.faq.q1.question',
     answerKey: 'api3.developer.guide.faq.q1.answer',
@@ -195,11 +194,11 @@ const getFaqItems = (t: (key: string) => string) => [
 
 export function API3IntegrationGuide() {
   const t = useTranslations();
-  const quickStartSteps = getQuickStartSteps(t);
-  const integrationScenarios = getIntegrationScenarios(t);
-  const bestPractices = getBestPractices(t);
-  const troubleshooting = getTroubleshooting(t);
-  const faqItems = getFaqItems(t);
+  const quickStartSteps = getQuickStartSteps();
+  const integrationScenarios = getIntegrationScenarios();
+  const bestPractices = getBestPractices();
+  const troubleshooting = getTroubleshooting();
+  const faqItems = getFaqItems();
   const [activeScenario, setActiveScenario] = useState<string>('defi-lending');
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);

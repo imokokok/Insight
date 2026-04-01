@@ -341,7 +341,9 @@ interface CrossChainStore extends SelectorState, UIState, DataState, ConfigState
   setHiddenLines: (lines: Set<string>) => void;
   setFocusedChain: (chain: Blockchain | null) => void;
   setTableFilter: (filter: 'all' | 'abnormal' | 'normal') => void;
-  setHoveredCell: (cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null) => void;
+  setHoveredCell: (
+    cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null
+  ) => void;
   setSelectedCell: (cell: { xChain: Blockchain; yChain: Blockchain } | null) => void;
   setTooltipPosition: (position: { x: number; y: number }) => void;
   setSortColumn: (column: string) => void;

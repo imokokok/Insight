@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, forwardRef } from 'react';
+import { type ReactNode, forwardRef, memo } from 'react';
 
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
@@ -231,4 +231,8 @@ export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
 
 StatCard.displayName = 'StatCard';
 
-export default StatCard;
+const MemoizedStatCard = memo(StatCard);
+MemoizedStatCard.displayName = 'StatCard';
+
+export default MemoizedStatCard;
+export { MemoizedStatCard as StatCard };

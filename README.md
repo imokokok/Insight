@@ -358,13 +358,63 @@ All tables have Row Level Security (RLS) enabled for data protection.
 - `GET /api/health` - Health check
 - `GET /api/cron/cleanup` - Cleanup expired records
 
+## Code Quality
+
+本项目采用严格的代码质量标准，确保代码的可维护性和可靠性：
+
+### 代码规范
+
+- **ESLint**: 使用 TypeScript ESLint 规则集，包含严格的类型检查
+- **Prettier**: 统一的代码格式化配置
+- **TypeScript**: 严格的类型检查配置 (`strict: true`)
+- **命名规范**: 统一的文件和变量命名约定
+
+### 质量检查脚本
+
+```bash
+# 运行 ESLint 检查
+npm run lint
+
+# 自动修复 ESLint 问题
+npm run lint:fix
+
+# 运行类型检查
+npm run typecheck
+
+# 运行所有测试
+npm run test
+
+# 运行测试覆盖率检查
+npm run test:coverage
+
+# 运行完整验证（lint + typecheck + test）
+npm run validate
+
+# 检查命名规范
+npm run naming:check
+```
+
+### 代码质量指标
+
+- **测试覆盖率**: 目标 80%+
+- **类型安全**: 100% TypeScript 覆盖
+- **Lint 通过率**: 零错误，最小化警告
+- **构建成功率**: 100%
+
+### 持续改进
+
+- 定期运行 `npm run validate` 确保代码质量
+- 使用 `npm run lint:fix` 自动修复格式问题
+- 提交前确保所有测试通过
+
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. 确保代码通过所有质量检查 (`npm run validate`)
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
 
 ## License
 

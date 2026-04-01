@@ -2,6 +2,10 @@ import { MOCK_DATA_STATUS } from '../api3MockDataAnnotations';
 
 import type { AnnotatedData, OEVNetworkStats, OEVAuction, OEVParticipant } from './types';
 
+/**
+ * Retrieves OEV (Oracle Extractable Value) network statistics
+ * @returns Annotated OEV network statistics including participants and recent auctions
+ */
 export async function getOEVNetworkStats(): Promise<AnnotatedData<OEVNetworkStats>> {
   const participants: OEVParticipant[] = [
     {
@@ -96,6 +100,11 @@ export async function getOEVNetworkStats(): Promise<AnnotatedData<OEVNetworkStat
   };
 }
 
+/**
+ * Retrieves OEV auction history
+ * @param limit - Maximum number of auctions to retrieve (default: 20)
+ * @returns Array of OEV auctions
+ */
 export async function getOEVAuctions(limit: number = 20): Promise<OEVAuction[]> {
   const auctions: OEVAuction[] = [];
   const dapps = ['Aave', 'Compound', 'Uniswap', 'SushiSwap', 'Curve', 'Balancer', 'Yearn'];

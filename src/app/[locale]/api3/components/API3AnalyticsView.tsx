@@ -11,7 +11,7 @@ import {
   AnomalyDetection,
 } from '@/components/oracle/analytics';
 import { useAPI3Historical } from '@/hooks/oracles/api3';
-import useAPI3Analytics, {
+import {
   type MetricDefinition,
   type DataSource,
   type DataPoint,
@@ -22,7 +22,7 @@ import { Blockchain } from '@/types/oracle';
 
 type AnalyticsTab = 'report' | 'comparison' | 'prediction' | 'anomaly';
 
-const getTabs = (t: (key: string) => string) => [
+const getTabs = () => [
   { id: 'report' as const, labelKey: 'api3.analytics.tabs.report', icon: FileText },
   { id: 'comparison' as const, labelKey: 'api3.analytics.tabs.comparison', icon: GitCompare },
   { id: 'prediction' as const, labelKey: 'api3.analytics.tabs.prediction', icon: TrendingUp },
@@ -102,17 +102,15 @@ const getAvailableMetrics = (t: (key: string) => string): MetricDefinition[] => 
 
 export function API3AnalyticsView() {
   const t = useTranslations();
-  const tabs = getTabs(t);
+  const tabs = getTabs();
   const availableMetrics = getAvailableMetrics(t);
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('report');
 
-  const { historicalData: apiHistoricalData, isLoading } = useAPI3Historical({
+  const { historicalData: apiHistoricalData } = useAPI3Historical({
     symbol: 'API3',
     chain: Blockchain.ETHEREUM,
     enabled: true,
   });
-
-  const analytics = useAPI3Analytics();
 
   const historicalDataPoints: DataPoint[] = useMemo(() => {
     if (!apiHistoricalData || apiHistoricalData.length === 0) {

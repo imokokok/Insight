@@ -23,4 +23,16 @@ export {
   type ErrorMiddlewareOptions,
 } from './errorMiddleware';
 
+export {
+  createEnhancedErrorMiddleware,
+  enhancedErrorMiddleware,
+  developmentErrorMiddleware,
+  productionErrorMiddleware,
+  withEnhancedErrorHandling,
+  classifyError,
+  getSuggestedAction,
+  type EnhancedErrorMiddlewareOptions,
+  type StandardizedErrorResponse,
+} from './enhancedErrorMiddleware';
+
 export { createRateLimitMiddleware, type RateLimitMiddlewareOptions } from './rateLimitMiddleware';
