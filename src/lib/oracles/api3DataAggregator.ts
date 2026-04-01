@@ -1,16 +1,24 @@
-import { API3_DATA_SOURCES, getAPI3Endpoint, isMockDataEnabled } from './api3DataSources';
+import { getAPI3Endpoint, isMockDataEnabled } from './api3DataSources';
 import {
   generateHourlyActivity,
   getMockCoveragePoolDetails,
   getMockDAPIData,
   getMockDataSources,
   getMockMarketData,
-  getMockNetworkData,
-  getMockOEVData,
   getMockPriceDeviations,
   getMockStakingData,
 } from './api3MockData';
 import { api3OnChainService } from './api3OnChainService';
+import {
+  getDataStrategy,
+  shouldUseOnChain,
+  shouldUseAPI,
+  calculateConfidence,
+  createDataSourceInfo,
+  type DataStrategy,
+  type DataSourceInfo as StrategyDataSourceInfo,
+  type ConfidenceLevel,
+} from './api3DataStrategy';
 
 import type {
   StakingData,
@@ -38,6 +46,21 @@ export type {
   OEVAuctionData,
 } from './api3MockData';
 
+/**
+ * 带元数据的数据包装器
+ */
+export interface DataWithMetadata<T> {
+  data: T;
+  metadata: {
+    source: 'on-chain' | 'api' | 'mixed' | 'mock';
+    confidence: ConfidenceLevel;
+    timestamp: number;
+    latency: number;
+    primarySource?: StrategyDataSourceInfo;
+    fallbackSource?: StrategyDataSourceInfo;
+  };
+}
+
 export interface SanitizedData<T = unknown> {
   data: T;
   isValid: boolean;
@@ -55,6 +78,7 @@ interface CacheEntry<T> {
   data: T;
   timestamp: number;
   ttl: number;
+  metadata?: DataWithMetadata<T>['metadata'];
 }
 
 export class API3DataAggregator {
@@ -62,304 +86,598 @@ export class API3DataAggregator {
   private defaultTTL = 60000;
   private requestQueue: Map<string, Promise<unknown>> = new Map();
 
-  async aggregateMarketData(): Promise<AggregatedMarketData> {
-    const cacheKey = 'market-data';
-    const cached = this.getFromCache<AggregatedMarketData>(cacheKey);
-    if (cached) return cached;
+  /**
+   * 根据策略获取数据 - 核心方法
+   */
+  private async fetchWithStrategy<T>(
+    strategy: DataStrategy,
+    fetchOnChain: () => Promise<T>,
+    fetchAPI: () => Promise<T>,
+    cacheKey: string
+  ): Promise<DataWithMetadata<T>> {
+    const startTime = Date.now();
 
-    try {
-      if (isMockDataEnabled()) {
-        return getMockMarketData();
+    // 检查缓存
+    if (strategy.enableCache) {
+      const cached = this.getFromCache<DataWithMetadata<T>>(cacheKey);
+      if (cached) {
+        return cached;
       }
-
-      const [dapis, chains] = await Promise.all([
-        this.fetchFromAPI('market', 'dapis', { timeout: 10000 }),
-        this.fetchFromAPI('market', 'chains', { timeout: 10000 }),
-      ]);
-
-      const result: AggregatedMarketData = {
-        dapis: this.sanitizeDAPIData(dapis),
-        chains: this.sanitizeChainData(chains),
-        lastUpdated: new Date(),
-      };
-
-      this.setCache(cacheKey, result, this.defaultTTL);
-      return result;
-    } catch (error) {
-      console.error('Failed to aggregate market data:', error);
-      return getMockMarketData();
     }
-  }
 
-  async aggregateNetworkData(): Promise<AggregatedNetworkData> {
-    const cacheKey = 'network-data';
-    const cached = this.getFromCache<AggregatedNetworkData>(cacheKey);
-    if (cached) return cached;
-
-    try {
-      if (isMockDataEnabled()) {
-        return getMockNetworkData();
-      }
-
-      const onChainStaking = await api3OnChainService.getStakingData();
-      const onChainCoverage = await api3OnChainService.getCoveragePoolData();
-
-      const airnodeStats: AirnodeNetworkStats = {
-        activeAirnodes: 156,
-        nodeUptime: 99.7,
-        avgResponseTime: 180,
-        dapiUpdateFrequency: 60,
-        totalStaked: Number(onChainStaking.totalStaked) / 1e18,
-        dataFeeds: 168,
-        hourlyActivity: generateHourlyActivity(),
-        status: 'online',
-        lastUpdated: new Date(),
-        latency: 85,
-      };
-
-      const dapiCoverage: DAPICoverage = {
-        totalDapis: 168,
-        byAssetType: {
-          crypto: 120,
-          forex: 28,
-          commodities: 12,
-          stocks: 8,
-        },
-        byChain: {
-          ethereum: 89,
-          arbitrum: 45,
-          polygon: 34,
-        },
-        updateFrequency: {
-          high: 45,
-          medium: 78,
-          low: 45,
-        },
-      };
-
-      const firstPartyData: FirstPartyOracleData = {
-        airnodeDeployments: {
-          total: 156,
-          byRegion: {
-            northAmerica: 58,
-            europe: 47,
-            asia: 38,
-            others: 13,
-          },
-          byChain: {
-            ethereum: 89,
-            arbitrum: 45,
-            polygon: 22,
-          },
-          byProviderType: {
-            exchanges: 68,
-            traditionalFinance: 52,
-            others: 36,
-          },
-        },
-        dapiCoverage,
-        advantages: {
-          noMiddlemen: true,
-          sourceTransparency: true,
-          responseTime: 180,
-        },
-      };
-
-      const result: AggregatedNetworkData = {
-        airnodeStats,
-        dapiCoverage,
-        firstPartyData,
-        lastUpdated: new Date(),
-      };
-
-      this.setCache(cacheKey, result, this.defaultTTL);
-      return result;
-    } catch (error) {
-      console.error('Failed to aggregate network data:', error);
-      return getMockNetworkData();
+    // 如果强制使用模拟数据
+    if (isMockDataEnabled()) {
+      return this.createMockResponse(strategy, cacheKey, startTime);
     }
-  }
 
-  async aggregateOEVData(): Promise<AggregatedOEVData> {
-    const cacheKey = 'oev-data';
-    const cached = this.getFromCache<AggregatedOEVData>(cacheKey);
-    if (cached) return cached;
+    let primaryResult: T | undefined;
+    let fallbackResult: T | undefined;
+    let primaryError: Error | undefined;
+    let fallbackError: Error | undefined;
+    let primarySourceInfo: StrategyDataSourceInfo | undefined;
+    let fallbackSourceInfo: StrategyDataSourceInfo | undefined;
 
-    try {
-      if (isMockDataEnabled()) {
-        return getMockOEVData();
+    // 根据策略决定获取顺序
+    const useOnChain = shouldUseOnChain(strategy);
+    const useAPI = shouldUseAPI(strategy);
+
+    // 首先尝试主数据源
+    if (strategy.primarySource === 'on-chain' && useOnChain) {
+      try {
+        const chainStart = Date.now();
+        primaryResult = await fetchOnChain();
+        primarySourceInfo = createDataSourceInfo('on-chain', chainStart);
+      } catch (error) {
+        primaryError = error instanceof Error ? error : new Error(String(error));
+        primarySourceInfo = createDataSourceInfo('on-chain', startTime, primaryError.message);
+        console.warn(`[API3] On-chain data fetch failed for ${strategy.dataType}:`, primaryError.message);
       }
-
-      const result = getMockOEVData();
-      this.setCache(cacheKey, result, this.defaultTTL);
-      return result;
-    } catch (error) {
-      console.error('Failed to aggregate OEV data:', error);
-      return getMockOEVData();
+    } else if (strategy.primarySource === 'api' && useAPI) {
+      try {
+        const apiStart = Date.now();
+        primaryResult = await fetchAPI();
+        primarySourceInfo = createDataSourceInfo('api', apiStart);
+      } catch (error) {
+        primaryError = error instanceof Error ? error : new Error(String(error));
+        primarySourceInfo = createDataSourceInfo('api', startTime, primaryError.message);
+        console.warn(`[API3] API data fetch failed for ${strategy.dataType}:`, primaryError.message);
+      }
     }
-  }
 
-  async aggregateStakingData(): Promise<StakingData> {
-    const cacheKey = 'staking-data';
-    const cached = this.getFromCache<StakingData>(cacheKey);
-    if (cached) return cached;
-
-    try {
-      if (isMockDataEnabled()) {
-        return getMockStakingData();
+    // 如果主数据源失败且有备用数据源，尝试备用
+    if (primaryError && strategy.fallbackSource) {
+      if (strategy.fallbackSource === 'on-chain' && useOnChain) {
+        try {
+          const chainStart = Date.now();
+          fallbackResult = await fetchOnChain();
+          fallbackSourceInfo = createDataSourceInfo('on-chain', chainStart);
+        } catch (error) {
+          fallbackError = error instanceof Error ? error : new Error(String(error));
+          fallbackSourceInfo = createDataSourceInfo('on-chain', startTime, fallbackError.message);
+        }
+      } else if (strategy.fallbackSource === 'api' && useAPI) {
+        try {
+          const apiStart = Date.now();
+          fallbackResult = await fetchAPI();
+          fallbackSourceInfo = createDataSourceInfo('api', apiStart);
+        } catch (error) {
+          fallbackError = error instanceof Error ? error : new Error(String(error));
+          fallbackSourceInfo = createDataSourceInfo('api', startTime, fallbackError.message);
+        }
       }
-
-      const onChainData = await api3OnChainService.getStakingData();
-      const coverageData = await api3OnChainService.getCoveragePoolData();
-
-      const result: StakingData = {
-        totalStaked: Number(onChainData.totalStaked) / 1e18,
-        stakingApr: onChainData.apr,
-        stakerCount: onChainData.stakerCount,
-        coveragePool: {
-          totalValue: Number(coverageData.totalValueLocked) / 1e18,
-          coverageRatio: coverageData.collateralizationRatio / 100,
-          historicalPayouts: 285000,
-        },
-      };
-
-      this.setCache(cacheKey, result, this.defaultTTL);
-      return result;
-    } catch (error) {
-      console.error('Failed to aggregate staking data:', error);
-      return getMockStakingData();
     }
-  }
 
-  async aggregateCoveragePoolDetails(): Promise<CoveragePoolDetails> {
-    const cacheKey = 'coverage-pool-details';
-    const cached = this.getFromCache<CoveragePoolDetails>(cacheKey);
-    if (cached) return cached;
+    // 确定最终数据
+    const finalData = primaryResult ?? fallbackResult;
 
-    try {
-      if (isMockDataEnabled()) {
-        return getMockCoveragePoolDetails();
-      }
-
-      const onChainData = await api3OnChainService.getCoveragePoolData();
-
-      const collateralizationRatio = onChainData.collateralizationRatio;
-      const targetCollateralization = 150;
-
-      let healthStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
-      if (collateralizationRatio < targetCollateralization * 0.8) {
-        healthStatus = 'critical';
-      } else if (collateralizationRatio < targetCollateralization) {
-        healthStatus = 'warning';
-      }
-
-      const result: CoveragePoolDetails = {
-        totalValueLocked: Number(onChainData.totalValueLocked) / 1e18,
-        collateralizationRatio,
-        targetCollateralization,
-        stakerCount: onChainData.stakerCount,
-        avgStakeAmount: Number(onChainData.totalValueLocked) / 1e18 / onChainData.stakerCount,
-        pendingClaims: onChainData.pendingClaims,
-        processedClaims: onChainData.processedClaims,
-        totalPayouts: 285000,
-        healthStatus,
-        lastUpdateTime: new Date(),
-      };
-
-      this.setCache(cacheKey, result, this.defaultTTL);
-      return result;
-    } catch (error) {
-      console.error('Failed to aggregate coverage pool details:', error);
-      return getMockCoveragePoolDetails();
+    if (finalData === undefined) {
+      // 所有数据源都失败，使用模拟数据
+      console.error(`[API3] All data sources failed for ${strategy.dataType}, using mock data`);
+      return this.createMockResponse(strategy, cacheKey, startTime);
     }
-  }
 
-  async aggregatePriceDeviations(): Promise<DAPIPriceDeviation[]> {
-    const cacheKey = 'price-deviations';
-    const cached = this.getFromCache<DAPIPriceDeviation[]>(cacheKey);
-    if (cached) return cached;
+    // 计算置信度
+    const confidence = calculateConfidence(
+      strategy,
+      primaryResult !== undefined,
+      fallbackResult !== undefined
+    );
 
-    try {
-      if (isMockDataEnabled()) {
-        return getMockPriceDeviations();
-      }
-
-      const result = getMockPriceDeviations();
-      this.setCache(cacheKey, result, 30000);
-      return result;
-    } catch (error) {
-      console.error('Failed to aggregate price deviations:', error);
-      return getMockPriceDeviations();
+    // 确定最终数据源类型
+    let finalSource: DataWithMetadata<T>['metadata']['source'] = 'mixed';
+    if (primaryResult !== undefined && fallbackResult !== undefined) {
+      finalSource = 'mixed';
+    } else if (primaryResult !== undefined) {
+      finalSource = strategy.primarySource;
+    } else if (fallbackResult !== undefined && strategy.fallbackSource) {
+      finalSource = strategy.fallbackSource;
     }
-  }
 
-  async aggregateDataSources(): Promise<DataSourceInfo[]> {
-    const cacheKey = 'data-sources';
-    const cached = this.getFromCache<DataSourceInfo[]>(cacheKey);
-    if (cached) return cached;
+    const result: DataWithMetadata<T> = {
+      data: finalData,
+      metadata: {
+        source: finalSource,
+        confidence,
+        timestamp: Date.now(),
+        latency: Date.now() - startTime,
+        primarySource: primarySourceInfo,
+        fallbackSource: fallbackSourceInfo,
+      },
+    };
 
-    const result = getMockDataSources();
-    this.setCache(cacheKey, result, 300000);
+    // 缓存结果
+    if (strategy.enableCache) {
+      this.setCache(cacheKey, result.data, strategy.cacheTTL, result.metadata);
+    }
+
     return result;
   }
 
-  validateData<T>(data: unknown, schema?: Record<string, unknown>): boolean {
-    if (data === null || data === undefined) {
-      return false;
-    }
+  /**
+   * 创建模拟数据响应
+   */
+  private createMockResponse<T>(
+    _strategy: DataStrategy,
+    cacheKey: string,
+    startTime: number
+  ): DataWithMetadata<T> {
+    // 从缓存获取模拟数据（如果有）
+    const cachedMock = this.getFromCache<T>(`mock-${cacheKey}`);
 
-    if (typeof data !== 'object') {
-      return true;
-    }
-
-    if (Array.isArray(data)) {
-      return data.length > 0;
-    }
-
-    if (schema) {
-      return Object.keys(schema).every((key) => key in data);
-    }
-
-    return Object.keys(data as object).length > 0;
+    return {
+      data: cachedMock as T,
+      metadata: {
+        source: 'mock',
+        confidence: 'low',
+        timestamp: Date.now(),
+        latency: Date.now() - startTime,
+      },
+    };
   }
 
-  sanitizeData<T>(data: unknown): SanitizedData<T> {
-    const errors: string[] = [];
-    const warnings: string[] = [];
+  // ==================== 具体数据获取方法 ====================
 
-    if (data === null || data === undefined) {
-      errors.push('Data is null or undefined');
-      return { data: null as T, isValid: false, errors, warnings };
-    }
+  async aggregateMarketData(): Promise<DataWithMetadata<AggregatedMarketData>> {
+    const strategy = getDataStrategy('dapis');
+    const cacheKey = 'market-data';
 
-    if (typeof data === 'object') {
-      const sanitized = this.deepSanitize(data);
-      return { data: sanitized as T, isValid: true, errors, warnings };
-    }
+    return this.fetchWithStrategy(
+      strategy,
+      // On-chain fetcher (fallback)
+      async () => {
+        // 链上无法直接获取完整的 market 数据，返回简化版本
+        return getMockMarketData();
+      },
+      // API fetcher (primary)
+      async () => {
+        const [dapisResponse, chainsResponse, beaconsResponse] = await Promise.all([
+          this.fetchFromAPI<unknown[]>('market', 'dapis', { timeout: 15000 }),
+          this.fetchFromAPI<unknown[]>('market', 'chains', { timeout: 15000 }),
+          this.fetchFromAPI<unknown[]>('market', 'beacons', { timeout: 15000 }).catch(() => []),
+        ]);
 
-    return { data: data as T, isValid: true, errors, warnings };
+        return {
+          dapis: this.sanitizeDAPIData(dapisResponse, beaconsResponse),
+          chains: this.sanitizeChainData(chainsResponse),
+          lastUpdated: new Date(),
+        };
+      },
+      cacheKey
+    );
   }
 
-  private deepSanitize(obj: unknown): unknown {
-    if (obj === null || obj === undefined) {
-      return null;
-    }
+  async aggregateNetworkData(): Promise<DataWithMetadata<AggregatedNetworkData>> {
+    const strategy = getDataStrategy('airnodeStats');
+    const cacheKey = 'network-data';
 
-    if (Array.isArray(obj)) {
-      return obj.map((item) => this.deepSanitize(item)).filter((item) => item !== null);
-    }
+    return this.fetchWithStrategy(
+      strategy,
+      // On-chain fetcher
+      async () => {
+        const onChainStaking = await api3OnChainService.getStakingData();
 
-    if (typeof obj === 'object') {
-      const sanitized: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-        if (value !== undefined) {
-          sanitized[key] = this.deepSanitize(value);
-        }
+        return this.buildNetworkData({
+          totalStaked: Number(onChainStaking.totalStaked) / 1e18,
+          activeAirnodes: 156, // 链上无法获取，使用默认值
+          totalDapis: 168,
+        });
+      },
+      // API fetcher
+      async () => {
+        const [airnodesData, dapisData, onChainStaking] = await Promise.all([
+          this.fetchFromAPI<unknown[]>('market', 'airnodes', { timeout: 15000 }).catch(() => []),
+          this.fetchFromAPI<unknown[]>('market', 'dapis', { timeout: 15000 }).catch(() => []),
+          api3OnChainService.getStakingData().catch(() => ({ totalStaked: BigInt(0), stakerCount: 0 })),
+        ]);
+
+        const airnodeArray = Array.isArray(airnodesData) ? airnodesData : [];
+        const dapiArray = Array.isArray(dapisData) ? dapisData : [];
+
+        return this.buildNetworkData({
+          totalStaked: Number(onChainStaking.totalStaked) / 1e18,
+          activeAirnodes: airnodeArray.length || 156,
+          totalDapis: dapiArray.length || 168,
+          airnodeArray,
+          dapiArray,
+        });
+      },
+      cacheKey
+    );
+  }
+
+  private buildNetworkData(params: {
+    totalStaked: number;
+    activeAirnodes: number;
+    totalDapis: number;
+    airnodeArray?: unknown[];
+    dapiArray?: unknown[];
+  }): AggregatedNetworkData {
+    const { totalStaked, activeAirnodes, totalDapis, dapiArray = [] } = params;
+
+    // 计算链分布
+    const byChain: Record<string, number> = { ethereum: 0, arbitrum: 0, polygon: 0 };
+    (dapiArray as Array<Record<string, unknown>>).forEach((dapi) => {
+      const chain = String(dapi.chain || dapi.network || 'ethereum').toLowerCase();
+      if (chain.includes('eth')) byChain.ethereum++;
+      else if (chain.includes('arb')) byChain.arbitrum++;
+      else if (chain.includes('poly')) byChain.polygon++;
+      else byChain.ethereum++;
+    });
+
+    // 计算资产类型分布
+    const byAssetType = { crypto: 0, forex: 0, commodities: 0, stocks: 0 };
+    (dapiArray as Array<Record<string, unknown>>).forEach((dapi) => {
+      const name = String(dapi.name || dapi.dapiName || '').toUpperCase();
+      if (name.includes('USD') && (name.includes('EUR') || name.includes('GBP') || name.includes('JPY'))) {
+        byAssetType.forex++;
+      } else if (name.includes('GOLD') || name.includes('SILVER') || name.includes('OIL')) {
+        byAssetType.commodities++;
+      } else if (name.includes('AAPL') || name.includes('TSLA') || name.includes('GOOGL')) {
+        byAssetType.stocks++;
+      } else {
+        byAssetType.crypto++;
       }
-      return sanitized;
+    });
+
+    // 使用回退值
+    if (byAssetType.crypto === 0) {
+      byAssetType.crypto = 120;
+      byAssetType.forex = 28;
+      byAssetType.commodities = 12;
+      byAssetType.stocks = 8;
     }
 
-    return obj;
+    const airnodeStats: AirnodeNetworkStats = {
+      activeAirnodes,
+      nodeUptime: 99.7,
+      avgResponseTime: 180,
+      dapiUpdateFrequency: 60,
+      totalStaked,
+      dataFeeds: totalDapis,
+      hourlyActivity: generateHourlyActivity(),
+      status: 'online',
+      lastUpdated: new Date(),
+      latency: 85,
+    };
+
+    const dapiCoverage: DAPICoverage = {
+      totalDapis,
+      byAssetType: {
+        crypto: byAssetType.crypto || 120,
+        forex: byAssetType.forex || 28,
+        commodities: byAssetType.commodities || 12,
+        stocks: byAssetType.stocks || 8,
+      },
+      byChain: {
+        ethereum: byChain.ethereum || 89,
+        arbitrum: byChain.arbitrum || 45,
+        polygon: byChain.polygon || 34,
+      },
+      updateFrequency: {
+        high: Math.floor(totalDapis * 0.27),
+        medium: Math.floor(totalDapis * 0.46),
+        low: Math.floor(totalDapis * 0.27),
+      },
+    };
+
+    const firstPartyData: FirstPartyOracleData = {
+      airnodeDeployments: {
+        total: activeAirnodes,
+        byRegion: {
+          northAmerica: Math.floor(activeAirnodes * 0.37),
+          europe: Math.floor(activeAirnodes * 0.30),
+          asia: Math.floor(activeAirnodes * 0.24),
+          others: Math.floor(activeAirnodes * 0.09),
+        },
+        byChain: {
+          ethereum: byChain.ethereum || 89,
+          arbitrum: byChain.arbitrum || 45,
+          polygon: byChain.polygon || 22,
+        },
+        byProviderType: {
+          exchanges: Math.floor(activeAirnodes * 0.44),
+          traditionalFinance: Math.floor(activeAirnodes * 0.33),
+          others: Math.floor(activeAirnodes * 0.23),
+        },
+      },
+      dapiCoverage,
+      advantages: {
+        noMiddlemen: true,
+        sourceTransparency: true,
+        responseTime: 180,
+      },
+    };
+
+    return {
+      airnodeStats,
+      dapiCoverage,
+      firstPartyData,
+      lastUpdated: new Date(),
+    };
+  }
+
+  async aggregateOEVData(): Promise<DataWithMetadata<AggregatedOEVData>> {
+    const strategy = getDataStrategy('oev');
+    const cacheKey = 'oev-data';
+
+    return this.fetchWithStrategy(
+      strategy,
+      // On-chain fetcher - OEV 数据无法从链上获取
+      async () => {
+        throw new Error('OEV data not available on-chain');
+      },
+      // API fetcher
+      async () => {
+        const oevStatsRaw = await this.fetchFromAPI<unknown>('dao', 'stats', { timeout: 15000 }).catch(() => ({}));
+        const oevStats = typeof oevStatsRaw === 'object' && oevStatsRaw !== null
+          ? oevStatsRaw as Record<string, unknown>
+          : {};
+
+        return {
+          stats: {
+            totalOevCaptured: typeof oevStats?.totalOevCaptured === 'number' ? oevStats.totalOevCaptured : 12450000,
+            activeAuctions: typeof oevStats?.activeAuctions === 'number' ? oevStats.activeAuctions : 12,
+            totalParticipants: typeof oevStats?.totalParticipants === 'number' ? oevStats.totalParticipants : 89,
+            totalDapps: typeof oevStats?.totalDapps === 'number' ? oevStats.totalDapps : 34,
+            avgAuctionValue: typeof oevStats?.avgAuctionValue === 'number' ? oevStats.avgAuctionValue : 18500,
+            last24hVolume: typeof oevStats?.last24hVolume === 'number' ? oevStats.last24hVolume : 892000,
+            participantList: [],
+            recentAuctions: [],
+          },
+          recentAuctions: [],
+          lastUpdated: new Date(),
+        };
+      },
+      cacheKey
+    );
+  }
+
+  async aggregateStakingData(): Promise<DataWithMetadata<StakingData>> {
+    const strategy = getDataStrategy('staking');
+    const cacheKey = 'staking-data';
+
+    return this.fetchWithStrategy(
+      strategy,
+      // On-chain fetcher (primary)
+      async () => {
+        const [onChainData, coverageData] = await Promise.all([
+          api3OnChainService.getStakingData(),
+          api3OnChainService.getCoveragePoolData(),
+        ]);
+
+        return {
+          totalStaked: Number(onChainData.totalStaked) / 1e18,
+          stakingApr: onChainData.apr,
+          stakerCount: onChainData.stakerCount,
+          coveragePool: {
+            totalValue: Number(coverageData.totalValueLocked) / 1e18,
+            coverageRatio: coverageData.collateralizationRatio / 100,
+            historicalPayouts: 285000,
+          },
+        };
+      },
+      // API fetcher (fallback)
+      async () => {
+        // API 没有直接的 staking 端点，返回 mock
+        return getMockStakingData();
+      },
+      cacheKey
+    );
+  }
+
+  async aggregateCoveragePoolDetails(): Promise<DataWithMetadata<CoveragePoolDetails>> {
+    const strategy = getDataStrategy('coveragePool');
+    const cacheKey = 'coverage-pool-details';
+
+    return this.fetchWithStrategy(
+      strategy,
+      // On-chain fetcher (primary)
+      async () => {
+        const onChainData = await api3OnChainService.getCoveragePoolData();
+
+        const collateralizationRatio = onChainData.collateralizationRatio;
+        const targetCollateralization = 150;
+
+        let healthStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
+        if (collateralizationRatio < targetCollateralization * 0.8) {
+          healthStatus = 'critical';
+        } else if (collateralizationRatio < targetCollateralization) {
+          healthStatus = 'warning';
+        }
+
+        return {
+          totalValueLocked: Number(onChainData.totalValueLocked) / 1e18,
+          collateralizationRatio,
+          targetCollateralization,
+          stakerCount: onChainData.stakerCount,
+          avgStakeAmount: Number(onChainData.totalValueLocked) / 1e18 / onChainData.stakerCount,
+          pendingClaims: onChainData.pendingClaims,
+          processedClaims: onChainData.processedClaims,
+          totalPayouts: 285000,
+          healthStatus,
+          lastUpdateTime: new Date(),
+        };
+      },
+      // API fetcher (fallback)
+      async () => {
+        return getMockCoveragePoolDetails();
+      },
+      cacheKey
+    );
+  }
+
+  async aggregatePriceDeviations(): Promise<DataWithMetadata<DAPIPriceDeviation[]>> {
+    const strategy = getDataStrategy('priceDeviations');
+    const cacheKey = 'price-deviations';
+
+    return this.fetchWithStrategy(
+      strategy,
+      // On-chain fetcher (fallback)
+      async () => {
+        // 链上无法直接获取价格偏差，返回 mock
+        return getMockPriceDeviations();
+      },
+      // API fetcher (primary)
+      async () => {
+        const dapisData = await this.fetchFromAPI<unknown[]>('market', 'dapis', { timeout: 15000 }).catch(() => []);
+
+        if (!Array.isArray(dapisData) || dapisData.length === 0) {
+          throw new Error('No dAPI data available');
+        }
+
+        const deviations: DAPIPriceDeviation[] = (dapisData as Array<Record<string, unknown>>)
+          .filter((dapi) => {
+            return (dapi.price !== undefined && dapi.marketPrice !== undefined) ||
+                   (dapi.value !== undefined && dapi.marketValue !== undefined);
+          })
+          .slice(0, 20)
+          .map((dapi) => {
+            const name = String(dapi.name || dapi.dapiName || dapi.symbol || 'Unknown/USD');
+
+            let dapiPrice = 0;
+            let marketPrice = 0;
+
+            if (typeof dapi.price === 'number') {
+              dapiPrice = dapi.price;
+            } else if (typeof dapi.price === 'string') {
+              dapiPrice = parseFloat(dapi.price);
+            } else if (dapi.value && typeof dapi.value === 'string') {
+              dapiPrice = parseFloat(dapi.value) / 1e18;
+            }
+
+            if (typeof dapi.marketPrice === 'number') {
+              marketPrice = dapi.marketPrice;
+            } else if (typeof dapi.marketPrice === 'string') {
+              marketPrice = parseFloat(dapi.marketPrice);
+            } else if (dapi.marketValue && typeof dapi.marketValue === 'string') {
+              marketPrice = parseFloat(dapi.marketValue) / 1e18;
+            }
+
+            let deviation = 0;
+            if (marketPrice > 0) {
+              deviation = Math.abs((dapiPrice - marketPrice) / marketPrice) * 100;
+            }
+
+            let trend: 'expanding' | 'shrinking' | 'stable' = 'stable';
+            if (dapi.deviationTrend === 'expanding' || dapi.trend === 'up') {
+              trend = 'expanding';
+            } else if (dapi.deviationTrend === 'shrinking' || dapi.trend === 'down') {
+              trend = 'shrinking';
+            }
+
+            let status: 'normal' | 'warning' | 'critical' = 'normal';
+            if (deviation > 3) {
+              status = 'critical';
+            } else if (deviation > 1) {
+              status = 'warning';
+            }
+
+            return {
+              symbol: name,
+              dapiPrice,
+              marketPrice,
+              deviation: parseFloat(deviation.toFixed(2)),
+              trend,
+              status,
+            };
+          });
+
+        if (deviations.length === 0) {
+          throw new Error('No price deviation data available');
+        }
+
+        return deviations;
+      },
+      cacheKey
+    );
+  }
+
+  async aggregateDataSources(): Promise<DataWithMetadata<DataSourceInfo[]>> {
+    const strategy = getDataStrategy('dataSources');
+    const cacheKey = 'data-sources';
+
+    return this.fetchWithStrategy(
+      strategy,
+      // On-chain fetcher (fallback)
+      async () => {
+        return getMockDataSources();
+      },
+      // API fetcher (primary)
+      async () => {
+        const airnodesData = await this.fetchFromAPI<unknown[]>('market', 'airnodes', { timeout: 15000 }).catch(() => []);
+
+        if (!Array.isArray(airnodesData) || airnodesData.length === 0) {
+          throw new Error('No airnode data available');
+        }
+
+        const dataSources: DataSourceInfo[] = (airnodesData as Array<Record<string, unknown>>)
+          .slice(0, 20)
+          .map((airnode, index) => {
+            const name = String(airnode.name || airnode.provider || `Airnode ${index + 1}`);
+            const type = this.inferDataSourceType(name);
+            const uptime = typeof airnode.uptime === 'number' ? airnode.uptime : 99.5;
+            const responseTime = typeof airnode.responseTime === 'number' ? airnode.responseTime : 150;
+
+            return {
+              id: String(airnode.id || `src-${String(index + 1).padStart(3, '0')}`),
+              name,
+              type,
+              credibilityScore: this.calculateCredibilityScore(uptime, responseTime),
+              accuracy: uptime,
+              responseSpeed: responseTime,
+              availability: uptime,
+              airnodeAddress: String(airnode.address || airnode.airnodeAddress || '0x0000000000000000000000000000000000000000'),
+              dapiContract: String(airnode.dapiContract || airnode.proxyAddress || '0x0000000000000000000000000000000000000000'),
+              chain: String(airnode.chain || airnode.network || 'Ethereum'),
+            };
+          });
+
+        return dataSources;
+      },
+      cacheKey
+    );
+  }
+
+  // ==================== 辅助方法 ====================
+
+  private inferDataSourceType(name: string): 'exchange' | 'traditional_finance' | 'other' {
+    const lowerName = name.toLowerCase();
+    const exchangeKeywords = ['binance', 'coinbase', 'kraken', 'okx', 'bybit', 'kucoin', 'huobi', 'gate', 'mexc'];
+    const tradFiKeywords = ['bloomberg', 'reuters', 'goldman', 'morgan', 'jpmorgan', 'barclays', 'hsbc'];
+
+    if (exchangeKeywords.some(kw => lowerName.includes(kw))) {
+      return 'exchange';
+    }
+    if (tradFiKeywords.some(kw => lowerName.includes(kw))) {
+      return 'traditional_finance';
+    }
+    return 'other';
+  }
+
+  private calculateCredibilityScore(uptime: number, responseTime: number): number {
+    const uptimeScore = uptime * 0.7;
+    const responseScore = Math.max(0, 100 - responseTime / 10) * 0.3;
+    return Math.min(100, Math.round(uptimeScore + responseScore));
   }
 
   private async fetchFromAPI<T>(
@@ -450,26 +768,73 @@ export class API3DataAggregator {
     return null;
   }
 
-  private setCache<T>(key: string, data: T, ttl: number = this.defaultTTL): void {
-    this.cache.set(key, { data, timestamp: Date.now(), ttl });
+  private setCache<T>(key: string, data: T, ttl: number = this.defaultTTL, metadata?: DataWithMetadata<T>['metadata']): void {
+    this.cache.set(key, { data, timestamp: Date.now(), ttl, metadata });
   }
 
-  private sanitizeDAPIData(data: unknown): DAPIMarketData[] {
-    if (!Array.isArray(data)) {
+  private sanitizeDAPIData(data: unknown, beacons?: unknown[]): DAPIMarketData[] {
+    if (!Array.isArray(data) || data.length === 0) {
       return getMockDAPIData();
     }
-    return data.map((item: Record<string, unknown>) => ({
-      id: String(item.id || ''),
-      name: String(item.name || ''),
-      symbol: String(item.symbol || ''),
-      price: Number(item.price) || 0,
-      change24h: Number(item.change24h) || 0,
-      change24hPercent: Number(item.change24hPercent) || 0,
-      chain: String(item.chain || 'ethereum'),
-      updateFrequency: Number(item.updateFrequency) || 60,
-      lastUpdated: new Date(),
-      status: (item.status as 'active' | 'inactive' | 'degraded') || 'active',
-    }));
+
+    return data.map((item: Record<string, unknown>) => {
+      let price = 0;
+      if (typeof item.price === 'number') {
+        price = item.price;
+      } else if (typeof item.price === 'string') {
+        price = parseFloat(item.price);
+      } else if (item.value && typeof item.value === 'string') {
+        price = parseFloat(item.value) / 1e18;
+      }
+
+      const name = String(item.name || item.dapiName || item.title || 'Unknown');
+      const symbol = String(item.symbol || item.pair || name.split('/')[0] || 'UNKNOWN');
+
+      let change24h = 0;
+      let change24hPercent = 0;
+      if (typeof item.change24h === 'number') {
+        change24h = item.change24h;
+      } else if (item.priceYesterday && typeof item.priceYesterday === 'number' && price > 0) {
+        change24h = price - item.priceYesterday;
+        change24hPercent = (change24h / item.priceYesterday) * 100;
+      }
+
+      const chain = String(item.chain || item.network || 'ethereum').toLowerCase();
+
+      let updateFrequency = 60;
+      if (typeof item.updateFrequency === 'number') {
+        updateFrequency = item.updateFrequency;
+      } else if (typeof item.heartbeat === 'number') {
+        updateFrequency = item.heartbeat;
+      } else if (beacons && Array.isArray(beacons)) {
+        const beacon = (beacons as Array<Record<string, unknown>>).find((b) =>
+          String(b.dapiName || b.name) === name
+        );
+        if (beacon && typeof (beacon as Record<string, unknown>).heartbeat === 'number') {
+          updateFrequency = (beacon as Record<string, unknown>).heartbeat as number;
+        }
+      }
+
+      let status: 'active' | 'inactive' | 'degraded' = 'active';
+      if (item.active === false || item.status === 'inactive') {
+        status = 'inactive';
+      } else if (item.status === 'degraded') {
+        status = 'degraded';
+      }
+
+      return {
+        id: String(item.id || item.dapiId || symbol.toLowerCase()),
+        name,
+        symbol,
+        price,
+        change24h,
+        change24hPercent,
+        chain,
+        updateFrequency,
+        lastUpdated: item.updatedAt ? new Date(item.updatedAt as string) : new Date(),
+        status,
+      };
+    });
   }
 
   private sanitizeChainData(data: unknown): ChainData[] {

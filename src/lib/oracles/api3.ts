@@ -21,7 +21,6 @@ import { getStakerRewards } from './api3/stakingService';
 import { api3DataAggregator } from './api3DataAggregator';
 import { isMockDataEnabled } from './api3DataSources';
 import { MOCK_DATA_STATUS } from './api3MockDataAnnotations';
-import { api3OnChainService } from './api3OnChainService';
 import { BaseOracleClient } from './base';
 
 import type {
@@ -33,6 +32,7 @@ import type {
   DAPIPriceDeviation,
   DataSourceInfo,
   CoveragePoolDetails,
+  CoveragePoolEvent,
   OEVNetworkStats,
   OEVAuction,
   API3Alert,
@@ -165,8 +165,8 @@ export class API3Client extends BaseOracleClient {
   async getAirnodeNetworkStats(): Promise<AirnodeNetworkStats> {
     return this.withFallback(
       async () => {
-        const networkData = await api3DataAggregator.aggregateNetworkData();
-        return networkData.airnodeStats;
+        const result = await api3DataAggregator.aggregateNetworkData();
+        return result.data.airnodeStats;
       },
       () => getMockAirnodeNetworkStats(),
       'airnode-stats'
@@ -176,8 +176,8 @@ export class API3Client extends BaseOracleClient {
   async getDapiCoverage(): Promise<DAPICoverage> {
     return this.withFallback(
       async () => {
-        const networkData = await api3DataAggregator.aggregateNetworkData();
-        return networkData.dapiCoverage;
+        const result = await api3DataAggregator.aggregateNetworkData();
+        return result.data.dapiCoverage;
       },
       () => getMockDapiCoverage(),
       'dapi-coverage'
@@ -186,7 +186,10 @@ export class API3Client extends BaseOracleClient {
 
   async getStakingData(): Promise<StakingData> {
     return this.withFallback(
-      async () => api3DataAggregator.aggregateStakingData(),
+      async () => {
+        const result = await api3DataAggregator.aggregateStakingData();
+        return result.data;
+      },
       () => getMockStakingData(),
       'staking-data'
     );
@@ -195,8 +198,8 @@ export class API3Client extends BaseOracleClient {
   async getFirstPartyOracleData(): Promise<FirstPartyOracleData> {
     return this.withFallback(
       async () => {
-        const networkData = await api3DataAggregator.aggregateNetworkData();
-        return networkData.firstPartyData;
+        const result = await api3DataAggregator.aggregateNetworkData();
+        return result.data.firstPartyData;
       },
       () => getMockFirstPartyOracleData(),
       'first-party-data'
@@ -241,7 +244,10 @@ export class API3Client extends BaseOracleClient {
 
   async getDapiPriceDeviations(): Promise<DAPIPriceDeviation[]> {
     return this.withFallback(
-      async () => api3DataAggregator.aggregatePriceDeviations(),
+      async () => {
+        const result = await api3DataAggregator.aggregatePriceDeviations();
+        return result.data;
+      },
       () => getMockDapiPriceDeviations(),
       'price-deviations'
     );
@@ -249,7 +255,10 @@ export class API3Client extends BaseOracleClient {
 
   async getDataSourceTraceability(): Promise<DataSourceInfo[]> {
     return this.withFallback(
-      async () => api3DataAggregator.aggregateDataSources(),
+      async () => {
+        const result = await api3DataAggregator.aggregateDataSources();
+        return result.data;
+      },
       () => getMockDataSourceTraceability(),
       'data-sources'
     );
@@ -315,7 +324,7 @@ export class API3Client extends BaseOracleClient {
 
   async getOHLCPrices(
     symbol: string,
-    chain?: Blockchain,
+    _chain?: Blockchain,
     period: number = 30
   ): Promise<AnnotatedData<OHLCVDataPoint[]>> {
     if (!symbol) {
@@ -454,7 +463,10 @@ export class API3Client extends BaseOracleClient {
 
   async getCoveragePoolDetails(): Promise<CoveragePoolDetails> {
     return this.withFallback(
-      async () => api3DataAggregator.aggregateCoveragePoolDetails(),
+      async () => {
+        const result = await api3DataAggregator.aggregateCoveragePoolDetails();
+        return result.data;
+      },
       () => getMockCoveragePoolDetails(),
       'coverage-pool-details'
     );

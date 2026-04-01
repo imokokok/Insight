@@ -156,6 +156,10 @@ export function getAPI3Contract(
 }
 
 export function isMockDataEnabled(): boolean {
+  // If NEXT_PUBLIC_USE_REAL_API3_DATA is set to true, disable mock data
+  if (process.env.NEXT_PUBLIC_USE_REAL_API3_DATA === 'true') {
+    return false;
+  }
   return process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 }
 
