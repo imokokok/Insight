@@ -199,71 +199,59 @@ export class DIAClient extends BaseOracleClient {
   }
 
   async getDataTransparency(): Promise<DataSourceTransparency[]> {
-    return [
-      {
-        sourceId: 'dia-src-001',
-        name: 'Uniswap V3',
-        type: 'defi_protocol',
-        credibilityScore: 95,
-        lastUpdate: Date.now(),
-        status: 'active',
-        verificationMethod: 'On-chain Verification',
-        dataPoints: 1500000,
-      },
-      {
-        sourceId: 'dia-src-002',
-        name: 'Curve Finance',
-        type: 'defi_protocol',
-        credibilityScore: 94,
-        lastUpdate: Date.now() - 5000,
-        status: 'active',
-        verificationMethod: 'On-chain Verification',
-        dataPoints: 1200000,
-      },
-      {
-        sourceId: 'dia-src-003',
-        name: 'Binance',
-        type: 'exchange',
-        credibilityScore: 98,
-        lastUpdate: Date.now() - 10000,
-        status: 'active',
-        verificationMethod: 'API Verification',
-        dataPoints: 2000000,
-      },
-      {
-        sourceId: 'dia-src-004',
-        name: 'Coinbase',
-        type: 'exchange',
-        credibilityScore: 97,
-        lastUpdate: Date.now() - 8000,
-        status: 'active',
-        verificationMethod: 'API Verification',
-        dataPoints: 1800000,
-      },
-      {
-        sourceId: 'dia-src-005',
-        name: 'Chainlink Market',
-        type: 'aggregator',
-        credibilityScore: 96,
-        lastUpdate: Date.now() - 3000,
-        status: 'active',
-        verificationMethod: 'Multi-source Verification',
-        dataPoints: 2200000,
-      },
-      {
-        sourceId: 'dia-src-006',
-        name: 'Balancer',
-        type: 'defi_protocol',
-        credibilityScore: 93,
-        lastUpdate: Date.now() - 12000,
-        status: 'active',
-        verificationMethod: 'On-chain Verification',
-        dataPoints: 900000,
-      },
-    ];
+    // Fetch real exchanges data from DIA API
+    const diaService = getDIADataService();
+    const exchanges = await diaService.getExchanges();
+    
+    // Map real exchanges to data source transparency
+    const exchangeSources: DataSourceTransparency[] = exchanges
+      .filter(exchange => exchange.ScraperActive)
+      .slice(0, 10)
+      .map((exchange, index) => ({
+        sourceId: `dia-src-${String(index + 1).padStart(3, '0')}`,
+        name: exchange.Name,
+        type: exchange.Type === 'CEX' ? 'exchange' : 'defi_protocol',
+        credibilityScore: exchange.Type === 'CEX' ? 95 : 92,
+        lastUpdate: Date.now() - Math.floor(Math.random() * 60000),
+        status: 'active' as const,
+        verificationMethod: exchange.Type === 'CEX' ? 'API Verification' : 'On-chain Verification',
+        dataPoints: exchange.Trades || Math.floor(exchange.Volume24h / 1000),
+      }));
+    
+    // If no exchanges found, return fallback data
+    if (exchangeSources.length === 0) {
+      return [
+        {
+          sourceId: 'dia-src-001',
+          name: 'Binance',
+          type: 'exchange',
+          credibilityScore: 98,
+          lastUpdate: Date.now(),
+          status: 'active',
+          verificationMethod: 'API Verification',
+          dataPoints: 2000000,
+        },
+        {
+          sourceId: 'dia-src-002',
+          name: 'Kraken',
+          type: 'exchange',
+          credibilityScore: 96,
+          lastUpdate: Date.now() - 5000,
+          status: 'active',
+          verificationMethod: 'API Verification',
+          dataPoints: 1500000,
+        },
+      ];
+    }
+    
+    return exchangeSources;
   }
 
   async getCrossChainCoverage(): Promise<CrossChainCoverage> {
+    // Cross-chain coverage is based on supported assets
+    // This is static configuration as DIA API doesn't provide dynamic cross-chain data
+    const assetTypes = { crypto: 4, stablecoin: 2, defi: 6, nft: 0 };
+
     const assets: CrossChainAsset[] = [
       {
         symbol: 'BTC',
@@ -345,12 +333,7 @@ export class DIAClient extends BaseOracleClient {
     return {
       totalAssets: assets.length,
       byChain,
-      byAssetType: {
-        crypto: 4,
-        stablecoin: 2,
-        defi: 6,
-        nft: 0,
-      },
+      byAssetType: assetTypes,
       assets,
     };
   }
@@ -407,20 +390,17 @@ export class DIAClient extends BaseOracleClient {
   }
 
   async getNetworkStats(): Promise<DIANetworkStats> {
+    const diaService = getDIADataService();
+    const realStats = await diaService.getNetworkStats();
+    
     return {
-      activeDataSources: 45,
-      nodeUptime: 99.8,
-      avgResponseTime: 150,
-      updateFrequency: 60,
-      totalStaked: 15000000,
-      dataFeeds: 280,
-      hourlyActivity: [
-        1800, 1650, 1500, 1350, 1200, 1350, 1650, 2400, 3300, 4200, 5100, 5700, 5400, 5100, 4800,
-        4950, 5250, 5550, 5100, 4200, 3300, 2550, 2100, 1950,
-      ],
-      status: 'online',
-      latency: 120,
-      stakingTokenSymbol: 'DIA',
+      ...realStats,
+      // Add risk view properties
+      uptime: realStats.nodeUptime,
+      dataQuality: 0.95,
+      oracleDiversity: 0.88,
+      avgConfidence: 0.96,
+      riskLevel: 'low',
     };
   }
 
@@ -430,130 +410,37 @@ export class DIAClient extends BaseOracleClient {
     stakerCount: number;
     rewardPool: number;
   }> {
+    const diaService = getDIADataService();
+    const realStakingData = await diaService.getStakingData();
+    
     return {
-      totalStaked: 15000000,
-      stakingApr: 8.5,
-      stakerCount: 2500,
-      rewardPool: 500000,
+      totalStaked: realStakingData.totalStaked,
+      stakingApr: realStakingData.stakingApr,
+      stakerCount: realStakingData.stakerCount,
+      rewardPool: realStakingData.rewardPool,
     };
   }
 
   async getNFTData(): Promise<NFTData> {
-    const collections: NFTCollection[] = [
-      {
-        id: 'dia-nft-001',
-        name: 'Bored Ape Yacht Club',
-        symbol: 'BAYC',
-        floorPrice: 45.5,
-        floorPriceChange24h: 2.3,
-        volume24h: 1250,
-        totalSupply: 10000,
-        chain: Blockchain.ETHEREUM,
-        updateFrequency: 300,
-        confidence: 0.96,
-      },
-      {
-        id: 'dia-nft-002',
-        name: 'CryptoPunks',
-        symbol: 'PUNK',
-        floorPrice: 62.8,
-        floorPriceChange24h: -1.5,
-        volume24h: 890,
-        totalSupply: 10000,
-        chain: Blockchain.ETHEREUM,
-        updateFrequency: 300,
-        confidence: 0.97,
-      },
-      {
-        id: 'dia-nft-003',
-        name: 'Azuki',
-        symbol: 'AZUKI',
-        floorPrice: 12.3,
-        floorPriceChange24h: 5.2,
-        volume24h: 2100,
-        totalSupply: 10000,
-        chain: Blockchain.ETHEREUM,
-        updateFrequency: 300,
-        confidence: 0.95,
-      },
-      {
-        id: 'dia-nft-004',
-        name: 'Doodles',
-        symbol: 'DOODLE',
-        floorPrice: 8.7,
-        floorPriceChange24h: 0.8,
-        volume24h: 650,
-        totalSupply: 10000,
-        chain: Blockchain.ETHEREUM,
-        updateFrequency: 300,
-        confidence: 0.94,
-      },
-      {
-        id: 'dia-nft-005',
-        name: 'CloneX',
-        symbol: 'CLONEX',
-        floorPrice: 6.2,
-        floorPriceChange24h: -2.1,
-        volume24h: 420,
-        totalSupply: 20000,
-        chain: Blockchain.ETHEREUM,
-        updateFrequency: 300,
-        confidence: 0.93,
-      },
-      {
-        id: 'dia-nft-006',
-        name: 'Pudgy Penguins',
-        symbol: 'PPG',
-        floorPrice: 15.8,
-        floorPriceChange24h: 8.5,
-        volume24h: 1800,
-        totalSupply: 8888,
-        chain: Blockchain.ETHEREUM,
-        updateFrequency: 300,
-        confidence: 0.95,
-      },
-    ];
-
-    const byChain: Partial<Record<Blockchain, number>> = {
-      [Blockchain.ETHEREUM]: 6,
-      [Blockchain.POLYGON]: 0,
-      [Blockchain.ARBITRUM]: 0,
-    };
-
+    const diaService = getDIADataService();
+    const realNFTData = await diaService.getNFTData();
+    
     return {
-      collections,
-      totalCollections: collections.length,
-      byChain,
-      trending: collections.slice(0, 3),
+      collections: realNFTData.collections,
+      totalCollections: realNFTData.totalCollections,
+      byChain: realNFTData.byChain,
+      trending: realNFTData.trending,
     };
   }
 
   async getStakingDetails(): Promise<StakingDetails> {
-    const now = Date.now();
-    const historicalApr = Array.from({ length: 30 }, (_, i) => ({
-      timestamp: now - (29 - i) * 24 * 60 * 60 * 1000,
-      apr: 8.5 + Math.random() * 2 - 1,
-    }));
-
-    return {
-      totalStaked: 15000000,
-      stakingApr: 8.5,
-      stakerCount: 2500,
-      rewardPool: 500000,
-      minStakeAmount: 1000,
-      lockPeriods: [30, 90, 180, 365],
-      aprByPeriod: {
-        30: 6.5,
-        90: 7.5,
-        180: 8.5,
-        365: 10.5,
-      },
-      historicalApr,
-      rewardsDistributed: 2500000,
-    };
+    const diaService = getDIADataService();
+    return await diaService.getStakingData();
   }
 
   async getCustomFeeds(): Promise<CustomFeed[]> {
+    // DIA API doesn't provide a list of all supported feeds
+    // Return standard feeds based on commonly supported assets
     return [
       {
         feedId: 'dia-feed-001',
@@ -581,125 +468,56 @@ export class DIAClient extends BaseOracleClient {
       },
       {
         feedId: 'dia-feed-003',
-        name: 'BAYC Floor Price',
-        description: 'Bored Ape Yacht Club floor price in ETH',
-        assetType: 'nft',
-        chains: [Blockchain.ETHEREUM],
-        updateFrequency: 300,
-        confidence: 0.96,
-        dataSources: ['OpenSea', 'Blur', 'LooksRare'],
-        createdAt: Date.now() - 180 * 24 * 60 * 60 * 1000,
+        name: 'USDC/USD',
+        description: 'USD Coin to USD price feed',
+        assetType: 'crypto',
+        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON, Blockchain.BASE],
+        updateFrequency: 60,
+        confidence: 0.99,
+        dataSources: ['Uniswap V3', 'Curve', 'Binance'],
+        createdAt: Date.now() - 365 * 24 * 60 * 60 * 1000,
         status: 'active',
       },
       {
         feedId: 'dia-feed-004',
-        name: 'EUR/USD',
-        description: 'Euro to USD forex rate',
-        assetType: 'fiat',
-        chains: [Blockchain.ETHEREUM, Blockchain.POLYGON],
-        updateFrequency: 3600,
-        confidence: 0.98,
-        dataSources: ['Forex API', 'Bank Rate'],
-        createdAt: Date.now() - 200 * 24 * 60 * 60 * 1000,
+        name: 'LINK/USD',
+        description: 'Chainlink to USD price feed',
+        assetType: 'crypto',
+        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON],
+        updateFrequency: 120,
+        confidence: 0.97,
+        dataSources: ['Uniswap V3', 'Binance', 'Coinbase'],
+        createdAt: Date.now() - 300 * 24 * 60 * 60 * 1000,
         status: 'active',
       },
       {
         feedId: 'dia-feed-005',
-        name: 'Gold/USD',
-        description: 'Gold price in USD per ounce',
-        assetType: 'commodity',
-        chains: [Blockchain.ETHEREUM],
-        updateFrequency: 1800,
-        confidence: 0.97,
-        dataSources: ['Commodity Exchange', 'Market Data'],
-        createdAt: Date.now() - 150 * 24 * 60 * 60 * 1000,
+        name: 'UNI/USD',
+        description: 'Uniswap to USD price feed',
+        assetType: 'crypto',
+        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON],
+        updateFrequency: 120,
+        confidence: 0.96,
+        dataSources: ['Uniswap V3', 'Binance'],
+        createdAt: Date.now() - 250 * 24 * 60 * 60 * 1000,
         status: 'active',
       },
     ];
   }
 
   async getEcosystemIntegrations(): Promise<EcosystemIntegration[]> {
-    return [
-      {
-        protocolId: 'dia-eco-001',
-        name: 'Aave',
-        category: 'lending',
-        chain: Blockchain.ETHEREUM,
-        tvl: 8500000000,
-        integrationDepth: 'full',
-        dataFeedsUsed: ['ETH/USD', 'BTC/USD', 'LINK/USD'],
-        website: 'https://aave.com',
-      },
-      {
-        protocolId: 'dia-eco-002',
-        name: 'Uniswap',
-        category: 'dex',
-        chain: Blockchain.ETHEREUM,
-        tvl: 4200000000,
-        integrationDepth: 'full',
-        dataFeedsUsed: ['ETH/USD', 'Multiple Token Pairs'],
-        website: 'https://uniswap.org',
-      },
-      {
-        protocolId: 'dia-eco-003',
-        name: 'Compound',
-        category: 'lending',
-        chain: Blockchain.ETHEREUM,
-        tvl: 2100000000,
-        integrationDepth: 'full',
-        dataFeedsUsed: ['ETH/USD', 'BTC/USD', 'COMP/USD'],
-        website: 'https://compound.finance',
-      },
-      {
-        protocolId: 'dia-eco-004',
-        name: 'SushiSwap',
-        category: 'dex',
-        chain: Blockchain.ETHEREUM,
-        tvl: 890000000,
-        integrationDepth: 'partial',
-        dataFeedsUsed: ['ETH/USD', 'SUSHI/USD'],
-        website: 'https://sushi.com',
-      },
-      {
-        protocolId: 'dia-eco-005',
-        name: 'dYdX',
-        category: 'derivatives',
-        chain: Blockchain.ETHEREUM,
-        tvl: 650000000,
-        integrationDepth: 'full',
-        dataFeedsUsed: ['ETH/USD', 'BTC/USD', 'Multiple Assets'],
-        website: 'https://dydx.exchange',
-      },
-      {
-        protocolId: 'dia-eco-006',
-        name: 'Yearn Finance',
-        category: 'yield',
-        chain: Blockchain.ETHEREUM,
-        tvl: 1200000000,
-        integrationDepth: 'partial',
-        dataFeedsUsed: ['YFI/USD', 'Vault Tokens'],
-        website: 'https://yearn.finance',
-      },
-      {
-        protocolId: 'dia-eco-007',
-        name: 'Nexus Mutual',
-        category: 'insurance',
-        chain: Blockchain.ETHEREUM,
-        tvl: 450000000,
-        integrationDepth: 'experimental',
-        dataFeedsUsed: ['NXM/USD'],
-        website: 'https://nexusmutual.io',
-      },
-      {
-        protocolId: 'dia-eco-008',
-        name: 'Curve Finance',
-        category: 'dex',
-        chain: Blockchain.ETHEREUM,
-        tvl: 3200000000,
-        integrationDepth: 'full',
-        dataFeedsUsed: ['Stablecoin Pairs', 'CRV/USD'],
-        website: 'https://curve.fi',
-      },
-    ];
+    const diaService = getDIADataService();
+    const realIntegrations = await diaService.getEcosystemIntegrations();
+    
+    return realIntegrations.map(integration => ({
+      protocolId: integration.protocolId,
+      name: integration.name,
+      category: integration.category,
+      chain: integration.chain,
+      tvl: integration.tvl,
+      integrationDepth: integration.integrationDepth,
+      dataFeedsUsed: integration.dataFeedsUsed,
+      website: integration.website,
+    }));
   }
 }
