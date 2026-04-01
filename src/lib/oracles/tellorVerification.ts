@@ -3,8 +3,8 @@
  * 用于验证 Tellor 数据是否从链上真实获取
  */
 
-import { tellorOnChainService } from './tellorOnChainService';
 import { TellorClient } from './tellor';
+import { tellorOnChainService } from './tellorOnChainService';
 
 export interface VerificationResult {
   method: string;

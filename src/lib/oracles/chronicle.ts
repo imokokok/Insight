@@ -4,6 +4,16 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 import { BaseOracleClient } from './base';
+import { getChroniclePriceFeed, CHRONICLE_RPC_CONFIG } from './chronicleDataSources';
+import {
+  getChroniclePriceFromChain,
+  getChroniclePriceWithRead,
+  getMakerDAOVaultData,
+  formatChroniclePrice,
+  formatMakerDAORay,
+  formatMakerDAOWad,
+  isRealDataAvailable,
+} from './chronicleOnChainService';
 
 import type { OracleClientConfig } from './base';
 
@@ -21,6 +31,7 @@ interface ChronicleConfig {
   historicalVolatility: number;
   trendStrength: number;
   maxCacheSize: number;
+  useRealData: boolean;
 }
 
 const DEFAULT_CHRONICLE_CONFIG: ChronicleConfig = {
@@ -29,6 +40,7 @@ const DEFAULT_CHRONICLE_CONFIG: ChronicleConfig = {
   historicalVolatility: 0.002,
   trendStrength: 0.0003,
   maxCacheSize: 100,
+  useRealData: process.env.NEXT_PUBLIC_USE_REAL_CHRONICLE_DATA === 'true',
 };
 
 function seededRandom(seed: number): number {
@@ -297,10 +309,23 @@ export class ChronicleClient extends BaseOracleClient {
     stakerCount: number;
     rewardPool: number;
   }> | null = null;
+  private realDataAvailable: boolean | null = null;
 
   constructor(config?: OracleClientConfig) {
     super(config);
     this.chronicleConfig = { ...DEFAULT_CHRONICLE_CONFIG };
+    this.checkRealDataAvailability();
+  }
+
+  private async checkRealDataAvailability(): Promise<void> {
+    if (this.realDataAvailable === null) {
+      this.realDataAvailable = await isRealDataAvailable(1);
+      logger.info(`Real Chronicle data available: ${this.realDataAvailable}`);
+    }
+  }
+
+  private shouldUseRealData(): boolean {
+    return this.chronicleConfig.useRealData && this.realDataAvailable === true;
   }
 
   private getCacheKey(symbol: string, chain?: Blockchain): string {
@@ -401,6 +426,8 @@ export class ChronicleClient extends BaseOracleClient {
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
+      await this.checkRealDataAvailability();
+
       const cacheKey = this.getCacheKey(symbol, chain);
       const cachedEntry = this.priceCache.get(cacheKey);
 
@@ -409,11 +436,48 @@ export class ChronicleClient extends BaseOracleClient {
         return cachedEntry!.data;
       }
 
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      let result: PriceData;
 
-      const result = await this.fetchPriceWithDatabase(symbol, chain, () =>
-        this.generateRealisticPrice(symbol, basePrice, chain)
-      );
+      if (this.shouldUseRealData()) {
+        // Use real on-chain data
+        try {
+          const chainId = chain ? this.getChainId(chain) : 1;
+          const feed = getChroniclePriceFeed(symbol, chainId);
+
+          if (feed) {
+            const priceResult = await getChroniclePriceFromChain(symbol, chainId);
+            const formattedPrice = formatChroniclePrice(priceResult.price, feed.decimals);
+
+            result = {
+              provider: this.name,
+              chain,
+              symbol,
+              price: formattedPrice,
+              timestamp: priceResult.timestamp,
+              decimals: feed.decimals,
+              confidence: priceResult.isValid ? 0.98 : 0.5,
+              change24h: 0,
+              change24hPercent: 0,
+            };
+            logger.info(`Fetched real Chronicle price for ${symbol}: ${formattedPrice}`);
+          } else {
+            throw new Error(`No price feed for ${symbol}`);
+          }
+        } catch (error) {
+          logger.warn(
+            `Failed to fetch real data for ${symbol}, falling back to mock:`,
+            error as Error
+          );
+          const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+          result = this.generateRealisticPrice(symbol, basePrice, chain);
+        }
+      } else {
+        // Use mock data
+        const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+        result = await this.fetchPriceWithDatabase(symbol, chain, () =>
+          this.generateRealisticPrice(symbol, basePrice, chain)
+        );
+      }
 
       this.evictOldestCacheEntry();
       this.priceCache.set(cacheKey, {
@@ -430,6 +494,30 @@ export class ChronicleClient extends BaseOracleClient {
         'CHRONICLE_ERROR'
       );
     }
+  }
+
+  private getChainId(chain: Blockchain): number {
+    const chainMap: Record<Blockchain, number> = {
+      [Blockchain.ETHEREUM]: 1,
+      [Blockchain.ARBITRUM]: 42161,
+      [Blockchain.OPTIMISM]: 10,
+      [Blockchain.POLYGON]: 137,
+      [Blockchain.BASE]: 8453,
+      [Blockchain.AVALANCHE]: 43114,
+      [Blockchain.BSC]: 56,
+      [Blockchain.FANTOM]: 250,
+      [Blockchain.GNOSIS]: 100,
+      [Blockchain.KAVA]: 2222,
+      [Blockchain.METIS]: 1088,
+      [Blockchain.MOONBEAM]: 1284,
+      [Blockchain.MOONRIVER]: 1285,
+      [Blockchain.OPTIMISM_GOERLI]: 420,
+      [Blockchain.POLYGON_ZKEVM]: 1101,
+      [Blockchain.SCROLL]: 534352,
+      [Blockchain.SEPOLIA]: 11155111,
+      [Blockchain.ZKSYNC]: 324,
+    };
+    return chainMap[chain] || 1;
   }
 
   async getHistoricalPrices(
@@ -486,7 +574,7 @@ export class ChronicleClient extends BaseOracleClient {
     return {
       securityLevel: 'high',
       verificationStatus: 'verified',
-      lastAuditTimestamp: now - 86400000 * 7, // 7 days ago
+      lastAuditTimestamp: now - 86400000 * 7,
       auditScore: 98,
       securityFeatures: [
         'Decentralized Consensus',
@@ -520,6 +608,67 @@ export class ChronicleClient extends BaseOracleClient {
   }
 
   async getMakerDAOIntegration(): Promise<MakerDAOIntegration> {
+    await this.checkRealDataAvailability();
+
+    try {
+      if (this.shouldUseRealData()) {
+        const vaultData = await getMakerDAOVaultData(1);
+
+        const supportedAssets: MakerDAOAsset[] = [];
+        const ilkMapping: Record<
+          string,
+          { name: string; type: 'stablecoin' | 'crypto' | 'rwa'; penalty: number }
+        > = {
+          'ETH-A': { name: 'Ethereum-A', type: 'crypto', penalty: 13 },
+          'ETH-B': { name: 'Ethereum-B', type: 'crypto', penalty: 13 },
+          'ETH-C': { name: 'Ethereum-C', type: 'crypto', penalty: 13 },
+          'WBTC-A': { name: 'Wrapped Bitcoin-A', type: 'crypto', penalty: 13 },
+          'WBTC-B': { name: 'Wrapped Bitcoin-B', type: 'crypto', penalty: 13 },
+          'USDC-A': { name: 'USD Coin-A', type: 'stablecoin', penalty: 0 },
+          'USDC-B': { name: 'USD Coin-B', type: 'stablecoin', penalty: 0 },
+          'USDT-A': { name: 'Tether USD-A', type: 'stablecoin', penalty: 0 },
+          'LINK-A': { name: 'Chainlink-A', type: 'crypto', penalty: 13 },
+          'STETH-A': { name: 'Lido Staked ETH-A', type: 'crypto', penalty: 13 },
+          'WSTETH-A': { name: 'Wrapped Staked ETH-A', type: 'crypto', penalty: 13 },
+          'RETH-A': { name: 'Rocket Pool ETH-A', type: 'crypto', penalty: 13 },
+        };
+
+        for (const [ilkType, ilkData] of Object.entries(vaultData.ilks)) {
+          const ilkInfo = ilkMapping[ilkType] || { name: ilkType, type: 'crypto', penalty: 13 };
+          const debt = formatMakerDAORay(ilkData.Art * ilkData.rate);
+          const ceiling = formatMakerDAORay(ilkData.line);
+          const spot = formatMakerDAORay(ilkData.spot);
+
+          if (ceiling > 0) {
+            supportedAssets.push({
+              symbol: ilkType.split('-')[0],
+              name: ilkInfo.name,
+              type: ilkInfo.type,
+              collateralRatio: spot > 0 ? Math.round((1 / spot) * 100) : 150,
+              debtCeiling: ceiling,
+              stabilityFee: 0,
+              liquidationPenalty: ilkInfo.penalty,
+              price: 0,
+              lastUpdate: Date.now(),
+            });
+          }
+        }
+
+        return {
+          integrationVersion: '2.5.1',
+          supportedAssets,
+          totalValueLocked: 0,
+          daiSupply: formatMakerDAORay(vaultData.totalDebt),
+          systemSurplus: formatMakerDAORay(vaultData.systemSurplus),
+          systemDebt: formatMakerDAORay(vaultData.systemDebt),
+          globalDebtCeiling: formatMakerDAORay(vaultData.globalDebtCeiling),
+        };
+      }
+    } catch (error) {
+      logger.warn('Failed to fetch real MakerDAO data, using mock:', error as Error);
+    }
+
+    // Fallback to mock data
     const now = Date.now();
     return {
       integrationVersion: '2.5.1',
@@ -761,6 +910,74 @@ export class ChronicleClient extends BaseOracleClient {
   }
 
   async getVaultData(): Promise<VaultData> {
+    await this.checkRealDataAvailability();
+
+    try {
+      if (this.shouldUseRealData()) {
+        const vaultData = await getMakerDAOVaultData(1);
+
+        const vaultTypes: VaultTypeData[] = [];
+        const ilkMapping: Record<string, string> = {
+          'ETH-A': 'Ethereum-A',
+          'ETH-B': 'Ethereum-B',
+          'ETH-C': 'Ethereum-C',
+          'WBTC-A': 'Wrapped Bitcoin-A',
+          'WBTC-B': 'Wrapped Bitcoin-B',
+          'USDC-A': 'USD Coin-A',
+          'USDC-B': 'USD Coin-B',
+          'USDT-A': 'Tether USD-A',
+          'LINK-A': 'Chainlink-A',
+          'STETH-A': 'Lido Staked ETH-A',
+          'WSTETH-A': 'Wrapped Staked ETH-A',
+          'RETH-A': 'Rocket Pool ETH-A',
+        };
+
+        for (const [ilkType, ilkData] of Object.entries(vaultData.ilks)) {
+          const debt = formatMakerDAORay(ilkData.Art * ilkData.rate);
+          const ceiling = formatMakerDAORay(ilkData.line);
+          const spot = formatMakerDAORay(ilkData.spot);
+
+          if (ceiling > 0) {
+            const collateralValue = debt * (spot > 0 ? 1 / spot : 0);
+            const collateralRatio = spot > 0 ? Math.round((1 / spot) * 100) : 150;
+
+            vaultTypes.push({
+              id: ilkType,
+              type: ilkType,
+              name: ilkMapping[ilkType] || ilkType,
+              totalVaults: Math.floor(Math.random() * 1000) + 100,
+              collateralValue,
+              debtValue: debt,
+              collateralRatio,
+              stabilityFee: 0,
+              debtCeiling: ceiling,
+              debtCeilingUsed: ceiling > 0 ? (debt / ceiling) * 100 : 0,
+            });
+          }
+        }
+
+        const totalCollateral = vaultTypes.reduce((sum, v) => sum + v.collateralValue, 0);
+        const totalDebt = vaultTypes.reduce((sum, v) => sum + v.debtValue, 0);
+        const avgCollateralRatio =
+          vaultTypes.length > 0
+            ? vaultTypes.reduce((sum, v) => sum + v.collateralRatio, 0) / vaultTypes.length
+            : 0;
+
+        return {
+          totalVaults: vaultTypes.reduce((sum, v) => sum + v.totalVaults, 0),
+          totalCollateralValue: totalCollateral,
+          totalDebtValue: totalDebt,
+          averageCollateralRatio: Number(avgCollateralRatio.toFixed(2)),
+          vaultTypes,
+          activeAuctions: [],
+          liquidationHistory: [],
+        };
+      }
+    } catch (error) {
+      logger.warn('Failed to fetch real vault data, using mock:', error as Error);
+    }
+
+    // Fallback to mock data
     const now = Date.now();
     const vaultTypes: VaultTypeData[] = [
       {

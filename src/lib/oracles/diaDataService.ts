@@ -93,14 +93,45 @@ const DIA_ASSET_ADDRESSES: Record<string, Partial<Record<Blockchain, string>>> =
 };
 
 // NFT Collection addresses for DIA API
-const NFT_COLLECTIONS: Array<{ address: string; name: string; symbol: string; chain: Blockchain }> = [
-  { address: '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D', name: 'Bored Ape Yacht Club', symbol: 'BAYC', chain: Blockchain.ETHEREUM },
-  { address: '0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB', name: 'CryptoPunks', symbol: 'PUNK', chain: Blockchain.ETHEREUM },
-  { address: '0xED5AF388653567Af2F388E6224dC7C4b3241C544', name: 'Azuki', symbol: 'AZUKI', chain: Blockchain.ETHEREUM },
-  { address: '0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e', name: 'Doodles', symbol: 'DOODLE', chain: Blockchain.ETHEREUM },
-  { address: '0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B', name: 'CloneX', symbol: 'CLONEX', chain: Blockchain.ETHEREUM },
-  { address: '0xBd3531dA5CF5857e7CfAA92426877b022e612cf8', name: 'Pudgy Penguins', symbol: 'PPG', chain: Blockchain.ETHEREUM },
-];
+const NFT_COLLECTIONS: Array<{ address: string; name: string; symbol: string; chain: Blockchain }> =
+  [
+    {
+      address: '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D',
+      name: 'Bored Ape Yacht Club',
+      symbol: 'BAYC',
+      chain: Blockchain.ETHEREUM,
+    },
+    {
+      address: '0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB',
+      name: 'CryptoPunks',
+      symbol: 'PUNK',
+      chain: Blockchain.ETHEREUM,
+    },
+    {
+      address: '0xED5AF388653567Af2F388E6224dC7C4b3241C544',
+      name: 'Azuki',
+      symbol: 'AZUKI',
+      chain: Blockchain.ETHEREUM,
+    },
+    {
+      address: '0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e',
+      name: 'Doodles',
+      symbol: 'DOODLE',
+      chain: Blockchain.ETHEREUM,
+    },
+    {
+      address: '0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B',
+      name: 'CloneX',
+      symbol: 'CLONEX',
+      chain: Blockchain.ETHEREUM,
+    },
+    {
+      address: '0xBd3531dA5CF5857e7CfAA92426877b022e612cf8',
+      name: 'Pudgy Penguins',
+      symbol: 'PPG',
+      chain: Blockchain.ETHEREUM,
+    },
+  ];
 
 const CACHE_TTL = {
   PRICE: 30000,
@@ -550,15 +581,15 @@ export class DIADataService {
     try {
       // Fetch real exchanges data from DIA API
       const exchanges = await this.getExchanges();
-      
+
       // Get DIA token supply for staking info
       const diaSupply = await this.getSupply('DIA');
-      
+
       // Calculate real metrics based on API data
-      const activeExchanges = exchanges.filter(e => e.ScraperActive).length;
+      const activeExchanges = exchanges.filter((e) => e.ScraperActive).length;
       const totalPairs = exchanges.reduce((sum, e) => sum + e.Pairs, 0);
       const dataFeeds = totalPairs;
-      
+
       // Generate hourly activity based on real data feeds count
       const baseActivity = Math.floor(dataFeeds * 6);
       const hourlyActivity = Array.from({ length: 24 }, (_, i) => {
@@ -590,7 +621,7 @@ export class DIADataService {
         'Failed to get network stats',
         error instanceof Error ? error : new Error(String(error))
       );
-      
+
       // Return fallback data
       return {
         activeDataSources: 45,
@@ -600,8 +631,8 @@ export class DIADataService {
         totalStaked: 15000000,
         dataFeeds: 280,
         hourlyActivity: [
-          1800, 1650, 1500, 1350, 1200, 1350, 1650, 2400, 3300, 4200, 5100, 5700, 
-          5400, 5100, 4800, 4950, 5250, 5550, 5100, 4200, 3300, 2550, 2100, 1950,
+          1800, 1650, 1500, 1350, 1200, 1350, 1650, 2400, 3300, 4200, 5100, 5700, 5400, 5100, 4800,
+          4950, 5250, 5550, 5100, 4200, 3300, 2550, 2100, 1950,
         ],
         status: 'online',
         latency: 120,
@@ -620,16 +651,19 @@ export class DIADataService {
 
     try {
       const collections: DIANFTCollection[] = [];
-      
+
       // Fetch real NFT data from DIA API for each collection
       for (const nft of NFT_COLLECTIONS) {
         try {
           const nftData = await this.getNFTFloorPrice(nft.address, nft.chain);
           if (nftData) {
-            const floorPriceChange24h = nftData.FloorPriceYesterday > 0 
-              ? ((nftData.FloorPrice - nftData.FloorPriceYesterday) / nftData.FloorPriceYesterday) * 100 
-              : 0;
-            
+            const floorPriceChange24h =
+              nftData.FloorPriceYesterday > 0
+                ? ((nftData.FloorPrice - nftData.FloorPriceYesterday) /
+                    nftData.FloorPriceYesterday) *
+                  100
+                : 0;
+
             collections.push({
               id: `dia-nft-${nft.symbol.toLowerCase()}`,
               name: nft.name,
@@ -654,7 +688,7 @@ export class DIADataService {
       }
 
       const byChain: Partial<Record<Blockchain, number>> = {
-        [Blockchain.ETHEREUM]: collections.filter(c => c.chain === Blockchain.ETHEREUM).length,
+        [Blockchain.ETHEREUM]: collections.filter((c) => c.chain === Blockchain.ETHEREUM).length,
         [Blockchain.POLYGON]: 0,
         [Blockchain.ARBITRUM]: 0,
       };
@@ -673,7 +707,7 @@ export class DIADataService {
         'Failed to get NFT data, using fallback',
         error instanceof Error ? error : new Error(String(error))
       );
-      
+
       // Return fallback data
       return {
         collections: [
@@ -735,21 +769,24 @@ export class DIADataService {
       // Try to get real staking data from Ethereum
       const ethereumRpc = ALCHEMY_RPC_URLS[Blockchain.ETHEREUM];
       let totalStaked = 15000000;
-      let stakerCount = 2500;
+      const stakerCount = 2500;
 
       if (ethereumRpc) {
         try {
           // DIA Staking contract address (example - replace with actual)
           const stakingContract = '0x84cA8bc7997272c7CfB4D0Cd3D55cd942B3c9419';
-          
+
           // Call totalStaked function
           const totalStakedCall = {
             jsonrpc: '2.0',
             method: 'eth_call',
-            params: [{
-              to: stakingContract,
-              data: '0x5c60c5b1', // totalStaked() function selector
-            }, 'latest'],
+            params: [
+              {
+                to: stakingContract,
+                data: '0x5c60c5b1', // totalStaked() function selector
+              },
+              'latest',
+            ],
             id: 1,
           };
 
@@ -777,7 +814,7 @@ export class DIADataService {
       // Get DIA price for APR calculation
       const diaPrice = await this.getAssetPrice('DIA', Blockchain.ETHEREUM);
       const diaSupply = await this.getSupply('DIA');
-      
+
       // Calculate estimated APR based on market conditions
       const baseApr = 8.5;
       const marketFactor = diaPrice ? (diaPrice.change24hPercent || 0) * 0.1 : 0;
@@ -814,7 +851,7 @@ export class DIADataService {
         'Failed to get staking data, using fallback',
         error instanceof Error ? error : new Error(String(error))
       );
-      
+
       const now = Date.now();
       return {
         totalStaked: 15000000,
@@ -849,13 +886,55 @@ export class DIADataService {
     try {
       // Try to fetch real TVL data from DeFiLlama
       const protocols = [
-        { name: 'Aave', slug: 'aave', category: 'lending' as const, chain: Blockchain.ETHEREUM, website: 'https://aave.com' },
-        { name: 'Uniswap', slug: 'uniswap', category: 'dex' as const, chain: Blockchain.ETHEREUM, website: 'https://uniswap.org' },
-        { name: 'Compound', slug: 'compound', category: 'lending' as const, chain: Blockchain.ETHEREUM, website: 'https://compound.finance' },
-        { name: 'SushiSwap', slug: 'sushi', category: 'dex' as const, chain: Blockchain.ETHEREUM, website: 'https://sushi.com' },
-        { name: 'dYdX', slug: 'dydx', category: 'derivatives' as const, chain: Blockchain.ETHEREUM, website: 'https://dydx.exchange' },
-        { name: 'Yearn Finance', slug: 'yearn-finance', category: 'yield' as const, chain: Blockchain.ETHEREUM, website: 'https://yearn.finance' },
-        { name: 'Curve Finance', slug: 'curve-finance', category: 'dex' as const, chain: Blockchain.ETHEREUM, website: 'https://curve.fi' },
+        {
+          name: 'Aave',
+          slug: 'aave',
+          category: 'lending' as const,
+          chain: Blockchain.ETHEREUM,
+          website: 'https://aave.com',
+        },
+        {
+          name: 'Uniswap',
+          slug: 'uniswap',
+          category: 'dex' as const,
+          chain: Blockchain.ETHEREUM,
+          website: 'https://uniswap.org',
+        },
+        {
+          name: 'Compound',
+          slug: 'compound',
+          category: 'lending' as const,
+          chain: Blockchain.ETHEREUM,
+          website: 'https://compound.finance',
+        },
+        {
+          name: 'SushiSwap',
+          slug: 'sushi',
+          category: 'dex' as const,
+          chain: Blockchain.ETHEREUM,
+          website: 'https://sushi.com',
+        },
+        {
+          name: 'dYdX',
+          slug: 'dydx',
+          category: 'derivatives' as const,
+          chain: Blockchain.ETHEREUM,
+          website: 'https://dydx.exchange',
+        },
+        {
+          name: 'Yearn Finance',
+          slug: 'yearn-finance',
+          category: 'yield' as const,
+          chain: Blockchain.ETHEREUM,
+          website: 'https://yearn.finance',
+        },
+        {
+          name: 'Curve Finance',
+          slug: 'curve-finance',
+          category: 'dex' as const,
+          chain: Blockchain.ETHEREUM,
+          website: 'https://curve.fi',
+        },
       ];
 
       const integrations: DIAEcosystemIntegration[] = [];
@@ -876,11 +955,11 @@ export class DIADataService {
           // Fallback to estimated values if API fails
           if (tvl === 0) {
             const estimatedTvls: Record<string, number> = {
-              'Aave': 8500000000,
-              'Uniswap': 4200000000,
-              'Compound': 2100000000,
-              'SushiSwap': 890000000,
-              'dYdX': 650000000,
+              Aave: 8500000000,
+              Uniswap: 4200000000,
+              Compound: 2100000000,
+              SushiSwap: 890000000,
+              dYdX: 650000000,
               'Yearn Finance': 1200000000,
               'Curve Finance': 3200000000,
             };
@@ -893,7 +972,13 @@ export class DIADataService {
             category: protocol.category,
             chain: protocol.chain,
             tvl,
-            integrationDepth: protocol.name === 'Aave' || protocol.name === 'Uniswap' || protocol.name === 'Compound' || protocol.name === 'Curve Finance' ? 'full' : 'partial',
+            integrationDepth:
+              protocol.name === 'Aave' ||
+              protocol.name === 'Uniswap' ||
+              protocol.name === 'Compound' ||
+              protocol.name === 'Curve Finance'
+                ? 'full'
+                : 'partial',
             dataFeedsUsed: ['ETH/USD', 'BTC/USD', 'Multiple Assets'],
             website: protocol.website,
           });
@@ -913,7 +998,7 @@ export class DIADataService {
         'Failed to get ecosystem integrations, using fallback',
         error instanceof Error ? error : new Error(String(error))
       );
-      
+
       return [
         {
           protocolId: 'dia-eco-001',
@@ -964,7 +1049,7 @@ export class DIADataService {
       // Try to fetch real historical data from DIA API
       const upperSymbol = symbol.toUpperCase();
       let url: string;
-      
+
       if (chain && DIA_ASSET_ADDRESSES[upperSymbol]?.[chain]) {
         const address = DIA_ASSET_ADDRESSES[upperSymbol][chain];
         const blockchainName = DIA_CHAIN_MAPPING[chain];
@@ -974,7 +1059,7 @@ export class DIADataService {
       }
 
       const response = await fetch(url);
-      
+
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -987,17 +1072,17 @@ export class DIADataService {
             confidence: 0.98,
             chain,
           }));
-          
+
           this.setCache(cacheKey, prices, CACHE_TTL.HISTORICAL);
           return prices;
         }
       }
-      
+
       // Fallback to simulated data if API doesn't support historical data
       throw new Error('Historical data not available from API');
     } catch (error) {
       logger.warn('Failed to fetch historical prices from API, using simulated data', { error });
-      
+
       const currentPriceData = await this.getAssetPrice(symbol, chain);
       if (!currentPriceData) {
         return [];

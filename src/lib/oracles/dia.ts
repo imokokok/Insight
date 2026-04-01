@@ -202,10 +202,10 @@ export class DIAClient extends BaseOracleClient {
     // Fetch real exchanges data from DIA API
     const diaService = getDIADataService();
     const exchanges = await diaService.getExchanges();
-    
+
     // Map real exchanges to data source transparency
     const exchangeSources: DataSourceTransparency[] = exchanges
-      .filter(exchange => exchange.ScraperActive)
+      .filter((exchange) => exchange.ScraperActive)
       .slice(0, 10)
       .map((exchange, index) => ({
         sourceId: `dia-src-${String(index + 1).padStart(3, '0')}`,
@@ -217,7 +217,7 @@ export class DIAClient extends BaseOracleClient {
         verificationMethod: exchange.Type === 'CEX' ? 'API Verification' : 'On-chain Verification',
         dataPoints: exchange.Trades || Math.floor(exchange.Volume24h / 1000),
       }));
-    
+
     // If no exchanges found, return fallback data
     if (exchangeSources.length === 0) {
       return [
@@ -243,7 +243,7 @@ export class DIAClient extends BaseOracleClient {
         },
       ];
     }
-    
+
     return exchangeSources;
   }
 
@@ -392,7 +392,7 @@ export class DIAClient extends BaseOracleClient {
   async getNetworkStats(): Promise<DIANetworkStats> {
     const diaService = getDIADataService();
     const realStats = await diaService.getNetworkStats();
-    
+
     return {
       ...realStats,
       // Add risk view properties
@@ -412,7 +412,7 @@ export class DIAClient extends BaseOracleClient {
   }> {
     const diaService = getDIADataService();
     const realStakingData = await diaService.getStakingData();
-    
+
     return {
       totalStaked: realStakingData.totalStaked,
       stakingApr: realStakingData.stakingApr,
@@ -424,7 +424,7 @@ export class DIAClient extends BaseOracleClient {
   async getNFTData(): Promise<NFTData> {
     const diaService = getDIADataService();
     const realNFTData = await diaService.getNFTData();
-    
+
     return {
       collections: realNFTData.collections,
       totalCollections: realNFTData.totalCollections,
@@ -508,8 +508,8 @@ export class DIAClient extends BaseOracleClient {
   async getEcosystemIntegrations(): Promise<EcosystemIntegration[]> {
     const diaService = getDIADataService();
     const realIntegrations = await diaService.getEcosystemIntegrations();
-    
-    return realIntegrations.map(integration => ({
+
+    return realIntegrations.map((integration) => ({
       protocolId: integration.protocolId,
       name: integration.name,
       category: integration.category,

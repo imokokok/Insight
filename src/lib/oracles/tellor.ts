@@ -275,14 +275,14 @@ export class TellorClient extends BaseOracleClient {
       // 优先从链上获取真实数据
       const chainId = chain ? this.getChainId(chain) : 1;
       const onChainStaking = await this.onChainService.getStakingData(chainId);
-      
+
       // 使用链上质押数据计算价格影响
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       const stakedAmount = Number(onChainStaking.totalStaked) / 1e18;
       const networkHealthFactor = Math.min(stakedAmount / 10000000, 1.1); // 质押越多，网络越健康，价格可信度越高
-      
+
       const adjustedPrice = basePrice * networkHealthFactor;
-      
+
       const data: PriceData = {
         provider: this.name,
         symbol: symbol.toUpperCase(),
@@ -294,7 +294,7 @@ export class TellorClient extends BaseOracleClient {
       };
 
       this.lastDataSource = 'on-chain';
-      
+
       return {
         data,
         source: this.lastDataSource,
@@ -304,7 +304,7 @@ export class TellorClient extends BaseOracleClient {
     } catch (error) {
       console.warn('[Tellor] Failed to fetch on-chain price, using fallback:', error);
       this.lastDataSource = 'fallback';
-      
+
       // 返回基于基准价格的回退数据
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return {
@@ -340,21 +340,21 @@ export class TellorClient extends BaseOracleClient {
       const prices: PriceData[] = [];
       const now = Date.now();
       const hourMs = 3600 * 1000;
-      
+
       // 基于当前价格和链上数据生成历史数据点
       for (let i = period; i >= 0; i--) {
-        const timestamp = now - (i * hourMs);
+        const timestamp = now - i * hourMs;
         // 添加基于区块高度的微小变化
         const variation = Math.sin(i * 0.5) * 0.02; // 2% 波动
         const price = currentPrice.price * (1 + variation);
-        
+
         prices.push({
           ...currentPrice,
           price: Number(price.toFixed(8)),
           timestamp,
         });
       }
-      
+
       return prices;
     } catch (error) {
       console.warn('[Tellor] Failed to fetch historical prices:', error);
@@ -366,8 +366,8 @@ export class TellorClient extends BaseOracleClient {
     try {
       // 获取链上 reporter 活动数据来生成真实的流数据
       const reporters = await this.onChainService.getReporterList(1, 10);
-      const activeReporters = reporters.filter(r => r.status === 'active');
-      
+      const activeReporters = reporters.filter((r) => r.status === 'active');
+
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       const stream: PriceStreamPoint[] = [];
       const now = Date.now();
@@ -390,9 +390,10 @@ export class TellorClient extends BaseOracleClient {
           volume: Math.floor(Math.random() * 1000) + 100,
           change: Number(change.toFixed(4)),
           changePercent: Number(changePercent.toFixed(4)),
-          source: activeReporters.length > 0 
-            ? `Reporter ${activeReporters[i % activeReporters.length]?.address.slice(0, 8)}...`
-            : 'Tellor Network',
+          source:
+            activeReporters.length > 0
+              ? `Reporter ${activeReporters[i % activeReporters.length]?.address.slice(0, 8)}...`
+              : 'Tellor Network',
         });
       }
 
@@ -408,14 +409,14 @@ export class TellorClient extends BaseOracleClient {
       // 基于链上质押数据计算市场深度
       const stakingData = await this.onChainService.getStakingData(1);
       const totalStaked = Number(stakingData.totalStaked) / 1e18;
-      
+
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       const levels: MarketDepthLevel[] = [];
       const levelCount = 10;
 
       let totalBidVolume = 0;
       let totalAskVolume = 0;
-      
+
       // 使用质押数据影响市场深度
       const depthFactor = Math.sqrt(totalStaked) / 1000;
 
@@ -487,21 +488,21 @@ export class TellorClient extends BaseOracleClient {
         Blockchain.POLYGON,
         Blockchain.BASE,
       ];
-      
+
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       const now = Date.now();
-      
+
       const chainPrices: MultiChainPrice[] = [];
-      
+
       for (let i = 0; i < chainIds.length; i++) {
         try {
           const stakingData = await this.onChainService.getStakingData(chainIds[i]);
           const stakedAmount = Number(stakingData.totalStaked) / 1e18;
-          
+
           // 基于质押量计算价格可信度
           const confidence = Math.min(0.95, 0.85 + (stakedAmount / 50000000) * 0.1);
           const latency = 50 + Math.random() * 100;
-          
+
           chainPrices.push({
             chain: chainNames[i],
             price: basePrice * (1 + (Math.random() - 0.5) * 0.002),
@@ -565,14 +566,14 @@ export class TellorClient extends BaseOracleClient {
         this.onChainService.getAutopayData(chainId).catch(() => null),
       ]);
 
-      const activeReporters = reporterList.filter(r => r.status === 'active');
+      const activeReporters = reporterList.filter((r) => r.status === 'active');
       const totalStaked = Number(stakingData.totalStaked) / 1e18;
-      
+
       // 计算基于真实数据的网络统计
       const activeNodes = activeReporters.length;
-      const nodeUptime = activeNodes > 0 ? 99.5 + (Math.random() * 0.5) : 95;
-      const avgResponseTime = Math.max(50, 150 - (activeNodes * 0.5));
-      
+      const nodeUptime = activeNodes > 0 ? 99.5 + Math.random() * 0.5 : 95;
+      const avgResponseTime = Math.max(50, 150 - activeNodes * 0.5);
+
       // 基于 funded feeds 计算数据 feed 数量
       const dataFeeds = autopayData ? autopayData.fundedFeeds : 350;
 
@@ -625,19 +626,39 @@ export class TellorClient extends BaseOracleClient {
       // 基于链上质押数据计算流动性指标
       const stakingData = await this.onChainService.getStakingData(1);
       const totalStaked = Number(stakingData.totalStaked) / 1e18;
-      
+
       // 使用质押数据估算流动性
       const liquidityFactor = totalStaked / 20000000; // 相对于基准质押量
-      
+
       return {
         totalLiquidity: Math.floor(850000000 * liquidityFactor),
         avgSlippage: Math.max(0.05, 0.12 / liquidityFactor),
         topPairs: [
-          { pair: 'ETH/USDC', liquidity: Math.floor(250000000 * liquidityFactor), volume24h: Math.floor(150000000 * liquidityFactor) },
-          { pair: 'BTC/USDC', liquidity: Math.floor(180000000 * liquidityFactor), volume24h: Math.floor(120000000 * liquidityFactor) },
-          { pair: 'ETH/USDT', liquidity: Math.floor(120000000 * liquidityFactor), volume24h: Math.floor(80000000 * liquidityFactor) },
-          { pair: 'LINK/ETH', liquidity: Math.floor(85000000 * liquidityFactor), volume24h: Math.floor(45000000 * liquidityFactor) },
-          { pair: 'UNI/ETH', liquidity: Math.floor(65000000 * liquidityFactor), volume24h: Math.floor(35000000 * liquidityFactor) },
+          {
+            pair: 'ETH/USDC',
+            liquidity: Math.floor(250000000 * liquidityFactor),
+            volume24h: Math.floor(150000000 * liquidityFactor),
+          },
+          {
+            pair: 'BTC/USDC',
+            liquidity: Math.floor(180000000 * liquidityFactor),
+            volume24h: Math.floor(120000000 * liquidityFactor),
+          },
+          {
+            pair: 'ETH/USDT',
+            liquidity: Math.floor(120000000 * liquidityFactor),
+            volume24h: Math.floor(80000000 * liquidityFactor),
+          },
+          {
+            pair: 'LINK/ETH',
+            liquidity: Math.floor(85000000 * liquidityFactor),
+            volume24h: Math.floor(45000000 * liquidityFactor),
+          },
+          {
+            pair: 'UNI/ETH',
+            liquidity: Math.floor(65000000 * liquidityFactor),
+            volume24h: Math.floor(35000000 * liquidityFactor),
+          },
         ],
       };
     } catch (error) {
@@ -659,7 +680,7 @@ export class TellorClient extends BaseOracleClient {
     try {
       // 从链上获取真实质押数据
       const stakingData = await this.onChainService.getStakingData(1);
-      
+
       return {
         totalStaked: Number(stakingData.totalStaked) / 1e18,
         stakingApr: stakingData.apr,
@@ -681,10 +702,13 @@ export class TellorClient extends BaseOracleClient {
     try {
       // 从链上获取真实的 reporter 数据
       const reporters = await this.onChainService.getReporterList(1, 100);
-      
+
       const totalStaked = reporters.reduce((sum, r) => sum + r.stakedAmount, 0);
       const activeReporters = reporters.filter((r) => r.status === 'active').length;
-      const totalReports24h = reporters.reduce((sum, r) => sum + Math.floor(r.totalReports * 0.1), 0);
+      const totalReports24h = reporters.reduce(
+        (sum, r) => sum + Math.floor(r.totalReports * 0.1),
+        0
+      );
 
       const stakeRanges = [
         { min: 0, max: 10000, label: '< 10K TRB' },
@@ -716,9 +740,10 @@ export class TellorClient extends BaseOracleClient {
         totalStaked,
         avgStakePerReporter: reporters.length > 0 ? Math.floor(totalStaked / reporters.length) : 0,
         totalReports24h,
-        avgRewardsPerReporter: reporters.length > 0 
-          ? Math.floor(reporters.reduce((sum, r) => sum + r.rewardsEarned, 0) / reporters.length)
-          : 0,
+        avgRewardsPerReporter:
+          reporters.length > 0
+            ? Math.floor(reporters.reduce((sum, r) => sum + r.rewardsEarned, 0) / reporters.length)
+            : 0,
         reporters: reporters.sort((a, b) => b.stakedAmount - a.stakedAmount).slice(0, 10),
         stakeDistribution,
         activityTrend,
@@ -750,19 +775,19 @@ export class TellorClient extends BaseOracleClient {
 
       const now = Date.now();
       const totalStaked = Number(stakingData.totalStaked) / 1e18;
-      const activeReporters = reporterList.filter(r => r.status === 'active').length;
-      
+      const activeReporters = reporterList.filter((r) => r.status === 'active').length;
+
       // 计算风险分数
       const dataQualityScore = Math.min(95, 70 + (activeReporters / 100) * 25);
-      
+
       // 质押集中度风险
-      const stakedAmounts = reporterList.map(r => r.stakedAmount);
+      const stakedAmounts = reporterList.map((r) => r.stakedAmount);
       const maxStake = Math.max(...stakedAmounts, 1);
       const concentrationRisk = (maxStake / Math.max(totalStaked, 1)) * 100;
-      
+
       // 基于争议数据计算 slash 风险
-      const slashRisk = disputeData 
-        ? (disputeData.totalSlashed / Math.max(totalStaked, 1)) * 1000 
+      const slashRisk = disputeData
+        ? (disputeData.totalSlashed / Math.max(totalStaked, 1)) * 1000
         : 5;
 
       const riskTrend = Array.from({ length: 24 }, (_, i) => ({
@@ -794,16 +819,18 @@ export class TellorClient extends BaseOracleClient {
         alerts: [
           {
             type: activeReporters < 10 ? 'warning' : 'info',
-            message: activeReporters < 10 
-              ? `Low reporter count: ${activeReporters} active reporters`
-              : `Network operating normally with ${activeReporters} active reporters`,
+            message:
+              activeReporters < 10
+                ? `Low reporter count: ${activeReporters} active reporters`
+                : `Network operating normally with ${activeReporters} active reporters`,
             timestamp: now - 3600000,
           },
           {
             type: concentrationRisk > 30 ? 'warning' : 'info',
-            message: concentrationRisk > 30 
-              ? 'High stake concentration detected'
-              : 'Stake distribution is healthy',
+            message:
+              concentrationRisk > 30
+                ? 'High stake concentration detected'
+                : 'Stake distribution is healthy',
             timestamp: now - 7200000,
           },
         ],
@@ -827,7 +854,7 @@ export class TellorClient extends BaseOracleClient {
     // 但我们可以基于链上活动来估算
     try {
       await this.onChainService.getAutopayData(1);
-      
+
       const protocols: EcosystemProtocol[] = [
         {
           id: '1',
@@ -898,8 +925,18 @@ export class TellorClient extends BaseOracleClient {
       }));
 
       const dataFeedUsage = [
-        { feedId: '1', feedName: 'ETH/USD', usageCount: 45, protocols: ['Aave', 'Compound', 'Synthetix'] },
-        { feedId: '2', feedName: 'BTC/USD', usageCount: 32, protocols: ['Aave', 'Synthetix', 'Ribbon'] },
+        {
+          feedId: '1',
+          feedName: 'ETH/USD',
+          usageCount: 45,
+          protocols: ['Aave', 'Compound', 'Synthetix'],
+        },
+        {
+          feedId: '2',
+          feedName: 'BTC/USD',
+          usageCount: 32,
+          protocols: ['Aave', 'Synthetix', 'Ribbon'],
+        },
         { feedId: '3', feedName: 'LINK/USD', usageCount: 28, protocols: ['Aave', 'Nexus Mutual'] },
         { feedId: '4', feedName: 'DAI/USD', usageCount: 25, protocols: ['Compound', 'Alchemix'] },
         { feedId: '5', feedName: 'USDC/USD', usageCount: 22, protocols: ['Compound', 'Uniswap'] },
@@ -981,11 +1018,12 @@ export class TellorClient extends BaseOracleClient {
     try {
       // 基于链上数据计算网络健康度
       const reporterList = await this.onChainService.getReporterList(1, 100);
-      const activeReporters = reporterList.filter(r => r.status === 'active');
-      
+      const activeReporters = reporterList.filter((r) => r.status === 'active');
+
       const regions = ['North America', 'Europe', 'Asia Pacific', 'South America', 'Africa'];
       const reporterDistribution = regions.map((region) => {
-        const count = Math.floor(activeReporters.length / regions.length) + Math.floor(Math.random() * 5);
+        const count =
+          Math.floor(activeReporters.length / regions.length) + Math.floor(Math.random() * 5);
         return {
           region,
           count,
@@ -994,7 +1032,8 @@ export class TellorClient extends BaseOracleClient {
       });
       const totalReporters = reporterDistribution.reduce((sum, r) => sum + r.count, 0);
       reporterDistribution.forEach((r) => {
-        r.percentage = totalReporters > 0 ? Number(((r.count / totalReporters) * 100).toFixed(1)) : 0;
+        r.percentage =
+          totalReporters > 0 ? Number(((r.count / totalReporters) * 100).toFixed(1)) : 0;
       });
 
       const updateFrequencyHeatmap = Array.from({ length: 168 }, (_, i) => ({
@@ -1007,7 +1046,10 @@ export class TellorClient extends BaseOracleClient {
         chain,
         updates24h: Math.floor(Math.random() * 5000) + 1000,
         avgLatency: Math.floor(Math.random() * 100) + 50,
-        healthScore: activeReporters.length > 20 ? Math.floor(Math.random() * 10) + 85 : Math.floor(Math.random() * 20) + 60,
+        healthScore:
+          activeReporters.length > 20
+            ? Math.floor(Math.random() * 10) + 85
+            : Math.floor(Math.random() * 20) + 60,
       }));
 
       return {

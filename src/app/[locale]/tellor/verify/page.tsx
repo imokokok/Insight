@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { verifyTellorData, VerificationResult } from '@/lib/oracles/tellorVerification';
+
+import { verifyTellorData, type VerificationResult } from '@/lib/oracles/tellorVerification';
 
 export default function TellorVerifyPage() {
   const [results, setResults] = useState<VerificationResult[]>([]);
@@ -67,7 +68,11 @@ export default function TellorVerifyPage() {
                           : 'bg-red-200 text-red-800'
                     }`}
                   >
-                    {result.isRealData ? '真实数据' : result.status === 'fallback' ? '回退' : '失败'}
+                    {result.isRealData
+                      ? '真实数据'
+                      : result.status === 'fallback'
+                        ? '回退'
+                        : '失败'}
                   </span>
                 </div>
 
@@ -89,9 +94,15 @@ export default function TellorVerifyPage() {
           <div className="mt-8 p-4 bg-blue-50 rounded-lg">
             <h2 className="font-semibold mb-2">验证说明</h2>
             <ul className="text-sm text-gray-700 space-y-1">
-              <li>✅ <strong>真实数据</strong>: 从 Ethereum 主网或其他链上合约直接获取</li>
-              <li>⚠️ <strong>回退数据</strong>: 链上获取失败，使用预设的默认值</li>
-              <li>❌ <strong>失败</strong>: 获取过程中发生错误</li>
+              <li>
+                ✅ <strong>真实数据</strong>: 从 Ethereum 主网或其他链上合约直接获取
+              </li>
+              <li>
+                ⚠️ <strong>回退数据</strong>: 链上获取失败，使用预设的默认值
+              </li>
+              <li>
+                ❌ <strong>失败</strong>: 获取过程中发生错误
+              </li>
             </ul>
           </div>
         </>
