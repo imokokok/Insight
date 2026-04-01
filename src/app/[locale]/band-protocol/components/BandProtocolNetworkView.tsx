@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  Activity,
-  Server,
-  Clock,
-  CheckCircle,
-  TrendingUp,
-  TrendingDown,
-  ExternalLink,
-} from 'lucide-react';
+import { Activity, Server, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
 import { BlockExplorerLink } from '@/components/oracle/shared';
 import { useTranslations } from '@/i18n';

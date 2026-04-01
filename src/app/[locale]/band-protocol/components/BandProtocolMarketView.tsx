@@ -1,18 +1,13 @@
 'use client';
 
-import { TrendingUp, TrendingDown, Activity, Zap, Server, Clock, Shield } from 'lucide-react';
+import { TrendingUp, TrendingDown, Zap, Server, Clock, Shield } from 'lucide-react';
 
 import { PriceChart } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
 
 import { type BandProtocolMarketViewProps } from '../types';
 
-export function BandProtocolMarketView({
-  config,
-  price,
-  historicalData,
-  isLoading,
-}: BandProtocolMarketViewProps) {
+export function BandProtocolMarketView({ config, price }: BandProtocolMarketViewProps) {
   const t = useTranslations();
 
   // 核心市场统计数据

@@ -18,7 +18,7 @@ import { useTranslations } from '@/i18n';
 
 import { type BandProtocolSidebarProps, type BandProtocolTabId } from '../types';
 
-const getNavItems = (t: (key: string) => string): SidebarItem[] => [
+const getNavItems = (_t: (key: string) => string): SidebarItem[] => [
   {
     id: 'market' as BandProtocolTabId,
     labelKey: 'band.bandProtocol.menu.marketData',

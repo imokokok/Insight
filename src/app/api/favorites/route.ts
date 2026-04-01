@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { getUserId } from '@/lib/api/utils';
+import { sanitizeObject, sanitizeString } from '@/lib/security';
+import { CreateFavoriteRequestSchema, validateAndSanitize } from '@/lib/security/validation';
 import { type ConfigType } from '@/lib/supabase/database.types';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
-import { sanitizeObject, sanitizeString } from '@/lib/security';
-import { CreateFavoriteRequestSchema, validateAndSanitize } from '@/lib/security/validation';
 
 const logger = createLogger('api-favorites');
 

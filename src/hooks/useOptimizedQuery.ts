@@ -3,7 +3,7 @@
  * 提供统一的查询接口和性能优化
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 
 import {
   useQuery,
@@ -17,12 +17,12 @@ import {
   type UseMutationResult,
 } from '@tanstack/react-query';
 
-import { createLogger } from '@/lib/utils/logger';
 import {
   getQueryConfig,
   createQueryOptions,
   type QueryConfigType,
 } from '@/lib/queries/queryClient';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('OptimizedQuery');
 
@@ -185,8 +185,6 @@ export function usePollingQuery<TData = unknown, TError = Error>(
     stopPolling,
   };
 }
-
-import { useState, useEffect, useRef } from 'react';
 
 /**
  * 无限滚动查询 Hook

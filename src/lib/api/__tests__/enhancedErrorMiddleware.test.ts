@@ -1,14 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextResponse } from 'next/server';
 
-import {
-  createEnhancedErrorMiddleware,
-  enhancedErrorMiddleware,
-  withEnhancedErrorHandling,
-  classifyError,
-  getSuggestedAction,
-  type StandardizedErrorResponse,
-} from '../middleware/enhancedErrorMiddleware';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import {
   AppError,
@@ -18,6 +10,15 @@ import {
   RateLimitError,
   InternalError,
 } from '@/lib/errors';
+
+import {
+  createEnhancedErrorMiddleware,
+  enhancedErrorMiddleware,
+  withEnhancedErrorHandling,
+  classifyError,
+  getSuggestedAction,
+  type StandardizedErrorResponse,
+} from '../middleware/enhancedErrorMiddleware';
 
 describe('Enhanced Error Middleware', () => {
   beforeEach(() => {

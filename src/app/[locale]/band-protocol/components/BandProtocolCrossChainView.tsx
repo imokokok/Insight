@@ -156,10 +156,7 @@ function ComparisonCard({
   );
 }
 
-export function BandProtocolCrossChainView({
-  crossChainStats,
-  isLoading,
-}: BandProtocolCrossChainViewProps) {
+export function BandProtocolCrossChainView({ crossChainStats }: BandProtocolCrossChainViewProps) {
   const t = useTranslations();
   const [selectedPeriod, setSelectedPeriod] = useState<TrendPeriod>('7d');
 

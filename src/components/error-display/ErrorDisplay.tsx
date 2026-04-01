@@ -21,7 +21,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
 import type { AppError } from '@/lib/errors';
 import {
   isAppError,
@@ -35,7 +35,7 @@ import {
   getErrorMessage,
   classifyError,
 } from '@/lib/errors';
-import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
 
 /**
  * 错误显示类型

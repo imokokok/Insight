@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
-import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
 
 import { type BandProtocolValidatorsViewProps, type SortConfig } from '../types';
 

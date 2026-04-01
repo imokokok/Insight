@@ -1,4 +1,18 @@
 // ==================== 基础错误类 ====================
+// ==================== 导入类型用于工具函数 ====================
+import {
+  ValidationError,
+  NotFoundError,
+  AuthenticationError,
+  AuthorizationError,
+  RateLimitError,
+  NetworkError,
+  InternalError,
+} from './BusinessErrors';
+import { isAppError } from './errorToResponse';
+
+import type { AppError as AppErrorType } from './AppError';
+
 export {
   AppError,
   type AppErrorDetails,
@@ -114,19 +128,6 @@ export {
   type ErrorContext,
   type ErrorReport,
 } from './errorRecovery';
-
-// ==================== 导入类型用于工具函数 ====================
-import type { AppError as AppErrorType } from './AppError';
-import {
-  ValidationError,
-  NotFoundError,
-  AuthenticationError,
-  AuthorizationError,
-  RateLimitError,
-  NetworkError,
-  InternalError,
-} from './BusinessErrors';
-import { isAppError } from './errorToResponse';
 
 // ==================== 错误工具函数 ====================
 
