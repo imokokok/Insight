@@ -98,7 +98,7 @@ export function Selectors({
 
     if (!selectedOracle) {
       // 没有选择预言机时，显示所有链
-      availableChains = BLOCKCHAIN_VALUES;
+      availableChains = [...BLOCKCHAIN_VALUES];
     } else if (isCurrentSymbolSupported && selectedSymbol) {
       // 如果币种被预言机支持，使用该币种在该预言机上支持的链
       availableChains = getSupportedChainsForSymbol(selectedSymbol);

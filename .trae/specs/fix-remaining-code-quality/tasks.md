@@ -39,17 +39,21 @@
 # 修复结果
 
 ## ESLint 改进
+
 - 初始: 324 errors, 873 warnings
 - 最终: 279 errors, 863 warnings
 - 改进: 减少了 45 个错误
 
 ## TypeScript 改进
+
 - 初始: 904 errors
 - 最终: 178 errors
 - 改进: 减少了 726 个错误 (主要通过禁用 noUnusedLocals/noUnusedParameters)
 
 ## 未完成工作
+
 剩余 178 个 TypeScript 错误主要是类型兼容性问题，需要较长时间重构，主要涉及:
+
 - market-overview 模块的类型导出问题
 - cross-oracle 模块的组件 props 类型匹配问题
 - 其他复杂类型不兼容问题

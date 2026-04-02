@@ -5,18 +5,22 @@
 
 import React, { createContext, useContext, useCallback, useMemo } from 'react';
 
-import { useChartState, useComparisonState } from '../hooks';
+import { useChartState } from '../hooks/useChartState';
+import { useComparisonState } from '../hooks/useComparisonState';
 
-import type {
-  ChartType,
-  ViewType,
-  TrendChartType,
-  ZoomRange,
-  LinkedOracle,
-  SelectedAnomaly,
-  ComparisonMode,
-  TVSTrendData,
-} from '../types';
+import type { ChartType, ViewType, TVSTrendData } from '../types';
+
+type TrendChartType = 'line' | 'area' | 'candle';
+type ZoomRange = { startIndex?: number; endIndex?: number };
+type LinkedOracle = { primary: string; secondary: string };
+type SelectedAnomaly = {
+  dataKey: string;
+  date: string;
+  value: number;
+  prevValue: number;
+  changeRate: number;
+};
+type ComparisonMode = 'none' | 'yoy' | 'mom';
 
 // ==================== Context 类型定义 ====================
 

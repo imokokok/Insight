@@ -5,14 +5,18 @@
 
 import { useState, useCallback, useRef } from 'react';
 
-import type {
-  ChartType,
-  ViewType,
-  TrendChartType,
-  ZoomRange,
-  LinkedOracle,
-  SelectedAnomaly,
-} from '../types';
+import type { ChartType, ViewType } from '../types';
+
+type TrendChartType = 'line' | 'area' | 'candle';
+type ZoomRange = { startIndex?: number; endIndex?: number };
+type LinkedOracle = { primary: string; secondary: string };
+type SelectedAnomaly = {
+  dataKey: string;
+  date: string;
+  value: number;
+  prevValue: number;
+  changeRate: number;
+};
 
 export interface UseChartStateReturn {
   // 图表容器引用

@@ -564,7 +564,17 @@ export function API3Hero({
         subtitle: t('api3.hero.subtitleAnnual'),
       },
     ],
-    [t, currentPrice, isPositive, priceChange24h, priceSparkline, config, airnodeStats, dapiCoverage, staking]
+    [
+      t,
+      currentPrice,
+      isPositive,
+      priceChange24h,
+      priceSparkline,
+      config,
+      airnodeStats,
+      dapiCoverage,
+      staking,
+    ]
   );
 
   // 次要统计指标

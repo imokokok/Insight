@@ -5,12 +5,6 @@
 
 import { useMemo, useCallback } from 'react';
 
-import {
-  CONCENTRATION_THRESHOLDS,
-  CONCENTRATION_LEVELS,
-  MARKET_INSIGHTS_CONFIG,
-} from '../constants';
-
 import type { OracleMarketData, MarketConcentrationResult, MarketInsights } from '../types';
 
 interface UseMarketInsightsOptions {

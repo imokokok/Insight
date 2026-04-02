@@ -261,9 +261,7 @@ function OracleQualityTableComponent({ oracleMetrics, t, className }: OracleQual
                       <span className="font-medium text-gray-900">
                         {oracleNames[metric.provider]}
                       </span>
-                      {isOutlier && (
-                        <AlertTriangle className="w-4 h-4 text-red-500" title="异常值" />
-                      )}
+                      {isOutlier && <AlertTriangle className="w-4 h-4 text-red-500" />}
                     </div>
                   </td>
 

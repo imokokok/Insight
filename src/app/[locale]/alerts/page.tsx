@@ -104,7 +104,11 @@ export default function AlertsPage() {
       </div>
 
       <div id="alert-history" className="mt-6">
-        <AlertHistory events={events as never} isLoading={eventsLoading} onRefresh={refetchEvents} />
+        <AlertHistory
+          events={events as never}
+          isLoading={eventsLoading}
+          onRefresh={refetchEvents}
+        />
       </div>
 
       <div className="mt-8 p-4 bg-primary-50 border border-primary-200 rounded-lg">

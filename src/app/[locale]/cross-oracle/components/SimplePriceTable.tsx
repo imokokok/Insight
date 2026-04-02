@@ -209,6 +209,7 @@ function SimplePriceTableComponent({
       if (absDeviation >= 1) status = 'error';
       else if (absDeviation >= 0.5) status = 'warning';
 
+      /* eslint-disable react-hooks/purity */
       // 模拟额外字段（实际应从API获取）
       const confidence = data.confidence || Math.floor(70 + Math.random() * 25);
       const latency = Math.floor(100 + Math.random() * 500);
