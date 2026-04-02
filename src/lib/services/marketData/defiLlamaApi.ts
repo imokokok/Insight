@@ -13,6 +13,7 @@ import {
 } from '@/app/[locale]/market-overview/types';
 import { chartColors, chainColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
+import { performanceMetricsCalculator } from './performanceMetrics';
 
 const logger = createLogger('marketData:defiLlamaApi');
 
@@ -249,18 +250,21 @@ function transformOraclesToMarketData(
       const change7d = tvsPrevWeek > 0 ? ((tvs - tvsPrevWeek) / tvsPrevWeek) * 100 : 0;
       const change30d = tvsPrevMonth > 0 ? ((tvs - tvsPrevMonth) / tvsPrevMonth) * 100 : 0;
       const color = getOracleColor(oracle.name);
+      const formattedName = formatOracleName(oracle.name);
+
+      const metrics = performanceMetricsCalculator.calculateAllMetrics(formattedName);
 
       return {
-        name: formatOracleName(oracle.name),
+        name: formattedName,
         share: Number(share.toFixed(2)),
         color,
         tvs: formatTVS(tvs),
         tvsValue: Number((tvs / 1e9).toFixed(2)),
         chains: oracle.chains?.length || 0,
         protocols: oracle.protocols || 0,
-        avgLatency: estimateLatency(oracle.name),
-        accuracy: estimateAccuracy(oracle.name),
-        updateFrequency: estimateUpdateFrequency(oracle.name),
+        avgLatency: metrics.avgLatency,
+        accuracy: metrics.accuracy,
+        updateFrequency: metrics.updateFrequency,
         change24h: Number(change24h.toFixed(2)),
         change7d: Number(change7d.toFixed(2)),
         change30d: Number(change30d.toFixed(2)),
@@ -940,7 +944,7 @@ export async function fetchProtocolDetails(): Promise<ProtocolDetail[]> {
       const name = p.name.toLowerCase();
       const category = (p.category || '').toLowerCase();
       return (
-        p.tvl > 0 &&
+        (p.tvl || 0) > 0 &&
         (category.includes('oracle') ||
           category.includes('lending') ||
           category.includes('dex') ||
@@ -1252,8 +1256,43 @@ function calculateComparisonMetrics(oracleData: OracleMarketData[]): ComparisonD
 
     metricKeys.forEach((key) => {
       const sorted = [...oracleData].sort((a, b) => {
-        const aValue = key === 'latency' || key === 'updateFrequency' ? a[key] : -a[key];
-        const bValue = key === 'latency' || key === 'updateFrequency' ? b[key] : -b[key];
+        let aValue: number;
+        let bValue: number;
+        
+        switch (key) {
+          case 'tvs':
+            aValue = -a.tvsValue;
+            bValue = -b.tvsValue;
+            break;
+          case 'latency':
+            aValue = a.avgLatency;
+            bValue = b.avgLatency;
+            break;
+          case 'accuracy':
+            aValue = -a.accuracy;
+            bValue = -b.accuracy;
+            break;
+          case 'marketShare':
+            aValue = -a.share;
+            bValue = -b.share;
+            break;
+          case 'chains':
+            aValue = -a.chains;
+            bValue = -b.chains;
+            break;
+          case 'protocols':
+            aValue = -a.protocols;
+            bValue = -b.protocols;
+            break;
+          case 'updateFrequency':
+            aValue = a.updateFrequency;
+            bValue = b.updateFrequency;
+            break;
+          default:
+            aValue = 0;
+            bValue = 0;
+        }
+        
         return aValue - bValue;
       });
       metrics[key].rank = sorted.findIndex((o) => o.name === oracle.name) + 1;
@@ -1633,7 +1672,7 @@ async function fetchCoinGeckoCategories(): Promise<CoinGeckoCategoryData[]> {
     );
     return await response.json();
   } catch (error) {
-    logger.warn('Failed to fetch CoinGecko categories', error);
+    logger.warn('Failed to fetch CoinGecko categories', error instanceof Error ? error : new Error(String(error)));
     return [];
   }
 }

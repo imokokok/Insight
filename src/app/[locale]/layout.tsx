@@ -12,6 +12,7 @@ import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
 import { ToastProvider } from '@/components/ui';
+import { PerformanceMetricsCollector } from '@/components/PerformanceMetricsCollector';
 import { routing } from '@/i18n/routing';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 
@@ -51,6 +52,7 @@ export default async function LocaleLayout({
             <ToastProvider>
               <ErrorBoundary>
                 <AppInitializer>
+                  <PerformanceMetricsCollector />
                   <Navbar />
                   <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>
                     {children}

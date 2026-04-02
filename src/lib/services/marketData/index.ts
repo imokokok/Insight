@@ -26,6 +26,13 @@ import {
   type ExportDataOptions,
 } from './priceCalculations';
 import { fetchRiskMetrics, fetchHHI, fetchDiversificationScore } from './riskCalculations';
+import {
+  performanceMetricsCalculator,
+  calculateMetricsFromPriceData,
+  type PriceDataPoint,
+  type ReferencePricePoint,
+  type OraclePerformanceMetrics,
+} from './performanceMetrics';
 
 const logger = createLogger('marketData');
 
@@ -94,3 +101,11 @@ export type { ExportDataOptions };
 export { fetchRiskMetrics, fetchHHI, fetchDiversificationScore };
 
 export { detectAnomalies };
+
+export {
+  performanceMetricsCalculator,
+  calculateMetricsFromPriceData,
+  type PriceDataPoint,
+  type ReferencePricePoint,
+  type OraclePerformanceMetrics,
+};
