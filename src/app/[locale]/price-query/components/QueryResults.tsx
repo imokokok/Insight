@@ -299,7 +299,7 @@ export function QueryResults({
                 <h2 className="text-2xl font-bold text-gray-900">{selectedSymbol}</h2>
                 <p className="text-sm text-gray-500 flex items-center gap-1.5">
                   <Database className="w-3.5 h-3.5" />
-                  {queryResults.length} {t('priceQuery.dataSources')}
+                  {queryResults.length} {t('priceQuery.dataSources.title')}
                 </p>
               </div>
             </div>

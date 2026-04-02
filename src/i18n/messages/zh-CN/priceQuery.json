@@ -85,6 +85,10 @@
       "json": "导出 JSON",
       "advanced": "高级导出"
     },
+    "favorites": {
+      "title": "收藏夹",
+      "empty": "暂无收藏"
+    },
     "history": {
       "title": "查询历史",
       "empty": "暂无查询历史"
@@ -94,6 +98,8 @@
     "comparison": {
       "title": "时间对比"
     },
+    "currentPrice": "当前价格",
+    "volume24h": "24h 交易量",
     "dataSources": {
       "title": "数据来源"
     },

@@ -94,6 +94,8 @@
     "comparison": {
       "title": "Time Comparison"
     },
+    "currentPrice": "Current Price",
+    "volume24h": "24h Volume",
     "dataSources": {
       "title": "Data Sources"
     },

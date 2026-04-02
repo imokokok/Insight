@@ -105,6 +105,7 @@ export interface PriceStatsResult {
   weightedAvgPrice: number;
   maxPrice: number;
   minPrice: number;
+  medianPrice: number;
   priceRange: number;
   variance: number;
   standardDeviation: number;
