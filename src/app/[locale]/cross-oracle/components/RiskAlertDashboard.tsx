@@ -295,7 +295,9 @@ function RiskAlertDashboardComponent({
           </div>
           <div className="flex-1">
             <h2 className="text-xl font-semibold text-gray-900">数据正常</h2>
-            <p className="text-gray-500 text-sm mt-0.5">所有预言机价格数据在合理范围内，未发现异常偏差</p>
+            <p className="text-gray-500 text-sm mt-0.5">
+              所有预言机价格数据在合理范围内，未发现异常偏差
+            </p>
           </div>
           <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-emerald-100">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />

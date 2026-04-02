@@ -17,6 +17,28 @@ export {
   getScoreBgColor,
 } from './useDataQualityScore';
 export { usePriceAnomalyDetection } from './usePriceAnomalyDetection';
+
+// 风险相关 hooks
+export {
+  useRiskTrends,
+  getRiskLevel,
+  getRiskLevelColor,
+  getRiskLevelBgColor,
+} from './useRiskTrends';
+export {
+  useRiskMetrics,
+  getTrendIconRotation,
+  getTrendColor,
+  getStatusColor,
+} from './useRiskMetrics';
+export {
+  useRiskRecommendations,
+  getPriorityColor,
+  getPriorityLabel,
+  getCategoryLabel,
+  getCategoryIcon,
+} from './useRiskRecommendations';
+
 export type { TabId } from '../components/TabNavigation';
 export type { CommonSymbolInfo, UseCommonSymbolsResult } from './useCommonSymbols';
 export type { UseDataQualityScoreParams } from './useDataQualityScore';
@@ -25,3 +47,13 @@ export type {
   AnomalySeverity,
   AnomalyDetectionResult,
 } from './usePriceAnomalyDetection';
+
+// 风险相关类型导出
+export type { RiskTrendPoint, RiskTrendsResult } from './useRiskTrends';
+export type { RiskMetric, RiskMetricsResult, TrendDirection } from './useRiskMetrics';
+export type {
+  RiskRecommendation,
+  RiskRecommendationsResult,
+  RecommendationPriority,
+  RecommendationCategory,
+} from './useRiskRecommendations';

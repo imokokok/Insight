@@ -49,11 +49,9 @@ export function Selectors({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // 使用 useOracleSymbols Hook 获取预言机相关的币种和链信息
-  const {
-    supportedSymbols,
-    isSymbolSupported,
-    getSupportedChainsForSymbol,
-  } = useOracleSymbols(selectedOracle ? [selectedOracle] : []);
+  const { supportedSymbols, isSymbolSupported, getSupportedChainsForSymbol } = useOracleSymbols(
+    selectedOracle ? [selectedOracle] : []
+  );
 
   // 币种选项生成逻辑：
   // - 当选择了预言机时，只显示该预言机支持的币种

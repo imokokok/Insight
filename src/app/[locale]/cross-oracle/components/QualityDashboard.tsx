@@ -81,8 +81,6 @@ const LEVEL_CONFIG = {
   },
 } as const;
 
-
-
 /**
  * 维度配置
  */

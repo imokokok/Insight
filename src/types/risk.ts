@@ -48,3 +48,35 @@ export interface RiskAssessmentData {
   mitigationMeasures: MitigationMeasure[];
   lastUpdated: Date;
 }
+
+export interface RiskTrendPoint {
+  timestamp: number;
+  riskScore: number;
+  anomalyCount: number;
+  event?: string;
+}
+
+export interface RiskRecommendation {
+  id: string;
+  priority: 'critical' | 'warning' | 'info';
+  title: string;
+  description: string;
+  action?: string;
+  relatedOracle?: string;
+}
+
+export interface RiskHeatmapData {
+  oracle: string;
+  riskLevel: 'high' | 'medium' | 'low' | 'normal';
+  deviation: number;
+  timestamp: number;
+}
+
+export interface RiskIndicator {
+  name: string;
+  value: number;
+  unit: string;
+  trend: 'up' | 'down' | 'stable';
+  trendValue: number;
+  threshold: { warning: number; critical: number };
+}

@@ -7,13 +7,11 @@ import { useTranslations } from '@/i18n';
 import type { PriceData, OracleProvider, Blockchain } from '@/lib/oracles';
 import { useUser } from '@/stores/authStore';
 
-
 import { type QueryResult, providerNames, chainNames, oracleI18nKeys } from '../constants';
 
 import { usePriceQueryChart, type ChartDataPoint } from './usePriceQueryChart';
 import { usePriceQueryData, type QueryError } from './usePriceQueryData';
 import { usePriceQueryExport } from './usePriceQueryExport';
-
 import { usePriceQueryState, type TimeComparisonConfig } from './usePriceQueryState';
 
 import type { AnomalyInfo } from '../utils/priceValidator';
@@ -143,8 +141,6 @@ export function usePriceQuery(): UsePriceQueryReturn {
     selectedChains: state.selectedChain ? [state.selectedChain] : [],
   });
 
-
-
   const [showExportConfig, setShowExportConfig] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
@@ -212,10 +208,8 @@ export function usePriceQuery(): UsePriceQueryReturn {
           data.compareQueryResults.filter((r) => r.priceData?.change24hPercent !== undefined).length
         : undefined;
 
-    const compareMaxPrice =
-      compareValidPrices.length > 0 ? Math.max(...compareValidPrices) : 0;
-    const compareMinPrice =
-      compareValidPrices.length > 0 ? Math.min(...compareValidPrices) : 0;
+    const compareMaxPrice = compareValidPrices.length > 0 ? Math.max(...compareValidPrices) : 0;
+    const compareMinPrice = compareValidPrices.length > 0 ? Math.min(...compareValidPrices) : 0;
     const comparePriceRange = compareMaxPrice - compareMinPrice;
 
     return {
