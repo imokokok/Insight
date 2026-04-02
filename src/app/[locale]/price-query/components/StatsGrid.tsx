@@ -5,9 +5,9 @@
  * @description 展示价格查询的统计数据，支持展开/收起详情
  */
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 
-import { ChevronDown, ChevronUp, ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
+import { ChevronDown, ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
@@ -32,8 +32,6 @@ interface StatsGridProps {
   compareAvgChange24hPercent?: number;
   comparePrices?: number[];
 }
-
-const STORAGE_KEY = 'stats-grid-expanded';
 
 /**
  * 核心指标卡片组件
@@ -90,31 +88,31 @@ function CoreMetricCard({
 
   return (
     <div
-      className={`px-4 py-4 ${hasBorder ? 'border-r border-gray-200' : ''} ${compareMode && diffPercent !== undefined && diffPercent !== 0 ? (diffPercent > 0 ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-red-500') : ''}`}
+      className={`px-6 py-5 ${hasBorder ? 'border-r border-gray-200' : ''} ${compareMode && diffPercent !== undefined && diffPercent !== 0 ? (diffPercent > 0 ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-red-500') : ''}`}
     >
-      <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">{label}</div>
-      <div className="flex items-baseline gap-1">
-        {prefix && <span className="text-sm text-gray-400 font-mono">{prefix}</span>}
-        <span className={`text-xl font-bold font-mono ${trendColor}`}>
+      <div className="text-sm font-medium text-gray-600 uppercase tracking-wider mb-3">{label}</div>
+      <div className="flex items-baseline gap-2">
+        {prefix && <span className="text-base text-gray-500 font-mono">{prefix}</span>}
+        <span className={`text-2xl font-bold font-mono ${trendColor}`}>
           {trend === 'up' && (
             <ArrowUpIcon
-              className="inline-block w-4 h-4 mr-1 align-text-bottom"
+              className="inline-block w-5 h-5 mr-1.5 align-text-bottom"
               aria-hidden="true"
             />
           )}
           {trend === 'down' && (
             <ArrowDownIcon
-              className="inline-block w-4 h-4 mr-1 align-text-bottom"
+              className="inline-block w-5 h-5 mr-1.5 align-text-bottom"
               aria-hidden="true"
             />
           )}
           {value}
         </span>
-        {suffix && <span className="text-sm text-gray-400 font-mono">{suffix}</span>}
+        {suffix && <span className="text-base text-gray-500 font-mono">{suffix}</span>}
       </div>
       {compareMode && diffPercent !== undefined && diffStyle && (
         <div
-          className={`mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${diffStyle.bg} ${diffStyle.text} ${diffStyle.border}`}
+          className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold border ${diffStyle.bg} ${diffStyle.text} ${diffStyle.border}`}
         >
           {diffStyle.arrow}
           {diffPercent > 0 ? '+' : ''}
@@ -177,20 +175,18 @@ function SecondaryMetricItem({
 
   return (
     <div
-      className={`px-4 py-3 ${hasBorder ? 'border-r border-gray-200' : ''} border-t border-gray-100 ${compareMode && diffPercent !== undefined && diffPercent !== 0 ? (diffPercent > 0 ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-red-500') : ''}`}
+      className={`px-6 py-4 ${hasBorder ? 'border-r border-gray-200' : ''} border-t border-gray-100 ${compareMode && diffPercent !== undefined && diffPercent !== 0 ? (diffPercent > 0 ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-red-500') : ''}`}
     >
-      <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">
-        {label}
+      <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">{label}</div>
+      <div className="flex items-baseline gap-1.5">
+        {prefix && <span className="text-sm text-gray-500 font-mono">{prefix}</span>}
+        <span className="text-lg font-semibold font-mono text-gray-900">{value}</span>
+        {suffix && <span className="text-sm text-gray-500 font-mono">{suffix}</span>}
       </div>
-      <div className="flex items-baseline gap-1">
-        {prefix && <span className="text-xs text-gray-400 font-mono">{prefix}</span>}
-        <span className="text-base font-semibold font-mono text-gray-900">{value}</span>
-        {suffix && <span className="text-xs text-gray-400 font-mono">{suffix}</span>}
-      </div>
-      {subValue && <div className="text-[10px] text-gray-400 mt-1 truncate">{subValue}</div>}
+      {subValue && <div className="text-xs text-gray-400 mt-1.5 truncate">{subValue}</div>}
       {compareMode && diffPercent !== undefined && diffStyle && (
         <div
-          className={`mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${diffStyle.bg} ${diffStyle.text} ${diffStyle.border}`}
+          className={`mt-2 inline-flex items-center gap-1 px-2.5 py-0.75 rounded-full text-xs font-semibold border ${diffStyle.bg} ${diffStyle.text} ${diffStyle.border}`}
         >
           {diffStyle.arrow}
           {diffPercent > 0 ? '+' : ''}
@@ -227,22 +223,7 @@ export function StatsGrid({
   comparePrices: _comparePrices,
 }: StatsGridProps) {
   const t = useTranslations();
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored !== null) {
-      setIsExpanded(stored === 'true');
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isMounted) {
-      localStorage.setItem(STORAGE_KEY, isExpanded.toString());
-    }
-  }, [isExpanded, isMounted]);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const volatility = useMemo(() => {
     if (!prices || prices.length < 20) return null;
@@ -402,12 +383,12 @@ export function StatsGrid({
         />
 
         {/* 一致性评级 */}
-        <div className="px-4 py-3 border-t border-gray-100">
-          <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">
+        <div className="px-6 py-4 border-t border-gray-100">
+          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
             {t('priceQuery.stats.consistencyRating')}
           </div>
           <div
-            className={`text-base font-semibold ${
+            className={`text-lg font-semibold ${
               standardDeviationPercent > 0 ? consistencyRating?.color : 'text-gray-900'
             }`}
           >
