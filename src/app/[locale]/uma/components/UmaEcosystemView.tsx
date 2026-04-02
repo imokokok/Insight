@@ -96,26 +96,22 @@ export function UmaEcosystemView({ config, isLoading = false }: UmaEcosystemView
   ]);
   const [timeRange, setTimeRange] = useState<'1M' | '3M' | '6M' | '1Y'>('1Y');
 
-  if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-        </div>
-      </div>
-    );
-  }
+  const integrations = useMemo(
+    () => [
+      { name: 'Across Protocol', category: 'bridge', tvl: '$450M' },
+      { name: 'Polymarket', category: 'prediction', tvl: '$120M' },
+      { name: 'SuperUMAn', category: 'community', tvl: '$25M' },
+      { name: 'Risk Labs', category: 'infrastructure', tvl: '$180M' },
+      { name: 'Outcome.Finance', category: 'derivatives', tvl: '$85M' },
+      { name: 'Sherlock', category: 'insurance', tvl: '$45M' },
+    ],
+    []
+  );
 
-  const integrations = [
-    { name: 'Across Protocol', category: 'bridge', tvl: '$450M' },
-    { name: 'Polymarket', category: 'prediction', tvl: '$120M' },
-    { name: 'SuperUMAn', category: 'community', tvl: '$25M' },
-    { name: 'Risk Labs', category: 'infrastructure', tvl: '$180M' },
-    { name: 'Outcome.Finance', category: 'derivatives', tvl: '$85M' },
-    { name: 'Sherlock', category: 'insurance', tvl: '$45M' },
-  ];
-
-  const supportedChains = config.supportedChains.map((chain) => chain.toString());
+  const supportedChains = useMemo(
+    () => config.supportedChains.map((chain) => chain.toString()),
+    [config.supportedChains]
+  );
 
   // Filter TVL data based on time range
   const filteredTvlData = useMemo(() => {
@@ -139,6 +135,16 @@ export function UmaEcosystemView({ config, isLoading = false }: UmaEcosystemView
       ],
     };
   }, [filteredTvlData]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

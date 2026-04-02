@@ -157,13 +157,10 @@ export function API3AnalyticsView() {
     ];
   }, [historicalDataPoints]);
 
-  const timeRange = useMemo(
-    () => ({
-      start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      end: new Date(Date.now()),
-    }),
-    []
-  );
+  const [timeRange] = useState(() => ({
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+    end: new Date(Date.now()),
+  }));
 
   const handleGenerateReport = useCallback((_config: ReportConfig) => {}, []);
 

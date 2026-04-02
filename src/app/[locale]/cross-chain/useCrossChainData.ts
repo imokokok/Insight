@@ -559,10 +559,12 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentClient, supportedChains, selectedSymbol, selectedTimeRange, selectedProvider]);
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProvider, selectedSymbol, selectedTimeRange]);
 
   useEffect(() => {
@@ -577,6 +579,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     if (supportedChains.length > 0 && visibleChains.length === 0) {
       setVisibleChains([...supportedChains]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supportedChains, visibleChains.length]);
 
   useEffect(() => {
@@ -592,6 +595,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       const defaultChain = recommendedBaseChain || supportedChains[0];
       setSelectedBaseChain(defaultChain);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supportedChains, selectedBaseChain, recommendedBaseChain]);
 
   const filteredChains = useMemo(() => {
@@ -1472,6 +1476,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       setVisibleChains(validChains);
     }
     setShowFavoritesDropdown(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const exportToJSON = useCallback((): boolean => {

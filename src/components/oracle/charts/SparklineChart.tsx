@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useId } from 'react';
 
 export interface SparklineChartProps {
   data: number[];
@@ -19,6 +19,9 @@ export function SparklineChart({
   showArea = false,
   className = '',
 }: SparklineChartProps) {
+  const uniqueId = useId();
+  const gradientId = `sparkline-gradient-${uniqueId}`;
+
   const { pathD, areaD, viewBox } = useMemo(() => {
     if (data.length === 0) {
       return { pathD: '', areaD: '', viewBox: '0 0 0 0' };
@@ -64,8 +67,6 @@ export function SparklineChart({
       </div>
     );
   }
-
-  const gradientId = useMemo(() => `sparkline-gradient-${Date.now()}`, []);
 
   return (
     <svg

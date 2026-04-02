@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 
 import { UnifiedSidebar } from '@/components/oracle';
-import { useTranslations } from '@/i18n';
 
 import { type API3SidebarProps, type API3TabId } from '../types';
 
@@ -60,7 +59,6 @@ const navItems = [
 ];
 
 export function API3Sidebar({ activeTab, onTabChange }: API3SidebarProps) {
-  const _t = useTranslations();
 
   return (
     <UnifiedSidebar

@@ -382,6 +382,10 @@
       "enabled": "Enabled",
       "disabled": "Disabled",
       "triggered": "Alert Triggered"
+    },
+    "favorites": {
+      "title": "Favorites",
+      "empty": "No favorites"
     }
   },
   "priceDeviation": {

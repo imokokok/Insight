@@ -179,11 +179,9 @@ function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColo
 function MiniPriceChart({
   historicalData,
   currentPrice,
-  themeColor,
 }: {
   historicalData: PriceData[];
   currentPrice: PriceData | null;
-  themeColor: string;
 }) {
   const t = useTranslations();
 
@@ -461,7 +459,7 @@ function UnifiedInfoSection({
 }
 
 // 快速操作组件
-function QuickActions({ themeColor }: { themeColor: string }) {
+function QuickActions({ themeColor: _themeColor }: { themeColor: string }) {
   const t = useTranslations();
 
   const actions = [
@@ -796,7 +794,6 @@ export function BandProtocolHero({
               <MiniPriceChart
                 historicalData={historicalData}
                 currentPrice={price}
-                themeColor={themeColor}
               />
             </div>
           </div>

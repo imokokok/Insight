@@ -1,4 +1,5 @@
 # Tasks
+
 - [x] Task 1: 重构 QueryResults 组件，创建统一卡片布局: 将当前价格、统计数据、价格图表整合到一个大的卡片容器中
   - [x] SubTask 1.1: 创建统一卡片容器，包含渐变背景和边框样式
   - [x] SubTask 1.2: 将当前价格详情整合到卡片顶部
@@ -18,6 +19,7 @@
   - [x] SubTask 4.3: 测试导出功能
 
 # Task Dependencies
+
 - Task 2 depends on Task 1
 - Task 3 depends on Task 1
 - Task 4 depends on Task 1, Task 2, Task 3

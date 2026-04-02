@@ -109,7 +109,9 @@
     "high": "高",
     "metrics": {
       "accuracy": "准确性",
-      "decentralization": "去中心化"
+      "decentralization": "去中心化",
+      "volatility": "价格波动率",
+      "volatilityDesc": "价格波动幅度"
     },
     "stats": {
       "highestPrice": "最高价格",
@@ -220,6 +222,7 @@
       "maxDeviation": "最大偏差",
       "distribution": "风险分布",
       "anomalyList": "异常详情",
+      "anomalyDetails": "异常详情",
       "suggestions": "处理建议",
       "suggestion1": "建议检查异常预言机的数据源连接状态",
       "suggestion2": "考虑暂时停用偏差过大的数据源",
@@ -227,7 +230,17 @@
       "allClear": "数据正常",
       "allClearDesc": "所有预言机价格数据在合理范围内，未发现异常偏差",
       "monitoring": "实时监控中",
-      "keyMetrics": "关键风险指标"
+      "keyMetrics": "关键风险指标",
+      "systemMetrics": "系统指标",
+      "数据正常": "数据正常",
+      "高风险": "高风险",
+      "中风险": "中风险",
+      "低风险": "低风险",
+      "dataConsistent": "数据一致性良好",
+      "requiresAttention": "需要关注",
+      "anomalyCount": "异常数量",
+      "riskScore": "风险评分",
+      "anomalies": "异常"
     },
     "quality": {
       "overallScore": "数据质量综合评分",
@@ -340,14 +353,18 @@
       "highest": "最高",
       "lowest": "最低",
       "status": "状态",
-    "crossOracle": {
-      "status": "状态"
-    },
+      "crossOracle": {
+        "status": "状态"
+      },
       "outlier": "异常值",
       "normal": "正常",
       "deviationRate": "偏离度",
       "updateTime": "更新时间"
     },
+    "status": "状态",
+    "statusNormal": "正常",
+    "statusWarning": "警告",
+    "statusError": "异常",
     "chartTooltip": {
       "avgPrice": "平均价格",
       "stdDev": "标准差",
@@ -430,6 +447,7 @@
     "askDepth": "卖盘深度",
     "visualization": "可视化分析",
     "anomaliesDetected": "个异常",
+    "anomaliesCount": "{count} 个异常",
     "showingResults": "显示 {filtered} / {total} 个预言机",
     "lowRisk": "低风险",
     "mediumRisk": "中风险",

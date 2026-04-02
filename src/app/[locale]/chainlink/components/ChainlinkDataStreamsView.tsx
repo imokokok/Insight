@@ -7,7 +7,6 @@ import {
   Zap,
   Clock,
   TrendingUp,
-  TrendingDown,
   Wifi,
   WifiOff,
   RefreshCw,
@@ -224,8 +223,8 @@ const latencyDistributionData = [
 export function ChainlinkDataStreamsView() {
   const t = useTranslations('chainlink');
   const [stats, setStats] = useState<DataStreamStats>(mockStreamStats);
-  const [feeds, setFeeds] = useState<DataFeed[]>(mockDataFeeds);
-  const [events, setEvents] = useState<PushEvent[]>(mockPushEvents);
+  const [feeds, _setFeeds] = useState<DataFeed[]>(mockDataFeeds);
+  const [events, _setEvents] = useState<PushEvent[]>(mockPushEvents);
   const [latencyMetrics, setLatencyMetrics] = useState<LatencyMetrics>(mockLatencyMetrics);
   const [isLive, setIsLive] = useState(true);
 

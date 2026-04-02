@@ -9,7 +9,6 @@ import {
   OracleErrorBoundary,
 } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
-import { useTranslations } from '@/i18n';
 
 import {
   BandProtocolSidebar,
