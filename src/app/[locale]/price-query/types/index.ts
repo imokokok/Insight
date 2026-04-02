@@ -18,7 +18,7 @@ export interface ChartDataPointBase {
  * Series values are stored with string keys and number values
  */
 export interface ChartDataPoint extends ChartDataPointBase {
-  [seriesKey: string]: number | string;
+  [seriesKey: string]: number | string | object;
 }
 
 /**

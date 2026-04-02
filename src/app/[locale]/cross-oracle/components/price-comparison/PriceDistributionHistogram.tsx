@@ -122,9 +122,9 @@ function PriceDistributionHistogramComponent({
               allowDecimals={false}
             />
             <Tooltip
-              formatter={(value: number, _name: string, props: { payload: HistogramData }) => [
+              formatter={(value, _name, props) => [
                 `${value} ${t('crossOracle.oracles') || '个预言机'}`,
-                props.payload.range,
+                (props as { payload: HistogramData }).payload.range,
               ]}
               contentStyle={{
                 backgroundColor: 'white',

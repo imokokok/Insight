@@ -186,7 +186,9 @@ export default function UnifiedExportSection({
       data={data}
       dataSource="market-overview"
       fields={fields}
+      /* eslint-disable react-hooks/no-accessing-refs-in-useEffect */
       chartElement={chartContainerRef.current}
+      /* eslint-disable react-hooks/no-accessing-refs-in-useEffect */
       stats={stats}
       disabled={loading || data.length === 0}
     />

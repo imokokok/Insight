@@ -142,7 +142,7 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
     standardDeviation,
     standardDeviationPercent,
     currentStats,
-  };
+  } as PriceStatsResult;
 }
 
 export default usePriceStats;

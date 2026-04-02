@@ -119,21 +119,21 @@ function generateRecommendations(
     recommendations.push({
       priority: 'critical',
       icon: <ShieldAlert className="w-5 h-5" />,
-      title: t('crossOracle.recommendations.criticalTitle') || '立即处理高风险异常',
+      title: t('crossOracle.risk.recommendations.criticalTitle') || '立即处理高风险异常',
       description:
-        t('crossOracle.recommendations.criticalDesc', { count: highRiskCount }) ||
+        t('crossOracle.risk.recommendations.criticalDesc', { count: highRiskCount }) ||
         `检测到 ${highRiskCount} 个高风险价格异常，偏差超过 3%，需要立即关注和处理`,
-      action: t('crossOracle.recommendations.checkDataSource') || '检查数据源',
+      action: t('crossOracle.risk.recommendations.checkDataSource') || '检查数据源',
     });
 
     recommendations.push({
       priority: 'critical',
       icon: <AlertOctagon className="w-5 h-5" />,
-      title: t('crossOracle.recommendations.disableOracleTitle') || '考虑停用异常预言机',
+      title: t('crossOracle.risk.recommendations.disableOracleTitle') || '考虑停用异常预言机',
       description:
-        t('crossOracle.recommendations.disableOracleDesc') ||
+        t('crossOracle.risk.recommendations.disableOracleDesc') ||
         '对于偏差过大的数据源，建议暂时停用，避免影响交易决策',
-      action: t('crossOracle.recommendations.viewOracleList') || '查看预言机列表',
+      action: t('crossOracle.risk.recommendations.viewOracleList') || '查看预言机列表',
     });
   }
 
@@ -142,11 +142,11 @@ function generateRecommendations(
     recommendations.push({
       priority: 'warning',
       icon: <AlertTriangle className="w-5 h-5" />,
-      title: t('crossOracle.recommendations.monitorMarketTitle') || '关注市场波动',
+      title: t('crossOracle.risk.recommendations.monitorMarketTitle') || '关注市场波动',
       description:
-        t('crossOracle.recommendations.monitorMarketDesc', { count: mediumRiskCount }) ||
+        t('crossOracle.risk.recommendations.monitorMarketDesc', { count: mediumRiskCount }) ||
         `发现 ${mediumRiskCount} 个中风险异常，建议密切关注市场动态和数据更新`,
-      action: t('crossOracle.recommendations.viewMarketData') || '查看市场数据',
+      action: t('crossOracle.risk.recommendations.viewMarketData') || '查看市场数据',
     });
   }
 
@@ -155,20 +155,20 @@ function generateRecommendations(
     recommendations.push({
       priority: 'critical',
       icon: <AlertCircle className="w-5 h-5" />,
-      title: t('crossOracle.recommendations.highDeviationTitle') || '严重价格偏差警告',
+      title: t('crossOracle.risk.recommendations.highDeviationTitle') || '严重价格偏差警告',
       description:
-        t('crossOracle.recommendations.highDeviationDesc', {
+        t('crossOracle.risk.recommendations.highDeviationDesc', {
           deviation: maxDeviation.toFixed(2),
         }) || `最大偏差达到 ${maxDeviation.toFixed(2)}%，可能存在系统性风险或数据源故障`,
-      action: t('crossOracle.recommendations.confirmMarket') || '确认市场状况',
+      action: t('crossOracle.risk.recommendations.confirmMarket') || '确认市场状况',
     });
   } else if (maxDeviation > 3) {
     recommendations.push({
       priority: 'warning',
       icon: <Info className="w-5 h-5" />,
-      title: t('crossOracle.recommendations.significantDeviationTitle') || '显著价格偏差',
+      title: t('crossOracle.risk.recommendations.significantDeviationTitle') || '显著价格偏差',
       description:
-        t('crossOracle.recommendations.significantDeviationDesc') ||
+        t('crossOracle.risk.recommendations.significantDeviationDesc') ||
         '市场价格存在较大分歧，建议核实各数据源准确性',
     });
   }
@@ -179,11 +179,11 @@ function generateRecommendations(
     recommendations.push({
       priority: 'warning',
       icon: <WifiOff className="w-5 h-5" />,
-      title: t('crossOracle.recommendations.dataDelayTitle') || '数据源延迟警告',
+      title: t('crossOracle.risk.recommendations.dataDelayTitle') || '数据源延迟警告',
       description:
-        t('crossOracle.recommendations.dataDelayDesc', { count: delayedAnomalies.length }) ||
+        t('crossOracle.risk.recommendations.dataDelayDesc', { count: delayedAnomalies.length }) ||
         `${delayedAnomalies.length} 个数据源更新延迟超过 5 分钟，建议检查网络连接`,
-      action: t('crossOracle.recommendations.checkNetwork') || '检查网络连接',
+      action: t('crossOracle.risk.recommendations.checkNetwork') || '检查网络连接',
     });
   }
 
@@ -192,18 +192,18 @@ function generateRecommendations(
     recommendations.push({
       priority: 'info',
       icon: <CheckCircle2 className="w-5 h-5" />,
-      title: t('crossOracle.recommendations.allClearTitle') || '风险状况良好',
+      title: t('crossOracle.risk.recommendations.allClearTitle') || '风险状况良好',
       description:
-        t('crossOracle.recommendations.allClearDesc') ||
+        t('crossOracle.risk.recommendations.allClearDesc') ||
         '当前未发现明显风险，建议继续保持当前监控策略',
     });
 
     recommendations.push({
       priority: 'info',
       icon: <Shield className="w-5 h-5" />,
-      title: t('crossOracle.recommendations.maintainMonitoringTitle') || '持续监控建议',
+      title: t('crossOracle.risk.recommendations.maintainMonitoringTitle') || '持续监控建议',
       description:
-        t('crossOracle.recommendations.maintainMonitoringDesc') ||
+        t('crossOracle.risk.recommendations.maintainMonitoringDesc') ||
         '保持定期监控，设置价格偏差预警阈值，及时发现潜在问题',
     });
   }
@@ -213,9 +213,9 @@ function generateRecommendations(
     recommendations.push({
       priority: 'info',
       icon: <FileText className="w-5 h-5" />,
-      title: t('crossOracle.recommendations.documentTitle') || '记录异常情况',
+      title: t('crossOracle.risk.recommendations.documentTitle') || '记录异常情况',
       description:
-        t('crossOracle.recommendations.documentDesc') ||
+        t('crossOracle.risk.recommendations.documentDesc') ||
         '建议记录当前异常情况和处理措施，便于后续分析和优化',
     });
   }
@@ -304,10 +304,10 @@ function EmptyState({
         <CheckCircle2 className="w-8 h-8 text-emerald-600" />
       </div>
       <h4 className="text-base font-semibold text-gray-900">
-        {t('crossOracle.recommendations.noRecommendations') || '暂无风险建议'}
+        {t('crossOracle.risk.recommendations.noRecommendations') || '暂无风险建议'}
       </h4>
       <p className="text-sm text-gray-500 mt-1 max-w-sm">
-        {t('crossOracle.recommendations.noRecommendationsDesc') ||
+        {t('crossOracle.risk.recommendations.noRecommendationsDesc') ||
           '当前系统运行正常，未发现需要特别关注的异常情况'}
       </p>
     </div>
@@ -363,10 +363,10 @@ function RiskRecommendationsComponent({
             </div>
             <div>
               <CardTitle className="text-lg">
-                {t('crossOracle.recommendations.title') || '智能风险建议'}
+                {t('crossOracle.risk.recommendations.title') || '智能风险建议'}
               </CardTitle>
               <p className="text-sm text-gray-500 mt-0.5">
-                {t('crossOracle.recommendations.subtitle') || '基于当前风险数据自动生成的处理建议'}
+                {t('crossOracle.risk.recommendations.subtitle') || '基于当前风险数据自动生成的处理建议'}
               </p>
             </div>
           </div>
@@ -418,7 +418,7 @@ function RiskRecommendationsComponent({
               <div className="pt-4 border-t">
                 <Button variant="outline" className="w-full sm:w-auto" onClick={onExportReport}>
                   <Download className="w-4 h-4 mr-2" />
-                  {t('crossOracle.recommendations.exportReport') || '导出风险报告'}
+                  {t('crossOracle.risk.recommendations.exportReport') || '导出风险报告'}
                 </Button>
               </div>
             )}

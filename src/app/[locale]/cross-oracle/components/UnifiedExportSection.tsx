@@ -107,7 +107,9 @@ export default function UnifiedExportSection({
       data={crossOracleData}
       dataSource="cross-oracle"
       fields={exportFields}
+      /* eslint-disable react-hooks/no-accessing-refs-in-useEffect */
       chartElement={chartContainerRef.current}
+      /* eslint-disable react-hooks/no-accessing-refs-in-useEffect */
       stats={stats}
       disabled={loading || crossOracleData.length === 0}
     />

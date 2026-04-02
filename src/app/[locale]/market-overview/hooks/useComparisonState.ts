@@ -5,7 +5,9 @@
 
 import { useState, useCallback } from 'react';
 
-import type { ComparisonMode, TVSTrendData } from '../types';
+import type { TVSTrendData } from '../types';
+
+type ComparisonMode = 'none' | 'yoy' | 'mom';
 
 export interface UseComparisonStateReturn {
   // 对比模式状态

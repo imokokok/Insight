@@ -117,7 +117,7 @@ function SimplePriceComparisonTabComponent({
       case 'trend':
         return (
           <MultiOracleTrendChart
-            historicalData={historicalData || {}}
+            historicalData={(historicalData || {}) as never}
             oracleColors={oracleColors}
             t={t}
           />

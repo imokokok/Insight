@@ -791,10 +791,7 @@ export function BandProtocolHero({
 
             {/* 迷你价格图表 */}
             <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100 flex-1">
-              <MiniPriceChart
-                historicalData={historicalData}
-                currentPrice={price}
-              />
+              <MiniPriceChart historicalData={historicalData} currentPrice={price} />
             </div>
           </div>
         </div>

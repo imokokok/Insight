@@ -59,7 +59,6 @@ const navItems = [
 ];
 
 export function API3Sidebar({ activeTab, onTabChange }: API3SidebarProps) {
-
   return (
     <UnifiedSidebar
       items={navItems}

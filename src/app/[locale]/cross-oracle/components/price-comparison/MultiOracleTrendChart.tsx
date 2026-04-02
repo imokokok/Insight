@@ -144,11 +144,11 @@ function MultiOracleTrendChartComponent({
               domain={['auto', 'auto']}
             />
             <Tooltip
-              formatter={(value: number, name: string) => [
-                formatPrice(value),
+              formatter={(value, name) => [
+                formatPrice(value as number),
                 oracleNames[name as OracleProvider] || name,
               ]}
-              labelFormatter={(label: number) => formatTime(label)}
+              labelFormatter={(label) => formatTime(label as number)}
               contentStyle={{
                 backgroundColor: 'white',
                 border: '1px solid #e5e7eb',
