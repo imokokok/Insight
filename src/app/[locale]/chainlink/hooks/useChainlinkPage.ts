@@ -19,6 +19,7 @@ export function useChainlinkPage() {
     price,
     historicalData,
     networkStats,
+    marketData,
     isLoading,
     isError,
     errors,
@@ -30,12 +31,40 @@ export function useChainlinkPage() {
     enabled: true,
   });
 
+  const updatedConfig = useMemo(() => {
+    if (!marketData) return config;
+
+    return {
+      ...config,
+      marketData: {
+        ...config.marketData,
+        symbol: marketData.symbol,
+        tokenName: marketData.name,
+        tokenSymbol: marketData.symbol,
+        marketCap: marketData.marketCap,
+        volume24h: marketData.totalVolume24h,
+        circulatingSupply: marketData.circulatingSupply,
+        totalSupply: marketData.totalSupply,
+        fullyDilutedValuation: marketData.maxSupply
+          ? marketData.currentPrice * marketData.maxSupply
+          : config.marketData.fullyDilutedValuation,
+        marketCapRank: marketData.marketCapRank,
+        high24h: marketData.high24h,
+        low24h: marketData.low24h,
+        change24h: marketData.priceChangePercentage24h,
+        change24hValue: marketData.priceChange24h,
+        stakingApr: marketData.stakingApr || config.marketData.stakingApr,
+      },
+    };
+  }, [config, marketData]);
+
   const { exportData } = useExport({
     data: {
       timestamp: new Date().toISOString(),
       price,
       historical: historicalData,
       network: networkStats,
+      market: marketData,
     },
     filename: 'chainlink-data',
   });
@@ -55,10 +84,11 @@ export function useChainlinkPage() {
 
   return {
     activeTab,
-    config,
+    config: updatedConfig,
     price,
     historicalData,
     networkStats,
+    marketData,
     isLoading,
     isError,
     error: errors[0] || null,

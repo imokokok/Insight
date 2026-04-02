@@ -1,4 +1,5 @@
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { coinGeckoMarketService } from '@/lib/services/marketData/coinGeckoMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -16,6 +17,24 @@ export interface ChainlinkNetworkStats {
   latency: number;
   totalValueSecured?: number;
   updateFrequency?: number;
+}
+
+export interface ChainlinkMarketData {
+  symbol: string;
+  name: string;
+  currentPrice: number;
+  marketCap: number;
+  marketCapRank: number;
+  totalVolume24h: number;
+  high24h: number;
+  low24h: number;
+  priceChange24h: number;
+  priceChangePercentage24h: number;
+  priceChangePercentage7d?: number;
+  circulatingSupply: number;
+  totalSupply: number;
+  maxSupply?: number;
+  stakingApr?: number;
 }
 
 const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
@@ -264,5 +283,74 @@ export class ChainlinkClient extends BaseOracleClient {
 
   getSupportedChainIds(symbol: string): number[] {
     return chainlinkOnChainService.getSupportedChainIds(symbol);
+  }
+
+  async getMarketData(symbol: string = 'LINK'): Promise<ChainlinkMarketData | null> {
+    try {
+      const marketData = await coinGeckoMarketService.getTokenMarketData(symbol);
+      
+      if (!marketData) {
+        console.warn(`[ChainlinkClient] No market data found for ${symbol}`);
+        return null;
+      }
+
+      return {
+        symbol: marketData.symbol,
+        name: marketData.name,
+        currentPrice: marketData.currentPrice,
+        marketCap: marketData.marketCap,
+        marketCapRank: marketData.marketCapRank,
+        totalVolume24h: marketData.totalVolume24h,
+        high24h: marketData.high24h,
+        low24h: marketData.low24h,
+        priceChange24h: marketData.priceChange24h,
+        priceChangePercentage24h: marketData.priceChangePercentage24h,
+        priceChangePercentage7d: marketData.priceChangePercentage7d,
+        circulatingSupply: marketData.circulatingSupply,
+        totalSupply: marketData.totalSupply,
+        maxSupply: marketData.maxSupply,
+        stakingApr: 4.32,
+      };
+    } catch (error) {
+      console.error(`[ChainlinkClient] Failed to fetch market data for ${symbol}:`, error);
+      return null;
+    }
+  }
+
+  async getHistoricalPricesFromCoinGecko(
+    symbol: string = 'LINK',
+    days: number = 30
+  ): Promise<PriceData[]> {
+    try {
+      const historicalPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
+      
+      if (!historicalPrices || historicalPrices.length === 0) {
+        console.warn(`[ChainlinkClient] No historical prices found for ${symbol}`);
+        return [];
+      }
+
+      const chain = Blockchain.ETHEREUM;
+      
+      return historicalPrices.map((point) => {
+        const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || point.price;
+        const change24hPercent = ((point.price - basePrice) / basePrice) * 100;
+        const change24h = point.price - basePrice;
+
+        return {
+          provider: this.name,
+          chain,
+          symbol: symbol.toUpperCase(),
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence: 0.98,
+          change24h: Number(change24h.toFixed(4)),
+          change24hPercent: Number(change24hPercent.toFixed(2)),
+        };
+      });
+    } catch (error) {
+      console.error(`[ChainlinkClient] Failed to fetch historical prices for ${symbol}:`, error);
+      return [];
+    }
   }
 }
