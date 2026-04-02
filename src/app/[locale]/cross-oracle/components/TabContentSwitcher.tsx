@@ -6,6 +6,7 @@
  */
 
 import { memo } from 'react';
+
 import { TrendingUp, Shield, AlertTriangle } from 'lucide-react';
 
 // ============================================================================
@@ -139,11 +140,7 @@ function TabContentSwitcherComponent({
 
   return (
     <div className="border-b border-gray-200 bg-gray-50/50">
-      <nav
-        className="flex items-center px-2"
-        role="tablist"
-        aria-label="查询结果功能切换"
-      >
+      <nav className="flex items-center px-2" role="tablist" aria-label="查询结果功能切换">
         {tabsConfig.map((tab) => (
           <TabButton
             key={tab.id}

@@ -6,6 +6,7 @@
  */
 
 import { memo, useState, useCallback } from 'react';
+
 import { Database } from 'lucide-react';
 
 import { EmptyStateEnhanced, ProgressBar } from '@/components/ui';
@@ -13,13 +14,13 @@ import { useTranslations } from '@/i18n';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import { TabContentSwitcher, type TabType } from './TabContentSwitcher';
+import { RiskAlertTab } from './tabs/RiskAlertTab';
 import { SimplePriceComparisonTab } from './tabs/SimplePriceComparisonTab';
 import { SimpleQualityAnalysisTab } from './tabs/SimpleQualityAnalysisTab';
-import { RiskAlertTab } from './tabs/RiskAlertTab';
 
 import type { TimeRange } from '../constants';
-import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
 import type { DataQualityScore } from '../hooks/useDataQualityScore';
+import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
 
 // ============================================================================
 // 类型定义
@@ -70,6 +71,12 @@ interface QueryResultsProps {
 
   // 预言机特性
   oracleFeatures: OracleFeature[];
+
+  // 历史数据（用于走势图）
+  historicalData?: Record<OracleProvider, Array<{ timestamp: number; price: number }>>;
+
+  // 预言机颜色配置
+  oracleColors: Record<OracleProvider, string>;
 
   // 回调
   onRefresh: () => void;
@@ -150,10 +157,12 @@ function QueryResultsComponent({
   isLoading,
   queryProgress,
   currentQueryTarget,
+  avgPrice,
   medianPrice,
   minPrice,
   maxPrice,
   priceRange,
+  standardDeviation,
   standardDeviationPercent,
   validPrices,
   anomalies,
@@ -163,6 +172,8 @@ function QueryResultsComponent({
   lowRiskCount,
   maxDeviation,
   qualityScore,
+  historicalData,
+  oracleColors,
 }: QueryResultsProps) {
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState<TabType>('priceComparison');
@@ -182,22 +193,17 @@ function QueryResultsComponent({
     return <EmptyState selectedSymbol={selectedSymbol} />;
   }
 
-  // 计算一致性评级
-  const getConsistencyRating = (deviation: number): string => {
-    if (deviation <= 0.5) return 'A';
-    if (deviation <= 1) return 'B';
-    if (deviation <= 2) return 'C';
-    return 'D';
-  };
-
-  const consistencyRating = getConsistencyRating(standardDeviationPercent);
-
   // 渲染 Tab 内容
   const renderTabContent = () => {
     switch (activeTab) {
       case 'priceComparison':
         return (
-          <div className="p-6" role="tabpanel" id="tabpanel-priceComparison" aria-labelledby="tab-priceComparison">
+          <div
+            className="p-6"
+            role="tabpanel"
+            id="tabpanel-priceComparison"
+            aria-labelledby="tab-priceComparison"
+          >
             <SimplePriceComparisonTab
               priceData={priceData}
               selectedOracles={selectedOracles}
@@ -206,9 +212,13 @@ function QueryResultsComponent({
               minPrice={minPrice}
               maxPrice={maxPrice}
               priceRange={priceRange}
-              deviationRate={standardDeviationPercent}
-              consistencyRating={consistencyRating}
+              standardDeviation={standardDeviation}
+              standardDeviationPercent={standardDeviationPercent}
+              avgPrice={avgPrice}
               validPrices={validPrices}
+              anomalies={anomalies}
+              historicalData={historicalData}
+              oracleColors={oracleColors}
               t={t}
             />
           </div>
@@ -216,7 +226,12 @@ function QueryResultsComponent({
 
       case 'dataQuality':
         return (
-          <div className="p-6" role="tabpanel" id="tabpanel-dataQuality" aria-labelledby="tab-dataQuality">
+          <div
+            className="p-6"
+            role="tabpanel"
+            id="tabpanel-dataQuality"
+            aria-labelledby="tab-dataQuality"
+          >
             <SimpleQualityAnalysisTab
               priceData={priceData}
               selectedOracles={selectedOracles}
@@ -228,7 +243,12 @@ function QueryResultsComponent({
 
       case 'riskAlert':
         return (
-          <div className="p-6" role="tabpanel" id="tabpanel-riskAlert" aria-labelledby="tab-riskAlert">
+          <div
+            className="p-6"
+            role="tabpanel"
+            id="tabpanel-riskAlert"
+            aria-labelledby="tab-riskAlert"
+          >
             <RiskAlertTab
               anomalies={anomalies}
               anomalyCount={anomalyCount}
@@ -257,9 +277,7 @@ function QueryResultsComponent({
       />
 
       {/* Tab 内容区域 */}
-      <div className="min-h-[400px]">
-        {renderTabContent()}
-      </div>
+      <div className="min-h-[400px]">{renderTabContent()}</div>
     </div>
   );
 }

@@ -19,7 +19,6 @@ import {
 } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 
-
 import { type QueryResult } from '../constants';
 import { usePerformanceMonitoring } from '../utils/performanceMonitoring';
 import {
@@ -415,8 +414,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         setCompareQueryResults([]);
         setCompareHistoricalData({});
       }
-
-
     } catch (error) {
       logger.error(
         'Error fetching query data',

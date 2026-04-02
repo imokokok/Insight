@@ -137,7 +137,13 @@ export default function PriceQueryPage() {
         exportToCSV(queryResults, config, selectedSymbol, csvTranslations);
         break;
       case 'json':
-        exportToJSON(queryResults, config, selectedSymbol, selectedOracle ? [selectedOracle] : [], selectedChain ? [selectedChain] : []);
+        exportToJSON(
+          queryResults,
+          config,
+          selectedSymbol,
+          selectedOracle ? [selectedOracle] : [],
+          selectedChain ? [selectedChain] : []
+        );
         break;
       case 'pdf':
         await exportToPDF(

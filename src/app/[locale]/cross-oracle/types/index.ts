@@ -445,6 +445,82 @@ export interface DataQualityScore {
   suggestions: string[];
 }
 
+/**
+ * 专业质量指标
+ */
+export interface ProfessionalQualityMetrics {
+  /** 变异系数 (Coefficient of Variation) = 标准差 / 平均值 */
+  coefficientOfVariation: number;
+  /** 标准误差 (Standard Error of Mean) = 标准差 / √n */
+  standardError: number;
+  /** 95%置信区间下限 */
+  confidenceIntervalLower: number;
+  /** 95%置信区间上限 */
+  confidenceIntervalUpper: number;
+  /** 样本数量 */
+  sampleSize: number;
+  /** 平均值 */
+  mean: number;
+  /** 中位数 */
+  median: number;
+  /** 标准差 */
+  standardDeviation: number;
+  /** 方差 */
+  variance: number;
+}
+
+/**
+ * 延迟统计
+ */
+export interface LatencyStats {
+  /** P50 中位数延迟 */
+  p50: number;
+  /** P95 延迟 */
+  p95: number;
+  /** P99 延迟 */
+  p99: number;
+  /** 最小延迟 */
+  min: number;
+  /** 最大延迟 */
+  max: number;
+  /** 平均延迟 */
+  avg: number;
+}
+
+/**
+ * 单个预言机质量指标
+ */
+export interface OracleQualityMetrics {
+  /** 预言机提供商 */
+  provider: OracleProvider;
+  /** 价格 */
+  price: number;
+  /** 相对中位数的偏差百分比 */
+  deviationPercent: number;
+  /** Z-Score (标准分数) */
+  zScore: number;
+  /** 更新延迟(ms) */
+  latency: number;
+  /** 置信度 0-1 */
+  confidence: number;
+  /** 是否为异常值 */
+  isOutlier: boolean;
+  /** 最后更新时间 */
+  lastUpdated: number;
+}
+
+/**
+ * 扩展的数据质量评分（包含专业指标）
+ */
+export interface ExtendedDataQualityScore extends DataQualityScore {
+  /** 专业统计指标 */
+  professionalMetrics: ProfessionalQualityMetrics;
+  /** 各预言机质量指标 */
+  oracleMetrics: OracleQualityMetrics[];
+  /** 延迟统计 */
+  latencyStats: LatencyStats;
+}
+
 export interface OracleFeature {
   provider: OracleProvider;
   name: string;

@@ -1,224 +1,186 @@
 /**
  * @fileoverview 数据质量评分 Hook
- * @description 计算数据质量的三个维度评分（一致性、新鲜度、完整性）和综合评分
+ * @description 计算数据质量的专业指标（变异系数、置信区间、Z-Score等）
  */
 
 import { useMemo } from 'react';
 
-import { type DataQualityScore as DataQualityScoreType } from '../types/index';
+import type { OracleProvider, PriceData } from '@/types/oracle';
+
+import type {
+  DataQualityScore as DataQualityScoreType,
+  ExtendedDataQualityScore,
+  LatencyStats,
+  OracleQualityMetrics,
+  ProfessionalQualityMetrics,
+} from '../types/index';
 
 // 重新导出类型
 export type DataQualityScore = DataQualityScoreType;
+export type {
+  ExtendedDataQualityScore,
+  LatencyStats,
+  OracleQualityMetrics,
+  ProfessionalQualityMetrics,
+};
 
 /**
- * 数据质量评分输入参数
+ * 计算百分位数
  */
-export interface UseDataQualityScoreParams {
-  /** 价格数据数组，用于计算一致性 */
-  prices?: number[];
-  /** 最后更新时间戳（毫秒） */
-  lastUpdated?: number;
-  /** 成功响应次数 */
-  successCount?: number;
-  /** 总请求次数 */
-  totalCount?: number;
-  /** 历史数据点数组，用于更精确的一致性计算 */
-  historicalPrices?: number[][];
-  /** 权重配置 */
-  weights?: {
-    consistency?: number;
-    freshness?: number;
-    completeness?: number;
-  };
+function calculatePercentile(sortedValues: number[], percentile: number): number {
+  if (sortedValues.length === 0) return 0;
+  if (sortedValues.length === 1) return sortedValues[0];
+
+  const index = (percentile / 100) * (sortedValues.length - 1);
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  const weight = index - lower;
+
+  return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
 }
 
 /**
- * 计算一致性评分（基于标准差）
- * 标准差越小，一致性越高
- * @param prices - 价格数组
- * @returns 0-100 的评分
+ * 计算中位数
  */
-function calculateConsistencyScore(prices: number[]): number {
-  if (!prices || prices.length < 2) {
-    return 100; // 数据不足时默认满分
-  }
+function calculateMedian(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
 
+/**
+ * 计算平均值
+ */
+function calculateMean(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
+}
+
+/**
+ * 计算标准差
+ */
+function calculateStdDev(values: number[], mean: number): number {
+  if (values.length < 2) return 0;
+  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
+  return Math.sqrt(variance);
+}
+
+/**
+ * 计算专业质量指标
+ */
+function calculateProfessionalMetrics(prices: number[]): ProfessionalQualityMetrics {
   const validPrices = prices.filter((p) => p > 0);
-  if (validPrices.length < 2) {
-    return 100;
+  const sampleSize = validPrices.length;
+
+  if (sampleSize === 0) {
+    return {
+      coefficientOfVariation: 0,
+      standardError: 0,
+      confidenceIntervalLower: 0,
+      confidenceIntervalUpper: 0,
+      sampleSize: 0,
+      mean: 0,
+      median: 0,
+      standardDeviation: 0,
+      variance: 0,
+    };
   }
 
-  // 计算平均值
-  const mean = validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length;
-  if (mean === 0) {
-    return 100;
-  }
+  const mean = calculateMean(validPrices);
+  const median = calculateMedian(validPrices);
+  const standardDeviation = calculateStdDev(validPrices, mean);
+  const variance = Math.pow(standardDeviation, 2);
 
-  // 计算标准差
-  const variance =
-    validPrices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / validPrices.length;
-  const stdDev = Math.sqrt(variance);
+  // 变异系数 (CV) = 标准差 / 平均值
+  const coefficientOfVariation = mean !== 0 ? standardDeviation / mean : 0;
 
-  // 计算变异系数（CV）= 标准差 / 平均值
-  const cv = stdDev / mean;
+  // 标准误差 (SEM) = 标准差 / √n
+  const standardError = sampleSize > 0 ? standardDeviation / Math.sqrt(sampleSize) : 0;
 
-  // 将变异系数转换为 0-100 的评分
-  // CV = 0 时，评分为 100
-  // CV >= 0.05（5%）时，评分为 0
-  // 使用指数衰减公式：score = 100 * exp(-20 * cv)
-  const score = 100 * Math.exp(-20 * cv);
+  // 95%置信区间 = 平均值 ± 1.96 × SEM
+  const confidenceIntervalLower = mean - 1.96 * standardError;
+  const confidenceIntervalUpper = mean + 1.96 * standardError;
 
-  return Math.round(Math.max(0, Math.min(100, score)));
-}
-
-/**
- * 计算新鲜度评分（基于最后更新时间）
- * 越新分数越高
- * @param lastUpdated - 最后更新时间戳（毫秒）
- * @returns 0-100 的评分
- */
-function calculateFreshnessScore(lastUpdated?: number): number {
-  if (!lastUpdated || lastUpdated <= 0) {
-    return 0; // 无更新时间，评分为 0
-  }
-
-  const now = Date.now();
-  const ageMs = now - lastUpdated;
-
-  // 定义时间阈值
-  const THRESHOLDS = {
-    excellent: 30 * 1000, // 30秒内：优秀
-    good: 60 * 1000, // 1分钟内：良好
-    acceptable: 5 * 60 * 1000, // 5分钟内：可接受
-    poor: 15 * 60 * 1000, // 15分钟内：较差
+  return {
+    coefficientOfVariation,
+    standardError,
+    confidenceIntervalLower,
+    confidenceIntervalUpper,
+    sampleSize,
+    mean,
+    median,
+    standardDeviation,
+    variance,
   };
-
-  if (ageMs <= THRESHOLDS.excellent) {
-    return 100;
-  } else if (ageMs <= THRESHOLDS.good) {
-    // 30秒到1分钟之间，线性递减 100 -> 80
-    const ratio = (ageMs - THRESHOLDS.excellent) / (THRESHOLDS.good - THRESHOLDS.excellent);
-    return Math.round(100 - ratio * 20);
-  } else if (ageMs <= THRESHOLDS.acceptable) {
-    // 1分钟到5分钟之间，线性递减 80 -> 50
-    const ratio = (ageMs - THRESHOLDS.good) / (THRESHOLDS.acceptable - THRESHOLDS.good);
-    return Math.round(80 - ratio * 30);
-  } else if (ageMs <= THRESHOLDS.poor) {
-    // 5分钟到15分钟之间，线性递减 50 -> 20
-    const ratio = (ageMs - THRESHOLDS.acceptable) / (THRESHOLDS.poor - THRESHOLDS.acceptable);
-    return Math.round(50 - ratio * 30);
-  } else {
-    // 超过15分钟，指数衰减到 0
-    const excessMs = ageMs - THRESHOLDS.poor;
-    const decayFactor = Math.exp(-excessMs / (60 * 60 * 1000)); // 1小时衰减到约37%
-    return Math.round(20 * decayFactor);
-  }
 }
 
 /**
- * 计算完整性评分（基于成功响应率）
- * @param successCount - 成功响应次数
- * @param totalCount - 总请求次数
- * @returns 0-100 的评分
+ * 计算延迟统计
  */
-function calculateCompletenessScore(successCount?: number, totalCount?: number): number {
-  if (!totalCount || totalCount <= 0) {
-    return 0;
+function calculateLatencyStats(priceData: PriceData[]): LatencyStats {
+  const now = Date.now();
+  const latencies = priceData
+    .filter((p) => p.price > 0 && p.timestamp)
+    .map((p) => now - new Date(p.timestamp).getTime());
+
+  if (latencies.length === 0) {
+    return { p50: 0, p95: 0, p99: 0, min: 0, max: 0, avg: 0 };
   }
 
-  const success = successCount ?? 0;
-  const rate = success / totalCount;
+  const sorted = [...latencies].sort((a, b) => a - b);
 
-  // 基础分数
-  const baseScore = rate * 100;
-
-  // 如果成功率低于50%，额外扣分
-  if (rate < 0.5) {
-    return Math.round(baseScore * 0.8);
-  }
-
-  // 如果成功率低于80%，轻微扣分
-  if (rate < 0.8) {
-    return Math.round(baseScore * 0.95);
-  }
-
-  return Math.round(baseScore);
+  return {
+    p50: calculatePercentile(sorted, 50),
+    p95: calculatePercentile(sorted, 95),
+    p99: calculatePercentile(sorted, 99),
+    min: sorted[0],
+    max: sorted[sorted.length - 1],
+    avg: calculateMean(latencies),
+  };
 }
 
 /**
- * 计算综合评分（加权平均）
- * @param scores - 各维度评分
- * @param weights - 权重配置
- * @returns 0-100 的综合评分
+ * 计算各预言机质量指标
  */
-function calculateOverallScore(
-  scores: { consistency: number; freshness: number; completeness: number },
-  weights: { consistency: number; freshness: number; completeness: number }
-): number {
-  const totalWeight = weights.consistency + weights.freshness + weights.completeness;
+function calculateOracleMetrics(
+  priceData: PriceData[],
+  medianPrice: number,
+  stdDev: number
+): OracleQualityMetrics[] {
+  const now = Date.now();
 
-  if (totalWeight === 0) {
-    return Math.round((scores.consistency + scores.freshness + scores.completeness) / 3);
-  }
+  return priceData
+    .filter((p) => p.price > 0)
+    .map((p) => {
+      const price = p.price;
+      const deviationPercent = medianPrice !== 0 ? ((price - medianPrice) / medianPrice) * 100 : 0;
 
-  const weightedSum =
-    scores.consistency * weights.consistency +
-    scores.freshness * weights.freshness +
-    scores.completeness * weights.completeness;
+      // Z-Score = (价格 - 中位数) / 标准差
+      const zScore = stdDev !== 0 ? (price - medianPrice) / stdDev : 0;
 
-  return Math.round(weightedSum / totalWeight);
-}
+      // 更新延迟
+      const lastUpdated = new Date(p.timestamp).getTime();
+      const latency = now - lastUpdated;
 
-/**
- * 生成改进建议
- * @param scores - 各维度评分
- * @param params - 输入参数
- * @returns 建议数组
- */
-function generateSuggestions(
-  scores: { consistency: number; freshness: number; completeness: number },
-  params: UseDataQualityScoreParams
-): string[] {
-  const suggestions: string[] = [];
+      // 置信度计算（基于Z-Score，|Z|越小置信度越高）
+      const confidence = Math.max(0, Math.min(1, 1 - Math.abs(zScore) / 3));
 
-  // 一致性建议
-  if (scores.consistency < 60) {
-    suggestions.push('数据一致性较差，建议检查各数据源的价格差异');
-  } else if (scores.consistency < 80) {
-    suggestions.push('数据一致性有提升空间，可考虑优化数据源选择策略');
-  }
+      // 是否为异常值 (|Z-Score| > 2)
+      const isOutlier = Math.abs(zScore) > 2;
 
-  // 新鲜度建议
-  if (scores.freshness < 60) {
-    suggestions.push('数据更新延迟较大，建议缩短数据刷新间隔');
-  } else if (scores.freshness < 80) {
-    suggestions.push('数据新鲜度一般，可适当增加更新频率');
-  }
-
-  // 完整性建议
-  if (scores.completeness < 60) {
-    suggestions.push('数据完整性不足，建议检查网络连接和数据源可用性');
-  } else if (scores.completeness < 80) {
-    suggestions.push('数据获取成功率有待提高，可考虑增加重试机制');
-  }
-
-  // 如果所有维度都很好，给出正面反馈
-  if (suggestions.length === 0) {
-    suggestions.push('数据质量良好，继续保持当前的数据获取策略');
-  }
-
-  // 基于具体情况的额外建议
-  const { prices, totalCount } = params;
-
-  if (prices && prices.length < 3) {
-    suggestions.push('数据源数量较少，建议增加更多预言机以提高数据可靠性');
-  }
-
-  if (totalCount && totalCount < 10) {
-    suggestions.push('数据样本量较小，建议积累更多历史数据以优化评分准确性');
-  }
-
-  return suggestions;
+      return {
+        provider: p.provider,
+        price,
+        deviationPercent,
+        zScore,
+        latency,
+        confidence,
+        isOutlier,
+        lastUpdated,
+      };
+    })
+    .sort((a, b) => Math.abs(b.zScore) - Math.abs(a.zScore)); // 按Z-Score绝对值排序，异常值在前
 }
 
 /**
@@ -266,70 +228,141 @@ export function getScoreBgColor(score: number): string {
 }
 
 /**
- * 数据质量评分 Hook
+ * 获取Z-Score颜色类
+ */
+export function getZScoreColorClass(zScore: number): string {
+  const absZ = Math.abs(zScore);
+  if (absZ > 3) return 'text-red-600 bg-red-50';
+  if (absZ > 2) return 'text-orange-600 bg-orange-50';
+  if (absZ > 1) return 'text-yellow-600 bg-yellow-50';
+  return 'text-emerald-600 bg-emerald-50';
+}
+
+/**
+ * 格式化延迟显示
+ */
+export function formatLatency(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  return `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`;
+}
+
+/**
+ * 格式化百分比
+ */
+export function formatPercent(value: number, digits = 2): string {
+  return `${value >= 0 ? '+' : ''}${value.toFixed(digits)}%`;
+}
+
+/**
+ * 格式化数值（保留指定位数）
+ */
+export function formatNumber(value: number, digits = 4): string {
+  return value.toFixed(digits);
+}
+
+/**
+ * 专业数据质量指标 Hook
+ * @param priceData - 价格数据数组
+ * @returns 专业质量指标结果
+ */
+export function useProfessionalQualityMetrics(priceData: PriceData[]): {
+  metrics: ProfessionalQualityMetrics;
+  latencyStats: LatencyStats;
+  oracleMetrics: OracleQualityMetrics[];
+  outliers: OracleQualityMetrics[];
+  highLatencyOracles: OracleQualityMetrics[];
+} {
+  return useMemo(() => {
+    const validPrices = priceData.filter((p) => p.price > 0).map((p) => p.price);
+
+    // 计算专业指标
+    const metrics = calculateProfessionalMetrics(validPrices);
+
+    // 计算延迟统计
+    const latencyStats = calculateLatencyStats(priceData);
+
+    // 计算各预言机指标
+    const oracleMetrics = calculateOracleMetrics(
+      priceData,
+      metrics.median,
+      metrics.standardDeviation
+    );
+
+    // 识别异常值 (|Z-Score| > 2)
+    const outliers = oracleMetrics.filter((m) => m.isOutlier);
+
+    // 识别高延迟 (> 30秒)
+    const highLatencyThreshold = 30000;
+    const highLatencyOracles = oracleMetrics.filter((m) => m.latency > highLatencyThreshold);
+
+    return {
+      metrics,
+      latencyStats,
+      oracleMetrics,
+      outliers,
+      highLatencyOracles,
+    };
+  }, [priceData]);
+}
+
+/**
+ * 数据质量评分 Hook（兼容旧版）
  * @param params - 评分参数
  * @returns 数据质量评分结果
- * @example
- * ```tsx
- * const { score, isGood } = useDataQualityScore({
- *   prices: [100, 101, 99, 100.5],
- *   lastUpdated: Date.now(),
- *   successCount: 95,
- *   totalCount: 100,
- * });
- * ```
  */
-export function useDataQualityScore(params: UseDataQualityScoreParams): {
+export function useDataQualityScore(params: {
+  prices?: number[];
+  lastUpdated?: number;
+  successCount?: number;
+  totalCount?: number;
+}): {
   score: DataQualityScoreType;
   isGood: boolean;
   level: 'excellent' | 'good' | 'fair' | 'poor';
 } {
-  const { prices = [], lastUpdated, successCount = 0, totalCount = 0, weights = {} } = params;
-
-  // 默认权重
-  const defaultWeights = {
-    consistency: 0.35,
-    freshness: 0.35,
-    completeness: 0.3,
-  };
-
-  const finalWeights = {
-    consistency: weights.consistency ?? defaultWeights.consistency,
-    freshness: weights.freshness ?? defaultWeights.freshness,
-    completeness: weights.completeness ?? defaultWeights.completeness,
-  };
+  const { prices = [], lastUpdated, successCount = 0, totalCount = 0 } = params;
 
   const score = useMemo<DataQualityScoreType>(() => {
-    // 计算各维度评分
-    const consistency = calculateConsistencyScore(prices);
-    const freshness = calculateFreshnessScore(lastUpdated);
-    const completeness = calculateCompletenessScore(successCount, totalCount);
+    // 计算一致性评分（基于变异系数）
+    const validPrices = prices.filter((p) => p > 0);
+    let consistency = 100;
+    if (validPrices.length >= 2) {
+      const mean = calculateMean(validPrices);
+      const stdDev = calculateStdDev(validPrices, mean);
+      const cv = mean !== 0 ? stdDev / mean : 0;
+      consistency = Math.round(Math.max(0, Math.min(100, 100 * Math.exp(-20 * cv))));
+    }
 
-    // 计算综合评分
-    const overall = calculateOverallScore({ consistency, freshness, completeness }, finalWeights);
+    // 计算新鲜度评分
+    let freshness = 0;
+    if (lastUpdated && lastUpdated > 0) {
+      const ageMs = Date.now() - lastUpdated;
+      if (ageMs <= 30000) freshness = 100;
+      else if (ageMs <= 60000) freshness = Math.round(100 - ((ageMs - 30000) / 30000) * 20);
+      else if (ageMs <= 300000) freshness = Math.round(80 - ((ageMs - 60000) / 240000) * 30);
+      else freshness = Math.max(0, Math.round(50 * Math.exp(-(ageMs - 300000) / 600000)));
+    }
 
-    // 生成改进建议
-    const suggestions = generateSuggestions({ consistency, freshness, completeness }, params);
+    // 计算完整性评分
+    const completeness = totalCount > 0 ? Math.round((successCount / totalCount) * 100) : 0;
+
+    // 综合评分
+    const overall = Math.round(consistency * 0.4 + freshness * 0.35 + completeness * 0.25);
 
     return {
       consistency,
       freshness,
       completeness,
       overall,
-      suggestions,
+      suggestions: [],
     };
-  }, [prices, lastUpdated, successCount, totalCount, finalWeights, params]);
-
-  // 判断是否良好（overall >= 60）
-  const isGood = score.overall >= 60;
-
-  // 获取等级
-  const level = getScoreLevel(score.overall);
+  }, [prices, lastUpdated, successCount, totalCount]);
 
   return {
     score,
-    isGood,
-    level,
+    isGood: score.overall >= 60,
+    level: getScoreLevel(score.overall),
   };
 }
 

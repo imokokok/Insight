@@ -58,6 +58,9 @@ export default function CrossOraclePage() {
     // 预言机特性
     oracleFeatures,
 
+    // 历史数据
+    historicalData,
+
     // 回调
     toggleOracle,
 
@@ -220,6 +223,8 @@ export default function CrossOraclePage() {
             maxDeviation={maxDeviation}
             qualityScore={qualityScoreData}
             oracleFeatures={oracleFeatures}
+            historicalData={historicalData}
+            oracleColors={oracleChartColors}
             onRefresh={fetchPriceData}
           />
         </main>

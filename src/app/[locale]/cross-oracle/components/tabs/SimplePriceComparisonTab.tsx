@@ -1,21 +1,26 @@
 'use client';
 
 /**
- * @fileoverview 价格对比 Tab 组件（简化版）
- * @description 精简版价格对比展示，保留核心信息，供 QueryResults 使用
+ * @fileoverview 价格对比 Tab 组件（专业版）
+ * @description 精简版价格对比展示，2个核心指标卡片 + 专业表格 + 多维度图表
  */
 
-import { memo } from 'react';
-import {
-  TrendingUp,
-  BarChart3,
-  DollarSign,
-  ArrowRightLeft,
-  Activity,
-  Award,
-} from 'lucide-react';
+import { memo, useState, useMemo } from 'react';
+
+import { TrendingUp, Filter } from 'lucide-react';
 
 import type { OracleProvider, PriceData } from '@/types/oracle';
+
+import {
+  MarketConsensusCard,
+  PriceDispersionCard,
+  ChartTabSwitcher,
+  type ChartTabType,
+  PriceDistributionHistogram,
+  DeviationScatterChart,
+  MultiOracleTrendChart,
+  MarketDepthSimulator,
+} from '../price-comparison';
 import { SimplePriceTable } from '../SimplePriceTable';
 
 // ============================================================================
@@ -30,9 +35,17 @@ interface SimplePriceComparisonTabProps {
   minPrice: number;
   maxPrice: number;
   priceRange: number;
-  deviationRate: number;
-  consistencyRating: string;
+  standardDeviation: number;
+  standardDeviationPercent: number;
+  avgPrice: number;
   validPrices: number[];
+  anomalies: Array<{
+    provider: OracleProvider;
+    deviationPercent: number;
+    severity: 'low' | 'medium' | 'high';
+  }>;
+  historicalData?: Record<OracleProvider, Array<{ timestamp: number; price: number }>>;
+  oracleColors: Record<OracleProvider, string>;
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
@@ -42,53 +55,10 @@ interface SimplePriceComparisonTabProps {
 
 function formatPrice(value: number): string {
   if (value <= 0) return '-';
-  return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatPercent(value: number): string {
-  return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
-}
-
-function getRatingColor(rating: string): { bg: string; text: string; border: string } {
-  switch (rating) {
-    case 'A':
-      return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
-    case 'B':
-      return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' };
-    case 'C':
-      return { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' };
-    case 'D':
-      return { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' };
-    default:
-      return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' };
+  if (value >= 1000) {
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
-}
-
-// ============================================================================
-// 统计卡片组件
-// ============================================================================
-
-interface StatCardProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  subValue?: string;
-  colorClass?: string;
-}
-
-function StatCard({ icon, label, value, subValue, colorClass = 'text-gray-900' }: StatCardProps) {
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-sm transition-shadow">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs text-gray-500 mb-1">{label}</p>
-          <p className={`text-xl font-bold ${colorClass}`}>{value}</p>
-          {subValue && <p className="text-xs text-gray-400 mt-1">{subValue}</p>}
-        </div>
-        <div className="p-2 bg-gray-50 rounded-lg text-gray-500">{icon}</div>
-      </div>
-    </div>
-  );
+  return `$${value.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 6 })}`;
 }
 
 // ============================================================================
@@ -103,13 +73,61 @@ function SimplePriceComparisonTabComponent({
   minPrice,
   maxPrice,
   priceRange,
-  deviationRate,
-  consistencyRating,
+  standardDeviation,
+  standardDeviationPercent,
+  avgPrice,
   validPrices,
+  anomalies,
+  historicalData,
+  oracleColors,
   t,
 }: SimplePriceComparisonTabProps) {
   const [baseAsset, quoteAsset] = selectedSymbol.split('/');
-  const ratingColors = getRatingColor(consistencyRating);
+  const [activeChartTab, setActiveChartTab] = useState<ChartTabType>('distribution');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'normal' | 'warning' | 'error'>('all');
+
+  // 计算统计数据
+  const stats = useMemo(() => {
+    const oracleCount = priceData.length;
+    const anomalyCount = anomalies.length;
+    return { oracleCount, anomalyCount };
+  }, [priceData, anomalies]);
+
+  // 渲染图表内容
+  const renderChartContent = () => {
+    switch (activeChartTab) {
+      case 'distribution':
+        return (
+          <PriceDistributionHistogram
+            priceData={priceData}
+            medianPrice={medianPrice}
+            anomalies={anomalies}
+            t={t}
+          />
+        );
+      case 'scatter':
+        return (
+          <DeviationScatterChart
+            priceData={priceData}
+            medianPrice={medianPrice}
+            anomalies={anomalies}
+            t={t}
+          />
+        );
+      case 'trend':
+        return (
+          <MultiOracleTrendChart
+            historicalData={historicalData || {}}
+            oracleColors={oracleColors}
+            t={t}
+          />
+        );
+      case 'depth':
+        return <MarketDepthSimulator priceData={priceData} medianPrice={medianPrice} t={t} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -124,6 +142,11 @@ function SimplePriceComparisonTabComponent({
               </span>
               {t('crossOracle.live') || 'Live'}
             </span>
+            {stats.anomalyCount > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 rounded text-[10px] font-medium text-red-700">
+                {stats.anomalyCount} {t('crossOracle.anomaliesDetected') || '个异常'}
+              </span>
+            )}
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-2xl font-bold text-gray-900">{baseAsset}</span>
@@ -133,76 +156,71 @@ function SimplePriceComparisonTabComponent({
         <div className="flex items-center gap-4">
           <div className="text-right">
             <p className="text-xs text-gray-500">{t('crossOracle.oracleCount') || '预言机数量'}</p>
-            <p className="text-lg font-semibold text-gray-900">{selectedOracles.length}</p>
+            <p className="text-lg font-semibold text-gray-900">{stats.oracleCount}</p>
           </div>
         </div>
       </div>
 
-      {/* 核心统计指标 - 4个卡片 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={<DollarSign className="w-5 h-5" />}
-          label={t('crossOracle.medianPrice') || '中位数价格'}
-          value={formatPrice(medianPrice)}
-          colorClass="text-gray-900"
-        />
-        <StatCard
-          icon={<ArrowRightLeft className="w-5 h-5" />}
-          label={t('crossOracle.priceRange') || '价格区间'}
-          value={formatPrice(priceRange)}
-          subValue={`${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`}
-          colorClass="text-gray-900"
-        />
-        <StatCard
-          icon={<Activity className="w-5 h-5" />}
-          label={t('crossOracle.deviationRate') || '偏差率'}
-          value={formatPercent(deviationRate)}
-          colorClass={deviationRate > 1 ? 'text-red-600' : 'text-emerald-600'}
-        />
-        <div className={`rounded-xl p-4 border ${ratingColors.bg} ${ratingColors.border}`}>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs text-gray-500 mb-1">{t('crossOracle.consistencyRating') || '一致性评级'}</p>
-              <div className="flex items-center gap-2">
-                <span className={`text-2xl font-bold ${ratingColors.text}`}>{consistencyRating}</span>
-                <Award className={`w-5 h-5 ${ratingColors.text}`} />
-              </div>
-            </div>
-            <div className={`p-2 rounded-lg bg-white/60 ${ratingColors.text}`}>
-              <BarChart3 className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 价格对比表格 */}
-      <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-gray-400" />
-          {t('crossOracle.priceComparison') || '价格对比'}
-        </h4>
-        <SimplePriceTable
-          priceData={priceData}
+      {/* 核心指标卡片 - 2个 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <MarketConsensusCard
           medianPrice={medianPrice}
-          validPrices={validPrices}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          symbol={selectedSymbol}
+          t={t}
+        />
+        <PriceDispersionCard
+          standardDeviation={standardDeviation}
+          avgPrice={avgPrice}
+          oracleCount={stats.oracleCount}
           t={t}
         />
       </div>
 
-      {/* 数据说明 */}
-      <div className="bg-blue-50/50 rounded-lg p-4 border border-blue-100">
-        <div className="flex items-start gap-3">
-          <BarChart3 className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">
-              {t('crossOracle.dataNote') || '数据说明'}
-            </h4>
-            <p className="text-xs text-gray-600 mt-1">
-              {t('crossOracle.priceComparisonNote') || 
-                '价格数据实时获取自各预言机，偏差率基于中位数价格计算。一致性评级A表示数据高度一致，D表示存在较大偏差。'}
-            </p>
+      {/* 专业价格对比表格 */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-gray-400" />
+            {t('crossOracle.priceComparison') || '价格对比'}
+          </h4>
+
+          {/* 状态筛选 */}
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+              className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">{t('crossOracle.filter.all') || '全部'}</option>
+              <option value="normal">{t('crossOracle.filter.normal') || '正常'}</option>
+              <option value="warning">{t('crossOracle.filter.warning') || '警告'}</option>
+              <option value="error">{t('crossOracle.filter.error') || '异常'}</option>
+            </select>
           </div>
         </div>
+
+        <SimplePriceTable
+          priceData={priceData}
+          medianPrice={medianPrice}
+          validPrices={validPrices}
+          anomalies={anomalies}
+          statusFilter={statusFilter}
+          t={t}
+        />
+      </div>
+
+      {/* 图表区域 */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-700">
+            {t('crossOracle.visualization') || '可视化分析'}
+          </h4>
+          <ChartTabSwitcher activeTab={activeChartTab} onTabChange={setActiveChartTab} t={t} />
+        </div>
+        {renderChartContent()}
       </div>
     </div>
   );

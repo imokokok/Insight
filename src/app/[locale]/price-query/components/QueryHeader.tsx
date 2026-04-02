@@ -1,10 +1,11 @@
 'use client';
 
-import { useTranslations } from '@/i18n';
 import { Download, FileJson, FileSpreadsheet, Star, ChevronDown } from 'lucide-react';
+
+import type { FavoriteConfig } from '@/hooks';
+import { useTranslations } from '@/i18n';
 import type { OracleProvider, Blockchain } from '@/lib/oracles';
 import type { UserFavorite } from '@/lib/supabase/queries';
-import type { FavoriteConfig } from '@/hooks';
 
 interface QueryHeaderProps {
   loading: boolean;
@@ -54,12 +55,8 @@ export function QueryHeader({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          {t('priceQuery.title')}
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {t('priceQuery.description')}
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('priceQuery.title')}</h1>
+        <p className="text-sm text-gray-500 mt-1">{t('priceQuery.description')}</p>
       </div>
 
       <div className="flex items-center gap-2">
@@ -77,9 +74,7 @@ export function QueryHeader({
           {showFavoritesDropdown && (
             <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
               <div className="p-3 border-b border-gray-100">
-                <h3 className="font-medium text-gray-900">
-                  {t('priceQuery.favorites.title')}
-                </h3>
+                <h3 className="font-medium text-gray-900">{t('priceQuery.favorites.title')}</h3>
               </div>
               <div className="max-h-64 overflow-y-auto">
                 {symbolFavorites.length === 0 ? (
@@ -145,7 +140,6 @@ export function QueryHeader({
           </button>
         </div>
       </div>
-
     </div>
   );
 }
