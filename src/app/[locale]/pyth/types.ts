@@ -45,12 +45,14 @@ export interface PublisherData extends Publisher {
   accuracy?: number;
   stake?: number;
   contribution?: number;
+  source?: 'pyth-hermes-api' | 'pythnet-rpc' | 'mock-fallback';
 }
 
 export interface ValidatorData extends GenericValidator {
   rewards?: number;
   stake?: number;
   performance?: number;
+  source?: 'pyth-hermes-api' | 'pythnet-rpc' | 'mock-fallback';
 }
 
 export interface PythPageState {
