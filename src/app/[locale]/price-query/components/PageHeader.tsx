@@ -1,75 +1,25 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-
 import { Heart, Download, RefreshCw } from 'lucide-react';
 
-import { useTranslations, useLocale } from '@/i18n';
-import { type OracleProvider, type Blockchain } from '@/types/oracle';
-import { type QueryHistoryItem } from '@/utils/queryHistory';
+import { useTranslations } from '@/i18n';
 
 interface PageHeaderProps {
-  showHistory: boolean;
-  setShowHistory: (show: boolean) => void;
-  historyItems: QueryHistoryItem[];
-  onSelectHistory: (item: QueryHistoryItem) => void;
-  onClearHistory: () => void;
-  loading: boolean;
-  queryResultsLength: number;
-  onExportCSV: () => void;
-  onExportJSON: () => void;
-  onOpenExportConfig: () => void;
-  selectedOracles: OracleProvider[];
-  selectedChains: Blockchain[];
-  selectedSymbol: string;
-  selectedTimeRange: number;
-  setSelectedOracles: (oracles: OracleProvider[]) => void;
-  setSelectedChains: (chains: Blockchain[]) => void;
-  setSelectedSymbol: (symbol: string) => void;
-  setSelectedTimeRange: (timeRange: number) => void;
   onToggleFavorite?: () => void;
   isFavorite?: boolean;
   onExport?: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
-  symbol?: string;
-  chain?: string;
-  provider?: string;
 }
 
 export function PageHeader({
-  showHistory: _showHistory,
-  setShowHistory,
-  historyItems: _historyItems,
-  onSelectHistory,
-  onClearHistory,
-  loading: _loading,
-  queryResultsLength: _queryResultsLength,
-  onExportCSV: _onExportCSV,
-  onExportJSON: _onExportJSON,
-  onOpenExportConfig: _onOpenExportConfig,
   onToggleFavorite,
   isFavorite,
   onExport,
   onRefresh,
   isRefreshing,
-  symbol: _symbol,
-  chain: _chain,
-  provider: _provider,
 }: PageHeaderProps) {
   const t = useTranslations();
-  const _locale = useLocale();
-  const _router = useRouter();
-
-  const _handleHistorySelect = (item: QueryHistoryItem) => {
-    onSelectHistory(item);
-    setShowHistory(false);
-  };
-
-  const _handleClearHistory = () => {
-    onClearHistory();
-    setShowHistory(false);
-  };
 
   return (
     <div className="flex items-center justify-between mb-6">

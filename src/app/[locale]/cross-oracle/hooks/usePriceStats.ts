@@ -81,6 +81,14 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
     [validPrices]
   );
 
+  // 计算中位数
+  const medianPrice = useMemo(() => {
+    if (validPrices.length === 0) return 0;
+    const sorted = [...validPrices].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  }, [validPrices]);
+
   // 计算价格范围
   const priceRange = maxPrice - minPrice;
 
@@ -103,6 +111,7 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
       weightedAvgPrice,
       maxPrice,
       minPrice,
+      medianPrice,
       priceRange,
       variance,
       standardDeviation,
@@ -113,6 +122,7 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
       weightedAvgPrice,
       maxPrice,
       minPrice,
+      medianPrice,
       priceRange,
       variance,
       standardDeviation,
@@ -126,6 +136,7 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
     weightedAvgPrice,
     maxPrice,
     minPrice,
+    medianPrice,
     priceRange,
     variance,
     standardDeviation,

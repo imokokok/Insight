@@ -265,4 +265,5 @@ function RiskAlertBannerComponent({
 const RiskAlertBanner = memo(RiskAlertBannerComponent);
 RiskAlertBanner.displayName = 'RiskAlertBanner';
 
+export { RiskAlertBanner };
 export default RiskAlertBanner;

@@ -314,8 +314,9 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
       name: oracle,
       symbolCount: 100,
       avgLatency: 1500,
-      features: ['去中心化', '高可靠性', '实时更新'],
-      description: `${oracle} 是一个领先的区块链预言机解决方案`,
+      updateFrequency: 'Real-time',
+      features: ['high-frequency', 'cross-chain', 'first-party'],
+      description: `${oracle} is a leading blockchain oracle solution`,
     }));
   }, [selectedOracles]);
 

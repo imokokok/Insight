@@ -6,14 +6,14 @@ import { useFavorites, type FavoriteConfig } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import type { PriceData, OracleProvider, Blockchain } from '@/lib/oracles';
 import { useUser } from '@/stores/authStore';
-import type { QueryHistoryItem } from '@/utils/queryHistory';
+
 
 import { type QueryResult, providerNames, chainNames, oracleI18nKeys } from '../constants';
 
 import { usePriceQueryChart, type ChartDataPoint } from './usePriceQueryChart';
 import { usePriceQueryData, type QueryError } from './usePriceQueryData';
 import { usePriceQueryExport } from './usePriceQueryExport';
-import { usePriceQueryHistory } from './usePriceQueryHistory';
+
 import { usePriceQueryState, type TimeComparisonConfig } from './usePriceQueryState';
 
 import type { AnomalyInfo } from '../utils/priceValidator';
@@ -43,9 +43,7 @@ export interface UsePriceQueryReturn {
   clearErrors: () => void;
   retryDataSource: (provider: OracleProvider, chain: Blockchain) => Promise<void>;
   retryAllErrors: () => Promise<void>;
-  showHistory: boolean;
-  setShowHistory: (show: boolean) => void;
-  historyItems: QueryHistoryItem[];
+
   selectedRow: string | null;
   setSelectedRow: (row: string | null) => void;
   isCompareMode: boolean;
@@ -99,8 +97,7 @@ export interface UsePriceQueryReturn {
   toggleSeries: (seriesName: string) => void;
   handleSort: (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => void;
   fetchQueryData: () => Promise<void>;
-  handleHistorySelect: (item: QueryHistoryItem) => void;
-  handleClearHistory: () => void;
+
   generateFilename: (extension: string) => string;
   handleExportCSV: () => void;
   handleExportJSON: () => void;
@@ -146,12 +143,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
     selectedChains: state.selectedChain ? [state.selectedChain] : [],
   });
 
-  const history = usePriceQueryHistory({
-    setSelectedOracle: state.setSelectedOracle,
-    setSelectedChain: state.setSelectedChain,
-    setSelectedSymbol: state.setSelectedSymbol,
-    setSelectedTimeRange: state.setSelectedTimeRange,
-  });
+
 
   const [showExportConfig, setShowExportConfig] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -331,9 +323,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
     clearErrors: data.clearErrors,
     retryDataSource: data.retryDataSource,
     retryAllErrors: data.retryAllErrors,
-    showHistory: history.showHistory,
-    setShowHistory: history.setShowHistory,
-    historyItems: history.historyItems,
+
     selectedRow: state.selectedRow,
     setSelectedRow: state.setSelectedRow,
     isCompareMode: state.isCompareMode,
@@ -387,8 +377,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
     toggleSeries: state.toggleSeries,
     handleSort: state.handleSort,
     fetchQueryData: data.fetchQueryData,
-    handleHistorySelect: history.handleHistorySelect,
-    handleClearHistory: history.handleClearHistory,
+
     generateFilename,
     handleExportCSV,
     handleExportJSON,

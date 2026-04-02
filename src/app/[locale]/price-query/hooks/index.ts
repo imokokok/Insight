@@ -18,8 +18,4 @@ export type { UsePriceQueryChartReturn, UsePriceQueryChartParams } from './usePr
 export { usePriceQueryExport } from './usePriceQueryExport';
 export type { UsePriceQueryExportReturn, UsePriceQueryExportParams } from './usePriceQueryExport';
 
-export { usePriceQueryHistory } from './usePriceQueryHistory';
-export type {
-  UsePriceQueryHistoryReturn,
-  UsePriceQueryHistoryParams,
-} from './usePriceQueryHistory';
+

@@ -35,9 +35,6 @@ export default function PriceQueryPage() {
     queryDuration,
     queryProgress,
     currentQueryTarget,
-    showHistory,
-    setShowHistory,
-    historyItems,
     showExportConfig,
     setShowExportConfig,
     chartContainerRef,
@@ -52,8 +49,6 @@ export default function PriceQueryPage() {
     standardDeviationPercent,
     supportedChainsBySelectedOracles,
     fetchQueryData,
-    handleHistorySelect,
-    handleClearHistory,
     handleExportCSV,
     handleExportJSON,
     symbolFavorites,
@@ -172,11 +167,6 @@ export default function PriceQueryPage() {
       {/* 页面头部 */}
       <div className="flex flex-col gap-3 mb-4">
         <QueryHeader
-          showHistory={showHistory}
-          setShowHistory={setShowHistory}
-          historyItems={historyItems}
-          onSelectHistory={handleHistorySelect}
-          onClearHistory={handleClearHistory}
           loading={isLoading}
           queryResultsLength={queryResults.length}
           onExportCSV={handleExportCSV}

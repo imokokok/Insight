@@ -18,7 +18,7 @@ import {
   WINkLinkClient,
 } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
-import { saveQueryHistory, getQueryHistory } from '@/utils/queryHistory';
+
 
 import { type QueryResult } from '../constants';
 import { usePerformanceMonitoring } from '../utils/performanceMonitoring';
@@ -416,14 +416,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         setCompareHistoricalData({});
       }
 
-      if (results.length > 0 && currentSelectedOracle && currentSelectedChain) {
-        saveQueryHistory({
-          oracles: [currentSelectedOracle],
-          chains: [currentSelectedChain],
-          symbol: currentSelectedSymbol,
-          timeRange: currentSelectedTimeRange,
-        });
-      }
+
     } catch (error) {
       logger.error(
         'Error fetching query data',
