@@ -2,36 +2,28 @@
 
 /**
  * @fileoverview 多预言机对比查询结果组件
- * @description 整合风险预警、数据质量检测、价格对比三大核心模块到一个统一卡片中
+ * @description 使用 Tab 切换展示价格对比、数据质量检测、风险预警三大核心功能
  */
 
-import { memo } from 'react';
-
-import { Database, TrendingUp, Shield, AlertTriangle, Activity } from 'lucide-react';
+import { memo, useState, useCallback } from 'react';
+import { Database } from 'lucide-react';
 
 import { EmptyStateEnhanced, ProgressBar } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
-import { OracleComparisonMatrix } from './OracleComparisonMatrix';
-import QualityDashboard from './QualityDashboard';
-import RiskAlertDashboard from './RiskAlertDashboard';
-import { SimplePriceTable } from './SimplePriceTable';
+import { TabContentSwitcher, type TabType } from './TabContentSwitcher';
+import { SimplePriceComparisonTab } from './tabs/SimplePriceComparisonTab';
+import { SimpleQualityAnalysisTab } from './tabs/SimpleQualityAnalysisTab';
+import { RiskAlertTab } from './tabs/RiskAlertTab';
 
 import type { TimeRange } from '../constants';
 import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
+import type { DataQualityScore } from '../hooks/useDataQualityScore';
 
 // ============================================================================
 // 类型定义
 // ============================================================================
-
-interface QualityScore {
-  overall: number;
-  consistency: number;
-  freshness: number;
-  completeness: number;
-  suggestions: string[];
-}
 
 interface OracleFeature {
   provider: string;
@@ -74,7 +66,7 @@ interface QueryResultsProps {
   maxDeviation: number;
 
   // 质量评分
-  qualityScore: QualityScore;
+  qualityScore: DataQualityScore;
 
   // 预言机特性
   oracleFeatures: OracleFeature[];
@@ -143,36 +135,7 @@ function EmptyState({ selectedSymbol }: { selectedSymbol: string }) {
       }
       size="lg"
       variant="page"
-    >
-      <div className="mt-8 pt-6 border-t border-gray-100 w-full max-w-md">
-        <p className="text-xs text-gray-400 mb-4 flex items-center justify-center gap-1">
-          <TrendingUp className="w-3 h-3" aria-hidden="true" />
-          {t('crossOracle.selectOraclesHint') || 'Select multiple oracles to compare'}
-        </p>
-      </div>
-    </EmptyStateEnhanced>
-  );
-}
-
-// ============================================================================
-// 模块标题组件
-// ============================================================================
-
-interface SectionHeaderProps {
-  icon: React.ReactNode;
-  title: string;
-  description?: string;
-}
-
-function SectionHeader({ icon, title, description }: SectionHeaderProps) {
-  return (
-    <div className="flex items-center gap-3 mb-4">
-      <div className="p-2 rounded-lg bg-blue-50 text-blue-600">{icon}</div>
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        {description && <p className="text-sm text-gray-500">{description}</p>}
-      </div>
-    </div>
+    />
   );
 }
 
@@ -190,6 +153,9 @@ function QueryResultsComponent({
   medianPrice,
   minPrice,
   maxPrice,
+  priceRange,
+  standardDeviationPercent,
+  validPrices,
   anomalies,
   anomalyCount,
   highRiskCount,
@@ -197,9 +163,14 @@ function QueryResultsComponent({
   lowRiskCount,
   maxDeviation,
   qualityScore,
-  oracleFeatures,
 }: QueryResultsProps) {
   const t = useTranslations();
+  const [activeTab, setActiveTab] = useState<TabType>('priceComparison');
+
+  // Tab 切换回调
+  const handleTabChange = useCallback((tab: TabType) => {
+    setActiveTab(tab);
+  }, []);
 
   // 加载状态
   if (isLoading) {
@@ -211,111 +182,84 @@ function QueryResultsComponent({
     return <EmptyState selectedSymbol={selectedSymbol} />;
   }
 
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      {/* 统一卡片头部 */}
-      <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
-              <Activity className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {t('crossOracle.comparisonResults') || 'Comparison Results'}
-              </h2>
-              <p className="text-sm text-gray-500">
-                {selectedSymbol} · {selectedOracles.length} {t('crossOracle.oracles') || 'oracles'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span>{t('crossOracle.realTime') || 'Real-time'}</span>
-          </div>
-        </div>
-      </div>
+  // 计算一致性评级
+  const getConsistencyRating = (deviation: number): string => {
+    if (deviation <= 0.5) return 'A';
+    if (deviation <= 1) return 'B';
+    if (deviation <= 2) return 'C';
+    return 'D';
+  };
 
-      {/* 模块1: 价格对比 */}
-      <section className="p-6" aria-label="Price Comparison" id="price-comparison">
-        <SectionHeader
-          icon={<TrendingUp className="w-5 h-5" />}
-          title={t('crossOracle.priceComparison') || 'Price Comparison'}
-          description={
-            t('crossOracle.priceComparisonDesc') ||
-            'Multi-oracle price comparison and deviation analysis'
-          }
-        />
-        <SimplePriceTable
-          priceData={priceData}
-          anomalies={anomalies}
-          medianPrice={medianPrice}
-          minPrice={minPrice}
-          maxPrice={maxPrice}
-          isLoading={isLoading}
-          t={t}
-        />
-      </section>
+  const consistencyRating = getConsistencyRating(standardDeviationPercent);
 
-      {/* 分隔线 */}
-      <div className="border-t border-gray-200" />
-
-      {/* 模块2: 风险预警 */}
-      <section className="p-6" aria-label="Risk Alert">
-        <SectionHeader
-          icon={<AlertTriangle className="w-5 h-5" />}
-          title={t('crossOracle.riskAlert') || 'Risk Alert'}
-          description={
-            t('crossOracle.riskAlertDesc') || 'Price anomaly detection and risk warnings'
-          }
-        />
-        <RiskAlertDashboard
-          anomalies={anomalies}
-          count={anomalyCount}
-          highRiskCount={highRiskCount}
-          mediumRiskCount={mediumRiskCount}
-          lowRiskCount={lowRiskCount}
-          maxDeviation={maxDeviation}
-          t={t}
-        />
-      </section>
-
-      {/* 分隔线 */}
-      <div className="border-t border-gray-200" />
-
-      {/* 模块3: 数据质量检测 */}
-      <section className="p-6" aria-label="Data Quality">
-        <SectionHeader
-          icon={<Shield className="w-5 h-5" />}
-          title={t('crossOracle.dataQuality') || 'Data Quality'}
-          description={
-            t('crossOracle.dataQualityDesc') || 'Oracle data quality assessment and scoring'
-          }
-        />
-        <QualityDashboard qualityScore={qualityScore} isLoading={isLoading} t={t} />
-      </section>
-
-      {/* 模块4: 预言机特性对比（可选） */}
-      {oracleFeatures.length > 0 && (
-        <>
-          <div className="border-t border-gray-200" />
-          <section className="p-6" aria-label="Oracle Features">
-            <SectionHeader
-              icon={<Database className="w-5 h-5" />}
-              title={t('crossOracle.oracleFeatures') || 'Oracle Features'}
-              description={
-                t('crossOracle.oracleFeaturesDesc') ||
-                'Comparison of oracle capabilities and features'
-              }
-            />
-            <OracleComparisonMatrix
-              oracleFeatures={oracleFeatures}
-              selectedOracles={selectedOracles.map((o) => o as string)}
+  // 渲染 Tab 内容
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'priceComparison':
+        return (
+          <div className="p-6" role="tabpanel" id="tabpanel-priceComparison" aria-labelledby="tab-priceComparison">
+            <SimplePriceComparisonTab
+              priceData={priceData}
+              selectedOracles={selectedOracles}
+              selectedSymbol={selectedSymbol}
+              medianPrice={medianPrice}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              priceRange={priceRange}
+              deviationRate={standardDeviationPercent}
+              consistencyRating={consistencyRating}
+              validPrices={validPrices}
               t={t}
             />
-          </section>
-        </>
-      )}
+          </div>
+        );
+
+      case 'dataQuality':
+        return (
+          <div className="p-6" role="tabpanel" id="tabpanel-dataQuality" aria-labelledby="tab-dataQuality">
+            <SimpleQualityAnalysisTab
+              priceData={priceData}
+              selectedOracles={selectedOracles}
+              qualityScore={qualityScore}
+              t={t}
+            />
+          </div>
+        );
+
+      case 'riskAlert':
+        return (
+          <div className="p-6" role="tabpanel" id="tabpanel-riskAlert" aria-labelledby="tab-riskAlert">
+            <RiskAlertTab
+              anomalies={anomalies}
+              anomalyCount={anomalyCount}
+              highRiskCount={highRiskCount}
+              mediumRiskCount={mediumRiskCount}
+              lowRiskCount={lowRiskCount}
+              maxDeviation={maxDeviation}
+              t={t}
+            />
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Tab 切换导航 */}
+      <TabContentSwitcher
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        riskAlertCount={anomalyCount}
+        t={t}
+      />
+
+      {/* Tab 内容区域 */}
+      <div className="min-h-[400px]">
+        {renderTabContent()}
+      </div>
     </div>
   );
 }

@@ -77,6 +77,14 @@
     "avg": "平均",
     "range": "范围",
     "stdDev": "标准差",
+    "medianPrice": "中位数价格",
+    "minPrice": "最低价格",
+    "maxPrice": "最高价格",
+    "deviationRate": "偏差率",
+    "ofMedian": "占中位数",
+    "priceComparison": "价格对比",
+    "dataNote": "数据说明",
+    "priceComparisonNote": "价格数据实时获取自各预言机，偏差率基于中位数价格计算。一致性评级A表示数据高度一致，D表示存在较大偏差。",
     "consistencyRating": "价格趋同性指数",
     "consistency": {
       "excellent": "最优",
@@ -197,36 +205,46 @@
     "tabPriceComparison": "价格对比",
     "tabQualityAnalysis": "质量分析",
     "tabOracleProfiles": "预言机档案",
-    "riskAlert": {
-      "title": "价格异常风险预警",
-      "description": "检测到价格数据异常，请谨慎使用",
-      "highSeverity": "高风险",
-      "mediumSeverity": "中风险",
-      "lowSeverity": "低风险",
-      "reasons": {
-        "priceDeviation": "价格偏差过大",
-        "dataDelay": "数据源延迟",
-        "marketVolatility": "市场波动",
-        "dataSourceIssue": "数据源问题"
-      },
-      "viewDetails": "查看详情",
-      "dismiss": "忽略"
+    "tabs": {
+      "priceComparison": "价格对比",
+      "dataQuality": "数据质量",
+      "riskAlert": "风险预警"
     },
-    "qualityScore": {
-      "title": "数据质量评分",
-      "overall": "综合评分",
-      "consistency": "一致性",
-      "freshness": "新鲜度",
-      "completeness": "完整性",
+    "riskAlert": "风险预警",
+    "risk": {
+      "high": "高风险",
+      "medium": "中风险",
+      "low": "低风险",
+      "unknown": "未知",
+      "alertTitle": "检测到 {count} 个价格异常",
+      "maxDeviation": "最大偏差",
+      "distribution": "风险分布",
+      "anomalyList": "异常详情",
+      "suggestions": "处理建议",
+      "suggestion1": "建议检查异常预言机的数据源连接状态",
+      "suggestion2": "考虑暂时停用偏差过大的数据源",
+      "suggestion3": "关注市场波动情况，确认是否为系统性风险",
+      "allClear": "数据正常",
+      "allClearDesc": "所有预言机价格数据在合理范围内，未发现异常偏差",
+      "monitoring": "实时监控中"
+    },
+    "quality": {
+      "overallScore": "数据质量综合评分",
+      "basedOn": "基于一致性、新鲜度、完整性的加权评估",
+      "dimensions": "质量维度分析",
+      "consistency": "数据一致性",
+      "consistencyDesc": "基于各数据源价格的标准差计算",
+      "freshness": "数据新鲜度",
+      "justUpdated": "刚刚更新",
+      "minutesAgo": "{minutes} 分钟前更新",
+      "completeness": "数据完整性",
+      "completenessDesc": "成功响应: {success}/{total}",
+      "dataSourceStatus": "数据源状态",
+      "suggestions": "改进建议",
       "excellent": "优秀",
       "good": "良好",
       "fair": "一般",
-      "poor": "较差",
-      "suggestions": {
-        "increaseDataSources": "建议增加数据源数量",
-        "checkDataDelay": "请检查数据延迟情况",
-        "improveConsistency": "数据一致性有待提高"
-      }
+      "poor": "较差"
     },
     "symbolSelector": {
       "noCommonSymbols": "所选预言机没有共同支持的币种",

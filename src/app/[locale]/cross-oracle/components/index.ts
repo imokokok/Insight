@@ -19,3 +19,4 @@ export { default as RiskAlertDashboard } from './RiskAlertDashboard';
 export { default as QualityDashboard } from './QualityDashboard';
 export { SimplePriceTable } from './SimplePriceTable';
 export { OracleComparisonMatrix } from './OracleComparisonMatrix';
+export { TabContentSwitcher, type TabType } from './TabContentSwitcher';
