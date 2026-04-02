@@ -227,6 +227,7 @@ function OraclePrefetchCardBase({
   metadata,
 }: OraclePrefetchCardProps) {
   const t = useTranslations();
+  const tUi = useTranslations('ui');
   const locale = useLocale();
   const provider = oracleProviderMap[name];
   const route = oracleRouteMap[name];
@@ -474,7 +475,7 @@ function OraclePrefetchCardBase({
           >
             {formatMarketShare(value)}
           </span>
-          {route && (
+          {route && name !== 'Chronicle' && (
             <Link
               href={route}
               onClick={handleNavClick}
@@ -489,6 +490,11 @@ function OraclePrefetchCardBase({
                 aria-hidden="true"
               />
             </Link>
+          )}
+          {name === 'Chronicle' && (
+            <div className="px-2 py-0.5 bg-amber-500 text-white text-xs font-medium rounded">
+              {tUi('common.comingSoon')}
+            </div>
           )}
         </div>
       </div>

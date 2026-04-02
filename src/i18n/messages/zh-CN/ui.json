@@ -430,5 +430,8 @@
     "reconnecting": "重新连接中",
     "disconnected": "已断开",
     "error": "连接错误"
+  },
+  "common": {
+    "comingSoon": "即将上线"
   }
 }

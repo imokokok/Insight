@@ -21,6 +21,7 @@ interface MobileDrawerProps {
 
 export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: MobileDrawerProps) {
   const t = useTranslations();
+  const tUi = useTranslations('ui');
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
   const toggleGroup = (groupId: string) => {
@@ -99,6 +100,31 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                           const isItemActive = currentPath === item.href;
                           const oracleKey = item.href.replace('/', '') as keyof typeof oracleColors;
                           const accentColor = oracleColors[oracleKey];
+                          const isChronicle = item.href === '/chronicle';
+
+                          if (isChronicle) {
+                            return (
+                              <div
+                                key={item.href}
+                                className="relative flex items-center gap-3 px-4 py-3 mx-2 rounded-lg cursor-not-allowed"
+                              >
+                                {/* 蒙层 */}
+                                <div className="absolute inset-0 bg-gray-100/80 rounded-lg z-10" />
+                                {/* 即将上线提示 */}
+                                <div className="absolute inset-0 flex items-center justify-center z-20">
+                                  <span className="px-2 py-1 bg-amber-500 text-white text-xs font-medium rounded">
+                                    {tUi('common.comingSoon')}
+                                  </span>
+                                </div>
+                                {ItemIcon && (
+                                  <div className="p-1.5 rounded-md bg-gray-100">
+                                    <ItemIcon className="w-4 h-4 text-gray-400" />
+                                  </div>
+                                )}
+                                <span className="text-sm text-gray-400">{t(item.label)}</span>
+                              </div>
+                            );
+                          }
 
                           return (
                             <Link

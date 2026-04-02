@@ -430,5 +430,8 @@
     "reconnecting": "Reconnecting",
     "disconnected": "Disconnected",
     "error": "Connection Error"
+  },
+  "common": {
+    "comingSoon": "Coming Soon"
   }
 }
