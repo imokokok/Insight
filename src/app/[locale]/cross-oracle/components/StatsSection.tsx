@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 
 import { Clock, Shield, Activity } from 'lucide-react';
 
 import { DataQualityIndicators } from '@/components/ui/DataQualityIndicators';
 import { EnhancedStatCard } from '@/components/ui/EnhancedStatCard';
 
-import { type HistoryMinMax, getTrendIcon, getHealthColor } from '../constants';
+import { type HistoryMinMax, getHealthColor } from '../constants';
 
 interface SparklineData {
   avgPrice?: number[];
@@ -55,7 +55,7 @@ function formatPercent(value: number): string {
   return `±${value.toFixed(3)}%`;
 }
 
-export function StatsSection({
+function StatsSectionComponent({
   qualityScoreData,
   selectedSymbol,
   selectedOracles,
@@ -67,7 +67,6 @@ export function StatsSection({
   standardDeviationPercent,
   variance,
   lastStats,
-  historyMinMax,
   calculateChangePercent,
   getConsistencyRating,
   t,
@@ -91,7 +90,6 @@ export function StatsSection({
 
   // 获取一致性评级
   const consistencyRating = getConsistencyRating(standardDeviationPercent);
-  const healthColor = getHealthColor('deviation', standardDeviationPercent);
 
   // 计算置信度（基于标准差，标准差越小置信度越高）
   const confidence = useMemo(() => {
@@ -359,3 +357,23 @@ export function StatsSection({
     </div>
   );
 }
+
+// 使用 React.memo 优化性能 - 自定义比较函数
+const StatsSection = memo(StatsSectionComponent, (prevProps, nextProps) => {
+  // 比较所有关键属性
+  return (
+    prevProps.selectedSymbol === nextProps.selectedSymbol &&
+    prevProps.selectedOracles.length === nextProps.selectedOracles.length &&
+    prevProps.avgPrice === nextProps.avgPrice &&
+    prevProps.weightedAvgPrice === nextProps.weightedAvgPrice &&
+    prevProps.maxPrice === nextProps.maxPrice &&
+    prevProps.minPrice === nextProps.minPrice &&
+    prevProps.priceRange === nextProps.priceRange &&
+    prevProps.standardDeviationPercent === nextProps.standardDeviationPercent &&
+    prevProps.variance === nextProps.variance &&
+    prevProps.t === nextProps.t
+  );
+});
+StatsSection.displayName = 'StatsSection';
+
+export { StatsSection };

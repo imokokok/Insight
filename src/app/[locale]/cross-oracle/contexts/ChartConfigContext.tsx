@@ -9,7 +9,9 @@ import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatil
 import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import { type OracleProvider } from '@/types/oracle';
 
-import { type TimeRange, type QualityTrendData } from '../constants';
+import { type TimeRange } from '../constants';
+
+import type { QualityTrendData } from '../types';
 
 interface ChartConfigContextValue {
   // 选中的预言机

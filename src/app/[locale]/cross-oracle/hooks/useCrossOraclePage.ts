@@ -11,18 +11,20 @@ import { useFavorites, type FavoriteConfig } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import type { UserFavorite } from '@/lib/supabase/queries';
 import { useUser } from '@/stores/authStore';
-import type { PriceData, SnapshotStats, OracleSnapshot } from '@/types/oracle';
-import { OracleProvider, saveSnapshot } from '@/types/oracle';
+import type { PriceData, SnapshotStats } from '@/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 
-import { type TimeRange, type DeviationFilter, symbols } from '../constants';
+import { type TimeRange, symbols } from '../constants';
 
 import { useChartConfig } from './useChartConfig';
+import { useDataQualityScore } from './useDataQualityScore';
 import { useExport } from './useExport';
 import { useFilterSort } from './useFilterSort';
 import { useOracleData } from './useOracleData';
+import { usePriceAnomalyDetection } from './usePriceAnomalyDetection';
 import { usePriceStats } from './usePriceStats';
 
-import type { TabId, HistoryMinMax, MovingAverageData } from '../types/index';
+import type { TabId, HistoryMinMax, MovingAverageData, QualityTrendData } from '../types/index';
 
 interface UseCrossOraclePageOptions {
   initialSymbol?: string;
@@ -45,24 +47,21 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>(initialOracles);
   const [selectedSymbol, setSelectedSymbol] = useState<string>(initialSymbol);
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
-  const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [activeTab, setActiveTab] = useState<TabId>('priceComparison');
 
   // UI 状态
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
   const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
+  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
   const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
-  const [isChartFullscreen, setIsChartFullscreen] = useState(false);
   const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
   const [useAccessibleColors, setUseAccessibleColors] = useState(false);
 
   // 图表状态
   const [zoomLevel, setZoomLevel] = useState(1);
 
-  // 快照状态
-  const [selectedSnapshot, setSelectedSnapshot] = useState<OracleSnapshot | null>(null);
-  const [showComparison, setShowComparison] = useState(false);
+  // 性能分析状态
   const [selectedPerformanceOracle, setSelectedPerformanceOracle] = useState<OracleProvider | null>(
     null
   );
@@ -73,7 +72,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   // Refs
   const filterPanelRef = useRef<HTMLDivElement>(null);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
-  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   // ==========================================================================
   // 数据获取
@@ -96,6 +94,21 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
       setLastStats(priceStats.currentStats);
     }
   }, [priceStats.currentStats]);
+
+  // ==========================================================================
+  // 价格异常检测
+  // ==========================================================================
+  const anomalyDetection = usePriceAnomalyDetection(priceData, priceStats.avgPrice);
+
+  // ==========================================================================
+  // 数据质量评分
+  // ==========================================================================
+  const { score: qualityScore } = useDataQualityScore({
+    prices: priceStats.validPrices,
+    lastUpdated: lastUpdated?.getTime(),
+    successCount: priceData.length,
+    totalCount: selectedOracles.length,
+  });
 
   // ==========================================================================
   // 图表配置
@@ -184,21 +197,16 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     []
   );
 
-  const handleSelectSnapshot = useCallback((snapshot: OracleSnapshot) => {
-    setSelectedSnapshot(snapshot);
-    setShowComparison(true);
-  }, []);
-
   const calculateChangePercent = useCallback((current: number, previous: number): number | null => {
     if (previous === 0 || current === 0) return null;
     return ((current - previous) / previous) * 100;
   }, []);
 
   const getConsistencyRating = useCallback((stdDevPercent: number): string => {
-    if (stdDevPercent < 0.1) return 'excellent';
-    if (stdDevPercent < 0.3) return 'good';
-    if (stdDevPercent < 0.5) return 'fair';
-    return 'poor';
+    if (stdDevPercent < 0.1) return 'A';
+    if (stdDevPercent < 0.3) return 'B';
+    if (stdDevPercent < 0.5) return 'C';
+    return 'D';
   }, []);
 
   const getLineStrokeDasharray = useCallback(
@@ -249,43 +257,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   }, []);
 
   // ==========================================================================
-  // 键盘导航
-  // ==========================================================================
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (filterSort.filteredPriceData.length === 0) return;
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedRowIndex((prev) =>
-          prev === null ? 0 : Math.min(prev + 1, filterSort.filteredPriceData.length - 1)
-        );
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedRowIndex((prev) =>
-          prev === null ? filterSort.filteredPriceData.length - 1 : Math.max(prev - 1, 0)
-        );
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        setSelectedRowIndex((prev) => {
-          if (prev !== null) {
-            setExpandedRow((current) => (current === prev ? null : prev));
-          }
-          return prev;
-        });
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        setSelectedRowIndex(null);
-        setExpandedRow(null);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [filterSort.filteredPriceData.length]);
-
-  // ==========================================================================
-  // 质量分数数据
+  // 质量分数数据（兼容旧格式）
   // ==========================================================================
   const qualityScoreData = useMemo(
     () => ({
@@ -334,6 +306,20 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   }, [historicalData, selectedOracles]);
 
   // ==========================================================================
+  // 预言机特性数据（用于 OracleProfilesTab）
+  // ==========================================================================
+  const oracleFeatures = useMemo(() => {
+    return selectedOracles.map((oracle) => ({
+      provider: oracle,
+      name: oracle,
+      symbolCount: 100,
+      avgLatency: 1500,
+      features: ['去中心化', '高可靠性', '实时更新'],
+      description: `${oracle} 是一个领先的区块链预言机解决方案`,
+    }));
+  }, [selectedOracles]);
+
+  // ==========================================================================
   // 返回值
   // ==========================================================================
   return {
@@ -350,16 +336,14 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     // UI 状态
     expandedRow,
     setExpandedRow,
-    selectedRowIndex,
-    setSelectedRowIndex,
     hoveredRowIndex,
     setHoveredRowIndex,
+    selectedRowIndex,
+    setSelectedRowIndex,
     hoveredOracle,
     setHoveredOracle,
     isFilterPanelOpen,
     setIsFilterPanelOpen,
-    isChartFullscreen,
-    setIsChartFullscreen,
     showFavoritesDropdown,
     setShowFavoritesDropdown,
     useAccessibleColors,
@@ -368,11 +352,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     // 图表状态
     zoomLevel,
 
-    // 快照状态
-    selectedSnapshot,
-    setSelectedSnapshot,
-    showComparison,
-    setShowComparison,
+    // 性能分析状态
     selectedPerformanceOracle,
     setSelectedPerformanceOracle,
 
@@ -382,7 +362,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     // Refs
     filterPanelRef,
     favoritesDropdownRef,
-    chartContainerRef,
 
     // 数据
     priceData,
@@ -410,10 +389,22 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
     // 质量分数
     qualityScoreData,
+    qualityScore,
+
+    // 异常检测
+    anomalies: anomalyDetection.anomalies,
+    anomalyCount: anomalyDetection.count,
+    highRiskCount: anomalyDetection.highRiskCount,
+    mediumRiskCount: anomalyDetection.mediumRiskCount,
+    lowRiskCount: anomalyDetection.lowRiskCount,
+    maxDeviation: anomalyDetection.maxDeviation,
 
     // 技术指标
     maData: technicalIndicators.maData,
     qualityTrendData: technicalIndicators.qualityTrendData,
+
+    // 预言机特性
+    oracleFeatures,
 
     // 回调函数
     handleTabChange,
@@ -422,7 +413,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     handleZoomOut,
     handleResetZoom,
     handleApplyFavorite,
-    handleSelectSnapshot,
     calculateChangePercent,
     getConsistencyRating,
     getLineStrokeDasharray,
@@ -434,8 +424,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     scrollToOutlier: () => {},
     onQuery: fetchPriceData,
     onSymbolChange: setSelectedSymbol,
-    onDeviationFilterChange: filterSort.setDeviationFilter,
-    onAccessibleColorsChange: setUseAccessibleColors,
   };
 }
 

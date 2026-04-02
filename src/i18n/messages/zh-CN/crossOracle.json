@@ -179,19 +179,57 @@
         }
       }
     },
-    "tabOverview": "数据概览",
-    "tabAnalysis": "分析",
-    "tabCharts": "图表分析",
-    "tabAdvanced": "高级分析",
-    "tabSnapshots": "快照与对比",
-    "tabPerformance": "性能分析",
-    "tabChains": "链覆盖",
-    "tabHistory": "历史",
-    "chainsTab": {
-      "chainSelector": "链选择器",
-      "selectChains": "选择链...",
-      "chainSelectorDescription": "选择多个链进行跨链数据对比分析"
+    "tabPriceComparison": "价格对比",
+    "tabQualityAnalysis": "质量分析",
+    "tabOracleProfiles": "预言机档案",
+    "riskAlert": {
+      "title": "价格异常风险预警",
+      "description": "检测到价格数据异常，请谨慎使用",
+      "highSeverity": "高风险",
+      "mediumSeverity": "中风险",
+      "lowSeverity": "低风险",
+      "reasons": {
+        "priceDeviation": "价格偏差过大",
+        "dataDelay": "数据源延迟",
+        "marketVolatility": "市场波动",
+        "dataSourceIssue": "数据源问题"
+      },
+      "viewDetails": "查看详情",
+      "dismiss": "忽略"
     },
+    "qualityScore": {
+      "title": "数据质量评分",
+      "overall": "综合评分",
+      "consistency": "一致性",
+      "freshness": "新鲜度",
+      "completeness": "完整性",
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "poor": "较差",
+      "suggestions": {
+        "increaseDataSources": "建议增加数据源数量",
+        "checkDataDelay": "请检查数据延迟情况",
+        "improveConsistency": "数据一致性有待提高"
+      }
+    },
+    "symbolSelector": {
+      "noCommonSymbols": "所选预言机没有共同支持的币种",
+      "adjustOracleSelection": "请调整预言机选择",
+      "supportedBy": "支持于 {count} 个预言机",
+      "selectOracleFirst": "请先选择预言机"
+    },
+    "oracleFeatures": {
+      "title": "预言机特性",
+      "symbolCount": "支持币种",
+      "avgLatency": "平均延迟",
+      "features": "特性标签",
+      "highFrequency": "高频数据",
+      "crossChain": "跨链支持",
+      "firstParty": "第一方数据",
+      "disputeResolution": "争议解决"
+    },
+
     "freshness": "数据时效性",
     "filter": {
       "button": "数据筛选",
@@ -261,50 +299,7 @@
       "stdDev2": "±2 标准差范围",
       "pinchZoom": "双指缩放查看更多细节"
     },
-    "chartsTab": {
-      "detailedAnalysis": "价格趋势详细分析"
-    },
-    "snapshotsTab": {
-      "selectSnapshot": "选择一个快照进行对比",
-      "selectHint": "从左侧快照列表中选择一个历史快照"
-    },
-    "historyTab": {
-      "title": "历史数据",
-      "selectSnapshot": "选择快照",
-      "selectHint": "从历史快照列表中选择一个进行查看",
-      "exportHistory": "导出历史",
-      "exporting": "导出中..."
-    },
-    "advancedTab": {
-      "movingAverage": "移动平均线分析",
-      "dataQuality": "数据质量趋势"
-    },
-    "analysisTab": {
-      "movingAverage": "移动平均线分析",
-      "dataQuality": "数据质量趋势",
-      "performanceComparison": "性能对比分析",
-      "selectOracle": "选择预言机查看延迟数据",
-      "allOracles": "所有预言机",
-      "selectOraclePlaceholder": "选择预言机",
-      "summary": "预言机性能摘要",
-      "responseTime": "响应时间",
-      "accuracy": "准确率",
-      "stability": "稳定性",
-      "advancedAnalysis": "高级分析",
-      "tooltip": "{name} - 响应时间: {responseTime}ms, 准确率: {accuracy}%, 稳定性: {stability}%"
-    },
-    "performanceTab": {
-      "performanceComparison": "性能对比分析",
-      "selectOracle": "选择预言机查看延迟数据",
-      "allOracles": "所有预言机",
-      "selectOraclePlaceholder": "选择预言机",
-      "summary": "预言机性能摘要",
-      "responseTime": "响应时间",
-      "accuracy": "准确率",
-      "stability": "稳定性",
-      "advancedAnalysis": "高级分析",
-      "tooltip": "{name} - 响应时间: {responseTime}ms, 准确率: {accuracy}%, 稳定性: {stability}%"
-    },
+
     "outliers": {
       "detected": "检测到价格异常值",
       "count": "{count} 个异常",

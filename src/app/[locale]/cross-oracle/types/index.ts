@@ -24,7 +24,7 @@ import type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../c
 export type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../constants';
 
 // TabId 类型定义（避免循环依赖）
-export type TabId = 'overview' | 'analysis' | 'chains' | 'history';
+export type TabId = 'priceComparison' | 'qualityAnalysis' | 'oracleProfiles';
 
 // ============================================================================
 // 基础类型定义
@@ -422,6 +422,35 @@ export interface ComparisonTabsProps {
   activeFilterCount: number;
   onClearFilters: () => void;
   onSymbolChange: (symbol: string) => void;
+}
+
+// ============================================================================
+// 风险预警相关类型
+// ============================================================================
+
+export interface PriceAnomaly {
+  provider: OracleProvider;
+  price: number;
+  deviationPercent: number;
+  severity: 'low' | 'medium' | 'high';
+  reason: string;
+}
+
+export interface DataQualityScore {
+  consistency: number; // 0-100
+  freshness: number; // 0-100
+  completeness: number; // 0-100
+  overall: number; // 0-100
+  suggestions: string[];
+}
+
+export interface OracleFeature {
+  provider: OracleProvider;
+  name: string;
+  symbolCount: number;
+  avgLatency: number;
+  features: string[];
+  description: string;
 }
 
 // ============================================================================

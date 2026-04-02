@@ -5,26 +5,29 @@
  * @description 整合所有筛选和选择功能的控制面板，类似 QueryForm
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import {
   Search,
-  RefreshCw,
-  ChevronDown,
-  ChevronUp,
   Filter,
   X,
-  Eye,
   SlidersHorizontal,
+  AlertCircle,
+  Zap,
+  Clock,
+  Layers,
+  ChevronUp,
 } from 'lucide-react';
 
-import { SegmentedControl, MultiSelect, DropdownSelect } from '@/components/ui';
-import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { SegmentedControl, DropdownSelect } from '@/components/ui';
+import { getOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';
 import { type OracleProvider } from '@/types/oracle';
 
-import { timeRanges, oracleNames, symbols, tradingPairs } from '../constants';
+import { timeRanges, oracleNames, tradingPairs } from '../constants';
+import { useCommonSymbols } from '../hooks/useCommonSymbols';
 
-import type { TimeRange, DeviationFilter } from '../constants';
+import type { TimeRange } from '../constants';
+import type { OracleFeature } from '../types/index';
 
 interface ControlPanelProps {
   // Symbol selection
@@ -41,14 +44,6 @@ interface ControlPanelProps {
   timeRange: TimeRange;
   onTimeRangeChange: (range: TimeRange) => void;
 
-  // Deviation filter
-  deviationFilter: DeviationFilter;
-  onDeviationFilterChange: (filter: DeviationFilter) => void;
-
-  // Accessibility
-  useAccessibleColors: boolean;
-  onAccessibleColorsChange: (value: boolean) => void;
-
   // Actions
   onQuery: () => void;
   isLoading: boolean;
@@ -59,43 +54,60 @@ interface ControlPanelProps {
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-const getDeviationFilters = (
-  t: (key: string) => string
-): { value: DeviationFilter; label: string; threshold: string }[] => [
-  { value: 'all', label: t('crossOracle.groups.all') || 'All', threshold: '' },
-  {
-    value: 'excellent',
-    label: t('crossOracle.consistency.excellent') || 'Low',
-    threshold: '<0.1%',
-  },
-  { value: 'good', label: t('crossOracle.consistency.good') || 'Medium', threshold: '0.1-0.5%' },
-  { value: 'poor', label: t('crossOracle.consistency.poor') || 'High', threshold: '>0.5%' },
-];
+// 获取预言机特性信息
+const getOracleFeatureInfo = (provider: OracleProvider): OracleFeature => {
+  const config = getOracleConfig(provider);
+  const features: string[] = [];
+
+  if (config.features.hasFirstPartyOracle) features.push('First-Party');
+  if (config.features.hasQuantifiableSecurity) features.push('Quantifiable Security');
+  if (config.features.hasDisputeResolution) features.push('Dispute Resolution');
+  if (config.features.hasDataStreams) features.push('Data Streams');
+  if (config.features.hasCrossChain) features.push('Cross-Chain');
+  if (config.features.hasCoreFeatures) features.push('Core Features');
+
+  return {
+    provider,
+    name: config.name,
+    symbolCount: config.networkData.dataFeeds,
+    avgLatency: config.networkData.avgResponseTime,
+    features: features.slice(0, 3), // 最多显示3个特性
+    description: config.description,
+  };
+};
 
 export function ControlPanel({
   selectedSymbol,
   onSymbolChange,
-  symbols,
+  symbols: _symbols,
   selectedOracles,
   onOracleToggle,
   oracleChartColors,
   timeRange,
   onTimeRangeChange,
-  deviationFilter,
-  onDeviationFilterChange,
-  useAccessibleColors,
-  onAccessibleColorsChange,
   onQuery,
   isLoading,
   activeFilterCount,
   onClearFilters,
   t,
 }: ControlPanelProps) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
 
-  // Symbol options for dropdown
-  const symbolOptions = symbols.map((symbol) => {
+  // 使用 useCommonSymbols hook 获取共同支持的币种
+  const { commonSymbols, oracleCountMap } = useCommonSymbols(selectedOracles);
+
+  // 当切换预言机时，如果当前选择的币种不在新的共同币种列表中，自动重置
+  useEffect(() => {
+    if (selectedOracles.length > 0 && commonSymbols.length > 0) {
+      if (!commonSymbols.includes(selectedSymbol)) {
+        onSymbolChange(commonSymbols[0]);
+      }
+    }
+  }, [selectedOracles, commonSymbols, selectedSymbol, onSymbolChange]);
+
+  // Symbol options for dropdown - 使用共同支持的币种
+  const symbolOptions = commonSymbols.map((symbol) => {
     const pair = tradingPairs.find((p) => p.symbol === symbol);
     return {
       value: symbol,
@@ -104,6 +116,27 @@ export function ControlPanel({
       color: pair?.iconColor || '#6B7280',
     };
   });
+
+  // 自定义渲染选项，显示预言机数量
+  const renderSymbolOption = useCallback(
+    (option: { value: string; label: string; icon?: boolean; color?: string }) => {
+      const oracleCount = oracleCountMap[option.value] || 0;
+      const pair = tradingPairs.find((p) => p.symbol === option.value);
+      return (
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-2">
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: pair?.iconColor || '#6B7280' }}
+            />
+            <span>{option.label}</span>
+          </div>
+          <span className="text-xs text-gray-400">{oracleCount} 个预言机</span>
+        </div>
+      );
+    },
+    [oracleCountMap]
+  );
 
   // Oracle options for multi-select
   const oracleOptions = getOracleProvidersSortedByMarketCap().map((oracle) => ({
@@ -119,21 +152,22 @@ export function ControlPanel({
     label: t(`crossOracle.timeRange.${range}`) || range,
   }));
 
-  // Deviation filter options for dropdown
-  const deviationFilters = getDeviationFilters(t);
-  const deviationFilterOptions = deviationFilters.map((filter) => ({
-    value: filter.value,
-    label: `${filter.label} ${filter.threshold}`.trim(),
-  }));
+  // Handle oracle toggle - 支持单个预言机切换
+  const handleOracleToggle = (oracle: OracleProvider) => {
+    onOracleToggle(oracle);
+  };
 
-  // Handle oracle toggle
+  // Handle oracle change - 支持批量选择/取消选择
   const handleOracleChange = (oracles: OracleProvider[]) => {
-    // Find the changed oracle
-    const added = oracles.find((o) => !selectedOracles.includes(o));
-    const removed = selectedOracles.find((o) => !oracles.includes(o));
-    const changed = added || removed;
-    if (changed) {
-      onOracleToggle(changed);
+    // 如果新数组比当前数组长，说明是添加
+    if (oracles.length > selectedOracles.length) {
+      const added = oracles.find((o) => !selectedOracles.includes(o));
+      if (added) onOracleToggle(added);
+    }
+    // 如果新数组比当前数组短，说明是移除
+    else if (oracles.length < selectedOracles.length) {
+      const removed = selectedOracles.find((o) => !oracles.includes(o));
+      if (removed) onOracleToggle(removed);
     }
   };
 
@@ -201,28 +235,167 @@ export function ControlPanel({
           <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">
             {t('controlPanel.symbol') || 'Trading Pair'}
           </label>
-          <DropdownSelect
-            options={symbolOptions}
-            value={selectedSymbol}
-            onChange={(value) => onSymbolChange(value as string)}
-            placeholder={t('controlPanel.selectSymbol') || 'Select symbol...'}
-            searchable
-            searchPlaceholder={t('controlPanel.searchSymbol') || 'Search symbol...'}
-            className="w-full"
-          />
+          {selectedOracles.length === 0 ? (
+            <div className="w-full px-3 py-2 text-sm text-gray-400 bg-gray-100 border border-gray-200 rounded-lg">
+              {t('controlPanel.selectOracleFirst') || '请先选择预言机'}
+            </div>
+          ) : commonSymbols.length === 0 ? (
+            <div className="w-full px-3 py-3 text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium">
+                    {t('controlPanel.noCommonSymbols') || '无共同支持的币种'}
+                  </p>
+                  <p className="text-xs text-amber-500 mt-1">
+                    {t('controlPanel.adjustOracleSelection') ||
+                      '请调整预言机选择，选择支持相同币种的预言机'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <DropdownSelect
+              options={symbolOptions}
+              value={selectedSymbol}
+              onChange={(value) => onSymbolChange(value as string)}
+              placeholder={t('controlPanel.selectSymbol') || 'Select symbol...'}
+              searchable
+              searchPlaceholder={t('controlPanel.searchSymbol') || 'Search symbol...'}
+              className="w-full"
+              renderOption={(option) =>
+                renderSymbolOption(
+                  option as { value: string; label: string; icon?: boolean; color?: string }
+                )
+              }
+            />
+          )}
         </section>
 
-        {/* 预言机多选 - 移动端优化 */}
+        {/* 预言机多选 - 带悬停提示 */}
         <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
-          <MultiSelect
-            options={oracleOptions}
-            value={selectedOracles}
-            onChange={(values) => handleOracleChange(values as OracleProvider[])}
-            label={t('controlPanel.oracles') || 'Oracles'}
-            showSelectAll
-            selectAllLabel={t('controlPanel.selectAll') || 'Select All'}
-            deselectAllLabel={t('controlPanel.deselectAll') || 'Deselect All'}
-          />
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+              {t('controlPanel.oracles') || 'Oracles'}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  const allValues = oracleOptions.map((o) => o.value);
+                  if (selectedOracles.length === allValues.length) {
+                    handleOracleChange([]);
+                  } else {
+                    handleOracleChange(allValues as OracleProvider[]);
+                  }
+                }}
+                className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-50 transition-all duration-200 rounded-md border border-gray-200 active:scale-[0.98]"
+              >
+                {selectedOracles.length === oracleOptions.length
+                  ? t('controlPanel.deselectAll') || 'Deselect All'
+                  : t('controlPanel.selectAll') || 'Select All'}
+              </button>
+            </div>
+          </div>
+
+          {/* 预言机选择按钮网格 */}
+          <div className="flex flex-wrap gap-1.5 p-1 bg-gray-100/80 rounded-lg relative">
+            {oracleOptions.map((option) => {
+              const selected = selectedOracles.includes(option.value as OracleProvider);
+              const featureInfo = getOracleFeatureInfo(option.value as OracleProvider);
+
+              return (
+                <div key={String(option.value)} className="relative">
+                  <button
+                    onClick={() => handleOracleToggle(option.value as OracleProvider)}
+                    onMouseEnter={() => setHoveredOracle(option.value as OracleProvider)}
+                    onMouseLeave={() => setHoveredOracle(null)}
+                    className={`relative inline-flex items-center gap-1.5 font-medium transition-all duration-200 ease-out rounded-md px-2.5 py-1.5 text-xs ${
+                      selected
+                        ? 'bg-white text-gray-900 shadow-md'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'
+                    } active:scale-[0.98]`}
+                    style={{ zIndex: selected ? 1 : 0 }}
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: option.color }}
+                    />
+                    {option.label}
+                  </button>
+
+                  {/* 悬停提示框 */}
+                  {hoveredOracle === option.value && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-56">
+                      <div className="bg-gray-900 text-white rounded-lg shadow-xl p-3 text-xs">
+                        {/* 提示框箭头 */}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+
+                        {/* 预言机名称 */}
+                        <div className="font-semibold text-sm mb-2 flex items-center gap-2">
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: option.color }}
+                          />
+                          {featureInfo.name}
+                        </div>
+
+                        {/* 特性信息网格 */}
+                        <div className="space-y-2">
+                          {/* 支持币种数量 */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 text-gray-300">
+                              <Layers className="w-3.5 h-3.5" />
+                              <span>Supported Assets</span>
+                            </div>
+                            <span className="font-medium text-white">
+                              {featureInfo.symbolCount.toLocaleString()}
+                            </span>
+                          </div>
+
+                          {/* 平均响应延迟 */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 text-gray-300">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span>Avg Latency</span>
+                            </div>
+                            <span className="font-medium text-white">
+                              {featureInfo.avgLatency}ms
+                            </span>
+                          </div>
+
+                          {/* 特性标签 */}
+                          {featureInfo.features.length > 0 && (
+                            <div className="pt-1">
+                              <div className="flex items-center gap-1.5 text-gray-300 mb-1.5">
+                                <Zap className="w-3.5 h-3.5" />
+                                <span>Features</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {featureInfo.features.map((feature: string, idx: number) => (
+                                  <span
+                                    key={idx}
+                                    className="inline-flex items-center px-1.5 py-0.5 bg-gray-700 text-gray-200 rounded text-[10px]"
+                                  >
+                                    {feature}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {selectedOracles.length > 0 && (
+            <div className="mt-2 text-xs text-gray-500">
+              {selectedOracles.length} {t('controlPanel.oraclesSelected') || 'oracles selected'}
+            </div>
+          )}
         </section>
 
         {/* 时间范围选择 - 移动端使用更紧凑的布局 */}
@@ -236,58 +409,6 @@ export function ControlPanel({
             className="flex-wrap"
           />
         </section>
-
-        {/* 偏差筛选 */}
-        <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
-          <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">
-            {t('controlPanel.deviationFilter') || 'Deviation Filter'}
-          </label>
-          <DropdownSelect
-            options={deviationFilterOptions}
-            value={deviationFilter}
-            onChange={(value) => onDeviationFilterChange(value as DeviationFilter)}
-            placeholder={t('controlPanel.selectDeviation') || 'Select deviation range...'}
-            className="w-full"
-          />
-        </section>
-
-        {/* 高级选项 */}
-        <div className="pt-1">
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors py-2 px-3 rounded-md hover:bg-gray-50/80"
-            aria-expanded={showAdvanced}
-          >
-            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider">
-              {t('controlPanel.advancedOptions') || 'Advanced Options'}
-            </span>
-            {showAdvanced ? (
-              <ChevronUp className="w-4 h-4" aria-hidden="true" />
-            ) : (
-              <ChevronDown className="w-4 h-4" aria-hidden="true" />
-            )}
-          </button>
-
-          {showAdvanced && (
-            <div className="mt-2 space-y-2 p-3 bg-gray-50/80 rounded-lg border border-gray-100 animate-in slide-in-from-top-1 duration-200">
-              {/* 无障碍颜色模式 */}
-              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
-                <input
-                  type="checkbox"
-                  checked={useAccessibleColors}
-                  onChange={(e) => onAccessibleColorsChange(e.target.checked)}
-                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-4 h-4"
-                />
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-gray-500" />
-                  <span className="text-xs font-medium text-gray-700">
-                    {t('controlPanel.accessibleColors') || 'Color Blind Friendly Mode'}
-                  </span>
-                </div>
-              </label>
-            </div>
-          )}
-        </div>
 
         {/* 查询按钮 - 移动端优化 */}
         <div className="pt-2 border-t border-gray-200">
