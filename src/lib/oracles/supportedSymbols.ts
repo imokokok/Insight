@@ -1,14 +1,14 @@
-// Chainlink 支持的币种
+// Chainlink 支持的币种（按市值排序）
 export const chainlinkSymbols = [
-  'ETH',
   'BTC',
-  'LINK',
-  'USDC',
-  'USDT',
-  'DAI',
-  'MATIC',
-  'AVAX',
+  'ETH',
   'BNB',
+  'AVAX',
+  'MATIC',
+  'LINK',
+  'USDT',
+  'USDC',
+  'DAI',
 ] as const;
 
 // RedStone 支持的币种
@@ -50,8 +50,8 @@ export const umaSymbols = ['UMA'] as const;
 // DIA 支持的币种
 export const diaSymbols = ['BTC', 'ETH', 'USDC', 'USDT', 'LINK', 'UNI'] as const;
 
-// Chronicle 支持的币种
-export const chronicleSymbols = ['ETH', 'WBTC', 'USDC', 'DAI', 'LINK'] as const;
+// Chronicle 支持的币种（按市值排序）
+export const chronicleSymbols = ['WBTC', 'ETH', 'USDC', 'DAI', 'LINK'] as const;
 
 // Band Protocol 支持的币种
 export const bandProtocolSymbols = [

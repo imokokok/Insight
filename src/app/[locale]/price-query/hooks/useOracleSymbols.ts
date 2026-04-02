@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { symbols } from '@/lib/constants';
 import { OracleClientFactory } from '@/lib/oracles/factory';
 import { oracleSupportedSymbols } from '@/lib/oracles/supportedSymbols';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
@@ -33,17 +34,26 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       oracleSupportedSymbols[firstOracle as keyof typeof oracleSupportedSymbols] || []
     );
 
+    let resultSymbols: string[];
     if (selectedOracles.length === 1) {
-      return Array.from(firstOracleSymbols);
+      resultSymbols = Array.from(firstOracleSymbols);
+    } else {
+      // 多个预言机时，返回共同支持的币种（交集）
+      resultSymbols = selectedOracles.slice(1).reduce((commonSymbols, oracle) => {
+        const oracleSymbols = new Set(
+          oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || []
+        );
+        return commonSymbols.filter((symbol) => oracleSymbols.has(symbol));
+      }, Array.from(firstOracleSymbols));
     }
 
-    // 多个预言机时，返回共同支持的币种（交集）
-    return selectedOracles.slice(1).reduce((commonSymbols, oracle) => {
-      const oracleSymbols = new Set(
-        oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || []
-      );
-      return commonSymbols.filter((symbol) => oracleSymbols.has(symbol));
-    }, Array.from(firstOracleSymbols));
+    // 按照全局 symbols 数组的顺序排序（市值从高到低）
+    const symbolOrder = new Map(symbols.map((s, i) => [s, i]));
+    return resultSymbols.sort((a, b) => {
+      const orderA = symbolOrder.get(a) ?? Infinity;
+      const orderB = symbolOrder.get(b) ?? Infinity;
+      return orderA - orderB;
+    });
   }, [selectedOracles]);
 
   const allSymbolsWithOracles = useMemo(() => {

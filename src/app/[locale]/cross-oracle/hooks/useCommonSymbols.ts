@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 
+import { tradingPairs } from '@/app/[locale]/cross-oracle/constants';
 import { oracleSupportedSymbols } from '@/lib/oracles/supportedSymbols';
 import { OracleProvider } from '@/types/oracle';
 
@@ -110,9 +111,14 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
       oracleCountMap[symbol] = supportingOracles.length;
     });
 
-    // 按字母顺序排序
-    commonSymbols.sort();
-    commonSymbolDetails.sort((a, b) => a.symbol.localeCompare(b.symbol));
+    // 按市值排名排序（从 tradingPairs 中获取市值排名）
+    const getMarketCapRank = (symbol: string): number => {
+      const pair = tradingPairs.find((p) => p.symbol === symbol);
+      return pair?.marketCapRank ?? Number.MAX_SAFE_INTEGER;
+    };
+
+    commonSymbols.sort((a, b) => getMarketCapRank(a) - getMarketCapRank(b));
+    commonSymbolDetails.sort((a, b) => getMarketCapRank(a.symbol) - getMarketCapRank(b.symbol));
 
     return {
       commonSymbols,
