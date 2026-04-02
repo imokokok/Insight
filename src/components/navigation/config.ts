@@ -122,16 +122,16 @@ export const navigationConfig: NavStructure = [
         description: 'navbar.tellorDesc',
       },
       {
-        href: '/chronicle',
-        label: 'navbar.chronicle',
-        icon: Landmark,
-        description: 'navbar.chronicleDesc',
-      },
-      {
         href: '/winklink',
         label: 'navbar.winklink',
         icon: Gamepad2,
         description: 'navbar.winklinkDesc',
+      },
+      {
+        href: '/chronicle',
+        label: 'navbar.chronicle',
+        icon: Landmark,
+        description: 'navbar.chronicleDesc',
       },
     ],
   },

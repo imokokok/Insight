@@ -20,6 +20,7 @@ interface DropdownMenuProps {
 
 export function DropdownMenu({ group, isActive, currentPath, onItemClick }: DropdownMenuProps) {
   const t = useTranslations();
+  const tUi = useTranslations('ui');
   const [isOpen, setIsOpen] = useState(false);
   const [_isHovered, setIsHovered] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -103,6 +104,41 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
             const isItemActive = currentPath === item.href;
             const oracleKey = item.href.replace('/', '') as keyof typeof oracleColors;
             const accentColor = oracleColors[oracleKey];
+            const isChronicle = item.href === '/chronicle';
+
+            if (isChronicle) {
+              return (
+                <div
+                  key={item.href}
+                  className="relative flex items-start gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200 group cursor-not-allowed"
+                  role="menuitem"
+                >
+                  {/* 蒙层 */}
+                  <div className="absolute inset-0 bg-gray-100/80 rounded-lg z-10" />
+                  {/* 即将上线提示 */}
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                    <span className="px-2 py-1 bg-amber-500 text-white text-xs font-medium rounded">
+                      {tUi('common.comingSoon')}
+                    </span>
+                  </div>
+                  {ItemIcon && (
+                    <div
+                      className={`p-2 rounded-md transition-colors bg-gray-100`}
+                    >
+                      <ItemIcon className="w-4 h-4 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-400">{t(item.label)}</div>
+                    {item.description && (
+                      <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">
+                        {t(item.description)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <Link
