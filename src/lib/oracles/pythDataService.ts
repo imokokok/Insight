@@ -826,6 +826,7 @@ export class PythDataService {
   }
 
   private getFallbackPublishers(): PublisherData[] {
+    logger.warn('Using fallback publisher data - API unavailable');
     return [
       {
         id: 'pyth-publishing-llc',
@@ -841,6 +842,7 @@ export class PythDataService {
         averageLatency: 45,
         accuracy: 99,
         stake: 1000000,
+        source: 'mock-fallback',
       },
       {
         id: 'jump-crypto',
@@ -856,6 +858,7 @@ export class PythDataService {
         averageLatency: 55,
         accuracy: 98,
         stake: 800000,
+        source: 'mock-fallback',
       },
       {
         id: 'wintermute',
@@ -871,6 +874,7 @@ export class PythDataService {
         averageLatency: 65,
         accuracy: 97,
         stake: 600000,
+        source: 'mock-fallback',
       },
     ];
   }
@@ -905,6 +909,7 @@ export class PythDataService {
   }
 
   private getFallbackValidators(): ValidatorData[] {
+    logger.warn('Using fallback validator data - API unavailable');
     return [
       {
         id: 'validator-1',
@@ -919,6 +924,7 @@ export class PythDataService {
         totalResponses: 1000000,
         rewards: 125000,
         performance: 99,
+        source: 'mock-fallback',
       },
       {
         id: 'validator-2',
@@ -933,6 +939,7 @@ export class PythDataService {
         totalResponses: 800000,
         rewards: 105000,
         performance: 98,
+        source: 'mock-fallback',
       },
       {
         id: 'validator-3',
@@ -947,6 +954,7 @@ export class PythDataService {
         totalResponses: 600000,
         rewards: 95000,
         performance: 97,
+        source: 'mock-fallback',
       },
       {
         id: 'validator-4',
@@ -961,6 +969,7 @@ export class PythDataService {
         totalResponses: 400000,
         rewards: 72500,
         performance: 96,
+        source: 'mock-fallback',
       },
       {
         id: 'validator-5',
@@ -975,6 +984,7 @@ export class PythDataService {
         totalResponses: 200000,
         rewards: 52500,
         performance: 95,
+        source: 'mock-fallback',
       },
       {
         id: 'validator-6',
@@ -989,6 +999,7 @@ export class PythDataService {
         totalResponses: 100000,
         rewards: 37500,
         performance: 90,
+        source: 'mock-fallback',
       },
     ];
   }

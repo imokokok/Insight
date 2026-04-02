@@ -3,6 +3,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
 import { BaseOracleClient } from './base';
+import { getPythDataService } from './pythDataService';
 import { pythSymbols } from './supportedSymbols';
 
 import type { OracleClientConfig } from './base';
@@ -30,6 +31,7 @@ export class PythClient extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 1;
+  private pythDataService = getPythDataService();
 
   constructor(config?: OracleClientConfig) {
     super(config);
@@ -61,14 +63,27 @@ export class PythClient extends BaseOracleClient {
       if (!symbol) {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');
       }
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
+      const realPrice = await this.pythDataService.getLatestPrice(symbol);
+      if (realPrice) {
+        if (!realPrice.confidenceInterval) {
+          realPrice.confidenceInterval = this.generateConfidenceInterval(realPrice.price, symbol);
+        }
+        return {
+          ...realPrice,
+          chain,
+          source: 'pyth-hermes-api',
+        };
+      }
+
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       const priceData = await this.fetchPriceWithDatabase(symbol, chain, () => {
         const mockPrice = this.generateMockPrice(symbol, basePrice, chain);
         const confidenceInterval = this.generateConfidenceInterval(mockPrice.price, symbol);
         return {
           ...mockPrice,
           confidenceInterval,
+          source: 'mock-fallback',
         };
       });
 
@@ -98,10 +113,50 @@ export class PythClient extends BaseOracleClient {
       if (!symbol) {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');
       }
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
+      const historicalPrices: PriceData[] = [];
+      const now = Date.now();
+      const interval = (period * 60 * 60 * 1000) / 24;
+      const timestamps: number[] = [];
+      
+      for (let i = 0; i < 24; i++) {
+        timestamps.push(now - i * interval);
+      }
+
+      const pricePromises = timestamps.map(async (timestamp) => {
+        try {
+          const price = await this.pythDataService.getPriceAtTimestamp(symbol, timestamp);
+          if (price) {
+            return {
+              ...price,
+              chain,
+              source: 'pyth-hermes-api',
+            };
+          }
+          return null;
+        } catch {
+          return null;
+        }
+      });
+
+      const results = await Promise.all(pricePromises);
+      
+      for (const result of results) {
+        if (result) {
+          historicalPrices.push(result);
+        }
+      }
+
+      if (historicalPrices.length >= 12) {
+        return historicalPrices.sort((a, b) => a.timestamp - b.timestamp);
+      }
+
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
-        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
+        this.generateMockHistoricalPrices(symbol, basePrice, chain, period).map(p => ({
+          ...p,
+          source: 'mock-fallback',
+        }))
       );
     } catch (error) {
       throw this.createError(
