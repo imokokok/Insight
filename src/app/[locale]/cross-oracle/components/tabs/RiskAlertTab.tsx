@@ -9,7 +9,7 @@
 
 import { memo, useState, useMemo } from 'react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 
 import { oracleNames } from '../../constants';
 
@@ -269,7 +269,6 @@ function RiskAlertTabComponent({
           <span className="w-1 h-4 bg-orange-500 rounded-full" />
           {t('crossOracle.risk.anomalyDetails') || '异常详情'}
         </h3>
-        {/* eslint-disable react-hooks/static-components */}
         <RiskDetailsTable anomalies={anomalies} t={t} />
       </div>
 

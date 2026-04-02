@@ -107,7 +107,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
 
   const [queryResults, setQueryResults] = useState<QueryResult[]>([]);
   const [historicalData, setHistoricalData] = useState<Partial<Record<string, PriceData[]>>>({});
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [queryStartTime, setQueryStartTime] = useState<number | null>(null);
   const [queryDuration, setQueryDuration] = useState<number | null>(null);
   const [queryProgress, setQueryProgress] = useState<{ completed: number; total: number }>({

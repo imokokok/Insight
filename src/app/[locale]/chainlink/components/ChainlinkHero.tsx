@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 
 import {
   TrendingUp,
@@ -101,6 +101,8 @@ function Sparkline({
   );
 }
 
+const SparklineMemo = memo(Sparkline);
+
 // 增强版核心统计组件 - 5个指标，响应式网格布局
 function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColor: string }) {
   // 取前5个指标
@@ -125,7 +127,7 @@ function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColo
               </div>
               {stat.sparklineData && (
                 <div className="opacity-60 group-hover:opacity-100 transition-opacity">
-                  <Sparkline
+                  <SparklineMemo
                     data={stat.sparklineData}
                     positive={isPositive}
                     width={50}
@@ -205,7 +207,7 @@ function MiniPriceChart({
         </span>
       </div>
       <div className="flex-1 min-h-[80px] flex items-end">
-        <Sparkline data={chartData} positive={isPositive} width={180} height={70} />
+        <SparklineMemo data={chartData} positive={isPositive} width={180} height={70} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
         <span>{t('metrics.before24h')}</span>

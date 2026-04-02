@@ -366,7 +366,8 @@ function RiskRecommendationsComponent({
                 {t('crossOracle.risk.recommendations.title') || '智能风险建议'}
               </CardTitle>
               <p className="text-sm text-gray-500 mt-0.5">
-                {t('crossOracle.risk.recommendations.subtitle') || '基于当前风险数据自动生成的处理建议'}
+                {t('crossOracle.risk.recommendations.subtitle') ||
+                  '基于当前风险数据自动生成的处理建议'}
               </p>
             </div>
           </div>

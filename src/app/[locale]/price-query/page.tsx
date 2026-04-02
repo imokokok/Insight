@@ -193,7 +193,15 @@ export default function PriceQueryPage() {
           favoritesDropdownRef={favoritesDropdownRef}
           handleApplyFavorite={handleApplyFavorite}
         />
-        <LiveStatusBar />
+        <LiveStatusBar
+          isConnected={queryErrors.length === 0 && !isLoading}
+          latency={queryDuration ?? undefined}
+          lastUpdate={
+            queryResults.length > 0
+              ? new Date(Math.max(...queryResults.map((r) => r.priceData?.timestamp || 0)))
+              : undefined
+          }
+        />
       </div>
 
       {/* 主内容区域 */}
