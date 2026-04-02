@@ -80,7 +80,7 @@ export abstract class AppError extends Error {
     this.i18nKey = options.i18nKey;
     this.severity = options.severity ?? 'medium';
     this.category = options.category ?? 'unknown';
-    this.retryable = options.retryable ?? options.isOperational === false;
+    this.retryable = options.retryable ?? options.isOperational !== false;
     this.retryAfter = options.retryAfter;
     this.requestId = options.requestId ?? AppError.generateRequestId();
     this.timestamp = new Date();

@@ -130,7 +130,18 @@ export const useCrossChainStore = create<CrossChainStore>()(
       (set, get) => ({
         ...initialState,
 
-        setSelectedProvider: (provider) => set({ selectedProvider: provider }),
+        setSelectedProvider: (provider) => {
+          const state = get();
+          // 如果预言机改变，重置 visibleChains 为新的预言机支持的所有链
+          if (state.selectedProvider !== provider) {
+            // 获取新预言机支持的链（通过 oracleClients 在 useCrossChainData 中定义）
+            // 由于这里无法直接访问 oracleClients，我们在 useCrossChainData 中处理
+            // 这里只标记需要重置，实际重置逻辑在 useCrossChainData 的 useEffect 中
+            set({ selectedProvider: provider, visibleChains: [] });
+          } else {
+            set({ selectedProvider: provider });
+          }
+        },
         setSelectedSymbol: (symbol) => set({ selectedSymbol: symbol }),
         setSelectedTimeRange: (range) => set({ selectedTimeRange: range }),
         setSelectedBaseChain: (chain) => set({ selectedBaseChain: chain }),

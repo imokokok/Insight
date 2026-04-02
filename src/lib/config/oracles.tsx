@@ -877,23 +877,23 @@ export function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
     .map((config) => config.provider);
 }
 
-export type PriceOracleProvider = Exclude<OracleProvider, OracleProvider.UMA | OracleProvider.CHRONICLE>;
+export type PriceOracleProvider = OracleProvider;
 
 export const PRICE_ORACLE_PROVIDERS: PriceOracleProvider[] = [
   OracleProvider.CHAINLINK,
   OracleProvider.BAND_PROTOCOL,
+  OracleProvider.UMA,
   OracleProvider.PYTH,
   OracleProvider.API3,
   OracleProvider.REDSTONE,
   OracleProvider.DIA,
   OracleProvider.TELLOR,
+  OracleProvider.CHRONICLE,
   OracleProvider.WINKLINK,
 ];
 
 export function getPriceOracleProvidersSortedByMarketCap(): PriceOracleProvider[] {
-  return getOracleProvidersSortedByMarketCap().filter(
-    (provider): provider is PriceOracleProvider => provider !== OracleProvider.UMA && provider !== OracleProvider.CHRONICLE
-  );
+  return getOracleProvidersSortedByMarketCap();
 }
 
 export function getOracleViews(provider: OracleProvider): OracleViewConfig[] {

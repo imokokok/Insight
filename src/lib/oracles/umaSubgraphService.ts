@@ -115,9 +115,18 @@ export interface SubgraphNetworkStats {
   resolvedDisputes: number;
 }
 
-const UMA_SUBGRAPH_ID = 'HtVvwEa7oLdYeMpbKuKHPXoqW5yiUdVgq1oFy5NPcL7N';
+// UMA Official Subgraph ID on The Graph Network
+// Source: https://thegraph.com/explorer/subgraphs/Bm3ytsa1YvcyFJahdf0QgscF0VCcMvoXuizkd3Cz6aof
+const UMA_SUBGRAPH_ID = 'Bm3ytsa1YvcyFJahdf0QgscF0VCcMvoXuizkd3Cz6aof';
 
+// Primary endpoint using The Graph Network gateway
+// Requires API key for production use
 const PRIMARY_ENDPOINTS = [
+  `https://gateway.thegraph.com/api/subgraphs/id/${UMA_SUBGRAPH_ID}`,
+];
+
+// Fallback endpoints (deprecated but may still work for development)
+const FALLBACK_ENDPOINTS = [
   'https://api.thegraph.com/subgraphs/name/protofire/uma',
   'https://api.thegraph.com/subgraphs/name/umaprotocol/uma',
 ];
@@ -140,11 +149,23 @@ export class UMASubgraphService {
   private workingEndpoint: string | null = null;
 
   constructor(config?: Partial<UMASubgraphConfig>) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+    // Check for environment variable API key
+    const envApiKey = typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_THEGRAPH_API_KEY : undefined;
+    
+    this.config = { 
+      ...DEFAULT_CONFIG, 
+      apiKey: envApiKey || config?.apiKey || '',
+      ...config 
+    };
   }
 
   private getEndpoints(): string[] {
-    return PRIMARY_ENDPOINTS;
+    // If API key is configured, use The Graph Network gateway
+    if (this.config.apiKey) {
+      return [`${this.config.baseUrl}/${this.config.apiKey}/subgraphs/id/${this.config.subgraphId}`];
+    }
+    // Otherwise try primary endpoints first, then fallbacks
+    return [...PRIMARY_ENDPOINTS, ...FALLBACK_ENDPOINTS];
   }
 
   private getCached<T>(key: string): T | null {
