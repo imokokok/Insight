@@ -8,14 +8,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { oracleClients, type TimeRange, type RefreshInterval } from '../constants';
+import { oracleClients, type TimeRange, type RefreshInterval, type PriceOracleProvider } from '../constants';
 
 import type { UseOracleDataReturn } from '../types/index';
 
 const logger = createLogger('useOracleData');
 
 interface UseOracleDataOptions {
-  selectedOracles: OracleProvider[];
+  selectedOracles: PriceOracleProvider[];
   selectedSymbol: string;
   timeRange: TimeRange;
   initialRefreshInterval?: RefreshInterval;

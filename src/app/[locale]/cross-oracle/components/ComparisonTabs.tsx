@@ -8,6 +8,7 @@ import type { OraclePerformanceData } from '@/components/oracle/data-display/Ora
 import { type OracleProvider, type PriceData, type SnapshotStats } from '@/types/oracle';
 
 import { type TimeRange, type QualityTrendData, type ChartDataPoint } from '../types';
+import { type PriceOracleProvider } from '../constants';
 
 import { ControlPanel } from './ControlPanel';
 import { type TabId, TabNavigation } from './TabNavigation';
@@ -20,15 +21,15 @@ interface ComparisonTabsProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
   selectedSymbol: string;
-  selectedOracles: OracleProvider[];
+  selectedOracles: PriceOracleProvider[];
   priceData: PriceData[];
   filteredPriceData: PriceData[];
   isLoading: boolean;
   timeRange: TimeRange;
   zoomLevel: number;
-  hoveredOracle: OracleProvider | null;
-  setHoveredOracle: (oracle: OracleProvider | null) => void;
-  setOracleFilter: (filter: OracleProvider | 'all') => void;
+  hoveredOracle: PriceOracleProvider | null;
+  setHoveredOracle: (oracle: PriceOracleProvider | null) => void;
+  setOracleFilter: (filter: PriceOracleProvider | 'all') => void;
   chartContainerRef: React.RefObject<HTMLDivElement | null>;
   sortColumn: 'price' | 'timestamp' | null;
   sortDirection: 'asc' | 'desc';
@@ -57,22 +58,22 @@ interface ComparisonTabsProps {
     standardDeviationPercent: { min: number; max: number };
     variance: { min: number; max: number };
   };
-  oracleChartColors: Record<OracleProvider, string>;
+  oracleChartColors: Record<PriceOracleProvider, string>;
   getChartData: () => ChartDataPoint[];
   heatmapData: PriceDeviationDataPoint[];
   boxPlotData: OraclePriceData[];
   volatilityData: OraclePriceHistory[];
   correlationData: OraclePriceSeries[];
   performanceData: OraclePerformanceData[];
-  maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
+  maData: { oracle: PriceOracleProvider; prices: { timestamp: number; price: number }[] }[];
   qualityTrendData: QualityTrendData[];
   qualityScoreData: {
     freshness: { lastUpdated: Date };
     completeness: { successCount: number; totalCount: number };
     reliability: { historicalAccuracy: number; responseSuccessRate: number };
   };
-  selectedPerformanceOracle: OracleProvider | null;
-  setSelectedPerformanceOracle: (oracle: OracleProvider | null) => void;
+  selectedPerformanceOracle: PriceOracleProvider | null;
+  setSelectedPerformanceOracle: (oracle: PriceOracleProvider | null) => void;
   currentStats: SnapshotStats;
   handleSort: (column: 'price' | 'timestamp' | null) => void;
   handleZoomIn: () => void;
@@ -80,11 +81,11 @@ interface ComparisonTabsProps {
   handleResetZoom: () => void;
   setTimeRange: (range: TimeRange) => void;
   fetchPriceData: () => Promise<void>;
-  toggleOracle: (oracle: OracleProvider) => void;
-  getLineStrokeDasharray: (oracle: OracleProvider) => string;
+  toggleOracle: (oracle: PriceOracleProvider) => void;
+  getLineStrokeDasharray: (oracle: PriceOracleProvider) => string;
   getConsistencyRating: (stdDevPercent: number) => string;
   calculateChangePercent: (current: number, previous: number) => number | null;
-  getOracleLatencyData: (oracle: OracleProvider | null) => number[];
+  getOracleLatencyData: (oracle: PriceOracleProvider | null) => number[];
   t: (key: string, params?: Record<string, string | number>) => string;
   // ControlPanel props
   symbols: string[];
@@ -97,7 +98,7 @@ interface ComparisonTabsProps {
   qualityScore: DataQualityScore;
   // 新增：预言机特性数据
   oracleFeatures?: {
-    provider: OracleProvider;
+    provider: PriceOracleProvider;
     name: string;
     symbolCount: number;
     avgLatency: number;
