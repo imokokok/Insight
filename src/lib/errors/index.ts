@@ -168,7 +168,7 @@ export function isNetworkError(error: unknown): error is InstanceType<typeof Net
  */
 export function getErrorMessage(error: unknown): string {
   if (isAppError(error)) {
-    return (error as AppErrorType).getUserMessage();
+    return error.getUserMessage();
   }
   if (error instanceof Error) {
     return error.message;
@@ -184,7 +184,7 @@ export function getErrorMessage(error: unknown): string {
  */
 export function getErrorCode(error: unknown): string {
   if (isAppError(error)) {
-    return (error as AppErrorType).code;
+    return error.code;
   }
   return 'UNKNOWN_ERROR';
 }
@@ -194,7 +194,7 @@ export function getErrorCode(error: unknown): string {
  */
 export function shouldShowErrorToUser(error: unknown): boolean {
   if (isAppError(error)) {
-    return (error as AppErrorType).isOperational;
+    return error.isOperational;
   }
   return false;
 }
@@ -211,7 +211,7 @@ export { isRetryableError as shouldRetryError } from './errorToResponse';
  */
 export function toAppError(error: unknown): AppErrorType {
   if (isAppError(error)) {
-    return error as AppErrorType;
+    return error;
   }
 
   if (error instanceof Error) {
@@ -243,12 +243,11 @@ export interface ErrorClassification {
  */
 export function classifyError(error: unknown): ErrorClassification {
   if (isAppError(error)) {
-    const appError = error as AppErrorType;
     return {
-      category: appError.category,
-      severity: appError.severity,
-      retryable: appError.retryable,
-      logLevel: appError.toLogEntry().level as 'debug' | 'info' | 'warn' | 'error',
+      category: error.category,
+      severity: error.severity,
+      retryable: error.retryable,
+      logLevel: error.toLogEntry().level as 'debug' | 'info' | 'warn' | 'error',
     };
   }
 

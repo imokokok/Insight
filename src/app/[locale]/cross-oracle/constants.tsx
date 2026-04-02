@@ -14,6 +14,8 @@ import {
   DIAClient,
   TellorClient,
   WINkLinkClient,
+  UMAClient,
+  ChronicleClient,
   BaseOracleClient,
 } from '@/lib/oracles';
 import {
@@ -216,11 +218,13 @@ export { type RefreshInterval };
 export const oracleClients: Record<PriceOracleProvider, BaseOracleClient> = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
   [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
+  [OracleProvider.UMA]: new UMAClient(),
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
   [OracleProvider.REDSTONE]: new RedStoneClient(),
   [OracleProvider.DIA]: new DIAClient(),
   [OracleProvider.TELLOR]: new TellorClient(),
+  [OracleProvider.CHRONICLE]: new ChronicleClient(),
   [OracleProvider.WINKLINK]: new WINkLinkClient(),
 };
 
@@ -229,11 +233,13 @@ export const oracleNames = providerNames;
 export const priceOracleNames: Record<PriceOracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
   [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
+  [OracleProvider.UMA]: 'UMA',
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
   [OracleProvider.TELLOR]: 'Tellor',
+  [OracleProvider.CHRONICLE]: 'Chronicle',
   [OracleProvider.WINKLINK]: 'WINkLink',
 };
 

@@ -119,6 +119,7 @@ export enum HttpStatusCode {
 
 /**
  * 标准错误码
+ * 与 AppError.ts 中的 ErrorCodes 保持一致
  */
 export enum ErrorCode {
   // 客户端错误 (4xx)
@@ -162,6 +163,10 @@ export enum ErrorCode {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   INVALID_JSON = 'INVALID_JSON',
 }
+
+// 重新导出 ErrorCodes 以兼容旧代码
+export { ErrorCodes } from '@/lib/errors/AppError';
+export type { ErrorCode as ErrorCodeType } from '@/lib/errors/AppError';
 
 /**
  * 错误码到 HTTP 状态码的映射

@@ -127,8 +127,8 @@ class ErrorRecoveryManager {
     }
 
     // 改进 HTTP 状态码提取逻辑
-    // 支持从错误消息中提取状态码，包括 ECONNREFUSED (0) 等
-    const statusMatch = error.message.match(/(?:status\s*[:=]?\s*|\b)(-?\d{1,3})\b/);
+    // 支持从错误消息中提取状态码，格式如 "status: 500" 或 "status=500"
+    const statusMatch = error.message.match(/(?:status\s*[:=]?\s*|\b)(\d{3})\b/);
     if (statusMatch) {
       const status = parseInt(statusMatch[1], 10);
       // 只处理有效的 HTTP 状态码范围 (100-599)

@@ -101,17 +101,19 @@ class CircuitBreaker {
     if (this.state === CircuitBreakerState.OPEN) {
       if (this.lastFailureTime && Date.now() - this.lastFailureTime >= this.resetTime) {
         this.state = CircuitBreakerState.HALF_OPEN;
-        this.failureCount = 0;
+        // 在 HALF_OPEN 状态下，允许一次试验
         return true;
       }
       return false;
     }
 
+    // HALF_OPEN 状态：只允许一次试验
     return true;
   }
 
   recordSuccess(): void {
     this.failureCount = 0;
+    this.lastFailureTime = undefined;
     this.state = CircuitBreakerState.CLOSED;
   }
 
@@ -119,7 +121,8 @@ class CircuitBreaker {
     this.failureCount++;
     this.lastFailureTime = Date.now();
 
-    if (this.failureCount >= this.threshold) {
+    // 在 HALF_OPEN 状态下，任何失败都应立即回到 OPEN 状态
+    if (this.state === CircuitBreakerState.HALF_OPEN || this.failureCount >= this.threshold) {
       this.state = CircuitBreakerState.OPEN;
     }
   }
@@ -207,8 +210,9 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
     return true;
   }
 
-  // 检查 HTTP 状态码
-  const statusMatch = error.message.match(/\b(\d{3})\b/);
+  // 检查 HTTP 状态码 - 使用更精确的正则表达式
+  // 匹配常见的 HTTP 状态码格式：如 "status: 500", "HTTP 500", "500 Internal Server Error"
+  const statusMatch = error.message.match(/(?:status[:=\s]+|HTTP\s+|\s)(\d{3})(?:\s|$|\b)/i);
   if (statusMatch) {
     const status = parseInt(statusMatch[1], 10);
     if (status >= 100 && status < 600 && config.retryableStatuses.includes(status)) {
