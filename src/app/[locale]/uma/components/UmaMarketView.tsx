@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 import {
   TrendingUp,
@@ -477,6 +477,7 @@ function TechnicalIndicators({ currentPrice }: { currentPrice: number }) {
 
 function MarketSentimentAnalysis() {
   const [activeTab, setActiveTab] = useState<'sentiment' | 'social'>('sentiment');
+  const t = useTranslations();
 
   const longShortRatio = { long: 62, short: 38 };
   const fearGreedIndex = 45;
@@ -486,20 +487,21 @@ function MarketSentimentAnalysis() {
     telegram: { positive: 72, neutral: 18, negative: 10, mentions: 890 },
   };
 
-  const getSentimentLabel = (index: number) => {
-    const t = useTranslations();
-    if (index <= 25)
-      return { label: t('uma.market.extremeFear'), color: 'text-red-600', bg: 'bg-red-100' };
-    if (index <= 45)
-      return { label: t('uma.market.fear'), color: 'text-orange-600', bg: 'bg-orange-100' };
-    if (index <= 55)
-      return { label: t('uma.market.neutral'), color: 'text-gray-600', bg: 'bg-gray-100' };
-    if (index <= 75)
-      return { label: t('uma.market.greed'), color: 'text-emerald-600', bg: 'bg-emerald-100' };
-    return { label: t('uma.market.extremeGreed'), color: 'text-green-600', bg: 'bg-green-100' };
-  };
+  const getSentimentLabel = useCallback(
+    (index: number) => {
+      if (index <= 25)
+        return { label: t('uma.market.extremeFear'), color: 'text-red-600', bg: 'bg-red-100' };
+      if (index <= 45)
+        return { label: t('uma.market.fear'), color: 'text-orange-600', bg: 'bg-orange-100' };
+      if (index <= 55)
+        return { label: t('uma.market.neutral'), color: 'text-gray-600', bg: 'bg-gray-100' };
+      if (index <= 75)
+        return { label: t('uma.market.greed'), color: 'text-emerald-600', bg: 'bg-emerald-100' };
+      return { label: t('uma.market.extremeGreed'), color: 'text-green-600', bg: 'bg-green-100' };
+    },
+    [t]
+  );
 
-  const t = useTranslations();
   const sentimentInfo = getSentimentLabel(fearGreedIndex);
 
   return (

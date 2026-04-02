@@ -132,13 +132,13 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
               axisLine={{ stroke: '#e5e7eb' }}
             />
             <Tooltip
-              formatter={(value: number, name: string) => [
-                value.toFixed(2),
+              formatter={(value, name) => [
+                (value as number).toFixed(2),
                 name === 'bidDepth'
                   ? t('crossOracle.bidDepth') || '买盘深度'
                   : t('crossOracle.askDepth') || '卖盘深度',
               ]}
-              labelFormatter={(label: string) => `${t('crossOracle.price') || '价格'}: ${label}`}
+              labelFormatter={(label) => `${t('crossOracle.price') || '价格'}: ${label}`}
               contentStyle={{
                 backgroundColor: 'white',
                 border: '1px solid #e5e7eb',

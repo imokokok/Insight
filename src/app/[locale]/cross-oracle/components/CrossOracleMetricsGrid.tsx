@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   TrendingUp,
@@ -121,13 +121,9 @@ export function CrossOracleMetricsGrid({
   oracleChartColors,
   t,
 }: CrossOracleMetricsGridProps) {
-  const nowRef = useRef<number>(0);
-  if (typeof window !== 'undefined' && nowRef.current === 0) {
-    nowRef.current = Date.now();
-  }
+  const [now] = useState(() => Date.now());
 
   const metrics = useMemo(() => {
-    const now = nowRef.current || Date.now();
     const validPrices = priceData.filter((p) => p.price > 0 && p.timestamp > 0);
 
     if (validPrices.length === 0) {

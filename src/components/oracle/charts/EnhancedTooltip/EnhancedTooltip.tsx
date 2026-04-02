@@ -201,14 +201,13 @@ export const EnhancedTooltip = memo(function EnhancedTooltip({
 }: EnhancedTooltipProps) {
   const t = useTranslations('enhancedTooltip');
 
-  if (!active || !payload || payload.length === 0) return null;
-
   // Filter and limit payload items
   const filteredPayload = useMemo(() => {
+    if (!active || !payload || payload.length === 0) return [];
     // Filter out internal/technical data keys
     const excludedKeys = ['timestamp', 'time', 'isComparison'];
     return payload.filter((item) => !excludedKeys.includes(item.dataKey)).slice(0, maxItems);
-  }, [payload, maxItems]);
+  }, [active, payload, maxItems]);
 
   // Extract all values for comparison highlighting
   const allValues = useMemo(() => {
@@ -216,6 +215,8 @@ export const EnhancedTooltip = memo(function EnhancedTooltip({
       .map((item) => item.value)
       .filter((v): v is number => typeof v === 'number');
   }, [filteredPayload]);
+
+  if (!active || !payload || payload.length === 0) return null;
 
   // Format the label
   const formattedLabel = formatLabel ? formatLabel(label || '') : label;

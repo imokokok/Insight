@@ -101,7 +101,9 @@
     "high": "High",
     "metrics": {
       "accuracy": "Accuracy",
-      "decentralization": "Decentralization"
+      "decentralization": "Decentralization",
+      "volatility": "Volatility",
+      "volatilityDesc": "Price volatility"
     },
     "stats": {
       "highestPrice": "Highest Price",
@@ -210,6 +212,7 @@
       "maxDeviation": "Max Deviation",
       "distribution": "Risk Distribution",
       "anomalyList": "Anomaly Details",
+      "anomalyDetails": "Anomaly Details",
       "suggestions": "Recommendations",
       "suggestion1": "Check the connection status of anomalous oracle data sources",
       "suggestion2": "Consider temporarily disabling data sources with large deviations",
@@ -217,7 +220,17 @@
       "allClear": "All Clear",
       "allClearDesc": "All oracle price data is within reasonable range, no anomalies detected",
       "monitoring": "Monitoring",
-      "keyMetrics": "Key Risk Metrics"
+      "keyMetrics": "Key Risk Metrics",
+      "systemMetrics": "System Metrics",
+      "数据正常": "Data Normal",
+      "高风险": "High Risk",
+      "中风险": "Medium Risk",
+      "低风险": "Low Risk",
+      "dataConsistent": "Data Consistent",
+      "requiresAttention": "Requires Attention",
+      "anomalyCount": "Anomaly Count",
+      "riskScore": "Risk Score",
+      "anomalies": "Anomalies"
     },
     "quality": {
       "overallScore": "Data Quality Score",
@@ -332,14 +345,18 @@
       "highest": "Highest",
       "lowest": "Lowest",
       "status": "Status",
-    "crossOracle": {
-      "status": "Status"
-    },
+      "crossOracle": {
+        "status": "Status"
+      },
       "outlier": "Outlier",
       "normal": "Normal",
       "deviationRate": "Deviation Rate",
       "updateTime": "Update Time"
     },
+    "status": "Status",
+    "statusNormal": "Normal",
+    "statusWarning": "Warning",
+    "statusError": "Error",
     "chartTooltip": {
       "avgPrice": "Average Price",
       "stdDev": "Standard Deviation",
@@ -422,6 +439,7 @@
     "askDepth": "Ask Depth",
     "visualization": "Visualization Analysis",
     "anomaliesDetected": "anomalies",
+    "anomaliesCount": "{count} anomalies",
     "showingResults": "Showing {filtered} / {total} oracles",
     "lowRisk": "Low Risk",
     "mediumRisk": "Medium Risk",

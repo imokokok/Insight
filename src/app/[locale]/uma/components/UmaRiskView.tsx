@@ -231,6 +231,22 @@ const mitigationRecommendations: MitigationRecommendation[] = [
 export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRiskViewProps) {
   const t = useTranslations();
 
+  const [riskTrend, setRiskTrend] = useState<RiskTrend[]>([]);
+  const [riskEvents, setRiskEvents] = useState<RiskEvent[]>([]);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<RiskAnalysis | null>(null);
+  const [predictionScore, setPredictionScore] = useState(0);
+
+  useEffect(() => {
+    setRiskTrend(generateRiskTrend());
+    setRiskEvents(generateRiskEvents());
+
+    const trend = generateRiskTrend();
+    const lastScores = trend.slice(-7).map((t) => t.score);
+    const avgScore = lastScores.reduce((a, b) => a + b, 0) / lastScores.length;
+    const trendDirection = lastScores[lastScores.length - 1] - lastScores[0];
+    setPredictionScore(Math.min(100, Math.max(0, avgScore + trendDirection * 0.5)));
+  }, []);
+
   if (isLoading) {
     return (
       <div className="space-y-8">
@@ -247,22 +263,6 @@ export function UmaRiskView({ networkStats, disputes, isLoading = false }: UmaRi
       ? resolvedDisputes.reduce((sum, d) => sum + (d.resolutionTime || 0), 0) /
         resolvedDisputes.filter((d) => d.resolutionTime).length
       : 0;
-
-  const [riskTrend, setRiskTrend] = useState<RiskTrend[]>([]);
-  const [riskEvents, setRiskEvents] = useState<RiskEvent[]>([]);
-  const [selectedAnalysis, setSelectedAnalysis] = useState<RiskAnalysis | null>(null);
-  const [predictionScore, setPredictionScore] = useState(0);
-
-  useEffect(() => {
-    setRiskTrend(generateRiskTrend());
-    setRiskEvents(generateRiskEvents());
-
-    const trend = generateRiskTrend();
-    const lastScores = trend.slice(-7).map((t) => t.score);
-    const avgScore = lastScores.reduce((a, b) => a + b, 0) / lastScores.length;
-    const trendDirection = lastScores[lastScores.length - 1] - lastScores[0];
-    setPredictionScore(Math.min(100, Math.max(0, avgScore + trendDirection * 0.5)));
-  }, []);
 
   const riskScore = 85;
 

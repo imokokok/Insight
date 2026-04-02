@@ -20,16 +20,6 @@ export interface DataSourceIndicatorProps {
   showLabels?: boolean;
 }
 
-function getSourceLabel(source: DataVerificationInfo['source']): string {
-  const t = useTranslations();
-  const labels = {
-    'on-chain': t('tellor.reporters.dataSourceOnChain'),
-    cache: t('tellor.reporters.dataSourceCache'),
-    fallback: t('tellor.reporters.dataSourceFallback'),
-  };
-  return labels[source];
-}
-
 function getSourceColor(source: DataVerificationInfo['source']): string {
   const colors = {
     'on-chain': 'text-emerald-600 bg-emerald-50',
@@ -48,25 +38,6 @@ function getSourceDotColor(source: DataVerificationInfo['source']): string {
   return colors[source];
 }
 
-function formatTimestamp(timestamp: number): string {
-  const t = useTranslations();
-  const now = Date.now();
-  const diff = now - timestamp;
-
-  if (diff < 60000) {
-    return t('common.time.justNow');
-  } else if (diff < 3600000) {
-    const minutes = Math.floor(diff / 60000);
-    return t('common.time.minutesAgo', { minutes });
-  } else if (diff < 86400000) {
-    const hours = Math.floor(diff / 3600000);
-    return t('common.time.hoursAgo', { hours });
-  } else {
-    const days = Math.floor(diff / 86400000);
-    return t('common.time.daysAgo', { days });
-  }
-}
-
 export function DataSourceIndicator({
   info,
   className = '',
@@ -76,6 +47,33 @@ export function DataSourceIndicator({
   const t = useTranslations();
   const links = generateVerificationLinks(info);
   const chainName = info.chainId ? getChainName(info.chainId) : '';
+
+  const getSourceLabel = (source: DataVerificationInfo['source']): string => {
+    const labels = {
+      'on-chain': t('tellor.reporters.dataSourceOnChain'),
+      cache: t('tellor.reporters.dataSourceCache'),
+      fallback: t('tellor.reporters.dataSourceFallback'),
+    };
+    return labels[source];
+  };
+
+  const formatTimestamp = (timestamp: number): string => {
+    const now = Date.now();
+    const diff = now - timestamp;
+
+    if (diff < 60000) {
+      return t('common.time.justNow');
+    } else if (diff < 3600000) {
+      const minutes = Math.floor(diff / 60000);
+      return t('common.time.minutesAgo', { minutes });
+    } else if (diff < 86400000) {
+      const hours = Math.floor(diff / 3600000);
+      return t('common.time.hoursAgo', { hours });
+    } else {
+      const days = Math.floor(diff / 86400000);
+      return t('common.time.daysAgo', { days });
+    }
+  };
 
   if (compact) {
     return (

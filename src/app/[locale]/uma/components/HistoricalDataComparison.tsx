@@ -726,6 +726,7 @@ export function HistoricalDataComparison({
   isLoading = false,
 }: HistoricalDataComparisonProps) {
   const t = useTranslations();
+  const timeRangeConfig = useTimeRangeConfig();
   const [selectedRange, setSelectedRange] = useState<TimeRangeOption>('30d');
   const [customDateRange, setCustomDateRange] = useState<{ start: Date | null; end: Date | null }>({
     start: null,
@@ -742,9 +743,8 @@ export function HistoricalDataComparison({
         (customDateRange.end.getTime() - customDateRange.start.getTime()) / (1000 * 60 * 60 * 24)
       );
     }
-    const config = useTimeRangeConfig();
-    return config[selectedRange].days;
-  }, [selectedRange, customDateRange]);
+    return timeRangeConfig[selectedRange].days;
+  }, [selectedRange, customDateRange, timeRangeConfig]);
 
   const historicalData = useMemo(() => {
     return generateHistoricalData(days, currentPrice, networkStats);
@@ -767,8 +767,6 @@ export function HistoricalDataComparison({
       </div>
     );
   }
-
-  const timeRangeConfig = useTimeRangeConfig();
 
   return (
     <div className="space-y-6">

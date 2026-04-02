@@ -123,17 +123,17 @@ export function ErrorDisplay({
   const [showErrorDetails, setShowErrorDetails] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const errorMessage = error ? getErrorMessage(error) : '';
+  const errorConfig = error ? getErrorConfig(error, variant) : null;
+  const classification = error ? classifyError(error) : null;
+
+  const title = customTitle || errorConfig?.title || '';
+  const description = customDescription || errorConfig?.description || '';
+
   // 如果没有错误，不显示任何内容
-  if (!error) {
+  if (!error || !errorConfig || !classification) {
     return null;
   }
-
-  const errorMessage = getErrorMessage(error);
-  const errorConfig = getErrorConfig(error, variant);
-  const classification = classifyError(error);
-
-  const title = customTitle || errorConfig.title;
-  const description = customDescription || errorConfig.description;
 
   /**
    * 处理重试

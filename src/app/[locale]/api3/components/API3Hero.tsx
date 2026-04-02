@@ -519,81 +519,88 @@ export function API3Hero({
   }, [historicalData, currentPrice]);
 
   // 核心统计指标 - 增加到5个
-  const primaryStats: StatItem[] = [
-    {
-      title: t('api3.hero.api3Price'),
-      value: `$${currentPrice.toFixed(2)}`,
-      change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
-      changeType: isPositive ? 'positive' : 'negative',
-      icon: <Activity className="w-4 h-4" />,
-      subtitle: '24h',
-      sparklineData: priceSparkline,
-    },
-    {
-      title: t('api3.hero.tvs'),
-      value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
-      change: '+5.2%',
-      changeType: 'positive',
-      icon: <Wallet className="w-4 h-4" />,
-      subtitle: t('api3.hero.subtitle7d'),
-    },
-    {
-      title: t('api3.hero.airnodeCount'),
-      value: `${airnodeStats?.activeAirnodes ?? config.networkData.activeNodes}+`,
-      change: '+3%',
-      changeType: 'positive',
-      icon: <Server className="w-4 h-4" />,
-      subtitle: t('api3.hero.subtitleThisMonth'),
-    },
-    {
-      title: t('api3.hero.dapiCoverage'),
-      value: `${dapiCoverage?.totalDapis ?? config.networkData.dataFeeds}+`,
-      change: '+8%',
-      changeType: 'positive',
-      icon: <Database className="w-4 h-4" />,
-      subtitle: t('api3.hero.subtitleThisMonth'),
-    },
-    {
-      title: t('api3.hero.stakingApr'),
-      value: `${staking?.stakingApr ?? 12.5}%`,
-      change: '+2.1%',
-      changeType: 'positive',
-      icon: <TrendingUp className="w-4 h-4" />,
-      subtitle: t('api3.hero.subtitleAnnual'),
-    },
-  ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const primaryStats: StatItem[] = useMemo(
+    () => [
+      {
+        title: t('api3.hero.api3Price'),
+        value: `$${currentPrice.toFixed(2)}`,
+        change: `${isPositive ? '+' : ''}${priceChange24h.toFixed(2)}%`,
+        changeType: isPositive ? 'positive' : 'negative',
+        icon: <Activity className="w-4 h-4" />,
+        subtitle: '24h',
+        sparklineData: priceSparkline,
+      },
+      {
+        title: t('api3.hero.tvs'),
+        value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
+        change: '+5.2%',
+        changeType: 'positive',
+        icon: <Wallet className="w-4 h-4" />,
+        subtitle: t('api3.hero.subtitle7d'),
+      },
+      {
+        title: t('api3.hero.airnodeCount'),
+        value: `${airnodeStats?.activeAirnodes ?? config.networkData.activeNodes}+`,
+        change: '+3%',
+        changeType: 'positive',
+        icon: <Server className="w-4 h-4" />,
+        subtitle: t('api3.hero.subtitleThisMonth'),
+      },
+      {
+        title: t('api3.hero.dapiCoverage'),
+        value: `${dapiCoverage?.totalDapis ?? config.networkData.dataFeeds}+`,
+        change: '+8%',
+        changeType: 'positive',
+        icon: <Database className="w-4 h-4" />,
+        subtitle: t('api3.hero.subtitleThisMonth'),
+      },
+      {
+        title: t('api3.hero.stakingApr'),
+        value: `${staking?.stakingApr ?? 12.5}%`,
+        change: '+2.1%',
+        changeType: 'positive',
+        icon: <TrendingUp className="w-4 h-4" />,
+        subtitle: t('api3.hero.subtitleAnnual'),
+      },
+    ],
+    [t, currentPrice, isPositive, priceChange24h, priceSparkline, config, airnodeStats, dapiCoverage, staking]
+  );
 
   // 次要统计指标
-  const secondaryStats: StatItem[] = [
-    {
-      title: t('api3.hero.supportedChainsCount'),
-      value: `${config.supportedChains.length}+`,
-      change: '+2',
-      changeType: 'positive',
-      icon: <Globe className="w-4 h-4" />,
-    },
-    {
-      title: t('api3.hero.networkUptime'),
-      value: `${airnodeStats?.nodeUptime ?? config.networkData.nodeUptime}%`,
-      change: '+0.1%',
-      changeType: 'positive',
-      icon: <Shield className="w-4 h-4" />,
-    },
-    {
-      title: t('api3.hero.responseTime'),
-      value: `${airnodeStats?.avgResponseTime ?? config.networkData.avgResponseTime}ms`,
-      change: '-5%',
-      changeType: 'positive',
-      icon: <Zap className="w-4 h-4" />,
-    },
-    {
-      title: t('api3.hero.dataFeeds'),
-      value: `${config.networkData.dataFeeds}+`,
-      change: '+12',
-      changeType: 'positive',
-      icon: <Database className="w-4 h-4" />,
-    },
-  ];
+  const secondaryStats: StatItem[] = useMemo(
+    () => [
+      {
+        title: t('api3.hero.supportedChainsCount'),
+        value: `${config.supportedChains.length}+`,
+        change: '+2',
+        changeType: 'positive',
+        icon: <Globe className="w-4 h-4" />,
+      },
+      {
+        title: t('api3.hero.networkUptime'),
+        value: `${airnodeStats?.nodeUptime ?? config.networkData.nodeUptime}%`,
+        change: '+0.1%',
+        changeType: 'positive',
+        icon: <Shield className="w-4 h-4" />,
+      },
+      {
+        title: t('api3.hero.responseTime'),
+        value: `${airnodeStats?.avgResponseTime ?? config.networkData.avgResponseTime}ms`,
+        change: '-5%',
+        changeType: 'positive',
+        icon: <Zap className="w-4 h-4" />,
+      },
+      {
+        title: t('api3.hero.dataFeeds'),
+        value: `${config.networkData.dataFeeds}+`,
+        change: '+12',
+        changeType: 'positive',
+        icon: <Database className="w-4 h-4" />,
+      },
+    ],
+    [t, config, airnodeStats]
+  );
 
   // 网络健康度评分
   const healthScore = useMemo(() => {

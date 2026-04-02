@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 export type DataFreshnessStatus = 'fresh' | 'stale' | 'expired';
 
@@ -16,6 +16,8 @@ export function useDataFreshness(
   maxFreshTime: number = 5,
   maxStaleTime: number = 30
 ): UseDataFreshnessReturn {
+  const [now] = useState(() => Date.now());
+
   const result = useMemo(() => {
     if (!lastUpdated) {
       return {
@@ -26,7 +28,7 @@ export function useDataFreshness(
       };
     }
 
-    const ageInMinutes = (Date.now() - lastUpdated.getTime()) / 60000;
+    const ageInMinutes = (now - lastUpdated.getTime()) / 60000;
 
     if (ageInMinutes < maxFreshTime) {
       return {
@@ -52,7 +54,7 @@ export function useDataFreshness(
       message: '数据已过期',
       shouldRefresh: true,
     };
-  }, [lastUpdated, maxFreshTime, maxStaleTime]);
+  }, [lastUpdated, maxFreshTime, maxStaleTime, now]);
 
   return result;
 }

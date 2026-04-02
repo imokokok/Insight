@@ -83,7 +83,7 @@ export default function AlertsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 rounded-lg">
       <AlertNotificationContainer
-        events={unacknowledgedEvents}
+        events={unacknowledgedEvents as never}
         onDismiss={handleDismissNotification}
         onViewDetails={handleViewDetails}
       />
@@ -104,7 +104,7 @@ export default function AlertsPage() {
       </div>
 
       <div id="alert-history" className="mt-6">
-        <AlertHistory events={events} isLoading={eventsLoading} onRefresh={refetchEvents} />
+        <AlertHistory events={events as never} isLoading={eventsLoading} onRefresh={refetchEvents} />
       </div>
 
       <div className="mt-8 p-4 bg-primary-50 border border-primary-200 rounded-lg">

@@ -268,6 +268,7 @@ export function API3DapiView(props: API3DapiViewProps) {
       const data = historicalQuery.historicalData.slice(-20).map((d) => d.price);
       setSparklineData(data);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.useRealData, historicalQuery.historicalData]);
 
   const filteredFeeds = useMemo(

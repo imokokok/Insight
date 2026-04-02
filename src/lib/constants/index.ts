@@ -123,40 +123,40 @@ export const oracleColors: Record<OracleProvider, string> = {
 export const symbols = [
   // 按市值排名排序（从高到低）
   // Layer 1 - 按市值排序
-  'BTC',    // 1. Bitcoin
-  'ETH',    // 2. Ethereum
-  'BNB',    // 3. BNB
-  'SOL',    // 4. Solana
-  'ADA',    // 5. Cardano
-  'AVAX',   // 6. Avalanche
-  'DOT',    // 7. Polkadot
-  'MATIC',  // 8. Polygon
-  'NEAR',   // 9. NEAR Protocol
-  'ARB',    // 10. Arbitrum
-  'OP',     // 11. Optimism
-  'ATOM',   // 12. Cosmos
-  'FTM',    // 13. Fantom
+  'BTC', // 1. Bitcoin
+  'ETH', // 2. Ethereum
+  'BNB', // 3. BNB
+  'SOL', // 4. Solana
+  'ADA', // 5. Cardano
+  'AVAX', // 6. Avalanche
+  'DOT', // 7. Polkadot
+  'MATIC', // 8. Polygon
+  'NEAR', // 9. NEAR Protocol
+  'ARB', // 10. Arbitrum
+  'OP', // 11. Optimism
+  'ATOM', // 12. Cosmos
+  'FTM', // 13. Fantom
   // Stablecoins - 按市值排序
-  'USDT',   // 14. Tether
-  'USDC',   // 15. USD Coin
-  'DAI',    // 16. DAI
+  'USDT', // 14. Tether
+  'USDC', // 15. USD Coin
+  'DAI', // 16. DAI
   // DeFi - 按市值排序
-  'LINK',   // 17. Chainlink
-  'UNI',    // 18. Uniswap
-  'AAVE',   // 19. Aave
-  'MKR',    // 20. Maker
-  'LDO',    // 21. Lido DAO
-  'CRV',    // 22. Curve
-  'SNX',    // 23. Synthetix
-  'YFI',    // 24. Yearn
-  'SUSHI',  // 25. SushiSwap
-  'GMX',    // 26. GMX
-  'DYDX',   // 27. dYdX
-  'COMP',   // 28. Compound
-  'BAL',    // 29. Balancer
-  'FXS',    // 30. Frax Share
-  '1INCH',  // 31. 1inch
-  'RPL',    // 32. Rocket Pool
+  'LINK', // 17. Chainlink
+  'UNI', // 18. Uniswap
+  'AAVE', // 19. Aave
+  'MKR', // 20. Maker
+  'LDO', // 21. Lido DAO
+  'CRV', // 22. Curve
+  'SNX', // 23. Synthetix
+  'YFI', // 24. Yearn
+  'SUSHI', // 25. SushiSwap
+  'GMX', // 26. GMX
+  'DYDX', // 27. dYdX
+  'COMP', // 28. Compound
+  'BAL', // 29. Balancer
+  'FXS', // 30. Frax Share
+  '1INCH', // 31. 1inch
+  'RPL', // 32. Rocket Pool
 ];
 
 export const TIME_RANGES = [
