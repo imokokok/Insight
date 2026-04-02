@@ -152,7 +152,13 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       config.oracles?.length || config.chains?.length || config.symbol || config.timeRange;
 
     if (!hasUrlParams) {
-      applyPreferences();
+      // 等待 preferences 加载完成后再应用默认值
+      if (!isPrefsLoading) {
+        applyPreferences();
+      }
+      // 无论 preferences 是否加载完成，都标记为已解析
+      // 这样可以确保数据获取不会被阻塞
+      setUrlParamsParsed(true);
     } else {
       setSelectedOracle((prev) =>
         config.oracles && config.oracles.length > 0 ? config.oracles[0] : prev
@@ -162,9 +168,9 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       );
       setSelectedSymbol((prev) => (config.symbol ? config.symbol : prev));
       setSelectedTimeRange((prev) => (config.timeRange ? config.timeRange : prev));
+      setUrlParamsParsed(true);
     }
-    setUrlParamsParsed(true);
-  }, [applyPreferences]);
+  }, [applyPreferences, isPrefsLoading]);
 
   useEffect(() => {
     selectedOracleRef.current = selectedOracle;

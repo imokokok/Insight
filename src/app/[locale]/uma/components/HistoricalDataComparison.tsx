@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 
 import {
   Calendar,
@@ -389,6 +389,7 @@ function ComparisonChart({
     }));
   }, [data, showMA, trendAnalysis]);
 
+  // eslint-disable-next-line react-hooks/static-components
   const CustomTooltip = ({
     active,
     payload,

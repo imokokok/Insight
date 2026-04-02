@@ -19,6 +19,56 @@ import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/lib/utils';
 
+type SortColumn = 'name' | 'symbols' | 'latency' | 'frequency';
+
+interface SortHeaderProps {
+  column: SortColumn;
+  children: React.ReactNode;
+  className?: string;
+  sortColumn: SortColumn;
+  sortDirection: 'asc' | 'desc';
+  onSort: (column: SortColumn) => void;
+}
+
+const SortHeaderComponent = ({
+  column,
+  children,
+  className,
+  sortColumn,
+  sortDirection,
+  onSort,
+}: SortHeaderProps) => {
+  const isActive = sortColumn === column;
+
+  return (
+    <button
+      onClick={() => onSort(column)}
+      className={cn(
+        'flex items-center justify-center gap-1 w-full py-2 px-2 text-xs font-medium text-gray-700 uppercase tracking-wider hover:bg-gray-100 transition-colors',
+        className
+      )}
+    >
+      {children}
+      <span className="inline-flex flex-col">
+        <ChevronUp
+          className={cn(
+            'w-3 h-3 -mb-1',
+            isActive && sortDirection === 'asc' ? 'text-blue-600' : 'text-gray-300'
+          )}
+        />
+        <ChevronDown
+          className={cn(
+            'w-3 h-3',
+            isActive && sortDirection === 'desc' ? 'text-blue-600' : 'text-gray-300'
+          )}
+        />
+      </span>
+    </button>
+  );
+};
+
+const SortHeader = memo(SortHeaderComponent);
+
 export interface OracleFeature {
   provider: string;
   name: string;
@@ -347,44 +397,6 @@ function OracleComparisonMatrixComponent({
     [sortColumn]
   );
 
-  const SortHeader = ({
-    column,
-    children,
-    className,
-  }: {
-    column: 'name' | 'symbols' | 'latency' | 'frequency';
-    children: React.ReactNode;
-    className?: string;
-  }) => {
-    const isActive = sortColumn === column;
-
-    return (
-      <button
-        onClick={() => handleSort(column)}
-        className={cn(
-          'flex items-center justify-center gap-1 w-full py-2 px-2 text-xs font-medium text-gray-700 uppercase tracking-wider hover:bg-gray-100 transition-colors',
-          className
-        )}
-      >
-        {children}
-        <span className="inline-flex flex-col">
-          <ChevronUp
-            className={cn(
-              'w-3 h-3 -mb-1',
-              isActive && sortDirection === 'asc' ? 'text-blue-600' : 'text-gray-300'
-            )}
-          />
-          <ChevronDown
-            className={cn(
-              'w-3 h-3',
-              isActive && sortDirection === 'desc' ? 'text-blue-600' : 'text-gray-300'
-            )}
-          />
-        </span>
-      </button>
-    );
-  };
-
   if (oracleFeatures.length === 0) {
     return (
       <DashboardCard>
@@ -421,18 +433,45 @@ function OracleComparisonMatrixComponent({
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="w-48">
-                  <SortHeader column="name" className="justify-start">
+                  <SortHeader
+                    column="name"
+                    className="justify-start"
+                    sortColumn={sortColumn}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
+                  >
                     {t('crossOracle.oracle')}
                   </SortHeader>
                 </th>
                 <th className="w-32">
-                  <SortHeader column="symbols">{t('crossOracle.symbols')}</SortHeader>
+                  <SortHeader
+                    column="symbols"
+                    sortColumn={sortColumn}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
+                  >
+                    {t('crossOracle.symbols')}
+                  </SortHeader>
                 </th>
                 <th className="w-32">
-                  <SortHeader column="latency">{t('crossOracle.avgLatency')}</SortHeader>
+                  <SortHeader
+                    column="latency"
+                    sortColumn={sortColumn}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
+                  >
+                    {t('crossOracle.avgLatency')}
+                  </SortHeader>
                 </th>
                 <th className="w-32">
-                  <SortHeader column="frequency">{t('crossOracle.updateFrequency')}</SortHeader>
+                  <SortHeader
+                    column="frequency"
+                    sortColumn={sortColumn}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
+                  >
+                    {t('crossOracle.updateFrequency')}
+                  </SortHeader>
                 </th>
                 <th className="flex-1 px-4 py-2 text-xs font-medium text-gray-700 uppercase tracking-wider text-left">
                   {t('crossOracle.features')}
