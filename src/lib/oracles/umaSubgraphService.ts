@@ -591,6 +591,294 @@ export class UMASubgraphService {
     return { assertions, disputes, priceRequests };
   }
 
+  // Get hourly verification activity for the last 24 hours
+  async getVerificationActivity(hours: number = 24): Promise<number[]> {
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now - hours * 3600;
+
+    const query = `
+      query GetHourlyActivity($startTime: BigInt!) {
+        priceRequests(
+          where: { requestTime_gte: $startTime }
+          orderBy: requestTime
+          orderDirection: asc
+          first: 1000
+        ) {
+          requestTime
+        }
+        assertions(
+          where: { assertionTime_gte: $startTime }
+          orderBy: assertionTime
+          orderDirection: asc
+          first: 1000
+        ) {
+          assertionTime
+        }
+      }
+    `;
+
+    interface HourlyActivityResponse {
+      priceRequests: Array<{ requestTime: string }>;
+      assertions: Array<{ assertionTime: string }>;
+    }
+
+    const data = await this.query<HourlyActivityResponse>(query, { startTime });
+
+    // Aggregate by hour
+    const hourly = new Array(hours).fill(0);
+    const currentHour = Math.floor(now / 3600);
+
+    [...data.priceRequests, ...data.assertions].forEach((item) => {
+      const timestamp = parseInt('requestTime' in item ? item.requestTime : item.assertionTime);
+      const itemHour = Math.floor(timestamp / 3600);
+      const hourIndex = hours - 1 - (currentHour - itemHour);
+      if (hourIndex >= 0 && hourIndex < hours) {
+        hourly[hourIndex]++;
+      }
+    });
+
+    return hourly;
+  }
+
+  // Get dispute trends by day
+  async getDisputeTrends(days: number = 7): Promise<Array<{ date: string; filed: number; resolved: number }>> {
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now - days * 24 * 3600;
+
+    const query = `
+      query GetDisputeTrends($startTime: BigInt!) {
+        disputes(
+          where: { disputeTime_gte: $startTime }
+          orderBy: disputeTime
+          orderDirection: asc
+          first: 1000
+        ) {
+          disputeTime
+          resolved
+          resolutionTime
+        }
+      }
+    `;
+
+    interface DisputeTrendResponse {
+      disputes: Array<{
+        disputeTime: string;
+        resolved: boolean;
+        resolutionTime: string | null;
+      }>;
+    }
+
+    const data = await this.query<DisputeTrendResponse>(query, { startTime });
+
+    // Group by day
+    const trends: Array<{ date: string; filed: number; resolved: number }> = [];
+    const today = new Date();
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+
+      const dayStart = Math.floor(date.getTime() / 1000);
+      const dayEnd = dayStart + 24 * 3600;
+
+      const dayDisputes = data.disputes.filter((d) => {
+        const disputeTime = parseInt(d.disputeTime);
+        return disputeTime >= dayStart && disputeTime < dayEnd;
+      });
+
+      const filed = dayDisputes.length;
+      const resolved = dayDisputes.filter((d) => d.resolved).length;
+
+      trends.push({ date: dateStr, filed, resolved });
+    }
+
+    return trends;
+  }
+
+  // Get voter performance history
+  async getVoterPerformanceHistory(
+    voterAddress: string,
+    days: number = 30
+  ): Promise<Array<{ date: string; voteCount: number; totalRewards: string }>> {
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now - days * 24 * 3600;
+
+    const query = `
+      query GetVoterHistory($voter: String!, $startTime: BigInt!) {
+        votes(
+          where: { 
+            voter: $voter,
+            time_gte: $startTime
+          }
+          orderBy: time
+          orderDirection: asc
+          first: 1000
+        ) {
+          time
+          price
+          reward
+        }
+      }
+    `;
+
+    interface VoterHistoryResponse {
+      votes: Array<{
+        time: string;
+        price: string;
+        reward: string;
+      }>;
+    }
+
+    try {
+      const data = await this.query<VoterHistoryResponse>(query, {
+        voter: voterAddress.toLowerCase(),
+        startTime,
+      });
+
+      // Group by day
+      const history: Array<{ date: string; voteCount: number; totalRewards: string }> = [];
+      const today = new Date();
+
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+
+        const dayStart = Math.floor(date.getTime() / 1000);
+        const dayEnd = dayStart + 24 * 3600;
+
+        const dayVotes = data.votes.filter((v) => {
+          const voteTime = parseInt(v.time);
+          return voteTime >= dayStart && voteTime < dayEnd;
+        });
+
+        const totalRewards = dayVotes.reduce((sum, v) => sum + BigInt(v.reward || 0), BigInt(0));
+
+        history.push({
+          date: dateStr,
+          voteCount: dayVotes.length,
+          totalRewards: totalRewards.toString(),
+        });
+      }
+
+      return history;
+    } catch (error) {
+      logger.warn('Failed to fetch voter history:', error);
+      return [];
+    }
+  }
+
+  // Get earnings data for all voters
+  async getVotersEarnings(days: number = 30): Promise<
+    Array<{
+      voter: string;
+      totalRewards: string;
+      voteCount: number;
+    }>
+  > {
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now - days * 24 * 3600;
+
+    const query = `
+      query GetVotersEarnings($startTime: BigInt!) {
+        votes(
+          where: { time_gte: $startTime }
+          orderBy: time
+          orderDirection: desc
+          first: 1000
+        ) {
+          voter {
+            id
+            address
+          }
+          reward
+        }
+      }
+    `;
+
+    interface VotersEarningsResponse {
+      votes: Array<{
+        voter: {
+          id: string;
+          address: string;
+        };
+        reward: string;
+      }>;
+    }
+
+    try {
+      const data = await this.query<VotersEarningsResponse>(query, { startTime });
+
+      // Aggregate by voter
+      const earningsMap = new Map<string, { totalRewards: bigint; voteCount: number }>();
+
+      data.votes.forEach((vote) => {
+        const voter = vote.voter.address;
+        const current = earningsMap.get(voter) || { totalRewards: BigInt(0), voteCount: 0 };
+        earningsMap.set(voter, {
+          totalRewards: current.totalRewards + BigInt(vote.reward || 0),
+          voteCount: current.voteCount + 1,
+        });
+      });
+
+      return Array.from(earningsMap.entries()).map(([voter, data]) => ({
+        voter,
+        totalRewards: data.totalRewards.toString(),
+        voteCount: data.voteCount,
+      }));
+    } catch (error) {
+      logger.warn('Failed to fetch voters earnings:', error);
+      return [];
+    }
+  }
+
+  // Get daily price request counts for earnings trends
+  async getDailyPriceRequests(days: number = 30): Promise<Array<{ day: string; count: number }>> {
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now - days * 24 * 3600;
+
+    const query = `
+      query GetDailyRequests($startTime: BigInt!) {
+        priceRequests(
+          where: { requestTime_gte: $startTime }
+          orderBy: requestTime
+          orderDirection: asc
+          first: 1000
+        ) {
+          requestTime
+        }
+      }
+    `;
+
+    interface DailyRequestsResponse {
+      priceRequests: Array<{ requestTime: string }>;
+    }
+
+    const data = await this.query<DailyRequestsResponse>(query, { startTime });
+
+    const daily: Array<{ day: string; count: number }> = [];
+    const today = new Date();
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dayStr = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+
+      const dayStart = Math.floor(date.getTime() / 1000);
+      const dayEnd = dayStart + 24 * 3600;
+
+      const count = data.priceRequests.filter((r) => {
+        const requestTime = parseInt(r.requestTime);
+        return requestTime >= dayStart && requestTime < dayEnd;
+      }).length;
+
+      daily.push({ day: dayStr, count });
+    }
+
+    return daily;
+  }
+
   clearCache(): void {
     this.cache.clear();
   }

@@ -27,6 +27,7 @@ import {
   validateTimeSeries,
   type AnomalyInfo,
 } from '../utils/priceValidator';
+import { performanceMetricsCalculator } from '@/lib/services/marketData';
 
 const logger = createLogger('price-query-data');
 
@@ -336,6 +337,32 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
           } else {
             results.push({ provider, chain, priceData });
             histories[key] = history;
+          }
+
+          // 收集性能指标数据
+          if (priceData) {
+            performanceMetricsCalculator.addPriceData({
+              oracle: provider,
+              asset: currentSelectedSymbol,
+              price: priceData.price,
+              timestamp: Date.now(),
+              blockNumber: priceData.blockNumber,
+              confidence: priceData.confidence,
+            });
+
+            // 同时收集历史数据用于更准确的指标计算
+            if (history && history.length > 0) {
+              history.forEach((dataPoint) => {
+                performanceMetricsCalculator.addPriceData({
+                  oracle: provider,
+                  asset: currentSelectedSymbol,
+                  price: dataPoint.price,
+                  timestamp: new Date(dataPoint.timestamp).getTime(),
+                  blockNumber: dataPoint.blockNumber,
+                  confidence: dataPoint.confidence,
+                });
+              });
+            }
           }
         } else {
           const task = allTasks[taskResults.indexOf(settledResult)];
