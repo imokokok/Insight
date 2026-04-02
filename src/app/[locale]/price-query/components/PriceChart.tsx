@@ -182,126 +182,100 @@ export function PriceChart({
   // 空状态
   if (enhancedChartData.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-gray-400" aria-hidden="true" />
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('priceQuery.charts.priceHistory')}
-          </h3>
-        </div>
+      <div className="h-[300px]">
         <ChartSkeleton height={300} variant="price" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+    <div>
+      {/* 工具栏 */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-gray-500" aria-hidden="true" />
-          <h3 className="text-sm font-semibold text-gray-900">
+          <h3 className="text-sm font-semibold text-gray-800">
             {t('priceQuery.charts.priceHistory')}
           </h3>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowDataTable(!showDataTable)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              showDataTable
-                ? 'bg-primary-50 text-primary-700 border border-primary-200'
-                : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
-            }`}
-            aria-pressed={showDataTable}
-            aria-label={
-              showDataTable
-                ? t('priceQuery.charts.hideDataTable')
-                : t('priceQuery.charts.showDataTable')
-            }
-          >
-            <Table className="w-3.5 h-3.5" aria-hidden="true" />
-            <span className="hidden sm:inline">{t('priceQuery.charts.tableView')}</span>
-          </button>
-        </div>
-      </div>
-
-      <div ref={chartContainerRef} className="p-4">
-        <div
-          className="h-[300px] w-full"
-          role="img"
-          aria-label={chartAriaLabel}
-          tabIndex={0}
+        <button
+          onClick={() => setShowDataTable(!showDataTable)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+            showDataTable
+              ? 'bg-primary-50 text-primary-700 border border-primary-200'
+              : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
+          }`}
+          aria-pressed={showDataTable}
+          aria-label={
+            showDataTable
+              ? t('priceQuery.charts.hideDataTable')
+              : t('priceQuery.charts.showDataTable')
+          }
         >
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={enhancedChartData}
-              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis
-                dataKey="timestamp"
-                tickFormatter={formatXAxisLabel}
-                stroke="#9ca3af"
-                fontSize={11}
-                tickMargin={8}
-                minTickGap={30}
-              />
-              <YAxis
-                domain={yAxisDomain}
-                tickFormatter={(value) => formatPrice(value as number)}
-                stroke="#9ca3af"
-                fontSize={11}
-                width={60}
-              />
-              <Tooltip
-                content={
-                  <CustomTooltip
-                    seriesNames={seriesNames}
-                    oracleInfoMap={oracleInfoMap}
-                    avgPrice={avgPrice}
-                  />
-                }
-              />
-              {avgPrice > 0 && (
-                <ReferenceLine
-                  y={avgPrice}
-                  stroke="#9ca3af"
-                  strokeDasharray="5 5"
-                  strokeWidth={1}
-                />
-              )}
-              {seriesNames.map((name, index) => (
-                <Line
-                  key={name}
-                  type="monotone"
-                  dataKey={name}
-                  stroke={getSeriesColor(index)}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4, strokeWidth: 2 }}
-                  isAnimationActive={true}
-                  animationDuration={500}
-                />
-              ))}
-              <Brush
-                dataKey="time"
-                height={30}
-                stroke="#3b82f6"
-                travellerWidth={8}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {showDataTable && (
-          <div className="mt-4 border-t border-gray-100 pt-4">
-            <ChartDataTable
-              data={enhancedChartData}
-              seriesNames={seriesNames}
-              oracleInfoMap={oracleInfoMap}
-            />
-          </div>
-        )}
+          <Table className="w-3.5 h-3.5" aria-hidden="true" />
+          <span className="hidden sm:inline">{t('priceQuery.charts.tableView')}</span>
+        </button>
       </div>
+
+      {/* 图表 */}
+      <div className="h-[300px] w-full" role="img" aria-label={chartAriaLabel} tabIndex={0}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={enhancedChartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="timestamp"
+              tickFormatter={formatXAxisLabel}
+              stroke="#9ca3af"
+              fontSize={11}
+              tickMargin={8}
+              minTickGap={30}
+            />
+            <YAxis
+              domain={yAxisDomain}
+              tickFormatter={(value) => formatPrice(value as number)}
+              stroke="#9ca3af"
+              fontSize={11}
+              width={60}
+            />
+            <Tooltip
+              content={
+                <CustomTooltip
+                  seriesNames={seriesNames}
+                  oracleInfoMap={oracleInfoMap}
+                  avgPrice={avgPrice}
+                />
+              }
+            />
+            {avgPrice > 0 && (
+              <ReferenceLine y={avgPrice} stroke="#9ca3af" strokeDasharray="5 5" strokeWidth={1} />
+            )}
+            {seriesNames.map((name, index) => (
+              <Line
+                key={name}
+                type="monotone"
+                dataKey={name}
+                stroke={getSeriesColor(index)}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4, strokeWidth: 2 }}
+                isAnimationActive={true}
+                animationDuration={500}
+              />
+            ))}
+            <Brush dataKey="time" height={30} stroke="#3b82f6" travellerWidth={8} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {showDataTable && (
+        <div className="mt-4 border-t border-gray-100 pt-4">
+          <ChartDataTable
+            data={enhancedChartData}
+            seriesNames={seriesNames}
+            oracleInfoMap={oracleInfoMap}
+          />
+        </div>
+      )}
     </div>
   );
 }
