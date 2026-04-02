@@ -205,7 +205,10 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
     const sortedPayload = [...validPayload].sort((a, b) => (b.value || 0) - (a.value || 0));
 
     return (
-      <div className="bg-white border border-gray-200 p-3 min-w-[220px]">
+      <div
+        className="bg-white border border-gray-200 p-3 min-w-[220px] rounded-lg shadow-2xl"
+        style={{ zIndex: 2147483647, position: 'relative', isolation: 'isolate' }}
+      >
         <p className="text-gray-600 text-xs mb-2 font-medium border-b border-gray-100 pb-1">
           {typeof label === 'string'
             ? label
@@ -261,7 +264,10 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
     if (!data) return null;
 
     return (
-      <div className="bg-white border border-gray-200 p-3 min-w-[180px]">
+      <div
+        className="bg-white border border-gray-200 p-3 min-w-[180px] rounded-lg shadow-2xl"
+        style={{ zIndex: 2147483647, position: 'relative', isolation: 'isolate' }}
+      >
         <p className="text-gray-600 text-xs mb-2 font-medium border-b border-gray-100 pb-1">
           {t('crossChain.windowSize')}: {data.windowSize}
         </p>
@@ -340,8 +346,11 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           </div>
         </div>
 
-        <div className="bg-gray-50 p-4 border border-gray-200">
-          <div className="h-72">
+        <div
+          className="bg-gray-50 p-4 border border-gray-200"
+          style={{ isolation: 'isolate' }}
+        >
+          <div className="h-72" style={{ position: 'relative', zIndex: 1 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={rollingVolatilityData}
@@ -366,7 +375,10 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                     fontSize: 12,
                   }}
                 />
-                <RechartsTooltip content={<VolatilityTooltip />} />
+                <RechartsTooltip
+                  content={<VolatilityTooltip />}
+                  wrapperStyle={{ zIndex: 2147483647 }}
+                />
                 <Legend onClick={handleLegendClick} />
 
                 <ReferenceLine
@@ -521,8 +533,11 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           </div>
         </div>
 
-        <div className="bg-gray-50 p-4 border border-gray-200">
-          <div className="h-72">
+        <div
+          className="bg-gray-50 p-4 border border-gray-200"
+          style={{ isolation: 'isolate' }}
+        >
+          <div className="h-72" style={{ position: 'relative', zIndex: 1 }}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={volatilityConeData}
@@ -551,7 +566,10 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                     fontSize: 12,
                   }}
                 />
-                <RechartsTooltip content={<ConeTooltip />} />
+                <RechartsTooltip
+                  content={<ConeTooltip />}
+                  wrapperStyle={{ zIndex: 2147483647 }}
+                />
 
                 <Area
                   type="monotone"

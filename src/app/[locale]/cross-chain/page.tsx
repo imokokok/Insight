@@ -132,26 +132,26 @@ export default function CrossChainPage() {
   const statsData: ChainStats[] = [
     {
       label: t('crossChain.averagePrice'),
-      value: avgPrice > 0 ? `$${formatPrice(avgPrice)}` : '-',
+      value: avgPrice > 0 ? formatPrice(avgPrice) : '-',
       trend: calculateChangePercent(avgPrice, prevStats?.avgPrice || 0),
       tooltip: t('crossChain.tooltip.averagePrice'),
     },
     {
       label: t('crossChain.medianPrice'),
-      value: medianPrice > 0 ? `$${formatPrice(medianPrice)}` : '-',
+      value: medianPrice > 0 ? formatPrice(medianPrice) : '-',
       trend: null,
       tooltip: t('crossChain.tooltip.medianPrice'),
     },
     {
       label: t('crossChain.highestPrice'),
-      value: maxPrice > 0 ? `$${formatPrice(maxPrice)}` : '-',
+      value: maxPrice > 0 ? formatPrice(maxPrice) : '-',
       trend: calculateChangePercent(maxPrice, prevStats?.maxPrice || 0),
-      subValue: minPrice > 0 ? `Min: $${formatPrice(minPrice)}` : null,
+      subValue: minPrice > 0 ? `Min: ${formatPrice(minPrice)}` : null,
       tooltip: t('crossChain.tooltip.highestPrice'),
     },
     {
       label: t('crossChain.priceRange'),
-      value: priceRange > 0 ? `$${formatPrice(priceRange)}` : '-',
+      value: priceRange > 0 ? formatPrice(priceRange) : '-',
       trend: calculateChangePercent(priceRange, prevStats?.priceRange || 0),
       tooltip: t('crossChain.tooltip.priceRange'),
     },
@@ -162,7 +162,7 @@ export default function CrossChainPage() {
         standardDeviationPercent,
         prevStats?.standardDeviationPercent || 0
       ),
-      subValue: standardDeviation > 0 ? `$${formatPrice(standardDeviation)}` : null,
+      subValue: standardDeviation > 0 ? formatPrice(standardDeviation) : null,
       tooltip: t('crossChain.tooltip.standardDeviation'),
     },
     {
@@ -173,7 +173,7 @@ export default function CrossChainPage() {
     },
     {
       label: t('crossChain.iqr'),
-      value: iqrValue > 0 ? `$${formatPrice(iqrValue)}` : '-',
+      value: iqrValue > 0 ? formatPrice(iqrValue) : '-',
       trend: null,
       tooltip: t('crossChain.tooltip.iqr'),
     },
