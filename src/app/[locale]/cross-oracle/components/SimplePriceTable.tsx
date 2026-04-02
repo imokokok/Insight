@@ -39,11 +39,12 @@ export interface PriceAnomaly {
 
 export interface SimplePriceTableProps {
   priceData: PriceData[];
-  anomalies: PriceAnomaly[];
+  anomalies?: PriceAnomaly[];
   medianPrice: number;
-  minPrice: number;
-  maxPrice: number;
-  isLoading: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+  isLoading?: boolean;
+  validPrices?: number[];
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
@@ -389,11 +390,12 @@ const PriceTrendChart = memo(function PriceTrendChart({
 
 function SimplePriceTableComponent({
   priceData,
-  anomalies,
+  anomalies = [],
   medianPrice,
-  minPrice,
-  maxPrice,
-  isLoading,
+  minPrice = 0,
+  maxPrice = 0,
+  isLoading = false,
+  validPrices = [],
   t,
 }: SimplePriceTableProps) {
   // 处理表格数据

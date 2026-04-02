@@ -195,37 +195,52 @@
     "tabPriceComparison": "Price Comparison",
     "tabQualityAnalysis": "Quality Analysis",
     "tabOracleProfiles": "Oracle Profiles",
-    "riskAlert": {
-      "title": "Price Anomaly Risk Alert",
-      "description": "Price data anomaly detected, please use with caution",
-      "highSeverity": "High Risk",
-      "mediumSeverity": "Medium Risk",
-      "lowSeverity": "Low Risk",
-      "reasons": {
-        "priceDeviation": "Significant Price Deviation",
-        "dataDelay": "Data Source Delay",
-        "marketVolatility": "Market Volatility",
-        "dataSourceIssue": "Data Source Issue"
-      },
-      "viewDetails": "View Details",
-      "dismiss": "Dismiss"
+    "tabs": {
+      "priceComparison": "Price Comparison",
+      "dataQuality": "Data Quality",
+      "riskAlert": "Risk Alert"
     },
-    "qualityScore": {
-      "title": "Data Quality Score",
-      "overall": "Overall Score",
-      "consistency": "Consistency",
-      "freshness": "Freshness",
-      "completeness": "Completeness",
+    "riskAlert": "Risk Alert",
+    "risk": {
+      "high": "High Risk",
+      "medium": "Medium Risk",
+      "low": "Low Risk",
+      "unknown": "Unknown",
+      "alertTitle": "Detected {count} price anomalies",
+      "maxDeviation": "Max Deviation",
+      "distribution": "Risk Distribution",
+      "anomalyList": "Anomaly Details",
+      "suggestions": "Recommendations",
+      "suggestion1": "Check the connection status of anomalous oracle data sources",
+      "suggestion2": "Consider temporarily disabling data sources with large deviations",
+      "suggestion3": "Monitor market volatility to confirm if it's a systemic risk",
+      "allClear": "All Clear",
+      "allClearDesc": "All oracle price data is within reasonable range, no anomalies detected",
+      "monitoring": "Monitoring"
+    },
+    "quality": {
+      "overallScore": "Data Quality Score",
+      "basedOn": "Weighted assessment based on consistency, freshness, and completeness",
+      "dimensions": "Quality Dimensions",
+      "consistency": "Data Consistency",
+      "consistencyDesc": "Calculated based on standard deviation of data source prices",
+      "freshness": "Data Freshness",
+      "justUpdated": "Just updated",
+      "minutesAgo": "Updated {minutes} minutes ago",
+      "completeness": "Data Completeness",
+      "completenessDesc": "Success: {success}/{total}",
+      "dataSourceStatus": "Data Source Status",
+      "suggestions": "Suggestions",
       "excellent": "Excellent",
       "good": "Good",
       "fair": "Fair",
-      "poor": "Poor",
-      "suggestions": {
-        "increaseDataSources": "Consider increasing the number of data sources",
-        "checkDataDelay": "Please check data delay status",
-        "improveConsistency": "Data consistency needs improvement"
-      }
+      "poor": "Poor"
     },
+    "medianPrice": "Median Price",
+    "deviationRate": "Deviation Rate",
+    "priceComparison": "Price Comparison",
+    "dataNote": "Data Note",
+    "priceComparisonNote": "Price data is fetched in real-time from each oracle. Deviation rate is calculated based on median price. Consistency rating A indicates highly consistent data, D indicates significant deviation.",
     "symbolSelector": {
       "noCommonSymbols": "Selected oracles have no common supported symbols",
       "adjustOracleSelection": "Please adjust oracle selection",
