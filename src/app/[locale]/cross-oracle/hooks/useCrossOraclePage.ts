@@ -14,7 +14,7 @@ import { useUser } from '@/stores/authStore';
 import type { PriceData, SnapshotStats } from '@/types/oracle';
 import { OracleProvider } from '@/types/oracle';
 
-import { type TimeRange, symbols } from '../constants';
+import { type TimeRange, symbols, type PriceOracleProvider } from '../constants';
 
 import { useChartConfig } from './useChartConfig';
 import { useDataQualityScore } from './useDataQualityScore';
@@ -44,7 +44,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   // ==========================================================================
   // 基础状态
   // ==========================================================================
-  const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>(initialOracles);
+  const [selectedOracles, setSelectedOracles] = useState<PriceOracleProvider[]>(initialOracles as PriceOracleProvider[]);
   const [selectedSymbol, setSelectedSymbol] = useState<string>(initialSymbol);
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const [activeTab, setActiveTab] = useState<TabId>('priceComparison');
@@ -166,7 +166,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     setActiveTab(tab);
   }, []);
 
-  const toggleOracle = useCallback((oracle: OracleProvider) => {
+  const toggleOracle = useCallback((oracle: PriceOracleProvider) => {
     setSelectedOracles((prev) =>
       prev.includes(oracle) ? prev.filter((o) => o !== oracle) : [...prev, oracle]
     );
@@ -187,7 +187,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const handleApplyFavorite = useCallback(
     (config: { selectedOracles?: string[]; symbol?: string }) => {
       if (config.selectedOracles) {
-        setSelectedOracles(config.selectedOracles as OracleProvider[]);
+        setSelectedOracles(config.selectedOracles as PriceOracleProvider[]);
       }
       if (config.symbol) {
         setSelectedSymbol(config.symbol);
@@ -210,7 +210,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   }, []);
 
   const getLineStrokeDasharray = useCallback(
-    (oracle: OracleProvider): string => {
+    (oracle: PriceOracleProvider): string => {
       const index = selectedOracles.indexOf(oracle);
       if (index === -1) return '0';
       // 为不同的预言机使用不同的虚线样式

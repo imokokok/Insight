@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, Search, RefreshCw } from 'lucide-react';
 
 import { SegmentedControl, DropdownSelect, type SelectorOption } from '@/components/ui';
 import { useTranslations } from '@/i18n';
-import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/lib/oracles';
 
 import { symbols, oracleColors, chainColors, TIME_RANGES, oracleI18nKeys } from '../constants';
@@ -78,7 +78,7 @@ export function Selectors({
     return isSymbolSupported(selectedSymbol);
   }, [selectedOracle, selectedSymbol, isSymbolSupported]);
 
-  const oracleOptions: SelectorOption<OracleProvider>[] = getOracleProvidersSortedByMarketCap().map(
+  const oracleOptions: SelectorOption<OracleProvider>[] = getPriceOracleProvidersSortedByMarketCap().map(
     (oracle) => ({
       value: oracle,
       label: t(`navbar.${oracleI18nKeys[oracle]}`),

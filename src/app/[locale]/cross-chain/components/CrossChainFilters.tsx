@@ -7,7 +7,7 @@ import { ChevronDown, ChevronUp, Filter, X } from 'lucide-react';
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { baseColors, chainColors as configChainColors } from '@/lib/config/colors';
-import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { type OracleProvider, Blockchain } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useCrossChainStore } from '@/stores/crossChainStore';
@@ -47,7 +47,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
   const thresholdConfig = useCrossChainStore((state) => state.thresholdConfig);
   const setThresholdConfig = useCrossChainStore((state) => state.setThresholdConfig);
 
-  const providerOptions = getOracleProvidersSortedByMarketCap().map((provider) => ({
+  const providerOptions = getPriceOracleProvidersSortedByMarketCap().map((provider) => ({
     value: provider,
     label: providerNames[provider],
   }));

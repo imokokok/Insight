@@ -4,23 +4,25 @@ import React from 'react';
 
 import { semanticColors, baseColors, chainColors } from '@/lib/config/colors';
 import { providerNames, type RefreshInterval } from '@/lib/constants';
+import { PRICE_ORACLE_PROVIDERS, type PriceOracleProvider } from '@/lib/config/oracles';
 import {
   ChainlinkClient,
   BandProtocolClient,
-  UMAClient,
   PythClient,
   API3Client,
   RedStoneClient,
   DIAClient,
   TellorClient,
-  ChronicleClient,
   WINkLinkClient,
+  BaseOracleClient,
 } from '@/lib/oracles';
 import {
   getDeviationColor,
   calculateStandardDeviation as calcStdDev,
 } from '@/lib/utils/chartSharedUtils';
 import { OracleProvider } from '@/types/oracle';
+
+export type { PriceOracleProvider };
 
 export interface SymbolConfig {
   symbol: string;
@@ -211,20 +213,29 @@ export const symbols = tradingPairs.map((pair) => pair.symbol);
 
 export { type RefreshInterval };
 
-export const oracleClients = {
+export const oracleClients: Record<PriceOracleProvider, BaseOracleClient> = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
   [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
-  [OracleProvider.UMA]: new UMAClient(),
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
   [OracleProvider.REDSTONE]: new RedStoneClient(),
   [OracleProvider.DIA]: new DIAClient(),
   [OracleProvider.TELLOR]: new TellorClient(),
-  [OracleProvider.CHRONICLE]: new ChronicleClient(),
   [OracleProvider.WINKLINK]: new WINkLinkClient(),
 };
 
 export const oracleNames = providerNames;
+
+export const priceOracleNames: Record<PriceOracleProvider, string> = {
+  [OracleProvider.CHAINLINK]: 'Chainlink',
+  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
+  [OracleProvider.PYTH]: 'Pyth',
+  [OracleProvider.API3]: 'API3',
+  [OracleProvider.REDSTONE]: 'RedStone',
+  [OracleProvider.DIA]: 'DIA',
+  [OracleProvider.TELLOR]: 'Tellor',
+  [OracleProvider.WINKLINK]: 'WINkLink',
+};
 
 export type SortColumn = 'price' | 'timestamp' | null;
 export type SortDirection = 'asc' | 'desc';
