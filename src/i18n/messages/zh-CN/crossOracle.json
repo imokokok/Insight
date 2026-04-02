@@ -226,7 +226,8 @@
       "suggestion3": "关注市场波动情况，确认是否为系统性风险",
       "allClear": "数据正常",
       "allClearDesc": "所有预言机价格数据在合理范围内，未发现异常偏差",
-      "monitoring": "实时监控中"
+      "monitoring": "实时监控中",
+      "keyMetrics": "关键风险指标"
     },
     "quality": {
       "overallScore": "数据质量综合评分",
@@ -314,7 +315,10 @@
       "filtersApplied": "已应用 {count} 个筛选",
       "noFilters": "无筛选条件",
       "confirm": "确定",
-      "filtersActive": "个筛选已启用"
+      "filtersActive": "个筛选已启用",
+      "normal": "正常",
+      "warning": "警告",
+      "error": "异常"
     },
     "filterSummary": {
       "deviation": "偏差",
@@ -336,6 +340,9 @@
       "highest": "最高",
       "lowest": "最低",
       "status": "状态",
+    "crossOracle": {
+      "status": "状态"
+    },
       "outlier": "异常值",
       "normal": "正常",
       "deviationRate": "偏离度",
@@ -441,12 +448,6 @@
       "depthTitle": "市场深度模拟",
       "scatterHint": "气泡大小代表置信度，颜色代表风险等级",
       "depthHint": "基于多预言机价格模拟的市场深度"
-    },
-    "filter": {
-      "all": "全部",
-      "normal": "正常",
-      "warning": "警告",
-      "error": "异常"
     },
     "dataSources": {
       "title": "对比数据来源"
@@ -599,7 +600,8 @@
     "accessibleColors": "色盲友好模式",
     "loading": "加载中...",
     "query": "查询",
-    "selectOracleHint": "请至少选择一个预言机"
+    "selectOracleHint": "请至少选择一个预言机",
+    "oraclesSelected": "个预言机已选择"
   },
   "crossOracleComparison": {
     "title": "多预言机比较分析",

@@ -106,7 +106,7 @@ function PriceDistributionHistogramComponent({
 
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={histogramData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+          <BarChart data={histogramData} margin={{ top: 30, right: 30, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
             <XAxis
               dataKey="midPrice"
@@ -140,9 +140,10 @@ function PriceDistributionHistogramComponent({
               strokeWidth={2}
               label={{
                 value: t('crossOracle.median') || '中位数',
-                position: 'top',
+                position: 'insideTop',
                 fill: '#374151',
                 fontSize: 11,
+                dy: -20,
               }}
             />
             <Bar dataKey="count" radius={[4, 4, 0, 0]}>

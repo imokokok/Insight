@@ -381,7 +381,7 @@ function SimplePriceTableComponent({
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 <div className="flex items-center justify-center gap-1">
                   <Database className="w-3 h-3" />
-                  {t('crossOracle.dataSources') || 'Sources'}
+                  {t('crossOracle.dataSources.title') || 'Sources'}
                 </div>
               </th>
 

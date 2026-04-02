@@ -216,7 +216,8 @@
       "suggestion3": "Monitor market volatility to confirm if it's a systemic risk",
       "allClear": "All Clear",
       "allClearDesc": "All oracle price data is within reasonable range, no anomalies detected",
-      "monitoring": "Monitoring"
+      "monitoring": "Monitoring",
+      "keyMetrics": "Key Risk Metrics"
     },
     "quality": {
       "overallScore": "Data Quality Score",
@@ -331,6 +332,9 @@
       "highest": "Highest",
       "lowest": "Lowest",
       "status": "Status",
+    "crossOracle": {
+      "status": "Status"
+    },
       "outlier": "Outlier",
       "normal": "Normal",
       "deviationRate": "Deviation Rate",
@@ -592,7 +596,8 @@
     "accessibleColors": "Color Blind Friendly Mode",
     "loading": "Loading...",
     "query": "Query",
-    "selectOracleHint": "Please select at least one oracle"
+    "selectOracleHint": "Please select at least one oracle",
+    "oraclesSelected": "oracles selected"
   },
   "crossOracleComparison": {
     "title": "Multi-Oracle Comparative Analytics",
