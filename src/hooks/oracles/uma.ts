@@ -10,7 +10,7 @@ import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useLastUpdated } from './useLastUpdated';
 
-const umaClient = new UMAClient();
+const umaClient = new UMAClient({ useRealData: true });
 
 type UMADataType = 'price' | 'historical' | 'network' | 'validators' | 'disputes';
 
