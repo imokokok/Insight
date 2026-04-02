@@ -21,6 +21,12 @@
     "credibility": "可信度",
     "status": "状态",
     "verification": "验证方式",
+    "credibility": {
+      "high": "高可信度",
+      "medium": "中等可信度",
+      "low": "低可信度",
+      "unverified": "未验证"
+    },
     "credibilityLevel": {
       "high": "高可信度",
       "medium": "中等可信度",

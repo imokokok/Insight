@@ -233,8 +233,13 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
 
     return (
       <div
-        className="bg-white border p-3 min-w-[200px] rounded-lg"
-        style={{ borderColor: baseColors.gray[200] }}
+        className="bg-white border p-3 min-w-[200px] rounded-lg shadow-2xl"
+        style={{
+          borderColor: baseColors.gray[200],
+          zIndex: 2147483647,
+          position: 'relative',
+          isolation: 'isolate',
+        }}
       >
         <p
           className="text-xs mb-2 font-medium border-b pb-1"
@@ -357,9 +362,13 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
 
       <div
         className="p-4 border rounded-lg"
-        style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
+        style={{
+          backgroundColor: baseColors.gray[50],
+          borderColor: baseColors.gray[200],
+          isolation: 'isolate',
+        }}
       >
-        <div className="h-72">
+        <div className="h-72" style={{ position: 'relative', zIndex: 1 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={rollingCorrelationData}
@@ -393,7 +402,10 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
                   fill: chartColors.recharts.tick,
                 }}
               />
-              <RechartsTooltip content={<CustomTooltip />} />
+              <RechartsTooltip
+                content={<CustomTooltip />}
+                wrapperStyle={{ zIndex: 2147483647 }}
+              />
               <Legend onClick={handleLegendClick} />
 
               {/* Reference lines for correlation thresholds */}

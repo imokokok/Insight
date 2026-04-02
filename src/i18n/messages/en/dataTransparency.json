@@ -21,6 +21,12 @@
     "credibility": "Credibility",
     "status": "Status",
     "verification": "Verification Method",
+    "credibility": {
+      "high": "High Credibility",
+      "medium": "Medium Credibility",
+      "low": "Low Credibility",
+      "unverified": "Unverified"
+    },
     "credibilityLevel": {
       "high": "High Credibility",
       "medium": "Medium Credibility",
