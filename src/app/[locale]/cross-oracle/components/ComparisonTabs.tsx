@@ -5,23 +5,16 @@ import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDe
 import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
 import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
 import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
-import {
-  type OracleProvider,
-  type PriceData,
-  type SnapshotStats,
-  type OracleSnapshot,
-} from '@/types/oracle';
+import { type OracleProvider, type PriceData, type SnapshotStats } from '@/types/oracle';
 
-import {
-  type TimeRange,
-  type QualityTrendData,
-  type DeviationFilter,
-  type ChartDataPoint,
-} from '../types';
+import { type TimeRange, type QualityTrendData, type ChartDataPoint } from '../types';
 
 import { ControlPanel } from './ControlPanel';
 import { type TabId, TabNavigation } from './TabNavigation';
-import { OverviewTab, AnalysisTab, ChainsTab, HistoryTab } from './tabs';
+import { PriceComparisonTab, QualityAnalysisTab, OracleProfilesTab } from './tabs';
+
+import type { DataQualityScore } from '../hooks/useDataQualityScore';
+import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
 
 interface ComparisonTabsProps {
   activeTab: TabId;
@@ -36,7 +29,6 @@ interface ComparisonTabsProps {
   hoveredOracle: OracleProvider | null;
   setHoveredOracle: (oracle: OracleProvider | null) => void;
   setOracleFilter: (filter: OracleProvider | 'all') => void;
-  setIsChartFullscreen: (fullscreen: boolean) => void;
   chartContainerRef: React.RefObject<HTMLDivElement | null>;
   sortColumn: 'price' | 'timestamp' | null;
   sortDirection: 'asc' | 'desc';
@@ -79,10 +71,6 @@ interface ComparisonTabsProps {
     completeness: { successCount: number; totalCount: number };
     reliability: { historicalAccuracy: number; responseSuccessRate: number };
   };
-  selectedSnapshot: OracleSnapshot | null;
-  setSelectedSnapshot: (snapshot: OracleSnapshot | null) => void;
-  showComparison: boolean;
-  setShowComparison: (show: boolean) => void;
   selectedPerformanceOracle: OracleProvider | null;
   setSelectedPerformanceOracle: (oracle: OracleProvider | null) => void;
   currentStats: SnapshotStats;
@@ -91,8 +79,6 @@ interface ComparisonTabsProps {
   handleZoomOut: () => void;
   handleResetZoom: () => void;
   setTimeRange: (range: TimeRange) => void;
-  handleSaveSnapshot: () => void;
-  handleSelectSnapshot: (snapshot: OracleSnapshot) => void;
   fetchPriceData: () => Promise<void>;
   toggleOracle: (oracle: OracleProvider) => void;
   getLineStrokeDasharray: (oracle: OracleProvider) => string;
@@ -102,21 +88,35 @@ interface ComparisonTabsProps {
   t: (key: string, params?: Record<string, string | number>) => string;
   // ControlPanel props
   symbols: string[];
-  deviationFilter: DeviationFilter;
-  onDeviationFilterChange: (filter: DeviationFilter) => void;
-  useAccessibleColors: boolean;
-  onAccessibleColorsChange: (value: boolean) => void;
   onQuery: () => void;
   activeFilterCount: number;
   onClearFilters: () => void;
   onSymbolChange: (symbol: string) => void;
+  // 新增：风险预警和质量评分数据
+  anomalies: PriceAnomaly[];
+  qualityScore: DataQualityScore;
+  // 新增：预言机特性数据
+  oracleFeatures?: {
+    provider: OracleProvider;
+    name: string;
+    symbolCount: number;
+    avgLatency: number;
+    features: string[];
+    description: string;
+  }[];
+  // 新增：异常统计
+  anomalyCount?: number;
+  highRiskCount?: number;
+  mediumRiskCount?: number;
+  lowRiskCount?: number;
+  maxDeviation?: number;
 }
 
 export function ComparisonTabs(props: ComparisonTabsProps) {
   const {
     activeTab,
     onTabChange,
-    // OverviewTab props
+    // PriceComparisonTab props
     selectedSymbol,
     selectedOracles,
     priceData,
@@ -127,27 +127,21 @@ export function ComparisonTabs(props: ComparisonTabsProps) {
     hoveredOracle,
     setHoveredOracle,
     setOracleFilter,
-    setIsChartFullscreen,
     chartContainerRef,
     sortColumn,
     sortDirection,
     expandedRow,
     setExpandedRow,
-    selectedRowIndex,
     hoveredRowIndex,
     setHoveredRowIndex,
     setSelectedRowIndex,
     avgPrice,
-    weightedAvgPrice,
     maxPrice,
     minPrice,
     priceRange,
-    standardDeviation,
     standardDeviationPercent,
-    variance,
     validPrices,
     lastStats,
-    historyMinMax,
     oracleChartColors,
     getChartData,
     qualityScoreData,
@@ -161,31 +155,19 @@ export function ComparisonTabs(props: ComparisonTabsProps) {
     getLineStrokeDasharray,
     getConsistencyRating,
     calculateChangePercent,
-    // AnalysisTab props
-    heatmapData,
-    boxPlotData,
-    volatilityData,
-    correlationData,
-    performanceData,
-    maData,
-    qualityTrendData,
-    selectedPerformanceOracle,
-    setSelectedPerformanceOracle,
-    getOracleLatencyData,
-    // HistoryTab props
-    selectedSnapshot,
-    setSelectedSnapshot,
-    showComparison,
-    setShowComparison,
-    currentStats,
-    handleSaveSnapshot,
-    handleSelectSnapshot,
+    // QualityAnalysisTab props
+    anomalies,
+    qualityScore,
+    // OracleProfilesTab props
+    oracleFeatures = [],
+    // 异常统计
+    anomalyCount = 0,
+    highRiskCount = 0,
+    mediumRiskCount = 0,
+    lowRiskCount = 0,
+    maxDeviation = 0,
     // ControlPanel props
     symbols,
-    deviationFilter,
-    onDeviationFilterChange,
-    useAccessibleColors,
-    onAccessibleColorsChange,
     onQuery,
     activeFilterCount,
     onClearFilters,
@@ -195,9 +177,9 @@ export function ComparisonTabs(props: ComparisonTabsProps) {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'overview':
+      case 'priceComparison':
         return (
-          <OverviewTab
+          <PriceComparisonTab
             selectedSymbol={selectedSymbol}
             selectedOracles={selectedOracles}
             priceData={priceData}
@@ -208,27 +190,24 @@ export function ComparisonTabs(props: ComparisonTabsProps) {
             hoveredOracle={hoveredOracle}
             setHoveredOracle={setHoveredOracle}
             setOracleFilter={setOracleFilter}
-            setIsChartFullscreen={setIsChartFullscreen}
+            setIsChartFullscreen={() => {}}
             chartContainerRef={chartContainerRef}
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             expandedRow={expandedRow}
             setExpandedRow={setExpandedRow}
-            selectedRowIndex={selectedRowIndex}
+            selectedRowIndex={null}
             hoveredRowIndex={hoveredRowIndex}
             setHoveredRowIndex={setHoveredRowIndex}
             setSelectedRowIndex={setSelectedRowIndex}
-            avgPrice={avgPrice}
-            weightedAvgPrice={weightedAvgPrice}
+            medianPrice={avgPrice}
             maxPrice={maxPrice}
             minPrice={minPrice}
             priceRange={priceRange}
-            standardDeviation={standardDeviation}
-            standardDeviationPercent={standardDeviationPercent}
-            variance={variance}
+            deviationRate={standardDeviationPercent}
+            consistencyRating={getConsistencyRating(standardDeviationPercent)}
             validPrices={validPrices}
             lastStats={lastStats}
-            historyMinMax={historyMinMax}
             oracleChartColors={oracleChartColors}
             getChartData={getChartData}
             qualityScoreData={qualityScoreData}
@@ -240,52 +219,40 @@ export function ComparisonTabs(props: ComparisonTabsProps) {
             fetchPriceData={fetchPriceData}
             toggleOracle={toggleOracle}
             getLineStrokeDasharray={getLineStrokeDasharray}
-            getConsistencyRating={getConsistencyRating}
             calculateChangePercent={calculateChangePercent}
             t={t}
           />
         );
-      case 'analysis':
+      case 'qualityAnalysis':
         return (
-          <AnalysisTab
+          <QualityAnalysisTab
             priceData={priceData}
             isLoading={isLoading}
             selectedOracles={selectedOracles}
-            selectedPerformanceOracle={selectedPerformanceOracle}
-            setSelectedPerformanceOracle={setSelectedPerformanceOracle}
-            useAccessibleColors={useAccessibleColors}
-            heatmapData={heatmapData}
-            boxPlotData={boxPlotData}
-            volatilityData={volatilityData}
-            correlationData={correlationData}
-            performanceData={performanceData}
-            maData={maData}
-            qualityTrendData={qualityTrendData}
-            getOracleLatencyData={getOracleLatencyData}
+            qualityScore={qualityScore}
+            anomalies={anomalies}
+            anomalyCount={anomalyCount}
+            highRiskCount={highRiskCount}
+            mediumRiskCount={mediumRiskCount}
+            lowRiskCount={lowRiskCount}
+            maxDeviation={maxDeviation}
+            lastUpdated={qualityScoreData.freshness.lastUpdated}
+            successCount={qualityScoreData.completeness.successCount}
+            totalCount={qualityScoreData.completeness.totalCount}
             t={t}
           />
         );
-      case 'chains':
-        return <ChainsTab t={t} />;
-      case 'history':
+      case 'oracleProfiles':
         return (
-          <HistoryTab
-            selectedSymbol={selectedSymbol}
+          <OracleProfilesTab
+            oracleFeatures={oracleFeatures}
             selectedOracles={selectedOracles}
-            priceData={priceData}
-            currentStats={currentStats}
-            selectedSnapshot={selectedSnapshot}
-            setSelectedSnapshot={setSelectedSnapshot}
-            showComparison={showComparison}
-            setShowComparison={setShowComparison}
-            handleSaveSnapshot={handleSaveSnapshot}
-            handleSelectSnapshot={handleSelectSnapshot}
             t={t}
           />
         );
       default:
         return (
-          <OverviewTab
+          <PriceComparisonTab
             selectedSymbol={selectedSymbol}
             selectedOracles={selectedOracles}
             priceData={priceData}
@@ -296,27 +263,24 @@ export function ComparisonTabs(props: ComparisonTabsProps) {
             hoveredOracle={hoveredOracle}
             setHoveredOracle={setHoveredOracle}
             setOracleFilter={setOracleFilter}
-            setIsChartFullscreen={setIsChartFullscreen}
+            setIsChartFullscreen={() => {}}
             chartContainerRef={chartContainerRef}
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             expandedRow={expandedRow}
             setExpandedRow={setExpandedRow}
-            selectedRowIndex={selectedRowIndex}
+            selectedRowIndex={null}
             hoveredRowIndex={hoveredRowIndex}
             setHoveredRowIndex={setHoveredRowIndex}
             setSelectedRowIndex={setSelectedRowIndex}
-            avgPrice={avgPrice}
-            weightedAvgPrice={weightedAvgPrice}
+            medianPrice={avgPrice}
             maxPrice={maxPrice}
             minPrice={minPrice}
             priceRange={priceRange}
-            standardDeviation={standardDeviation}
-            standardDeviationPercent={standardDeviationPercent}
-            variance={variance}
+            deviationRate={standardDeviationPercent}
+            consistencyRating={getConsistencyRating(standardDeviationPercent)}
             validPrices={validPrices}
             lastStats={lastStats}
-            historyMinMax={historyMinMax}
             oracleChartColors={oracleChartColors}
             getChartData={getChartData}
             qualityScoreData={qualityScoreData}
@@ -328,7 +292,6 @@ export function ComparisonTabs(props: ComparisonTabsProps) {
             fetchPriceData={fetchPriceData}
             toggleOracle={toggleOracle}
             getLineStrokeDasharray={getLineStrokeDasharray}
-            getConsistencyRating={getConsistencyRating}
             calculateChangePercent={calculateChangePercent}
             t={t}
           />
@@ -350,10 +313,6 @@ export function ComparisonTabs(props: ComparisonTabsProps) {
             oracleChartColors={oracleChartColors}
             timeRange={timeRange}
             onTimeRangeChange={setTimeRange}
-            deviationFilter={deviationFilter}
-            onDeviationFilterChange={onDeviationFilterChange}
-            useAccessibleColors={useAccessibleColors}
-            onAccessibleColorsChange={onAccessibleColorsChange}
             onQuery={onQuery}
             isLoading={isLoading}
             activeFilterCount={activeFilterCount}

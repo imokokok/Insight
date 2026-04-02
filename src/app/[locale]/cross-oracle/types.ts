@@ -176,8 +176,6 @@ export interface UseCrossOraclePageReturn {
   onAccessibleColorsChange: (value: boolean) => void;
 }
 
-export type { QualityTrendData };
-
 export interface PriceStatsResult {
   validPrices: number[];
   avgPrice: number;

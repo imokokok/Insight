@@ -5,7 +5,7 @@ import { FloatingActionButton } from '@/components/oracle/shared/FloatingActionB
 interface ExportSectionProps {
   handleExportCSV: () => void;
   handleExportJSON: () => void;
-  handleSaveSnapshot: () => void;
+  handleSaveSnapshot?: () => void;
   isLoading: boolean;
 }
 

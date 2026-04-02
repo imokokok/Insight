@@ -566,6 +566,22 @@ export const getRefreshOptions = (
 
 export const timeRanges: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
 
+// ============================================================================
+// 风险预警阈值常量
+// ============================================================================
+
+/** 价格异常偏差阈值（1%） */
+export const ANOMALY_THRESHOLD = 1.0;
+
+/** 数据延迟阈值（毫秒）- 30秒 */
+export const DATA_DELAY_THRESHOLD = 30000;
+
+/** 数据延迟警告阈值（毫秒）- 60秒 */
+export const DATA_DELAY_WARNING_THRESHOLD = 60000;
+
+/** 数据延迟危险阈值（毫秒）- 5分钟 */
+export const DATA_DELAY_DANGER_THRESHOLD = 300000;
+
 export interface HistoryMinMax {
   avgPrice: { min: number; max: number };
   weightedAvgPrice: { min: number; max: number };

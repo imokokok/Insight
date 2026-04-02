@@ -26,10 +26,10 @@ import { type TimeRange, type ChartDataPoint } from '../../types';
 import { ChartTooltip } from '../ChartTooltip';
 import { DataSourcePanel } from '../DataSourcePanel';
 import { PriceTableSection } from '../PriceTableSection';
-import { StatsSection } from '../StatsSection';
+import { QualityScoreCard } from '../QualityScoreCard';
 import UnifiedExportSection from '../UnifiedExportSection';
 
-interface OverviewTabProps {
+interface PriceComparisonTabProps {
   selectedSymbol: string;
   selectedOracles: OracleProvider[];
   priceData: PriceData[];
@@ -50,25 +50,14 @@ interface OverviewTabProps {
   hoveredRowIndex: number | null;
   setHoveredRowIndex: (index: number | null) => void;
   setSelectedRowIndex: (index: number | null) => void;
-  avgPrice: number;
-  weightedAvgPrice: number;
+  medianPrice: number;
   maxPrice: number;
   minPrice: number;
   priceRange: number;
-  standardDeviation: number;
-  standardDeviationPercent: number;
-  variance: number;
+  deviationRate: number;
+  consistencyRating: string;
   validPrices: number[];
   lastStats: SnapshotStats | null;
-  historyMinMax: {
-    avgPrice: { min: number; max: number };
-    weightedAvgPrice: { min: number; max: number };
-    maxPrice: { min: number; max: number };
-    minPrice: { min: number; max: number };
-    priceRange: { min: number; max: number };
-    standardDeviationPercent: { min: number; max: number };
-    variance: { min: number; max: number };
-  };
   oracleChartColors: Record<OracleProvider, string>;
   getChartData: () => ChartDataPoint[];
   qualityScoreData: {
@@ -84,12 +73,22 @@ interface OverviewTabProps {
   fetchPriceData: () => Promise<void>;
   toggleOracle: (oracle: OracleProvider) => void;
   getLineStrokeDasharray: (oracle: OracleProvider) => string;
-  getConsistencyRating: (stdDevPercent: number) => string;
   calculateChangePercent: (current: number, previous: number) => number | null;
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-export function OverviewTab({
+// 格式化价格显示
+function formatPrice(value: number): string {
+  if (value <= 0) return '-';
+  return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// 格式化百分比显示
+function formatPercent(value: number): string {
+  return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+}
+
+export function PriceComparisonTab({
   selectedSymbol,
   selectedOracles,
   priceData,
@@ -110,17 +109,14 @@ export function OverviewTab({
   hoveredRowIndex,
   setHoveredRowIndex,
   setSelectedRowIndex,
-  avgPrice,
-  weightedAvgPrice,
+  medianPrice,
   maxPrice,
   minPrice,
   priceRange,
-  standardDeviation,
-  standardDeviationPercent,
-  variance,
+  deviationRate,
+  consistencyRating,
   validPrices,
   lastStats,
-  historyMinMax,
   oracleChartColors,
   getChartData,
   qualityScoreData,
@@ -132,29 +128,141 @@ export function OverviewTab({
   fetchPriceData,
   toggleOracle,
   getLineStrokeDasharray,
-  getConsistencyRating,
   calculateChangePercent,
   t,
-}: OverviewTabProps) {
+}: PriceComparisonTabProps) {
+  // 解析交易对
+  const [baseAsset, quoteAsset] = selectedSymbol.split('/');
+
+  // 计算变化率
+  const medianPriceChange = calculateChangePercent(medianPrice, lastStats?.avgPrice || 0);
+  const maxPriceChange = calculateChangePercent(maxPrice, lastStats?.maxPrice || 0);
+
   return (
     <>
-      <StatsSection
-        qualityScoreData={qualityScoreData}
-        selectedSymbol={selectedSymbol}
-        selectedOracles={selectedOracles}
-        avgPrice={avgPrice}
-        weightedAvgPrice={weightedAvgPrice}
-        maxPrice={maxPrice}
-        minPrice={minPrice}
-        priceRange={priceRange}
-        standardDeviationPercent={standardDeviationPercent}
-        variance={variance}
-        lastStats={lastStats}
-        historyMinMax={historyMinMax}
-        calculateChangePercent={calculateChangePercent}
-        getConsistencyRating={getConsistencyRating}
-        t={t}
-      />
+      {/* 简化版统计指标区域 */}
+      <div className="mb-6">
+        {/* 头部：交易对信息 */}
+        <div className="mb-4 border-b border-gray-200 pb-3">
+          <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+            {/* 左侧：交易对主信息 */}
+            <div className="flex-1">
+              {/* Live 徽章 - 带脉冲动画 */}
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 rounded">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-full w-full bg-emerald-500"></span>
+                  </span>
+                  <span className="text-[10px] font-medium text-emerald-700 uppercase tracking-wider">
+                    {t('crossOracle.live')}
+                  </span>
+                </span>
+              </div>
+
+              {/* 交易对显示 */}
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">
+                  {baseAsset}
+                </span>
+                <span className="text-base text-gray-400 font-medium">/{quoteAsset}</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {t('crossOracle.crossOraclePriceComparison')}
+              </p>
+            </div>
+
+            {/* 右侧：关键统计 */}
+            <div className="lg:w-auto flex gap-6">
+              <div>
+                <p className="text-xs text-gray-500">{t('crossOracle.oracleCount')}</p>
+                <p className="text-base font-semibold text-gray-900">{selectedOracles.length}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">{t('crossOracle.dataQuality')}</p>
+                <p className="text-base font-semibold text-gray-900">
+                  {qualityScoreData.reliability.responseSuccessRate.toFixed(1)}%
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 简化统计卡片 - 只保留4个核心指标 */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 中位数价格 */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <p className="text-xs text-gray-500 mb-1">{t('crossOracle.medianPrice')}</p>
+            <p className="text-lg font-semibold text-gray-900">{formatPrice(medianPrice)}</p>
+            {medianPriceChange !== null && (
+              <p
+                className={`text-xs mt-1 ${medianPriceChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+              >
+                {formatPercent(medianPriceChange)}
+              </p>
+            )}
+          </div>
+
+          {/* 价格区间 */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <p className="text-xs text-gray-500 mb-1">{t('crossOracle.priceRange')}</p>
+            <p className="text-lg font-semibold text-gray-900">{formatPrice(priceRange)}</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {formatPrice(minPrice)} - {formatPrice(maxPrice)}
+            </p>
+          </div>
+
+          {/* 偏差率 */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <p className="text-xs text-gray-500 mb-1">{t('crossOracle.deviationRate')}</p>
+            <p className="text-lg font-semibold text-gray-900">{formatPercent(deviationRate)}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('crossOracle.ofMedian')}</p>
+          </div>
+
+          {/* 一致性评级 */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <p className="text-xs text-gray-500 mb-1">{t('crossOracle.consistencyRating')}</p>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
+                consistencyRating === 'A'
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : consistencyRating === 'B'
+                    ? 'bg-blue-100 text-blue-800'
+                    : consistencyRating === 'C'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-red-100 text-red-800'
+              }`}
+            >
+              {consistencyRating}
+            </span>
+            <p className="text-xs text-gray-400 mt-1">{t('crossOracle.basedOnDeviation')}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 质量评分卡片 */}
+      <div className="mb-6">
+        <QualityScoreCard
+          score={{
+            consistency: qualityScoreData.reliability.historicalAccuracy,
+            freshness: Math.max(
+              0,
+              100 -
+                Math.floor(
+                  (Date.now() - qualityScoreData.freshness.lastUpdated.getTime()) / 1000 / 60
+                )
+            ),
+            completeness:
+              (qualityScoreData.completeness.successCount /
+                qualityScoreData.completeness.totalCount) *
+              100,
+            overall: qualityScoreData.reliability.responseSuccessRate,
+            suggestions: [],
+          }}
+          variant="compact"
+          showSuggestions={false}
+        />
+      </div>
 
       <PriceTableSection
         priceData={priceData}
@@ -166,8 +274,8 @@ export function OverviewTab({
         selectedRowIndex={selectedRowIndex}
         hoveredRowIndex={hoveredRowIndex}
         chartColors={oracleChartColors}
-        avgPrice={avgPrice}
-        standardDeviation={standardDeviation}
+        avgPrice={medianPrice}
+        standardDeviation={deviationRate}
         validPrices={validPrices}
         selectedOracles={selectedOracles}
         oracleChartColors={oracleChartColors}

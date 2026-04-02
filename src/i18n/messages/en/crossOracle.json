@@ -177,19 +177,57 @@
         }
       }
     },
-    "tabOverview": "Data Overview",
-    "tabAnalysis": "Analysis",
-    "tabCharts": "Charts",
-    "tabAdvanced": "Advanced",
-    "tabSnapshots": "Snapshots",
-    "tabPerformance": "Performance",
-    "tabChains": "Chain Coverage",
-    "tabHistory": "History",
-    "chainsTab": {
-      "chainSelector": "Chain Selector",
-      "selectChains": "Select chains...",
-      "chainSelectorDescription": "Select multiple chains for cross-chain data comparison and analysis"
+    "tabPriceComparison": "Price Comparison",
+    "tabQualityAnalysis": "Quality Analysis",
+    "tabOracleProfiles": "Oracle Profiles",
+    "riskAlert": {
+      "title": "Price Anomaly Risk Alert",
+      "description": "Price data anomaly detected, please use with caution",
+      "highSeverity": "High Risk",
+      "mediumSeverity": "Medium Risk",
+      "lowSeverity": "Low Risk",
+      "reasons": {
+        "priceDeviation": "Significant Price Deviation",
+        "dataDelay": "Data Source Delay",
+        "marketVolatility": "Market Volatility",
+        "dataSourceIssue": "Data Source Issue"
+      },
+      "viewDetails": "View Details",
+      "dismiss": "Dismiss"
     },
+    "qualityScore": {
+      "title": "Data Quality Score",
+      "overall": "Overall Score",
+      "consistency": "Consistency",
+      "freshness": "Freshness",
+      "completeness": "Completeness",
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
+      "suggestions": {
+        "increaseDataSources": "Consider increasing the number of data sources",
+        "checkDataDelay": "Please check data delay status",
+        "improveConsistency": "Data consistency needs improvement"
+      }
+    },
+    "symbolSelector": {
+      "noCommonSymbols": "Selected oracles have no common supported symbols",
+      "adjustOracleSelection": "Please adjust oracle selection",
+      "supportedBy": "Supported by {count} oracles",
+      "selectOracleFirst": "Please select oracles first"
+    },
+    "oracleFeatures": {
+      "title": "Oracle Features",
+      "symbolCount": "Supported Symbols",
+      "avgLatency": "Average Latency",
+      "features": "Feature Tags",
+      "highFrequency": "High Frequency",
+      "crossChain": "Cross-Chain Support",
+      "firstParty": "First-Party Data",
+      "disputeResolution": "Dispute Resolution"
+    },
+
     "freshness": "Data Timeliness",
     "filter": {
       "button": "Data Filter",
@@ -259,50 +297,7 @@
       "stdDev2": "±2 Std Dev Range",
       "pinchZoom": "Pinch to zoom for more details"
     },
-    "chartsTab": {
-      "detailedAnalysis": "Price Trend Detailed Analysis"
-    },
-    "snapshotsTab": {
-      "selectSnapshot": "Select a snapshot to compare",
-      "selectHint": "Select a historical snapshot from the left panel"
-    },
-    "historyTab": {
-      "title": "History Data",
-      "selectSnapshot": "Select Snapshot",
-      "selectHint": "Select a snapshot from the history list to view",
-      "exportHistory": "Export History",
-      "exporting": "Exporting..."
-    },
-    "advancedTab": {
-      "movingAverage": "Moving Average Analysis",
-      "dataQuality": "Data Quality Trend"
-    },
-    "analysisTab": {
-      "movingAverage": "Moving Average Analysis",
-      "dataQuality": "Data Quality Trend",
-      "performanceComparison": "Performance Comparison Analysis",
-      "selectOracle": "Select oracle to view latency data",
-      "allOracles": "All Oracles",
-      "selectOraclePlaceholder": "Select Oracle",
-      "summary": "Oracle Performance Summary",
-      "responseTime": "Response Time",
-      "accuracy": "Accuracy",
-      "stability": "Stability",
-      "advancedAnalysis": "Advanced Analysis",
-      "tooltip": "{name} - Response Time: {responseTime}ms, Accuracy: {accuracy}%, Stability: {stability}%"
-    },
-    "performanceTab": {
-      "performanceComparison": "Performance Comparison Analysis",
-      "selectOracle": "Select oracle to view latency data",
-      "allOracles": "All Oracles",
-      "selectOraclePlaceholder": "Select Oracle",
-      "summary": "Oracle Performance Summary",
-      "responseTime": "Response Time",
-      "accuracy": "Accuracy",
-      "stability": "Stability",
-      "advancedAnalysis": "Advanced Analysis",
-      "tooltip": "{name} - Response Time: {responseTime}ms, Accuracy: {accuracy}%, Stability: {stability}%"
-    },
+
     "outliers": {
       "detected": "Price outliers detected",
       "count": "{count} outlier(s)",

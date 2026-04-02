@@ -1,4 +1,4 @@
-export { OverviewTab } from './OverviewTab';
+export { PriceComparisonTab } from './PriceComparisonTab';
 export { AnalysisTab } from './AnalysisTab';
-export { ChainsTab } from './ChainsTab';
-export { HistoryTab } from './HistoryTab';
+export { QualityAnalysisTab } from './QualityAnalysisTab';
+export { OracleProfilesTab } from './OracleProfilesTab';

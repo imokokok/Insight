@@ -10,10 +10,9 @@ import {
   StatsOverview,
   ComparisonTabs,
   ExportSection,
-  FullscreenChart,
   StatsSection,
 } from './components';
-import { useTabNavigation, useCrossOraclePage } from './hooks';
+import { useCrossOraclePage } from './hooks';
 
 import type { TabId } from './components/TabNavigation';
 
@@ -32,24 +31,12 @@ export default function CrossOraclePage() {
     lastStats,
     historyMinMax,
     zoomLevel,
-    deviationFilter,
-    setDeviationFilter,
     oracleFilter,
     setOracleFilter,
     expandedRow,
     setExpandedRow,
     isFilterPanelOpen,
     setIsFilterPanelOpen,
-    filterPanelRef,
-    isChartFullscreen,
-    setIsChartFullscreen,
-    selectedSnapshot,
-    setSelectedSnapshot,
-    showComparison,
-    setShowComparison,
-    selectedRowIndex,
-    hoveredRowIndex,
-    chartContainerRef,
     showFavoritesDropdown,
     setShowFavoritesDropdown,
     favoritesDropdownRef,
@@ -87,12 +74,18 @@ export default function CrossOraclePage() {
     maData,
     qualityTrendData,
     qualityScoreData,
+    anomalies,
+    qualityScore,
+    anomalyCount,
+    highRiskCount,
+    mediumRiskCount,
+    lowRiskCount,
+    maxDeviation,
+    oracleFeatures,
     handleSort,
     handleZoomIn,
     handleZoomOut,
     handleResetZoom,
-    handleSaveSnapshot,
-    handleSelectSnapshot,
     handleClearFilters,
     getFilterSummary,
     toggleOracle,
@@ -111,8 +104,6 @@ export default function CrossOraclePage() {
     symbols,
     onQuery,
     onSymbolChange,
-    onDeviationFilterChange,
-    onAccessibleColorsChange,
   } = useCrossOraclePage();
 
   // Generate sparkline data from priceData history
@@ -239,14 +230,13 @@ export default function CrossOraclePage() {
         hoveredOracle={hoveredOracle}
         setHoveredOracle={setHoveredOracle}
         setOracleFilter={setOracleFilter}
-        setIsChartFullscreen={setIsChartFullscreen}
-        chartContainerRef={chartContainerRef}
+        chartContainerRef={{ current: null }}
         sortColumn={sortColumn}
         sortDirection={sortDirection}
         expandedRow={expandedRow}
         setExpandedRow={setExpandedRow}
-        selectedRowIndex={selectedRowIndex}
-        hoveredRowIndex={hoveredRowIndex}
+        selectedRowIndex={null}
+        hoveredRowIndex={null}
         setHoveredRowIndex={setHoveredRowIndex}
         setSelectedRowIndex={setSelectedRowIndex}
         avgPrice={avgPrice}
@@ -270,10 +260,6 @@ export default function CrossOraclePage() {
         maData={maData}
         qualityTrendData={qualityTrendData}
         qualityScoreData={qualityScoreData}
-        selectedSnapshot={selectedSnapshot}
-        setSelectedSnapshot={setSelectedSnapshot}
-        showComparison={showComparison}
-        setShowComparison={setShowComparison}
         selectedPerformanceOracle={selectedPerformanceOracle}
         setSelectedPerformanceOracle={setSelectedPerformanceOracle}
         currentStats={currentStats}
@@ -282,8 +268,6 @@ export default function CrossOraclePage() {
         handleZoomOut={handleZoomOut}
         handleResetZoom={handleResetZoom}
         setTimeRange={setTimeRange}
-        handleSaveSnapshot={handleSaveSnapshot}
-        handleSelectSnapshot={handleSelectSnapshot}
         fetchPriceData={fetchPriceData}
         toggleOracle={toggleOracle}
         getLineStrokeDasharray={getLineStrokeDasharray}
@@ -292,34 +276,23 @@ export default function CrossOraclePage() {
         getOracleLatencyData={getOracleLatencyData}
         t={t}
         symbols={symbols}
-        deviationFilter={deviationFilter}
-        onDeviationFilterChange={onDeviationFilterChange}
-        useAccessibleColors={useAccessibleColors}
-        onAccessibleColorsChange={onAccessibleColorsChange}
         onQuery={onQuery}
         activeFilterCount={activeFilterCount}
         onClearFilters={handleClearFilters}
         onSymbolChange={onSymbolChange}
-      />
-
-      <FullscreenChart
-        isOpen={isChartFullscreen}
-        onClose={() => setIsChartFullscreen(false)}
-        selectedSymbol={selectedSymbol}
-        selectedOracles={selectedOracles}
-        oracleChartColors={oracleChartColors}
-        getChartData={getChartData}
-        zoomLevel={zoomLevel}
-        handleZoomIn={handleZoomIn}
-        handleZoomOut={handleZoomOut}
-        handleResetZoom={handleResetZoom}
-        t={t}
+        anomalies={anomalies}
+        qualityScore={qualityScore}
+        anomalyCount={anomalyCount}
+        highRiskCount={highRiskCount}
+        mediumRiskCount={mediumRiskCount}
+        lowRiskCount={lowRiskCount}
+        maxDeviation={maxDeviation}
+        oracleFeatures={oracleFeatures}
       />
 
       <ExportSection
         handleExportCSV={handleExportCSV}
         handleExportJSON={handleExportJSON}
-        handleSaveSnapshot={handleSaveSnapshot}
         isLoading={isLoading}
       />
     </div>

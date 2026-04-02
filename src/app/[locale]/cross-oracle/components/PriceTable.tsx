@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useMemo, useState, useCallback, useEffect, memo } from 'react';
+import { useMemo, useState, useCallback, useEffect, memo } from 'react';
 
 import { DataTablePro, type ColumnDef, type SortConfig } from '@/components/ui';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import {
   oracleNames,
-  getDeviationColorClass,
   getDeviationBgClass,
   getFreshnessInfo,
   getFreshnessDotColor,
   calculateZScore,
   isOutlier,
+  ANOMALY_THRESHOLD,
 } from '../constants';
 
 interface PriceTableProps {
@@ -41,7 +41,6 @@ interface PriceTableRow extends Record<string, unknown> {
   provider: OracleProvider;
   price: number;
   deviation: number | null;
-  confidence: number | null;
   source: string;
   freshness: string;
   freshnessSeconds: number;
@@ -51,6 +50,10 @@ interface PriceTableRow extends Record<string, unknown> {
   isHighest: boolean;
   isLowest: boolean;
   originalIndex: number;
+  /** 是否为异常价格 */
+  isAnomaly: boolean;
+  /** 异常严重程度 */
+  anomalySeverity: 'low' | 'medium' | 'high' | null;
 }
 
 // Custom comparison function for PriceTable props
@@ -79,6 +82,36 @@ function arePropsEqual(prevProps: PriceTableProps, nextProps: PriceTableProps): 
   if (prevProps.chartColors !== nextProps.chartColors) return false;
 
   return true;
+}
+
+// 根据偏差率获取颜色标识
+function getDeviationRateColorClass(deviation: number | null): string {
+  if (deviation === null) return 'text-gray-400';
+  const absDeviation = Math.abs(deviation);
+  if (absDeviation < 0.1) {
+    return 'text-green-600 bg-green-50 border border-green-200';
+  } else if (absDeviation < 0.5) {
+    return 'text-yellow-600 bg-yellow-50 border border-yellow-200';
+  } else if (absDeviation < 1.0) {
+    return 'text-orange-600 bg-orange-50 border border-orange-200';
+  } else {
+    return 'text-red-600 bg-red-50 border border-red-200';
+  }
+}
+
+// 获取异常行的背景色 - 用于单元格
+function getAnomalyCellBgClass(severity: 'low' | 'medium' | 'high' | null): string {
+  if (!severity) return '';
+  switch (severity) {
+    case 'high':
+      return 'bg-red-50/50';
+    case 'medium':
+      return 'bg-orange-50/50';
+    case 'low':
+      return 'bg-yellow-50/50';
+    default:
+      return '';
+  }
 }
 
 function PriceTableComponent({
@@ -131,11 +164,26 @@ function PriceTableComponent({
       const isHighest = data.price === maxPrice && maxPrice !== minPrice;
       const isLowest = data.price === minPrice && maxPrice !== minPrice;
 
+      // 检测是否为异常价格
+      const isAnomaly =
+        deviationPercent !== null && Math.abs(deviationPercent) >= ANOMALY_THRESHOLD;
+      // 确定异常严重程度
+      let anomalySeverity: 'low' | 'medium' | 'high' | null = null;
+      if (isAnomaly && deviationPercent !== null) {
+        const absDeviation = Math.abs(deviationPercent);
+        if (absDeviation > 3) {
+          anomalySeverity = 'high';
+        } else if (absDeviation >= 1) {
+          anomalySeverity = 'medium';
+        } else {
+          anomalySeverity = 'low';
+        }
+      }
+
       return {
         provider: data.provider,
         price: data.price,
         deviation: deviationPercent,
-        confidence: data.confidence ?? null,
         source: data.source || '-',
         freshness: freshness.text,
         freshnessSeconds: freshness.seconds,
@@ -145,13 +193,15 @@ function PriceTableComponent({
         isHighest,
         isLowest,
         originalIndex: index,
+        isAnomaly,
+        anomalySeverity,
       };
     });
   }, [filteredPriceData, validPrices, avgPrice, standardDeviation, maxPrice, minPrice]);
 
   // Handle row click for expand
   const handleRowClick = useCallback(
-    (row: PriceTableRow, index: number) => {
+    (_row: PriceTableRow, index: number) => {
       const isExpanded = expandedRowIndex === index;
       setExpandedRowIndex(isExpanded ? null : index);
       onExpandRow(isExpanded ? null : index);
@@ -174,39 +224,47 @@ function PriceTableComponent({
     [onSort]
   );
 
-  // Define columns
+  // Define columns - 简化后的列
   const columns: ColumnDef<PriceTableRow>[] = useMemo(() => {
     const baseColumns: ColumnDef<PriceTableRow>[] = [
       {
         key: 'provider',
         header: t('crossOracle.oracle'),
-        width: 180,
-        minWidth: 150,
+        width: 200,
+        minWidth: 160,
         align: 'left',
         sortable: true,
         fixed: 'left',
         formatter: (value, row) => {
           const provider = value as OracleProvider;
+          const bgClass = getAnomalyCellBgClass(row.anomalySeverity);
           return (
-            <div className="flex items-center gap-2">
-              {row.isHighest && (
-                <span className="text-xs font-medium text-danger-600 bg-danger-100 px-1 py-0.5 rounded">
-                  {t('crossOracle.priceTable.highest')}
-                </span>
-              )}
-              {row.isLowest && (
-                <span className="text-xs font-medium text-success-600 bg-success-100 px-1 py-0.5 rounded">
-                  {t('crossOracle.priceTable.lowest')}
-                </span>
-              )}
+            <div className={`flex items-center gap-2 ${bgClass} px-2 py-1 rounded`}>
               <span
                 className="w-2 h-2 flex-shrink-0 rounded-full"
                 style={{ backgroundColor: chartColors[provider] }}
               />
               <span className="font-medium text-gray-900">{oracleNames[provider]}</span>
-              {row.isOutlier && (
-                <span className="text-amber-600 text-xs font-medium bg-amber-100 px-1 py-0.5 rounded">
-                  {t('crossOracle.outlier')}
+              {row.isAnomaly && (
+                <span
+                  className={`inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded ${
+                    row.anomalySeverity === 'high'
+                      ? 'text-red-600 bg-red-100'
+                      : row.anomalySeverity === 'medium'
+                        ? 'text-orange-600 bg-orange-100'
+                        : 'text-yellow-600 bg-yellow-100'
+                  }`}
+                  title={`价格异常：偏差 ${row.deviation?.toFixed(2)}%`}
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                  异常
                 </span>
               )}
             </div>
@@ -223,134 +281,124 @@ function PriceTableComponent({
         fixed: 'left',
         formatter: (value, row) => {
           const price = value as number;
-          const deviation = row.deviation;
-          const barWidth = deviation !== null ? Math.min(Math.abs(deviation) * 10, 100) : 0;
+          const bgClass = getAnomalyCellBgClass(row.anomalySeverity);
 
           return (
-            <div className="relative">
-              <div
-                className={`absolute inset-0 transition-all ${
-                  deviation !== null && deviation > 0
-                    ? 'bg-danger-200'
-                    : deviation !== null && deviation < 0
-                      ? 'bg-success-200'
-                      : ''
-                }`}
-                style={{
-                  width: `${barWidth}%`,
-                  right: 0,
-                  left: 'auto',
-                  opacity: 0.3,
-                }}
-              />
-              <span
-                className={`relative font-mono ${row.isOutlier ? 'text-amber-700' : 'text-gray-900'}`}
-              >
-                $
-                {price.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
+            <span
+              className={`font-mono ${bgClass} px-2 py-1 rounded ${
+                row.isAnomaly
+                  ? row.anomalySeverity === 'high'
+                    ? 'text-red-700'
+                    : row.anomalySeverity === 'medium'
+                      ? 'text-orange-700'
+                      : 'text-yellow-700'
+                  : 'text-gray-900'
+              }`}
+            >
+              $
+              {price.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
           );
         },
       },
     ];
 
-    // Only show deviation column if we have valid comparison data
+    // 偏差率列 - 带颜色标识
     if (validPrices.length > 1 && avgPrice > 0) {
       baseColumns.push({
         key: 'deviation',
         header: t('crossOracle.deviation'),
-        width: 120,
-        minWidth: 100,
+        width: 140,
+        minWidth: 120,
         align: 'right',
         sortable: true,
-        formatter: (value) => {
+        formatter: (value, row) => {
           const deviation = value as number | null;
+          const bgClass = getAnomalyCellBgClass(row.anomalySeverity);
           if (deviation === null) {
-            return <span className="text-gray-400">-</span>;
+            return <span className={`text-gray-400 ${bgClass} px-2 py-1 rounded`}>-</span>;
           }
+
+          const colorClass = getDeviationRateColorClass(deviation);
+
           return (
             <span
-              className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${getDeviationColorClass(deviation)}`}
+              className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${colorClass} ${bgClass}`}
             >
-              <span className={`w-1.5 h-1.5 mr-1 rounded-full ${getDeviationBgClass(deviation)}`} />
+              <span
+                className={`w-1.5 h-1.5 mr-1.5 rounded-full ${getDeviationBgClass(deviation)}`}
+              />
               {deviation >= 0 ? '+' : ''}
               {deviation.toFixed(3)}%
             </span>
           );
         },
-        conditionalFormat: {
-          rules: [
-            { condition: 'gte', value: 1, style: 'danger' },
-            { condition: 'lte', value: -1, style: 'danger' },
-            { condition: 'between', value: [0.5, 1], style: 'warning' },
-            { condition: 'between', value: [-1, -0.5], style: 'warning' },
-          ],
-        },
       });
     }
 
-    baseColumns.push(
-      {
-        key: 'confidence',
-        header: t('crossOracle.confidence'),
-        width: 100,
-        minWidth: 80,
-        align: 'right',
-        formatter: (value) => {
-          const confidence = value as number | null;
-          if (confidence === null) {
-            return <span className="text-gray-400">-</span>;
-          }
-          return (
-            <div className="flex flex-col items-end gap-0.5">
-              <span className="text-gray-700">{(confidence * 100).toFixed(1)}%</span>
-              <div className="w-12 h-1 bg-gray-200 overflow-hidden rounded-full">
-                <div
-                  className="h-full bg-primary-500 rounded-full"
-                  style={{ width: `${confidence * 100}%` }}
-                />
-              </div>
-            </div>
-          );
-        },
+    // 更新时间列 - 带新鲜度指示
+    baseColumns.push({
+      key: 'freshness',
+      header: t('crossOracle.freshness'),
+      width: 140,
+      minWidth: 120,
+      align: 'right',
+      sortable: true,
+      formatter: (value, row) => {
+        const freshness = value as string;
+        const seconds = row.freshnessSeconds as number;
+        const bgClass = getAnomalyCellBgClass(row.anomalySeverity);
+        return (
+          <div className={`flex items-center justify-end gap-2 ${bgClass} px-2 py-1 rounded`}>
+            <span className={`w-2 h-2 rounded-full ${getFreshnessDotColor(seconds)}`} />
+            <span className="text-gray-700">{freshness}</span>
+          </div>
+        );
       },
-      {
-        key: 'source',
-        header: t('crossOracle.source'),
-        width: 120,
-        minWidth: 100,
-        align: 'right',
-        formatter: (value) => {
-          const source = value as string;
-          return <span className="text-gray-600">{source}</span>;
-        },
+    });
+
+    // 操作列 - 展开详情
+    baseColumns.push({
+      key: 'action',
+      header: t('crossOracle.action') || '操作',
+      width: 80,
+      minWidth: 60,
+      align: 'center',
+      formatter: (_value, row) => {
+        const isExpanded = expandedRowIndex === row.originalIndex;
+        const bgClass = getAnomalyCellBgClass(row.anomalySeverity);
+        return (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRowClick(row, row.originalIndex);
+            }}
+            className={`p-1 rounded hover:bg-gray-100 transition-colors ${bgClass}`}
+            title={isExpanded ? '收起详情' : '展开详情'}
+          >
+            <svg
+              className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+        );
       },
-      {
-        key: 'freshness',
-        header: t('crossOracle.freshness'),
-        width: 120,
-        minWidth: 100,
-        align: 'right',
-        sortable: true,
-        formatter: (value, row) => {
-          const freshness = value as string;
-          const seconds = row.freshnessSeconds as number;
-          return (
-            <div className="flex items-center justify-end gap-2">
-              <span className={`w-2 h-2 rounded-full ${getFreshnessDotColor(seconds)}`} />
-              <span className="text-gray-700">{freshness}</span>
-            </div>
-          );
-        },
-      }
-    );
+    });
 
     return baseColumns;
-  }, [t, chartColors, validPrices.length, avgPrice]);
+  }, [t, chartColors, validPrices.length, avgPrice, expandedRowIndex, handleRowClick]);
 
   // Fixed columns configuration
   const fixedColumns = useMemo(
@@ -360,67 +408,115 @@ function PriceTableComponent({
     []
   );
 
-  // Render expanded row details
+  // 获取异常可能原因
+  const getAnomalyReason = (row: PriceTableRow): string => {
+    const reasons: string[] = [];
+    if (row.deviation && Math.abs(row.deviation) > 1) {
+      reasons.push('价格偏差过大');
+    }
+    if (row.freshnessSeconds > 60) {
+      reasons.push('数据延迟');
+    }
+    if (row.isOutlier) {
+      reasons.push('统计异常值');
+    }
+    return reasons.length > 0 ? reasons.join('、') : '未知原因';
+  };
+
+  // 简化后的展开行详情
   const renderExpandedRow = (row: PriceTableRow) => {
     const deviation = row.deviation;
-    const zScore = row.zScore;
-    const outlier = row.isOutlier;
+    const priceDiff = deviation !== null ? (row.price * deviation) / 100 : null;
 
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm py-2">
-        <div>
-          <span className="text-gray-500 block text-xs">{t('crossOracle.oracle')}</span>
-          <span className="font-medium text-gray-900">{oracleNames[row.provider]}</span>
-        </div>
-        <div>
-          <span className="text-gray-500 block text-xs">{t('crossOracle.price')}</span>
-          <span className="font-mono text-gray-900">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm py-3 px-2">
+        {/* 原始价格数据 */}
+        <div className="bg-white p-3 rounded-lg border border-gray-100">
+          <span className="text-gray-500 block text-xs mb-1">原始价格</span>
+          <span className="font-mono text-gray-900 text-lg">
             $
             {row.price.toLocaleString(undefined, {
               minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
+              maximumFractionDigits: 6,
             })}
           </span>
         </div>
-        <div>
-          <span className="text-gray-500 block text-xs">
-            {t('crossOracle.priceTable.deviationRate')}
-          </span>
-          <span className={`font-medium ${getDeviationColorClass(deviation).split(' ')[0]}`}>
-            {deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(4)}%` : '-'}
-          </span>
+
+        {/* 与均价的差值 */}
+        <div className="bg-white p-3 rounded-lg border border-gray-100">
+          <span className="text-gray-500 block text-xs mb-1">与均价差值</span>
+          <div className="flex flex-col">
+            <span
+              className={`font-mono text-lg ${
+                deviation !== null && deviation >= 0 ? 'text-red-600' : 'text-green-600'
+              }`}
+            >
+              {deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(4)}%` : '-'}
+            </span>
+            {priceDiff !== null && (
+              <span className="text-xs text-gray-500">
+                {priceDiff >= 0 ? '+' : ''}$
+                {Math.abs(priceDiff).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+              </span>
+            )}
+          </div>
         </div>
-        <div>
-          <span className="text-gray-500 block text-xs">{t('crossOracle.confidence')}</span>
-          <span className="text-gray-900">
-            {row.confidence ? `${(row.confidence * 100).toFixed(1)}%` : '-'}
-          </span>
-        </div>
-        <div>
-          <span className="text-gray-500 block text-xs">{t('crossOracle.source')}</span>
-          <span className="text-gray-900">{row.source}</span>
-        </div>
-        <div>
-          <span className="text-gray-500 block text-xs">
-            {t('crossOracle.priceTable.updateTime')}
-          </span>
-          <span className="text-gray-900">{new Date(row.timestamp).toLocaleString()}</span>
-        </div>
-        <div>
-          <span className="text-gray-500 block text-xs">Z-Score</span>
+
+        {/* 数据延迟时间 */}
+        <div className="bg-white p-3 rounded-lg border border-gray-100">
+          <span className="text-gray-500 block text-xs mb-1">数据延迟</span>
           <span
-            className={`font-medium ${zScore !== null && Math.abs(zScore) > 2 ? 'text-amber-600' : 'text-gray-900'}`}
+            className={`font-medium ${
+              row.freshnessSeconds < 30
+                ? 'text-green-600'
+                : row.freshnessSeconds < 60
+                  ? 'text-yellow-600'
+                  : 'text-red-600'
+            }`}
           >
-            {zScore !== null ? zScore.toFixed(3) : '-'}
+            {row.freshness}
           </span>
         </div>
-        <div>
-          <span className="text-gray-500 block text-xs">{t('crossOracle.priceTable.status')}</span>
-          <span
-            className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}
-          >
-            {outlier ? t('crossOracle.priceTable.outlier') : t('crossOracle.priceTable.normal')}
-          </span>
+
+        {/* 状态/异常原因 */}
+        <div className="bg-white p-3 rounded-lg border border-gray-100">
+          <span className="text-gray-500 block text-xs mb-1">状态</span>
+          {row.isAnomaly ? (
+            <div>
+              <span
+                className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${
+                  row.anomalySeverity === 'high'
+                    ? 'text-red-600 bg-red-100'
+                    : row.anomalySeverity === 'medium'
+                      ? 'text-orange-600 bg-orange-100'
+                      : 'text-yellow-600 bg-yellow-100'
+                }`}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                异常
+              </span>
+              <p className="text-xs text-gray-500 mt-1">可能原因: {getAnomalyReason(row)}</p>
+            </div>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded text-green-600 bg-green-100">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              正常
+            </span>
+          )}
         </div>
       </div>
     );
@@ -429,8 +525,6 @@ function PriceTableComponent({
   // Render hover tooltip
   const renderTooltip = (row: PriceTableRow) => {
     const deviation = row.deviation;
-    const zScore = row.zScore;
-    const outlier = row.isOutlier;
 
     return (
       <div className="bg-white border border-gray-200 p-3 min-w-[200px] rounded-lg shadow-lg">
@@ -451,33 +545,28 @@ function PriceTableComponent({
           <div className="flex justify-between">
             <span className="text-gray-500">{t('crossOracle.deviation')}</span>
             <span
-              className={`font-medium ${deviation !== null && deviation >= 0 ? 'text-danger-600' : 'text-success-600'}`}
+              className={`font-medium ${
+                deviation !== null && Math.abs(deviation) < 0.1
+                  ? 'text-green-600'
+                  : deviation !== null && Math.abs(deviation) < 0.5
+                    ? 'text-yellow-600'
+                    : deviation !== null && Math.abs(deviation) < 1
+                      ? 'text-orange-600'
+                      : 'text-red-600'
+              }`}
             >
               {deviation !== null ? `${deviation >= 0 ? '+' : ''}${deviation.toFixed(4)}%` : '-'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">{t('crossOracle.confidence')}</span>
-            <span className="text-gray-900">
-              {row.confidence ? `${(row.confidence * 100).toFixed(1)}%` : '-'}
-            </span>
+            <span className="text-gray-500">{t('crossOracle.freshness')}</span>
+            <span className="text-gray-900">{row.freshness}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Z-Score</span>
-            <span
-              className={`font-medium ${zScore !== null && Math.abs(zScore) > 2 ? 'text-amber-600' : 'text-gray-900'}`}
-            >
-              {zScore !== null ? zScore.toFixed(3) : '-'}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">{t('crossOracle.priceTable.status')}</span>
-            <span
-              className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}
-            >
-              {outlier ? t('crossOracle.priceTable.outlier') : t('crossOracle.priceTable.normal')}
-            </span>
-          </div>
+          {row.isAnomaly && (
+            <div className="pt-1 mt-1 border-t border-gray-100">
+              <span className="text-xs text-red-500">⚠️ 价格异常</span>
+            </div>
+          )}
         </div>
       </div>
     );
