@@ -1,39 +1,18 @@
-import {
-  mockDataFeeds,
-  mockCCIPStats,
-  mockTransactions,
-  mockSupportedChains,
-  mockRMNStatus,
-  mockVRFStats,
-  mockRequests,
-  mockSubscriptions,
-  useCaseDistribution,
-  MOCK_POOL_STATS,
-  MOCK_REWARD_HISTORY,
-  MOCK_SLASHING_EVENTS,
-  MOCK_UNLOCK_QUEUE,
-  MOCK_OPERATOR_STAKES,
-  mockNodes,
-  regionStats,
-  tvlTrendData,
-  projectsByChainData,
-  chainColors,
-  services,
-  serviceUsageData,
-  type CCIPStats,
-  type CrossChainTransaction,
-  type SupportedChain,
-  type RMNStatus,
-  type VRFStats,
-  type VRFRequest,
-  type VRFSubscription,
-  type UseCaseDistribution,
-  type RegionStat,
-  type TvlTrendDataPoint,
-  type ProjectByChainData,
-  type ServiceData,
-  type ServiceUsageDataPoint,
-} from '../data/mockData';
+import type {
+  CCIPStats,
+  CrossChainTransaction,
+  SupportedChain,
+  RMNStatus,
+  VRFStats,
+  VRFRequest,
+  VRFSubscription,
+  UseCaseDistribution,
+  RegionStat,
+  TvlTrendDataPoint,
+  ProjectByChainData,
+  ServiceData,
+  ServiceUsageDataPoint,
+} from '../data';
 
 import type {
   DataFeed,
@@ -69,89 +48,103 @@ export interface IChainlinkService {
   getServiceUsageData(): Promise<ServiceUsageDataPoint[]>;
 }
 
-export class MockChainlinkService implements IChainlinkService {
+// Service that throws errors for all data - real data source needs to be implemented
+export class ChainlinkService implements IChainlinkService {
+  private throwNotImplemented(methodName: string): never {
+    throw new Error(
+      `${methodName} is not implemented. Please configure a real Chainlink data source by calling setChainlinkService() with a custom implementation.`
+    );
+  }
+
   async getDataFeeds(): Promise<DataFeed[]> {
-    return mockDataFeeds;
+    this.throwNotImplemented('getDataFeeds');
   }
 
   async getCCIPStats(): Promise<CCIPStats> {
-    return mockCCIPStats;
+    this.throwNotImplemented('getCCIPStats');
   }
 
   async getCrossChainTransactions(): Promise<CrossChainTransaction[]> {
-    return mockTransactions;
+    this.throwNotImplemented('getCrossChainTransactions');
   }
 
   async getSupportedChains(): Promise<SupportedChain[]> {
-    return mockSupportedChains;
+    this.throwNotImplemented('getSupportedChains');
   }
 
   async getRMNStatus(): Promise<RMNStatus> {
-    return mockRMNStatus;
+    this.throwNotImplemented('getRMNStatus');
   }
 
   async getVRFStats(): Promise<VRFStats> {
-    return mockVRFStats;
+    this.throwNotImplemented('getVRFStats');
   }
 
   async getVRFRequests(): Promise<VRFRequest[]> {
-    return mockRequests;
+    this.throwNotImplemented('getVRFRequests');
   }
 
   async getVRFSubscriptions(): Promise<VRFSubscription[]> {
-    return mockSubscriptions;
+    this.throwNotImplemented('getVRFSubscriptions');
   }
 
   async getUseCaseDistribution(): Promise<UseCaseDistribution[]> {
-    return useCaseDistribution;
+    this.throwNotImplemented('getUseCaseDistribution');
   }
 
   async getStakingPoolStats(): Promise<StakingPoolStats> {
-    return MOCK_POOL_STATS;
+    this.throwNotImplemented('getStakingPoolStats');
   }
 
   async getRewardHistory(): Promise<RewardHistory[]> {
-    return MOCK_REWARD_HISTORY;
+    this.throwNotImplemented('getRewardHistory');
   }
 
   async getSlashingEvents(): Promise<SlashingEvent[]> {
-    return MOCK_SLASHING_EVENTS;
+    this.throwNotImplemented('getSlashingEvents');
   }
 
   async getUnlockQueue(): Promise<UnlockQueue[]> {
-    return MOCK_UNLOCK_QUEUE;
+    this.throwNotImplemented('getUnlockQueue');
   }
 
   async getOperatorStakes(): Promise<OperatorStake[]> {
-    return MOCK_OPERATOR_STAKES;
+    this.throwNotImplemented('getOperatorStakes');
   }
 
   async getNodes(): Promise<NodeData[]> {
-    return mockNodes;
+    this.throwNotImplemented('getNodes');
   }
 
   async getRegionStats(): Promise<RegionStat[]> {
-    return regionStats;
+    this.throwNotImplemented('getRegionStats');
   }
 
   async getTvlTrendData(): Promise<TvlTrendDataPoint[]> {
-    return tvlTrendData;
+    this.throwNotImplemented('getTvlTrendData');
   }
 
   async getProjectsByChain(): Promise<ProjectByChainData[]> {
-    return projectsByChainData;
+    this.throwNotImplemented('getProjectsByChain');
   }
 
   getChainColors(): Record<string, string> {
-    return chainColors;
+    return {
+      ethereum: '#627EEA',
+      arbitrum: '#28A0F0',
+      polygon: '#8247E5',
+      optimism: '#FF0420',
+      avalanche: '#E84142',
+      base: '#0052FF',
+    };
   }
 
   async getServices(): Promise<ServiceData[]> {
-    return services;
+    this.throwNotImplemented('getServices');
   }
 
   async getServiceUsageData(): Promise<ServiceUsageDataPoint[]> {
-    return serviceUsageData;
+    this.throwNotImplemented('getServiceUsageData');
   }
 }
 
@@ -159,7 +152,7 @@ let serviceInstance: IChainlinkService | null = null;
 
 export function getChainlinkService(): IChainlinkService {
   if (!serviceInstance) {
-    serviceInstance = new MockChainlinkService();
+    serviceInstance = new ChainlinkService();
   }
   return serviceInstance;
 }

@@ -28,17 +28,31 @@ import {
 
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
-import {
-  generateStakeHistory,
-  generateAccuracyHistory,
-  generatePriceSources,
-  generatePerformanceMetrics,
-  type StakeHistoryPoint,
-  type AccuracyHistoryPoint,
-  type PriceSource,
-  type PerformanceMetric,
-} from '@/lib/oracles/pythMockData';
 import { type TooltipProps } from '@/types/ui/recharts';
+
+interface StakeHistoryPoint {
+  date: string;
+  stake: number;
+}
+
+interface AccuracyHistoryPoint {
+  date: string;
+  accuracy: number;
+}
+
+interface PriceSource {
+  id: string;
+  name: string;
+  category: string;
+  lastUpdate: string;
+  status: 'active' | 'inactive';
+}
+
+interface PerformanceMetric {
+  label: string;
+  value: number;
+  change: number;
+}
 
 import { type PublisherData } from '../types';
 
@@ -70,10 +84,10 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 export function PublisherDetailModal({ publisher, isOpen, onClose }: PublisherDetailModalProps) {
   const t = useTranslations();
 
-  const stakeHistory = useMemo(() => generateStakeHistory(), []);
-  const accuracyHistory = useMemo(() => generateAccuracyHistory(), []);
-  const priceSources = useMemo(() => generatePriceSources(), []);
-  const performanceMetrics = useMemo(() => generatePerformanceMetrics(), []);
+  const stakeHistory: StakeHistoryPoint[] = [];
+  const accuracyHistory: AccuracyHistoryPoint[] = [];
+  const priceSources: PriceSource[] = [];
+  const performanceMetrics: PerformanceMetric[] = [];
 
   const getStatusDisplay = (status?: string) => {
     switch (status) {

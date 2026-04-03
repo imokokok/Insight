@@ -17,16 +17,6 @@ export type {
   FirstPartyOracleData,
 } from './types';
 
-export {
-  getMockAirnodeNetworkStats,
-  getMockDapiCoverage,
-  getMockStakingData,
-  getMockFirstPartyOracleData,
-  getMockDapiPriceDeviations,
-  getMockDataSourceTraceability,
-  getMockCoveragePoolDetails,
-} from './mockData';
-
 export { getActiveAlerts, getAlertHistory, getAlertThresholds } from './alertService';
 
 export { getCoveragePoolEvents, getCoveragePoolClaims } from './coveragePoolService';

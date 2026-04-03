@@ -21,7 +21,6 @@ import {
 
 import { PriceChart } from '@/components/oracle';
 import { useTranslations } from '@/i18n';
-import { SeededRandom } from '@/lib/oracles/uma/mockDataConfig';
 import { cn } from '@/lib/utils';
 
 import { type UmaMarketViewProps } from '../types';
@@ -50,7 +49,6 @@ function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
   const generateOrderBook = (
     basePrice: number
   ): { bids: OrderBookEntry[]; asks: OrderBookEntry[] } => {
-    const rng = new SeededRandom(Math.floor(basePrice * 1000));
     const bids: OrderBookEntry[] = [];
     const asks: OrderBookEntry[] = [];
     let bidTotal = 0;
@@ -58,12 +56,12 @@ function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
 
     for (let i = 0; i < 8; i++) {
       const bidPrice = basePrice * (1 - (i + 1) * 0.002);
-      const bidAmount = rng.range(1000, 6000);
+      const bidAmount = 1000 + Math.random() * 5000;
       bidTotal += bidAmount;
       bids.push({ price: bidPrice, amount: bidAmount, total: bidTotal });
 
       const askPrice = basePrice * (1 + (i + 1) * 0.002);
-      const askAmount = rng.range(1000, 6000);
+      const askAmount = 1000 + Math.random() * 5000;
       askTotal += askAmount;
       asks.push({ price: askPrice, amount: askAmount, total: askTotal });
     }
@@ -162,11 +160,10 @@ function OrderBookVisualization({ currentPrice }: { currentPrice: number }) {
 function LiquidityDistribution({ currentPrice }: { currentPrice: number }) {
   const t = useTranslations();
   const liquidityData = useMemo(() => {
-    const rng = new SeededRandom(Math.floor(currentPrice * 1000) + 500);
     return Array.from({ length: 20 }, (_, i) => {
       const priceOffset = (i - 10) * 0.5;
       const price = currentPrice + priceOffset;
-      const liquidity = rng.range(100000, 1100000);
+      const liquidity = 100000 + Math.random() * 1000000;
       return { price, liquidity };
     });
   }, [currentPrice]);
@@ -645,15 +642,14 @@ function MarketSentimentAnalysis() {
 
 function MarketDepthChart({ currentPrice }: { currentPrice: number }) {
   const depthData = useMemo(() => {
-    const rng = new SeededRandom(Math.floor(currentPrice * 1000) + 600);
     const bids: { price: number; depth: number }[] = [];
     const asks: { price: number; depth: number }[] = [];
 
     for (let i = 0; i < 15; i++) {
       const bidPrice = currentPrice * (1 - i * 0.01);
       const askPrice = currentPrice * (1 + i * 0.01);
-      const bidDepth = rng.range(100000, 600000);
-      const askDepth = rng.range(100000, 600000);
+      const bidDepth = 100000 + Math.random() * 500000;
+      const askDepth = 100000 + Math.random() * 500000;
 
       bids.push({ price: bidPrice, depth: bidDepth });
       asks.push({ price: askPrice, depth: askDepth });
