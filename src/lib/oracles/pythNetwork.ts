@@ -46,8 +46,9 @@ export class PythClient extends BaseOracleClient {
       };
     }
     const baseSpread = SPREAD_PERCENTAGES[symbol.toUpperCase()] || 0.05;
-    const randomFactor = 0.8 + Math.random() * 0.4;
-    const spreadPercentage = baseSpread * randomFactor;
+    // 使用固定因子代替随机数
+    const fixedFactor = 1.0;
+    const spreadPercentage = baseSpread * fixedFactor;
 
     const halfSpread = price * (spreadPercentage / 100 / 2);
 

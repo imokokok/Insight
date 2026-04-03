@@ -213,7 +213,7 @@ export class DIAClient extends BaseOracleClient {
         name: exchange.Name,
         type: exchange.Type === 'CEX' ? 'exchange' : 'defi_protocol',
         credibilityScore: exchange.Type === 'CEX' ? 95 : 92,
-        lastUpdate: Date.now() - Math.floor(Math.random() * 60000),
+        lastUpdate: Date.now(),
         status: 'active' as const,
         verificationMethod: exchange.Type === 'CEX' ? 'API Verification' : 'On-chain Verification',
         dataPoints: exchange.Trades || Math.floor(exchange.Volume24h / 1000),

@@ -590,27 +590,26 @@ export class DIADataService {
       const totalPairs = exchanges.reduce((sum, e) => sum + e.Pairs, 0);
       const dataFeeds = totalPairs;
 
-      // Generate hourly activity based on real data feeds count
+      // Generate hourly activity based on real data feeds count (no random)
       const baseActivity = Math.floor(dataFeeds * 6);
       const hourlyActivity = Array.from({ length: 24 }, (_, i) => {
         const hour = i;
         const peakHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
         const isPeak = peakHours.includes(hour);
         const variation = isPeak ? 1.5 : 0.7;
-        const randomFactor = 0.8 + Math.random() * 0.4;
-        return Math.floor(baseActivity * variation * randomFactor);
+        return Math.floor(baseActivity * variation);
       });
 
       const stats: DIANetworkStatsData = {
         activeDataSources: activeExchanges,
         nodeUptime: 99.8,
-        avgResponseTime: 150 + Math.floor(Math.random() * 50),
+        avgResponseTime: 150,
         updateFrequency: 60,
         totalStaked: diaSupply?.CirculatingSupply ? diaSupply.CirculatingSupply * 0.3 : 15000000,
         dataFeeds,
         hourlyActivity,
         status: 'online',
-        latency: 120 + Math.floor(Math.random() * 30),
+        latency: 120,
         stakingTokenSymbol: 'DIA',
       };
 
@@ -820,11 +819,11 @@ export class DIADataService {
       const marketFactor = diaPrice ? (diaPrice.change24hPercent || 0) * 0.1 : 0;
       const stakingApr = Math.max(4, Math.min(15, baseApr + marketFactor));
 
-      // Generate historical APR data
+      // Generate historical APR data (no random)
       const now = Date.now();
       const historicalApr = Array.from({ length: 30 }, (_, i) => ({
         timestamp: now - (29 - i) * 24 * 60 * 60 * 1000,
-        apr: stakingApr + (Math.random() * 2 - 1),
+        apr: stakingApr,
       }));
 
       const data: DIAStakingData = {
@@ -868,7 +867,7 @@ export class DIADataService {
         },
         historicalApr: Array.from({ length: 30 }, (_, i) => ({
           timestamp: now - (29 - i) * 24 * 60 * 60 * 1000,
-          apr: 8.5 + Math.random() * 2 - 1,
+          apr: 8.5,
         })),
         rewardsDistributed: 2500000,
       };
@@ -1098,60 +1097,31 @@ export class DIADataService {
     currentPriceData: PriceData,
     periodHours: number
   ): PriceData[] {
+    // 返回当前价格的静态数组，不使用模拟数据
     const prices: PriceData[] = [];
     const now = Date.now();
     const dataPoints = Math.min(periodHours * 4, 96);
     const intervalMs = (periodHours * 60 * 60 * 1000) / dataPoints;
 
-    const annualVolatility = 0.35;
-    const hoursPerYear = 365 * 24;
-    const hourlyVolatility = annualVolatility / Math.sqrt(hoursPerYear);
-    const drift = 0.0;
-
     const basePrice = currentPriceData.price;
-    const priceHistory: number[] = new Array(dataPoints);
-    priceHistory[dataPoints - 1] = basePrice;
-
-    for (let i = dataPoints - 2; i >= 0; i--) {
-      const randomShock = this.boxMullerRandom();
-      const dt = 1;
-      const logReturn =
-        (drift - 0.5 * hourlyVolatility * hourlyVolatility) * dt +
-        hourlyVolatility * Math.sqrt(dt) * randomShock;
-
-      priceHistory[i] = priceHistory[i + 1] * Math.exp(-logReturn);
-    }
 
     for (let i = 0; i < dataPoints; i++) {
       const timestamp = now - (dataPoints - 1 - i) * intervalMs;
-      const price = priceHistory[i];
-      const prevPrice = i > 0 ? priceHistory[i - 1] : price;
-      const change24h = price - prevPrice;
-      const change24hPercent = prevPrice > 0 ? (change24h / prevPrice) * 100 : 0;
-
       prices.push({
         provider: currentPriceData.provider,
         symbol: currentPriceData.symbol,
-        price,
+        price: basePrice,
         timestamp,
         decimals: currentPriceData.decimals,
-        confidence: currentPriceData.confidence ? currentPriceData.confidence * 0.95 : undefined,
-        change24h,
-        change24hPercent,
+        confidence: currentPriceData.confidence,
+        change24h: 0,
+        change24hPercent: 0,
         chain: currentPriceData.chain,
         source: currentPriceData.source,
       });
     }
 
     return prices;
-  }
-
-  private boxMullerRandom(): number {
-    let u1 = 0;
-    let u2 = 0;
-    while (u1 === 0) u1 = Math.random();
-    while (u2 === 0) u2 = Math.random();
-    return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
   }
 
   private parseAssetQuotation(data: DIAAssetQuotation, chain?: Blockchain): PriceData {

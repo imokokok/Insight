@@ -505,11 +505,11 @@ export class TellorOnChainService {
             id: `reporter-${i + 1}`,
             address,
             stakedAmount,
-            totalReports: Math.floor(Math.random() * 5000) + 100,
-            successfulReports: Math.floor(Math.random() * 4500) + 90,
-            successRate: Number((0.95 + Math.random() * 0.04).toFixed(4)),
-            lastReportTime: Date.now() - Math.floor(Math.random() * 86400000),
-            rewardsEarned: Math.floor(Math.random() * 50000) + 1000,
+            totalReports: 0, // 暂无数据
+            successfulReports: 0, // 暂无数据
+            successRate: 0, // 暂无数据
+            lastReportTime: Date.now(),
+            rewardsEarned: 0, // 暂无数据
             status: stakedAmount > 0 ? 'active' : 'inactive',
           });
         } catch {
@@ -590,9 +590,9 @@ export class TellorOnChainService {
                 : Number(disputeInfo[6]) === 2
                   ? 'disputer_won'
                   : undefined,
-            createdAt: Date.now() - Math.floor(Math.random() * 30 * 86400000),
-            votesForReporter: Math.floor(Math.random() * 50) + 10,
-            votesForDisputer: Math.floor(Math.random() * 50) + 10,
+            createdAt: Date.now(),
+            votesForReporter: 0, // 暂无数据
+            votesForDisputer: 0, // 暂无数据
           });
         } catch {
           continue;
@@ -619,8 +619,8 @@ export class TellorOnChainService {
         recentDisputes: disputes.slice(0, 10),
         disputeTrend: Array.from({ length: 30 }, (_, i) => ({
           timestamp: Date.now() - (29 - i) * 86400000,
-          opened: Math.floor(Math.random() * 3),
-          resolved: Math.floor(Math.random() * 2),
+          opened: 0, // 暂无数据
+          resolved: 0, // 暂无数据
         })),
       };
 
@@ -752,74 +752,25 @@ export class TellorOnChainService {
   }
 
   private getFallbackReporterList(): Reporter[] {
-    return Array.from({ length: 20 }, (_, i) => {
-      const totalReports = Math.floor(Math.random() * 5000) + 100;
-      const successRate = Number((0.95 + Math.random() * 0.04).toFixed(4));
-      return {
-        id: `reporter-${i + 1}`,
-        address:
-          `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}` as `0x${string}`,
-        stakedAmount: Math.floor(Math.random() * 100000) + 10000,
-        totalReports,
-        successfulReports: Math.floor(totalReports * successRate),
-        successRate,
-        lastReportTime: Date.now() - Math.floor(Math.random() * 86400000),
-        rewardsEarned: Math.floor(Math.random() * 50000) + 1000,
-        status: (Math.random() > 0.9 ? 'inactive' : 'active') as 'active' | 'inactive' | 'slashed',
-      };
-    });
+    // 返回空数组，表示暂无数据
+    return [];
   }
 
   private getFallbackDisputeData(): DisputeStats {
-    const disputes: Dispute[] = Array.from({ length: 15 }, (_, i) => {
-      const status = Math.random() > 0.3 ? 'resolved' : 'open';
-      const createdAt = Date.now() - Math.floor(Math.random() * 30 * 86400000);
-      return {
-        id: `dispute-${i + 1}`,
-        reporterId: `reporter-${Math.floor(Math.random() * 20) + 1}`,
-        reporterAddress:
-          `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}` as `0x${string}`,
-        disputedValue: Number((2000 + Math.random() * 500).toFixed(2)),
-        proposedValue: Number((2000 + Math.random() * 500).toFixed(2)),
-        stakeAmount: Math.floor(Math.random() * 50000) + 10000,
-        status: status as 'open' | 'resolved' | 'rejected',
-        outcome:
-          status === 'resolved'
-            ? Math.random() > 0.4
-              ? 'reporter_won'
-              : 'disputer_won'
-            : undefined,
-        createdAt,
-        resolvedAt:
-          status === 'resolved' ? createdAt + Math.floor(Math.random() * 7 * 86400000) : undefined,
-        votesForReporter: Math.floor(Math.random() * 50) + 10,
-        votesForDisputer: Math.floor(Math.random() * 50) + 10,
-        reward: status === 'resolved' ? Math.floor(Math.random() * 10000) + 1000 : undefined,
-      };
-    });
-
-    const resolvedDisputes = disputes.filter((d) => d.status === 'resolved');
-    const successRate =
-      resolvedDisputes.length > 0
-        ? resolvedDisputes.filter((d) => d.outcome === 'disputer_won').length /
-          resolvedDisputes.length
-        : 0;
-
+    // 返回空数据，表示暂无数据
     return {
-      totalDisputes: disputes.length,
-      openDisputes: disputes.filter((d) => d.status === 'open').length,
-      resolvedDisputes: resolvedDisputes.length,
-      successRate: Number((successRate * 100).toFixed(2)),
-      avgResolutionTime: 4.5,
-      totalRewardsDistributed: resolvedDisputes.reduce((sum, d) => sum + (d.reward || 0), 0),
-      totalSlashed: resolvedDisputes
-        .filter((d) => d.outcome === 'disputer_won')
-        .reduce((sum, d) => sum + d.stakeAmount * 0.1, 0),
-      recentDisputes: disputes.slice(0, 10),
+      totalDisputes: 0,
+      openDisputes: 0,
+      resolvedDisputes: 0,
+      successRate: 0,
+      avgResolutionTime: 0,
+      totalRewardsDistributed: 0,
+      totalSlashed: 0,
+      recentDisputes: [],
       disputeTrend: Array.from({ length: 30 }, (_, i) => ({
         timestamp: Date.now() - (29 - i) * 86400000,
-        opened: Math.floor(Math.random() * 3),
-        resolved: Math.floor(Math.random() * 2),
+        opened: 0,
+        resolved: 0,
       })),
     };
   }
