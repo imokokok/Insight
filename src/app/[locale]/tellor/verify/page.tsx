@@ -80,11 +80,11 @@ export default function TellorVerifyPage() {
                   <p className="text-sm text-gray-600 mb-2">数据源: {result.dataSource}</p>
                 )}
 
-                {result.sampleData && (
+                {result.sampleData ? (
                   <pre className="text-xs bg-white p-2 rounded overflow-x-auto">
                     {JSON.stringify(result.sampleData, null, 2)}
                   </pre>
-                )}
+                ) : null}
 
                 {result.error && <p className="text-sm text-red-600 mt-2">错误: {result.error}</p>}
               </div>

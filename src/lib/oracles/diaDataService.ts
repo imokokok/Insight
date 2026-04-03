@@ -190,7 +190,7 @@ interface DIADigitalAsset {
 }
 
 // Exchange Interface from DIA API
-interface DIAExchange {
+export interface DIAExchange {
   Name: string;
   Volume24h: number;
   Trades: number;

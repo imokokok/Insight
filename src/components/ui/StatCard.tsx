@@ -67,7 +67,7 @@ export interface StatCardProps {
  * />
  * ```
  */
-export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
+const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
   (
     {
       title,

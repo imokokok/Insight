@@ -40,9 +40,9 @@ export interface OracleQueryParams {
 }
 
 export interface BatchPriceRequest {
-  provider: OracleProvider;
+  provider: OracleProvider | string;
   symbol: string;
-  chain?: Blockchain;
+  chain?: Blockchain | string;
 }
 
 interface OracleClientInterface {
@@ -160,7 +160,7 @@ export async function fetchBatchPrices(
   await Promise.all(
     requests.map(async (request) => {
       try {
-        const price = await fetchPriceFromOracle(request);
+        const price = await fetchPriceFromOracle(request as OracleQueryParams);
         const key = `${request.provider}:${request.symbol}:${request.chain || 'default'}`;
         results[key] = price;
       } catch (error) {

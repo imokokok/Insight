@@ -73,7 +73,7 @@ interface QueryResultsProps {
   oracleFeatures: OracleFeature[];
 
   // 历史数据（用于走势图）
-  historicalData?: Record<OracleProvider, Array<{ timestamp: number; price: number }>>;
+  historicalData?: Partial<Record<OracleProvider, Array<{ timestamp: number; price: number }>>>;
 
   // 预言机颜色配置
   oracleColors: Record<OracleProvider, string>;
@@ -241,7 +241,6 @@ function QueryResultsComponent({
             <SimpleQualityAnalysisTab
               priceData={priceData}
               selectedOracles={selectedOracles}
-              qualityScore={qualityScore}
               t={t}
             />
           </div>

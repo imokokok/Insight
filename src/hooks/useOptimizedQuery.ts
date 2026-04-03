@@ -272,7 +272,7 @@ export function useOptimisticMutation<
       return { previousData } as TContext;
     },
     onError: (err, variables, context) => {
-      if (context && 'previousData' in context) {
+      if (context && typeof context === 'object' && 'previousData' in context) {
         queryClient.setQueryData(queryKey, (context as { previousData: TData }).previousData);
       }
     },
@@ -311,7 +311,6 @@ export function useQueryPerformance(queryKey: unknown[], queryName: string) {
     return {
       queryKey,
       queryName,
-      fetchCount: query.state.fetchCount,
       fetchFailureCount: query.state.fetchFailureCount,
       dataUpdatedAt: query.state.dataUpdatedAt,
       isStale: query.isStale(),

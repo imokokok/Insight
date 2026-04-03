@@ -174,16 +174,14 @@ export class UMAClient extends BaseOracleClient {
       return voters.map((voter, index) => ({
         id: voter.id,
         address: voter.id,
-        staked: Math.floor(parseFloat(voter.stake) / 1e18),
-        rewards24h: 0,
-        uptime: 100,
-        proposals: 0,
-        votes: 0,
-        status: 'active' as const,
-        commission: 0,
-        rank: index + 1,
         name: `Validator ${index + 1}`,
-        apr: 0,
+        type: 'independent' as const,
+        region: 'Unknown',
+        responseTime: 0,
+        successRate: 100,
+        reputation: 50,
+        staked: Math.floor(parseFloat(voter.delegatedVotes) / 1e18),
+        earnings: 0,
       }));
     } catch (error) {
       throw this.createError(
@@ -260,6 +258,20 @@ export class UMAClient extends BaseOracleClient {
     }
   }
 
+  async getDisputeTrends(): Promise<{ date: string; count: number; type: string; filed: number; resolved: number }[]> {
+    throw this.createError(
+      'Dispute trends are not available from UMA on-chain service.',
+      'UMA_DISPUTE_TRENDS_NOT_AVAILABLE'
+    );
+  }
+
+  async getEarningsTrends(): Promise<{ day: string; daily: number; cumulative: number }[]> {
+    throw this.createError(
+      'Earnings trends are not available from UMA on-chain service.',
+      'UMA_EARNINGS_TRENDS_NOT_AVAILABLE'
+    );
+  }
+
   async getNetworkStats(): Promise<UMANetworkStats> {
     throw this.createError(
       'Network stats are not available from UMA on-chain service.',
@@ -302,7 +314,7 @@ export class UMAClient extends BaseOracleClient {
     );
   }
 
-  async getValidatorHistory(validatorId: string): Promise<ValidatorHistoryData> {
+  async getValidatorHistory(validatorId: string, days?: number): Promise<ValidatorHistoryData[]> {
     throw this.createError(
       'Validator history is not available from UMA on-chain service.',
       'UMA_VALIDATOR_HISTORY_NOT_AVAILABLE'
@@ -313,6 +325,17 @@ export class UMAClient extends BaseOracleClient {
     throw this.createError(
       'Staking calculation is not available from UMA on-chain service.',
       'UMA_STAKING_CALCULATION_NOT_AVAILABLE'
+    );
+  }
+
+  async calculateStakingRewards(
+    stakeAmount: number,
+    validatorType: string,
+    disputeFrequency: string
+  ): Promise<StakingCalculation> {
+    throw this.createError(
+      'Staking rewards calculation is not available from UMA on-chain service.',
+      'UMA_STAKING_REWARDS_CALCULATION_NOT_AVAILABLE'
     );
   }
 

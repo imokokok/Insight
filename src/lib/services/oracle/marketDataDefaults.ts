@@ -6,6 +6,7 @@ export interface MarketShareDataItem {
   color: string;
   tvs: string;
   chains: number;
+  protocols?: number;
 }
 
 export interface TvsTrendDataPoint {

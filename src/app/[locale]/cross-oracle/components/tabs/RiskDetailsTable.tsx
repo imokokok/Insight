@@ -381,7 +381,7 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
                   </h4>
                   <p className="text-sm text-gray-600 leading-relaxed">{anomaly.reason}</p>
                   <div className="pt-2">
-                    <Button variant="outline" size="sm" className="text-xs h-8">
+                    <Button variant="secondary" size="sm" className="text-xs h-8">
                       {t('crossOracle.risk.investigate') || '深入调查'}
                     </Button>
                   </div>

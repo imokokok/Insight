@@ -1,5 +1,5 @@
 import type { RefreshInterval } from '@/lib/constants';
-import type { PriceAlert, AlertHistory, AlertCheckResult } from '@/lib/realtime/priceAlerts';
+import type { AlertHistory, AlertCheckResult } from '@/lib/realtime/priceAlerts';
 import type { WebSocketStatus, WebSocketMessage } from '@/lib/realtime/websocket';
 
 export interface OracleMarketData {
@@ -419,6 +419,8 @@ export interface ScheduledExport {
   lastRunStatus?: 'success' | 'failed' | 'pending';
 }
 
+export type RefreshStatus = 'idle' | 'refreshing' | 'success' | 'error';
+
 /**
  * 价格预警
  */
@@ -434,8 +436,6 @@ export interface PriceAlert {
   note?: string;
   triggered?: boolean;
 }
-
-export type RefreshStatus = 'idle' | 'refreshing' | 'success' | 'error';
 
 export interface UseMarketOverviewDataReturn {
   oracleData: OracleMarketData[];
@@ -499,7 +499,7 @@ export interface UseMarketOverviewDataReturn {
 
   priceAlerts: PriceAlert[];
   alertHistory: AlertHistory[];
-  addPriceAlert: (alert: Omit<PriceAlert, 'id' | 'createdAt' | 'triggeredCount'>) => void;
+  addPriceAlert: (alert: Omit<PriceAlert, 'id' | 'createdAt'>) => void;
   removePriceAlert: (id: string) => void;
   togglePriceAlert: (id: string) => void;
   acknowledgeAlertHistory: (historyId: string) => void;

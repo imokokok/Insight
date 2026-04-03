@@ -346,7 +346,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
               asset: currentSelectedSymbol,
               price: priceData.price,
               timestamp: Date.now(),
-              blockNumber: priceData.blockNumber,
               confidence: priceData.confidence,
             });
 
@@ -358,7 +357,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
                   asset: currentSelectedSymbol,
                   price: dataPoint.price,
                   timestamp: new Date(dataPoint.timestamp).getTime(),
-                  blockNumber: dataPoint.blockNumber,
                   confidence: dataPoint.confidence,
                 });
               });

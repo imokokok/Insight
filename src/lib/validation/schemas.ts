@@ -1,6 +1,55 @@
 import { z } from 'zod';
 
-import { OracleProvider, Blockchain } from '@/types/oracle/enums';
+const OracleProviderEnum = z.enum([
+  'chainlink',
+  'band-protocol',
+  'uma',
+  'pyth',
+  'api3',
+  'redstone',
+  'dia',
+  'tellor',
+  'chronicle',
+  'winklink',
+]);
+
+const BlockchainEnum = z.enum([
+  'ethereum',
+  'arbitrum',
+  'optimism',
+  'polygon',
+  'solana',
+  'avalanche',
+  'fantom',
+  'cronos',
+  'juno',
+  'cosmos',
+  'osmosis',
+  'bnb-chain',
+  'base',
+  'scroll',
+  'zksync',
+  'aptos',
+  'sui',
+  'gnosis',
+  'mantle',
+  'linea',
+  'celestia',
+  'injective',
+  'sei',
+  'tron',
+  'ton',
+  'near',
+  'aurora',
+  'celo',
+  'starknet',
+  'blast',
+  'cardano',
+  'polkadot',
+  'kava',
+  'moonbeam',
+  'starkex',
+]);
 
 export const ConfidenceIntervalSchema = z.object({
   bid: z.number(),
@@ -15,8 +64,8 @@ export const PriceDataBaseSchema = z.object({
 });
 
 export const PriceDataSchema = PriceDataBaseSchema.extend({
-  provider: z.nativeEnum(OracleProvider),
-  chain: z.nativeEnum(Blockchain).optional(),
+  provider: OracleProviderEnum,
+  chain: BlockchainEnum.optional(),
   decimals: z.number().int().nonnegative().optional(),
   confidence: z.number().min(0).max(1).optional(),
   source: z.string().optional(),
@@ -70,7 +119,7 @@ export const OracleResponseSchema = z.object({
     .object({
       message: z.string(),
       code: z.string().optional(),
-      provider: z.nativeEnum(OracleProvider).optional(),
+      provider: OracleProviderEnum.optional(),
     })
     .optional(),
   timestamp: z.number().int().positive(),
@@ -83,7 +132,7 @@ export const OracleListResponseSchema = z.object({
     .object({
       message: z.string(),
       code: z.string().optional(),
-      provider: z.nativeEnum(OracleProvider).optional(),
+      provider: OracleProviderEnum.optional(),
     })
     .optional(),
   timestamp: z.number().int().positive(),
@@ -97,10 +146,10 @@ export const AlertResponseSchema = z.object({
   user_id: z.string().uuid(),
   name: z.string().min(1),
   symbol: z.string().min(1),
-  chain: z.nativeEnum(Blockchain).nullable().optional(),
+  chain: BlockchainEnum.nullable().optional(),
   condition_type: AlertConditionTypeSchema,
   target_value: z.number(),
-  provider: z.nativeEnum(OracleProvider).nullable().optional(),
+  provider: OracleProviderEnum.nullable().optional(),
   is_active: z.boolean(),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime().optional(),
@@ -115,22 +164,21 @@ export const AlertListResponseSchema = z.object({
 export const CreateAlertRequestSchema = z.object({
   name: z.string().min(1, 'Alert name is required'),
   symbol: z.string().min(1, 'Symbol is required'),
-  chain: z.nativeEnum(Blockchain).optional(),
+  chain: BlockchainEnum.optional(),
   condition_type: AlertConditionTypeSchema,
   target_value: z.number({
-    required_error: 'Target value is required',
-    invalid_type_error: 'Target value must be a number',
+    message: 'Target value must be a number',
   }),
-  provider: z.nativeEnum(OracleProvider).optional(),
+  provider: OracleProviderEnum.optional(),
   is_active: z.boolean().optional().default(true),
 });
 
 export const UpdateAlertRequestSchema = CreateAlertRequestSchema.partial();
 
 export const BatchPriceRequestItemSchema = z.object({
-  provider: z.nativeEnum(OracleProvider),
+  provider: OracleProviderEnum,
   symbol: z.string().min(1),
-  chain: z.nativeEnum(Blockchain).optional(),
+  chain: BlockchainEnum.optional(),
 });
 
 export const BatchPriceRequestSchema = z.object({
@@ -138,13 +186,13 @@ export const BatchPriceRequestSchema = z.object({
 });
 
 export const BatchPriceResponseSchema = z.object({
-  results: z.record(PriceDataSchema),
+  results: z.record(z.string(), PriceDataSchema),
 });
 
 export const HistoricalPriceRequestSchema = z.object({
-  provider: z.nativeEnum(OracleProvider),
+  provider: OracleProviderEnum,
   symbol: z.string().min(1),
-  chain: z.nativeEnum(Blockchain).optional(),
+  chain: BlockchainEnum.optional(),
   period: z.number().int().min(1).max(365).optional().default(24),
 });
 
@@ -185,16 +233,16 @@ export const PaginationParamsSchema = z.object({
 
 export const PriceQueryRequestSchema = z.object({
   symbol: z.string().min(1, 'Symbol is required'),
-  chain: z.nativeEnum(Blockchain).optional(),
-  provider: z.nativeEnum(OracleProvider).optional(),
+  chain: BlockchainEnum.optional(),
+  provider: OracleProviderEnum.optional(),
 });
 
 export const FavoriteResponseSchema = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
   symbol: z.string().min(1),
-  chain: z.nativeEnum(Blockchain).nullable().optional(),
-  provider: z.nativeEnum(OracleProvider).nullable().optional(),
+  chain: BlockchainEnum.nullable().optional(),
+  provider: OracleProviderEnum.nullable().optional(),
   created_at: z.string().datetime(),
 });
 
@@ -212,7 +260,7 @@ export const HealthCheckResponseSchema = z.object({
     .object({
       database: z.enum(['ok', 'error']).optional(),
       cache: z.enum(['ok', 'error']).optional(),
-      oracles: z.record(z.enum(['ok', 'error'])).optional(),
+      oracles: z.record(z.string(), z.enum(['ok', 'error'])).optional(),
     })
     .optional(),
 });

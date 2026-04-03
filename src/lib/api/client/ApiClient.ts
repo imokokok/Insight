@@ -1,5 +1,5 @@
 import { ApiError } from './ApiError';
-import { type ApiResponse, type RequestConfig } from './types';
+import { type ApiClientResponse, type RequestConfig } from './types';
 
 type RequestInterceptor = (config: RequestInit) => RequestInit;
 type ResponseInterceptor = (response: Response) => Response | Promise<Response>;
@@ -30,7 +30,7 @@ class ApiClient {
     url: string,
     data?: unknown,
     config?: RequestConfig
-  ): Promise<ApiResponse<T>> {
+  ): Promise<ApiClientResponse<T>> {
     let init: RequestInit = {
       method,
       headers: { ...this.defaultHeaders, ...config?.headers },
@@ -71,19 +71,19 @@ class ApiClient {
     };
   }
 
-  async get<T>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async get<T>(url: string, config?: RequestConfig): Promise<ApiClientResponse<T>> {
     return this.request<T>('GET', url, undefined, config);
   }
 
-  async post<T>(url: string, data: unknown, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async post<T>(url: string, data: unknown, config?: RequestConfig): Promise<ApiClientResponse<T>> {
     return this.request<T>('POST', url, data, config);
   }
 
-  async put<T>(url: string, data: unknown, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async put<T>(url: string, data: unknown, config?: RequestConfig): Promise<ApiClientResponse<T>> {
     return this.request<T>('PUT', url, data, config);
   }
 
-  async delete<T>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async delete<T>(url: string, config?: RequestConfig): Promise<ApiClientResponse<T>> {
     return this.request<T>('DELETE', url, undefined, config);
   }
 }

@@ -571,6 +571,29 @@ export class WINkLinkClient extends BaseOracleClient {
   }
 
   /**
+   * 生成模拟价格数据
+   */
+  protected generateMockPrice(
+    symbol: string,
+    basePrice: number,
+    chain?: Blockchain,
+    timestamp?: number
+  ): PriceData {
+    return {
+      provider: OracleProvider.WINKLINK,
+      symbol: symbol.toUpperCase(),
+      price: basePrice,
+      timestamp: timestamp || Date.now(),
+      decimals: 8,
+      confidence: 0.95,
+      change24h: 0,
+      change24hPercent: 0,
+      chain: chain || Blockchain.TRON,
+      source: 'winklink-mock',
+    };
+  }
+
+  /**
    * 生成模拟历史价格数据
    */
   protected generateMockHistoricalPrices(

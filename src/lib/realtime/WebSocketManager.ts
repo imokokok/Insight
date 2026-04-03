@@ -105,6 +105,10 @@ export class WebSocketManager {
       batchWindowMs: WEBSOCKET_CONFIG.BATCH_WINDOW_MS,
       throttleMs: WEBSOCKET_CONFIG.THROTTLE_MS,
       connectionTimeout: 10000,
+      onConnect: () => {},
+      onDisconnect: () => {},
+      onError: () => {},
+      onReconnect: () => {},
       ...config,
     };
   }
@@ -598,19 +602,21 @@ class WebSocketConnectionPool {
   }
 
   private cleanupOldestConnection(): void {
-    let oldest: { key: string; lastUsed: number } | null = null;
+    let oldestKey: string | null = null;
+    let oldestTime = Infinity;
 
     this.connections.forEach((conn, key) => {
-      if (!oldest || conn.lastUsed < oldest.lastUsed) {
-        oldest = { key, lastUsed: conn.lastUsed };
+      if (conn.lastUsed < oldestTime) {
+        oldestTime = conn.lastUsed;
+        oldestKey = key;
       }
     });
 
-    if (oldest) {
-      const conn = this.connections.get(oldest.key);
+    if (oldestKey) {
+      const conn = this.connections.get(oldestKey);
       if (conn && conn.refCount <= 0) {
         conn.manager.disconnect();
-        this.connections.delete(oldest.key);
+        this.connections.delete(oldestKey);
       }
     }
   }

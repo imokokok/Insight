@@ -254,13 +254,9 @@ function RiskOverviewHeaderComponent({
             <div
               className={cn(
                 'h-full rounded-full transition-all duration-300',
-                riskScoreBg.replace('bg-', 'bg-')
-              )}
-              style={{ width: `${riskScore}%`, backgroundColor: 'currentColor' }}
-              className={cn(
-                'h-full rounded-full transition-all duration-300',
                 riskScoreColor.replace('text-', 'bg-')
               )}
+              style={{ width: `${riskScore}%` }}
             />
           </div>
         </div>

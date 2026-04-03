@@ -24,7 +24,7 @@ export interface CompactStatCardProps {
   className?: string;
 }
 
-export const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
+const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
   ({ title, value, change, breakdown, tooltip, className }, ref) => {
     const trend = useMemo(() => {
       if (!change) return 'neutral';

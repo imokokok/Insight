@@ -108,9 +108,8 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
   const priceHistory: PriceHistoryPoint[] = [];
 
   const currentPrice = realtimePrice?.price ?? basePrice;
-  const previousPrice = realtimePrice?.previousPrice ?? basePrice;
-  const priceChange =
-    realtimePrice?.change24hPercent ?? ((currentPrice - previousPrice) / previousPrice) * 100;
+  const previousPrice = basePrice;
+  const priceChange = realtimePrice?.change24hPercent ?? 0;
   const isPositive = priceChange >= 0;
 
   const confidenceInterval: ConfidenceInterval = useMemo(() => {

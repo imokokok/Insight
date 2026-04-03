@@ -5,6 +5,7 @@
 
 import { TellorClient } from './tellor';
 import { tellorOnChainService } from './tellorOnChainService';
+import { Blockchain } from '@/types/oracle';
 
 export interface VerificationResult {
   method: string;
@@ -131,7 +132,7 @@ export async function verifyTellorData(): Promise<VerificationResult[]> {
   // 5. 验证价格数据
   try {
     console.log('\n💵 测试 getPrice...');
-    const priceResult = await client.getPriceWithSource('ETH', 'ETHEREUM');
+    const priceResult = await client.getPriceWithSource('ETH', Blockchain.ETHEREUM);
     const isReal = priceResult.source === 'on-chain';
     results.push({
       method: 'getPrice',

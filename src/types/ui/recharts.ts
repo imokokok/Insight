@@ -46,10 +46,10 @@ export interface ChartDataPoint {
 }
 
 export interface LegendPayloadItem {
-  value: string;
+  value?: string;
   type?: string;
   id?: string;
-  dataKey?: string;
+  dataKey?: string | number | ((obj: unknown) => unknown);
   color?: string;
   payload?: {
     stroke?: string;

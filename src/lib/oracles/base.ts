@@ -5,6 +5,7 @@ import {
   type Blockchain,
   type PriceData,
   type OracleError,
+  type ErrorCode,
 } from '@/types/oracle';
 
 import {
@@ -30,6 +31,7 @@ export interface OracleClientConfig {
   useDatabase?: boolean;
   fallbackToMock?: boolean;
   validateData?: boolean;
+  useRealData?: boolean;
 }
 
 const DEFAULT_CLIENT_CONFIG: OracleClientConfig = {
@@ -91,7 +93,7 @@ export abstract class BaseOracleClient {
     return {
       message,
       provider: this.name,
-      code,
+      code: code as ErrorCode,
     };
   }
 
@@ -99,14 +101,14 @@ export abstract class BaseOracleClient {
     if (!this.config.validateData) {
       return data as PriceData;
     }
-    return validateOracleData(PriceDataSchema, data, context);
+    return validateOracleData(PriceDataSchema, data, context) as PriceData;
   }
 
   protected safeValidatePriceData(data: unknown, context?: string): PriceData | null {
     if (!this.config.validateData) {
       return data as PriceData;
     }
-    return safeValidateOracleData(PriceDataSchema, data, context);
+    return safeValidateOracleData(PriceDataSchema, data, context) as PriceData | null;
   }
 
   protected validatePriceDataArray(data: unknown[], context?: string): PriceData[] {

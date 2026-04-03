@@ -5,6 +5,8 @@ import { sanitizeObject } from '@/lib/security';
 import { CreateSnapshotRequestSchema, validateAndSanitize } from '@/lib/security/validation';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
+import { type OracleProvider } from '@/types/oracle';
+import { type UserSnapshotInsert } from '@/lib/supabase/queries';
 
 const logger = createLogger('api-snapshots');
 
@@ -63,9 +65,9 @@ export async function POST(request: NextRequest) {
     const snapshot = await queries.saveSnapshot(userId, {
       name,
       symbol,
-      selected_oracles,
-      price_data,
-      stats,
+      selected_oracles: selected_oracles as OracleProvider[],
+      price_data: price_data as unknown as UserSnapshotInsert['price_data'],
+      stats: stats as UserSnapshotInsert['stats'],
       is_public: is_public ?? false,
     });
 

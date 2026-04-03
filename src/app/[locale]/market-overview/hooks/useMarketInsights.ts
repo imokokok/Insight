@@ -5,7 +5,7 @@
 
 import { useMemo, useCallback } from 'react';
 
-import type { OracleMarketData, MarketConcentrationResult, MarketInsights } from '../types';
+import type { OracleMarketData, MarketConcentrationResult, MarketInsights } from '../types/index';
 
 interface UseMarketInsightsOptions {
   /** 国际化翻译函数 */
@@ -22,9 +22,38 @@ interface UseMarketInsightsReturn {
 /**
  * 计算市场集中度 (CR4 - 前4名市场份额之和)
  */
+const DEFAULT_TOP_N_FOR_CONCENTRATION = 4;
+const DEFAULT_TOP_GAINERS_COUNT = 3;
+const DEFAULT_TOP_CHAIN_SUPPORTERS_COUNT = 3;
+
+// 市场集中度阈值
+const CONCENTRATION_THRESHOLDS = {
+  HIGH: 60,
+  MEDIUM: 40,
+};
+
+// 市场集中度等级配置
+const CONCENTRATION_LEVELS = {
+  HIGH: {
+    key: 'marketOverview.insights.concentration.high',
+    color: 'text-danger-600',
+    bgColor: 'bg-danger-50',
+  },
+  MEDIUM: {
+    key: 'marketOverview.insights.concentration.medium',
+    color: 'text-warning-600',
+    bgColor: 'bg-warning-50',
+  },
+  LOW: {
+    key: 'marketOverview.insights.concentration.low',
+    color: 'text-success-600',
+    bgColor: 'bg-success-50',
+  },
+};
+
 function calculateMarketConcentration(
   oracleData: OracleMarketData[],
-  topN: number = MARKET_INSIGHTS_CONFIG.TOP_N_FOR_CONCENTRATION
+  topN: number = DEFAULT_TOP_N_FOR_CONCENTRATION
 ): number {
   return oracleData.slice(0, topN).reduce((sum, oracle) => sum + oracle.share, 0);
 }
@@ -34,7 +63,7 @@ function calculateMarketConcentration(
  */
 function getTopGainers(
   oracleData: OracleMarketData[],
-  count: number = MARKET_INSIGHTS_CONFIG.TOP_GAINERS_COUNT
+  count: number = DEFAULT_TOP_GAINERS_COUNT
 ): OracleMarketData[] {
   return [...oracleData].sort((a, b) => b.change24h - a.change24h).slice(0, count);
 }
@@ -44,7 +73,7 @@ function getTopGainers(
  */
 function getTopChainSupporters(
   oracleData: OracleMarketData[],
-  count: number = MARKET_INSIGHTS_CONFIG.TOP_CHAIN_SUPPORTERS_COUNT
+  count: number = DEFAULT_TOP_CHAIN_SUPPORTERS_COUNT
 ): OracleMarketData[] {
   return [...oracleData].sort((a, b) => b.chains - a.chains).slice(0, count);
 }

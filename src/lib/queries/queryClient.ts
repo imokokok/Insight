@@ -9,6 +9,7 @@ import {
   MutationCache,
   type QueryOptions,
   type UseQueryOptions,
+  type FetchQueryOptions,
 } from '@tanstack/react-query';
 
 import {
@@ -16,6 +17,8 @@ import {
   QUERY_CONFIG_BY_TYPE,
   type QueryConfigType,
 } from '@/lib/config/queryConfig';
+
+export type { QueryConfigType };
 import { isAppError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -121,10 +124,10 @@ export function createQueryOptions<TData = unknown, TError = Error>(
   const baseConfig = getQueryConfig<TData, TError>(type);
 
   return {
-    queryKey,
-    queryFn,
     ...baseConfig,
     ...overrides,
+    queryKey,
+    queryFn,
   };
 }
 
@@ -135,7 +138,7 @@ export function createPrefetchOptions<TData = unknown>(
   queryKey: unknown[],
   queryFn: () => Promise<TData>,
   type: QueryConfigType = 'static'
-): QueryOptions<TData> {
+): FetchQueryOptions<TData> {
   const config = QUERY_CONFIG_BY_TYPE[type] || DEFAULT_QUERY_OPTIONS;
 
   return {
@@ -213,7 +216,7 @@ export const queryClientUtils = {
       totalQueries: queries.length,
       activeQueries: queries.filter((q) => q.isActive()).length,
       staleQueries: queries.filter((q) => q.isStale()).length,
-      fetchingQueries: queries.filter((q) => q.isFetching()).length,
+      fetchingQueries: queries.filter((q) => q.state.fetchStatus === 'fetching').length,
       cachedDataSize: queries.reduce((acc, q) => {
         const data = q.state.data;
         if (data) {

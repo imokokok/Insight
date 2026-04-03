@@ -6,7 +6,7 @@ import {
   usePriceAlerts,
   type AlertCheckResult,
   type PriceDataForAlert,
-  type PriceAlert,
+  type PriceAlert as LibPriceAlert,
   type AlertHistory,
 } from '@/lib/realtime/priceAlerts';
 import {
@@ -15,7 +15,7 @@ import {
   type WebSocketMessage,
 } from '@/lib/realtime/websocket';
 
-import { type OracleMarketData, type AssetData } from './types';
+import { type OracleMarketData, type AssetData, type PriceAlert } from './types';
 
 export interface UseWebSocketHandlerReturn {
   wsStatus: WebSocketStatus;
@@ -63,9 +63,9 @@ export function useWebSocketHandler({
   });
 
   const {
-    alerts: priceAlerts,
+    alerts: libPriceAlerts,
     history: alertHistory,
-    addAlert: addPriceAlert,
+    addAlert: addLibPriceAlert,
     removeAlert: removePriceAlert,
     toggleAlert: togglePriceAlert,
     acknowledgeHistory: acknowledgeAlertHistory,
@@ -74,6 +74,33 @@ export function useWebSocketHandler({
     requestNotificationPermission,
     hasNotificationPermission,
   } = usePriceAlerts();
+
+  // 转换库中的 PriceAlert 到本地的 PriceAlert
+  const priceAlerts: PriceAlert[] = libPriceAlerts.map((alert: LibPriceAlert) => ({
+    id: alert.id,
+    asset: alert.symbol,
+    type: alert.condition === 'above' ? 'above' : alert.condition === 'below' ? 'below' : 'percent_change',
+    price: alert.threshold,
+    enabled: alert.isActive,
+    channels: [
+      ...(alert.notifyBrowser ? ['push' as const] : []),
+    ],
+    createdAt: alert.createdAt,
+    triggered: alert.triggeredCount > 0,
+  }));
+
+  // 转换本地的 PriceAlert 到库中的 PriceAlert
+  const addPriceAlert = (alert: Omit<PriceAlert, 'id' | 'createdAt'>) => {
+    addLibPriceAlert({
+      symbol: alert.asset,
+      type: 'price' as const,
+      condition: alert.type === 'percent_change' ? 'above' : alert.type,
+      threshold: alert.price,
+      isActive: alert.enabled,
+      notifyBrowser: alert.channels.includes('push'),
+      notifySound: false,
+    });
+  };
 
   useEffect(() => {
     if (!wsLastMessage) return;

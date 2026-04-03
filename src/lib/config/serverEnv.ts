@@ -141,11 +141,14 @@ export function getApi3Config() {
   return API3_CONFIG;
 }
 
-// 初始化验证
-if (typeof window === 'undefined') {
-  // 只在服务端执行
-  const validation = validateServerEnv();
-  if (!validation.valid) {
-    logger.warn('Missing server environment variables:', validation.missing);
+// 初始化验证 - 延迟到首次调用时执行
+let _validationDone = false;
+export function ensureServerEnvValidated(): void {
+  if (!_validationDone && typeof window === 'undefined') {
+    _validationDone = true;
+    const validation = validateServerEnv();
+    if (!validation.valid) {
+      logger.warn('Missing server environment variables:', { missing: validation.missing });
+    }
   }
 }

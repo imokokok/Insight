@@ -1,4 +1,5 @@
-import type { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 import { type ZodIssue, type ZodError, type ZodSchema } from 'zod';
 
@@ -11,13 +12,13 @@ export interface ZodValidationResult<T> {
   data: T;
 }
 
-export interface ZodValidationError {
+export interface ZodValidationErrorResult {
   success: false;
   error: ZodError;
   response: NextResponse;
 }
 
-export type ZodValidationResultType<T> = ZodValidationResult<T> | ZodValidationError;
+export type ZodValidationResultType<T> = ZodValidationResult<T> | ZodValidationErrorResult;
 
 export interface ZodValidationOptions {
   body?: ZodSchema;

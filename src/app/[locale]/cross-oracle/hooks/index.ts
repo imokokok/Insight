@@ -41,7 +41,7 @@ export {
 
 export type { TabId } from '../components/TabNavigation';
 export type { CommonSymbolInfo, UseCommonSymbolsResult } from './useCommonSymbols';
-export type { UseDataQualityScoreParams } from './useDataQualityScore';
+// export type { UseDataQualityScoreParams } from './useDataQualityScore';
 export type {
   PriceAnomaly,
   AnomalySeverity,
