@@ -84,7 +84,7 @@ export function validateServerEnv(): { valid: boolean; missing: string[] } {
 
   // 检查关键的 Alchemy RPC
   if (!ALCHEMY_RPC.ethereum) missing.push('ALCHEMY_ETHEREUM_RPC');
-  
+
   // 检查 The Graph API Key
   if (!THEGRAPH_CONFIG.apiKey) {
     logger.warn('THEGRAPH_API_KEY not set, using fallback endpoints');

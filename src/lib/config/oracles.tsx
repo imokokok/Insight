@@ -18,8 +18,8 @@ import {
   WINkLinkClient,
   type BaseOracleClient,
 } from '@/lib/oracles';
-import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
 import { getTokenMarketData } from '@/lib/services/marketData/binanceMarketService';
+import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
 
 export interface OracleTab {
   id: string;
@@ -65,7 +65,10 @@ export interface OracleConfig {
 }
 
 // 默认市场数据（当 API 不可用时使用）
-const getDefaultMarketData = (symbol: string, name: string): MarketDataConfig & { change24hPercent?: number } => ({
+const getDefaultMarketData = (
+  symbol: string,
+  name: string
+): MarketDataConfig & { change24hPercent?: number } => ({
   symbol,
   tokenName: name,
   tokenSymbol: symbol,
@@ -98,7 +101,10 @@ const getDefaultNetworkData = (): NetworkDataConfig => ({
 });
 
 // 异步获取市场数据的函数
-export async function fetchOracleMarketData(symbol: string, name: string): Promise<MarketDataConfig & { change24hPercent?: number }> {
+export async function fetchOracleMarketData(
+  symbol: string,
+  name: string
+): Promise<MarketDataConfig & { change24hPercent?: number }> {
   try {
     const marketData = await getTokenMarketData(symbol);
     if (marketData) {

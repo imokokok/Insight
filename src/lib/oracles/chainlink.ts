@@ -165,7 +165,9 @@ export class ChainlinkClient extends BaseOracleClient {
         const binancePrices = await this.getHistoricalPricesFromCoinGecko(symbol, days);
 
         if (binancePrices && binancePrices.length > 0) {
-          console.log(`[ChainlinkClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`);
+          console.log(
+            `[ChainlinkClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`
+          );
           return binancePrices;
         }
 
@@ -173,7 +175,9 @@ export class ChainlinkClient extends BaseOracleClient {
         if (isPriceFeedSupported(symbol, chainId)) {
           const graphPrices = await this.fetchHistoricalPricesFromSubgraph(symbol, chain, period);
           if (graphPrices && graphPrices.length > 0) {
-            console.log(`[ChainlinkClient] Using TheGraph real historical data for ${symbol}, got ${graphPrices.length} points`);
+            console.log(
+              `[ChainlinkClient] Using TheGraph real historical data for ${symbol}, got ${graphPrices.length} points`
+            );
             return graphPrices;
           }
         }
@@ -208,15 +212,17 @@ export class ChainlinkClient extends BaseOracleClient {
       const subgraphUrls: Record<number, string> = {
         1: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds',
         137: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-polygon',
-        42161: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-arbitrum',
+        42161:
+          'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-arbitrum',
         10: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-optimism',
-        43114: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-avalanche',
+        43114:
+          'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-avalanche',
         56: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-bsc',
       };
 
       const chainId = this.getChainId(chain);
       const subgraphUrl = subgraphUrls[chainId];
-      
+
       if (!subgraphUrl) {
         console.warn(`[ChainlinkClient] No subgraph available for chain ${chainId}`);
         return [];
@@ -262,18 +268,20 @@ export class ChainlinkClient extends BaseOracleClient {
       }
 
       const data = await response.json();
-      
+
       if (data.errors) {
         throw new Error(`TheGraph query error: ${JSON.stringify(data.errors)}`);
       }
 
       const updates = data.data?.answerUpdateds || [];
-      
+
       if (updates.length === 0) {
         return [];
       }
 
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || Number(updates[updates.length - 1].current) / Math.pow(10, feed.decimals);
+      const basePrice =
+        UNIFIED_BASE_PRICES[symbol.toUpperCase()] ||
+        Number(updates[updates.length - 1].current) / Math.pow(10, feed.decimals);
 
       return updates.map((update: { current: string; blockTimestamp: string; roundId: string }) => {
         const price = Number(update.current) / Math.pow(10, feed.decimals);
@@ -370,7 +378,7 @@ export class ChainlinkClient extends BaseOracleClient {
   async getMarketData(symbol: string = 'LINK'): Promise<ChainlinkMarketData | null> {
     try {
       const marketData = await coinGeckoMarketService.getTokenMarketData(symbol);
-      
+
       if (!marketData) {
         console.warn(`[ChainlinkClient] No market data found for ${symbol}`);
         return null;
@@ -405,14 +413,14 @@ export class ChainlinkClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       const historicalPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
-      
+
       if (!historicalPrices || historicalPrices.length === 0) {
         console.warn(`[ChainlinkClient] No historical prices found for ${symbol}`);
         return [];
       }
 
       const chain = Blockchain.ETHEREUM;
-      
+
       return historicalPrices.map((point) => {
         const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || point.price;
         const change24hPercent = ((point.price - basePrice) / basePrice) * 100;

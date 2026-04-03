@@ -5,8 +5,6 @@
  * @description 专业风险预警界面，包含风险概览、热力图、趋势图、详情表格、智能建议
  */
 
-/* eslint-disable react-hooks/purity */
-
 import { memo, useState, useMemo } from 'react';
 
 import { Card, CardContent } from '@/components/ui/Card';
@@ -212,7 +210,7 @@ function RiskAlertTabComponent({
   }, [anomalies, maxDeviation]);
 
   // 获取热力图数据
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   const heatmapData = useMemo(() => {
     const providers = [...new Set(anomalies.map((a) => a.provider))];
     if (providers.length === 0) {

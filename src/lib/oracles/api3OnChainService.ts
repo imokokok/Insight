@@ -1,6 +1,7 @@
 import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
 import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
+
 import { getAPI3Contract } from './api3DataSources';
 
 export interface TokenData {

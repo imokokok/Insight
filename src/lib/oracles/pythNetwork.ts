@@ -114,25 +114,34 @@ export class PythClient extends BaseOracleClient {
 
       // 方案2: 使用新的批量历史数据获取方法
       const historicalPrices = await this.pythDataService.getHistoricalPrices(symbol, period, 60);
-      
+
       if (historicalPrices.length >= 12) {
-        console.log(`[PythClient] Using Pyth real historical data for ${symbol}, got ${historicalPrices.length} points`);
+        console.log(
+          `[PythClient] Using Pyth real historical data for ${symbol}, got ${historicalPrices.length} points`
+        );
         // 添加 chain 和 source 信息
-        return historicalPrices.map(price => ({
-          ...price,
-          chain,
-          source: 'pyth-hermes-api',
-        })).sort((a, b) => a.timestamp - b.timestamp);
+        return historicalPrices
+          .map((price) => ({
+            ...price,
+            chain,
+            source: 'pyth-hermes-api',
+          }))
+          .sort((a, b) => a.timestamp - b.timestamp);
       }
 
       // 如果 Pyth 数据不足，尝试使用 Binance 作为备选
-      console.log(`[PythClient] Pyth historical data insufficient for ${symbol}, trying Binance...`);
-      const { coinGeckoMarketService } = await import('@/lib/services/marketData/coinGeckoMarketService');
+      console.log(
+        `[PythClient] Pyth historical data insufficient for ${symbol}, trying Binance...`
+      );
+      const { coinGeckoMarketService } =
+        await import('@/lib/services/marketData/coinGeckoMarketService');
       const days = Math.ceil(period / 24);
       const binancePrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
 
       if (binancePrices && binancePrices.length > 0) {
-        console.log(`[PythClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`);
+        console.log(
+          `[PythClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`
+        );
         return binancePrices.map((point) => ({
           provider: this.name,
           chain: chain || Blockchain.ETHEREUM,
@@ -152,7 +161,7 @@ export class PythClient extends BaseOracleClient {
       return [];
     } catch (error) {
       console.error(`[PythClient] Failed to fetch historical prices for ${symbol}:`, error);
-      
+
       // 出错时返回空数据
       return [];
     }

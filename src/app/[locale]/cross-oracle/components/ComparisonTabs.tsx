@@ -7,8 +7,8 @@ import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatil
 import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import { type OracleProvider, type PriceData, type SnapshotStats } from '@/types/oracle';
 
-import { type TimeRange, type QualityTrendData, type ChartDataPoint } from '../types';
 import { type PriceOracleProvider } from '../constants';
+import { type TimeRange, type QualityTrendData, type ChartDataPoint } from '../types';
 
 import { ControlPanel } from './ControlPanel';
 import { type TabId, TabNavigation } from './TabNavigation';

@@ -13,6 +13,7 @@ import {
 } from '@/app/[locale]/market-overview/types';
 import { chartColors, chainColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
+
 import { performanceMetricsCalculator } from './performanceMetrics';
 
 const logger = createLogger('marketData:defiLlamaApi');
@@ -589,7 +590,10 @@ export async function fetchAssetsData(
 
       logger.info(`Successfully fetched ${assets.length} assets from Binance`);
     } catch (error) {
-      logger.warn('Failed to fetch from Binance, using fallback data', error instanceof Error ? error : new Error(String(error)));
+      logger.warn(
+        'Failed to fetch from Binance, using fallback data',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
 
     if (assets.length === 0) {
@@ -700,7 +704,8 @@ export async function fetchChainBreakdown(): Promise<ChainBreakdown[]> {
       .filter((chain) => chain.tvl > 0)
       .map((chain) => {
         const share = totalTvl > 0 ? (chain.tvl / totalTvl) * 100 : 0;
-        const chainId = chain.chainId?.toLowerCase() || chain.name.toLowerCase().replace(/\s+/g, '-');
+        const chainId =
+          chain.chainId?.toLowerCase() || chain.name.toLowerCase().replace(/\s+/g, '-');
         const topOracle = getTopOracleForChain(chainId);
 
         return {
@@ -932,16 +937,16 @@ function formatProtocolTVL(value: number): string {
 function normalizeChainName(chain: string): string {
   const chainMap: Record<string, string> = {
     'binance-smart-chain': 'bsc',
-    'bsc': 'bsc',
-    'ethereum': 'ethereum',
-    'solana': 'solana',
-    'arbitrum': 'arbitrum',
-    'optimism': 'optimism',
-    'polygon': 'polygon',
-    'avalanche': 'avalanche',
-    'base': 'base',
-    'fantom': 'fantom',
-    'gnosis': 'gnosis',
+    bsc: 'bsc',
+    ethereum: 'ethereum',
+    solana: 'solana',
+    arbitrum: 'arbitrum',
+    optimism: 'optimism',
+    polygon: 'polygon',
+    avalanche: 'avalanche',
+    base: 'base',
+    fantom: 'fantom',
+    gnosis: 'gnosis',
   };
   return chainMap[chain.toLowerCase()] || chain.toLowerCase();
 }
@@ -969,9 +974,17 @@ export async function fetchProtocolDetails(): Promise<ProtocolDetail[]> {
           category.includes('synthetics') ||
           category.includes('cdp') ||
           category.includes('yield') ||
-          ['chainlink', 'pyth', 'band', 'api3', 'uma', 'redstone', 'switchboard', 'dia', 'tellor'].some(
-            (kw) => name.includes(kw)
-          ))
+          [
+            'chainlink',
+            'pyth',
+            'band',
+            'api3',
+            'uma',
+            'redstone',
+            'switchboard',
+            'dia',
+            'tellor',
+          ].some((kw) => name.includes(kw)))
       );
     });
 
@@ -1275,7 +1288,7 @@ function calculateComparisonMetrics(oracleData: OracleMarketData[]): ComparisonD
       const sorted = [...oracleData].sort((a, b) => {
         let aValue: number;
         let bValue: number;
-        
+
         switch (key) {
           case 'tvs':
             aValue = -a.tvsValue;
@@ -1309,7 +1322,7 @@ function calculateComparisonMetrics(oracleData: OracleMarketData[]): ComparisonD
             aValue = 0;
             bValue = 0;
         }
-        
+
         return aValue - bValue;
       });
       metrics[key].rank = sorted.findIndex((o) => o.name === oracle.name) + 1;
@@ -1691,7 +1704,12 @@ async function fetchCategories(): Promise<CategoryData[]> {
     { id: 'meme', name: 'Meme', market_cap: 60000000000, total_volume: 8000000000 },
     { id: 'ai', name: 'AI', market_cap: 15000000000, total_volume: 1500000000 },
     { id: 'rwa', name: 'RWA', market_cap: 8000000000, total_volume: 500000000 },
-    { id: 'liquid-staking', name: 'Liquid Staking', market_cap: 25000000000, total_volume: 1000000000 },
+    {
+      id: 'liquid-staking',
+      name: 'Liquid Staking',
+      market_cap: 25000000000,
+      total_volume: 1000000000,
+    },
   ];
 
   logger.info('Using predefined category data (Binance does not provide category API)');
@@ -1701,13 +1719,13 @@ async function fetchCategories(): Promise<CategoryData[]> {
 function categorizeAsset(symbol: string): string {
   const categories: Record<string, string[]> = {
     'l1-tokens': ['ETH', 'SOL', 'AVAX', 'BNB', 'MATIC', 'FTM', 'NEAR', 'APT', 'SUI', 'TON'],
-    'stablecoins': ['USDC', 'USDT', 'DAI', 'USDe', 'sUSDe', 'FDUSD', 'TUSD', 'PYUSD', 'GUSD'],
+    stablecoins: ['USDC', 'USDT', 'DAI', 'USDe', 'sUSDe', 'FDUSD', 'TUSD', 'PYUSD', 'GUSD'],
     'l2-tokens': ['ARB', 'OP', 'STRK', 'MANTLE', 'IMX', 'METIS', 'BOBA', 'ZKS'],
     'defi-governance': ['UNI', 'AAVE', 'MKR', 'CRV', 'SNX', 'COMP', 'YFI', 'BAL', 'SUSHI'],
     'liquid-staking': ['stETH', 'rETH', 'cbETH', 'wstETH', 'sfrxETH', 'osETH', 'ankrETH'],
-    'rwa': ['ONDO', 'CFG', 'CPOOL', 'TRU', 'MAPLE', 'RIO', 'NXRA', 'PROPC', 'LEOX'],
-    'meme': ['DOGE', 'SHIB', 'PEPE', 'FLOKI', 'BONK', 'WIF', 'BOME', 'POPCAT'],
-    'ai': ['FET', 'RNDR', 'TAO', 'AGIX', 'OCEAN', 'NMR', 'ALI', 'PHB'],
+    rwa: ['ONDO', 'CFG', 'CPOOL', 'TRU', 'MAPLE', 'RIO', 'NXRA', 'PROPC', 'LEOX'],
+    meme: ['DOGE', 'SHIB', 'PEPE', 'FLOKI', 'BONK', 'WIF', 'BOME', 'POPCAT'],
+    ai: ['FET', 'RNDR', 'TAO', 'AGIX', 'OCEAN', 'NMR', 'ALI', 'PHB'],
   };
 
   const upperSymbol = symbol.toUpperCase();
@@ -1725,21 +1743,37 @@ export async function fetchAssetCategories(): Promise<AssetCategory[]> {
 
     const [categoriesData, assetsData] = await Promise.all([
       fetchCategories(),
-      fetchAssetsData(['BTC', 'ETH', 'SOL', 'AVAX', 'BNB', 'MATIC', 'ARB', 'OP', 'UNI', 'AAVE', 'USDC', 'USDT']),
+      fetchAssetsData([
+        'BTC',
+        'ETH',
+        'SOL',
+        'AVAX',
+        'BNB',
+        'MATIC',
+        'ARB',
+        'OP',
+        'UNI',
+        'AAVE',
+        'USDC',
+        'USDT',
+      ]),
     ]);
 
-    const categoryMap = new Map<string, { value: number; assets: string[]; volatilitySum: number; count: number }>();
+    const categoryMap = new Map<
+      string,
+      { value: number; assets: string[]; volatilitySum: number; count: number }
+    >();
 
     const categoryLabels: Record<string, string> = {
       'l1-tokens': 'L1 Tokens',
-      'stablecoins': 'Stablecoins',
+      stablecoins: 'Stablecoins',
       'l2-tokens': 'L2 Tokens',
       'defi-governance': 'DeFi Governance',
       'liquid-staking': 'Liquid Staking',
-      'rwa': 'RWA',
-      'meme': 'Meme Coins',
-      'ai': 'AI Tokens',
-      'other': 'Other',
+      rwa: 'RWA',
+      meme: 'Meme Coins',
+      ai: 'AI Tokens',
+      other: 'Other',
     };
 
     if (categoriesData.length > 0) {

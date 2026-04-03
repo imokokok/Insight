@@ -2,16 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { oracleClients } from '@/components/oracle/charts/CrossOracleComparison/crossOracleConfig';
 import {
   CROSS_ORACLE_GC_TIME,
   CROSS_ORACLE_QUERY_KEY,
   CROSS_ORACLE_STALE_TIME,
 } from '@/components/oracle/charts/CrossOracleComparison/useCrossOraclePrices';
-import { oracleClients } from '@/components/oracle/charts/CrossOracleComparison/crossOracleConfig';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain, type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { useCalculatedPerformanceMetrics, type OraclePriceResult } from './useCalculatedPerformanceMetrics';
+import {
+  useCalculatedPerformanceMetrics,
+  type OraclePriceResult,
+} from './useCalculatedPerformanceMetrics';
 
 const logger = createLogger('useCrossOracleWithMetrics');
 

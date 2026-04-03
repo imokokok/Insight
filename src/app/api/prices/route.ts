@@ -54,7 +54,7 @@ async function fetchBinancePrices(): Promise<Record<string, number>> {
   const response = await fetch(url, {
     cache: 'no-store',
     headers: {
-      'Accept': 'application/json',
+      Accept: 'application/json',
     },
   });
 
@@ -116,9 +116,6 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch prices' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch prices' }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
+import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
-import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('DIADataService');

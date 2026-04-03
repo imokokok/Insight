@@ -13,7 +13,6 @@ import type {
   ServiceData,
   ServiceUsageDataPoint,
 } from '../data';
-
 import type {
   DataFeed,
   NodeData,

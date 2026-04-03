@@ -82,10 +82,7 @@ export class API3Client extends BaseOracleClient {
     this.dataCache.set(key, { data, timestamp: Date.now() });
   }
 
-  private async fetchData<T>(
-    dataFn: () => Promise<T>,
-    cacheKey?: string
-  ): Promise<T> {
+  private async fetchData<T>(dataFn: () => Promise<T>, cacheKey?: string): Promise<T> {
     if (cacheKey) {
       const cached = this.getCached<T>(cacheKey);
       if (cached) return cached;
@@ -128,43 +125,31 @@ export class API3Client extends BaseOracleClient {
   }
 
   async getAirnodeNetworkStats(): Promise<AirnodeNetworkStats> {
-    return this.fetchData(
-      async () => {
-        const result = await api3DataAggregator.aggregateNetworkData();
-        return result.data.airnodeStats;
-      },
-      'airnode-stats'
-    );
+    return this.fetchData(async () => {
+      const result = await api3DataAggregator.aggregateNetworkData();
+      return result.data.airnodeStats;
+    }, 'airnode-stats');
   }
 
   async getDapiCoverage(): Promise<DAPICoverage> {
-    return this.fetchData(
-      async () => {
-        const result = await api3DataAggregator.aggregateNetworkData();
-        return result.data.dapiCoverage;
-      },
-      'dapi-coverage'
-    );
+    return this.fetchData(async () => {
+      const result = await api3DataAggregator.aggregateNetworkData();
+      return result.data.dapiCoverage;
+    }, 'dapi-coverage');
   }
 
   async getStakingData(): Promise<StakingData> {
-    return this.fetchData(
-      async () => {
-        const result = await api3DataAggregator.aggregateStakingData();
-        return result.data;
-      },
-      'staking-data'
-    );
+    return this.fetchData(async () => {
+      const result = await api3DataAggregator.aggregateStakingData();
+      return result.data;
+    }, 'staking-data');
   }
 
   async getFirstPartyOracleData(): Promise<FirstPartyOracleData> {
-    return this.fetchData(
-      async () => {
-        const result = await api3DataAggregator.aggregateNetworkData();
-        return result.data.firstPartyData;
-      },
-      'first-party-data'
-    );
+    return this.fetchData(async () => {
+      const result = await api3DataAggregator.aggregateNetworkData();
+      return result.data.firstPartyData;
+    }, 'first-party-data');
   }
 
   async getLatencyDistribution(): Promise<AnnotatedData<number[]>> {
@@ -186,23 +171,17 @@ export class API3Client extends BaseOracleClient {
   }
 
   async getDapiPriceDeviations(): Promise<DAPIPriceDeviation[]> {
-    return this.fetchData(
-      async () => {
-        const result = await api3DataAggregator.aggregatePriceDeviations();
-        return result.data;
-      },
-      'price-deviations'
-    );
+    return this.fetchData(async () => {
+      const result = await api3DataAggregator.aggregatePriceDeviations();
+      return result.data;
+    }, 'price-deviations');
   }
 
   async getDataSourceTraceability(): Promise<DataSourceInfo[]> {
-    return this.fetchData(
-      async () => {
-        const result = await api3DataAggregator.aggregateDataSources();
-        return result.data;
-      },
-      'data-sources'
-    );
+    return this.fetchData(async () => {
+      const result = await api3DataAggregator.aggregateDataSources();
+      return result.data;
+    }, 'data-sources');
   }
 
   async getCoveragePoolEvents(): Promise<AnnotatedData<CoveragePoolEvent[]>> {
@@ -325,13 +304,10 @@ export class API3Client extends BaseOracleClient {
   }
 
   async getCoveragePoolDetails(): Promise<CoveragePoolDetails> {
-    return this.fetchData(
-      async () => {
-        const result = await api3DataAggregator.aggregateCoveragePoolDetails();
-        return result.data;
-      },
-      'coverage-pool-details'
-    );
+    return this.fetchData(async () => {
+      const result = await api3DataAggregator.aggregateCoveragePoolDetails();
+      return result.data;
+    }, 'coverage-pool-details');
   }
 
   async getCoveragePoolClaims(status?: string): Promise<CoveragePoolClaim[]> {

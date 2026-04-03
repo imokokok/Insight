@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
-  CalculatedPerformanceMetrics,
+  type CalculatedPerformanceMetrics,
   PerformanceMetricsCalculator,
-  PriceHistoryEntry,
+  type PriceHistoryEntry,
 } from '@/lib/oracles/performanceMetricsCalculator';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, type PriceData } from '@/types/oracle';
+import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('useCalculatedPerformanceMetrics');
 
@@ -52,9 +52,7 @@ export function useCalculatedPerformanceMetrics({
   enabled = true,
   recalculateInterval = 5000, // 默认每5秒重新计算一次
 }: UseCalculatedPerformanceMetricsOptions): UseCalculatedPerformanceMetricsReturn {
-  const calculatorRef = useRef<PerformanceMetricsCalculator>(
-    new PerformanceMetricsCalculator()
-  );
+  const calculatorRef = useRef<PerformanceMetricsCalculator>(new PerformanceMetricsCalculator());
 
   const [metrics, setMetrics] = useState<CalculatedPerformanceMetrics[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);

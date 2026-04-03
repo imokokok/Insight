@@ -233,9 +233,7 @@ export class PerformanceMetricsCalculator {
     // 使用中位数作为参考价格
     const sorted = [...prices].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 === 0
-      ? (sorted[mid - 1] + sorted[mid]) / 2
-      : sorted[mid];
+    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
   }
 
   private calculateReliability(provider: OracleProvider, symbol: string): number {

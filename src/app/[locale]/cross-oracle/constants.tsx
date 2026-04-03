@@ -3,8 +3,8 @@
 import React from 'react';
 
 import { semanticColors, baseColors, chainColors } from '@/lib/config/colors';
-import { providerNames, type RefreshInterval } from '@/lib/constants';
 import { PRICE_ORACLE_PROVIDERS, type PriceOracleProvider } from '@/lib/config/oracles';
+import { providerNames, type RefreshInterval } from '@/lib/constants';
 import {
   ChainlinkClient,
   BandProtocolClient,
@@ -16,7 +16,7 @@ import {
   WINkLinkClient,
   UMAClient,
   ChronicleClient,
-  BaseOracleClient,
+  type BaseOracleClient,
 } from '@/lib/oracles';
 import {
   getDeviationColor,

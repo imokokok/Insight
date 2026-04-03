@@ -78,8 +78,8 @@ export function Selectors({
     return isSymbolSupported(selectedSymbol);
   }, [selectedOracle, selectedSymbol, isSymbolSupported]);
 
-  const oracleOptions: SelectorOption<OracleProvider>[] = getPriceOracleProvidersSortedByMarketCap().map(
-    (oracle) => ({
+  const oracleOptions: SelectorOption<OracleProvider>[] =
+    getPriceOracleProvidersSortedByMarketCap().map((oracle) => ({
       value: oracle,
       label: t(`navbar.${oracleI18nKeys[oracle]}`),
       color: oracleColors[oracle],
@@ -89,8 +89,7 @@ export function Selectors({
           style={{ backgroundColor: oracleColors[oracle] }}
         />
       ),
-    })
-  );
+    }));
 
   // 链选项生成逻辑：根据选中的预言机和币种动态过滤
   const chainOptions: SelectorOption<Blockchain>[] = useMemo(() => {

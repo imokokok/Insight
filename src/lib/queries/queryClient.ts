@@ -17,10 +17,10 @@ import {
   QUERY_CONFIG_BY_TYPE,
   type QueryConfigType,
 } from '@/lib/config/queryConfig';
-
-export type { QueryConfigType };
 import { isAppError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
+
+export type { QueryConfigType };
 
 const logger = createLogger('QueryClient');
 

@@ -519,7 +519,7 @@ export function API3Hero({
   }, [historicalData, currentPrice]);
 
   // 核心统计指标 - 增加到5个
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   const primaryStats: StatItem[] = useMemo(
     () => [
       {

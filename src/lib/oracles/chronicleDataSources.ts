@@ -152,11 +152,9 @@ export const CHRONICLE_RPC_CONFIG: Record<number, ChronicleRPCConfig> = {
     name: 'Polygon',
   },
   8453: {
-    endpoints: [
-      ALCHEMY_RPC.base,
-      'https://mainnet.base.org',
-      'https://base.publicnode.com',
-    ].filter(Boolean),
+    endpoints: [ALCHEMY_RPC.base, 'https://mainnet.base.org', 'https://base.publicnode.com'].filter(
+      Boolean
+    ),
     chainId: 8453,
     name: 'Base',
   },

@@ -389,7 +389,6 @@ function ComparisonChart({
     }));
   }, [data, showMA, trendAnalysis]);
 
-  // eslint-disable-next-line react-hooks/static-components
   const CustomTooltip = ({
     active,
     payload,

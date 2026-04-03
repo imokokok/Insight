@@ -122,9 +122,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
                     </span>
                   </div>
                   {ItemIcon && (
-                    <div
-                      className={`p-2 rounded-md transition-colors bg-gray-100`}
-                    >
+                    <div className={`p-2 rounded-md transition-colors bg-gray-100`}>
                       <ItemIcon className="w-4 h-4 text-gray-400" />
                     </div>
                   )}

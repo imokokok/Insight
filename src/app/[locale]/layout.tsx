@@ -10,9 +10,9 @@ import { AppInitializer } from '@/components/AppInitializer';
 import { ErrorBoundary } from '@/components/ErrorBoundaries';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
+import { PerformanceMetricsCollector } from '@/components/PerformanceMetricsCollector';
 import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
 import { ToastProvider } from '@/components/ui';
-import { PerformanceMetricsCollector } from '@/components/PerformanceMetricsCollector';
 import { routing } from '@/i18n/routing';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 

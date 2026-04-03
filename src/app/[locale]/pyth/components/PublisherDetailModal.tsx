@@ -30,6 +30,8 @@ import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { type TooltipProps } from '@/types/ui/recharts';
 
+import { type PublisherData } from '../types';
+
 interface StakeHistoryPoint {
   date: string;
   stake: number;
@@ -53,8 +55,6 @@ interface PerformanceMetric {
   value: number;
   change: number;
 }
-
-import { type PublisherData } from '../types';
 
 interface PublisherDetailModalProps {
   publisher: PublisherData;

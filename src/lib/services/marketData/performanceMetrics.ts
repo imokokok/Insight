@@ -344,9 +344,11 @@ export function calculateMetricsFromPriceData(
       latencies.push(diff);
     }
   }
-  const avgLatency = latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
+  const avgLatency =
+    latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
 
-  const timeSpan = sortedOraclePrices[sortedOraclePrices.length - 1].timestamp - sortedOraclePrices[0].timestamp;
+  const timeSpan =
+    sortedOraclePrices[sortedOraclePrices.length - 1].timestamp - sortedOraclePrices[0].timestamp;
   const updateFrequency = timeSpan > 0 ? timeSpan / (sortedOraclePrices.length - 1) / 1000 : 0;
 
   let totalDeviation = 0;
@@ -367,7 +369,8 @@ export function calculateMetricsFromPriceData(
     }
   }
 
-  const accuracy = validComparisons > 0 ? Math.max(0, 100 - (totalDeviation / validComparisons) * 100) : 0;
+  const accuracy =
+    validComparisons > 0 ? Math.max(0, 100 - (totalDeviation / validComparisons) * 100) : 0;
 
   return {
     latency: Math.round(avgLatency),

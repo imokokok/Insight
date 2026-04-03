@@ -17,6 +17,7 @@ import {
   ChronicleClient,
   WINkLinkClient,
 } from '@/lib/oracles';
+import { performanceMetricsCalculator } from '@/lib/services/marketData';
 import { createLogger } from '@/lib/utils/logger';
 
 import { type QueryResult } from '../constants';
@@ -27,7 +28,6 @@ import {
   validateTimeSeries,
   type AnomalyInfo,
 } from '../utils/priceValidator';
-import { performanceMetricsCalculator } from '@/lib/services/marketData';
 
 const logger = createLogger('price-query-data');
 
