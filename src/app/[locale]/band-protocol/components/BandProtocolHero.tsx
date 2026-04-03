@@ -701,9 +701,11 @@ export function BandProtocolHero({
   // 网络健康度评分
   const healthScore = useMemo(() => {
     const uptimeScore = (networkStats?.nodeUptime ?? 99.9) * 0.4;
-    const validatorScore = (activeValidators / totalValidators) * 100 * 0.3;
-    const feedScore = Math.min(100, config.networkData.dataFeeds / 10) * 0.3;
-    return Math.round(uptimeScore + validatorScore + feedScore);
+    const validatorScore =
+      totalValidators > 0 ? (activeValidators / totalValidators) * 100 * 0.3 : 30;
+    const feedScore = Math.min(100, (config.networkData.dataFeeds || 0) / 10) * 0.3;
+    const score = Math.round(uptimeScore + validatorScore + feedScore);
+    return isNaN(score) ? 85 : score;
   }, [networkStats, activeValidators, totalValidators, config.networkData.dataFeeds]);
 
   return (

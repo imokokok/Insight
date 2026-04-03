@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export type DataFreshnessStatus = 'fresh' | 'stale' | 'expired';
 
@@ -16,45 +16,58 @@ export function useDataFreshness(
   maxFreshTime: number = 5,
   maxStaleTime: number = 30
 ): UseDataFreshnessReturn {
-  const [now] = useState(() => Date.now());
+  const [result, setResult] = useState<UseDataFreshnessReturn>({
+    status: 'expired',
+    ageInMinutes: 0,
+    message: '数据未加载',
+    shouldRefresh: true,
+  });
 
-  const result = useMemo(() => {
-    if (!lastUpdated) {
-      return {
-        status: 'expired' as DataFreshnessStatus,
-        ageInMinutes: 0,
-        message: '数据未加载',
-        shouldRefresh: true,
-      };
-    }
+  useEffect(() => {
+    const calculateFreshness = () => {
+      const now = Date.now();
 
-    const ageInMinutes = (now - lastUpdated.getTime()) / 60000;
+      if (!lastUpdated) {
+        setResult({
+          status: 'expired',
+          ageInMinutes: 0,
+          message: '数据未加载',
+          shouldRefresh: true,
+        });
+        return;
+      }
 
-    if (ageInMinutes < maxFreshTime) {
-      return {
-        status: 'fresh' as DataFreshnessStatus,
-        ageInMinutes,
-        message: '数据新鲜',
-        shouldRefresh: false,
-      };
-    }
+      const ageInMinutes = (now - lastUpdated.getTime()) / 60000;
 
-    if (ageInMinutes < maxStaleTime) {
-      return {
-        status: 'stale' as DataFreshnessStatus,
-        ageInMinutes,
-        message: '数据即将过期',
-        shouldRefresh: false,
-      };
-    }
-
-    return {
-      status: 'expired' as DataFreshnessStatus,
-      ageInMinutes,
-      message: '数据已过期',
-      shouldRefresh: true,
+      if (ageInMinutes < maxFreshTime) {
+        setResult({
+          status: 'fresh',
+          ageInMinutes,
+          message: '数据新鲜',
+          shouldRefresh: false,
+        });
+      } else if (ageInMinutes < maxStaleTime) {
+        setResult({
+          status: 'stale',
+          ageInMinutes,
+          message: '数据即将过期',
+          shouldRefresh: false,
+        });
+      } else {
+        setResult({
+          status: 'expired',
+          ageInMinutes,
+          message: '数据已过期',
+          shouldRefresh: true,
+        });
+      }
     };
-  }, [lastUpdated, maxFreshTime, maxStaleTime, now]);
+
+    calculateFreshness();
+
+    const interval = setInterval(calculateFreshness, 60000);
+    return () => clearInterval(interval);
+  }, [lastUpdated, maxFreshTime, maxStaleTime]);
 
   return result;
 }
