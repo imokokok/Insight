@@ -23,6 +23,7 @@ export default function CrossOraclePage() {
   const {
     // 基础状态
     selectedOracles,
+    setSelectedOracles,
     selectedSymbol,
     setSelectedSymbol,
     timeRange,
@@ -136,8 +137,10 @@ export default function CrossOraclePage() {
 
   // 清除筛选器
   const handleClearFilters = useCallback(() => {
+    setSelectedOracles([]);
+    setSelectedSymbol('');
     setTimeRange('24H');
-  }, [setTimeRange]);
+  }, [setSelectedOracles, setSelectedSymbol, setTimeRange]);
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">

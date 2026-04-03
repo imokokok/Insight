@@ -765,7 +765,10 @@
     "loading": "加载中...",
     "query": "查询",
     "selectOracleHint": "请至少选择一个预言机",
-    "oraclesSelected": "个预言机已选择"
+    "oraclesSelected": "个预言机已选择",
+    "noCommonSymbols": "所选预言机没有共同支持的币种",
+    "adjustOracleSelection": "请调整预言机选择，选择支持相同币种的预言机",
+    "selectOracleFirst": "请先选择预言机"
   },
   "crossOracleComparison": {
     "title": "多预言机比较分析",
