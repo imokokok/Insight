@@ -12,9 +12,7 @@ export const EmptyDataState: React.FC<EmptyDataStateProps> = ({
   className = '',
 }) => {
   return (
-    <div
-      className={`flex flex-col items-center justify-center py-8 px-4 text-center ${className}`}
-    >
+    <div className={`flex flex-col items-center justify-center py-8 px-4 text-center ${className}`}>
       <div className="mb-3 text-gray-400">
         <svg
           xmlns="http://www.w3.org/2000/svg"

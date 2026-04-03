@@ -79,12 +79,15 @@ export function useWebSocketHandler({
   const priceAlerts: PriceAlert[] = libPriceAlerts.map((alert: LibPriceAlert) => ({
     id: alert.id,
     asset: alert.symbol,
-    type: alert.condition === 'above' ? 'above' : alert.condition === 'below' ? 'below' : 'percent_change',
+    type:
+      alert.condition === 'above'
+        ? 'above'
+        : alert.condition === 'below'
+          ? 'below'
+          : 'percent_change',
     price: alert.threshold,
     enabled: alert.isActive,
-    channels: [
-      ...(alert.notifyBrowser ? ['push' as const] : []),
-    ],
+    channels: [...(alert.notifyBrowser ? ['push' as const] : [])],
     createdAt: alert.createdAt,
     triggered: alert.triggeredCount > 0,
   }));

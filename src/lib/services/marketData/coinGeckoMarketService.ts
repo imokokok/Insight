@@ -1,5 +1,10 @@
 import { createLogger } from '@/lib/utils/logger';
-import { binanceMarketService, TokenMarketData, HistoricalPricePoint } from './binanceMarketService';
+
+import {
+  binanceMarketService,
+  type TokenMarketData,
+  type HistoricalPricePoint,
+} from './binanceMarketService';
 
 const logger = createLogger('CoinGeckoMarketService');
 

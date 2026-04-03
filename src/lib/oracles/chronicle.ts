@@ -1,5 +1,5 @@
-import { createLogger } from '@/lib/utils/logger';
 import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
+import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -421,10 +421,7 @@ export class ChronicleClient extends BaseOracleClient {
             throw new Error(`No price feed for ${symbol}`);
           }
         } catch (error) {
-          logger.error(
-            `Failed to fetch real data for ${symbol}:`,
-            error as Error
-          );
+          logger.error(`Failed to fetch real data for ${symbol}:`, error as Error);
           throw this.createError(
             error instanceof Error ? error.message : 'Failed to fetch price from Chronicle',
             'CHRONICLE_ERROR'
@@ -489,12 +486,15 @@ export class ChronicleClient extends BaseOracleClient {
       }
 
       // 优先使用 Binance 获取真实历史数据
-      const { coinGeckoMarketService } = await import('@/lib/services/marketData/coinGeckoMarketService');
+      const { coinGeckoMarketService } =
+        await import('@/lib/services/marketData/coinGeckoMarketService');
       const days = Math.ceil(period / 24);
       const binancePrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
 
       if (binancePrices && binancePrices.length > 0) {
-        logger.info(`[ChronicleClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`);
+        logger.info(
+          `[ChronicleClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`
+        );
         const result = binancePrices.map((point) => ({
           provider: this.name,
           chain: chain || Blockchain.ETHEREUM,
@@ -519,7 +519,10 @@ export class ChronicleClient extends BaseOracleClient {
       logger.warn(`[ChronicleClient] No historical data available for ${symbol}`);
       return [];
     } catch (error) {
-      logger.error(`[ChronicleClient] Failed to fetch historical prices for ${symbol}:`, error as Error);
+      logger.error(
+        `[ChronicleClient] Failed to fetch historical prices for ${symbol}:`,
+        error as Error
+      );
       return [];
     }
   }

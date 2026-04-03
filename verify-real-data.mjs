@@ -6,14 +6,14 @@
 // 直接通过 RPC 调用验证 Chainlink 价格喂价合约
 const CHAINLINK_PRICE_FEEDS = {
   ETH: {
-    1: { address: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419', name: 'ETH / USD', decimals: 8 }
+    1: { address: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419', name: 'ETH / USD', decimals: 8 },
   },
   BTC: {
-    1: { address: '0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c', name: 'BTC / USD', decimals: 8 }
+    1: { address: '0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c', name: 'BTC / USD', decimals: 8 },
   },
   LINK: {
-    1: { address: '0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c', name: 'LINK / USD', decimals: 8 }
-  }
+    1: { address: '0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c', name: 'LINK / USD', decimals: 8 },
+  },
 };
 
 // Alchemy RPC 端点
@@ -32,7 +32,7 @@ async function makeRPCCall(to, data) {
       jsonrpc: '2.0',
       id: 1,
       method: 'eth_call',
-      params: [{ to, data }, 'latest']
+      params: [{ to, data }, 'latest'],
     }),
   });
 
@@ -63,7 +63,7 @@ function decodeLatestRoundData(data) {
     answer,
     startedAt,
     updatedAt,
-    answeredInRound
+    answeredInRound,
   };
 }
 
@@ -102,7 +102,7 @@ async function verifyRealData() {
         updateTime,
         roundId: decoded.roundId.toString(),
         latency,
-        success: true
+        success: true,
       });
     } catch (error) {
       console.log(`  ❌ 失败: ${error.message}\n`);
@@ -114,8 +114,8 @@ async function verifyRealData() {
   console.log('=== 验证结果总结 ===');
   console.log('');
 
-  const successful = results.filter(r => r.success);
-  const failed = results.filter(r => !r.success);
+  const successful = results.filter((r) => r.success);
+  const failed = results.filter((r) => !r.success);
 
   console.log(`✅ 成功: ${successful.length}/${results.length}`);
   console.log(`❌ 失败: ${failed.length}/${results.length}`);
@@ -128,10 +128,13 @@ async function verifyRealData() {
     console.log('├─────────┼─────────────────┼─────────────────────────┼──────────┤');
 
     for (const r of successful) {
-      const priceStr = r.price < 100
-        ? r.price.toFixed(4)
-        : r.price.toLocaleString('en-US', { maximumFractionDigits: 2 });
-      console.log(`│ ${r.symbol.padEnd(7)} │ $${priceStr.padStart(15)} │ ${r.updateTime.toLocaleString().padEnd(23)} │ ${r.latency.toString().padStart(8)} │`);
+      const priceStr =
+        r.price < 100
+          ? r.price.toFixed(4)
+          : r.price.toLocaleString('en-US', { maximumFractionDigits: 2 });
+      console.log(
+        `│ ${r.symbol.padEnd(7)} │ $${priceStr.padStart(15)} │ ${r.updateTime.toLocaleString().padEnd(23)} │ ${r.latency.toString().padStart(8)} │`
+      );
     }
 
     console.log('└─────────┴─────────────────┴─────────────────────────┴──────────┘');
@@ -167,7 +170,7 @@ async function verifyRealData() {
 }
 
 // 运行验证
-verifyRealData().catch(error => {
+verifyRealData().catch((error) => {
   console.error('验证过程出错:', error);
   process.exit(1);
 });

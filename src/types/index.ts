@@ -1,13 +1,6 @@
 export * from './common';
-export {
-  OracleProvider,
-  Blockchain,
-} from './oracle/enums';
-export type {
-  TimeRange as OracleTimeRange,
-  DataStatus,
-  TrendDirection,
-} from './oracle/constants';
+export { OracleProvider, Blockchain } from './oracle/enums';
+export type { TimeRange as OracleTimeRange, DataStatus, TrendDirection } from './oracle/constants';
 export * from './oracle/price';
 export * from './oracle/publisher';
 export * from './oracle/oracle';

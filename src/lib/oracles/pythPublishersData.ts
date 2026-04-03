@@ -133,7 +133,7 @@ export const PYTH_PUBLISHERS: PublisherData[] = [
     id: 'bybit',
     name: 'Bybit',
     publisherKey: '1YzWvKxVnXvVzNnV5rKpZNFtxxLJGVzYMaVqVYqZvLzJ3YzWvKxVn',
-    reliabilityScore: 0.990,
+    reliabilityScore: 0.99,
     latency: 43,
     status: 'active',
     submissionCount: 2000000,

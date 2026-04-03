@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('ConfigAPI');
@@ -87,17 +88,17 @@ export function getServerConfig() {
 export async function GET() {
   try {
     logger.info('Fetching public config');
-    
+
     return NextResponse.json({
       success: true,
       config: PUBLIC_CONFIG,
     });
   } catch (error) {
-    logger.error('Failed to fetch config', error instanceof Error ? error : new Error(String(error)));
-    
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch config' },
-      { status: 500 }
+    logger.error(
+      'Failed to fetch config',
+      error instanceof Error ? error : new Error(String(error))
     );
+
+    return NextResponse.json({ success: false, error: 'Failed to fetch config' }, { status: 500 });
   }
 }

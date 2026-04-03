@@ -3,9 +3,10 @@
  * 用于验证 Tellor 数据是否从链上真实获取
  */
 
+import { Blockchain } from '@/types/oracle';
+
 import { TellorClient } from './tellor';
 import { tellorOnChainService } from './tellorOnChainService';
-import { Blockchain } from '@/types/oracle';
 
 export interface VerificationResult {
   method: string;

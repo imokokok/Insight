@@ -38,16 +38,16 @@ import {
   type WebSocketConnectionState,
 } from '@/lib/oracles/pythDataService';
 import { cn } from '@/lib/utils';
+import type { PriceData, ConfidenceInterval } from '@/types/oracle';
+import { type TooltipProps } from '@/types/ui/recharts';
+
+import { type PriceFeed, type RealtimeState } from '../types';
 
 interface PriceHistoryPoint {
   time: string;
   price: number;
   confidence: number;
 }
-import type { PriceData, ConfidenceInterval } from '@/types/oracle';
-import { type TooltipProps } from '@/types/ui/recharts';
-
-import { type PriceFeed, type RealtimeState } from '../types';
 
 interface PriceFeedDetailModalProps {
   priceFeed: PriceFeed;

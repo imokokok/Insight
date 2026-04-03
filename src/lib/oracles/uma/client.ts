@@ -5,9 +5,7 @@ import { BaseOracleClient } from '../base';
 import { umaSymbols } from '../supportedSymbols';
 import { isUMASupportedOnChain } from '../umaDataSources';
 import { umaOnChainService, type UMATokenData } from '../umaOnChainService';
-import {
-  umaSubgraphService,
-} from '../umaSubgraphService';
+import { umaSubgraphService } from '../umaSubgraphService';
 
 import type { OracleClientConfig } from '../base';
 import type {
@@ -35,7 +33,7 @@ interface CacheEntry<T> {
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
 let disputesCache: CacheEntry<DisputeData[]> | null = null;
-let heatmapCache: CacheEntry<ValidatorPerformanceHeatmapData[]> | null = null;
+const heatmapCache: CacheEntry<ValidatorPerformanceHeatmapData[]> | null = null;
 
 const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.ETHEREUM]: 1,
@@ -209,7 +207,7 @@ export class UMAClient extends BaseOracleClient {
       if (subgraphDisputes.length === 0) {
         throw this.createError('No disputes found in UMA subgraph', 'UMA_NO_DISPUTES');
       }
-      
+
       const disputes: DisputeData[] = subgraphDisputes.map((d) => {
         const bond = parseFloat(d.request.bond) / 1e18;
         const reward = parseFloat(d.request.reward) / 1e18;
@@ -239,7 +237,9 @@ export class UMAClient extends BaseOracleClient {
           timestamp: parseInt(d.disputeTime) * 1000,
           status,
           reward: Math.floor(reward),
-          resolutionTime: d.resolutionTime ? parseInt(d.resolutionTime) - parseInt(d.disputeTime) : undefined,
+          resolutionTime: d.resolutionTime
+            ? parseInt(d.resolutionTime) - parseInt(d.disputeTime)
+            : undefined,
           type,
           transactionHash: d.id,
           stakeAmount: Math.floor(bond),
@@ -258,7 +258,9 @@ export class UMAClient extends BaseOracleClient {
     }
   }
 
-  async getDisputeTrends(): Promise<{ date: string; count: number; type: string; filed: number; resolved: number }[]> {
+  async getDisputeTrends(): Promise<
+    { date: string; count: number; type: string; filed: number; resolved: number }[]
+  > {
     throw this.createError(
       'Dispute trends are not available from UMA on-chain service.',
       'UMA_DISPUTE_TRENDS_NOT_AVAILABLE'
@@ -374,9 +376,7 @@ export class UMAClient extends BaseOracleClient {
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
-    const isSymbolInList = umaSymbols.includes(
-      symbol.toUpperCase() as (typeof umaSymbols)[number]
-    );
+    const isSymbolInList = umaSymbols.includes(symbol.toUpperCase() as (typeof umaSymbols)[number]);
     if (!isSymbolInList) {
       return false;
     }

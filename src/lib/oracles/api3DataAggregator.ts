@@ -195,9 +195,7 @@ export class API3DataAggregator {
     const finalData = primaryResult ?? fallbackResult;
 
     if (finalData === undefined) {
-      throw new Error(
-        `All data sources failed for ${strategy.dataType}. No mock data available.`
-      );
+      throw new Error(`All data sources failed for ${strategy.dataType}. No mock data available.`);
     }
 
     // 计算置信度
@@ -980,7 +978,9 @@ export class API3DataAggregator {
             airnodeDistribution: { byRegion: {}, byChain: {}, byProviderType: {} },
           },
           dapiCoverage: { total: 0, byChain: {}, byCategory: {} },
-          firstPartyData: { advantages: { noMiddlemen: true, sourceTransparency: true, responseTime: 0 } },
+          firstPartyData: {
+            advantages: { noMiddlemen: true, sourceTransparency: true, responseTime: 0 },
+          },
           lastUpdated: new Date(),
         } as T;
       case 'oev':

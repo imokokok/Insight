@@ -2,6 +2,8 @@ import axios, { AxiosError } from 'axios';
 
 import { createLogger } from '@/lib/utils/logger';
 
+import { EventType } from './types';
+
 import type {
   BandNetworkStats,
   ValidatorInfo,
@@ -13,28 +15,15 @@ import type {
   ChainEvent,
   StakingInfo,
 } from './types';
-import { EventType } from './types';
 
 const logger = createLogger('BandRpcService');
 
-const BAND_RPC_URL = 'http://rpc.laozi1.bandchain.org';
 const BAND_REST_URL = 'https://laozi1.bandchain.org/api';
 const CACHE_TTL = 30000; // 30 seconds
 
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
-}
-
-interface RpcResponse<T> {
-  jsonrpc: string;
-  id: number;
-  result?: T;
-  error?: {
-    code: number;
-    message: string;
-    data?: string;
-  };
 }
 
 // Block interfaces
@@ -57,21 +46,6 @@ interface BlockResult {
       }>;
     };
   };
-}
-
-interface BlockchainResult {
-  last_height: string;
-  block_metas: Array<{
-    block_id: {
-      hash: string;
-    };
-    header: {
-      height: string;
-      time: string;
-      proposer_address: string;
-      num_txs: string;
-    };
-  }>;
 }
 
 // Validator interfaces
@@ -334,30 +308,6 @@ interface TxResult {
   };
 }
 
-interface TxSearchResult {
-  txs: Array<{
-    body: {
-      messages: Array<{
-        '@type': string;
-        [key: string]: unknown;
-      }>;
-      memo: string;
-    };
-  }>;
-  tx_responses: Array<{
-    height: string;
-    txhash: string;
-    code: number;
-    raw_log: string;
-    gas_wanted: string;
-    gas_used: string;
-    timestamp: string;
-  }>;
-  pagination: {
-    total: string;
-  };
-}
-
 // Account interfaces
 interface AccountResult {
   account: {
@@ -536,11 +486,9 @@ export interface OracleRequestInfo {
 
 class BandRpcService {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
-  private readonly rpcUrl: string;
   private readonly restUrl: string;
 
-  constructor(rpcUrl: string = BAND_RPC_URL, restUrl: string = BAND_REST_URL) {
-    this.rpcUrl = rpcUrl;
+  constructor(restUrl: string = BAND_REST_URL) {
     this.restUrl = restUrl;
   }
 
@@ -558,49 +506,6 @@ class BandRpcService {
 
   private setCache<T>(key: string, data: T): void {
     this.cache.set(key, { data, timestamp: Date.now() });
-  }
-
-  private async makeRpcCall<T>(method: string, params?: Record<string, unknown>): Promise<T> {
-    const cacheKey = this.getCacheKey(method, params);
-    const cached = this.getCached<T>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      const response = await axios.post<RpcResponse<T>>(
-        this.rpcUrl,
-        {
-          jsonrpc: '2.0',
-          id: 1,
-          method,
-          params: params || {},
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          timeout: 10000,
-        }
-      );
-
-      if (response.data.error) {
-        throw new Error(`RPC Error: ${response.data.error.message}`);
-      }
-
-      if (response.data.result === undefined) {
-        throw new Error('RPC response missing result');
-      }
-
-      this.setCache(cacheKey, response.data.result);
-      return response.data.result;
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        logger.error(`RPC call failed: ${method}`, error, { status: error.response?.status });
-        throw new Error(`Failed to call ${method}: ${error.message}`);
-      }
-      throw error;
-    }
   }
 
   private async makeRestCall<T>(endpoint: string): Promise<T> {
@@ -634,10 +539,10 @@ class BandRpcService {
   // Get latest block height
   async getLatestBlockHeight(): Promise<number> {
     try {
-      const result = await this.makeRpcCall<{ sync_info: { latest_block_height: string } }>(
-        'status'
+      const result = await this.makeRestCall<{ block: { header: { height: string } } }>(
+        '/cosmos/base/tendermint/v1beta1/blocks/latest'
       );
-      return parseInt(result.sync_info.latest_block_height, 10);
+      return parseInt(result.block.header.height, 10);
     } catch (error) {
       logger.error(
         'Failed to get latest block height',
@@ -649,8 +554,10 @@ class BandRpcService {
 
   // Get block by height
   async getBlock(height?: number): Promise<BlockResult> {
-    const params = height ? { height: height.toString() } : {};
-    return this.makeRpcCall<BlockResult>('block', params);
+    const endpoint = height
+      ? `/cosmos/base/tendermint/v1beta1/blocks/${height}`
+      : '/cosmos/base/tendermint/v1beta1/blocks/latest';
+    return this.makeRestCall<BlockResult>(endpoint);
   }
 
   // Get block info by height
@@ -677,19 +584,47 @@ class BandRpcService {
   // Get multiple blocks
   async getBlocks(minHeight: number, maxHeight: number): Promise<BlockInfo[]> {
     try {
-      const result = await this.makeRpcCall<BlockchainResult>('blockchain', {
-        minHeight: minHeight.toString(),
-        maxHeight: maxHeight.toString(),
-      });
+      // Use REST API to get block headers for the range
+      const blockInfos: BlockInfo[] = [];
+      const promises: Promise<void>[] = [];
 
-      return result.block_metas.map((meta) => ({
-        height: parseInt(meta.header.height, 10),
-        hash: meta.block_id.hash,
-        time: meta.header.time,
-        proposerAddress: meta.header.proposer_address,
-        txCount: parseInt(meta.header.num_txs, 10),
-        chainId: '', // Not available in this endpoint
-      }));
+      // Limit to 20 blocks at a time to avoid too many requests
+      const limit = Math.min(maxHeight - minHeight + 1, 20);
+      const startHeight = maxHeight - limit + 1;
+
+      for (let height = startHeight; height <= maxHeight; height++) {
+        promises.push(
+          this.makeRestCall<{
+            block: {
+              header: {
+                height: string;
+                time: string;
+                proposer_address: string;
+                chain_id: string;
+              };
+              data: { txs: string[] };
+            };
+          }>(`/cosmos/base/tendermint/v1beta1/blocks/${height}`)
+            .then((result) => {
+              blockInfos.push({
+                height: parseInt(result.block.header.height, 10),
+                hash: '', // Not directly available in this endpoint
+                time: result.block.header.time,
+                proposerAddress: result.block.header.proposer_address,
+                txCount: result.block.data.txs.length,
+                chainId: result.block.header.chain_id,
+              });
+            })
+            .catch(() => {
+              // Skip failed blocks
+            })
+        );
+      }
+
+      await Promise.all(promises);
+
+      // Sort by height descending
+      return blockInfos.sort((a, b) => b.height - a.height);
     } catch (error) {
       logger.error(
         'Failed to get blocks',
@@ -751,20 +686,47 @@ class BandRpcService {
     perPage: number = 20
   ): Promise<{ transactions: TransactionInfo[]; total: number }> {
     try {
-      const result = await this.makeRpcCall<TxSearchResult>('tx_search', {
-        query,
-        page: page.toString(),
-        per_page: perPage.toString(),
-        order_by: 'desc',
-      });
+      // Parse query to extract height filter if present
+      const heightMatch = query.match(/tx\.height>(\d+)/);
+      const minHeight = heightMatch ? parseInt(heightMatch[1], 10) : undefined;
+
+      // Use REST API to get transactions
+      let endpoint = `/cosmos/tx/v1beta1/txs?pagination.limit=${perPage}&pagination.offset=${(page - 1) * perPage}`;
+      if (minHeight !== undefined) {
+        endpoint += `&events=tx.height>${minHeight}`;
+      }
+
+      const result = await this.makeRestCall<{
+        txs: Array<{
+          body: {
+            messages: Array<{
+              '@type': string;
+              [key: string]: unknown;
+            }>;
+            memo: string;
+          };
+        }>;
+        tx_responses: Array<{
+          height: string;
+          txhash: string;
+          code: number;
+          raw_log: string;
+          gas_wanted: string;
+          gas_used: string;
+          timestamp: string;
+        }>;
+        pagination: {
+          total: string;
+        };
+      }>(endpoint);
 
       const transactions = result.txs.map((tx, index) => ({
-        hash: result.tx_responses[index].txhash,
-        height: parseInt(result.tx_responses[index].height, 10),
-        timestamp: result.tx_responses[index].timestamp,
-        gasUsed: parseInt(result.tx_responses[index].gas_used, 10),
-        gasWanted: parseInt(result.tx_responses[index].gas_wanted, 10),
-        code: result.tx_responses[index].code,
+        hash: result.tx_responses[index]?.txhash || '',
+        height: parseInt(result.tx_responses[index]?.height || '0', 10),
+        timestamp: result.tx_responses[index]?.timestamp || '',
+        gasUsed: parseInt(result.tx_responses[index]?.gas_used || '0', 10),
+        gasWanted: parseInt(result.tx_responses[index]?.gas_wanted || '0', 10),
+        code: result.tx_responses[index]?.code || 0,
         memo: tx.body.memo,
         messages: tx.body.messages.map((msg) => ({
           type: msg['@type'],
@@ -1255,12 +1217,18 @@ class BandRpcService {
     try {
       const result = await this.makeRestCall<{
         voting_params: { voting_period: string };
-        deposit_params: { min_deposit: Array<{ denom: string; amount: string }>; max_deposit_period: string };
+        deposit_params: {
+          min_deposit: Array<{ denom: string; amount: string }>;
+          max_deposit_period: string;
+        };
         tally_params: { quorum: string; threshold: string; veto_threshold: string };
       }>('/cosmos/gov/v1beta1/params/voting');
 
       const depositResult = await this.makeRestCall<{
-        deposit_params: { min_deposit: Array<{ denom: string; amount: string }>; max_deposit_period: string };
+        deposit_params: {
+          min_deposit: Array<{ denom: string; amount: string }>;
+          max_deposit_period: string;
+        };
       }>('/cosmos/gov/v1beta1/params/deposit');
 
       const tallyResult = await this.makeRestCall<{
@@ -1410,9 +1378,10 @@ class BandRpcService {
       return transactions.map((tx, index) => {
         const message = tx.messages[0] as Record<string, unknown> | undefined;
         const amountValue = message?.amount;
-        const amount = Array.isArray(amountValue) && amountValue[0] && typeof amountValue[0] === 'object'
-          ? parseFloat((amountValue[0] as Record<string, unknown>).amount as string) / 1e6
-          : 0;
+        const amount =
+          Array.isArray(amountValue) && amountValue[0] && typeof amountValue[0] === 'object'
+            ? parseFloat((amountValue[0] as Record<string, unknown>).amount as string) / 1e6
+            : 0;
 
         return {
           id: `${tx.hash}-${index}`,

@@ -1,7 +1,7 @@
+import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
 import { container, SERVICE_TOKENS } from '@/lib/di';
 import { OracleClientError, ValidationError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
-import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
 import { type Blockchain, OracleProvider } from '@/types/oracle';
 
 import { API3Client } from './api3';
@@ -137,7 +137,10 @@ export class OracleClientFactory {
       const client = this.getClient(provider);
       return client.getSupportedSymbols();
     } catch (error) {
-      logger.error(`Failed to get supported symbols for provider ${provider}`, error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        `Failed to get supported symbols for provider ${provider}`,
+        error instanceof Error ? error : new Error(String(error))
+      );
       return [];
     }
   }
@@ -197,7 +200,10 @@ export class OracleClientFactory {
       try {
         result[provider] = this.getSupportedSymbols(provider);
       } catch (error) {
-        logger.error(`Failed to get supported symbols for provider ${provider}`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          `Failed to get supported symbols for provider ${provider}`,
+          error instanceof Error ? error : new Error(String(error))
+        );
         result[provider] = [];
       }
     }

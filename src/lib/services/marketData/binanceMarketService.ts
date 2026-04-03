@@ -415,9 +415,7 @@ export async function getTokenMarketData(symbol: string): Promise<TokenMarketDat
 
 export async function getMultipleTokensMarketData(symbols: string[]): Promise<TokenMarketData[]> {
   try {
-    const binanceSymbols = symbols
-      .map((s) => BINANCE_SYMBOLS[s.toUpperCase()])
-      .filter(Boolean);
+    const binanceSymbols = symbols.map((s) => BINANCE_SYMBOLS[s.toUpperCase()]).filter(Boolean);
 
     if (binanceSymbols.length === 0) {
       logger.warn('No valid symbols provided');

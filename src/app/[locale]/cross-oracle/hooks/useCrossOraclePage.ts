@@ -36,15 +36,14 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const router = useRouter();
   const user = useUser();
 
-  const {
-    initialSymbol = 'BTC/USD',
-    initialOracles = [OracleProvider.PYTH],
-  } = options;
+  const { initialSymbol = 'BTC/USD', initialOracles = [OracleProvider.PYTH] } = options;
 
   // ==========================================================================
   // 基础状态
   // ==========================================================================
-  const [selectedOracles, setSelectedOracles] = useState<PriceOracleProvider[]>(initialOracles as PriceOracleProvider[]);
+  const [selectedOracles, setSelectedOracles] = useState<PriceOracleProvider[]>(
+    initialOracles as PriceOracleProvider[]
+  );
   const [selectedSymbol, setSelectedSymbol] = useState<string>(initialSymbol);
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const [activeTab, setActiveTab] = useState<TabId>('priceComparison');

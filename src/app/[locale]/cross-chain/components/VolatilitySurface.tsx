@@ -346,10 +346,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           </div>
         </div>
 
-        <div
-          className="bg-gray-50 p-4 border border-gray-200"
-          style={{ isolation: 'isolate' }}
-        >
+        <div className="bg-gray-50 p-4 border border-gray-200" style={{ isolation: 'isolate' }}>
           <div className="h-72" style={{ position: 'relative', zIndex: 1 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
@@ -533,10 +530,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           </div>
         </div>
 
-        <div
-          className="bg-gray-50 p-4 border border-gray-200"
-          style={{ isolation: 'isolate' }}
-        >
+        <div className="bg-gray-50 p-4 border border-gray-200" style={{ isolation: 'isolate' }}>
           <div className="h-72" style={{ position: 'relative', zIndex: 1 }}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
@@ -566,10 +560,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                     fontSize: 12,
                   }}
                 />
-                <RechartsTooltip
-                  content={<ConeTooltip />}
-                  wrapperStyle={{ zIndex: 2147483647 }}
-                />
+                <RechartsTooltip content={<ConeTooltip />} wrapperStyle={{ zIndex: 2147483647 }} />
 
                 <Area
                   type="monotone"

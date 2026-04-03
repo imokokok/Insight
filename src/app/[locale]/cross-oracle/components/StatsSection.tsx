@@ -75,7 +75,6 @@ function StatsSectionComponent({
   const [mounted, setMounted] = useState(false);
   const [formattedTime, setFormattedTime] = useState('');
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     setMounted(true);
     // 使用浏览器默认语言环境格式化时间

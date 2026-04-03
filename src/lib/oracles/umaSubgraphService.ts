@@ -1,5 +1,5 @@
-import { createLogger } from '@/lib/utils/logger';
 import { getTheGraphApiKey } from '@/lib/config/serverEnv';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('UMASubgraphService');
 
@@ -122,9 +122,7 @@ const UMA_SUBGRAPH_ID = 'Bm3ytsa1YvcyFJahdf0QgscF0VCcMvoXuizkd3Cz6aof';
 
 // Primary endpoint using The Graph Network gateway
 // Requires API key for production use
-const PRIMARY_ENDPOINTS = [
-  `https://gateway.thegraph.com/api/subgraphs/id/${UMA_SUBGRAPH_ID}`,
-];
+const PRIMARY_ENDPOINTS = [`https://gateway.thegraph.com/api/subgraphs/id/${UMA_SUBGRAPH_ID}`];
 
 // Fallback endpoints (deprecated but may still work for development)
 const FALLBACK_ENDPOINTS = [
@@ -152,18 +150,20 @@ export class UMASubgraphService {
   constructor(config?: Partial<UMASubgraphConfig>) {
     // 从服务端配置获取 API key
     const envApiKey = getTheGraphApiKey();
-    
-    this.config = { 
-      ...DEFAULT_CONFIG, 
+
+    this.config = {
+      ...DEFAULT_CONFIG,
       apiKey: envApiKey || config?.apiKey || '',
-      ...config 
+      ...config,
     };
   }
 
   private getEndpoints(): string[] {
     // If API key is configured, use The Graph Network gateway
     if (this.config.apiKey) {
-      return [`${this.config.baseUrl}/${this.config.apiKey}/subgraphs/id/${this.config.subgraphId}`];
+      return [
+        `${this.config.baseUrl}/${this.config.apiKey}/subgraphs/id/${this.config.subgraphId}`,
+      ];
     }
     // Otherwise try primary endpoints first, then fallbacks
     return [...PRIMARY_ENDPOINTS, ...FALLBACK_ENDPOINTS];
@@ -187,9 +187,12 @@ export class UMASubgraphService {
     if (cached) return cached;
 
     const endpoints = this.getEndpoints();
-    
+
     if (this.workingEndpoint) {
-      const endpointsToTry = [this.workingEndpoint, ...endpoints.filter(e => e !== this.workingEndpoint)];
+      const endpointsToTry = [
+        this.workingEndpoint,
+        ...endpoints.filter((e) => e !== this.workingEndpoint),
+      ];
       const result = await this.tryEndpoints<T>(endpointsToTry, query, variables, cacheKey);
       return result;
     }
@@ -642,7 +645,9 @@ export class UMASubgraphService {
   }
 
   // Get dispute trends by day
-  async getDisputeTrends(days: number = 7): Promise<Array<{ date: string; filed: number; resolved: number }>> {
+  async getDisputeTrends(
+    days: number = 7
+  ): Promise<Array<{ date: string; filed: number; resolved: number }>> {
     const now = Math.floor(Date.now() / 1000);
     const startTime = now - days * 24 * 3600;
 
@@ -892,7 +897,7 @@ export class UMASubgraphService {
 
   async healthCheck(): Promise<{ healthy: boolean; endpoint: string | null; error?: string }> {
     const endpoints = this.getEndpoints();
-    
+
     for (const endpoint of endpoints) {
       try {
         const response = await fetch(endpoint, {
@@ -906,7 +911,7 @@ export class UMASubgraphService {
         }
 
         const result = await response.json();
-        
+
         if (result.errors) {
           continue;
         }

@@ -7,6 +7,12 @@ import { createLogger } from '@/lib/utils/logger';
 
 import { detectAnomalies } from './anomalyCalculations';
 import {
+  binanceMarketService,
+  type TokenMarketData,
+  type HistoricalPricePoint,
+} from './binanceMarketService';
+import { coinGeckoMarketService } from './coinGeckoMarketService';
+import {
   fetchOraclesData,
   fetchAssetsData,
   checkApiHealth,
@@ -20,13 +26,6 @@ import {
   MarketDataError,
 } from './defiLlamaApi';
 import {
-  generateTVSTrendData,
-  exportWithConfig,
-  downloadExport,
-  type ExportDataOptions,
-} from './priceCalculations';
-import { fetchRiskMetrics, fetchHHI, fetchDiversificationScore } from './riskCalculations';
-import {
   performanceMetricsCalculator,
   calculateMetricsFromPriceData,
   type PriceDataPoint,
@@ -34,11 +33,12 @@ import {
   type OraclePerformanceMetrics,
 } from './performanceMetrics';
 import {
-  binanceMarketService,
-  type TokenMarketData,
-  type HistoricalPricePoint,
-} from './binanceMarketService';
-import { coinGeckoMarketService } from './coinGeckoMarketService';
+  generateTVSTrendData,
+  exportWithConfig,
+  downloadExport,
+  type ExportDataOptions,
+} from './priceCalculations';
+import { fetchRiskMetrics, fetchHHI, fetchDiversificationScore } from './riskCalculations';
 
 const logger = createLogger('marketData');
 

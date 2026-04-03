@@ -5,14 +5,19 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { createLogger } from '@/lib/utils/logger';
 import {
   PerformanceMetricsCalculator,
   type CalculatedPerformanceMetrics,
 } from '@/lib/oracles/performanceMetricsCalculator';
+import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { oracleClients, type TimeRange, type RefreshInterval, type PriceOracleProvider } from '../constants';
+import {
+  oracleClients,
+  type TimeRange,
+  type RefreshInterval,
+  type PriceOracleProvider,
+} from '../constants';
 
 import type { UseOracleDataReturn } from '../types/index';
 
@@ -48,13 +53,18 @@ export function useOracleData({
   const metricsCalculatorRef = useRef<PerformanceMetricsCalculator>(
     new PerformanceMetricsCalculator()
   );
-  const priceHistoryMapRef = useRef<Map<OracleProvider, Array<{
-    price: number;
-    timestamp: number;
-    responseTime: number;
-    success: boolean;
-    source?: string;
-  }>>>(new Map());
+  const priceHistoryMapRef = useRef<
+    Map<
+      OracleProvider,
+      Array<{
+        price: number;
+        timestamp: number;
+        responseTime: number;
+        success: boolean;
+        source?: string;
+      }>
+    >
+  >(new Map());
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);

@@ -42,10 +42,7 @@ export function CalculatedPerformanceMetricsDemo() {
   });
 
   // 合并静态数据和动态计算数据
-  const mergedPerformanceData = mergePerformanceData(
-    defaultPerformanceData,
-    performanceMetrics
-  );
+  const mergedPerformanceData = mergePerformanceData(defaultPerformanceData, performanceMetrics);
 
   return (
     <div className="p-6 space-y-6">
@@ -136,9 +133,7 @@ export function CalculatedPerformanceMetricsDemo() {
             <div key={data.provider} className="bg-blue-50 p-3 rounded">
               <div className="text-sm text-gray-600">{data.provider}</div>
               <div className="text-xl font-bold">${data.price.toFixed(2)}</div>
-              <div className="text-xs text-gray-500">
-                响应: {data.responseTime}ms
-              </div>
+              <div className="text-xs text-gray-500">响应: {data.responseTime}ms</div>
             </div>
           ))}
         </div>

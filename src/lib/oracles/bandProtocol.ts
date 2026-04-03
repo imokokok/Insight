@@ -174,10 +174,7 @@ export class BandProtocolClient extends BaseOracleClient {
     );
   }
 
-  async getChainEvents(
-    limit: number = 100,
-    eventType?: EventType
-  ): Promise<ChainEvent[]> {
+  async getChainEvents(limit: number = 100, eventType?: EventType): Promise<ChainEvent[]> {
     try {
       const type = eventType || EventType.DELEGATION;
       return await bandRpcService.getChainEvents(type, limit);
@@ -194,7 +191,9 @@ export class BandProtocolClient extends BaseOracleClient {
       return await bandRpcService.getOracleScripts();
     } catch (error) {
       throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch oracle scripts from Band Protocol',
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch oracle scripts from Band Protocol',
         'BAND_PROTOCOL_ORACLE_SCRIPTS_ERROR'
       );
     }
@@ -298,7 +297,9 @@ export class BandProtocolClient extends BaseOracleClient {
       return await bandRpcService.getProposals(status);
     } catch (error) {
       throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch governance proposals from Band Protocol',
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch governance proposals from Band Protocol',
         'BAND_PROTOCOL_GOVERNANCE_PROPOSALS_ERROR'
       );
     }
@@ -309,16 +310,15 @@ export class BandProtocolClient extends BaseOracleClient {
       return await bandRpcService.getGovernanceParams();
     } catch (error) {
       throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch governance params from Band Protocol',
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch governance params from Band Protocol',
         'BAND_PROTOCOL_GOVERNANCE_PARAMS_ERROR'
       );
     }
   }
 
-  async getDataSources(
-    page: number = 1,
-    limit: number = 20
-  ): Promise<DataSourceListResponse> {
+  async getDataSources(page: number = 1, limit: number = 20): Promise<DataSourceListResponse> {
     try {
       const dataSources = await bandRpcService.getDataSources(limit);
       const start = (page - 1) * limit;
@@ -337,10 +337,7 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   // Alias for getDataSources to match hook interface
-  async getDataSourceList(
-    page: number = 1,
-    limit: number = 20
-  ): Promise<DataSourceListResponse> {
+  async getDataSourceList(page: number = 1, limit: number = 20): Promise<DataSourceListResponse> {
     return this.getDataSources(page, limit);
   }
 
@@ -410,7 +407,10 @@ export class BandProtocolClient extends BaseOracleClient {
   /**
    * 计算质押奖励
    */
-  calculateStakingReward(amount: number, durationDays: number): { principal: number; duration: number; estimatedReward: number; apy: number } {
+  calculateStakingReward(
+    amount: number,
+    durationDays: number
+  ): { principal: number; duration: number; estimatedReward: number; apy: number } {
     // 模拟计算质押奖励
     const apy = 0.15; // 15% APY
     const durationYears = durationDays / 365;

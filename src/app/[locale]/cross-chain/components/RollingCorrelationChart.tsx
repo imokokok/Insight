@@ -402,10 +402,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
                   fill: chartColors.recharts.tick,
                 }}
               />
-              <RechartsTooltip
-                content={<CustomTooltip />}
-                wrapperStyle={{ zIndex: 2147483647 }}
-              />
+              <RechartsTooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 2147483647 }} />
               <Legend onClick={handleLegendClick} />
 
               {/* Reference lines for correlation thresholds */}
