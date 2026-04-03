@@ -13,6 +13,8 @@ export interface UMATokenData {
   symbol: string;
   name: string;
   decimals: number;
+  priceUsd?: string;
+  priceChange24hPercent?: string;
 }
 
 export interface UMAAssertionData {
@@ -50,8 +52,8 @@ interface RPCResponse<T> {
 type AbiItem = {
   name: string;
   type: string;
-  inputs?: { name: string; type: string; indexed?: boolean }[];
-  outputs?: { name: string; type: string }[];
+  inputs?: readonly { name: string; type: string; indexed?: boolean }[];
+  outputs?: readonly { name: string; type: string }[];
   stateMutability?: string;
 };
 

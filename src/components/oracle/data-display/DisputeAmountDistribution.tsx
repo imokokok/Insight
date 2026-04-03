@@ -364,7 +364,7 @@ export function DisputeAmountDistribution() {
       try {
         setLoading(true);
         const client = new UMAClient();
-        const data = await client.getDisputeAmountDistributionStats();
+        const data = await client.getDisputeAmountDistribution();
         setStats(data);
       } catch (error) {
         logger.error(

@@ -162,7 +162,7 @@ export class ChainlinkClient extends BaseOracleClient {
       if (this.useRealData) {
         // 方案1: 优先使用 Binance 获取真实历史数据
         const days = Math.ceil(period / 24);
-        const binancePrices = await this.fetchHistoricalPricesFromCoinGecko(symbol, days);
+        const binancePrices = await this.getHistoricalPricesFromCoinGecko(symbol, days);
 
         if (binancePrices && binancePrices.length > 0) {
           console.log(`[ChainlinkClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`);
@@ -250,7 +250,7 @@ export class ChainlinkClient extends BaseOracleClient {
         body: JSON.stringify({
           query,
           variables: {
-            feed: feed.contractAddress.toLowerCase(),
+            feed: feed.address.toLowerCase(),
             from,
             to: now,
           },

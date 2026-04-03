@@ -1,33 +1,82 @@
 import { type ApiResponse, type ApiError, type PaginatedResponse } from './api/responses';
 import {
-  type DataStatus,
   DataStatus,
-  type TrendDirection,
   TrendDirection,
 } from './oracle/constants';
-import { type OracleProvider, OracleProvider, type Blockchain, Blockchain } from './oracle/enums';
+import { OracleProvider, Blockchain } from './oracle/enums';
 import { type PriceData } from './oracle/price';
 import { type PublisherStatus } from './oracle/publisher';
 import { type RiskLevel } from './risk';
 
+// Manual list of enum values since const enums are inlined at compile time
+const ORACLE_PROVIDER_VALUES = [
+  'chainlink',
+  'band-protocol',
+  'uma',
+  'pyth',
+  'api3',
+  'redstone',
+  'dia',
+  'tellor',
+  'chronicle',
+  'winklink',
+];
+
+const BLOCKCHAIN_VALUES = [
+  'ethereum',
+  'arbitrum',
+  'optimism',
+  'polygon',
+  'solana',
+  'avalanche',
+  'fantom',
+  'cronos',
+  'juno',
+  'cosmos',
+  'osmosis',
+  'bnb-chain',
+  'base',
+  'scroll',
+  'zksync',
+  'aptos',
+  'sui',
+  'gnosis',
+  'mantle',
+  'linea',
+  'celestia',
+  'injective',
+  'sei',
+  'tron',
+  'ton',
+  'near',
+  'aurora',
+  'celo',
+  'starknet',
+  'blast',
+  'cardano',
+  'polkadot',
+  'kava',
+  'moonbeam',
+  'starkex',
+];
+
+const DATA_STATUS_VALUES = ['fresh', 'stale', 'error', 'loading'];
+const TREND_DIRECTION_VALUES = ['up', 'down', 'stable'];
+
 export function isOracleProvider(value: unknown): value is OracleProvider {
-  return (
-    typeof value === 'string' && Object.values(OracleProvider).includes(value as OracleProvider)
-  );
+  return typeof value === 'string' && ORACLE_PROVIDER_VALUES.includes(value);
 }
 
 export function isBlockchain(value: unknown): value is Blockchain {
-  return typeof value === 'string' && Object.values(Blockchain).includes(value as Blockchain);
+  return typeof value === 'string' && BLOCKCHAIN_VALUES.includes(value);
 }
 
 export function isDataStatus(value: unknown): value is DataStatus {
-  return typeof value === 'string' && Object.values(DataStatus).includes(value as DataStatus);
+  return typeof value === 'string' && DATA_STATUS_VALUES.includes(value);
 }
 
 export function isTrendDirection(value: unknown): value is TrendDirection {
-  return (
-    typeof value === 'string' && Object.values(TrendDirection).includes(value as TrendDirection)
-  );
+  return typeof value === 'string' && TREND_DIRECTION_VALUES.includes(value);
 }
 
 export function isPublisherStatus(value: unknown): value is PublisherStatus {

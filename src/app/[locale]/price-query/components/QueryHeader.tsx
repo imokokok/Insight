@@ -83,7 +83,7 @@ export function QueryHeader({
                   </div>
                 ) : (
                   symbolFavorites.map((favorite) => {
-                    const config = favorite.config as { symbol?: string };
+                    const config = favorite.config_data as { symbol?: string };
                     const symbol = config.symbol || '';
                     return (
                       <button

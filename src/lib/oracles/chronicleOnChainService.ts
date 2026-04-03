@@ -95,7 +95,7 @@ async function callWithRetry<T>(
         return await callFn(rpcUrl);
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        logger.warn(`RPC call failed for ${rpcUrl}:`, lastError.message);
+        logger.warn(`RPC call failed for ${rpcUrl}: ${lastError.message}`);
         continue;
       }
     }
@@ -139,7 +139,7 @@ export async function getChroniclePriceFromChain(
     const isValidHex = result.slice(66, 130);
 
     const price = BigInt('0x' + priceHex);
-    const isValid = BigInt('0x' + isValidHex) === 1n;
+    const isValid = BigInt('0x' + isValidHex) === BigInt(1);
 
     return {
       price,
@@ -284,7 +284,7 @@ export async function getMakerDAOVaultData(chainId: number = 1): Promise<MakerDA
         const line = BigInt('0x' + ilkResult.slice(194, 258));
         const dust = BigInt('0x' + ilkResult.slice(258, 322));
 
-        if (Art > 0n || line > 0n) {
+        if (Art > BigInt(0) || line > BigInt(0)) {
           ilkDataMap[ilkType] = { Art, rate, spot, line, dust };
         }
       } catch {

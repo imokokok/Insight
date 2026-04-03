@@ -508,7 +508,7 @@ export class RedStoneClient extends BaseOracleClient {
       for (let i = period; i >= 0; i--) {
         const timestamp = now - i * hourMs;
         // Add small random variation based on the 24h change
-        const variation = (currentPrice.change24hPercent / 100) * (i / period);
+        const variation = ((currentPrice.change24hPercent ?? 0) / 100) * (i / period);
         const price = currentPrice.price * (1 - variation);
 
         prices.push({

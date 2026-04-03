@@ -12,6 +12,7 @@ import type {
   BandNetworkStats,
   CrossChainStats,
   CrossChainTrend,
+  CrossChainComparison,
   TrendPeriod,
   HistoricalPricePoint,
   ValidatorHistory,
@@ -82,9 +83,9 @@ export class BandProtocolClient extends BaseOracleClient {
     );
   }
 
-  async getAllDataSources(): Promise<BandProtocolMarketData[]> {
+  async getAllDataSources(): Promise<DataSource[]> {
     try {
-      return await bandRpcService.getAllDataSources();
+      return await bandRpcService.getDataSources();
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch data sources from Band Protocol',
@@ -93,9 +94,9 @@ export class BandProtocolClient extends BaseOracleClient {
     }
   }
 
-  async getValidators(): Promise<ValidatorInfo[]> {
+  async getValidators(limit?: number): Promise<ValidatorInfo[]> {
     try {
-      return await bandRpcService.getValidators();
+      return await bandRpcService.getValidators(limit);
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch validators from Band Protocol',
@@ -122,7 +123,7 @@ export class BandProtocolClient extends BaseOracleClient {
     );
   }
 
-  async getCrossChainTrend(period: TrendPeriod = '24h'): Promise<CrossChainTrend> {
+  async getCrossChainTrend(period: TrendPeriod = '7d'): Promise<CrossChainTrend[]> {
     throw this.createError(
       'Cross-chain trend data not available from Band Protocol RPC.',
       'BAND_PROTOCOL_CROSS_CHAIN_TREND_NOT_AVAILABLE'
@@ -141,8 +142,8 @@ export class BandProtocolClient extends BaseOracleClient {
 
   async getValidatorHistory(
     validatorAddress: string,
-    period: HistoryPeriod = '24h'
-  ): Promise<ValidatorHistory> {
+    period: HistoryPeriod = 7
+  ): Promise<ValidatorHistory[]> {
     throw this.createError(
       'Validator history not available from Band Protocol RPC.',
       'BAND_PROTOCOL_VALIDATOR_HISTORY_NOT_AVAILABLE'
@@ -166,12 +167,20 @@ export class BandProtocolClient extends BaseOracleClient {
     );
   }
 
+  async getCrossChainComparison(period: TrendPeriod = '7d'): Promise<CrossChainComparison> {
+    throw this.createError(
+      'Cross-chain comparison is not available from Band Protocol RPC.',
+      'BAND_PROTOCOL_CROSS_CHAIN_COMPARISON_NOT_AVAILABLE'
+    );
+  }
+
   async getChainEvents(
-    eventType: EventType,
-    limit: number = 100
+    limit: number = 100,
+    eventType?: EventType
   ): Promise<ChainEvent[]> {
     try {
-      return await bandRpcService.getChainEvents(eventType, limit);
+      const type = eventType || EventType.DELEGATION;
+      return await bandRpcService.getChainEvents(type, limit);
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch chain events from Band Protocol',
@@ -217,10 +226,17 @@ export class BandProtocolClient extends BaseOracleClient {
     );
   }
 
-  async getIBCTransferTrend(period: TrendPeriod = '24h'): Promise<IBCTransferTrend> {
+  async getIBCTransferTrend(period: TrendPeriod = '7d'): Promise<IBCTransferTrend> {
     throw this.createError(
       'IBC transfer trend not available from Band Protocol RPC.',
       'BAND_PROTOCOL_IBC_TRANSFER_TREND_NOT_AVAILABLE'
+    );
+  }
+
+  async getIBCTransferTrends(days: number): Promise<IBCTransferTrend[]> {
+    throw this.createError(
+      'IBC transfer trends not available from Band Protocol RPC.',
+      'BAND_PROTOCOL_IBC_TRANSFER_TRENDS_NOT_AVAILABLE'
     );
   }
 
@@ -235,7 +251,7 @@ export class BandProtocolClient extends BaseOracleClient {
     }
   }
 
-  async getStakingDistribution(): Promise<StakingDistribution> {
+  async getStakingDistribution(): Promise<StakingDistribution[]> {
     throw this.createError(
       'Staking distribution not available from Band Protocol RPC.',
       'BAND_PROTOCOL_STAKING_DISTRIBUTION_NOT_AVAILABLE'
@@ -256,7 +272,7 @@ export class BandProtocolClient extends BaseOracleClient {
     );
   }
 
-  async getRiskTrendData(period: TrendPeriod = '24h'): Promise<RiskTrendData> {
+  async getRiskTrendData(period: TrendPeriod | number = 7): Promise<RiskTrendData[]> {
     throw this.createError(
       'Risk trend data not available from Band Protocol RPC.',
       'BAND_PROTOCOL_RISK_TREND_NOT_AVAILABLE'
@@ -270,9 +286,16 @@ export class BandProtocolClient extends BaseOracleClient {
     );
   }
 
+  async getSecurityAuditEvents(): Promise<RiskEvent[]> {
+    throw this.createError(
+      'Security audit events not available from Band Protocol RPC.',
+      'BAND_PROTOCOL_SECURITY_AUDIT_EVENTS_NOT_AVAILABLE'
+    );
+  }
+
   async getGovernanceProposals(status?: ProposalStatus): Promise<GovernanceProposal[]> {
     try {
-      return await bandRpcService.getGovernanceProposals(status);
+      return await bandRpcService.getProposals(status);
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch governance proposals from Band Protocol',
@@ -297,13 +320,28 @@ export class BandProtocolClient extends BaseOracleClient {
     limit: number = 20
   ): Promise<DataSourceListResponse> {
     try {
-      return await bandRpcService.getDataSources(page, limit);
+      const dataSources = await bandRpcService.getDataSources(limit);
+      const start = (page - 1) * limit;
+      const paginatedData = dataSources.slice(start, start + limit);
+      return {
+        dataSources: paginatedData,
+        total: dataSources.length,
+        hasMore: start + limit < dataSources.length,
+      };
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch data sources from Band Protocol',
         'BAND_PROTOCOL_DATA_SOURCES_ERROR'
       );
     }
+  }
+
+  // Alias for getDataSources to match hook interface
+  async getDataSourceList(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<DataSourceListResponse> {
+    return this.getDataSources(page, limit);
   }
 
   async getDataSourceById(id: number): Promise<DataSource | null> {
@@ -353,5 +391,35 @@ export class BandProtocolClient extends BaseOracleClient {
       return [];
     }
     return this.supportedChains;
+  }
+
+  /**
+   * 获取可用的快照日期（模拟数据）
+   */
+  getAvailableSnapshotDates(): string[] {
+    const dates: string[] = [];
+    const today = new Date();
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      dates.push(date.toISOString().split('T')[0]);
+    }
+    return dates;
+  }
+
+  /**
+   * 计算质押奖励
+   */
+  calculateStakingReward(amount: number, durationDays: number): { principal: number; duration: number; estimatedReward: number; apy: number } {
+    // 模拟计算质押奖励
+    const apy = 0.15; // 15% APY
+    const durationYears = durationDays / 365;
+    const estimatedReward = amount * apy * durationYears;
+    return {
+      principal: amount,
+      duration: durationDays,
+      estimatedReward,
+      apy: apy * 100,
+    };
   }
 }

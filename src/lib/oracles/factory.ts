@@ -137,7 +137,7 @@ export class OracleClientFactory {
       const client = this.getClient(provider);
       return client.getSupportedSymbols();
     } catch (error) {
-      logger.error(`Failed to get supported symbols for provider ${provider}`, { error });
+      logger.error(`Failed to get supported symbols for provider ${provider}`, error instanceof Error ? error : new Error(String(error)));
       return [];
     }
   }
@@ -151,11 +151,11 @@ export class OracleClientFactory {
       const client = this.getClient(provider);
       return client.isSymbolSupported(symbol, chain);
     } catch (error) {
-      logger.error(`Failed to check symbol support for ${symbol} on provider ${provider}`, {
-        error,
-        symbol,
-        chain,
-      });
+      logger.error(
+        `Failed to check symbol support for ${symbol} on provider ${provider}`,
+        error instanceof Error ? error : new Error(String(error)),
+        { symbol, chain }
+      );
       return false;
     }
   }
@@ -169,10 +169,11 @@ export class OracleClientFactory {
       const client = this.getClient(provider);
       return client.getSupportedChainsForSymbol(symbol);
     } catch (error) {
-      logger.error(`Failed to get supported chains for symbol ${symbol} on provider ${provider}`, {
-        error,
-        symbol,
-      });
+      logger.error(
+        `Failed to get supported chains for symbol ${symbol} on provider ${provider}`,
+        error instanceof Error ? error : new Error(String(error)),
+        { symbol }
+      );
       return [];
     }
   }
@@ -196,7 +197,7 @@ export class OracleClientFactory {
       try {
         result[provider] = this.getSupportedSymbols(provider);
       } catch (error) {
-        logger.error(`Failed to get supported symbols for provider ${provider}`, { error });
+        logger.error(`Failed to get supported symbols for provider ${provider}`, error instanceof Error ? error : new Error(String(error)));
         result[provider] = [];
       }
     }

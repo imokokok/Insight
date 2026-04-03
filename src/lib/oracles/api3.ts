@@ -365,4 +365,63 @@ export class API3Client extends BaseOracleClient {
     }
     return this.supportedChains;
   }
+
+  /**
+   * 生成模拟价格数据
+   */
+  protected generateMockPrice(
+    symbol: string,
+    basePrice: number,
+    chain?: Blockchain,
+    timestamp?: number
+  ): PriceData {
+    return {
+      provider: OracleProvider.API3,
+      symbol: symbol.toUpperCase(),
+      price: basePrice,
+      timestamp: timestamp || Date.now(),
+      decimals: 8,
+      confidence: 0.95,
+      change24h: 0,
+      change24hPercent: 0,
+      chain: chain || Blockchain.ETHEREUM,
+      source: 'api3-mock',
+    };
+  }
+
+  /**
+   * 生成模拟历史价格数据
+   */
+  protected generateMockHistoricalPrices(
+    symbol: string,
+    basePrice: number,
+    chain?: Blockchain,
+    period: number = 24
+  ): PriceData[] {
+    const prices: PriceData[] = [];
+    const now = Date.now();
+    const interval = (period * 60 * 60 * 1000) / 100;
+
+    for (let i = 99; i >= 0; i--) {
+      const timestamp = now - i * interval;
+      const volatility = 0.02;
+      const randomChange = (Math.random() - 0.5) * 2 * volatility;
+      const price = basePrice * (1 + randomChange);
+
+      prices.push({
+        provider: OracleProvider.API3,
+        symbol: symbol.toUpperCase(),
+        price: price,
+        timestamp: timestamp,
+        decimals: 8,
+        confidence: 0.95,
+        change24h: 0,
+        change24hPercent: 0,
+        chain: chain || Blockchain.ETHEREUM,
+        source: 'api3-mock',
+      });
+    }
+
+    return prices;
+  }
 }

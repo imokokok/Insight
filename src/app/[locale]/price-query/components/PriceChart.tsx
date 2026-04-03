@@ -237,15 +237,7 @@ export function PriceChart({
               fontSize={11}
               width={60}
             />
-            <Tooltip
-              content={
-                <CustomTooltip
-                  seriesNames={seriesNames}
-                  oracleInfoMap={oracleInfoMap}
-                  avgPrice={avgPrice}
-                />
-              }
-            />
+            <Tooltip content={<CustomTooltip />} />
             {avgPrice > 0 && (
               <ReferenceLine y={avgPrice} stroke="#9ca3af" strokeDasharray="5 5" strokeWidth={1} />
             )}
@@ -270,9 +262,9 @@ export function PriceChart({
       {showDataTable && (
         <div className="mt-4 border-t border-gray-100 pt-4">
           <ChartDataTable
-            data={enhancedChartData}
+            chartData={chartData}
             seriesNames={seriesNames}
-            oracleInfoMap={oracleInfoMap}
+            selectedTimeRange={selectedTimeRange}
           />
         </div>
       )}

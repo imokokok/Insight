@@ -25,7 +25,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   rightIcon?: ReactNode;
 }
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       children,
@@ -99,7 +99,7 @@ export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   isLoading?: boolean;
 }
 
-export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
+const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   (
     { icon, className, variant = 'ghost', size = 'md', isLoading = false, disabled, ...props },
     ref

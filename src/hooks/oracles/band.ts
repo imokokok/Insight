@@ -217,8 +217,10 @@ export function useBandCrossChainTrend(options: UseBandCrossChainTrendOptions = 
     retry: 3,
   });
 
+  const crossChainTrend: CrossChainTrend[] = data ?? [];
+
   return {
-    crossChainTrend: data ?? [],
+    crossChainTrend,
     error,
     isLoading,
     refetch,
@@ -587,8 +589,10 @@ export function useBandStakingDistribution(enabled = true) {
     retry: 3,
   });
 
+  const stakingDistribution: StakingDistribution[] = data ?? [];
+
   return {
-    stakingDistribution: data ?? [],
+    stakingDistribution,
     error,
     isLoading,
     refetch,
@@ -643,8 +647,10 @@ export function useBandRiskTrend(options: UseBandRiskTrendOptions = {}) {
     retry: 3,
   });
 
+  const riskTrend: RiskTrendData[] = data ?? [];
+
   return {
-    riskTrend: data ?? [],
+    riskTrend,
     error,
     isLoading,
     refetch,

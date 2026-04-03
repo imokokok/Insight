@@ -15,7 +15,7 @@ export function useUmaPage() {
   const [activeTab, setActiveTab] = useState<UmaTabId>('market');
 
   const config = useMemo(() => getOracleConfig(OracleProvider.UMA), []);
-  const client = useMemo(() => new UMAClient({ useRealData: true }), []);
+  const client = useMemo(() => new UMAClient(), []);
 
   const {
     price,

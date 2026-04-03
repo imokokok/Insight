@@ -255,7 +255,7 @@ export class WINkLinkRealDataService {
 
       const decimalPlaces = parseInt(decimals, 16);
       const priceValue = parseInt(latestAnswer, 16) / Math.pow(10, decimalPlaces);
-      const timestamp = parseInt(latestTimestamp, 16) * 1000;
+      const timestamp = latestTimestamp ? parseInt(latestTimestamp, 16) * 1000 : Date.now();
 
       const priceData: PriceData = {
         provider: OracleProvider.WINKLINK,

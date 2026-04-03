@@ -381,6 +381,7 @@ export default function ChartRenderer({
     const ComparisonTooltip = ({ active, payload, label }: TooltipProps<ComparisonTooltipData>) => {
       if (active && payload && payload.length) {
         const data = payload[0].payload;
+        if (!data) return null;
         return (
           <div className="bg-white border border-gray-200 rounded p-3 max-w-xs">
             <p className="font-medium text-gray-900 mb-2">{label}</p>

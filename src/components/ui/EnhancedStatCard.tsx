@@ -266,7 +266,7 @@ function EnhancedStatCardSkeleton({ variant = 'standard' }: { variant?: 'compact
  * />
  * ```
  */
-export function EnhancedStatCard({
+function EnhancedStatCard({
   title,
   value,
   change,

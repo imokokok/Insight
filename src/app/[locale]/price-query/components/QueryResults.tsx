@@ -251,7 +251,7 @@ export function QueryResults({
   const currentPrice = currentResult?.priceData;
   const currentPriceValue = currentPrice?.price || avgPrice;
   const change24hValue = currentPrice?.change24hPercent ?? avgChange24hPercent ?? 0;
-  const volume24hValue = currentPrice?.volume24h || 0;
+  const volume24hValue = 0;
   const lastUpdated = currentPrice?.timestamp ? new Date(currentPrice.timestamp) : new Date();
 
   // 计算价格趋势

@@ -29,8 +29,6 @@ export {
   developmentErrorMiddleware,
   productionErrorMiddleware,
   withEnhancedErrorHandling,
-  classifyError,
-  getSuggestedAction,
   type EnhancedErrorMiddlewareOptions,
   type StandardizedErrorResponse,
 } from './enhancedErrorMiddleware';

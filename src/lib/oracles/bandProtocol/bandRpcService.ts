@@ -8,8 +8,12 @@ import type {
   BandProtocolMarketData,
   OracleScript,
   GovernanceProposal,
+  GovernanceParams,
   DataSource,
+  ChainEvent,
+  StakingInfo,
 } from './types';
+import { EventType } from './types';
 
 const logger = createLogger('BandRpcService');
 
@@ -996,6 +1000,42 @@ class BandRpcService {
     }
   }
 
+  // ==================== STAKING METHODS ====================
+
+  // Get staking info
+  async getStakingInfo(): Promise<StakingInfo> {
+    try {
+      const [stakingPool, mintingParams, supply, communityPool] = await Promise.all([
+        this.makeRestCall<StakingPoolResult>('/cosmos/staking/v1beta1/pool'),
+        this.makeRestCall<MintingParamsResult>('/cosmos/mint/v1beta1/params'),
+        this.makeRestCall<SupplyResult>('/cosmos/bank/v1beta1/supply'),
+        this.makeRestCall<CommunityPoolResult>('/cosmos/distribution/v1beta1/community_pool'),
+      ]);
+
+      const bondedTokens = parseFloat(stakingPool.pool.bonded_tokens) / 1e6;
+      const totalSupply = supply.supply.find((s) => s.denom === 'uband')?.amount || '0';
+      const totalSupplyBand = parseFloat(totalSupply) / 1e6;
+      const communityPoolBand = communityPool.pool.find((p) => p.denom === 'uband')?.amount || '0';
+
+      return {
+        totalStaked: bondedTokens,
+        stakingRatio: totalSupplyBand > 0 ? (bondedTokens / totalSupplyBand) * 100 : 0,
+        stakingAPR: parseFloat(mintingParams.params.inflation_max) * 100,
+        unbondingPeriod: 21, // 21 days for BandChain
+        minStake: 1, // 1 BAND minimum
+        slashingRate: 0.01, // 1% slashing rate
+        communityPool: parseFloat(communityPoolBand) / 1e6,
+        inflation: parseFloat(mintingParams.params.inflation_max) * 100,
+      };
+    } catch (error) {
+      logger.error(
+        'Failed to get staking info',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      throw error;
+    }
+  }
+
   // ==================== ORACLE METHODS ====================
 
   // Get oracle data sources
@@ -1024,6 +1064,47 @@ class BandRpcService {
       logger.error(
         'Failed to get data sources',
         error instanceof Error ? error : new Error(String(error))
+      );
+      throw error;
+    }
+  }
+
+  // Get data source by id
+  async getDataSourceById(id: number): Promise<DataSource | null> {
+    try {
+      const result = await this.makeRestCall<{
+        data_source: {
+          id: string;
+          name: string;
+          description: string;
+          owner: string;
+        };
+      }>(`/oracle/v1/data_sources/${id}`);
+
+      if (!result.data_source) {
+        return null;
+      }
+
+      return {
+        id: parseInt(result.data_source.id, 10),
+        name: result.data_source.name,
+        symbol: result.data_source.name.replace(/\s+/g, '_').toUpperCase(),
+        description: result.data_source.description || `${result.data_source.name} data source`,
+        owner: result.data_source.owner,
+        provider: 'Band Protocol',
+        status: 'active',
+        lastUpdated: Date.now(),
+        reliability: 0,
+        category: 'crypto',
+        updateFrequency: '30s',
+        deviationThreshold: '0.5%',
+        totalRequests: 0,
+      };
+    } catch (error) {
+      logger.error(
+        'Failed to get data source by id',
+        error instanceof Error ? error : new Error(String(error)),
+        { id }
       );
       throw error;
     }
@@ -1169,6 +1250,42 @@ class BandRpcService {
     }
   }
 
+  // Get governance params
+  async getGovernanceParams(): Promise<GovernanceParams> {
+    try {
+      const result = await this.makeRestCall<{
+        voting_params: { voting_period: string };
+        deposit_params: { min_deposit: Array<{ denom: string; amount: string }>; max_deposit_period: string };
+        tally_params: { quorum: string; threshold: string; veto_threshold: string };
+      }>('/cosmos/gov/v1beta1/params/voting');
+
+      const depositResult = await this.makeRestCall<{
+        deposit_params: { min_deposit: Array<{ denom: string; amount: string }>; max_deposit_period: string };
+      }>('/cosmos/gov/v1beta1/params/deposit');
+
+      const tallyResult = await this.makeRestCall<{
+        tally_params: { quorum: string; threshold: string; veto_threshold: string };
+      }>('/cosmos/gov/v1beta1/params/tallying');
+
+      const minDeposit = depositResult.deposit_params.min_deposit.find((d) => d.denom === 'uband');
+
+      return {
+        minDeposit: minDeposit ? parseInt(minDeposit.amount, 10) / 1e6 : 1000,
+        maxDepositPeriod: 172800, // 2 days in seconds
+        votingPeriod: 604800, // 7 days in seconds
+        quorum: parseFloat(tallyResult.tally_params.quorum) * 100,
+        threshold: parseFloat(tallyResult.tally_params.threshold) * 100,
+        vetoThreshold: parseFloat(tallyResult.tally_params.veto_threshold) * 100,
+      };
+    } catch (error) {
+      logger.error(
+        'Failed to get governance params',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      throw error;
+    }
+  }
+
   // ==================== ACCOUNT METHODS ====================
 
   // Get account info
@@ -1268,6 +1385,71 @@ class BandRpcService {
         error instanceof Error ? error : new Error(String(error))
       );
       throw error;
+    }
+  }
+
+  // ==================== CHAIN EVENTS METHODS ====================
+
+  // Get chain events (delegation, undelegation, etc.)
+  async getChainEvents(eventType: EventType, limit: number = 100): Promise<ChainEvent[]> {
+    try {
+      // Search for transactions related to the event type
+      const messageTypeMap: Record<EventType, string> = {
+        [EventType.DELEGATION]: '/cosmos.staking.v1beta1.MsgDelegate',
+        [EventType.UNDELEGATION]: '/cosmos.staking.v1beta1.MsgUndelegate',
+        [EventType.COMMISSION_CHANGE]: '/cosmos.staking.v1beta1.MsgEditValidator',
+        [EventType.JAILED]: '/cosmos.slashing.v1beta1.MsgUnjail',
+        [EventType.UNJAILED]: '/cosmos.slashing.v1beta1.MsgUnjail',
+      };
+
+      const messageType = messageTypeMap[eventType];
+      const query = `message.action='${messageType}'`;
+
+      const { transactions } = await this.searchTransactions(query, 1, limit);
+
+      return transactions.map((tx, index) => {
+        const message = tx.messages[0] as Record<string, unknown> | undefined;
+        const amountValue = message?.amount;
+        const amount = Array.isArray(amountValue) && amountValue[0] && typeof amountValue[0] === 'object'
+          ? parseFloat((amountValue[0] as Record<string, unknown>).amount as string) / 1e6
+          : 0;
+
+        return {
+          id: `${tx.hash}-${index}`,
+          type: eventType,
+          validator: String(message?.validator_address || message?.validator_addr || 'Unknown'),
+          validatorAddress: String(message?.validator_address || message?.validator_addr || ''),
+          amount,
+          timestamp: new Date(tx.timestamp).getTime(),
+          description: this.getEventDescription(eventType, message),
+          txHash: tx.hash,
+        };
+      });
+    } catch (error) {
+      logger.error(
+        'Failed to get chain events',
+        error instanceof Error ? error : new Error(String(error)),
+        { eventType }
+      );
+      throw error;
+    }
+  }
+
+  private getEventDescription(eventType: EventType, message: unknown): string {
+    const msg = message as Record<string, unknown>;
+    switch (eventType) {
+      case EventType.DELEGATION:
+        return `委托给验证人 ${msg?.validator_address || msg?.validator_addr || 'Unknown'}`;
+      case EventType.UNDELEGATION:
+        return `从验证人 ${msg?.validator_address || msg?.validator_addr || 'Unknown'} 解除委托`;
+      case EventType.COMMISSION_CHANGE:
+        return `验证人 ${msg?.validator_address || msg?.validator_addr || 'Unknown'} 变更佣金率`;
+      case EventType.JAILED:
+        return `验证人 ${msg?.validator_address || msg?.validator_addr || 'Unknown'} 被监禁`;
+      case EventType.UNJAILED:
+        return `验证人 ${msg?.validator_address || msg?.validator_addr || 'Unknown'} 被释放`;
+      default:
+        return '未知事件';
     }
   }
 

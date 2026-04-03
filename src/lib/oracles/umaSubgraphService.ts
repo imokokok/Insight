@@ -242,7 +242,7 @@ export class UMASubgraphService {
         throw new Error('No data returned from subgraph');
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        logger.warn(`Subgraph query failed for ${endpoint}:`, error);
+        logger.warn(`Subgraph query failed for ${endpoint}:`, lastError);
       }
     }
 
@@ -765,7 +765,8 @@ export class UMASubgraphService {
 
       return history;
     } catch (error) {
-      logger.warn('Failed to fetch voter history:', error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      logger.warn('Failed to fetch voter history:', err);
       return [];
     }
   }
@@ -829,7 +830,8 @@ export class UMASubgraphService {
         voteCount: data.voteCount,
       }));
     } catch (error) {
-      logger.warn('Failed to fetch voters earnings:', error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      logger.warn('Failed to fetch voters earnings:', err);
       return [];
     }
   }

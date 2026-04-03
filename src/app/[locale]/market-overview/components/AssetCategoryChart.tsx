@@ -45,6 +45,7 @@ export default function AssetCategoryChart({ data, loading = false }: AssetCateg
   const CustomTooltip = ({ active, payload }: TooltipProps<AssetCategory>) => {
     if (active && payload && payload.length) {
       const item = payload[0].payload;
+      if (!item) return null;
       return (
         <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
           <p className="font-semibold text-gray-900 mb-2">{getCategoryLabel(item.category)}</p>

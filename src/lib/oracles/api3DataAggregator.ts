@@ -195,9 +195,8 @@ export class API3DataAggregator {
     const finalData = primaryResult ?? fallbackResult;
 
     if (finalData === undefined) {
-      throw this.createError(
-        `All data sources failed for ${strategy.dataType}. No mock data available.`,
-        'MOCK_DATA_DISABLED'
+      throw new Error(
+        `All data sources failed for ${strategy.dataType}. No mock data available.`
       );
     }
 
@@ -365,7 +364,7 @@ export class API3DataAggregator {
       dapiUpdateFrequency: 60,
       totalStaked,
       dataFeeds: totalDapis,
-      hourlyActivity: generateHourlyActivity(),
+      hourlyActivity: this.generateHourlyActivity(),
       status: 'online',
       lastUpdated: new Date(),
       latency: 85,
@@ -750,6 +749,10 @@ export class API3DataAggregator {
     return Math.min(100, Math.round(uptimeScore + responseScore));
   }
 
+  private generateHourlyActivity(): number[] {
+    return Array.from({ length: 24 }, () => Math.floor(Math.random() * 1000) + 500);
+  }
+
   private async fetchFromAPI<T>(
     source: 'market' | 'dao',
     endpoint: string,
@@ -926,6 +929,102 @@ export class API3DataAggregator {
 
   clearCache(): void {
     this.cache.clear();
+  }
+
+  private createMockResponse<T>(
+    strategy: DataStrategy,
+    cacheKey: string,
+    startTime: number
+  ): DataWithMetadata<T> {
+    const mockData = this.generateMockData<T>(strategy.dataType);
+
+    const result: DataWithMetadata<T> = {
+      data: mockData,
+      metadata: {
+        source: 'mock',
+        confidence: 'low',
+        timestamp: Date.now(),
+        latency: Date.now() - startTime,
+        primarySource: {
+          source: 'api',
+          timestamp: Date.now(),
+          confidence: 'low',
+          latency: 0,
+        },
+      },
+    };
+
+    if (strategy.enableCache) {
+      this.setCache(cacheKey, result.data, strategy.cacheTTL, result.metadata);
+    }
+
+    return result;
+  }
+
+  private generateMockData<T>(dataType: string): T {
+    switch (dataType) {
+      case 'dapis':
+        return {
+          dapis: [],
+          chains: [],
+          lastUpdated: new Date(),
+        } as T;
+      case 'airnodeStats':
+        return {
+          airnodeStats: {
+            totalStaked: 0,
+            activeAirnodes: 0,
+            totalDapis: 0,
+            avgApr: 0,
+            stakingGrowth: { monthly: 0, yearly: 0 },
+            airnodeDistribution: { byRegion: {}, byChain: {}, byProviderType: {} },
+          },
+          dapiCoverage: { total: 0, byChain: {}, byCategory: {} },
+          firstPartyData: { advantages: { noMiddlemen: true, sourceTransparency: true, responseTime: 0 } },
+          lastUpdated: new Date(),
+        } as T;
+      case 'oev':
+        return {
+          stats: {
+            totalOevCaptured: 0,
+            activeAuctions: 0,
+            totalParticipants: 0,
+            totalDapps: 0,
+            avgAuctionValue: 0,
+            last24hVolume: 0,
+            participantList: [],
+            recentAuctions: [],
+          },
+          recentAuctions: [],
+          lastUpdated: new Date(),
+        } as T;
+      case 'staking':
+        return {
+          totalStaked: 0,
+          stakingApr: 0,
+          stakerCount: 0,
+          coveragePool: { totalValue: 0, coverageRatio: 0, historicalPayouts: 0 },
+        } as T;
+      case 'coveragePool':
+        return {
+          totalValueLocked: 0,
+          collateralizationRatio: 0,
+          targetCollateralization: 150,
+          stakerCount: 0,
+          avgStakeAmount: 0,
+          pendingClaims: 0,
+          processedClaims: 0,
+          totalPayouts: 0,
+          healthStatus: 'healthy',
+          lastUpdateTime: new Date(),
+        } as T;
+      case 'priceDeviations':
+        return [] as T;
+      case 'dataSources':
+        return [] as T;
+      default:
+        return {} as T;
+    }
   }
 }
 

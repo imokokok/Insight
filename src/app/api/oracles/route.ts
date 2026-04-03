@@ -23,10 +23,10 @@ export const GET = createApiHandler(
     const validation = await validateQuerySchema(PriceQueryRequestSchema)(request);
 
     if (!validation.success) {
-      return validation.response;
+      return validation.response!;
     }
 
-    const { provider, symbol, chain } = validation.data!;
+    const { provider, symbol, chain } = validation.data!.query!;
     const searchParams = request.nextUrl.searchParams;
     const period = searchParams.get('period');
 
@@ -36,7 +36,7 @@ export const GET = createApiHandler(
       const historicalValidation = await validateQuerySchema(HistoricalPriceRequestSchema)(request);
 
       if (!historicalValidation.success) {
-        return historicalValidation.response;
+        return historicalValidation.response!;
       }
 
       return handleGetHistoricalPrices({
@@ -66,10 +66,10 @@ export const POST = createApiHandler(
     const validation = await validateBodySchema(BatchPriceRequestSchema)(request);
 
     if (!validation.success) {
-      return validation.response;
+      return validation.response!;
     }
 
-    const { requests } = validation.data!;
+    const { requests } = validation.data!.body!;
 
     return handleBatchPrices(requests as BatchPriceRequestType['requests']);
   },

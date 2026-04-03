@@ -46,7 +46,7 @@ export function ValidatorPerformanceHeatmap() {
           const heatmapData = await client.getValidatorPerformanceHeatmap();
           setData(heatmapData);
         } else {
-          const heatmapDataByDay = await client.getValidatorPerformanceHeatmapByDays(7);
+          const heatmapDataByDay = await client.getValidatorPerformanceHeatmapByDay();
           setDataByDay(heatmapDataByDay);
         }
       } catch (error) {

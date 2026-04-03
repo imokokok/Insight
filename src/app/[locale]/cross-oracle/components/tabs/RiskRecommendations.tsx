@@ -417,7 +417,7 @@ function RiskRecommendationsComponent({
             {/* 导出报告按钮 */}
             {onExportReport && (
               <div className="pt-4 border-t">
-                <Button variant="outline" className="w-full sm:w-auto" onClick={onExportReport}>
+                <Button variant="secondary" className="w-full sm:w-auto" onClick={onExportReport}>
                   <Download className="w-4 h-4 mr-2" />
                   {t('crossOracle.risk.recommendations.exportReport') || '导出风险报告'}
                 </Button>

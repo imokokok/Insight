@@ -455,24 +455,20 @@ export class ChronicleClient extends BaseOracleClient {
   }
 
   private getChainId(chain: Blockchain): number {
-    const chainMap: Record<Blockchain, number> = {
+    const chainMap: Partial<Record<Blockchain, number>> = {
       [Blockchain.ETHEREUM]: 1,
       [Blockchain.ARBITRUM]: 42161,
       [Blockchain.OPTIMISM]: 10,
       [Blockchain.POLYGON]: 137,
       [Blockchain.BASE]: 8453,
       [Blockchain.AVALANCHE]: 43114,
-      [Blockchain.BSC]: 56,
+      [Blockchain.BNB_CHAIN]: 56,
       [Blockchain.FANTOM]: 250,
       [Blockchain.GNOSIS]: 100,
       [Blockchain.KAVA]: 2222,
-      [Blockchain.METIS]: 1088,
+      [Blockchain.MANTLE]: 1088,
       [Blockchain.MOONBEAM]: 1284,
-      [Blockchain.MOONRIVER]: 1285,
-      [Blockchain.OPTIMISM_GOERLI]: 420,
-      [Blockchain.POLYGON_ZKEVM]: 1101,
       [Blockchain.SCROLL]: 534352,
-      [Blockchain.SEPOLIA]: 11155111,
       [Blockchain.ZKSYNC]: 324,
     };
     return chainMap[chain] || 1;

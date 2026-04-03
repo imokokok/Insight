@@ -2,6 +2,38 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('input-sanitizer');
 
+// Simple HTML sanitization for input sanitizer
+function sanitizeHtmlBasic(input: string): string {
+  return input
+    .replace(/<script[^>]*>.*?<\/script>/gi, '')
+    .replace(/<script[^>]*\/>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+}
+
+// Simple XSS detection for input sanitizer
+function detectXss(input: string): boolean {
+  if (typeof input !== 'string') {
+    return false;
+  }
+  const xssPatterns = [
+    /<script[^>]*>.*?<\/script>/i,
+    /<script[^>]*\/>/i,
+    /javascript:/i,
+    /on\w+\s*=/i,
+    /<iframe/i,
+    /<object/i,
+    /<embed/i,
+    /<form/i,
+  ];
+  return xssPatterns.some((pattern) => pattern.test(input));
+}
+
 export interface SanitizationOptions {
   maxLength?: number;
   allowHtml?: boolean;
@@ -67,7 +99,7 @@ export function sanitizeString(input: string, options: SanitizationOptions = {})
   }
 
   if (!opts.allowHtml) {
-    sanitized = sanitizeHtml(sanitized);
+    sanitized = sanitizeHtmlBasic(sanitized);
   }
 
   sanitized = sanitized.replace(CONTROL_CHARS_PATTERN, '');
@@ -84,27 +116,6 @@ export function sanitizeString(input: string, options: SanitizationOptions = {})
   if (opts.uppercase) {
     sanitized = sanitized.toUpperCase();
   }
-
-  return sanitized;
-}
-
-export function sanitizeHtml(input: string): string {
-  if (typeof input !== 'string') {
-    return '';
-  }
-
-  let sanitized = input;
-
-  XSS_PATTERNS.forEach((pattern) => {
-    sanitized = sanitized.replace(pattern, '');
-  });
-
-  sanitized = sanitized
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
 
   return sanitized;
 }
@@ -158,14 +169,6 @@ export function sanitizeArray<T>(arr: T[], options: SanitizationOptions = {}): T
     }
     return item;
   });
-}
-
-export function detectXss(input: string): boolean {
-  if (typeof input !== 'string') {
-    return false;
-  }
-
-  return XSS_PATTERNS.some((pattern) => pattern.test(input));
 }
 
 export function detectSqlInjection(input: string): boolean {

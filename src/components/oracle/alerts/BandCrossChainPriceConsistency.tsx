@@ -563,7 +563,7 @@ export function BandCrossChainPriceConsistency({
   }, [isComparisonMode, selectedDate, selectedTime, chainData]);
 
   const maxDate = formatDate(new Date());
-  const minDate = formatDate(availableDates[availableDates.length - 1]);
+  const minDate = availableDates[availableDates.length - 1];
 
   return (
     <div className={`space-y-6 ${className}`}>

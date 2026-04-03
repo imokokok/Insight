@@ -12,9 +12,8 @@ export function validateOracleData<T>(schema: ZodSchema<T>, data: unknown, conte
   if (!result.success) {
     const error = ZodValidationError.fromZodError(result.error);
     const contextMessage = context ? ` in ${context}` : '';
-    logger.error(`Oracle data validation failed${contextMessage}`, {
-      errors: result.error.issues,
-      data,
+    logger.error(`Oracle data validation failed${contextMessage}`, error, {
+      issues: result.error.issues,
     });
     throw error;
   }

@@ -188,7 +188,7 @@ export function validateEnvironment(): { valid: boolean; errors: string[] } {
   }
 
   if (errors.length > 0) {
-    logger.error('Environment validation failed', { errors });
+    logger.error('Environment validation failed', undefined, { errors });
   }
 
   return { valid: errors.length === 0, errors };

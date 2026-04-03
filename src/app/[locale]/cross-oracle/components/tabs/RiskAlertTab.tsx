@@ -94,9 +94,10 @@ function countHighRisk(anomalies: PriceAnomaly[]): number {
 function convertToHeatmapData(anomalies: PriceAnomaly[], providers: string[]): RiskHeatmapData[] {
   return providers.map((provider) => {
     const anomaly = anomalies.find((a) => a.provider === provider);
+    const oracleName = oracleNames[provider as keyof typeof oracleNames] || provider;
     if (anomaly) {
       return {
-        oracle: oracleNames[provider as OracleProvider] || provider,
+        oracle: oracleName,
         riskLevel:
           anomaly.severity === 'high' ? 'high' : anomaly.severity === 'medium' ? 'medium' : 'low',
         deviation: anomaly.deviationPercent,
@@ -104,7 +105,7 @@ function convertToHeatmapData(anomalies: PriceAnomaly[], providers: string[]): R
       };
     }
     return {
-      oracle: oracleNames[provider as OracleProvider] || provider,
+      oracle: oracleName,
       riskLevel: 'normal',
       deviation: 0,
       timestamp: Date.now(),

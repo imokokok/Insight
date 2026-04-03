@@ -37,7 +37,7 @@ export default function PriceAlertConfig({
   const resetForm = () => {
     setFormData({
       asset: '',
-      type: 'above',
+      type: 'above' as PriceAlert['type'],
       price: '',
       note: '',
     });

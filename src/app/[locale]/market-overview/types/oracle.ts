@@ -2,6 +2,8 @@
  * 预言机市场数据类型定义
  */
 
+import type { AssetCategory } from './asset';
+
 /**
  * 基础预言机市场数据
  */

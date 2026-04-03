@@ -149,7 +149,7 @@ export function validateAndSanitize<T>(schema: z.ZodSchema<T>, data: unknown): T
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      logger.warn('Validation failed', { errors: error.errors });
+      logger.warn('Validation failed', { errors: error.issues });
     }
     return null;
   }
@@ -164,7 +164,7 @@ export function safeParse<T>(
   if (result.success) {
     return { success: true, data: result.data };
   } else {
-    const errors = result.error.errors.map((err) => `${err.path.join('.')}: ${err.message}`);
+    const errors = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`);
     return { success: false, errors };
   }
 }
@@ -184,7 +184,7 @@ export const UpdateAlertRequestSchema = CreateAlertRequestSchema.partial();
 export const CreateFavoriteRequestSchema = z.object({
   name: SafeNameSchema,
   config_type: SafeConfigTypeSchema,
-  config_data: z.record(z.any()).refine((val) => {
+  config_data: z.record(z.string(), z.any()).refine((val) => {
     const size = JSON.stringify(val).length;
     return size <= 10000;
   }, 'Config data too large'),
@@ -196,8 +196,8 @@ export const CreateSnapshotRequestSchema = z.object({
   name: SafeNameSchema.optional(),
   symbol: SafeSymbolSchema,
   selected_oracles: z.array(SafeProviderSchema).min(1).max(10),
-  price_data: z.record(z.any()),
-  stats: z.record(z.any()),
+  price_data: z.record(z.string(), z.any()),
+  stats: z.record(z.string(), z.any()),
   is_public: SafeBooleanSchema.optional().default(false),
 });
 

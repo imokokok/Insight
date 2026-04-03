@@ -147,11 +147,11 @@ export function usePriceQuery(): UsePriceQueryReturn {
   const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
 
   const handleExportCSV = useCallback(() => {
-    exportHook.exportToCSV();
+    exportHook.handleExportCSV();
   }, [exportHook]);
 
   const handleExportJSON = useCallback(() => {
-    exportHook.exportToJSON();
+    exportHook.handleExportJSON();
   }, [exportHook]);
 
   const generateFilename = useCallback(

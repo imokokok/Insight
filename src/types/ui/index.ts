@@ -160,11 +160,6 @@ export type UIAsyncState<T = unknown> =
 // ============================================================================
 
 /**
- * 可选项类型
- */
-export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-
-/**
  * 必需项类型
  */
 export type RequiredProps<T, K extends keyof T> = T & Required<Pick<T, K>>;

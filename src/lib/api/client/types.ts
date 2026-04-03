@@ -1,4 +1,4 @@
-export interface ApiResponse<T> {
+export interface ApiClientResponse<T> {
   data: T;
   meta?: {
     timestamp: number;
