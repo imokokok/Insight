@@ -1,4 +1,3 @@
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -358,74 +357,27 @@ export class ChronicleClient extends BaseOracleClient {
   }
 
   private generateRealisticPrice(
-    symbol: string,
-    basePrice: number,
-    chain?: Blockchain,
-    timestamp?: number
+    _symbol: string,
+    _basePrice: number,
+    _chain?: Blockchain,
+    _timestamp?: number
   ): PriceData {
-    const now = timestamp || Date.now();
-    const price = generateDeterministicPrice(basePrice, now, this.chronicleConfig.priceVolatility);
-
-    const trendDirection = seededRandom(Math.floor(now / 3600000)) > 0.5 ? 1 : -1;
-    const change24hPercent = trendDirection * (seededRandom(now) * 5);
-    const change24h = basePrice * (change24hPercent / 100);
-
-    return {
-      provider: this.name,
-      chain,
-      symbol,
-      price: Number(price.toFixed(4)),
-      timestamp: now,
-      decimals: 8,
-      confidence: 0.97 + seededRandom(now + 1) * 0.03,
-      change24h: Number(change24h.toFixed(4)),
-      change24hPercent: Number(change24hPercent.toFixed(2)),
-    };
+    throw this.createError(
+      'Mock price generation is disabled. Please use real data sources only.',
+      'MOCK_DATA_DISABLED'
+    );
   }
 
   private generateRealisticHistoricalPrices(
-    symbol: string,
-    basePrice: number,
-    chain?: Blockchain,
-    period: number = 24
+    _symbol: string,
+    _basePrice: number,
+    _chain?: Blockchain,
+    _period: number = 24
   ): PriceData[] {
-    const prices: PriceData[] = [];
-    const now = Date.now();
-    const dataPoints = period * 4;
-    const interval = (period * 60 * 60 * 1000) / dataPoints;
-
-    const trendDirection = seededRandom(Math.floor(now / 86400000)) > 0.5 ? 1 : -1;
-    let currentPrice = basePrice * (0.97 + seededRandom(now) * 0.06);
-
-    for (let i = 0; i < dataPoints; i++) {
-      const timestamp = now - (dataPoints - 1 - i) * interval;
-      const randomWalk =
-        (seededRandom(timestamp + i) - 0.5) * 2 * this.chronicleConfig.historicalVolatility;
-      const trendComponent =
-        this.chronicleConfig.trendStrength *
-        trendDirection *
-        (1 + Math.sin((i / dataPoints) * Math.PI) * 0.5);
-
-      currentPrice = currentPrice * (1 + randomWalk + trendComponent);
-      currentPrice = Math.max(basePrice * 0.85, Math.min(basePrice * 1.15, currentPrice));
-
-      const change24hPercent = ((currentPrice - basePrice) / basePrice) * 100;
-      const change24h = currentPrice - basePrice;
-
-      prices.push({
-        provider: this.name,
-        chain,
-        symbol,
-        price: Number(currentPrice.toFixed(4)),
-        timestamp,
-        decimals: 8,
-        confidence: 0.95 + seededRandom(timestamp) * 0.05,
-        change24h: Number(change24h.toFixed(4)),
-        change24hPercent: Number(change24hPercent.toFixed(2)),
-      });
-    }
-
-    return prices;
+    throw this.createError(
+      'Mock historical price generation is disabled. Please use real data sources only.',
+      'MOCK_DATA_DISABLED'
+    );
   }
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
@@ -468,18 +420,19 @@ export class ChronicleClient extends BaseOracleClient {
             throw new Error(`No price feed for ${symbol}`);
           }
         } catch (error) {
-          logger.warn(
-            `Failed to fetch real data for ${symbol}, falling back to mock:`,
+          logger.error(
+            `Failed to fetch real data for ${symbol}:`,
             error as Error
           );
-          const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-          result = this.generateRealisticPrice(symbol, basePrice, chain);
+          throw this.createError(
+            error instanceof Error ? error.message : 'Failed to fetch price from Chronicle',
+            'CHRONICLE_ERROR'
+          );
         }
       } else {
-        // Use mock data
-        const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-        result = await this.fetchPriceWithDatabase(symbol, chain, () =>
-          this.generateRealisticPrice(symbol, basePrice, chain)
+        throw this.createError(
+          'Real data is not available. Cannot use mock data.',
+          'CHRONICLE_REAL_DATA_UNAVAILABLE'
         );
       }
 
@@ -565,27 +518,12 @@ export class ChronicleClient extends BaseOracleClient {
         return result;
       }
 
-      // 回退到模拟数据
-      logger.warn(`[ChronicleClient] Falling back to mock historical data for ${symbol}`);
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      const result = await this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
-        this.generateRealisticHistoricalPrices(symbol, basePrice, chain, period)
-      );
-
-      this.historicalCache.set(cacheKey, {
-        data: result,
-        timestamp: Date.now(),
-        expiresAt: Date.now() + this.chronicleConfig.cacheTtlMs * 5,
-      });
-
-      return result;
+      // 回退到空数据
+      logger.warn(`[ChronicleClient] No historical data available for ${symbol}`);
+      return [];
     } catch (error) {
       logger.error(`[ChronicleClient] Failed to fetch historical prices for ${symbol}:`, error as Error);
-      // 出错时回退到模拟数据
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
-        this.generateRealisticHistoricalPrices(symbol, basePrice, chain, period)
-      );
+      return [];
     }
   }
 
@@ -603,41 +541,10 @@ export class ChronicleClient extends BaseOracleClient {
   }
 
   async getScuttlebuttSecurity(): Promise<ScuttlebuttData> {
-    const now = Date.now();
-    return {
-      securityLevel: 'high',
-      verificationStatus: 'verified',
-      lastAuditTimestamp: now - 86400000 * 7,
-      auditScore: 98,
-      securityFeatures: [
-        'Decentralized Consensus',
-        'Cryptographic Verification',
-        'Economic Security Model',
-        'Real-time Monitoring',
-        'Multi-sig Authorization',
-        'Automated Failover',
-      ],
-      historicalEvents: [
-        {
-          timestamp: now - 86400000 * 30,
-          event: 'Security audit completed successfully',
-          severity: 'info',
-          resolution: 'All checks passed',
-        },
-        {
-          timestamp: now - 86400000 * 15,
-          event: 'Validator node upgrade',
-          severity: 'info',
-          resolution: 'Completed without downtime',
-        },
-        {
-          timestamp: now - 86400000 * 5,
-          event: 'Minor latency spike detected',
-          severity: 'warning',
-          resolution: 'Auto-resolved within 2 minutes',
-        },
-      ],
-    };
+    throw this.createError(
+      'Failed to fetch scuttlebutt security data. No mock data available.',
+      'CHRONICLE_SECURITY_ERROR'
+    );
   }
 
   async getMakerDAOIntegration(): Promise<MakerDAOIntegration> {
@@ -698,213 +605,27 @@ export class ChronicleClient extends BaseOracleClient {
         };
       }
     } catch (error) {
-      logger.warn('Failed to fetch real MakerDAO data, using mock:', error as Error);
+      logger.error('Failed to fetch real MakerDAO data:', error as Error);
     }
 
-    // Fallback to mock data
-    const now = Date.now();
-    return {
-      integrationVersion: '2.5.1',
-      supportedAssets: [
-        {
-          symbol: 'DAI',
-          name: 'Dai Stablecoin',
-          type: 'stablecoin',
-          collateralRatio: 0,
-          debtCeiling: 0,
-          stabilityFee: 0,
-          liquidationPenalty: 0,
-          price: 1.0,
-          lastUpdate: now,
-        },
-        {
-          symbol: 'ETH',
-          name: 'Ethereum',
-          type: 'crypto',
-          collateralRatio: 145,
-          debtCeiling: 1500000000,
-          stabilityFee: 3.5,
-          liquidationPenalty: 13,
-          price: 3500,
-          lastUpdate: now,
-        },
-        {
-          symbol: 'WBTC',
-          name: 'Wrapped Bitcoin',
-          type: 'crypto',
-          collateralRatio: 145,
-          debtCeiling: 500000000,
-          stabilityFee: 4.0,
-          liquidationPenalty: 13,
-          price: 68000,
-          lastUpdate: now,
-        },
-        {
-          symbol: 'USDC',
-          name: 'USD Coin',
-          type: 'stablecoin',
-          collateralRatio: 101,
-          debtCeiling: 800000000,
-          stabilityFee: 1.0,
-          liquidationPenalty: 0,
-          price: 1.0,
-          lastUpdate: now,
-        },
-        {
-          symbol: 'LINK',
-          name: 'Chainlink',
-          type: 'crypto',
-          collateralRatio: 165,
-          debtCeiling: 100000000,
-          stabilityFee: 2.5,
-          liquidationPenalty: 13,
-          price: 22.5,
-          lastUpdate: now,
-        },
-      ],
-      totalValueLocked: 4500000000,
-      daiSupply: 3200000000,
-      systemSurplus: 85000000,
-      systemDebt: 12000000,
-      globalDebtCeiling: 5000000000,
-    };
+    throw this.createError(
+      'Failed to fetch MakerDAO integration data. No mock data available.',
+      'CHRONICLE_MAKERDAO_ERROR'
+    );
   }
 
   async getValidatorNetwork(): Promise<ValidatorNetwork> {
-    const now = Date.now();
-    const validators: ChronicleValidator[] = [
-      {
-        id: 'val-001',
-        address: '0x7a2...3f9b',
-        name: 'Chronicle Guardian Alpha',
-        reputationScore: 98,
-        uptime: 99.98,
-        responseTime: 120,
-        stakedAmount: 5000000,
-        validatedFeeds: 45,
-        joinDate: now - 86400000 * 365,
-        lastActivity: now - 30000,
-        status: 'active',
-      },
-      {
-        id: 'val-002',
-        address: '0x8b3...4a2c',
-        name: 'MakerDAO Oracle Node',
-        reputationScore: 97,
-        uptime: 99.95,
-        responseTime: 135,
-        stakedAmount: 4200000,
-        validatedFeeds: 42,
-        joinDate: now - 86400000 * 300,
-        lastActivity: now - 45000,
-        status: 'active',
-      },
-      {
-        id: 'val-003',
-        address: '0x9c4...5b3d',
-        name: 'DeFi Sentinel Beta',
-        reputationScore: 95,
-        uptime: 99.87,
-        responseTime: 145,
-        stakedAmount: 3800000,
-        validatedFeeds: 38,
-        joinDate: now - 86400000 * 250,
-        lastActivity: now - 60000,
-        status: 'active',
-      },
-      {
-        id: 'val-004',
-        address: '0xad5...6c4e',
-        name: 'SecureFeed Validator',
-        reputationScore: 94,
-        uptime: 99.82,
-        responseTime: 155,
-        stakedAmount: 3200000,
-        validatedFeeds: 35,
-        joinDate: now - 86400000 * 200,
-        lastActivity: now - 90000,
-        status: 'active',
-      },
-      {
-        id: 'val-005',
-        address: '0xbe6...7d5f',
-        name: 'PriceGuard Node',
-        reputationScore: 92,
-        uptime: 99.75,
-        responseTime: 165,
-        stakedAmount: 2800000,
-        validatedFeeds: 32,
-        joinDate: now - 86400000 * 180,
-        lastActivity: now - 120000,
-        status: 'active',
-      },
-      {
-        id: 'val-006',
-        address: '0xcf7...8e6a',
-        name: 'DataVerify Pro',
-        reputationScore: 90,
-        uptime: 99.68,
-        responseTime: 175,
-        stakedAmount: 2500000,
-        validatedFeeds: 30,
-        joinDate: now - 86400000 * 150,
-        lastActivity: now - 180000,
-        status: 'active',
-      },
-    ];
-
-    const activeValidators = validators.filter((v) => v.status === 'active').length;
-    const averageReputation =
-      validators.reduce((sum, v) => sum + v.reputationScore, 0) / validators.length;
-    const totalStaked = validators.reduce((sum, v) => sum + v.stakedAmount, 0);
-
-    return {
-      totalValidators: validators.length,
-      activeValidators,
-      averageReputation: Number(averageReputation.toFixed(2)),
-      totalStaked,
-      networkHealth: activeValidators >= 5 ? 'excellent' : activeValidators >= 3 ? 'good' : 'fair',
-      validators,
-    };
+    throw this.createError(
+      'Failed to fetch validator network data. No mock data available.',
+      'CHRONICLE_VALIDATOR_ERROR'
+    );
   }
 
   async getNetworkStats(): Promise<ChronicleNetworkStats> {
-    try {
-      if (this.isCacheValid(this.networkStatsCache)) {
-        return this.networkStatsCache!.data;
-      }
-
-      const now = Date.now();
-      const stats: ChronicleNetworkStats = {
-        activeValidators: 45,
-        nodeUptime: 99.95,
-        avgResponseTime: 140,
-        updateFrequency: 60,
-        totalStaked: 25000000,
-        dataFeeds: 85,
-        hourlyActivity: [
-          1200, 1100, 1000, 950, 900, 950, 1100, 1500, 2100, 2800, 3400, 3800, 3600, 3400, 3200,
-          3300, 3500, 3700, 3400, 2800, 2200, 1700, 1400, 1300,
-        ],
-        status: 'online',
-        latency: 140,
-        stakingTokenSymbol: 'MKR',
-      };
-
-      this.networkStatsCache = {
-        data: stats,
-        timestamp: now,
-        expiresAt: now + this.chronicleConfig.cacheTtlMs * 10,
-      };
-
-      return stats;
-    } catch (error) {
-      logger.error('Failed to fetch network stats:', error as Error);
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch network stats',
-        'CHRONICLE_NETWORK_ERROR'
-      );
-    }
+    throw this.createError(
+      'Failed to fetch network stats. No mock data available.',
+      'CHRONICLE_NETWORK_ERROR'
+    );
   }
 
   async getStakingData(): Promise<{
@@ -913,33 +634,10 @@ export class ChronicleClient extends BaseOracleClient {
     stakerCount: number;
     rewardPool: number;
   }> {
-    try {
-      if (this.isCacheValid(this.stakingDataCache)) {
-        return this.stakingDataCache!.data;
-      }
-
-      const now = Date.now();
-      const data = {
-        totalStaked: 25000000,
-        stakingApr: 6.8,
-        stakerCount: 1800,
-        rewardPool: 1200000,
-      };
-
-      this.stakingDataCache = {
-        data,
-        timestamp: now,
-        expiresAt: now + this.chronicleConfig.cacheTtlMs * 10,
-      };
-
-      return data;
-    } catch (error) {
-      logger.error('Failed to fetch staking data:', error as Error);
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch staking data',
-        'CHRONICLE_STAKING_ERROR'
-      );
-    }
+    throw this.createError(
+      'Failed to fetch staking data. No mock data available.',
+      'CHRONICLE_STAKING_ERROR'
+    );
   }
 
   async getVaultData(): Promise<VaultData> {
@@ -1007,363 +705,27 @@ export class ChronicleClient extends BaseOracleClient {
         };
       }
     } catch (error) {
-      logger.warn('Failed to fetch real vault data, using mock:', error as Error);
+      logger.error('Failed to fetch real vault data:', error as Error);
     }
 
-    // Fallback to mock data
-    const now = Date.now();
-    const vaultTypes: VaultTypeData[] = [
-      {
-        id: '1',
-        type: 'ETH-A',
-        name: 'Ethereum-A',
-        totalVaults: 1250,
-        collateralValue: 1850000000,
-        debtValue: 980000000,
-        collateralRatio: 189,
-        stabilityFee: 2.5,
-        debtCeiling: 2500000000,
-        debtCeilingUsed: 39.2,
-      },
-      {
-        id: '2',
-        type: 'WBTC-A',
-        name: 'Wrapped Bitcoin-A',
-        totalVaults: 856,
-        collateralValue: 1250000000,
-        debtValue: 620000000,
-        collateralRatio: 202,
-        stabilityFee: 2.0,
-        debtCeiling: 1500000000,
-        debtCeilingUsed: 41.3,
-      },
-      {
-        id: '3',
-        type: 'USDC-A',
-        name: 'USD Coin-A',
-        totalVaults: 432,
-        collateralValue: 450000000,
-        debtValue: 380000000,
-        collateralRatio: 118,
-        stabilityFee: 0.5,
-        debtCeiling: 800000000,
-        debtCeilingUsed: 47.5,
-      },
-      {
-        id: '4',
-        type: 'LINK-A',
-        name: 'Chainlink-A',
-        totalVaults: 128,
-        collateralValue: 85000000,
-        debtValue: 42000000,
-        collateralRatio: 202,
-        stabilityFee: 3.0,
-        debtCeiling: 150000000,
-        debtCeilingUsed: 28.0,
-      },
-    ];
-
-    const totalCollateral = vaultTypes.reduce((sum, v) => sum + v.collateralValue, 0);
-    const totalDebt = vaultTypes.reduce((sum, v) => sum + v.debtValue, 0);
-    const avgCollateralRatio =
-      vaultTypes.reduce((sum, v) => sum + v.collateralRatio, 0) / vaultTypes.length;
-
-    const activeAuctions: AuctionData[] = [
-      {
-        id: '1',
-        vaultId: 'VLT-2847',
-        collateralType: 'ETH-A',
-        collateralAmount: 125.5,
-        debtAmount: 285000,
-        startTime: '2 hours ago',
-        status: 'active',
-        currentBid: 280000,
-      },
-      {
-        id: '2',
-        vaultId: 'VLT-1923',
-        collateralType: 'WBTC-A',
-        collateralAmount: 8.25,
-        debtAmount: 425000,
-        startTime: '5 hours ago',
-        status: 'active',
-        currentBid: 420000,
-      },
-      {
-        id: '3',
-        vaultId: 'VLT-3102',
-        collateralType: 'ETH-A',
-        collateralAmount: 45.0,
-        debtAmount: 98000,
-        startTime: '1 day ago',
-        status: 'pending',
-      },
-    ];
-
-    const liquidationHistory: LiquidationHistory[] = [
-      {
-        id: '1',
-        vaultId: 'VLT-2847',
-        collateralType: 'ETH-A',
-        liquidatedCollateral: 125.5,
-        debtCovered: 285000,
-        liquidationDate: '2024-01-15',
-        price: 2270.45,
-      },
-      {
-        id: '2',
-        vaultId: 'VLT-1923',
-        collateralType: 'WBTC-A',
-        liquidatedCollateral: 8.25,
-        debtCovered: 425000,
-        liquidationDate: '2024-01-14',
-        price: 51515.15,
-      },
-      {
-        id: '3',
-        vaultId: 'VLT-3102',
-        collateralType: 'ETH-A',
-        liquidatedCollateral: 45.0,
-        debtCovered: 98000,
-        liquidationDate: '2024-01-12',
-        price: 2177.78,
-      },
-      {
-        id: '4',
-        vaultId: 'VLT-1456',
-        collateralType: 'LINK-A',
-        liquidatedCollateral: 12500,
-        debtCovered: 125000,
-        liquidationDate: '2024-01-10',
-        price: 10.0,
-      },
-    ];
-
-    return {
-      totalVaults: vaultTypes.reduce((sum, v) => sum + v.totalVaults, 0),
-      totalCollateralValue: totalCollateral,
-      totalDebtValue: totalDebt,
-      averageCollateralRatio: Number(avgCollateralRatio.toFixed(2)),
-      vaultTypes,
-      activeAuctions,
-      liquidationHistory,
-    };
+    throw this.createError(
+      'Failed to fetch vault data. No mock data available.',
+      'CHRONICLE_VAULT_ERROR'
+    );
   }
 
   async getScuttlebuttConsensus(): Promise<ScuttlebuttConsensus> {
-    const now = Date.now();
-    const validatorVotes: ValidatorVote[] = [
-      {
-        validatorId: 'val-001',
-        voteWeight: 20.5,
-        voteStatus: 'approved',
-        timestamp: now - 120000,
-      },
-      {
-        validatorId: 'val-002',
-        voteWeight: 17.2,
-        voteStatus: 'approved',
-        timestamp: now - 115000,
-      },
-      {
-        validatorId: 'val-003',
-        voteWeight: 15.8,
-        voteStatus: 'approved',
-        timestamp: now - 110000,
-      },
-      {
-        validatorId: 'val-004',
-        voteWeight: 13.4,
-        voteStatus: 'approved',
-        timestamp: now - 105000,
-      },
-      {
-        validatorId: 'val-005',
-        voteWeight: 11.6,
-        voteStatus: 'approved',
-        timestamp: now - 100000,
-      },
-      {
-        validatorId: 'val-006',
-        voteWeight: 10.2,
-        voteStatus: 'pending',
-        timestamp: now - 30000,
-      },
-      {
-        validatorId: 'val-007',
-        voteWeight: 8.5,
-        voteStatus: 'pending',
-        timestamp: now - 15000,
-      },
-    ];
-
-    const totalWeight = validatorVotes.reduce((sum, v) => sum + v.voteWeight, 0);
-    const approvedWeight = validatorVotes
-      .filter((v) => v.voteStatus === 'approved')
-      .reduce((sum, v) => sum + v.voteWeight, 0);
-
-    return {
-      votingProgress: Number(((approvedWeight / totalWeight) * 100).toFixed(2)),
-      consensusTime: now - 180000,
-      validatorVotes,
-      forkStatus: 'none',
-    };
+    throw this.createError(
+      'Failed to fetch scuttlebutt consensus data. No mock data available.',
+      'CHRONICLE_SCUTTLEBUTT_ERROR'
+    );
   }
 
-  async getCrossChainPrices(symbol: string): Promise<CrossChainData> {
-    const now = Date.now();
-    const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-
-    const prices: ChainPriceData[] = [
-      {
-        chain: 'Ethereum',
-        chainId: 1,
-        price: basePrice,
-        deviation: 0,
-        lastUpdate: '2s ago',
-        status: 'active',
-        confirmations: 12,
-      },
-      {
-        chain: 'Arbitrum',
-        chainId: 42161,
-        price: basePrice,
-        deviation: 0,
-        lastUpdate: '5s ago',
-        status: 'active',
-        confirmations: 1,
-      },
-      {
-        chain: 'Optimism',
-        chainId: 10,
-        price: basePrice,
-        deviation: 0,
-        lastUpdate: '3s ago',
-        status: 'active',
-        confirmations: 1,
-      },
-      {
-        chain: 'Polygon',
-        chainId: 137,
-        price: basePrice,
-        deviation: 0,
-        lastUpdate: '8s ago',
-        status: 'active',
-        confirmations: 128,
-      },
-      {
-        chain: 'Base',
-        chainId: 8453,
-        price: basePrice,
-        deviation: 0,
-        lastUpdate: '4s ago',
-        status: 'active',
-        confirmations: 1,
-      },
-      {
-        chain: 'Avalanche',
-        chainId: 43114,
-        price: basePrice,
-        deviation: 0,
-        lastUpdate: '6s ago',
-        status: 'warning',
-        confirmations: 1,
-      },
-    ];
-
-    const latencies: ChainLatencyData[] = [
-      {
-        chain: 'Ethereum',
-        avgBlockTime: 12,
-        finalityTime: 900,
-        gasPrice: 35,
-        gasPriceUnit: 'Gwei',
-      },
-      {
-        chain: 'Arbitrum',
-        avgBlockTime: 0.25,
-        finalityTime: 600,
-        gasPrice: 0.1,
-        gasPriceUnit: 'Gwei',
-      },
-      {
-        chain: 'Optimism',
-        avgBlockTime: 2,
-        finalityTime: 300,
-        gasPrice: 0.001,
-        gasPriceUnit: 'ETH',
-      },
-      {
-        chain: 'Polygon',
-        avgBlockTime: 2.1,
-        finalityTime: 120,
-        gasPrice: 30,
-        gasPriceUnit: 'Gwei',
-      },
-      { chain: 'Base', avgBlockTime: 2, finalityTime: 300, gasPrice: 0.001, gasPriceUnit: 'ETH' },
-      { chain: 'Avalanche', avgBlockTime: 2, finalityTime: 1, gasPrice: 25, gasPriceUnit: 'nAVAX' },
-    ];
-
-    const bridges: BridgeStatusData[] = [
-      {
-        bridge: 'Arbitrum Bridge',
-        sourceChain: 'Ethereum',
-        targetChain: 'Arbitrum',
-        totalTransactions: 1250000,
-        avgDelay: 10,
-        status: 'healthy',
-        lastUpdate: '1m ago',
-      },
-      {
-        bridge: 'Optimism Bridge',
-        sourceChain: 'Ethereum',
-        targetChain: 'Optimism',
-        totalTransactions: 980000,
-        avgDelay: 20,
-        status: 'healthy',
-        lastUpdate: '30s ago',
-      },
-      {
-        bridge: 'Polygon PoS',
-        sourceChain: 'Ethereum',
-        targetChain: 'Polygon',
-        totalTransactions: 2100000,
-        avgDelay: 180,
-        status: 'healthy',
-        lastUpdate: '2m ago',
-      },
-      {
-        bridge: 'Base Bridge',
-        sourceChain: 'Ethereum',
-        targetChain: 'Base',
-        totalTransactions: 450000,
-        avgDelay: 20,
-        status: 'healthy',
-        lastUpdate: '1m ago',
-      },
-      {
-        bridge: 'Avalanche Bridge',
-        sourceChain: 'Ethereum',
-        targetChain: 'Avalanche',
-        totalTransactions: 720000,
-        avgDelay: 300,
-        status: 'degraded',
-        lastUpdate: '5m ago',
-      },
-    ];
-
-    const medianPrice = prices.reduce((sum, p) => sum + p.price, 0) / prices.length;
-
-    return {
-      prices: prices.map((p) => ({
-        ...p,
-        price: Number(p.price.toFixed(2)),
-        deviation: Number(p.deviation.toFixed(3)),
-      })),
-      latencies,
-      bridges,
-      medianPrice: Number(medianPrice.toFixed(2)),
-    };
+  async getCrossChainPrices(_symbol: string): Promise<CrossChainData> {
+    throw this.createError(
+      'Failed to fetch cross-chain prices. No mock data available.',
+      'CHRONICLE_CROSSCHAIN_ERROR'
+    );
   }
 
   getSupportedSymbols(): string[] {
@@ -1399,96 +761,10 @@ export class ChronicleClient extends BaseOracleClient {
     return chainIds.map((id) => chainMap[id]).filter(Boolean) as Blockchain[];
   }
 
-  async getPriceDeviation(symbol: string): Promise<DeviationData> {
-    const now = Date.now();
-    const chroniclePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-
-    const sources: DeviationDataSource[] = [
-      {
-        name: 'Chainlink',
-        price: chroniclePrice,
-        deviation: 0,
-        deviationDirection: 'up',
-        lastUpdate: '12s ago',
-        reliability: 99.8,
-      },
-      {
-        name: 'Pyth',
-        price: chroniclePrice,
-        deviation: 0,
-        deviationDirection: 'up',
-        lastUpdate: '8s ago',
-        reliability: 99.5,
-      },
-      {
-        name: 'Uniswap V3',
-        price: chroniclePrice,
-        deviation: 0,
-        deviationDirection: 'up',
-        lastUpdate: '3s ago',
-        reliability: 97.2,
-      },
-    ];
-
-    const history: DeviationHistoryPoint[] = Array.from({ length: 24 }, (_, i) => ({
-      timestamp: now - (24 - i) * 3600000,
-      deviation: 0,
-    }));
-
-    const stats: DeviationStats = {
-      maxDeviation: Math.max(...history.map((h) => h.deviation)),
-      avgDeviation: history.reduce((sum, h) => sum + h.deviation, 0) / history.length,
-      minDeviation: Math.min(...history.map((h) => h.deviation)),
-      deviationCount: 156,
-    };
-
-    const factors: DeviationFactor[] = [
-      {
-        name: 'Market Volatility',
-        impact: 35,
-        description: 'High volatility market environment causes price update delays',
-        status: 'medium',
-      },
-      {
-        name: 'Update Delay',
-        impact: 45,
-        description: 'Oracle update frequency differences cause temporary price deviations',
-        status: 'high',
-      },
-      {
-        name: 'Liquidity Issues',
-        impact: 20,
-        description: 'Large trades during low liquidity periods cause price slippage',
-        status: 'low',
-      },
-    ];
-
-    const impact: DeviationImpact = {
-      affectedVaults: 12,
-      liquidationRisk: 'low',
-      arbitrageOpportunity: true,
-      potentialProfit: 2450,
-    };
-
-    return {
-      chroniclePrice,
-      sources: sources.map((s) => ({
-        ...s,
-        price: Number(s.price.toFixed(2)),
-        deviation: Number(s.deviation.toFixed(3)),
-      })),
-      history: history.map((h) => ({
-        ...h,
-        deviation: Number(h.deviation.toFixed(3)),
-      })),
-      stats: {
-        maxDeviation: Number(stats.maxDeviation.toFixed(3)),
-        avgDeviation: Number(stats.avgDeviation.toFixed(3)),
-        minDeviation: Number(stats.minDeviation.toFixed(3)),
-        deviationCount: stats.deviationCount,
-      },
-      factors,
-      impact,
-    };
+  async getPriceDeviation(_symbol: string): Promise<DeviationData> {
+    throw this.createError(
+      'Failed to fetch price deviation data. No mock data available.',
+      'CHRONICLE_DEVIATION_ERROR'
+    );
   }
 }

@@ -456,7 +456,13 @@
     "lastSuccessfulUpdate": "最后成功更新",
     "retry": "重试",
     "retryAll": "重试全部",
-    "loading": "正在加载"
+    "loading": "正在加载",
+    "sourcePrice": "价格",
+    "sourceHistorical": "历史",
+    "sourceStaking": "质押",
+    "sourceGaming": "游戏",
+    "sourceNetwork": "网络",
+    "sourceRisk": "风险"
   },
   "common": {
     "live": "实时",

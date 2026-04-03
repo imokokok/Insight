@@ -79,13 +79,10 @@ export class PythClient extends BaseOracleClient {
 
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       const priceData = await this.fetchPriceWithDatabase(symbol, chain, () => {
-        const mockPrice = this.generateMockPrice(symbol, basePrice, chain);
-        const confidenceInterval = this.generateConfidenceInterval(mockPrice.price, symbol);
-        return {
-          ...mockPrice,
-          confidenceInterval,
-          source: 'mock-fallback',
-        };
+        throw this.createError(
+          'Mock price generation is disabled. Please use real data sources only.',
+          'MOCK_DATA_DISABLED'
+        );
       });
 
       if (!priceData.confidenceInterval) {
@@ -150,26 +147,14 @@ export class PythClient extends BaseOracleClient {
         }));
       }
 
-      // 回退到模拟数据
-      console.warn(`[PythClient] Falling back to mock historical data for ${symbol}`);
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
-        this.generateMockHistoricalPrices(symbol, basePrice, chain, period).map(p => ({
-          ...p,
-          source: 'mock-fallback',
-        }))
-      );
+      // 回退到空数据
+      console.warn(`[PythClient] No historical data available for ${symbol}`);
+      return [];
     } catch (error) {
       console.error(`[PythClient] Failed to fetch historical prices for ${symbol}:`, error);
       
-      // 出错时回退到模拟数据
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
-        this.generateMockHistoricalPrices(symbol, basePrice, chain, period).map(p => ({
-          ...p,
-          source: 'mock-fallback',
-        }))
-      );
+      // 出错时返回空数据
+      return [];
     }
   }
 
