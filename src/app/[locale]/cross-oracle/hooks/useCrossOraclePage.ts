@@ -76,12 +76,20 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   // ==========================================================================
   // 数据获取
   // ==========================================================================
-  const { priceData, historicalData, isLoading, error, lastUpdated, fetchPriceData } =
-    useOracleData({
-      selectedOracles,
-      selectedSymbol,
-      timeRange,
-    });
+  const {
+    priceData,
+    historicalData,
+    isLoading,
+    error,
+    lastUpdated,
+    fetchPriceData,
+    performanceMetrics,
+    isCalculatingMetrics,
+  } = useOracleData({
+    selectedOracles,
+    selectedSymbol,
+    timeRange,
+  });
 
   // ==========================================================================
   // 统计数据
@@ -406,6 +414,10 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
     // 预言机特性
     oracleFeatures,
+
+    // 性能指标（新增）
+    performanceMetrics,
+    isCalculatingMetrics,
 
     // 回调函数
     handleTabChange,

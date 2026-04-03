@@ -80,6 +80,10 @@ interface QueryResultsProps {
 
   // 回调
   onRefresh: () => void;
+
+  // 性能指标（新增）
+  performanceMetrics: import('@/lib/oracles/performanceMetricsCalculator').CalculatedPerformanceMetrics[];
+  isCalculatingMetrics: boolean;
 }
 
 // ============================================================================
@@ -174,6 +178,8 @@ function QueryResultsComponent({
   qualityScore,
   historicalData,
   oracleColors,
+  performanceMetrics,
+  isCalculatingMetrics,
 }: QueryResultsProps) {
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState<TabType>('priceComparison');

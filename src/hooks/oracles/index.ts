@@ -136,3 +136,16 @@ export {
   type PublisherData,
   type ValidatorData,
 } from './useOraclePage';
+
+// Performance Metrics Hook
+export {
+  useCalculatedPerformanceMetrics,
+  type OraclePriceResult,
+} from './useCalculatedPerformanceMetrics';
+
+// Cross Oracle with Metrics Hook
+export {
+  useCrossOracleWithMetrics,
+  type UseCrossOracleWithMetricsOptions,
+  type UseCrossOracleWithMetricsReturn,
+} from './useCrossOracleWithMetrics';

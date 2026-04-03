@@ -501,6 +501,92 @@ export class PythDataService {
     }
   }
 
+  /**
+   * 方案2: 批量获取历史价格数据
+   * 使用 Pyth Hermes API 获取一段时间内的价格更新
+   */
+  async getHistoricalPrices(
+    symbol: string,
+    hours: number = 24,
+    intervalMinutes: number = 60
+  ): Promise<PriceData[]> {
+    const cacheKey = `historical:${symbol}:${hours}:${intervalMinutes}`;
+    const cached = this.getFromCache<PriceData[]>(cacheKey);
+    if (cached) {
+      logger.debug('Returning cached historical prices', { symbol, hours });
+      return cached;
+    }
+
+    try {
+      const pythSymbol = normalizeSymbol(symbol);
+      const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
+
+      if (!priceId) {
+        logger.warn('No price feed ID found for symbol', { symbol });
+        return [];
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      const from = now - hours * 60 * 60;
+      const dataPoints = Math.ceil((hours * 60) / intervalMinutes);
+
+      logger.info(`Fetching historical prices for ${symbol} (${hours}h, ${dataPoints} points)`);
+
+      // 使用 Pyth Hermes API 获取价格历史
+      const result = await withRetry(
+        async () => {
+          // 获取该时间段内的所有价格更新
+          const priceUpdates = await this.hermesClient.getPriceUpdatesAtTimestamp(from, [priceId]);
+          
+          if (!priceUpdates.parsed || priceUpdates.parsed.length === 0) {
+            logger.warn('No historical price data available', { symbol, hours });
+            return [];
+          }
+
+          // 解析所有价格点
+          const allPrices: PriceData[] = [];
+          for (const parsed of priceUpdates.parsed) {
+            if (parsed && parsed.price && isPythPriceRaw(parsed.price)) {
+              const priceData = this.parsePythPrice(parsed.price, symbol);
+              allPrices.push(priceData);
+            }
+          }
+
+          // 按时间戳排序
+          allPrices.sort((a, b) => a.timestamp - b.timestamp);
+
+          // 如果数据点太多，进行采样
+          if (allPrices.length > dataPoints * 2) {
+            const sampled: PriceData[] = [];
+            const step = Math.floor(allPrices.length / dataPoints);
+            for (let i = 0; i < allPrices.length; i += step) {
+              sampled.push(allPrices[i]);
+            }
+            return sampled;
+          }
+
+          return allPrices;
+        },
+        DEFAULT_RETRY_CONFIG,
+        'getHistoricalPrices'
+      );
+
+      if (result.length > 0) {
+        this.setCache(cacheKey, result, CACHE_TTL.PRICE);
+        logger.info(`Successfully fetched ${result.length} historical price points for ${symbol}`);
+      }
+
+      return result;
+    } catch (error) {
+      logger.error(
+        'Failed to get historical prices',
+        error instanceof Error ? error : new Error(String(error)),
+        { symbol, hours }
+      );
+      return [];
+    }
+  }
+
   async getCrossChainPrices(symbol: string = 'SOL/USD'): Promise<CrossChainResult> {
     const cacheKey = `crossChain:${symbol}`;
     const cached = this.getFromCache<CrossChainResult>(cacheKey);
