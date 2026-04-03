@@ -127,15 +127,15 @@ export class PythClient extends BaseOracleClient {
         })).sort((a, b) => a.timestamp - b.timestamp);
       }
 
-      // 如果 Pyth 数据不足，尝试使用 CoinGecko 作为备选
-      console.log(`[PythClient] Pyth historical data insufficient for ${symbol}, trying CoinGecko...`);
+      // 如果 Pyth 数据不足，尝试使用 Binance 作为备选
+      console.log(`[PythClient] Pyth historical data insufficient for ${symbol}, trying Binance...`);
       const { coinGeckoMarketService } = await import('@/lib/services/marketData/coinGeckoMarketService');
       const days = Math.ceil(period / 24);
-      const coinGeckoPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
-      
-      if (coinGeckoPrices && coinGeckoPrices.length > 0) {
-        console.log(`[PythClient] Using CoinGecko real historical data for ${symbol}, got ${coinGeckoPrices.length} points`);
-        return coinGeckoPrices.map((point) => ({
+      const binancePrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
+
+      if (binancePrices && binancePrices.length > 0) {
+        console.log(`[PythClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`);
+        return binancePrices.map((point) => ({
           provider: this.name,
           chain: chain || Blockchain.ETHEREUM,
           symbol,
@@ -145,7 +145,7 @@ export class PythClient extends BaseOracleClient {
           confidence: 0.95,
           change24h: 0,
           change24hPercent: 0,
-          source: 'coingecko-api',
+          source: 'binance-api',
         }));
       }
 

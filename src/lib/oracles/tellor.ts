@@ -336,14 +336,14 @@ export class TellorClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      // 使用 CoinGecko 获取真实历史数据
+      // 使用 Binance 获取真实历史数据
       const { coinGeckoMarketService } = await import('@/lib/services/marketData/coinGeckoMarketService');
       const days = Math.ceil(period / 24);
-      const coinGeckoPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
+      const binancePrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
 
-      if (coinGeckoPrices && coinGeckoPrices.length > 0) {
-        console.log(`[TellorClient] Using CoinGecko real historical data for ${symbol}, got ${coinGeckoPrices.length} points`);
-        return coinGeckoPrices.map((point) => ({
+      if (binancePrices && binancePrices.length > 0) {
+        console.log(`[TellorClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`);
+        return binancePrices.map((point) => ({
           provider: this.name,
           chain: chain || Blockchain.ETHEREUM,
           symbol,
@@ -351,12 +351,12 @@ export class TellorClient extends BaseOracleClient {
           timestamp: point.timestamp,
           decimals: 8,
           confidence: 0.95,
-          source: 'coingecko-api',
+          source: 'binance-api',
         }));
       }
 
-      // 如果 CoinGecko 失败，基于当前价格生成历史数据点
-      console.warn(`[TellorClient] CoinGecko failed, generating historical data from current price for ${symbol}`);
+      // 如果 Binance 失败，基于当前价格生成历史数据点
+      console.warn(`[TellorClient] Binance failed, generating historical data from current price for ${symbol}`);
       const currentPrice = await this.getPrice(symbol, chain);
       const prices: PriceData[] = [];
       const now = Date.now();

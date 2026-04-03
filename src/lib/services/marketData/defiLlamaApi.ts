@@ -520,59 +520,76 @@ export async function fetchAssetsData(
   symbols: string[] = ['BTC', 'ETH', 'SOL', 'AVAX', 'LINK']
 ): Promise<AssetData[]> {
   try {
-    logger.info('Fetching asset data...');
+    logger.info('Fetching asset data from Binance...');
 
-    const coinGeckoIds: Record<string, string> = {
-      BTC: 'bitcoin',
-      ETH: 'ethereum',
-      SOL: 'solana',
-      AVAX: 'avalanche-2',
-      LINK: 'chainlink',
-      MATIC: 'matic-network',
-      ARB: 'arbitrum',
-      OP: 'optimism',
-      UNI: 'uniswap',
-      AAVE: 'aave',
-      USDC: 'usd-coin',
-      USDT: 'tether',
+    // Binance 交易对映射
+    const binanceSymbols: Record<string, string> = {
+      BTC: 'BTCUSDT',
+      ETH: 'ETHUSDT',
+      SOL: 'SOLUSDT',
+      AVAX: 'AVAXUSDT',
+      LINK: 'LINKUSDT',
+      MATIC: 'MATICUSDT',
+      ARB: 'ARBUSDT',
+      OP: 'OPUSDT',
+      UNI: 'UNIUSDT',
+      AAVE: 'AAVEUSDT',
+      USDC: 'USDCUSDT',
+      USDT: 'USDT',
+      DAI: 'DAIUSDT',
+      BNB: 'BNBUSDT',
+      DOGE: 'DOGEUSDT',
+      XRP: 'XRPUSDT',
+      ADA: 'ADAUSDT',
+      DOT: 'DOTUSDT',
+      LTC: 'LTCUSDT',
+      BCH: 'BCHUSDT',
     };
 
     const assets: AssetData[] = [];
 
-    const ids = symbols
-      .map((s) => coinGeckoIds[s])
-      .filter(Boolean)
-      .join(',');
+    // 过滤出支持的代币
+    const supportedSymbols = symbols.filter((s) => binanceSymbols[s]);
 
-    if (ids) {
-      try {
-        const response = await fetchWithRetry(
-          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
-        );
+    if (supportedSymbols.length === 0) {
+      logger.warn('No supported symbols provided');
+      return generateFallbackAssetData(symbols);
+    }
 
-        const priceData = await response.json();
+    try {
+      // 使用 Binance API 获取 24 小时统计数据
+      const binanceSymbolsList = supportedSymbols.map((s) => binanceSymbols[s]);
+      const response = await fetchWithRetry(
+        `https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent(JSON.stringify(binanceSymbolsList))}`
+      );
 
-        symbols.forEach((symbol) => {
-          const coinId = coinGeckoIds[symbol];
-          const data = priceData[coinId];
+      const priceData = await response.json();
 
-          if (data) {
-            assets.push({
-              symbol,
-              price: data.usd || 0,
-              change24h: data.usd_24h_change || 0,
-              change7d: 0,
-              volume24h: data.usd_24h_vol || 0,
-              marketCap: data.usd_market_cap || 0,
-              primaryOracle: estimatePrimaryOracle(symbol),
-              oracleCount: estimateOracleCount(symbol),
-              priceSources: [],
-            });
-          }
-        });
-      } catch (_error) {
-        logger.warn('Failed to fetch from CoinGecko, using fallback data');
-      }
+      // 创建交易对到代币的映射
+      const symbolToToken = Object.fromEntries(
+        Object.entries(binanceSymbols).map(([token, symbol]) => [symbol, token])
+      );
+
+      priceData.forEach((data: any) => {
+        const symbol = symbolToToken[data.symbol];
+        if (symbol) {
+          assets.push({
+            symbol,
+            price: parseFloat(data.lastPrice) || 0,
+            change24h: parseFloat(data.priceChangePercent) || 0,
+            change7d: 0, // Binance 24hr 接口不提供 7 天数据
+            volume24h: parseFloat(data.volume) * parseFloat(data.weightedAvgPrice) || 0,
+            marketCap: 0, // Binance API 不直接提供市值
+            primaryOracle: estimatePrimaryOracle(symbol),
+            oracleCount: estimateOracleCount(symbol),
+            priceSources: [],
+          });
+        }
+      });
+
+      logger.info(`Successfully fetched ${assets.length} assets from Binance`);
+    } catch (error) {
+      logger.warn('Failed to fetch from Binance, using fallback data', error instanceof Error ? error : new Error(String(error)));
     }
 
     if (assets.length === 0) {
@@ -1656,25 +1673,29 @@ export async function calculateCorrelation(timeRange: string = '30D'): Promise<C
   }
 }
 
-interface CoinGeckoCategoryData {
+interface CategoryData {
   id: string;
   name: string;
   market_cap: number;
   total_volume: number;
 }
 
-async function fetchCoinGeckoCategories(): Promise<CoinGeckoCategoryData[]> {
-  try {
-    const response = await fetchWithRetry(
-      'https://api.coingecko.com/api/v3/coins/categories?order=market_cap_desc',
-      {},
-      15000
-    );
-    return await response.json();
-  } catch (error) {
-    logger.warn('Failed to fetch CoinGecko categories', error instanceof Error ? error : new Error(String(error)));
-    return [];
-  }
+// 使用本地分类数据替代 CoinGecko API
+async function fetchCategories(): Promise<CategoryData[]> {
+  // 由于 Binance 没有分类 API，我们使用预定义的静态数据
+  const categories: CategoryData[] = [
+    { id: 'layer-1', name: 'Layer 1', market_cap: 1500000000000, total_volume: 50000000000 },
+    { id: 'defi', name: 'DeFi', market_cap: 80000000000, total_volume: 5000000000 },
+    { id: 'stablecoins', name: 'Stablecoins', market_cap: 150000000000, total_volume: 80000000000 },
+    { id: 'layer-2', name: 'Layer 2', market_cap: 20000000000, total_volume: 2000000000 },
+    { id: 'meme', name: 'Meme', market_cap: 60000000000, total_volume: 8000000000 },
+    { id: 'ai', name: 'AI', market_cap: 15000000000, total_volume: 1500000000 },
+    { id: 'rwa', name: 'RWA', market_cap: 8000000000, total_volume: 500000000 },
+    { id: 'liquid-staking', name: 'Liquid Staking', market_cap: 25000000000, total_volume: 1000000000 },
+  ];
+
+  logger.info('Using predefined category data (Binance does not provide category API)');
+  return categories;
 }
 
 function categorizeAsset(symbol: string): string {
@@ -1700,10 +1721,10 @@ function categorizeAsset(symbol: string): string {
 
 export async function fetchAssetCategories(): Promise<AssetCategory[]> {
   try {
-    logger.info('Fetching asset categories from CoinGecko and DeFiLlama...');
+    logger.info('Fetching asset categories from Binance and DeFiLlama...');
 
     const [categoriesData, assetsData] = await Promise.all([
-      fetchCoinGeckoCategories(),
+      fetchCategories(),
       fetchAssetsData(['BTC', 'ETH', 'SOL', 'AVAX', 'BNB', 'MATIC', 'ARB', 'OP', 'UNI', 'AAVE', 'USDC', 'USDT']),
     ]);
 

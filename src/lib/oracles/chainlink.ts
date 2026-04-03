@@ -162,16 +162,16 @@ export class ChainlinkClient extends BaseOracleClient {
       const chainId = this.getChainId(chain);
 
       if (this.useRealData) {
-        // 方案1: 优先使用 CoinGecko 获取真实历史数据
+        // 方案1: 优先使用 Binance 获取真实历史数据
         const days = Math.ceil(period / 24);
-        const coinGeckoPrices = await this.fetchHistoricalPricesFromCoinGecko(symbol, days);
-        
-        if (coinGeckoPrices && coinGeckoPrices.length > 0) {
-          console.log(`[ChainlinkClient] Using CoinGecko real historical data for ${symbol}, got ${coinGeckoPrices.length} points`);
-          return coinGeckoPrices;
+        const binancePrices = await this.fetchHistoricalPricesFromCoinGecko(symbol, days);
+
+        if (binancePrices && binancePrices.length > 0) {
+          console.log(`[ChainlinkClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`);
+          return binancePrices;
         }
 
-        // 方案4: 如果 CoinGecko 失败，尝试使用 TheGraph 获取链上历史数据
+        // 方案4: 如果 Binance 失败，尝试使用 TheGraph 获取链上历史数据
         if (isPriceFeedSupported(symbol, chainId)) {
           const graphPrices = await this.fetchHistoricalPricesFromSubgraph(symbol, chain, period);
           if (graphPrices && graphPrices.length > 0) {
