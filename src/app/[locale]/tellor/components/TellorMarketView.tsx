@@ -185,7 +185,7 @@ export function TellorMarketView({ config, price }: TellorMarketViewProps) {
                 chain={config.defaultChain}
                 height={300}
                 showToolbar={true}
-                defaultPrice={config.marketData.change24hValue}
+                defaultPrice={basePrice}
               />
             ) : (
               <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">

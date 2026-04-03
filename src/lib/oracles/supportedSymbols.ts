@@ -42,6 +42,7 @@ export const redstoneSymbols = [
   'ARB',
   'BASE',
   'MNT',
+  'RED',
 ] as const;
 
 // UMA 支持的币种

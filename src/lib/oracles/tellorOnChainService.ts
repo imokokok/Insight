@@ -301,6 +301,9 @@ const ORACLE_ABI = [
 ] as const satisfies Abi;
 
 function decodeUint256(data: `0x${string}`): bigint {
+  if (data === '0x' || data === '0x0') {
+    return BigInt(0);
+  }
   return BigInt(data);
 }
 
