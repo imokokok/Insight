@@ -552,6 +552,8 @@
       "title": "OEV 网络概览",
       "description": "Oracle Extractable Value (OEV) 网络捕获预言机更新产生的价值，并将其重新分配给 dApps 和搜索者"
     },
+    "trendAnalysis": "趋势分析",
+    "trendDesc": "OEV 捕获趋势和拍卖活动分析",
     "trend": {
       "title": "OEV 趋势 (7天)",
       "description": "每日 OEV 捕获量和拍卖活动"
