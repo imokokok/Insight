@@ -456,7 +456,13 @@
     "lastSuccessfulUpdate": "Last Successful Update",
     "retry": "Retry",
     "retryAll": "Retry All",
-    "loading": "Loading"
+    "loading": "Loading",
+    "sourcePrice": "Price",
+    "sourceHistorical": "Historical",
+    "sourceStaking": "Staking",
+    "sourceGaming": "Gaming",
+    "sourceNetwork": "Network",
+    "sourceRisk": "Risk"
   },
   "common": {
     "live": "Live",

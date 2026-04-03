@@ -611,17 +611,13 @@ export class TellorOnChainService {
         openDisputes,
         resolvedDisputes: totalDisputes - openDisputes,
         successRate: Number((successRate * 100).toFixed(2)),
-        avgResolutionTime: 4.5,
+        avgResolutionTime: 0,
         totalRewardsDistributed: resolvedDisputes.reduce((sum, d) => sum + (d.reward || 0), 0),
         totalSlashed: resolvedDisputes
           .filter((d) => d.outcome === 'disputer_won')
           .reduce((sum, d) => sum + d.stakeAmount * 0.1, 0),
         recentDisputes: disputes.slice(0, 10),
-        disputeTrend: Array.from({ length: 30 }, (_, i) => ({
-          timestamp: Date.now() - (29 - i) * 86400000,
-          opened: 0, // 暂无数据
-          resolved: 0, // 暂无数据
-        })),
+        disputeTrend: [],
       };
 
       this.setCache(cacheKey, result);
@@ -757,7 +753,6 @@ export class TellorOnChainService {
   }
 
   private getFallbackDisputeData(): DisputeStats {
-    // 返回空数据，表示暂无数据
     return {
       totalDisputes: 0,
       openDisputes: 0,
@@ -767,20 +762,16 @@ export class TellorOnChainService {
       totalRewardsDistributed: 0,
       totalSlashed: 0,
       recentDisputes: [],
-      disputeTrend: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 86400000,
-        opened: 0,
-        resolved: 0,
-      })),
+      disputeTrend: [],
     };
   }
 
   private getFallbackAutopayData(): TellorAutopayData {
     return {
-      totalTipPool: BigInt('500000000000000000000000'),
-      fundedFeeds: 150,
-      activeTips: 225,
-      totalPaidOut: BigInt('2500000000000000000000000'),
+      totalTipPool: BigInt(0),
+      fundedFeeds: 0,
+      activeTips: 0,
+      totalPaidOut: BigInt(0),
     };
   }
 

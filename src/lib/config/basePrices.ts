@@ -46,48 +46,7 @@ export interface BasePrices {
   [key: string]: number;
 }
 
-const DEFAULT_BASE_PRICES: BasePrices = {
-  BTC: 68000,
-  ETH: 3500,
-  SOL: 180,
-  LINK: 18,
-  BAND: 2.5,
-  API3: 2.8,
-  PYTH: 1.2,
-  UMA: 8.5,
-  USDC: 1,
-  ATOM: 10,
-  OSMO: 4,
-  JUNO: 3,
-  AVAX: 35,
-  MATIC: 0.6,
-  DOT: 7,
-  UNI: 10,
-  CRO: 0.08,
-  FTM: 0.3,
-  DAI: 1,
-  WBTC: 68000,
-  WETH: 3500,
-  AAVE: 95,
-  MKR: 1650,
-  SNX: 2.8,
-  COMP: 65,
-  YFI: 7500,
-  CRV: 0.45,
-  NEAR: 5.5,
-  ARB: 1.2,
-  OP: 2.5,
-  ADA: 0.45,
-  LDO: 2.2,
-  SUSHI: 1.5,
-  '1INCH': 0.35,
-  BAL: 2.8,
-  FXS: 5.5,
-  RPL: 25,
-  GMX: 35,
-  DYDX: 1.8,
-  USDT: 1,
-};
+const DEFAULT_BASE_PRICES: BasePrices = {} as BasePrices;
 
 function getBasePrices(): BasePrices {
   const envPrices = process.env.BASE_PRICES;
@@ -95,12 +54,9 @@ function getBasePrices(): BasePrices {
   if (envPrices) {
     try {
       const parsed = JSON.parse(envPrices);
-      return {
-        ...DEFAULT_BASE_PRICES,
-        ...parsed,
-      };
+      return parsed as BasePrices;
     } catch (_e) {
-      logger.warn('Failed to parse BASE_PRICES env, using defaults');
+      logger.warn('Failed to parse BASE_PRICES env');
     }
   }
 

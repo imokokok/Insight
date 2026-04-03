@@ -1,4 +1,4 @@
-import { getAPI3Endpoint } from './api3DataSources';
+import { getAPI3Endpoint, isMockDataEnabled } from './api3DataSources';
 import {
   getDataStrategy,
   calculateConfidence,
@@ -195,9 +195,10 @@ export class API3DataAggregator {
     const finalData = primaryResult ?? fallbackResult;
 
     if (finalData === undefined) {
-      // 所有数据源都失败，使用模拟数据
-      console.error(`[API3] All data sources failed for ${strategy.dataType}, using mock data`);
-      return this.createMockResponse(strategy, cacheKey, startTime);
+      throw this.createError(
+        `All data sources failed for ${strategy.dataType}. No mock data available.`,
+        'MOCK_DATA_DISABLED'
+      );
     }
 
     // 计算置信度
@@ -235,28 +236,6 @@ export class API3DataAggregator {
     }
 
     return result;
-  }
-
-  /**
-   * 创建模拟数据响应
-   */
-  private createMockResponse<T>(
-    _strategy: DataStrategy,
-    cacheKey: string,
-    startTime: number
-  ): DataWithMetadata<T> {
-    // 从缓存获取模拟数据（如果有）
-    const cachedMock = this.getFromCache<T>(`mock-${cacheKey}`);
-
-    return {
-      data: cachedMock as T,
-      metadata: {
-        source: 'mock',
-        confidence: 'low',
-        timestamp: Date.now(),
-        latency: Date.now() - startTime,
-      },
-    };
   }
 
   // ==================== 具体数据获取方法 ====================

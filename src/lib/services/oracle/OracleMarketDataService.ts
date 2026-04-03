@@ -7,9 +7,6 @@ import { createLogger } from '@/lib/utils/logger';
 import {
   CACHE_CONFIG,
   COLORS,
-  DEFAULT_CHAIN_SUPPORT_DATA,
-  DEFAULT_MARKET_SHARE_DATA,
-  TVS_TREND_DATA_BY_RANGE,
   type ChainSupportDataItem,
   type MarketShareDataItem,
   type TimeRangeKey,
@@ -35,7 +32,7 @@ function calculateMarketShareStats(data: MarketShareDataItem[]): MarketShareStat
   }, 0);
 
   const totalChains = data.reduce((acc, item) => acc + item.chains, 0);
-  const totalProtocols = DEFAULT_CHAIN_SUPPORT_DATA.reduce((acc, item) => acc + item.protocols, 0);
+  const totalProtocols = data.reduce((acc, item) => acc + (item.protocols || 0), 0);
   const avgDominance = data[0]?.value || 0;
 
   return {
@@ -49,26 +46,17 @@ function calculateMarketShareStats(data: MarketShareDataItem[]): MarketShareStat
 
 async function fetchMarketShareData(): Promise<MarketShareDataItem[]> {
   logger.info('Fetching market share data...');
-
-  await new Promise((resolve) => setTimeout(resolve, 100));
-
-  return DEFAULT_MARKET_SHARE_DATA;
+  return [];
 }
 
 async function fetchTvsTrendData(range: TimeRangeKey): Promise<TvsTrendDataPoint[]> {
   logger.info(`Fetching TVS trend data for range: ${range}`);
-
-  await new Promise((resolve) => setTimeout(resolve, 50));
-
-  return TVS_TREND_DATA_BY_RANGE[range] || TVS_TREND_DATA_BY_RANGE['30D'];
+  return [];
 }
 
 async function fetchChainSupportData(): Promise<ChainSupportDataItem[]> {
   logger.info('Fetching chain support data...');
-
-  await new Promise((resolve) => setTimeout(resolve, 100));
-
-  return DEFAULT_CHAIN_SUPPORT_DATA;
+  return [];
 }
 
 export interface UseMarketShareDataOptions {
@@ -99,7 +87,7 @@ export function useMarketShareData(
     retry: 2,
   });
 
-  const stats = calculateMarketShareStats(queryResult.data || DEFAULT_MARKET_SHARE_DATA);
+  const stats = calculateMarketShareStats(queryResult.data || []);
 
   return {
     data: queryResult.data,
@@ -184,9 +172,6 @@ export const OracleMarketDataService = {
   fetchTvsTrendData,
   fetchChainSupportData,
   calculateMarketShareStats,
-  DEFAULT_MARKET_SHARE_DATA,
-  DEFAULT_CHAIN_SUPPORT_DATA,
-  TVS_TREND_DATA_BY_RANGE,
   COLORS,
   CACHE_CONFIG,
 };

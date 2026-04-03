@@ -973,25 +973,18 @@ class BandRpcService {
       const totalSupply = supply.supply.find((s) => s.denom === 'uband')?.amount || '0';
       const totalSupplyBand = parseFloat(totalSupply) / 1e6;
 
-      // Note: Price data requires external API (CoinGecko, etc.)
-      // For now, return structure with placeholder price
-      // In production, you would integrate with a price API
-      const basePrice = 2.5; // Placeholder - should come from price API
-      const priceChange24h = 0.05;
-      const priceChangePercentage24h = 2.0;
-
       return {
         symbol: 'BAND',
-        price: basePrice,
-        priceChange24h,
-        priceChangePercentage24h,
-        marketCap: basePrice * totalSupplyBand,
-        volume24h: basePrice * totalSupplyBand * 0.05, // Estimated
+        price: 0,
+        priceChange24h: 0,
+        priceChangePercentage24h: 0,
+        marketCap: 0,
+        volume24h: 0,
         circulatingSupply: totalSupplyBand,
         totalSupply: totalSupplyBand,
         maxSupply: 250_000_000,
         stakingRatio: networkStats.stakingRatio,
-        stakingApr: 8.5, // Estimated based on inflation
+        stakingApr: 0,
         timestamp: Date.now(),
       };
     } catch (error) {

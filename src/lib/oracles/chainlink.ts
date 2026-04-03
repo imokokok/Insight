@@ -133,18 +133,16 @@ export class ChainlinkClient extends BaseOracleClient {
       }
 
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.fetchPriceWithDatabase(symbol, chain, () =>
-        this.generateMockPrice(symbol, basePrice, chain)
-      );
+      return this.fetchPriceWithDatabase(symbol, chain, () => {
+        throw this.createError(
+          'Mock price generation is disabled. Please use real data sources only.',
+          'MOCK_DATA_DISABLED'
+        );
+      });
     } catch (error) {
-      console.warn(
-        `[ChainlinkClient] Failed to fetch real data for ${symbol}, falling back to mock:`,
-        error
-      );
-
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.fetchPriceWithDatabase(symbol, chain, () =>
-        this.generateMockPrice(symbol, basePrice, chain)
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch price from Chainlink',
+        'CHAINLINK_ERROR'
       );
     }
   }
@@ -181,21 +179,13 @@ export class ChainlinkClient extends BaseOracleClient {
         }
       }
 
-      // 回退到模拟数据
-      console.warn(`[ChainlinkClient] Falling back to mock historical data for ${symbol}`);
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
-        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
-      );
+      // 回退到空数据
+      console.warn(`[ChainlinkClient] No historical data available for ${symbol}`);
+      return [];
     } catch (error) {
-      console.warn(
-        `[ChainlinkClient] Failed to fetch historical data for ${symbol}, falling back to mock:`,
-        error
-      );
-
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
-        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch historical prices from Chainlink',
+        'CHAINLINK_HISTORICAL_ERROR'
       );
     }
   }
