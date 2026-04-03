@@ -10,14 +10,13 @@ import {
   ArrowRight,
   Zap,
   TrendingUp,
-  TrendingDown,
   RefreshCw,
 } from 'lucide-react';
 
 import { usePythCrossChain } from '@/hooks/oracles/pyth';
 import { useTranslations } from '@/i18n';
 
-import { type PythCrossChainViewProps, type ChainPriceData } from '../types';
+import { type PythCrossChainViewProps } from '../types';
 
 const CHAIN_CONFIG: Record<string, { name: string; color: string; icon: string }> = {
   solana: { name: 'Solana', color: '#9945FF', icon: '◎' },
@@ -85,11 +84,20 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
           : onlineCount > totalChains * 0.8
             ? 'degraded'
             : 'critical',
-      lastGuardianUpdate: new Date(Date.now() - Math.floor(Math.random() * 300000)),
+      lastGuardianUpdate: new Date(),
     };
   }, [chainData]);
 
   const stats = useMemo(() => {
+    if (chainData.length === 0) {
+      return {
+        avgDeviation: '0.000',
+        maxDeviationChain: '-',
+        maxDeviationValue: '0.000',
+        successRate: '0.0',
+      };
+    }
+
     const avgDeviation =
       chainData.reduce((sum, c) => sum + Math.abs(c.deviation), 0) / chainData.length;
     const maxDeviationChain = chainData.reduce((max, c) =>
@@ -235,7 +243,6 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
               {chainData.map((data) => {
                 const config = CHAIN_CONFIG[data.chain];
                 const statusInfo = getStatusIndicator(data.status);
-                const timeAgo = Math.floor((Date.now() - data.lastUpdate.getTime()) / 1000);
 
                 return (
                   <tr key={data.chain} className="border-b border-gray-100 hover:bg-gray-50">
@@ -288,11 +295,7 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
                     </td>
                     <td className="py-3 px-4 text-right">
                       <span className="text-xs text-gray-400">
-                        {timeAgo < 60
-                          ? tPyth('crossChain.timeAgo.seconds', { seconds: timeAgo })
-                          : tPyth('crossChain.timeAgo.minutes', {
-                              minutes: Math.floor(timeAgo / 60),
-                            })}
+                        {data.lastUpdate.toLocaleTimeString()}
                       </span>
                     </td>
                   </tr>

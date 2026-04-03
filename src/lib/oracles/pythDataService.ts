@@ -537,7 +537,7 @@ export class PythDataService {
         async () => {
           // 获取该时间段内的所有价格更新
           const priceUpdates = await this.hermesClient.getPriceUpdatesAtTimestamp(from, [priceId]);
-          
+
           if (!priceUpdates.parsed || priceUpdates.parsed.length === 0) {
             logger.warn('No historical price data available', { symbol, hours });
             return [];
@@ -662,7 +662,6 @@ export class PythDataService {
     ];
 
     const results: CrossChainPriceData[] = [];
-    const startTime = Date.now();
 
     for (const chain of chains) {
       try {
@@ -725,7 +724,7 @@ export class PythDataService {
             lastUpdate: new Date(),
           });
         }
-      } catch (error) {
+      } catch (_error) {
         results.push({
           chain: chain.id,
           price: basePrice,
@@ -988,6 +987,7 @@ export class PythDataService {
         status: 'active',
         staked: 5000000,
         stake: 5000000,
+        region: 'us-east',
         uptime: 99.9,
         commission: 5,
         totalResponses: 1000000,
@@ -1003,6 +1003,7 @@ export class PythDataService {
         status: 'active',
         staked: 4200000,
         stake: 4200000,
+        region: 'eu-west',
         uptime: 99.8,
         commission: 5,
         totalResponses: 800000,
@@ -1018,6 +1019,7 @@ export class PythDataService {
         status: 'active',
         staked: 3800000,
         stake: 3800000,
+        region: 'ap-southeast',
         uptime: 99.7,
         commission: 5,
         totalResponses: 600000,
@@ -1033,6 +1035,7 @@ export class PythDataService {
         status: 'active',
         staked: 2900000,
         stake: 2900000,
+        region: 'us-west',
         uptime: 98.5,
         commission: 5,
         totalResponses: 400000,
@@ -1048,6 +1051,7 @@ export class PythDataService {
         status: 'inactive',
         staked: 2100000,
         stake: 2100000,
+        region: 'eu-central',
         uptime: 97.2,
         commission: 5,
         totalResponses: 200000,
@@ -1063,6 +1067,7 @@ export class PythDataService {
         status: 'inactive',
         staked: 1500000,
         stake: 1500000,
+        region: 'ap-northeast',
         uptime: 95.0,
         commission: 5,
         totalResponses: 100000,
