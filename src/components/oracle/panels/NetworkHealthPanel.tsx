@@ -43,39 +43,10 @@ export function NetworkHealthPanel({
     [onTimeRangeChange]
   );
 
-  const simulateDataUpdate = useCallback(() => {
-    setNetworkData((prev) => {
-      const fluctuation = () => (Math.random() - 0.5) * 0.02;
-
-      const newHourlyActivity = prev.hourlyActivity.map((value) =>
-        Math.max(1000, Math.round(value * (1 + fluctuation())))
-      );
-
-      return {
-        ...prev,
-        activeNodes: Math.max(1800, prev.activeNodes + Math.round((Math.random() - 0.5) * 10)),
-        nodeUptime: Math.min(100, Math.max(99, prev.nodeUptime + fluctuation() * 0.1)),
-        avgResponseTime: Math.max(
-          200,
-          Math.min(300, prev.avgResponseTime + Math.round((Math.random() - 0.5) * 20))
-        ),
-        hourlyActivity: newHourlyActivity,
-        latency: Math.max(50, Math.min(800, prev.latency + Math.round((Math.random() - 0.5) * 30))),
-      };
-    });
-    setLastUpdated(new Date());
-  }, []);
-
+  // 移除模拟数据更新逻辑，使用真实数据
   useEffect(() => {
-    if (autoUpdate) {
-      intervalRef.current = setInterval(simulateDataUpdate, updateInterval);
-    }
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [simulateDataUpdate, autoUpdate, updateInterval]);
+    setLastUpdated(new Date());
+  }, [initialConfig]);
 
   const metrics: NetworkMetric[] = [
     {

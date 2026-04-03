@@ -821,7 +821,7 @@ class BandRpcService {
         commissionRate: parseFloat(v.commission.commission_rates.rate),
         maxCommissionRate: parseFloat(v.commission.commission_rates.max_rate),
         maxCommissionChangeRate: parseFloat(v.commission.commission_rates.max_change_rate),
-        uptime: 99.5 + Math.random() * 0.5, // RPC doesn't provide uptime directly
+        uptime: 0, // RPC doesn't provide uptime directly, set to 0 instead of mock
         jailed: v.jailed,
         rank: index + 1,
       }));
@@ -1012,7 +1012,7 @@ class BandRpcService {
         `/oracle/v1/data_sources?pagination.limit=${limit}`
       );
 
-      return result.data_sources.map((ds, index) => ({
+      return result.data_sources.map((ds) => ({
         id: parseInt(ds.id, 10),
         name: ds.name,
         symbol: ds.name.replace(/\s+/g, '_').toUpperCase(),
@@ -1021,11 +1021,11 @@ class BandRpcService {
         provider: 'Band Protocol',
         status: 'active',
         lastUpdated: Date.now(),
-        reliability: 98 + Math.random() * 1.99,
+        reliability: 0, // Set to 0 instead of mock data
         category: 'crypto',
         updateFrequency: '30s',
         deviationThreshold: '0.5%',
-        totalRequests: Math.floor(Math.random() * 1000000) + 10000,
+        totalRequests: 0, // Set to 0 instead of mock data
       }));
     } catch (error) {
       logger.error(
@@ -1043,18 +1043,18 @@ class BandRpcService {
         `/oracle/v1/oracle_scripts?pagination.limit=${limit}`
       );
 
-      return result.oracle_scripts.map((script, index) => ({
+      return result.oracle_scripts.map((script) => ({
         id: parseInt(script.id, 10),
         name: script.name,
         description: script.description || `${script.name} oracle script`,
         owner: script.owner,
         schema: script.schema || '{"input": "string", "output": "string"}',
         code: `// Oracle Script: ${script.name}\n// Code hash: ${script.codehash}`,
-        callCount: Math.floor(Math.random() * 100000) + 1000,
-        successRate: 95 + Math.random() * 4.99,
-        avgResponseTime: 200 + Math.floor(Math.random() * 800),
+        callCount: 0, // Set to 0 instead of mock data
+        successRate: 0, // Set to 0 instead of mock data
+        avgResponseTime: 0, // Set to 0 instead of mock data
         category: 'price',
-        lastUpdated: Date.now() - Math.floor(Math.random() * 86400000),
+        lastUpdated: Date.now(),
       }));
     } catch (error) {
       logger.error(

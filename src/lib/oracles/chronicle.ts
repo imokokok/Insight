@@ -978,7 +978,7 @@ export class ChronicleClient extends BaseOracleClient {
               id: ilkType,
               type: ilkType,
               name: ilkMapping[ilkType] || ilkType,
-              totalVaults: Math.floor(Math.random() * 1000) + 100,
+              totalVaults: 0, // 暂无数据
               collateralValue,
               debtValue: debt,
               collateralRatio,
@@ -1227,8 +1227,8 @@ export class ChronicleClient extends BaseOracleClient {
       {
         chain: 'Arbitrum',
         chainId: 42161,
-        price: basePrice * (1 + (Math.random() - 0.5) * 0.002),
-        deviation: (Math.random() - 0.5) * 0.012,
+        price: basePrice,
+        deviation: 0,
         lastUpdate: '5s ago',
         status: 'active',
         confirmations: 1,
@@ -1236,8 +1236,8 @@ export class ChronicleClient extends BaseOracleClient {
       {
         chain: 'Optimism',
         chainId: 10,
-        price: basePrice * (1 + (Math.random() - 0.5) * 0.002),
-        deviation: (Math.random() - 0.5) * 0.028,
+        price: basePrice,
+        deviation: 0,
         lastUpdate: '3s ago',
         status: 'active',
         confirmations: 1,
@@ -1245,8 +1245,8 @@ export class ChronicleClient extends BaseOracleClient {
       {
         chain: 'Polygon',
         chainId: 137,
-        price: basePrice * (1 + (Math.random() - 0.5) * 0.003),
-        deviation: (Math.random() - 0.5) * 0.058,
+        price: basePrice,
+        deviation: 0,
         lastUpdate: '8s ago',
         status: 'active',
         confirmations: 128,
@@ -1254,8 +1254,8 @@ export class ChronicleClient extends BaseOracleClient {
       {
         chain: 'Base',
         chainId: 8453,
-        price: basePrice * (1 + (Math.random() - 0.5) * 0.002),
-        deviation: (Math.random() - 0.5) * 0.088,
+        price: basePrice,
+        deviation: 0,
         lastUpdate: '4s ago',
         status: 'active',
         confirmations: 1,
@@ -1263,8 +1263,8 @@ export class ChronicleClient extends BaseOracleClient {
       {
         chain: 'Avalanche',
         chainId: 43114,
-        price: basePrice * (1 + (Math.random() - 0.5) * 0.0025),
-        deviation: (Math.random() - 0.5) * 0.194,
+        price: basePrice,
+        deviation: 0,
         lastUpdate: '6s ago',
         status: 'warning',
         confirmations: 1,
@@ -1406,25 +1406,25 @@ export class ChronicleClient extends BaseOracleClient {
     const sources: DeviationDataSource[] = [
       {
         name: 'Chainlink',
-        price: chroniclePrice * (1 + (Math.random() - 0.5) * 0.005),
-        deviation: Math.random() * 0.039,
-        deviationDirection: Math.random() > 0.5 ? 'up' : 'down',
+        price: chroniclePrice,
+        deviation: 0,
+        deviationDirection: 'up',
         lastUpdate: '12s ago',
         reliability: 99.8,
       },
       {
         name: 'Pyth',
-        price: chroniclePrice * (1 + (Math.random() - 0.5) * 0.004),
-        deviation: Math.random() * 0.029,
-        deviationDirection: Math.random() > 0.5 ? 'up' : 'down',
+        price: chroniclePrice,
+        deviation: 0,
+        deviationDirection: 'up',
         lastUpdate: '8s ago',
         reliability: 99.5,
       },
       {
         name: 'Uniswap V3',
-        price: chroniclePrice * (1 + (Math.random() - 0.5) * 0.008),
-        deviation: Math.random() * 0.085,
-        deviationDirection: Math.random() > 0.5 ? 'up' : 'down',
+        price: chroniclePrice,
+        deviation: 0,
+        deviationDirection: 'up',
         lastUpdate: '3s ago',
         reliability: 97.2,
       },
@@ -1432,7 +1432,7 @@ export class ChronicleClient extends BaseOracleClient {
 
     const history: DeviationHistoryPoint[] = Array.from({ length: 24 }, (_, i) => ({
       timestamp: now - (24 - i) * 3600000,
-      deviation: 0.03 + Math.random() * 0.22,
+      deviation: 0,
     }));
 
     const stats: DeviationStats = {

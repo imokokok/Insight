@@ -336,16 +336,17 @@ export class ChainlinkClient extends BaseOracleClient {
         };
       }
 
-      const activeNodes = 1800 + Math.floor(Math.random() * 100);
-      const dataFeeds = 1200 + Math.floor(Math.random() * 80);
+      // 使用固定值代替随机数
+      const activeNodes = 1800;
+      const dataFeeds = 1200;
 
       return {
         activeNodes,
         dataFeeds,
         nodeUptime: 99.9,
-        avgResponseTime: 200 + Math.floor(Math.random() * 100),
-        latency: 100 + Math.floor(Math.random() * 50),
-        totalValueSecured: 75_000_000_000 + Math.random() * 5_000_000_000,
+        avgResponseTime: 250,
+        latency: 120,
+        totalValueSecured: 75_000_000_000,
         updateFrequency: 60,
       };
     } catch (error) {

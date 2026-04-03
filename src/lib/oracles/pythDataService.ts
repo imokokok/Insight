@@ -754,20 +754,18 @@ export class PythDataService {
     ];
 
     const data: CrossChainPriceData[] = chains.map((chain) => {
-      const deviation = (Math.random() - 0.5) * 0.3;
-      const latency = Math.floor(Math.random() * 200) + 50;
-      const statusRandom = Math.random();
-      let status: 'online' | 'degraded' | 'offline' = 'online';
-      if (statusRandom > 0.95) status = 'offline';
-      else if (statusRandom > 0.85) status = 'degraded';
+      // 使用固定值代替随机数
+      const deviation = 0;
+      const latency = 100;
+      const status: 'online' | 'degraded' | 'offline' = 'online';
 
       return {
         chain,
-        price: basePrice * (1 + deviation / 100),
+        price: basePrice,
         deviation,
         latency,
         status,
-        lastUpdate: new Date(Date.now() - Math.floor(Math.random() * 30000)),
+        lastUpdate: new Date(),
       };
     });
 

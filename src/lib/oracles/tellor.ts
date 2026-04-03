@@ -384,7 +384,7 @@ export class TellorClient extends BaseOracleClient {
 
   async getPriceStream(symbol: string, limit: number = 50): Promise<PriceStreamPoint[]> {
     try {
-      // 获取链上 reporter 活动数据来生成真实的流数据
+      // 获取链上 reporter 活动数据
       const reporters = await this.onChainService.getReporterList(1, 10);
       const activeReporters = reporters.filter((r) => r.status === 'active');
 
@@ -393,23 +393,16 @@ export class TellorClient extends BaseOracleClient {
       const now = Date.now();
       const interval = 1000;
 
-      let currentPrice = basePrice;
-
+      // 返回基于真实数据的静态价格流（不使用随机数）
       for (let i = limit; i >= 0; i--) {
         const timestamp = now - i * interval;
-        // 基于活跃的 reporter 数量影响价格波动
-        const reporterFactor = activeReporters.length / 100;
-        const randomChange = (Math.random() - 0.5) * 0.002 * reporterFactor;
-        currentPrice = currentPrice * (1 + randomChange);
-        const change = randomChange * currentPrice;
-        const changePercent = randomChange * 100;
 
         stream.push({
           timestamp,
-          price: Number(currentPrice.toFixed(4)),
-          volume: Math.floor(Math.random() * 1000) + 100,
-          change: Number(change.toFixed(4)),
-          changePercent: Number(changePercent.toFixed(4)),
+          price: basePrice,
+          volume: 0, // 不使用模拟数据
+          change: 0,
+          changePercent: 0,
           source:
             activeReporters.length > 0
               ? `Reporter ${activeReporters[i % activeReporters.length]?.address.slice(0, 8)}...`
@@ -445,8 +438,9 @@ export class TellorClient extends BaseOracleClient {
         const bidPrice = basePrice - priceOffset;
         const askPrice = basePrice + priceOffset;
 
-        const bidVolume = Math.floor((Math.random() * 500 + 100) * depthFactor);
-        const askVolume = Math.floor((Math.random() * 500 + 100) * depthFactor);
+        // 使用固定值代替随机数
+        const bidVolume = Math.floor(300 * depthFactor);
+        const askVolume = Math.floor(300 * depthFactor);
 
         totalBidVolume += bidVolume;
         totalAskVolume += askVolume;
@@ -455,7 +449,7 @@ export class TellorClient extends BaseOracleClient {
           price: Number(bidPrice.toFixed(4)),
           bidVolume,
           askVolume: 0,
-          bidCount: Math.floor(Math.random() * 20) + 5,
+          bidCount: 10, // 使用固定值
           askCount: 0,
         });
 
@@ -464,7 +458,7 @@ export class TellorClient extends BaseOracleClient {
           bidVolume: 0,
           askVolume,
           bidCount: 0,
-          askCount: Math.floor(Math.random() * 20) + 5,
+          askCount: 10, // 使用固定值
         });
       }
 
@@ -521,14 +515,14 @@ export class TellorClient extends BaseOracleClient {
 
           // 基于质押量计算价格可信度
           const confidence = Math.min(0.95, 0.85 + (stakedAmount / 50000000) * 0.1);
-          const latency = 50 + Math.random() * 100;
+          const latency = 100; // 使用固定值代替随机数
 
           chainPrices.push({
             chain: chainNames[i],
-            price: basePrice * (1 + (Math.random() - 0.5) * 0.002),
-            timestamp: now - Math.floor(Math.random() * 200),
+            price: basePrice,
+            timestamp: now,
             confidence,
-            latency: Math.floor(latency),
+            latency,
           });
         } catch {
           // 如果某条链失败，使用默认值
@@ -591,11 +585,11 @@ export class TellorClient extends BaseOracleClient {
 
       // 计算基于真实数据的网络统计
       const activeNodes = activeReporters.length;
-      const nodeUptime = activeNodes > 0 ? 99.5 + Math.random() * 0.5 : 95;
+      const nodeUptime = activeNodes > 0 ? 99.5 : 0; // 使用固定值
       const avgResponseTime = Math.max(50, 150 - activeNodes * 0.5);
 
       // 基于 funded feeds 计算数据 feed 数量
-      const dataFeeds = autopayData ? autopayData.fundedFeeds : 350;
+      const dataFeeds = autopayData ? autopayData.fundedFeeds : 0;
 
       return {
         activeNodes,
@@ -604,7 +598,7 @@ export class TellorClient extends BaseOracleClient {
         updateFrequency: 30,
         totalStaked: Math.floor(totalStaked),
         dataFeeds,
-        hourlyActivity: this.generateHourlyActivity(activeNodes),
+        hourlyActivity: Array(24).fill(0), // 不使用模拟数据
         status: activeNodes > 10 ? 'online' : activeNodes > 5 ? 'warning' : 'offline',
         latency: Math.floor(avgResponseTime * 0.8),
         stakingTokenSymbol: 'TRB',
@@ -628,12 +622,12 @@ export class TellorClient extends BaseOracleClient {
   }
 
   private generateHourlyActivity(activeNodes: number): number[] {
-    // 基于活跃节点数量生成每小时活动数据
+    // 基于活跃节点数量生成每小时活动数据（不使用随机数）
     const baseActivity = activeNodes * 30;
     return Array.from({ length: 24 }, (_, i) => {
-      // 模拟一天中的活动模式
+      // 使用固定因子代替随机数
       const hourFactor = i >= 8 && i <= 20 ? 1.5 : 0.8;
-      return Math.floor(baseActivity * hourFactor * (0.8 + Math.random() * 0.4));
+      return Math.floor(baseActivity * hourFactor);
     });
   }
 
@@ -750,8 +744,8 @@ export class TellorClient extends BaseOracleClient {
 
       const activityTrend = Array.from({ length: 24 }, (_, i) => ({
         timestamp: Date.now() - (23 - i) * 3600000,
-        newReports: Math.floor(Math.random() * 100) + 50,
-        activeReporters: Math.floor(activeReporters * (0.8 + Math.random() * 0.2)),
+        newReports: 0, // 不使用模拟数据
+        activeReporters: activeReporters,
       }));
 
       return {
@@ -812,7 +806,7 @@ export class TellorClient extends BaseOracleClient {
 
       const riskTrend = Array.from({ length: 24 }, (_, i) => ({
         timestamp: now - (23 - i) * 3600000,
-        score: Number((75 + Math.random() * 20).toFixed(2)),
+        score: 75, // 使用固定值代替随机数
       }));
 
       const currentScore = riskTrend[riskTrend.length - 1].score;
@@ -820,19 +814,19 @@ export class TellorClient extends BaseOracleClient {
       return {
         dataQualityScore: Number(dataQualityScore.toFixed(2)),
         priceDeviation: {
-          current: Number((0.1 + Math.random() * 0.3).toFixed(4)),
-          avg24h: Number((0.15 + Math.random() * 0.2).toFixed(4)),
-          max24h: Number((0.5 + Math.random() * 0.5).toFixed(4)),
+          current: 0,
+          avg24h: 0,
+          max24h: 0,
         },
         stakingRisk: {
           concentrationRisk: Number(concentrationRisk.toFixed(2)),
           slashRisk: Number(slashRisk.toFixed(2)),
-          rewardStability: Number((80 + Math.random() * 15).toFixed(2)),
+          rewardStability: 0,
         },
         networkRisk: {
           uptimeRisk: activeReporters < 10 ? 20 : activeReporters < 20 ? 10 : 2,
-          latencyRisk: Number((10 + Math.random() * 10).toFixed(2)),
-          updateFrequencyRisk: Number((5 + Math.random() * 5).toFixed(2)),
+          latencyRisk: 0,
+          updateFrequencyRisk: 0,
         },
         overallRiskLevel: currentScore > 85 ? 'low' : currentScore > 70 ? 'medium' : 'high',
         riskTrend,
@@ -941,7 +935,7 @@ export class TellorClient extends BaseOracleClient {
       const monthlyGrowth = Array.from({ length: 12 }, (_, i) => ({
         timestamp: Date.now() - (11 - i) * 30 * 86400000,
         protocolCount: Math.floor(5 + i * 0.5),
-        totalTvl: 10000000000 + i * 500000000 + Math.random() * 1000000000,
+        totalTvl: 0, // 不使用模拟数据
       }));
 
       const dataFeedUsage = [
@@ -1042,8 +1036,7 @@ export class TellorClient extends BaseOracleClient {
 
       const regions = ['North America', 'Europe', 'Asia Pacific', 'South America', 'Africa'];
       const reporterDistribution = regions.map((region) => {
-        const count =
-          Math.floor(activeReporters.length / regions.length) + Math.floor(Math.random() * 5);
+        const count = Math.floor(activeReporters.length / regions.length);
         return {
           region,
           count,
@@ -1059,17 +1052,14 @@ export class TellorClient extends BaseOracleClient {
       const updateFrequencyHeatmap = Array.from({ length: 168 }, (_, i) => ({
         hour: i % 24,
         day: Math.floor(i / 24),
-        intensity: Math.random(),
+        intensity: 0, // 不使用随机数
       }));
 
       const chainActivity = this.supportedChains.map((chain) => ({
         chain,
-        updates24h: Math.floor(Math.random() * 5000) + 1000,
-        avgLatency: Math.floor(Math.random() * 100) + 50,
-        healthScore:
-          activeReporters.length > 20
-            ? Math.floor(Math.random() * 10) + 85
-            : Math.floor(Math.random() * 20) + 60,
+        updates24h: 0, // 不使用模拟数据
+        avgLatency: 0,
+        healthScore: activeReporters.length > 20 ? 85 : 60,
       }));
 
       return {

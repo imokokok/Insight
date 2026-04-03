@@ -9,12 +9,6 @@ export const PYTH_PRICE_FEED_IDS: Record<string, string> = {
   'MATIC/USD': '0x5de33a9112c2b700b8d30b8a3402c103578ccfa2765696471cc672bd5cf6ac52',
   'DOT/USD': '0xca3eed9b267293f6595901c734c7525ce8ef49adafe8284606ceb307afa2ca5b',
   'UNI/USD': '0x78d185a741d07edb3412b09008b7c5cfb9bbbd7d56834200e2a28e860bb308e3',
-  'ARB/USD': '0x3fa4252848f9f0a1450fbbf801fcfc1778a2a91a5b11c13f5e2f5f8f8f8f8f8f',
-  'OP/USD': '0x0a0408d619e9380abad35060f9192039ed5042fa6f82301d0e48bb52be830996',
-  'DOGE/USD': '0xdcef50dd0dbba52e4872c4a8c7b1b8c2a0f0e8e7a6b5c4d3e2f1a0b9c8d7e6f5',
-  'XRP/USD': '0xec5d3c8a4b9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f',
-  'ADA/USD': '0xa3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b',
-  'BNB/USD': '0x2b27a4e8c8f9d1e8c9b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c',
 };
 
 export const HERMES_API_URL = 'https://hermes.pyth.network';
