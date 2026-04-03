@@ -11,7 +11,6 @@ import {
   fetchPriceWithDatabase,
   fetchHistoricalPricesWithDatabase,
 } from './base/databaseOperations';
-import { generateMockPrice, generateMockHistoricalPrices } from './base/mockGenerator';
 import {
   shouldUseDatabase,
   savePriceToDatabase,
@@ -120,21 +119,27 @@ export abstract class BaseOracleClient {
   }
 
   protected generateMockPrice(
-    symbol: string,
-    basePrice: number,
-    chain?: Blockchain,
-    timestamp?: number
+    _symbol: string,
+    _basePrice: number,
+    _chain?: Blockchain,
+    _timestamp?: number
   ): PriceData {
-    return generateMockPrice(this.name, symbol, basePrice, chain, timestamp);
+    throw this.createError(
+      'Mock price generation is disabled. Please use real data sources only.',
+      'MOCK_DATA_DISABLED'
+    );
   }
 
   protected generateMockHistoricalPrices(
-    symbol: string,
-    basePrice: number,
-    chain?: Blockchain,
-    period: number = 24
+    _symbol: string,
+    _basePrice: number,
+    _chain?: Blockchain,
+    _period: number = 24
   ): PriceData[] {
-    return generateMockHistoricalPrices(this.name, symbol, basePrice, chain, period);
+    throw this.createError(
+      'Mock historical price generation is disabled. Please use real data sources only.',
+      'MOCK_DATA_DISABLED'
+    );
   }
 
   async fetchPriceWithDatabase(

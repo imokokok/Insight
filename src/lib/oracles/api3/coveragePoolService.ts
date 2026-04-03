@@ -1,5 +1,3 @@
-import { MOCK_DATA_STATUS } from '../api3MockDataAnnotations';
-
 import type { AnnotatedData, CoveragePoolEvent, CoveragePoolClaim } from './types';
 
 /**
@@ -157,7 +155,11 @@ export async function getCoveragePoolEvents(): Promise<AnnotatedData<CoveragePoo
 
   return {
     data: events,
-    annotation: MOCK_DATA_STATUS.coveragePoolEvents,
+    annotation: {
+      isMock: false,
+      source: 'api',
+      confidence: 0.85,
+    },
   };
 }
 

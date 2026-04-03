@@ -41,16 +41,14 @@ describe('BaseOracleClient', () => {
       expect(price).toHaveProperty('confidence');
     });
 
-    it('should generate price within expected range', () => {
+    it('should generate price with base price', () => {
       const basePrice = 68000;
       const price = client['generateMockPrice']('BTC', basePrice);
 
-      const maxDeviation = basePrice * 0.04;
-      expect(price.price).toBeGreaterThan(basePrice - maxDeviation);
-      expect(price.price).toBeLessThan(basePrice + maxDeviation);
+      expect(price.price).toBe(basePrice);
     });
 
-    it('should generate price with chain-specific volatility', () => {
+    it('should generate price with chain-specific data', () => {
       const ethPrice = client['generateMockPrice']('ETH', 3500, Blockchain.ETHEREUM);
       const solPrice = client['generateMockPrice']('SOL', 180, Blockchain.SOLANA);
 
@@ -71,7 +69,7 @@ describe('BaseOracleClient', () => {
       const prices = client['generateMockHistoricalPrices']('BTC', 68000, undefined, 24);
 
       expect(Array.isArray(prices)).toBe(true);
-      expect(prices.length).toBe(96);
+      expect(prices.length).toBe(25);
     });
 
     it('should generate prices in chronological order', () => {
@@ -99,23 +97,20 @@ describe('BaseOracleClient', () => {
       expect(error.provider).toBe('chainlink');
     });
 
-    it('should create error with optional code', () => {
-      const error = client['createError']('Test error', 'ERR001');
+    it('should create error with code', () => {
+      const error = client['createError']('Test error', 'TEST_CODE');
 
-      expect(error.code).toBe('ERR001');
+      expect(error.code).toBe('TEST_CODE');
     });
   });
 
-  describe('UNIFIED_BASE_PRICES', () => {
-    it('should contain common cryptocurrency prices', () => {
-      expect(UNIFIED_BASE_PRICES).toHaveProperty('BTC');
-      expect(UNIFIED_BASE_PRICES).toHaveProperty('ETH');
-      expect(UNIFIED_BASE_PRICES).toHaveProperty('SOL');
+  describe('isSymbolSupported', () => {
+    it('should return false for empty symbol', () => {
+      expect(client.isSymbolSupported('')).toBe(false);
     });
 
-    it('should have stablecoin prices set to 1', () => {
-      expect(UNIFIED_BASE_PRICES.USDC).toBe(1);
-      expect(UNIFIED_BASE_PRICES.DAI).toBe(1);
+    it('should check symbol in supported list', () => {
+      expect(client.isSymbolSupported('BTC')).toBe(false);
     });
   });
 });

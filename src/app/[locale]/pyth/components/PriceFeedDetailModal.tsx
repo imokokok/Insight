@@ -37,12 +37,13 @@ import {
   type PublisherData,
   type WebSocketConnectionState,
 } from '@/lib/oracles/pythDataService';
-import {
-  generatePriceHistory,
-  getBasePrice,
-  type PriceHistoryPoint,
-} from '@/lib/oracles/pythMockData';
 import { cn } from '@/lib/utils';
+
+interface PriceHistoryPoint {
+  time: string;
+  price: number;
+  confidence: number;
+}
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 import { type TooltipProps } from '@/types/ui/recharts';
 
@@ -103,12 +104,11 @@ export function PriceFeedDetailModal({ priceFeed, isOpen, onClose }: PriceFeedDe
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastUpdateTimeRef = useRef<number>(Date.now());
 
-  const basePrice = useMemo(() => getBasePrice(priceFeed.name), [priceFeed.name]);
-  const priceHistory = useMemo(() => generatePriceHistory(basePrice), [basePrice]);
+  const basePrice = 100;
+  const priceHistory: PriceHistoryPoint[] = [];
 
-  const currentPrice =
-    realtimePrice?.price ?? priceHistory[priceHistory.length - 1]?.price ?? basePrice;
-  const previousPrice = priceHistory[priceHistory.length - 2]?.price || basePrice;
+  const currentPrice = realtimePrice?.price ?? basePrice;
+  const previousPrice = realtimePrice?.previousPrice ?? basePrice;
   const priceChange =
     realtimePrice?.change24hPercent ?? ((currentPrice - previousPrice) / previousPrice) * 100;
   const isPositive = priceChange >= 0;

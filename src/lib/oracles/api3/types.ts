@@ -1,4 +1,10 @@
-import type { MockDataAnnotation } from '../api3MockDataAnnotations';
+export interface MockDataAnnotation {
+  isMock: boolean;
+  source: 'mock' | 'api' | 'chain' | 'cache';
+  reason?: string;
+  lastRealUpdate?: Date;
+  confidence?: number;
+}
 
 export interface AnnotatedData<T> {
   data: T;

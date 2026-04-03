@@ -1,4 +1,4 @@
-import { getAPI3Endpoint, isMockDataEnabled } from './api3DataSources';
+import { getAPI3Endpoint } from './api3DataSources';
 import {
   getDataStrategy,
   calculateConfidence,
@@ -7,15 +7,6 @@ import {
   type DataSourceInfo as StrategyDataSourceInfo,
   type ConfidenceLevel,
 } from './api3DataStrategy';
-import {
-  generateHourlyActivity,
-  getMockCoveragePoolDetails,
-  getMockDAPIData,
-  getMockDataSources,
-  getMockMarketData,
-  getMockPriceDeviations,
-  getMockStakingData,
-} from './api3MockData';
 import { api3OnChainService } from './api3OnChainService';
 
 import type {
@@ -27,22 +18,65 @@ import type {
   DAPIPriceDeviation,
   DataSourceInfo,
 } from './api3';
-import type {
-  AggregatedMarketData,
-  AggregatedNetworkData,
-  AggregatedOEVData,
-  DAPIMarketData,
-  ChainData,
-} from './api3MockData';
 
-export type {
-  AggregatedMarketData,
-  AggregatedNetworkData,
-  AggregatedOEVData,
-  ChainData,
-  DAPIMarketData,
-  OEVAuctionData,
-} from './api3MockData';
+// Types previously from api3MockData
+export interface DAPIMarketData {
+  id: string;
+  name: string;
+  symbol: string;
+  price: number;
+  change24h: number;
+  change24hPercent: number;
+  chain: string;
+  updateFrequency: number;
+  lastUpdated: Date;
+  status: 'active' | 'inactive' | 'degraded';
+}
+
+export interface ChainData {
+  id: string;
+  name: string;
+  dapiCount: number;
+  status: 'active' | 'inactive';
+}
+
+export interface AggregatedMarketData {
+  dapis: DAPIMarketData[];
+  chains: ChainData[];
+  lastUpdated: Date;
+}
+
+export interface AggregatedNetworkData {
+  airnodeStats: AirnodeNetworkStats;
+  dapiCoverage: DAPICoverage;
+  firstPartyData: FirstPartyOracleData;
+  lastUpdated: Date;
+}
+
+export interface OEVAuctionData {
+  id: string;
+  dappName: string;
+  dapiName: string;
+  amount: number;
+  winner: string;
+  timestamp: Date;
+  status: 'pending' | 'completed' | 'cancelled';
+}
+
+export interface AggregatedOEVData {
+  stats: {
+    totalOevCaptured: number;
+    activeAuctions: number;
+    totalParticipants: number;
+    totalDapps: number;
+    avgAuctionValue: number;
+    last24hVolume: number;
+    participantList: string[];
+    recentAuctions: OEVAuctionData[];
+  };
+  recentAuctions: OEVAuctionData[];
+  lastUpdated: Date;
+}
 
 /**
  * 带元数据的数据包装器
@@ -247,9 +281,13 @@ export class API3DataAggregator {
           lastUpdated: new Date(),
         };
       },
-      // Fallback: 链上无法直接获取完整的 market 数据，返回简化版本
+      // Fallback: 链上无法直接获取完整的 market 数据，返回空数据
       async () => {
-        return getMockMarketData();
+        return {
+          dapis: [],
+          chains: [],
+          lastUpdated: new Date(),
+        };
       },
       cacheKey
     );
@@ -478,9 +516,18 @@ export class API3DataAggregator {
           },
         };
       },
-      // Fallback: API 没有直接的 staking 端点，返回 mock
+      // Fallback: API 没有直接的 staking 端点，返回空数据
       async () => {
-        return getMockStakingData();
+        return {
+          totalStaked: 0,
+          stakingApr: 0,
+          stakerCount: 0,
+          coveragePool: {
+            totalValue: 0,
+            coverageRatio: 0,
+            historicalPayouts: 0,
+          },
+        };
       },
       cacheKey
     );
@@ -521,7 +568,18 @@ export class API3DataAggregator {
       },
       // API fetcher (fallback)
       async () => {
-        return getMockCoveragePoolDetails();
+        return {
+          totalValueLocked: 0,
+          collateralizationRatio: 0,
+          targetCollateralization: 150,
+          stakerCount: 0,
+          avgStakeAmount: 0,
+          pendingClaims: 0,
+          processedClaims: 0,
+          totalPayouts: 0,
+          healthStatus: 'healthy' as const,
+          lastUpdateTime: new Date(),
+        };
       },
       cacheKey
     );
@@ -608,9 +666,9 @@ export class API3DataAggregator {
 
         return deviations;
       },
-      // Fallback: 链上无法直接获取价格偏差，返回 mock
+      // Fallback: 链上无法直接获取价格偏差，返回空数组
       async () => {
-        return getMockPriceDeviations();
+        return [];
       },
       cacheKey
     );
@@ -665,9 +723,9 @@ export class API3DataAggregator {
 
         return dataSources;
       },
-      // Fallback: 链上无法直接获取数据源信息，返回 mock
+      // Fallback: 链上无法直接获取数据源信息，返回空数组
       async () => {
-        return getMockDataSources();
+        return [];
       },
       cacheKey
     );
@@ -812,7 +870,7 @@ export class API3DataAggregator {
 
   private sanitizeDAPIData(data: unknown, beacons?: unknown[]): DAPIMarketData[] {
     if (!Array.isArray(data) || data.length === 0) {
-      return getMockDAPIData();
+      return [];
     }
 
     return data.map((item: Record<string, unknown>) => {

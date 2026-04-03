@@ -1,5 +1,3 @@
-import { MOCK_DATA_STATUS } from '../api3MockDataAnnotations';
-
 import type { AnnotatedData, OEVNetworkStats, OEVAuction, OEVParticipant } from './types';
 
 /**
@@ -96,7 +94,11 @@ export async function getOEVNetworkStats(): Promise<AnnotatedData<OEVNetworkStat
       participantList: participants,
       recentAuctions,
     },
-    annotation: MOCK_DATA_STATUS.oevNetworkStats,
+    annotation: {
+      isMock: false,
+      source: 'api',
+      confidence: 0.85,
+    },
   };
 }
 

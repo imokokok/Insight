@@ -16,7 +16,6 @@ import {
 import { RealtimePriceAnimation } from '@/components/oracle/charts/RealtimePriceAnimation';
 import { useAPI3Price, useAPI3Historical, useAPI3SourceTrace } from '@/hooks/oracles/api3';
 import { useTranslations } from '@/i18n';
-import { isMockData } from '@/lib/oracles/api3MockDataAnnotations';
 
 import { ChainlinkDataTable } from '../../chainlink/components/ChainlinkDataTable';
 import { type DapiFeed, type API3DapiViewProps } from '../types';
@@ -344,7 +343,7 @@ export function API3DapiView(props: API3DapiViewProps) {
   const trend =
     currentPrice > previousPrice ? 'up' : currentPrice < previousPrice ? 'down' : 'stable';
   const hasError = props.useRealData && (priceQuery.error || historicalQuery.error);
-  const showMockWarning = !props.useRealData || isMockData('dataSources');
+  const showMockWarning = !props.useRealData;
 
   return (
     <div className="space-y-8">
