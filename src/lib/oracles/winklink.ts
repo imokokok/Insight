@@ -171,6 +171,11 @@ export class WINkLinkClient extends BaseOracleClient {
     super(config);
   }
 
+  private getBaseSymbol(symbol: string): string {
+    // 提取基础 symbol，例如 "WIN/USD" -> "WIN"
+    return symbol.toUpperCase().split('/')[0];
+  }
+
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       // 如果启用真实数据，尝试从 WINkLink 合约获取
@@ -184,7 +189,8 @@ export class WINkLinkClient extends BaseOracleClient {
       }
 
       // 回退到模拟数据
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      const baseSymbol = this.getBaseSymbol(symbol);
+      const basePrice = UNIFIED_BASE_PRICES[baseSymbol] || 100;
       return this.fetchPriceWithDatabase(symbol, chain, () =>
         this.generateMockPrice(symbol, basePrice, chain)
       );
@@ -203,7 +209,8 @@ export class WINkLinkClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       // WINkLink 不支持历史价格查询，使用模拟数据
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      const baseSymbol = this.getBaseSymbol(symbol);
+      const basePrice = UNIFIED_BASE_PRICES[baseSymbol] || 100;
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
         this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
       );
@@ -560,5 +567,42 @@ export class WINkLinkClient extends BaseOracleClient {
       return [];
     }
     return this.supportedChains;
+  }
+
+  /**
+   * 生成模拟历史价格数据
+   */
+  protected generateMockHistoricalPrices(
+    symbol: string,
+    basePrice: number,
+    _chain?: Blockchain,
+    period: number = 24
+  ): PriceData[] {
+    const prices: PriceData[] = [];
+    const now = Date.now();
+    const interval = (period * 60 * 60 * 1000) / 100; // 将时间段分成100个点
+
+    for (let i = 99; i >= 0; i--) {
+      const timestamp = now - i * interval;
+      // 添加一些随机波动
+      const volatility = 0.02; // 2% 波动
+      const randomChange = (Math.random() - 0.5) * 2 * volatility;
+      const price = basePrice * (1 + randomChange);
+
+      prices.push({
+        provider: OracleProvider.WINKLINK,
+        symbol: symbol.toUpperCase(),
+        price: price,
+        timestamp: timestamp,
+        decimals: 8,
+        confidence: 0.95,
+        change24h: 0,
+        change24hPercent: 0,
+        chain: Blockchain.TRON,
+        source: 'winklink-mock',
+      });
+    }
+
+    return prices;
   }
 }

@@ -7,74 +7,35 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('PerformanceMetricsCollector');
 
-const REFERENCE_PRICE_INTERVAL = 60000; // 每分钟收集一次参考价格
-const CLEANUP_INTERVAL = 3600000; // 每小时清理一次旧数据
+const REFERENCE_PRICE_INTERVAL = 60000;
+const CLEANUP_INTERVAL = 3600000;
 
-const SUPPORTED_ASSETS = [
-  'BTC',
-  'ETH',
-  'SOL',
-  'AVAX',
-  'BNB',
-  'MATIC',
-  'ARB',
-  'OP',
-  'UNI',
-  'AAVE',
-  'LINK',
-  'USDC',
-  'USDT',
-  'DAI',
-];
+interface PricesResponse {
+  prices: Record<string, number>;
+  cached: boolean;
+  stale?: boolean;
+  timestamp: number;
+}
 
-// Binance 交易对映射
-const BINANCE_SYMBOLS: Record<string, string> = {
-  BTC: 'BTCUSDT',
-  ETH: 'ETHUSDT',
-  SOL: 'SOLUSDT',
-  AVAX: 'AVAXUSDT',
-  BNB: 'BNBUSDT',
-  MATIC: 'MATICUSDT',
-  ARB: 'ARBUSDT',
-  OP: 'OPUSDT',
-  UNI: 'UNIUSDT',
-  AAVE: 'AAVEUSDT',
-  LINK: 'LINKUSDT',
-  USDC: 'USDCUSDT',
-  USDT: 'USDT',
-  DAI: 'DAIUSDT',
-};
-
-async function fetchBinancePrices(): Promise<Record<string, number>> {
+async function fetchPrices(): Promise<Record<string, number>> {
   try {
-    const symbols = SUPPORTED_ASSETS.map((asset) => BINANCE_SYMBOLS[asset]).filter(Boolean);
-
-    const response = await fetch(
-      `https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`,
-      { cache: 'no-store' }
-    );
+    const response = await fetch('/api/prices', { cache: 'no-store' });
 
     if (!response.ok) {
-      throw new Error(`Binance API error: ${response.status}`);
+      throw new Error(`API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: PricesResponse = await response.json();
 
-    const prices: Record<string, number> = {};
-    const symbolToAsset = Object.fromEntries(
-      Object.entries(BINANCE_SYMBOLS).map(([asset, symbol]) => [symbol, asset])
-    );
+    if (data.stale) {
+      logger.warn('Using stale price data');
+    } else if (data.cached) {
+      logger.debug('Using cached price data');
+    }
 
-    data.forEach((item: { symbol: string; price: string }) => {
-      const asset = symbolToAsset[item.symbol];
-      if (asset) {
-        prices[asset] = parseFloat(item.price);
-      }
-    });
-
-    return prices;
+    return data.prices;
   } catch (error) {
-    logger.error('Failed to fetch Binance prices', error as Error);
+    logger.error('Failed to fetch prices', error as Error);
     return {};
   }
 }
@@ -91,7 +52,7 @@ export function PerformanceMetricsCollector() {
       if (!isActiveRef.current) return;
 
       try {
-        const prices = await fetchBinancePrices();
+        const prices = await fetchPrices();
         const timestamp = Date.now();
 
         Object.entries(prices).forEach(([asset, price]) => {

@@ -4,6 +4,9 @@ export const routing = defineRouting({
   locales: ['en', 'zh-CN'],
   defaultLocale: 'en',
   localePrefix: 'always',
+  pathnames: {
+    '/api/prices': '/api/prices',
+  },
 });
 
 export type Locale = (typeof routing.locales)[number];

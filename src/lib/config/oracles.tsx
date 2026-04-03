@@ -593,7 +593,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     provider: OracleProvider.WINKLINK,
     name: 'WINkLink',
     description: 'TRON 生态预言机，专注游戏和 DeFi',
-    symbol: 'WINKLINK',
+    symbol: 'WIN/USD',
     defaultChain: Blockchain.BNB_CHAIN,
     supportedChains: [Blockchain.BNB_CHAIN, Blockchain.TRON, Blockchain.ETHEREUM],
     client: new WINkLinkClient(),
