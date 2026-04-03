@@ -112,14 +112,14 @@ export class BandProtocolClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      // 使用 CoinGecko 获取真实历史数据
+      // 使用 Binance 获取真实历史数据
       const { coinGeckoMarketService } = await import('@/lib/services/marketData/coinGeckoMarketService');
       const days = Math.ceil(period / 24);
-      const coinGeckoPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
+      const binancePrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
 
-      if (coinGeckoPrices && coinGeckoPrices.length > 0) {
-        console.log(`[BandProtocolClient] Using CoinGecko real historical data for ${symbol}, got ${coinGeckoPrices.length} points`);
-        return coinGeckoPrices.map((point) => ({
+      if (binancePrices && binancePrices.length > 0) {
+        console.log(`[BandProtocolClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`);
+        return binancePrices.map((point) => ({
           provider: this.name,
           chain: chain || Blockchain.ETHEREUM,
           symbol,
@@ -127,7 +127,7 @@ export class BandProtocolClient extends BaseOracleClient {
           timestamp: point.timestamp,
           decimals: 8,
           confidence: 0.95,
-          source: 'coingecko-api',
+          source: 'binance-api',
         }));
       }
 

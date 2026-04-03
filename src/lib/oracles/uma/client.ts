@@ -143,24 +143,26 @@ export class UMAClient extends BaseOracleClient {
 
       if (this.useRealData && symbol.toUpperCase() === 'UMA' && isUMASupportedOnChain(chainId)) {
         try {
-          const marketData = await coinGeckoMarketService.getTokenMarketData('uma');
-          const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || marketData.current_price;
-          const change24hPercent = marketData.price_change_percentage_24h || 0;
-          const change24h = marketData.price_change_24h || 0;
+          const marketData = await coinGeckoMarketService.getTokenMarketData('UMA');
+          const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || marketData?.currentPrice || 0;
+          const change24hPercent = marketData?.priceChangePercentage24h || 0;
+          const change24h = marketData?.priceChange24h || 0;
 
-          return {
-            provider: this.name,
-            chain: chain || Blockchain.ETHEREUM,
-            symbol: symbol.toUpperCase(),
-            price: marketData.current_price,
-            timestamp: Date.now(),
-            decimals: 18,
-            confidence: 0.98,
-            change24h: Number(change24h.toFixed(4)),
-            change24hPercent: Number(change24hPercent.toFixed(2)),
-          };
-        } catch (coingeckoError) {
-          console.warn('[UMAClient] CoinGecko fetch failed, trying on-chain data:', coingeckoError);
+          if (marketData && marketData.currentPrice > 0) {
+            return {
+              provider: this.name,
+              chain: chain || Blockchain.ETHEREUM,
+              symbol: symbol.toUpperCase(),
+              price: marketData.currentPrice,
+              timestamp: Date.now(),
+              decimals: 18,
+              confidence: 0.98,
+              change24h: Number(change24h.toFixed(4)),
+              change24hPercent: Number(change24hPercent.toFixed(2)),
+            };
+          }
+        } catch (binanceError) {
+          console.warn('[UMAClient] Binance fetch failed, trying on-chain data:', binanceError);
           const tokenData = await umaOnChainService.getTokenData(chainId);
           return this.convertTokenDataToPriceData(tokenData, chain);
         }

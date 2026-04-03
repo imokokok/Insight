@@ -27,43 +27,54 @@ const SUPPORTED_ASSETS = [
   'DAI',
 ];
 
-async function fetchCoinGeckoPrices(): Promise<Record<string, number>> {
+// Binance 交易对映射
+const BINANCE_SYMBOLS: Record<string, string> = {
+  BTC: 'BTCUSDT',
+  ETH: 'ETHUSDT',
+  SOL: 'SOLUSDT',
+  AVAX: 'AVAXUSDT',
+  BNB: 'BNBUSDT',
+  MATIC: 'MATICUSDT',
+  ARB: 'ARBUSDT',
+  OP: 'OPUSDT',
+  UNI: 'UNIUSDT',
+  AAVE: 'AAVEUSDT',
+  LINK: 'LINKUSDT',
+  USDC: 'USDCUSDT',
+  USDT: 'USDT',
+  DAI: 'DAIUSDT',
+};
+
+async function fetchBinancePrices(): Promise<Record<string, number>> {
   try {
-    const ids = SUPPORTED_ASSETS.map((asset) =>
-      asset.toLowerCase() === 'bnb'
-        ? 'binancecoin'
-        : asset.toLowerCase() === 'matic'
-          ? 'matic-network'
-          : asset.toLowerCase()
-    ).join(',');
+    const symbols = SUPPORTED_ASSETS.map((asset) => BINANCE_SYMBOLS[asset]).filter(Boolean);
 
     const response = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`,
+      `https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`,
       { cache: 'no-store' }
     );
 
     if (!response.ok) {
-      throw new Error(`CoinGecko API error: ${response.status}`);
+      throw new Error(`Binance API error: ${response.status}`);
     }
 
     const data = await response.json();
 
     const prices: Record<string, number> = {};
-    SUPPORTED_ASSETS.forEach((asset) => {
-      const id =
-        asset.toLowerCase() === 'bnb'
-          ? 'binancecoin'
-          : asset.toLowerCase() === 'matic'
-            ? 'matic-network'
-            : asset.toLowerCase();
-      if (data[id]?.usd) {
-        prices[asset] = data[id].usd;
+    const symbolToAsset = Object.fromEntries(
+      Object.entries(BINANCE_SYMBOLS).map(([asset, symbol]) => [symbol, asset])
+    );
+
+    data.forEach((item: { symbol: string; price: string }) => {
+      const asset = symbolToAsset[item.symbol];
+      if (asset) {
+        prices[asset] = parseFloat(item.price);
       }
     });
 
     return prices;
   } catch (error) {
-    logger.error('Failed to fetch CoinGecko prices', error as Error);
+    logger.error('Failed to fetch Binance prices', error as Error);
     return {};
   }
 }
@@ -80,7 +91,7 @@ export function PerformanceMetricsCollector() {
       if (!isActiveRef.current) return;
 
       try {
-        const prices = await fetchCoinGeckoPrices();
+        const prices = await fetchBinancePrices();
         const timestamp = Date.now();
 
         Object.entries(prices).forEach(([asset, price]) => {
@@ -88,7 +99,7 @@ export function PerformanceMetricsCollector() {
             asset,
             price,
             timestamp,
-            source: 'coingecko',
+            source: 'binance',
           });
         });
 

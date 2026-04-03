@@ -33,6 +33,12 @@ import {
   type ReferencePricePoint,
   type OraclePerformanceMetrics,
 } from './performanceMetrics';
+import {
+  binanceMarketService,
+  type TokenMarketData,
+  type HistoricalPricePoint,
+} from './binanceMarketService';
+import { coinGeckoMarketService } from './coinGeckoMarketService';
 
 const logger = createLogger('marketData');
 
@@ -109,3 +115,8 @@ export {
   type ReferencePricePoint,
   type OraclePerformanceMetrics,
 };
+
+// 导出 Binance 和 CoinGecko 市场服务
+// 注意：coinGeckoMarketService 现在使用 Binance API 作为后端
+export { binanceMarketService, coinGeckoMarketService };
+export type { TokenMarketData, HistoricalPricePoint };
