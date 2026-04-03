@@ -1,4 +1,5 @@
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -9,7 +10,7 @@ import { getWINkLinkRealDataService } from './winklinkRealDataService';
 import type { OracleClientConfig } from './base';
 
 // 是否使用真实数据
-const USE_REAL_DATA = process.env.NEXT_PUBLIC_USE_REAL_WINKLINK_DATA === 'true';
+const USE_REAL_DATA = FEATURE_FLAGS.useRealWinklinkData;
 
 export interface TRONNetworkStats {
   totalTransactions: number;

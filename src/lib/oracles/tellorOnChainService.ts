@@ -1,5 +1,6 @@
 import { encodeFunctionData, decodeAbiParameters, parseAbiParameters } from 'viem';
 
+import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import type { Reporter, Dispute, DisputeStats } from './tellor';
 import type { Abi } from 'viem';
 
@@ -90,20 +91,20 @@ function getRPCEndpoints(): Record<number, string[]> {
   };
 
   // 优先使用 Alchemy RPC
-  if (process.env.NEXT_PUBLIC_ALCHEMY_ETHEREUM_RPC) {
-    endpoints[1].push(process.env.NEXT_PUBLIC_ALCHEMY_ETHEREUM_RPC);
+  if (ALCHEMY_RPC.ethereum) {
+    endpoints[1].push(ALCHEMY_RPC.ethereum);
   }
-  if (process.env.NEXT_PUBLIC_ALCHEMY_ARBITRUM_RPC) {
-    endpoints[42161].push(process.env.NEXT_PUBLIC_ALCHEMY_ARBITRUM_RPC);
+  if (ALCHEMY_RPC.arbitrum) {
+    endpoints[42161].push(ALCHEMY_RPC.arbitrum);
   }
-  if (process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC) {
-    endpoints[137].push(process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC);
+  if (ALCHEMY_RPC.polygon) {
+    endpoints[137].push(ALCHEMY_RPC.polygon);
   }
-  if (process.env.NEXT_PUBLIC_ALCHEMY_OPTIMISM_RPC) {
-    endpoints[10].push(process.env.NEXT_PUBLIC_ALCHEMY_OPTIMISM_RPC);
+  if (ALCHEMY_RPC.optimism) {
+    endpoints[10].push(ALCHEMY_RPC.optimism);
   }
-  if (process.env.NEXT_PUBLIC_ALCHEMY_BASE_RPC) {
-    endpoints[8453].push(process.env.NEXT_PUBLIC_ALCHEMY_BASE_RPC);
+  if (ALCHEMY_RPC.base) {
+    endpoints[8453].push(ALCHEMY_RPC.base);
   }
 
   // 添加备用公共 RPC

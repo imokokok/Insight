@@ -1,17 +1,18 @@
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
+import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('DIADataService');
 
 const DIA_API_BASE_URL = 'https://api.diadata.org/v1';
 
-// Alchemy RPC endpoints from environment
+// Alchemy RPC endpoints from server config
 const ALCHEMY_RPC_URLS: Partial<Record<Blockchain, string>> = {
-  [Blockchain.ETHEREUM]: process.env.NEXT_PUBLIC_ALCHEMY_ETHEREUM_RPC || '',
-  [Blockchain.ARBITRUM]: process.env.NEXT_PUBLIC_ALCHEMY_ARBITRUM_RPC || '',
-  [Blockchain.POLYGON]: process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC || '',
-  [Blockchain.BASE]: process.env.NEXT_PUBLIC_ALCHEMY_BASE_RPC || '',
+  [Blockchain.ETHEREUM]: ALCHEMY_RPC.ethereum,
+  [Blockchain.ARBITRUM]: ALCHEMY_RPC.arbitrum,
+  [Blockchain.POLYGON]: ALCHEMY_RPC.polygon,
+  [Blockchain.BASE]: ALCHEMY_RPC.base,
 };
 
 const DIA_CHAIN_MAPPING: Record<Blockchain, string> = {

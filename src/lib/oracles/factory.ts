@@ -1,6 +1,7 @@
 import { container, SERVICE_TOKENS } from '@/lib/di';
 import { OracleClientError, ValidationError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
+import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
 import { type Blockchain, OracleProvider } from '@/types/oracle';
 
 import { API3Client } from './api3';
@@ -204,11 +205,11 @@ export class OracleClientFactory {
   }
 
   private static createClient(provider: OracleProvider): BaseOracleClient {
-    const useRealChainlinkData = process.env.NEXT_PUBLIC_USE_REAL_CHAINLINK_DATA === 'true';
-    const useRealUMData = process.env.NEXT_PUBLIC_USE_REAL_UMA_DATA === 'true';
-    const useRealTellorData = process.env.NEXT_PUBLIC_USE_REAL_TELLOR_DATA === 'true';
-    const useRealChronicleData = process.env.NEXT_PUBLIC_USE_REAL_CHRONICLE_DATA === 'true';
-    const useRealAPI3Data = process.env.NEXT_PUBLIC_USE_REAL_API3_DATA === 'true';
+    const useRealChainlinkData = FEATURE_FLAGS.useRealChainlinkData;
+    const useRealUMData = FEATURE_FLAGS.useRealUmaData;
+    const useRealTellorData = FEATURE_FLAGS.useRealTellorData;
+    const useRealChronicleData = FEATURE_FLAGS.useRealChronicleData;
+    const useRealAPI3Data = FEATURE_FLAGS.useRealApi3Data;
 
     switch (provider) {
       case OracleProvider.CHAINLINK:

@@ -1,3 +1,5 @@
+import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
+
 export interface ChroniclePriceFeed {
   address: `0x${string}`;
   name: string;
@@ -124,7 +126,7 @@ export const CHRONICLE_PRICE_FEEDS: Record<string, Record<number, ChroniclePrice
 export const CHRONICLE_RPC_CONFIG: Record<number, ChronicleRPCConfig> = {
   1: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_ETHEREUM_RPC || '',
+      ALCHEMY_RPC.ethereum,
       'https://eth.llamarpc.com',
       'https://ethereum.publicnode.com',
     ].filter(Boolean),
@@ -133,7 +135,7 @@ export const CHRONICLE_RPC_CONFIG: Record<number, ChronicleRPCConfig> = {
   },
   42161: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_ARBITRUM_RPC || '',
+      ALCHEMY_RPC.arbitrum,
       'https://arb1.arbitrum.io/rpc',
       'https://arbitrum.publicnode.com',
     ].filter(Boolean),
@@ -142,7 +144,7 @@ export const CHRONICLE_RPC_CONFIG: Record<number, ChronicleRPCConfig> = {
   },
   137: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC || '',
+      ALCHEMY_RPC.polygon,
       'https://polygon-rpc.com',
       'https://polygon.publicnode.com',
     ].filter(Boolean),
@@ -151,7 +153,7 @@ export const CHRONICLE_RPC_CONFIG: Record<number, ChronicleRPCConfig> = {
   },
   8453: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_BASE_RPC || '',
+      ALCHEMY_RPC.base,
       'https://mainnet.base.org',
       'https://base.publicnode.com',
     ].filter(Boolean),
@@ -160,7 +162,7 @@ export const CHRONICLE_RPC_CONFIG: Record<number, ChronicleRPCConfig> = {
   },
   10: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_OPTIMISM_RPC || '',
+      ALCHEMY_RPC.optimism,
       'https://mainnet.optimism.io',
       'https://optimism.publicnode.com',
     ].filter(Boolean),

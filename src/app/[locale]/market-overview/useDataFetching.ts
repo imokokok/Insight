@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 
+import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
 import {
   fetchOraclesData,
   fetchAssetsData,
@@ -62,7 +63,8 @@ import {
 
 const logger = createLogger('useDataFetching');
 
-const USE_REAL_API = process.env.NEXT_PUBLIC_USE_REAL_MARKET_DATA === 'true';
+// 使用服务端配置的功能开关
+const USE_REAL_API = FEATURE_FLAGS.useRealChainlinkData;
 
 export interface UseDataFetchingReturn {
   oracleData: OracleMarketData[];

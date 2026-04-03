@@ -1,4 +1,5 @@
 import { createLogger } from '@/lib/utils/logger';
+import { getTheGraphApiKey } from '@/lib/config/serverEnv';
 
 const logger = createLogger('UMASubgraphService');
 
@@ -149,8 +150,8 @@ export class UMASubgraphService {
   private workingEndpoint: string | null = null;
 
   constructor(config?: Partial<UMASubgraphConfig>) {
-    // Check for environment variable API key
-    const envApiKey = typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_THEGRAPH_API_KEY : undefined;
+    // 从服务端配置获取 API key
+    const envApiKey = getTheGraphApiKey();
     
     this.config = { 
       ...DEFAULT_CONFIG, 
