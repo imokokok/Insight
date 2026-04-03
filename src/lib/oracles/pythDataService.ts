@@ -18,7 +18,6 @@ import {
   PYTH_PRICE_FEED_IDS,
   HERMES_API_URL,
   HERMES_WS_URL,
-  PYTHNET_RPC_URL,
   CACHE_TTL,
   normalizeSymbol,
   getSymbolFromPriceId,
@@ -240,30 +239,11 @@ export class PythDataService {
       return cached;
     }
 
-    try {
-      const result = await withRetry(
-        async () => {
-          const response = await fetch(`${PYTHNET_RPC_URL}/api/validators`);
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          const data = await response.json();
-          return this.parseValidators(data);
-        },
-        DEFAULT_RETRY_CONFIG,
-        'getValidators'
-      );
-
-      this.setCache(cacheKey, result, CACHE_TTL.VALIDATORS);
-      return result;
-    } catch (error) {
-      logger.error(
-        'Failed to get validators, returning fallback data',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return this.getFallbackValidators();
-    }
+    // Pyth Network 没有公开的验证者 API 端点，直接返回 fallback 数据
+    logger.debug('Returning fallback validator data');
+    const fallbackData = this.getFallbackValidators();
+    this.setCache(cacheKey, fallbackData, CACHE_TTL.VALIDATORS);
+    return fallbackData;
   }
 
   async getNetworkStats(): Promise<PythServiceNetworkStats> {
