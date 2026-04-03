@@ -1,3 +1,5 @@
+import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
+
 export interface ChainlinkPriceFeed {
   address: `0x${string}`;
   name: string;
@@ -272,7 +274,7 @@ export const CHAINLINK_CONTRACTS: Record<number, ChainlinkContracts> = {
 export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
   1: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_ETHEREUM_RPC || '',
+      ALCHEMY_RPC.ethereum,
       'https://eth.llamarpc.com',
       'https://ethereum.publicnode.com',
     ].filter(Boolean),
@@ -281,7 +283,7 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
   },
   42161: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_ARBITRUM_RPC || '',
+      ALCHEMY_RPC.arbitrum,
       'https://arb1.arbitrum.io/rpc',
       'https://arbitrum.publicnode.com',
     ].filter(Boolean),
@@ -290,7 +292,7 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
   },
   137: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC || '',
+      ALCHEMY_RPC.polygon,
       'https://polygon-rpc.com',
       'https://polygon.publicnode.com',
     ].filter(Boolean),
@@ -299,7 +301,7 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
   },
   8453: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_BASE_RPC || '',
+      ALCHEMY_RPC.base,
       'https://mainnet.base.org',
       'https://base.publicnode.com',
     ].filter(Boolean),

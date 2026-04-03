@@ -1,5 +1,6 @@
 import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
+import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import { getAPI3Contract } from './api3DataSources';
 
 export interface TokenData {
@@ -99,31 +100,26 @@ const API3_POOL_ABI = [
 ] as const;
 
 function getRpcEndpoints(): Record<number, string[]> {
-  const ethereumRpc = process.env.NEXT_PUBLIC_ALCHEMY_ETHEREUM_RPC;
-  const arbitrumRpc = process.env.NEXT_PUBLIC_ALCHEMY_ARBITRUM_RPC;
-  const polygonRpc = process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC;
-  const baseRpc = process.env.NEXT_PUBLIC_ALCHEMY_BASE_RPC;
-
   return {
-    1: ethereumRpc
-      ? [ethereumRpc, 'https://eth.llamarpc.com', 'https://ethereum.publicnode.com']
+    1: ALCHEMY_RPC.ethereum
+      ? [ALCHEMY_RPC.ethereum, 'https://eth.llamarpc.com', 'https://ethereum.publicnode.com']
       : ['https://eth.llamarpc.com', 'https://ethereum.publicnode.com', 'https://rpc.ankr.com/eth'],
-    42161: arbitrumRpc
-      ? [arbitrumRpc, 'https://arb1.arbitrum.io/rpc', 'https://arbitrum.publicnode.com']
+    42161: ALCHEMY_RPC.arbitrum
+      ? [ALCHEMY_RPC.arbitrum, 'https://arb1.arbitrum.io/rpc', 'https://arbitrum.publicnode.com']
       : [
           'https://arb1.arbitrum.io/rpc',
           'https://arbitrum.publicnode.com',
           'https://rpc.ankr.com/arbitrum',
         ],
-    137: polygonRpc
-      ? [polygonRpc, 'https://polygon-rpc.com', 'https://polygon.publicnode.com']
+    137: ALCHEMY_RPC.polygon
+      ? [ALCHEMY_RPC.polygon, 'https://polygon-rpc.com', 'https://polygon.publicnode.com']
       : [
           'https://polygon-rpc.com',
           'https://polygon.publicnode.com',
           'https://rpc.ankr.com/polygon',
         ],
-    8453: baseRpc
-      ? [baseRpc, 'https://mainnet.base.org', 'https://base.publicnode.com']
+    8453: ALCHEMY_RPC.base
+      ? [ALCHEMY_RPC.base, 'https://mainnet.base.org', 'https://base.publicnode.com']
       : ['https://mainnet.base.org', 'https://base.publicnode.com', 'https://rpc.ankr.com/base'],
     43114: [
       'https://api.avax.network/ext/bc/C/rpc',

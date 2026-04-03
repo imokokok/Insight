@@ -1,4 +1,5 @@
 import { createLogger } from '@/lib/utils/logger';
+import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -43,7 +44,7 @@ const DEFAULT_CHRONICLE_CONFIG: ChronicleConfig = {
   historicalVolatility: 0.002,
   trendStrength: 0.0003,
   maxCacheSize: 100,
-  useRealData: process.env.NEXT_PUBLIC_USE_REAL_CHRONICLE_DATA === 'true',
+  useRealData: FEATURE_FLAGS.useRealChronicleData,
 };
 
 function seededRandom(seed: number): number {

@@ -5,8 +5,9 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('API3WebSocket');
 
 // API3 WebSocket 配置
+// 注意：WebSocket URL 是公开的，不需要保密
 export const API3_WEBSOCKET_CONFIG = {
-  url: process.env.NEXT_PUBLIC_API3_WS_URL || 'wss://stream.api3.org/price',
+  url: 'wss://ws.api3.org',
   reconnectInterval: 3000,
   maxReconnectAttempts: 5,
   heartbeatInterval: 30000,

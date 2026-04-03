@@ -1,3 +1,5 @@
+import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
+
 export interface UMAContract {
   address: `0x${string}`;
   name: string;
@@ -103,7 +105,7 @@ export const UMA_PRICE_FEEDS: Record<string, Record<number, UMAPriceFeed>> = {
 export const UMA_RPC_CONFIG: Record<number, UMARPCConfig> = {
   1: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_ETHEREUM_RPC || '',
+      ALCHEMY_RPC.ethereum,
       'https://eth.llamarpc.com',
       'https://ethereum.publicnode.com',
       'https://rpc.ankr.com/eth',
@@ -113,7 +115,7 @@ export const UMA_RPC_CONFIG: Record<number, UMARPCConfig> = {
   },
   137: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC || '',
+      ALCHEMY_RPC.polygon,
       'https://polygon-rpc.com',
       'https://polygon.publicnode.com',
       'https://rpc.ankr.com/polygon',
@@ -123,7 +125,7 @@ export const UMA_RPC_CONFIG: Record<number, UMARPCConfig> = {
   },
   42161: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_ARBITRUM_RPC || '',
+      ALCHEMY_RPC.arbitrum,
       'https://arb1.arbitrum.io/rpc',
       'https://arbitrum.publicnode.com',
       'https://rpc.ankr.com/arbitrum',
@@ -133,7 +135,7 @@ export const UMA_RPC_CONFIG: Record<number, UMARPCConfig> = {
   },
   10: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_OPTIMISM_RPC || '',
+      ALCHEMY_RPC.optimism,
       'https://mainnet.optimism.io',
       'https://optimism.publicnode.com',
       'https://rpc.ankr.com/optimism',
@@ -143,7 +145,7 @@ export const UMA_RPC_CONFIG: Record<number, UMARPCConfig> = {
   },
   8453: {
     endpoints: [
-      process.env.NEXT_PUBLIC_ALCHEMY_BASE_RPC || '',
+      ALCHEMY_RPC.base,
       'https://mainnet.base.org',
       'https://base.publicnode.com',
       'https://rpc.ankr.com/base',

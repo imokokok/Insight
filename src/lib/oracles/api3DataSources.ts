@@ -1,3 +1,5 @@
+import { getApi3Config } from '@/lib/config/serverEnv';
+
 export interface API3MarketEndpoints {
   dapis: string;
   airnodes: string;
@@ -53,9 +55,12 @@ export interface API3DataSourceConfig {
   };
 }
 
+// 从服务端配置获取 API3 配置
+const api3Config = getApi3Config();
+
 export const API3_DATA_SOURCES: API3DataSourceConfig = {
   market: {
-    baseUrl: process.env.NEXT_PUBLIC_API3_MARKET_API_URL || 'https://market.api3.org/api/v1',
+    baseUrl: api3Config.marketApiUrl,
     endpoints: {
       dapis: '/dapis',
       airnodes: '/airnodes',
@@ -68,7 +73,7 @@ export const API3_DATA_SOURCES: API3DataSourceConfig = {
     retryDelay: 1000,
   },
   dao: {
-    baseUrl: process.env.NEXT_PUBLIC_API3_DAO_API_URL || 'https://api.api3.org',
+    baseUrl: api3Config.daoApiUrl,
     endpoints: {
       staking: '/staking',
       coverage: '/coverage-pool',
@@ -107,7 +112,7 @@ export const API3_DATA_SOURCES: API3DataSourceConfig = {
     },
   },
   websocket: {
-    url: process.env.NEXT_PUBLIC_API3_WS_URL || 'wss://ws.api3.org',
+    url: api3Config.wsUrl,
     reconnectInterval: 5000,
     maxReconnectAttempts: 5,
     pingInterval: 30000,

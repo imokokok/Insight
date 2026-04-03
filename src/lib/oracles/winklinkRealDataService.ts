@@ -1,14 +1,15 @@
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
+import { getTronConfig } from '@/lib/config/serverEnv';
 import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('WINkLinkRealDataService');
 
-// TRON RPC 端点
-const TRON_RPC_URL = process.env.NEXT_PUBLIC_TRON_RPC_URL || 'https://api.trongrid.io';
-const TRON_SOLIDITY_RPC =
-  process.env.NEXT_PUBLIC_TRON_SOLIDITY_RPC || 'https://api.trongrid.io/walletsolidity';
-const TRONGRID_API_KEY = process.env.NEXT_PUBLIC_TRONGRID_API_KEY || '';
+// TRON RPC 端点 - 从服务端配置获取
+const tronConfig = getTronConfig();
+const TRON_RPC_URL = tronConfig.rpcUrl;
+const TRON_SOLIDITY_RPC = tronConfig.solidityRpc;
+const TRONGRID_API_KEY = tronConfig.apiKey;
 
 // WINkLink Price Feed 合约地址 (Mainnet)
 // 来源: https://doc.winklink.org/v2/doc/pricing.html
