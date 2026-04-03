@@ -150,15 +150,38 @@ export class API3Client extends BaseOracleClient {
       if (!symbol) {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');
       }
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
 
+      // 使用 CoinGecko 获取真实历史数据
+      const { coinGeckoMarketService } = await import('@/lib/services/marketData/coinGeckoMarketService');
+      const days = Math.ceil(period / 24);
+      const coinGeckoPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
+
+      if (coinGeckoPrices && coinGeckoPrices.length > 0) {
+        console.log(`[API3Client] Using CoinGecko real historical data for ${symbol}, got ${coinGeckoPrices.length} points`);
+        return coinGeckoPrices.map((point) => ({
+          provider: this.name,
+          chain: chain || Blockchain.ETHEREUM,
+          symbol,
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence: 0.95,
+          source: 'coingecko-api',
+        }));
+      }
+
+      // 回退到模拟数据
+      console.warn(`[API3Client] Falling back to mock historical data for ${symbol}`);
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
         this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
       );
     } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch historical prices from API3',
-        'API3_HISTORICAL_ERROR'
+      console.error(`[API3Client] Failed to fetch historical prices for ${symbol}:`, error);
+      // 出错时回退到模拟数据
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
+        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
       );
     }
   }

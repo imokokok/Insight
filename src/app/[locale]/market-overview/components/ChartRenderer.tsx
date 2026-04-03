@@ -297,7 +297,7 @@ export default function ChartRenderer({
           <div
             className={`flex flex-col justify-center space-y-2 pr-4 ${isMobile ? 'w-full mt-4' : 'w-48'}`}
           >
-            {sortedOracleData.slice(0, isMobile ? 4 : 6).map((item) => (
+            {sortedOracleData.map((item) => (
               <div
                 key={item.name}
                 className={`flex items-center justify-between py-1.5 px-2 rounded cursor-pointer transition-all ${
@@ -327,11 +327,6 @@ export default function ChartRenderer({
                 </div>
               </div>
             ))}
-            {sortedOracleData.length > 6 && (
-              <div className="text-xs text-gray-400 text-center py-1">
-                +{sortedOracleData.length - 6} {t('more')}
-              </div>
-            )}
           </div>
         </div>
       </div>

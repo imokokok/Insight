@@ -215,6 +215,9 @@ export interface UseOracleDataReturn {
   fetchPriceData: () => Promise<void>;
   refreshInterval: RefreshInterval;
   setRefreshInterval: (interval: RefreshInterval) => void;
+  // 性能指标相关
+  performanceMetrics: import('@/lib/oracles/performanceMetricsCalculator').CalculatedPerformanceMetrics[];
+  isCalculatingMetrics: boolean;
 }
 
 export interface UseChartConfigReturn extends ChartConfigResult {

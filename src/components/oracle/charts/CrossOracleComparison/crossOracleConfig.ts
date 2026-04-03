@@ -11,6 +11,7 @@ import {
   ChronicleClient,
   WINkLinkClient,
 } from '@/lib/oracles';
+import { type CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
 import { OracleProvider } from '@/types/oracle';
 
 export type SortField = 'price' | 'deviation' | 'confidence' | 'responseTime' | 'name';
@@ -36,6 +37,48 @@ export interface OraclePerformance {
   reliability: number;
   accuracy: number;
   decentralization: number;
+  sampleSize?: number;
+  lastCalculated?: number;
+  isCalculated?: boolean;
+}
+
+// 从计算后的指标转换为 OraclePerformance
+export function convertCalculatedMetricsToPerformance(
+  metrics: CalculatedPerformanceMetrics
+): OraclePerformance {
+  return {
+    provider: metrics.provider,
+    responseTime: metrics.responseTime,
+    updateFrequency: metrics.updateFrequency,
+    dataSources: metrics.dataSources,
+    supportedChains: metrics.supportedChains,
+    reliability: metrics.reliability,
+    accuracy: metrics.accuracy,
+    decentralization: metrics.decentralization,
+    sampleSize: metrics.sampleSize,
+    lastCalculated: metrics.lastCalculated,
+    isCalculated: true,
+  };
+}
+
+// 合并静态数据和动态计算数据
+export function mergePerformanceData(
+  staticData: OraclePerformance[],
+  calculatedMetrics: CalculatedPerformanceMetrics[]
+): OraclePerformance[] {
+  const metricsMap = new Map(
+    calculatedMetrics.map((m) => [m.provider, convertCalculatedMetricsToPerformance(m)])
+  );
+
+  return staticData.map((staticItem) => {
+    const calculatedItem = metricsMap.get(staticItem.provider);
+    if (calculatedItem && calculatedItem.sampleSize && calculatedItem.sampleSize > 5) {
+      // 如果有足够的计算样本，优先使用计算数据
+      return calculatedItem;
+    }
+    // 否则使用静态数据，但标记为未计算
+    return { ...staticItem, isCalculated: false };
+  });
 }
 
 export interface PriceComparisonData {

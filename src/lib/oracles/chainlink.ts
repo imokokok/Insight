@@ -161,47 +161,28 @@ export class ChainlinkClient extends BaseOracleClient {
 
       const chainId = this.getChainId(chain);
 
-      if (this.useRealData && isPriceFeedSupported(symbol, chainId)) {
-        const currentPrice = await chainlinkOnChainService.getPrice(symbol, chainId);
-
-        const historicalData: PriceData[] = [];
-        const now = Date.now();
-        const dataPoints = period * 4;
-        const interval = (period * 60 * 60 * 1000) / dataPoints;
-
-        const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || currentPrice.price;
-        const volatility = 0.002;
-        let simulatedPrice = currentPrice.price * (0.95 + Math.random() * 0.1);
-
-        for (let i = 0; i < dataPoints; i++) {
-          const timestamp = now - (dataPoints - 1 - i) * interval;
-
-          const randomWalk = (Math.random() - 0.5) * 2 * volatility;
-          simulatedPrice = simulatedPrice * (1 + randomWalk);
-
-          const maxPrice = currentPrice.price * 1.2;
-          const minPrice = currentPrice.price * 0.8;
-          simulatedPrice = Math.max(minPrice, Math.min(maxPrice, simulatedPrice));
-
-          const change24hPercent = ((simulatedPrice - basePrice) / basePrice) * 100;
-          const change24h = simulatedPrice - basePrice;
-
-          historicalData.push({
-            provider: this.name,
-            chain: chain || Blockchain.ETHEREUM,
-            symbol,
-            price: Number(simulatedPrice.toFixed(4)),
-            timestamp,
-            decimals: currentPrice.decimals,
-            confidence: 0.98,
-            change24h: Number(change24h.toFixed(4)),
-            change24hPercent: Number(change24hPercent.toFixed(2)),
-          });
+      if (this.useRealData) {
+        // 方案1: 优先使用 CoinGecko 获取真实历史数据
+        const days = Math.ceil(period / 24);
+        const coinGeckoPrices = await this.fetchHistoricalPricesFromCoinGecko(symbol, days);
+        
+        if (coinGeckoPrices && coinGeckoPrices.length > 0) {
+          console.log(`[ChainlinkClient] Using CoinGecko real historical data for ${symbol}, got ${coinGeckoPrices.length} points`);
+          return coinGeckoPrices;
         }
 
-        return historicalData;
+        // 方案4: 如果 CoinGecko 失败，尝试使用 TheGraph 获取链上历史数据
+        if (isPriceFeedSupported(symbol, chainId)) {
+          const graphPrices = await this.fetchHistoricalPricesFromSubgraph(symbol, chain, period);
+          if (graphPrices && graphPrices.length > 0) {
+            console.log(`[ChainlinkClient] Using TheGraph real historical data for ${symbol}, got ${graphPrices.length} points`);
+            return graphPrices;
+          }
+        }
       }
 
+      // 回退到模拟数据
+      console.warn(`[ChainlinkClient] Falling back to mock historical data for ${symbol}`);
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
         this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
@@ -216,6 +197,116 @@ export class ChainlinkClient extends BaseOracleClient {
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
         this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
       );
+    }
+  }
+
+  /**
+   * 方案4: 使用 TheGraph 查询 Chainlink Price Feed 的链上历史数据
+   */
+  private async fetchHistoricalPricesFromSubgraph(
+    symbol: string,
+    chain?: Blockchain,
+    period: number = 24
+  ): Promise<PriceData[]> {
+    try {
+      const feed = getChainlinkPriceFeed(symbol, this.getChainId(chain));
+      if (!feed) {
+        return [];
+      }
+
+      // Chainlink 官方 Subgraph
+      const subgraphUrls: Record<number, string> = {
+        1: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds',
+        137: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-polygon',
+        42161: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-arbitrum',
+        10: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-optimism',
+        43114: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-avalanche',
+        56: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-bsc',
+      };
+
+      const chainId = this.getChainId(chain);
+      const subgraphUrl = subgraphUrls[chainId];
+      
+      if (!subgraphUrl) {
+        console.warn(`[ChainlinkClient] No subgraph available for chain ${chainId}`);
+        return [];
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      const from = now - period * 60 * 60;
+
+      const query = `
+        query GetPriceHistory($feed: String!, $from: Int!, $to: Int!) {
+          answerUpdateds(
+            where: { 
+              feed: $feed,
+              blockTimestamp_gte: $from,
+              blockTimestamp_lte: $to
+            }
+            orderBy: blockTimestamp
+            orderDirection: asc
+            first: 1000
+          ) {
+            current
+            blockTimestamp
+            roundId
+          }
+        }
+      `;
+
+      const response = await fetch(subgraphUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query,
+          variables: {
+            feed: feed.contractAddress.toLowerCase(),
+            from,
+            to: now,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`TheGraph API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.errors) {
+        throw new Error(`TheGraph query error: ${JSON.stringify(data.errors)}`);
+      }
+
+      const updates = data.data?.answerUpdateds || [];
+      
+      if (updates.length === 0) {
+        return [];
+      }
+
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || Number(updates[updates.length - 1].current) / Math.pow(10, feed.decimals);
+
+      return updates.map((update: { current: string; blockTimestamp: string; roundId: string }) => {
+        const price = Number(update.current) / Math.pow(10, feed.decimals);
+        const timestamp = Number(update.blockTimestamp) * 1000;
+        const change24hPercent = ((price - basePrice) / basePrice) * 100;
+        const change24h = price - basePrice;
+
+        return {
+          provider: this.name,
+          chain: chain || Blockchain.ETHEREUM,
+          symbol,
+          price,
+          timestamp,
+          decimals: feed.decimals,
+          confidence: 0.98,
+          change24h: Number(change24h.toFixed(4)),
+          change24hPercent: Number(change24hPercent.toFixed(2)),
+          source: 'chainlink-subgraph',
+        };
+      });
+    } catch (error) {
+      console.warn(`[ChainlinkClient] Failed to fetch from TheGraph:`, error);
+      return [];
     }
   }
 

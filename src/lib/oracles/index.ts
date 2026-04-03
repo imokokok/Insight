@@ -197,3 +197,12 @@ export {
 } from './factory';
 export * from '@/types/oracle';
 export { getOracleColor } from './colors';
+
+// Performance Metrics Calculator
+export {
+  PerformanceMetricsCalculator,
+  performanceMetricsCalculator,
+  type CalculatedPerformanceMetrics,
+  type PriceHistoryEntry,
+  type MetricsCalculationConfig,
+} from './performanceMetricsCalculator';

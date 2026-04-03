@@ -61,6 +61,10 @@ export default function CrossOraclePage() {
     // 历史数据
     historicalData,
 
+    // 性能指标（新增）
+    performanceMetrics,
+    isCalculatingMetrics,
+
     // 回调
     toggleOracle,
 
@@ -226,6 +230,8 @@ export default function CrossOraclePage() {
             historicalData={historicalData}
             oracleColors={oracleChartColors}
             onRefresh={fetchPriceData}
+            performanceMetrics={performanceMetrics}
+            isCalculatingMetrics={isCalculatingMetrics}
           />
         </main>
       </div>

@@ -114,43 +114,43 @@ export class PythClient extends BaseOracleClient {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');
       }
 
-      const historicalPrices: PriceData[] = [];
-      const now = Date.now();
-      const interval = (period * 60 * 60 * 1000) / 24;
-      const timestamps: number[] = [];
+      // 方案2: 使用新的批量历史数据获取方法
+      const historicalPrices = await this.pythDataService.getHistoricalPrices(symbol, period, 60);
       
-      for (let i = 0; i < 24; i++) {
-        timestamps.push(now - i * interval);
-      }
-
-      const pricePromises = timestamps.map(async (timestamp) => {
-        try {
-          const price = await this.pythDataService.getPriceAtTimestamp(symbol, timestamp);
-          if (price) {
-            return {
-              ...price,
-              chain,
-              source: 'pyth-hermes-api',
-            };
-          }
-          return null;
-        } catch {
-          return null;
-        }
-      });
-
-      const results = await Promise.all(pricePromises);
-      
-      for (const result of results) {
-        if (result) {
-          historicalPrices.push(result);
-        }
-      }
-
       if (historicalPrices.length >= 12) {
-        return historicalPrices.sort((a, b) => a.timestamp - b.timestamp);
+        console.log(`[PythClient] Using Pyth real historical data for ${symbol}, got ${historicalPrices.length} points`);
+        // 添加 chain 和 source 信息
+        return historicalPrices.map(price => ({
+          ...price,
+          chain,
+          source: 'pyth-hermes-api',
+        })).sort((a, b) => a.timestamp - b.timestamp);
       }
 
+      // 如果 Pyth 数据不足，尝试使用 CoinGecko 作为备选
+      console.log(`[PythClient] Pyth historical data insufficient for ${symbol}, trying CoinGecko...`);
+      const { coinGeckoMarketService } = await import('@/lib/services/marketData/coinGeckoMarketService');
+      const days = Math.ceil(period / 24);
+      const coinGeckoPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
+      
+      if (coinGeckoPrices && coinGeckoPrices.length > 0) {
+        console.log(`[PythClient] Using CoinGecko real historical data for ${symbol}, got ${coinGeckoPrices.length} points`);
+        return coinGeckoPrices.map((point) => ({
+          provider: this.name,
+          chain: chain || Blockchain.ETHEREUM,
+          symbol,
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence: 0.95,
+          change24h: 0,
+          change24hPercent: 0,
+          source: 'coingecko-api',
+        }));
+      }
+
+      // 回退到模拟数据
+      console.warn(`[PythClient] Falling back to mock historical data for ${symbol}`);
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
         this.generateMockHistoricalPrices(symbol, basePrice, chain, period).map(p => ({
@@ -159,9 +159,15 @@ export class PythClient extends BaseOracleClient {
         }))
       );
     } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch historical prices from Pyth',
-        'PYTH_HISTORICAL_ERROR'
+      console.error(`[PythClient] Failed to fetch historical prices for ${symbol}:`, error);
+      
+      // 出错时回退到模拟数据
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
+        this.generateMockHistoricalPrices(symbol, basePrice, chain, period).map(p => ({
+          ...p,
+          source: 'mock-fallback',
+        }))
       );
     }
   }

@@ -538,8 +538,36 @@ export class ChronicleClient extends BaseOracleClient {
         return cachedEntry!.data;
       }
 
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      // 优先使用 CoinGecko 获取真实历史数据
+      const { coinGeckoMarketService } = await import('@/lib/services/marketData/coinGeckoMarketService');
+      const days = Math.ceil(period / 24);
+      const coinGeckoPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
 
+      if (coinGeckoPrices && coinGeckoPrices.length > 0) {
+        logger.info(`[ChronicleClient] Using CoinGecko real historical data for ${symbol}, got ${coinGeckoPrices.length} points`);
+        const result = coinGeckoPrices.map((point) => ({
+          provider: this.name,
+          chain: chain || Blockchain.ETHEREUM,
+          symbol,
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence: 0.95,
+          source: 'coingecko-api',
+        }));
+
+        this.historicalCache.set(cacheKey, {
+          data: result,
+          timestamp: Date.now(),
+          expiresAt: Date.now() + this.chronicleConfig.cacheTtlMs * 5,
+        });
+
+        return result;
+      }
+
+      // 回退到模拟数据
+      logger.warn(`[ChronicleClient] Falling back to mock historical data for ${symbol}`);
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       const result = await this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
         this.generateRealisticHistoricalPrices(symbol, basePrice, chain, period)
       );
@@ -552,10 +580,11 @@ export class ChronicleClient extends BaseOracleClient {
 
       return result;
     } catch (error) {
-      logger.error(`Failed to fetch historical prices for ${symbol}:`, error as Error);
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch historical prices from Chronicle',
-        'CHRONICLE_HISTORICAL_ERROR'
+      logger.error(`[ChronicleClient] Failed to fetch historical prices for ${symbol}:`, error as Error);
+      // 出错时回退到模拟数据
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
+        this.generateRealisticHistoricalPrices(symbol, basePrice, chain, period)
       );
     }
   }

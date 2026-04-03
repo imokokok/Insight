@@ -336,29 +336,48 @@ export class TellorClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      // 尝试从链上获取历史数据
+      // 使用 CoinGecko 获取真实历史数据
+      const { coinGeckoMarketService } = await import('@/lib/services/marketData/coinGeckoMarketService');
+      const days = Math.ceil(period / 24);
+      const coinGeckoPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
+
+      if (coinGeckoPrices && coinGeckoPrices.length > 0) {
+        console.log(`[TellorClient] Using CoinGecko real historical data for ${symbol}, got ${coinGeckoPrices.length} points`);
+        return coinGeckoPrices.map((point) => ({
+          provider: this.name,
+          chain: chain || Blockchain.ETHEREUM,
+          symbol,
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence: 0.95,
+          source: 'coingecko-api',
+        }));
+      }
+
+      // 如果 CoinGecko 失败，基于当前价格生成历史数据点
+      console.warn(`[TellorClient] CoinGecko failed, generating historical data from current price for ${symbol}`);
       const currentPrice = await this.getPrice(symbol, chain);
       const prices: PriceData[] = [];
       const now = Date.now();
       const hourMs = 3600 * 1000;
 
-      // 基于当前价格和链上数据生成历史数据点
       for (let i = period; i >= 0; i--) {
         const timestamp = now - i * hourMs;
-        // 添加基于区块高度的微小变化
-        const variation = Math.sin(i * 0.5) * 0.02; // 2% 波动
+        const variation = Math.sin(i * 0.5) * 0.02;
         const price = currentPrice.price * (1 + variation);
 
         prices.push({
           ...currentPrice,
           price: Number(price.toFixed(8)),
           timestamp,
+          source: 'derived-from-current',
         });
       }
 
       return prices;
     } catch (error) {
-      console.warn('[Tellor] Failed to fetch historical prices:', error);
+      console.error(`[TellorClient] Failed to fetch historical prices for ${symbol}:`, error);
       return [];
     }
   }

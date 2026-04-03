@@ -1,11 +1,15 @@
 /**
  * @fileoverview 预言机数据获取 Hook
- * @description 负责价格数据获取、加载状态管理和自动刷新
+ * @description 负责价格数据获取、加载状态管理和自动刷新，集成性能指标计算
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { createLogger } from '@/lib/utils/logger';
+import {
+  PerformanceMetricsCalculator,
+  type CalculatedPerformanceMetrics,
+} from '@/lib/oracles/performanceMetricsCalculator';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleClients, type TimeRange, type RefreshInterval, type PriceOracleProvider } from '../constants';
@@ -19,6 +23,7 @@ interface UseOracleDataOptions {
   selectedSymbol: string;
   timeRange: TimeRange;
   initialRefreshInterval?: RefreshInterval;
+  enablePerformanceMetrics?: boolean;
 }
 
 export function useOracleData({
@@ -26,6 +31,7 @@ export function useOracleData({
   selectedSymbol,
   timeRange,
   initialRefreshInterval = 0,
+  enablePerformanceMetrics = true,
 }: UseOracleDataOptions): UseOracleDataReturn {
   const [priceData, setPriceData] = useState<PriceData[]>([]);
   const [historicalData, setHistoricalData] = useState<
@@ -35,6 +41,20 @@ export function useOracleData({
   const [error, setError] = useState<Error | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(initialRefreshInterval);
+
+  // 性能指标计算
+  const [performanceMetrics, setPerformanceMetrics] = useState<CalculatedPerformanceMetrics[]>([]);
+  const [isCalculatingMetrics, setIsCalculatingMetrics] = useState(false);
+  const metricsCalculatorRef = useRef<PerformanceMetricsCalculator>(
+    new PerformanceMetricsCalculator()
+  );
+  const priceHistoryMapRef = useRef<Map<OracleProvider, Array<{
+    price: number;
+    timestamp: number;
+    responseTime: number;
+    success: boolean;
+    source?: string;
+  }>>>(new Map());
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
@@ -60,6 +80,41 @@ export function useOracleData({
     }
   }, []);
 
+  // 计算性能指标
+  const calculatePerformanceMetrics = useCallback(() => {
+    if (!enablePerformanceMetrics) return;
+
+    setIsCalculatingMetrics(true);
+
+    try {
+      const newMetrics: CalculatedPerformanceMetrics[] = [];
+      const baseSymbol = selectedSymbol.split('/')[0];
+
+      selectedOracles.forEach((oracle) => {
+        const metrics = metricsCalculatorRef.current.calculateAllMetrics(
+          oracle as OracleProvider,
+          baseSymbol,
+          priceHistoryMapRef.current
+        );
+        newMetrics.push(metrics);
+      });
+
+      if (isMountedRef.current) {
+        setPerformanceMetrics(newMetrics);
+        logger.debug('Calculated performance metrics', { count: newMetrics.length });
+      }
+    } catch (err) {
+      logger.error(
+        'Error calculating performance metrics',
+        err instanceof Error ? err : new Error(String(err))
+      );
+    } finally {
+      if (isMountedRef.current) {
+        setIsCalculatingMetrics(false);
+      }
+    }
+  }, [enablePerformanceMetrics, selectedOracles, selectedSymbol]);
+
   const fetchPriceData = useCallback(async () => {
     // 取消之前的请求
     if (abortControllerRef.current) {
@@ -77,6 +132,7 @@ export function useOracleData({
 
     try {
       const fetchPromises = selectedOracles.map(async (oracle) => {
+        const requestStart = Date.now();
         try {
           const client = oracleClients[oracle];
           const [price, history] = await Promise.all([
@@ -84,15 +140,75 @@ export function useOracleData({
             client.getHistoricalPrices(baseSymbol, undefined, hours),
           ]);
 
+          const responseTime = Date.now() - requestStart;
+
           if (isMountedRef.current) {
             prices.push(price);
             histories[oracle] = history;
+
+            // 记录性能数据
+            if (enablePerformanceMetrics) {
+              // 添加到计算器
+              metricsCalculatorRef.current.addPriceData(
+                oracle as OracleProvider,
+                baseSymbol,
+                price,
+                responseTime,
+                true
+              );
+
+              // 添加到本地历史
+              if (!priceHistoryMapRef.current.has(oracle as OracleProvider)) {
+                priceHistoryMapRef.current.set(oracle as OracleProvider, []);
+              }
+              const history = priceHistoryMapRef.current.get(oracle as OracleProvider)!;
+              history.push({
+                price: price.price,
+                timestamp: price.timestamp,
+                responseTime,
+                success: true,
+                source: price.source,
+              });
+              // 限制历史大小
+              if (history.length > 1000) {
+                history.shift();
+              }
+            }
           }
         } catch (err) {
+          const responseTime = Date.now() - requestStart;
           logger.error(
             `Error fetching data from ${oracle}`,
             err instanceof Error ? err : new Error(String(err))
           );
+
+          // 记录失败
+          if (enablePerformanceMetrics) {
+            metricsCalculatorRef.current.addPriceData(
+              oracle as OracleProvider,
+              baseSymbol,
+              {
+                provider: oracle as OracleProvider,
+                symbol: baseSymbol,
+                price: 0,
+                timestamp: Date.now(),
+              },
+              responseTime,
+              false
+            );
+
+            if (!priceHistoryMapRef.current.has(oracle as OracleProvider)) {
+              priceHistoryMapRef.current.set(oracle as OracleProvider, []);
+            }
+            const history = priceHistoryMapRef.current.get(oracle as OracleProvider)!;
+            history.push({
+              price: 0,
+              timestamp: Date.now(),
+              responseTime,
+              success: false,
+              source: 'error',
+            });
+          }
           // 继续处理其他预言机，不中断整个流程
         }
       });
@@ -103,6 +219,11 @@ export function useOracleData({
         setPriceData(prices);
         setHistoricalData(histories);
         setLastUpdated(new Date());
+
+        // 计算性能指标
+        if (enablePerformanceMetrics) {
+          calculatePerformanceMetrics();
+        }
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
@@ -115,7 +236,14 @@ export function useOracleData({
         setIsLoading(false);
       }
     }
-  }, [selectedOracles, selectedSymbol, timeRange, getHoursForTimeRange]);
+  }, [
+    selectedOracles,
+    selectedSymbol,
+    timeRange,
+    getHoursForTimeRange,
+    enablePerformanceMetrics,
+    calculatePerformanceMetrics,
+  ]);
 
   // 初始加载和数据变化时自动获取
   useEffect(() => {
@@ -150,6 +278,9 @@ export function useOracleData({
     fetchPriceData,
     refreshInterval,
     setRefreshInterval,
+    // 性能指标相关
+    performanceMetrics,
+    isCalculatingMetrics,
   };
 }
 
