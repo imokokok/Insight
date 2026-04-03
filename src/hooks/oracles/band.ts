@@ -504,7 +504,7 @@ export function useBandDataSources(options: UseBandDataSourcesOptions = {}) {
     queryKey,
     queryFn: async () => {
       if (getAllDataSources) {
-        const allData = await bandClient.getDataSourceList(1, Number.MAX_SAFE_INTEGER);
+        const allData = await bandClient.getDataSourceList(1, 1000);
         return {
           dataSources: allData.dataSources,
           total: allData.total,
