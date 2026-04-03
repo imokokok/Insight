@@ -44,6 +44,7 @@ export interface BasePrices {
   DYDX: number;
   USDT: number;
   WIN: number;
+  TRB: number;
   [key: string]: number;
 }
 
@@ -89,6 +90,7 @@ const DEFAULT_BASE_PRICES: BasePrices = {
   DYDX: 1.5,
   USDT: 1,
   WIN: 0.0001,
+  TRB: 45.85,
 } as BasePrices;
 
 function getBasePrices(): BasePrices {

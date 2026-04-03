@@ -416,7 +416,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     provider: OracleProvider.REDSTONE,
     name: 'RedStone',
     description: '模块化预言机解决方案，支持高效的数据流和灵活的集成选项',
-    symbol: 'REDSTONE',
+    symbol: 'RED',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
       Blockchain.ETHEREUM,

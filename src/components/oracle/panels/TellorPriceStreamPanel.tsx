@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { TrendingUp, TrendingDown, Activity, Clock } from 'lucide-react';
 
@@ -12,11 +12,24 @@ interface TellorPriceStreamPanelProps {
   data: PriceStreamPoint[];
 }
 
+function formatTime(timestamp: number): string {
+  const date = new Date(timestamp);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
+
 export function TellorPriceStreamPanel({ data }: TellorPriceStreamPanelProps) {
   const t = useTranslations();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Use requestAnimationFrame to avoid synchronous setState in effect
+    requestAnimationFrame(() => {
+      setMounted(true);
+    });
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
@@ -68,11 +81,7 @@ export function TellorPriceStreamPanel({ data }: TellorPriceStreamPanelProps) {
               >
                 <div className="flex items-center gap-4">
                   <span className="text-gray-500 text-xs">
-                    {new Date(point.timestamp).toLocaleTimeString('zh-CN', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                    })}
+                    {mounted ? formatTime(point.timestamp) : '--:--:--'}
                   </span>
                   <span className="text-cyan-600 font-semibold">${point.price.toFixed(4)}</span>
                   <span className={`${getChangeColor(point.change)}`}>

@@ -26,15 +26,17 @@ type RedStoneDataType =
   | 'risk'
   | 'providers'
   | 'metrics'
-  | 'chains';
+  | 'chains'
+  | 'market';
 
 const getRedStoneKey = (type: RedStoneDataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['redstone', type];
   if (!params) return baseKey;
   const paramStr = Object.entries(params)
+    .filter(([, v]) => v !== undefined)
     .map(([k, v]) => `${k}=${v}`)
     .join('&');
-  return [...baseKey, paramStr];
+  return paramStr ? [...baseKey, paramStr] : baseKey;
 };
 
 const shouldRetry = (failureCount: number, error: unknown): boolean => {
@@ -342,6 +344,17 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
         retry: shouldRetry,
         retryDelay: getRetryDelay,
       },
+      {
+        queryKey: getRedStoneKey('market', { symbol }),
+        queryFn: () => client.getMarketData(symbol),
+        enabled,
+        staleTime: 60000,
+        gcTime: 300000,
+        refetchInterval: 60000,
+        refetchOnWindowFocus: false,
+        retry: shouldRetry,
+        retryDelay: getRetryDelay,
+      },
     ],
   });
 
@@ -353,6 +366,7 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
     riskResult,
     providersResult,
     metricsResult,
+    marketResult,
   ] = results;
 
   const isLoading = results.some((r) => r.isLoading);
@@ -374,6 +388,7 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
       riskMetrics: riskResult.data,
       providers: providersResult.data ?? [],
       metrics: metricsResult.data,
+      marketData: marketResult.data,
       isLoading,
       isFetching,
       isError,
@@ -389,6 +404,7 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
       riskResult.data,
       providersResult.data,
       metricsResult.data,
+      marketResult.data,
       isLoading,
       isFetching,
       isError,
