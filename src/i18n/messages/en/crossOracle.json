@@ -761,7 +761,10 @@
     "loading": "Loading...",
     "query": "Query",
     "selectOracleHint": "Please select at least one oracle",
-    "oraclesSelected": "oracles selected"
+    "oraclesSelected": "oracles selected",
+    "noCommonSymbols": "Selected oracles have no common supported symbols",
+    "adjustOracleSelection": "Please adjust oracle selection to choose oracles that support the same symbols",
+    "selectOracleFirst": "Please select oracles first"
   },
   "crossOracleComparison": {
     "title": "Multi-Oracle Comparative Analytics",
