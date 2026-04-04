@@ -13,30 +13,21 @@ export {
   DataQualityScoreCard,
   UMADataQualityScoreCard,
   UMAScoreExplanationModal,
-  IntegratedProtocols,
-  DataSourceCoverage,
-  PublisherList,
   PublisherReliabilityScore,
   PerformanceGauge,
   PerformanceGaugeGroup,
-  PriceAccuracyStats,
-  ExtremeMarketAnalysis,
   StakingCalculator,
   DisputeAmountDistribution,
   DisputeEfficiencyAnalysis,
   RequestTypeDistribution,
   SecurityTimeline,
-  MitigationMeasuresGrid,
 } from './data-display';
 
 export {
   AnomalyMarker,
   type AnomalyPoint,
   VolatilityAlert,
-  ChainEventMonitor,
   DataFreshnessIndicator,
-  CrossChainPriceConsistency,
-  BandCrossChainPriceConsistency,
 } from './alerts';
 
 export {
