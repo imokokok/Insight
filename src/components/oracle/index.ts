@@ -9,7 +9,6 @@ export {
   MetricCard,
   StatGrid,
   StatGridItem,
-  ConfidenceIntervalDisplay,
   DataQualityScoreCard,
   PerformanceGauge,
   PerformanceGaugeGroup,
