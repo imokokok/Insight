@@ -13,7 +13,6 @@ export {
   DataQualityScoreCard,
   UMADataQualityScoreCard,
   UMAScoreExplanationModal,
-  PublisherReliabilityScore,
   PerformanceGauge,
   PerformanceGaugeGroup,
   StakingCalculator,

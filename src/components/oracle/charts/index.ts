@@ -39,8 +39,6 @@ export type {
   HistogramBin,
   LatencyStats as HistogramLatencyStats,
 } from './LatencyDistributionHistogram';
-export { ChainComparison } from './ChainComparison';
-export type { ChainComparisonProps } from './ChainComparison';
 export { ValidatorComparison } from './ValidatorComparison';
 export type { ValidatorComparisonProps } from './ValidatorComparison';
 export { MultiValidatorComparison } from './MultiValidatorComparison';
