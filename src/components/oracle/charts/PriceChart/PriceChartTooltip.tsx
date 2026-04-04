@@ -23,11 +23,7 @@ interface MainChartTooltipProps {
   isMobile?: boolean;
 }
 
-export function MainChartTooltip({
-  active,
-  payload,
-  label,
-}: MainChartTooltipProps) {
+export function MainChartTooltip({ active, payload, label }: MainChartTooltipProps) {
   if (!active || !payload || !payload.length) {
     return null;
   }
@@ -37,10 +33,7 @@ export function MainChartTooltip({
       <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">{label}</p>
       {payload.map((entry, index) => (
         <div key={index} className="flex items-center gap-2 text-sm">
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: entry.color }}
-          />
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
           <span className="text-gray-600 dark:text-gray-400">{entry.name}:</span>
           <span className="font-medium text-gray-900 dark:text-gray-100">
             {typeof entry.value === 'number' ? entry.value.toFixed(2) : entry.value}
@@ -102,10 +95,7 @@ export function MACDTooltip({ active, payload, label }: MACDTooltipProps) {
       <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{label}</p>
       {payload.map((entry, index) => (
         <div key={index} className="flex items-center gap-2 text-sm">
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: entry.color }}
-          />
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
           <span className="text-gray-600 dark:text-gray-400">{entry.name}:</span>
           <span className="font-medium text-gray-900 dark:text-gray-100">
             {typeof entry.value === 'number' ? entry.value.toFixed(4) : entry.value}

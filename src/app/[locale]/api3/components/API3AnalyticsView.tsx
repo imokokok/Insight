@@ -10,13 +10,13 @@ import {
   TrendPrediction,
   AnomalyDetection,
 } from '@/components/oracle/analytics';
-import { useAPI3Historical } from '@/hooks/oracles/api3';
 import {
   type MetricDefinition,
   type DataSource,
   type DataPoint,
   type ReportConfig,
-} from '@/hooks/useAPI3Analytics';
+} from '@/hooks/api3';
+import { useAPI3Historical } from '@/hooks/oracles/api3';
 import { useTranslations } from '@/i18n';
 import { Blockchain } from '@/types/oracle';
 

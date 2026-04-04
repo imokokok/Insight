@@ -19,8 +19,7 @@ import {
   TrendingUp as TrendingUpIcon,
 } from 'lucide-react';
 
-import { OptimizedImage } from '@/components/performance/OptimizedImage';
-import { LiveStatusBar } from '@/components/ui';
+import { LiveStatusBar, OptimizedImage } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';

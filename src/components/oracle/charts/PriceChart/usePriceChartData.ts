@@ -13,16 +13,16 @@ import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { type BaseOracleClient } from '@/lib/oracles/base';
 import { TellorClient } from '@/lib/oracles/tellor';
 import { UMAClient } from '@/lib/oracles/uma';
-import { createLogger } from '@/lib/utils/logger';
-import { useGlobalTimeRange } from '@/stores/uiStore';
-import { type Blockchain } from '@/types/oracle';
 import {
   downsampleData,
   shouldDownsample,
   getDownsamplingMetrics,
   type AdaptiveDownsampleConfig,
   type DataPoint,
-} from '@/utils/downsampling';
+} from '@/lib/utils/downsampling';
+import { createLogger } from '@/lib/utils/logger';
+import { useGlobalTimeRange } from '@/stores/uiStore';
+import { type Blockchain } from '@/types/oracle';
 
 import {
   calculatePriceRange,

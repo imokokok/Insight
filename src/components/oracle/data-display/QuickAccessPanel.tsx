@@ -16,7 +16,7 @@ import {
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { useFavorites } from '@/hooks/useFavorites';
+import { useFavorites } from '@/hooks/data';
 import { useTranslations } from '@/i18n';
 import { createLogger } from '@/lib/utils/logger';
 

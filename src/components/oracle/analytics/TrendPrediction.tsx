@@ -27,7 +27,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 
-import useAPI3Analytics, { type DataPoint, type PredictionResult } from '@/hooks/useAPI3Analytics';
+import { useAPI3Analytics, type DataPoint, type PredictionResult } from '@/hooks/api3';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 

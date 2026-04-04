@@ -4,7 +4,7 @@ import {
   useBatchTechnicalIndicators,
   IndicatorDataPoint,
   IndicatorSettings,
-} from '../useTechnicalIndicators';
+} from '../ui/useTechnicalIndicators';
 
 // Mock localStorage
 const localStorageMock = {

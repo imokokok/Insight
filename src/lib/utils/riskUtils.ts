@@ -275,7 +275,7 @@ export function getRiskLevelColor(level: RiskLevel): string {
   }
 }
 
-export function getStatusColor(status: 'resolved' | 'monitoring'): string {
+export function getRiskStatusColor(status: 'resolved' | 'monitoring'): string {
   return status === 'resolved'
     ? 'bg-success-100 text-success-700'
     : 'bg-warning-100 text-warning-700';

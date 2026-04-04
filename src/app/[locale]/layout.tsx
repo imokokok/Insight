@@ -1,6 +1,5 @@
-import type { Metadata } from 'next';
-
 import '../globals.css';
+
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { NextIntlClientProvider } from 'next-intl';
@@ -15,6 +14,8 @@ import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatu
 import { ToastProvider } from '@/components/ui';
 import { routing } from '@/i18n/routing';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
+
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Insight',

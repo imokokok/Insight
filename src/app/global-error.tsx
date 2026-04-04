@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 
+import Link from 'next/link';
+
 import { AlertOctagon, RefreshCw, Home } from 'lucide-react';
 
 interface GlobalErrorProps {
@@ -47,13 +49,13 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 Try Again
               </button>
 
-              <a
+              <Link
                 href="/"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
               >
                 <Home className="w-4 h-4" />
                 Back to Home
-              </a>
+              </Link>
             </div>
           </div>
         </div>

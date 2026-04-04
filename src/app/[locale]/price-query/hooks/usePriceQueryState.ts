@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 
 import { usePreferences } from '@/hooks';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
-import { parseQueryParams, updateUrlParams, type QueryConfig } from '@/utils/urlParams';
+import { parseQueryParams, updateUrlParams, type QueryConfig } from '@/lib/utils/urlParams';
 
 export interface TimeComparisonConfig {
   primaryPeriod: {

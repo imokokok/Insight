@@ -93,3 +93,6 @@ export type {
   ErrorBoundaryLevel,
   ErrorFallbackRenderProps,
 } from '../error-boundary';
+
+export { OptimizedImage } from './OptimizedImage';
+export type { OptimizedImageProps } from './OptimizedImage';

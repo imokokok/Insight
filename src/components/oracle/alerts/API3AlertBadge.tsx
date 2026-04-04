@@ -65,7 +65,11 @@ interface API3AlertStatusIndicatorProps {
   label?: string;
 }
 
-export function API3AlertStatusIndicator({ criticalCount, warningCount, label }: API3AlertStatusIndicatorProps) {
+export function API3AlertStatusIndicator({
+  criticalCount,
+  warningCount,
+  label,
+}: API3AlertStatusIndicatorProps) {
   const t = useTranslations();
 
   const hasAlerts = (criticalCount || 0) > 0 || (warningCount || 0) > 0;

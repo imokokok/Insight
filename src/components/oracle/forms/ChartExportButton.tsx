@@ -19,7 +19,7 @@ import {
   type ExportSettings,
   type PDFExportOptions,
   type BatchExportItem,
-} from '@/utils/chartExport';
+} from '@/lib/utils/chartExport';
 
 interface ChartExportButtonProps {
   chartRef?: RefObject<HTMLElement | HTMLDivElement | null>;

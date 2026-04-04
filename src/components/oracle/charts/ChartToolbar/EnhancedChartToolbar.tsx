@@ -4,8 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { type ChartExportData } from '@/lib/utils/chartExport';
 import { createLogger } from '@/lib/utils/logger';
-import { type ChartExportData } from '@/utils/chartExport';
 
 import { ChartExportButton } from '../../forms/ChartExportButton';
 

@@ -7,6 +7,8 @@ import { useTranslations } from '@/i18n';
 import { RISK_TREND_DATA } from '../constants';
 import { type WinklinkRiskViewProps } from '../types';
 
+const FALLBACK_RISK_TIMESTAMP = 1700000000000;
+
 export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewProps) {
   const t = useTranslations();
 
@@ -17,7 +19,7 @@ export function WinklinkRiskView({ riskMetrics, isLoading }: WinklinkRiskViewPro
     uptime: 99.92,
     staleness: 0.5,
     deviation: 0.1,
-    lastUpdate: Date.now(),
+    lastUpdate: FALLBACK_RISK_TIMESTAMP,
   };
 
   const riskFactors = [

@@ -5,7 +5,7 @@ import {
   type Blockchain,
   type PriceData,
   type OracleError,
-  type ErrorCode,
+  type OracleErrorCode,
 } from '@/types/oracle';
 
 import {
@@ -91,7 +91,7 @@ export abstract class BaseOracleClient {
     return {
       message,
       provider: this.name,
-      code: code as ErrorCode,
+      code: code as OracleErrorCode,
     };
   }
 

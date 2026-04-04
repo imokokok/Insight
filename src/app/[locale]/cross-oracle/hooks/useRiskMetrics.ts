@@ -296,13 +296,16 @@ export function useRiskMetrics(
   anomalies: PriceAnomaly[]
 ): RiskMetricsResult {
   return useMemo(() => {
+    // 过滤有效价格数据
     const validPrices = priceData.filter((p) => p.price > 0).map((p) => p.price);
 
+    // 计算各项风险指标
     const volatility = calculateVolatilityMetric(validPrices);
     const consistency = calculateConsistencyMetric(validPrices);
     const sensitivity = calculateSensitivityMetric(anomalies.length, priceData.length);
     const health = calculateHealthMetric(validPrices, anomalies, priceData);
 
+    // 计算综合风险评分
     const overallRiskScore = calculateOverallRiskScore(
       volatility,
       consistency,
@@ -316,6 +319,7 @@ export function useRiskMetrics(
       sensitivity,
       health,
       overallRiskScore,
+      // eslint-disable-next-line react-hooks/purity
       lastUpdated: Date.now(),
     };
   }, [priceData, anomalies]);

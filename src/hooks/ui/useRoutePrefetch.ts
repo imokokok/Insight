@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { useQueryClient } from '@tanstack/react-query';
 
+import { apiClient } from '@/lib/api';
 import { PriceFetchError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
@@ -40,13 +41,15 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'detail', 'chainlink'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles/chainlink');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles/chainlink');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch chainlink data', {
               provider: 'chainlink',
               retryable: true,
             });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -60,13 +63,15 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'detail', 'pyth'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles/pyth');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles/pyth');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch pyth data', {
               provider: 'pyth',
               retryable: true,
             });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -80,13 +85,15 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'detail', 'api3'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles/api3');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles/api3');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch api3 data', {
               provider: 'api3',
               retryable: true,
             });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -100,13 +107,15 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'detail', 'band-protocol'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles/band-protocol');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles/band-protocol');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch band-protocol data', {
               provider: 'band-protocol',
               retryable: true,
             });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -120,13 +129,15 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'detail', 'redstone'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles/redstone');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles/redstone');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch redstone data', {
               provider: 'redstone',
               retryable: true,
             });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -140,13 +151,15 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'detail', 'uma'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles/uma');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles/uma');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch uma data', {
               provider: 'uma',
               retryable: true,
             });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -160,13 +173,15 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'detail', 'dia'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles/dia');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles/dia');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch dia data', {
               provider: 'dia',
               retryable: true,
             });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -180,13 +195,15 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'detail', 'tellor'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles/tellor');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles/tellor');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch tellor data', {
               provider: 'tellor',
               retryable: true,
             });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -200,13 +217,15 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'detail', 'chronicle'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles/chronicle');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles/chronicle');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch chronicle data', {
               provider: 'chronicle',
               retryable: true,
             });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -220,13 +239,15 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'detail', 'winklink'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles/winklink');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles/winklink');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch winklink data', {
               provider: 'winklink',
               retryable: true,
             });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -240,10 +261,12 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['oracles', 'list', { crossOracle: true }],
         queryFn: async () => {
-          const response = await fetch('/api/oracles');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch oracles list', { retryable: true });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -257,10 +280,12 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['cross-chain', 'stats'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles?crossChain=true');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles?crossChain=true');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch cross-chain data', { retryable: true });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,
@@ -274,10 +299,12 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['prices', 'list', {}],
         queryFn: async () => {
-          const response = await fetch('/api/oracles');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch prices', { retryable: true });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.price,
         gcTime: GC_TIME_CONFIG.price,
@@ -291,10 +318,12 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       {
         queryKey: ['market', 'overview'],
         queryFn: async () => {
-          const response = await fetch('/api/oracles');
-          if (!response.ok)
+          try {
+            const response = await apiClient.get('/api/oracles');
+            return response.data;
+          } catch (error) {
             throw new PriceFetchError('Failed to fetch market overview', { retryable: true });
-          return response.json();
+          }
         },
         staleTime: STALE_TIME_CONFIG.network,
         gcTime: GC_TIME_CONFIG.network,

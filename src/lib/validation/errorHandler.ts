@@ -2,12 +2,9 @@ import { NextResponse } from 'next/server';
 
 import { type ZodError } from 'zod';
 
-import {
-  createErrorResponse as createStandardErrorResponse,
-  ErrorCode,
-} from '@/lib/api/types/errorTypes';
 import { type AppError, isAppError, errorToResponse as baseErrorToResponse } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
+import { createErrorResponse as createStandardErrorResponse, ErrorCode } from '@/types/api/error';
 
 import { ZodValidationError, isZodValidationError } from './errors';
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
+import { apiClient } from '@/lib/api';
 import { performanceMetricsCalculator } from '@/lib/services/marketData';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -19,21 +20,15 @@ interface PricesResponse {
 
 async function fetchPrices(): Promise<Record<string, number>> {
   try {
-    const response = await fetch('/api/prices', { cache: 'no-store' });
+    const response = await apiClient.get<PricesResponse>('/api/prices', { cache: 'no-store' });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const data: PricesResponse = await response.json();
-
-    if (data.stale) {
+    if (response.data.stale) {
       logger.warn('Using stale price data');
-    } else if (data.cached) {
+    } else if (response.data.cached) {
       logger.debug('Using cached price data');
     }
 
-    return data.prices;
+    return response.data.prices;
   } catch (error) {
     logger.error('Failed to fetch prices', error as Error);
     return {};

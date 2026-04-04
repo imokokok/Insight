@@ -8,7 +8,7 @@ import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDe
 import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
 import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
 import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
-import type { FavoriteConfig } from '@/hooks/useFavorites';
+import type { FavoriteConfig } from '@/hooks/data';
 import type { UserFavorite } from '@/lib/supabase/queries';
 import {
   type OracleProvider,

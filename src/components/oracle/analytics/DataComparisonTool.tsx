@@ -27,11 +27,12 @@ import {
   Cell,
 } from 'recharts';
 
-import useAPI3Analytics, {
+import {
+  useAPI3Analytics,
   type DataSource,
   type TimeRange,
   type ComparisonResult,
-} from '@/hooks/useAPI3Analytics';
+} from '@/hooks/api3';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 

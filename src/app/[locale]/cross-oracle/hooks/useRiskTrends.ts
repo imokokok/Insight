@@ -120,6 +120,7 @@ export function useRiskTrends(
 ): RiskTrendsResult {
   return useMemo(() => {
     const { points, interval } = getTimeRangeConfig(timeRange);
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     const data: RiskTrendPoint[] = [];
 

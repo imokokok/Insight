@@ -3,7 +3,7 @@
  * 用于大数据集的可视化优化，保持数据形状的同时减少数据点
  */
 
-export interface DataPoint {
+export interface LTTBDataPoint {
   timestamp: number;
   price: number;
   [key: string]: number | string | undefined;
@@ -15,12 +15,12 @@ export interface DataPoint {
  * @param threshold 目标数据点数量
  * @returns 下采样后的数据点数组
  */
-export function lttbDownsample(data: DataPoint[], threshold: number): DataPoint[] {
+export function lttbDownsample(data: LTTBDataPoint[], threshold: number): LTTBDataPoint[] {
   if (data.length <= threshold || threshold === 0) {
     return data;
   }
 
-  const sampled: DataPoint[] = [];
+  const sampled: LTTBDataPoint[] = [];
   let sampledIndex = 0;
 
   // 始终保留第一个点
@@ -99,10 +99,10 @@ export function calculateOptimalThreshold(dataLength: number, maxPoints: number 
  * @returns 下采样后的历史数据
  */
 export function downsampleHistoricalData(
-  historicalData: Partial<Record<string, DataPoint[]>>,
+  historicalData: Partial<Record<string, LTTBDataPoint[]>>,
   maxPointsPerOracle: number = 500
-): Partial<Record<string, DataPoint[]>> {
-  const result: Partial<Record<string, DataPoint[]>> = {};
+): Partial<Record<string, LTTBDataPoint[]>> {
+  const result: Partial<Record<string, LTTBDataPoint[]>> = {};
 
   Object.entries(historicalData).forEach(([oracle, data]) => {
     if (data && data.length > maxPointsPerOracle) {

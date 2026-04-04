@@ -9,6 +9,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { useQueryClient } from '@tanstack/react-query';
 
+import { apiClient } from '@/lib/api';
 import {
   PREFETCH_CONFIG,
   QUERY_CONFIG_BY_TYPE,
@@ -50,13 +51,13 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['oracles', 'detail', 'chainlink'],
-        queryFn: () => fetch('/api/oracles/chainlink').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/chainlink').then((r) => r.data),
         type: 'network',
         priority: 'high',
       },
       {
         queryKey: ['prices', 'list', { provider: 'chainlink' }],
-        queryFn: () => fetch('/api/oracles?provider=chainlink').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles?provider=chainlink').then((r) => r.data),
         type: 'price',
         priority: 'normal',
       },
@@ -68,13 +69,13 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['oracles', 'detail', 'pyth'],
-        queryFn: () => fetch('/api/oracles/pyth').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/pyth').then((r) => r.data),
         type: 'network',
         priority: 'high',
       },
       {
         queryKey: ['pyth', 'priceFeeds'],
-        queryFn: () => fetch('/api/oracles?provider=pyth').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles?provider=pyth').then((r) => r.data),
         type: 'price',
         priority: 'normal',
       },
@@ -86,13 +87,13 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['api3', 'price'],
-        queryFn: () => fetch('/api/oracles/api3').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/api3').then((r) => r.data),
         type: 'price',
         priority: 'high',
       },
       {
         queryKey: ['api3', 'airnodeStats'],
-        queryFn: () => fetch('/api/oracles/api3/stats').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/api3/stats').then((r) => r.data),
         type: 'stats',
         priority: 'normal',
       },
@@ -104,7 +105,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['oracles', 'detail', 'band-protocol'],
-        queryFn: () => fetch('/api/oracles/band-protocol').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/band-protocol').then((r) => r.data),
         type: 'network',
         priority: 'high',
       },
@@ -116,7 +117,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['oracles', 'detail', 'redstone'],
-        queryFn: () => fetch('/api/oracles/redstone').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/redstone').then((r) => r.data),
         type: 'network',
         priority: 'high',
       },
@@ -128,7 +129,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['oracles', 'detail', 'uma'],
-        queryFn: () => fetch('/api/oracles/uma').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/uma').then((r) => r.data),
         type: 'network',
         priority: 'high',
       },
@@ -140,7 +141,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['oracles', 'detail', 'dia'],
-        queryFn: () => fetch('/api/oracles/dia').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/dia').then((r) => r.data),
         type: 'network',
         priority: 'high',
       },
@@ -152,7 +153,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['oracles', 'detail', 'tellor'],
-        queryFn: () => fetch('/api/oracles/tellor').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/tellor').then((r) => r.data),
         type: 'network',
         priority: 'high',
       },
@@ -164,7 +165,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['oracles', 'detail', 'chronicle'],
-        queryFn: () => fetch('/api/oracles/chronicle').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/chronicle').then((r) => r.data),
         type: 'network',
         priority: 'high',
       },
@@ -176,7 +177,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['oracles', 'detail', 'winklink'],
-        queryFn: () => fetch('/api/oracles/winklink').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles/winklink').then((r) => r.data),
         type: 'network',
         priority: 'high',
       },
@@ -188,7 +189,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['oracles', 'list'],
-        queryFn: () => fetch('/api/oracles').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles').then((r) => r.data),
         type: 'network',
         priority: 'high',
       },
@@ -200,7 +201,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['market', 'overview'],
-        queryFn: () => fetch('/api/oracles').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles').then((r) => r.data),
         type: 'stats',
         priority: 'high',
       },
@@ -212,7 +213,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
     targets: [
       {
         queryKey: ['prices', 'list'],
-        queryFn: () => fetch('/api/oracles').then((r) => r.json()),
+        queryFn: () => apiClient.get('/api/oracles').then((r) => r.data),
         type: 'price',
         priority: 'high',
       },

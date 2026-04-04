@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { apiClient } from '@/lib/api';
 import { PriceFetchError } from '@/lib/errors';
 import { priceKeys } from '@/lib/queries/queryKeys';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
@@ -20,9 +21,12 @@ export function useOraclePrices(params: OraclePricesParams = {}) {
       if (params.symbols) searchParams.set('symbols', params.symbols.join(','));
       if (params.chain) searchParams.set('chain', params.chain);
 
-      const response = await fetch(`/api/oracles?${searchParams.toString()}`);
-
-      if (!response.ok) {
+      try {
+        const response = await apiClient.get<{ prices: PriceData[] }>(
+          `/api/oracles?${searchParams.toString()}`
+        );
+        return response.data.prices || [];
+      } catch (error) {
         throw new PriceFetchError('Failed to fetch oracle prices', {
           provider: params.provider,
           symbols: params.symbols,
@@ -30,9 +34,6 @@ export function useOraclePrices(params: OraclePricesParams = {}) {
           retryable: true,
         });
       }
-
-      const data = await response.json();
-      return data.prices || [];
     },
     staleTime: STALE_TIME_CONFIG.price,
     gcTime: GC_TIME_CONFIG.price,

@@ -324,7 +324,7 @@ export function useDataQualityScore(params: {
   const { prices = [], lastUpdated, successCount = 0, totalCount = 0 } = params;
 
   const score = useMemo<DataQualityScoreType>(() => {
-    // 计算一致性评分（基于变异系数）
+    const now = Date.now();
     const validPrices = prices.filter((p) => p > 0);
     let consistency = 100;
     if (validPrices.length >= 2) {
@@ -334,20 +334,17 @@ export function useDataQualityScore(params: {
       consistency = Math.round(Math.max(0, Math.min(100, 100 * Math.exp(-20 * cv))));
     }
 
-    // 计算新鲜度评分
     let freshness = 0;
     if (lastUpdated && lastUpdated > 0) {
-      const ageMs = Date.now() - lastUpdated;
+      const ageMs = now - lastUpdated;
       if (ageMs <= 30000) freshness = 100;
       else if (ageMs <= 60000) freshness = Math.round(100 - ((ageMs - 30000) / 30000) * 20);
       else if (ageMs <= 300000) freshness = Math.round(80 - ((ageMs - 60000) / 240000) * 30);
       else freshness = Math.max(0, Math.round(50 * Math.exp(-(ageMs - 300000) / 600000)));
     }
 
-    // 计算完整性评分
     const completeness = totalCount > 0 ? Math.round((successCount / totalCount) * 100) : 0;
 
-    // 综合评分
     const overall = Math.round(consistency * 0.4 + freshness * 0.35 + completeness * 0.25);
 
     return {

@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
-import { createLogger } from '@/lib/utils/logger';
 import {
   adaptiveDownsample,
   shouldDownsample,
   getDownsamplingMetrics,
   type DataPoint,
   type AdaptiveDownsampleConfig,
-} from '@/utils/downsampling';
+} from '@/lib/utils/downsampling';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('useAdaptiveDownsampling');
 
