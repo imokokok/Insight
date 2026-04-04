@@ -583,6 +583,7 @@ export class RedStoneClient extends BaseOracleClient {
    * @param symbol - The trading symbol
    * @param period - Time period in hours
    * @returns Array of historical PriceData points
+   * @throws Error if historical data is not available
    */
   private async fetchHistoricalPricesFromAPI(symbol: string, period: number): Promise<PriceData[]> {
     const endTime = Math.floor(Date.now() / 1000);
@@ -600,57 +601,22 @@ export class RedStoneClient extends BaseOracleClient {
       );
 
       if (!response.ok) {
-        // If historical endpoint doesn't exist, try to construct from current price
-        return this.constructHistoricalFromCurrentPrice(symbol, period);
+        throw new Error(
+          `RedStone historical API returned ${response.status}: ${response.statusText}`
+        );
       }
 
       const data: RedStonePriceResponse[] = await response.json();
 
       if (!Array.isArray(data) || data.length === 0) {
-        return this.constructHistoricalFromCurrentPrice(symbol, period);
+        throw new Error(`No historical price data available for ${symbol} from RedStone API`);
       }
 
       return data.map((priceData) => this.parsePriceResponse(priceData, symbol));
-    } catch {
-      return this.constructHistoricalFromCurrentPrice(symbol, period);
-    }
-  }
-
-  /**
-   * Constructs historical price data points from current price.
-   * Used when historical API is not available.
-   * @param symbol - The trading symbol
-   * @param period - Time period in hours
-   * @returns Array of PriceData points
-   */
-  private async constructHistoricalFromCurrentPrice(
-    symbol: string,
-    period: number
-  ): Promise<PriceData[]> {
-    try {
-      const currentPrice = await this.getPrice(symbol);
-      const prices: PriceData[] = [];
-      const now = Date.now();
-      const hourMs = 3600 * 1000;
-
-      // Create data points for each hour in the period
-      for (let i = period; i >= 0; i--) {
-        const timestamp = now - i * hourMs;
-        // Add small random variation based on the 24h change
-        const variation = ((currentPrice.change24hPercent ?? 0) / 100) * (i / period);
-        const price = currentPrice.price * (1 - variation);
-
-        prices.push({
-          ...currentPrice,
-          price: Number(price.toFixed(8)),
-          timestamp,
-          confidenceInterval: this.generateConfidenceInterval(price, symbol),
-        });
-      }
-
-      return prices;
-    } catch {
-      return [];
+    } catch (error) {
+      throw new Error(
+        `Failed to fetch historical prices from RedStone API: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 

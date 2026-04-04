@@ -1078,51 +1078,16 @@ export class DIADataService {
         }
       }
 
-      // Fallback to simulated data if API doesn't support historical data
-      throw new Error('Historical data not available from API');
+      // Historical data not available from API
+      throw new Error('Historical data not available from DIA API');
     } catch (error) {
-      logger.warn('Failed to fetch historical prices from API, using simulated data', { error });
-
-      const currentPriceData = await this.getAssetPrice(symbol, chain);
-      if (!currentPriceData) {
-        return [];
-      }
-
-      const result = this.generateSimulatedHistoricalPrices(currentPriceData, periodHours);
-      this.setCache(cacheKey, result, CACHE_TTL.HISTORICAL);
-      return result;
+      logger.error(
+        'Failed to fetch historical prices from DIA API',
+        error instanceof Error ? error : new Error(String(error)),
+        { symbol, chain, periodHours }
+      );
+      throw error;
     }
-  }
-
-  private generateSimulatedHistoricalPrices(
-    currentPriceData: PriceData,
-    periodHours: number
-  ): PriceData[] {
-    // 返回当前价格的静态数组，不使用模拟数据
-    const prices: PriceData[] = [];
-    const now = Date.now();
-    const dataPoints = Math.min(periodHours * 4, 96);
-    const intervalMs = (periodHours * 60 * 60 * 1000) / dataPoints;
-
-    const basePrice = currentPriceData.price;
-
-    for (let i = 0; i < dataPoints; i++) {
-      const timestamp = now - (dataPoints - 1 - i) * intervalMs;
-      prices.push({
-        provider: currentPriceData.provider,
-        symbol: currentPriceData.symbol,
-        price: basePrice,
-        timestamp,
-        decimals: currentPriceData.decimals,
-        confidence: currentPriceData.confidence,
-        change24h: 0,
-        change24hPercent: 0,
-        chain: currentPriceData.chain,
-        source: currentPriceData.source,
-      });
-    }
-
-    return prices;
   }
 
   private parseAssetQuotation(data: DIAAssetQuotation, chain?: Blockchain): PriceData {

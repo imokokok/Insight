@@ -582,20 +582,18 @@ export class PythDataService {
           const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
 
           if (!priceId) {
-            logger.warn('No price feed ID found for symbol', { symbol });
-            return this.getFallbackCrossChainData(symbol);
+            throw new Error(`No price feed ID found for symbol: ${symbol}`);
           }
 
           const priceUpdates = await this.hermesClient.getLatestPriceUpdates([priceId]);
 
           if (!priceUpdates.parsed || priceUpdates.parsed.length === 0) {
-            logger.warn('No price data available for cross-chain', { symbol });
-            return this.getFallbackCrossChainData(symbol);
+            throw new Error(`No price data available for cross-chain: ${symbol}`);
           }
 
           const parsed = priceUpdates.parsed[0];
           if (!parsed || !parsed.price || !isPythPriceRaw(parsed.price)) {
-            return this.getFallbackCrossChainData(symbol);
+            throw new Error(`Invalid price data format for ${symbol}`);
           }
 
           const basePriceData = this.parsePythPrice(parsed.price, symbol);
@@ -622,7 +620,7 @@ export class PythDataService {
         error instanceof Error ? error : new Error(String(error)),
         { symbol }
       );
-      return this.getFallbackCrossChainData(symbol);
+      throw error;
     }
   }
 
@@ -717,58 +715,6 @@ export class PythDataService {
     }
 
     return results;
-  }
-
-  private getFallbackCrossChainData(symbol: string): CrossChainResult {
-    const basePrice = this.getFallbackBasePrice(symbol);
-    const chains = [
-      'solana',
-      'ethereum',
-      'arbitrum',
-      'optimism',
-      'polygon',
-      'base',
-      'avalanche',
-      'bsc',
-    ];
-
-    const data: CrossChainPriceData[] = chains.map((chain) => {
-      // 使用固定值代替随机数
-      const deviation = 0;
-      const latency = 100;
-      const status: 'online' | 'degraded' | 'offline' = 'online';
-
-      return {
-        chain,
-        price: basePrice,
-        deviation,
-        latency,
-        status,
-        lastUpdate: new Date(),
-      };
-    });
-
-    return {
-      data,
-      basePrice,
-      timestamp: Date.now(),
-    };
-  }
-
-  private getFallbackBasePrice(symbol: string): number {
-    const prices: Record<string, number> = {
-      'BTC/USD': 67000,
-      'ETH/USD': 3500,
-      'SOL/USD': 150,
-      'PYTH/USD': 0.45,
-      'USDC/USD': 1.0,
-      'LINK/USD': 15,
-      'AVAX/USD': 35,
-      'MATIC/USD': 0.6,
-      'DOT/USD': 7,
-      'UNI/USD': 10,
-    };
-    return prices[normalizeSymbol(symbol)] ?? 1;
   }
 
   clearCache(): void {

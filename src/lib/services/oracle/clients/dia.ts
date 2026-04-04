@@ -175,7 +175,7 @@ export class DIAClient extends BaseOracleClient {
       const livePrice = await diaService.getAssetPrice(symbol, chain);
 
       if (livePrice) {
-        return this.fetchPriceWithDatabase(symbol, chain);
+        return livePrice;
       }
 
       throw this.createError(
@@ -201,7 +201,7 @@ export class DIAClient extends BaseOracleClient {
       const liveHistoricalPrices = await diaService.getHistoricalPrices(symbol, chain, period);
 
       if (liveHistoricalPrices && liveHistoricalPrices.length > 0) {
-        return this.fetchHistoricalPricesWithDatabase(symbol, chain, period);
+        return liveHistoricalPrices;
       }
 
       throw this.createError(
