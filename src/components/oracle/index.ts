@@ -11,15 +11,12 @@ export {
   StatGridItem,
   ConfidenceIntervalDisplay,
   DataQualityScoreCard,
-  UMADataQualityScoreCard,
   UMAScoreExplanationModal,
   PerformanceGauge,
   PerformanceGaugeGroup,
   StakingCalculator,
   DisputeAmountDistribution,
   DisputeEfficiencyAnalysis,
-  RequestTypeDistribution,
-  SecurityTimeline,
 } from './data-display';
 
 export {

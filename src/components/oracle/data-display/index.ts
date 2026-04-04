@@ -1,7 +1,6 @@
 export { DashboardCard, StatCard, MetricCard, StatGrid, StatGridItem } from './DashboardCard';
 export { ConfidenceIntervalDisplay } from './ConfidenceIntervalDisplay';
 export { DataQualityScoreCard } from './DataQualityScoreCard';
-export { UMADataQualityScoreCard } from './UMADataQualityScoreCard';
 export { UMAScoreExplanationModal } from './UMAScoreExplanationModal';
 export { OraclePerformanceRanking } from './OraclePerformanceRanking';
 export { PerformanceGauge, PerformanceGaugeGroup } from './PerformanceGauge';
@@ -9,7 +8,5 @@ export { RiskScoreCard } from './RiskScoreCard';
 export { StakingCalculator } from './StakingCalculator';
 export { DisputeAmountDistribution } from './DisputeAmountDistribution';
 export { DisputeEfficiencyAnalysis } from './DisputeEfficiencyAnalysis';
-export { RequestTypeDistribution } from './RequestTypeDistribution';
-export { SecurityTimeline } from './SecurityTimeline';
 export { QuickAccessPanel } from './QuickAccessPanel';
 export { DataSourceIndicator, VerificationBadge } from './DataSourceIndicator';
