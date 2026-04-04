@@ -1,4 +1,4 @@
-export { ChainlinkClient } from './chainlink';
+export { ChainlinkClient } from '@/lib/services/oracle/clients/chainlink';
 export {
   ChainlinkOnChainService,
   chainlinkOnChainService,
@@ -21,8 +21,8 @@ export {
   type ChainlinkContracts,
   type ChainlinkRPCConfig,
 } from './chainlinkDataSources';
-export { BandProtocolClient } from './bandProtocol';
-export { UMAClient } from './uma';
+export { BandProtocolClient } from '@/lib/services/oracle/clients/band';
+export { UMAClient } from '@/lib/services/oracle/clients/uma';
 export {
   UMAOnChainService,
   umaOnChainService,
@@ -46,10 +46,10 @@ export {
   type UMAPriceFeed,
   type UMARPCConfig,
 } from './umaDataSources';
-export { PythClient } from './pythNetwork';
-export { API3Client } from './api3';
-export { RedStoneClient } from './redstone';
-export { DIAClient } from './dia';
+export { PythClient } from '@/lib/services/oracle/clients/pyth';
+export { API3Client } from '@/lib/services/oracle/clients/api3';
+export { RedStoneClient } from '@/lib/services/oracle/clients/redstone';
+export { DIAClient } from '@/lib/services/oracle/clients/dia';
 export {
   DIADataService,
   getDIADataService,
@@ -65,7 +65,7 @@ export {
   type DIAEcosystemIntegration,
   type DIAExchange,
 } from './diaDataService';
-export { TellorClient } from './tellor';
+export { TellorClient } from '@/lib/services/oracle/clients/tellor';
 export {
   TellorOnChainService,
   tellorOnChainService,
@@ -73,7 +73,7 @@ export {
   type TellorAutopayData,
   type TellorCurrentValue,
 } from './tellorOnChainService';
-export { ChronicleClient } from './chronicle';
+export { ChronicleClient } from '@/lib/services/oracle/clients/chronicle';
 export {
   getChroniclePriceFromChain,
   getChroniclePriceWithRead,
@@ -97,7 +97,7 @@ export {
   type ChronicleContracts,
   type ChronicleRPCConfig,
 } from './chronicleDataSources';
-export { WINkLinkClient } from './winklink';
+export { WINkLinkClient } from '@/lib/services/oracle/clients/winklink';
 export type { RedStoneMetrics, RedStoneProviderInfo } from './redstone';
 export type {
   DataSourceTransparency,

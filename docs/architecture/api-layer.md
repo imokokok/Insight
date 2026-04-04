@@ -804,3 +804,165 @@ const { data, error } = await supabase
   .eq('symbol', symbol) // 参数化
   .single();
 ```
+
+## 客户端 API 调用约定
+
+### apiClient 使用指南
+
+客户端代码应统一使用 `apiClient` 进行 API 调用，而不是直接使用 `fetch` 或 `axios`。
+
+#### 基本用法
+
+```typescript
+import { apiClient } from '@/lib/api';
+
+// GET 请求
+const response = await apiClient.get<OracleData>('/api/oracles/chainlink');
+const data = response.data;
+
+// POST 请求
+const createResponse = await apiClient.post<Alert>('/api/alerts', {
+  symbol: 'BTC',
+  condition_type: 'above',
+  target_value: 50000,
+});
+
+// PUT 请求
+const updateResponse = await apiClient.put<Alert>('/api/alerts/123', {
+  target_value: 55000,
+});
+
+// DELETE 请求
+await apiClient.delete('/api/alerts/123');
+```
+
+#### 配置选项
+
+```typescript
+import { apiClient } from '@/lib/api';
+
+// 带缓存配置
+const response = await apiClient.get<PricesResponse>('/api/prices', {
+  cache: 'no-store',
+});
+
+// 带超时配置
+const response = await apiClient.get<OracleData>('/api/oracles/chainlink', {
+  timeout: 5000,
+});
+
+// 带自定义请求头
+const response = await apiClient.get<UserData>('/api/user', {
+  headers: {
+    'X-Custom-Header': 'value',
+  },
+});
+
+// 带中止信号
+const controller = new AbortController();
+const response = await apiClient.get<OracleData>('/api/oracles/chainlink', {
+  signal: controller.signal,
+});
+// 取消请求
+controller.abort();
+```
+
+#### 在 React Query 中使用
+
+```typescript
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api';
+
+export function useOracleData(provider: string) {
+  return useQuery({
+    queryKey: ['oracles', provider],
+    queryFn: async () => {
+      const response = await apiClient.get<OracleData>(`/api/oracles/${provider}`);
+      return response.data;
+    },
+    staleTime: 30000,
+  });
+}
+```
+
+#### 错误处理
+
+```typescript
+import { apiClient, ApiError } from '@/lib/api';
+
+try {
+  const response = await apiClient.get<OracleData>('/api/oracles/chainlink');
+  return response.data;
+} catch (error) {
+  if (error instanceof ApiError) {
+    console.error(`API Error: ${error.code} - ${error.message}`);
+    console.error(`Status: ${error.statusCode}`);
+    console.error(`Details:`, error.details);
+  }
+  throw error;
+}
+```
+
+### 何时使用 apiClient vs 直接 fetch
+
+| 场景 | 推荐方式 | 原因 |
+|------|----------|------|
+| 客户端组件调用内部 API | `apiClient` | 统一错误处理、类型安全 |
+| 客户端 Hooks 调用内部 API | `apiClient` | 统一错误处理、类型安全 |
+| 服务端 API 路由调用外部 API | 直接 `fetch` | 服务端不需要客户端封装 |
+| 服务端服务调用外部 API | 直接 `fetch` 或 `axios` | 服务端场景特殊需求 |
+
+### 迁移示例
+
+#### 迁移前（直接使用 fetch）
+
+```typescript
+export function useOracleData(params: OracleDataParams = {}) {
+  return useQuery({
+    queryKey: oracleKeys.list(params),
+    queryFn: async () => {
+      const url = params.provider ? `/api/oracles/${params.provider}` : '/api/oracles';
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new PriceFetchError('Failed to fetch oracle data', {
+          provider: params.provider,
+          retryable: true,
+        });
+      }
+      return response.json();
+    },
+  });
+}
+```
+
+#### 迁移后（使用 apiClient）
+
+```typescript
+import { apiClient } from '@/lib/api';
+
+export function useOracleData(params: OracleDataParams = {}) {
+  return useQuery({
+    queryKey: oracleKeys.list(params),
+    queryFn: async () => {
+      const url = params.provider ? `/api/oracles/${params.provider}` : '/api/oracles';
+      try {
+        const response = await apiClient.get<OracleData | OracleData[]>(url);
+        return response.data;
+      } catch (error) {
+        throw new PriceFetchError('Failed to fetch oracle data', {
+          provider: params.provider,
+          retryable: true,
+        });
+      }
+    },
+  });
+}
+```
+
+### apiClient 特性
+
+1. **统一错误处理**：自动将 HTTP 错误转换为 `ApiError`
+2. **类型安全**：支持泛型类型参数
+3. **请求/响应拦截器**：支持自定义拦截器
+4. **配置支持**：支持 `cache`、`timeout`、`signal` 等配置
+5. **元数据返回**：响应包含 `timestamp` 和 `source` 元数据

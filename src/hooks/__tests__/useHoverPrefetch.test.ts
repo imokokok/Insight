@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
-import { useHoverPrefetch, useHoverPrefetchHandlers } from '../useHoverPrefetch';
+import { useHoverPrefetch, useHoverPrefetchHandlers } from '../ui/useHoverPrefetch';
 
 const createWrapper = () => {
   const queryClient = new QueryClient({

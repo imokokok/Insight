@@ -26,10 +26,9 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
-import { OptimizedImage } from '@/components/performance/OptimizedImage';
-import { LiveStatusBar } from '@/components/ui';
+import { LiveStatusBar, OptimizedImage } from '@/components/ui';
 import { DataFreshnessIndicator } from '@/components/ui/DataFreshnessIndicator';
-import { useUMARealtime } from '@/hooks/useUMARealtime';
+import { useUMARealtime } from '@/hooks/realtime';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type PriceData } from '@/types/oracle';

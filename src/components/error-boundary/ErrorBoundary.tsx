@@ -2,6 +2,8 @@
 
 import React, { Component, type ReactNode, type ErrorInfo } from 'react';
 
+import Link from 'next/link';
+
 import {
   isAppError,
   ValidationError,
@@ -384,13 +386,13 @@ function DefaultErrorFallback({
         </button>
 
         {level === 'global' && (
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors rounded-md"
           >
             <span>🏠</span>
             Back to Home
-          </a>
+          </Link>
         )}
       </div>
     </div>

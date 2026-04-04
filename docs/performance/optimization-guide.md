@@ -154,7 +154,8 @@ function Dashboard({ showAdvanced }) {
 ### 1. 使用 OptimizedImage 组件
 
 ```typescript
-import { OptimizedImage, LazyImage, ResponsiveImage } from '@/components/performance';
+import { OptimizedImage } from '@/components/ui';
+// 注意：LazyImage 和 ResponsiveImage 是计划中的功能，尚未实现
 
 // 基础用法
 <OptimizedImage

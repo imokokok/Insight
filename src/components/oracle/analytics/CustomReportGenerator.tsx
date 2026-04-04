@@ -35,7 +35,7 @@ import {
   Scatter,
 } from 'recharts';
 
-import { type MetricDefinition, type ReportConfig, type DataPoint } from '@/hooks/useAPI3Analytics';
+import { type MetricDefinition, type ReportConfig, type DataPoint } from '@/hooks/api3';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 

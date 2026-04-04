@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { apiClient } from '@/lib/api';
 import { supabase, queries, type PriceAlert, type AlertEvent } from '@/lib/supabase/client';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import { useUser } from '@/stores/authStore';
@@ -376,23 +377,14 @@ export function useBatchAlerts(): UseBatchAlertsReturn {
 
       setIsProcessing(true);
       try {
-        const response = await fetch('/api/alerts/batch', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ action, alertIds }),
+        const response = await apiClient.post<BatchOperationResult>('/api/alerts/batch', {
+          action,
+          alertIds,
         });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          return { result: null, error: new Error(data.error || 'Batch operation failed') };
-        }
 
         await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
 
-        return { result: data.results as BatchOperationResult, error: null };
+        return { result: response.data, error: null };
       } catch (err) {
         return { result: null, error: err as Error };
       } finally {

@@ -9,7 +9,7 @@ import {
   UMAClient,
   type ValidatorPerformanceHeatmapData,
   type ValidatorPerformanceHeatmapDataByDay,
-  type TimeRange,
+  type UMATimeRange,
 } from '@/lib/oracles/uma';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -33,7 +33,7 @@ export function ValidatorPerformanceHeatmap() {
   const [dataByDay, setDataByDay] = useState<ValidatorPerformanceHeatmapDataByDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('responseTime');
-  const [timeRange, setTimeRange] = useState<TimeRange>('24H');
+  const [timeRange, setTimeRange] = useState<UMATimeRange>('24H');
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
 
   useEffect(() => {

@@ -1,14 +1,12 @@
+import { BaseOracleClient } from '@/lib/oracles/base';
+import type { OracleClientConfig } from '@/lib/oracles/base';
+import { umaSymbols } from '@/lib/oracles/supportedSymbols';
+import { isUMASupportedOnChain } from '@/lib/oracles/umaDataSources';
+import { umaOnChainService, type UMATokenData } from '@/lib/oracles/umaOnChainService';
+import { umaSubgraphService } from '@/lib/oracles/umaSubgraphService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
-
-import { BaseOracleClient } from '../base';
-import { umaSymbols } from '../supportedSymbols';
-import { isUMASupportedOnChain } from '../umaDataSources';
-import { umaOnChainService, type UMATokenData } from '../umaOnChainService';
-import { umaSubgraphService } from '../umaSubgraphService';
-
-import type { OracleClientConfig } from '../base';
 import type {
   ValidatorData,
   DisputeData,
@@ -24,7 +22,7 @@ import type {
   NetworkEarningsAttribution,
   EarningsSourceBreakdown,
   DisputeAmountDistributionStats,
-} from './types';
+} from '@/types/oracle/uma';
 
 interface CacheEntry<T> {
   data: T;

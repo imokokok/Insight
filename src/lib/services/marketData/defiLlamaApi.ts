@@ -571,7 +571,15 @@ export async function fetchAssetsData(
         Object.entries(binanceSymbols).map(([token, symbol]) => [symbol, token])
       );
 
-      priceData.forEach((data: any) => {
+      interface BinanceTicker {
+        symbol: string;
+        lastPrice: string;
+        priceChangePercent: string;
+        volume: string;
+        weightedAvgPrice: string;
+      }
+
+      (priceData as BinanceTicker[]).forEach((data) => {
         const symbol = symbolToToken[data.symbol];
         if (symbol) {
           assets.push({

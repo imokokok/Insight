@@ -1,7 +1,7 @@
 import { type DataStatus, type TrendDirection } from './constants';
 import { type OracleProvider, type Blockchain } from './enums';
 
-export type ErrorCode =
+export type OracleErrorCode =
   | 'NETWORK_ERROR'
   | 'TIMEOUT_ERROR'
   | 'RATE_LIMIT_ERROR'
@@ -14,7 +14,7 @@ export type ErrorCode =
 export interface OracleError {
   message: string;
   provider: OracleProvider;
-  code?: ErrorCode;
+  code?: OracleErrorCode;
   timestamp?: number;
   retryable?: boolean;
   details?: Record<string, unknown>;

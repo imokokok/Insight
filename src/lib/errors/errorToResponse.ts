@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import {
-  createErrorResponse as createStandardErrorResponse,
-  ErrorCode,
-} from '@/lib/api/types/errorTypes';
 import { createLogger } from '@/lib/utils/logger';
+import { createErrorResponse as createStandardErrorResponse, ErrorCode } from '@/types/api/error';
 
 import { AppError } from './AppError';
 

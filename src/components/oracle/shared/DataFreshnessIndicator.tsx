@@ -1,6 +1,6 @@
 'use client';
 
-import { type DataFreshnessStatus } from '@/hooks/useDataFreshness';
+import { type DataFreshnessStatus } from '@/hooks/data';
 import { useTranslations } from '@/i18n';
 
 interface DataFreshnessIndicatorProps {

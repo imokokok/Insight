@@ -137,7 +137,6 @@ export function usePriceAnomalyDetection(
   avgPrice: number
 ): AnomalyDetectionResult {
   return useMemo(() => {
-    // 如果没有数据或平均价格为0，返回空结果
     if (!priceData.length || avgPrice <= 0) {
       return {
         anomalies: [],

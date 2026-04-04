@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
-import { useRoutePrefetch, usePrefetchMetrics, routePrefetchMap } from '../useRoutePrefetch';
+import { useRoutePrefetch, usePrefetchMetrics, routePrefetchMap } from '../ui/useRoutePrefetch';
 
 const mockPush = jest.fn();
 const mockPathname = '/';

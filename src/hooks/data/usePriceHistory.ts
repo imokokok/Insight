@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { apiClient } from '@/lib/api';
 import { PriceFetchError } from '@/lib/errors';
 import { priceKeys } from '@/lib/queries/queryKeys';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
@@ -22,9 +23,12 @@ export function usePriceHistory(params: PriceHistoryParams) {
       if (params.chain) searchParams.set('chain', params.chain);
       if (params.period) searchParams.set('period', params.period.toString());
 
-      const response = await fetch(`/api/oracles/history?${searchParams.toString()}`);
-
-      if (!response.ok) {
+      try {
+        const response = await apiClient.get<{ history: PriceDataForChart[] }>(
+          `/api/oracles/history?${searchParams.toString()}`
+        );
+        return response.data.history || [];
+      } catch (error) {
         throw new PriceFetchError('Failed to fetch price history', {
           symbol: params.symbol,
           provider: params.provider,
@@ -32,9 +36,6 @@ export function usePriceHistory(params: PriceHistoryParams) {
           retryable: true,
         });
       }
-
-      const data = await response.json();
-      return data.history || [];
     },
     enabled: !!params.symbol,
     staleTime: STALE_TIME_CONFIG.history,

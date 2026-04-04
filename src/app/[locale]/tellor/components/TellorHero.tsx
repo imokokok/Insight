@@ -24,8 +24,7 @@ import {
 } from 'lucide-react';
 
 import { VerificationBadge } from '@/components/oracle/data-display';
-import { OptimizedImage } from '@/components/performance/OptimizedImage';
-import { LiveStatusBar } from '@/components/ui';
+import { LiveStatusBar, OptimizedImage } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { type OracleConfig } from '@/lib/config/oracles';
 import { type ChainId, getEtherscanUrl, formatTxHash } from '@/lib/oracles/tellorDataVerification';

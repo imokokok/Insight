@@ -31,6 +31,9 @@ interface RegionData {
   totalStaked: number;
 }
 
+const FALLBACK_NODE1_JOIN_DATE = 1700000000000 - 86400000 * 400;
+const FALLBACK_NODE2_JOIN_DATE = 1700000000000 - 86400000 * 350;
+
 export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStakingViewProps) {
   const t = useTranslations();
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -66,7 +69,7 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
       uptime: 99.95,
       responseTime: 85,
       validatedRequests: 1250000,
-      joinDate: Date.now() - 86400000 * 400,
+      joinDate: FALLBACK_NODE1_JOIN_DATE,
       status: 'active',
       tier: 'gold',
     },
@@ -80,7 +83,7 @@ export function WinklinkStakingView({ staking, price, isLoading }: WinklinkStaki
       uptime: 99.92,
       responseTime: 95,
       validatedRequests: 1890000,
-      joinDate: Date.now() - 86400000 * 350,
+      joinDate: FALLBACK_NODE2_JOIN_DATE,
       status: 'active',
       tier: 'platinum',
     },

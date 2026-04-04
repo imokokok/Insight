@@ -7,6 +7,8 @@ import { useBrushZoom } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { baseColors } from '@/lib/config/colors';
 import { type BaseOracleClient } from '@/lib/oracles/base';
+import { type ChartExportData } from '@/lib/utils/chartExport';
+import { type AdaptiveDownsampleConfig } from '@/lib/utils/downsampling';
 import { createLogger } from '@/lib/utils/logger';
 import {
   useSelectedTimeRange,
@@ -15,8 +17,6 @@ import {
   type SelectedTimeRange,
 } from '@/stores/uiStore';
 import { type Blockchain } from '@/types/oracle';
-import { type ChartExportData } from '@/utils/chartExport';
-import { type AdaptiveDownsampleConfig } from '@/utils/downsampling';
 
 import { ChartCanvas } from './ChartCanvas';
 import { ChartLegend } from './ChartLegend';

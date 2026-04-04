@@ -31,9 +31,16 @@ class ApiClient {
     data?: unknown,
     config?: RequestConfig
   ): Promise<ApiClientResponse<T>> {
+    const controller = new AbortController();
+    const timeoutId = config?.timeout
+      ? setTimeout(() => controller.abort(), config.timeout)
+      : undefined;
+
     let init: RequestInit = {
       method,
       headers: { ...this.defaultHeaders, ...config?.headers },
+      signal: config?.signal ?? controller.signal,
+      cache: config?.cache,
     };
 
     for (const interceptor of this.requestInterceptors) {
@@ -46,6 +53,10 @@ class ApiClient {
 
     const fullUrl = this.baseURL + url;
     let response = await fetch(fullUrl, init);
+
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
 
     for (const interceptor of this.responseInterceptors) {
       response = await interceptor(response);

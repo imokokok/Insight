@@ -204,6 +204,7 @@ export default function AnomalyModal({
   // 格式化时间
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     const diff = now - timestamp;
 
