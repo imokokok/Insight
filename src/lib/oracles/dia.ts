@@ -1,4 +1,5 @@
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -144,8 +145,34 @@ export class DIAClient extends BaseOracleClient {
     super(config);
   }
 
+  /**
+   * 获取代币价格
+   * 当查询 DIA 代币价格时，直接使用 Binance API
+   * 其他代币使用 DIA 数据服务
+   */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
+      const upperSymbol = symbol.toUpperCase();
+
+      // 当查询自己预言机的代币 (DIA) 时，直接使用 Binance API
+      if (upperSymbol === 'DIA') {
+        const marketData = await binanceMarketService.getTokenMarketData(symbol);
+        if (marketData) {
+          return {
+            provider: OracleProvider.DIA,
+            symbol: upperSymbol,
+            price: marketData.currentPrice,
+            timestamp: new Date(marketData.lastUpdated).getTime(),
+            decimals: 8,
+            confidence: 0.95,
+            change24h: marketData.priceChange24h,
+            change24hPercent: marketData.priceChangePercentage24h,
+            chain: chain || Blockchain.ETHEREUM,
+            source: 'binance-api',
+          };
+        }
+      }
+
       const diaService = getDIADataService();
 
       const livePrice = await diaService.getAssetPrice(symbol, chain);
@@ -154,7 +181,7 @@ export class DIAClient extends BaseOracleClient {
         return this.fetchPriceWithDatabase(symbol, chain, () => livePrice);
       }
 
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      const basePrice = UNIFIED_BASE_PRICES[upperSymbol] || 100;
 
       return this.fetchPriceWithDatabase(symbol, chain, () =>
         this.generateMockPrice(symbol, basePrice, chain)

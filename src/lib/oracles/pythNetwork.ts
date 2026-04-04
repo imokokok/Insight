@@ -1,4 +1,5 @@
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
@@ -59,10 +60,36 @@ export class PythClient extends BaseOracleClient {
     };
   }
 
+  /**
+   * 获取代币价格
+   * 当查询 PYTH 代币价格时，直接使用 Binance API
+   * 其他代币使用 Pyth 预言机 API
+   */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       if (!symbol) {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+      }
+
+      const upperSymbol = symbol.toUpperCase();
+
+      // 当查询自己预言机的代币 (PYTH) 时，直接使用 Binance API
+      if (upperSymbol === 'PYTH') {
+        const marketData = await binanceMarketService.getTokenMarketData(symbol);
+        if (marketData) {
+          return {
+            provider: this.name,
+            symbol: upperSymbol,
+            price: marketData.currentPrice,
+            timestamp: new Date(marketData.lastUpdated).getTime(),
+            decimals: 8,
+            confidence: 0.95,
+            change24h: marketData.priceChange24h,
+            change24hPercent: marketData.priceChangePercentage24h,
+            chain,
+            source: 'binance-api',
+          };
+        }
       }
 
       const realPrice = await this.pythDataService.getLatestPrice(symbol);
@@ -77,7 +104,7 @@ export class PythClient extends BaseOracleClient {
         };
       }
 
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      const basePrice = UNIFIED_BASE_PRICES[upperSymbol] || 100;
       const priceData = await this.fetchPriceWithDatabase(symbol, chain, () => {
         throw this.createError(
           'Mock price generation is disabled. Please use real data sources only.',

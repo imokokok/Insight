@@ -1,4 +1,5 @@
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -325,7 +326,37 @@ export class TellorClient extends BaseOracleClient {
     }
   }
 
+  /**
+   * 获取代币价格
+   * 当查询 TRB 代币价格时，直接使用 Binance API
+   * 其他代币使用现有的逻辑
+   */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+    const upperSymbol = symbol.toUpperCase();
+
+    // 当查询自己预言机的代币 (TRB) 时，直接使用 Binance API
+    if (upperSymbol === 'TRB') {
+      try {
+        const marketData = await binanceMarketService.getTokenMarketData(symbol);
+        if (marketData) {
+          return {
+            provider: this.name,
+            symbol: upperSymbol,
+            price: marketData.currentPrice,
+            timestamp: new Date(marketData.lastUpdated).getTime(),
+            decimals: 8,
+            confidence: 0.95,
+            change24h: marketData.priceChange24h,
+            change24hPercent: marketData.priceChangePercentage24h,
+            chain,
+            source: 'binance-api',
+          };
+        }
+      } catch (error) {
+        console.error(`[TellorClient] Failed to fetch TRB price from Binance:`, error);
+      }
+    }
+
     const result = await this.getPriceWithSource(symbol, chain);
     return result.data;
   }
