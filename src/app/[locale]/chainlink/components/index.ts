@@ -24,8 +24,6 @@ export { NodeEarningsPanel } from './NodeEarningsPanel';
 export { NodePerformanceTrends } from './NodePerformanceTrends';
 export { StakingRewardsCalculator } from './StakingRewardsCalculator';
 
-export { ChainlinkErrorBoundary, withErrorBoundary } from './ChainlinkErrorBoundary';
-
 export { StatCard } from './StatCard';
 export type { StatCardProps } from './StatCard';
 export { TrendIndicator } from './TrendIndicator';
