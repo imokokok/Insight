@@ -1,5 +1,6 @@
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -177,8 +178,34 @@ export class WINkLinkClient extends BaseOracleClient {
     return symbol.toUpperCase().split('/')[0];
   }
 
+  /**
+   * 获取代币价格
+   * 当查询 WIN 代币价格时，直接使用 Binance API，不尝试调用 WINkLink 合约
+   * 其他代币按照现有逻辑执行
+   */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
+      const upperSymbol = symbol.toUpperCase();
+
+      // 当查询自己预言机的代币 (WIN) 时，直接使用 Binance API
+      if (upperSymbol === 'WIN') {
+        const marketData = await binanceMarketService.getTokenMarketData(symbol);
+        if (marketData) {
+          return {
+            provider: OracleProvider.WINKLINK,
+            symbol: upperSymbol,
+            price: marketData.currentPrice,
+            timestamp: new Date(marketData.lastUpdated).getTime(),
+            decimals: 8,
+            confidence: 0.95,
+            change24h: marketData.priceChange24h,
+            change24hPercent: marketData.priceChangePercentage24h,
+            chain: chain || Blockchain.TRON,
+            source: 'binance-api',
+          };
+        }
+      }
+
       // 如果启用真实数据，尝试从 WINkLink 合约获取
       if (USE_REAL_DATA) {
         const realDataService = getWINkLinkRealDataService();

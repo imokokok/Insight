@@ -1,3 +1,4 @@
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -65,10 +66,40 @@ export class BandProtocolClient extends BaseOracleClient {
     super(config);
   }
 
+  /**
+   * 获取代币价格
+   * 当查询 BAND 代币价格时，直接使用 Binance API
+   * 其他代币返回默认数据
+   */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+    const upperSymbol = symbol.toUpperCase();
+
+    // 当查询自己预言机的代币 (BAND) 时，直接使用 Binance API
+    if (upperSymbol === 'BAND') {
+      try {
+        const marketData = await binanceMarketService.getTokenMarketData(symbol);
+        if (marketData) {
+          return {
+            provider: OracleProvider.BAND_PROTOCOL,
+            symbol: upperSymbol,
+            price: marketData.currentPrice,
+            timestamp: new Date(marketData.lastUpdated).getTime(),
+            decimals: 8,
+            confidence: 0.95,
+            change24h: marketData.priceChange24h,
+            change24hPercent: marketData.priceChangePercentage24h,
+            chain,
+            source: 'binance-api',
+          };
+        }
+      } catch (error) {
+        console.error(`[BandProtocolClient] Failed to fetch BAND price from Binance:`, error);
+      }
+    }
+
     // Return default price data instead of throwing error
     return {
-      symbol: symbol.toUpperCase(),
+      symbol: upperSymbol,
       price: 0,
       timestamp: Date.now(),
       provider: OracleProvider.BAND_PROTOCOL,

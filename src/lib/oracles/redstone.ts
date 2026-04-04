@@ -378,6 +378,7 @@ export class RedStoneClient extends BaseOracleClient {
   /**
    * Gets the current price for a given symbol from RedStone oracle.
    * Uses real data from RedStone API, with Binance API as fallback.
+   * When querying RED token price, directly uses Binance API without trying RedStone API.
    * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
    * @param chain - Optional blockchain context for chain-specific pricing
    * @returns Promise resolving to PriceData with current price information
@@ -385,6 +386,21 @@ export class RedStoneClient extends BaseOracleClient {
    */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
+      const upperSymbol = symbol.toUpperCase();
+
+      // 当查询自己预言机的代币 (RED) 时，直接使用 Binance API，不尝试 RedStone API
+      if (upperSymbol === 'RED') {
+        const binancePrice = await this.fetchPriceFromBinance(symbol, chain);
+        if (binancePrice) {
+          return binancePrice;
+        }
+        throw new RedStoneApiError(
+          `No price data available for ${symbol} from Binance API`,
+          'FETCH_ERROR',
+          { symbol }
+        );
+      }
+
       const realPrice = await this.fetchRealPrice(symbol);
 
       if (realPrice) {

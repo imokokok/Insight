@@ -1,4 +1,5 @@
 import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -381,8 +382,34 @@ export class ChronicleClient extends BaseOracleClient {
     );
   }
 
+  /**
+   * 获取代币价格
+   * 当查询 MKR (MakerDAO/ Chronicle 的治理代币) 价格时，直接使用 Binance API
+   * 其他代币使用 Chronicle 链上数据源
+   */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
+      const upperSymbol = symbol.toUpperCase();
+
+      // 当查询 MakerDAO/Chronicle 的治理代币 (MKR) 时，直接使用 Binance API
+      if (upperSymbol === 'MKR') {
+        const marketData = await binanceMarketService.getTokenMarketData(symbol);
+        if (marketData) {
+          return {
+            provider: this.name,
+            symbol: upperSymbol,
+            price: marketData.currentPrice,
+            timestamp: new Date(marketData.lastUpdated).getTime(),
+            decimals: 18,
+            confidence: 0.95,
+            change24h: marketData.priceChange24h,
+            change24hPercent: marketData.priceChangePercentage24h,
+            chain,
+            source: 'binance-api',
+          };
+        }
+      }
+
       await this.checkRealDataAvailability();
 
       const cacheKey = this.getCacheKey(symbol, chain);

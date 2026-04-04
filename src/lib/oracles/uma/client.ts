@@ -1,3 +1,4 @@
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -113,22 +114,38 @@ export class UMAClient extends BaseOracleClient {
     };
   }
 
+  /**
+   * 获取代币价格
+   * 当查询 UMA 代币价格时，直接使用 Binance API，不尝试调用自己预言机的 API
+   * 其他代币抛出错误
+   */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     if (!symbol || symbol.trim() === '') {
       throw this.createError('Symbol is required', 'PRICE_FETCH_ERROR');
     }
 
-    const chainId = this.getChainId(chain);
+    const upperSymbol = symbol.toUpperCase();
 
-    if (symbol.toUpperCase() === 'UMA' && isUMASupportedOnChain(chainId)) {
+    // 当查询自己预言机的代币 (UMA) 时，直接使用 Binance API
+    if (upperSymbol === 'UMA') {
       try {
-        const tokenData = await umaOnChainService.getTokenData(chainId);
-        return this.convertTokenDataToPriceData(tokenData, chain);
+        const marketData = await binanceMarketService.getTokenMarketData(symbol);
+        if (marketData) {
+          return {
+            provider: this.name,
+            symbol: upperSymbol,
+            price: marketData.currentPrice,
+            timestamp: new Date(marketData.lastUpdated).getTime(),
+            decimals: 18,
+            confidence: 0.95,
+            change24h: marketData.priceChange24h,
+            change24hPercent: marketData.priceChangePercentage24h,
+            chain,
+            source: 'binance-api',
+          };
+        }
       } catch (error) {
-        throw this.createError(
-          error instanceof Error ? error.message : 'Failed to fetch UMA token data from on-chain',
-          'UMA_ON_CHAIN_ERROR'
-        );
+        console.error(`[UMAClient] Failed to fetch UMA price from Binance:`, error);
       }
     }
 
