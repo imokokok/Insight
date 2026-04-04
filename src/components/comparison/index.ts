@@ -8,7 +8,6 @@ export * from './types';
 
 // 时间段对比组件
 export { TimeRangeSelector } from './TimeRangeSelector';
-export { TimeComparisonChart } from './TimeComparisonChart';
 
 // 基准对比组件
 export { BenchmarkComparison } from './BenchmarkComparison';

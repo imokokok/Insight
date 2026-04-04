@@ -67,9 +67,6 @@ export { ProgressBar, DataLoadingProgress } from './LoadingProgress';
 export { CompactStatCard } from './CompactStatCard';
 export type { CompactStatCardProps } from './CompactStatCard';
 
-export { EnhancedStatCard } from './EnhancedStatCard';
-export type { EnhancedStatCardProps } from './EnhancedStatCard';
-
 export { StatCard } from './StatCard';
 export type { StatCardProps } from './StatCard';
 
