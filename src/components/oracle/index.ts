@@ -59,6 +59,4 @@ export {
   type MobileMenuButtonProps,
 } from './UnifiedSidebar';
 
-export * from './oracle-panels';
-
 export * from './analytics';
