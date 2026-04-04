@@ -90,16 +90,16 @@ function PriceDistributionHistogramComponent({
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-900">
-          {t('crossOracle.charts.distributionTitle') || '价格分布'}
+          {t('crossOracle.charts.distributionTitle')}
         </h4>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-blue-500 rounded" />
-            <span className="text-gray-500">{t('crossOracle.normal') || '正常'}</span>
+            <span className="text-gray-500">{t('crossOracle.normal')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-red-500 rounded" />
-            <span className="text-gray-500">{t('crossOracle.anomaly') || '异常'}</span>
+            <span className="text-gray-500">{t('crossOracle.anomaly')}</span>
           </div>
         </div>
       </div>
@@ -123,7 +123,7 @@ function PriceDistributionHistogramComponent({
             />
             <Tooltip
               formatter={(value, _name, props) => [
-                `${value} ${t('crossOracle.oracles') || '个预言机'}`,
+                `${value} ${t('crossOracle.oracles')}`,
                 (props as { payload: HistogramData }).payload.range,
               ]}
               contentStyle={{
@@ -139,7 +139,7 @@ function PriceDistributionHistogramComponent({
               strokeDasharray="4 4"
               strokeWidth={2}
               label={{
-                value: t('crossOracle.median') || '中位数',
+                value: t('crossOracle.median'),
                 position: 'insideTop',
                 fill: '#374151',
                 fontSize: 11,

@@ -275,7 +275,7 @@ export function DashboardCustomizer({
         className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-all"
       >
         <Settings className="w-4 h-4" />
-        <span className="hidden sm:inline">{t('redstone.dashboard.customize') || '自定义'}</span>
+        <span className="hidden sm:inline">{t('redstone.dashboard.customize')}</span>
       </button>
 
       <AnimatePresence>
@@ -299,7 +299,7 @@ export function DashboardCustomizer({
                 <div className="flex items-center gap-2">
                   <Settings className="w-5 h-5 text-gray-600" />
                   <h2 className="text-lg font-semibold text-gray-900">
-                    {t('redstone.dashboard.title') || '仪表板设置'}
+                    {t('redstone.dashboard.title')}
                   </h2>
                 </div>
                 <button
@@ -313,10 +313,10 @@ export function DashboardCustomizer({
               <div className="flex-1 overflow-y-auto p-4 space-y-6">
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-3">
-                    {t('redstone.dashboard.pinnedMetrics') || '置顶指标'}
+                    {t('redstone.dashboard.pinnedMetrics')}
                   </h3>
                   <p className="text-xs text-gray-500 mb-3">
-                    {t('redstone.dashboard.pinnedDesc') || '置顶的指标将显示在顶部'}
+                    {t('redstone.dashboard.pinnedDesc')}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {pinnedMetrics.map((id) => {
@@ -341,7 +341,7 @@ export function DashboardCustomizer({
                     })}
                     {pinnedMetrics.length === 0 && (
                       <p className="text-sm text-gray-400">
-                        {t('redstone.dashboard.noPinned') || '暂无置顶指标'}
+                        {t('redstone.dashboard.noPinned')}
                       </p>
                     )}
                   </div>
@@ -350,17 +350,17 @@ export function DashboardCustomizer({
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-medium text-gray-700">
-                      {t('redstone.dashboard.metricOrder') || '指标顺序'}
+                      {t('redstone.dashboard.metricOrder')}
                     </h3>
                     {hasChanges && (
                       <Button size="sm" onClick={applyReorder} className="gap-1">
                         <Check className="w-3 h-3" />
-                        {t('common.apply') || '应用'}
+                        {t('common.apply')}
                       </Button>
                     )}
                   </div>
                   <p className="text-xs text-gray-500 mb-3">
-                    {t('redstone.dashboard.dragToReorder') || '拖拽调整顺序'}
+                    {t('redstone.dashboard.dragToReorder')}
                   </p>
                   <Reorder.Group
                     axis="y"
@@ -417,7 +417,7 @@ export function DashboardCustomizer({
                 {hiddenMetrics.length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium text-gray-700 mb-3">
-                      {t('redstone.dashboard.hiddenMetrics') || '已隐藏指标'}
+                      {t('redstone.dashboard.hiddenMetrics')}
                     </h3>
                     <div className="space-y-2">
                       {hiddenMetrics.map((id) => {
@@ -452,10 +452,10 @@ export function DashboardCustomizer({
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={resetToDefaults} className="flex-1 gap-1">
                     <RotateCcw className="w-4 h-4" />
-                    {t('common.reset') || '重置'}
+                    {t('common.reset')}
                   </Button>
                   <Button onClick={() => setIsOpen(false)} className="flex-1">
-                    {t('common.done') || '完成'}
+                    {t('common.done')}
                   </Button>
                 </div>
               </div>

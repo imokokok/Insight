@@ -1,11 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
-
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
-import { semanticColors, baseColors, chartColors } from '@/lib/config/colors';
-import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
+import { semanticColors } from '@/lib/config/colors';
 
 export interface ChainPriceData {
   chain: string;
@@ -37,43 +34,6 @@ const DEVIATION_THRESHOLDS = {
   normal: 0.1,
   warning: 0.3,
 };
-
-function generateMockPriceData(symbol: string): ChainPriceData[] {
-  const basePrices: Record<string, number> = {
-    'BTC/USD': 67842.35,
-    'ETH/USD': 3456.78,
-    'SOL/USD': 142.56,
-  };
-
-  const basePrice = basePrices[symbol] || 100.0;
-
-  return PYTH_SUPPORTED_CHAINS.map((chain, index) => {
-    const deviationFactor = index === 0 ? 0 : (Math.random() - 0.5) * 0.6;
-    const price = basePrice * (1 + deviationFactor / 100);
-    const deviationPercent = index === 0 ? 0 : deviationFactor;
-    const latency = Math.floor(Math.random() * 150 + 30);
-
-    let status: 'normal' | 'warning' | 'critical' = 'normal';
-    const absDeviation = Math.abs(deviationPercent);
-    if (absDeviation >= DEVIATION_THRESHOLDS.warning) {
-      status = 'critical';
-    } else if (absDeviation >= DEVIATION_THRESHOLDS.normal) {
-      status = 'warning';
-    }
-
-    return {
-      chain: chain.name,
-      chainId: chain.chainId,
-      price: Number(price.toFixed(4)),
-      deviationPercent: Number(deviationPercent.toFixed(4)),
-      latency,
-      lastUpdate: `${Math.floor(Math.random() * 3 + 1)}s ago`,
-      status,
-      updateCount: Math.floor(Math.random() * 50 + 100),
-      confidence: Math.floor(Math.random() * 5 + 95),
-    };
-  });
-}
 
 function getDeviationColor(deviation: number): string {
   const absDeviation = Math.abs(deviation);
@@ -124,16 +84,10 @@ export function CrossChainPriceConsistency({
   className = '',
 }: CrossChainPriceConsistencyProps) {
   const t = useTranslations();
-  const chainData = useMemo(() => generateMockPriceData(symbol), [symbol]);
-
-  const baseChain = chainData[0];
-  const basePrice = baseChain?.price || 0;
-
-  const maxDeviation = Math.max(...chainData.map((c) => Math.abs(c.deviationPercent)));
-  const avgLatency = Math.round(
-    chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length
-  );
-  const hasWarnings = chainData.some((c) => c.status !== 'normal');
+  const chainData: ChainPriceData[] = [];
+  const maxDeviation = 0;
+  const avgLatency = 0;
+  const hasWarnings = false;
 
   const maxBarDeviation = 0.5;
 
@@ -183,7 +137,7 @@ export function CrossChainPriceConsistency({
             <p className="text-xs text-primary-600 mb-1">
               {t('crossChainPriceConsistency.basePrice')}
             </p>
-            <p className="text-lg font-bold text-primary-700">${basePrice.toFixed(2)}</p>
+            <p className="text-lg font-bold text-primary-700">$0.00</p>
             <p className="text-xs text-primary-500 mt-1">Solana</p>
           </div>
           <div className="bg-gray-50 rounded p-3 text-center">

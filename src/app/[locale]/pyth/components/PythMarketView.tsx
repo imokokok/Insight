@@ -62,10 +62,7 @@ export function PythMarketView({
     const prices =
       historicalData && historicalData.length > 0
         ? historicalData.map((d) => d.price)
-        : Array.from(
-            { length: 50 },
-            (_, i) => (price?.price ?? 0.45) * (1 + (Math.random() - 0.5) * 0.02)
-          );
+        : [];
 
     const ema7Values = calculateEMA(prices, 7);
     const ema25Values = calculateEMA(prices, 25);

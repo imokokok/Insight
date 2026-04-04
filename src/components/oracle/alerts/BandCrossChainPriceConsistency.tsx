@@ -47,94 +47,6 @@ const STATUS_COLORS = {
   inconsistent: semanticColors.danger.dark,
 };
 
-function generateMockPriceData(): Map<string, BandChainPriceData[]> {
-  const basePrices: Record<string, number> = {
-    'BTC/USD': 67842.35,
-    'ETH/USD': 3456.78,
-    'USDC/USD': 1.0001,
-  };
-
-  const priceDataMap = new Map<string, BandChainPriceData[]>();
-
-  SYMBOLS.forEach((symbol) => {
-    const basePrice = basePrices[symbol] || 100.0;
-    const chainData: BandChainPriceData[] = BAND_SUPPORTED_CHAINS.map((chain, index) => {
-      const deviationFactor = index === 0 ? 0 : (Math.random() - 0.5) * 0.8;
-      const price = basePrice * (1 + deviationFactor / 100);
-      const deviationPercent = index === 0 ? 0 : deviationFactor;
-      const latency = Math.floor(Math.random() * 100 + 50);
-
-      let status: 'normal' | 'warning' | 'critical' = 'normal';
-      const absDeviation = Math.abs(deviationPercent);
-      if (absDeviation >= DEVIATION_THRESHOLDS.warning) {
-        status = 'critical';
-      } else if (absDeviation >= DEVIATION_THRESHOLDS.normal) {
-        status = 'warning';
-      }
-
-      return {
-        chain: chain.name,
-        chainId: chain.chainId,
-        price: Number(price.toFixed(4)),
-        deviationPercent: Number(deviationPercent.toFixed(4)),
-        deviationDirection: deviationPercent > 0 ? 'up' : deviationPercent < 0 ? 'down' : 'neutral',
-        latency,
-        lastUpdate: `${Math.floor(Math.random() * 5 + 1)}s ago`,
-        status,
-        updateCount: Math.floor(Math.random() * 30 + 50),
-        confidence: Math.floor(Math.random() * 5 + 95),
-      };
-    });
-    priceDataMap.set(symbol, chainData);
-  });
-
-  return priceDataMap;
-}
-
-function generateComparisonData(
-  currentData: BandChainPriceData[],
-  historicalTimestamp: number
-): CrossChainPriceComparison[] {
-  return currentData.map((chain) => {
-    const timeFactor = (Date.now() - historicalTimestamp) / (1000 * 60 * 60 * 24 * 30);
-    const volatility = 0.02 * Math.max(0, Math.min(1, timeFactor));
-    const randomChange = (Math.random() - 0.5) * 2 * volatility;
-
-    const historicalPrice = chain.price * (1 - randomChange);
-    const priceChange = chain.price - historicalPrice;
-    const priceChangePercent = (priceChange / historicalPrice) * 100;
-
-    const historicalDeviation = chain.deviationPercent * (1 + (Math.random() - 0.5) * 0.3);
-    const deviationChange = chain.deviationPercent - historicalDeviation;
-
-    const historicalLatency = Math.max(30, chain.latency + Math.floor((Math.random() - 0.5) * 40));
-    const latencyChange = chain.latency - historicalLatency;
-
-    let trend: 'up' | 'down' | 'stable' = 'stable';
-    if (priceChangePercent > 0.5) {
-      trend = 'up';
-    } else if (priceChangePercent < -0.5) {
-      trend = 'down';
-    }
-
-    return {
-      chain: chain.chain,
-      chainId: chain.chainId,
-      currentPrice: chain.price,
-      historicalPrice: Number(historicalPrice.toFixed(4)),
-      priceChange: Number(priceChange.toFixed(4)),
-      priceChangePercent: Number(priceChangePercent.toFixed(2)),
-      currentDeviation: chain.deviationPercent,
-      historicalDeviation: Number(historicalDeviation.toFixed(4)),
-      deviationChange: Number(deviationChange.toFixed(4)),
-      currentLatency: chain.latency,
-      historicalLatency,
-      latencyChange,
-      trend,
-    };
-  });
-}
-
 function getDeviationColor(deviation: number): string {
   const color = getDeviationColorUtil(deviation);
   if (color === semanticColors.success.DEFAULT) return 'text-success-600';
@@ -148,10 +60,6 @@ function getChainInfo(chainName: string) {
 
 function formatDate(date: Date): string {
   return date.toISOString().split('T')[0];
-}
-
-function formatTime(date: Date): string {
-  return date.toTimeString().slice(0, 5);
 }
 
 interface PriceDeviationHeatmapProps {
@@ -537,25 +445,60 @@ export function BandCrossChainPriceConsistency({
   const [selectedTime, setSelectedTime] = useState<string>('12:00');
   const [comparisonData, setComparisonData] = useState<CrossChainPriceComparison[] | null>(null);
 
-  const priceDataMap = useMemo(() => generateMockPriceData(), []);
+  const priceDataMap = useMemo(() => {
+    const dataMap = new Map<string, BandChainPriceData[]>();
+    const symbols = ['BTC/USD', 'ETH/USD', 'USDC/USD'];
+
+    symbols.forEach((symbol) => {
+      const chainData: BandChainPriceData[] = BAND_SUPPORTED_CHAINS.map((chain) => ({
+        chain: chain.name,
+        chainId: chain.chainId,
+        price: 0,
+        deviationPercent: 0,
+        deviationDirection: 'neutral' as const,
+        latency: 0,
+        lastUpdate: 'N/A',
+        status: 'normal' as const,
+        updateCount: 0,
+        confidence: 0,
+      }));
+      dataMap.set(symbol, chainData);
+    });
+
+    return dataMap;
+  }, []);
+
   const chainData = priceDataMap.get(selectedSymbol) || [];
 
-  const client = useMemo(() => new BandProtocolClient(), []);
-  const availableDates = useMemo(() => client.getAvailableSnapshotDates(), [client]);
+  const availableDates = ['2024-01-01'];
 
   const baseChain = chainData[0];
   const basePrice = baseChain?.price || 0;
 
-  const maxDeviation = Math.max(...chainData.map((c) => Math.abs(c.deviationPercent)));
-  const avgLatency = Math.round(
+  const maxDeviation = chainData.length > 0 ? Math.max(...chainData.map((c) => Math.abs(c.deviationPercent))) : 0;
+  const avgLatency = chainData.length > 0 ? Math.round(
     chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length
-  );
+  ) : 0;
   const hasWarnings = chainData.some((c) => c.status !== 'normal');
 
   useEffect(() => {
     if (isComparisonMode) {
       const date = new Date(`${selectedDate}T${selectedTime}`);
-      const data = generateComparisonData(chainData, date.getTime());
+      const data = chainData.map((chain) => ({
+        chain: chain.chain,
+        chainId: chain.chainId,
+        currentPrice: chain.price,
+        historicalPrice: 0,
+        priceChange: 0,
+        priceChangePercent: 0,
+        currentDeviation: chain.deviationPercent,
+        historicalDeviation: 0,
+        deviationChange: 0,
+        currentLatency: chain.latency,
+        historicalLatency: 0,
+        latencyChange: 0,
+        trend: 'stable' as const,
+      }));
       setComparisonData(data);
     } else {
       setComparisonData(null);

@@ -49,32 +49,8 @@ interface TrendDataPoint {
  * 生成模拟历史数据
  * 实际项目中应替换为真实历史数据
  */
-function generateMockHistory(currentMetrics: ProfessionalQualityMetrics): TrendDataPoint[] {
-  const data: TrendDataPoint[] = [];
-  const now = new Date();
-
-  // 生成最近10个时间点的数据
-  for (let i = 9; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 60000); // 每分钟一个点
-    const timeStr = time.toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
-    // 添加一些随机波动
-    const randomFactor = 0.8 + Math.random() * 0.4;
-    const cv = currentMetrics.coefficientOfVariation * randomFactor;
-    const stdDev = currentMetrics.standardDeviation * randomFactor;
-
-    data.push({
-      time: timeStr,
-      cv: Number((cv * 100).toFixed(3)), // 转为百分比
-      stdDev: Number(stdDev.toFixed(4)),
-      sampleSize: currentMetrics.sampleSize,
-    });
-  }
-
-  return data;
+function generateMockHistory(_currentMetrics: ProfessionalQualityMetrics): TrendDataPoint[] {
+  throw new Error('Mock data is disabled. Please provide real quality metrics data.');
 }
 
 /**
@@ -125,8 +101,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 // ============================================================================
 
 function QualityTrendChartComponent({ metrics, t, className }: QualityTrendChartProps) {
-  // 生成历史数据
-  const data = useMemo(() => generateMockHistory(metrics), [metrics]);
+  const data: TrendDataPoint[] = [];
 
   // 计算阈值线
   const cvThreshold = 0.5; // 0.5% CV阈值
@@ -137,10 +112,10 @@ function QualityTrendChartComponent({ metrics, t, className }: QualityTrendChart
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-4 h-4 text-blue-600" />
         <h4 className="text-sm font-semibold text-gray-900">
-          {t('crossOracle.quality.trendTitle') || '一致性趋势'}
+          {t('crossOracle.quality.trendTitle')}
         </h4>
         <span className="text-xs text-gray-500 ml-auto">
-          {t('crossOracle.quality.last10Minutes') || '最近10分钟'}
+          {t('crossOracle.quality.last10Minutes')}
         </span>
       </div>
 
@@ -189,7 +164,7 @@ function QualityTrendChartComponent({ metrics, t, className }: QualityTrendChart
               yAxisId="left"
               type="monotone"
               dataKey="cv"
-              name={t('crossOracle.quality.cv') || '变异系数 (%)'}
+              name={t('crossOracle.quality.cv')}
               stroke="#3b82f6"
               strokeWidth={2}
               dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }}
@@ -201,7 +176,7 @@ function QualityTrendChartComponent({ metrics, t, className }: QualityTrendChart
               yAxisId="right"
               type="monotone"
               dataKey="stdDev"
-              name={t('crossOracle.quality.stdDev') || '标准差'}
+              name={t('crossOracle.quality.stdDev')}
               stroke="#10b981"
               strokeWidth={2}
               dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }}
@@ -215,16 +190,16 @@ function QualityTrendChartComponent({ metrics, t, className }: QualityTrendChart
       <div className="flex items-center gap-4 mt-3 text-xs">
         <div className="flex items-center gap-1.5">
           <span className="inline-block w-3 h-0.5 bg-blue-500" />
-          <span className="text-gray-600">{t('crossOracle.quality.cv') || '变异系数 (%)'}</span>
+          <span className="text-gray-600">{t('crossOracle.quality.cv')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="inline-block w-3 h-0.5 bg-emerald-500" />
-          <span className="text-gray-600">{t('crossOracle.quality.stdDev') || '标准差'}</span>
+          <span className="text-gray-600">{t('crossOracle.quality.stdDev')}</span>
         </div>
         <div className="flex items-center gap-1.5 ml-auto">
           <span className="inline-block w-4 h-0 border-t border-dashed border-red-400" />
           <span className="text-gray-500">
-            {t('crossOracle.quality.cvThreshold') || 'CV阈值 (0.5%)'}
+            {t('crossOracle.quality.cvThreshold')}
           </span>
         </div>
       </div>

@@ -421,10 +421,10 @@ export function ChronicleValidatorDetail({
                       <TrendingDown className="w-3 h-3" />
                     )}
                     {validator.reputation >= 95
-                      ? '优秀'
+                      ? t('chronicle.network.excellent')
                       : validator.reputation >= 90
-                        ? '良好'
-                        : '一般'}
+                        ? t('chronicle.network.good')
+                        : t('chronicle.network.fair')}
                   </span>
                 </div>
               </div>
@@ -524,7 +524,9 @@ export function ChronicleValidatorDetail({
                                 : 'bg-blue-100 text-blue-700'
                             )}
                           >
-                            {unlock.status === 'completed' ? '已完成' : '待解锁'}
+                            {unlock.status === 'completed'
+                            ? t('chronicle.validators.completed')
+                            : t('chronicle.validators.pending')}
                           </span>
                         </div>
                       </div>
@@ -694,8 +696,7 @@ export function ChronicleValidatorDetail({
                     {t('chronicle.validators.validatorInfo')}
                   </h4>
                   <p className="text-sm text-amber-700 mt-1">
-                    {t('chronicle.validators.validatorInfoDesc') ||
-                      '该验证者是 Chronicle 预言机网络的重要组成部分，负责提供准确、及时的价格数据。验证者通过质押代币来保证其行为的诚实性，并因其服务获得奖励。'}
+                    {t('chronicle.validators.validatorInfoDesc')}
                   </p>
                 </div>
               </div>

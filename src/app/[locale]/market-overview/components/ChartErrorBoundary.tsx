@@ -101,21 +101,21 @@ function ChartErrorFallback({ error, errorInfo, componentName, onReset }: ChartE
   const [showDetails, setShowDetails] = useState(false);
 
   const getSimpleErrorMessage = (err: Error | null): string => {
-    if (!err) return t('marketOverview.error.chartRenderError') || '图表渲染失败';
+    if (!err) return t('marketOverview.error.chartRenderError');
 
     const message = err.message.toLowerCase();
 
     if (message.includes('network') || message.includes('fetch')) {
-      return t('marketOverview.error.networkError') || '网络连接失败';
+      return t('marketOverview.error.networkError');
     }
     if (message.includes('data') || message.includes('undefined')) {
-      return t('marketOverview.error.dataError') || '数据加载失败';
+      return t('marketOverview.error.dataError');
     }
     if (message.includes('memory') || message.includes('heap')) {
-      return t('marketOverview.error.memoryError') || '内存不足';
+      return t('marketOverview.error.memoryError');
     }
 
-    return t('marketOverview.error.chartRenderError') || '图表渲染失败';
+    return t('marketOverview.error.chartRenderError');
   };
 
   return (
@@ -130,7 +130,7 @@ function ChartErrorFallback({ error, errorInfo, componentName, onReset }: ChartE
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-lg font-semibold text-gray-900">
-              {t('marketOverview.error.title') || '组件错误'}
+              {t('marketOverview.error.title')}
             </h3>
             {componentName && (
               <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
@@ -147,7 +147,7 @@ function ChartErrorFallback({ error, errorInfo, componentName, onReset }: ChartE
               className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
-              {t('actions.retry') || '重试'}
+              {t('actions.retry')}
             </button>
 
             <button
@@ -157,7 +157,7 @@ function ChartErrorFallback({ error, errorInfo, componentName, onReset }: ChartE
               <ChevronDown
                 className={`w-4 h-4 transition-transform ${showDetails ? 'rotate-180' : ''}`}
               />
-              {t('marketOverview.error.viewDetails') || '查看详情'}
+              {t('marketOverview.error.viewDetails')}
             </button>
           </div>
 
@@ -165,7 +165,7 @@ function ChartErrorFallback({ error, errorInfo, componentName, onReset }: ChartE
             <div className="mt-4 bg-white border border-gray-200 rounded-lg p-4">
               <div className="mb-3">
                 <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                  {t('marketOverview.error.errorInfo') || '错误信息'}
+                  {t('marketOverview.error.errorInfo')}
                 </h4>
                 <div className="bg-red-50 border border-red-100 rounded p-3">
                   <p className="text-sm text-red-800 font-mono break-all">
@@ -177,7 +177,7 @@ function ChartErrorFallback({ error, errorInfo, componentName, onReset }: ChartE
               {error?.stack && (
                 <div className="mb-3">
                   <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                    {t('marketOverview.error.errorStack') || '错误堆栈'}
+                    {t('marketOverview.error.errorStack')}
                   </h4>
                   <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-40 overflow-y-auto">
                     <pre className="text-xs text-gray-600 font-mono whitespace-pre-wrap break-all">
@@ -190,7 +190,7 @@ function ChartErrorFallback({ error, errorInfo, componentName, onReset }: ChartE
               {errorInfo?.componentStack && (
                 <div>
                   <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                    {t('marketOverview.error.componentStack') || '组件堆栈'}
+                    {t('marketOverview.error.componentStack')}
                   </h4>
                   <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-40 overflow-y-auto">
                     <pre className="text-xs text-gray-600 font-mono whitespace-pre-wrap break-all">

@@ -1,7 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
-
 import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
 import { useTranslations } from '@/i18n';
 
@@ -25,44 +23,6 @@ interface ArbitrageOpportunity {
 }
 
 const ARBITRAGE_THRESHOLD = 0.5;
-
-function generateMockChainData(): ChainPriceData[] {
-  const basePrice = 14.52;
-  const chains = [
-    { name: 'Ethereum', chainId: 1 },
-    { name: 'Solana', chainId: 0 },
-    { name: 'Polygon', chainId: 137 },
-    { name: 'Arbitrum', chainId: 42161 },
-    { name: 'Avalanche', chainId: 43114 },
-    { name: 'Optimism', chainId: 10 },
-    { name: 'BSC', chainId: 56 },
-  ];
-
-  return chains.map((chain) => {
-    const deviation = (Math.random() - 0.5) * 0.8;
-    const price = basePrice * (1 + deviation / 100);
-    const deviationPercent = Number(deviation.toFixed(3));
-    const latency = Math.floor(Math.random() * 200 + 50);
-
-    let status: 'normal' | 'warning' | 'critical' = 'normal';
-    if (Math.abs(deviationPercent) >= 1.0) {
-      status = 'critical';
-    } else if (Math.abs(deviationPercent) >= ARBITRAGE_THRESHOLD) {
-      status = 'warning';
-    }
-
-    return {
-      chain: chain.name,
-      chainId: chain.chainId,
-      price: Number(price.toFixed(4)),
-      deviation: Number((price - basePrice).toFixed(4)),
-      deviationPercent,
-      latency,
-      lastUpdate: `${Math.floor(Math.random() * 5 + 1)}s ago`,
-      status,
-    };
-  });
-}
 
 function findArbitrageOpportunities(chainData: ChainPriceData[]): ArbitrageOpportunity[] {
   const opportunities: ArbitrageOpportunity[] = [];
@@ -93,14 +53,12 @@ function findArbitrageOpportunities(chainData: ChainPriceData[]): ArbitrageOppor
 
 export function CrossChainRisk() {
   const t = useTranslations();
-  const chainData = useMemo(() => generateMockChainData(), []);
-  const arbitrageOpportunities = useMemo(() => findArbitrageOpportunities(chainData), [chainData]);
+  const chainData: ChainPriceData[] = [];
+  const arbitrageOpportunities: ArbitrageOpportunity[] = [];
 
-  const avgLatency = Math.round(
-    chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length
-  );
-  const maxDeviation = Math.max(...chainData.map((c) => Math.abs(c.deviationPercent)));
-  const warningCount = chainData.filter((c) => c.status !== 'normal').length;
+  const avgLatency = 0;
+  const maxDeviation = 0;
+  const warningCount = 0;
 
   const getStatusColor = (status: 'normal' | 'warning' | 'critical'): string => {
     switch (status) {
@@ -326,7 +284,7 @@ export function CrossChainRisk() {
                   {t('crossChainRisk.latencyRisk.maxLatency')}
                 </span>
                 <span className="text-sm font-medium text-gray-900">
-                  {Math.max(...chainData.map((c) => c.latency))}ms
+                  {chainData.length > 0 ? Math.max(...chainData.map((c) => c.latency)) : 0}ms
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -334,7 +292,7 @@ export function CrossChainRisk() {
                   {t('crossChainRisk.latencyRisk.minLatency')}
                 </span>
                 <span className="text-sm font-medium text-gray-900">
-                  {Math.min(...chainData.map((c) => c.latency))}ms
+                  {chainData.length > 0 ? Math.min(...chainData.map((c) => c.latency)) : 0}ms
                 </span>
               </div>
               <div className="w-full bg-gray-200  h-2 mt-2">

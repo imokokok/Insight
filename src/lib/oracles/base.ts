@@ -29,14 +29,12 @@ export type { OracleStorageConfig };
 
 export interface OracleClientConfig {
   useDatabase?: boolean;
-  fallbackToMock?: boolean;
   validateData?: boolean;
   useRealData?: boolean;
 }
 
 const DEFAULT_CLIENT_CONFIG: OracleClientConfig = {
   useDatabase: true,
-  fallbackToMock: true,
   validateData: true,
 };
 
@@ -120,57 +118,24 @@ export abstract class BaseOracleClient {
     );
   }
 
-  protected generateMockPrice(
-    _symbol: string,
-    _basePrice: number,
-    _chain?: Blockchain,
-    _timestamp?: number
-  ): PriceData {
-    throw this.createError(
-      'Mock price generation is disabled. Please use real data sources only.',
-      'MOCK_DATA_DISABLED'
-    );
-  }
-
-  protected generateMockHistoricalPrices(
-    _symbol: string,
-    _basePrice: number,
-    _chain?: Blockchain,
-    _period: number = 24
-  ): PriceData[] {
-    throw this.createError(
-      'Mock historical price generation is disabled. Please use real data sources only.',
-      'MOCK_DATA_DISABLED'
-    );
-  }
-
   async fetchPriceWithDatabase(
     symbol: string,
-    chain: Blockchain | undefined,
-    mockGenerator: () => PriceData
+    chain: Blockchain | undefined
   ): Promise<PriceData> {
-    return fetchPriceWithDatabase(
-      this.name,
-      symbol,
-      chain,
-      this.config.useDatabase ?? true,
-      mockGenerator
-    );
+    return fetchPriceWithDatabase(this.name, symbol, chain, this.config.useDatabase ?? true);
   }
 
   async fetchHistoricalPricesWithDatabase(
     symbol: string,
     chain: Blockchain | undefined,
-    period: number,
-    mockGenerator: () => PriceData[]
+    period: number
   ): Promise<PriceData[]> {
     return fetchHistoricalPricesWithDatabase(
       this.name,
       symbol,
       chain,
       period,
-      this.config.useDatabase ?? true,
-      mockGenerator
+      this.config.useDatabase ?? true
     );
   }
 }

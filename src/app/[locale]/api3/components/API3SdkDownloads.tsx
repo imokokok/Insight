@@ -153,10 +153,10 @@ export function API3SdkDownloads() {
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Download className="w-5 h-5 text-emerald-600" />
-            {t('api3.developer.sdk.title') || 'SDK 下载'}
+            {t('api3.developer.sdk.title')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.developer.sdk.description') || '选择适合您技术栈的 SDK，快速集成 API3'}
+            {t('api3.developer.sdk.description')}
           </p>
         </div>
 
@@ -245,7 +245,7 @@ export function API3SdkDownloads() {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.developer.sdk.additionalTools.title') || '附加工具'}
+            {t('api3.developer.sdk.additionalTools.title')}
           </h2>
         </div>
 
@@ -313,7 +313,7 @@ export function API3SdkDownloads() {
         <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('api3.developer.sdk.support.title') || '需要帮助？'}
+            {t('api3.developer.sdk.support.title')}
           </h3>
           <p className="text-sm text-gray-500 mt-1">
             {t('api3.developer.sdk.support.description') ||

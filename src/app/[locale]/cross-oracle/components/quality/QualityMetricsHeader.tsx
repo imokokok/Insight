@@ -131,7 +131,7 @@ function QualityMetricsHeaderComponent({ metrics, t, className }: QualityMetrics
       {/* 变异系数 CV */}
       <MetricItem
         icon={<Activity className={cn('w-4 h-4', cvColorClass)} />}
-        label={t('crossOracle.quality.cv') || '变异系数 (CV)'}
+        label={t('crossOracle.quality.cv')}
         value={formatCV(metrics.coefficientOfVariation)}
         tooltip={
           t('crossOracle.quality.cvTooltip') ||
@@ -144,7 +144,7 @@ function QualityMetricsHeaderComponent({ metrics, t, className }: QualityMetrics
       {/* 标准误差 SEM */}
       <MetricItem
         icon={<BarChart2 className="w-4 h-4 text-blue-600" />}
-        label={t('crossOracle.quality.sem') || '标准误差 (SEM)'}
+        label={t('crossOracle.quality.sem')}
         value={formatSEM(metrics.standardError)}
         tooltip={
           t('crossOracle.quality.semTooltip') ||
@@ -157,7 +157,7 @@ function QualityMetricsHeaderComponent({ metrics, t, className }: QualityMetrics
       {/* 95%置信区间 */}
       <MetricItem
         icon={<TrendingUp className="w-4 h-4 text-purple-600" />}
-        label={t('crossOracle.quality.ci') || '95%置信区间'}
+        label={t('crossOracle.quality.ci')}
         value={`${formatPrice(metrics.confidenceIntervalLower)} - ${formatPrice(
           metrics.confidenceIntervalUpper
         )}`}
@@ -172,7 +172,7 @@ function QualityMetricsHeaderComponent({ metrics, t, className }: QualityMetrics
       {/* 样本数量 */}
       <MetricItem
         icon={<Database className="w-4 h-4 text-gray-600" />}
-        label={t('crossOracle.quality.sampleSize') || '样本数量'}
+        label={t('crossOracle.quality.sampleSize')}
         value={metrics.sampleSize.toString()}
         tooltip={
           t('crossOracle.quality.sampleSizeTooltip') ||
@@ -185,7 +185,7 @@ function QualityMetricsHeaderComponent({ metrics, t, className }: QualityMetrics
       {/* 中位数价格 */}
       <MetricItem
         icon={<TrendingUp className="w-4 h-4 text-emerald-600" />}
-        label={t('crossOracle.quality.medianPrice') || '中位数价格'}
+        label={t('crossOracle.quality.medianPrice')}
         value={formatPrice(metrics.median)}
         subValue={`μ=${formatPrice(metrics.mean)}`}
         tooltip={

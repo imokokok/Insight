@@ -141,9 +141,9 @@ export class API3DataAggregator {
       }
     }
 
-    // 如果强制使用模拟数据
+    // 如果强制使用模拟数据（已禁用）
     if (isMockDataEnabled()) {
-      return this.createMockResponse(strategy, cacheKey, startTime);
+      throw new Error('Mock data is disabled. Please configure real data sources.');
     }
 
     let primaryResult: T | undefined;
@@ -748,7 +748,9 @@ export class API3DataAggregator {
   }
 
   private generateHourlyActivity(): number[] {
-    return Array.from({ length: 24 }, () => Math.floor(Math.random() * 1000) + 500);
+    const baseActivity = 750;
+    const variation = [0.6, 0.5, 0.4, 0.3, 0.35, 0.5, 0.8, 1.2, 1.4, 1.5, 1.3, 1.2, 1.1, 1.15, 1.2, 1.3, 1.35, 1.4, 1.3, 1.1, 0.9, 0.8, 0.7, 0.65];
+    return variation.map(v => Math.round(baseActivity * v));
   }
 
   private async fetchFromAPI<T>(
@@ -927,104 +929,6 @@ export class API3DataAggregator {
 
   clearCache(): void {
     this.cache.clear();
-  }
-
-  private createMockResponse<T>(
-    strategy: DataStrategy,
-    cacheKey: string,
-    startTime: number
-  ): DataWithMetadata<T> {
-    const mockData = this.generateMockData<T>(strategy.dataType);
-
-    const result: DataWithMetadata<T> = {
-      data: mockData,
-      metadata: {
-        source: 'mock',
-        confidence: 'low',
-        timestamp: Date.now(),
-        latency: Date.now() - startTime,
-        primarySource: {
-          source: 'api',
-          timestamp: Date.now(),
-          confidence: 'low',
-          latency: 0,
-        },
-      },
-    };
-
-    if (strategy.enableCache) {
-      this.setCache(cacheKey, result.data, strategy.cacheTTL, result.metadata);
-    }
-
-    return result;
-  }
-
-  private generateMockData<T>(dataType: string): T {
-    switch (dataType) {
-      case 'dapis':
-        return {
-          dapis: [],
-          chains: [],
-          lastUpdated: new Date(),
-        } as T;
-      case 'airnodeStats':
-        return {
-          airnodeStats: {
-            totalStaked: 0,
-            activeAirnodes: 0,
-            totalDapis: 0,
-            avgApr: 0,
-            stakingGrowth: { monthly: 0, yearly: 0 },
-            airnodeDistribution: { byRegion: {}, byChain: {}, byProviderType: {} },
-          },
-          dapiCoverage: { total: 0, byChain: {}, byCategory: {} },
-          firstPartyData: {
-            advantages: { noMiddlemen: true, sourceTransparency: true, responseTime: 0 },
-          },
-          lastUpdated: new Date(),
-        } as T;
-      case 'oev':
-        return {
-          stats: {
-            totalOevCaptured: 0,
-            activeAuctions: 0,
-            totalParticipants: 0,
-            totalDapps: 0,
-            avgAuctionValue: 0,
-            last24hVolume: 0,
-            participantList: [],
-            recentAuctions: [],
-          },
-          recentAuctions: [],
-          lastUpdated: new Date(),
-        } as T;
-      case 'staking':
-        return {
-          totalStaked: 0,
-          stakingApr: 0,
-          stakerCount: 0,
-          coveragePool: { totalValue: 0, coverageRatio: 0, historicalPayouts: 0 },
-        } as T;
-      case 'coveragePool':
-        return {
-          totalValueLocked: 0,
-          collateralizationRatio: 0,
-          targetCollateralization: 150,
-          stakerCount: 0,
-          avgStakeAmount: 0,
-          pendingClaims: 0,
-          processedClaims: 0,
-          totalPayouts: 0,
-          healthStatus: 'healthy',
-          lastUpdateTime: new Date(),
-        } as T;
-      case 'priceDeviations':
-        return [] as T;
-      case 'dataSources':
-        return [] as T;
-      default:
-        return {} as T;
-    }
   }
 }
 

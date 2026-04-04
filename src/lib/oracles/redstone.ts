@@ -1,4 +1,3 @@
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { RedStoneApiError, type RedStoneErrorCode } from '@/lib/errors';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';

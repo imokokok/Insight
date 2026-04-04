@@ -114,7 +114,7 @@ export function API3AnalyticsView() {
 
   const historicalDataPoints: DataPoint[] = useMemo(() => {
     if (!apiHistoricalData || apiHistoricalData.length === 0) {
-      return generateMockData();
+      throw new Error('Historical data is required. API3 data source returned no results.');
     }
     return apiHistoricalData.map((d) => ({
       timestamp: d.timestamp,
@@ -134,7 +134,7 @@ export function API3AnalyticsView() {
         id: 'btc-usd',
         name: 'BTC/USD',
         type: 'dapi',
-        data: generateMockData(0.8),
+        data: historicalDataPoints,
       },
       {
         id: 'api3-usd',
@@ -152,7 +152,7 @@ export function API3AnalyticsView() {
         id: 'polygon',
         name: 'Polygon',
         type: 'chain',
-        data: generateMockData(0.95),
+        data: historicalDataPoints,
       },
     ];
   }, [historicalDataPoints]);
@@ -232,28 +232,6 @@ export function API3AnalyticsView() {
       <div className="min-h-[500px]">{renderContent()}</div>
     </div>
   );
-}
-
-function generateMockData(correlation: number = 1): DataPoint[] {
-  const data: DataPoint[] = [];
-  const now = Date.now();
-  let basePrice = 2.5;
-
-  for (let i = 90; i >= 0; i--) {
-    const timestamp = now - i * 24 * 60 * 60 * 1000;
-    const change = (Math.random() - 0.5) * 0.1 * correlation;
-    basePrice = basePrice * (1 + change);
-
-    const anomaly = Math.random() < 0.02;
-    const value = anomaly ? basePrice * (1 + (Math.random() - 0.5) * 0.3) : basePrice;
-
-    data.push({
-      timestamp,
-      value,
-    });
-  }
-
-  return data;
 }
 
 export default API3AnalyticsView;

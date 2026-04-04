@@ -225,7 +225,7 @@ export function AdvancedDataExport({
   const renderFormatSelection = () => (
     <div className="p-3">
       <p className="text-xs text-gray-500 px-2 py-1 mb-2">
-        {t('redstone.export.selectFormat') || '选择导出格式'}
+        {t('redstone.export.selectFormat')}
       </p>
       {FORMAT_CONFIGS.map((format) => (
         <button
@@ -257,7 +257,7 @@ export function AdvancedDataExport({
             <div className="p-1.5 rounded bg-gray-100">{formatConfig?.icon}</div>
             <span className="font-medium text-gray-900">
               {isZh ? formatConfig?.labelZh : formatConfig?.label}{' '}
-              {t('redstone.export.config') || '导出配置'}
+              {t('redstone.export.config')}
             </span>
           </div>
           <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600">
@@ -268,7 +268,7 @@ export function AdvancedDataExport({
         <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">
-              {t('redstone.export.dateRange') || '日期范围'}
+              {t('redstone.export.dateRange')}
             </label>
             <div className="flex flex-wrap gap-2">
               {DATE_RANGE_PRESETS.map((preset) => (
@@ -291,13 +291,13 @@ export function AdvancedDataExport({
                   type="datetime-local"
                   onChange={(e) => handleCustomDateChange('start', e.target.value)}
                   className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder={t('redstone.export.startDate') || '开始日期'}
+                  placeholder={t('redstone.export.startDate')}
                 />
                 <input
                   type="datetime-local"
                   onChange={(e) => handleCustomDateChange('end', e.target.value)}
                   className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder={t('redstone.export.endDate') || '结束日期'}
+                  placeholder={t('redstone.export.endDate')}
                 />
               </div>
             )}
@@ -305,7 +305,7 @@ export function AdvancedDataExport({
 
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">
-              {t('redstone.export.dataTypes') || '数据类型'}
+              {t('redstone.export.dataTypes')}
             </label>
             <div className="flex flex-wrap gap-2">
               {DATA_TYPE_OPTIONS.map((type) => (
@@ -327,7 +327,7 @@ export function AdvancedDataExport({
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-gray-700">
-                {t('redstone.export.fields') || '导出字段'} ({selectedFieldsCount}/
+                {t('redstone.export.fields')} ({selectedFieldsCount}/
                 {config.fields.length})
               </label>
               <div className="flex gap-2">
@@ -340,7 +340,7 @@ export function AdvancedDataExport({
                   }
                   className="text-xs text-red-600 hover:text-red-700"
                 >
-                  {t('common.selectAll') || '全选'}
+                  {t('common.selectAll')}
                 </button>
                 <span className="text-gray-300">|</span>
                 <button
@@ -352,7 +352,7 @@ export function AdvancedDataExport({
                   }
                   className="text-xs text-gray-600 hover:text-gray-700"
                 >
-                  {t('common.deselectAll') || '取消全选'}
+                  {t('common.deselectAll')}
                 </button>
               </div>
             </div>
@@ -387,7 +387,7 @@ export function AdvancedDataExport({
                 className="rounded border-gray-300 text-red-600 focus:ring-red-500"
               />
               <span className="text-sm text-gray-700">
-                {t('redstone.export.includeMetadata') || '包含元数据'}
+                {t('redstone.export.includeMetadata')}
               </span>
             </label>
 
@@ -405,7 +405,7 @@ export function AdvancedDataExport({
                   <span className="text-sm text-gray-700 flex items-center gap-1">
                     {/* eslint-disable-next-line jsx-a11y/alt-text */}
                     <Image className="w-4 h-4" aria-hidden="true" />
-                    {t('redstone.export.includeChart') || '包含图表'}
+                    {t('redstone.export.includeChart')}
                   </span>
                 </label>
               </>
@@ -420,7 +420,7 @@ export function AdvancedDataExport({
               />
               <span className="text-sm text-gray-700 flex items-center gap-1">
                 <Layers className="w-4 h-4" />
-                {t('redstone.export.batchExport') || '批量导出'}
+                {t('redstone.export.batchExport')}
               </span>
             </label>
           </div>
@@ -442,7 +442,7 @@ export function AdvancedDataExport({
 
         <div className="flex gap-2 p-4 border-t border-gray-100">
           <Button variant="secondary" onClick={handleBack} className="flex-1">
-            {t('common.back') || '返回'}
+            {t('common.back')}
           </Button>
           <Button
             onClick={handleExport}
@@ -452,12 +452,12 @@ export function AdvancedDataExport({
             {currentStep === 'exporting' ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                {t('redstone.export.exporting') || '导出中...'}
+                {t('redstone.export.exporting')}
               </>
             ) : (
               <>
                 <Download className="w-4 h-4" />
-                {t('common.export') || '导出'}
+                {t('common.export')}
               </>
             )}
           </Button>
@@ -477,8 +477,8 @@ export function AdvancedDataExport({
       </div>
       <p className="text-sm font-medium text-gray-900 mb-2">
         {exportProgress < 100
-          ? t('redstone.export.exporting') || '正在导出...'
-          : t('redstone.export.completed') || '导出完成'}
+          ? t('redstone.export.exporting')
+          : t('redstone.export.completed')}
       </p>
       <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
         <motion.div
@@ -518,7 +518,7 @@ export function AdvancedDataExport({
           ) : (
             <Download className="w-4 h-4" />
           )}
-          <span className="hidden sm:inline">{t('common.export') || '导出'}</span>
+          <span className="hidden sm:inline">{t('common.export')}</span>
         </button>
       )}
 

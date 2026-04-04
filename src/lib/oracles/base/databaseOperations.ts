@@ -13,8 +13,7 @@ export async function fetchPriceWithDatabase(
   provider: OracleProvider,
   symbol: string,
   chain: Blockchain | undefined,
-  useDatabase: boolean,
-  mockGenerator: () => PriceData
+  useDatabase: boolean
 ): Promise<PriceData> {
   try {
     if (useDatabase && shouldUseDatabase()) {
@@ -24,13 +23,15 @@ export async function fetchPriceWithDatabase(
       }
     }
 
-    const priceData = mockGenerator();
-
-    if (useDatabase && shouldUseDatabase()) {
-      await savePriceToDatabase(priceData);
-    }
-
-    return priceData;
+    throw new PriceFetchError(
+      `No price data available for ${symbol} from ${provider}. Please ensure real data sources are configured.`,
+      {
+        provider,
+        symbol,
+        chain,
+        retryable: true,
+      }
+    );
   } catch (error) {
     if (error instanceof PriceFetchError || error instanceof OracleClientError) {
       throw error;
@@ -54,8 +55,7 @@ export async function fetchHistoricalPricesWithDatabase(
   symbol: string,
   chain: Blockchain | undefined,
   period: number,
-  useDatabase: boolean,
-  mockGenerator: () => PriceData[]
+  useDatabase: boolean
 ): Promise<PriceData[]> {
   try {
     if (useDatabase && shouldUseDatabase()) {
@@ -65,13 +65,16 @@ export async function fetchHistoricalPricesWithDatabase(
       }
     }
 
-    const pricesData = mockGenerator();
-
-    if (useDatabase && shouldUseDatabase()) {
-      await savePricesToDatabase(pricesData);
-    }
-
-    return pricesData;
+    throw new PriceFetchError(
+      `No historical price data available for ${symbol} from ${provider}. Please ensure real data sources are configured.`,
+      {
+        provider,
+        symbol,
+        chain,
+        timestamp: Date.now(),
+        retryable: true,
+      }
+    );
   } catch (error) {
     if (error instanceof PriceFetchError || error instanceof OracleClientError) {
       throw error;

@@ -145,7 +145,7 @@ function SimplePriceComparisonTabComponent({
             </span>
             {stats.anomalyCount > 0 && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 rounded text-[10px] font-medium text-red-700">
-                {stats.anomalyCount} {t('crossOracle.anomaliesDetected') || '个异常'}
+                {stats.anomalyCount} {t('crossOracle.anomaliesDetected')}
               </span>
             )}
           </div>
@@ -156,7 +156,7 @@ function SimplePriceComparisonTabComponent({
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-xs text-gray-500">{t('crossOracle.oracleCount') || '预言机数量'}</p>
+            <p className="text-xs text-gray-500">{t('crossOracle.oracleCount')}</p>
             <p className="text-lg font-semibold text-gray-900">{stats.oracleCount}</p>
           </div>
         </div>
@@ -184,7 +184,7 @@ function SimplePriceComparisonTabComponent({
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-gray-400" />
-            {t('crossOracle.priceComparison') || '价格对比'}
+            {t('crossOracle.priceComparison')}
           </h4>
 
           {/* 状态筛选 */}
@@ -195,10 +195,10 @@ function SimplePriceComparisonTabComponent({
               onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
               className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">{t('crossOracle.filter.all') || '全部'}</option>
-              <option value="normal">{t('crossOracle.filter.normal') || '正常'}</option>
-              <option value="warning">{t('crossOracle.filter.warning') || '警告'}</option>
-              <option value="error">{t('crossOracle.filter.error') || '异常'}</option>
+              <option value="all">{t('crossOracle.filter.all')}</option>
+              <option value="normal">{t('crossOracle.filter.normal')}</option>
+              <option value="warning">{t('crossOracle.filter.warning')}</option>
+              <option value="error">{t('crossOracle.filter.error')}</option>
             </select>
           </div>
         </div>
@@ -217,7 +217,7 @@ function SimplePriceComparisonTabComponent({
       <div>
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-sm font-medium text-gray-700">
-            {t('crossOracle.visualization') || '可视化分析'}
+            {t('crossOracle.visualization')}
           </h4>
           <ChartTabSwitcher activeTab={activeChartTab} onTabChange={setActiveChartTab} t={t} />
         </div>

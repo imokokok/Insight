@@ -166,15 +166,7 @@ function EnhancedCoreStats({ stats, themeColor }: { stats: StatItem[]; themeColo
 
 // 生成确定性伪随机数据（避免使用 Math.random）
 function generateMockData(basePrice: number, length: number): number[] {
-  const data: number[] = [];
-  let current = basePrice;
-  for (let i = 0; i < length; i++) {
-    // 使用确定性算法生成波动数据
-    const change = Math.sin(i * 0.5) * 0.05 + Math.cos(i * 0.3) * 0.03;
-    current = current * (1 + change);
-    data.push(current);
-  }
-  return data;
+  throw new Error('Mock data is disabled. Please provide real historical data.');
 }
 
 // 右侧迷你价格图表组件

@@ -720,15 +720,33 @@
         "title": "Integration Scenarios",
         "defiLending": {
           "title": "DeFi Lending Protocol",
-          "description": "Use API3 dAPI as price oracle for decentralized lending"
+          "description": "Use API3 dAPI as price oracle for decentralized lending",
+          "steps": {
+            "selectDapi": "Select suitable dAPI data source (e.g., ETH/USD)",
+            "deployContract": "Deploy lending contract and integrate API3 ServerV1",
+            "configureThreshold": "Configure liquidation threshold and price deviation tolerance",
+            "implementLiquidation": "Implement price update monitoring and liquidation logic"
+          }
         },
         "derivatives": {
           "title": "Derivatives Trading",
-          "description": "Provide reliable price data for derivatives protocols"
+          "description": "Provide reliable price data for derivatives protocols",
+          "steps": {
+            "integrateMultiple": "Integrate multiple dAPI data sources",
+            "priceAggregation": "Implement price aggregation and verification logic",
+            "configureTriggers": "Configure price update trigger conditions",
+            "implementSettlement": "Implement settlement and delivery logic"
+          }
         },
         "crossChain": {
           "title": "Cross-chain Applications",
-          "description": "Use unified dAPI data sources across multiple chains"
+          "description": "Use unified dAPI data sources across multiple chains",
+          "steps": {
+            "selectTargetChain": "Select target deployment chain",
+            "getContractAddresses": "Get API3 contract addresses for each chain",
+            "deployBridge": "Deploy cross-chain message passing contract",
+            "implementSync": "Implement price synchronization and verification logic"
+          }
         }
       },
       "bestPractices": {

@@ -104,13 +104,13 @@ function getSeverityLabel(
 ): string {
   switch (severity) {
     case 'high':
-      return t('crossOracle.risk.high') || '高';
+      return t('crossOracle.risk.high');
     case 'medium':
-      return t('crossOracle.risk.medium') || '中';
+      return t('crossOracle.risk.medium');
     case 'low':
-      return t('crossOracle.risk.low') || '低';
+      return t('crossOracle.risk.low');
     default:
-      return t('crossOracle.risk.unknown') || '未知';
+      return t('crossOracle.risk.unknown');
   }
 }
 
@@ -141,18 +141,18 @@ function formatRelativeTime(
   const seconds = Math.floor(diff / 1000);
 
   if (seconds < 60) {
-    return t('crossOracle.time.secondsAgo', { seconds }) || `${seconds}秒前`;
+    return t('crossOracle.time.secondsAgo', { seconds });
   }
   if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60);
-    return t('crossOracle.time.minutesAgo', { minutes }) || `${minutes}分钟前`;
+    return t('crossOracle.time.minutesAgo', { minutes });
   }
   if (seconds < 86400) {
     const hours = Math.floor(seconds / 3600);
-    return t('crossOracle.time.hoursAgo', { hours }) || `${hours}小时前`;
+    return t('crossOracle.time.hoursAgo', { hours });
   }
   const days = Math.floor(seconds / 86400);
-  return t('crossOracle.time.daysAgo', { days }) || `${days}天前`;
+  return t('crossOracle.time.daysAgo', { days });
 }
 
 /**
@@ -181,10 +181,10 @@ function EmptyState({
         <ShieldCheck className="w-8 h-8 text-emerald-600" />
       </div>
       <h3 className="text-base font-semibold text-gray-900">
-        {t('crossOracle.risk.noAnomalies') || '暂无风险异常'}
+        {t('crossOracle.risk.noAnomalies')}
       </h3>
       <p className="text-sm text-gray-500 mt-1 max-w-sm">
-        {t('crossOracle.risk.noAnomaliesDesc') || '当前所有预言机数据正常，未发现价格异常或风险项'}
+        {t('crossOracle.risk.noAnomaliesDesc')}
       </p>
     </div>
   );
@@ -283,7 +283,7 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
               }}
             >
               <Eye className="w-3.5 h-3.5 mr-1" />
-              {t('crossOracle.risk.viewDetails') || '详情'}
+              {t('crossOracle.risk.viewDetails')}
             </Button>
             <button
               className="p-1 rounded hover:bg-gray-200 transition-colors"
@@ -311,25 +311,25 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
                 {/* 详细信息 */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-gray-900">
-                    {t('crossOracle.risk.detailInfo') || '详细信息'}
+                    {t('crossOracle.risk.detailInfo')}
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">
-                        {t('crossOracle.provider') || '提供商'}:
+                        {t('crossOracle.provider')}:
                       </span>
                       <span className="font-medium text-gray-900">
                         {oracleNames[anomaly.provider]}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">{t('crossOracle.price') || '价格'}:</span>
+                      <span className="text-gray-500">{t('crossOracle.price')}:</span>
                       <span className="font-mono font-medium text-gray-900">
                         {formatPrice(anomaly.price)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">{t('crossOracle.deviation') || '偏差'}:</span>
+                      <span className="text-gray-500">{t('crossOracle.deviation')}:</span>
                       <span className={`font-mono font-medium ${deviationColorClass}`}>
                         {formatPercent(anomaly.deviationPercent)}
                       </span>
@@ -340,12 +340,12 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
                 {/* 数据新鲜度 */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-gray-900">
-                    {t('crossOracle.risk.dataFreshness') || '数据新鲜度'}
+                    {t('crossOracle.risk.dataFreshness')}
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">
-                        {t('crossOracle.risk.detectedAt') || '检测时间'}:
+                        {t('crossOracle.risk.detectedAt')}:
                       </span>
                       <span className="text-gray-900">
                         {new Date(anomaly.timestamp).toLocaleString()}
@@ -353,7 +353,7 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">
-                        {t('crossOracle.risk.freshness') || '新鲜度'}:
+                        {t('crossOracle.risk.freshness')}:
                       </span>
                       <span className="text-gray-900">
                         {anomaly.freshnessSeconds < 60
@@ -363,7 +363,7 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">
-                        {t('crossOracle.risk.status') || '状态'}:
+                        {t('crossOracle.risk.status')}:
                       </span>
                       <span
                         className={`inline-flex items-center px-2 py-0.5 text-xs rounded-full ${colors.badge}`}
@@ -377,12 +377,12 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
                 {/* 原因分析 */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-gray-900">
-                    {t('crossOracle.risk.analysis') || '原因分析'}
+                    {t('crossOracle.risk.analysis')}
                   </h4>
                   <p className="text-sm text-gray-600 leading-relaxed">{anomaly.reason}</p>
                   <div className="pt-2">
                     <Button variant="secondary" size="sm" className="text-xs h-8">
-                      {t('crossOracle.risk.investigate') || '深入调查'}
+                      {t('crossOracle.risk.investigate')}
                     </Button>
                   </div>
                 </div>
@@ -428,25 +428,25 @@ function RiskDetailsTableComponent({ anomalies, t }: RiskDetailsTableProps) {
                 #
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('crossOracle.oracle') || '预言机'}
+                {t('crossOracle.oracle')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('crossOracle.price') || '价格'}
+                {t('crossOracle.price')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('crossOracle.deviation') || '偏差'}
+                {t('crossOracle.deviation')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('crossOracle.risk.level') || '风险等级'}
+                {t('crossOracle.risk.level')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('crossOracle.risk.reason') || '原因'}
+                {t('crossOracle.risk.reason')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('crossOracle.risk.time') || '时间'}
+                {t('crossOracle.risk.time')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                {t('crossOracle.action') || '操作'}
+                {t('crossOracle.action')}
               </th>
             </tr>
           </thead>
@@ -474,23 +474,22 @@ function RiskDetailsTableComponent({ anomalies, t }: RiskDetailsTableProps) {
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
         <div className="flex items-center justify-between text-xs text-gray-500">
           <span>
-            {t('crossOracle.risk.totalAnomalies', { count: anomalies.length }) ||
-              `共 ${anomalies.length} 个异常`}
+            {t('crossOracle.risk.totalAnomalies', { count: anomalies.length })}
           </span>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-red-500"></span>
-              {t('crossOracle.risk.high') || '高'}:{' '}
+              {t('crossOracle.risk.high')}:{' '}
               {anomalies.filter((a) => a.severity === 'high').length}
             </span>
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-              {t('crossOracle.risk.medium') || '中'}:{' '}
+              {t('crossOracle.risk.medium')}{' '}
               {anomalies.filter((a) => a.severity === 'medium').length}
             </span>
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-              {t('crossOracle.risk.low') || '低'}:{' '}
+              {t('crossOracle.risk.low')}:{' '}
               {anomalies.filter((a) => a.severity === 'low').length}
             </span>
           </div>

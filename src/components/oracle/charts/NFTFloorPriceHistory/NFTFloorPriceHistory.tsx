@@ -92,56 +92,15 @@ export function NFTFloorPriceHistory({
   const diaService = useMemo(() => getDIADataService(), []);
 
   const generateMockHistoricalData = useCallback(
-    (basePrice: number, periodDays: number): FloorPricePoint[] => {
-      const data: FloorPricePoint[] = [];
-      const now = Date.now();
-      const pointsPerDay = 4;
-      const totalPoints = periodDays * pointsPerDay;
-
-      for (let i = totalPoints; i >= 0; i--) {
-        const timestamp = now - i * ((24 * 60 * 60 * 1000) / pointsPerDay);
-        const randomVariation = (Math.random() - 0.5) * 0.1;
-        const trendFactor = Math.sin(i / 10) * 0.05;
-        const price = basePrice * (1 + randomVariation + trendFactor);
-
-        data.push({
-          timestamp,
-          date: new Date(timestamp).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-          }),
-          floorPrice: price,
-          floorPriceUSD: price * 1800,
-        });
-      }
-
-      return data;
+    (_basePrice: number, _periodDays: number): FloorPricePoint[] => {
+      throw new Error('Mock data is disabled. Please use real data sources.');
     },
     []
   );
 
   const generateMockVolumeData = useCallback(
-    (baseVolume: number, periodDays: number): VolumePoint[] => {
-      const data: VolumePoint[] = [];
-      const now = Date.now();
-
-      for (let i = periodDays; i >= 0; i--) {
-        const timestamp = now - i * 24 * 60 * 60 * 1000;
-        const randomVariation = Math.random() * 0.8 + 0.6;
-        const volume = baseVolume * randomVariation;
-        const isHighVolume = volume > baseVolume * 0.9;
-
-        data.push({
-          date: new Date(timestamp).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-          }),
-          volume,
-          color: isHighVolume ? '#10b981' : '#6b7280',
-        });
-      }
-
-      return data;
+    (_baseVolume: number, _periodDays: number): VolumePoint[] => {
+      throw new Error('Mock data is disabled. Please use real data sources.');
     },
     []
   );
@@ -174,21 +133,7 @@ export function NFTFloorPriceHistory({
         setHistoricalData(generateMockHistoricalData(nftData.FloorPrice, selectedPeriod));
         setVolumeData(generateMockVolumeData(nftData.VolumeYesterday || 100, selectedPeriod));
       } else {
-        const mockFloorPrice = 0.5 + Math.random() * 2;
-        setFloorPriceData({
-          collection: collection.name,
-          floorPrice: mockFloorPrice,
-          floorPriceUSD: mockFloorPrice * 1800,
-          floorPriceYesterday: mockFloorPrice * (0.95 + Math.random() * 0.1),
-          volumeYesterday: 50 + Math.random() * 200,
-          timestamp: Date.now(),
-          chain: collection.chain,
-          change24h: (Math.random() - 0.5) * 0.1,
-          change24hPercent: (Math.random() - 0.5) * 10,
-        });
-
-        setHistoricalData(generateMockHistoricalData(mockFloorPrice, selectedPeriod));
-        setVolumeData(generateMockVolumeData(100, selectedPeriod));
+        throw new Error('No NFT floor price data available. Please check the data source.');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch NFT data');

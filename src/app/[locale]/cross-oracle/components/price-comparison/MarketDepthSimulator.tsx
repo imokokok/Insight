@@ -85,16 +85,16 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-900">
-          {t('crossOracle.charts.depthTitle') || '市场深度模拟'}
+          {t('crossOracle.charts.depthTitle')}
         </h4>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-emerald-500 rounded" />
-            <span className="text-gray-500">{t('crossOracle.bid') || '买盘'}</span>
+            <span className="text-gray-500">{t('crossOracle.bid')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-red-500 rounded" />
-            <span className="text-gray-500">{t('crossOracle.ask') || '卖盘'}</span>
+            <span className="text-gray-500">{t('crossOracle.ask')}</span>
           </div>
         </div>
       </div>
@@ -102,15 +102,15 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
       {/* 最佳价格展示 */}
       <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
         <div className="text-center">
-          <div className="text-xs text-gray-500 mb-1">{t('crossOracle.bestBid') || '最佳买价'}</div>
+          <div className="text-xs text-gray-500 mb-1">{t('crossOracle.bestBid')}</div>
           <div className="text-lg font-semibold text-emerald-600">{formatPrice(bestBid)}</div>
         </div>
         <div className="text-center border-x border-gray-200">
-          <div className="text-xs text-gray-500 mb-1">{t('crossOracle.spread') || '价差'}</div>
+          <div className="text-xs text-gray-500 mb-1">{t('crossOracle.spread')}</div>
           <div className="text-lg font-semibold text-gray-900">{spread.toFixed(3)}%</div>
         </div>
         <div className="text-center">
-          <div className="text-xs text-gray-500 mb-1">{t('crossOracle.bestAsk') || '最佳卖价'}</div>
+          <div className="text-xs text-gray-500 mb-1">{t('crossOracle.bestAsk')}</div>
           <div className="text-lg font-semibold text-red-600">{formatPrice(bestAsk)}</div>
         </div>
       </div>
@@ -135,10 +135,10 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
               formatter={(value, name) => [
                 (value as number).toFixed(2),
                 name === 'bidDepth'
-                  ? t('crossOracle.bidDepth') || '买盘深度'
-                  : t('crossOracle.askDepth') || '卖盘深度',
+                  ? t('crossOracle.bidDepth')
+                  : t('crossOracle.askDepth'),
               ]}
-              labelFormatter={(label) => `${t('crossOracle.price') || '价格'}: ${label}`}
+              labelFormatter={(label) => `${t('crossOracle.price')}: ${label}`}
               contentStyle={{
                 backgroundColor: 'white',
                 border: '1px solid #e5e7eb',
@@ -152,7 +152,7 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
               strokeDasharray="4 4"
               strokeWidth={2}
               label={{
-                value: t('crossOracle.median') || '中位数',
+                value: t('crossOracle.median'),
                 position: 'top',
                 fill: '#374151',
                 fontSize: 11,
@@ -179,7 +179,7 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
       </div>
 
       <div className="mt-3 text-xs text-gray-500 text-center">
-        {t('crossOracle.charts.depthHint') || '基于多预言机价格模拟的市场深度'}
+        {t('crossOracle.charts.depthHint')}
       </div>
     </div>
   );

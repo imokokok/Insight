@@ -1,4 +1,3 @@
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -178,13 +177,12 @@ export class DIAClient extends BaseOracleClient {
       const livePrice = await diaService.getAssetPrice(symbol, chain);
 
       if (livePrice) {
-        return this.fetchPriceWithDatabase(symbol, chain, () => livePrice);
+        return this.fetchPriceWithDatabase(symbol, chain);
       }
 
-      const basePrice = UNIFIED_BASE_PRICES[upperSymbol] || 100;
-
-      return this.fetchPriceWithDatabase(symbol, chain, () =>
-        this.generateMockPrice(symbol, basePrice, chain)
+      throw this.createError(
+        `No price data available for ${symbol} from DIA. Real data source returned no results.`,
+        'NO_DATA_AVAILABLE'
       );
     } catch (error) {
       throw this.createError(
@@ -205,18 +203,12 @@ export class DIAClient extends BaseOracleClient {
       const liveHistoricalPrices = await diaService.getHistoricalPrices(symbol, chain, period);
 
       if (liveHistoricalPrices && liveHistoricalPrices.length > 0) {
-        return this.fetchHistoricalPricesWithDatabase(
-          symbol,
-          chain,
-          period,
-          () => liveHistoricalPrices
-        );
+        return this.fetchHistoricalPricesWithDatabase(symbol, chain, period);
       }
 
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-
-      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
-        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
+      throw this.createError(
+        `No historical price data available for ${symbol} from DIA. Real data source returned no results.`,
+        'NO_DATA_AVAILABLE'
       );
     } catch (error) {
       throw this.createError(
@@ -569,64 +561,5 @@ export class DIAClient extends BaseOracleClient {
       return [];
     }
     return this.supportedChains;
-  }
-
-  /**
-   * 生成模拟价格数据
-   */
-  protected generateMockPrice(
-    symbol: string,
-    basePrice: number,
-    chain?: Blockchain,
-    timestamp?: number
-  ): PriceData {
-    return {
-      provider: OracleProvider.DIA,
-      symbol: symbol.toUpperCase(),
-      price: basePrice,
-      timestamp: timestamp || Date.now(),
-      decimals: 8,
-      confidence: 0.95,
-      change24h: 0,
-      change24hPercent: 0,
-      chain: chain || Blockchain.ETHEREUM,
-      source: 'dia-mock',
-    };
-  }
-
-  /**
-   * 生成模拟历史价格数据
-   */
-  protected generateMockHistoricalPrices(
-    symbol: string,
-    basePrice: number,
-    chain?: Blockchain,
-    period: number = 24
-  ): PriceData[] {
-    const prices: PriceData[] = [];
-    const now = Date.now();
-    const interval = (period * 60 * 60 * 1000) / 100;
-
-    for (let i = 99; i >= 0; i--) {
-      const timestamp = now - i * interval;
-      const volatility = 0.02;
-      const randomChange = (Math.random() - 0.5) * 2 * volatility;
-      const price = basePrice * (1 + randomChange);
-
-      prices.push({
-        provider: OracleProvider.DIA,
-        symbol: symbol.toUpperCase(),
-        price: price,
-        timestamp: timestamp,
-        decimals: 8,
-        confidence: 0.95,
-        change24h: 0,
-        change24hPercent: 0,
-        chain: chain || Blockchain.ETHEREUM,
-        source: 'dia-mock',
-      });
-    }
-
-    return prices;
   }
 }

@@ -66,9 +66,9 @@ function calculateRiskScore(
  * 计算风险指标
  */
 function calculateRiskMetrics(anomalies: PriceAnomaly[], maxDeviation: number): RiskMetricsData {
-  const volatility = Math.min(100, maxDeviation * 5 + Math.random() * 10);
+  const volatility = Math.min(100, maxDeviation * 5);
   const consistency = Math.max(0, 100 - anomalies.length * 5 - maxDeviation * 2);
-  const sensitivity = anomalies.length > 0 ? 85 + Math.random() * 10 : 95;
+  const sensitivity = anomalies.length > 0 ? 85 : 95;
   const health = Math.max(0, 100 - anomalies.length * 10 - countHighRisk(anomalies) * 15);
 
   return {
@@ -142,7 +142,7 @@ function SafeState({
       <div>
         <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
           <span className="w-1 h-4 bg-emerald-500 rounded-full" />
-          {t('crossOracle.risk.systemMetrics') || '系统指标'}
+          {t('crossOracle.risk.systemMetrics')}
         </h3>
         <RiskMetricsGrid
           volatility={15}
@@ -172,11 +172,10 @@ function SafeState({
             </svg>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {t('crossOracle.risk.allClear') || '数据正常'}
+            {t('crossOracle.risk.allClear')}
           </h3>
           <p className="text-sm text-gray-600 max-w-md mx-auto">
-            {t('crossOracle.risk.allClearDesc') ||
-              '所有预言机价格数据在合理范围内，未发现异常偏差。建议继续保持当前监控策略。'}
+            {t('crossOracle.risk.allClearDesc')}
           </p>
         </CardContent>
       </Card>
@@ -242,7 +241,7 @@ function RiskAlertTabComponent({
       <div>
         <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
           <span className="w-1 h-4 bg-purple-500 rounded-full" />
-          {t('crossOracle.risk.keyMetrics') || '关键风险指标'}
+          {t('crossOracle.risk.keyMetrics')}
         </h3>
         <RiskMetricsGrid
           volatility={riskMetrics.volatility}
@@ -266,7 +265,7 @@ function RiskAlertTabComponent({
       <div>
         <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
           <span className="w-1 h-4 bg-orange-500 rounded-full" />
-          {t('crossOracle.risk.anomalyDetails') || '异常详情'}
+          {t('crossOracle.risk.anomalyDetails')}
         </h3>
         <RiskDetailsTable anomalies={anomalies} t={t} />
       </div>

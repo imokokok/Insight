@@ -48,10 +48,15 @@
   "networkStatus": "网络状态",
   "dataSource": "数据源",
   "tradingPair": "交易对",
-  "volume24h": "24h 成交额",
+  "volume24h": "24h 成交量",
   "liquidity": "流动性",
   "marketDepthLabel": "市场深度",
   "depthScore": "深度评分",
+  "realData": "真实数据",
+  "fallback": "回退",
+  "failed": "失败",
+  "dataSourceLabel": "数据源",
+  "error": "错误",
   "priceStream": {
     "title": "实时价格流",
     "currentPrice": "当前价格",
@@ -572,7 +577,13 @@
     "hoursAgo": "小时前",
     "minutesAgo": "分钟前",
     "daysAgo": "天前",
-    "thisWeek": "本周"
+    "thisWeek": "本周",
+    "defaultUpdates": {
+      "priceUpdate": "TRB价格更新: $35.42 (+2.3%)",
+      "newReporter": "新报告者加入: 0x7a8b...3c4d",
+      "feedUpdate": "数据喂价更新",
+      "maintenanceComplete": "系统维护完成"
+    }
   },
   "market": {
     "tradingPair": "主要交易对",

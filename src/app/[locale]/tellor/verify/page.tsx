@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 
 import { verifyTellorData, type VerificationResult } from '@/lib/oracles/tellorVerification';
+import { useTranslations } from '@/i18n';
 
 export default function TellorVerifyPage() {
+  const t = useTranslations('tellor');
   const [results, setResults] = useState<VerificationResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -69,15 +71,15 @@ export default function TellorVerifyPage() {
                     }`}
                   >
                     {result.isRealData
-                      ? '真实数据'
+                      ? t('tellor.realData')
                       : result.status === 'fallback'
-                        ? '回退'
-                        : '失败'}
+                        ? t('tellor.fallback')
+                        : t('tellor.failed')}
                   </span>
                 </div>
 
                 {result.dataSource && (
-                  <p className="text-sm text-gray-600 mb-2">数据源: {result.dataSource}</p>
+                  <p className="text-sm text-gray-600 mb-2">{t('tellor.dataSourceLabel')}: {result.dataSource}</p>
                 )}
 
                 {result.sampleData ? (
@@ -86,7 +88,7 @@ export default function TellorVerifyPage() {
                   </pre>
                 ) : null}
 
-                {result.error && <p className="text-sm text-red-600 mt-2">错误: {result.error}</p>}
+                {result.error && <p className="text-sm text-red-600 mt-2">{t('tellor.error')}: {result.error}</p>}
               </div>
             ))}
           </div>

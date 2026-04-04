@@ -190,7 +190,7 @@ function OracleQualityTableComponent({ oracleMetrics, t, className }: OracleQual
   if (data.length === 0) {
     return (
       <div className={cn('p-8 text-center text-gray-500', className)}>
-        {t('crossOracle.quality.noData') || '暂无数据'}
+        {t('crossOracle.quality.noData')}
       </div>
     );
   }
@@ -202,21 +202,21 @@ function OracleQualityTableComponent({ oracleMetrics, t, className }: OracleQual
           <thead>
             <tr>
               <TableHeader
-                label={t('crossOracle.quality.table.oracle') || '预言机'}
+                label={t('crossOracle.quality.table.oracle')}
                 field="provider"
                 currentSort={sort}
                 onSort={handleSort}
                 align="left"
               />
               <TableHeader
-                label={t('crossOracle.quality.table.price') || '价格'}
+                label={t('crossOracle.quality.table.price')}
                 field="price"
                 currentSort={sort}
                 onSort={handleSort}
                 align="right"
               />
               <TableHeader
-                label={t('crossOracle.quality.table.deviation') || '偏差%'}
+                label={t('crossOracle.quality.table.deviation')}
                 field="deviationPercent"
                 currentSort={sort}
                 onSort={handleSort}
@@ -230,14 +230,14 @@ function OracleQualityTableComponent({ oracleMetrics, t, className }: OracleQual
                 align="right"
               />
               <TableHeader
-                label={t('crossOracle.quality.table.latency') || '延迟'}
+                label={t('crossOracle.quality.table.latency')}
                 field="latency"
                 currentSort={sort}
                 onSort={handleSort}
                 align="right"
               />
               <TableHeader
-                label={t('crossOracle.quality.table.confidence') || '置信度'}
+                label={t('crossOracle.quality.table.confidence')}
                 field="confidence"
                 currentSort={sort}
                 onSort={handleSort}
@@ -328,14 +328,14 @@ function OracleQualityTableComponent({ oracleMetrics, t, className }: OracleQual
       <div className="px-3 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex items-center gap-4">
         <span className="flex items-center gap-1">
           <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
-          {t('crossOracle.quality.table.outlierLegend') || '异常值 (|Z|>2)'}
+          {t('crossOracle.quality.table.outlierLegend')}
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block w-2 h-2 rounded-full bg-yellow-500" />
-          {t('crossOracle.quality.table.highLatencyLegend') || '高延迟 (>30s)'}
+          {t('crossOracle.quality.table.highLatencyLegend')}
         </span>
         <span className="ml-auto">
-          {t('crossOracle.quality.table.clickToSort') || '点击表头排序'}
+          {t('crossOracle.quality.table.clickToSort')}
         </span>
       </div>
     </div>
