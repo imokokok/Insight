@@ -3,8 +3,11 @@ import type { OracleClientConfig } from '@/lib/oracles/base';
 import { getPythDataService } from '@/lib/oracles/pythDataService';
 import { pythSymbols } from '@/lib/oracles/supportedSymbols';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
+import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
+
+const logger = createLogger('PythClient');
 
 const SPREAD_PERCENTAGES: Record<string, number> = {
   BTC: 0.02,
@@ -123,14 +126,13 @@ export class PythClient extends BaseOracleClient {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');
       }
 
-      // 方案2: 使用新的批量历史数据获取方法
       const historicalPrices = await this.pythDataService.getHistoricalPrices(symbol, period, 60);
 
       if (historicalPrices.length >= 12) {
-        console.log(
-          `[PythClient] Using Pyth real historical data for ${symbol}, got ${historicalPrices.length} points`
-        );
-        // 添加 chain 和 source 信息
+        logger.info(`Using Pyth real historical data for ${symbol}`, {
+          symbol,
+          points: historicalPrices.length,
+        });
         return historicalPrices
           .map((price) => ({
             ...price,
@@ -140,19 +142,17 @@ export class PythClient extends BaseOracleClient {
           .sort((a, b) => a.timestamp - b.timestamp);
       }
 
-      // 如果 Pyth 数据不足，尝试使用 Binance 作为备选
-      console.log(
-        `[PythClient] Pyth historical data insufficient for ${symbol}, trying Binance...`
-      );
+      logger.info(`Pyth historical data insufficient for ${symbol}, trying Binance...`, { symbol });
       const { coinGeckoMarketService } =
         await import('@/lib/services/marketData/coinGeckoMarketService');
       const days = Math.ceil(period / 24);
       const binancePrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
 
       if (binancePrices && binancePrices.length > 0) {
-        console.log(
-          `[PythClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`
-        );
+        logger.info(`Using Binance real historical data for ${symbol}`, {
+          symbol,
+          points: binancePrices.length,
+        });
         return binancePrices.map((point) => ({
           provider: this.name,
           chain: chain || Blockchain.ETHEREUM,
@@ -167,13 +167,15 @@ export class PythClient extends BaseOracleClient {
         }));
       }
 
-      // 回退到空数据
-      console.warn(`[PythClient] No historical data available for ${symbol}`);
+      logger.warn(`No historical data available for ${symbol}`, { symbol });
       return [];
     } catch (error) {
-      console.error(`[PythClient] Failed to fetch historical prices for ${symbol}:`, error);
+      logger.error(
+        `Failed to fetch historical prices for ${symbol}`,
+        error instanceof Error ? error : new Error(String(error)),
+        { symbol }
+      );
 
-      // 出错时返回空数据
       return [];
     }
   }

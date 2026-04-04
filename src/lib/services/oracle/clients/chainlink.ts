@@ -6,8 +6,11 @@ import {
   type ChainlinkPriceData,
 } from '@/lib/oracles/chainlinkOnChainService';
 import { coinGeckoMarketService } from '@/lib/services/marketData/coinGeckoMarketService';
+import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
+
+const logger = createLogger('ChainlinkClient');
 
 export interface ChainlinkNetworkStats {
   activeNodes: number;
@@ -152,31 +155,30 @@ export class ChainlinkClient extends BaseOracleClient {
       const chainId = this.getChainId(chain);
 
       if (this.useRealData) {
-        // 方案1: 优先使用 Binance 获取真实历史数据
         const days = Math.ceil(period / 24);
         const binancePrices = await this.getHistoricalPricesFromCoinGecko(symbol, days);
 
         if (binancePrices && binancePrices.length > 0) {
-          console.log(
-            `[ChainlinkClient] Using Binance real historical data for ${symbol}, got ${binancePrices.length} points`
-          );
+          logger.info(`Using Binance real historical data for ${symbol}`, {
+            symbol,
+            points: binancePrices.length,
+          });
           return binancePrices;
         }
 
-        // 方案4: 如果 Binance 失败，尝试使用 TheGraph 获取链上历史数据
         if (isPriceFeedSupported(symbol, chainId)) {
           const graphPrices = await this.fetchHistoricalPricesFromSubgraph(symbol, chain, period);
           if (graphPrices && graphPrices.length > 0) {
-            console.log(
-              `[ChainlinkClient] Using TheGraph real historical data for ${symbol}, got ${graphPrices.length} points`
-            );
+            logger.info(`Using TheGraph real historical data for ${symbol}`, {
+              symbol,
+              points: graphPrices.length,
+            });
             return graphPrices;
           }
         }
       }
 
-      // 回退到空数据
-      console.warn(`[ChainlinkClient] No historical data available for ${symbol}`);
+      logger.warn(`No historical data available for ${symbol}`, { symbol });
       return [];
     } catch (error) {
       throw this.createError(
@@ -216,7 +218,7 @@ export class ChainlinkClient extends BaseOracleClient {
       const subgraphUrl = subgraphUrls[chainId];
 
       if (!subgraphUrl) {
-        console.warn(`[ChainlinkClient] No subgraph available for chain ${chainId}`);
+        logger.warn(`No subgraph available for chain`, { chainId });
         return [];
       }
 
@@ -305,7 +307,7 @@ export class ChainlinkClient extends BaseOracleClient {
           };
         });
     } catch (error) {
-      console.warn(`[ChainlinkClient] Failed to fetch from TheGraph:`, error);
+      logger.warn('Failed to fetch from TheGraph', { error, symbol });
       return [];
     }
   }
@@ -350,7 +352,7 @@ export class ChainlinkClient extends BaseOracleClient {
         updateFrequency: 60,
       };
     } catch (error) {
-      console.warn('[ChainlinkClient] Failed to fetch network stats, using fallback:', error);
+      logger.warn('Failed to fetch network stats, using fallback', { error });
 
       return {
         activeNodes: 1847,
@@ -382,7 +384,7 @@ export class ChainlinkClient extends BaseOracleClient {
       const marketData = await coinGeckoMarketService.getTokenMarketData(symbol);
 
       if (!marketData) {
-        console.warn(`[ChainlinkClient] No market data found for ${symbol}`);
+        logger.warn(`No market data found for ${symbol}`, { symbol });
         return null;
       }
 
@@ -404,7 +406,11 @@ export class ChainlinkClient extends BaseOracleClient {
         stakingApr: 4.32,
       };
     } catch (error) {
-      console.error(`[ChainlinkClient] Failed to fetch market data for ${symbol}:`, error);
+      logger.error(
+        `Failed to fetch market data for ${symbol}`,
+        error instanceof Error ? error : new Error(String(error)),
+        { symbol }
+      );
       return null;
     }
   }
@@ -417,7 +423,7 @@ export class ChainlinkClient extends BaseOracleClient {
       const historicalPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
 
       if (!historicalPrices || historicalPrices.length === 0) {
-        console.warn(`[ChainlinkClient] No historical prices found for ${symbol}`);
+        logger.warn(`No historical prices found for ${symbol}`, { symbol });
         return [];
       }
 
@@ -441,7 +447,10 @@ export class ChainlinkClient extends BaseOracleClient {
         };
       });
     } catch (error) {
-      console.error(`[ChainlinkClient] Failed to fetch historical prices for ${symbol}:`, error);
+      logger.warn(`Failed to fetch historical prices from CoinGecko for ${symbol}`, {
+        error,
+        symbol,
+      });
       return [];
     }
   }
