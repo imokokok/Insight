@@ -11,7 +11,6 @@ export {
   StatGridItem,
   ConfidenceIntervalDisplay,
   DataQualityScoreCard,
-  UMAScoreExplanationModal,
   PerformanceGauge,
   PerformanceGaugeGroup,
   StakingCalculator,
