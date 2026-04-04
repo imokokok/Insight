@@ -1,5 +1,4 @@
 export { DashboardCard, StatCard, MetricCard, StatGrid, StatGridItem } from './DashboardCard';
-export { ConfidenceIntervalDisplay } from './ConfidenceIntervalDisplay';
 export { DataQualityScoreCard } from './DataQualityScoreCard';
 export { OraclePerformanceRanking } from './OraclePerformanceRanking';
 export { PerformanceGauge, PerformanceGaugeGroup } from './PerformanceGauge';

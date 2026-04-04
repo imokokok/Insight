@@ -3,7 +3,6 @@ export { CoveragePoolDashboard } from './CoveragePoolDashboard';
 export { DisputeResolutionPanel } from './DisputeResolutionPanel';
 export { DisputeVotingPanel } from './DisputeVotingPanel';
 export { NetworkHealthPanel, type NetworkDataConfig } from './NetworkHealthPanel';
-export { PublisherContributionPanel } from './PublisherContributionPanel';
 export { StakingPanel } from './StakingPanel';
 export { ValidatorAnalyticsPanel } from './ValidatorAnalyticsPanel';
 export { ValidatorPanel } from './ValidatorPanel';
