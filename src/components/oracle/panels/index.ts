@@ -1,4 +1,3 @@
-export { DataQualityPanel } from './DataQualityPanel';
 export { CoveragePoolDashboard } from './CoveragePoolDashboard';
 export { DisputeResolutionPanel } from './DisputeResolutionPanel';
 export { DisputeVotingPanel } from './DisputeVotingPanel';
