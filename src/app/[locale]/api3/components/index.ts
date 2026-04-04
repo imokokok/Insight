@@ -8,7 +8,3 @@ export { API3RiskView } from './API3RiskView';
 export { API3OevView } from './API3OevView';
 export { API3Hero } from './API3Hero';
 export { API3AnalyticsView } from './API3AnalyticsView';
-export { API3ApiDocs } from './API3ApiDocs';
-export { API3IntegrationGuide } from './API3IntegrationGuide';
-export { API3SdkDownloads } from './API3SdkDownloads';
-export { API3TestnetSwitch } from './API3TestnetSwitch';
