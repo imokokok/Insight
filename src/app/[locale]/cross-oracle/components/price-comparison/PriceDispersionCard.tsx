@@ -41,7 +41,7 @@ function PriceDispersionCardComponent({
       <div className="flex items-center gap-2 mb-4">
         <BarChart3 className="w-4 h-4 text-purple-500" />
         <span className="text-sm font-medium text-gray-500">
-          {t('crossOracle.priceDispersion') || '价格离散度指数'}
+          {t('crossOracle.priceDispersion')}
         </span>
       </div>
 
@@ -51,15 +51,15 @@ function PriceDispersionCardComponent({
       <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-3 gap-4">
         <div className="text-center">
           <div className="text-lg font-semibold text-gray-900">{standardDeviation.toFixed(4)}</div>
-          <div className="text-xs text-gray-500">{t('crossOracle.stdDev') || '标准差'}</div>
+          <div className="text-xs text-gray-500">{t('crossOracle.stdDev')}</div>
         </div>
         <div className="text-center border-x border-gray-100">
           <div className="text-lg font-semibold text-gray-900">{standardError.toFixed(4)}</div>
-          <div className="text-xs text-gray-500">{t('crossOracle.stdError') || '标准误差'}</div>
+          <div className="text-xs text-gray-500">{t('crossOracle.stdError')}</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-semibold text-gray-900">{oracleCount}</div>
-          <div className="text-xs text-gray-500">{t('crossOracle.sampleSize') || '样本数'}</div>
+          <div className="text-xs text-gray-500">{t('crossOracle.sampleSize')}</div>
         </div>
       </div>
     </div>

@@ -1,4 +1,3 @@
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
@@ -104,23 +103,10 @@ export class PythClient extends BaseOracleClient {
         };
       }
 
-      const basePrice = UNIFIED_BASE_PRICES[upperSymbol] || 100;
-      const priceData = await this.fetchPriceWithDatabase(symbol, chain, () => {
-        throw this.createError(
-          'Mock price generation is disabled. Please use real data sources only.',
-          'MOCK_DATA_DISABLED'
-        );
-      });
-
-      if (!priceData.confidenceInterval) {
-        const confidenceInterval = this.generateConfidenceInterval(priceData.price, symbol);
-        return {
-          ...priceData,
-          confidenceInterval,
-        };
-      }
-
-      return priceData;
+      throw this.createError(
+        `No price data available for ${symbol} from Pyth. Real data source returned no results.`,
+        'NO_DATA_AVAILABLE'
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from Pyth',

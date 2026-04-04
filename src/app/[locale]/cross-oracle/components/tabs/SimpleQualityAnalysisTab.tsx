@@ -53,7 +53,7 @@ function SimpleQualityAnalysisTabComponent({
       <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
         <BarChart3 className="w-5 h-5 text-blue-600" />
         <h3 className="text-base font-semibold text-gray-900">
-          {t('crossOracle.quality.professionalAnalysis') || '专业数据质量分析'}
+          {t('crossOracle.quality.professionalAnalysis')}
         </h3>
       </div>
 

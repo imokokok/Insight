@@ -273,22 +273,10 @@ export function MarketDataPanel({
       setLastUpdated(new Date());
 
       if (client.name === OracleProvider.PYTH) {
-        const multiplier = priceData.price * (1 + (Math.random() - 0.5) * 0.02);
-        const ema7 = priceData.price * (1 + (Math.random() - 0.5) * 0.01);
-        const ema14 = priceData.price * (1 + (Math.random() - 0.5) * 0.015);
-        const ema30 = priceData.price * (1 + (Math.random() - 0.5) * 0.02);
-
-        const calculateTrend = (ema: number, currentPrice: number): 'up' | 'down' | 'neutral' => {
-          const diff = ((ema - currentPrice) / currentPrice) * 100;
-          if (diff > 0.5) return 'up';
-          if (diff < -0.5) return 'down';
-          return 'neutral';
-        };
-
         setEmaData([
-          { period: 7, value: ema7, trend: calculateTrend(ema7, priceData.price) },
-          { period: 14, value: ema14, trend: calculateTrend(ema14, priceData.price) },
-          { period: 30, value: ema30, trend: calculateTrend(ema30, priceData.price) },
+          { period: 7, value: priceData.price, trend: 'neutral' as const },
+          { period: 14, value: priceData.price, trend: 'neutral' as const },
+          { period: 30, value: priceData.price, trend: 'neutral' as const },
         ]);
       }
     } catch (error) {

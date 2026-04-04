@@ -113,7 +113,7 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Network className="w-5 h-5 text-emerald-600" />
-            {t('api3.developer.testnet.title') || '网络环境切换'}
+            {t('api3.developer.testnet.title')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             {t('api3.developer.testnet.description') ||
@@ -191,7 +191,7 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
       <section>
         <div className="mb-4">
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('api3.developer.testnet.config.title') || '网络配置'}
+            {t('api3.developer.testnet.config.title')}
           </h3>
         </div>
 
@@ -292,7 +292,7 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
             <div className="mb-4">
               <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <Coins className="w-4 h-4 text-emerald-600" />
-                {t('api3.developer.testnet.testTokens.title') || '测试代币'}
+                {t('api3.developer.testnet.testTokens.title')}
               </h3>
             </div>
 
@@ -348,7 +348,7 @@ export function API3TestnetSwitch({ currentNetwork, onNetworkChange }: API3Testn
         <ExternalLink className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('api3.developer.testnet.resources.title') || '更多资源'}
+            {t('api3.developer.testnet.resources.title')}
           </h3>
           <div className="mt-2 space-y-2">
             <a

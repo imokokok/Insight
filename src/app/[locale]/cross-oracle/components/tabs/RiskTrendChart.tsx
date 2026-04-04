@@ -60,63 +60,8 @@ interface TooltipPayloadEntry {
 /**
  * 生成模拟数据
  */
-function generateMockData(timeRange: TimeRange): RiskDataPoint[] {
-  const now = Date.now();
-  const data: RiskDataPoint[] = [];
-
-  let points: number;
-  let interval: number;
-
-  switch (timeRange) {
-    case '1H':
-      points = 12;
-      interval = 5 * 60 * 1000; // 5分钟
-      break;
-    case '24H':
-      points = 24;
-      interval = 60 * 60 * 1000; // 1小时
-      break;
-    case '7D':
-      points = 28;
-      interval = 6 * 60 * 60 * 1000; // 6小时
-      break;
-    default:
-      points = 24;
-      interval = 60 * 60 * 1000;
-  }
-
-  for (let i = points - 1; i >= 0; i--) {
-    const timestamp = now - i * interval;
-    // 生成波动的风险评分 (0-100)
-    const baseScore = 30 + Math.random() * 40;
-    const spike = Math.random() > 0.85 ? Math.random() * 30 : 0;
-    const riskScore = Math.min(100, Math.max(0, baseScore + spike));
-
-    // 异常数量与风险评分相关
-    const anomalyCount =
-      riskScore > 70
-        ? Math.floor(Math.random() * 5) + 3
-        : riskScore > 50
-          ? Math.floor(Math.random() * 3) + 1
-          : Math.floor(Math.random() * 2);
-
-    // 偶尔添加事件标记
-    const event =
-      riskScore > 80 && Math.random() > 0.7
-        ? '高风险警报'
-        : riskScore > 60 && Math.random() > 0.8
-          ? '异常检测'
-          : undefined;
-
-    data.push({
-      timestamp,
-      riskScore: Math.round(riskScore),
-      anomalyCount,
-      event,
-    });
-  }
-
-  return data;
+function generateMockData(_timeRange: TimeRange): RiskDataPoint[] {
+  throw new Error('Mock data is disabled. Please provide real risk data.');
 }
 
 /**
@@ -218,7 +163,7 @@ function CustomTooltip({ active, payload, label, t }: CustomTooltipProps) {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-500">
-            {t('crossOracle.risk.riskScore') || '风险评分'}
+            {t('crossOracle.risk.riskScore')}
           </span>
           <span
             className="text-sm font-bold px-2 py-0.5 rounded"
@@ -229,13 +174,13 @@ function CustomTooltip({ active, payload, label, t }: CustomTooltipProps) {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-500">
-            {t('crossOracle.risk.anomalyCount') || '异常数量'}
+            {t('crossOracle.risk.anomalyCount')}
           </span>
           <span className="text-sm font-medium text-gray-900">{dataPoint.anomalyCount}</span>
         </div>
         {dataPoint.event && (
           <div className="pt-2 border-t border-gray-100">
-            <span className="text-xs text-gray-500">{t('crossOracle.risk.event') || '事件'}</span>
+            <span className="text-xs text-gray-500">{t('crossOracle.risk.event')}</span>
             <p className="text-xs font-medium text-red-600 mt-0.5">{dataPoint.event}</p>
           </div>
         )}
@@ -278,10 +223,12 @@ function TimeRangeButton({ label, isActive, onClick }: TimeRangeButtonProps) {
 // ============================================================================
 
 function RiskTrendChartComponent({ data, timeRange, onTimeRangeChange, t }: RiskTrendChartProps) {
-  // 如果没有数据，使用模拟数据
+  // 如果没有数据，不使用模拟数据
   const chartData = useMemo(() => {
-    const sourceData = data.length > 0 ? data : generateMockData(timeRange);
-    return sourceData.map((point) => ({
+    if (data.length === 0) {
+      return [];
+    }
+    return data.map((point) => ({
       ...point,
       timeLabel: formatTimestamp(point.timestamp, timeRange),
       riskLevel: getRiskLevel(point.riskScore),
@@ -332,10 +279,10 @@ function RiskTrendChartComponent({ data, timeRange, onTimeRangeChange, t }: Risk
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-900">
-              {t('crossOracle.risk.trendTitle') || '风险趋势'}
+              {t('crossOracle.risk.trendTitle')}
             </h3>
             <p className="text-xs text-gray-500">
-              {t('crossOracle.risk.currentScore') || '当前评分'}:{' '}
+              {t('crossOracle.risk.currentScore')}:{' '}
               <span className="font-medium" style={{ color: currentRiskColor }}>
                 {stats.currentRisk}
               </span>
@@ -366,7 +313,7 @@ function RiskTrendChartComponent({ data, timeRange, onTimeRangeChange, t }: Risk
       {/* 统计概览 */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="bg-gray-50 rounded-lg p-2 text-center">
-          <p className="text-xs text-gray-500">{t('crossOracle.risk.avgScore') || '平均评分'}</p>
+          <p className="text-xs text-gray-500">{t('crossOracle.risk.avgScore')}</p>
           <p
             className="text-lg font-bold"
             style={{ color: getRiskLevelColor(getRiskLevel(stats.avgRisk)) }}
@@ -375,7 +322,7 @@ function RiskTrendChartComponent({ data, timeRange, onTimeRangeChange, t }: Risk
           </p>
         </div>
         <div className="bg-gray-50 rounded-lg p-2 text-center">
-          <p className="text-xs text-gray-500">{t('crossOracle.risk.maxScore') || '最高评分'}</p>
+          <p className="text-xs text-gray-500">{t('crossOracle.risk.maxScore')}</p>
           <p
             className="text-lg font-bold"
             style={{ color: getRiskLevelColor(getRiskLevel(stats.maxRisk)) }}
@@ -385,7 +332,7 @@ function RiskTrendChartComponent({ data, timeRange, onTimeRangeChange, t }: Risk
         </div>
         <div className="bg-gray-50 rounded-lg p-2 text-center">
           <p className="text-xs text-gray-500">
-            {t('crossOracle.risk.totalAnomalies') || '异常总数'}
+            {t('crossOracle.risk.totalAnomalies')}
           </p>
           <p className="text-lg font-bold text-gray-900">{stats.totalAnomalies}</p>
         </div>
@@ -498,7 +445,7 @@ function RiskTrendChartComponent({ data, timeRange, onTimeRangeChange, t }: Risk
             style={{ backgroundColor: semanticColors.success.DEFAULT }}
           />
           <span className="text-xs text-gray-500">
-            {t('crossOracle.risk.low') || '低风险'} (&lt;40)
+            {t('crossOracle.risk.low')} (&lt;40)
           </span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -507,7 +454,7 @@ function RiskTrendChartComponent({ data, timeRange, onTimeRangeChange, t }: Risk
             style={{ backgroundColor: semanticColors.warning.DEFAULT }}
           />
           <span className="text-xs text-gray-500">
-            {t('crossOracle.risk.medium') || '中风险'} (40-70)
+            {t('crossOracle.risk.medium')} (40-70)
           </span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -516,14 +463,14 @@ function RiskTrendChartComponent({ data, timeRange, onTimeRangeChange, t }: Risk
             style={{ backgroundColor: semanticColors.danger.DEFAULT }}
           />
           <span className="text-xs text-gray-500">
-            {t('crossOracle.risk.high') || '高风险'} (&gt;70)
+            {t('crossOracle.risk.high')} (&gt;70)
           </span>
         </div>
         {eventPoints.length > 0 && (
           <div className="flex items-center gap-1.5">
             <AlertCircle className="w-3 h-3 text-red-500" />
             <span className="text-xs text-gray-500">
-              {t('crossOracle.risk.eventMarker') || '风险事件'}
+              {t('crossOracle.risk.eventMarker')}
             </span>
           </div>
         )}

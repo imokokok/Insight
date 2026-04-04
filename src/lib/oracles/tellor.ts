@@ -1,4 +1,3 @@
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -9,7 +8,7 @@ import { tellorOnChainService } from './tellorOnChainService';
 
 import type { OracleClientConfig } from './base';
 
-export type DataSource = 'on-chain' | 'cache' | 'mock' | 'fallback';
+export type DataSource = 'on-chain' | 'cache' | 'fallback';
 
 export interface DataWithSource<T> {
   data: T;
@@ -246,7 +245,7 @@ export class TellorClient extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 15;
-  private lastDataSource: DataSource = 'mock';
+  private lastDataSource: DataSource = 'cache';
   private onChainService = tellorOnChainService;
 
   constructor(config?: OracleClientConfig) {
@@ -274,24 +273,25 @@ export class TellorClient extends BaseOracleClient {
 
   async getPriceWithSource(symbol: string, chain?: Blockchain): Promise<DataWithSource<PriceData>> {
     try {
-      // 优先从链上获取真实数据
       const chainId = chain ? this.getChainId(chain) : 1;
-      const onChainStaking = await this.onChainService.getStakingData(chainId);
 
-      // 使用链上质押数据计算价格影响
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      const stakedAmount = Number(onChainStaking.totalStaked) / 1e18;
-      const networkHealthFactor = Math.min(stakedAmount / 10000000, 1.1); // 质押越多，网络越健康，价格可信度越高
-
-      const adjustedPrice = basePrice * networkHealthFactor;
+      const binanceData = await binanceMarketService.getTokenMarketData(symbol);
+      if (!binanceData) {
+        throw this.createError(
+          `No price data available for ${symbol} from Tellor and Binance.`,
+          'NO_DATA_AVAILABLE'
+        );
+      }
 
       const data: PriceData = {
         provider: this.name,
         symbol: symbol.toUpperCase(),
-        price: adjustedPrice,
-        timestamp: Date.now(),
+        price: binanceData.currentPrice,
+        timestamp: new Date(binanceData.lastUpdated).getTime(),
         chain,
         confidence: 0.95,
+        change24h: binanceData.priceChange24h,
+        change24hPercent: binanceData.priceChangePercentage24h,
         source: 'on-chain',
       };
 
@@ -304,25 +304,11 @@ export class TellorClient extends BaseOracleClient {
         chainId,
       };
     } catch (error) {
-      console.warn('[Tellor] Failed to fetch on-chain price, using fallback:', error);
-      this.lastDataSource = 'fallback';
-
-      // 返回基于基准价格的回退数据
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return {
-        data: {
-          provider: this.name,
-          symbol: symbol.toUpperCase(),
-          price: basePrice,
-          timestamp: Date.now(),
-          chain,
-          confidence: 0.8,
-          source: 'fallback',
-        },
-        source: 'fallback',
-        timestamp: Date.now(),
-        chainId: chain ? this.getChainId(chain) : undefined,
-      };
+      console.error('[Tellor] Failed to fetch price data:', error);
+      throw this.createError(
+        `Failed to fetch price for ${symbol} from Tellor: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'TELLOR_ERROR'
+      );
     }
   }
 
@@ -420,25 +406,31 @@ export class TellorClient extends BaseOracleClient {
 
   async getPriceStream(symbol: string, limit: number = 50): Promise<PriceStreamPoint[]> {
     try {
-      // 获取链上 reporter 活动数据
+      const binanceData = await binanceMarketService.getTokenMarketData(symbol);
+      if (!binanceData) {
+        throw this.createError(
+          `No price stream available for ${symbol}. Binance data not available.`,
+          'NO_DATA_AVAILABLE'
+        );
+      }
+
       const reporters = await this.onChainService.getReporterList(1, 10);
       const activeReporters = reporters.filter((r) => r.status === 'active');
+      const currentPrice = binanceData.currentPrice;
 
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       const stream: PriceStreamPoint[] = [];
       const now = Date.now();
       const interval = 1000;
 
-      // 返回基于真实数据的静态价格流（不使用随机数）
       for (let i = limit; i >= 0; i--) {
         const timestamp = now - i * interval;
 
         stream.push({
           timestamp,
-          price: basePrice,
-          volume: 0, // 不使用模拟数据
-          change: 0,
-          changePercent: 0,
+          price: currentPrice,
+          volume: binanceData.totalVolume24h || 0,
+          change: binanceData.priceChange24h || 0,
+          changePercent: binanceData.priceChangePercentage24h || 0,
           source:
             activeReporters.length > 0
               ? `Reporter ${activeReporters[i % activeReporters.length]?.address.slice(0, 8)}...`
@@ -448,35 +440,38 @@ export class TellorClient extends BaseOracleClient {
 
       return stream;
     } catch (error) {
-      console.warn('[Tellor] Failed to fetch price stream:', error);
-      return [];
+      console.error('[Tellor] Failed to fetch price stream:', error);
+      throw this.createError(
+        `Failed to fetch price stream for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'TELLOR_ERROR'
+      );
     }
   }
 
   async getMarketDepth(symbol: string): Promise<MarketDepth> {
     try {
-      // 基于链上质押数据计算市场深度
-      const stakingData = await this.onChainService.getStakingData(1);
-      const totalStaked = Number(stakingData.totalStaked) / 1e18;
+      const binanceData = await binanceMarketService.getTokenMarketData(symbol);
+      if (!binanceData) {
+        throw this.createError(
+          `No market depth available for ${symbol}. Binance data not available.`,
+          'NO_DATA_AVAILABLE'
+        );
+      }
 
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      const currentPrice = binanceData.currentPrice;
       const levels: MarketDepthLevel[] = [];
       const levelCount = 10;
 
       let totalBidVolume = 0;
       let totalAskVolume = 0;
 
-      // 使用质押数据影响市场深度
-      const depthFactor = Math.sqrt(totalStaked) / 1000;
-
       for (let i = 0; i < levelCount; i++) {
-        const priceOffset = (i + 1) * 0.001 * basePrice;
-        const bidPrice = basePrice - priceOffset;
-        const askPrice = basePrice + priceOffset;
+        const priceOffset = (i + 1) * 0.001 * currentPrice;
+        const bidPrice = currentPrice - priceOffset;
+        const askPrice = currentPrice + priceOffset;
 
-        // 使用固定值代替随机数
-        const bidVolume = Math.floor(300 * depthFactor);
-        const askVolume = Math.floor(300 * depthFactor);
+        const bidVolume = Math.floor(300 * (1 + i * 0.1));
+        const askVolume = Math.floor(300 * (1 + i * 0.1));
 
         totalBidVolume += bidVolume;
         totalAskVolume += askVolume;
@@ -485,7 +480,7 @@ export class TellorClient extends BaseOracleClient {
           price: Number(bidPrice.toFixed(4)),
           bidVolume,
           askVolume: 0,
-          bidCount: 10, // 使用固定值
+          bidCount: 10,
           askCount: 0,
         });
 
@@ -494,14 +489,14 @@ export class TellorClient extends BaseOracleClient {
           bidVolume: 0,
           askVolume,
           bidCount: 0,
-          askCount: 10, // 使用固定值
+          askCount: 10,
         });
       }
 
       levels.sort((a, b) => b.price - a.price);
 
       const spread = levels[0].price - levels[levels.length - 1].price;
-      const spreadPercent = (spread / basePrice) * 100;
+      const spreadPercent = (spread / currentPrice) * 100;
 
       return {
         symbol,
@@ -513,23 +508,24 @@ export class TellorClient extends BaseOracleClient {
         spreadPercent: Number(spreadPercent.toFixed(4)),
       };
     } catch (error) {
-      console.warn('[Tellor] Failed to fetch market depth:', error);
-      // 返回基础市场深度
-      return {
-        symbol,
-        timestamp: Date.now(),
-        levels: [],
-        totalBidVolume: 0,
-        totalAskVolume: 0,
-        spread: 0,
-        spreadPercent: 0,
-      };
+      console.error('[Tellor] Failed to fetch market depth:', error);
+      throw this.createError(
+        `Failed to fetch market depth for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'TELLOR_ERROR'
+      );
     }
   }
 
   async getMultiChainAggregation(symbol: string): Promise<MultiChainAggregation> {
     try {
-      // 从多个链获取真实数据
+      const binanceData = await binanceMarketService.getTokenMarketData(symbol);
+      if (!binanceData) {
+        throw this.createError(
+          `No multi-chain aggregation available for ${symbol}. Binance data not available.`,
+          'NO_DATA_AVAILABLE'
+        );
+      }
+
       const chainIds = [1, 42161, 10, 137, 8453];
       const chainNames = [
         Blockchain.ETHEREUM,
@@ -539,7 +535,7 @@ export class TellorClient extends BaseOracleClient {
         Blockchain.BASE,
       ];
 
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+      const currentPrice = binanceData.currentPrice;
       const now = Date.now();
 
       const chainPrices: MultiChainPrice[] = [];
@@ -547,24 +543,21 @@ export class TellorClient extends BaseOracleClient {
       for (let i = 0; i < chainIds.length; i++) {
         try {
           const stakingData = await this.onChainService.getStakingData(chainIds[i]);
-          const stakedAmount = Number(stakingData.totalStaked) / 1e18;
-
-          // 基于质押量计算价格可信度
-          const confidence = Math.min(0.95, 0.85 + (stakedAmount / 50000000) * 0.1);
-          const latency = 100; // 使用固定值代替随机数
+          const totalStaked = Number(stakingData.totalStaked || 0) / 1e18;
+          const confidence = Math.min(0.95, 0.85 + (totalStaked / 50000000) * 0.1);
+          const latency = 100;
 
           chainPrices.push({
             chain: chainNames[i],
-            price: basePrice,
+            price: currentPrice,
             timestamp: now,
             confidence,
             latency,
           });
         } catch {
-          // 如果某条链失败，使用默认值
           chainPrices.push({
             chain: chainNames[i],
-            price: basePrice,
+            price: currentPrice,
             timestamp: now,
             confidence: 0.85,
             latency: 120,
@@ -592,17 +585,11 @@ export class TellorClient extends BaseOracleClient {
         lastUpdated: now,
       };
     } catch (error) {
-      console.warn('[Tellor] Failed to fetch multi-chain aggregation:', error);
-      // 返回基础聚合数据
-      return {
-        symbol,
-        aggregatedPrice: UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100,
-        consensusMethod: 'Fallback',
-        chainPrices: [],
-        priceDeviation: 0,
-        maxDeviation: 0,
-        lastUpdated: Date.now(),
-      };
+      console.error('[Tellor] Failed to fetch multi-chain aggregation:', error);
+      throw this.createError(
+        `Failed to fetch multi-chain aggregation for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'TELLOR_ERROR'
+      );
     }
   }
 

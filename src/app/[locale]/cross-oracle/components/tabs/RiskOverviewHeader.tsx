@@ -47,6 +47,8 @@ interface RiskOverviewHeaderProps {
 // 辅助函数
 // ============================================================================
 
+type RiskLevelKey = 'normal' | 'high' | 'medium' | 'low';
+
 /**
  * 获取风险等级配置
  */
@@ -54,9 +56,11 @@ function getRiskLevelConfig(
   isSafe: boolean,
   riskScore: number,
   highRiskCount: number,
-  mediumRiskCount: number
+  mediumRiskCount: number,
+  t: (key: string) => string
 ): {
   icon: React.ReactNode;
+  labelKey: RiskLevelKey;
   label: string;
   colorClass: string;
   bgClass: string;
@@ -65,7 +69,8 @@ function getRiskLevelConfig(
   if (isSafe) {
     return {
       icon: <ShieldCheck className="w-6 h-6" />,
-      label: '数据正常',
+      labelKey: 'normal',
+      label: t('crossOracle.risk.normal'),
       colorClass: 'text-emerald-600',
       bgClass: 'bg-emerald-50',
       borderClass: 'border-emerald-200',
@@ -75,7 +80,8 @@ function getRiskLevelConfig(
   if (highRiskCount > 0 || riskScore >= 70) {
     return {
       icon: <ShieldAlert className="w-6 h-6" />,
-      label: '高风险',
+      labelKey: 'high',
+      label: t('crossOracle.risk.high'),
       colorClass: 'text-red-600',
       bgClass: 'bg-red-50',
       borderClass: 'border-red-200',
@@ -85,7 +91,8 @@ function getRiskLevelConfig(
   if (mediumRiskCount > 0 || riskScore >= 40) {
     return {
       icon: <AlertTriangle className="w-6 h-6" />,
-      label: '中风险',
+      labelKey: 'medium',
+      label: t('crossOracle.risk.medium'),
       colorClass: 'text-orange-600',
       bgClass: 'bg-orange-50',
       borderClass: 'border-orange-200',
@@ -94,7 +101,8 @@ function getRiskLevelConfig(
 
   return {
     icon: <AlertCircle className="w-6 h-6" />,
-    label: '低风险',
+    labelKey: 'low',
+    label: t('crossOracle.risk.low'),
     colorClass: 'text-yellow-600',
     bgClass: 'bg-yellow-50',
     borderClass: 'border-yellow-200',
@@ -178,7 +186,7 @@ function RiskOverviewHeaderComponent({
   t,
   className,
 }: RiskOverviewHeaderProps) {
-  const riskConfig = getRiskLevelConfig(isSafe, riskScore, highRiskCount, mediumRiskCount);
+  const riskConfig = getRiskLevelConfig(isSafe, riskScore, highRiskCount, mediumRiskCount, t);
   const riskScoreColor = getRiskScoreColor(riskScore);
   const riskScoreBg = getRiskScoreBgColor(riskScore);
 
@@ -204,12 +212,12 @@ function RiskOverviewHeaderComponent({
         </div>
         <div>
           <div className={cn('text-sm font-semibold', riskConfig.colorClass)}>
-            {t(`crossOracle.risk.${riskConfig.label}`) || riskConfig.label}
+            {riskConfig.label}
           </div>
           <div className="text-xs text-gray-500">
             {isSafe
-              ? t('crossOracle.risk.dataConsistent') || '数据一致性良好'
-              : t('crossOracle.risk.requiresAttention') || '需要关注'}
+              ? t('crossOracle.risk.dataConsistent')
+              : t('crossOracle.risk.requiresAttention')}
           </div>
         </div>
       </div>
@@ -218,13 +226,13 @@ function RiskOverviewHeaderComponent({
       <div className="hidden sm:flex items-center gap-6">
         <MetricItem
           icon={<Activity className="w-4 h-4 text-gray-600" />}
-          label={t('crossOracle.risk.anomalyCount') || '异常数量'}
+          label={t('crossOracle.risk.anomalyCount')}
           value={anomalyCount.toString()}
           colorClass={anomalyCount > 0 ? 'text-amber-600' : 'text-emerald-600'}
         />
         <MetricItem
           icon={<TrendingUp className="w-4 h-4 text-gray-600" />}
-          label={t('crossOracle.risk.maxDeviation') || '最大偏差'}
+          label={t('crossOracle.risk.maxDeviation')}
           value={`${maxDeviation.toFixed(2)}%`}
           colorClass={
             maxDeviation > 5
@@ -240,7 +248,7 @@ function RiskOverviewHeaderComponent({
           </div>
           <div>
             <div className="text-xs text-gray-500">
-              {t('crossOracle.risk.riskScore') || '风险评分'}
+              {t('crossOracle.risk.riskScore')}
             </div>
             <div className="flex items-center gap-1.5">
               <span className={cn('text-sm font-semibold tabular-nums', riskScoreColor)}>
@@ -265,21 +273,21 @@ function RiskOverviewHeaderComponent({
       {/* 右侧：风险分布 */}
       <div className="hidden md:flex items-center gap-4 flex-shrink-0">
         <div className="text-xs text-gray-500 mr-1">
-          {t('crossOracle.risk.distribution') || '风险分布'}
+          {t('crossOracle.risk.distribution')}
         </div>
         <div className="flex items-center gap-3">
           <RiskDistributionItem
-            label={t('crossOracle.risk.high') || '高'}
+            label={t('crossOracle.risk.high')}
             count={highRiskCount}
             colorClass="text-red-600"
           />
           <RiskDistributionItem
-            label={t('crossOracle.risk.medium') || '中'}
+            label={t('crossOracle.risk.medium')}
             count={mediumRiskCount}
             colorClass="text-orange-600"
           />
           <RiskDistributionItem
-            label={t('crossOracle.risk.low') || '低'}
+            label={t('crossOracle.risk.low')}
             count={lowRiskCount}
             colorClass="text-yellow-600"
           />
@@ -293,7 +301,7 @@ function RiskOverviewHeaderComponent({
         </div>
         {anomalyCount > 0 && (
           <div className="text-xs text-gray-600">
-            {anomalyCount} {t('crossOracle.risk.anomalies') || '异常'}
+            {anomalyCount} {t('crossOracle.risk.anomalies')}
           </div>
         )}
       </div>

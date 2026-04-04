@@ -1,4 +1,3 @@
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
@@ -216,12 +215,7 @@ export class WINkLinkClient extends BaseOracleClient {
         }
       }
 
-      // 回退到模拟数据
-      const baseSymbol = this.getBaseSymbol(symbol);
-      const basePrice = UNIFIED_BASE_PRICES[baseSymbol] || 100;
-      return this.fetchPriceWithDatabase(symbol, chain, () =>
-        this.generateMockPrice(symbol, basePrice, chain)
-      );
+      return this.fetchPriceWithDatabase(symbol, chain);
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from WINkLink',
@@ -236,12 +230,7 @@ export class WINkLinkClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      // WINkLink 不支持历史价格查询，使用模拟数据
-      const baseSymbol = this.getBaseSymbol(symbol);
-      const basePrice = UNIFIED_BASE_PRICES[baseSymbol] || 100;
-      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
-        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
-      );
+      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period);
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch historical prices from WINkLink',
@@ -266,81 +255,28 @@ export class WINkLinkClient extends BaseOracleClient {
               blockHeight: networkStats.blockHeight,
               blockTime: networkStats.blockTime,
               totalAccounts: networkStats.totalAccounts,
-              dailyActiveUsers: 2500000, // 估算值
-              energyConsumption: 4500000000, // 估算值
-              bandwidthConsumption: 2800000000, // 估算值
+              dailyActiveUsers: networkStats.dailyActiveUsers || 0,
+              energyConsumption: networkStats.energyConsumption || 0,
+              bandwidthConsumption: networkStats.bandwidthConsumption || 0,
             },
-            integratedDApps: [
-              {
-                id: 'dapp-001',
-                name: 'WINk',
-                category: 'gaming',
-                users: 850000,
-                volume24h: 15000000,
-                contractAddress: 'TND...abc',
-                integrationDate: now - 86400000 * 365,
-                status: 'active',
-              },
-              {
-                id: 'dapp-002',
-                name: 'SunSwap',
-                category: 'defi',
-                users: 420000,
-                volume24h: 8500000,
-                contractAddress: 'TND...def',
-                integrationDate: now - 86400000 * 180,
-                status: 'active',
-              },
-            ],
-            totalValueLocked: 450000000,
-            dailyTransactions: 2500000,
-            integrationCoverage: 0.85,
+            integratedDApps: [],
+            totalValueLocked: 0,
+            dailyTransactions: networkStats.totalTransactions,
+            integrationCoverage: 0,
           };
         }
-      } catch {
-        // 获取失败时使用模拟数据
+      } catch (error) {
+        throw this.createError(
+          `Failed to fetch TRON ecosystem data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          'TRON_ECOSYSTEM_ERROR'
+        );
       }
     }
 
-    // 模拟数据
-    const now = Date.now();
-    return {
-      networkStats: {
-        totalTransactions: 8500000000,
-        tps: 65,
-        blockHeight: 65000000,
-        blockTime: 3,
-        totalAccounts: 180000000,
-        dailyActiveUsers: 2500000,
-        energyConsumption: 4500000000,
-        bandwidthConsumption: 2800000000,
-      },
-      integratedDApps: [
-        {
-          id: 'dapp-001',
-          name: 'WINk',
-          category: 'gaming',
-          users: 850000,
-          volume24h: 15000000,
-          contractAddress: 'TND...abc',
-          integrationDate: now - 86400000 * 365,
-          status: 'active',
-        },
-        {
-          id: 'dapp-002',
-          name: 'SunSwap',
-          category: 'defi',
-          users: 420000,
-          volume24h: 8500000,
-          contractAddress: 'TND...def',
-          integrationDate: now - 86400000 * 180,
-          status: 'active',
-        },
-      ],
-      totalValueLocked: 450000000,
-      dailyTransactions: 2500000,
-      integrationCoverage: 0.85,
-    };
+    throw this.createError(
+      'Real data is not available. Please enable USE_REAL_DATA to fetch TRON ecosystem data.',
+      'REAL_DATA_NOT_AVAILABLE'
+    );
   }
 
   async getNodeStaking(): Promise<NodeStakingData> {
@@ -361,55 +297,18 @@ export class WINkLinkClient extends BaseOracleClient {
             nodes: stakingInfo.nodes,
           };
         }
-      } catch {
-        // 获取失败时使用模拟数据
+      } catch (error) {
+        throw this.createError(
+          `Failed to fetch staking data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          'STAKING_ERROR'
+        );
       }
     }
 
-    // 模拟数据
-    return {
-      totalStaked: 45000000,
-      totalNodes: 85,
-      activeNodes: 82,
-      averageApr: 12.5,
-      rewardPool: 2500000,
-      stakingTiers: [
-        { tier: 'bronze', minStake: 10000, maxStake: 50000, apr: 10, nodeCount: 35 },
-        { tier: 'silver', minStake: 50000, maxStake: 200000, apr: 12, nodeCount: 28 },
-        { tier: 'gold', minStake: 200000, maxStake: 500000, apr: 14, nodeCount: 15 },
-        { tier: 'platinum', minStake: 500000, maxStake: 10000000, apr: 16, nodeCount: 7 },
-      ],
-      nodes: [
-        {
-          id: 'node-001',
-          address: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qc',
-          name: 'WINkLink Node Asia',
-          region: 'Asia',
-          stakedAmount: 750000,
-          rewardsEarned: 45000,
-          uptime: 99.95,
-          responseTime: 85,
-          validatedRequests: 1250000,
-          joinDate: Date.now() - 86400000 * 400,
-          status: 'active',
-          tier: 'gold',
-        },
-        {
-          id: 'node-002',
-          address: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qd',
-          name: 'WINkLink Node Europe',
-          region: 'Europe',
-          stakedAmount: 1200000,
-          rewardsEarned: 78000,
-          uptime: 99.92,
-          responseTime: 95,
-          validatedRequests: 1890000,
-          joinDate: Date.now() - 86400000 * 350,
-          status: 'active',
-          tier: 'platinum',
-        },
-      ],
-    };
+    throw this.createError(
+      'Real data is not available. Please enable USE_REAL_DATA to fetch staking data.',
+      'REAL_DATA_NOT_AVAILABLE'
+    );
   }
 
   async getGamingData(): Promise<WINkLinkGamingData> {
@@ -428,59 +327,18 @@ export class WINkLinkClient extends BaseOracleClient {
             randomNumberServices: gamingInfo.randomNumberServices,
           };
         }
-      } catch {
-        // 获取失败时使用模拟数据
+      } catch (error) {
+        throw this.createError(
+          `Failed to fetch gaming data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          'GAMING_ERROR'
+        );
       }
     }
 
-    // 模拟数据
-    return {
-      totalGamingVolume: 850000000,
-      activeGames: 125,
-      dailyRandomRequests: 125000,
-      dataSources: [
-        {
-          id: 'game-001',
-          name: 'Dice',
-          type: 'game',
-          category: 'casino',
-          users: 450000,
-          volume24h: 8500000,
-          dataTypes: ['random_number', 'outcome_verification'],
-          reliability: 99.9,
-          lastUpdate: Date.now(),
-        },
-        {
-          id: 'game-002',
-          name: 'Moon',
-          type: 'game',
-          category: 'casino',
-          users: 320000,
-          volume24h: 6200000,
-          dataTypes: ['random_number', 'outcome_verification'],
-          reliability: 99.8,
-          lastUpdate: Date.now(),
-        },
-      ],
-      randomNumberServices: [
-        {
-          serviceId: 'vrf-001',
-          name: 'WINkLink VRF',
-          requestCount: 5200000,
-          averageResponseTime: 105,
-          securityLevel: 'high',
-          supportedChains: ['TRON', 'BNB'],
-        },
-        {
-          serviceId: 'rng-001',
-          name: 'Casino RNG Service',
-          requestCount: 5200000,
-          averageResponseTime: 105,
-          securityLevel: 'medium',
-          supportedChains: ['TRON', 'BTTC'],
-        },
-      ],
-    };
+    throw this.createError(
+      'Real data is not available. Please enable USE_REAL_DATA to fetch gaming data.',
+      'REAL_DATA_NOT_AVAILABLE'
+    );
   }
 
   async getNetworkStats(): Promise<WINkLinkNetworkStats> {
@@ -493,27 +351,18 @@ export class WINkLinkClient extends BaseOracleClient {
         if (networkStats) {
           return networkStats;
         }
-      } catch {
-        // 获取失败时使用模拟数据
+      } catch (error) {
+        throw this.createError(
+          `Failed to fetch network stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          'NETWORK_STATS_ERROR'
+        );
       }
     }
 
-    // 模拟数据
-    return {
-      activeNodes: 85,
-      nodeUptime: 99.92,
-      avgResponseTime: 110,
-      updateFrequency: 30,
-      totalStaked: 45000000,
-      dataFeeds: 180,
-      hourlyActivity: [
-        2800, 2600, 2400, 2200, 2000, 2200, 2600, 3800, 5200, 6800, 8200, 9200, 8800, 8400, 8000,
-        8200, 8600, 9000, 8400, 6800, 5400, 4200, 3400, 3000,
-      ],
-      status: 'online',
-      latency: 110,
-      stakingTokenSymbol: 'WIN',
-    };
+    throw this.createError(
+      'Real data is not available. Please enable USE_REAL_DATA to fetch network stats.',
+      'REAL_DATA_NOT_AVAILABLE'
+    );
   }
 
   async getStakingData(): Promise<{
@@ -522,12 +371,30 @@ export class WINkLinkClient extends BaseOracleClient {
     stakerCount: number;
     rewardPool: number;
   }> {
-    return {
-      totalStaked: 45000000,
-      stakingApr: 12.5,
-      stakerCount: 5200,
-      rewardPool: 2500000,
-    };
+    if (USE_REAL_DATA) {
+      try {
+        const realDataService = getWINkLinkRealDataService();
+        const stakingInfo = await realDataService.getStakingInfo();
+        if (stakingInfo) {
+          return {
+            totalStaked: stakingInfo.totalStaked,
+            stakingApr: stakingInfo.averageApr || 0,
+            stakerCount: stakingInfo.activeNodes || 0,
+            rewardPool: stakingInfo.rewardPool || 0,
+          };
+        }
+      } catch (error) {
+        throw this.createError(
+          `Failed to fetch staking data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          'STAKING_ERROR'
+        );
+      }
+    }
+
+    throw this.createError(
+      'Real data is not available. Please enable USE_REAL_DATA to fetch staking data.',
+      'REAL_DATA_NOT_AVAILABLE'
+    );
   }
 
   async getRiskMetrics(): Promise<WINkLinkRiskMetrics> {
@@ -540,21 +407,18 @@ export class WINkLinkClient extends BaseOracleClient {
         if (riskMetrics) {
           return riskMetrics;
         }
-      } catch {
-        // 获取失败时使用模拟数据
+      } catch (error) {
+        throw this.createError(
+          `Failed to fetch risk metrics: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          'RISK_METRICS_ERROR'
+        );
       }
     }
 
-    // 模拟数据
-    return {
-      overallRisk: 2.5,
-      decentralization: 85,
-      dataQuality: 92,
-      uptime: 99.92,
-      staleness: 0.5,
-      deviation: 0.1,
-      lastUpdate: Date.now(),
-    };
+    throw this.createError(
+      'Real data is not available. Please enable USE_REAL_DATA to fetch risk metrics.',
+      'REAL_DATA_NOT_AVAILABLE'
+    );
   }
 
   /**
@@ -595,65 +459,5 @@ export class WINkLinkClient extends BaseOracleClient {
       return [];
     }
     return this.supportedChains;
-  }
-
-  /**
-   * 生成模拟价格数据
-   */
-  protected generateMockPrice(
-    symbol: string,
-    basePrice: number,
-    chain?: Blockchain,
-    timestamp?: number
-  ): PriceData {
-    return {
-      provider: OracleProvider.WINKLINK,
-      symbol: symbol.toUpperCase(),
-      price: basePrice,
-      timestamp: timestamp || Date.now(),
-      decimals: 8,
-      confidence: 0.95,
-      change24h: 0,
-      change24hPercent: 0,
-      chain: chain || Blockchain.TRON,
-      source: 'winklink-mock',
-    };
-  }
-
-  /**
-   * 生成模拟历史价格数据
-   */
-  protected generateMockHistoricalPrices(
-    symbol: string,
-    basePrice: number,
-    _chain?: Blockchain,
-    period: number = 24
-  ): PriceData[] {
-    const prices: PriceData[] = [];
-    const now = Date.now();
-    const interval = (period * 60 * 60 * 1000) / 100; // 将时间段分成100个点
-
-    for (let i = 99; i >= 0; i--) {
-      const timestamp = now - i * interval;
-      // 添加一些随机波动
-      const volatility = 0.02; // 2% 波动
-      const randomChange = (Math.random() - 0.5) * 2 * volatility;
-      const price = basePrice * (1 + randomChange);
-
-      prices.push({
-        provider: OracleProvider.WINKLINK,
-        symbol: symbol.toUpperCase(),
-        price: price,
-        timestamp: timestamp,
-        decimals: 8,
-        confidence: 0.95,
-        change24h: 0,
-        change24hPercent: 0,
-        chain: Blockchain.TRON,
-        source: 'winklink-mock',
-      });
-    }
-
-    return prices;
   }
 }

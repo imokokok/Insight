@@ -119,6 +119,32 @@ const CHART_COLORS = {
   ma90: chartColors.recharts.indigo,
 };
 
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number | string; color: string }>;
+  label?: string;
+}
+
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+  if (!active || !payload || payload.length === 0) return null;
+
+  return (
+    <div className="bg-white p-4 border border-gray-200 rounded-lg min-w-[200px] shadow-lg">
+      <p className="text-sm font-semibold mb-2 text-gray-900">{label}</p>
+      <div className="space-y-1.5">
+        {payload.map((entry, index: number) => (
+          <div key={index} className="flex justify-between items-center">
+            <span className="text-xs text-gray-600">{entry.name}</span>
+            <span className="text-sm font-medium font-mono" style={{ color: entry.color }}>
+              {typeof entry.value === 'number' ? yAxisFormatter(entry.value) : entry.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function generateHistoricalData(
   days: number,
   currentPrice: number,
@@ -136,23 +162,22 @@ function generateHistoricalData(
     const timestamp = now - i * 24 * 60 * 60 * 1000;
     const date = new Date(timestamp);
 
-    const priceVariation = Math.sin(i * 0.1) * 0.15 + (Math.random() - 0.5) * 0.1;
+    const priceVariation = Math.sin(i * 0.1) * 0.15;
     const price = basePrice * (1 + priceVariation);
 
-    const volumeVariation = Math.sin(i * 0.15) * 0.3 + (Math.random() - 0.5) * 0.2;
+    const volumeVariation = Math.sin(i * 0.15) * 0.3;
     const volume = baseVolume * (1 + volumeVariation);
 
-    const tvlVariation = Math.sin(i * 0.05) * 0.1 + (Math.random() - 0.5) * 0.05;
+    const tvlVariation = Math.sin(i * 0.05) * 0.1;
     const tvl = baseTVL * (1 + tvlVariation);
 
-    const validatorsVariation = (Math.random() - 0.5) * 0.05;
+    const validatorsVariation = 0;
     const validators = Math.round(baseValidators * (1 + validatorsVariation));
 
-    const disputesVariation = Math.sin(i * 0.2) * 0.2 + (Math.random() - 0.5) * 0.15;
+    const disputesVariation = Math.sin(i * 0.2) * 0.2;
     const disputes = Math.round((baseDisputes * (1 + disputesVariation)) / (days / 30));
 
-    const disputeSuccessRate =
-      (networkStats?.disputeSuccessRate || 78) + (Math.random() - 0.5) * 10;
+    const disputeSuccessRate = networkStats?.disputeSuccessRate || 78;
 
     data.push({
       timestamp,
@@ -388,34 +413,6 @@ function ComparisonChart({
       ma30: showMA && index >= 29 ? trendAnalysis.movingAverages.ma30 : null,
     }));
   }, [data, showMA, trendAnalysis]);
-
-  const CustomTooltip = ({
-    active,
-    payload,
-    label,
-  }: {
-    active?: boolean;
-    payload?: Array<{ name: string; value: number | string; color: string }>;
-    label?: string;
-  }) => {
-    if (!active || !payload || payload.length === 0) return null;
-
-    return (
-      <div className="bg-white p-4 border border-gray-200 rounded-lg min-w-[200px] shadow-lg">
-        <p className="text-sm font-semibold mb-2 text-gray-900">{label}</p>
-        <div className="space-y-1.5">
-          {payload.map((entry, index: number) => (
-            <div key={index} className="flex justify-between items-center">
-              <span className="text-xs text-gray-600">{entry.name}</span>
-              <span className="text-sm font-medium font-mono" style={{ color: entry.color }}>
-                {typeof entry.value === 'number' ? yAxisFormatter(entry.value) : entry.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="h-80">

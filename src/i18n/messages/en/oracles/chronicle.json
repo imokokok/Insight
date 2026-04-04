@@ -276,7 +276,7 @@
     "weight": "Weight",
     "time": "Time",
     "validatorInfo": "Validator Information",
-    "validatorInfoDesc": "Detailed information about validator performance and status",
+    "validatorInfoDesc": "This validator is an important part of the Chronicle oracle network, responsible for providing accurate and timely price data. Validators stake tokens to ensure the honesty of their behavior and receive rewards for their services.",
     "close": "Close"
   },
   "risk": {

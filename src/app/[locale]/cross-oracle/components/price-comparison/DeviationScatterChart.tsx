@@ -94,24 +94,24 @@ function DeviationScatterChartComponent({
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-900">
-          {t('crossOracle.charts.scatterTitle') || '偏差分析'}
+          {t('crossOracle.charts.scatterTitle')}
         </h4>
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-emerald-500" />
-            <span className="text-gray-500">{t('crossOracle.normal') || '正常'}</span>
+            <span className="text-gray-500">{t('crossOracle.normal')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-yellow-500" />
-            <span className="text-gray-500">{t('crossOracle.lowRisk') || '低风险'}</span>
+            <span className="text-gray-500">{t('crossOracle.lowRisk')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-orange-500" />
-            <span className="text-gray-500">{t('crossOracle.mediumRisk') || '中风险'}</span>
+            <span className="text-gray-500">{t('crossOracle.mediumRisk')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-red-500" />
-            <span className="text-gray-500">{t('crossOracle.highRisk') || '高风险'}</span>
+            <span className="text-gray-500">{t('crossOracle.highRisk')}</span>
           </div>
         </div>
       </div>
@@ -175,7 +175,7 @@ function DeviationScatterChartComponent({
       </div>
 
       <div className="mt-3 text-xs text-gray-500 text-center">
-        {t('crossOracle.charts.scatterHint') || '气泡大小代表置信度，颜色代表风险等级'}
+        {t('crossOracle.charts.scatterHint')}
       </div>
     </div>
   );

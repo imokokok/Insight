@@ -286,7 +286,7 @@ export function API3ApiDocs(_props: API3ApiDocsProps) {
       <section>
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            {t('api3.developer.apiDocs.title') || 'API 接口文档'}
+            {t('api3.developer.apiDocs.title')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             {t('api3.developer.apiDocs.description') ||
@@ -354,23 +354,23 @@ export function API3ApiDocs(_props: API3ApiDocsProps) {
                           {endpoint.params.length > 0 && (
                             <div>
                               <h4 className="text-xs font-medium text-gray-700 mb-2">
-                                {t('api3.developer.apiDocs.parameters') || '参数'}
+                                {t('api3.developer.apiDocs.parameters')}
                               </h4>
                               <div className="bg-gray-50 rounded-lg overflow-hidden">
                                 <table className="w-full text-sm">
                                   <thead>
                                     <tr className="border-b border-gray-200">
                                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                        {t('api3.developer.apiDocs.paramName') || '参数名'}
+                                        {t('api3.developer.apiDocs.paramName')}
                                       </th>
                                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                        {t('api3.developer.apiDocs.type') || '类型'}
+                                        {t('api3.developer.apiDocs.type')}
                                       </th>
                                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                        {t('api3.developer.apiDocs.required') || '必填'}
+                                        {t('api3.developer.apiDocs.required')}
                                       </th>
                                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                        {t('api3.developer.apiDocs.description') || '描述'}
+                                        {t('api3.developer.apiDocs.description')}
                                       </th>
                                     </tr>
                                   </thead>
@@ -408,7 +408,7 @@ export function API3ApiDocs(_props: API3ApiDocsProps) {
 
                           <div>
                             <h4 className="text-xs font-medium text-gray-700 mb-2">
-                              {t('api3.developer.apiDocs.responseExample') || '响应示例'}
+                              {t('api3.developer.apiDocs.responseExample')}
                             </h4>
                             <div className="relative bg-gray-900 rounded-lg p-4 overflow-x-auto">
                               <button
@@ -434,7 +434,7 @@ export function API3ApiDocs(_props: API3ApiDocsProps) {
 
                           <div>
                             <h4 className="text-xs font-medium text-gray-700 mb-2">
-                              {t('api3.developer.apiDocs.codeExample') || '代码示例'}
+                              {t('api3.developer.apiDocs.codeExample')}
                             </h4>
                             <div className="flex gap-2 mb-3">
                               {(['javascript', 'python', 'curl'] as const).map((lang) => (
@@ -493,7 +493,7 @@ export function API3ApiDocs(_props: API3ApiDocsProps) {
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Key className="w-5 h-5 text-emerald-600" />
-            {t('api3.developer.apiDocs.authentication.title') || '认证方式'}
+            {t('api3.developer.apiDocs.authentication.title')}
           </h2>
         </div>
 
@@ -520,7 +520,7 @@ Content-Type: application/json`}
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Clock className="w-5 h-5 text-emerald-600" />
-            {t('api3.developer.apiDocs.rateLimits.title') || '速率限制'}
+            {t('api3.developer.apiDocs.rateLimits.title')}
           </h2>
         </div>
 
@@ -529,16 +529,16 @@ Content-Type: application/json`}
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  {t('api3.developer.apiDocs.rateLimits.tier') || '套餐'}
+                  {t('api3.developer.apiDocs.rateLimits.tier')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  {t('api3.developer.apiDocs.rateLimits.requests') || '请求数'}
+                  {t('api3.developer.apiDocs.rateLimits.requests')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  {t('api3.developer.apiDocs.rateLimits.burst') || '突发限制'}
+                  {t('api3.developer.apiDocs.rateLimits.burst')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  {t('api3.developer.apiDocs.rateLimits.price') || '价格'}
+                  {t('api3.developer.apiDocs.rateLimits.price')}
                 </th>
               </tr>
             </thead>
@@ -562,7 +562,7 @@ Content-Type: application/json`}
         <ExternalLink className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('api3.developer.apiDocs.moreResources') || '更多资源'}
+            {t('api3.developer.apiDocs.moreResources')}
           </h3>
           <div className="mt-2 space-y-2">
             <a

@@ -25,7 +25,6 @@ export class OracleClientFactory {
   private static instances: Map<OracleProvider, BaseOracleClient> = new Map();
   private static config: OracleClientConfig = {
     useDatabase: true,
-    fallbackToMock: true,
   };
 
   static configure(config: Partial<OracleClientConfig>): void {

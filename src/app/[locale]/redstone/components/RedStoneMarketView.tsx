@@ -55,11 +55,7 @@ const PRICE_FEEDS = [
   { symbol: 'SNX/USD', price: 3.45, change24h: -4.56, volume24h: 87654321, source: 'RedStone' },
 ];
 
-const HISTORICAL_DATA = Array.from({ length: 30 }, (_, i) => ({
-  date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-  price: 3200 + Math.random() * 400,
-  volume: 10000000000 + Math.random() * 5000000000,
-}));
+const HISTORICAL_DATA: { date: string; price: number; volume: number }[] = [];
 
 type SortField = 'symbol' | 'price' | 'change24h' | 'volume24h';
 type SortDirection = 'asc' | 'desc';

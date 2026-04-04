@@ -552,16 +552,16 @@ function LatestUpdates({
   const defaultUpdates = [
     {
       type: 'price' as const,
-      text: 'TRB价格更新: $35.42 (+2.3%)',
+      text: t('hero.defaultUpdates.priceUpdate'),
       time: `2${t('hero.minutesAgo')}`,
     },
     {
       type: 'node' as const,
-      text: '新报告者加入: 0x7a8b...3c4d',
+      text: t('hero.defaultUpdates.newReporter'),
       time: `5${t('hero.minutesAgo')}`,
     },
-    { type: 'feed' as const, text: '数据喂价更新', time: `8${t('hero.minutesAgo')}` },
-    { type: 'system' as const, text: '系统维护完成', time: `15${t('hero.minutesAgo')}` },
+    { type: 'feed' as const, text: t('hero.defaultUpdates.feedUpdate'), time: `8${t('hero.minutesAgo')}` },
+    { type: 'system' as const, text: t('hero.defaultUpdates.maintenanceComplete'), time: `15${t('hero.minutesAgo')}` },
   ];
 
   const displayUpdates = updates || defaultUpdates;

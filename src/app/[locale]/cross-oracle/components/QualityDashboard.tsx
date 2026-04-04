@@ -218,7 +218,7 @@ function OverallScore({ score, t }: OverallScoreProps) {
       {/* 综合评分标签 */}
       <div className="mt-4 flex items-center gap-2 text-gray-500">
         <Shield className="w-4 h-4" />
-        <span className="text-sm">{t('quality.overall') || '综合评分'}</span>
+        <span className="text-sm">{t('quality.overall')}</span>
       </div>
     </div>
   );
@@ -323,7 +323,7 @@ function SuggestionsList({ suggestions, t }: SuggestionsListProps) {
           <Lightbulb className="w-4 h-4 text-amber-600" />
         </div>
         <span className="text-sm font-semibold text-gray-700">
-          {t('quality.suggestions') || '改进建议'}
+          {t('quality.suggestions')}
         </span>
       </div>
       <div className="space-y-2">

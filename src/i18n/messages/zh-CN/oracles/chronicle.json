@@ -276,7 +276,7 @@
     "weight": "权重",
     "time": "时间",
     "validatorInfo": "验证者信息",
-    "validatorInfoDesc": "验证者性能和状态的详细信息",
+    "validatorInfoDesc": "该验证者是 Chronicle 预言机网络的重要组成部分，负责提供准确、及时的价格数据。验证者通过质押代币来保证其行为的诚实性，并因其服务获得奖励。",
     "close": "关闭"
   },
   "risk": {

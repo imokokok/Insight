@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 
 import { Activity, CheckCircle2, Clock, TrendingUp, AlertTriangle } from 'lucide-react';
 
@@ -103,33 +103,9 @@ const DEFAULT_DATA_SOURCES: DataSourceInfo[] = [
   },
 ];
 
-function generateHistoricalData(
-  basePrice: number,
-  points: number
-): { timestamp: number; value: number }[] {
-  const data = [];
-  let price = basePrice;
-  const now = Math.floor(Date.now() / 1000);
-
-  for (let i = points; i >= 0; i--) {
-    const change = (Math.random() - 0.5) * basePrice * 0.02;
-    price = Math.max(price + change, basePrice * 0.8);
-    price = Math.min(price, basePrice * 1.2);
-    data.push({
-      timestamp: now - i * 3600,
-      value: price,
-    });
-  }
-
-  return data;
-}
-
 export function API3DapiView(props: API3DapiViewProps) {
   const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [currentPrice, setCurrentPrice] = useState(2456.78);
-  const [previousPrice, setPreviousPrice] = useState(2450.12);
-  const [sparklineData, setSparklineData] = useState<number[]>([]);
   const [timeRange, setTimeRange] = useState<TimeRange>(() => ({
     start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     end: new Date(Date.now()),
@@ -148,9 +124,16 @@ export function API3DapiView(props: API3DapiViewProps) {
   });
   const sourceTraceQuery = useAPI3SourceTrace(!!props.useRealData);
 
+  const currentPrice = priceQuery.price?.price || 0;
+  const previousPrice = 0;
+  const sparklineData = historicalQuery.historicalData?.slice(-20).map((d) => d.price) || [];
+
   const dapiFeeds = useMemo(() => {
-    return props.dapiFeeds || DEFAULT_DAPI_FEEDS;
-  }, [props.dapiFeeds]);
+    if (!props.useRealData) {
+      throw new Error('Real data is required. Please enable useRealData prop.');
+    }
+    return props.dapiFeeds || [];
+  }, [props.useRealData, props.dapiFeeds]);
 
   const dataSources = useMemo((): DataSourceInfo[] => {
     if (props.dataSources) {
@@ -171,7 +154,7 @@ export function API3DapiView(props: API3DapiViewProps) {
         lastUpdate: new Date(),
       }));
     }
-    return DEFAULT_DATA_SOURCES;
+    throw new Error('Real data sources are required. Please enable useRealData prop.');
   }, [props.dataSources, props.useRealData, sourceTraceQuery.sourceTrace]);
 
   const categories = useMemo(
@@ -216,58 +199,8 @@ export function API3DapiView(props: API3DapiViewProps) {
         },
       ];
     }
-    return [
-      {
-        id: 'api3',
-        name: 'API3',
-        color: '#10b981',
-        data: generateHistoricalData(1.5, 168),
-        type: 'price',
-      },
-      {
-        id: 'chainlink',
-        name: 'Chainlink',
-        color: '#3b82f6',
-        data: generateHistoricalData(14.5, 168),
-        type: 'price',
-      },
-    ];
+    throw new Error('Historical data requires real data. Please enable useRealData prop.');
   }, [props.useRealData, historicalQuery.historicalData, symbol]);
-
-  // 使用 ref 来存储当前价格，避免依赖循环
-  const currentPriceRef = useRef(currentPrice);
-  useEffect(() => {
-    currentPriceRef.current = currentPrice;
-  }, [currentPrice]);
-
-  useEffect(() => {
-    if (props.useRealData && priceQuery.price) {
-      setPreviousPrice(currentPriceRef.current);
-      setCurrentPrice(priceQuery.price.price);
-    }
-  }, [props.useRealData, priceQuery.price]);
-
-  useEffect(() => {
-    if (!props.useRealData) {
-      const interval = setInterval(() => {
-        setPreviousPrice(() => currentPriceRef.current);
-        const change = (Math.random() - 0.5) * 20;
-        setCurrentPrice((prev) => Math.max(prev + change, 2000));
-      }, 5000);
-
-      return () => clearInterval(interval);
-    }
-  }, [props.useRealData]);
-
-  useEffect(() => {
-    if (!props.useRealData) {
-      const data = Array.from({ length: 20 }, () => 2400 + Math.random() * 100);
-      setSparklineData(data);
-    } else if (historicalQuery.historicalData) {
-      const data = historicalQuery.historicalData.slice(-20).map((d) => d.price);
-      setSparklineData(data);
-    }
-  }, [props.useRealData, historicalQuery.historicalData]);
 
   const filteredFeeds = useMemo(
     () =>

@@ -1,4 +1,3 @@
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { coinGeckoMarketService } from '@/lib/services/marketData/coinGeckoMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -101,11 +100,6 @@ export class ChainlinkClient extends BaseOracleClient {
   }
 
   private convertToPriceData(chainlinkData: ChainlinkPriceData, chain?: Blockchain): PriceData {
-    const basePrice =
-      UNIFIED_BASE_PRICES[chainlinkData.symbol.toUpperCase()] || chainlinkData.price;
-    const change24hPercent = ((chainlinkData.price - basePrice) / basePrice) * 100;
-    const change24h = chainlinkData.price - basePrice;
-
     return {
       provider: this.name,
       chain: chain || Blockchain.ETHEREUM,
@@ -114,8 +108,8 @@ export class ChainlinkClient extends BaseOracleClient {
       timestamp: chainlinkData.timestamp,
       decimals: chainlinkData.decimals,
       confidence: 0.98,
-      change24h: Number(change24h.toFixed(4)),
-      change24hPercent: Number(change24hPercent.toFixed(2)),
+      change24h: 0,
+      change24hPercent: 0,
     };
   }
 
@@ -132,13 +126,10 @@ export class ChainlinkClient extends BaseOracleClient {
         return this.convertToPriceData(realData, chain);
       }
 
-      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.fetchPriceWithDatabase(symbol, chain, () => {
-        throw this.createError(
-          'Mock price generation is disabled. Please use real data sources only.',
-          'MOCK_DATA_DISABLED'
-        );
-      });
+      throw this.createError(
+        `No price data available for ${symbol}. Real data is not enabled or price feed is not supported on this chain.`,
+        'REAL_DATA_NOT_AVAILABLE'
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from Chainlink',
@@ -279,15 +270,11 @@ export class ChainlinkClient extends BaseOracleClient {
         return [];
       }
 
-      const basePrice =
-        UNIFIED_BASE_PRICES[symbol.toUpperCase()] ||
-        Number(updates[updates.length - 1].current) / Math.pow(10, feed.decimals);
+      const lastPrice = Number(updates[updates.length - 1].current) / Math.pow(10, feed.decimals);
 
       return updates.map((update: { current: string; blockTimestamp: string; roundId: string }) => {
         const price = Number(update.current) / Math.pow(10, feed.decimals);
         const timestamp = Number(update.blockTimestamp) * 1000;
-        const change24hPercent = ((price - basePrice) / basePrice) * 100;
-        const change24h = price - basePrice;
 
         return {
           provider: this.name,
@@ -297,9 +284,19 @@ export class ChainlinkClient extends BaseOracleClient {
           timestamp,
           decimals: feed.decimals,
           confidence: 0.98,
+          change24h: 0,
+          change24hPercent: 0,
+          source: 'chainlink-subgraph',
+        };
+      }).map((item: PriceData, index: number) => {
+        if (index === 0) return item;
+        const firstPrice = updates[0] ? Number(updates[0].current) / Math.pow(10, feed.decimals) : lastPrice;
+        const change24hPercent = ((item.price - firstPrice) / firstPrice) * 100;
+        const change24h = item.price - firstPrice;
+        return {
+          ...item,
           change24h: Number(change24h.toFixed(4)),
           change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'chainlink-subgraph',
         };
       });
     } catch (error) {
@@ -421,10 +418,10 @@ export class ChainlinkClient extends BaseOracleClient {
 
       const chain = Blockchain.ETHEREUM;
 
-      return historicalPrices.map((point) => {
-        const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || point.price;
-        const change24hPercent = ((point.price - basePrice) / basePrice) * 100;
-        const change24h = point.price - basePrice;
+      return historicalPrices.map((point, index) => {
+        const basePrice = historicalPrices[0].price;
+        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
+        const change24h = index === 0 ? 0 : point.price - basePrice;
 
         return {
           provider: this.name,

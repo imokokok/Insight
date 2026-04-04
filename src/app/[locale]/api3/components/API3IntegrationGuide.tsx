@@ -60,12 +60,12 @@ const getIntegrationScenarios = () => [
     titleKey: 'api3.developer.guide.scenarios.defiLending.title',
     descriptionKey: 'api3.developer.guide.scenarios.defiLending.description',
     steps: [
-      '选择适合的 dAPI 数据源（如 ETH/USD）',
-      '部署借贷合约并集成 API3 ServerV1',
-      '配置清算阈值和价格偏差容忍度',
-      '实现价格更新监听和清算逻辑',
+      'api3.developer.guide.scenarios.defiLending.steps.selectDapi',
+      'api3.developer.guide.scenarios.defiLending.steps.deployContract',
+      'api3.developer.guide.scenarios.defiLending.steps.configureThreshold',
+      'api3.developer.guide.scenarios.defiLending.steps.implementLiquidation',
     ],
-    codeExample: `// 借贷合约示例
+    codeExample: `// Lending Contract Example
 contract LendingProtocol {
     Api3ServerV1 public api3Server;
     bytes32 public ethUsdDapiId;
@@ -87,10 +87,10 @@ contract LendingProtocol {
     titleKey: 'api3.developer.guide.scenarios.derivatives.title',
     descriptionKey: 'api3.developer.guide.scenarios.derivatives.description',
     steps: [
-      '集成多个 dAPI 数据源',
-      '实现价格聚合和验证逻辑',
-      '配置价格更新触发条件',
-      '实现结算和交割逻辑',
+      'api3.developer.guide.scenarios.derivatives.steps.integrateMultiple',
+      'api3.developer.guide.scenarios.derivatives.steps.priceAggregation',
+      'api3.developer.guide.scenarios.derivatives.steps.configureTriggers',
+      'api3.developer.guide.scenarios.derivatives.steps.implementSettlement',
     ],
     codeExample: `// 衍生品合约示例
 contract DerivativesProtocol {
@@ -104,7 +104,7 @@ contract DerivativesProtocol {
         Position storage pos = positions[positionId];
         (int224 currentPrice, ) = api3Server.readDataFeedValueWithTimestamp(pos.dapiId);
         int256 pnl = (currentPrice - pos.entryPrice) * int256(pos.size);
-        // 结算逻辑...
+        // Settlement logic...
     }
 }`,
   },
@@ -113,19 +113,19 @@ contract DerivativesProtocol {
     titleKey: 'api3.developer.guide.scenarios.crossChain.title',
     descriptionKey: 'api3.developer.guide.scenarios.crossChain.description',
     steps: [
-      '选择目标部署链',
-      '获取各链的 API3 合约地址',
-      '部署跨链消息传递合约',
-      '实现价格同步和验证逻辑',
+      'api3.developer.guide.scenarios.crossChain.steps.selectTargetChain',
+      'api3.developer.guide.scenarios.crossChain.steps.getContractAddresses',
+      'api3.developer.guide.scenarios.crossChain.steps.deployBridge',
+      'api3.developer.guide.scenarios.crossChain.steps.implementSync',
     ],
-    codeExample: `// 跨链价格同步示例
+    codeExample: `// Cross-Chain Price Sync Example
 contract CrossChainPriceFeed {
     mapping(uint256 => address) public chainApi3Servers;
     
     function syncPrice(uint256 sourceChain, bytes32 dapiId) external {
-        // 通过跨链桥接收价格数据
-        // 验证数据签名
-        // 更新本地价格状态
+        // Receive price data via cross-chain bridge
+        // Verify data signature
+        // Update local price state
     }
 }`,
   },
@@ -215,10 +215,10 @@ export function API3IntegrationGuide() {
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Rocket className="w-5 h-5 text-emerald-600" />
-            {t('api3.developer.guide.quickStart.title') || '快速开始'}
+            {t('api3.developer.guide.quickStart.title')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.developer.guide.quickStart.description') || '几分钟内完成 API3 集成'}
+            {t('api3.developer.guide.quickStart.description')}
           </p>
         </div>
 
@@ -275,7 +275,7 @@ export function API3IntegrationGuide() {
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-emerald-600" />
-            {t('api3.developer.guide.scenarios.title') || '集成场景'}
+            {t('api3.developer.guide.scenarios.title')}
           </h2>
         </div>
 
@@ -306,7 +306,7 @@ export function API3IntegrationGuide() {
                   {scenario.steps.map((step, index) => (
                     <div key={index} className="flex items-start gap-2">
                       <ChevronRight className="w-4 h-4 text-emerald-500 mt-0.5" />
-                      <span className="text-sm text-gray-600">{step}</span>
+                      <span className="text-sm text-gray-600">{t(step)}</span>
                     </div>
                   ))}
                 </div>
@@ -336,7 +336,7 @@ export function API3IntegrationGuide() {
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Lightbulb className="w-5 h-5 text-emerald-600" />
-            {t('api3.developer.guide.bestPractices.title') || '最佳实践'}
+            {t('api3.developer.guide.bestPractices.title')}
           </h2>
         </div>
 
@@ -361,7 +361,7 @@ export function API3IntegrationGuide() {
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-emerald-600" />
-            {t('api3.developer.guide.troubleshooting.title') || '故障排除'}
+            {t('api3.developer.guide.troubleshooting.title')}
           </h2>
         </div>
 
@@ -370,10 +370,10 @@ export function API3IntegrationGuide() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  {t('api3.developer.guide.troubleshooting.problem') || '问题'}
+                  {t('api3.developer.guide.troubleshooting.problem')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  {t('api3.developer.guide.troubleshooting.solution') || '解决方案'}
+                  {t('api3.developer.guide.troubleshooting.solution')}
                 </th>
               </tr>
             </thead>
@@ -395,7 +395,7 @@ export function API3IntegrationGuide() {
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <HelpCircle className="w-5 h-5 text-emerald-600" />
-            {t('api3.developer.guide.faq.title') || '常见问题'}
+            {t('api3.developer.guide.faq.title')}
           </h2>
         </div>
 

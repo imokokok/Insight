@@ -363,7 +363,7 @@ function PriceTableComponent({
     // 操作列 - 展开详情
     baseColumns.push({
       key: 'action',
-      header: t('crossOracle.action') || '操作',
+      header: t('crossOracle.action'),
       width: 80,
       minWidth: 60,
       align: 'center',

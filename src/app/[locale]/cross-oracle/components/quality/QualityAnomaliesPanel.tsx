@@ -132,13 +132,13 @@ function OutlierItem({ metric, t }: OutlierItemProps) {
       <div className="text-right">
         <div className={cn('text-xs font-medium', styles.text)}>
           {severity === 'critical'
-            ? t('crossOracle.quality.severeOutlier') || '严重异常'
+            ? t('crossOracle.quality.severeOutlier')
             : severity === 'warning'
-              ? t('crossOracle.quality.moderateOutlier') || '中度异常'
-              : t('crossOracle.quality.lightOutlier') || '轻度异常'}
+              ? t('crossOracle.quality.moderateOutlier')
+              : t('crossOracle.quality.lightOutlier')}
         </div>
         <div className="text-xs text-gray-400">
-          {t('crossOracle.quality.confidence') || '置信度'}: {(metric.confidence * 100).toFixed(0)}%
+          {t('crossOracle.quality.confidence')}: {(metric.confidence * 100).toFixed(0)}%
         </div>
       </div>
     </div>
@@ -169,7 +169,7 @@ function LatencyItem({ metric, t }: LatencyItemProps) {
           {formatLatency(metric.latency)}
         </div>
         <div className="text-xs text-gray-400">
-          {t('crossOracle.quality.updateDelayed') || '更新延迟'}
+          {t('crossOracle.quality.updateDelayed')}
         </div>
       </div>
     </div>
@@ -200,13 +200,13 @@ function QualityAnomaliesPanelComponent({
       <div className="flex items-center gap-2">
         <TrendingUp className="w-4 h-4 text-red-600" />
         <h4 className="text-sm font-semibold text-gray-900">
-          {t('crossOracle.quality.anomaliesDetected') || '检测到数据异常'}
+          {t('crossOracle.quality.anomaliesDetected')}
         </h4>
         <span className="ml-auto text-xs text-gray-500">
-          {hasOutliers && `${t('crossOracle.quality.outliers') || '离群值'}: ${outliers.length}`}
+          {hasOutliers && `${t('crossOracle.quality.outliers')}: ${outliers.length}`}
           {hasOutliers && hasHighLatency && ' | '}
           {hasHighLatency &&
-            `${t('crossOracle.quality.delayed') || '延迟'}: ${highLatencyOracles.length}`}
+  `${t('crossOracle.quality.delayed')}: ${highLatencyOracles.length}`}
         </span>
       </div>
 
@@ -217,7 +217,7 @@ function QualityAnomaliesPanelComponent({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
               <AlertTriangle className="w-3.5 h-3.5" />
-              <span>{t('crossOracle.quality.priceOutliers') || '价格离群值'}</span>
+              <span>{t('crossOracle.quality.priceOutliers')}</span>
             </div>
             <div className="space-y-1.5">
               {outliers.map((metric) => (
@@ -232,7 +232,7 @@ function QualityAnomaliesPanelComponent({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
               <Clock className="w-3.5 h-3.5" />
-              <span>{t('crossOracle.quality.highLatency') || '高延迟数据源'}</span>
+              <span>{t('crossOracle.quality.highLatency')}</span>
             </div>
             <div className="space-y-1.5">
               {highLatencyOracles.map((metric) => (

@@ -27,22 +27,22 @@ function ChartTabSwitcherComponent({ activeTab, onTabChange, t }: ChartTabSwitch
   const tabs: ChartTab[] = [
     {
       id: 'distribution',
-      label: t('crossOracle.charts.distribution') || '分布直方图',
+      label: t('crossOracle.charts.distribution'),
       icon: <BarChart3 className="w-4 h-4" />,
     },
     {
       id: 'scatter',
-      label: t('crossOracle.charts.scatter') || '偏差散点图',
+      label: t('crossOracle.charts.scatter'),
       icon: <ScatterChart className="w-4 h-4" />,
     },
     {
       id: 'trend',
-      label: t('crossOracle.charts.trend') || '走势对比',
+      label: t('crossOracle.charts.trend'),
       icon: <TrendingUp className="w-4 h-4" />,
     },
     {
       id: 'depth',
-      label: t('crossOracle.charts.depth') || '市场深度',
+      label: t('crossOracle.charts.depth'),
       icon: <GitGraph className="w-4 h-4" />,
     },
   ];

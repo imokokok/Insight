@@ -94,7 +94,7 @@ function MultiOracleTrendChartComponent({
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-900">
-          {t('crossOracle.charts.trendTitle') || '价格走势对比'}
+          {t('crossOracle.charts.trendTitle')}
         </h4>
       </div>
 

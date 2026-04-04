@@ -1,5 +1,4 @@
 import type { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import type { OHLCVDataPoint } from '@/lib/indicators';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import type { GasFeeData } from '@/types/comparison';
@@ -207,23 +206,10 @@ export class API3Client extends BaseOracleClient {
   }
 
   async getLatencyDistribution(): Promise<AnnotatedData<number[]>> {
-    // 基于真实网络数据计算延迟分布
-    const baseLatency = 85;
-    const distribution: number[] = [];
-    for (let i = 0; i < 20; i++) {
-      const variation = (Math.random() - 0.5) * 40;
-      distribution.push(Math.max(20, Math.round(baseLatency + variation)));
-    }
-
-    return {
-      data: distribution.sort((a, b) => a - b),
-      annotation: {
-        isMock: false,
-        source: 'api',
-        reason: 'Calculated from network performance metrics',
-        confidence: 0.85,
-      },
-    };
+    throw this.createError(
+      'Latency distribution data requires real API3 network data. Please ensure the data source is properly configured.',
+      'REAL_DATA_REQUIRED'
+    );
   }
 
   async getDataQualityMetrics(): Promise<{
@@ -268,26 +254,10 @@ export class API3Client extends BaseOracleClient {
   }
 
   async getGasFeeData(): Promise<GasFeeData[]> {
-    // 返回基于以太坊网络的真实 Gas 费用数据
-    const now = Date.now();
-    const data: GasFeeData[] = [];
-    const baseGasPrice = 25;
-
-    for (let i = 23; i >= 0; i--) {
-      const variation = (Math.random() - 0.5) * 20;
-      const gasPrice = Math.max(10, baseGasPrice + variation);
-
-      data.push({
-        oracle: OracleProvider.API3,
-        chain: 'ethereum',
-        updateCost: Math.round(gasPrice * 100) / 100,
-        updateFrequency: 60,
-        avgGasPrice: Math.round(gasPrice * 100) / 100,
-        lastUpdate: now - i * 3600000,
-      });
-    }
-
-    return data;
+    throw this.createError(
+      'Gas fee data requires real Ethereum network data. Please ensure the data source is properly configured.',
+      'REAL_DATA_REQUIRED'
+    );
   }
 
   async getOHLCPrices(
@@ -333,38 +303,10 @@ export class API3Client extends BaseOracleClient {
   }
 
   async getQualityHistory(): Promise<AnnotatedData<QualityDataPoint[]>> {
-    // 生成基于真实网络性能的历史质量数据
-    const now = Date.now();
-    const data: QualityDataPoint[] = [];
-    const baseLatency = 85;
-
-    for (let i = 29; i >= 0; i--) {
-      const timestamp = now - i * 24 * 3600000;
-      const variation = (Math.random() - 0.5) * 0.1;
-      const latency = Math.max(50, baseLatency + variation * 100);
-
-      data.push({
-        timestamp,
-        updateLatency: Math.round(latency),
-        deviationFromMedian: Math.round(variation * 100) / 100,
-        isOutlier: Math.abs(variation) > 0.08,
-        isStale: false,
-        heartbeatCompliance: Math.round((0.95 + variation) * 100) / 100,
-        accuracy: Math.round((0.99 + variation * 0.1) * 100) / 100,
-        availability: Math.round((0.998 + variation * 0.01) * 100) / 100,
-        consistency: Math.round((0.97 + variation * 0.1) * 100) / 100,
-      });
-    }
-
-    return {
-      data,
-      annotation: {
-        isMock: false,
-        source: 'api',
-        reason: 'Calculated from historical network metrics',
-        confidence: 0.85,
-      },
-    };
+    throw this.createError(
+      'Quality history data requires real API3 network metrics. Please ensure the data source is properly configured.',
+      'REAL_DATA_REQUIRED'
+    );
   }
 
   async getCrossOracleComparison(): Promise<
@@ -377,49 +319,10 @@ export class API3Client extends BaseOracleClient {
       updateFrequency: number;
     }[]
   > {
-    // 返回基于行业基准的真实跨预言机比较数据
-    return [
-      {
-        oracle: OracleProvider.API3,
-        responseTime: 180,
-        accuracy: 99.7,
-        availability: 99.7,
-        costEfficiency: 85,
-        updateFrequency: 60,
-      },
-      {
-        oracle: OracleProvider.CHAINLINK,
-        responseTime: 220,
-        accuracy: 99.8,
-        availability: 99.9,
-        costEfficiency: 70,
-        updateFrequency: 3600,
-      },
-      {
-        oracle: OracleProvider.PYTH,
-        responseTime: 150,
-        accuracy: 99.6,
-        availability: 99.5,
-        costEfficiency: 90,
-        updateFrequency: 60,
-      },
-      {
-        oracle: OracleProvider.BAND_PROTOCOL,
-        responseTime: 250,
-        accuracy: 99.4,
-        availability: 99.2,
-        costEfficiency: 75,
-        updateFrequency: 1800,
-      },
-      {
-        oracle: OracleProvider.UMA,
-        responseTime: 300,
-        accuracy: 99.5,
-        availability: 98.8,
-        costEfficiency: 80,
-        updateFrequency: 7200,
-      },
-    ];
+    throw this.createError(
+      'Cross-oracle comparison data requires real data sources. Please ensure the comparison service is properly configured.',
+      'REAL_DATA_REQUIRED'
+    );
   }
 
   private async getCrossOracleComparisonInternal(): Promise<

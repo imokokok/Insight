@@ -151,7 +151,7 @@ function MetricCard({ metric, t }: MetricCardProps) {
           <span>{formatTrendValue(metric.trendValue)}</span>
         </div>
         <span className={`text-xs ${colors.text} opacity-50`}>
-          {t('crossOracle.metrics.vsLastPeriod') || '较上期'}
+          {t('crossOracle.metrics.vsLastPeriod')}
         </span>
       </div>
     </div>
@@ -172,44 +172,44 @@ function RiskMetricsGridComponent({
   const metrics: MetricItem[] = [
     {
       key: 'volatility',
-      name: t('crossOracle.metrics.volatility') || '价格波动率',
-      value: volatility,
-      icon: <Activity className="w-5 h-5" />,
-      unit: '%',
-      description: t('crossOracle.metrics.volatilityDesc') || '价格变动幅度',
+      name: t('crossOracle.metrics.volatility'),
+        value: volatility,
+        icon: <Activity className="w-5 h-5" />,
+        unit: '%',
+        description: t('crossOracle.metrics.volatilityDesc'),
       inverseColor: true, // 波动率越低越好
       trend: volatility > 50 ? 'up' : 'down',
       trendValue: volatility > 50 ? 5.2 : -3.8,
     },
     {
       key: 'consistency',
-      name: t('crossOracle.metrics.consistency') || '数据一致性',
+      name: t('crossOracle.metrics.consistency'),
       value: consistency,
       icon: <GitMerge className="w-5 h-5" />,
       unit: '%',
-      description: t('crossOracle.metrics.consistencyDesc') || '多源数据匹配度',
+      description: t('crossOracle.metrics.consistencyDesc'),
       inverseColor: false,
       trend: consistency > 80 ? 'up' : consistency > 60 ? 'flat' : 'down',
       trendValue: consistency > 80 ? 2.5 : consistency > 60 ? 0 : -4.2,
     },
     {
       key: 'sensitivity',
-      name: t('crossOracle.metrics.sensitivity') || '异常检测敏感度',
+      name: t('crossOracle.metrics.sensitivity'),
       value: sensitivity,
       icon: <Target className="w-5 h-5" />,
       unit: '%',
-      description: t('crossOracle.metrics.sensitivityDesc') || '异常识别准确率',
+      description: t('crossOracle.metrics.sensitivityDesc'),
       inverseColor: false,
       trend: sensitivity > 85 ? 'up' : sensitivity > 70 ? 'flat' : 'down',
       trendValue: sensitivity > 85 ? 1.8 : sensitivity > 70 ? 0.5 : -2.1,
     },
     {
       key: 'health',
-      name: t('crossOracle.metrics.health') || '系统健康度',
+      name: t('crossOracle.metrics.health'),
       value: health,
       icon: <HeartPulse className="w-5 h-5" />,
       unit: '%',
-      description: t('crossOracle.metrics.healthDesc') || '整体运行状态',
+      description: t('crossOracle.metrics.healthDesc'),
       inverseColor: false,
       trend: health > 90 ? 'up' : health > 75 ? 'flat' : 'down',
       trendValue: health > 90 ? 3.2 : health > 75 ? 0.8 : -5.5,

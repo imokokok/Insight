@@ -52,6 +52,11 @@
   "liquidity": "Liquidity",
   "marketDepthLabel": "Market Depth",
   "depthScore": "Depth Score",
+  "realData": "Real Data",
+  "fallback": "Fallback",
+  "failed": "Failed",
+  "dataSourceLabel": "Data Source",
+  "error": "Error",
   "priceStream": {
     "title": "Real-Time Price Stream",
     "currentPrice": "Current Price",
@@ -571,7 +576,13 @@
     "hoursAgo": "hours ago",
     "minutesAgo": "minutes ago",
     "daysAgo": "days ago",
-    "thisWeek": "this week"
+    "thisWeek": "this week",
+    "defaultUpdates": {
+      "priceUpdate": "TRB Price Update: $35.42 (+2.3%)",
+      "newReporter": "New Reporter Joined: 0x7a8b...3c4d",
+      "feedUpdate": "Data Feed Updated",
+      "maintenanceComplete": "System Maintenance Complete"
+    }
   },
   "market": {
     "tradingPair": "Trading Pair",

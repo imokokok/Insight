@@ -44,17 +44,17 @@ function getTabsConfig(
   return [
     {
       id: 'priceComparison',
-      label: t('crossOracle.tabs.priceComparison') || '价格对比',
+      label: t('crossOracle.tabs.priceComparison'),
       icon: <TrendingUp className="w-4 h-4" />,
     },
     {
       id: 'dataQuality',
-      label: t('crossOracle.tabs.dataQuality') || '数据质量',
+      label: t('crossOracle.tabs.dataQuality'),
       icon: <Shield className="w-4 h-4" />,
     },
     {
       id: 'riskAlert',
-      label: t('crossOracle.tabs.riskAlert') || '风险预警',
+      label: t('crossOracle.tabs.riskAlert'),
       icon: <AlertTriangle className="w-4 h-4" />,
       badge: riskAlertCount > 0 ? riskAlertCount : undefined,
       badgeColor: riskAlertCount > 0 ? 'red' : undefined,

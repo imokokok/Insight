@@ -181,13 +181,6 @@ export {
   saveHistoricalPricesWithFallback,
 } from './storage';
 export {
-  UNIFIED_BASE_PRICES,
-  updateBasePrices,
-  resetBasePrices,
-  DEFAULT_BASE_PRICES,
-} from '@/lib/config/basePrices';
-export type { BasePrices } from '@/lib/config/basePrices';
-export {
   OracleClientFactory,
   getOracleClient,
   getAllOracleClients,

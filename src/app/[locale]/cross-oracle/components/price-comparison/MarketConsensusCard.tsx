@@ -53,7 +53,7 @@ function MarketConsensusCardComponent({
           <div className="flex items-center gap-2 mb-1">
             <Activity className="w-4 h-4 text-blue-500" />
             <span className="text-sm font-medium text-gray-500">
-              {t('crossOracle.marketConsensus') || '市场共识价格'}
+              {t('crossOracle.marketConsensus')}
             </span>
           </div>
           <div className="flex items-baseline gap-2">
@@ -90,11 +90,11 @@ function MarketConsensusCardComponent({
       {/* 统计摘要 */}
       <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
         <span>
-          {t('crossOracle.priceRange') || '价格区间'}: {formatPrice(minPrice)} -{' '}
+          {t('crossOracle.priceRange')}: {formatPrice(minPrice)} -{' '}
           {formatPrice(maxPrice)}
         </span>
         <span>
-          {t('crossOracle.spread') || '价差'}:{' '}
+          {t('crossOracle.spread')}:{' '}
           {(((maxPrice - minPrice) / medianPrice) * 100).toFixed(2)}%
         </span>
       </div>

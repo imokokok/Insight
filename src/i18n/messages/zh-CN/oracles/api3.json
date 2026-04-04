@@ -709,6 +709,12 @@
       "quickStart": {
         "title": "快速开始",
         "description": "几分钟内完成 API3 集成",
+        "steps": {
+          "selectDapi": "选择适合的 dAPI 数据源（如 ETH/USD）",
+          "deployContract": "部署借贷合约并集成 API3 ServerV1",
+          "configureThreshold": "配置清算阈值和价格偏差容忍度",
+          "implementLiquidation": "实现价格更新监听和清算逻辑"
+        },
         "step1": {
           "title": "获取 API Key",
           "description": "注册 API3 开发者账户并获取 API Key"
@@ -731,15 +737,33 @@
         "title": "集成场景",
         "defiLending": {
           "title": "DeFi 借贷协议",
-          "description": "使用 API3 dAPI 作为价格预言机，实现去中心化借贷"
+          "description": "使用 API3 dAPI 作为去中心化借贷的价格预言机",
+          "steps": {
+            "selectDapi": "选择适合的 dAPI 数据源（如 ETH/USD）",
+            "deployContract": "部署借贷合约并集成 API3 ServerV1",
+            "configureThreshold": "配置清算阈值和价格偏差容忍度",
+            "implementLiquidation": "实现价格更新监听和清算逻辑"
+          }
         },
         "derivatives": {
           "title": "衍生品交易",
-          "description": "为衍生品协议提供可靠的价格数据"
+          "description": "为衍生品协议提供可靠的价格数据",
+          "steps": {
+            "integrateMultiple": "集成多个 dAPI 数据源",
+            "priceAggregation": "实现价格聚合和验证逻辑",
+            "configureTriggers": "配置价格更新触发条件",
+            "implementSettlement": "实现结算和交割逻辑"
+          }
         },
         "crossChain": {
           "title": "跨链应用",
-          "description": "在多条链上使用统一的 dAPI 数据源"
+          "description": "在多条链上使用统一的 dAPI 数据源",
+          "steps": {
+            "selectTargetChain": "选择目标部署链",
+            "getContractAddresses": "获取各链的 API3 合约地址",
+            "deployBridge": "部署跨链消息传递合约",
+            "implementSync": "实现价格同步和验证逻辑"
+          }
         }
       },
       "bestPractices": {

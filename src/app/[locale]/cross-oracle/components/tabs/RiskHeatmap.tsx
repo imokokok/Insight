@@ -85,15 +85,15 @@ function getRiskLevelLabel(
 ): string {
   switch (riskLevel) {
     case 'high':
-      return t('crossOracle.risk.high') || '高风险';
+      return t('crossOracle.risk.high');
     case 'medium':
-      return t('crossOracle.risk.medium') || '中风险';
+      return t('crossOracle.risk.medium');
     case 'low':
-      return t('crossOracle.risk.low') || '低风险';
+      return t('crossOracle.risk.low');
     case 'normal':
-      return t('crossOracle.risk.normal') || '正常';
+      return t('crossOracle.risk.normal');
     default:
-      return t('crossOracle.risk.unknown') || '未知';
+      return t('crossOracle.risk.unknown');
   }
 }
 
@@ -132,10 +132,10 @@ function HeatmapCell({ item, t }: HeatmapCellProps) {
 
   const tooltipContent = useMemo(() => {
     return [
-      `${t('crossOracle.oracle') || '预言机'}: ${item.oracle}`,
-      `${t('crossOracle.deviation') || '偏差'}: ${formatPercent(item.deviation)}`,
-      `${t('crossOracle.risk.level') || '风险等级'}: ${getRiskLevelLabel(item.riskLevel, t)}`,
-      `${t('crossOracle.detectedAt') || '检测时间'}: ${formatTime(item.timestamp)}`,
+      `${t('crossOracle.oracle')}: ${item.oracle}`,
+      `${t('crossOracle.deviation')}: ${formatPercent(item.deviation)}`,
+      `${t('crossOracle.risk.level')}: ${getRiskLevelLabel(item.riskLevel, t)}`,
+      `${t('crossOracle.detectedAt')}: ${formatTime(item.timestamp)}`,
     ].join('\n');
   }, [item, t]);
 
@@ -209,10 +209,10 @@ function EmptyState({
         <Info className="w-8 h-8 text-gray-400" />
       </div>
       <h3 className="text-base font-medium text-gray-900">
-        {t('crossOracle.risk.noData') || '暂无数据'}
+        {t('crossOracle.risk.noData')}
       </h3>
       <p className="text-sm text-gray-500 mt-1 max-w-sm">
-        {t('crossOracle.risk.noDataDesc') || '当前没有可用的风险数据，请稍后重试'}
+        {t('crossOracle.risk.noDataDesc')}
       </p>
     </div>
   );
@@ -243,7 +243,7 @@ function RiskHeatmapComponent({ data, selectedSymbol, t }: RiskHeatmapProps) {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-gray-400" />
-            {t('crossOracle.risk.heatmapTitle') || '风险热力图'}
+            {t('crossOracle.risk.heatmapTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -260,7 +260,7 @@ function RiskHeatmapComponent({ data, selectedSymbol, t }: RiskHeatmapProps) {
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-orange-500" />
             <CardTitle className="text-lg">
-              {t('crossOracle.risk.heatmapTitle') || '风险热力图'}
+              {t('crossOracle.risk.heatmapTitle')}
               <span className="text-gray-400 mx-2">|</span>
               <span className="text-gray-700">
                 {baseAsset}
@@ -272,17 +272,17 @@ function RiskHeatmapComponent({ data, selectedSymbol, t }: RiskHeatmapProps) {
           {/* 统计摘要 */}
           <div className="flex items-center gap-4 text-sm">
             <span className="text-gray-500">
-              {t('crossOracle.total') || '总计'}:{' '}
+              {t('crossOracle.total')}:{' '}
               <strong className="text-gray-900">{data.length}</strong>
             </span>
             {stats.high > 0 && (
               <span className="text-red-600">
-                {t('crossOracle.risk.high') || '高风险'}: <strong>{stats.high}</strong>
+                {t('crossOracle.risk.high')}: <strong>{stats.high}</strong>
               </span>
             )}
             {stats.medium > 0 && (
               <span className="text-orange-600">
-                {t('crossOracle.risk.medium') || '中风险'}: <strong>{stats.medium}</strong>
+                {t('crossOracle.risk.medium')}: <strong>{stats.medium}</strong>
               </span>
             )}
           </div>
@@ -302,31 +302,31 @@ function RiskHeatmapComponent({ data, selectedSymbol, t }: RiskHeatmapProps) {
           <div className="flex items-center gap-1.5 mb-3">
             <Info className="w-4 h-4 text-gray-400" />
             <span className="text-sm font-medium text-gray-700">
-              {t('crossOracle.risk.legend') || '图例说明'}
+              {t('crossOracle.risk.legend')}
             </span>
           </div>
           <div className="flex flex-wrap gap-4 sm:gap-6">
             <LegendItem
               riskLevel="high"
-              label={t('crossOracle.risk.high') || '高风险'}
+              label={t('crossOracle.risk.high')}
               count={stats.high}
               t={t}
             />
             <LegendItem
               riskLevel="medium"
-              label={t('crossOracle.risk.medium') || '中风险'}
+              label={t('crossOracle.risk.medium')}
               count={stats.medium}
               t={t}
             />
             <LegendItem
               riskLevel="low"
-              label={t('crossOracle.risk.low') || '低风险'}
+              label={t('crossOracle.risk.low')}
               count={stats.low}
               t={t}
             />
             <LegendItem
               riskLevel="normal"
-              label={t('crossOracle.risk.normal') || '正常'}
+              label={t('crossOracle.risk.normal')}
               count={stats.normal}
               t={t}
             />
