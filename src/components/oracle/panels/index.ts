@@ -9,7 +9,6 @@ export { ValidatorAnalyticsPanel } from './ValidatorAnalyticsPanel';
 export { ValidatorPanel } from './ValidatorPanel';
 export { UMANetworkPanel } from './UMANetworkPanel';
 export { UMARiskPanel } from './UMARiskPanel';
-export { DataQualityScorePanel } from './DataQualityScorePanel';
 export { TellorPriceStreamPanel } from './TellorPriceStreamPanel';
 export { TellorMarketDepthPanel } from './TellorMarketDepthPanel';
 export { TellorMultiChainAggregationPanel } from './TellorMultiChainAggregationPanel';
