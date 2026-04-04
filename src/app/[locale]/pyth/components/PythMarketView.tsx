@@ -60,9 +60,7 @@ export function PythMarketView({
 
   const emaData = useMemo(() => {
     const prices =
-      historicalData && historicalData.length > 0
-        ? historicalData.map((d) => d.price)
-        : [];
+      historicalData && historicalData.length > 0 ? historicalData.map((d) => d.price) : [];
 
     const ema7Values = calculateEMA(prices, 7);
     const ema25Values = calculateEMA(prices, 25);

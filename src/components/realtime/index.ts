@@ -3,4 +3,3 @@ export {
   ConnectionStatusBadge,
   ConnectionStatusDot,
 } from './ConnectionStatus';
-export { RealtimeNotifications } from './RealtimeNotifications';

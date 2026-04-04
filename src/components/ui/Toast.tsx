@@ -76,7 +76,6 @@ export function useToast() {
   return context;
 }
 
-// Hook for convenient toast methods
 export function useToastMethods() {
   const { addToast } = useToast();
 

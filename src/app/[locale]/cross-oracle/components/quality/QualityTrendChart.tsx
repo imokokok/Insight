@@ -198,9 +198,7 @@ function QualityTrendChartComponent({ metrics, t, className }: QualityTrendChart
         </div>
         <div className="flex items-center gap-1.5 ml-auto">
           <span className="inline-block w-4 h-0 border-t border-dashed border-red-400" />
-          <span className="text-gray-500">
-            {t('crossOracle.quality.cvThreshold')}
-          </span>
+          <span className="text-gray-500">{t('crossOracle.quality.cvThreshold')}</span>
         </div>
       </div>
     </div>

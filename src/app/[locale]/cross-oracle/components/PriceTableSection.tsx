@@ -58,9 +58,7 @@ function RiskLevelLegend({ t }: { t: (key: string) => string }) {
 
   return (
     <div className="flex flex-wrap items-center gap-3 text-xs">
-      <span className="text-gray-500 font-medium">
-        {t('crossOracle.riskLevelLegend')}
-      </span>
+      <span className="text-gray-500 font-medium">{t('crossOracle.riskLevelLegend')}</span>
       {riskLevels.map((level) => (
         <div key={level.key} className="flex items-center gap-1.5">
           <span className={`w-2.5 h-2.5 rounded-full ${level.colorClass}`} />
@@ -90,9 +88,7 @@ function DeviationLegend({ t }: { t: (key: string) => string }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs">
-      <span className="text-gray-500 font-medium">
-        {t('crossOracle.deviationLegend')}
-      </span>
+      <span className="text-gray-500 font-medium">{t('crossOracle.deviationLegend')}</span>
       {deviationLevels.map((level) => (
         <span
           key={level.range}

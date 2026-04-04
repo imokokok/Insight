@@ -272,33 +272,37 @@ export class ChainlinkClient extends BaseOracleClient {
 
       const lastPrice = Number(updates[updates.length - 1].current) / Math.pow(10, feed.decimals);
 
-      return updates.map((update: { current: string; blockTimestamp: string; roundId: string }) => {
-        const price = Number(update.current) / Math.pow(10, feed.decimals);
-        const timestamp = Number(update.blockTimestamp) * 1000;
+      return updates
+        .map((update: { current: string; blockTimestamp: string; roundId: string }) => {
+          const price = Number(update.current) / Math.pow(10, feed.decimals);
+          const timestamp = Number(update.blockTimestamp) * 1000;
 
-        return {
-          provider: this.name,
-          chain: chain || Blockchain.ETHEREUM,
-          symbol,
-          price,
-          timestamp,
-          decimals: feed.decimals,
-          confidence: 0.98,
-          change24h: 0,
-          change24hPercent: 0,
-          source: 'chainlink-subgraph',
-        };
-      }).map((item: PriceData, index: number) => {
-        if (index === 0) return item;
-        const firstPrice = updates[0] ? Number(updates[0].current) / Math.pow(10, feed.decimals) : lastPrice;
-        const change24hPercent = ((item.price - firstPrice) / firstPrice) * 100;
-        const change24h = item.price - firstPrice;
-        return {
-          ...item,
-          change24h: Number(change24h.toFixed(4)),
-          change24hPercent: Number(change24hPercent.toFixed(2)),
-        };
-      });
+          return {
+            provider: this.name,
+            chain: chain || Blockchain.ETHEREUM,
+            symbol,
+            price,
+            timestamp,
+            decimals: feed.decimals,
+            confidence: 0.98,
+            change24h: 0,
+            change24hPercent: 0,
+            source: 'chainlink-subgraph',
+          };
+        })
+        .map((item: PriceData, index: number) => {
+          if (index === 0) return item;
+          const firstPrice = updates[0]
+            ? Number(updates[0].current) / Math.pow(10, feed.decimals)
+            : lastPrice;
+          const change24hPercent = ((item.price - firstPrice) / firstPrice) * 100;
+          const change24h = item.price - firstPrice;
+          return {
+            ...item,
+            change24h: Number(change24h.toFixed(4)),
+            change24hPercent: Number(change24hPercent.toFixed(2)),
+          };
+        });
     } catch (error) {
       console.warn(`[ChainlinkClient] Failed to fetch from TheGraph:`, error);
       return [];

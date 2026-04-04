@@ -168,9 +168,7 @@ function LatencyItem({ metric, t }: LatencyItemProps) {
         <div className="text-sm font-mono font-medium text-yellow-700">
           {formatLatency(metric.latency)}
         </div>
-        <div className="text-xs text-gray-400">
-          {t('crossOracle.quality.updateDelayed')}
-        </div>
+        <div className="text-xs text-gray-400">{t('crossOracle.quality.updateDelayed')}</div>
       </div>
     </div>
   );
@@ -205,8 +203,7 @@ function QualityAnomaliesPanelComponent({
         <span className="ml-auto text-xs text-gray-500">
           {hasOutliers && `${t('crossOracle.quality.outliers')}: ${outliers.length}`}
           {hasOutliers && hasHighLatency && ' | '}
-          {hasHighLatency &&
-  `${t('crossOracle.quality.delayed')}: ${highLatencyOracles.length}`}
+          {hasHighLatency && `${t('crossOracle.quality.delayed')}: ${highLatencyOracles.length}`}
         </span>
       </div>
 

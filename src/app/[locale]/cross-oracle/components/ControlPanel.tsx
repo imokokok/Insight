@@ -250,9 +250,7 @@ export function ControlPanel({
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium">
-                    {t('controlPanel.noCommonSymbols')}
-                  </p>
+                  <p className="font-medium">{t('controlPanel.noCommonSymbols')}</p>
                   <p className="text-xs text-amber-500 mt-1">
                     {t('controlPanel.adjustOracleSelection')}
                   </p>

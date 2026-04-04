@@ -162,9 +162,7 @@ function CustomTooltip({ active, payload, label, t }: CustomTooltipProps) {
       <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">
-            {t('crossOracle.risk.riskScore')}
-          </span>
+          <span className="text-xs text-gray-500">{t('crossOracle.risk.riskScore')}</span>
           <span
             className="text-sm font-bold px-2 py-0.5 rounded"
             style={{ color: riskColor, backgroundColor: riskBgColor }}
@@ -173,9 +171,7 @@ function CustomTooltip({ active, payload, label, t }: CustomTooltipProps) {
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">
-            {t('crossOracle.risk.anomalyCount')}
-          </span>
+          <span className="text-xs text-gray-500">{t('crossOracle.risk.anomalyCount')}</span>
           <span className="text-sm font-medium text-gray-900">{dataPoint.anomalyCount}</span>
         </div>
         {dataPoint.event && (
@@ -331,9 +327,7 @@ function RiskTrendChartComponent({ data, timeRange, onTimeRangeChange, t }: Risk
           </p>
         </div>
         <div className="bg-gray-50 rounded-lg p-2 text-center">
-          <p className="text-xs text-gray-500">
-            {t('crossOracle.risk.totalAnomalies')}
-          </p>
+          <p className="text-xs text-gray-500">{t('crossOracle.risk.totalAnomalies')}</p>
           <p className="text-lg font-bold text-gray-900">{stats.totalAnomalies}</p>
         </div>
       </div>
@@ -444,34 +438,26 @@ function RiskTrendChartComponent({ data, timeRange, onTimeRangeChange, t }: Risk
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: semanticColors.success.DEFAULT }}
           />
-          <span className="text-xs text-gray-500">
-            {t('crossOracle.risk.low')} (&lt;40)
-          </span>
+          <span className="text-xs text-gray-500">{t('crossOracle.risk.low')} (&lt;40)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: semanticColors.warning.DEFAULT }}
           />
-          <span className="text-xs text-gray-500">
-            {t('crossOracle.risk.medium')} (40-70)
-          </span>
+          <span className="text-xs text-gray-500">{t('crossOracle.risk.medium')} (40-70)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: semanticColors.danger.DEFAULT }}
           />
-          <span className="text-xs text-gray-500">
-            {t('crossOracle.risk.high')} (&gt;70)
-          </span>
+          <span className="text-xs text-gray-500">{t('crossOracle.risk.high')} (&gt;70)</span>
         </div>
         {eventPoints.length > 0 && (
           <div className="flex items-center gap-1.5">
             <AlertCircle className="w-3 h-3 text-red-500" />
-            <span className="text-xs text-gray-500">
-              {t('crossOracle.risk.eventMarker')}
-            </span>
+            <span className="text-xs text-gray-500">{t('crossOracle.risk.eventMarker')}</span>
           </div>
         )}
       </div>

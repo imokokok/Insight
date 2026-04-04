@@ -749,8 +749,11 @@ export class API3DataAggregator {
 
   private generateHourlyActivity(): number[] {
     const baseActivity = 750;
-    const variation = [0.6, 0.5, 0.4, 0.3, 0.35, 0.5, 0.8, 1.2, 1.4, 1.5, 1.3, 1.2, 1.1, 1.15, 1.2, 1.3, 1.35, 1.4, 1.3, 1.1, 0.9, 0.8, 0.7, 0.65];
-    return variation.map(v => Math.round(baseActivity * v));
+    const variation = [
+      0.6, 0.5, 0.4, 0.3, 0.35, 0.5, 0.8, 1.2, 1.4, 1.5, 1.3, 1.2, 1.1, 1.15, 1.2, 1.3, 1.35, 1.4,
+      1.3, 1.1, 0.9, 0.8, 0.7, 0.65,
+    ];
+    return variation.map((v) => Math.round(baseActivity * v));
   }
 
   private async fetchFromAPI<T>(

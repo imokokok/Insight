@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { ComponentErrorBoundary } from '@/components/ErrorBoundaries';
+import { ComponentErrorBoundary } from '@/components/error-boundary';
 
 import { GlobalSearch as GlobalSearchComponent } from './GlobalSearch';
 

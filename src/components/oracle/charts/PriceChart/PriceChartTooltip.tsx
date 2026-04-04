@@ -1,294 +1,162 @@
 'use client';
 
-import { memo } from 'react';
+import React from 'react';
 
-import { type IndicatorDataPoint } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import { semanticColors } from '@/lib/config/colors';
 
 import { type ChartType } from './priceChartConfig';
 
+interface TooltipPayloadItem {
+  name: string;
+  value: number;
+  color?: string;
+}
+
 interface MainChartTooltipProps {
   active?: boolean;
-  payload?: Array<{ dataKey: string; value: number; color: string; payload: IndicatorDataPoint }>;
+  payload?: TooltipPayloadItem[];
   label?: string;
-  chartType: ChartType;
-  showBollingerBands: boolean;
-  showRSI: boolean;
-  showMACD: boolean;
+  chartType?: ChartType;
+  showBollingerBands?: boolean;
+  showRSI?: boolean;
+  showMACD?: boolean;
   isMobile?: boolean;
 }
 
-export const MainChartTooltip = memo(function MainChartTooltip({
+export function MainChartTooltip({
   active,
   payload,
   label,
-  chartType,
-  showBollingerBands,
-  showRSI,
-  showMACD,
-  isMobile,
 }: MainChartTooltipProps) {
-  const t = useTranslations();
-
-  if (!active || !payload || payload.length === 0) return null;
-
-  const data = payload[0]?.payload;
-  if (!data) return null;
-
-  const isUp = data.close !== undefined && data.open !== undefined ? data.close >= data.open : true;
-
-  return (
-    <div
-      className={`bg-white border border-gray-200   ${isMobile ? 'p-2 max-w-[200px]' : 'p-3 max-w-xs'}`}
-    >
-      <p className={`text-gray-600 mb-2 font-medium ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-        {label}
-      </p>
-
-      {chartType === 'candlestick' && data.open !== undefined ? (
-        <div className="space-y-1">
-          <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">{t('priceQuery.chart.tooltip.open')}</span>
-            <span className="text-gray-900 font-mono">${data.open.toFixed(4)}</span>
-          </div>
-          <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">{t('priceQuery.chart.tooltip.high')}</span>
-            <span className="text-success-600 font-mono">${data.high?.toFixed(4)}</span>
-          </div>
-          <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">{t('priceQuery.chart.tooltip.low')}</span>
-            <span className="text-danger-600 font-mono">${data.low?.toFixed(4)}</span>
-          </div>
-          <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">{t('priceQuery.chart.tooltip.close')}</span>
-            <span className={`font-mono ${isUp ? 'text-success-600' : 'text-danger-600'}`}>
-              ${data.close?.toFixed(4)}
-            </span>
-          </div>
-        </div>
-      ) : (
-        <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-          <span className="text-gray-500">{t('priceQuery.chart.tooltip.price')}</span>
-          <span className="text-primary-600 font-mono">${data.price.toFixed(4)}</span>
-        </div>
-      )}
-
-      {data.ma7 !== undefined && chartType === 'line' && (
-        <div className={`flex justify-between gap-4 mt-1 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-          <span className="text-gray-500">{t('priceQuery.chart.tooltip.ma7')}</span>
-          <span className="text-amber-600 font-mono">${data.ma7.toFixed(4)}</span>
-        </div>
-      )}
-
-      {!isMobile && data.ma14 !== undefined && chartType === 'line' && (
-        <div className="flex justify-between gap-4 text-xs mt-1">
-          <span className="text-gray-500">{t('priceQuery.chart.tooltip.ma14')}</span>
-          <span className="text-primary-600 font-mono">${data.ma14.toFixed(4)}</span>
-        </div>
-      )}
-
-      {!isMobile && data.ma30 !== undefined && chartType === 'line' && (
-        <div className="flex justify-between gap-4 text-xs mt-1">
-          <span className="text-gray-500">{t('priceQuery.chart.tooltip.ma30')}</span>
-          <span className="text-purple-600 font-mono">${data.ma30.toFixed(4)}</span>
-        </div>
-      )}
-
-      {showBollingerBands && !isMobile && data.bbUpper !== undefined && (
-        <div className="space-y-1 mt-2 pt-2 border-t border-gray-200">
-          <p className="text-xs text-gray-400 font-medium">
-            {t('priceQuery.chart.tooltip.bollingerBands')}
-          </p>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('priceQuery.chart.tooltip.upperBand')}</span>
-            <span className="text-purple-500 font-mono">${data.bbUpper.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('priceQuery.chart.tooltip.middleBand')}</span>
-            <span className="text-purple-400 font-mono">${data.bbMiddle?.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('priceQuery.chart.tooltip.lowerBand')}</span>
-            <span className="text-purple-500 font-mono">${data.bbLower?.toFixed(4)}</span>
-          </div>
-        </div>
-      )}
-
-      {data.predictionUpper !== undefined &&
-        data.predictionLower !== undefined &&
-        data.predictionUpper !== null &&
-        data.predictionLower !== null && (
-          <div
-            className={`space-y-1 mt-2 pt-2 border-t border-gray-200 ${isMobile ? 'text-[10px]' : 'text-xs'}`}
-          >
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('priceQuery.chart.tooltip.predictionUpper')}</span>
-              <span className="text-primary-600 font-mono">
-                ${Number(data.predictionUpper).toFixed(4)}
-              </span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('priceQuery.chart.tooltip.predictionLower')}</span>
-              <span className="text-primary-600 font-mono">
-                ${Number(data.predictionLower).toFixed(4)}
-              </span>
-            </div>
-          </div>
-        )}
-
-      <div
-        className={`flex justify-between gap-4 mt-2 pt-2 border-t border-gray-200 ${isMobile ? 'text-[10px]' : 'text-xs'}`}
-      >
-        <span className="text-gray-500">{t('priceQuery.chart.tooltip.volume')}</span>
-        <span className="text-gray-700 font-mono">{(data.volume / 1000000).toFixed(2)}M</span>
-      </div>
-
-      {showRSI && !isMobile && data.rsi !== undefined && (
-        <div className="flex justify-between gap-4 text-xs mt-1">
-          <span className="text-gray-500">{t('priceQuery.chart.tooltip.rsi')}</span>
-          <span
-            className={`font-mono ${data.rsi > 70 ? 'text-danger-500' : data.rsi < 30 ? 'text-success-500' : 'text-gray-700'}`}
-          >
-            {data.rsi.toFixed(2)}
-          </span>
-        </div>
-      )}
-
-      {showMACD && !isMobile && data.macd !== undefined && (
-        <div className="space-y-1 mt-2 pt-2 border-t border-gray-200">
-          <p className="text-xs text-gray-400 font-medium">{t('priceQuery.chart.tooltip.macd')}</p>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('priceQuery.chart.tooltip.macdValue')}</span>
-            <span className="text-primary-600 font-mono">{data.macd.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('priceQuery.chart.tooltip.signal')}</span>
-            <span className="text-warning-600 font-mono">{data.macdSignal?.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('priceQuery.chart.tooltip.histogram')}</span>
-            <span
-              className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}
-            >
-              {data.macdHistogram?.toFixed(4)}
-            </span>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-});
-
-interface RSITooltipProps {
-  active?: boolean;
-  payload?: Array<{ dataKey: string; value: number; color: string; payload: IndicatorDataPoint }>;
-  label?: string;
-}
-
-export const RSITooltip = memo(function RSITooltip({ active, payload, label }: RSITooltipProps) {
-  const t = useTranslations();
-
-  if (!active || !payload || payload.length === 0) return null;
-
-  const data = payload[0]?.payload;
-  if (!data || data.rsi === undefined) return null;
-
-  return (
-    <div className="bg-white border border-gray-200  p-2 ">
-      <p className="text-gray-600 text-xs mb-1 font-medium">{label}</p>
-      <div className="flex justify-between gap-4 text-xs">
-        <span className="text-gray-500">{t('priceQuery.chart.tooltip.rsi')}</span>
-        <span
-          className={`font-mono font-medium ${data.rsi > 70 ? 'text-danger-500' : data.rsi < 30 ? 'text-success-500' : 'text-gray-900'}`}
-        >
-          {data.rsi.toFixed(2)}
-        </span>
-      </div>
-    </div>
-  );
-});
-
-interface MACDTooltipProps {
-  active?: boolean;
-  payload?: Array<{ dataKey: string; value: number; color: string; payload: IndicatorDataPoint }>;
-  label?: string;
-}
-
-export const MACDTooltip = memo(function MACDTooltip({ active, payload, label }: MACDTooltipProps) {
-  const t = useTranslations();
-
-  if (!active || !payload || payload.length === 0) return null;
-
-  const data = payload[0]?.payload;
-  if (!data) return null;
-
-  return (
-    <div className="bg-white border border-gray-200  p-2 ">
-      <p className="text-gray-600 text-xs mb-1 font-medium">{label}</p>
-      <div className="space-y-1">
-        <div className="flex justify-between gap-4 text-xs">
-          <span className="text-gray-500">{t('priceQuery.chart.tooltip.macdValue')}</span>
-          <span className="text-primary-600 font-mono">{data.macd?.toFixed(4)}</span>
-        </div>
-        <div className="flex justify-between gap-4 text-xs">
-          <span className="text-gray-500">{t('priceQuery.chart.tooltip.signal')}</span>
-          <span className="text-warning-600 font-mono">{data.macdSignal?.toFixed(4)}</span>
-        </div>
-        <div className="flex justify-between gap-4 text-xs">
-          <span className="text-gray-500">{t('priceQuery.chart.tooltip.histogram')}</span>
-          <span
-            className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}
-          >
-            {data.macdHistogram?.toFixed(4)}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-interface CandlestickShapeProps {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  payload?: IndicatorDataPoint;
-}
-
-export const CandlestickShape = memo(function CandlestickShape(props: CandlestickShapeProps) {
-  const { x = 0, y = 0, width = 0, payload } = props;
-  if (!payload) return null;
-
-  const { open, high, low, close } = payload;
-  if (open === undefined || high === undefined || low === undefined || close === undefined) {
+  if (!active || !payload || !payload.length) {
     return null;
   }
 
-  const isUp = close >= open;
-  const color = isUp ? semanticColors.success.DEFAULT : semanticColors.danger.DEFAULT;
-  const bodyHeight = Math.abs(close - open);
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
+      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">{label}</p>
+      {payload.map((entry, index) => (
+        <div key={index} className="flex items-center gap-2 text-sm">
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: entry.color }}
+          />
+          <span className="text-gray-600 dark:text-gray-400">{entry.name}:</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">
+            {typeof entry.value === 'number' ? entry.value.toFixed(2) : entry.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-  const centerX = x + width / 2;
+interface RSITooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+}
+
+export function RSITooltip({ active, payload, label }: RSITooltipProps) {
+  if (!active || !payload || !payload.length) {
+    return null;
+  }
+
+  const rsiValue = payload[0]?.value;
+
+  let interpretation = '';
+  if (rsiValue !== undefined) {
+    if (rsiValue >= 70) {
+      interpretation = 'Overbought';
+    } else if (rsiValue <= 30) {
+      interpretation = 'Oversold';
+    } else {
+      interpretation = 'Neutral';
+    }
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
+      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{label}</p>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        RSI: <span className="font-medium">{rsiValue?.toFixed(2)}</span>
+      </p>
+      <p className="text-xs text-gray-500">{interpretation}</p>
+    </div>
+  );
+}
+
+interface MACDTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+}
+
+export function MACDTooltip({ active, payload, label }: MACDTooltipProps) {
+  if (!active || !payload || !payload.length) {
+    return null;
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
+      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{label}</p>
+      {payload.map((entry, index) => (
+        <div key={index} className="flex items-center gap-2 text-sm">
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: entry.color }}
+          />
+          <span className="text-gray-600 dark:text-gray-400">{entry.name}:</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">
+            {typeof entry.value === 'number' ? entry.value.toFixed(4) : entry.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function CandlestickShape(props: any) {
+  const { x, y, width, height, payload } = props;
+
+  if (!payload) {
+    return null;
+  }
+
+  const { open, close, high, low } = payload;
+  const isGreen = close >= open;
+  const fillColor = isGreen ? '#10b981' : '#ef4444';
+
+  const bodyTop = Math.min(y, y + height);
+  const bodyHeight = Math.abs(height);
 
   return (
     <g>
       <line
-        x1={centerX}
-        y1={y}
-        x2={centerX}
-        y2={y + (props.height || 0)}
-        stroke={color}
+        x1={x + width / 2}
+        y1={y - (high - Math.max(open, close)) * 10}
+        x2={x + width / 2}
+        y2={bodyTop}
+        stroke={fillColor}
         strokeWidth={1}
       />
       <rect
-        x={x + width * 0.2}
-        y={y + (isUp ? 0 : (props.height || 0) * 0.5)}
-        width={width * 0.6}
-        height={Math.max(bodyHeight, 2)}
-        fill={color}
-        rx={1}
+        x={x}
+        y={bodyTop}
+        width={width}
+        height={Math.max(1, bodyHeight)}
+        fill={fillColor}
+        stroke={fillColor}
+        strokeWidth={1}
+      />
+      <line
+        x1={x + width / 2}
+        y1={bodyTop + bodyHeight}
+        x2={x + width / 2}
+        y2={y + height + (low - Math.min(open, close)) * 10}
+        stroke={fillColor}
+        strokeWidth={1}
       />
     </g>
   );
-});
+}

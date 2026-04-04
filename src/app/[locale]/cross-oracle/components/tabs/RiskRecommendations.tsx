@@ -139,7 +139,9 @@ function generateRecommendations(
       priority: 'warning',
       icon: <AlertTriangle className="w-5 h-5" />,
       title: t('crossOracle.risk.recommendations.monitorMarketTitle'),
-      description: t('crossOracle.risk.recommendations.monitorMarketDesc', { count: mediumRiskCount }),
+      description: t('crossOracle.risk.recommendations.monitorMarketDesc', {
+        count: mediumRiskCount,
+      }),
       action: t('crossOracle.risk.recommendations.viewMarketData'),
     });
   }
@@ -171,7 +173,9 @@ function generateRecommendations(
       priority: 'warning',
       icon: <WifiOff className="w-5 h-5" />,
       title: t('crossOracle.risk.recommendations.dataDelayTitle'),
-      description: t('crossOracle.risk.recommendations.dataDelayDesc', { count: delayedAnomalies.length }),
+      description: t('crossOracle.risk.recommendations.dataDelayDesc', {
+        count: delayedAnomalies.length,
+      }),
       action: t('crossOracle.risk.recommendations.checkNetwork'),
     });
   }

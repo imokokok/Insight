@@ -7,10 +7,6 @@ import { X, Loader2 } from 'lucide-react';
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// 进度条组件
-// ============================================
-
 interface ProgressBarProps {
   progress: number;
   total?: number;
@@ -72,10 +68,6 @@ export function ProgressBar({
     </div>
   );
 }
-
-// ============================================
-// 圆形进度组件
-// ============================================
 
 interface CircularProgressProps {
   progress: number;
@@ -141,10 +133,6 @@ export function CircularProgress({
   );
 }
 
-// ============================================
-// 数据加载进度组件
-// ============================================
-
 interface DataLoadingProgressProps {
   isLoading: boolean;
   progress?: number;
@@ -176,7 +164,6 @@ export function DataLoadingProgress({
       return;
     }
 
-    // Reset elapsed time when loading starts
     const timer = setTimeout(() => setElapsedTime(0), 0);
     const interval = setInterval(() => {
       setElapsedTime((prev) => prev + 1);

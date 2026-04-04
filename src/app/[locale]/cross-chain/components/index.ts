@@ -13,4 +13,3 @@ export { StandardBoxPlot } from './StandardBoxPlot';
 export { CollapsibleSection } from './CollapsibleSection';
 export { DataSourceSection } from './DataSourceSection';
 export { BenchmarkComparisonSection } from './BenchmarkComparisonSection';
-export * from './SmallComponents';

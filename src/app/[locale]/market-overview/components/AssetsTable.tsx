@@ -399,7 +399,7 @@ function AssetsTableComponent({
               <span className="font-medium">{t('filter.activeFilters')}:</span>
               {filters?.searchQuery && (
                 <span className="px-2 py-0.5 bg-gray-100 rounded text-gray-700">
-                  {t('filter.search')}: "{filters.searchQuery}"
+                  {t('filter.search')}: &quot;{filters.searchQuery}&quot;
                 </span>
               )}
               {filters?.oracleFilter && (

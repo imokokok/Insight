@@ -7,7 +7,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 
 import { AppInitializer } from '@/components/AppInitializer';
-import { ErrorBoundary } from '@/components/ErrorBoundaries';
+import { ErrorBoundary } from '@/components/error-boundary';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import { PerformanceMetricsCollector } from '@/components/PerformanceMetricsCollector';

@@ -1,6 +1,4 @@
 export { CopyButton } from './CopyButton';
-export { StatRow } from './StatRow';
-export type { StatItem } from './StatRow';
 export {
   getStatusColor,
   getStatusBgColor,

@@ -155,9 +155,7 @@ export function API3SdkDownloads() {
             <Download className="w-5 h-5 text-emerald-600" />
             {t('api3.developer.sdk.title')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('api3.developer.sdk.description')}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">{t('api3.developer.sdk.description')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

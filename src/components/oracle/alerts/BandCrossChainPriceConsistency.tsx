@@ -475,10 +475,12 @@ export function BandCrossChainPriceConsistency({
   const baseChain = chainData[0];
   const basePrice = baseChain?.price || 0;
 
-  const maxDeviation = chainData.length > 0 ? Math.max(...chainData.map((c) => Math.abs(c.deviationPercent))) : 0;
-  const avgLatency = chainData.length > 0 ? Math.round(
-    chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length
-  ) : 0;
+  const maxDeviation =
+    chainData.length > 0 ? Math.max(...chainData.map((c) => Math.abs(c.deviationPercent))) : 0;
+  const avgLatency =
+    chainData.length > 0
+      ? Math.round(chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length)
+      : 0;
   const hasWarnings = chainData.some((c) => c.status !== 'normal');
 
   useEffect(() => {
