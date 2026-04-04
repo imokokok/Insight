@@ -1,6 +1,5 @@
 export { PriceTable } from './PriceTable';
 export { PriceTableSection } from './PriceTableSection';
-export { PairSelector } from './PairSelector';
 export { DataSourcePanel } from './DataSourcePanel';
 export { default as UnifiedExportSection } from './UnifiedExportSection';
 export { OracleComparisonSection } from './OracleComparisonSection';

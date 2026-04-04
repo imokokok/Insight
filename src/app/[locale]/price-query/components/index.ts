@@ -1,6 +1,5 @@
 export { Icons } from './Icons';
 export { CustomTooltip } from './CustomTooltip';
-export { CustomLegend } from './CustomLegend';
 export { StatItem } from './StatItem';
 export { Selectors } from './Selectors';
 export { PriceChart } from './PriceChart';
