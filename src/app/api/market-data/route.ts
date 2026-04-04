@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 
-import { createLogger } from '@/lib/utils/logger';
 import {
   coinGeckoMarketService,
   binanceMarketService,
   type TokenMarketData,
 } from '@/lib/services/marketData';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('MarketDataAPI');
 
@@ -111,10 +111,7 @@ export async function GET(request: Request) {
     }
 
     if (!data) {
-      return NextResponse.json(
-        { error: `No data found for symbol: ${symbol}` },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: `No data found for symbol: ${symbol}` }, { status: 404 });
     }
 
     // 缓存数据
@@ -128,7 +125,10 @@ export async function GET(request: Request) {
       timestamp: Date.now(),
     });
   } catch (error) {
-    logger.error('Market data API error:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Market data API error:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return NextResponse.json(
       {
         error: 'Failed to fetch market data',

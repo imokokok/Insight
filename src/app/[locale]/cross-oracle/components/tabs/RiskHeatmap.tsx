@@ -208,12 +208,8 @@ function EmptyState({
       <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
         <Info className="w-8 h-8 text-gray-400" />
       </div>
-      <h3 className="text-base font-medium text-gray-900">
-        {t('crossOracle.risk.noData')}
-      </h3>
-      <p className="text-sm text-gray-500 mt-1 max-w-sm">
-        {t('crossOracle.risk.noDataDesc')}
-      </p>
+      <h3 className="text-base font-medium text-gray-900">{t('crossOracle.risk.noData')}</h3>
+      <p className="text-sm text-gray-500 mt-1 max-w-sm">{t('crossOracle.risk.noDataDesc')}</p>
     </div>
   );
 }
@@ -272,8 +268,7 @@ function RiskHeatmapComponent({ data, selectedSymbol, t }: RiskHeatmapProps) {
           {/* 统计摘要 */}
           <div className="flex items-center gap-4 text-sm">
             <span className="text-gray-500">
-              {t('crossOracle.total')}:{' '}
-              <strong className="text-gray-900">{data.length}</strong>
+              {t('crossOracle.total')}: <strong className="text-gray-900">{data.length}</strong>
             </span>
             {stats.high > 0 && (
               <span className="text-red-600">
@@ -318,12 +313,7 @@ function RiskHeatmapComponent({ data, selectedSymbol, t }: RiskHeatmapProps) {
               count={stats.medium}
               t={t}
             />
-            <LegendItem
-              riskLevel="low"
-              label={t('crossOracle.risk.low')}
-              count={stats.low}
-              t={t}
-            />
+            <LegendItem riskLevel="low" label={t('crossOracle.risk.low')} count={stats.low} t={t} />
             <LegendItem
               riskLevel="normal"
               label={t('crossOracle.risk.normal')}

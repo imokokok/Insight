@@ -334,9 +334,7 @@ function OracleQualityTableComponent({ oracleMetrics, t, className }: OracleQual
           <span className="inline-block w-2 h-2 rounded-full bg-yellow-500" />
           {t('crossOracle.quality.table.highLatencyLegend')}
         </span>
-        <span className="ml-auto">
-          {t('crossOracle.quality.table.clickToSort')}
-        </span>
+        <span className="ml-auto">{t('crossOracle.quality.table.clickToSort')}</span>
       </div>
     </div>
   );

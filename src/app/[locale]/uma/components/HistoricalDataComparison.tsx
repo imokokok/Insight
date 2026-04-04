@@ -123,9 +123,10 @@ interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{ name: string; value: number | string; color: string }>;
   label?: string;
+  yAxisFormatter?: (value: number) => string;
 }
 
-function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, label, yAxisFormatter }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
 
   return (
@@ -136,7 +137,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
           <div key={index} className="flex justify-between items-center">
             <span className="text-xs text-gray-600">{entry.name}</span>
             <span className="text-sm font-medium font-mono" style={{ color: entry.color }}>
-              {typeof entry.value === 'number' ? yAxisFormatter(entry.value) : entry.value}
+              {typeof entry.value === 'number' && yAxisFormatter
+                ? yAxisFormatter(entry.value)
+                : entry.value}
             </span>
           </div>
         ))}
@@ -431,7 +434,7 @@ function ComparisonChart({
             tickFormatter={yAxisFormatter}
             domain={['auto', 'auto']}
           />
-          <RechartsTooltip content={<CustomTooltip />} />
+          <RechartsTooltip content={<CustomTooltip yAxisFormatter={yAxisFormatter} />} />
           <Legend />
 
           {chartType === 'volume' && (

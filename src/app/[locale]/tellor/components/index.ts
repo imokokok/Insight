@@ -7,5 +7,4 @@ export { TellorStakingView } from './TellorStakingView';
 export { TellorEcosystemView } from './TellorEcosystemView';
 export { TellorRiskView } from './TellorRiskView';
 export { TellorHero } from './TellorHero';
-export { TellorDataTable } from './TellorDataTable';
 export { TellorGovernanceView } from './TellorGovernanceView';

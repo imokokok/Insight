@@ -118,10 +118,7 @@ export abstract class BaseOracleClient {
     );
   }
 
-  async fetchPriceWithDatabase(
-    symbol: string,
-    chain: Blockchain | undefined
-  ): Promise<PriceData> {
+  async fetchPriceWithDatabase(symbol: string, chain: Blockchain | undefined): Promise<PriceData> {
     return fetchPriceWithDatabase(this.name, symbol, chain, this.config.useDatabase ?? true);
   }
 

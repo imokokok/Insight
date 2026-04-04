@@ -1,5 +1,4 @@
 export { PriceChart } from './PriceChart';
-export type { DynamicPriceChartProps } from './PriceChart/DynamicPriceChart';
 export { PriceVolatilityChart } from './PriceVolatilityChart';
 export type {
   PriceVolatilityChartProps,
@@ -53,7 +52,6 @@ export type { ValidatorGeographicMapProps } from './ValidatorGeographicMap';
 export { ConcentrationRisk } from './ConcentrationRisk';
 export { CrossChainRisk } from './CrossChainRisk';
 export { PriceDeviationRisk } from './PriceDeviationRisk';
-export { CorrelationAnalysis } from './CorrelationAnalysis';
 export { ChainComparison } from './ChainComparison';
 export type { ChainComparisonProps } from './ChainComparison';
 export { ValidatorComparison } from './ValidatorComparison';
@@ -62,46 +60,6 @@ export { MultiValidatorComparison } from './MultiValidatorComparison';
 export type { MultiValidatorComparisonProps } from './MultiValidatorComparison';
 export { CrossOracleComparison } from './CrossOracleComparison';
 export { PriceStream } from './PriceStream';
-
-// Dynamic Chart Components - Code Splitting for Heavy Components
-export {
-  // Core dynamic chart components
-  DynamicPriceChart,
-  DynamicPriceVolatilityChart,
-  DynamicMovingAverageChart,
-  DynamicCrossChainTrendChart,
-  DynamicGasFeeTrendChart,
-  DynamicLatencyTrendChart,
-  DynamicRequestTrendChart,
-  DynamicConfidenceIntervalChart,
-  DynamicCDFChart,
-  DynamicStakingDistributionChart,
-  DynamicPriceDeviationHistoryChart,
-  DynamicValidatorHistoryChart,
-  DynamicDataSourceTrend,
-  DynamicDataQualityTrend,
-  DynamicPriceDistributionBoxPlot,
-  DynamicPriceDeviationHeatmap,
-  DynamicPriceCorrelationMatrix,
-  DynamicUpdateFrequencyHeatmap,
-  DynamicValidatorPerformanceHeatmap,
-  DynamicLatencyDistributionHistogram,
-  DynamicValidatorGeographicMap,
-  DynamicCrossChainPriceComparison,
-  DynamicChainCoverageHeatmap,
-  DynamicConcentrationRisk,
-  DynamicCrossChainRisk,
-  DynamicPriceDeviationRisk,
-  DynamicCorrelationAnalysis,
-  DynamicChainComparison,
-  DynamicValidatorComparison,
-  DynamicMultiValidatorComparison,
-  DynamicCrossOracleComparison,
-  DynamicInteractivePriceChart,
-  DynamicLatencyPrediction,
-  DynamicLatencyHistogram,
-  DynamicPriceStream,
-} from './DynamicChartComponents';
 
 // Chart Interaction Components
 export { ChartGuide, useChartGuide } from './ChartGuide';

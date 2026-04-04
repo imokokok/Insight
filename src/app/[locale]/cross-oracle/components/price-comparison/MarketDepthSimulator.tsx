@@ -134,9 +134,7 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
             <Tooltip
               formatter={(value, name) => [
                 (value as number).toFixed(2),
-                name === 'bidDepth'
-                  ? t('crossOracle.bidDepth')
-                  : t('crossOracle.askDepth'),
+                name === 'bidDepth' ? t('crossOracle.bidDepth') : t('crossOracle.askDepth'),
               ]}
               labelFormatter={(label) => `${t('crossOracle.price')}: ${label}`}
               contentStyle={{

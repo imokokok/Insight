@@ -1,132 +1,94 @@
 'use client';
 
-import { baseColors, semanticColors } from '@/lib/config/colors';
-import { type Blockchain } from '@/lib/oracles';
+import React from 'react';
 
-import {
-  chainColors,
-  type SparklineProps,
-  type ProgressBarProps,
-  type JumpIndicatorProps,
-} from '../constants';
+import { useTranslations } from '@/i18n';
 
-export function Sparkline({ data, color, width = 80, height = 20 }: SparklineProps) {
-  if (!data || data.length < 2) {
-    return (
-      <span className="text-xs" style={{ color: baseColors.gray[400] }}>
-        -
-      </span>
-    );
-  }
-
-  const recentData = data.slice(-20);
-  const min = Math.min(...recentData);
-  const max = Math.max(...recentData);
-  const range = max - min || 1;
-
-  const points = recentData
-    .map((value, index) => {
-      const x = (index / (recentData.length - 1)) * width;
-      const y = height - ((value - min) / range) * height;
-      return `${x},${y}`;
-    })
-    .join(' ');
-
-  return (
-    <svg width={width} height={height} className="inline-block">
-      <polyline
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        points={points}
-      />
-    </svg>
-  );
+interface ProgressBarProps {
+  progress?: number;
+  value?: number;
+  total?: number;
+  max?: number;
+  showPercentage?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'success' | 'warning' | 'error';
+  animated?: boolean;
+  color?: string;
+  className?: string;
+  suffix?: string;
 }
 
 export function ProgressBar({
+  progress,
   value,
-  color,
+  total = 100,
   max = 100,
-  showValue = true,
-  suffix = '%',
+  showPercentage = false,
+  size = 'md',
+  variant = 'default',
+  animated = true,
+  color,
+  className = '',
+  suffix = '',
 }: ProgressBarProps) {
-  const percentage = Math.min((value / max) * 100, 100);
+  const numericValue = value ?? progress ?? 0;
+  const percentage = Math.min(100, Math.max(0, (numericValue / (max || 100)) * 100));
+
+  const sizeClasses = {
+    sm: 'h-1.5',
+    md: 'h-2.5',
+    lg: 'h-4',
+  };
+
+  const defaultColors = {
+    default: 'bg-primary-600',
+    success: 'bg-emerald-500',
+    warning: 'bg-amber-500',
+    error: 'bg-danger-500',
+  };
+
+  const barColor = color || defaultColors[variant];
 
   return (
-    <div className="flex items-center gap-2">
-      <div
-        className="flex-1 h-2 min-w-[60px] rounded-full overflow-hidden"
-        style={{ backgroundColor: baseColors.gray[100] }}
-      >
+    <div className={`w-full ${className}`}>
+      <div className={`w-full bg-gray-200 rounded-full overflow-hidden ${sizeClasses[size]}`}>
         <div
-          className="h-full rounded-full transition-all duration-500 ease-out"
-          style={{
-            width: `${percentage}%`,
-            backgroundColor: color,
-          }}
+          className={`h-full rounded-full transition-all duration-300 ease-out ${
+            animated ? 'progress-bar-animated' : ''
+          } ${barColor}`}
+          style={{ width: `${percentage}%` }}
         />
       </div>
-      {showValue && (
-        <span
-          className="text-xs font-mono min-w-[45px] text-right tabular-nums"
-          style={{ color: baseColors.gray[600] }}
-        >
-          {value.toFixed(1)}
-          {suffix}
-        </span>
+      {showPercentage && (
+        <div className="flex justify-end mt-1 text-xs text-gray-500">
+          <span>
+            {Math.round(percentage)}
+            {suffix}
+          </span>
+        </div>
       )}
     </div>
   );
 }
 
-export function JumpIndicator({ count }: JumpIndicatorProps) {
-  const getJumpColor = (cnt: number): string => {
-    if (cnt < 3) return semanticColors.success.main;
-    if (cnt <= 5) return semanticColors.warning.main;
-    return semanticColors.danger.main;
+interface JumpIndicatorProps {
+  count: number;
+  threshold?: number;
+}
+
+export function JumpIndicator({ count, threshold = 5 }: JumpIndicatorProps) {
+  const t = useTranslations();
+
+  const getColorClass = () => {
+    if (count === 0) return 'text-emerald-500';
+    if (count < threshold) return 'text-amber-500';
+    return 'text-danger-500';
   };
 
-  const color = getJumpColor(count);
-
   return (
-    <div className="flex items-center gap-1.5">
-      <div className="flex gap-0.5">
-        {[1, 2, 3, 4, 5].map((level) => (
-          <div
-            key={level}
-            className="w-1.5 h-3 rounded-sm transition-colors duration-200"
-            style={{
-              backgroundColor: count >= level ? color : baseColors.gray[200],
-            }}
-          />
-        ))}
-      </div>
-      <span
-        className="text-xs font-mono tabular-nums min-w-[16px] text-right"
-        style={{ color: baseColors.gray[600] }}
-      >
-        {count}
-      </span>
+    <div className="flex items-center gap-1">
+      <span className={`text-lg font-bold ${getColorClass()}`}>{count}</span>
+      <span className="text-xs text-gray-500">{t('crossChain.priceJumps')}</span>
     </div>
   );
 }
-
-export function TrendIndicator({ changePercent }: { changePercent: number | null }) {
-  if (changePercent === null) return null;
-  const isPositive = changePercent >= 0;
-  return (
-    <span
-      className="text-xs font-medium"
-      style={{ color: isPositive ? semanticColors.success.main : semanticColors.danger.main }}
-    >
-      {isPositive ? '+' : ''}
-      {Math.abs(changePercent).toFixed(1)}%
-    </span>
-  );
-}
-
-export { chainColors };
-export type { Blockchain };

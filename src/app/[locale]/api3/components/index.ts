@@ -12,4 +12,3 @@ export { API3ApiDocs } from './API3ApiDocs';
 export { API3IntegrationGuide } from './API3IntegrationGuide';
 export { API3SdkDownloads } from './API3SdkDownloads';
 export { API3TestnetSwitch } from './API3TestnetSwitch';
-export { API3DeveloperView } from './API3DeveloperView';

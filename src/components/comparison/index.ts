@@ -10,9 +10,6 @@ export * from './types';
 export { TimeRangeSelector } from './TimeRangeSelector';
 export { TimeComparisonChart } from './TimeComparisonChart';
 
-// 预言机对比组件
-export { OracleComparisonView } from './OracleComparisonView';
-
 // 基准对比组件
 export { BenchmarkComparison } from './BenchmarkComparison';
 

@@ -1,5 +1,4 @@
 export { ChainlinkSidebar } from './ChainlinkSidebar';
-export { ChainlinkHeader } from './ChainlinkHeader';
 export { ChainlinkHero } from './ChainlinkHero';
 export { ChainlinkMarketView } from './ChainlinkMarketView';
 export { ChainlinkNetworkView } from './ChainlinkNetworkView';

@@ -180,12 +180,8 @@ function EmptyState({
       <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
         <ShieldCheck className="w-8 h-8 text-emerald-600" />
       </div>
-      <h3 className="text-base font-semibold text-gray-900">
-        {t('crossOracle.risk.noAnomalies')}
-      </h3>
-      <p className="text-sm text-gray-500 mt-1 max-w-sm">
-        {t('crossOracle.risk.noAnomaliesDesc')}
-      </p>
+      <h3 className="text-base font-semibold text-gray-900">{t('crossOracle.risk.noAnomalies')}</h3>
+      <p className="text-sm text-gray-500 mt-1 max-w-sm">{t('crossOracle.risk.noAnomaliesDesc')}</p>
     </div>
   );
 }
@@ -315,9 +311,7 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">
-                        {t('crossOracle.provider')}:
-                      </span>
+                      <span className="text-gray-500">{t('crossOracle.provider')}:</span>
                       <span className="font-medium text-gray-900">
                         {oracleNames[anomaly.provider]}
                       </span>
@@ -344,17 +338,13 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">
-                        {t('crossOracle.risk.detectedAt')}:
-                      </span>
+                      <span className="text-gray-500">{t('crossOracle.risk.detectedAt')}:</span>
                       <span className="text-gray-900">
                         {new Date(anomaly.timestamp).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">
-                        {t('crossOracle.risk.freshness')}:
-                      </span>
+                      <span className="text-gray-500">{t('crossOracle.risk.freshness')}:</span>
                       <span className="text-gray-900">
                         {anomaly.freshnessSeconds < 60
                           ? `${anomaly.freshnessSeconds}秒`
@@ -362,9 +352,7 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">
-                        {t('crossOracle.risk.status')}:
-                      </span>
+                      <span className="text-gray-500">{t('crossOracle.risk.status')}:</span>
                       <span
                         className={`inline-flex items-center px-2 py-0.5 text-xs rounded-full ${colors.badge}`}
                       >
@@ -473,14 +461,11 @@ function RiskDetailsTableComponent({ anomalies, t }: RiskDetailsTableProps) {
       {/* 底部统计 */}
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>
-            {t('crossOracle.risk.totalAnomalies', { count: anomalies.length })}
-          </span>
+          <span>{t('crossOracle.risk.totalAnomalies', { count: anomalies.length })}</span>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-red-500"></span>
-              {t('crossOracle.risk.high')}:{' '}
-              {anomalies.filter((a) => a.severity === 'high').length}
+              {t('crossOracle.risk.high')}: {anomalies.filter((a) => a.severity === 'high').length}
             </span>
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-orange-500"></span>
@@ -489,8 +474,7 @@ function RiskDetailsTableComponent({ anomalies, t }: RiskDetailsTableProps) {
             </span>
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-              {t('crossOracle.risk.low')}:{' '}
-              {anomalies.filter((a) => a.severity === 'low').length}
+              {t('crossOracle.risk.low')}: {anomalies.filter((a) => a.severity === 'low').length}
             </span>
           </div>
         </div>

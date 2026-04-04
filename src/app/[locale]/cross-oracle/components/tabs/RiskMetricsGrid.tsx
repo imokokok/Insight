@@ -173,10 +173,10 @@ function RiskMetricsGridComponent({
     {
       key: 'volatility',
       name: t('crossOracle.metrics.volatility'),
-        value: volatility,
-        icon: <Activity className="w-5 h-5" />,
-        unit: '%',
-        description: t('crossOracle.metrics.volatilityDesc'),
+      value: volatility,
+      icon: <Activity className="w-5 h-5" />,
+      unit: '%',
+      description: t('crossOracle.metrics.volatilityDesc'),
       inverseColor: true, // 波动率越低越好
       trend: volatility > 50 ? 'up' : 'down',
       trendValue: volatility > 50 ? 5.2 : -3.8,

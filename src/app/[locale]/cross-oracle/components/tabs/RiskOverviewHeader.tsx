@@ -247,9 +247,7 @@ function RiskOverviewHeaderComponent({
             <BarChart3 className="w-4 h-4 text-gray-600" />
           </div>
           <div>
-            <div className="text-xs text-gray-500">
-              {t('crossOracle.risk.riskScore')}
-            </div>
+            <div className="text-xs text-gray-500">{t('crossOracle.risk.riskScore')}</div>
             <div className="flex items-center gap-1.5">
               <span className={cn('text-sm font-semibold tabular-nums', riskScoreColor)}>
                 {riskScore}
@@ -272,9 +270,7 @@ function RiskOverviewHeaderComponent({
 
       {/* 右侧：风险分布 */}
       <div className="hidden md:flex items-center gap-4 flex-shrink-0">
-        <div className="text-xs text-gray-500 mr-1">
-          {t('crossOracle.risk.distribution')}
-        </div>
+        <div className="text-xs text-gray-500 mr-1">{t('crossOracle.risk.distribution')}</div>
         <div className="flex items-center gap-3">
           <RiskDistributionItem
             label={t('crossOracle.risk.high')}

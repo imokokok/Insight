@@ -560,8 +560,16 @@ function LatestUpdates({
       text: t('hero.defaultUpdates.newReporter'),
       time: `5${t('hero.minutesAgo')}`,
     },
-    { type: 'feed' as const, text: t('hero.defaultUpdates.feedUpdate'), time: `8${t('hero.minutesAgo')}` },
-    { type: 'system' as const, text: t('hero.defaultUpdates.maintenanceComplete'), time: `15${t('hero.minutesAgo')}` },
+    {
+      type: 'feed' as const,
+      text: t('hero.defaultUpdates.feedUpdate'),
+      time: `8${t('hero.minutesAgo')}`,
+    },
+    {
+      type: 'system' as const,
+      text: t('hero.defaultUpdates.maintenanceComplete'),
+      time: `15${t('hero.minutesAgo')}`,
+    },
   ];
 
   const displayUpdates = updates || defaultUpdates;

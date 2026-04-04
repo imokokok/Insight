@@ -216,9 +216,7 @@ function SimplePriceComparisonTabComponent({
       {/* 图表区域 */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-medium text-gray-700">
-            {t('crossOracle.visualization')}
-          </h4>
+          <h4 className="text-sm font-medium text-gray-700">{t('crossOracle.visualization')}</h4>
           <ChartTabSwitcher activeTab={activeChartTab} onTabChange={setActiveChartTab} t={t} />
         </div>
         {renderChartContent()}

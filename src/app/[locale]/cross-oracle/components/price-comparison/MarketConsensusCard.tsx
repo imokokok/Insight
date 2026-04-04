@@ -90,12 +90,10 @@ function MarketConsensusCardComponent({
       {/* 统计摘要 */}
       <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
         <span>
-          {t('crossOracle.priceRange')}: {formatPrice(minPrice)} -{' '}
-          {formatPrice(maxPrice)}
+          {t('crossOracle.priceRange')}: {formatPrice(minPrice)} - {formatPrice(maxPrice)}
         </span>
         <span>
-          {t('crossOracle.spread')}:{' '}
-          {(((maxPrice - minPrice) / medianPrice) * 100).toFixed(2)}%
+          {t('crossOracle.spread')}: {(((maxPrice - minPrice) / medianPrice) * 100).toFixed(2)}%
         </span>
       </div>
     </div>
