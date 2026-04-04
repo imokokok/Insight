@@ -5,8 +5,6 @@ export { NetworkHealthPanel, type NetworkDataConfig } from './NetworkHealthPanel
 export { StakingPanel } from './StakingPanel';
 export { ValidatorAnalyticsPanel } from './ValidatorAnalyticsPanel';
 export { ValidatorPanel } from './ValidatorPanel';
-export { UMANetworkPanel } from './UMANetworkPanel';
-export { UMARiskPanel } from './UMARiskPanel';
 export { TellorPriceStreamPanel } from './TellorPriceStreamPanel';
 export { TellorMarketDepthPanel } from './TellorMarketDepthPanel';
 export { TellorMultiChainAggregationPanel } from './TellorMultiChainAggregationPanel';
