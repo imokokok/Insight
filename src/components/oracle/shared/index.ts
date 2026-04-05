@@ -1,6 +1,11 @@
 export { TabNavigation, type TimeRange } from './TabNavigation';
 export { MoreOptionsDropdown } from './MoreOptionsDropdown';
-export { LoadingState } from './LoadingState';
+export {
+  LoadingState,
+  PageLoadingState,
+  CardLoadingState,
+  InlineLoadingState,
+} from './LoadingState';
 export { ErrorFallback } from './ErrorFallback';
 export { PartialDataWarning } from './PartialDataWarning';
 export {

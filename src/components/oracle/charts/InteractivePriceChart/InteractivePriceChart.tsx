@@ -13,17 +13,16 @@ import {
   ResponsiveContainer,
   Brush,
   Legend,
-  Area,
 } from 'recharts';
 
 import { useTranslations } from '@/i18n';
-import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { chartColors, baseColors } from '@/lib/config/colors';
 import { type ChartExportData } from '@/lib/utils/chartExport';
 import { createLogger } from '@/lib/utils/logger';
 
 import { ChartGuide, useChartGuide } from '../ChartGuide';
-import { EnhancedChartToolbar, type ToolbarGroup } from '../ChartToolbar';
-import { EnhancedTooltip, MultiSeriesTooltip } from '../EnhancedTooltip';
+import { MultiSeriesTooltip } from '../EnhancedTooltip';
+import { OracleChartToolbar, type ToolbarGroup } from '../OracleChartToolbar';
 
 const logger = createLogger('InteractivePriceChart');
 
@@ -71,7 +70,7 @@ export function InteractivePriceChart({
   const [showComparison, setShowComparison] = useState(!!comparisonData);
   const [brushRange, setBrushRange] = useState<{ startIndex?: number; endIndex?: number }>({});
 
-  const { shouldShowGuide, resetGuide } = useChartGuide(chartId);
+  const { shouldShowGuide, resetGuide: _resetGuide } = useChartGuide(chartId);
 
   // Calculate price change
   const priceChange = useMemo(() => {
@@ -224,45 +223,41 @@ export function InteractivePriceChart({
     // Implement refresh logic here
   }, []);
 
-  // Custom tooltip content
-  const CustomTooltipContent = useCallback(
-    ({
-      active,
-      payload,
-      label,
-    }: {
-      active?: boolean;
-      payload?: Array<{ dataKey: string; value: number; color: string; payload: ChartDataPoint }>;
-      label?: string;
-    }) => {
-      if (!active || !payload || payload.length === 0) return null;
+  const renderTooltipContent = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{ dataKey: string; value: number; color: string; payload: ChartDataPoint }>;
+    label?: string;
+  }) => {
+    if (!active || !payload || payload.length === 0) return null;
 
-      const seriesNames: Record<string, string> = {
-        price: t('series.price'),
-        comparisonPrice: t('series.comparison'),
-        ma7: 'MA7',
-        ma14: 'MA14',
-        ma30: 'MA30',
-      };
+    const seriesNames: Record<string, string> = {
+      price: t('series.price'),
+      comparisonPrice: t('series.comparison'),
+      ma7: 'MA7',
+      ma14: 'MA14',
+      ma30: 'MA30',
+    };
 
-      return (
-        <MultiSeriesTooltip
-          active={active}
-          payload={payload.map((p) => ({
-            dataKey: p.dataKey,
-            value: p.value,
-            color: p.color,
-            payload: p.payload,
-            name: seriesNames[p.dataKey] || p.dataKey,
-          }))}
-          label={label}
-          seriesNames={seriesNames}
-          isMobile={isMobile}
-        />
-      );
-    },
-    [isMobile, t]
-  );
+    return (
+      <MultiSeriesTooltip
+        active={active}
+        payload={payload.map((p) => ({
+          dataKey: p.dataKey,
+          value: p.value,
+          color: p.color,
+          payload: p.payload,
+          name: seriesNames[p.dataKey] || p.dataKey,
+        }))}
+        label={label}
+        seriesNames={seriesNames}
+        isMobile={isMobile}
+      />
+    );
+  };
 
   return (
     <div className={`flex flex-col ${className}`}>
@@ -272,7 +267,7 @@ export function InteractivePriceChart({
       )}
 
       {/* Enhanced Toolbar */}
-      <EnhancedChartToolbar
+      <OracleChartToolbar
         symbol={symbol}
         currentPrice={currentPrice}
         priceChange={priceChange}
@@ -283,6 +278,8 @@ export function InteractivePriceChart({
         showExport={true}
         showRefresh={true}
         showSettings={false}
+        showGranularity={false}
+        showTechnicalIndicators={false}
         onRefresh={handleRefresh}
         onFullscreen={handleFullscreen}
         isFullscreen={isFullscreen}
@@ -335,7 +332,8 @@ export function InteractivePriceChart({
               hide
             />
 
-            <RechartsTooltip content={<CustomTooltipContent />} />
+            {/* @ts-expect-error recharts tooltip content type */}
+            <RechartsTooltip content={renderTooltipContent} />
 
             {showComparison && comparisonData && (
               <Legend

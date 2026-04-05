@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import {
   isAppError,
+  AppError,
   ValidationError,
   NotFoundError,
   PriceFetchError,
@@ -40,6 +41,7 @@ export interface ErrorBoundaryProps {
   componentName?: string;
   captureInSentry?: boolean;
   showDetails?: boolean;
+  themeColor?: string;
 }
 
 /**
@@ -239,13 +241,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       level = 'component',
       componentName,
       showDetails,
+      themeColor,
     } = this.props;
 
     if (!hasError || !error) {
       return children;
     }
 
-    // 使用自定义 fallbackRender
     if (fallbackRender) {
       return (
         <>
@@ -260,12 +262,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       );
     }
 
-    // 使用自定义 fallback
     if (fallback) {
       return <>{fallback}</>;
     }
 
-    // 使用默认错误回退UI
     return (
       <DefaultErrorFallback
         error={error}
@@ -273,6 +273,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         level={level}
         componentName={componentName}
         showDetails={showDetails}
+        themeColor={themeColor}
       />
     );
   }
@@ -287,6 +288,7 @@ interface DefaultErrorFallbackProps {
   level: ErrorBoundaryLevel;
   componentName?: string;
   showDetails?: boolean;
+  themeColor?: string;
 }
 
 function DefaultErrorFallback({
@@ -295,8 +297,9 @@ function DefaultErrorFallback({
   level,
   componentName,
   showDetails = process.env.NODE_ENV === 'development',
+  themeColor,
 }: DefaultErrorFallbackProps) {
-  const config = getErrorConfig(error, level);
+  const config = getErrorConfig(error, level, themeColor);
   const isDev = showDetails;
 
   return (
@@ -399,12 +402,119 @@ function DefaultErrorFallback({
   );
 }
 
-/**
- * 获取错误配置
- */
+const THEME_STYLES: Record<string, { bg: string; button: string }> = {
+  blue: { bg: 'bg-blue-100', button: 'bg-blue-600 hover:bg-blue-700' },
+  green: { bg: 'bg-green-100', button: 'bg-green-600 hover:bg-green-700' },
+  purple: { bg: 'bg-purple-100', button: 'bg-purple-600 hover:bg-purple-700' },
+  red: { bg: 'bg-red-100', button: 'bg-red-600 hover:bg-red-700' },
+  orange: { bg: 'bg-orange-100', button: 'bg-orange-600 hover:bg-orange-700' },
+  indigo: { bg: 'bg-indigo-100', button: 'bg-indigo-600 hover:bg-indigo-700' },
+  pink: { bg: 'bg-pink-100', button: 'bg-pink-600 hover:bg-pink-700' },
+  cyan: { bg: 'bg-cyan-100', button: 'bg-cyan-600 hover:bg-cyan-700' },
+  yellow: { bg: 'bg-yellow-100', button: 'bg-yellow-600 hover:bg-yellow-700' },
+};
+
+const ERROR_CONFIGS: Array<{
+  check: (error: Error) => boolean;
+  getConfig: (
+    error: Error,
+    themeStyle: { bg: string; button: string } | null
+  ) => {
+    icon: string;
+    title: string;
+    message: string;
+    bgColor: string;
+    buttonClass: string;
+  };
+}> = [
+  {
+    check: (error) => error instanceof ValidationError,
+    getConfig: (_, themeStyle) => ({
+      icon: '📝',
+      title: 'Validation Error',
+      message: _.message,
+      bgColor: themeStyle?.bg || 'bg-yellow-100',
+      buttonClass: themeStyle?.button || 'bg-yellow-600 text-white hover:bg-yellow-700',
+    }),
+  },
+  {
+    check: (error) => error instanceof NotFoundError,
+    getConfig: (_, themeStyle) => ({
+      icon: '🔍',
+      title: 'Not Found',
+      message: 'The requested resource was not found.',
+      bgColor: themeStyle?.bg || 'bg-blue-100',
+      buttonClass: themeStyle?.button || 'bg-blue-600 text-white hover:bg-blue-700',
+    }),
+  },
+  {
+    check: (error) => error instanceof AuthenticationError,
+    getConfig: (_, themeStyle) => ({
+      icon: '🔐',
+      title: 'Authentication Required',
+      message: 'Please sign in to access this feature.',
+      bgColor: themeStyle?.bg || 'bg-orange-100',
+      buttonClass: themeStyle?.button || 'bg-orange-600 text-white hover:bg-orange-700',
+    }),
+  },
+  {
+    check: (error) => error instanceof AuthorizationError,
+    getConfig: (_, themeStyle) => ({
+      icon: '🚫',
+      title: 'Access Denied',
+      message: "You don't have permission to access this resource.",
+      bgColor: themeStyle?.bg || 'bg-red-100',
+      buttonClass: themeStyle?.button || 'bg-red-600 text-white hover:bg-red-700',
+    }),
+  },
+  {
+    check: (error) => error instanceof PriceFetchError,
+    getConfig: (error, themeStyle) => ({
+      icon: '📈',
+      title: 'Price Data Unavailable',
+      message: (error as PriceFetchError).retryable
+        ? 'Failed to fetch price data. Please try again.'
+        : 'Unable to retrieve price data at this time.',
+      bgColor: themeStyle?.bg || 'bg-purple-100',
+      buttonClass: themeStyle?.button || 'bg-purple-600 text-white hover:bg-purple-700',
+    }),
+  },
+  {
+    check: (error) => error instanceof RateLimitError,
+    getConfig: (_, themeStyle) => ({
+      icon: '⏱️',
+      title: 'Rate Limit Exceeded',
+      message: 'Too many requests. Please try again later.',
+      bgColor: themeStyle?.bg || 'bg-indigo-100',
+      buttonClass: themeStyle?.button || 'bg-indigo-600 text-white hover:bg-indigo-700',
+    }),
+  },
+  {
+    check: (error) => error instanceof NetworkError,
+    getConfig: (_, themeStyle) => ({
+      icon: '🌐',
+      title: 'Network Error',
+      message: 'Connection failed. Please check your internet connection.',
+      bgColor: themeStyle?.bg || 'bg-cyan-100',
+      buttonClass: themeStyle?.button || 'bg-cyan-600 text-white hover:bg-cyan-700',
+    }),
+  },
+  {
+    check: isAppError,
+    getConfig: (error, themeStyle) => ({
+      icon: '⚠️',
+      title: 'Error',
+      message: (error as AppError).isOperational ? error.message : 'An unexpected error occurred.',
+      bgColor: themeStyle?.bg || 'bg-red-100',
+      buttonClass: themeStyle?.button || 'bg-primary-600 text-white hover:bg-primary-700',
+    }),
+  },
+];
+
 function getErrorConfig(
   error: Error,
-  level: ErrorBoundaryLevel
+  level: ErrorBoundaryLevel,
+  themeColor?: string
 ): {
   icon: string;
   title: string;
@@ -412,90 +522,14 @@ function getErrorConfig(
   bgColor: string;
   buttonClass: string;
 } {
-  // 根据错误类型返回不同配置
-  if (error instanceof ValidationError) {
-    return {
-      icon: '📝',
-      title: 'Validation Error',
-      message: error.message,
-      bgColor: 'bg-yellow-100',
-      buttonClass: 'bg-yellow-600 text-white hover:bg-yellow-700',
-    };
+  const themeStyle = themeColor ? THEME_STYLES[themeColor] || THEME_STYLES.blue : null;
+
+  for (const config of ERROR_CONFIGS) {
+    if (config.check(error)) {
+      return config.getConfig(error, themeStyle);
+    }
   }
 
-  if (error instanceof NotFoundError) {
-    return {
-      icon: '🔍',
-      title: 'Not Found',
-      message: 'The requested resource was not found.',
-      bgColor: 'bg-blue-100',
-      buttonClass: 'bg-blue-600 text-white hover:bg-blue-700',
-    };
-  }
-
-  if (error instanceof AuthenticationError) {
-    return {
-      icon: '🔐',
-      title: 'Authentication Required',
-      message: 'Please sign in to access this feature.',
-      bgColor: 'bg-orange-100',
-      buttonClass: 'bg-orange-600 text-white hover:bg-orange-700',
-    };
-  }
-
-  if (error instanceof AuthorizationError) {
-    return {
-      icon: '🚫',
-      title: 'Access Denied',
-      message: "You don't have permission to access this resource.",
-      bgColor: 'bg-red-100',
-      buttonClass: 'bg-red-600 text-white hover:bg-red-700',
-    };
-  }
-
-  if (error instanceof PriceFetchError) {
-    return {
-      icon: '📈',
-      title: 'Price Data Unavailable',
-      message: error.retryable
-        ? 'Failed to fetch price data. Please try again.'
-        : 'Unable to retrieve price data at this time.',
-      bgColor: 'bg-purple-100',
-      buttonClass: 'bg-purple-600 text-white hover:bg-purple-700',
-    };
-  }
-
-  if (error instanceof RateLimitError) {
-    return {
-      icon: '⏱️',
-      title: 'Rate Limit Exceeded',
-      message: 'Too many requests. Please try again later.',
-      bgColor: 'bg-indigo-100',
-      buttonClass: 'bg-indigo-600 text-white hover:bg-indigo-700',
-    };
-  }
-
-  if (error instanceof NetworkError) {
-    return {
-      icon: '🌐',
-      title: 'Network Error',
-      message: 'Connection failed. Please check your internet connection.',
-      bgColor: 'bg-cyan-100',
-      buttonClass: 'bg-cyan-600 text-white hover:bg-cyan-700',
-    };
-  }
-
-  if (isAppError(error)) {
-    return {
-      icon: '⚠️',
-      title: level === 'global' ? 'Something Went Wrong' : 'Error',
-      message: error.isOperational ? error.message : 'An unexpected error occurred.',
-      bgColor: 'bg-red-100',
-      buttonClass: 'bg-primary-600 text-white hover:bg-primary-700',
-    };
-  }
-
-  // 默认配置
   return {
     icon: '⚠️',
     title: level === 'global' ? 'Something Went Wrong' : 'Error',
@@ -503,8 +537,8 @@ function getErrorConfig(
       level === 'global'
         ? "We're sorry, but something unexpected happened. Please try again."
         : 'An error occurred while loading this component.',
-    bgColor: 'bg-red-100',
-    buttonClass: 'bg-primary-600 text-white hover:bg-primary-700',
+    bgColor: themeStyle?.bg || 'bg-red-100',
+    buttonClass: themeStyle?.button || 'bg-primary-600 text-white hover:bg-primary-700',
   };
 }
 

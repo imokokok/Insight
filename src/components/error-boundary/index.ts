@@ -12,3 +12,6 @@ export type {
   ErrorBoundaryLevel,
   ErrorFallbackRenderProps,
 } from './ErrorBoundary';
+
+export { OracleErrorBoundary } from './OracleErrorBoundary';
+export type { OracleErrorBoundaryProps } from './OracleErrorBoundary';
