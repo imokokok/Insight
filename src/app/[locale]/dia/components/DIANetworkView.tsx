@@ -14,28 +14,28 @@ export function DIANetworkView({ config, networkStats, isLoading }: DIANetworkVi
   const metrics = [
     {
       label: t('dia.network.activeDataSources'),
-      value: (networkStats?.activeDataSources ?? 45).toLocaleString() + '+',
-      change: '+3',
-      trend: 'up',
+      value: networkStats?.activeDataSources?.toLocaleString() ?? '--',
+      change: null,
+      trend: null,
       icon: Server,
     },
     {
       label: t('dia.network.dataFeeds'),
-      value: networkData.dataFeeds?.toLocaleString() || '280+',
-      change: '+12',
-      trend: 'up',
+      value: networkData.dataFeeds?.toLocaleString() ?? '--',
+      change: null,
+      trend: null,
       icon: Activity,
     },
     {
       label: t('dia.network.responseTime'),
-      value: `${networkData.avgResponseTime || 150}ms`,
-      change: '-10ms',
-      trend: 'down',
+      value: networkData.avgResponseTime ? `${networkData.avgResponseTime}ms` : '--',
+      change: null,
+      trend: null,
       icon: Clock,
     },
     {
       label: t('dia.network.nodeUptime'),
-      value: `${networkData.nodeUptime || 99.8}%`,
+      value: networkData.nodeUptime ? `${networkData.nodeUptime}%` : '--',
       change: null,
       trend: null,
       icon: CheckCircle,
@@ -43,10 +43,8 @@ export function DIANetworkView({ config, networkStats, isLoading }: DIANetworkVi
   ];
 
   const overviewStats = [
-    { label: t('dia.network.totalRequests'), value: '1.8M' },
-    { label: t('dia.network.avgGas'), value: '42,150' },
-    { label: t('dia.network.activeChains'), value: '25+' },
-    { label: t('dia.network.dataProviders'), value: '45+' },
+    { label: t('dia.network.activeChains'), value: config.supportedChains.length.toString() },
+    { label: t('dia.network.dataProviders'), value: networkStats?.activeDataSources?.toLocaleString() ?? '--' },
   ];
 
   return (

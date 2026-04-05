@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 
 import { useQuery, useQueries } from '@tanstack/react-query';
 
+import type { NetworkStats } from '@/app/[locale]/chainlink/types';
 import { ChainlinkClient, type ChainlinkMarketData } from '@/lib/oracles/chainlink';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
@@ -171,28 +172,41 @@ export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    // Convert ChainlinkNetworkStats to NetworkStats
+    const chainlinkNetworkStats = networkResult.data;
+    const networkStats: NetworkStats | undefined = chainlinkNetworkStats
+      ? {
+          activeNodes: chainlinkNetworkStats.activeNodes,
+          dataFeeds: chainlinkNetworkStats.dataFeeds,
+          nodeUptime: chainlinkNetworkStats.nodeUptime,
+          avgResponseTime: chainlinkNetworkStats.avgResponseTime,
+          latency: chainlinkNetworkStats.latency,
+          updateFrequency: chainlinkNetworkStats.updateFrequency,
+          activeChains: chainlinkNetworkStats.activeChains,
+        }
+      : undefined;
+
+    return {
       price: priceResult.data,
       historicalData: historicalResult.data ?? [],
-      networkStats: networkResult.data,
+      networkStats,
       marketData: marketResult.data,
       isLoading,
       isError,
       errors,
       refetchAll,
       lastUpdated,
-    }),
-    [
-      priceResult.data,
-      historicalResult.data,
-      networkResult.data,
-      marketResult.data,
-      isLoading,
-      isError,
-      errors,
-      refetchAll,
-      lastUpdated,
-    ]
-  );
+    };
+  }, [
+    priceResult.data,
+    historicalResult.data,
+    networkResult.data,
+    marketResult.data,
+    isLoading,
+    isError,
+    errors,
+    refetchAll,
+    lastUpdated,
+  ]);
 }

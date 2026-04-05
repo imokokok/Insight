@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 
 import { Calculator, TrendingUp, Clock, Calendar, AlertCircle, Info } from 'lucide-react';
 
+import { useChainlinkPrice } from '@/hooks/oracles/chainlink';
 import { useTranslations } from '@/i18n';
 
 type ScenarioType = 'conservative' | 'moderate' | 'optimistic';
@@ -36,13 +37,14 @@ const SCENARIOS: Record<ScenarioType, ScenarioConfig> = {
   },
 };
 
-const LINK_PRICE = 14.5; // Mock LINK price in USD
-
 export function StakingRewardsCalculator() {
   const t = useTranslations();
   const [stakeAmount, setStakeAmount] = useState<string>('10000');
   const [selectedScenario, setSelectedScenario] = useState<ScenarioType>('moderate');
-  const [stakingPeriod, setStakingPeriod] = useState<number>(12); // months
+  const [stakingPeriod, setStakingPeriod] = useState<number>(12);
+
+  const { price: linkPriceData } = useChainlinkPrice({ symbol: 'LINK' });
+  const linkPrice = linkPriceData?.price ?? 0;
 
   const amount = parseFloat(stakeAmount) || 0;
   const scenario = SCENARIOS[selectedScenario];
@@ -51,7 +53,6 @@ export function StakingRewardsCalculator() {
     const apyDecimal = scenario.apy / 100;
     const periodDecimal = stakingPeriod / 12;
 
-    // Simple interest calculation for the period
     const yearlyReward = amount * apyDecimal;
     const periodReward = yearlyReward * periodDecimal;
 
@@ -75,12 +76,12 @@ export function StakingRewardsCalculator() {
   };
 
   const formatUsd = (linkAmount: number): string => {
-    return `$${(linkAmount * LINK_PRICE).toFixed(2)}`;
+    if (linkPrice <= 0) return '-';
+    return `$${(linkAmount * linkPrice).toFixed(2)}`;
   };
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
         <Calculator className="w-4 h-4 text-gray-500" />
         <h3 className="text-sm font-medium text-gray-900">
@@ -88,7 +89,6 @@ export function StakingRewardsCalculator() {
         </h3>
       </div>
 
-      {/* Input Section */}
       <div className="space-y-4">
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1.5">
@@ -130,7 +130,6 @@ export function StakingRewardsCalculator() {
         </div>
       </div>
 
-      {/* Scenario Selection */}
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-2">
           {t('chainlink.nodes.scenario')}
@@ -160,7 +159,6 @@ export function StakingRewardsCalculator() {
         </p>
       </div>
 
-      {/* Rewards Display */}
       <div className="border-t border-gray-100 pt-4 space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-gray-500">
@@ -219,7 +217,6 @@ export function StakingRewardsCalculator() {
         </div>
       </div>
 
-      {/* Disclaimer */}
       <div className="flex items-start gap-2 pt-3 border-t border-gray-100">
         <AlertCircle className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
         <p className="text-xs text-gray-400 leading-relaxed">

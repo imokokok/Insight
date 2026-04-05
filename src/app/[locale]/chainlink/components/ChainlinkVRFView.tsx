@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 import {
   Zap,
   Dice5,
@@ -15,132 +17,14 @@ import {
   Gamepad2,
   Sparkles,
   MoreHorizontal,
+  AlertTriangle,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
+import { getChainlinkService } from '../services/chainlinkService';
+import type { VRFStats, VRFRequest, VRFSubscription, UseCaseDistribution } from '../data';
 import { safeDivide } from '../utils/helpers';
-
-interface VRFStats {
-  requests24h: number;
-  successRate: number;
-  avgResponseTime: number;
-  gasUsed: number;
-  activeSubscriptions: number;
-  totalFunded: number;
-}
-
-interface VRFRequest {
-  id: string;
-  consumer: string;
-  randomWords: string[];
-  status: 'pending' | 'fulfilled' | 'failed';
-  timestamp: Date;
-  gasUsed?: number;
-}
-
-interface VRFSubscription {
-  id: number;
-  balance: number;
-  consumers: number;
-  owner: string;
-}
-
-interface UseCaseDistribution {
-  name: string;
-  percentage: number;
-  count: number;
-  icon: React.ReactNode;
-  color: string;
-}
-
-const mockVRFStats: VRFStats = {
-  requests24h: 45678,
-  successRate: 99.92,
-  avgResponseTime: 2.3,
-  gasUsed: 125000000,
-  activeSubscriptions: 2847,
-  totalFunded: 4580000,
-};
-
-const mockRequests: VRFRequest[] = [
-  {
-    id: '0x1a2b3c4d...',
-    consumer: '0x1234...5678',
-    randomWords: ['0x8f7a...', '0x3c2d...'],
-    status: 'fulfilled',
-    timestamp: new Date(Date.now() - 1000 * 60 * 1),
-    gasUsed: 185000,
-  },
-  {
-    id: '0x5e6f7g8h...',
-    consumer: '0xabcd...efgh',
-    randomWords: ['0x1a2b...'],
-    status: 'pending',
-    timestamp: new Date(Date.now() - 1000 * 30),
-  },
-  {
-    id: '0x9i0j1k2l...',
-    consumer: '0x9876...5432',
-    randomWords: ['0x5e6f...', '0x7g8h...', '0x9i0j...'],
-    status: 'fulfilled',
-    timestamp: new Date(Date.now() - 1000 * 60 * 5),
-    gasUsed: 210000,
-  },
-  {
-    id: '0x3m4n5o6p...',
-    consumer: '0xdef0...1234',
-    randomWords: [],
-    status: 'failed',
-    timestamp: new Date(Date.now() - 1000 * 60 * 8),
-  },
-  {
-    id: '0x7q8r9s0t...',
-    consumer: '0x5555...6666',
-    randomWords: ['0xc1d2...'],
-    status: 'fulfilled',
-    timestamp: new Date(Date.now() - 1000 * 60 * 12),
-    gasUsed: 175000,
-  },
-];
-
-const mockSubscriptions: VRFSubscription[] = [
-  { id: 1234, balance: 125.5, consumers: 8, owner: '0xabcd...efgh' },
-  { id: 5678, balance: 89.2, consumers: 5, owner: '0x1234...5678' },
-  { id: 9012, balance: 256.8, consumers: 12, owner: '0x9876...5432' },
-  { id: 3456, balance: 45.3, consumers: 3, owner: '0xdef0...1234' },
-];
-
-const useCaseDistribution: UseCaseDistribution[] = [
-  {
-    name: 'NFT Minting',
-    percentage: 42,
-    count: 19185,
-    icon: <Sparkles className="w-4 h-4" />,
-    color: 'text-purple-600 bg-purple-50',
-  },
-  {
-    name: 'Gaming',
-    percentage: 28,
-    count: 12790,
-    icon: <Gamepad2 className="w-4 h-4" />,
-    color: 'text-blue-600 bg-blue-50',
-  },
-  {
-    name: 'Lottery',
-    percentage: 18,
-    count: 8222,
-    icon: <Gift className="w-4 h-4" />,
-    color: 'text-amber-600 bg-amber-50',
-  },
-  {
-    name: 'Others',
-    percentage: 12,
-    count: 5481,
-    icon: <MoreHorizontal className="w-4 h-4" />,
-    color: 'text-gray-600 bg-gray-50',
-  },
-];
 
 function formatNumber(num: number): string {
   if (num >= 1000000) {
@@ -184,6 +68,38 @@ function formatTimeAgo(date: Date): string {
 export function ChainlinkVRFView() {
   const t = useTranslations('chainlink');
 
+  const [stats, setStats] = useState<VRFStats | null>(null);
+  const [requests, setRequests] = useState<VRFRequest[]>([]);
+  const [subscriptions, setSubscriptions] = useState<VRFSubscription[]>([]);
+  const [useCaseDistribution, setUseCaseDistribution] = useState<UseCaseDistribution[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const service = getChainlinkService();
+        const [vrfStats, reqs, subs, useCases] = await Promise.all([
+          service.getVRFStats().catch(() => null),
+          service.getVRFRequests().catch(() => []),
+          service.getVRFSubscriptions().catch(() => []),
+          service.getUseCaseDistribution().catch(() => []),
+        ]);
+        setStats(vrfStats);
+        setRequests(reqs);
+        setSubscriptions(subs);
+        setUseCaseDistribution(useCases);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to load VRF data'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const getStatusIcon = (status: VRFRequest['status']) => {
     switch (status) {
       case 'fulfilled':
@@ -217,84 +133,135 @@ export function ChainlinkVRFView() {
     }
   };
 
+  const getUseCaseIcon = (name: string) => {
+    switch (name.toLowerCase()) {
+      case 'nft minting':
+        return <Sparkles className="w-4 h-4" />;
+      case 'gaming':
+        return <Gamepad2 className="w-4 h-4" />;
+      case 'lottery':
+        return <Gift className="w-4 h-4" />;
+      default:
+        return <MoreHorizontal className="w-4 h-4" />;
+    }
+  };
+
+  const getUseCaseColor = (name: string) => {
+    switch (name.toLowerCase()) {
+      case 'nft minting':
+        return 'text-purple-600 bg-purple-50';
+      case 'gaming':
+        return 'text-blue-600 bg-blue-50';
+      case 'lottery':
+        return 'text-amber-600 bg-amber-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <span className="ml-3 text-gray-500">{t('common.loading')}</span>
+      </div>
+    );
+  }
+
+  if (error && !stats) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-8 text-center">
+        <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('vrf.dataUnavailable')}</h3>
+        <p className="text-sm text-gray-500">{error.message}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.requestStats')}</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Dice5 className="w-4 h-4 text-purple-600" />
-              <span className="text-xs text-gray-500">{t('vrf.requests24h')}</span>
+      {stats && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.requestStats')}</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Dice5 className="w-4 h-4 text-purple-600" />
+                <span className="text-xs text-gray-500">{t('vrf.requests24h')}</span>
+              </div>
+              <div className="text-xl font-semibold text-gray-900">
+                {formatNumber(stats.requests24h)}
+              </div>
             </div>
-            <div className="text-xl font-semibold text-gray-900">
-              {formatNumber(mockVRFStats.requests24h)}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span className="text-xs text-gray-500">{t('vrf.successRate')}</span>
+              </div>
+              <div className="text-xl font-semibold text-gray-900">{stats.successRate}%</div>
             </div>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs text-gray-500">{t('vrf.successRate')}</span>
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="w-4 h-4 text-blue-600" />
+                <span className="text-xs text-gray-500">{t('vrf.avgResponseTime')}</span>
+              </div>
+              <div className="text-xl font-semibold text-gray-900">
+                {stats.avgResponseTime}s
+              </div>
             </div>
-            <div className="text-xl font-semibold text-gray-900">{mockVRFStats.successRate}%</div>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-gray-500">{t('vrf.avgResponseTime')}</span>
-            </div>
-            <div className="text-xl font-semibold text-gray-900">
-              {mockVRFStats.avgResponseTime}s
-            </div>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Fuel className="w-4 h-4 text-amber-600" />
-              <span className="text-xs text-gray-500">{t('vrf.gasUsed')}</span>
-            </div>
-            <div className="text-xl font-semibold text-gray-900">
-              {formatGas(mockVRFStats.gasUsed)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          {t('vrf.subscriptionOverview')}
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-gray-500">{t('vrf.activeSubscriptions')}</span>
-            </div>
-            <div className="text-xl font-semibold text-gray-900">
-              {formatNumber(mockVRFStats.activeSubscriptions)}
-            </div>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Wallet className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs text-gray-500">{t('vrf.totalFunded')}</span>
-            </div>
-            <div className="text-xl font-semibold text-gray-900">
-              {formatCurrency(mockVRFStats.totalFunded)}
-            </div>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-purple-600" />
-              <span className="text-xs text-gray-500">{t('vrf.avgBalance')}</span>
-            </div>
-            <div className="text-xl font-semibold text-gray-900">
-              {formatCurrency(
-                safeDivide(mockVRFStats.totalFunded, mockVRFStats.activeSubscriptions)
-              )}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Fuel className="w-4 h-4 text-amber-600" />
+                <span className="text-xs text-gray-500">{t('vrf.gasUsed')}</span>
+              </div>
+              <div className="text-xl font-semibold text-gray-900">
+                {formatGas(stats.gasUsed)}
+              </div>
             </div>
           </div>
         </div>
+      )}
 
+      {stats && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            {t('vrf.subscriptionOverview')}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="w-4 h-4 text-blue-600" />
+                <span className="text-xs text-gray-500">{t('vrf.activeSubscriptions')}</span>
+              </div>
+              <div className="text-xl font-semibold text-gray-900">
+                {formatNumber(stats.activeSubscriptions)}
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Wallet className="w-4 h-4 text-emerald-600" />
+                <span className="text-xs text-gray-500">{t('vrf.totalFunded')}</span>
+              </div>
+              <div className="text-xl font-semibold text-gray-900">
+                {formatCurrency(stats.totalFunded)}
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-4 h-4 text-purple-600" />
+                <span className="text-xs text-gray-500">{t('vrf.avgBalance')}</span>
+              </div>
+              <div className="text-xl font-semibold text-gray-900">
+                {formatCurrency(
+                  safeDivide(stats.totalFunded, stats.activeSubscriptions)
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {subscriptions.length > 0 && (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
             <div className="col-span-2">{t('vrf.subscriptionId')}</div>
@@ -302,11 +269,11 @@ export function ChainlinkVRFView() {
             <div className="col-span-3 text-right">{t('vrf.balance')}</div>
             <div className="col-span-4 text-right">{t('vrf.consumers')}</div>
           </div>
-          {mockSubscriptions.map((sub, index) => (
+          {subscriptions.map((sub, index) => (
             <div
               key={sub.id}
               className={`grid grid-cols-12 gap-4 px-4 py-3 items-center hover:bg-gray-50 transition-colors ${
-                index !== mockSubscriptions.length - 1 ? 'border-b border-gray-100' : ''
+                index !== subscriptions.length - 1 ? 'border-b border-gray-100' : ''
               }`}
             >
               <div className="col-span-2">
@@ -328,83 +295,97 @@ export function ChainlinkVRFView() {
             </div>
           ))}
         </div>
-      </div>
+      )}
 
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.recentRequests')}</h3>
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            <div className="col-span-3">{t('vrf.requestId')}</div>
-            <div className="col-span-2">{t('vrf.consumer')}</div>
-            <div className="col-span-2 text-center">{t('vrf.randomWords')}</div>
-            <div className="col-span-2 text-right">{t('vrf.gasUsed')}</div>
-            <div className="col-span-3 text-center">{t('vrf.status')}</div>
+      {requests.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.recentRequests')}</h3>
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <div className="col-span-3">{t('vrf.requestId')}</div>
+              <div className="col-span-2">{t('vrf.consumer')}</div>
+              <div className="col-span-2 text-center">{t('vrf.randomWords')}</div>
+              <div className="col-span-2 text-right">{t('vrf.gasUsed')}</div>
+              <div className="col-span-3 text-center">{t('vrf.status')}</div>
+            </div>
+            {requests.map((req, index) => (
+              <div
+                key={req.id}
+                className={`grid grid-cols-12 gap-4 px-4 py-3 items-center hover:bg-gray-50 transition-colors ${
+                  index !== requests.length - 1 ? 'border-b border-gray-100' : ''
+                }`}
+              >
+                <div className="col-span-3">
+                  <span className="text-sm font-mono text-gray-600">{req.id}</span>
+                  <div className="text-xs text-gray-400">{formatTimeAgo(req.timestamp)}</div>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-sm font-mono text-gray-600">{req.consumer}</span>
+                </div>
+                <div className="col-span-2 text-center">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                    {req.randomWords.length > 0 ? `${req.randomWords.length} words` : '-'}
+                  </span>
+                </div>
+                <div className="col-span-2 text-right">
+                  <span className="text-sm text-gray-900">
+                    {req.gasUsed ? formatNumber(req.gasUsed) : '-'}
+                  </span>
+                </div>
+                <div className="col-span-3 text-center">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                      req.status
+                    )}`}
+                  >
+                    {getStatusIcon(req.status)}
+                    <span>{getStatusLabel(req.status)}</span>
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
-          {mockRequests.map((req, index) => (
-            <div
-              key={req.id}
-              className={`grid grid-cols-12 gap-4 px-4 py-3 items-center hover:bg-gray-50 transition-colors ${
-                index !== mockRequests.length - 1 ? 'border-b border-gray-100' : ''
-              }`}
-            >
-              <div className="col-span-3">
-                <span className="text-sm font-mono text-gray-600">{req.id}</span>
-                <div className="text-xs text-gray-400">{formatTimeAgo(req.timestamp)}</div>
-              </div>
-              <div className="col-span-2">
-                <span className="text-sm font-mono text-gray-600">{req.consumer}</span>
-              </div>
-              <div className="col-span-2 text-center">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                  {req.randomWords.length > 0 ? `${req.randomWords.length} words` : '-'}
-                </span>
-              </div>
-              <div className="col-span-2 text-right">
-                <span className="text-sm text-gray-900">
-                  {req.gasUsed ? formatNumber(req.gasUsed) : '-'}
-                </span>
-              </div>
-              <div className="col-span-3 text-center">
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                    req.status
-                  )}`}
-                >
-                  {getStatusIcon(req.status)}
-                  <span>{getStatusLabel(req.status)}</span>
-                </span>
-              </div>
-            </div>
-          ))}
         </div>
-      </div>
+      )}
 
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.useCaseDistribution')}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {useCaseDistribution.map((useCase) => (
-            <div
-              key={useCase.name}
-              className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className={`p-2 rounded-lg ${useCase.color}`}>{useCase.icon}</div>
-                <span className="text-2xl font-bold text-gray-900">{useCase.percentage}%</span>
+      {useCaseDistribution.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.useCaseDistribution')}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {useCaseDistribution.map((useCase) => (
+              <div
+                key={useCase.name}
+                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`p-2 rounded-lg ${getUseCaseColor(useCase.name)}`}>
+                    {getUseCaseIcon(useCase.name)}
+                  </div>
+                  <span className="text-2xl font-bold text-gray-900">{useCase.percentage}%</span>
+                </div>
+                <div className="text-sm font-medium text-gray-900 mb-1">{useCase.name}</div>
+                <div className="text-xs text-gray-500">
+                  {formatNumber(useCase.count)} {t('vrf.requests')}
+                </div>
+                <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
+                    style={{ width: `${useCase.percentage}%` }}
+                  />
+                </div>
               </div>
-              <div className="text-sm font-medium text-gray-900 mb-1">{useCase.name}</div>
-              <div className="text-xs text-gray-500">
-                {formatNumber(useCase.count)} {t('vrf.requests')}
-              </div>
-              <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
-                  style={{ width: `${useCase.percentage}%` }}
-                />
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {!stats && !requests.length && !subscriptions.length && (
+        <div className="bg-gray-50 rounded-lg p-8 text-center">
+          <Dice5 className="w-10 h-10 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('vrf.noDataAvailable')}</h3>
+          <p className="text-sm text-gray-500">{t('vrf.noDataDesc')}</p>
+        </div>
+      )}
 
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('vrf.v2_5Features')}</h3>

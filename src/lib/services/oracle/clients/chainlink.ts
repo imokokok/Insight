@@ -13,13 +13,14 @@ import type { PriceData } from '@/types/oracle';
 const logger = createLogger('ChainlinkClient');
 
 export interface ChainlinkNetworkStats {
-  activeNodes: number;
+  activeNodes?: number;
   dataFeeds: number;
-  nodeUptime: number;
-  avgResponseTime: number;
-  latency: number;
+  nodeUptime?: number;
+  avgResponseTime?: number;
+  latency?: number;
   totalValueSecured?: number;
   updateFrequency?: number;
+  activeChains?: number;
 }
 
 export interface ChainlinkMarketData {
@@ -315,57 +316,21 @@ export class ChainlinkClient extends BaseOracleClient {
   }
 
   async getNetworkStats(): Promise<ChainlinkNetworkStats> {
-    try {
-      if (this.useRealData) {
-        const tokenData = await chainlinkOnChainService.getTokenData(1);
-        const supportedSymbols = chainlinkOnChainService.getSupportedSymbols();
+    const supportedSymbols = chainlinkOnChainService.getSupportedSymbols();
 
-        let totalFeeds = 0;
-        const activeChains = new Set<number>();
+    let totalFeeds = 0;
+    const activeChains = new Set<number>();
 
-        for (const symbol of supportedSymbols) {
-          const chainIds = chainlinkOnChainService.getSupportedChainIds(symbol);
-          totalFeeds += chainIds.length;
-          chainIds.forEach((id) => activeChains.add(id));
-        }
-
-        return {
-          activeNodes: 1847,
-          dataFeeds: totalFeeds,
-          nodeUptime: 99.9,
-          avgResponseTime: 245,
-          latency: 120,
-          totalValueSecured: 75_000_000_000,
-          updateFrequency: 60,
-        };
-      }
-
-      // 使用固定值代替随机数
-      const activeNodes = 1800;
-      const dataFeeds = 1200;
-
-      return {
-        activeNodes,
-        dataFeeds,
-        nodeUptime: 99.9,
-        avgResponseTime: 250,
-        latency: 120,
-        totalValueSecured: 75_000_000_000,
-        updateFrequency: 60,
-      };
-    } catch (error) {
-      logger.warn('Failed to fetch network stats, using fallback', { error });
-
-      return {
-        activeNodes: 1847,
-        dataFeeds: 1243,
-        nodeUptime: 99.9,
-        avgResponseTime: 245,
-        latency: 120,
-        totalValueSecured: 75_000_000_000,
-        updateFrequency: 60,
-      };
+    for (const symbol of supportedSymbols) {
+      const chainIds = chainlinkOnChainService.getSupportedChainIds(symbol);
+      totalFeeds += chainIds.length;
+      chainIds.forEach((id) => activeChains.add(id));
     }
+
+    return {
+      dataFeeds: totalFeeds,
+      activeChains: activeChains.size,
+    };
   }
 
   isPriceFeedSupported(symbol: string, chain?: Blockchain): boolean {
@@ -405,7 +370,6 @@ export class ChainlinkClient extends BaseOracleClient {
         circulatingSupply: marketData.circulatingSupply ?? 0,
         totalSupply: marketData.totalSupply ?? 0,
         maxSupply: marketData.maxSupply ?? undefined,
-        stakingApr: 4.32,
       };
     } catch (error) {
       logger.error(

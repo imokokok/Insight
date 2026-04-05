@@ -5,9 +5,9 @@ import { useMemo } from 'react';
 import { Activity, Zap, Clock, Server, Globe } from 'lucide-react';
 
 export interface NetworkStatsData {
-  avgResponseTime: number;
-  nodeUptime: number;
-  dataFeeds: number;
+  avgResponseTime?: number;
+  nodeUptime?: number;
+  dataFeeds?: number;
 }
 
 export interface UnifiedInfoSectionProps {
@@ -58,14 +58,14 @@ export function UnifiedInfoSection({
   };
 
   const gasLevel = useMemo(() => {
-    if (!networkStats)
+    if (!networkStats?.avgResponseTime)
       return {
         label: labels.gasMedium,
         color: 'text-yellow-600',
         bg: 'bg-yellow-500',
         width: '50%',
       };
-    const { avgResponseTime } = networkStats;
+    const avgResponseTime = networkStats.avgResponseTime;
     if (avgResponseTime < 150)
       return {
         label: labels.gasLow,

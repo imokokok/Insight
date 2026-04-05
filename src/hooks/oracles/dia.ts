@@ -173,7 +173,7 @@ export function useDIANetworkStats(enabled = true) {
   const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('networkStats');
 
-  const { data, error, isLoading, refetch } = useQuery<DIANetworkStats, Error>({
+  const { data, error, isLoading, refetch } = useQuery<DIANetworkStats | null, Error>({
     queryKey,
     queryFn: () => diaClient.getNetworkStats(),
     enabled,
@@ -202,7 +202,7 @@ export function useDIAStaking(enabled = true) {
       stakingApr: number;
       stakerCount: number;
       rewardPool: number;
-    },
+    } | null,
     Error
   >({
     queryKey,
@@ -250,7 +250,7 @@ export function useDIAStakingDetails(enabled = true) {
   const diaClient = useMemo(() => new DIAClient(), []);
   const queryKey = getDIAKey('stakingDetails');
 
-  const { data, error, isLoading, refetch } = useQuery<StakingDetails, Error>({
+  const { data, error, isLoading, refetch } = useQuery<StakingDetails | null, Error>({
     queryKey,
     queryFn: () => diaClient.getStakingDetails(),
     enabled,
@@ -327,7 +327,7 @@ interface UseDIAAllDataReturn {
   dataTransparency: DataSourceTransparency[];
   crossChainCoverage: CrossChainCoverage | undefined;
   dataSourceVerification: DataSourceVerification[];
-  networkStats: DIANetworkStats | undefined;
+  networkStats: DIANetworkStats | null | undefined;
   staking:
     | {
         totalStaked: number;
@@ -335,9 +335,10 @@ interface UseDIAAllDataReturn {
         stakerCount: number;
         rewardPool: number;
       }
+    | null
     | undefined;
   nftData: NFTData | undefined;
-  stakingDetails: StakingDetails | undefined;
+  stakingDetails: StakingDetails | null | undefined;
   customFeeds: CustomFeed[];
   ecosystem: EcosystemIntegration[];
   isLoading: boolean;

@@ -18,10 +18,10 @@ export type ChainlinkTabId =
   | 'functions';
 
 export interface NetworkStats {
-  activeNodes: number;
-  dataFeeds: number;
-  nodeUptime: number;
-  avgResponseTime: number;
+  activeNodes?: number;
+  dataFeeds?: number;
+  nodeUptime?: number;
+  avgResponseTime?: number;
   latency?: number;
   hourlyActivity?: number[];
   status?: string;
@@ -31,6 +31,7 @@ export interface NetworkStats {
   dataSources?: number;
   consumerContracts?: number;
   dataFreshness?: number;
+  activeChains?: number;
 }
 
 export interface ChainlinkPageState {

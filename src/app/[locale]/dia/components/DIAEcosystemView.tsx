@@ -309,51 +309,16 @@ export function DIAEcosystemView() {
     };
   }, [ecosystem]);
 
+  // TVL趋势数据 - 从API获取，没有则显示空
   const tvlTrendData = useMemo((): TVLTrendDataPoint[] => {
-    const currentTVL = stats.totalTVL / 1e9;
-    if (currentTVL <= 0) {
+    // Only show TVL data if we have real ecosystem data
+    if (stats.totalTVL <= 0) {
       return [];
     }
 
-    // Fixed base date for deterministic mock data
-    const baseDate = new Date(2024, 0, 1);
-    const data: TVLTrendDataPoint[] = [];
-    const chainDistribution: Record<string, number> = {
-      ethereum: 0.38,
-      arbitrum: 0.2,
-      polygon: 0.12,
-      optimism: 0.12,
-      avalanche: 0.07,
-      base: 0.11,
-    };
-
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date(baseDate.getFullYear(), baseDate.getMonth() - i, 1);
-      const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-
-      const growthFactor = 1 - i * 0.06;
-      // Deterministic volatility based on index
-      const volatility = 0.95 + ((i * 17) % 100) * 0.001;
-      const monthTotal = currentTVL * growthFactor * volatility;
-
-      const chainValues: Record<string, number> = {};
-      let total = 0;
-
-      Object.entries(chainDistribution).forEach(([chain, ratio], chainIdx) => {
-        // Deterministic chain volatility based on indices
-        const chainVolatility = 0.9 + (((i + chainIdx) * 23) % 100) * 0.002;
-        chainValues[chain] = Number((monthTotal * ratio * chainVolatility).toFixed(2));
-        total += chainValues[chain];
-      });
-
-      data.push({
-        month: monthStr,
-        ...chainValues,
-        total: Number(total.toFixed(2)),
-      });
-    }
-
-    return data;
+    // Return empty array - real historical TVL data would require additional API calls
+    // to DeFiLlama for historical data points
+    return [];
   }, [stats.totalTVL]);
 
   const projectsByChainData = useMemo(() => {
@@ -616,10 +581,12 @@ export function DIAEcosystemView() {
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
-                ${tvlStats.breakdown[0].value.toFixed(1)}B
+                ${tvlStats.breakdown[0]?.value.toFixed(1) ?? '-'}B
               </p>
               <span className="text-xs text-gray-500">
-                {((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)}%
+                {tvlStats.breakdown[0]?.value
+                  ? ((tvlStats.breakdown[0].value / tvlStats.current) * 100).toFixed(1)
+                  : '-'}%
               </span>
             </div>
           </div>
@@ -630,22 +597,25 @@ export function DIAEcosystemView() {
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
                 $
-                {(
-                  tvlStats.breakdown[1].value +
-                  tvlStats.breakdown[3].value +
-                  tvlStats.breakdown[5].value
-                ).toFixed(1)}
+                {tvlStats.breakdown.length >= 6
+                  ? (
+                      tvlStats.breakdown[1].value +
+                      tvlStats.breakdown[3].value +
+                      tvlStats.breakdown[5].value
+                    ).toFixed(1)
+                  : '-'}
                 B
               </p>
               <span className="text-xs text-gray-500">
-                {(
-                  ((tvlStats.breakdown[1].value +
-                    tvlStats.breakdown[3].value +
-                    tvlStats.breakdown[5].value) /
-                    tvlStats.current) *
-                  100
-                ).toFixed(1)}
-                %
+                {tvlStats.breakdown.length >= 6 && tvlStats.current > 0
+                  ? (
+                      ((tvlStats.breakdown[1].value +
+                        tvlStats.breakdown[3].value +
+                        tvlStats.breakdown[5].value) /
+                        tvlStats.current) *
+                      100
+                    ).toFixed(1)
+                  : '-'}%
               </span>
             </div>
           </div>
@@ -655,14 +625,18 @@ export function DIAEcosystemView() {
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-xl font-semibold text-gray-900">
-                ${(tvlStats.breakdown[2].value + tvlStats.breakdown[4].value).toFixed(1)}B
+                ${tvlStats.breakdown.length >= 5
+                  ? (tvlStats.breakdown[2].value + tvlStats.breakdown[4].value).toFixed(1)
+                  : '-'}B
               </p>
               <span className="text-xs text-gray-500">
-                {(
-                  ((tvlStats.breakdown[2].value + tvlStats.breakdown[4].value) / tvlStats.current) *
-                  100
-                ).toFixed(1)}
-                %
+                {tvlStats.breakdown.length >= 5 && tvlStats.current > 0
+                  ? (
+                      ((tvlStats.breakdown[2].value + tvlStats.breakdown[4].value) /
+                        tvlStats.current) *
+                      100
+                    ).toFixed(1)
+                  : '-'}%
               </span>
             </div>
           </div>

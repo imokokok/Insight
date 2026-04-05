@@ -48,12 +48,9 @@ export function DIARiskView() {
     }
   };
 
-  const riskFactors = [
-    { key: 'dataSource', severity: 'low' },
-    { key: 'smartContract', severity: 'low' },
-    { key: 'marketManipulation', severity: 'medium' },
-    { key: 'networkCongestion', severity: 'low' },
-  ];
+  // Risk factors would ideally come from an API or risk assessment service
+  // For now, showing empty state when no data available
+  const riskFactors: { key: string; severity: string }[] = [];
 
   return (
     <div className="space-y-6">
@@ -68,7 +65,7 @@ export function DIARiskView() {
               <Skeleton className="h-7 w-20 mt-0.5" />
             ) : (
               <p className="text-xl font-semibold text-gray-900">
-                {networkStats?.uptime?.toFixed(2) ?? '99.99'}%
+                {networkStats?.uptime?.toFixed(2) ?? '--'}%
               </p>
             )}
           </div>
@@ -83,7 +80,7 @@ export function DIARiskView() {
               <Skeleton className="h-7 w-20 mt-0.5" />
             ) : (
               <p className="text-xl font-semibold text-gray-900">
-                {networkStats?.dataQuality?.toFixed(0) ?? '98'}%
+                {networkStats?.dataQuality?.toFixed(0) ?? '--'}%
               </p>
             )}
           </div>
@@ -98,7 +95,7 @@ export function DIARiskView() {
               <Skeleton className="h-7 w-20 mt-0.5" />
             ) : (
               <p className="text-xl font-semibold text-gray-900">
-                {networkStats?.oracleDiversity ?? '12'}
+                {networkStats?.oracleDiversity ?? '--'}
               </p>
             )}
           </div>
@@ -113,7 +110,7 @@ export function DIARiskView() {
               <Skeleton className="h-7 w-20 mt-0.5" />
             ) : (
               <p className="text-xl font-semibold text-gray-900">
-                {networkStats?.avgConfidence?.toFixed(0) ?? '95'}%
+                {networkStats?.avgConfidence?.toFixed(0) ?? '--'}%
               </p>
             )}
           </div>

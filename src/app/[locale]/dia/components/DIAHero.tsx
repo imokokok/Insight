@@ -36,7 +36,7 @@ export interface DIAHeroProps {
     avgResponseTime: number;
     nodeUptime: number;
     dataFeeds: number;
-  };
+  } | null;
   isLoading: boolean;
   isError: boolean;
   isRefreshing: boolean;
@@ -70,11 +70,9 @@ export function DIAHero({
     if (historicalData.length > 0) {
       return historicalData.slice(-24).map((d) => d.price);
     }
-    return Array.from(
-      { length: 24 },
-      (_, index) => currentPrice * (1 + Math.sin(index * 0.5) * 0.05)
-    );
-  }, [historicalData, currentPrice]);
+    // Return empty array when no historical data available
+    return [];
+  }, [historicalData]);
 
   const formatStakedValue = (value: number): string => {
     if (value >= 1e6) {
@@ -247,7 +245,7 @@ export function DIAHero({
             <CompactMetricsRow stats={secondaryStats} />
 
             <UnifiedInfoSection
-              networkStats={networkStats}
+              networkStats={networkStats ?? undefined}
               healthScore={healthScore}
               chains={config.supportedChains}
               themeColor={themeColor}

@@ -23,6 +23,114 @@ import type {
   OperatorStake,
 } from '../types';
 
+// Automation types
+export interface AutomationStats {
+  registeredTasks: number;
+  dailyExecutions: number;
+  gasSaved: number;
+  uptime: number;
+  activeSubscriptions: number;
+  totalFunded: number;
+}
+
+export interface UpkeepTask {
+  id: string;
+  name: string;
+  triggerType: 'time' | 'logic' | 'log';
+  executionCount: number;
+  status: 'active' | 'paused' | 'cancelled';
+  lastExecution: Date;
+  balance: number;
+}
+
+export interface ExecutionHistory {
+  timestamp: Date;
+  success: boolean;
+  gasUsed: number;
+  latency: number;
+}
+
+export interface LatencyDistribution {
+  range: string;
+  count: number;
+  percentage: number;
+}
+
+export interface CancelQueueItem {
+  id: string;
+  name: string;
+  requestedAt: Date;
+  status: 'pending' | 'processing';
+}
+
+// DataStreams types
+export interface DataStreamStats {
+  activeStreams: number;
+  updateFrequency: number;
+  avgLatency: number;
+  bandwidth: number;
+  throughput: number;
+  packetLoss: number;
+  reconnectCount: number;
+}
+
+export interface DataStreamFeed {
+  pair: string;
+  latency: number;
+  threshold: number;
+  subscribers: number;
+  status: 'active' | 'paused';
+  price: number;
+  change24h: number;
+}
+
+export interface PushEvent {
+  id: string;
+  feed: string;
+  price: number;
+  change: number;
+  trigger: string;
+  timestamp: Date;
+}
+
+export interface LatencyMetrics {
+  p50: number;
+  p95: number;
+  p99: number;
+  trend: number[];
+}
+
+// Functions types
+export interface FunctionsStats {
+  totalCalls: number;
+  successRate: number;
+  avgExecutionTime: number;
+  supportedApis: number;
+  activeSubscriptions: number;
+  totalFunded: number;
+}
+
+export interface FunctionExecution {
+  id: string;
+  sourceHash: string;
+  result: string;
+  gasUsed: number;
+  status: 'success' | 'failed';
+  timestamp: Date;
+}
+
+export interface SecretStatus {
+  id: string;
+  encrypted: boolean;
+  expiresAt: Date;
+}
+
+export interface FunctionsUseCase {
+  name: string;
+  percentage: number;
+  count: number;
+}
+
 export interface IChainlinkService {
   getDataFeeds(): Promise<DataFeed[]>;
   getCCIPStats(): Promise<CCIPStats>;
@@ -45,6 +153,22 @@ export interface IChainlinkService {
   getChainColors(): Record<string, string>;
   getServices(): Promise<ServiceData[]>;
   getServiceUsageData(): Promise<ServiceUsageDataPoint[]>;
+  // Automation
+  getAutomationStats(): Promise<AutomationStats>;
+  getUpkeepTasks(): Promise<UpkeepTask[]>;
+  getExecutionHistory(): Promise<ExecutionHistory[]>;
+  getLatencyDistribution(): Promise<LatencyDistribution[]>;
+  getCancelQueue(): Promise<CancelQueueItem[]>;
+  // DataStreams
+  getDataStreamStats(): Promise<DataStreamStats>;
+  getDataStreamFeeds(): Promise<DataStreamFeed[]>;
+  getPushEvents(): Promise<PushEvent[]>;
+  getLatencyMetrics(): Promise<LatencyMetrics>;
+  // Functions
+  getFunctionsStats(): Promise<FunctionsStats>;
+  getFunctionExecutions(): Promise<FunctionExecution[]>;
+  getFunctionSecrets(): Promise<SecretStatus[]>;
+  getFunctionsUseCases(): Promise<FunctionsUseCase[]>;
 }
 
 // Service that throws errors for all data - real data source needs to be implemented
@@ -144,6 +268,61 @@ export class ChainlinkService implements IChainlinkService {
 
   async getServiceUsageData(): Promise<ServiceUsageDataPoint[]> {
     this.throwNotImplemented('getServiceUsageData');
+  }
+
+  // Automation methods
+  async getAutomationStats(): Promise<AutomationStats> {
+    this.throwNotImplemented('getAutomationStats');
+  }
+
+  async getUpkeepTasks(): Promise<UpkeepTask[]> {
+    this.throwNotImplemented('getUpkeepTasks');
+  }
+
+  async getExecutionHistory(): Promise<ExecutionHistory[]> {
+    this.throwNotImplemented('getExecutionHistory');
+  }
+
+  async getLatencyDistribution(): Promise<LatencyDistribution[]> {
+    this.throwNotImplemented('getLatencyDistribution');
+  }
+
+  async getCancelQueue(): Promise<CancelQueueItem[]> {
+    this.throwNotImplemented('getCancelQueue');
+  }
+
+  // DataStreams methods
+  async getDataStreamStats(): Promise<DataStreamStats> {
+    this.throwNotImplemented('getDataStreamStats');
+  }
+
+  async getDataStreamFeeds(): Promise<DataStreamFeed[]> {
+    this.throwNotImplemented('getDataStreamFeeds');
+  }
+
+  async getPushEvents(): Promise<PushEvent[]> {
+    this.throwNotImplemented('getPushEvents');
+  }
+
+  async getLatencyMetrics(): Promise<LatencyMetrics> {
+    this.throwNotImplemented('getLatencyMetrics');
+  }
+
+  // Functions methods
+  async getFunctionsStats(): Promise<FunctionsStats> {
+    this.throwNotImplemented('getFunctionsStats');
+  }
+
+  async getFunctionExecutions(): Promise<FunctionExecution[]> {
+    this.throwNotImplemented('getFunctionExecutions');
+  }
+
+  async getFunctionSecrets(): Promise<SecretStatus[]> {
+    this.throwNotImplemented('getFunctionSecrets');
+  }
+
+  async getFunctionsUseCases(): Promise<FunctionsUseCase[]> {
+    this.throwNotImplemented('getFunctionsUseCases');
   }
 }
 

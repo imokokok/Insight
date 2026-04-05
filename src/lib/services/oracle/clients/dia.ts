@@ -208,94 +208,71 @@ export class DIAClient extends BaseOracleClient {
   }
 
   async getCrossChainCoverage(): Promise<CrossChainCoverage> {
-    // Cross-chain coverage is based on supported assets
-    // This is static configuration as DIA API doesn't provide dynamic cross-chain data
-    const assetTypes = { crypto: 4, stablecoin: 2, defi: 6, nft: 0 };
+    // Fetch real digital assets data from DIA API
+    const diaService = getDIADataService();
 
-    const assets: CrossChainAsset[] = [
-      {
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON, Blockchain.BASE],
-        coverageStatus: 'full',
-        updateFrequency: 60,
-        confidence: 0.98,
-      },
-      {
-        symbol: 'ETH',
-        name: 'Ethereum',
-        chains: [
-          Blockchain.ETHEREUM,
-          Blockchain.ARBITRUM,
-          Blockchain.POLYGON,
-          Blockchain.AVALANCHE,
-          Blockchain.BASE,
-        ],
-        coverageStatus: 'full',
-        updateFrequency: 30,
-        confidence: 0.99,
-      },
-      {
-        symbol: 'USDC',
-        name: 'USD Coin',
-        chains: [
-          Blockchain.ETHEREUM,
-          Blockchain.ARBITRUM,
-          Blockchain.POLYGON,
-          Blockchain.AVALANCHE,
-          Blockchain.BASE,
-          Blockchain.BNB_CHAIN,
-        ],
-        coverageStatus: 'full',
-        updateFrequency: 60,
-        confidence: 0.97,
-      },
-      {
-        symbol: 'USDT',
-        name: 'Tether',
-        chains: [
-          Blockchain.ETHEREUM,
-          Blockchain.ARBITRUM,
-          Blockchain.POLYGON,
-          Blockchain.BNB_CHAIN,
-        ],
-        coverageStatus: 'partial',
-        updateFrequency: 120,
-        confidence: 0.96,
-      },
-      {
-        symbol: 'LINK',
-        name: 'Chainlink',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON],
-        coverageStatus: 'full',
-        updateFrequency: 60,
-        confidence: 0.95,
-      },
-      {
-        symbol: 'UNI',
-        name: 'Uniswap',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON],
-        coverageStatus: 'partial',
-        updateFrequency: 120,
-        confidence: 0.94,
-      },
-    ];
+    try {
+      // Get supported assets from DIA API
+      const supportedSymbols = this.getSupportedSymbols();
+      const assets: CrossChainAsset[] = [];
+      const byChain: Partial<Record<Blockchain, number>> = {};
+      const assetTypes = { crypto: 0, stablecoin: 0, defi: 0, nft: 0 };
 
-    const byChain: Partial<Record<Blockchain, number>> = {
-      [Blockchain.ETHEREUM]: 6,
-      [Blockchain.ARBITRUM]: 6,
-      [Blockchain.POLYGON]: 6,
-      [Blockchain.AVALANCHE]: 2,
-      [Blockchain.BASE]: 3,
-      [Blockchain.BNB_CHAIN]: 2,
-    };
+      // Check each supported symbol for multi-chain availability
+      for (const symbol of supportedSymbols.slice(0, 20)) {
+        const supportedChains = this.getSupportedChainsForSymbol(symbol);
+        if (supportedChains.length > 0) {
+          // Try to get price to verify asset exists
+          try {
+            const priceData = await diaService.getAssetPrice(symbol);
+            if (priceData) {
+              const isStablecoin = ['USDC', 'USDT', 'DAI', 'BUSD', 'TUSD'].includes(symbol);
+              const isDeFi = ['UNI', 'AAVE', 'COMP', 'CRV', 'MKR', 'SNX'].includes(symbol);
 
-    return {
-      totalAssets: assets.length,
-      byChain,
-      byAssetType: assetTypes,
-      assets,
-    };
+              if (isStablecoin) {
+                assetTypes.stablecoin++;
+              } else if (isDeFi) {
+                assetTypes.defi++;
+              } else {
+                assetTypes.crypto++;
+              }
+
+              assets.push({
+                symbol,
+                name: symbol,
+                chains: supportedChains,
+                coverageStatus: supportedChains.length >= 4 ? 'full' : supportedChains.length >= 2 ? 'partial' : 'limited',
+                updateFrequency: 60,
+                confidence: 0.95,
+              });
+
+              // Count assets per chain
+              supportedChains.forEach(chain => {
+                byChain[chain] = (byChain[chain] || 0) + 1;
+              });
+            }
+          } catch {
+            // Skip assets that can't be fetched
+          }
+        }
+      }
+
+      return {
+        totalAssets: assets.length,
+        byChain,
+        byAssetType: assetTypes,
+        assets: assets.slice(0, 10), // Return top 10 assets
+      };
+    } catch (error) {
+      console.error('[DIA] Failed to fetch cross-chain coverage:', error);
+      // Return empty data instead of hardcoded fallback
+      return {
+        totalAssets: 0,
+        byChain: {},
+        byAssetType: { crypto: 0, stablecoin: 0, defi: 0, nft: 0 },
+        assets: [],
+      };
+    }
   }
 
   async getDataSourceVerification(): Promise<DataSourceVerification[]> {
@@ -303,9 +280,13 @@ export class DIAClient extends BaseOracleClient {
     return [];
   }
 
-  async getNetworkStats(): Promise<DIANetworkStats> {
+  async getNetworkStats(): Promise<DIANetworkStats | null> {
     const diaService = getDIADataService();
     const realStats = await diaService.getNetworkStats();
+
+    if (!realStats) {
+      return null;
+    }
 
     return {
       ...realStats,
@@ -323,8 +304,11 @@ export class DIAClient extends BaseOracleClient {
     stakingApr: number;
     stakerCount: number;
     rewardPool: number;
-  }> {
+  } | null> {
     const data = await this.getStakingDetails();
+    if (!data) {
+      return null;
+    }
     return {
       totalStaked: data.totalStaked,
       stakingApr: data.stakingApr,
@@ -337,7 +321,7 @@ export class DIAClient extends BaseOracleClient {
     return getDIADataService().getNFTData();
   }
 
-  async getStakingDetails(): Promise<StakingDetails> {
+  async getStakingDetails(): Promise<StakingDetails | null> {
     return getDIADataService().getStakingData();
   }
 
