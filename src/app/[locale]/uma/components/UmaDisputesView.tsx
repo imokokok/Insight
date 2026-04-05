@@ -21,16 +21,6 @@ import { type UmaDisputesViewProps } from '../types';
 
 import { DisputeVotingDetails } from './DisputeVotingDetails';
 
-const disputeTrendData = [
-  { day: 'Mon', active: 3, resolved: 5 },
-  { day: 'Tue', active: 4, resolved: 3 },
-  { day: 'Wed', active: 2, resolved: 6 },
-  { day: 'Thu', active: 5, resolved: 4 },
-  { day: 'Fri', active: 3, resolved: 7 },
-  { day: 'Sat', active: 2, resolved: 4 },
-  { day: 'Sun', active: 4, resolved: 5 },
-];
-
 export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisputesViewProps) {
   const t = useTranslations();
   const [selectedDisputeId, setSelectedDisputeId] = useState<string | null>(null);
@@ -39,9 +29,6 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
   const resolvedDisputes = disputes.filter((d) => d.status === 'resolved').length;
   const rejectedDisputes = disputes.filter((d) => d.status === 'rejected').length;
   const totalValue = disputes.reduce((sum, d) => sum + d.totalValue, 0);
-
-  const maxActive = Math.max(...disputeTrendData.map((d) => d.active));
-  const maxResolved = Math.max(...disputeTrendData.map((d) => d.resolved));
 
   const selectedDispute = selectedDisputeId
     ? disputes.find((d) => d.id === selectedDisputeId)
@@ -98,7 +85,7 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
               {t('uma.disputes.successRate')}
             </p>
             <p className="text-xl font-semibold text-gray-900">
-              {networkStats?.disputeSuccessRate ?? 78}%
+              {networkStats?.disputeSuccessRate ?? '-'}
             </p>
           </div>
         </div>
@@ -109,45 +96,9 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
             <p className="text-xs text-gray-500 uppercase tracking-wider">
               {t('uma.disputes.totalValue')}
             </p>
-            <p className="text-xl font-semibold text-gray-900">${(totalValue / 1e6).toFixed(2)}M</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t border-gray-200 pt-8">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-4 h-4 text-gray-400" />
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-            {t('uma.disputes.trend')}
-          </h3>
-        </div>
-        <div className="flex items-end gap-3 h-24">
-          {disputeTrendData.map((data, index) => (
-            <div key={index} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full flex gap-0.5 items-end justify-center h-16">
-                <div
-                  className="w-2 bg-amber-400 rounded-sm"
-                  style={{ height: `${(data.active / maxActive) * 100}%`, minHeight: '4px' }}
-                  title={`Active: ${data.active}`}
-                />
-                <div
-                  className="w-2 bg-emerald-400 rounded-sm"
-                  style={{ height: `${(data.resolved / maxResolved) * 100}%`, minHeight: '4px' }}
-                  title={`Resolved: ${data.resolved}`}
-                />
-              </div>
-              <span className="text-xs text-gray-400">{data.day}</span>
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 bg-amber-400 rounded-sm" />
-            <span>{t('uma.disputes.active')}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 bg-emerald-400 rounded-sm" />
-            <span>{t('uma.disputes.resolved')}</span>
+            <p className="text-xl font-semibold text-gray-900">
+              {totalValue > 0 ? `$${(totalValue / 1e6).toFixed(2)}M` : '-'}
+            </p>
           </div>
         </div>
       </div>
@@ -248,7 +199,7 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
           <div>
             <p className="text-xs text-gray-500 mb-1">{t('uma.disputes.avgResolutionTime')}</p>
             <p className="text-lg font-semibold text-gray-900">
-              {networkStats?.avgResolutionTime ? `${networkStats.avgResolutionTime}h` : '24h'}
+              {networkStats?.avgResolutionTime ? `${networkStats.avgResolutionTime}h` : '-'}
             </p>
           </div>
           <div>
@@ -258,12 +209,11 @@ export function UmaDisputesView({ disputes, networkStats, isLoading }: UmaDisput
           <div>
             <p className="text-xs text-gray-500 mb-1">{t('uma.disputes.avgStake')}</p>
             <p className="text-lg font-semibold text-gray-900">
-              $
               {disputes.length > 0
-                ? Math.round(
+                ? `$${Math.round(
                     disputes.reduce((sum, d) => sum + d.stakeAmount, 0) / disputes.length
-                  ).toLocaleString()
-                : '0'}
+                  ).toLocaleString()}`
+                : '-'}
             </p>
           </div>
         </div>

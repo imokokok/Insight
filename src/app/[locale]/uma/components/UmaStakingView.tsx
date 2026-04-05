@@ -26,7 +26,6 @@ export function UmaStakingView({ validators, networkStats, isLoading }: UmaStaki
   const [validatorType, setValidatorType] = useState<'institution' | 'independent' | 'community'>(
     'institution'
   );
-  const [disputeFrequency, setDisputeFrequency] = useState<'low' | 'medium' | 'high'>('medium');
 
   const calculateRewards = useCallback(() => {
     const baseAprMap = {
@@ -35,17 +34,9 @@ export function UmaStakingView({ validators, networkStats, isLoading }: UmaStaki
       community: 0.12,
     };
 
-    const disputeBonusMap = {
-      low: 0,
-      medium: 0.02,
-      high: 0.05,
-    };
-
     const baseApr = baseAprMap[validatorType];
-    const disputeBonus = disputeBonusMap[disputeFrequency];
-    const totalApr = baseApr + disputeBonus;
 
-    const yearlyReward = stakeAmount * totalApr;
+    const yearlyReward = stakeAmount * baseApr;
     const monthlyReward = yearlyReward / 12;
     const dailyReward = yearlyReward / 365;
 
@@ -53,12 +44,13 @@ export function UmaStakingView({ validators, networkStats, isLoading }: UmaStaki
       dailyReward,
       monthlyReward,
       yearlyReward,
-      apr: totalApr * 100,
+      apr: baseApr * 100,
     };
-  }, [stakeAmount, validatorType, disputeFrequency]);
+  }, [stakeAmount, validatorType]);
 
   const rewards = calculateRewards();
-  const totalStaked = networkStats?.totalStaked ?? 25000000;
+  const totalStaked = networkStats?.totalStaked ?? 0;
+  const activeValidators = networkStats?.activeValidators ?? validators.length;
 
   return (
     <div className="space-y-8">
@@ -69,7 +61,7 @@ export function UmaStakingView({ validators, networkStats, isLoading }: UmaStaki
           <h3 className="text-base font-semibold text-gray-900">{t('uma.staking.calculator')}</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Stake Amount */}
           <div>
             <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2">
@@ -103,23 +95,6 @@ export function UmaStakingView({ validators, networkStats, isLoading }: UmaStaki
               <option value="institution">{t('uma.staking.institution')}</option>
               <option value="independent">{t('uma.staking.independent')}</option>
               <option value="community">{t('uma.staking.community')}</option>
-            </select>
-          </div>
-
-          {/* Dispute Frequency */}
-          <div>
-            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2">
-              <BarChart3 className="w-4 h-4 text-gray-400" />
-              {t('uma.staking.disputeFrequency')}
-            </label>
-            <select
-              value={disputeFrequency}
-              onChange={(e) => setDisputeFrequency(e.target.value as typeof disputeFrequency)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 bg-white"
-            >
-              <option value="low">{t('uma.staking.low')}</option>
-              <option value="medium">{t('uma.staking.medium')}</option>
-              <option value="high">{t('uma.staking.high')}</option>
             </select>
           </div>
         </div>
@@ -168,55 +143,6 @@ export function UmaStakingView({ validators, networkStats, isLoading }: UmaStaki
       {/* Divider */}
       <div className="border-t border-gray-200" />
 
-      {/* APR Comparison - 进度条形式 */}
-      <section>
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart3 className="w-5 h-5 text-red-500" />
-          <h3 className="text-base font-semibold text-gray-900">
-            {t('uma.staking.aprComparison')}
-          </h3>
-        </div>
-        <div className="space-y-3">
-          {[
-            {
-              type: 'institution',
-              label: t('uma.staking.institution'),
-              apr: 8.0,
-              color: 'bg-blue-500',
-            },
-            {
-              type: 'independent',
-              label: t('uma.staking.independent'),
-              apr: 10.0,
-              color: 'bg-purple-500',
-            },
-            {
-              type: 'community',
-              label: t('uma.staking.community'),
-              apr: 12.0,
-              color: 'bg-red-500',
-            },
-          ].map((item) => (
-            <div key={item.type} className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 w-24">{item.label}</span>
-              <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${item.color} rounded-full transition-all duration-500`}
-                  style={{ width: `${(item.apr / 15) * 100}%` }}
-                />
-              </div>
-              <span className="text-sm font-semibold text-gray-900 w-16 text-right">
-                {item.apr}%
-              </span>
-            </div>
-          ))}
-        </div>
-        <p className="text-xs text-gray-500 mt-3">{t('uma.staking.aprNote')}</p>
-      </section>
-
-      {/* Divider */}
-      <div className="border-t border-gray-200" />
-
       {/* Network Staking Stats - 内联展示 */}
       <section>
         <div className="flex items-center gap-2 mb-4">
@@ -228,14 +154,16 @@ export function UmaStakingView({ validators, networkStats, isLoading }: UmaStaki
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
               {t('uma.staking.totalStaked')}
             </p>
-            <p className="text-lg font-bold text-gray-900">${(totalStaked / 1e6).toFixed(2)}M</p>
+            <p className="text-lg font-bold text-gray-900">
+              {totalStaked > 0 ? `$${(totalStaked / 1e6).toFixed(2)}M` : '-'}
+            </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
               {t('uma.staking.activeValidators')}
             </p>
             <p className="text-lg font-bold text-gray-900">
-              {networkStats?.activeValidators ?? 850}
+              {activeValidators > 0 ? activeValidators : '-'}
             </p>
           </div>
           <div>
@@ -243,14 +171,16 @@ export function UmaStakingView({ validators, networkStats, isLoading }: UmaStaki
               {t('uma.staking.avgStakePerValidator')}
             </p>
             <p className="text-lg font-bold text-gray-900">
-              ${(totalStaked / (networkStats?.activeValidators ?? 850) / 1e3).toFixed(1)}K
+              {totalStaked > 0 && activeValidators > 0
+                ? `$${(totalStaked / activeValidators / 1e3).toFixed(1)}K`
+                : '-'}
             </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
               {t('uma.staking.networkApr')}
             </p>
-            <p className="text-lg font-bold text-emerald-600">8.5%</p>
+            <p className="text-lg font-bold text-emerald-600">-</p>
           </div>
         </div>
       </section>
