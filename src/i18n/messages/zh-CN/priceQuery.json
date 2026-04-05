@@ -5,72 +5,127 @@
   "priceQuery": {
     "title": "价格查询",
     "description": "查询多个预言机和区块链的实时价格数据",
-    "loading": "加载中",
+    "loading": "加载中...",
     "loadingData": "加载数据中...",
     "query": "查询",
     "querying": "正在查询...",
     "noResults": {
-      "title": "未找到 {symbol} 的结果",
-      "description": "所选条件下没有可用的价格数据",
-      "suggestion": "尝试调整您的预言机、区块链或币种选择",
-      "popularTokens": "热门代币"
+      "title": "未找到 \"{symbol}\" 的价格数据",
+      "description": "该币种可能不存在或暂未被任何预言机支持",
+      "suggestion": "请检查币种代码或尝试搜索下方的热门币种",
+      "popularTokens": "热门币种"
     },
     "results": {
-      "title": "结果",
+      "title": "价格查询结果",
       "count": "{count} 条结果",
-      "empty": "没有要显示的结果",
+      "empty": "请选择预言机和区块链进行查询",
+      "filterPlaceholder": "筛选结果...",
+      "oracle": "预言机",
+      "blockchain": "区块链",
+      "price": "价格",
+      "deviation": "偏离度",
+      "timestamp": "时间戳",
+      "dataSource": "数据来源",
+      "noMatchingData": "没有匹配的数据",
+      "showing": "显示 {filtered} / {total} 条结果",
+      "tableLabel": "价格查询结果表格",
+      "sortAscending": "升序排列",
+      "sortDescending": "降序排列",
+      "resultsCount": "条结果",
+      "showFilters": "显示筛选",
+      "hideFilters": "隐藏筛选",
+      "filterLabel": "筛选结果",
       "table": {
         "oracle": "预言机",
         "blockchain": "区块链",
         "price": "价格",
+        "timestamp": "时间戳",
         "change24h": "24小时涨跌",
-        "freshness": "新鲜度",
+        "freshness": "数据新鲜度",
         "confidence": "置信度",
-        "source": "来源"
+        "dataSource": "数据来源"
+      },
+      "dataSources": {
+        "real": "实时",
+        "mock": "模拟",
+        "api": "API",
+        "fallback": "回退"
+      },
+      "oracleFeatures": {
+        "chainlink": "多链",
+        "band": "跨链",
+        "uma": "Optimistic",
+        "pyth": "低延迟",
+        "api3": "第一方",
+        "redstone": "模块化",
+        "dia": "开源",
+        "tellor": "去中心化",
+        "chronicle": "MakerDAO",
+        "winklink": "TRON生态"
+      },
+      "qualityScore": {
+        "excellent": "优秀",
+        "good": "良好",
+        "warning": "警告",
+        "critical": "异常"
       }
     },
     "subtitle": "查询多个预言机和区块链的实时价格数据",
     "filter": {
-      "placeholder": "筛选结果...",
-      "noResults": "没有匹配筛选条件的结果"
+      "placeholder": "搜索预言机或区块链...",
+      "results": "显示 {count} / {total} 条结果",
+      "noResults": "未找到匹配的结果"
     },
     "pagination": {
       "perPage": "每页",
       "items": "条",
+      "total": "共 {count} 条",
       "prevPage": "上一页",
       "nextPage": "下一页"
     },
     "selectors": {
-      "symbol": "币种",
+      "symbol": "交易对",
       "oracle": "预言机",
       "blockchain": "区块链",
       "timeRange": "时间范围",
       "selectAll": "全选",
-      "deselectAll": "取消全选",
+      "deselectAll": "取消",
       "advancedOptions": "高级选项",
       "compareMode": "对比模式",
       "showBaseline": "显示基准线",
-      "compareTime": "对比时间"
+      "compareTime": "对比时间",
+      "panelLabel": "价格查询选择器",
+      "symbolLabel": "选择交易对",
+      "oracleLabel": "选择预言机",
+      "blockchainLabel": "选择区块链",
+      "timeRangeLabel": "选择时间范围",
+      "compareTimeLabel": "选择对比时间范围",
+      "compareModeDesc": "启用后可对比两个时间段的价格",
+      "baselineDesc": "在图表上显示平均价格基准线",
+      "symbolNotSupported": "该币种暂不被支持",
+      "singleOracleNotSupport": "{oracle} 不支持 {symbol}",
+      "multipleOraclesNotSupport": "以下预言机不支持 {symbol}: {oracles}",
+      "selectOracle": "选择预言机",
+      "selectBlockchain": "选择区块链"
     },
     "stats": {
       "avgPrice": "平均价格",
-      "change24h": "24小时涨跌",
-      "volatility": "波动率",
-      "annualized": "年化",
-      "dataPoints": "数据点数",
       "maxPrice": "最高价格",
       "minPrice": "最低价格",
       "priceRange": "价格区间",
       "standardDeviation": "标准差",
+      "dataPoints": "数据点数",
+      "consistencyRating": "一致性评级",
       "absoluteValue": "绝对值",
+      "maxDifference": "最大差异",
+      "avgDifference": "平均差异",
       "queryDuration": "查询耗时",
+      "change24h": "24小时涨跌",
+      "volatility": "波动率",
+      "annualized": "年化",
       "compare": "对比",
-      "consistency": {
-        "excellent": "最优",
-        "good": "正常",
-        "fair": "次优",
-        "poor": "临界"
-      }
+      "collapse": "收起",
+      "expand": "查看更多"
     },
     "export": {
       "header": "价格查询导出",
@@ -183,10 +238,7 @@
         "hour": "小时",
         "day": "天"
       },
-      "timeRange": {
-        "label": "时间范围",
-        "all": "全部"
-      },
+      "timeRange": "时间范围",
       "timeComparison": {
         "title": "时间对比",
         "period1": "时间段 1",
@@ -205,8 +257,7 @@
       "show": "显示",
       "hide": "隐藏",
       "avgPrice": "平均价格",
-      "dataPoints": "数据点数",
-      "timeRange": "时间范围"
+      "dataPoints": "数据点数"
     },
     "charts": {
       "priceHistory": "价格历史",
@@ -250,126 +301,6 @@
       "chainlinkDesc": "去中心化预言机网络"
     },
     "scrollHint": "← 左右滑动查看更多 →",
-    "filter": {
-      "placeholder": "搜索预言机或区块链...",
-      "results": "显示 {count} / {total} 条结果",
-      "noResults": "未找到匹配的结果"
-    },
-    "noResults": {
-      "title": "未找到 \"{symbol}\" 的价格数据",
-      "description": "该币种可能不存在或暂未被任何预言机支持",
-      "suggestion": "请检查币种代码或尝试搜索下方的热门币种",
-      "popularTokens": "热门币种"
-    },
-    "selectors": {
-      "symbol": "交易对",
-      "oracle": "预言机",
-      "blockchain": "区块链",
-      "timeRange": "时间范围",
-      "selectAll": "全选",
-      "deselectAll": "取消",
-      "advancedOptions": "高级选项",
-      "compareMode": "对比模式",
-      "showBaseline": "显示基准线",
-      "compareTime": "对比时间",
-      "panelLabel": "价格查询选择器",
-      "symbolLabel": "选择交易对",
-      "oracleLabel": "选择预言机",
-      "blockchainLabel": "选择区块链",
-      "timeRangeLabel": "选择时间范围",
-      "compareTimeLabel": "选择对比时间范围",
-      "compareModeDesc": "启用后可对比两个时间段的价格",
-      "baselineDesc": "在图表上显示平均价格基准线",
-      "symbolNotSupported": "该币种暂不被支持",
-      "singleOracleNotSupport": "{oracle} 不支持 {symbol}",
-      "multipleOraclesNotSupport": "以下预言机不支持 {symbol}: {oracles}",
-      "selectOracle": "选择预言机",
-      "selectBlockchain": "选择区块链"
-    },
-    "query": "查询",
-    "querying": "正在查询...",
-    "loading": "加载中...",
-    "pagination": {
-      "perPage": "每页",
-      "items": "条",
-      "total": "共 {count} 条",
-      "prevPage": "上一页",
-      "nextPage": "下一页"
-    },
-    "results": {
-      "title": "价格查询结果",
-      "count": "{count} 条结果",
-      "empty": "请选择预言机和区块链进行查询",
-      "filterPlaceholder": "筛选结果...",
-      "oracle": "预言机",
-      "blockchain": "区块链",
-      "price": "价格",
-      "deviation": "偏离度",
-      "timestamp": "时间戳",
-      "dataSource": "数据来源",
-      "noMatchingData": "没有匹配的数据",
-      "showing": "显示 {filtered} / {total} 条结果",
-      "tableLabel": "价格查询结果表格",
-      "sortAscending": "升序排列",
-      "sortDescending": "降序排列",
-      "resultsCount": "条结果",
-      "showFilters": "显示筛选",
-      "hideFilters": "隐藏筛选",
-      "filterLabel": "筛选结果",
-      "table": {
-        "oracle": "预言机",
-        "blockchain": "区块链",
-        "price": "价格",
-        "timestamp": "时间戳",
-        "change24h": "24小时涨跌",
-        "freshness": "数据新鲜度",
-        "confidence": "置信度",
-        "dataSource": "数据来源"
-      },
-      "dataSources": {
-        "real": "实时",
-        "mock": "模拟",
-        "api": "API",
-        "fallback": "回退"
-      },
-      "oracleFeatures": {
-        "chainlink": "多链",
-        "band": "跨链",
-        "uma": "Optimistic",
-        "pyth": "低延迟",
-        "api3": "第一方",
-        "redstone": "模块化",
-        "dia": "开源",
-        "tellor": "去中心化",
-        "chronicle": "MakerDAO",
-        "winklink": "TRON生态"
-      },
-      "qualityScore": {
-        "excellent": "优秀",
-        "good": "良好",
-        "warning": "警告",
-        "critical": "异常"
-      }
-    },
-    "stats": {
-      "avgPrice": "平均价格",
-      "maxPrice": "最高价格",
-      "minPrice": "最低价格",
-      "priceRange": "价格区间",
-      "standardDeviation": "标准差",
-      "dataPoints": "数据点数",
-      "consistencyRating": "一致性评级",
-      "absoluteValue": "绝对值",
-      "maxDifference": "最大差异",
-      "avgDifference": "平均差异",
-      "queryDuration": "查询耗时",
-      "change24h": "24小时涨跌",
-      "volatility": "波动率",
-      "annualized": "年化",
-      "compare": "对比",
-      "collapse": "收起",
-      "expand": "查看更多"
-    },
     "config": {
       "save": "保存配置",
       "load": "加载配置",

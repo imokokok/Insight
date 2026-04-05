@@ -449,19 +449,10 @@
     "export": "Export"
   },
   "timeRange": {
-    "1H": "1H",
-    "24H": "24H",
-    "7D": "7D",
-    "30D": "30D",
-    "90D": "90D",
-    "1Y": "1Y",
-    "ALL": "ALL"
-  },
-  "subtitle": "Decentralized Oracle Network Leader",
-  "timeRange": {
     "30d": "30 Days",
     "thisMonth": "This Month"
   },
+  "subtitle": "Decentralized Oracle Network Leader",
   "network": {
     "allRegions": "All Regions",
     "northAmerica": "North America",

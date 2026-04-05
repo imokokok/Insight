@@ -399,12 +399,12 @@
     "subtitleThisMonth": "This Month"
   },
   "keyboardShortcuts": {
-    "title": "Keyboard Shortcuts",
-    "press": "Press",
-    "forHelp": "for keyboard shortcuts",
     "1": "Market Share Chart",
     "2": "TVS Trend Chart",
     "3": "Chain Support Chart",
+    "title": "Keyboard Shortcuts",
+    "press": "Press",
+    "forHelp": "for keyboard shortcuts",
     "t": "Toggle Table/Chart",
     "r": "Refresh Data",
     "e": "Export Data",
